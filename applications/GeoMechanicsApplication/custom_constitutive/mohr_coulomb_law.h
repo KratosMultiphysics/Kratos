@@ -21,24 +21,24 @@ namespace Kratos
 {
 
 class ConstitutiveLawDimension;
-class CoulombWithTensionCutOffImpl;
+class CoulombImpl;
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombWithTensionCutOff : public ConstitutiveLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombLaw : public ConstitutiveLaw
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombWithTensionCutOff);
+    KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombLaw);
 
-    MohrCoulombWithTensionCutOff();
-    ~MohrCoulombWithTensionCutOff() override;
-    explicit MohrCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+    MohrCoulombLaw();
+    ~MohrCoulombLaw() override;
+    explicit MohrCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     // Copying is not allowed. Use member `Clone` instead.
-    MohrCoulombWithTensionCutOff(const MohrCoulombWithTensionCutOff&)            = delete;
-    MohrCoulombWithTensionCutOff& operator=(const MohrCoulombWithTensionCutOff&) = delete;
+    MohrCoulombLaw(const MohrCoulombLaw&)            = delete;
+    MohrCoulombLaw& operator=(const MohrCoulombLaw&) = delete;
 
     // Moving is supported
-    MohrCoulombWithTensionCutOff(MohrCoulombWithTensionCutOff&&) noexcept;
-    MohrCoulombWithTensionCutOff& operator=(MohrCoulombWithTensionCutOff&&) noexcept;
+    MohrCoulombLaw(MohrCoulombLaw&&) noexcept;
+    MohrCoulombLaw& operator=(MohrCoulombLaw&&) noexcept;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
     SizeType                               WorkingSpaceDimension() override;
@@ -68,7 +68,7 @@ private:
     Vector                                    mStressVector;
     Vector                                    mStressVectorFinalized;
     Vector                                    mStrainVectorFinalized;
-    std::unique_ptr<CoulombWithTensionCutOffImpl> mCoulombWithTensionCutOffImpl;
+    std::unique_ptr<CoulombImpl> mCoulombImpl;
     bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
@@ -76,6 +76,6 @@ private:
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
-}; // Class MohrCoulombWithTensionCutOff
+}; // Class MohrCoulombLaw
 
 } // namespace Kratos

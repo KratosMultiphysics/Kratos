@@ -22,24 +22,24 @@ namespace Kratos
 {
 
 class ConstitutiveLawDimension;
-class CoulombWithTensionCutOffImpl;
+class CoulombImpl;
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceCoulombWithTensionCutOff : public ConstitutiveLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceCoulombLaw : public ConstitutiveLaw
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(InterfaceCoulombWithTensionCutOff);
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceCoulombLaw);
 
-    InterfaceCoulombWithTensionCutOff();
-    ~InterfaceCoulombWithTensionCutOff() override;
-    explicit InterfaceCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+    InterfaceCoulombLaw();
+    ~InterfaceCoulombLaw() override;
+    explicit InterfaceCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     // Copying is not allowed. Use member `Clone` instead.
-    InterfaceCoulombWithTensionCutOff(const InterfaceCoulombWithTensionCutOff&)            = delete;
-    InterfaceCoulombWithTensionCutOff& operator=(const InterfaceCoulombWithTensionCutOff&) = delete;
+    InterfaceCoulombLaw(const InterfaceCoulombLaw&)            = delete;
+    InterfaceCoulombLaw& operator=(const InterfaceCoulombLaw&) = delete;
 
     // Moving is supported
-    InterfaceCoulombWithTensionCutOff(InterfaceCoulombWithTensionCutOff&&) noexcept;
-    InterfaceCoulombWithTensionCutOff& operator=(InterfaceCoulombWithTensionCutOff&&) noexcept;
+    InterfaceCoulombLaw(InterfaceCoulombLaw&&) noexcept;
+    InterfaceCoulombLaw& operator=(InterfaceCoulombLaw&&) noexcept;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
     SizeType                               WorkingSpaceDimension() override;
@@ -72,7 +72,7 @@ private:
     Vector                                    mTractionVector;
     Vector                                    mTractionVectorFinalized;
     Vector                                    mRelativeDisplacementVectorFinalized;
-    std::unique_ptr<CoulombWithTensionCutOffImpl>              mCoulombWithTensionCutOffImpl;
+    std::unique_ptr<CoulombImpl>              mCoulombWithTensionCutOffImpl;
     bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Geo::SigmaTau CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
@@ -82,6 +82,6 @@ private:
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
-}; // Class InterfaceMohrCoulombWithTensionCutOff
+}; // Class InterfaceMohrCoulomb
 
 } // namespace Kratos

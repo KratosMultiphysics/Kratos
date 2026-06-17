@@ -1,6 +1,7 @@
 from typing import Dict, Any
 import sys,os
 import math
+import csv
 
 sys.path.append(os.path.join('..','..','..'))
 
@@ -10,6 +11,15 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
+
+
+# The following default tolerance values for assertions are identical to the values defined in `test_utilities.h`
+default_absolute_tolerance_for_assertions = 1.0e-12
+default_relative_tolerance_for_assertions = 1.0e-06
+
+
+def calculate_delta(expected_value, absolute_tolerance=default_absolute_tolerance_for_assertions, relative_tolerance=default_relative_tolerance_for_assertions):
+    return max(absolute_tolerance, relative_tolerance * abs(expected_value))
 
 
 def get_file_path(filename):
@@ -46,6 +56,32 @@ def run_kratos(file_path, model=None):
     os.chdir(cwd)
     return simulation
 
+def _make_key(row, key_field_names):
+    if len(key_field_names) == 1:
+        return int(row[key_field_names[0]])
+    return tuple(int(row[field_name]) for field_name in key_field_names)
+
+def get_values_from_csv(csv_filepath, key_field_names, value_field_names):
+    with open(csv_filepath, newline = "") as csv_file:
+        reader = csv.DictReader(csv_file)
+        return {
+            _make_key(row, key_field_names):
+                {field_name: float(row[field_name]) for field_name in value_field_names}
+            for row in reader
+        }
+
+def get_values_from_csv_as_vectors(csv_filepath, key_field_names, value_field_names):
+    return {key: [row[field_name] for field_name in value_field_names]
+            for key, row in get_values_from_csv(csv_filepath, key_field_names, value_field_names).items()}
+
+def get_values_from_csv_grouped(csv_filepath, grouping_key_field_name, entry_key_field_names, value_field_names):
+    grouped_results = {}
+    combined = get_values_from_csv(csv_filepath, grouping_key_field_name + entry_key_field_names, value_field_names)
+    for key, values in combined.items():
+        group_key = key[0] if isinstance(key, tuple) else key
+        entry_key = key[1:] if isinstance(key, tuple) else ()
+        grouped_results.setdefault(group_key, {})[entry_key] = [values[v] for v in value_field_names]
+    return grouped_results
 
 def get_displacement(simulation):
     """
@@ -281,6 +317,27 @@ def get_bending_moments(simulation):
     """
     return get_on_integration_points(simulation, KratosStructural.BENDING_MOMENT)
 
+
+def get_nodal_values_from_json_output(json_output, result_item_label, node_ids, index=0):
+    return [json_output[f"NODE_{node_id}"][result_item_label][index] for node_id in node_ids]
+
+
+def get_bending_moments_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "BENDING_MOMENT", node_ids)
+
+
+def get_shear_forces_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "SHEAR_FORCE", node_ids)
+
+
+def get_normal_forces_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "AXIAL_FORCE", node_ids)
+
+
+def get_total_displacement_x_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "TOTAL_DISPLACEMENT_X", node_ids)
+
+
 def compute_distance(point1, point2):
     """
     Computes distance between 2 points in a 2D space
@@ -310,7 +367,6 @@ def find_closest_index_greater_than_value(input_list, value):
             return index
     return None
 
-
 def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
     """
     Checks whether two values are almost equal.
@@ -337,7 +393,7 @@ def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1
         raise TypeError(f"Unsupported type {type(expected)}")
 
 
-def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
+def are_iterables_almost_equal(expected, actual,
                                abs_tolerance: float = 1e-7) -> bool:
     """
     Checks whether two iterables are almost equal.
