@@ -5,7 +5,7 @@
             "properties_id": 1,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -23,7 +23,7 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -33,7 +33,7 @@
             "properties_id": 2,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -51,7 +51,7 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -61,7 +61,7 @@
             "properties_id": 3,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -79,7 +79,7 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -89,7 +89,7 @@
             "properties_id": 4,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -107,7 +107,7 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -117,7 +117,7 @@
             "properties_id": 5,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -135,7 +135,7 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "GEO_COHESION": 0.0,
                     "GEO_FRICTION_ANGLE": 32.5,
-                    "GEO_TENSILE_STRENGTH": 0.0,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -145,7 +145,7 @@
             "properties_id": 6,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -163,7 +163,7 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "GEO_COHESION": 0.0,
                     "GEO_FRICTION_ANGLE": 32.5,
-                    "GEO_TENSILE_STRENGTH": 0.0,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -173,7 +173,7 @@
             "properties_id": 7,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -191,7 +191,7 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -201,7 +201,7 @@
             "properties_id": 8,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -219,7 +219,7 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -229,7 +229,7 @@
             "properties_id": 9,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -238,7 +238,7 @@
                     "GEO_COHESION": 1.44065e+03,
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -252,7 +252,7 @@
             "properties_id": 10,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -261,7 +261,7 @@
                     "GEO_COHESION": 1.44065e+03,
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -275,7 +275,7 @@
             "properties_id": 11,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -284,7 +284,7 @@
                     "GEO_COHESION": 0.0,
                     "GEO_FRICTION_ANGLE": 20.0,
                     "GEO_DILATANCY_ANGLE": 0.0,
-                    "GEO_TENSILE_STRENGTH": 0.0,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -298,7 +298,7 @@
             "properties_id": 12,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -307,7 +307,7 @@
                     "GEO_COHESION": 1.44065e+03,
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -321,7 +321,7 @@
             "properties_id": 13,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -330,7 +330,7 @@
                     "GEO_COHESION": 1.44065e+03,
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -344,7 +344,7 @@
             "properties_id": 14,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -353,7 +353,7 @@
                     "GEO_COHESION": 1.44065e+03,
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -367,7 +367,7 @@
             "properties_id": 15,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -376,7 +376,7 @@
                     "GEO_COHESION": 1.44065e+03,
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
-                    "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -390,7 +390,7 @@
             "properties_id": 16,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -399,7 +399,7 @@
                     "GEO_COHESION": 0.0,
                     "GEO_FRICTION_ANGLE": 20.0,
                     "GEO_DILATANCY_ANGLE": 0.0,
-                    "GEO_TENSILE_STRENGTH": 0.0,
+                    "GEO_ENABLE_TENSION_CUT_OFF": false,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,

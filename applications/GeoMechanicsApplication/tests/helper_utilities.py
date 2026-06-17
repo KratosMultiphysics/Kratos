@@ -12,7 +12,7 @@ NodalValue = Union[float, List[float]]
 NodalSeries = Dict[float, Dict[int, NodalValue]]
 
 
-def run_orchestrator(project_parameters: Kratos.Parameters) -> None:
+def run_orchestrator(project_parameters: Kratos.Parameters) -> Project:
     project = Project(project_parameters)
     orchestrator_reg_entry = Kratos.Registry[
         project.GetSettings()["orchestrator"]["name"].GetString()
@@ -21,6 +21,8 @@ def run_orchestrator(project_parameters: Kratos.Parameters) -> None:
     orchestrator_class = getattr(orchestrator_module, orchestrator_reg_entry["ClassName"])
     orchestrator_instance = orchestrator_class(project)
     orchestrator_instance.Run()
+
+    return project
 
 
 def _parse_gid_ascii_nodal_variable(filepath: Path, variable_name: str) -> NodalSeries:
