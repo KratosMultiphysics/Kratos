@@ -72,7 +72,7 @@ private:
     Vector                                    mTractionVector;
     Vector                                    mTractionVectorFinalized;
     Vector                                    mRelativeDisplacementVectorFinalized;
-    std::unique_ptr<CoulombImpl>              mCoulombWithTensionCutOffImpl;
+    std::unique_ptr<CoulombImpl>              mCoulombImpl;
     bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Geo::SigmaTau CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,

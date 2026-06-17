@@ -76,17 +76,17 @@ Geo::PrincipalStresses::AveragingType FindAveragingType(const Geo::PrincipalStre
 
 namespace Kratos
 {
-MohrCoulombLaw::MohrCoulombWithTensionCutOff()                          = default;
-MohrCoulombLaw::~MohrCoulombWithTensionCutOff()                         = default;
-MohrCoulombLaw::MohrCoulombWithTensionCutOff(MohrCoulombLaw&&) noexcept = default;
-MohrCoulombLaw& MohrCoulombLaw::operator=(MohrCoulombLaw&&) noexcept    = default;
+MohrCoulombLaw::MohrCoulombLaw()                                     = default;
+MohrCoulombLaw::~MohrCoulombLaw()                                    = default;
+MohrCoulombLaw::MohrCoulombLaw(MohrCoulombLaw&&) noexcept            = default;
+MohrCoulombLaw& MohrCoulombLaw::operator=(MohrCoulombLaw&&) noexcept = default;
 
 MohrCoulombLaw::MohrCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mStressVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mStressVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mStrainVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
-      mCoulombWithTensionCutOffImpl(std::make_unique<CoulombWithTensionCutOffImpl>())
+      mCoulombImpl(std::make_unique<CoulombImpl>())
 {
 }
 

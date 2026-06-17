@@ -26,21 +26,20 @@
 
 namespace Kratos
 {
-InterfaceCoulombLaw::InterfaceCoulombWithTensionCutOff() = default;
+InterfaceCoulombLaw::InterfaceCoulombLaw() = default;
 
-InterfaceCoulombLaw::~InterfaceCoulombWithTensionCutOff() = default;
+InterfaceCoulombLaw::~InterfaceCoulombLaw() = default;
 
 InterfaceCoulombLaw::InterfaceCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
-    InterfaceCoulombWithTensionCutOff::InterfaceCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mTractionVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mTractionVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
-      mCoulombWithTensionCutOffImpl(std::make_unique<CoulombWithTensionCutOffImpl>())
+      mCoulombImpl(std::make_unique<CoulombImpl>())
 {
 }
 
-InterfaceCoulombLaw::InterfaceCoulombWithTensionCutOff(InterfaceCoulombWithTensionCutOff&&) noexcept = default;
+InterfaceCoulombLaw::InterfaceCoulombLaw(InterfaceCoulombLaw&&) noexcept = default;
 
 InterfaceCoulombLaw& InterfaceCoulombLaw::operator=(InterfaceCoulombLaw&&) noexcept = default;
 
