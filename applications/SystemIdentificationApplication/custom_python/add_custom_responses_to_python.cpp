@@ -23,6 +23,7 @@
 #include "custom_responses/sensor_localization_response_utils.h"
 #include "custom_responses/sensor_isolation_response_utils.h"
 #include "custom_responses/sensor_inverse_distance_summation_response_utils.h"
+#include "custom_responses/sensor_resolution_matrix_response_utils.h"
 
 // Include base h
 #include "custom_python/add_custom_responses_to_python.h"
@@ -65,6 +66,20 @@ void AddCustomResponsesToPython(pybind11::module& m)
         .def("CalculateGradient", &SensorInverseDistanceSummationResponseUtils::CalculateGradient, py::arg("model_part"), py::arg("p"), py::arg("distance_matrix"))
         ;
 
+    py::class_<SensorResolutionMatrixResponseUtils, SensorResolutionMatrixResponseUtils::Pointer>(responses_module, "SensorResolutionMatrixResponseUtils")
+        .def(py::init<SensorMaskStatus::Pointer, const double, const double, const ModelPart&, const std::string&, const IndexType, const IndexType, const bool, const bool>(),
+            py::arg("sensor_mask_status"),
+            py::arg("step_size"),
+            py::arg("filter_radius"),
+            py::arg("model_part"),
+            py::arg("kernel_function_type"),
+            py::arg("max_items_in_bucket") = 10,
+            py::arg("echo_level") = 0,
+            py::arg("node_cloud_mesh") = false,
+            py::arg("store_filter_matrix") = true)
+        .def("CalculateValue", &SensorResolutionMatrixResponseUtils::CalculateValue)
+        .def("CalculateGradient", &SensorResolutionMatrixResponseUtils::CalculateGradient)
+        ;
 }
 
 } // namespace Kratos::Python
