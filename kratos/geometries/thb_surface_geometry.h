@@ -298,6 +298,28 @@ public:
         return mTruncationData[Level][FlatIndex];
     }
 
+    /// Evaluates THB shape functions at each parameter point in rUVValues.
+    /// rUVValues: (num_eval_pts × 2) matrix, column 0 = u, column 1 = v.
+    /// Returns a (num_eval_pts × num_active_cps) matrix; result(i,j) is the value
+    /// of the j-th active CP's basis function at rUVValues[i], zero if not in support.
+    Matrix EvaluateShapeFunctions(const Matrix& rUVValues) const
+    {
+        const SizeType num_eval_pts = rUVValues.size1();
+        const SizeType num_active_cps = this->PointsNumber();
+        Matrix result(num_eval_pts, num_active_cps, 0.0);
+
+        THBSurfaceShapeFunction shape_function_container(
+            PolynomialDegree(0), PolynomialDegree(1), 0);
+        for (SizeType i = 0; i < num_eval_pts; ++i) {
+            shape_function_container.ComputeShapeFunctionValues(
+                *this, rUVValues(i, 0), rUVValues(i, 1));
+            const auto& cp_indices = shape_function_container.ControlPointIndices();
+            for (SizeType j = 0; j < shape_function_container.NumberOfNonzeroControlPoints(); ++j)
+                result(i, cp_indices[j]) = shape_function_container(j, 0);
+        }
+        return result;
+    }
+
     /// Returns the finest level whose refinement domain contains (u, v), or 0 if none.
     SizeType ActiveLevelAtPoint(double u, double v) const
     {

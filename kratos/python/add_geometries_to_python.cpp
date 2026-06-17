@@ -573,6 +573,8 @@ void  AddGeometriesToPython(pybind11::module& m)
              py::arg("level"))
         .def("EliminateInactiveFunctions", &THBSurfaceGeometry3DType::EliminateInactiveFunctions,
              py::arg("model_part"))
+        .def("EvaluateShapeFunctions", &THBSurfaceGeometry3DType::EvaluateShapeFunctions,
+             py::arg("uv_values"))
         ;
 
     // THB-Spline curve geometry
