@@ -3055,7 +3055,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                     self.slack_variable_penalty *= slack_penalty_adaptation_factor
                 elif (min(self.slack_variable_residual/self.old_slack_variable_residual, 1.0) < 0.05):
                     self.slack_variable_penalty /= slack_penalty_adaptation_factor
-        self.slack_variable_penalty = np.clip(self.slack_variable_penalty, self.optimizer_max_slack_variable_penalty, self.optimizer_max_slack_variable_penalty)
+        self.slack_variable_penalty = np.clip(self.slack_variable_penalty, self.optimizer_min_slack_variable_penalty, self.optimizer_max_slack_variable_penalty)
         if (self.slack_variable_penalty > self.old_slack_variable_penalty):
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "|--> Increase Slack Varible Penalty. New value: " + str(self.slack_variable_penalty), min_echo=1)
         elif (self.slack_variable_penalty < self.old_slack_variable_penalty):
