@@ -58,7 +58,7 @@
 namespace Kratos::Python
 {
 
-void AddCustomProcessesToPython(pybind11::module& m)
+void AddCustomProcessesToPython(const pybind11::module& m)
 {
     namespace py = pybind11;
 

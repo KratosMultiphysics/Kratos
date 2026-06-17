@@ -65,7 +65,6 @@
             "number_cycles":                      1,
             "reduction_factor":                   0.5,
             "increase_factor":                    2.0,
-            "calculate_reactions":                true,
             "rotation_dofs":                      false,
             "linear_solver_settings":             {
                 "solver_type":         "LinearSolversApplication.sparse_lu"

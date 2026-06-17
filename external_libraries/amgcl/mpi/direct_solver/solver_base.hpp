@@ -128,7 +128,7 @@ class solver_base {
                     shift += counts[j];
                 }
 
-                MPI_Waitall(cnt_req.size(), &cnt_req[0], MPI_STATUSES_IGNORE);
+                MPI_Waitall(cnt_req.size(), cnt_req.data(), MPI_STATUSES_IGNORE);
 
                 A.set_nonzeros(A.scan_row_sizes());
 
@@ -150,8 +150,8 @@ class solver_base {
                     shift += nnz;
                 }
 
-                MPI_Waitall(col_req.size(), &col_req[0], MPI_STATUSES_IGNORE);
-                MPI_Waitall(val_req.size(), &val_req[0], MPI_STATUSES_IGNORE);
+                MPI_Waitall(col_req.size(), col_req.data(), MPI_STATUSES_IGNORE);
+                MPI_Waitall(val_req.size(), val_req.data(), MPI_STATUSES_IGNORE);
 
                 solver().init(masters_comm, A);
             } else {
@@ -227,7 +227,7 @@ class solver_base {
                     shift += counts[j++];
                 }
 
-                MPI_Waitall(solve_req.size(), &solve_req[0], MPI_STATUSES_IGNORE);
+                MPI_Waitall(solve_req.size(), solve_req.data(), MPI_STATUSES_IGNORE);
 
                 solver().solve(cons_f, cons_x);
 
@@ -240,10 +240,10 @@ class solver_base {
                     shift += counts[j++];
                 }
 
-                MPI_Waitall(solve_req.size(), &solve_req[0], MPI_STATUSES_IGNORE);
+                MPI_Waitall(solve_req.size(), solve_req.data(), MPI_STATUSES_IGNORE);
             } else {
-                MPI_Send(&host_v[0], n, T, group_master, rhs_tag, comm);
-                MPI_Recv(&host_v[0], n, T, group_master, sol_tag, comm, MPI_STATUS_IGNORE);
+                MPI_Send(host_v.data(), n, T, group_master, rhs_tag, comm);
+                MPI_Recv(host_v.data(), n, T, group_master, sol_tag, comm, MPI_STATUS_IGNORE);
             }
 
             backend::copy(host_v, x);
