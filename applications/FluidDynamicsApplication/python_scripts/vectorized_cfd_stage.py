@@ -479,16 +479,18 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.normals_wall_adaptor.CollectData()
         n_wall_geom = self.normals_wall_adaptor.data.shape[0]
         n_wall_int_pts = self.normals_wall_adaptor.data.shape[1]
+        print(self.normals_wall_adaptor.data.data.shape)
         self.normals_wall = self.normals_wall_adaptor.data.reshape((n_wall_geom, n_wall_int_pts, 3))
         self.normals_wall = xp.asarray(self.normals_wall[:,:,:self.dim], dtype=cfd_utils.PRECISION) # Drop third component in 2D
-        self.normals_wall = xp.squeeze(self.normals_wall, axis=1) # Drop integration point dimension (note that we are using a single integration point, so this is safe)
+        if(self.normals_wall_adaptor.data.shape[1]!=0):
+            self.normals_wall = xp.squeeze(self.normals_wall, axis=1) # Drop integration point dimension (note that we are using a single integration point, so this is safe)
 
         normals_wall_norms = xp.linalg.norm(self.normals_wall, axis=1, keepdims=True)
         self.unit_normals_wall = self.normals_wall / (normals_wall_norms + 1.0e-12) # avoid division by zero
 
         # Calculate the wall tangential projector (I - n⊗n) to be used in the wall condition
-        I = xp.eye(self.dim, dtype=cfd_utils.PRECISION)
-        self.wall_tangential_projector = I[None, :, :] - (self.unit_normals_wall[:, :, None] * self.unit_normals_wall[:, None, :])
+        #I = xp.eye(self.dim, dtype=cfd_utils.PRECISION)
+        #self.wall_tangential_projector = I[None, :, :] - (self.unit_normals_wall[:, :, None] * self.unit_normals_wall[:, None, :])
 
         # Declare boundary condition arrays
         self.fix_vel_indices = None
@@ -662,7 +664,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         pel = self.ElemData(p, self.connectivity, out=self.p_el)
         vel = self.ElemData(vold, self.connectivity, out=self.v_el)
         b_el = self.ElemData(b, self.connectivity, out=self.b_el)
-        v_el_wall = self.ElemData(vold, self.connectivity_wall, out=self.v_el_wall)
+        #v_el_wall = self.ElemData(vold, self.connectivity_wall, out=self.v_el_wall)
 
         # Compute convective projection
         t0 = time.perf_counter()
@@ -682,7 +684,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         t0 = time.perf_counter()
         k1 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
         self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN, self.tau_1, out=k1)
-        self.ComputeVelocityResidualWall(v_el_wall, out=k1)
+        #self.ComputeVelocityResidualWall(v_el_wall, out=k1)
         k1.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
         #print(f"k1 time: {time.perf_counter() - t0}")
 
@@ -694,11 +696,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         t_el_data = time.perf_counter()
         vel = self.ElemData(v2, self.connectivity, self.v_el)
-        v_el_wall = self.ElemData(v2, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v2, reusing pool array for output
+        #v_el_wall = self.ElemData(v2, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v2, reusing pool array for output
         t_k2_res = time.perf_counter()
         k2 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
         self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k2)
-        self.ComputeVelocityResidualWall(v_el_wall, out=k2)
+        #self.ComputeVelocityResidualWall(v_el_wall, out=k2)
         #print(f"\tk2 residual: {time.perf_counter() - t_k2_res}")
 
 
@@ -714,10 +716,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v3)
 
         vel = self.ElemData(v3, self.connectivity, self.v_el)
-        v_el_wall = self.ElemData(v3, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v3, reusing pool array for output
+        #v_el_wall = self.ElemData(v3, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v3, reusing pool array for output
         k3 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
         self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k3)
-        self.ComputeVelocityResidualWall(v_el_wall, out=k3)
+        #self.ComputeVelocityResidualWall(v_el_wall, out=k3)
         k3.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
         #print(f"k3 time: {time.perf_counter() - t0}")
         # --- k4 ---
@@ -727,10 +729,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold,v_dirichlet,1.0,v4)
 
         vel = self.ElemData(v4, self.connectivity, self.v_el)
-        v_el_wall = self.ElemData(v4, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v4, reusing pool array for output
+        #v_el_wall = self.ElemData(v4, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v4, reusing pool array for output
         k4 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
         self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k4)
-        self.ComputeVelocityResidualWall(v_el_wall, out=k4)
+        #self.ComputeVelocityResidualWall(v_el_wall, out=k4)
         k4.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
         #print(f"k4 time: {time.perf_counter() - t0}")
 
