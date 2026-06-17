@@ -10,7 +10,7 @@ from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils i
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetMaskStatusControllers
 from KratosMultiphysics.SystemIdentificationApplication.responses.sensor_resolution_matrix_response import SensorResolutionMatrixResponse
 
-class TestSensorLocalizationResponse(UnitTest.TestCase):
+class TestSensorResolutionMatrixResponse(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """

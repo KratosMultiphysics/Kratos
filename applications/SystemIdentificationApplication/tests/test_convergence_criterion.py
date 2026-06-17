@@ -86,7 +86,7 @@ class TestSensorErrorConvCriterion(UnitTest.TestCase):
                     "output_to_file" : false
                 }""")
         SetSensors(ComponentDataView("SensorModelPart", self.optimization_problem), self.sensors)
-        convergence_criterium = sensor_error.MaxSensorErrorCriterion(param, self.optimization_problem)
+        convergence_criterium = sensor_error.MaxSensorErrorCriterion(self.model, param, self.optimization_problem)
         convergence_criterium.Initialize()
         self.assertFalse(convergence_criterium.IsConverged())
         convergence_criterium.Finalize()
@@ -97,7 +97,7 @@ class TestSensorErrorConvCriterion(UnitTest.TestCase):
                     "tolerance"     : 1e-4,
                     "output_to_file" : false
                 }""")
-        convergence_criterium = sensor_error.MaxSensorErrorCriterion(param, self.optimization_problem)
+        convergence_criterium = sensor_error.MaxSensorErrorCriterion(self.model, param, self.optimization_problem)
         convergence_criterium.Initialize()
         self.assertTrue(convergence_criterium.IsConverged())
         convergence_criterium.Finalize()
