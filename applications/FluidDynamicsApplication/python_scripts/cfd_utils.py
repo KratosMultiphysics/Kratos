@@ -1071,14 +1071,14 @@ class CFDUtils:
         b,
         x0=None,
         atol=0.0,
-        rtol=1e-3,
+        rtol=1e-5,
         maxiter=200,
         M=None,
         callback=None,
         mixed_precision=True,
-        ref_interval=20,  # Continues to explicitly recalculate true residual every step
+        ref_interval=50,  #interval for exact residual calculation
         fallback_to_minres=True,
-        verbose=False,
+        verbose=True,
     ):
         """
         Robust preconditioned Conjugate Gradient solver.
@@ -1176,8 +1176,10 @@ class CFDUtils:
 
         # Standard CG Engine Loop
         def _run_cg_loop(current_x0, iterations_allocated):
+            # MODIFICATION 1: Safely allocate a zero vector if x0 is None instead of raising ValueError
             if current_x0 is None:
-                raise ValueError("x0 should be a vector")
+                x = _zero_like_b(acc_dtype)
+                r = b_acc.copy()
             else:
                 x = xp.asarray(current_x0, dtype=acc_dtype)
                 if _as_host_bool(xp.any(x)):
@@ -1188,14 +1190,18 @@ class CFDUtils:
 
             rho_prev = None
             p = None
+            
 
             for iteration in range(iterations_allocated):
                 if ref_interval is not None and ref_interval > 0 and iteration > 0 and iteration % ref_interval == 0:
                     Ax = xp.asarray(_matvec(A, x.astype(orig_dtype, copy=False)), dtype=acc_dtype)
                     r = b_acc - Ax
+                    # MODIFICATION 2: Clear search history to protect orthogonality after true residual modification
+                    rho_prev = None
 
                 r_norm = xp.linalg.norm(r)
                 if _as_host_bool(r_norm < threshold):
+                    print("CG converged in:",iteration," iterations, with norm:",r_norm)
                     return x, 0
 
                 z = xp.asarray(_psolve(M, r.astype(orig_dtype, copy=False)), dtype=acc_dtype)
@@ -1205,7 +1211,8 @@ class CFDUtils:
                     print("CG breakdown detected. rho_cur =", rho_cur)
                     return x, -2  # Breakdown signal
 
-                if iteration > 0:
+                # Adjusted logic condition to safely restart the recurrence tracking sequence
+                if iteration > 0 and rho_prev is not None:
                     beta = rho_cur / rho_prev
                     p = z + beta * p
                 else:
@@ -1227,6 +1234,8 @@ class CFDUtils:
                 if callback is not None:
                     callback(x.astype(orig_dtype, copy=False))
 
+            print("CG converged in:",iteration," iterations")
+
             r_norm = xp.linalg.norm(r)
             if _as_host_bool(r_norm < threshold):
                 return x, 0
@@ -1239,7 +1248,7 @@ class CFDUtils:
         x_res, info = _run_cg_loop(x0, maxiter)
 
         # Step 2: Handle breakdown by pivoting to MINRES with clean slates (x0=None, M=None)
-        if info < -1 and fallback_to_minres:
+        if (info < -1 or info == maxiter) and fallback_to_minres:
             print("falling back to minres")
             x_res, info = _run_native_minres_fallback()
 
