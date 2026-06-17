@@ -769,8 +769,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.pool.Release(grad_dp_el)
 
         # Update the fractional velocity with the pressure gradient contribution
-        v = xp.empty(vfrac.shape, dtype=cfd_utils.PRECISION) #TODO: can we allocate this once and reuse it?
-        v.ravel()[:] = vfrac.ravel() + (dt/self.rho) * self.Minv * grad_dp_nodal.ravel()
+        ##v = xp.empty(vfrac.shape, dtype=cfd_utils.PRECISION) #TODO: can we allocate this once and reuse it?
+        v.ravel()[:] = vfrac.ravel() + (0.5*dt/self.rho) * self.Minv * grad_dp_nodal.ravel()
         self.pool.Release(grad_dp_nodal)
 
         self.ApplyVelocitySlipConditions(v, self.normals)
@@ -807,8 +807,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         b_old = xp.asarray(self.b_adaptor_n.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
 
         # Get Dirichlet velocity values to be enforced
-        v_new_dirichlet = v.ravel()[self.fix_vel_indices]
-        v_old_dirichlet = vold.ravel()[self.fix_vel_indices]
+        v_new_dirichlet = (v.ravel()[self.fix_vel_indices]).copy()
+        v_old_dirichlet = (vold.ravel()[self.fix_vel_indices]).copy()
+
+        vold_backup = xp.empty_like(vold)
+        pold_backup = xp.empty_like(pold)
+        vnew = xp.empty_like(vold)
 
         # Perform substepping
         self.update_precond = True # Update preconditioner at the first substep
@@ -816,11 +820,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         while (self.time - current_time > 1.0e-12):
             ##
             backup_current_time = current_time
+            # Explicitly backup the state once per substep
+            vold_backup[:] = vold
+            pold_backup[:] = pold
+            #vnew[:] = vold
+            
             vmax = xp.max(xp.linalg.norm(vold, axis=1))
             repeat_step1 = True
 
             while(repeat_step1):
-                print("            =============================== ", self.time, current_time)
+                print(f"========== Next Kratos time: {self.time:.3e} current substep time: {current_time:.3e} vmax= {vmax:.3f} CFL= {self.cfl:.2f}")
                 # Compute convective operator spectral radius
                 rho_conv = self.ComputeElementalConvectiveOperatorSpectralRadius(vold, out=self.pool.Get(2, (nelem,))) #self.tmp_n_elem)
 
@@ -832,6 +841,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 n_substeps = math.ceil((self.time - current_time) / max_dt)
                 substep_dt = (self.time - current_time) / n_substeps
                 current_time += substep_dt
+                print(f"========== Substep dt: {substep_dt:.3e} - n_substeps left: {n_substeps} - % of step completion: {((current_time-self.time+self.dt)/self.dt*100.0):.1f}%")
 
                 # Compute current substep Dirichlet velocity and body force values
                 # Note that we assume a linear interpolation within the step
@@ -853,11 +863,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                     if(vmax_after_step1 > 1.25 * vmax):
                         print(f"----- Warning: local max velocity increased significantly after step 1: {vmax_after_step1} vs {vmax}")
                         repeat_step1 = True
+                        ##vold[:] = vold_backup #not needed as it is not modified in step1
+                        ##pold[:] = pold_backup 
                         self.cfl = self.cfl * 0.7 # reduce CFL and repeat step 1
                         current_time = backup_current_time # reset current time to before step 1 to repeat it with the new CFL
                     else:
                         repeat_step1 = False
-                        self.cfl = min(self.cfl*1.005, self.max_cfl) # increase CFL for next step if we are well below the limit
+                        self.cfl = min(self.cfl*1.05, self.max_cfl) # increase CFL for next step if we are well below the limit
                 else:
                     repeat_step1 = False
 
@@ -869,13 +881,25 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.step_2_total_time += time.perf_counter() - t2
 
             t3 = time.perf_counter()
-            vold = self.SolveStep3(vfrac, v_dirichlet, delta_p, substep_dt, out=vold) # Note that vnew is assigned to vold in here for the next substep
+            vnew = self.SolveStep3(vfrac, v_dirichlet, delta_p, substep_dt, out=vnew) # Note that vnew is assigned to vold in here for the next substep
             self.step_3_total_time += time.perf_counter() - t3
 
             # First time clear divergence
+            vmax_after_step3 = xp.max(xp.linalg.norm(vnew, axis=1))
             if self.clear_divergence_steps > 0:
                 self.clear_divergence_steps -= 1
                 p.fill(0.0)
+                pold.fill(0.0)
+            elif(vmax_after_step3 > 1.25 * vmax): #end of step velocity exploded! - redo full step
+                vnew[:] = vold_backup
+                p[:] = pold_backup
+                current_time = backup_current_time # reset current time to before step 3 to repeat it with the new CFL
+                self.cfl = self.cfl * 0.5 # reduce CFL and redo the step
+                print(f"-----****!!!! Warning: local max velocity increased significantly after step 3: {vmax_after_step3} vs {vmax}")
+            
+            #for the next substep
+            pold[:] = p 
+            vold [:] = vnew
 
             #self.outfile.write(str(current_time)+" " + str(np.linalg.norm(vold))+" "+str(np.linalg.norm(p))+"\n") #please do not remove this, it is used for testing purposes
 
@@ -1045,13 +1069,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
             #set a stricter tolerance during the clear divergence steps.
             if(self.clear_divergence_steps > 0):
-                precond = JacobiPreconditioner(self.L)
+                #precond = JacobiPreconditioner(self.L)
                 factor = 1e-6
                 exact_res_recalculation=1
+                self.preconditioner.update_matrix_values(self.L)
+                precond = self.preconditioner.aspreconditioner()
                 print("doing div cleareance step")
                 t0 = time.perf_counter()
-                #sol, status = cfd_utils.sparse_linalg.minres(self.L, rhs, x0=previous_p, tol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
-                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=1e-6, M=precond, ref_interval=exact_res_recalculation, maxiter=200)
+                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
+                #sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, ref_interval=50, maxiter=500)
+                print("status=",status)
             else:
                 t0 = time.perf_counter()
                 self.preconditioner.update_matrix_values(self.L)
@@ -1061,7 +1088,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 factor = 1.0
                 exact_res_recalculation=10                
                 t0 = time.perf_counter()
-                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=1e-6, M=precond, ref_interval=exact_res_recalculation, maxiter=self.pressure_max_iteration)
+                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=self.pressure_max_iteration)
+                #sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, ref_interval=50, maxiter=self.pressure_max_iteration)
             print(f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
             is_converged = status == 0 # Note that the status is 0 if the solver converged
             if not is_converged:
