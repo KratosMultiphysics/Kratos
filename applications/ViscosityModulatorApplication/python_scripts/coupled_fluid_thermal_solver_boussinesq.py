@@ -61,7 +61,7 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
             },
             {
                 "sub_model_part_name": "Outlet",
-                "condition_name": "ConsistentFluxBoundaryCondition"
+                "condition_name": "VmConsistentFluxBoundaryCondition"
             }
         ]
     }
@@ -311,7 +311,7 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
             "QSConvectionDiffusionExplicit",
             "DConvectionDiffusionExplicit",
             "AxisymmetricEulerianConvectionDiffusion",
-            "EulerianConvDiffShockCapturing"
+            "VmEulerianConvDiffShockCapturing"
         ]
 
         if element_name in generic_element_names:
@@ -326,11 +326,11 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
 
         domain_size = self._GetThermalDomainSize()
         generic_condition_names = [
-            "FluxCondition",
+            "VmFluxCondition",
             "ThermalFace",
             "AxisymmetricThermalFace",
             "LineCondition",
-            "ConsistentFluxBoundaryCondition"
+            "VmConsistentFluxBoundaryCondition"
         ]
 
         if condition_name in generic_condition_names:

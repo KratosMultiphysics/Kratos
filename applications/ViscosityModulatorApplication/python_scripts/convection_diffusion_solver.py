@@ -573,7 +573,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             self.main_model_part.CloneTimeStep(time)
 
     def _ConditionRequiresNeighbourElements(self, condition_name):
-        return condition_name.startswith("ConsistentFluxBoundaryCondition")
+        return condition_name.startswith("VmConsistentFluxBoundaryCondition")
 
     def _ValidateNeighbourElementAssignmentForCondition(self, condition_name, condition_origin):
         assign_neighbour_elements = self.settings["assign_neighbour_elements_to_conditions"].GetBool()
@@ -605,7 +605,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                         "QSConvectionDiffusionExplicit",
                         "DConvectionDiffusionExplicit",
                         "AxisymmetricEulerianConvectionDiffusion",
-                        "EulerianConvDiffShockCapturing"
+                        "VmEulerianConvDiffShockCapturing"
                         ]
         if element_name in element_list:
             num_nodes_elements = 0
@@ -623,7 +623,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
         # Conditions
         condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
-        condition_list = ["FluxCondition", "ThermalFace", "AxisymmetricThermalFace", "LineCondition", "ConsistentFluxBoundaryCondition"]
+        condition_list = ["VmFluxCondition", "ThermalFace", "AxisymmetricThermalFace", "LineCondition", "VmConsistentFluxBoundaryCondition"]
         if condition_name in condition_list:
             num_nodes_conditions = 0
             if (len(self.main_model_part.Conditions) > 0):

@@ -76,19 +76,24 @@ void KratosViscosityModulatorApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(REFERENCE_VELOCITY)
 
-    // Elements — registered under the same strings as ConvectionDiffusionApplication
-    KRATOS_REGISTER_ELEMENT("EulerianConvDiffShockCapturing2D3N", mEulerianConvDiffShockCapturing2D3N);
-    KRATOS_REGISTER_ELEMENT("EulerianConvDiffShockCapturing2D4N", mEulerianConvDiffShockCapturing2D4N);
-    KRATOS_REGISTER_ELEMENT("EulerianConvDiffShockCapturing3D4N", mEulerianConvDiffShockCapturing3D4N);
-    KRATOS_REGISTER_ELEMENT("EulerianConvDiffShockCapturing3D8N", mEulerianConvDiffShockCapturing3D8N);
+    // Elements — registered under Vm-prefixed strings so they do not collide
+    // with ConvectionDiffusionApplication's own element of the same base name
+    // when both applications are imported in the same process.
+    KRATOS_REGISTER_ELEMENT("VmEulerianConvDiffShockCapturing2D3N", mEulerianConvDiffShockCapturing2D3N);
+    KRATOS_REGISTER_ELEMENT("VmEulerianConvDiffShockCapturing2D4N", mEulerianConvDiffShockCapturing2D4N);
+    KRATOS_REGISTER_ELEMENT("VmEulerianConvDiffShockCapturing3D4N", mEulerianConvDiffShockCapturing3D4N);
+    KRATOS_REGISTER_ELEMENT("VmEulerianConvDiffShockCapturing3D8N", mEulerianConvDiffShockCapturing3D8N);
 
     // Conditions — registered under the same strings as ConvectionDiffusionApplication
-    KRATOS_REGISTER_CONDITION("FluxCondition2D2N", mFluxCondition2D2N);
-    KRATOS_REGISTER_CONDITION("FluxCondition3D3N", mFluxCondition3D3N);
-    KRATOS_REGISTER_CONDITION("FluxCondition3D4N", mFluxCondition3D4N);
-    KRATOS_REGISTER_CONDITION("ConsistentFluxBoundaryCondition2D2N", mConsistentFluxBoundaryCondition2D2N);
-    KRATOS_REGISTER_CONDITION("ConsistentFluxBoundaryCondition3D3N", mConsistentFluxBoundaryCondition3D3N);
-    KRATOS_REGISTER_CONDITION("ConsistentFluxBoundaryCondition3D4N", mConsistentFluxBoundaryCondition3D4N);
+    // Conditions — Vm-prefixed so they do not collide with
+    // ConvectionDiffusionApplication's own conditions of the same base name
+    // when both applications are imported in the same process.
+    KRATOS_REGISTER_CONDITION("VmFluxCondition2D2N", mFluxCondition2D2N);
+    KRATOS_REGISTER_CONDITION("VmFluxCondition3D3N", mFluxCondition3D3N);
+    KRATOS_REGISTER_CONDITION("VmFluxCondition3D4N", mFluxCondition3D4N);
+    KRATOS_REGISTER_CONDITION("VmConsistentFluxBoundaryCondition2D2N", mConsistentFluxBoundaryCondition2D2N);
+    KRATOS_REGISTER_CONDITION("VmConsistentFluxBoundaryCondition3D3N", mConsistentFluxBoundaryCondition3D3N);
+    KRATOS_REGISTER_CONDITION("VmConsistentFluxBoundaryCondition3D4N", mConsistentFluxBoundaryCondition3D4N);
 
 }
 
