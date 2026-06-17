@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "custom_constitutive/p_q.hpp"
+#include "custom_constitutive/p_q_theta.hpp"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "geo_aliases.h"

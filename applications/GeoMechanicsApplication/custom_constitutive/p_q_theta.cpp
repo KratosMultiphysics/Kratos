@@ -10,7 +10,7 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include "custom_constitutive/p_q.hpp"
+#include "custom_constitutive/p_q_theta.hpp"
 
 namespace Kratos::Geo
 {

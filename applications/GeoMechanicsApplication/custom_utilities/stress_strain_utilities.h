@@ -16,7 +16,7 @@
 #pragma once
 
 /* Project includes */
-#include "custom_constitutive/p_q.hpp"
+#include "custom_constitutive/p_q_theta.hpp"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "includes/constitutive_law.h"
 #include "includes/define.h"

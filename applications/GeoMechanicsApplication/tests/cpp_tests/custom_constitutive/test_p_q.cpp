@@ -10,7 +10,7 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include "custom_constitutive/p_q.hpp"
+#include "custom_constitutive/p_q_theta.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
