@@ -1135,6 +1135,7 @@ void UPwInterfaceElement::load(Serializer& rSerializer)
     rSerializer.load("OptionalPressureGeometry"s, mpOptionalPressureGeometry);
     auto contributions = std::vector<int>{};
     rSerializer.load("Contributions"s, contributions);
+    mContributions.clear();
     std::ranges::transform(contributions, std::back_inserter(mContributions), [](auto contribution) {
         return static_cast<CalculationContribution>(contribution);
     });
