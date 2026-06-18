@@ -8,7 +8,6 @@ import helper_utilities
 
 import argparse
 import csv
-import os
 from pathlib import Path
 import sys
 
@@ -119,6 +118,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
 
+        self.run_analysis_func = helper_utilities.run_orchestrator
+
         # The following attributes will be populated by the specific simulation runs
         self.analysis_type = None
         self.test_path = None
@@ -138,7 +139,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             with open(
                 Path("..") / ".." / "common" / f"{self.analysis_type}.json", "r"
             ) as analysis_file:
-                project = helper_utilities.run_multistage_analysis_with_intermediate_save_and_load(Kratos.Parameters(analysis_file.read()))
+                project = self.run_analysis_func(
+                    Kratos.Parameters(analysis_file.read())
+                )
 
         model = project.GetModel()
         sheet_pile_wall = model.GetModelPart("PorousDomain.Sheet_Pile_Wall")
@@ -511,6 +514,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.run_staged_construction_analysis_and_checks("linear_elastic")
 
     def test_staged_construction_with_mohr_coulomb_clay_sand(self):
+        self.run_staged_construction_analysis_and_checks("mohr_coulomb_clay-sand")
+
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_save_and_load(self):
+        self.run_analysis_func = (
+            helper_utilities.run_multistage_analysis_with_intermediate_save_and_load
+        )
         self.run_staged_construction_analysis_and_checks("mohr_coulomb_clay-sand")
 
 
