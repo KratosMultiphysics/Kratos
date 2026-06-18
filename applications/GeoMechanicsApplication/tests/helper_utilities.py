@@ -24,6 +24,17 @@ def run_orchestrator(project_parameters: Kratos.Parameters) -> Project:
 
     return project
 
+def set_checkpoint_to_load_from(orchestrator_settings, name_of_stage_to_load_from):
+    load_key = "load_from_checkpoint"
+    if name_of_stage_to_load_from:
+        folder_key = "stage_checkpoints_folder"
+        path_to_checkpoint = Path(orchestrator_settings[folder_key] if orchestrator_settings.Has(folder_key) else 'checkpoints') / name_of_stage_to_load_from
+        if orchestrator_settings.Has(load_key):
+            orchestrator_settings[load_key].SetString(f"{path_to_checkpoint}")
+        else:
+            orchestrator_settings.AddString(load_key, f"{path_to_checkpoint}")
+    elif orchestrator_settings.Has(load_key):
+        orchestrator_settings.RemoveValue(load_key)
 
 def run_multistage_analysis_with_intermediate_save_and_load(project_parameters) -> Project:
     names_of_stages_to_be_run = project_parameters["orchestrator"]["settings"]["execution_list"].GetStringArray()[:]
@@ -43,16 +54,10 @@ def run_multistage_analysis_with_intermediate_save_and_load(project_parameters) 
         orchestrator_instance = orchestrator_class(project)
         orchestrator_settings = project.GetSettings()["orchestrator"]["settings"]
 
-        if name_of_previous_stage:
-            if orchestrator_settings.Has("load_from_checkpoint"):
-                orchestrator_settings["load_from_checkpoint"].SetString(f"checkpoints/{name_of_previous_stage}")
-            else:
-                orchestrator_settings.AddString("load_from_checkpoint", f"checkpoints/{name_of_previous_stage}")
-        elif orchestrator_settings.Has("load_from_checkpoint"):
-            orchestrator_settings.RemoveValue("load_from_checkpoint")
-
+        set_checkpoint_to_load_from(orchestrator_settings, name_of_previous_stage)
         orchestrator_settings["execution_list"].SetStringArray([stage_name])
         orchestrator_settings["stage_checkpoints"].SetStringArray([stage_name])
+
         orchestrator_instance.Run()
 
         name_of_previous_stage = stage_name
