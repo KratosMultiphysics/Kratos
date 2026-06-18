@@ -935,23 +935,24 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
         return CheckResult::Fail;
     }
 
-    // Avoid conditions oriented in the same direction
+    // Check normal orientation - surfaces must face each other
     const auto& r_geometry_1 = pGeometricalObject1->GetGeometry();
     const auto& r_geometry_2 = pGeometricalObject2->GetGeometry();
 
     // Declare auxiliary coordinates
     GeometryType::CoordinatesArrayType aux_coords;
 
-    // Tolerance
-    const double tolerance = 1.0e-16 + mThisParameters["normal_orientation_threshold"].GetDouble();
-
-    // Getting normals
+    // Getting normals from geometry
     r_geometry_1.PointLocalCoordinates(aux_coords, r_geometry_1.Center());
     const array_1d<double, 3> normal_1 = r_geometry_1.UnitNormal(aux_coords);
     r_geometry_2.PointLocalCoordinates(aux_coords, r_geometry_2.Center());
     const array_1d<double, 3> normal_2 = r_geometry_2.UnitNormal(aux_coords);
-    if (norm_2(normal_1 - normal_2) < tolerance)
+
+    // Use the robust normal orientation check
+    const double normal_orientation_threshold = mThisParameters["normal_orientation_threshold"].GetDouble();
+    if (!CheckNormalOrientation(normal_1, normal_2, normal_orientation_threshold)) {
         return CheckResult::Fail;
+    }
 
     // To avoid to repeat twice the same condition
     if (pIndexesPairs->find(index_2) != pIndexesPairs->end()) {
@@ -976,26 +977,80 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
 {
     KRATOS_TRY
 
+    // Note: CheckGeometricalObject already performs normal orientation checking via CheckNormalOrientation
     if (CheckGeometricalObject(pIndexesPairs, pCond1, pCond2, InvertedSearch) == CheckResult::Fail) {
         return CheckResult::Fail;
     }
 
-    // Otherwise will not be necessary to check
+    // Bidirectional consistency check: reject if pair already exists in reverse
     if (this->IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE) || pCond2->Is(SLAVE) == !InvertedSearch) {
         auto p_indexes_pairs_2 = pCond2->GetValue(INDEX_MAP);
         if (p_indexes_pairs_2->find(pCond1->Id()) != p_indexes_pairs_2->end())
             return CheckResult::Fail;
     }
 
-    // Avoid conditions oriented in the same direction
-    const double tolerance = 1.0e-16 + mThisParameters["normal_orientation_threshold"].GetDouble();
-    if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < tolerance) {
-        return CheckResult::Fail;
-    }
+    // NOTE: Normal orientation check is NOT performed here again.
+    // The CheckGeometricalObject function already validates proper contact orientation
+    // using CheckNormalOrientation. Performing the check again with stored NORMAL values
+    // would be redundant and could produce inconsistent results due to different normal
+    // computation methods (geometry-based vs. nodal averaging).
 
     return CheckResult::OK;
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+inline bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckNormalOrientation(
+    const array_1d<double, 3>& rNormal1,
+    const array_1d<double, 3>& rNormal2,
+    const double NormalOrientationThreshold
+    )
+{
+    KRATOS_TRY
+
+    // Normalize both normals to ensure they are unit vectors
+    array_1d<double, 3> n1 = rNormal1;
+    array_1d<double, 3> n2 = rNormal2;
+    const double norm1 = norm_2(n1);
+    const double norm2 = norm_2(n2);
+
+    // Handle degenerate normals (zero length)
+    if (norm1 < ZeroTolerance || norm2 < ZeroTolerance) {
+        KRATOS_WARNING("CheckNormalOrientation") << "One or both normals are degenerate (zero length). Normals: " << rNormal1 << ", " << rNormal2 << std::endl;
+        return false;
+    }
+
+    n1 /= norm1;
+    n2 /= norm2;
+
+    // Compute the dot product of the two unit normals
+    // For unit vectors: dot(n1, n2) = cos(angle_between_them)
+    const double dot_product = inner_prod(n1, n2);
+
+    // For proper contact orientation, normals must point in roughly opposite directions.
+    // This means the angle between normals should be > 90 degrees (dot_product < 0).
+    //
+    // Dot product interpretation:
+    //   dot > 0  => angle < 90°  => normals point in similar directions => REJECT
+    //   dot = 0  => angle = 90°  => normals are perpendicular            => borderline
+    //   dot < 0  => angle > 90°  => normals point in opposite directions  => ACCEPT
+    //
+    // The threshold allows a configurable tolerance:
+    //   threshold =  0.0 => reject if angle <= 90° (strict)
+    //   threshold =  0.5 => reject if angle <= 60° (more permissive)
+    //   threshold = -1.0 => always accept (no filtering)
+    if (dot_product > NormalOrientationThreshold) {
+        return false; // Normals not properly opposed - surfaces not facing each other
+    }
+
+    return true; // Normals properly opposed - surfaces facing each other
+
+    KRATOS_CATCH("")
+    return false; // Should not reach here
 }
 
 /***********************************************************************************/
