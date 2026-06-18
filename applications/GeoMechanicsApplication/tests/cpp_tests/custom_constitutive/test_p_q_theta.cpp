@@ -43,7 +43,7 @@ TYPED_TEST(TestPQFixture, PQTheta_CanBeConstructedFromAnyVectorWithSizeOf3)
     auto initialization_vector = TypeParam(3);
     initialization_vector[0]   = 1.0;
     initialization_vector[1]   = 2.0;
-    initialization_vector[1]   = 3.0;
+    initialization_vector[2]   = 3.0;
 
     // Act
     const auto stress_state = Geo::PQTheta{initialization_vector};
