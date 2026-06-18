@@ -33,6 +33,10 @@
 #include "lobatto_integration_scheme.h"
 #include "lumped_integration_scheme.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace
 {
 
@@ -1105,16 +1109,16 @@ void UPwInterfaceElement::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
 
-    rSerializer.save("IntegrationScheme", mpIntegrationScheme);
-    rSerializer.save("StressStatePolicy", mpStressStatePolicy);
-    rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
-    rSerializer.save("RetentionLaws", mRetentionLaws);
-    rSerializer.save("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
-    rSerializer.save("OptionalPressureGeometry", mpOptionalPressureGeometry);
+    rSerializer.save("IntegrationScheme"s, mpIntegrationScheme);
+    rSerializer.save("StressStatePolicy"s, mpStressStatePolicy);
+    rSerializer.save("ConstitutiveLaws"s, mConstitutiveLaws);
+    rSerializer.save("RetentionLaws"s, mRetentionLaws);
+    rSerializer.save("IntegrationCoefficientsCalculator"s, mIntegrationCoefficientsCalculator);
+    rSerializer.save("OptionalPressureGeometry"s, mpOptionalPressureGeometry);
     auto contributions = std::vector<int>{};
     std::ranges::transform(mContributions, std::back_inserter(contributions),
                            [](auto contribution) { return static_cast<int>(contribution); });
-    rSerializer.save("Contributions", contributions);
+    rSerializer.save("Contributions"s, contributions);
 
     // No need to save data member `mfpCalculateRotationMatrix`, it can be reinitialized based on the geometry family
 }
@@ -1123,14 +1127,14 @@ void UPwInterfaceElement::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 
-    rSerializer.load("IntegrationScheme", mpIntegrationScheme);
-    rSerializer.load("StressStatePolicy", mpStressStatePolicy);
-    rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
-    rSerializer.load("RetentionLaws", mRetentionLaws);
-    rSerializer.load("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
-    rSerializer.load("OptionalPressureGeometry", mpOptionalPressureGeometry);
+    rSerializer.load("IntegrationScheme"s, mpIntegrationScheme);
+    rSerializer.load("StressStatePolicy"s, mpStressStatePolicy);
+    rSerializer.load("ConstitutiveLaws"s, mConstitutiveLaws);
+    rSerializer.load("RetentionLaws"s, mRetentionLaws);
+    rSerializer.load("IntegrationCoefficientsCalculator"s, mIntegrationCoefficientsCalculator);
+    rSerializer.load("OptionalPressureGeometry"s, mpOptionalPressureGeometry);
     auto contributions = std::vector<int>{};
-    rSerializer.load("Contributions", contributions);
+    rSerializer.load("Contributions"s, contributions);
     std::ranges::transform(contributions, std::back_inserter(mContributions), [](auto contribution) {
         return static_cast<CalculationContribution>(contribution);
     });

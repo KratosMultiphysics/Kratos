@@ -19,6 +19,7 @@
 #include "includes/serializer.h"
 
 #include <algorithm>
+#include <string>
 
 namespace Kratos
 {
@@ -341,14 +342,18 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
+        using namespace std::string_literals;
+
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
-        rSerializer.save("MidGeometry", mpMidGeometry);
+        rSerializer.save("MidGeometry"s, mpMidGeometry);
     }
 
     void load(Serializer& rSerializer) override
     {
+        using namespace std::string_literals;
+
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
-        rSerializer.load("MidGeometry", mpMidGeometry);
+        rSerializer.load("MidGeometry"s, mpMidGeometry);
 
         this->SetGeometryData(&mpMidGeometry->GetGeometryData());
     }
