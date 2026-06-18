@@ -104,7 +104,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def ApplyVelocityDirichletConditions(self, vold, v_end_of_step, dt_factor, v):
         v.ravel()[self.fix_vel_indices] = (1-dt_factor)*vold.ravel()[self.fix_vel_indices] + dt_factor*v_end_of_step
 
-    def ApplyVelocitySlipConditions(self, v, normals):
+    def ApplyVelocitySlipConditions(self, v, normals): #TODO: normalize normals only once
         # Get velocity and normal view of slip nodes
         n_slip_nodes = len(self.slip_node_ids)
         v_slip = v[self.slip_node_ids]
@@ -112,7 +112,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Check for zero normals and print corresponding indices
         normal_norms = xp.linalg.norm(n_unit, axis=1)
-        zero_normal_mask = (normal_norms < 1e-15)
+        if self.zero_normal_indices is None:
+            zero_normal_mask = (normal_norms < 1e-15)
+            self.zero_normal_indices = self.slip_node_ids[xp.where(zero_normal_mask)[0]]
 
         # Normalize normals (avoid division by zero)
         normal_norms_clipped = xp.maximum(normal_norms, 1e-15)
@@ -123,10 +125,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v[self.slip_node_ids] -= (v_dot_n[:,None] * n_unit)
 
         # Set velocity to zero at nodes with zero normal (i.e., treat them as no-slip)
-        if xp.any(zero_normal_mask):
-            zero_indices = xp.where(zero_normal_mask)
-            #print(f"WARNING: Zero normal found at slip node index {self.slip_node_ids[zero_indices]+1}")
-            v[zero_indices,:] = 0.0
+        v[self.zero_normal_indices,:] = 0.0
 
     def ComputeH(self,DN):
         return xp.mean(1.0 / xp.linalg.norm(DN, axis=2), axis=1)
@@ -496,6 +495,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.fix_vel_indices = None
         #self.slip_vel_indices = None
         self.slip_node_ids = None
+        self.zero_normal_indices = None
         self.fix_pres_indices = None
 
         # Declare boundary conditions masks
