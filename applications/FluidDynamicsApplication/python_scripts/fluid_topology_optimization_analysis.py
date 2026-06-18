@@ -1703,7 +1703,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.design_discretization_constraint_tolerance = self.min_max_design_discretization_constraint_tolerance[1] + (self.min_max_design_discretization_constraint_tolerance[0]-self.min_max_design_discretization_constraint_tolerance[1])*float(self.opt_it-self.min_max_design_discretization_constraint_tolerance_iterations[0])/float(self.min_max_design_discretization_constraint_tolerance_iterations[1]-self.min_max_design_discretization_constraint_tolerance_iterations[0])
         self.design_discretization_constraint = self.design_discretization_constraint_integral_value - self.design_discretization_constraint_tolerance
         self.constraints[self.design_discretization_constraint_id] = self.design_discretization_constraint
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Discretization Constraint")
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Design Discretization Constraint")
         self.constraints_derivatives_wrt_design[self.design_discretization_constraint_id,:] = self._ApplyDiffusiveFilterDerivative(design_discretization_constraint_derivatives_wrt_design_projected)
 
     def _EvaluateBrinkmanLeakageConstraintAndDerivative(self):
@@ -1741,7 +1741,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.brinkman_leakage_constraint_tolerance = self.min_max_brinkman_leakage_constraint_tolerance[1] + (self.min_max_brinkman_leakage_constraint_tolerance[0]-self.min_max_brinkman_leakage_constraint_tolerance[1])*float(self.opt_it-self.min_max_brinkman_leakage_constraint_tolerance_iterations[0])/float(self.min_max_brinkman_leakage_constraint_tolerance_iterations[1]-self.min_max_brinkman_leakage_constraint_tolerance_iterations[0])
         self.brinkman_leakage_constraint = self.brinkman_leakage_constraint_leakage_value - self.brinkman_leakage_constraint_tolerance
         self.constraints[self.brinkman_leakage_constraint_id] = self.brinkman_leakage_constraint
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Discretization Constraint")
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Brinkman Leakage Constraint")
         self.constraints_derivatives_wrt_design[self.brinkman_leakage_constraint_id,:] = self._ApplyDiffusiveFilterDerivative(brinkman_leakage_constraint_derivatives_wrt_design_projected)
 
     ## UTILS
