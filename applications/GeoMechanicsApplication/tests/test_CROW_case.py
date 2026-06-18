@@ -4,13 +4,13 @@ import KratosMultiphysics.json_utilities as json_utilities
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import unit_to_k_unit
 import test_helper
+import helper_utilities
 
 import argparse
 import csv
 import os
 from pathlib import Path
 import sys
-from helper_utilities import run_orchestrator
 
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
@@ -138,7 +138,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             with open(
                 Path("..") / ".." / "common" / f"{self.analysis_type}.json", "r"
             ) as analysis_file:
-                project = run_orchestrator(Kratos.Parameters(analysis_file.read()))
+                project = helper_utilities.run_multistage_analysis_with_intermediate_save_and_load(Kratos.Parameters(analysis_file.read()))
 
         model = project.GetModel()
         sheet_pile_wall = model.GetModelPart("PorousDomain.Sheet_Pile_Wall")

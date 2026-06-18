@@ -337,6 +337,9 @@ void CoulombImpl::save(Serializer& rSerializer) const
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.save("HasTensionCutOff", mTensionCutOff.has_value());
     if (mTensionCutOff.has_value()) rSerializer.save("TensionCutOff", *mTensionCutOff);
+    rSerializer.save("SavedKappaOfCoulombYieldSurface", mSavedKappaOfCoulombYieldSurface);
+    rSerializer.save("AbsoluteYieldFunctionValueTolerance", mAbsoluteYieldFunctionValueTolerance);
+    rSerializer.save("MaxNumberOfPlasticIterations", mMaxNumberOfPlasticIterations);
     rSerializer.save("PlasticityStatus", static_cast<int>(mPlasticityStatus));
 }
 
@@ -350,6 +353,9 @@ void CoulombImpl::load(Serializer& rSerializer)
         rSerializer.load("TensionCutoff", tension_cutoff);
         mTensionCutOff = std::make_optional(tension_cutoff);
     }
+    rSerializer.load("SavedKappaOfCoulombYieldSurface", mSavedKappaOfCoulombYieldSurface);
+    rSerializer.load("AbsoluteYieldFunctionValueTolerance", mAbsoluteYieldFunctionValueTolerance);
+    rSerializer.load("MaxNumberOfPlasticIterations", mMaxNumberOfPlasticIterations);
     int plasticity_status;
     rSerializer.load("PlasticityStatus", plasticity_status);
     mPlasticityStatus = static_cast<PlasticityStatus>(plasticity_status);
