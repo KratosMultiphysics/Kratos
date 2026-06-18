@@ -723,11 +723,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _InitializeOtherConstraints(self):
         # Set use the specific contraint to 'False' for all the custom implemented constraints
         self.use_wss_constraint = False
-        self.use_discretization_constraint = False
+        self.use_design_discretization_constraint = False
+        self.use_brinkman_leakage_constraint = False
         self.use_other_constraints = self.constraints_settings["use_other_constraints"].GetBool()
         if (self.use_other_constraints):
             self._InitializeWSSConstraint()
-            self._InitializeDiscretizationConstraint()
+            self._InitializeDesignDiscretizationConstraint()
+            self._InitializeBrinkmanLeakageConstraint()
 
     def _InitializeWSSConstraint(self):
         self.wss_constraint_settings = self.constraints_settings["other_constraints_list"]["WSS_constraint_settings"]
@@ -737,14 +739,25 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.n_optimization_constraints += 1
             self.wss_constraint_min_wss = self.wss_constraint_settings["min_WSS"].GetDouble()
 
-    def _InitializeDiscretizationConstraint(self):
-        self.discretization_constraint_settings = self.constraints_settings["other_constraints_list"]["discretization_constraint_settings"]
-        self.use_discretization_constraint = self.discretization_constraint_settings["use_discretization_constraint"].GetBool()
-        if (self.use_discretization_constraint):
-            self.discretization_constraint_id = self.n_optimization_constraints
+    def _InitializeDesignDiscretizationConstraint(self):
+        self.design_discretization_constraint_settings = self.constraints_settings["other_constraints_list"]["design_discretization_constraint_settings"]
+        self.use_design_discretization_constraint = self.design_discretization_constraint_settings["use_design_discretization_constraint"].GetBool()
+        if (self.use_design_discretization_constraint):
+            self.design_discretization_constraint_id = self.n_optimization_constraints
             self.n_optimization_constraints += 1
-            self.min_max_discretization_constraint_tolerance = [self.discretization_constraint_settings["min_max_discretization_tolerance"][0].GetDouble(), self.discretization_constraint_settings["min_max_discretization_tolerance"][1].GetDouble()]
-            self.min_max_discretization_constraint_tolerance_iterations = [self.discretization_constraint_settings["min_max_discretization_tolerance_iterations"][0].GetInt(), self.discretization_constraint_settings["min_max_discretization_tolerance_iterations"][1].GetInt()]
+            self.min_max_design_discretization_constraint_tolerance = [self.design_discretization_constraint_settings["min_max_discretization_tolerance"][0].GetDouble(), self.design_discretization_constraint_settings["min_max_discretization_tolerance"][1].GetDouble()]
+            self.min_max_design_discretization_constraint_tolerance_iterations = [self.design_discretization_constraint_settings["min_max_discretization_tolerance_iterations"][0].GetInt(), self.design_discretization_constraint_settings["min_max_discretization_tolerance_iterations"][1].GetInt()]
+
+    def _InitializeBrinkmanLeakageConstraint(self):
+        self.brinkman_leakage_constraint_settings = self.constraints_settings["other_constraints_list"]["brinkman_leakage_constraint_settings"]
+        self.use_brinkman_leakage_constraint = self.brinkman_leakage_constraint_settings["use_brinkman_leakage_constraint"].GetBool()
+        if (self.use_brinkman_leakage_constraint):
+            self.brinkman_leakage_constraint_id = self.n_optimization_constraints
+            self.n_optimization_constraints += 1
+            self.brinkman_leakage_constraint_reference_velocity = self.brinkman_leakage_constraint_settings["reference_velocity"].GetDouble()
+            self.min_max_brinkman_leakage_constraint_tolerance = [self.brinkman_leakage_constraint_settings["min_max_discretization_tolerance"][0].GetDouble(), self.brinkman_leakage_constraint_settings["min_max_discretization_tolerance"][1].GetDouble()]
+            self.min_max_brinkman_leakage_constraint_tolerance_iterations = [self.brinkman_leakage_constraint_settings["min_max_discretization_tolerance_iterations"][0].GetInt(), self.brinkman_leakage_constraint_settings["min_max_discretization_tolerance_iterations"][1].GetInt()]
+
 
     def _ResetConstraints(self):
         self.constraints = np.zeros((self.n_optimization_constraints,1))  
@@ -1481,8 +1494,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _EvaluateOtherConstraintsAndDerivatives(self):
         if (self.use_wss_constraint):
             self._EvaluateWSSConstraintAndDerivative()
-        if (self.use_discretization_constraint):
-            self._EvaluateDiscretizationConstraintAndDerivative()
+        if (self.use_design_discretization_constraint):
+            self._EvaluateDesignDiscretizationConstraintAndDerivative()
+        if (self.use_brinkman_leakage_constraint):
+            self._EvaluateBrinkmanLeakageConstraintAndDerivative()   
 
     def _EvaluateFunctionalAndDerivatives(self, print_functional=False):
         """
@@ -1666,30 +1681,68 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.wss_constraint = -1
             self.constraints[self.wss_constraint_id] = self.wss_constraint
 
-    def _EvaluateDiscretizationConstraintAndDerivative(self):
-        discretization_constraint_integral = 0.0
+    def _EvaluateDesignDiscretizationConstraintAndDerivative(self):
+        design_discretization_constraint_integral = 0.0
         integrand = self.design_parameter * (1.0-self.design_parameter)
         if self.IsMpiParallelism():
             local_integral = np.dot(integrand, self.nodal_optimization_domain_sizes)
             total_integral = self.data_communicator.SumAll(local_integral)
-            discretization_constraint_integral  = total_integral
+            design_discretization_constraint_integral  = total_integral
         else:
-            discretization_constraint_integral  = np.dot(integrand, self.nodal_optimization_domain_sizes)
-        discretization_constraint_derivatives_wrt_design_base = (1.0 - 2.0*self.design_parameter) * self.nodal_optimization_domain_sizes / self.optimization_domain_size
-        discretization_constraint_derivatives_wrt_design_projected = discretization_constraint_derivatives_wrt_design_base * self.design_parameter_projected_derivatives
+            design_discretization_constraint_integral  = np.dot(integrand, self.nodal_optimization_domain_sizes)
+        design_discretization_constraint_derivatives_wrt_design_base = (1.0 - 2.0*self.design_parameter) * self.nodal_optimization_domain_sizes / self.optimization_domain_size
+        design_discretization_constraint_derivatives_wrt_design_projected = design_discretization_constraint_derivatives_wrt_design_base * self.design_parameter_projected_derivatives
         if (self.constraints_derivatives_methodology == "continuous"):
-            discretization_constraint_derivatives_wrt_design_projected = discretization_constraint_derivatives_wrt_design_projected / self.nodal_optimization_domain_sizes
-        self.discretization_constraint_integral_value = discretization_constraint_integral / self.optimization_domain_size
-        if (self.opt_it < self.min_max_discretization_constraint_tolerance_iterations[0]):
-            self.discretization_constraint_tolerance = self.discretization_constraint_integral_value + 0.000001
-        elif (self.opt_it >= self.min_max_discretization_constraint_tolerance_iterations[1]):
-            self.discretization_constraint_tolerance = self.min_max_discretization_constraint_tolerance[0]
+            design_discretization_constraint_derivatives_wrt_design_projected = design_discretization_constraint_derivatives_wrt_design_projected / self.nodal_optimization_domain_sizes
+        self.design_discretization_constraint_integral_value = design_discretization_constraint_integral / self.optimization_domain_size
+        if (self.opt_it < self.min_max_design_discretization_constraint_tolerance_iterations[0]):
+            self.design_discretization_constraint_tolerance = self.design_discretization_constraint_integral_value + 0.000001
+        elif (self.opt_it >= self.min_max_design_discretization_constraint_tolerance_iterations[1]):
+            self.design_discretization_constraint_tolerance = self.min_max_design_discretization_constraint_tolerance[0]
         else:
-            self.discretization_constraint_tolerance = self.min_max_discretization_constraint_tolerance[1] + (self.min_max_discretization_constraint_tolerance[0]-self.min_max_discretization_constraint_tolerance[1])*float(self.opt_it-self.min_max_discretization_constraint_tolerance_iterations[0])/float(self.min_max_discretization_constraint_tolerance_iterations[1]-self.min_max_discretization_constraint_tolerance_iterations[0])
-        self.discretization_constraint = self.discretization_constraint_integral_value - self.discretization_constraint_tolerance
-        self.constraints[self.discretization_constraint_id] = self.discretization_constraint
+            self.design_discretization_constraint_tolerance = self.min_max_design_discretization_constraint_tolerance[1] + (self.min_max_design_discretization_constraint_tolerance[0]-self.min_max_design_discretization_constraint_tolerance[1])*float(self.opt_it-self.min_max_design_discretization_constraint_tolerance_iterations[0])/float(self.min_max_design_discretization_constraint_tolerance_iterations[1]-self.min_max_design_discretization_constraint_tolerance_iterations[0])
+        self.design_discretization_constraint = self.design_discretization_constraint_integral_value - self.design_discretization_constraint_tolerance
+        self.constraints[self.design_discretization_constraint_id] = self.design_discretization_constraint
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Discretization Constraint")
-        self.constraints_derivatives_wrt_design[self.discretization_constraint_id,:] = self._ApplyDiffusiveFilterDerivative(discretization_constraint_derivatives_wrt_design_projected)
+        self.constraints_derivatives_wrt_design[self.design_discretization_constraint_id,:] = self._ApplyDiffusiveFilterDerivative(design_discretization_constraint_derivatives_wrt_design_projected)
+
+    def _EvaluateBrinkmanLeakageConstraintAndDerivative(self):
+        brinkman_leakage_constraint_numerator_integral = 0.0
+        brinkman_leakage_constraint_denumerator_integral = 0.0
+        mp = self._GetPhysicsMainModelPart()
+        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        nodal_velocity_norm = np.linalg.norm(velocity, axis=1)
+        numerator_integrand = self.resistance * (nodal_velocity_norm**2)
+        denumerator_integrand = self.resistance * self.brinkman_leakage_constraint_reference_velocity**2
+        if self.IsMpiParallelism():
+            local_numerator_integrand = np.dot(numerator_integrand, self.nodal_optimization_domain_sizes)
+            total_numerator_integrand = self.data_communicator.SumAll(local_numerator_integrand)
+            brinkman_leakage_constraint_numerator_integral = total_numerator_integrand
+            local_denumerator_integrand = np.dot(denumerator_integrand, self.nodal_optimization_domain_sizes)
+            total_denumerator_integrand = self.data_communicator.SumAll(local_denumerator_integrand)
+            brinkman_leakage_constraint_denumerator_integral = total_denumerator_integrand
+        else:
+            brinkman_leakage_constraint_numerator_integral   = np.dot(numerator_integrand, self.nodal_optimization_domain_sizes)
+            brinkman_leakage_constraint_denumerator_integral = np.dot(denumerator_integrand, self.nodal_optimization_domain_sizes)
+        if (brinkman_leakage_constraint_denumerator_integral < 1e-10):
+            brinkman_leakage_constraint_derivatives_wrt_design_base = np.zeros(self.n_nodes)
+            self.brinkman_leakage_constraint_leakage_value = -1.0 * 1e-10
+        else:
+            brinkman_leakage_constraint_derivatives_wrt_design_base = self.resistance_derivative_wrt_design_base * ((nodal_velocity_norm**2)*brinkman_leakage_constraint_denumerator_integral - brinkman_leakage_constraint_numerator_integral*(self.brinkman_leakage_constraint_reference_velocity**2)) / (brinkman_leakage_constraint_denumerator_integral**2) * self.nodal_optimization_domain_sizes
+            self.brinkman_leakage_constraint_leakage_value = brinkman_leakage_constraint_numerator_integral / brinkman_leakage_constraint_denumerator_integral
+        brinkman_leakage_constraint_derivatives_wrt_design_projected = brinkman_leakage_constraint_derivatives_wrt_design_base * self.design_parameter_projected_derivatives
+        if (self.constraints_derivatives_methodology == "continuous"):
+            brinkman_leakage_constraint_derivatives_wrt_design_projected = brinkman_leakage_constraint_derivatives_wrt_design_projected / self.nodal_optimization_domain_sizes
+        if (self.opt_it < self.min_max_brinkman_leakage_constraint_tolerance_iterations[0]):
+            self.brinkman_leakage_constraint_tolerance = self.brinkman_leakage_constraint_leakage_value + 0.000000001
+        elif (self.opt_it >= self.min_max_brinkman_leakage_constraint_tolerance_iterations[1]):
+            self.brinkman_leakage_constraint_tolerance = self.min_max_brinkman_leakage_constraint_tolerance[0]
+        else:
+            self.brinkman_leakage_constraint_tolerance = self.min_max_brinkman_leakage_constraint_tolerance[1] + (self.min_max_brinkman_leakage_constraint_tolerance[0]-self.min_max_brinkman_leakage_constraint_tolerance[1])*float(self.opt_it-self.min_max_brinkman_leakage_constraint_tolerance_iterations[0])/float(self.min_max_brinkman_leakage_constraint_tolerance_iterations[1]-self.min_max_brinkman_leakage_constraint_tolerance_iterations[0])
+        self.brinkman_leakage_constraint = self.brinkman_leakage_constraint_leakage_value - self.brinkman_leakage_constraint_tolerance
+        self.constraints[self.brinkman_leakage_constraint_id] = self.brinkman_leakage_constraint
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Discretization Constraint")
+        self.constraints_derivatives_wrt_design[self.brinkman_leakage_constraint_id,:] = self._ApplyDiffusiveFilterDerivative(brinkman_leakage_constraint_derivatives_wrt_design_projected)
 
     ## UTILS
     def _SetTopologyOptimizationStage(self, problem_stage):
@@ -1888,8 +1941,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 file.write(str(self.volume_constraint))
                 if (self.use_wss_constraint):
                     file.write(" " + str(self.wss_constraint))
-                if (self.use_discretization_constraint):
-                    file.write(" " + str(self.discretization_constraint))
+                if (self.use_design_discretization_constraint):
+                    file.write(" " + str(self.design_discretization_constraint))
+                if (self.use_brinkman_leakage_constraint):
+                    file.write(" " + str(self.brinkman_leakage_constraint))
                 file.write("\n")
 
     def _PrintParametersToFile(self):
@@ -1953,8 +2008,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 header_str = "VOLUME"
                 if (self.use_wss_constraint):
                     header_str += " | WSS" 
-                if (self.use_discretization_constraint):
-                    header_str += " | DISCRETIZATION" 
+                if (self.use_design_discretization_constraint):
+                    header_str += " | DESIGN DISCRETIZATION" 
+                if (self.use_brinkman_leakage_constraint):
+                    header_str += " | BRINKMAN LEAKAGE"
                 file.write(header_str + "\n")
 
     def _InitializePrintParametersToFile(self):
@@ -1974,8 +2031,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _PrintOtherConstraints(self):
         if (self.use_wss_constraint):
             self._PrintWSSConstraint()
-        if (self.use_discretization_constraint):
-            self._PrintDiscretizationConstraint()
+        if (self.use_design_discretization_constraint):
+            self._PrintDesignDiscretizationConstraint()
+        if (self.use_brinkman_leakage_constraint):
+            self._PrintBrinkmanLeakageConstraint()
     
     def _PrintVolumeConstraint(self):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| VOLUME FRACTION: " + str(self.volume_fraction), min_echo=0)
@@ -1986,9 +2045,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         # self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Resistance: " + str(self.resistance_parameters["value_full"].GetDouble()), min_echo=0)
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Constraint: " + str(self.wss_constraint), min_echo=0)
 
-    def _PrintDiscretizationConstraint(self):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INTEGRAL VALUE: " + str(self.discretization_constraint_integral_value), min_echo=0)
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Discretization Constraint: " + str(self.discretization_constraint), min_echo=0)
+    def _PrintDesignDiscretizationConstraint(self):
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INTEGRAL VALUE: " + str(self.design_discretization_constraint_integral_value), min_echo=0)
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Discretization Constraint: " + str(self.design_discretization_constraint), min_echo=0)
+
+    def _PrintBrinkmanLeakageConstraint(self):
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| BRINKMAN LEAKAGE VALUE: " + str(self.brinkman_leakage_constraint_leakage_value), min_echo=0)
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Brinkman Leakage Constraint: " + str(self.brinkman_leakage_constraint), min_echo=0)
 
 
     def PrintAnalysisStageProgressInformation(self):
@@ -2691,10 +2754,16 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                             "use_WSS_constraint" : false,
                             "min_WSS" : 0.5
                         },
-                        "discretization_constraint_settings": {
-                            "use_discretization_constraint": false,
+                        "design_discretization_constraint_settings": {
+                            "use_design_discretization_constraint": false,
                             "min_max_discretization_tolerance": [0.0001, 0.5],
                             "min_max_discretization_tolerance_iterations": [1, 100]
+                        },
+                        "brinkman_leakage_constraint_settings": {
+                            "use_brinkman_leakage_constraint": false,
+                            "reference_velocity": 1.0,
+                            "min_max_discretization_tolerance": [0.0001, 0.0001],
+                            "min_max_discretization_tolerance_iterations": [1, 1]
                         }
                     },
                     "constraints_derivatives_settings": {
