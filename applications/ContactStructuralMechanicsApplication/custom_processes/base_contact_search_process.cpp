@@ -988,7 +988,7 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
     }
 
     // Avoid conditions oriented in the same direction
-    const double tolerance = 1.0e-16;
+    const double tolerance = 1.0e-16 + mThisParameters["normal_orientation_threshold"].GetDouble();
     if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < tolerance) {
         return CheckResult::Fail;
     }
