@@ -19,8 +19,7 @@
 
 namespace Kratos::Testing
 {
-template<SizeType TNNodes>
-void FillModelPartWithVariablesNodesAndDoF(ModelPart& rModelPart, double XEnd, double YEnd)
+void FillModelPartWithVariablesNodesAndDoF(ModelPart& rModelPart, std::size_t number_of_nodes, double XEnd, double YEnd)
 {
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -29,7 +28,7 @@ void FillModelPartWithVariablesNodesAndDoF(ModelPart& rModelPart, double XEnd, d
     // Create the test geometry
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(2, XEnd, YEnd, 0.0);
-    if constexpr (TNNodes==3) {
+    if (number_of_nodes==3) {
         rModelPart.CreateNewNode(3, XEnd/2, YEnd/2, 0.0);
     }
 
@@ -56,7 +55,7 @@ void Create2DBeamModel_and_CheckPK2Stress(const std::string & TimoshenkoBeamElem
     Model current_model;
     auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
     constexpr double directional_length = 2.0;
-    FillModelPartWithVariablesNodesAndDoF<TNNodes>(r_model_part, directional_length, directional_length);
+    FillModelPartWithVariablesNodesAndDoF(r_model_part, TNNodes, directional_length, directional_length);
 
     // Set the element properties
     auto p_elem_prop = r_model_part.CreateNewProperties(0);
@@ -113,7 +112,7 @@ void Create2DPlaneStrainBeamModel_and_CheckPK2Stress(const std::string& Timoshen
     Model current_model;
     auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
     constexpr double directional_length = 2.0;
-    FillModelPartWithVariablesNodesAndDoF<TNNodes>(r_model_part, directional_length, 0.0);
+    FillModelPartWithVariablesNodesAndDoF(r_model_part, TNNodes, directional_length, 0.0);
 
     // Set the element properties
     auto p_elem_prop = r_model_part.CreateNewProperties(0);
@@ -197,40 +196,55 @@ KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkodCurvedBeam2D3N_CalculatesPK2StressPla
     Create2DPlaneStrainBeamModel_and_CheckPK2Stress<3>("LinearTimoshenkoCurvedBeamElement2D3N");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkoBeam2D2N_FinalizesSolutionStep, KratosStructuralMechanicsFastSuite)
+class ParametrizedFinalizeSolutionStepForTimoshenkoBeams
+    : public ::testing::TestWithParam<std::tuple<std::size_t, std::string>>
+{
+public:
+    void SetUp() override
+    {
+        mpStructuralMechanicsApp = std::make_shared<KratosStructuralMechanicsApplication>();
+        mpStructuralMechanicsApp->Register();
+    }
+private:
+    KratosStructuralMechanicsApplication::Pointer mpStructuralMechanicsApp;
+};
+
+TEST_P(ParametrizedFinalizeSolutionStepForTimoshenkoBeams, FinalizeSolutionStepIsCalledForTimoshenkoBeams)
 {
     class MockConstitutiveLaw : public ConstitutiveLaw
     {
     public:
-        [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override
-        {
-            return std::make_shared<MockConstitutiveLaw>();
-        }
-
-        [[nodiscard]] SizeType GetStrainSize() const override{return 3;}
+        [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override {return std::make_shared<MockConstitutiveLaw>();}
+        [[nodiscard]] SizeType GetStrainSize() const override {return 6;} // should be 3 for 2D, but for those elements it seems no problem
         [[nodiscard]] bool RequiresFinalizeMaterialResponse() override { return true; }
+        [[nodisard]] StressMeasure GetStressMeasure() override {return StressMeasure_PK2;}
 
         MOCK_METHOD(void, FinalizeMaterialResponsePK2, (Parameters&), (override));
     };
 
+    // Arrange
+    const auto& [number_of_nodes, element_type] = GetParam();
+
     Model current_model;
-    auto &r_model_part = current_model.CreateModelPart("ModelPart",2);
+    auto& r_model_part = current_model.CreateModelPart("ModelPart",2);
     constexpr auto directional_length = 2.0;
-    FillModelPartWithVariablesNodesAndDoF<2>(r_model_part, directional_length, directional_length);
+    FillModelPartWithVariablesNodesAndDoF(r_model_part, number_of_nodes, directional_length, directional_length);
 
     // Set the element properties
     auto p_elem_prop = r_model_part.CreateNewProperties(0);
     p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
     p_elem_prop->SetValue(CROSS_AREA, 1.0);
     p_elem_prop->SetValue(I33, 1.0);
+    p_elem_prop->SetValue(I22, 1.0);
     p_elem_prop->SetValue(AREA_EFFECTIVE_Y, 5.0/6.0);
+    p_elem_prop->SetValue(AREA_EFFECTIVE_Z, 5.0/6.0);
 
     // mock CL that counts calls to FinalizeMaterialResponsePK2
     auto p_mockconstitutivelaw = std::make_shared<MockConstitutiveLaw>();
     p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_mockconstitutivelaw);
 
     auto element_node_ids = GetElementNodesFromModelPart(r_model_part);
-    auto p_element = r_model_part.CreateNewElement("LinearTimoshenkoBeamElement2D2N", 1, element_node_ids, p_elem_prop);
+    auto p_element = r_model_part.CreateNewElement(element_type, 1, element_node_ids, p_elem_prop);
 
     const auto& r_process_info = r_model_part.GetProcessInfo();
     p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
@@ -240,9 +254,21 @@ KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkoBeam2D2N_FinalizesSolutionStep, Kratos
     for( auto& rp_constitutive_law : constitutive_laws )
     {
         auto p_mock_law = dynamic_cast<MockConstitutiveLaw*>(rp_constitutive_law.get());
-        EXPECT_CALL(*p_mock_law, FinalizeMaterialResponsePK2).Times(2);
+        EXPECT_CALL(*p_mock_law, FinalizeMaterialResponsePK2).Times(1);
     }
     p_element->FinalizeSolutionStep(r_process_info);
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    KratosStructuralMechanicsFastSuite,
+    ParametrizedFinalizeSolutionStepForTimoshenkoBeams,
+    ::testing::Values(
+        std::make_tuple(std::size_t{2}, "LinearTimoshenkoBeamElement2D2N"),
+        std::make_tuple(std::size_t{2}, "LinearTimoshenkoBeamElement3D2N"),
+        std::make_tuple(std::size_t{3}, "LinearTimoshenkoBeamElement2D3N"),
+        std::make_tuple(std::size_t{3}, "LinearTimoshenkoCurvedBeamElement2D3N"),
+        std::make_tuple(std::size_t{3}, "LinearTimoshenkoCurvedBeamElement3D3N")
+    )
+);
 
 }

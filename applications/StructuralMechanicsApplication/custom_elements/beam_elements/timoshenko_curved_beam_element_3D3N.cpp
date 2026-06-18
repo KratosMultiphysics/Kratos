@@ -866,9 +866,6 @@ void LinearTimoshenkoCurvedBeamElement3D3N::FinalizeSolutionStep(const ProcessIn
         noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n, b);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(frenet_serret, element_frenet_serret);
         noalias(B) = CalculateB(shape_functions, d_shape_functions, t);
-        B = prod(element_frenet_serret, B);
-        noalias(strain_vector) = CalculateStrainVector(B, nodal_values);
-
         noalias(strain_vector) = CalculateStrainVector(B, nodal_values);
         mConstitutiveLawVector[integration_point]->FinalizeMaterialResponse(cl_values, mConstitutiveLawVector[integration_point]->GetStressMeasure());
     }
