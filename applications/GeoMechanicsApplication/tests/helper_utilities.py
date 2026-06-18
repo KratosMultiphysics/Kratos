@@ -47,10 +47,10 @@ def run_multistage_analysis_with_intermediate_save_and_load(project_parameters) 
     orchestrator_module = importlib.import_module(orchestrator_reg_entry["ModuleName"])
     orchestrator_class = getattr(orchestrator_module, orchestrator_reg_entry["ClassName"])
 
-    project = None
+    project = Project(project_parameters)
     name_of_previous_stage= None
     for stage_name in names_of_stages_to_be_run:
-        project = Project(project_parameters)
+        project.GetModel().Reset()
         orchestrator_instance = orchestrator_class(project)
         orchestrator_settings = project.GetSettings()["orchestrator"]["settings"]
 
@@ -62,7 +62,7 @@ def run_multistage_analysis_with_intermediate_save_and_load(project_parameters) 
 
         name_of_previous_stage = stage_name
 
-    return project if project else Project(project_parameters)
+    return project
 
 
 def _parse_gid_ascii_nodal_variable(filepath: Path, variable_name: str) -> NodalSeries:
