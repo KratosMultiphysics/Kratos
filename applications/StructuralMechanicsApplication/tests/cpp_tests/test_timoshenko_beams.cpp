@@ -197,4 +197,52 @@ KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkodCurvedBeam2D3N_CalculatesPK2StressPla
     Create2DPlaneStrainBeamModel_and_CheckPK2Stress<3>("LinearTimoshenkoCurvedBeamElement2D3N");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LinearTimoshenkoBeam2D2N_FinalizesSolutionStep, KratosStructuralMechanicsFastSuite)
+{
+    class MockConstitutiveLaw : public ConstitutiveLaw
+    {
+    public:
+        [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override
+        {
+            return std::make_shared<MockConstitutiveLaw>();
+        }
+
+        [[nodiscard]] SizeType GetStrainSize() const override{return 3;}
+        [[nodiscard]] bool RequiresFinalizeMaterialResponse() override { return true; }
+
+        MOCK_METHOD(void, FinalizeMaterialResponsePK2, (Parameters&), (override));
+    };
+
+    Model current_model;
+    auto &r_model_part = current_model.CreateModelPart("ModelPart",2);
+    constexpr auto directional_length = 2.0;
+    FillModelPartWithVariablesNodesAndDoF<2>(r_model_part, directional_length, directional_length);
+
+    // Set the element properties
+    auto p_elem_prop = r_model_part.CreateNewProperties(0);
+    p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+    p_elem_prop->SetValue(CROSS_AREA, 1.0);
+    p_elem_prop->SetValue(I33, 1.0);
+    p_elem_prop->SetValue(AREA_EFFECTIVE_Y, 5.0/6.0);
+
+    // mock CL that counts calls to FinalizeMaterialResponsePK2
+    auto p_mockconstitutivelaw = std::make_shared<MockConstitutiveLaw>();
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_mockconstitutivelaw);
+
+    auto element_node_ids = GetElementNodesFromModelPart(r_model_part);
+    auto p_element = r_model_part.CreateNewElement("LinearTimoshenkoBeamElement2D2N", 1, element_node_ids, p_elem_prop);
+
+    const auto& r_process_info = r_model_part.GetProcessInfo();
+    p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+    std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+    p_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, r_process_info);
+    // the deed
+    for( auto& rp_constitutive_law : constitutive_laws )
+    {
+        auto p_mock_law = dynamic_cast<MockConstitutiveLaw*>(rp_constitutive_law.get());
+        EXPECT_CALL(*p_mock_law, FinalizeMaterialResponsePK2).Times(2);
+    }
+    p_element->FinalizeSolutionStep(r_process_info);
+}
+
 }

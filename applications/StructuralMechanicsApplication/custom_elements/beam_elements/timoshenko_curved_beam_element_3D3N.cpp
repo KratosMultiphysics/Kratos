@@ -870,7 +870,7 @@ void LinearTimoshenkoCurvedBeamElement3D3N::FinalizeSolutionStep(const ProcessIn
         noalias(strain_vector) = CalculateStrainVector(B, nodal_values);
 
         noalias(strain_vector) = CalculateStrainVector(B, nodal_values);
-        mConstitutiveLawVector[integration_point]->FinalizeMaterialResponsePK2(cl_values);
+        mConstitutiveLawVector[integration_point]->FinalizeMaterialResponse(cl_values, mConstitutiveLawVector[integration_point]->GetStressMeasure());
     }
 
     KRATOS_CATCH("")

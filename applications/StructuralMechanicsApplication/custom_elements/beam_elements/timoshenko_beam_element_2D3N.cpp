@@ -484,7 +484,7 @@ void LinearTimoshenkoBeamElement2D3N::FinalizeSolutionStep(const ProcessInfo& rC
     for (auto integration_point = std::size_t{0}; integration_point < integration_points.size(); ++integration_point) {
         if (!mConstitutiveLawVector[integration_point]->RequiresFinalizeMaterialResponse()) continue;
         CalculateGeneralizedStrainsVector(strain_vector, length, Phi, integration_points[integration_point].X(), nodal_values);
-        mConstitutiveLawVector[integration_point]->FinalizeMaterialResponsePK2(cl_values);
+        mConstitutiveLawVector[integration_point]->FinalizeMaterialResponse(cl_values, mConstitutiveLawVector[integration_point]->GetStressMeasure());
     }
 
     KRATOS_CATCH("")
