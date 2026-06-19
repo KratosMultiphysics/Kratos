@@ -175,8 +175,8 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, KratosGeo.GEO_RELATIVE_DISPLACEMENT_VECTOR)[0],
                                       expected_relative_displacement_vectors)
 
-    def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions_and_reset_displacements(self):
-        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_multi_stage_reset_displacements'))
+    def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions_and_reset_totals(self):
+        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_multi_stage_reset_totals'))
 
         initial_directory = os.getcwd()
         os.chdir(file_path)
