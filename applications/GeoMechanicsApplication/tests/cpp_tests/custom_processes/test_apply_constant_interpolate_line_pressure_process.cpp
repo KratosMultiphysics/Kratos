@@ -16,7 +16,7 @@
 #include "test_setup_utilities/element_setup_utilities.hpp"
 #include "test_setup_utilities/model_setup_utilities.h"
 #include "testing/testing.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include "includes/smart_pointers.h"
@@ -190,11 +190,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePre
         "pressure_tension_cut_off": -100.0,
         "table": 1
     })");
-
-    // Reset nodes to unfixed
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.Free(WATER_PRESSURE);
-    }
 
     ApplyConstantInterpolateLinePressureProcess process_above(r_model_part, params_above);
     process_above.ExecuteInitializeSolutionStep();
