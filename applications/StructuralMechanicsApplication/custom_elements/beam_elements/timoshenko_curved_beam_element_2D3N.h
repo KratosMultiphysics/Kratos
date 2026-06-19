@@ -180,14 +180,6 @@ public:
     }
 
     /**
-    * @brief Indicates the amount of DoFs per node (u0, v, theta)
-    */
-    virtual IndexType GetDoFsPerNode() const
-    {
-        return 3;
-    }
-
-    /**
     * element can be integrated using the GP provided by the geometry or custom ones
     * by default, the base element will use the standard integration provided by the geom
     * @return bool to select if use/not use GPs given by the geometry
