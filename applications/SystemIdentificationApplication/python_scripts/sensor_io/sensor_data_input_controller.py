@@ -1,4 +1,5 @@
 import h5py # TODO: Remove once HDF5Application is properly setup to function with Expressions
+import numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
@@ -17,6 +18,7 @@ class SensorDataInputController(ModelPartController):
         default_settings = Kratos.Parameters("""{
             "sensor_group_name": "",
             "sensor_mask_name" : "",
+            "mask_scaling"     : "l2_norm",
             "h5_file_name"     : "",
             "data_field_name"  : "",
             "echo_level"       : 0,
@@ -36,6 +38,16 @@ class SensorDataInputController(ModelPartController):
         self.data_field_name = parameters["data_field_name"].GetString()
         self.echo_level = parameters["echo_level"].GetInt()
 
+        mask_scaling_type = parameters["mask_scaling"].GetString()
+        if mask_scaling_type == "none":
+            self.scale_mask = lambda x: 1
+        elif mask_scaling_type == "inf_norm":
+            self.scale_mask = lambda x: numpy.linalg.norm(x.data, ord=numpy.inf)
+        elif mask_scaling_type == "l2_norm":
+            self.scale_mask = lambda x: numpy.linalg.norm(x.data)
+        else:
+            raise RuntimeError(f"Unsupported mask scaling method [ mask_scaling = {self.mask_scaling_type}. Supported methods are:\n\t" + "\n\t".join(["none", "inf_norm", "l2_norm"]))
+
         parameters["kd_tree_settings"].ValidateAndAssignDefaults(default_settings["kd_tree_settings"])
 
         self.use_kd_tree = parameters["kd_tree_settings"]["use_kd_tree"].GetBool()
@@ -45,7 +57,8 @@ class SensorDataInputController(ModelPartController):
         sensor_group_data = ComponentDataView(self.sensor_group_name, self.optimization_problem)
         list_of_sensors = GetSensors(sensor_group_data)
 
-        list_of_masks = []
+        list_of_masks: 'list[Kratos.TensorAdaptors.DoubleTensorAdaptor]' = []
+        max_norm = 0.0
         with h5py.File(self.h5_file_name, "r") as h5_file:
             for sensor in list_of_sensors:
                 sensor_id = sensor.GetNode().Id
@@ -68,8 +81,12 @@ class SensorDataInputController(ModelPartController):
                 else:
                     raise RuntimeError(f"Unsupported container type = \"{container_type}\" requested for dataset at \"{current_sensor_data_field_name}\".")
 
-                sensor.AddTensorAdaptor(self.sensor_mask_name, ta.Clone())
-                list_of_masks.append(ta.Clone())
+                max_norm = max(max_norm, self.scale_mask(ta))
+                list_of_masks.append(ta)
+
+        for mask, sensor in zip(list_of_masks, list_of_sensors):
+            mask.data[:] /= max_norm
+            sensor.AddTensorAdaptor(self.sensor_mask_name, mask)
 
         # now create the mask
         self.sensor_mask_status = KratosSI.SensorMaskStatus(self.model[self.sensor_group_name], list_of_masks, self.echo_level)
