@@ -52,7 +52,8 @@ public:
     static Element::Pointer Create2D3NLineElement(const PointerVector<Node>& rNodes,
                                                   const Properties::Pointer& rProperties);
     static Element::Pointer Create2D2NElement(const PointerVector<Node>& rNodes,
-                                              const Properties::Pointer& rProperties);
+                                              const Properties::Pointer& rProperties,
+                                              std::size_t                Id = 1);
 
     static Condition::Pointer CreateCondition(const std::string& rType, const PointerVector<Node>& rNodes);
     static Condition::Pointer Create3D3NCondition(const PointerVector<Node>& rNodes);
