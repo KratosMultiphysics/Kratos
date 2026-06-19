@@ -1043,14 +1043,13 @@ inline bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckNor
     //   threshold =  0.0 => reject if angle <= 90° (strict)
     //   threshold =  0.5 => reject if angle <= 60° (more permissive)
     //   threshold = -1.0 => always accept (no filtering)
-    if (dot_product > NormalOrientationThreshold) {
+    if (dot_product >= NormalOrientationThreshold) {
         return false; // Normals not properly opposed - surfaces not facing each other
     }
 
     return true; // Normals properly opposed - surfaces facing each other
 
-    KRATOS_CATCH("")
-    return false; // Should not reach here
+    KRATOS_CATCH("BaseContactSearchProcess::CheckNormalOrientation")
 }
 
 /***********************************************************************************/

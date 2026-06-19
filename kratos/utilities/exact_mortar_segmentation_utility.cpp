@@ -181,6 +181,10 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
     Triangle3D3<Point> slave_geometry(points_array_slave);
     Triangle3D3<Point> master_geometry(points_array_master);
 
+    // Additional check to avoid accounting for pairs in which the master/slave are extremely distorted (colapsed to lines) triangles
+    if ((norm_2(slave_geometry.Normal(ZeroVector(3)))) <= 1.0e-12 || (norm_2(master_geometry.Normal(ZeroVector(3)))) <= 1.0e-12)
+        return false;
+
     // No we project both nodes from the slave side and the master side
     array_1d<bool, 3> all_inside;
 
