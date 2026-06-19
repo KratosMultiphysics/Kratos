@@ -138,23 +138,28 @@ TensorAdaptor<double>::Pointer SensorResolutionMatrixResponseUtils::CalculateGra
 
             const double coeff = 1 / mStepSize;
 
-            for (IndexType i_sensor = 0; i_sensor < p_sensor_nodes->size(); ++i_sensor) {
-                const Vector& r_sensor_mask = column(r_masks, i_sensor);
-                noalias(auxiliary_mask_matrix) = outer_prod(r_sensor_mask, r_sensor_mask);
+            Vector aux_vec(r_masks.size1());
+            NDData<double>::Pointer p_nd_data = Kratos::make_shared<NDData<double>>(&aux_vec[0], DenseVector<unsigned int>(1, pContainer->size()), false);
+            TensorAdaptor<double> tensor_adaptor(pContainer, p_nd_data, false);
 
+            for (IndexType i_sensor = 0; i_sensor < p_sensor_nodes->size(); ++i_sensor) {
                 auto& value = result_data_view[i_sensor];
                 value = 0.0;
 
                 for (IndexType i_col = 0; i_col < mResolutionMatrix.size2(); ++i_col) {
-                    double* p_row_start = &auxiliary_mask_matrix(i_col, 0);
-                    NDData<double>::Pointer p_nd_data = Kratos::make_shared<NDData<double>>(p_row_start, DenseVector<unsigned int>(1, r_masks.size1()), false);
-                    TensorAdaptor<double> tensor_adaptor(pContainer, p_nd_data, false);
+                    const double col_value = r_masks(i_col, i_sensor);
+
+                    IndexPartition<IndexType>(aux_vec.size()).for_each([&r_masks, &aux_vec, i_sensor, col_value](const auto i_row){
+                        aux_vec[i_row] = r_masks(i_row, i_sensor) * col_value;
+                    });
+
                     auto p_filtered_tensor_adaptor = p_filter->ForwardFilterField(*p_filter->BackwardFilterField(tensor_adaptor));
                     const auto data_view = p_filtered_tensor_adaptor->ViewData();
 
                     value += IndexPartition<IndexType>(mResolutionMatrix.size2()).for_each<SumReduction<double>>([&](const auto iRow) {
                         return mResolutionMatrix(iRow, i_col) * data_view[iRow];
                     });
+
                     value -= data_view[i_col] * coeff;
                 }
 
