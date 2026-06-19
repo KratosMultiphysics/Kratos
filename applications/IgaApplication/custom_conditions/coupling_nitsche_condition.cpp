@@ -286,6 +286,134 @@ namespace Kratos
         }
     }
 
+    void CouplingNitscheCondition::CalculateSecondVariationT1( 
+        IndexType IntegrationPointIndex,
+        std::vector<std::vector<array_1d<double, 3> > >& rSecondVariationT1,
+        const Matrix& rFirstVariationT1,
+        const array_1d<double, 3> rT1,  
+        const KinematicVariables& rKinematicVariables,  
+        const PatchType& rPatch)
+    {
+        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
+        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
+
+        const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
+        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
+
+        array_1d<double, 3> local_tangent;
+        GetGeometry().GetGeometryPart(GeometryPart).Calculate(LOCAL_TANGENT, local_tangent);
+ 
+        const SizeType number_of_control_points = r_geometry.size();
+        const SizeType mat_size = number_of_control_points * 3;
+
+        std::vector<array_1d<double,3>> first_variation_tangent_tilde(mat_size);
+        std::vector<array_1d<double,3>> first_variation_tangent_tilde_t2(mat_size);
+        std::vector<array_1d<double,3>> first_variation_tangent_tilde_t3(mat_size);
+        std::vector<array_1d<double,3>> first_variation_tangent(mat_size);
+        std::vector<double> line_first_variation_tangent(mat_size);
+
+        array_1d<double, 3> tangent_tilde = rT1;
+        double line_tangent  = norm_2(rT1);
+        array_1d<double, 3> tangent = rT1 / line_tangent;
+
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            IndexType kr = r / 3;
+            IndexType dirr = r % 3;
+
+            array_1d<double, 3> a1_r;
+            array_1d<double, 3> a2_r;
+            a1_r.clear();
+            a2_r.clear();
+            a1_r[dirr] = r_DN_De(kr, 0);
+            a2_r[dirr] = r_DN_De(kr, 1);
+
+            array_1d<double, 3> term_1_t3;
+            MathUtils<double>::CrossProduct(term_1_t3, a1_r, rKinematicVariables.a2);
+            array_1d<double, 3> term_2_t3;
+            MathUtils<double>::CrossProduct(term_2_t3, rKinematicVariables.a1, a2_r);
+            first_variation_tangent_tilde_t3[r] = term_1_t3 + term_2_t3;
+
+            first_variation_tangent_tilde_t2[r] = local_tangent[0]*a1_r + local_tangent[1]*a2_r; 
+
+            array_1d<double, 3> term_1;
+            MathUtils<double>::CrossProduct(term_1, first_variation_tangent_tilde_t2[r], rKinematicVariables.a3_tilde);
+            array_1d<double, 3> term_2;
+            MathUtils<double>::CrossProduct(term_2, rKinematicVariables.t, first_variation_tangent_tilde_t3[r]);
+
+            first_variation_tangent_tilde[r].clear();
+            first_variation_tangent_tilde[r] = term_1 + term_2;
+            line_first_variation_tangent[r] = inner_prod(tangent, first_variation_tangent_tilde[r]);
+
+            first_variation_tangent[r][0] = first_variation_tangent_tilde[r][0] / line_tangent
+                                         - line_first_variation_tangent[r] * tangent[0] / line_tangent;
+            first_variation_tangent[r][1] = first_variation_tangent_tilde[r][1] / line_tangent 
+                                         - line_first_variation_tangent[r] * tangent[1] / line_tangent;
+            first_variation_tangent[r][2] = first_variation_tangent_tilde[r][2] / line_tangent
+                                         - line_first_variation_tangent[r] * tangent[2] / line_tangent; 
+        }
+
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            // KRATOS_WATCH(r);
+            // local node number kr and dof direction dirr
+            IndexType kr = r / 3;
+            IndexType dirr = r % 3;
+
+            for (IndexType s = 0; s < mat_size; s++)
+            {
+                // local node number ks and dof direction dirs
+                IndexType ks = s / 3;
+                IndexType dirs = s % 3;
+
+                array_1d<double, 3> a1_r;
+                array_1d<double, 3> a2_r;
+                a1_r.clear();
+                a2_r.clear();
+                a1_r[dirr] = r_DN_De(kr, 0);
+                a2_r[dirr] = r_DN_De(kr, 1);
+
+                array_1d<double, 3> a1_s;
+                array_1d<double, 3> a2_s;
+                a1_s.clear();
+                a2_s.clear();
+                a1_s[dirs] = r_DN_De(ks, 0);
+                a2_s[dirs] = r_DN_De(ks, 1);
+
+                array_1d<double, 3> tilde_t3_rs;
+                tilde_t3_rs.clear();
+                array_1d<double, 3> tilde_t1_rs;
+                tilde_t1_rs.clear();
+
+                array_1d<double, 3> term_1_tilde_t3_rs;
+                MathUtils<double>::CrossProduct(term_1_tilde_t3_rs, a1_r, a2_s);
+                array_1d<double, 3> term_2_tilde_t3_rs;
+                MathUtils<double>::CrossProduct(term_2_tilde_t3_rs, a1_s, a2_r);
+                tilde_t3_rs = term_1_tilde_t3_rs + term_2_tilde_t3_rs;
+
+                array_1d<double, 3> term_1_tilde_t1_rs;
+                MathUtils<double>::CrossProduct(term_1_tilde_t1_rs, first_variation_tangent_tilde_t2[r], first_variation_tangent_tilde_t3[s]);
+                array_1d<double, 3> term_2_tilde_t1_rs;
+                MathUtils<double>::CrossProduct(term_2_tilde_t1_rs, first_variation_tangent_tilde_t2[s], first_variation_tangent_tilde_t3[r]);
+                array_1d<double, 3> term_3_tilde_t1_rs;
+                MathUtils<double>::CrossProduct(term_3_tilde_t1_rs, rKinematicVariables.t, tilde_t3_rs);
+                tilde_t1_rs = term_1_tilde_t1_rs + term_2_tilde_t1_rs + term_3_tilde_t1_rs;
+
+
+                double line_t1_rs = inner_prod(first_variation_tangent[s], first_variation_tangent_tilde[r])
+                                  + inner_prod(tangent, tilde_t1_rs);
+
+                for (IndexType d = 0; d < 3; d++)
+                {
+                     rSecondVariationT1[r][s][d] =
+                            (tilde_t1_rs[d] * line_tangent - line_first_variation_tangent[s] * first_variation_tangent_tilde[r][d]) / pow(line_tangent, 2)
+                            - line_t1_rs * tangent[d] / line_tangent 
+                            - line_first_variation_tangent[r] * (first_variation_tangent[s][d] * line_tangent - line_first_variation_tangent[s]*tangent[d]) / pow(line_tangent, 2);
+                }
+            }
+        }
+    }
+
     /* Computes the transformation matrix T from the contravariant curvilinear basis to
     *  the local cartesian basis.
     *  ε_curvilinear is defined: [ε_11, ε_22, ε_12]
@@ -874,6 +1002,25 @@ namespace Kratos
 
                 CalculateSecondVariationT2(point_number, second_variations_T2_master, first_variations_T2_master, kinematic_variables_master.t, PatchType::Master);
                 CalculateSecondVariationT2(point_number, second_variations_T2_slave, first_variations_T2_slave, kinematic_variables_slave.t, PatchType::Slave); 
+
+                std::vector<std::vector<array_1d<double, 3>>> second_variations_T1_master;
+                std::vector<std::vector<array_1d<double, 3>>> second_variations_T1_slave;
+
+                second_variations_T1_master.resize(3 * number_of_nodes_master);
+                second_variations_T1_slave.resize(3 * number_of_nodes_slave);
+
+                for(SizeType i = 0; i < 3 * number_of_nodes_master; i++)
+                {
+                    second_variations_T1_master[i].resize(3 * number_of_nodes_master);
+                }
+
+                for(SizeType i = 0; i < 3 * number_of_nodes_slave; i++)
+                {
+                    second_variations_T1_slave[i].resize(3 * number_of_nodes_slave);
+                }
+
+                CalculateSecondVariationT1(point_number, second_variations_T1_master, first_variations_T1_master, kinematic_variables_master.n, kinematic_variables_master, PatchType::Master);
+                CalculateSecondVariationT1(point_number, second_variations_T1_slave, first_variations_T1_slave, kinematic_variables_slave.n, kinematic_variables_slave, PatchType::Slave); 
 
                 // Compute the moment projection
                 double moment_T2;

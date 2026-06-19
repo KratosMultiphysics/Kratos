@@ -403,6 +403,14 @@ private:
         const Matrix& rFirstVariationT2,
         const array_1d<double, 3> rT2,   
         const PatchType& rPatch);
+    
+    void CalculateSecondVariationT1(
+        IndexType IntegrationPointIndex,
+        std::vector<std::vector<array_1d<double, 3> > >& rSecondVariationT1,
+        const Matrix& rFirstVariationT1,
+        const array_1d<double, 3> rT1,  
+        const KinematicVariables& rKinematicVariables,  
+        const PatchType& rPatch);
 
     // Traction-related functions
     void CalculateTraction(
