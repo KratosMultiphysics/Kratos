@@ -713,7 +713,6 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
     Vector column_pressure_deviatoric_pressure_gradient_projection = prod(
         Matrix(trans(prod(rVariables.TensorIdentityMatrix, rVariables.B))),
         rVariables.PressureGradientVoigt);
-    const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
 
     // Assemble components considering added DOF matrix system
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -730,18 +729,15 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
             {
                 rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1
                     * row_displacement_pressure_gradient_projection(i)
-                    * volumetric_strain_linearization
                     * rVariables.DN_DX(j, k)
                     * rIntegrationWeight;
 
                 rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1
                     * column_pressure_deviatoric_pressure_gradient_projection(indexj)
-                    * volumetric_strain_linearization
                     * rVariables.DN_DX(i, k)
                     * rIntegrationWeight;
 
                 rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau2
-                    * volumetric_strain_linearization
                     * pressure_compressibility_shape_function
                     * rVariables.DN_DX(i, k)
                     * rIntegrationWeight;
@@ -773,6 +769,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSid
     Vector column_displacement_deviatoric_pressure_gradient_projection = prod(
         Matrix(prod(trans(rVariables.B), rVariables.TensorIdentityMatrix)),
         rVariables.PressureGradientVoigt);
+    const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
 
     // Assemble components considering added DOF matrix system
     unsigned int index_p = dimension;
@@ -786,16 +783,19 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSid
             for ( unsigned int k = 0; k < dimension; k++ )
             {
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1
+                    * volumetric_strain_linearization
                     * rVariables.DN_DX(i, k)
                     * column_displacement_pressure_gradient_projection(j)
                     * rIntegrationWeight;
 
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1
+                    * volumetric_strain_linearization
                     * rVariables.DN_DX(i, k)
                     * column_displacement_deviatoric_pressure_gradient_projection(indexj)
                     * rIntegrationWeight;
 
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau2
+                    * volumetric_strain_linearization
                     * pressure_compressibility_shape_function
                     * rVariables.DN_DX(j, k)
                     * rIntegrationWeight;
