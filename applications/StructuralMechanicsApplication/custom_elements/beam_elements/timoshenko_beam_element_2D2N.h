@@ -431,7 +431,7 @@ public:
      * @brief This function is called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
