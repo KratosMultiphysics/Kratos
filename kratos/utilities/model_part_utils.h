@@ -333,7 +333,7 @@ public:
         } else {
             for (const auto& r_sub_model_part_name : rModelPart.GetSubModelPartNames()) {
                 auto p_model_part = GetModelPart(rModelPart.GetSubModelPart(r_sub_model_part_name), rContainer);
-                if (!p_model_part) {
+                if (p_model_part) {
                     return p_model_part;
                 }
             }
