@@ -45,7 +45,6 @@ class SensorDataInputController(ModelPartController):
         sensor_group_data = ComponentDataView(self.sensor_group_name, self.optimization_problem)
         list_of_sensors = GetSensors(sensor_group_data)
 
-        expression_name = self.data_field_name.split("/")[-1]
         list_of_masks = []
         with h5py.File(self.h5_file_name, "r") as h5_file:
             for sensor in list_of_sensors:
@@ -61,17 +60,16 @@ class SensorDataInputController(ModelPartController):
                 container_type = dataset.attrs["__container_type"]
                 model_part = self.model[dataset.attrs["__model_part_name"]]
                 if container_type == "NodalExpression":
-                    expression = Kratos.Expression.NodalExpression(model_part)
+                    ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Nodes, Kratos.DoubleNDData(dataset[:]), copy=False)
                 elif container_type == "ConditionExpression":
-                    expression = Kratos.Expression.ConditionExpression(model_part)
+                    ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Conditions, Kratos.DoubleNDData(dataset[:]), copy=False)
                 elif container_type == "ElementExpression":
-                    expression = Kratos.Expression.ElementExpression(model_part)
+                    ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Elements, Kratos.DoubleNDData(dataset[:]), copy=False)
                 else:
                     raise RuntimeError(f"Unsupported container type = \"{container_type}\" requested for dataset at \"{current_sensor_data_field_name}\".")
 
-                Kratos.Expression.CArrayExpressionIO.Read(expression, dataset[:])
-                sensor.AddContainerExpression(self.sensor_mask_name, expression)
-                list_of_masks.append(expression.Clone())
+                sensor.AddTensorAdaptor(self.sensor_mask_name, ta.Clone())
+                list_of_masks.append(ta.Clone())
 
         # now create the mask
         self.sensor_mask_status = KratosSI.SensorMaskStatus(self.model[self.sensor_group_name], list_of_masks, self.echo_level)

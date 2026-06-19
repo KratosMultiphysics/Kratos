@@ -1,13 +1,11 @@
-import typing
+import typing, numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetMaskStatusControllers
@@ -65,15 +63,15 @@ class SensorStatusControl(Control):
 
         self.projection.SetProjectionSpaces(self.control_variable_bounds, [0, 1])
 
-        sensor_status = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(sensor_status, KratosSI.SENSOR_STATUS, False)
+        sensor_status = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, KratosSI.SENSOR_STATUS)
+        sensor_status.CollectData()
 
         # project backward the uniform physical control field and assign it to the control field
         self.physical_phi_field = self.projection.ProjectBackward(sensor_status)
 
         if self.update_domain_model_parts_with_step:
             for sensor in GetSensors(ComponentDataView(self.sensor_group_name, self.optimization_problem)):
-                current_domain_model_part = sensor.GetContainerExpression(self.sensor_mask_name).GetModelPart()
+                current_domain_model_part = sensor.GetTensorAdaptor(self.sensor_mask_name).GetModelPart()
                 if not current_domain_model_part in self.domain_model_parts:
                     self.domain_model_parts.append(current_domain_model_part)
 
@@ -92,33 +90,36 @@ class SensorStatusControl(Control):
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosSI.SENSOR_STATUS]
 
-    def GetEmptyField(self) -> ContainerExpressionTypes:
-        field = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
+    def GetEmptyField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        field = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, KratosSI.SENSOR_STATUS)
+        field.data[:] = 0.0
         return field
 
-    def GetControlField(self) -> ContainerExpressionTypes:
+    def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         return self.physical_phi_field
 
-    def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
-        keys = physical_gradient_variable_container_expression_map.keys()
+    def MapGradient(self, physical_gradient_variable_container_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        keys = physical_gradient_variable_container_tensor_adaptor_map.keys()
         if len(keys) != 1:
             raise RuntimeError(f"Not provided required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
         if  KratosSI.SENSOR_STATUS not in keys:
             raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. SENSOR_STATUS not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
         # first calculate the sensor status partial sensitivity of the response function
-        physical_gradient = physical_gradient_variable_container_expression_map[KratosSI.SENSOR_STATUS]
+        physical_gradient = physical_gradient_variable_container_tensor_adaptor_map[KratosSI.SENSOR_STATUS]
 
         # multiply the physical sensitivity field with projection derivatives
-        return physical_gradient * self.projection_derivative_field
+        result = physical_gradient.Clone()
+        result.data[:] *= self.projection_derivative_field.data[:]
+        return result
 
-    def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
-        if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
-            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
+    def Update(self, new_control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
+        if new_control_field.GetContainer() != self.GetEmptyField().GetContainer():
+            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()} ]")
 
-        update = new_control_field - self.physical_phi_field
-        if Kratos.Expression.Utils.NormL2(update) > 1e-15:
+        update = new_control_field.Clone()
+        update.data[:] = new_control_field.data[:] - self.physical_phi_field.data[:]
+        if numpy.linalg.norm(update.data) > 1e-15:
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
@@ -132,14 +133,14 @@ class SensorStatusControl(Control):
         self.projection.Update()
         return False
 
-    def _UpdateAndOutputFields(self, physical_phi_update: ContainerExpressionTypes) -> None:
-        self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + physical_phi_update)
+    def _UpdateAndOutputFields(self, physical_phi_update: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
+        self.physical_phi_field.data[:] += physical_phi_update.data[:]
 
         # project forward the filtered thickness field
         projected_sensor_field = self.projection.ProjectForward(self.physical_phi_field)
 
         # now update physical field
-        Kratos.Expression.VariableExpressionIO.Write(projected_sensor_field, KratosSI.SENSOR_STATUS, False)
+        Kratos.TensorAdaptors.VariableTensorAdaptor(projected_sensor_field, KratosSI.SENSOR_STATUS, copy=False).StoreData()
 
         # now update the sensor status control updaters
         if self.sensor_mask_name != "":
