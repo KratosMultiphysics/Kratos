@@ -85,6 +85,48 @@ typename TMatrix::local_ordinal_type GetNumLocalRows(const TMatrix& rMatrix)
     return GetNumLocalRowsImpl(rMatrix, 0);
 }
 
+/// Prefer getLocalNumElements (Trilinos >= 13); fall back to deprecated getNodeNumElements.
+template <class TMap>
+auto GetNumLocalElementsImpl(const TMap& rMap, int)
+    -> decltype(rMap.getLocalNumElements(), typename TMap::local_ordinal_type{})
+{
+    return static_cast<typename TMap::local_ordinal_type>(rMap.getLocalNumElements());
+}
+
+template <class TMap>
+typename TMap::local_ordinal_type GetNumLocalElementsImpl(const TMap& rMap, long)
+{
+    return static_cast<typename TMap::local_ordinal_type>(rMap.getNodeNumElements());
+}
+
+template <class TMap>
+typename TMap::local_ordinal_type GetNumLocalElements(const TMap& rMap)
+{
+    return GetNumLocalElementsImpl(rMap, 0);
+}
+
+/// Prefer getLocalElementList (Trilinos >= 13); fall back to deprecated getNodeElementList.
+template <class TMap>
+auto GetLocalElementListImpl(const TMap& rMap, int)
+    -> decltype(rMap.getLocalElementList())
+{
+    return rMap.getLocalElementList();
+}
+
+template <class TMap>
+auto GetLocalElementListImpl(const TMap& rMap, long)
+    -> decltype(rMap.getNodeElementList())
+{
+    return rMap.getNodeElementList();
+}
+
+template <class TMap>
+auto GetLocalElementList(const TMap& rMap)
+    -> decltype(GetLocalElementListImpl(rMap, 0))
+{
+    return GetLocalElementListImpl(rMap, 0);
+}
+
 } // namespace Detail
 /// @endcond
 

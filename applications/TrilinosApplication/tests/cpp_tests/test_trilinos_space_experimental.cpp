@@ -1446,7 +1446,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCreateImport, KratosTrilinosApplic
     KRATOS_EXPECT_NE(nullptr, p_import.get());
 
     // The target map must contain exactly the local dof equation ids
-    KRATOS_EXPECT_EQ(static_cast<int>(p_import->getTargetMap()->getNodeNumElements()), local_size);
+    KRATOS_EXPECT_EQ(static_cast<int>(Detail::GetNumLocalElements(*p_import->getTargetMap())), local_size);
 
     // Use the import to gather Dx values locally and verify correctness
     Tpetra::MultiVector<TrilinosSparseSpaceType::ST, LO, GO, TrilinosSparseSpaceType::NT>
@@ -1569,9 +1569,9 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetOrCreateMap, KratosTrilinosAppl
     auto p_map = TrilinosSparseSpaceType::GetOrCreateMap(tpetra_comm, local_size, first_my_id);
 
     KRATOS_EXPECT_NE(p_map, Teuchos::null);
-    KRATOS_EXPECT_EQ(static_cast<int>(p_map->getNodeNumElements()), local_size);
+    KRATOS_EXPECT_EQ(static_cast<int>(Detail::GetNumLocalElements(*p_map)), local_size);
     // Check that global IDs for this rank start at first_my_id
-    auto node_elements = p_map->getNodeElementList();
+    auto node_elements = Detail::GetLocalElementList(*p_map);
     KRATOS_EXPECT_EQ(static_cast<int>(node_elements[0]), first_my_id);
     KRATOS_EXPECT_EQ(static_cast<int>(node_elements[1]), first_my_id + 1);
 }
