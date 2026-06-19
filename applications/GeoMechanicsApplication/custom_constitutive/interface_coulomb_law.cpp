@@ -25,9 +25,9 @@
 
 namespace Kratos
 {
-InterfaceCoulombLaw::InterfaceCoulombLaw() = default;
-InterfaceCoulombLaw::~InterfaceCoulombLaw() = default;
-InterfaceCoulombLaw::InterfaceCoulombLaw(InterfaceCoulombLaw&&) noexcept = default;
+InterfaceCoulombLaw::InterfaceCoulombLaw()                                          = default;
+InterfaceCoulombLaw::~InterfaceCoulombLaw()                                         = default;
+InterfaceCoulombLaw::InterfaceCoulombLaw(InterfaceCoulombLaw&&) noexcept            = default;
 InterfaceCoulombLaw& InterfaceCoulombLaw::operator=(InterfaceCoulombLaw&&) noexcept = default;
 
 InterfaceCoulombLaw::InterfaceCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
@@ -39,14 +39,13 @@ InterfaceCoulombLaw::InterfaceCoulombLaw(std::unique_ptr<ConstitutiveLawDimensio
 {
 }
 
-
 ConstitutiveLaw::Pointer InterfaceCoulombLaw::Clone() const
 {
     auto p_result = std::make_shared<InterfaceCoulombLaw>(mpConstitutiveDimension->Clone());
     p_result->mTractionVector                      = mTractionVector;
     p_result->mTractionVectorFinalized             = mTractionVectorFinalized;
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
-    p_result->mpCoulombImpl                         = mpCoulombImpl->Clone();
+    p_result->mpCoulombImpl                        = mpCoulombImpl->Clone();
     p_result->mIsModelInitialized                  = mIsModelInitialized;
     return p_result;
 }

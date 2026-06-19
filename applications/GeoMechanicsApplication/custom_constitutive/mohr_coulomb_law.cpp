@@ -96,7 +96,7 @@ ConstitutiveLaw::Pointer MohrCoulombLaw::Clone() const
     p_result->mStressVector = mStressVector;
     p_result->mStressVectorFinalized = mStressVectorFinalized;
     p_result->mStrainVectorFinalized = mStrainVectorFinalized;
-    p_result->mpCoulombImpl           = mpCoulombImpl->Clone();
+    p_result->mpCoulombImpl          = mpCoulombImpl->Clone();
     return p_result;
 }
 

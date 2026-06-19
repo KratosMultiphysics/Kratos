@@ -83,7 +83,7 @@ CoulombImpl::CoulombImpl(const Properties& rMaterialProperties)
 
 std::unique_ptr<CoulombImpl> CoulombImpl::Clone() const
 {
-    auto p_result = std::make_unique<CoulombImpl>();
+    auto p_result                                  = std::make_unique<CoulombImpl>();
     p_result->mCoulombYieldSurface                 = mCoulombYieldSurface;
     p_result->mTensionCutOff                       = mTensionCutOff;
     p_result->mSavedKappaOfCoulombYieldSurface     = mSavedKappaOfCoulombYieldSurface;
