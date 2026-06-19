@@ -74,11 +74,7 @@ double SensorResolutionMatrixResponseUtils::CalculateValue()
     KRATOS_TRY
 
     const auto& r_mask_status = mpSensorMaskStatus->GetMaskStatuses();
-
-    Matrix auxiliary_mask_matrix(r_mask_status.size1(), r_mask_status.size1());
     mResolutionMatrix.resize(r_mask_status.size1(), r_mask_status.size1(), false);
-
-    noalias(auxiliary_mask_matrix) = prod(r_mask_status, trans(r_mask_status));
 
     return std::visit([&](auto pContainer) {
         using container_type = BareType<decltype(*pContainer)>;
@@ -87,10 +83,20 @@ double SensorResolutionMatrixResponseUtils::CalculateValue()
 
             double frobenius_norm = 0.0;
             const double coeff = 1 / mStepSize;
+
+            Vector aux_vec(r_mask_status.size1());
+            NDData<double>::Pointer p_nd_data = Kratos::make_shared<NDData<double>>(&aux_vec[0], DenseVector<unsigned int>(1, pContainer->size()), false);
+            TensorAdaptor<double> tensor_adaptor(pContainer, p_nd_data, false);
+
             for (IndexType i_col = 0; i_col < mResolutionMatrix.size1(); ++i_col) {
-                double* p_row_start = &auxiliary_mask_matrix(i_col, 0);
-                NDData<double>::Pointer p_nd_data = Kratos::make_shared<NDData<double>>(p_row_start, DenseVector<unsigned int>(1, pContainer->size()), false);
-                TensorAdaptor<double> tensor_adaptor(pContainer, p_nd_data, false);
+                IndexPartition<IndexType>(mResolutionMatrix.size1()).for_each([&r_mask_status, &aux_vec, i_col](const auto i_row){
+                    double& value = aux_vec[i_row];
+                    value = 0.0;
+                    for (IndexType k = 0; k < r_mask_status.size2(); ++k) {
+                        value += r_mask_status(i_row, k) * r_mask_status(i_col, k);
+                    }
+                });
+
                 auto p_filtered_tensor_adaptor = p_filter->ForwardFilterField(*p_filter->BackwardFilterField(tensor_adaptor));
                 const auto data_view = p_filtered_tensor_adaptor->ViewData();
 
@@ -99,8 +105,8 @@ double SensorResolutionMatrixResponseUtils::CalculateValue()
                     mResolutionMatrix(iRow, i_col) = value;
                     return value * value;
                 });
-                const double value = data_view[i_col];
-                frobenius_norm += coeff * coeff - 2.0 * coeff * value;
+
+                frobenius_norm += coeff * coeff - 2.0 * coeff * data_view[i_col];
             }
 
             return frobenius_norm * mStepSize * mStepSize * 0.5;
