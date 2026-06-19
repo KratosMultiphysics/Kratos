@@ -1079,9 +1079,6 @@ void LinearTimoshenkoBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo& rC
 
     VectorType strain_vector(strain_size);
     VectorType stress_vector(strain_size);
-    strain_vector.clear();
-    stress_vector.clear();
-
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rCurrentProcessInfo);
     cl_values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     cl_values.SetStrainVector(strain_vector);
