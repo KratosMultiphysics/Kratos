@@ -125,8 +125,6 @@ TensorAdaptor<double>::Pointer SensorResolutionMatrixResponseUtils::CalculateGra
 
     const auto& r_masks = mpSensorMaskStatus->GetMasks();
 
-    Matrix auxiliary_mask_matrix(r_masks.size1(), r_masks.size1());
-
     auto p_sensor_nodes = mpSensorMaskStatus->pGetSensorModelPart()->pNodes();
     auto result_nd_data = Kratos::make_shared<NDData<double>>(DenseVector<unsigned int>(1, p_sensor_nodes->size()));
     auto result_data_view = result_nd_data->ViewData();
