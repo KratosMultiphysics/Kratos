@@ -115,7 +115,6 @@
     "block_builder":                      true,
     "body_domain_sub_model_part_list":    ["Soil1", "Soil2", "Soil3"],
     "buffer_size":                        2,
-    "calculate_reactions":                true,
     "clear_storage":                      false,
     "compute_reactions":                  true,
     "convergence_criterion":              "displacement_criterion",
