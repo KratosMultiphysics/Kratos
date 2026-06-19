@@ -26,21 +26,19 @@
 namespace Kratos
 {
 InterfaceCoulombLaw::InterfaceCoulombLaw() = default;
-
 InterfaceCoulombLaw::~InterfaceCoulombLaw() = default;
+InterfaceCoulombLaw::InterfaceCoulombLaw(InterfaceCoulombLaw&&) noexcept = default;
+InterfaceCoulombLaw& InterfaceCoulombLaw::operator=(InterfaceCoulombLaw&&) noexcept = default;
 
 InterfaceCoulombLaw::InterfaceCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mTractionVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mTractionVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
-      mCoulombImpl(std::make_unique<CoulombImpl>())
+      mpCoulombImpl(std::make_unique<CoulombImpl>())
 {
 }
 
-InterfaceCoulombLaw::InterfaceCoulombLaw(InterfaceCoulombLaw&&) noexcept = default;
-
-InterfaceCoulombLaw& InterfaceCoulombLaw::operator=(InterfaceCoulombLaw&&) noexcept = default;
 
 ConstitutiveLaw::Pointer InterfaceCoulombLaw::Clone() const
 {
@@ -48,7 +46,7 @@ ConstitutiveLaw::Pointer InterfaceCoulombLaw::Clone() const
     p_result->mTractionVector                      = mTractionVector;
     p_result->mTractionVectorFinalized             = mTractionVectorFinalized;
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
-    p_result->mCoulombImpl                         = mCoulombImpl->Clone();
+    p_result->mpCoulombImpl                         = mpCoulombImpl->Clone();
     p_result->mIsModelInitialized                  = mIsModelInitialized;
     return p_result;
 }
@@ -66,7 +64,7 @@ Vector& InterfaceCoulombLaw::GetValue(const Variable<Vector>& rVariable, Vector&
 int& InterfaceCoulombLaw::GetValue(const Variable<int>& rVariable, int& rValue)
 {
     if (rVariable == GEO_PLASTICITY_STATUS) {
-        rValue = static_cast<int>(mCoulombImpl->GetPlasticityStatus());
+        rValue = static_cast<int>(mpCoulombImpl->GetPlasticityStatus());
     }
     return rValue;
 }
@@ -130,7 +128,7 @@ bool InterfaceCoulombLaw::RequiresInitializeMaterialResponse() { return true; }
 
 void InterfaceCoulombLaw::InitializeMaterial(const Properties& rMaterialProperties, const Geometry<Node>&, const Vector&)
 {
-    mCoulombImpl = std::make_unique<CoulombImpl>(rMaterialProperties);
+    mpCoulombImpl = std::make_unique<CoulombImpl>(rMaterialProperties);
 
     mRelativeDisplacementVectorFinalized =
         HasInitialState() ? GetInitialState().GetInitialStrainVector() : ZeroVector{GetStrainSize()};
@@ -163,8 +161,8 @@ void InterfaceCoulombLaw::CalculateMaterialResponseCauchy(Parameters& rConstitut
     const auto negative   = std::signbit(trial_sigma_tau.Tau());
     trial_sigma_tau.Tau() = std::abs(trial_sigma_tau.Tau());
 
-    if (!mCoulombImpl->IsAdmissibleStressState(trial_sigma_tau)) {
-        mapped_sigma_tau = mCoulombImpl->DoReturnMapping(
+    if (!mpCoulombImpl->IsAdmissibleStressState(trial_sigma_tau)) {
+        mapped_sigma_tau = mpCoulombImpl->DoReturnMapping(
             trial_sigma_tau, mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties),
             Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau.Tau() *= -1.0;
@@ -215,7 +213,7 @@ void InterfaceCoulombLaw::save(Serializer& rSerializer) const
     rSerializer.save("TractionVector", mTractionVector);
     rSerializer.save("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.save("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
-    rSerializer.save("CoulombImpl", mCoulombImpl);
+    rSerializer.save("CoulombImpl", mpCoulombImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
 }
 
@@ -226,7 +224,7 @@ void InterfaceCoulombLaw::load(Serializer& rSerializer)
     rSerializer.load("TractionVector", mTractionVector);
     rSerializer.load("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.load("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
-    rSerializer.load("CoulombImpl", mCoulombImpl);
+    rSerializer.load("CoulombImpl", mpCoulombImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
 }
 

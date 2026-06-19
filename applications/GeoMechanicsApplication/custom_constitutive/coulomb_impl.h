@@ -39,7 +39,7 @@ public:
     CoulombImpl() = default;
     explicit CoulombImpl(const Properties& rMaterialProperties);
 
-    std::unique_ptr<CoulombImpl> Clone();
+    std::unique_ptr<CoulombImpl> Clone() const;
 
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction);
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses);

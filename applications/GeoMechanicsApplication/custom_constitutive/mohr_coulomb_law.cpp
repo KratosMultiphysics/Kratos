@@ -86,7 +86,7 @@ MohrCoulombLaw::MohrCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConsti
       mStressVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mStressVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mStrainVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
-      mCoulombImpl(std::make_unique<CoulombImpl>())
+      mpCoulombImpl(std::make_unique<CoulombImpl>())
 {
 }
 
@@ -96,7 +96,7 @@ ConstitutiveLaw::Pointer MohrCoulombLaw::Clone() const
     p_result->mStressVector = mStressVector;
     p_result->mStressVectorFinalized = mStressVectorFinalized;
     p_result->mStrainVectorFinalized = mStrainVectorFinalized;
-    p_result->mCoulombImpl           = mCoulombImpl->Clone();
+    p_result->mpCoulombImpl           = mpCoulombImpl->Clone();
     return p_result;
 }
 
@@ -113,7 +113,7 @@ Vector& MohrCoulombLaw::GetValue(const Variable<Vector>& rVariable, Vector& rVal
 int& MohrCoulombLaw::GetValue(const Variable<int>& rVariable, int& rValue)
 {
     if (rVariable == GEO_PLASTICITY_STATUS) {
-        rValue = static_cast<int>(mCoulombImpl->GetPlasticityStatus());
+        rValue = static_cast<int>(mpCoulombImpl->GetPlasticityStatus());
     }
     return rValue;
 }
@@ -166,7 +166,7 @@ bool MohrCoulombLaw::RequiresInitializeMaterialResponse() { return true; }
 
 void MohrCoulombLaw::InitializeMaterial(const Properties& rMaterialProperties, const Geometry<Node>&, const Vector&)
 {
-    mCoulombImpl = std::make_unique<CoulombImpl>(rMaterialProperties);
+    mpCoulombImpl = std::make_unique<CoulombImpl>(rMaterialProperties);
 }
 
 void MohrCoulombLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
@@ -207,11 +207,11 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
     const auto& [trial_principal_stresses, rotation_matrix] =
         StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(trial_stress_vector);
 
-    if (mCoulombImpl->IsAdmissibleStressState(trial_principal_stresses)) {
+    if (mpCoulombImpl->IsAdmissibleStressState(trial_principal_stresses)) {
         mStressVector = trial_stress_vector;
     } else {
-        mCoulombImpl->SaveKappaOfCoulombYieldSurface();
-        auto mapped_principal_stresses = mCoulombImpl->DoReturnMapping(
+        mpCoulombImpl->SaveKappaOfCoulombYieldSurface();
+        auto mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
             trial_principal_stresses, mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties),
             Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
 
@@ -220,8 +220,8 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
             averaging_type != Geo::PrincipalStresses::AveragingType::NO_AVERAGING) {
             const auto averaged_principal_trial_stress_vector =
                 AveragePrincipalStressComponents(trial_principal_stresses, averaging_type);
-            mCoulombImpl->RestoreKappaOfCoulombYieldSurface();
-            mapped_principal_stresses = mCoulombImpl->DoReturnMapping(
+            mpCoulombImpl->RestoreKappaOfCoulombYieldSurface();
+            mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
                 averaged_principal_trial_stress_vector,
                 mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties), averaging_type);
             mapped_principal_stresses.Values()[1] =
@@ -253,7 +253,7 @@ void MohrCoulombLaw::save(Serializer& rSerializer) const
     rSerializer.save("StressVector", mStressVector);
     rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
-    rSerializer.save("mCoulombImpl", mCoulombImpl);
+    rSerializer.save("mpCoulombImpl", mpCoulombImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
 }
 
@@ -264,7 +264,7 @@ void MohrCoulombLaw::load(Serializer& rSerializer)
     rSerializer.load("StressVector", mStressVector);
     rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
-    rSerializer.load("mCoulombImpl", mCoulombImpl);
+    rSerializer.load("mpCoulombImpl", mpCoulombImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
 }
 
