@@ -143,7 +143,7 @@ class GeoMechanicalSolver(PythonSolver):
             self.settings.RemoveValue("calculate_reactions")
         if self.settings.Has("reset_displacements"):
             kratos_utilities.IssueDeprecationWarning('GeoMechanicsApplication', 'Use of reset_displacements is deprecated, please change to reset_totals')
-            self.settings.SetValue("reset_totals", self.settings["reset_displacements"].GetBool())
+            self.settings.AddValue("reset_totals", self.settings["reset_displacements"])
             self.settings.RemoveValue("reset_displacements")
 
         super().ValidateSettings()
