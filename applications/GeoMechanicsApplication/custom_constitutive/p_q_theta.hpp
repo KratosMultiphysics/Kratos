@@ -38,8 +38,8 @@ public:
         auto first = std::begin(rValues);
         auto last  = std::end(rValues);
         KRATOS_DEBUG_ERROR_IF(std::distance(first, last) != msVectorSize)
-            << "Cannot construct a PQTheta instance: expected " << msVectorSize << " values, but got "
-            << std::distance(first, last) << " value(s)\n";
+            << "Cannot construct a PQTheta instance: expected " << msVectorSize
+            << " values, but got " << std::distance(first, last) << " value(s)\n";
 
         std::copy(first, last, mValues.begin());
     }
