@@ -1110,10 +1110,10 @@ namespace Kratos
                 // array_1d<double, 3> second_variations_moment_product_vector_master_slave = prod(trans(Pi_slave), rotation_vector_master);
                 // array_1d<double, 3> second_variations_moment_product_vector_slave_master = prod(trans(Pi_master), rotation_vector_slave);
 
-                array_1d<double, 3> second_variations_moment_product_vector_master = prod(trans(Pi_master), T2_master);
-                array_1d<double, 3> second_variations_moment_product_vector_slave = prod(trans(Pi_slave), T2_slave);
-                array_1d<double, 3> second_variations_moment_product_vector_master_slave = prod(trans(Pi_slave), T2_master);
-                array_1d<double, 3> second_variations_moment_product_vector_slave_master = prod(trans(Pi_master), T2_slave);
+                array_1d<double, 3> second_variations_moment_product_vector_master = prod(trans(Pi_master), T1_master);
+                array_1d<double, 3> second_variations_moment_product_vector_slave = prod(trans(Pi_slave), T1_slave);
+                array_1d<double, 3> second_variations_moment_product_vector_master_slave = prod(trans(Pi_slave), T1_master);
+                array_1d<double, 3> second_variations_moment_product_vector_slave_master = prod(trans(Pi_master), T1_slave);
 
                 //Calculate second variation of moment vectors
                 Matrix second_variations_moment_master = ZeroMatrix(3 * number_of_nodes_master, 3 * number_of_nodes_master);
@@ -1124,14 +1124,14 @@ namespace Kratos
                 // CalculateSecondVariationMoment(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, rotation_vector_master, rotation_vector_slave, 
                 //                                second_variations_moment_product_vector_slave, second_variations_moment_product_vector_master_slave, PatchType::Slave);
 
-                CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T2_master, T2_master, T2_slave, 
+                CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T1_master, T1_master, T1_slave, 
                                                 second_variations_moment_product_vector_master, second_variations_moment_product_vector_slave_master, PatchType::Master);
-                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, first_variations_T2_slave, T2_slave, T2_master, 
+                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, first_variations_T1_slave, T1_slave, T1_master, 
                                                 second_variations_moment_product_vector_slave, second_variations_moment_product_vector_master_slave, PatchType::Slave);
 
-                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T2_master, second_variations_T2_master, T2_master, T2_slave, 
+                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T1_master, second_variations_T1_master, T1_master, T1_slave, 
                                                 moment_vector_master, moment_vector_master, constitutive_variables_curvature_master, PatchType::Master);
-                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave,first_variations_T2_slave, second_variations_T2_slave, T2_slave, T2_master, 
+                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave,first_variations_T1_slave, second_variations_T1_slave, T1_slave, T1_master, 
                                                 moment_vector_slave, moment_vector_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
                 second_variations_moment_master *= diff_phi(0);
@@ -3082,13 +3082,13 @@ namespace Kratos
 
         rSecondVariationMoment += prod(trans(rFirstVariationT2), base_vector_1_dNCovariant1_master)*n_contravariant_vector(0);
         rSecondVariationMoment += prod(trans(rFirstVariationT2), base_vector_1_dNCovariant2_master)*n_contravariant_vector(1);
-        rSecondVariationMoment += prod(trans(rFirstVariationT2), base_vector_2_dNCovariant1_master)*n_contravariant_vector(1);
-        rSecondVariationMoment += prod(trans(rFirstVariationT2), base_vector_2_dNCovariant2_master)*n_contravariant_vector(0);
+        rSecondVariationMoment += prod(trans(rFirstVariationT2), base_vector_2_dNCovariant2_master)*n_contravariant_vector(1);
+        rSecondVariationMoment += prod(trans(rFirstVariationT2), base_vector_2_dNCovariant1_master)*n_contravariant_vector(0);
 
         rSecondVariationMoment += prod(trans(base_vector_1_dNCovariant1_master), rFirstVariationT2)*n_contravariant_vector(0);
         rSecondVariationMoment += prod(trans(base_vector_1_dNCovariant2_master), rFirstVariationT2)*n_contravariant_vector(1);
-        rSecondVariationMoment += prod(trans(base_vector_2_dNCovariant1_master), rFirstVariationT2)*n_contravariant_vector(1);
-        rSecondVariationMoment += prod(trans(base_vector_2_dNCovariant2_master), rFirstVariationT2)*n_contravariant_vector(0);
+        rSecondVariationMoment += prod(trans(base_vector_2_dNCovariant2_master), rFirstVariationT2)*n_contravariant_vector(1);
+        rSecondVariationMoment += prod(trans(base_vector_2_dNCovariant1_master), rFirstVariationT2)*n_contravariant_vector(0);
     }
 
     void CouplingNitscheCondition::CalculateAdditionalSecondVariationMomentT2(
