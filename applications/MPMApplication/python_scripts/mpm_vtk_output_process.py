@@ -39,16 +39,8 @@ class MPMVtkOutputProcess(KratosMultiphysics.OutputProcess):
             self.main_model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
         # Print background grid model part
-        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            grid_settings = KratosMultiphysics.Parameters()
-            grid_settings.AddString("model_part_name","Background_Grid")
-            grid_settings.AddString("file_format",self.settings["file_format"].GetString())
-            grid_settings.AddDouble("output_precision",self.settings["output_precision"].GetDouble())
-            grid_settings.AddBool("output_sub_model_parts",self.settings["output_sub_model_parts"].GetBool())
-            grid_settings.AddString("output_path",self.settings["output_path"].GetString())
-            grid_settings.AddBool("save_output_files_in_folder",self.settings["save_output_files_in_folder"].GetBool())
-            background_grid = self.model["Background_Grid"]
-            KratosMultiphysics.VtkOutput(background_grid, grid_settings).PrintOutput()
+        # if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            # self.PrintBackgroundGrid()
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings: KratosMultiphysics.Parameters) -> None:
@@ -89,3 +81,16 @@ class MPMVtkOutputProcess(KratosMultiphysics.OutputProcess):
 
     def IsOutputStep(self) -> bool:
         return self.__controller.Evaluate()
+    
+    def PrintBackgroundGrid(self) -> None:
+        grid_settings = KratosMultiphysics.Parameters()
+        grid_settings.AddString("model_part_name","Background_Grid")
+        grid_settings.AddString("file_format",self.settings["file_format"].GetString())
+        grid_settings.AddDouble("output_precision",self.settings["output_precision"].GetDouble())
+        grid_settings.AddBool("output_sub_model_parts",self.settings["output_sub_model_parts"].GetBool())
+        grid_settings.AddString("output_path",self.settings["output_path"].GetString())
+        grid_settings.AddBool("save_output_files_in_folder",self.settings["save_output_files_in_folder"].GetBool())
+        # Custom
+        # grid_settings.AddStringArray("nodal_solution_step_data_variables",["DISPLACEMENT","VELOCITY"])
+        background_grid = self.model["Background_Grid"]
+        KratosMultiphysics.VtkOutput(background_grid, grid_settings).PrintOutput()

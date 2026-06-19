@@ -157,9 +157,12 @@ class MPMSolver(PythonSolver):
 
         #clean nodal values and map from MPs to nodes
         self._GetSolutionStrategy().InitializeSolutionStep()
+        # self._PrintBackgroundGrid()
 
     def Predict(self):
         self._GetSolutionStrategy().Predict()
+        # self._PrintBackgroundGrid()
+
 
     def SolveSolutionStep(self):
         # Calc residual, update momenta
@@ -453,6 +456,20 @@ class MPMSolver(PythonSolver):
         else:
             required_buffer_size = self.material_point_model_part.GetBufferSize()
             auxiliary_solver_utilities.SetAndFillBuffer(self.grid_model_part, required_buffer_size, delta_time)
+
+    def _PrintBackgroundGrid(self):
+        grid_settings = KratosMultiphysics.Parameters()
+        grid_settings.AddString("model_part_name","Background_Grid")
+        grid_settings.AddString("file_format"               ,"ascii")
+        grid_settings.AddDouble("output_precision"          ,7)
+        grid_settings.AddBool("output_sub_model_parts"      ,False)
+        grid_settings.AddString("output_path"               ,"vtk_output")
+        grid_settings.AddBool("save_output_files_in_folder" ,True)
+        # Custom
+        grid_settings.AddStringArray("nodal_solution_step_data_variables",["DISPLACEMENT","VELOCITY"])
+
+        KratosMultiphysics.VtkOutput(self.GetGridModelPart(), grid_settings).PrintOutput()
+        print('------------------------------------------------------------------------------------------------------------------------hehe')
 
     ### Solver private functions
 
