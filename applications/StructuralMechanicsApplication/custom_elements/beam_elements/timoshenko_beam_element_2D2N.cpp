@@ -1070,7 +1070,7 @@ void LinearTimoshenkoBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo& rC
     const auto& r_geometry = GetGeometry();
     const auto& r_props    = GetProperties();
     const auto  length     = CalculateLength();
-    const auto  Phi        = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
+    const auto  phi= StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
     const auto  strain_size        = mConstitutiveLawVector[0]->GetStrainSize();
 
@@ -1089,7 +1089,7 @@ void LinearTimoshenkoBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo& rC
 
     for (auto integration_point = std::size_t{0}; integration_point < integration_points.size(); ++integration_point) {
         if (!mConstitutiveLawVector[integration_point]->RequiresFinalizeMaterialResponse()) continue;
-        CalculateGeneralizedStrainsVector(strain_vector, length, Phi, integration_points[integration_point].X(), nodal_values);
+        CalculateGeneralizedStrainsVector(strain_vector, length, phi, integration_points[integration_point].X(), nodal_values);
         mConstitutiveLawVector[integration_point]->FinalizeMaterialResponse(cl_values, mConstitutiveLawVector[integration_point]->GetStressMeasure());
     }
 
