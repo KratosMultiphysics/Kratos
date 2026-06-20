@@ -2138,10 +2138,10 @@ public:
         // Open the FE graph for insertion (sets fillState_=open)
         graph->beginAssembly();
 
-        const auto numLocalRows = r_row_map->getNodeNumElements();
+        const auto number_of_local_rows = Detail::GetNumLocalElements(*r_row_map);
 
         // Combine graphs using global indexing
-        for (LO i = 0; i < static_cast<LO>(numLocalRows); ++i) {
+        for (LO i = 0; i < static_cast<LO>(number_of_local_rows); ++i) {
             const auto global_row_index = r_row_map->getGlobalElement(i);
             std::set<GO> combined_indices;
 
