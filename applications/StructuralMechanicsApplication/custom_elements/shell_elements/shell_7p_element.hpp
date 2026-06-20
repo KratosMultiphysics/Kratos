@@ -97,7 +97,7 @@ private:
     void ContraVariantBaseVectors(array_1d<Vector,3>& rBaseVectors,const Matrix& rContraVariantMetric,
     const array_1d<Vector,3> rCovariantBaseVectors) const;
 
-    void ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric, double& detJ_body) const;
+    void ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric, double& detMetric_body) const;
 
     void JacobiDeterminante(double& DetJ, const array_1d<Vector,3>& akovr) const;
 
@@ -115,6 +115,12 @@ private:
     void BOperatorANSmodification(Matrix& Bop, const array_1d<double,2>& frq, const array_1d<double,2>& fsq,
     const array_1d<array_1d<Vector,3>,4>& akovr_ans,const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
     const Matrix& N_ans, const SizeType& number_of_nodes) const;
+
+    void CalculateEASShapeFunctions(Matrix& M0_eas, const double r, const double s,
+    const array_1d<SizeType,3>& eas_modes_per_kinematic_variable_set, const SizeType& num_eas_modes) const;
+
+    void BasisTransformationEASShapeFunctions(Matrix& T, const Matrix& M0_eas, Matrix& M_eas,
+    const array_1d<Vector,3>& akonr0_eas, const array_1d<Vector,3>& akovr, const double detJ0_surface, const double detJ_surface) const;
 
     friend class Serializer;
 

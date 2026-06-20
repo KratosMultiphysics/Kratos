@@ -210,7 +210,7 @@ void Shell7pElement::CalculateLeftHandSide(
     double amdet_body = 0.0;
     double gmdet_body = 0.0;
 
-    ////////////////////////////////////////////////////////////////BEGIN ANS STUFF////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
     int ansq=1; // activation flag of Q-mode of ANS  
     SizeType n_ans_points=4; 
     // 4 ANS sampling points: (r, s)
@@ -228,7 +228,8 @@ void Shell7pElement::CalculateLeftHandSide(
     Matrix N_ans = ZeroMatrix(n_ans_points, number_of_nodes);   // N_ans(p,i) = N_i at point p
     array_1d<Matrix,4> DN_ans;                                  // DN_ansp=dNi/dxi (DN_ans[p](i, 0)), DN_ansp=dNi/deta (DN_ans[p](i, 1))
     array_1d<array_1d<Vector,3>,4> akovr_ans;
-    Vector Np(number_of_nodes);
+    Vector Np;
+    Np.resize(number_of_nodes, false);
 
     for (SizeType p = 0; p < n_ans_points; ++p) {
         //funct_q[p].resize(number_of_nodes);
@@ -249,18 +250,53 @@ void Shell7pElement::CalculateLeftHandSide(
     }
 
     ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
-    //array_1d<Matrix,2> akovr_1q;
-    //array_1d<Matrix,2> akonr_1q;
-    //array_1d<Matrix,2> amkovr_1q;
-    //array_1d<Matrix,2> amkonr_1q;
-    //array_1d<Matrix,2> a3kvpr_1q;
-//
-    //array_1d<Matrix,2> akovr_2q;
-    //array_1d<Matrix,2> akonr_2q;
-    //array_1d<Matrix,2> amkovr_2q;
-    //array_1d<Matrix,2> amkonr_2q;
-    //array_1d<Matrix,2> a3kvpr_2q;
 
+    ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
+
+    array_1d<SizeType,3> eas_modes_per_kinematic_variable_set; // number of EAS modes for the set of kinematic varables: [ [konstant a11,a12,a22, linear b11,b12,b22] Modes, [konstant a13,a23, linear b13,b23] Modes, [b33 linear] Modes ]
+    eas_modes_per_kinematic_variable_set[0] = 4;   // for membrane and bending kinematic variables (alpha11, alpha22, alpha12, betta11, betta22, betta12)
+    eas_modes_per_kinematic_variable_set[1] = 0;   // for shear related kinematic variables (alpha13, alpha23, betta13, betta23)
+    eas_modes_per_kinematic_variable_set[2] = 4;   // for thickness related kinematic variable (betta33)
+    SizeType num_eas_modes = 0;
+    num_eas_modes = eas_modes_per_kinematic_variable_set[0] * 2 + eas_modes_per_kinematic_variable_set[1] * 2 + eas_modes_per_kinematic_variable_set[2]; // total number of EAS modes from the sum over all kinematic variables. faktor 2 is due to the fact that we have two sets of EAS modes: konstant and linear
+    
+    //SizeType num_eas_modes = 4;
+    Matrix M0_eas = ZeroMatrix(12, num_eas_modes);              // Shape function matrix for EAS modes (incomatible strains) formulated at the center of the element. rows: 12 kinamatic variables. columns: num_eas_modes EAS modes.
+    Matrix M_eas = ZeroMatrix(12, num_eas_modes);               // Shape function matrix for EAS modes transformed to the current GP via basis transformation from coordinate system of midpoint to coordinate system of GP
+    Matrix T = ZeroMatrix(12, 12);                              // Transformation matrix from EAS modes formulated at the center of the element to EAS modes formulated at the current GP
+    Matrix Lt = ZeroMatrix(num_eas_modes, number_dofs);         // L-matrix for EAS [num_eas_modes x numdof] at the GP: coupling matrix between EAS parameters and nodal DOFs. 
+    Matrix Dtild = ZeroMatrix(num_eas_modes, num_eas_modes);    // Dtilde matrix for EAS [num_eas_modes x num_eas_modes] at the GP: enhanced stiffness matrix
+    Matrix Dtild_inv = ZeroMatrix(num_eas_modes, num_eas_modes);
+    Vector Rtild = ZeroVector(num_eas_modes);                   // enhanced internal force vector
+
+    Matrix DN_eas0;
+    DN_eas0.resize(number_of_nodes, 2, false);
+    Vector N_eas0;
+    N_eas0.resize(number_of_nodes, false);
+    array_1d<Vector,3> akovr0_eas;
+    array_1d<Vector,3> akonr0_eas;
+    Matrix amkovr0_eas = ZeroMatrix(3);
+    Matrix amkonr0_eas = ZeroMatrix(3);
+    double amdet0_body = 0.0;
+    double detJ0_surface = 0.0;
+
+    array_1d<double,3> local_coords;
+    local_coords[0] = 0.0;      // the EAS modes are initially formulated at the element center
+    local_coords[1] = 0.0;
+    local_coords[2] = 0.0;
+    r_geom.ShapeFunctionsValues(N_eas0, local_coords);
+
+    r_geom.ShapeFunctionsLocalGradients(DN_eas0, local_coords);
+
+    // midsurface midpoint kinematics in reference configuration  
+    CovariantBaseVectorsMidsurface(akovr0_eas, DN_eas0, N_eas0, ConfigurationType::Reference, thickness);
+    CovariantMetric(amkovr0_eas,akovr0_eas);
+    ContravariantMetric(amkonr0_eas,amkovr0_eas,amdet0_body);
+    ContraVariantBaseVectors(akonr0_eas,amkonr0_eas,akovr0_eas);
+    JacobiDeterminante(detJ0_surface,akovr0_eas);
+
+    ////////////////////////////////////////////////////////////////END EAS STUFF////////////////////////////////////////////////////////////////
+    
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
         // getting information for integration
         const double integration_weight_i = r_integration_points[point_number].Weight();
@@ -322,7 +358,44 @@ void Shell7pElement::CalculateLeftHandSide(
         Matrix DB = ZeroMatrix(12,number_dofs); 
         noalias(DB) = prod(Dmatrix, Bop);
         rLeftHandSideMatrix += prod(trans(Bop), DB) * weight;
+        ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
+
+        // shape functions for (incompatible strains) EAS strains formulated at the center of the element
+        CalculateEASShapeFunctions(M0_eas,r,s,eas_modes_per_kinematic_variable_set,num_eas_modes);
+        // basis transformation of EAS strains formulated in midpoint to the current GP
+        BasisTransformationEASShapeFunctions(T, M0_eas, M_eas, akonr0_eas, akovr, detJ0_surface, detJ_surface);
+
+        //==============================================================
+        //       L^T (nhyb,nd) = M^T (nhyb,12) * D(12,12) * B(12,nd)
+        // here:   "Lt"            "transP"         "D"       "bop"   
+        //==============================================================
+        noalias(Lt) += prod(trans(M_eas), DB) * weight; // * thickness*0.5; check whether weight 2D Jacobian insted of 3D one
+        //         D (nhyb,nhyb) = M^T(nhyb,12) * D(12,12) * M(12,nhyb)
+        // here: "Dtild"           "transP"         "D"      "transP"    
+        //=============================================================
+        Matrix DM = ZeroMatrix(12,num_eas_modes);
+        noalias(DM) = prod(Dmatrix, M_eas);   
+        noalias(Dtild) += prod(trans(M_eas), DM) * weight; // * thickness*0.5; check whether weight 2D Jacobian insted of 3D one    
+
+        ////////////////////////////////////////////////////////////////END EAS STUFF////////////////////////////////////////////////////////////////
     }
+
+        //------------------------------------ make inverse of matrix Dtilde //
+        double det_Dtild = 0.0;
+        const double det_tol = 1.0e-14;
+
+        // Generic Kratos inversion for dynamic-size Matrix
+        MathUtils<double>::InvertMatrix(Dtild, Dtild_inv, det_Dtild);
+
+        KRATOS_ERROR_IF(std::abs(det_Dtild) < det_tol) << "Singular or near-singular Dtild. det = " << det_Dtild << " in element " << Id() << std::endl;
+        
+        //----------------- make modifications to stiffness matrices due to eas //
+        //===================================================================//
+        // estif(nd,nd) = estif(nd,nd) - Ltrans(nhyb,nd) * Dtilde^-1(nhyb,nhyb) * L(nd,nhyb) //
+        //===================================================================//
+        Matrix temp = ZeroMatrix(num_eas_modes, number_dofs);
+        noalias(temp) = prod(Dtild_inv, Lt);
+        rLeftHandSideMatrix -= prod(trans(Lt), temp);       
 }
 
 void Shell7pElement::CovariantBaseVectorsMidsurface(array_1d<Vector,3>& akovr,
@@ -394,16 +467,16 @@ void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& r
     }
 }
  
-void Shell7pElement::ContravariantMetric(Matrix& rMetric, const Matrix& rCovariantMetric, double& detJ_body) const
+void Shell7pElement::ContravariantMetric(Matrix& rMetric, const Matrix& rCovariantMetric, double& detMetric_body) const
 {
     rMetric = ZeroMatrix(3);
-    detJ_body = 0.0;
-    MathUtils<double>::InvertMatrix3(rCovariantMetric, rMetric, detJ_body);         // 1.Uses the general 3×3 inversion 2.Checks determinant 3.Works even if orthogonality assumption fails   
+    detMetric_body = 0.0;
+    MathUtils<double>::InvertMatrix3(rCovariantMetric, rMetric, detMetric_body);         // 1.Uses the general 3×3 inversion 2.Checks determinant 3.Works even if orthogonality assumption fails   
     const double det_tol = 1.0e-14;
 
-    KRATOS_ERROR_IF(detJ_body <= -det_tol) << "Negative covariant metric determinant detected. det = " << detJ_body << " in element " << Id() << std::endl;
+    KRATOS_ERROR_IF(detMetric_body <= -det_tol) << "Negative covariant metric determinant detected. det = " << detMetric_body << " in element " << Id() << std::endl;
     // check the determinant for singularity (near-zero = bad matrix condition) meaning large contravariant metric coeefs
-    KRATOS_ERROR_IF(std::abs(detJ_body) < det_tol) << "Singular covariant metric detected. det = " << detJ_body << " in element " << Id() << std::endl;  
+    KRATOS_ERROR_IF(std::abs(detMetric_body) < det_tol) << "Singular covariant metric detected. det = " << detMetric_body << " in element " << Id() << std::endl;  
 }
 
 void Shell7pElement::ContraVariantBaseVectors(array_1d<Vector,3>& rBaseVectors,const Matrix& rContraVariantMetric,
@@ -587,21 +660,21 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact) con
                                                                                                                                                                   // [N_node][derivative direction]   // Nshape[i] = N_i evaluated at the current GP
 void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes) const
 {
-const double a1x=CovariantBaseVectors[0][0];
-const double a1y=CovariantBaseVectors[0][1];
-const double a1z=CovariantBaseVectors[0][2];
-const double a2x=CovariantBaseVectors[1][0];
-const double a2y=CovariantBaseVectors[1][1];
-const double a2z=CovariantBaseVectors[1][2];
-const double a3x=CovariantBaseVectors[2][0];
-const double a3y=CovariantBaseVectors[2][1];
-const double a3z=CovariantBaseVectors[2][2];
-const double a31x=DirectorDerivatives[0][0];
-const double a31y=DirectorDerivatives[0][1];
-const double a31z=DirectorDerivatives[0][2];
-const double a32x=DirectorDerivatives[1][0];
-const double a32y=DirectorDerivatives[1][1];
-const double a32z=DirectorDerivatives[1][2];
+const double a1x = CovariantBaseVectors[0][0];
+const double a1y = CovariantBaseVectors[0][1];
+const double a1z = CovariantBaseVectors[0][2];
+const double a2x = CovariantBaseVectors[1][0];
+const double a2y = CovariantBaseVectors[1][1];
+const double a2z = CovariantBaseVectors[1][2];
+const double a3x = CovariantBaseVectors[2][0];
+const double a3y = CovariantBaseVectors[2][1];
+const double a3z = CovariantBaseVectors[2][2];
+const double a31x = DirectorDerivatives[0][0];
+const double a31y = DirectorDerivatives[0][1];
+const double a31z = DirectorDerivatives[0][2];
+const double a32x = DirectorDerivatives[1][0];
+const double a32y = DirectorDerivatives[1][1];
+const double a32z = DirectorDerivatives[1][2];
 
     for (SizeType i=0;i<number_of_nodes;++i){
             const SizeType index = i*6;
@@ -712,19 +785,19 @@ void Shell7pElement::BOperatorANSmodification(Matrix& Bop, const array_1d<double
   {
     const SizeType node_start = inode*6;
 
-    Bop(2,node_start+0)= 0.0;
-    Bop(2,node_start+1)= 0.0;
-    Bop(2,node_start+2)= 0.0;
-    Bop(2,node_start+3)= 0.0;
-    Bop(2,node_start+4)= 0.0;
-    Bop(2,node_start+5)= 0.0;
-
-    Bop(4,node_start+0)= 0.0;
-    Bop(4,node_start+1)= 0.0;
-    Bop(4,node_start+2)= 0.0;
-    Bop(4,node_start+3)= 0.0;
-    Bop(4,node_start+4)= 0.0;
-    Bop(4,node_start+5)= 0.0;
+    Bop(2,node_start+0) = 0.0;
+    Bop(2,node_start+1) = 0.0;
+    Bop(2,node_start+2) = 0.0;
+    Bop(2,node_start+3) = 0.0;
+    Bop(2,node_start+4) = 0.0;
+    Bop(2,node_start+5) = 0.0;
+ 
+    Bop(4,node_start+0) = 0.0;
+    Bop(4,node_start+1) = 0.0;
+    Bop(4,node_start+2) = 0.0;
+    Bop(4,node_start+3) = 0.0;
+    Bop(4,node_start+4) = 0.0;
+    Bop(4,node_start+5) = 0.0;
 
     for (SizeType isamp = 0; isamp < 2; ++isamp)
     {
@@ -759,23 +832,263 @@ void Shell7pElement::BOperatorANSmodification(Matrix& Bop, const array_1d<double
       const double N1_ans = frq[isamp];
       const double N2_ans = fsq[isamp];
 /*--------------------------------------------------E13(CONST)-------- */
-      Bop(2,node_start+0)+= dNd1*a3x1*N1_ans;
-      Bop(2,node_start+1)+= dNd1*a3y1*N1_ans;
-      Bop(2,node_start+2)+= dNd1*a3z1*N1_ans;
-      Bop(2,node_start+3)+= N1*a1x1*N1_ans;
-      Bop(2,node_start+4)+= N1*a1y1*N1_ans;
-      Bop(2,node_start+5)+= N1*a1z1*N1_ans;
-/*-------------------------------------------------E23(CONST)-------- */
-      Bop(4,node_start+0)+= dNd2*a3x2*N2_ans;
-      Bop(4,node_start+1)+= dNd2*a3y2*N2_ans;
-      Bop(4,node_start+2)+= dNd2*a3z2*N2_ans;
-      Bop(4,node_start+3)+= N2*a2x2*N2_ans;  
-      Bop(4,node_start+4)+= N2*a2y2*N2_ans;
-      Bop(4,node_start+5)+= N2*a2z2*N2_ans;
+      Bop(2,node_start+0) += dNd1*a3x1*N1_ans;
+      Bop(2,node_start+1) += dNd1*a3y1*N1_ans;
+      Bop(2,node_start+2) += dNd1*a3z1*N1_ans;
+      Bop(2,node_start+3) += N1*a1x1*N1_ans;
+      Bop(2,node_start+4) += N1*a1y1*N1_ans;
+      Bop(2,node_start+5) += N1*a1z1*N1_ans;
+/*----------------------- --------------------------E23(CONST)-------- */
+      Bop(4,node_start+0) += dNd2*a3x2*N2_ans;
+      Bop(4,node_start+1) += dNd2*a3y2*N2_ans;
+      Bop(4,node_start+2) += dNd2*a3z2*N2_ans;
+      Bop(4,node_start+3) += N2*a2x2*N2_ans;  
+      Bop(4,node_start+4) += N2*a2y2*N2_ans;
+      Bop(4,node_start+5) += N2*a2z2*N2_ans;
     }
   }
 
 
 }
+
+void Shell7pElement::CalculateEASShapeFunctions(Matrix& M0_eas, const double r, const double s, const array_1d<SizeType,3>& eas_modes_per_kinematic_variable_set, const SizeType& num_eas_modes) const
+{
+    SizeType EAS_mode = 0;
+
+    const SizeType alpha11 = 0;
+    const SizeType alpha12 = 1;
+    const SizeType alpha13 = 2;
+    const SizeType alpha22 = 3;
+    const SizeType alpha23 = 4;
+    const SizeType alpha33 = 5;
+    const SizeType betta11 = 6;
+    const SizeType betta12 = 7;
+    const SizeType betta13 = 8;
+    const SizeType betta22 = 9;
+    const SizeType betta23 = 10;
+    const SizeType betta33 = 11;
+
+    const double rs = r*s;
+    const double rr = r*r;
+    const double ss = s*s;
+
+    // EAS modes for membrane and bending related kinematic variables 11,22,12
+    switch (eas_modes_per_kinematic_variable_set[0])
+    {
+        case 0:
+        break;
+        case 4:
+        M0_eas(alpha11,EAS_mode) = r;
+        M0_eas(alpha22,EAS_mode+1) = s;
+        M0_eas(alpha12,EAS_mode+2) = r;
+        M0_eas(alpha12,EAS_mode+3) = s;
+
+        M0_eas(betta11,EAS_mode+4) = r;
+        M0_eas(betta22,EAS_mode+5) = s;
+        M0_eas(betta12,EAS_mode+6) = r;
+        M0_eas(betta12,EAS_mode+7) = s;
+
+        EAS_mode += 8;
+        break;
+        case 5:
+        M0_eas(alpha11,EAS_mode) = r;
+        M0_eas(alpha22,EAS_mode+1) = s;
+        M0_eas(alpha12,EAS_mode+2) = r;
+        M0_eas(alpha12,EAS_mode+3) = s;
+        M0_eas(alpha12,EAS_mode+4) = rs;
+
+        M0_eas(betta11,EAS_mode+5) = r;
+        M0_eas(betta22,EAS_mode+6) = s;
+        M0_eas(betta12,EAS_mode+7) = r;
+        M0_eas(betta12,EAS_mode+8) = s;
+        M0_eas(betta12,EAS_mode+9) = rs;
+
+        EAS_mode += 10;
+        break;
+        default: KRATOS_ERROR << "Unsupported number of EAS modes for membrane and bending 11,22,12 " << eas_modes_per_kinematic_variable_set[0] << std::endl;
+        break;
+    }
+    // EAS modes for shear related kinematic variables 13,23
+    switch (eas_modes_per_kinematic_variable_set[1])
+    {
+        case 0:
+        break;
+        case 2:
+        M0_eas(alpha13,EAS_mode) = r;
+        M0_eas(alpha23,EAS_mode+1) = s;
+
+        M0_eas(betta13,EAS_mode+2) = r;
+        M0_eas(betta23,EAS_mode+3) = s;
+
+        EAS_mode += 4;
+        break;
+        case 4:
+        M0_eas(alpha13,EAS_mode) = r;
+        M0_eas(alpha13,EAS_mode+1) = rs;
+        M0_eas(alpha23,EAS_mode+2) = s;
+        M0_eas(alpha23,EAS_mode+3) = rs;
+
+        M0_eas(betta13,EAS_mode+4) = r;
+        M0_eas(betta13,EAS_mode+5) = rs;
+        M0_eas(betta23,EAS_mode+6) = s;
+        M0_eas(betta23,EAS_mode+7) = rs;
+
+        EAS_mode += 8;
+        break;
+        default: KRATOS_ERROR << "Unsupported number of EAS modes for shear related kinematic variables 13,23 " << eas_modes_per_kinematic_variable_set[1] << std::endl;
+        break;
+    }
+    // EAS modes for thickness b33 variable
+     switch (eas_modes_per_kinematic_variable_set[2])
+    {
+        case 0:
+        break;
+        case 1:
+        M0_eas(betta33,EAS_mode) = 1.0;
+
+        EAS_mode += 1;
+        break;
+        case 3:
+        M0_eas(betta33,EAS_mode) = 1.0;
+        M0_eas(betta33,EAS_mode+1) = r;
+        M0_eas(betta33,EAS_mode+2) = s;
+
+        EAS_mode += 3;
+        break;
+        case 4:
+        M0_eas(betta33,EAS_mode) = 1.0;
+        M0_eas(betta33,EAS_mode+1) = r;
+        M0_eas(betta33,EAS_mode+2) = s;
+        M0_eas(betta33,EAS_mode+3) = rs;
+
+        EAS_mode += 4;
+        break;
+        case 6:
+        M0_eas(betta33,EAS_mode) = 1.0;
+        M0_eas(betta33,EAS_mode+1) = r;
+        M0_eas(betta33,EAS_mode+2) = s;
+        M0_eas(betta33,EAS_mode+3) = rs;
+        M0_eas(betta33,EAS_mode+4) = rr;
+        M0_eas(betta33,EAS_mode+5) = ss;
+
+        EAS_mode += 6;
+        break;
+        default: KRATOS_ERROR << "Unsupported number of EAS modes for thickness b33 variable " << eas_modes_per_kinematic_variable_set[2] << std::endl;
+        break;
+    }
+
+    KRATOS_ERROR_IF(EAS_mode != num_eas_modes) << "EAS mode mismatch. Computed: " << EAS_mode << ", expected: " << num_eas_modes << std::endl;
+}
+
+void Shell7pElement::BasisTransformationEASShapeFunctions(Matrix& T, const Matrix& M0_eas, Matrix& M_eas, const array_1d<Vector,3>& akonr0_eas, const array_1d<Vector,3>& akovr, const double detJ0_surface, const double detJ_surface) const
+{
+
+    const double faktor = detJ0_surface/detJ_surface;
+    double t11 = 0.0, t12 = 0.0, t13 = 0.0;
+    double t21 = 0.0, t22 = 0.0, t23 = 0.0;
+    double t31 = 0.0, t32 = 0.0, t33 = 1.0;
+
+    t11 += inner_prod(akovr[0], akonr0_eas[0]);
+    t12 += inner_prod(akovr[0], akonr0_eas[1]);
+    t21 += inner_prod(akovr[1], akonr0_eas[0]);
+    t22 += inner_prod(akovr[1], akonr0_eas[1]);
+
+    //  BoundedMatrix<double, 3, 3> t = ZeroMatrix(3, 3);
+    //  const double faktor = detJ0_surface/detJ_surface;
+    //  
+    //  t(0,0) += inner_prod(akovr[0], akonr0_eas[0]);
+    //  t(0,1) += inner_prod(akovr[0], akonr0_eas[1]);
+    //  t(1,0) += inner_prod(akovr[1], akonr0_eas[0]);
+    //  t(1,1) += inner_prod(akovr[1], akonr0_eas[1]);
+    //  t(2,2) = 1.0;
+
+    T(0,0) = faktor*t11*t11;
+    T(1,0) = faktor*2.0*t11*t21;
+    T(2,0) = faktor*2.0*t11*t31;
+    T(3,0) = faktor*t21*t21;
+    T(4,0) = faktor*2.0*t21*t31;
+    T(5,0) = faktor*t31*t31;
+
+    T(0,1) = faktor*t11*t12;
+    T(1,1) = faktor*(t11*t22 + t12*t21);
+    T(2,1) = faktor*(t11*t32 + t12*t31);
+    T(3,1) = faktor*t21*t22;
+    T(4,1) = faktor*(t21*t32 + t22*t31);
+    T(5,1) = faktor*t31*t32;
+
+    T(0,2) = faktor*t11*t13;
+    T(1,2) = faktor*(t11*t23 + t13*t21);
+    T(2,2) = faktor*(t11*t33 + t13*t31);
+    T(3,2) = faktor*t21*t23;
+    T(4,2) = faktor*(t21*t33 + t23*t31);
+    T(5,2) = faktor*t31*t33;
+
+    T(0,3) = faktor*t12*t12;
+    T(1,3) = faktor*2.0*t12*t22;
+    T(2,3) = faktor*2.0*t12*t32;
+    T(3,3) = faktor*t22*t22;
+    T(4,3) = faktor*2.0*t22*t32;
+    T(5,3) = faktor*t32*t32;
+
+    T(0,4) = faktor*t12*t13;
+    T(1,4) = faktor*(t12*t23 + t13*t22);
+    T(2,4) = faktor*(t12*t33 + t13*t32);
+    T(3,4) = faktor*t22*t23;
+    T(4,4) = faktor*(t22*t33 + t23*t32);
+    T(5,4) = faktor*t32*t33;
+
+    T(0,5) = faktor*t13*t13;
+    T(1,5) = faktor*2.0*t13*t23;
+    T(2,5) = faktor*2.0*t13*t33;
+    T(3,5) = faktor*t23*t23;
+    T(4,5) = faktor*2.0*t23*t33;
+    T(5,5) = faktor*t33*t33;
+
+    T(6,6) = faktor*t11*t11;
+    T(7,6) = faktor*2.0*t11*t21;
+    T(8,6) = faktor*2.0*t11*t31;
+    T(9,6) = faktor*t21*t21;
+    T(10,6) = faktor*2.0*t21*t31;
+    T(11,6) = faktor*t31*t31;
+
+    T(6,7) = faktor*t11*t12;
+    T(7,7) = faktor*(t11*t22 + t12*t21);
+    T(8,7) = faktor*(t11*t32 + t12*t31);
+    T(9,7) = faktor*t21*t22;
+    T(10,7) = faktor*(t21*t32 + t22*t31);
+    T(11,7) = faktor*t31*t32;
+
+    T(6,8) = faktor*t11*t13;
+    T(7,8) = faktor*(t11*t23 + t13*t21);
+    T(8,8) = faktor*(t11*t33 + t13*t31);
+    T(9,8) = faktor*t21*t23;
+    T(10,8) = faktor*(t21*t33 + t23*t31);
+    T(11,8) = faktor*t31*t33;
+
+    T(6,9) = faktor*t12*t12;
+    T(7,9) = faktor*2.0*t12*t22;
+    T(8,9) = faktor*2.0*t12*t32;
+    T(9,9) = faktor*t22*t22;
+    T(10,9) = faktor*2.0*t22*t32;
+    T(11,9) = faktor*t32*t32;
+
+    T(6,10) = faktor*t12*t13;
+    T(7,10) = faktor*(t12*t23 + t13*t22);
+    T(8,10) = faktor*(t12*t33 + t13*t32);
+    T(9,10) = faktor*t22*t23;
+    T(10,10) = faktor*(t22*t33 + t23*t32);
+    T(11,10) = faktor*t32*t33;
+
+    T(6,11) = faktor*t13*t13;
+    T(7,11) = faktor*2.0*t13*t23;
+    T(8,11) = faktor*2.0*t13*t33;
+    T(9,11) = faktor*t23*t23;
+    T(10,11) = faktor*2.0*t23*t33;
+    T(11,11) = faktor*t33*t33;
+
+    noalias(M_eas) = prod(T, M0_eas);
+
+}
+
 
 }   // namespace Kratos
