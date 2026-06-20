@@ -545,6 +545,12 @@ void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rCo
     const SizeType n_constraints = rConstraintContainer.size();
     ProcessInfo process_info;
 
+    // Match the serial behaviour: in the original code the stream manipulators set in
+    // WriteNodes stuck on the shared stream, so constraint values were written with the
+    // same precision. Each thread builds its row in a private ostringstream that does not
+    // inherit those manipulators, so the option has to be applied explicitly here.
+    const bool use_scientific = mOptions.Is(IO::SCIENTIFIC_PRECISION);
+
     // Per-constraint data built in parallel.
     struct ConstraintRowData {
         std::string header;           // "Begin Constraints\tname\tslave_var\tmaster_var...\n"
@@ -590,6 +596,7 @@ void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rCo
 
         // Data row
         std::ostringstream oss;
+        if (use_scientific) oss << std::setprecision(10) << std::scientific;
         oss << "\t" << it->Id() << "\t" << c[0] << "\t[";
         for (SizeType j = 0; j < n_m; ++j) {
             oss << T(0, j);
@@ -602,10 +609,14 @@ void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rCo
         row_data[i].row = oss.str();
     });
 
-    // Serial output: emit group headers when the type signature changes.
+    // Serial output: emit group headers when the type changes. The original code started a
+    // new block when the registered type differed (typeid) or the dof signature changed; the
+    // header string encodes the registered name plus the variable names, so comparing both the
+    // header and the numeric signature reproduces that exact grouping.
     (*mpStream) << row_data[0].header << row_data[0].row;
     for (SizeType i = 1; i < n_constraints; i++) {
-        if (row_data[i].type_sig != row_data[i - 1].type_sig) {
+        if (row_data[i].type_sig != row_data[i - 1].type_sig ||
+            row_data[i].header != row_data[i - 1].header) {
             (*mpStream) << "End Constraints\n\n";
             (*mpStream) << row_data[i].header;
         }
