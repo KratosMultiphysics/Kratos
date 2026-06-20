@@ -179,6 +179,10 @@ void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::LocalSea
 {
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
+        if (mpSearchObject->GetTotalNumberOfCells() == 0) {
+            rResults.clear();
+            return;
+        }
         mpSearchObject->SearchInRadius(rPoint, Radius, rResults);
         for(auto& r_result : rResults) {
             r_result.Get().SetRank(Rank);
