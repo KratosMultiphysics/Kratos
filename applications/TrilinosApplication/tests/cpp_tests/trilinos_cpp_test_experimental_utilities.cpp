@@ -60,28 +60,28 @@ TrilinosCPPTestExperimentalUtilities::MatrixPointerType TrilinosCPPTestExperimen
     // Begin graph assembly
     graph->resumeFill();
 
-    const int NumMyElements = map->getNodeNumElements();
-    auto MyGlobalElements = map->getNodeElementList();
+    const int num_my_elements = Detail::GetNumLocalElements(*map);
+    auto my_global_elements = Detail::GetLocalElementList(*map);
     std::vector<GO> nonDiagonalIndices(2); // Define based on your Tpetra types
 
-    for (int i = 0; i < NumMyElements; ++i) {
+    for (int i = 0; i < num_my_elements; ++i) {
         // Non-diagonal values
         if (AddNoDiagonalValues) {
-            if (MyGlobalElements[i] == 0) {
+            if (my_global_elements[i] == 0) {
                 nonDiagonalIndices[0] = 1;
-                graph->insertGlobalIndices(MyGlobalElements[i], Teuchos::ArrayView<const GO>(&nonDiagonalIndices[0], 1));
-            } else if (MyGlobalElements[i] == NumGlobalElements - 1) {
+                graph->insertGlobalIndices(my_global_elements[i], Teuchos::ArrayView<const GO>(&nonDiagonalIndices[0], 1));
+            } else if (my_global_elements[i] == NumGlobalElements - 1) {
                 nonDiagonalIndices[0] = NumGlobalElements - 2;
-                graph->insertGlobalIndices(MyGlobalElements[i], Teuchos::ArrayView<const GO>(&nonDiagonalIndices[0], 1));
+                graph->insertGlobalIndices(my_global_elements[i], Teuchos::ArrayView<const GO>(&nonDiagonalIndices[0], 1));
             } else {
-                nonDiagonalIndices[0] = MyGlobalElements[i] - 1;
-                nonDiagonalIndices[1] = MyGlobalElements[i] + 1;
-                graph->insertGlobalIndices(MyGlobalElements[i], Teuchos::ArrayView<const GO>(nonDiagonalIndices.data(), 2));
+                nonDiagonalIndices[0] = my_global_elements[i] - 1;
+                nonDiagonalIndices[1] = my_global_elements[i] + 1;
+                graph->insertGlobalIndices(my_global_elements[i], Teuchos::ArrayView<const GO>(nonDiagonalIndices.data(), 2));
             }
         }
 
         // Insert diagonal entry
-        graph->insertGlobalIndices(MyGlobalElements[i], Teuchos::ArrayView<const GO>(&MyGlobalElements[i], 1));
+        graph->insertGlobalIndices(my_global_elements[i], Teuchos::ArrayView<const GO>(&my_global_elements[i], 1));
     }
 
     // End graph assembly
@@ -97,25 +97,25 @@ TrilinosCPPTestExperimentalUtilities::MatrixPointerType TrilinosCPPTestExperimen
     // Begin matrix assembly
     A->beginAssembly();
 
-    for (int i = 0; i < NumMyElements; ++i) {
+    for (int i = 0; i < num_my_elements; ++i) {
         // Non-diagonal values
         if (AddNoDiagonalValues) {
-            if (MyGlobalElements[i] == 0) {
+            if (my_global_elements[i] == 0) {
                 nonDiagonalIndices[0] = 1;
-                A->replaceGlobalValues(MyGlobalElements[i], Teuchos::ArrayView<const GO>(&nonDiagonalIndices[0], 1), Teuchos::ArrayView<const double>(&nonDiagonalValues[0], 1));
-            } else if (MyGlobalElements[i] == NumGlobalElements - 1) {
+                A->replaceGlobalValues(my_global_elements[i], Teuchos::ArrayView<const GO>(&nonDiagonalIndices[0], 1), Teuchos::ArrayView<const double>(&nonDiagonalValues[0], 1));
+            } else if (my_global_elements[i] == NumGlobalElements - 1) {
                 nonDiagonalIndices[0] = NumGlobalElements - 2;
-                A->replaceGlobalValues(MyGlobalElements[i], Teuchos::ArrayView<const GO>(&nonDiagonalIndices[0], 1), Teuchos::ArrayView<const double>(&nonDiagonalValues[0], 1));
+                A->replaceGlobalValues(my_global_elements[i], Teuchos::ArrayView<const GO>(&nonDiagonalIndices[0], 1), Teuchos::ArrayView<const double>(&nonDiagonalValues[0], 1));
             } else {
-                nonDiagonalIndices[0] = MyGlobalElements[i] - 1;
-                nonDiagonalIndices[1] = MyGlobalElements[i] + 1;
-                A->replaceGlobalValues(MyGlobalElements[i], Teuchos::ArrayView<const GO>(nonDiagonalIndices.data(), 2), Teuchos::ArrayView<const double>(nonDiagonalValues.data(), 2));
+                nonDiagonalIndices[0] = my_global_elements[i] - 1;
+                nonDiagonalIndices[1] = my_global_elements[i] + 1;
+                A->replaceGlobalValues(my_global_elements[i], Teuchos::ArrayView<const GO>(nonDiagonalIndices.data(), 2), Teuchos::ArrayView<const double>(nonDiagonalValues.data(), 2));
             }
         }
 
         // Insert diagonal entry
-        value = Offset + static_cast<double>(MyGlobalElements[i]);
-        A->replaceGlobalValues(MyGlobalElements[i], Teuchos::ArrayView<const GO>(&MyGlobalElements[i], 1), Teuchos::ArrayView<const double>(&value, 1));
+        value = Offset + static_cast<double>(my_global_elements[i]);
+        A->replaceGlobalValues(my_global_elements[i], Teuchos::ArrayView<const GO>(&my_global_elements[i], 1), Teuchos::ArrayView<const double>(&value, 1));
     }
 
     // End matrix assembly
@@ -156,18 +156,18 @@ TrilinosCPPTestExperimentalUtilities::VectorPointerType TrilinosCPPTestExperimen
     Teuchos::RCP<const MapType> map = Teuchos::rcp(new MapType(NumGlobalElements, 0, tpetra_comm));
 
     // Local number of rows
-    const std::size_t NumMyElements = map->getNodeNumElements();
+    const std::size_t num_my_elements = Detail::GetNumLocalElements(*map);
 
     // Get update list
-    auto MyGlobalElements = map->getNodeElementList();
+    auto my_global_elements = Detail::GetLocalElementList(*map);
 
     // Create a Tpetra_Vector
     Teuchos::RCP<Tpetra::FEMultiVector<>> b = Teuchos::rcp(new Tpetra::FEMultiVector<>(map, Teuchos::null, 1));
 
     // Fill the vector with values
     double value;
-    for (std::size_t i = 0; i < NumMyElements; ++i) {
-        value = Offset + static_cast<double>(MyGlobalElements[i]);
+    for (std::size_t i = 0; i < num_my_elements; ++i) {
+        value = Offset + static_cast<double>(my_global_elements[i]);
         b->replaceLocalValue(i, size_t(0), value);
     }
 
@@ -413,17 +413,17 @@ TrilinosCPPTestExperimentalUtilities::MatrixPointerType TrilinosCPPTestExperimen
     }
 
     // Local number of rows
-    const int NumMyElements = map->getNodeNumElements();
+    const int num_my_elements = Detail::GetNumLocalElements(*map);
 
     // Get update list
-    auto MyGlobalElements = map->getNodeElementList();
+    auto my_global_elements = Detail::GetLocalElementList(*map);
 
     // Create an integer vector NumNz that is used to build the Tpetra Matrix.
     const int size_global_vector = rRowIndexes.size();
-    std::vector<size_t> NumNz(NumMyElements, 0);
+    std::vector<size_t> NumNz(num_my_elements, 0);
     int current_row_index;
     for (current_row_index = 0; current_row_index < size_global_vector; ++current_row_index) {
-        if (MyGlobalElements[0] == rRowIndexes[current_row_index]) {
+        if (my_global_elements[0] == rRowIndexes[current_row_index]) {
             break;
         }
     }
@@ -431,8 +431,8 @@ TrilinosCPPTestExperimentalUtilities::MatrixPointerType TrilinosCPPTestExperimen
     std::size_t nnz = 0;
     GO initial_index, end_index;
     std::unordered_map<int, std::pair<int, int>> initial_and_end_index;
-    for (int i = 0; i < NumMyElements; i++) {
-        if (MyGlobalElements[i] == rRowIndexes[current_row_index]) {
+    for (int i = 0; i < num_my_elements; i++) {
+        if (my_global_elements[i] == rRowIndexes[current_row_index]) {
             initial_index = current_row_index;
             const int start_index = current_row_index;
             for (current_row_index = start_index; current_row_index < size_global_vector; ++current_row_index) {
@@ -455,7 +455,7 @@ TrilinosCPPTestExperimentalUtilities::MatrixPointerType TrilinosCPPTestExperimen
     Teuchos::RCP<GraphType> graph = Teuchos::rcp(new GraphType(map, map, NumNzMax));
 
     // Build the graph
-    for (int i = 0; i < NumMyElements; ++i) {
+    for (int i = 0; i < num_my_elements; ++i) {
         auto it_find = initial_and_end_index.find(i);
         if (it_find != initial_and_end_index.end()) {
             const auto& r_pair = it_find->second;
@@ -463,7 +463,7 @@ TrilinosCPPTestExperimentalUtilities::MatrixPointerType TrilinosCPPTestExperimen
             end_index = r_pair.second;
             std::vector<GO> indexes(rColumnIndexes.begin() + initial_index, rColumnIndexes.begin() + end_index);
             // Insert global indices into the graph
-            graph->insertGlobalIndices(MyGlobalElements[i], Teuchos::ArrayView<const GO>(indexes));
+            graph->insertGlobalIndices(my_global_elements[i], Teuchos::ArrayView<const GO>(indexes));
         }
     }
 
@@ -475,7 +475,7 @@ TrilinosCPPTestExperimentalUtilities::MatrixPointerType TrilinosCPPTestExperimen
     // Begin matrix assembly
     A->beginAssembly();
     // Set the matrix values
-    for (int i = 0; i < NumMyElements; ++i) {
+    for (int i = 0; i < num_my_elements; ++i) {
         auto it_find = initial_and_end_index.find(i);
         if (it_find != initial_and_end_index.end()) {
             const auto& r_pair = it_find->second;
@@ -483,7 +483,7 @@ TrilinosCPPTestExperimentalUtilities::MatrixPointerType TrilinosCPPTestExperimen
             end_index = r_pair.second;
             std::vector<GO> indexes(rColumnIndexes.begin() + initial_index, rColumnIndexes.begin() + end_index);
             std::vector<double> values(rValues.begin() + initial_index, rValues.begin() + end_index);
-            A->replaceGlobalValues(MyGlobalElements[i], Teuchos::ArrayView<const GO>(indexes), Teuchos::ArrayView<const double>(values));
+            A->replaceGlobalValues(my_global_elements[i], Teuchos::ArrayView<const GO>(indexes), Teuchos::ArrayView<const double>(values));
         }
     }
 
