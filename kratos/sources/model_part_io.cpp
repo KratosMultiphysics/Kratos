@@ -2159,7 +2159,10 @@ void ModelPartIO::ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesCo
     }
 
     // Phase 2 (parallel): look up nodes/properties and create element objects.
-    // FindKey performs a read-only binary search — safe for concurrent access.
+    // Pre-sort both containers so PointerVectorSet::find() never mutates state
+    // during the parallel section (its non-const overload lazily sorts on first call).
+    rThisNodes.Sort();
+    rThisProperties.Sort();
     const SizeType n = raw_data.size();
     std::vector<Element::Pointer> element_ptrs(n);
     IndexPartition<SizeType>(n).for_each([&](SizeType i) {
@@ -2239,7 +2242,10 @@ void ModelPartIO::ReadConditionsBlock(NodesContainerType& rThisNodes, Properties
     }
 
     // Phase 2 (parallel): look up nodes/properties and create condition objects.
-    // FindKey performs a read-only binary search — safe for concurrent access.
+    // Pre-sort both containers so PointerVectorSet::find() never mutates state
+    // during the parallel section (its non-const overload lazily sorts on first call).
+    rThisNodes.Sort();
+    rThisProperties.Sort();
     const SizeType n = raw_data.size();
     std::vector<Condition::Pointer> condition_ptrs(n);
     IndexPartition<SizeType>(n).for_each([&](SizeType i) {
