@@ -135,6 +135,68 @@ double CalculateTetrahedronVolume(
         inner_prod(edge_0, MathUtils<double>::CrossProduct(edge_1, edge_2))) / 6.0;
 }
 
+array_1d<double, 3> ClosestPointOnTriangle(
+    const array_1d<double, 3>& rPoint,
+    const array_1d<double, 3>& rA,
+    const array_1d<double, 3>& rB,
+    const array_1d<double, 3>& rC)
+{
+    const array_1d<double, 3> ab = rB - rA;
+    const array_1d<double, 3> ac = rC - rA;
+    const array_1d<double, 3> ap = rPoint - rA;
+    const double d1 = inner_prod(ab, ap);
+    const double d2 = inner_prod(ac, ap);
+    if (d1 <= 0.0 && d2 <= 0.0) {
+        return rA;
+    }
+
+    const array_1d<double, 3> bp = rPoint - rB;
+    const double d3 = inner_prod(ab, bp);
+    const double d4 = inner_prod(ac, bp);
+    if (d3 >= 0.0 && d4 <= d3) {
+        return rB;
+    }
+
+    const double vc = d1 * d4 - d3 * d2;
+    if (vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0) {
+        const double v = d1 / (d1 - d3);
+        array_1d<double, 3> closest_point = rA;
+        noalias(closest_point) += v * ab;
+        return closest_point;
+    }
+
+    const array_1d<double, 3> cp = rPoint - rC;
+    const double d5 = inner_prod(ab, cp);
+    const double d6 = inner_prod(ac, cp);
+    if (d6 >= 0.0 && d5 <= d6) {
+        return rC;
+    }
+
+    const double vb = d5 * d2 - d1 * d6;
+    if (vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0) {
+        const double w = d2 / (d2 - d6);
+        array_1d<double, 3> closest_point = rA;
+        noalias(closest_point) += w * ac;
+        return closest_point;
+    }
+
+    const double va = d3 * d6 - d5 * d4;
+    if (va <= 0.0 && (d4 - d3) >= 0.0 && (d5 - d6) >= 0.0) {
+        const double w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+        array_1d<double, 3> closest_point = rB;
+        noalias(closest_point) += w * (rC - rB);
+        return closest_point;
+    }
+
+    const double denominator = 1.0 / (va + vb + vc);
+    const double v = vb * denominator;
+    const double w = vc * denominator;
+    array_1d<double, 3> closest_point = rA;
+    noalias(closest_point) += v * ab;
+    noalias(closest_point) += w * ac;
+    return closest_point;
+}
+
 } // unnamed namespace
 
 SnakeGapSbm3DUtilities::SnakeGapSbm3DUtilities(const int EchoLevel)
@@ -1191,68 +1253,6 @@ SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan(
             rPoint[2]);
     };
 
-    auto closest_point_on_triangle = [](
-        const array_1d<double, 3>& rPoint,
-        const array_1d<double, 3>& rA,
-        const array_1d<double, 3>& rB,
-        const array_1d<double, 3>& rC) -> array_1d<double, 3>
-    {
-        const array_1d<double, 3> ab = rB - rA;
-        const array_1d<double, 3> ac = rC - rA;
-        const array_1d<double, 3> ap = rPoint - rA;
-        const double d1 = inner_prod(ab, ap);
-        const double d2 = inner_prod(ac, ap);
-        if (d1 <= 0.0 && d2 <= 0.0) {
-            return rA;
-        }
-
-        const array_1d<double, 3> bp = rPoint - rB;
-        const double d3 = inner_prod(ab, bp);
-        const double d4 = inner_prod(ac, bp);
-        if (d3 >= 0.0 && d4 <= d3) {
-            return rB;
-        }
-
-        const double vc = d1 * d4 - d3 * d2;
-        if (vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0) {
-            const double v = d1 / (d1 - d3);
-            array_1d<double, 3> closest_point = rA;
-            noalias(closest_point) += v * ab;
-            return closest_point;
-        }
-
-        const array_1d<double, 3> cp = rPoint - rC;
-        const double d5 = inner_prod(ab, cp);
-        const double d6 = inner_prod(ac, cp);
-        if (d6 >= 0.0 && d5 <= d6) {
-            return rC;
-        }
-
-        const double vb = d5 * d2 - d1 * d6;
-        if (vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0) {
-            const double w = d2 / (d2 - d6);
-            array_1d<double, 3> closest_point = rA;
-            noalias(closest_point) += w * ac;
-            return closest_point;
-        }
-
-        const double va = d3 * d6 - d5 * d4;
-        if (va <= 0.0 && (d4 - d3) >= 0.0 && (d5 - d6) >= 0.0) {
-            const double w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
-            array_1d<double, 3> closest_point = rB;
-            noalias(closest_point) += w * (rC - rB);
-            return closest_point;
-        }
-
-        const double denominator = 1.0 / (va + vb + vc);
-        const double v = vb * denominator;
-        const double w = vc * denominator;
-        array_1d<double, 3> closest_point = rA;
-        noalias(closest_point) += v * ab;
-        noalias(closest_point) += w * ac;
-        return closest_point;
-    };
-
     auto try_create_projection_node_from_conditions = [&](
         const std::vector<ConditionPointerType>& rConditions,
         const char* pCandidateSource) -> NodePointerType
@@ -1399,7 +1399,7 @@ SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan(
             const array_1d<double, 3>& rPoint2)
         {
             const array_1d<double, 3> candidate_point =
-                closest_point_on_triangle(
+                ClosestPointOnTriangle(
                     rReferencePoint,
                     rPoint0,
                     rPoint1,
@@ -9226,10 +9226,322 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         id_condition =
             r_gap_conditions_model_part.GetRootModelPart().Conditions().back().Id() + 1;
     }
+
+    struct SkinTriangleProjectionData
+    {
+        array_1d<double, 3> Point0 = ZeroVector(3);
+        array_1d<double, 3> Point1 = ZeroVector(3);
+        array_1d<double, 3> Point2 = ZeroVector(3);
+        array_1d<double, 3> Center = ZeroVector(3);
+        double Radius = 0.0;
+    };
+
+    std::vector<SkinTriangleProjectionData> skin_triangle_projection_data;
+    PointVector skin_triangle_center_points;
+    skin_triangle_projection_data.reserve(rSkinSubModelPart.NumberOfConditions());
+    skin_triangle_center_points.reserve(rSkinSubModelPart.NumberOfConditions());
+
+    double max_skin_triangle_radius = 0.0;
+
+    auto append_skin_triangle_projection_data = [&](
+        const array_1d<double, 3>& rPoint0,
+        const array_1d<double, 3>& rPoint1,
+        const array_1d<double, 3>& rPoint2)
+    {
+        SkinTriangleProjectionData data;
+        data.Point0 = rPoint0;
+        data.Point1 = rPoint1;
+        data.Point2 = rPoint2;
+        noalias(data.Center) = (rPoint0 + rPoint1 + rPoint2) / 3.0;
+
+        data.Radius = std::max({
+            norm_2(rPoint0 - data.Center),
+            norm_2(rPoint1 - data.Center),
+            norm_2(rPoint2 - data.Center)});
+
+        const IndexType triangle_id =
+            static_cast<IndexType>(skin_triangle_projection_data.size() + 1);
+
+        skin_triangle_projection_data.push_back(data);
+        skin_triangle_center_points.push_back(Kratos::make_intrusive<PointType>(
+            triangle_id,
+            data.Center[0],
+            data.Center[1],
+            data.Center[2]));
+
+        max_skin_triangle_radius =
+            std::max(max_skin_triangle_radius, data.Radius);
+    };
+
+    for (const auto& r_condition : rSkinSubModelPart.Conditions()) {
+        const auto& r_geometry = r_condition.GetGeometry();
+
+        KRATOS_ERROR_IF(r_geometry.PointsNumber() < 3)
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+            << "Open lateral projection requires skin conditions with at least "
+            << "three points. Condition #" << r_condition.Id()
+            << " has " << r_geometry.PointsNumber() << " points.\n";
+
+        for (IndexType triangle_index = 1;
+             triangle_index + 1 < r_geometry.PointsNumber();
+             ++triangle_index) {
+            append_skin_triangle_projection_data(
+                r_geometry[0].Coordinates(),
+                r_geometry[triangle_index].Coordinates(),
+                r_geometry[triangle_index + 1].Coordinates());
+        }
+    }
+
+    KRATOS_ERROR_IF(skin_triangle_center_points.empty())
+        << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+        << "No skin triangles available for open lateral projection.\n";
+
+    DynamicBins skin_triangle_center_bins(
+        skin_triangle_center_points.begin(),
+        skin_triangle_center_points.end());
+
+    PointVector candidate_skin_triangle_centers(
+        skin_triangle_center_points.size());
+    DistanceVector candidate_skin_triangle_center_distances(
+        skin_triangle_center_points.size());
+
+    ModelPart& r_skin_root_model_part = rSkinSubModelPart.GetRootModelPart();
+
+    NodePointerContainerType skin_root_node_pointers;
+    skin_root_node_pointers.reserve(r_skin_root_model_part.NumberOfNodes());
+    for (const auto& r_node : r_skin_root_model_part.Nodes()) {
+        skin_root_node_pointers.push_back(
+            r_skin_root_model_part.pGetNode(r_node.Id()));
+    }
+
+    NodeBinsType skin_root_node_bins(
+        skin_root_node_pointers.begin(),
+        skin_root_node_pointers.end());
+
+    NodePointerContainerType coincident_skin_root_nodes(8);
+    const double open_lateral_projection_node_tolerance =
+        1.0e-12 * std::max(1.0, max_knot_span_size);
+    const double open_lateral_projection_node_tolerance_squared =
+        open_lateral_projection_node_tolerance *
+        open_lateral_projection_node_tolerance;
+
+    NodePointerContainerType created_open_lateral_projection_nodes;
+
+    IndexType next_open_lateral_projection_node_id = 1;
+    for (const auto& r_node : r_skin_root_model_part.Nodes()) {
+        next_open_lateral_projection_node_id =
+            std::max(next_open_lateral_projection_node_id, r_node.Id() + 1);
+    }
+
+    auto find_closest_skin_projection = [&](
+        const Geometry<Node>& rQuadratureGeometry) -> array_1d<double, 3>
+    {
+        const auto quadrature_center = rQuadratureGeometry.Center();
+
+        array_1d<double, 3> quadrature_center_coordinates = ZeroVector(3);
+        quadrature_center_coordinates[0] = quadrature_center.X();
+        quadrature_center_coordinates[1] = quadrature_center.Y();
+        quadrature_center_coordinates[2] = quadrature_center.Z();
+
+        PointType center_search_point(
+            0,
+            quadrature_center_coordinates[0],
+            quadrature_center_coordinates[1],
+            quadrature_center_coordinates[2]);
+
+        const auto p_nearest_center =
+            skin_triangle_center_bins.SearchNearestPoint(center_search_point);
+
+        KRATOS_ERROR_IF_NOT(p_nearest_center)
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+            << "Could not find a nearest skin triangle center.\n";
+
+        KRATOS_ERROR_IF(p_nearest_center->Id() == 0 ||
+                        p_nearest_center->Id() > skin_triangle_projection_data.size())
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+            << "Invalid skin triangle center id " << p_nearest_center->Id()
+            << " while projecting an open lateral quadrature geometry.\n";
+
+        array_1d<double, 3> closest_point = ZeroVector(3);
+        double closest_distance_squared = std::numeric_limits<double>::max();
+
+        auto update_closest_projection = [&](
+            const SkinTriangleProjectionData& rSkinTriangle)
+        {
+            const array_1d<double, 3> candidate_point =
+                ClosestPointOnTriangle(
+                    quadrature_center_coordinates,
+                    rSkinTriangle.Point0,
+                    rSkinTriangle.Point1,
+                    rSkinTriangle.Point2);
+
+            const array_1d<double, 3> delta =
+                candidate_point - quadrature_center_coordinates;
+            const double distance_squared = inner_prod(delta, delta);
+
+            if (distance_squared < closest_distance_squared) {
+                closest_distance_squared = distance_squared;
+                closest_point = candidate_point;
+            }
+        };
+
+        update_closest_projection(
+            skin_triangle_projection_data[p_nearest_center->Id() - 1]);
+
+        const double search_tolerance =
+            1.0e-12 * std::max(1.0, max_knot_span_size);
+        const double search_radius =
+            std::sqrt(closest_distance_squared) +
+            max_skin_triangle_radius +
+            search_tolerance;
+
+        const std::size_t number_of_candidate_centers =
+            skin_triangle_center_bins.SearchInRadius(
+                center_search_point,
+                search_radius,
+                candidate_skin_triangle_centers.begin(),
+                candidate_skin_triangle_center_distances.begin(),
+                candidate_skin_triangle_centers.size());
+
+        for (std::size_t i_center = 0;
+             i_center < number_of_candidate_centers;
+             ++i_center) {
+            const auto p_candidate_center =
+                candidate_skin_triangle_centers[i_center];
+
+            KRATOS_ERROR_IF_NOT(p_candidate_center)
+                << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+                << "Null skin triangle center returned by DynamicBins.\n";
+
+            KRATOS_ERROR_IF(p_candidate_center->Id() == 0 ||
+                            p_candidate_center->Id() > skin_triangle_projection_data.size())
+                << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+                << "Invalid skin triangle center id "
+                << p_candidate_center->Id()
+                << " returned by DynamicBins.\n";
+
+            update_closest_projection(
+                skin_triangle_projection_data[p_candidate_center->Id() - 1]);
+        }
+
+        KRATOS_ERROR_IF_NOT(std::isfinite(closest_distance_squared))
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+            << "Failed to project an open lateral quadrature center onto the skin.\n";
+
+        return closest_point;
+    };
+
+    auto find_or_create_open_lateral_projection_node = [&](
+        const array_1d<double, 3>& rProjectionPoint) -> NodeType::Pointer
+    {
+        auto add_to_skin_sub_model_part_if_needed = [&](
+            const NodeType::Pointer& pNode) -> NodeType::Pointer
+        {
+            KRATOS_ERROR_IF_NOT(pNode)
+                << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+                << "Trying to reuse a null projected skin node.\n";
+
+            if (!rSkinSubModelPart.HasNode(pNode->Id())) {
+                rSkinSubModelPart.AddNode(pNode);
+            }
+
+            return pNode;
+        };
+
+        for (const auto& p_created_node : created_open_lateral_projection_nodes) {
+            const array_1d<double, 3> delta =
+                p_created_node->Coordinates() - rProjectionPoint;
+            if (inner_prod(delta, delta) <=
+                open_lateral_projection_node_tolerance_squared) {
+                return add_to_skin_sub_model_part_if_needed(p_created_node);
+            }
+        }
+
+        PointType projected_point_to_search(
+            0,
+            rProjectionPoint[0],
+            rProjectionPoint[1],
+            rProjectionPoint[2]);
+
+        const std::size_t number_of_coincident_root_nodes =
+            skin_root_node_bins.SearchInRadius(
+                projected_point_to_search,
+                open_lateral_projection_node_tolerance,
+                coincident_skin_root_nodes.begin(),
+                coincident_skin_root_nodes.size());
+
+        for (std::size_t i_node = 0;
+             i_node < number_of_coincident_root_nodes;
+             ++i_node) {
+            const auto p_existing_node = coincident_skin_root_nodes[i_node];
+            KRATOS_ERROR_IF_NOT(p_existing_node)
+                << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+                << "Null node returned while searching coincident skin nodes.\n";
+
+            const array_1d<double, 3> delta =
+                p_existing_node->Coordinates() - rProjectionPoint;
+            if (inner_prod(delta, delta) <=
+                open_lateral_projection_node_tolerance_squared) {
+                return add_to_skin_sub_model_part_if_needed(p_existing_node);
+            }
+        }
+
+        while (r_skin_root_model_part.HasNode(next_open_lateral_projection_node_id)) {
+            ++next_open_lateral_projection_node_id;
+        }
+
+        auto p_projection_node = rSkinSubModelPart.CreateNewNode(
+            next_open_lateral_projection_node_id++,
+            rProjectionPoint[0],
+            rProjectionPoint[1],
+            rProjectionPoint[2]);
+
+        created_open_lateral_projection_nodes.push_back(p_projection_node);
+
+        return p_projection_node;
+    };
+
+    auto set_projection_node = [](
+        Geometry<Node>& rQuadratureGeometry,
+        const NodeType::Pointer& pProjectionNode)
+    {
+        KRATOS_ERROR_IF_NOT(pProjectionNode)
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+            << "Trying to set a null projection node.\n";
+
+        rQuadratureGeometry.SetValue(PROJECTION_NODE, pProjectionNode);
+    };
+
+    std::size_t number_of_open_lateral_projection_nodes = 0;
+    double max_open_lateral_projection_distance = 0.0;
     
     for (auto& r_lateral_data : open_lateral_surface_data_list) {
         if (r_lateral_data.SurfaceQuadraturePointGeometries.size() == 0) {
             continue;
+        }
+
+        for (auto& r_quadrature_geometry :
+             r_lateral_data.SurfaceQuadraturePointGeometries) {
+            const array_1d<double, 3> projected_point =
+                find_closest_skin_projection(r_quadrature_geometry);
+
+            const auto quadrature_center = r_quadrature_geometry.Center();
+            array_1d<double, 3> quadrature_center_coordinates = ZeroVector(3);
+            quadrature_center_coordinates[0] = quadrature_center.X();
+            quadrature_center_coordinates[1] = quadrature_center.Y();
+            quadrature_center_coordinates[2] = quadrature_center.Z();
+
+            max_open_lateral_projection_distance = std::max(
+                max_open_lateral_projection_distance,
+                norm_2(projected_point - quadrature_center_coordinates));
+
+            const auto p_projection_node =
+                find_or_create_open_lateral_projection_node(projected_point);
+
+            set_projection_node(
+                r_quadrature_geometry,
+                p_projection_node);
+            ++number_of_open_lateral_projection_nodes;
         }
     
         this->CreateConditions(
@@ -9244,8 +9556,13 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
             r_lateral_data.CharacteristicLength);
     }
 
+    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 2)
+        << "Set " << number_of_open_lateral_projection_nodes
+        << " PROJECTION_NODE values on open lateral quadrature geometries.\n";
 
-
+    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel >= 0)
+        << "Maximum open lateral quadrature-to-skin projection distance: "
+        << max_open_lateral_projection_distance << "\n";
 
 
     // //TODO: interface conditions on lateral surfaces
