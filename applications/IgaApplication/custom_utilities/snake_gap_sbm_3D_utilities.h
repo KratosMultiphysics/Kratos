@@ -16,6 +16,7 @@
 #include <set>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 
 // Project includes
@@ -89,6 +90,16 @@ using NodeType = Node;
         int I = 0;
         int J = 0;
         int K = 0;
+
+        bool operator<(const GridPointKey3D& rOther) const
+        {
+            return std::tie(I, J, K) < std::tie(rOther.I, rOther.J, rOther.K);
+        }
+
+        bool operator==(const GridPointKey3D& rOther) const
+        {
+            return I == rOther.I && J == rOther.J && K == rOther.K;
+        }
     };
 
     struct KnotSpanGridInfo
@@ -298,23 +309,30 @@ using NodeType = Node;
         GapSpanType Type = GapSpanType::Undefined;
 
         IndexType ProjectionNodeId = 0;
+        NodePointerType pProjectionNode;
 
         std::vector<IndexType> AdjacentSurrogateConditionIds;
         std::vector<SpanKey3D> AdjacentActiveSpans;
 
         bool HasProjectionNode() const
         {
-            return ProjectionNodeId != 0;
+            return ProjectionNodeId != 0 && pProjectionNode != nullptr;
         }
     };
 
     //--------------------------------------------
     struct CanonicalFaceKey3D
     {
-        std::array<IndexType, 3> NodeIds;
+        std::array<const NodeType*, 3> NodePointers = {{nullptr, nullptr, nullptr}};
+        std::array<IndexType, 3> NodeIds = {{0, 0, 0}};
 
         bool operator==(const CanonicalFaceKey3D& rOther) const
         {
+            if (NodePointers[0] != nullptr ||
+                rOther.NodePointers[0] != nullptr) {
+                return NodePointers == rOther.NodePointers;
+            }
+
             return NodeIds == rOther.NodeIds;
         }
     };
@@ -325,11 +343,20 @@ using NodeType = Node;
         {
             std::size_t seed = 0;
 
-            for (const auto id : rKey.NodeIds) {
-                seed ^= std::hash<IndexType>{}(id)
-                    + 0x9e3779b9
-                    + (seed << 6)
-                    + (seed >> 2);
+            if (rKey.NodePointers[0] != nullptr) {
+                for (const auto p_node : rKey.NodePointers) {
+                    seed ^= std::hash<const NodeType*>{}(p_node)
+                        + 0x9e3779b9
+                        + (seed << 6)
+                        + (seed >> 2);
+                }
+            } else {
+                for (const auto id : rKey.NodeIds) {
+                    seed ^= std::hash<IndexType>{}(id)
+                        + 0x9e3779b9
+                        + (seed << 6)
+                        + (seed >> 2);
+                }
             }
 
             return seed;
@@ -344,6 +371,11 @@ using NodeType = Node;
 
         NurbsSurfaceType::Pointer pGeometry;
         Geometry<Node>::Pointer pNeighbourGeometry;
+        NodePointerType pOppositeNode;
+
+        bool HasType1NeighbourPath = false;
+        bool HasNeighbourActiveSpan = false;
+        SpanKey3D NeighbourActiveSpan;
     };
 
     using LateralFaceRegistry = std::unordered_map<
@@ -372,6 +404,9 @@ using NodeType = Node;
 
         double CharacteristicLength = 0.0;
 
+        std::array<NodePointerType, 4> BaseNodes;
+        NodePointerType pProjectionNode;
+
         IndexType ProjectionNodeId = 0;
         IndexType SurrogateConditionId = 0;
         SpanKey3D ExternalSpan;
@@ -386,11 +421,6 @@ using NodeType = Node;
         std::size_t NumberOfNonManifoldFaces = 0;
     };
 
-    struct Type1CreationResult
-    {
-        Type1CreationSummary Summary;
-        std::vector<Type1VolumeQuadratureData> VolumeQuadratureDataList;
-    };
 
 
     struct LateralSurfaceQuadratureData
@@ -405,8 +435,165 @@ using NodeType = Node;
         SpanKey3D ExternalSpan;
     };
     //--------------------------------------------
+    // TYPE 2 ELEMENTS
+    struct SurrogateEdgeKey3D
+    {
+        std::array<IndexType, 2> NodeIds = {0, 0};
+
+        SurrogateEdgeKey3D() = default;
+
+        SurrogateEdgeKey3D(
+            const IndexType Id0,
+            const IndexType Id1)
+        {
+            NodeIds[0] = std::min(Id0, Id1);
+            NodeIds[1] = std::max(Id0, Id1);
+        }
+
+        bool operator==(const SurrogateEdgeKey3D& rOther) const
+        {
+            return NodeIds == rOther.NodeIds;
+        }
+    };
+
+    struct SurrogateEdgeKey3DHasher
+    {
+        std::size_t operator()(const SurrogateEdgeKey3D& rKey) const
+        {
+            const std::size_t h0 = std::hash<IndexType>{}(rKey.NodeIds[0]);
+            const std::size_t h1 = std::hash<IndexType>{}(rKey.NodeIds[1]);
+
+            return h0 ^ (h1 + 0x9e3779b9 + (h0 << 6) + (h0 >> 2));
+        }
+    };
+    struct Type1LateralFaceData
+    {
+        SurrogateEdgeKey3D EdgeKey;
+
+        NodePointerType pEdgeNode0;
+        NodePointerType pEdgeNode1;
+        NodePointerType pProjectionNode;
+
+        GridPointKey3D EdgeGridNode0;
+        GridPointKey3D EdgeGridNode1;
+
+        NurbsSurfaceType::Pointer pSurfaceGeometry;
+        Geometry<Node>::Pointer pNeighbourGeometry;
+
+        IndexType SurrogateConditionId = 0;
+        SpanKey3D ActiveSpan;
+        SpanKey3D ExternalSpan;
+
+        bool IsClosedByType2 = false;
+    };
+
+    using Type1LateralFaceContainer = std::vector<Type1LateralFaceData>;
+
+    using Type1LateralFacesByEdgeMap = std::unordered_map<
+        SurrogateEdgeKey3D,
+        std::vector<std::size_t>,
+        SurrogateEdgeKey3DHasher>;
 
     using ExternalSpanDataMap = std::map<SpanKey3D, ExternalSpanData>;
+
+    struct Type1CreationResult
+    {
+        Type1CreationSummary Summary;
+        std::vector<Type1VolumeQuadratureData> VolumeQuadratureDataList;
+
+        Type1LateralFaceContainer Type1LateralFaces;
+        Type1LateralFacesByEdgeMap Type1LateralFacesByEdge;
+    };
+
+    //-------------------------------------------------
+    // type 2 struct
+    struct Type2VolumeQuadratureData
+    {
+        GeometriesArrayType VolumeQuadraturePointGeometries;
+        std::vector<Geometry<Node>::Pointer> NeighbourGeometries;
+
+        double CharacteristicLength = 0.0;
+
+        SurrogateEdgeKey3D EdgeKey;
+
+        NodePointerType pEdgeNode0;
+        NodePointerType pEdgeNode1;
+        NodePointerType pProjectionNode0;
+        NodePointerType pProjectionNode1;
+
+        IndexType ProjectionNodeId0 = 0;
+        IndexType ProjectionNodeId1 = 0;
+
+        SpanKey3D ExternalSpan0;
+        SpanKey3D ExternalSpan1;
+
+        IndexType FirstType1LateralFaceIndex = 0;
+        IndexType SecondType1LateralFaceIndex = 0;
+    };
+
+    struct Type2OpenFaceData
+    {
+        NodePointerType pSurrogateNode;
+        NodePointerType pProjectionNode0;
+        NodePointerType pProjectionNode1;
+        NodePointerType pOppositeNode;
+
+        NurbsSurfaceType::Pointer pSurfaceGeometry;
+
+        std::vector<Geometry<Node>::Pointer> NeighbourGeometries;
+
+        SurrogateEdgeKey3D ParentEdgeKey;
+        SpanKey3D ExternalSpan0;
+        SpanKey3D ExternalSpan1;
+    };
+
+    struct Type2CreationSummary
+    {
+        std::size_t NumberOfCandidateEdges = 0;
+        std::size_t NumberOfCreatedVolumes = 0;
+        std::size_t NumberOfSkippedEdges = 0;
+        std::size_t NumberOfOpenFaces = 0;
+    };
+
+    struct Type2CreationResult
+    {
+        Type2CreationSummary Summary;
+        std::vector<Type2VolumeQuadratureData> VolumeQuadratureDataList;
+        std::vector<Type2OpenFaceData> OpenFaceDataList;
+    };
+    //-------------------------------------------------
+
+    //-------------------------------------------------
+    // type 3 structs
+    struct Type3VolumeQuadratureData
+    {
+        GeometriesArrayType VolumeQuadraturePointGeometries;
+        std::vector<Geometry<Node>::Pointer> NeighbourGeometries;
+
+        double CharacteristicLength = 0.0;
+
+        IndexType SurrogateNodeId = 0;
+        IndexType ProjectionNodeId0 = 0;
+        IndexType ProjectionNodeId1 = 0;
+        IndexType ProjectionNodeId2 = 0;
+        IndexType CornerProjectionNodeId = 0;
+    };
+
+    struct Type3CreationSummary
+    {
+        std::size_t NumberOfCandidateOpenFaces = 0;
+        std::size_t NumberOfCreatedVolumes = 0;
+        std::size_t NumberOfSkippedFaces = 0;
+        std::size_t NumberOfCreatedCornerProjectionNodes = 0;
+        std::size_t NumberOfReusedCornerProjectionNodes = 0;
+    };
+
+    struct Type3CreationResult
+    {
+        Type3CreationSummary Summary;
+        std::vector<Type3VolumeQuadratureData> VolumeQuadratureDataList;
+    };
+    //-------------------------------------------------
 
     explicit SnakeGapSbm3DUtilities(const int EchoLevel = 0);
 
@@ -436,6 +623,10 @@ using NodeType = Node;
         const KnotSpanSkinBinsCSR& rSkinBins,
         const KnotSpanGridInfo& rGridInfo) const;
 
+    void AddInteriorSkinNodesForLargeTriangles(
+        ModelPart& rSkinSubModelPart,
+        const KnotSpanGridInfo& rGridInfo) const;
+
     ExternalSpanDataMap InitializeExternalSpanData(
         ModelPart& rSkinSubModelPart,
         const ModelPart& rSurrogateSubModelPart,
@@ -463,7 +654,8 @@ using NodeType = Node;
         ModelPart& rRootModelPart,
         const ModelPart& rSkinSubModelPart,
         const ModelPart& rSurrogateSubModelPart,
-        const ExternalSpanDataMap& rExternalSpans);
+        const ExternalSpanDataMap& rExternalSpans,
+        const std::size_t GapVolumeIntegrationOrder);
 
     
     std::vector<LateralSurfaceQuadratureData> CreateOpenLateralSurfaceQuadratureData(
@@ -474,6 +666,51 @@ using NodeType = Node;
         const std::size_t IntegrationOrder,
         const std::size_t NumberOfShapeFunctionsDerivatives) const;
     //-----------------------------------------------------
+
+    // type 2 element creation----------------------------
+    Type2CreationResult CreateType2GapGeometries(
+        ModelPart& rRootModelPart,
+        Type1CreationResult& rType1CreationResult,
+        const ExternalSpanDataMap& rExternalSpans,
+        const KnotSpanGridInfo& rGridInfo,
+        const std::size_t IntegrationOrder,
+        const std::size_t NumberOfShapeFunctionsDerivatives);
+
+    Type3CreationResult CreateType3GapGeometries(
+        ModelPart& rRootModelPart,
+        ModelPart& rSkinSubModelPart,
+        const ExternalSpanDataMap& rExternalSpans,
+        const KnotSpanGridInfo& rGridInfo,
+        const Type2CreationResult& rType2CreationResult,
+        const std::size_t IntegrationOrder,
+        const std::size_t NumberOfShapeFunctionsDerivatives);
+
+    NurbsSurfaceType::Pointer CreateCollapsedTriangleSurface(
+        const NodePointerType& pNode0,
+        const NodePointerType& pNode1,
+        const NodePointerType& pNode2) const;
+
+    NurbsSurfaceType::Pointer GetOrCreateLateralFaceSurface(
+        ModelPart& rDebugModelPart,
+        IndexType& rNextGeometryId,
+        const NodePointerType& pNode0,
+        const NodePointerType& pNode1,
+        const NodePointerType& pNode2,
+        const Geometry<Node>::Pointer& pNeighbourGeometry);
+
+    void RegisterLateralFaceOccurrence(
+        const int GapType,
+        const IndexType SurrogateConditionId,
+        const SpanKey3D& rExternalSpan,
+        const NodePointerType& pNode0,
+        const NodePointerType& pNode1,
+        const NodePointerType& pNode2,
+        const NodePointerType& pOppositeNode,
+        const NurbsSurfaceType::Pointer& pSurfaceGeometry,
+        const Geometry<Node>::Pointer& pNeighbourGeometry,
+        const bool HasType1NeighbourPath,
+        const bool HasNeighbourActiveSpan,
+        const SpanKey3D& rNeighbourActiveSpan);
 
 private:
     std::size_t ComputeSpanCount(
@@ -594,10 +831,11 @@ private:
         const KnotSpanGridInfo& rGridInfo,
         array_1d<double, 3>& rIntersectionPoint) const
     {
-        array_1d<double, 3> condition_min;
-        array_1d<double, 3> condition_max;
-        ConditionBoundingBox(rGeometry, condition_min, condition_max);
-    
+        if (!IsSpanInsideDomain(rSpan, rGridInfo) ||
+            rGeometry.PointsNumber() < 3) {
+            return false;
+        }
+
         array_1d<double, 3> span_min = ZeroVector(3);
         array_1d<double, 3> span_max = ZeroVector(3);
     
@@ -611,24 +849,131 @@ private:
         span_max[2] = span_min[2] + rGridInfo.SpanSizeZ;
     
         constexpr double tolerance = 1.0e-12;
-    
-        for (IndexType axis = 0; axis < 3; ++axis) {
-            if (condition_max[axis] < span_min[axis] - tolerance ||
-                condition_min[axis] > span_max[axis] + tolerance) {
+
+        auto clip_triangle_to_box = [&](
+            const array_1d<double, 3>& rPoint0,
+            const array_1d<double, 3>& rPoint1,
+            const array_1d<double, 3>& rPoint2,
+            array_1d<double, 3>& rPointInsideBox) -> bool
+        {
+            std::vector<array_1d<double, 3>> polygon = {
+                rPoint0,
+                rPoint1,
+                rPoint2};
+
+            auto clip_with_plane = [&](
+                const IndexType Axis,
+                const double Bound,
+                const bool KeepGreater)
+            {
+                if (polygon.empty()) {
+                    return;
+                }
+
+                std::vector<array_1d<double, 3>> clipped_polygon;
+                clipped_polygon.reserve(polygon.size() + 1);
+
+                auto is_inside = [&](const array_1d<double, 3>& rPoint) {
+                    if (KeepGreater) {
+                        return rPoint[Axis] >= Bound - tolerance;
+                    }
+
+                    return rPoint[Axis] <= Bound + tolerance;
+                };
+
+                auto intersection_point = [&](
+                    const array_1d<double, 3>& rStart,
+                    const array_1d<double, 3>& rEnd) -> array_1d<double, 3>
+                {
+                    const double denominator = rEnd[Axis] - rStart[Axis];
+                    if (std::abs(denominator) <= tolerance) {
+                        return rStart;
+                    }
+
+                    const double t = std::max(
+                        0.0,
+                        std::min(1.0, (Bound - rStart[Axis]) / denominator));
+
+                    array_1d<double, 3> point = rStart;
+                    noalias(point) += t * (rEnd - rStart);
+                    return point;
+                };
+
+                for (std::size_t i = 0; i < polygon.size(); ++i) {
+                    const auto& r_current_point = polygon[i];
+                    const auto& r_next_point =
+                        polygon[(i + 1) % polygon.size()];
+
+                    const bool current_is_inside =
+                        is_inside(r_current_point);
+                    const bool next_is_inside =
+                        is_inside(r_next_point);
+
+                    if (current_is_inside && next_is_inside) {
+                        clipped_polygon.push_back(r_next_point);
+                    } else if (current_is_inside && !next_is_inside) {
+                        clipped_polygon.push_back(intersection_point(
+                            r_current_point,
+                            r_next_point));
+                    } else if (!current_is_inside && next_is_inside) {
+                        clipped_polygon.push_back(intersection_point(
+                            r_current_point,
+                            r_next_point));
+                        clipped_polygon.push_back(r_next_point);
+                    }
+                }
+
+                polygon = std::move(clipped_polygon);
+            };
+
+            for (IndexType axis = 0; axis < 3; ++axis) {
+                clip_with_plane(axis, span_min[axis], true);
+                clip_with_plane(axis, span_max[axis], false);
+            }
+
+            if (polygon.empty()) {
                 return false;
             }
+
+            rPointInsideBox = ZeroVector(3);
+            for (const auto& r_polygon_point : polygon) {
+                noalias(rPointInsideBox) += r_polygon_point;
+            }
+            rPointInsideBox /= static_cast<double>(polygon.size());
+
+            return IsPointInsideBox(
+                rPointInsideBox,
+                span_min,
+                span_max,
+                tolerance);
+        };
+
+        const array_1d<double, 3> point_0 = rGeometry[0].Coordinates();
+        const array_1d<double, 3> point_1 = rGeometry[1].Coordinates();
+        const array_1d<double, 3> point_2 = rGeometry[2].Coordinates();
+
+        if (clip_triangle_to_box(
+                point_0,
+                point_1,
+                point_2,
+                rIntersectionPoint)) {
+            return true;
         }
-    
-        array_1d<double, 3> overlap_min = ZeroVector(3);
-        array_1d<double, 3> overlap_max = ZeroVector(3);
-    
-        for (IndexType axis = 0; axis < 3; ++axis) {
-            overlap_min[axis] = std::max(condition_min[axis], span_min[axis]);
-            overlap_max[axis] = std::min(condition_max[axis], span_max[axis]);
-            rIntersectionPoint[axis] = 0.5 * (overlap_min[axis] + overlap_max[axis]);
+
+        if (rGeometry.PointsNumber() == 4) {
+            const array_1d<double, 3> point_3 =
+                rGeometry[3].Coordinates();
+
+            if (clip_triangle_to_box(
+                    point_0,
+                    point_2,
+                    point_3,
+                    rIntersectionPoint)) {
+                return true;
+            }
         }
-    
-        return true;
+
+        return false;
     }
 
     void ClampPointInsideSpan(
@@ -941,6 +1286,11 @@ private:
         const IndexType NodeId1,
         const IndexType NodeId2) const;
 
+    CanonicalFaceKey3D MakeCanonicalFaceKey3D(
+        const NodePointerType& pNode0,
+        const NodePointerType& pNode1,
+        const NodePointerType& pNode2) const;
+
     IndexType GetNextGeometryId(
         const ModelPart& rRootModelPart) const;
 
@@ -1029,6 +1379,10 @@ private:
         Geometry<Node>& rGeometry,
         const Geometry<Node>::Pointer& pNeighbourGeometry) const;
 
+    void AddUniqueNeighbourGeometry(
+        Geometry<Node>& rGeometry,
+        const Geometry<Node>::Pointer& pCandidateNeighbourGeometry) const;
+
 
     IntegrationPointsArrayType CreateCoonsSurfaceGaussPoints(
         const std::size_t IntegrationOrder,
@@ -1054,7 +1408,62 @@ private:
         const std::vector<LateralFaceOccurrence>& rOccurrences) const;
     
     //-------------------------------------------------------
+    // type 2 elements
+    NurbsVolumeType::Pointer CreateType2CollapsedEdgeVolume(
+        const NodePointerType& pEdgeNode0,
+        const NodePointerType& pEdgeNode1,
+        const NodePointerType& pProjectionNode0,
+        const NodePointerType& pProjectionNode1) const;
 
+    NurbsVolumeType::Pointer CreateType3CollapsedCornerVolume(
+        const NodePointerType& pSurrogateNode,
+        const NodePointerType& pProjectionNode0,
+        const NodePointerType& pProjectionNode1,
+        const NodePointerType& pProjectionNode2) const;
+
+    void OrientTriangleFaceAwayFromOppositeNode(
+        NodePointerType& rpNode0,
+        NodePointerType& rpNode1,
+        NodePointerType& rpNode2,
+        const NodePointerType& pOppositeNode) const;
+
+    void RegisterType3LateralFace(
+        ModelPart& rDebugModelPart,
+        IndexType& rNextGeometryId,
+        const IndexType SurrogateConditionId,
+        const SpanKey3D& rExternalSpan,
+        NodePointerType pNode0,
+        NodePointerType pNode1,
+        NodePointerType pNode2,
+        const NodePointerType& pOppositeNode,
+        const Geometry<Node>::Pointer& pNeighbourGeometry,
+        const bool HasType1NeighbourPath,
+        const bool HasNeighbourActiveSpan,
+        const SpanKey3D& rNeighbourActiveSpan);
+
+    void CheckType3QuadraturePointGeometries(
+        const GeometriesArrayType& rQuadraturePointGeometries,
+        const NodePointerType& pSurrogateNode,
+        const NodePointerType& pProjectionNode0,
+        const NodePointerType& pProjectionNode1,
+        const NodePointerType& pProjectionNode2) const;
+
+    bool HaveCommonActiveSpan(
+        const std::vector<SpanKey3D>& rFirst,
+        const std::vector<SpanKey3D>& rSecond,
+        const std::vector<SpanKey3D>& rThird) const;
+
+    std::array<SpanKey3D, 4> GetSurroundingSpansOfGridEdge(
+        const GridPointKey3D& rNode0,
+        const GridPointKey3D& rNode1) const;
+
+    bool IsValidSpan(
+        const SpanKey3D& rSpan,
+        const KnotSpanGridInfo& rGridInfo) const;
+
+    bool AreFaceAdjacentSpans(
+        const SpanKey3D& rA,
+        const SpanKey3D& rB) const;
 
     int mEchoLevel = 0;
     LateralFaceRegistry mLateralFaceRegistry;

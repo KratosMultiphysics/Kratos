@@ -2608,7 +2608,7 @@ void SnakeGapSbmProcess::CreateConditions(
 
     ModelPart::ConditionsContainerType new_condition_list;
 
-    KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
+    KRATOS_INFO_IF("CreateConditions", mEchoLevel > 3)
         << "Creating conditions of type " << rConditionName
         << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
@@ -2665,7 +2665,7 @@ void SnakeGapSbmProcess::CreateElements(
 
     ElementsContainerType new_element_list;
 
-    KRATOS_INFO_IF("CreateElements", mEchoLevel > 2)
+    KRATOS_INFO_IF("CreateElements", mEchoLevel > 3)
         << "Creating elements of type " << rElementName
         << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
