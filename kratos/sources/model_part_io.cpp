@@ -2147,7 +2147,10 @@ void ModelPartIO::ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesCo
     Element const& r_clone_element = KratosComponents<Element>::Get(element_name);
     const SizeType number_of_nodes = r_clone_element.GetGeometry().size();
 
-    // Phase 1 (serial): read raw connectivity data from stream.
+    // Phase 1 (serial): read raw connectivity data from the stream and apply the
+    // entity reordering here. ReorderedElementId/ReorderedNodeId are virtual and the
+    // ReorderConsecutiveModelPartIO overrides mutate shared maps, so they MUST be
+    // called serially (calling them from the parallel phase is a data race).
     struct ElemConnData { SizeType id, prop_id; std::vector<SizeType> node_ids; };
     std::vector<ElemConnData> raw_data;
 
@@ -2160,30 +2163,39 @@ void ModelPartIO::ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesCo
         ElemConnData data;
         data.node_ids.resize(number_of_nodes);
         ExtractValue(word, data.id);
+        data.id = ReorderedElementId(data.id);
         ReadWord(word);
         ExtractValue(word, data.prop_id);
         for(SizeType i = 0; i < number_of_nodes; i++) {
+            SizeType node_id;
             ReadWord(word);
-            ExtractValue(word, data.node_ids[i]);
+            ExtractValue(word, node_id);
+            data.node_ids[i] = ReorderedNodeId(node_id);
         }
         raw_data.push_back(std::move(data));
     }
 
     // Phase 2 (parallel): look up nodes/properties and create element objects.
-    // Pre-sort both containers so PointerVectorSet::find() never mutates state
-    // during the parallel section (its non-const overload lazily sorts on first call).
+    // Pre-sort both containers so the const PointerVectorSet::find() used below is a
+    // pure read-only binary search, safe for concurrent access. Ids are already reordered.
     rThisNodes.Sort();
     rThisProperties.Sort();
+    const NodesContainerType& r_nodes = rThisNodes;
+    const PropertiesContainerType& r_properties = rThisProperties;
     const SizeType n = raw_data.size();
     std::vector<Element::Pointer> element_ptrs(n);
     IndexPartition<SizeType>(n).for_each([&](SizeType i) {
         const auto& d = raw_data[i];
         Element::NodesArrayType temp_nodes;
         temp_nodes.reserve(number_of_nodes);
-        for(SizeType j = 0; j < number_of_nodes; j++)
-            temp_nodes.push_back(*(FindKey(rThisNodes, ReorderedNodeId(d.node_ids[j]), "Node").base()));
-        Properties::Pointer p_props = *(FindKey(rThisProperties, d.prop_id, "Properties").base());
-        element_ptrs[i] = r_clone_element.Create(ReorderedElementId(d.id), temp_nodes, p_props);
+        for(SizeType j = 0; j < number_of_nodes; j++) {
+            auto it_node = r_nodes.find(d.node_ids[j]);
+            KRATOS_DEBUG_ERROR_IF(it_node == r_nodes.end()) << "Node #" << d.node_ids[j] << " belonging to element #" << d.id << " is not found." << std::endl;
+            temp_nodes.push_back(*(it_node.base()));
+        }
+        auto it_prop = r_properties.find(d.prop_id);
+        KRATOS_DEBUG_ERROR_IF(it_prop == r_properties.end()) << "Properties #" << d.prop_id << " belonging to element #" << d.id << " is not found." << std::endl;
+        element_ptrs[i] = r_clone_element.Create(d.id, temp_nodes, *(it_prop.base()));
     });
 
     // Phase 3 (serial): insert into the container in original order.
@@ -2230,7 +2242,10 @@ void ModelPartIO::ReadConditionsBlock(NodesContainerType& rThisNodes, Properties
     Condition const& r_clone_condition = KratosComponents<Condition>::Get(condition_name);
     const SizeType number_of_nodes = r_clone_condition.GetGeometry().size();
 
-    // Phase 1 (serial): read raw connectivity data from stream.
+    // Phase 1 (serial): read raw connectivity data from the stream and apply the
+    // entity reordering here. ReorderedConditionId/ReorderedNodeId are virtual and the
+    // ReorderConsecutiveModelPartIO overrides mutate shared maps, so they MUST be
+    // called serially (calling them from the parallel phase is a data race).
     struct CondConnData { SizeType id, prop_id; std::vector<SizeType> node_ids; };
     std::vector<CondConnData> raw_data;
 
@@ -2243,30 +2258,39 @@ void ModelPartIO::ReadConditionsBlock(NodesContainerType& rThisNodes, Properties
         CondConnData data;
         data.node_ids.resize(number_of_nodes);
         ExtractValue(word, data.id);
+        data.id = ReorderedConditionId(data.id);
         ReadWord(word);
         ExtractValue(word, data.prop_id);
         for(SizeType i = 0; i < number_of_nodes; i++) {
+            SizeType node_id;
             ReadWord(word);
-            ExtractValue(word, data.node_ids[i]);
+            ExtractValue(word, node_id);
+            data.node_ids[i] = ReorderedNodeId(node_id);
         }
         raw_data.push_back(std::move(data));
     }
 
     // Phase 2 (parallel): look up nodes/properties and create condition objects.
-    // Pre-sort both containers so PointerVectorSet::find() never mutates state
-    // during the parallel section (its non-const overload lazily sorts on first call).
+    // Pre-sort both containers so the const PointerVectorSet::find() used below is a
+    // pure read-only binary search, safe for concurrent access. Ids are already reordered.
     rThisNodes.Sort();
     rThisProperties.Sort();
+    const NodesContainerType& r_nodes = rThisNodes;
+    const PropertiesContainerType& r_properties = rThisProperties;
     const SizeType n = raw_data.size();
     std::vector<Condition::Pointer> condition_ptrs(n);
     IndexPartition<SizeType>(n).for_each([&](SizeType i) {
         const auto& d = raw_data[i];
         Condition::NodesArrayType temp_nodes;
         temp_nodes.reserve(number_of_nodes);
-        for(SizeType j = 0; j < number_of_nodes; j++)
-            temp_nodes.push_back(*(FindKey(rThisNodes, ReorderedNodeId(d.node_ids[j]), "Node").base()));
-        Properties::Pointer p_props = *(FindKey(rThisProperties, d.prop_id, "Properties").base());
-        condition_ptrs[i] = r_clone_condition.Create(ReorderedConditionId(d.id), temp_nodes, p_props);
+        for(SizeType j = 0; j < number_of_nodes; j++) {
+            auto it_node = r_nodes.find(d.node_ids[j]);
+            KRATOS_DEBUG_ERROR_IF(it_node == r_nodes.end()) << "Node #" << d.node_ids[j] << " belonging to condition #" << d.id << " is not found." << std::endl;
+            temp_nodes.push_back(*(it_node.base()));
+        }
+        auto it_prop = r_properties.find(d.prop_id);
+        KRATOS_DEBUG_ERROR_IF(it_prop == r_properties.end()) << "Properties #" << d.prop_id << " belonging to condition #" << d.id << " is not found." << std::endl;
+        condition_ptrs[i] = r_clone_condition.Create(d.id, temp_nodes, *(it_prop.base()));
     });
 
     // Phase 3 (serial): insert into the container in original order.
