@@ -346,7 +346,7 @@ void TrilinosCPPTestExperimentalUtilities::GenerateSparseMatrixIndexAndValuesVec
     }
 
     std::vector<double> values;
-    for (std::size_t i = 0; i < Detail::GetNumLocalRows(rA); i++) {
+    for (int i = 0; i < Detail::GetNumLocalRows(rA); i++) {
         typename TrilinosSparseSpaceType::MatrixType::values_host_view_type vals;   // Row non-zero values
         typename TrilinosSparseSpaceType::MatrixType::local_inds_host_view_type cols;      // Column indices of row non-zero values
         rA.getLocalRowView(i, cols, vals);
