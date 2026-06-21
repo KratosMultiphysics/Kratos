@@ -1,8 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -10,19 +10,24 @@
 //  Main authors:    Jordi Cotela, Riccardo Rossi, Carlos Roig and Ruben Zorrilla
 //
 
-#ifndef KRATOS_TRILINOS_MIXED_GENERIC_CRITERIA_H
-#define	KRATOS_TRILINOS_MIXED_GENERIC_CRITERIA_H
+#pragma once
 
 // System includes
 
 // External includes
 
+/* Epetra includes */
+#include <Epetra_Vector.h>
+#include <Epetra_Import.h>
+
+/* Tpetra includes (only when Tpetra support is compiled in) */
+#ifdef HAVE_TPETRA
+#include <Tpetra_MultiVector.hpp>
+#endif
+
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
-
-// Application includes
 
 namespace Kratos
 {
@@ -32,11 +37,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Convergence criteria for mixed vector-scalar problems.
 /**
- This class implements a convergence control based on a nodal vector variable and
- a nodal scalar variable. The error is evaluated separately for each of them, and
- relative and absolute tolerances for both must be specified.
+ * @class TrilinosMixedGenericCriteria
+ * @ingroup TrilinosApplication
+ * @brief Convergence criteria for mixed vector-scalar problems.
+ * @details This class implements a convergence control based on a nodal vector variable and a nodal scalar variable. The error is evaluated separately for each of them, and relative and absolute tolerances for both must be specified.
+ * @author Jordi Cotela, Riccardo Rossi, Carlos Roig and Ruben Zorrilla
+ * @tparam TSparseSpace The sparse space considered (e.g. for the system matrix and the solution vector)
+ * @tparam TDenseSpace The dense space considered (e.g. for the local element matrices and vectors)
  */
 template< class TSparseSpace, class TDenseSpace >
 class TrilinosMixedGenericCriteria : public MixedGenericCriteria< TSparseSpace, TDenseSpace >
@@ -44,28 +52,37 @@ class TrilinosMixedGenericCriteria : public MixedGenericCriteria< TSparseSpace, 
 public:
     ///@name Type Definitions
     ///@{
-
+    
+    /// Pointer definition of TrilinosMixedGenericCriteria
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosMixedGenericCriteria);
 
-    typedef MixedGenericCriteria< TSparseSpace, TDenseSpace > BaseType;
+    /// The definition of the base class
+    using BaseType = MixedGenericCriteria< TSparseSpace, TDenseSpace >;
 
-    typedef typename BaseType::TDataType TDataType;
+    /// The definition of the current class
+    using TDataType = typename BaseType::TDataType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    /// DoF array type definition
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    /// System matrix type definition
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    /// Definition of the solution vector type
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef typename BaseType::ConvergenceVariableListType ConvergenceVariableListType;
+    /// Convergence variable list type definition
+    using ConvergenceVariableListType = typename BaseType::ConvergenceVariableListType;
 
-    typedef typename BaseType::KeyType KeyType;
+    /// Key type definition (used for the map of the norms)
+    using KeyType = typename BaseType::KeyType;
+
+    /// Definition of the linear algebra library
+    static constexpr TrilinosLinearAlgebraLibrary LinearAlgebraLibrary = TSparseSpace::LinearAlgebraLibrary();
 
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /// Constructor.
 
     /**
      * @brief Construct a new Trilinos Mixed Generic Criteria object
@@ -85,13 +102,12 @@ public:
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
 
-    /// Compute relative and absoute error.
     /**
+     * @brief  Compute relative and absoute error. 
      * @param rModelPart Reference to the ModelPart containing the fluid problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -106,9 +122,9 @@ public:
         const TSystemVectorType& Dx,
         const TSystemVectorType& b) override
     {
-        // If required, initialize the Epetra vector import
-        if(!mEpetraImportIsInitialized) {
-            InitializeEpetraImport(rDofSet, Dx);
+        // If required, initialize the vector import
+        if(mpDofImport == nullptr) {
+            mpDofImport = TSparseSpace::CreateImport(rDofSet, Dx);
         }
 
         // Serial base implementation convergence check call
@@ -119,154 +135,107 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
-
 
     ///@}
 private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
-    bool mEpetraImportIsInitialized = false;
-    std::unique_ptr<Epetra_Import> mpDofImport = nullptr;
+    typename TSparseSpace::ImportPointerType mpDofImport = nullptr; /// Importer for the Dx vector to be used in the convergence check
 
     ///@}
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Compute the norms of the solution and the increase for the convergence check
+     * @details This method is called by the base class PostCriteria after importing the Dx vector to the local vector. It loops over the dofs, and for those that are free and belong to the current rank, it adds the contribution of the corresponding variable to the solution and increase norms.
+     * @param rModelPart Reference to the ModelPart containing the fluid problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rDx Vector of results (variations on nodal variables) already imported to the local vector
+     * @param rDofsCount Vector containing the number of dofs for each variable to be used in the averaging of the norms
+     * @param rSolutionNormsVector Vector containing the solution norms for each variable. The contribution of each dof to the corresponding variable is added to the corresponding entry of this vector
+     * @param rIncreaseNormsVector Vector containing the increase norms for each variable. The contribution of each dof to the corresponding variable is added to the corresponding entry of this vector
+     */
     void GetNormValues(
         const ModelPart& rModelPart,
         const DofsArrayType& rDofSet,
         const TSystemVectorType& rDx,
         std::vector<int>& rDofsCount,
         std::vector<TDataType>& rSolutionNormsVector,
-        std::vector<TDataType>& rIncreaseNormsVector) const override
+        std::vector<TDataType>& rIncreaseNormsVector
+        ) const override
     {
-        int n_dofs = rDofSet.size();
+        const std::size_t n_dofs = rDofSet.size();
         const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
         const int rank = r_data_comm.Rank();
 
-        // Do the local Dx vector import
-        Epetra_Vector local_dx(mpDofImport->TargetMap());
-        int i_err = local_dx.Import(rDx, *mpDofImport, Insert);
-        KRATOS_ERROR_IF_NOT(i_err == 0) << "Local Dx import failed!" << std::endl;
+        // Import Dx into a local vector and compute norms.
+        // Use compile-time branching so this works for both EPETRA and TPETRA spaces.
+        if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
+            // Epetra implementation
+            Epetra_Vector local_dx(mpDofImport->TargetMap());
+            int i_err = local_dx.Import(rDx, *mpDofImport, Insert);
+            KRATOS_ERROR_IF_NOT(i_err == 0) << "Local Dx import failed!" << std::endl;
 
-        // Local thread variables
-        int dof_id;
-        TDataType dof_dx;
+            // Local thread variables
+            int dof_id;
+            TDataType dof_dx;
 
-        // Loop over Dofs
-        for (int i = 0; i < n_dofs; i++) {
-            auto it_dof = rDofSet.begin() + i;
-            if (it_dof->IsFree() && it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
-                dof_id = it_dof->EquationId();
-                const TDataType& r_dof_value = it_dof->GetSolutionStepValue(0);
-                dof_dx = local_dx[mpDofImport->TargetMap().LID(dof_id)];
+            // Loop over Dofs
+            for (std::size_t i = 0; i < n_dofs; i++) {
+                auto it_dof = rDofSet.begin() + i;
+                if (it_dof->IsFree() && it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
+                    dof_id = it_dof->EquationId();
+                    const TDataType& r_dof_value = it_dof->GetSolutionStepValue(0);
+                    dof_dx = local_dx[mpDofImport->TargetMap().LID(dof_id)];
 
-                int var_local_key;
-                bool key_found = BaseType::FindVarLocalKey(it_dof,var_local_key);
-                if (!key_found) {
-                    // the dof does not belong to the list of variables
-                    // we are checking for convergence, so we skip it
-                    continue;
+                    int var_local_key;
+                    bool key_found = BaseType::FindVarLocalKey(it_dof,var_local_key);
+                    if (!key_found) {
+                        continue;
+                    }
+
+                    rSolutionNormsVector[var_local_key] += r_dof_value * r_dof_value;
+                    rIncreaseNormsVector[var_local_key] += dof_dx * dof_dx;
+                    rDofsCount[var_local_key]++;
                 }
-
-                rSolutionNormsVector[var_local_key] += r_dof_value * r_dof_value;
-                rIncreaseNormsVector[var_local_key] += dof_dx * dof_dx;
-                rDofsCount[var_local_key]++;
             }
+        } else {
+            KRATOS_ERROR << "Only EPETRA is supported for now" << std::endl;
         }
-    }
-
-    /**
-     * @brief Initialize the DofUpdater in preparation for a subsequent UpdateDofs call.
-     *  The DofUpdater needs to be initialized only if the dofset changes.
-     *  If the problem does not require creating/destroying nodes or changing the
-     *  mesh graph, it is in general enough to intialize this tool once at the
-     *  begining of the problem.
-     *  If the dofset only changes under certain conditions (for example because
-     *  the domain is remeshed every N iterations), it is enough to call the
-     *  Clear method to let this class know that its auxiliary data has to be re-generated
-     *  and Initialize will be called as part of the next UpdateDofs call.
-     * @param rDofSet rDofSet The list of degrees of freedom.
-     * @param rDx rDx The update vector.
-     */
-    void InitializeEpetraImport(
-        const DofsArrayType &rDofSet,
-        const TSystemVectorType &rDx)
-    {
-        int number_of_dofs = rDofSet.size();
-        int system_size = TSparseSpace::Size(rDx);
-        std::vector<int> index_array(number_of_dofs);
-
-        // Filling the array with the global ids
-        unsigned int counter = 0;
-        for (typename DofsArrayType::const_iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof) {
-            const int id = i_dof->EquationId();
-            if (id < system_size) {
-                index_array[counter++] = id;
-            }
-        }
-
-        std::sort(index_array.begin(), index_array.end());
-        std::vector<int>::iterator new_end = std::unique(index_array.begin(), index_array.end());
-        index_array.resize(new_end - index_array.begin());
-
-        int check_size = -1;
-        int tot_update_dofs = index_array.size();
-        rDx.Comm().SumAll(&tot_update_dofs, &check_size, 1);
-        KRATOS_ERROR_IF(check_size < system_size)
-            << "DOF count is not correct. There are less dofs then expected.\n"
-            << "Expected number of active dofs: " << system_size << ", DOFs found: " << check_size << std::endl;
-
-        // Defining a map as needed
-        Epetra_Map dof_update_map(-1, index_array.size(), &(*(index_array.begin())), 0, rDx.Comm());
-
-        // Defining the import instance
-        std::unique_ptr<Epetra_Import> p_dof_import(new Epetra_Import(dof_update_map, rDx.Map()));
-        mpDofImport.swap(p_dof_import);
-
-        mEpetraImportIsInitialized = true;
     }
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
     ///@{
 
-
     ///@}
-};
+}; /// TrilinosMixedGenericCriteria
 ///@} // Kratos classes
 
 ///@} // Application group
 }
-
-#endif // KRATOS_TRILINOS_MIXED_GENERIC_CRITERIA_H
