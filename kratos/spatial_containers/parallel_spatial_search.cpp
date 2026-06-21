@@ -221,6 +221,10 @@ void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::LocalSea
 {
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
+        if (mpSearchObject->GetTotalNumberOfCells() == 0) {
+            rResults.clear();
+            return;
+        }
         rResult = mpSearchObject->SearchNearestInRadius(rPoint, Radius);
         rResult.Get().SetRank(Rank);
     } else { // Using trees
@@ -259,6 +263,10 @@ void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::LocalSea
 {
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
+        if (mpSearchObject->GetTotalNumberOfCells() == 0) {
+            rResults.clear();
+            return;
+        }
         rResult = mpSearchObject->SearchNearest(rPoint);
         rResult.Get().SetRank(Rank);
     } else { // Using trees
@@ -287,6 +295,10 @@ void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::LocalSea
 {
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
+        if (mpSearchObject->GetTotalNumberOfCells() == 0) {
+            rResults.clear();
+            return;
+        }
         rResult = mpSearchObject->SearchIsInside(rPoint);
         rResult.Get().SetRank(Rank);
     } else { // Using trees
