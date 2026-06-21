@@ -4495,7 +4495,6 @@ void  ModelPartIO::ReadSubModelPartNodesBlock(ModelPart& rMainModelPart, ModelPa
 
     SizeType node_id;
     std::string word;
-
             std::vector<SizeType> ordered_ids;
 
     while (!mpStream->eof())
