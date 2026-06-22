@@ -77,10 +77,10 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
                     // A Dirichlet condition is set on the current DoF, which also appears in
                     // a constraint equation => explicitly impose this condition on the constraint
                     // equation.
-                    const typename TSparse::DataType constraint_coefficient = rRelationMatrix.value_data()[i_entry];
-                    const typename TSparse::DataType dirichlet_condition = r_dof.GetSolutionStepValue();
-                    AtomicAdd(rConstraintGaps[i_constraint],
-                              static_cast<typename TSparse::DataType>(constraint_coefficient * dirichlet_condition));
+                    //const typename TSparse::DataType constraint_coefficient = rRelationMatrix.value_data()[i_entry];
+                    //const typename TSparse::DataType dirichlet_condition = r_dof.GetSolutionStepValue();
+                    //AtomicAdd(rConstraintGaps[i_constraint],
+                    //          static_cast<typename TSparse::DataType>(constraint_coefficient * dirichlet_condition));
                     rRelationMatrix.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
                 } // if r_dof.IsFixed()
             } // for i_entry in range(i_entry_begin, i_entry_end)
@@ -434,11 +434,11 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeConstraintIteratio
     BalancedProduct<TSparse,TSparse,TSparse>(this->GetRelationMatrix(), rSolution, constraint_residual);
 
     // Update status.
-    rReport.maybe_constraint_residual = TSparse::TwoNorm(constraint_residual);
-    rReport.constraints_converged = rReport.maybe_constraint_residual.value() <= this->GetTolerance();
+    rReport.maybe_constraint_absolute_residual = TSparse::TwoNorm(constraint_residual);
+    rReport.constraints_absolute_converged = rReport.maybe_constraint_absolute_residual.value() <= this->GetTolerance();
 
     // Decide on whether to keep looping and log state.
-    if (rReport.constraints_converged) {
+    if (rReport.constraints_absolute_converged || rReport.constraints_relative_converged) {
         rStream.Submit(rReport.Tag(2), mpImpl->mVerbosity);
         return true;
     } /*if converged*/ else {
