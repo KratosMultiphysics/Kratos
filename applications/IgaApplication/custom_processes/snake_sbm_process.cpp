@@ -2453,7 +2453,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
         MarkKnotSpansAvailable3D(id_inner_loop, points_bin, r_skin_sub_model_part, Lambda,
                                 n_knot_spans_uvw, knot_step_uvw, starting_pos_uvw, knot_spans_available);  
 
-        RemoveIslands3D(knot_spans_available);
+        // RemoveIslands3D(knot_spans_available); //FIXME:
     
         if (EchoLevel >  0) {
             KRATOS_INFO_IF("::[SnakeSbmProcess]::", is_inner) << "Inner :: Ending MarkKnotSpansAvailable" << std::endl;
@@ -2852,7 +2852,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable3D(
                                     Point gauss_point(x_gp, y_gp, z_gp);
     
                                     if (IsPointInsideSkinBoundary3D(gauss_point, rPointsBin, rSkinModelPart)) {
-                                        rKnotSpansAvailable[IdMatrix][kk][ii][jj] = 1; // originally was = 1
+                                        rKnotSpansAvailable[IdMatrix][kk][ii][jj] = 3; // originally was = 1
                                     }
                                 }
                             }
@@ -2870,10 +2870,10 @@ void SnakeSbmProcess::MarkKnotSpansAvailable3D(
         for (int i = 0; i < rNumberKnotSpans[1]; ++i) {
             for (int j = 0; j < rNumberKnotSpans[0]; ++j) {
     
-                if (rKnotSpansAvailable[IdMatrix][k][i][j] == 2) {
+                if (rKnotSpansAvailable[IdMatrix][k][i][j] >= 2) {
     
                     // Create fake Gauss points to check if the majority are inside or outside
-                    const int num_fake_gauss_points = 5;
+                    const int num_fake_gauss_points = 2;
                     const int total_fake_gauss_points =
                         num_fake_gauss_points * num_fake_gauss_points * num_fake_gauss_points;
     
@@ -2881,7 +2881,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable3D(
     
                     // Tolerance to avoid numerical issues close to the knot span boundary
                     const double tolerance =
-                        std::min(std::min(rKnotStepUVW[0], rKnotStepUVW[1]), rKnotStepUVW[2]) / 1.0e6;
+                        std::min(std::min(rKnotStepUVW[0], rKnotStepUVW[1]), rKnotStepUVW[2]) / 1.0e8;
     
                     for (IndexType i_GPx = 0; i_GPx < num_fake_gauss_points; ++i_GPx) {
     
@@ -3310,6 +3310,28 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
         Vector normal_vector = ZeroVector(3);
         normal_vector[NormalDirection] = NormalValue;
         p_condition->SetValue(NORMAL, normal_vector);
+
+
+        // FIXME: DEBUG
+        auto check_surrogate_node_inside = [&](const IndexType NodeId) {
+            const auto& r_node = rSurrogateModelPartOuter.GetNode(NodeId);
+        
+            Point point(r_node.X(), r_node.Y(), r_node.Z());
+        
+            KRATOS_ERROR_IF_NOT(IsPointInsideSkinBoundary3D(
+                point,
+                rPointsBinOuter,
+                rSkinModelPartOuter))
+                << "[CreateSurrogateBuondaryFromSnakeOuter3D] "
+                << "Trying to create surrogate condition with node outside skin.\n"
+                << "node id = " << r_node.Id() << "\n"
+                << "coordinates = " << r_node.Coordinates() << "\n";
+        };
+        
+        check_surrogate_node_inside(id_node_1);
+        check_surrogate_node_inside(id_node_2);
+        check_surrogate_node_inside(id_node_3);
+        check_surrogate_node_inside(id_node_4);
     };
 
     // Sweep along u-direction
@@ -3336,7 +3358,15 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                         } else {
                             // current_value == 0
                             bool is_inside = IsPointInsideSkinBoundary3D(center_point, rPointsBinOuter, rSkinModelPartOuter);
-                            if (is_inside) { // ??????
+                            const bool is_fully_inside = IsKnotSpanFullyInsideSkinBoundary3D(
+                                                                i,
+                                                                j,
+                                                                k,
+                                                                rPointsBinOuter,
+                                                                rSkinModelPartOuter,
+                                                                r_knot_span_sizes,
+                                                                rStartingPositionUVW);
+                            if (is_fully_inside) { // ??????
                                 rKnotSpansAvailable[IdMatrix][k][j][i] = 1; // <-- IMPORTANT!! Inside I want to have all 1's
                                 // exit(0);
                             } else {
@@ -3471,6 +3501,66 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
     }
 
     SetSurrogateNormals3D(rSurrogateModelPartOuter);
+
+    for (const auto& r_condition : rSurrogateModelPartOuter.Conditions()) {
+        const auto& r_geometry = r_condition.GetGeometry();
+    
+        for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+            const auto& r_node = r_geometry[i];
+    
+            Point point(r_node.X(), r_node.Y(), r_node.Z());
+    
+            if (!IsPointInsideSkinBoundary3D(
+                    point,
+                    rPointsBinOuter,
+                    rSkinModelPartOuter)) {
+    
+                KRATOS_ERROR
+                    << "[CreateSurrogateBuondaryFromSnakeOuter3D] "
+                    << "Final surrogate boundary contains a node outside the skin.\n"
+                    << "  surrogate model part: " << rSurrogateModelPartOuter.FullName() << "\n"
+                    << "  skin model part: " << rSkinModelPartOuter.FullName() << "\n"
+                    << "  surrogate condition id: " << r_condition.Id() << "\n"
+                    << "  local node index: " << i << "\n"
+                    << "  node id: " << r_node.Id() << "\n"
+                    << "  coordinates: " << r_node.Coordinates() << "\n";
+            }
+        }
+    }
+}
+
+
+// FIXME: decide whether to keep it
+bool SnakeSbmProcess::IsKnotSpanFullyInsideSkinBoundary3D(
+    const int I,
+    const int J,
+    const int K,
+    DynamicBins& rPointsBin,
+    const ModelPart& rSkinModelPart,
+    const array_1d<double, 3>& rKnotStepUVW,
+    const Vector& rStartingPosition)
+{
+    const std::array<double, 3> local_coordinates = {0.0, 0.5, 1.0};
+
+    for (const double xi : local_coordinates) {
+        for (const double eta : local_coordinates) {
+            for (const double zeta : local_coordinates) {
+                Point point(
+                    (static_cast<double>(I) + xi) * rKnotStepUVW[0] + rStartingPosition[0],
+                    (static_cast<double>(J) + eta) * rKnotStepUVW[1] + rStartingPosition[1],
+                    (static_cast<double>(K) + zeta) * rKnotStepUVW[2] + rStartingPosition[2]);
+
+                if (!IsPointInsideSkinBoundary3D(
+                        point,
+                        rPointsBin,
+                        rSkinModelPart)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
 }
     
 

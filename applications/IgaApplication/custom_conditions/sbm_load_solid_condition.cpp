@@ -57,6 +57,8 @@ void SbmLoadSolidCondition::InitializeMemberVariables()
     
     // Initialize DN_DX
     mDim = r_DN_De[0].size2();
+
+    KRATOS_ERROR_IF(mDim != 2 && mDim != 3) << "SbmLoadSolidCondition momentarily only supports 2D and 3D conditions, but the current dimension is" << mDim << std::endl;
     
     Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
     double h = std::min(mesh_size_uv[0], mesh_size_uv[1]);
@@ -72,7 +74,13 @@ void SbmLoadSolidCondition::InitializeMemberVariables()
 
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
+
+    if (mDim == 3) {
+        r_geometry.Calculate(NORMAL, mNormalParameterSpace);
+    }
+
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
+
     mNormalPhysicalSpace = mNormalParameterSpace;
 
     SetValue(NORMAL, mNormalPhysicalSpace);
@@ -81,37 +89,32 @@ void SbmLoadSolidCondition::InitializeMemberVariables()
     // reading integration point
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
 
-    // Initialize Jacobian
-    Matrix InvJ0(3,3);
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+    if (mDim == 2) {
+        // Compute the local tangent
+        array_1d<double, 3> tangent_parameter_space;
+        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
 
-    // Compute the local tangents
-    array_1d<double, 3> tangent_parameter_space;
+        Matrix InvJ0(mDim,mDim);
+        double detJ0;
+        Matrix Jacobian;
+        CalculateInitialJacobian(r_geometry, Jacobian);
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
 
-    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
+        Vector add_factor = ZeroVector(3);
+        add_factor[0] = Jacobian(0,0) * tangent_parameter_space[0] + Jacobian(0,1) * tangent_parameter_space[1];
+        add_factor[1] = Jacobian(1,0) * tangent_parameter_space[0] + Jacobian(1,1) * tangent_parameter_space[1];
+        detJ0 = norm_2(add_factor);
+        const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
+        const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(detJ0) * thickness;
+        SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
+    }
+    else
+    {
+        const double det_J0 = std::abs(r_geometry.DeterminantOfJacobian(0, r_geometry.GetDefaultIntegrationMethod()));
+        const double int_to_reference_weight = r_integration_points[0].Weight() * det_J0;
 
-    // compute complete jacobian transformation including parameter->physical space transformation
-    double detJ0;
-    Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-    Jacobian(2,2) = 1.0;
-
-    // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
-
-    Vector add_factor = prod(Jacobian, tangent_parameter_space); //additional factor to the determinant of the jacobian for the parameter->physical space transformation
-    add_factor[2] = 0.0; 
-    detJ0 = norm_2(add_factor);
-
-    const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
-
-    const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(detJ0) * thickness;
-
-    SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
+        SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
+    }
 }
 
 void SbmLoadSolidCondition::InitializeSbmMemberVariables()
@@ -203,7 +206,7 @@ void SbmLoadSolidCondition::CalculateLocalSystem(
 {
     KRATOS_TRY
 
-    const SizeType mat_size = GetGeometry().size() * 2;
+    const SizeType mat_size = GetGeometry().size() * mDim;
 
     if (rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size);
@@ -235,8 +238,6 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
     const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
 
-    KRATOS_ERROR_IF(mDim != 2) << "SbmLoadSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
-
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size,mat_size,false);
@@ -244,34 +245,28 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
 
     //-------------------------------------------------------------------------
     // Initialize DN_DX
-    Matrix DN_DX(number_of_control_points,2);
-    Matrix InvJ0(3,3);
+    Matrix DN_DX(number_of_control_points, mDim);
 
-    // Initialize Jacobian
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+    // Calculating the physical derivatives (it is avoided storing them to minimize storage)
+    if (mDim == 2) {
+        Matrix InvJ0(mDim, mDim);
+        double detJ0;
+        Matrix Jacobian;
+        CalculateInitialJacobian(r_geometry, Jacobian);
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
 
-    // compute complete jacobian transformation including parameter->physical space transformation
-    double detJ0;
-    Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-    Jacobian(2,2) = 1.0;
+        Matrix sub_inv_jacobian = ZeroMatrix(2,2);
+        sub_inv_jacobian(0,0) = InvJ0(0,0);
+        sub_inv_jacobian(1,0) = InvJ0(1,0);
+        sub_inv_jacobian(0,1) = InvJ0(0,1);
+        sub_inv_jacobian(1,1) = InvJ0(1,1);
+        noalias(DN_DX) = prod(r_DN_De[0],sub_inv_jacobian);
+    } else {
+        noalias(DN_DX) = r_DN_De[0];
+    }
 
-    // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
-    
-    // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-    Matrix sub_inv_jacobian = ZeroMatrix(2,2);
-    sub_inv_jacobian(0,0) = InvJ0(0,0);
-    sub_inv_jacobian(1,0) = InvJ0(1,0);
-    sub_inv_jacobian(0,1) = InvJ0(0,1);
-    sub_inv_jacobian(1,1) = InvJ0(1,1);
-    noalias(DN_DX) = prod(r_DN_De[0],sub_inv_jacobian);
-
-    Matrix B = ZeroMatrix(mDim,mat_size);
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    Matrix B = ZeroMatrix(strain_size,mat_size);
     CalculateB(B, DN_DX);
 
     // Obtain the tangent costitutive law matrix
@@ -281,7 +276,6 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
     Vector old_strain = prod(B,old_displacement_coefficient_vector);
 
-    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables(strain_size);
     ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
@@ -290,31 +284,37 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
     const Matrix DB = prod(r_D,B);
 
     // compute Taylor expansion contribution: H_sum_vec
-    Matrix grad_H_sum_transposed = ZeroMatrix(3, number_of_control_points);
+    Matrix grad_H_sum_transposed = ZeroMatrix(strain_size, number_of_control_points);
     ComputeGradientTaylorExpansionContribution(mDistanceVector, grad_H_sum_transposed);
 
     Matrix grad_H_sum = trans(grad_H_sum_transposed);
 
-    Matrix B_sum = ZeroMatrix(mDim,mat_size);
+    Matrix B_sum = ZeroMatrix(strain_size,mat_size);
     CalculateB(B_sum, grad_H_sum);
     Matrix DB_sum = prod(r_D, B_sum); //
 
     for (IndexType i = 0; i < number_of_control_points; i++) {
         for (IndexType j = 0; j < number_of_control_points; j++) {
             
-            for (IndexType idim = 0; idim < 2; idim++) {
-                const int id1 = 2*idim;
-                const int iglob = 2*i+idim;
+            for (IndexType idim = 0; idim < mDim; idim++) {
+                const int iglob = mDim*i+idim;
 
-                for (IndexType jdim = 0; jdim < 2; jdim++) {
-                    const int id2 = (id1+2)%3;
-                    const int jglob = 2*j+jdim;
+                for (IndexType jdim = 0; jdim < mDim; jdim++) {
+                    const int jglob = mDim*j+jdim;
 
                     // FLUX STANDARD TERM
-                    rLeftHandSideMatrix(iglob, jglob) -= r_N(0,i)*(DB(id1, jglob)* mNormalPhysicalSpace[0] + DB(id2, jglob)* mNormalPhysicalSpace[1]) * int_to_reference_weight;
+                    Vector sigma_u_n;
+                    Vector stress_column_u = column(DB, jglob);
+                    CalculateTraction(stress_column_u, mNormalPhysicalSpace, sigma_u_n);
+
+                    Vector sigma_u_n_sum;
+                    Vector stress_column_u_sum = column(DB_sum, jglob);
+                    CalculateTraction(stress_column_u_sum, mTrueNormal, sigma_u_n_sum);
+
+                    rLeftHandSideMatrix(iglob, jglob) -= r_N(0,i)*sigma_u_n[idim] * int_to_reference_weight;
                 
                     // SBM TERM
-                    rLeftHandSideMatrix(iglob, jglob) += r_N(0,i)*(DB_sum(id1, jglob)* mTrueNormal[0] + DB_sum(id2, jglob)* mTrueNormal[1]) 
+                    rLeftHandSideMatrix(iglob, jglob) += r_N(0,i)*sigma_u_n_sum[idim] 
                                                         * int_to_reference_weight * mTrueDotSurrogateNormal;
                 }
             }
@@ -340,8 +340,6 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
 
-    KRATOS_ERROR_IF(mDim != 2) << "SbmLoadSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
-
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size,false);
@@ -349,43 +347,37 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
 
     //-------------------------------------------------------------------------
     // Initialize DN_DX
-    Matrix DN_DX(number_of_control_points,2);
-    Matrix InvJ0(3,3);
+    Matrix DN_DX(number_of_control_points, mDim);
 
-    // Initialize Jacobian
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+    // Calculating the physical derivatives (it is avoided storing them to minimize storage)
+    if (mDim == 2) {
+        Matrix InvJ0(mDim, mDim);
+        double detJ0;
+        Matrix Jacobian;
+        CalculateInitialJacobian(r_geometry, Jacobian);
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
 
-    // compute complete jacobian transformation including parameter->physical space transformation
-    double detJ0;
-    Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-    Jacobian(2,2) = 1.0;
+        Matrix sub_inv_jacobian = ZeroMatrix(2,2);
+        sub_inv_jacobian(0,0) = InvJ0(0,0);
+        sub_inv_jacobian(1,0) = InvJ0(1,0);
+        sub_inv_jacobian(0,1) = InvJ0(0,1);
+        sub_inv_jacobian(1,1) = InvJ0(1,1);
+        noalias(DN_DX) = prod(r_DN_De[0],sub_inv_jacobian);
+    } else {
+        noalias(DN_DX) = r_DN_De[0];
+    }
 
-    // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
-
-    // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-    Matrix sub_inv_jacobian = ZeroMatrix(2,2);
-    sub_inv_jacobian(0,0) = InvJ0(0,0);
-    sub_inv_jacobian(1,0) = InvJ0(1,0);
-    sub_inv_jacobian(0,1) = InvJ0(0,1);
-    sub_inv_jacobian(1,1) = InvJ0(1,1);
-    noalias(DN_DX) = prod(r_DN_De[0],sub_inv_jacobian);
-
-    Matrix B = ZeroMatrix(mDim,mat_size);
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    Matrix B = ZeroMatrix(strain_size,mat_size);
     CalculateB(B, DN_DX);
 
     // compute Taylor expansion contribution: H_sum_vec
-    Matrix grad_H_sum_transposed = ZeroMatrix(3, number_of_control_points);
+    Matrix grad_H_sum_transposed = ZeroMatrix(strain_size, number_of_control_points);
     ComputeGradientTaylorExpansionContribution(mDistanceVector, grad_H_sum_transposed);
 
     Matrix grad_H_sum = trans(grad_H_sum_transposed);
 
-    Matrix B_sum = ZeroMatrix(mDim,mat_size);
+    Matrix B_sum = ZeroMatrix(strain_size,mat_size);
     CalculateB(B_sum, grad_H_sum);
 
     // Obtain the tangent costitutive law matrix
@@ -420,24 +412,102 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
 
     Vector g_N = ZeroVector(3);
     g_N = mpProjectionNode->GetValue(FORCE);
+
+    //FIXME:
+    double nu = this->GetProperties().GetValue(POISSON_RATIO);
+    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+
+
+    //2D
+    // const double x = mpProjectionNode->X();
+    // const double y = mpProjectionNode->Y();
+
+    // // // // cosinusoidal
+    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
+    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 
+
+
+    //3D 
+    const double x = mpProjectionNode->X();
+    const double y = mpProjectionNode->Y();
+    const double z = mpProjectionNode->Z();
+
+    const double c_vol = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu));
+
+    const double c_shear = E / (2.0 * (1.0 + nu));
+
+    const double div_u =
+    -std::sin(x) * std::sinh(y) * std::cosh(z)
+    -std::sin(y) * std::sinh(z) * std::cosh(x)
+    -std::sin(z) * std::sinh(x) * std::cosh(y);
+
+    const double sigma_xx =
+        c_vol * div_u
+        - 2.0 * c_shear * std::sin(x) * std::sinh(y) * std::cosh(z);
+
+    const double sigma_yy =
+        c_vol * div_u
+        - 2.0 * c_shear * std::sin(y) * std::sinh(z) * std::cosh(x);
+
+    const double sigma_zz =
+        c_vol * div_u
+        - 2.0 * c_shear * std::sin(z) * std::sinh(x) * std::cosh(y);
+
+    const double sigma_xy =
+        c_shear * (
+            std::cos(x) * std::cosh(y) * std::cosh(z)
+        + std::cos(y) * std::sinh(z) * std::sinh(x)
+        );
+
+    const double sigma_yz =
+        c_shear * (
+            std::cos(y) * std::cosh(z) * std::cosh(x)
+        + std::cos(z) * std::sinh(x) * std::sinh(y)
+        );
+
+    const double sigma_xz =
+        c_shear * (
+            std::cos(x) * std::sinh(y) * std::sinh(z)
+        + std::cos(z) * std::cosh(x) * std::cosh(y)
+        );
+
+    array_1d<double, 3> traction;
+
+    traction[0] =
+        sigma_xx * mTrueNormal[0]
+        + sigma_xy * mTrueNormal[1]
+        + sigma_xz * mTrueNormal[2];
+    
+    traction[1] =
+        sigma_xy * mTrueNormal[0]
+        + sigma_yy * mTrueNormal[1]
+        + sigma_yz * mTrueNormal[2];
+    
+    traction[2] =
+        sigma_xz * mTrueNormal[0]
+        + sigma_yz * mTrueNormal[1]
+        + sigma_zz * mTrueNormal[2];
+
+    g_N = traction; //FIXME::
+
+
     Vector normal_stress_old = ZeroVector(3);
-    normal_stress_old[0] = (r_stress_vector[0] * mNormalPhysicalSpace[0] + r_stress_vector[2] * mNormalPhysicalSpace[1]);
-    normal_stress_old[1] = (r_stress_vector[2] * mNormalPhysicalSpace[0] + r_stress_vector[1] * mNormalPhysicalSpace[1]);
+    CalculateTraction(r_stress_vector, mNormalPhysicalSpace, normal_stress_old);
 
     Vector normal_stress_true_old = ZeroVector(3);
-    normal_stress_true_old[0] = (r_stress_vector_on_true[0] * mTrueNormal[0] + r_stress_vector_on_true[2] * mTrueNormal[1]);
-    normal_stress_true_old[1] = (r_stress_vector_on_true[2] * mTrueNormal[0] + r_stress_vector_on_true[1] * mTrueNormal[1]);
-
+    CalculateTraction(r_stress_vector_on_true, mTrueNormal, normal_stress_true_old);
+   
     for (IndexType i = 0; i < number_of_control_points; i++) {
         
-        for (IndexType idim = 0; idim < 2; idim++) {
-            const int iglob = 2*i+idim;
-            Vector sigma_w_n(2);
-            sigma_w_n[0] = (DB(0, iglob)* mNormalPhysicalSpace[0] + DB(2, iglob)* mNormalPhysicalSpace[1]);
-            sigma_w_n[1] = (DB(2, iglob)* mNormalPhysicalSpace[0] + DB(1, iglob)* mNormalPhysicalSpace[1]);
+        for (IndexType idim = 0; idim < mDim; idim++) {
+            const int iglob = mDim*i+idim;
+
+            Vector sigma_w_n;
+            Vector stress_column_w = column(DB, iglob);
+            CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n);
 
             // External load term
-            rRightHandSideVector[2*i+idim] += r_N(0,i) * g_N[idim] * mTrueDotSurrogateNormal * int_to_reference_weight;
+            rRightHandSideVector[iglob] += r_N(0,i) * g_N[idim] * mTrueDotSurrogateNormal * int_to_reference_weight;
 
             // Residual terms
             // FLUX STANDARD TERM
@@ -465,14 +535,17 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
 
-        if (rResult.size() != 2 * number_of_control_points)
-            rResult.resize(2 * number_of_control_points, false);
+        if (rResult.size() != mDim * number_of_control_points)
+            rResult.resize(mDim * number_of_control_points, false);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
-            const IndexType index = i * 2;
+            const IndexType index = i * mDim;
             const auto& r_node = r_geometry[i];
             rResult[index] = r_node.GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
+            if (mDim == 3) {
+                rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
+            }
         }
     }
 
@@ -485,12 +558,15 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         const SizeType number_of_control_points = r_geometry.size();
 
         rElementalDofList.resize(0);
-        rElementalDofList.reserve(2 * number_of_control_points);
+        rElementalDofList.reserve(mDim * number_of_control_points);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
             const auto& r_node = r_geometry[i];
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Y));
+            if (mDim == 3) {
+                rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+            }
         }
     };
 
@@ -499,7 +575,7 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 2;
+        const SizeType mat_size = number_of_control_points * mDim;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -507,10 +583,13 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
             const array_1d<double, 3 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
-            IndexType index = i * 2;
+            IndexType index = i * mDim;
 
             rValues[index] = displacement[0];
             rValues[index + 1] = displacement[1];
+            if (mDim == 3) {
+                rValues[index + 2] = displacement[2];
+            }
         }
     }
 
@@ -519,21 +598,71 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         Matrix& r_DN_DX) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 2;
+        const SizeType dim = mDim;
+        const SizeType strain_size = (dim == 2) ? 3 : 6;
+        const SizeType mat_size = number_of_control_points * dim;
 
-        if (rB.size1() != 3 || rB.size2() != mat_size)
-            rB.resize(3, mat_size);
-        noalias(rB) = ZeroMatrix(3, mat_size);
+        if (rB.size1() != strain_size || rB.size2() != mat_size) {
+            rB.resize(strain_size, mat_size, false);
+        }
 
-        for (IndexType r = 0; r < mat_size; r++)
-        {
-            // local node number kr and dof direction dirr
-            IndexType kr = r / 2;
-            IndexType dirr = r % 2;
+        noalias(rB) = ZeroMatrix(strain_size, mat_size);
 
-            rB(0, r) = r_DN_DX(kr,0) * (1-dirr);
-            rB(1, r) = r_DN_DX(kr,1) * dirr;
-            rB(2, r) = r_DN_DX(kr,0) * (dirr) + r_DN_DX(kr,1) * (1-dirr);
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            const SizeType index = i * dim;
+
+            if (dim == 2) {
+                rB(0, index + 0) = r_DN_DX(i, 0); // exx
+                rB(1, index + 1) = r_DN_DX(i, 1); // eyy
+
+                rB(2, index + 0) = r_DN_DX(i, 1); // gamma_xy
+                rB(2, index + 1) = r_DN_DX(i, 0);
+            } else {
+                rB(0, index + 0) = r_DN_DX(i, 0); // exx
+                rB(1, index + 1) = r_DN_DX(i, 1); // eyy
+                rB(2, index + 2) = r_DN_DX(i, 2); // ezz
+
+                rB(3, index + 0) = r_DN_DX(i, 1); // gamma_xy
+                rB(3, index + 1) = r_DN_DX(i, 0);
+
+                rB(4, index + 1) = r_DN_DX(i, 2); // gamma_yz
+                rB(4, index + 2) = r_DN_DX(i, 1);
+
+                rB(5, index + 0) = r_DN_DX(i, 2); // gamma_xz
+                rB(5, index + 2) = r_DN_DX(i, 0);
+            }
+        }
+    }
+
+    void SbmLoadSolidCondition::CalculateTraction(
+        const Vector& rStressVector,
+        const array_1d<double, 3>& rNormal,
+        Vector& rTraction) const
+    {
+        if (rTraction.size() != 3) {
+            rTraction.resize(3, false);
+        }
+
+        noalias(rTraction) = ZeroVector(3);
+
+        if (mDim == 2) {
+            rTraction[0] = rStressVector[0] * rNormal[0]
+                         + rStressVector[2] * rNormal[1];
+
+            rTraction[1] = rStressVector[2] * rNormal[0]
+                         + rStressVector[1] * rNormal[1];
+        } else {
+            rTraction[0] = rStressVector[0] * rNormal[0]
+                         + rStressVector[3] * rNormal[1]
+                         + rStressVector[5] * rNormal[2];
+
+            rTraction[1] = rStressVector[3] * rNormal[0]
+                         + rStressVector[1] * rNormal[1]
+                         + rStressVector[4] * rNormal[2];
+
+            rTraction[2] = rStressVector[5] * rNormal[0]
+                         + rStressVector[4] * rNormal[1]
+                         + rStressVector[2] * rNormal[2];
         }
     }
 
@@ -567,43 +696,37 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         //--------------------------------------------------------------------------------------------
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
-        const SizeType mat_size = number_of_control_points * 2;
+        const SizeType mat_size = number_of_control_points * mDim;
 
-        // Initialize Jacobian
-        GeometryType::JacobiansType J0;
         // Initialize DN_DX
-        const unsigned int mDim = 2;
-        Matrix DN_DX(number_of_control_points,2);
-        Matrix InvJ0(mDim,mDim);
+        Matrix DN_DX(number_of_control_points, mDim);
 
-        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-        double detJ0;
-        // MODIFIED
+        const GeometryType::ShapeFunctionsGradientsType& r_DN_De =
+            r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+
         Vector displacement_coefficient_vector(mat_size);
         GetSolutionCoefficientVector(displacement_coefficient_vector);
-        
-        Matrix Jacobian = ZeroMatrix(2,2);
-        Jacobian(0,0) = J0[0](0,0);
-        Jacobian(0,1) = J0[0](0,1);
-        Jacobian(1,0) = J0[0](1,0);
-        Jacobian(1,1) = J0[0](1,1);
 
-        // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
+        // Compute physical derivatives
+        if (mDim == 2) {
+            Matrix jacobian;
+            CalculateInitialJacobian(r_geometry, jacobian);
 
-        // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[0],InvJ0);
+            Matrix inv_jacobian(mDim, mDim);
+            double det_jacobian = 0.0;
+            MathUtils<double>::InvertMatrix(jacobian, inv_jacobian, det_jacobian);
 
-        // MODIFIED
-        Matrix B = ZeroMatrix(3,mat_size);
+            noalias(DN_DX) = prod(r_DN_De[0], inv_jacobian);
+        } else {
+            noalias(DN_DX) = r_DN_De[0];
+        }
 
+        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        Matrix B = ZeroMatrix(strain_size,mat_size);
         CalculateB(B, DN_DX);
 
         // GET STRESS VECTOR
         ConstitutiveLaw::Parameters values_surrogate(r_geometry, GetProperties(), rCurrentProcessInfo);
-
-        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=values_surrogate.GetOptions();
 
@@ -622,16 +745,18 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         mpConstitutiveLaw->CalculateMaterialResponse(values_surrogate, ConstitutiveLaw::StressMeasure_Cauchy);
 
         const Vector sigma = values_surrogate.GetStressVector();
-        Vector sigma_n(2);
-
-        sigma_n[0] = sigma[0]*mNormalPhysicalSpace[0] + sigma[2]*mNormalPhysicalSpace[1];
-        sigma_n[1] = sigma[2]*mNormalPhysicalSpace[0] + sigma[1]*mNormalPhysicalSpace[1];
+        Vector sigma_n;
+        CalculateTraction(sigma, mNormalPhysicalSpace, sigma_n);
 
         SetValue(NORMAL_STRESS, sigma_n);
 
-        SetValue(CAUCHY_STRESS_XX, sigma[0]);
-        SetValue(CAUCHY_STRESS_YY, sigma[1]);
-        SetValue(CAUCHY_STRESS_XY, sigma[2]);
+        if (mDim == 2) {
+            SetValue(CAUCHY_STRESS_XX, sigma[0]);
+            SetValue(CAUCHY_STRESS_YY, sigma[1]);
+            SetValue(CAUCHY_STRESS_XY, sigma[2]);
+        } else {
+            SetValue(CAUCHY_STRESS_TENSOR, MathUtils<double>::StressVectorToTensor(sigma));
+        }
     }
 
 void SbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
@@ -677,13 +802,13 @@ void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(const Vec
                     IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k); 
                     // Compute the Taylor term for this derivative
-                    H_taylor_term_X += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
+                    H_taylor_term_X += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
                 }
                 for (IndexType k = 0; k <= n-1; k++) {
                     IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k+1); 
                     // Compute the Taylor term for this derivative
-                    H_taylor_term_Y += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
+                    H_taylor_term_Y += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
                 }
             }
         } else {
@@ -693,22 +818,22 @@ void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(const Vec
             
                 IndexType countDerivativeId = 0;
                 // Loop over blocks of derivatives in x
-                for (IndexType k_x = n; k_x >= 0; k_x--) {
+                for (int k_x = static_cast<int>(n); k_x >= 0; --k_x) {
                     // Loop over the possible derivatives in y
-                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
+                    for (int k_y = static_cast<int>(n) - k_x; k_y >= 0; --k_y) {
 
                         // derivatives in z
                         IndexType k_z = n - k_x - k_y;
                         double derivative = shapeFunctionDerivatives(i,countDerivativeId); 
                         
                         if (k_x >= 1) {
-                            H_taylor_term_X += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x-1, rDistanceVector[1], k_y, rDistanceVector[2], k_z);
+                            H_taylor_term_X += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x-1, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
                         }
                         if (k_y >= 1) {
-                            H_taylor_term_Y += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y-1, rDistanceVector[2], k_z);
+                            H_taylor_term_Y += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y-1, mDistanceVector[2], k_z);
                         }
                         if (k_z >= 1) {
-                            H_taylor_term_Z += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y, rDistanceVector[2], k_z-1);
+                            H_taylor_term_Z += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z-1);
                         }     
                         countDerivativeId++;
                     }

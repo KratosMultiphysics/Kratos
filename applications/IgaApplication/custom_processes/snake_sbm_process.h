@@ -587,6 +587,20 @@ private:
         ModelPart& rSurrogateModelPartOuter
         );
 
+    
+    /**
+     * @brief IsKnotSpanFullyInsideSkinBoundary3D
+     * 
+     */
+    static bool IsKnotSpanFullyInsideSkinBoundary3D(
+        const int I,
+        const int J,
+        const int K,
+        DynamicBins& rPointsBin,
+        const ModelPart& rSkinModelPart,
+        const array_1d<double, 3>& rKnotStepUVW,
+        const Vector& rStartingPosition);
+
 }; // Class SnakeSbmProcess
 
 }  // namespace Kratos.

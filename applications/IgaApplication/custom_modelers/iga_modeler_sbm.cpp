@@ -629,8 +629,11 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
 
     ModelPart::NodesContainerType::ContainerType results(number_of_results);
     std::vector<double> list_of_distances(number_of_results);
+
+    
     for (SizeType i = 0; i < rGeometryList.size(); ++i)
     {
+        ConditionName = "SbmSolidCondition";
         GeometriesArrayType geometries;
         IntegrationInfo integration_info = rGeometryList[i].GetDefaultIntegrationInfo();
         for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
@@ -687,6 +690,11 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
             
             // store id closest condition
             list_id_closest_condition[j] = results[nearest_node_id]->Id();
+
+            // if (skin_sub_model_part_out.GetCondition(list_id_closest_condition[j]).GetGeometry()[0].Z() > 0.25) //FIXME:
+            // {
+            //     ConditionName = "SbmLoadSolidCondition"; //FIXME:
+            // }
         }
 
         if (is_inner) {
