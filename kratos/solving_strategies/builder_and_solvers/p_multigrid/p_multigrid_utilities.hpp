@@ -353,64 +353,83 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
         struct TLS
         {
             std::vector<Triplet> local_restriction_operator;
-            std::vector<bool> included_dofs;
+            Element::DofsVectorType element_dofs;
         }; // struct TLS
 
         // Collect terms from elements.
         KRATOS_TRY
         block_for_each(rModelPart.Elements(),
                        TLS(),
-                       [&rows, &locks, &hanging_nodes, &rParentIndirectDofSet, &rModelPart](const Element& r_element, TLS& r_tls) {
+                       [&rows, &locks, &hanging_nodes, &rModelPart](const Element& r_element, TLS& r_tls) {
             if (r_element.IsActive()) {
                 const auto& r_geometry = r_element.GetGeometry();
 
                 // Fetch the local restriction operator of the element.
                 r_tls.local_restriction_operator.clear();
-                MakePRestrictionOperator<OrderReduction,TValue,LocalIndex>(r_geometry, std::back_inserter(r_tls.local_restriction_operator));
+                MakePRestrictionOperator<OrderReduction,TValue,LocalIndex>(
+                    r_geometry,
+                    std::back_inserter(r_tls.local_restriction_operator));
 
+                // Fetch element DoFs.
+                r_element.GetDofList(
+                    r_tls.element_dofs,
+                    rModelPart.GetProcessInfo());
+                std::sort(
+                    r_tls.element_dofs.begin(),
+                    r_tls.element_dofs.end(),
+                    [] (const Dof<double>* p_left, const Dof<double>* p_right) -> bool {
+                        if (p_left->Id() < p_right->Id())
+                            return true;
+                        else if (p_right->Id() < p_left->Id())
+                            return false;
+                        else
+                            return p_left->GetVariable().Key() < p_right->GetVariable().Key();});
+
+                // Apply the local restriction operator to each DoF.
                 for (const auto& [i_row, i_column, value] : r_tls.local_restriction_operator) {
-                    auto& r_row_dofs = r_geometry[i_row].GetDofs();
-                    const auto& r_column_dofs = r_geometry[i_column].GetDofs();
-                    KRATOS_DEBUG_ERROR_IF_NOT(r_row_dofs.size() == r_column_dofs.size());
+                    std::span<Dof<double>*> row_dofs, column_dofs;
 
-                    if (!r_row_dofs.empty()) {
-                        // Find the first DoF in the parent's set.
-                        auto it_first_dof = std::lower_bound(rParentIndirectDofSet.begin(),
-                                                             rParentIndirectDofSet.end(),
-                                                             **r_row_dofs.begin(),
-                                                             [](const Dof<double>& r_parent_dof, const Dof<double>& r_dof){
-                                                                return r_parent_dof.Id() < r_dof.Id();
-                                                             });
-                        if (it_first_dof == rParentIndirectDofSet.end()) continue;
+                    struct Comparison {
+                        Comparison(const Geometry<Node>& rGeometry) noexcept
+                            : mpGeometry(&rGeometry) {}
 
-                        // Find which DoFs are included from the node.
-                        r_tls.included_dofs.resize(r_row_dofs.size());
-                        std::fill(r_tls.included_dofs.begin(), r_tls.included_dofs.end(), false);
+                        bool operator()(const Dof<double>* pDof, LocalIndex iLocalNode) const noexcept {
+                            return pDof->Id() < mpGeometry->operator[](iLocalNode).Id();}
 
-                        {
-                            const auto i_row_node = r_row_dofs.front()->Id();
-                            auto it_parent_dof = it_first_dof;
-                            for (std::size_t i_component=0ul; i_component<r_row_dofs.size(); ++i_component) {
-                                const Dof<double>& r_row_dof = *r_row_dofs[i_component];
-                                if (it_parent_dof->Id() == i_row_node) {
-                                    if (it_parent_dof->GetVariable().Key() == r_row_dof.GetVariable().Key()) {
-                                        r_tls.included_dofs[i_component] = true;
-                                        ++it_parent_dof;
-                                    }
-                                } else break;
-                            } // for i_component in range(r_row_dofs.size())
-                        }
+                        bool operator()(LocalIndex iLocalNode, const Dof<double>* pDof) const noexcept {
+                            return mpGeometry->operator[](iLocalNode).Id() < pDof->Id();}
 
-                        const unsigned component_count = r_row_dofs.size();
+                        const Geometry<Node>* mpGeometry;
+                    }; // struct Comparison
+
+                    {
+                        const auto [it_begin, it_end] = std::equal_range(
+                            r_tls.element_dofs.begin(),
+                            r_tls.element_dofs.end(),
+                            i_row,
+                            Comparison(r_geometry));
+                        row_dofs = {it_begin, it_end};
+                    }
+                    {
+                        const auto [it_begin, it_end] = std::equal_range(
+                            r_tls.element_dofs.begin(),
+                            r_tls.element_dofs.end(),
+                            i_column,
+                            Comparison(r_geometry));
+                        column_dofs = {it_begin, it_end};
+                    }
+                    KRATOS_DEBUG_ERROR_IF_NOT(row_dofs.size() == column_dofs.size());
+
+                    if (!row_dofs.empty()) {
+                        const unsigned component_count = row_dofs.size();
                         for (unsigned i_component=0u; i_component<component_count; ++i_component) {
-                            if (!r_tls.included_dofs[i_component]) continue;
-                            Dof<double>* p_fine_row_dof = r_row_dofs[i_component].get();
+                            Dof<double>* p_fine_row_dof = row_dofs[i_component];
                             [[maybe_unused]] std::scoped_lock<LockObject> row_lock(locks[p_fine_row_dof->EquationId()]);
 
                             const std::size_t i_row_dof = p_fine_row_dof->EquationId();
                             rows[i_row_dof].second = p_fine_row_dof;
 
-                            const std::size_t i_column_dof = r_column_dofs[i_component]->EquationId();
+                            const std::size_t i_column_dof = column_dofs[i_component]->EquationId();
                             [[maybe_unused]] const auto [it_emplace, inserted] = rows[i_row_dof].first.emplace(i_column_dof, value);
 
                             // Check whether the insertion was successful, and if not,
