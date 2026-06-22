@@ -211,14 +211,13 @@ void Shell7pElement::CalculateLeftHandSide(
     double gmdet_body = 0.0;
 
     ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
-    int ansq=1; // activation flag of Q-mode of ANS  
     SizeType n_ans_points=4; 
     // 4 ANS sampling points: (r, s)
     array_1d<array_1d<double,2>,4> ans_points;
-    ans_points[0][0] =  0.0; ans_points[0][1] = -1.0; // (xr1[0], xs1[0])
-    ans_points[1][0] =  0.0; ans_points[1][1] =  1.0; // (xr1[1], xs1[1])
-    ans_points[2][0] = -1.0; ans_points[2][1] =  0.0; // (xr2[0], xs2[0])
-    ans_points[3][0] =  1.0; ans_points[3][1] =  0.0; // (xr2[1], xs2[1])
+    ans_points[0][0] =  0.0; ans_points[0][1] = -1.0;
+    ans_points[1][0] =  0.0; ans_points[1][1] =  1.0;
+    ans_points[2][0] = -1.0; ans_points[2][1] =  0.0;
+    ans_points[3][0] =  1.0; ans_points[3][1] =  0.0;
     array_1d<double,2> frq;
     array_1d<double,2> fsq;
 
@@ -236,8 +235,8 @@ void Shell7pElement::CalculateLeftHandSide(
         DN_ans[p].resize(number_of_nodes, 2, false);
 
         array_1d<double,3> local_coords;
-        local_coords[0] = ans_points[p][0]; // xi
-        local_coords[1] = ans_points[p][1]; // eta
+        local_coords[0] = ans_points[p][0]; // r
+        local_coords[1] = ans_points[p][1]; // s
         local_coords[2] = 0.0;
 
         r_geom.ShapeFunctionsValues(Np, local_coords);
@@ -246,6 +245,41 @@ void Shell7pElement::CalculateLeftHandSide(
         r_geom.ShapeFunctionsLocalGradients(DN_ans[p], local_coords);
 
         CovariantBaseVectorsMidsurface(akovr_ans[p], DN_ans[p], row(N_ans, p), ConfigurationType::Reference, thickness);
+
+    }
+
+    ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////BEGIN ANS CURVATURE THICKNESS LOCKING ELIMINATION STUFF//////////////////////////////////////////////////////////////// 
+    SizeType n_ct_ans_points=4; 
+    // 4 ANS sampling points: (r, s)
+    array_1d<array_1d<double,2>,4> ct_ans_points;
+    ct_ans_points[0][0] = -1.0; ct_ans_points[0][1] = -1.0;
+    ct_ans_points[1][0] =  1.0; ct_ans_points[1][1] = -1.0;
+    ct_ans_points[2][0] =  1.0; ct_ans_points[2][1] =  1.0;
+    ct_ans_points[3][0] = -1.0; ct_ans_points[3][1] =  1.0;
+
+    Matrix N_ct_ans = ZeroMatrix(n_ct_ans_points, number_of_nodes);   // N_ct_ans(p,i) = N_i at point p
+    array_1d<Matrix,4> DN_ct_ans;                                  // DN_ct_ansp=dNi/dxi (DN_ct_ans[p](i, 0)), DN_ct_ansp=dNi/deta (DN_ct_ans[p](i, 1))
+    array_1d<array_1d<Vector,3>,4> akovr_ct_ans;
+    Vector Np_ct;
+    Np_ct.resize(number_of_nodes, false);
+
+    for (SizeType p = 0; p < n_ct_ans_points; ++p) {
+        //funct_q[p].resize(number_of_nodes);
+        DN_ct_ans[p].resize(number_of_nodes, 2, false);
+
+        array_1d<double,3> local_coords;
+        local_coords[0] = ct_ans_points[p][0]; // r
+        local_coords[1] = ct_ans_points[p][1]; // s
+        local_coords[2] = 0.0;
+
+        r_geom.ShapeFunctionsValues(Np_ct, local_coords);
+        row(N_ct_ans, p) = Np_ct;
+
+        r_geom.ShapeFunctionsLocalGradients(DN_ct_ans[p], local_coords);
+
+        CovariantBaseVectorsMidsurface(akovr_ct_ans[p], DN_ct_ans[p], row(N_ct_ans, p), ConfigurationType::Reference, thickness);
 
     }
 
@@ -315,7 +349,7 @@ void Shell7pElement::CalculateLeftHandSide(
 
         JacobiDeterminante(detJ_surface,akovr);
 
-        ////////////////////////////////////////////////////////////////BEGIN ANS STUFF////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
         const auto& r_gp = r_integration_points[point_number];
 
         const double r  = r_gp.X();
@@ -329,8 +363,17 @@ void Shell7pElement::CalculateLeftHandSide(
         Matrix Bop = ZeroMatrix(12,number_dofs);
         CalculatelinearBOperator(Bop,akovr,a3kvp,shape_functions_gradients_i,Nshape,number_of_nodes);
         //-------------------------------------- modifications due to ans 
-        BOperatorANSmodification(Bop,frq,fsq,akovr_ans,a3kvp,DN_ans,N_ans,number_of_nodes);
+        BOperatorANSTransverseShearmodification(Bop,frq,fsq,akovr_ans,a3kvp,DN_ans,N_ans,number_of_nodes);
+        ////////////////////////////////////////////////////////////////BEGIN ANS CURVATURE THICKNESS  ELIMINATION STUFF////////////////////////////////////////////////////////////////
 
+        GeometryType::CoordinatesArrayType local_coords_gp;
+        local_coords_gp[0] = r;
+        local_coords_gp[1] = s;
+        local_coords_gp[2] = 0.0;
+        r_geom.ShapeFunctionsValues(Np_ct, local_coords_gp);
+        BOperatorANSCurvatureThicknessModification(Bop, akovr_ct_ans, N_ct_ans, r, s, Np_ct, number_of_nodes);
+
+        ////////////////////////////////////////////////////////////////END ANS CURVATURE THICKNESS  ELIMINATION STUFF////////////////////////////////////////////////////////////////
 
         //-------------------------------------- loop over GP in thickness direction for preintegration of constitutive law
         for (SizeType k=0; k<2; ++k){           // separate function PreintegrateThroughThicknessConstitutive() ?
@@ -777,8 +820,8 @@ void Shell7pElement::s8_ansqshapefunctions(array_1d<double,2>& frq, array_1d<dou
    fsq[1] = 0.5 * (1.0 + r);
 }
 
-void Shell7pElement::BOperatorANSmodification(Matrix& Bop, const array_1d<double,2>& frq, const array_1d<double,2>& fsq,
-    const array_1d<array_1d<Vector,3>,4>& akovr_ans,const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
+void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const array_1d<double,2>& frq, const array_1d<double,2>& fsq,
+    const array_1d<array_1d<Vector,3>,4>& akovr_ans, const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
     const Matrix& N_ans, const SizeType& number_of_nodes) const
 {
     for (SizeType inode = 0; inode < number_of_nodes; ++inode)
@@ -849,6 +892,38 @@ void Shell7pElement::BOperatorANSmodification(Matrix& Bop, const array_1d<double
   }
 
 
+}
+
+void Shell7pElement::BOperatorANSCurvatureThicknessModification(Matrix& Bop, const array_1d<array_1d<Vector,3>,4>& akovr_ct_ans, const Matrix& N_ct_ans, const double r, const double s, const Vector& Np, const SizeType& number_of_nodes) const
+{
+   
+    for (SizeType inode = 0; inode < number_of_nodes; ++inode)
+    {
+        const SizeType node_start = inode*6;
+        Bop(5,node_start+0) = 0.0;
+        Bop(5,node_start+1) = 0.0;
+        Bop(5,node_start+2) = 0.0;
+        Bop(5,node_start+3) = 0.0;
+        Bop(5,node_start+4) = 0.0;
+        Bop(5,node_start+5) = 0.0;
+
+        for (SizeType isamp = 0; isamp < 4; ++isamp)
+        {
+            const double a3x = akovr_ct_ans[isamp][2][0];
+            const double a3y = akovr_ct_ans[isamp][2][1];
+            const double a3z = akovr_ct_ans[isamp][2][2];
+            const double N = N_ct_ans(isamp, inode);
+            const double N_gp = Np[isamp];
+
+            Bop(5,node_start+0) += 0.0;
+            Bop(5,node_start+1) += 0.0;
+            Bop(5,node_start+2) += 0.0;   
+            Bop(5,node_start+3) += N*a3x*N_gp;
+            Bop(5,node_start+4) += N*a3y*N_gp;
+            Bop(5,node_start+5) += N*a3z*N_gp;
+        }
+
+    }
 }
 
 void Shell7pElement::CalculateEASShapeFunctions(Matrix& M0_eas, const double r, const double s, const array_1d<SizeType,3>& eas_modes_per_kinematic_variable_set, const SizeType& num_eas_modes) const

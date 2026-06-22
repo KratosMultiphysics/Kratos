@@ -112,9 +112,12 @@ private:
 
     void s8_ansqshapefunctions(array_1d<double,2>& frq, array_1d<double,2>& fsq,const double xi, const double eta) const;
 
-    void BOperatorANSmodification(Matrix& Bop, const array_1d<double,2>& frq, const array_1d<double,2>& fsq,
+    void BOperatorANSTransverseShearmodification(Matrix& Bop, const array_1d<double,2>& frq, const array_1d<double,2>& fsq,
     const array_1d<array_1d<Vector,3>,4>& akovr_ans,const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
     const Matrix& N_ans, const SizeType& number_of_nodes) const;
+
+    void BOperatorANSCurvatureThicknessModification(Matrix& Bop, const array_1d<array_1d<Vector,3>,4>& akovr_ct_ans, 
+    const Matrix& N_ct_ans, const double r, const double s, const Vector& Np, const SizeType& number_of_nodes) const;
 
     void CalculateEASShapeFunctions(Matrix& M0_eas, const double r, const double s,
     const array_1d<SizeType,3>& eas_modes_per_kinematic_variable_set, const SizeType& num_eas_modes) const;
