@@ -813,19 +813,21 @@ private:
     }
 
     /**
-     * @brief Top-down propagation that assigns active/inactive flags to every CP.
+     * @brief Two-phase THB active-function selection (supports the coexistence scenario).
      *
      * Initialization:
      *   mActiveFunctions[0]   = all true   (level 0 covers the full domain)
-     *   mActiveFunctions[l>0] = all false  (activated only by coarser propagation)
+     *   mActiveFunctions[l>0] = all false  (activated below)
      *
-     * Main loop  l = 0 .. L-2:
-     *   For each active CP (i_u, i_v) at level l:
-     *     1. Compute its support [support_min_u, support_max_u] x [support_min_v, support_max_v].
-     *     2. Check whether EVERY non-zero cell in the support has its midpoint inside
-     *        a refinement domain at level >= l+1.  If not → coarse CP stays active.
-     *     3. If all cells covered → mark coarse CP INACTIVE and activate true children.
-     *        A fine CP j is a child iff supp(B_j^{l+1}) ⊆ supp(B_i^l).
+     * For each level pair (l, l+1):
+     *
+     *   Phase 1 Children (T^B_{l+1}):
+     *     Activate fine CP j at level l+1 if supp(B_j^{l+1}) ⊆ Ω^{≥l+1}.
+     *     This is independent of parent status → coexistence is possible.
+     *
+     *   Phase 2 Parents (T^A_{l+1}):
+     *     Deactivate active coarse CP i at level l if supp(B_i^l) ⊆ Ω^{≥l+1}.
+     *     CPs whose support straddles the boundary are retained (truncated at eval time).
      *
      * Called automatically by AddRefinementDomain.
      */
@@ -834,7 +836,6 @@ private:
         const SizeType polynomial_degree_u = mLevels[0].DegreeU;
         const SizeType polynomial_degree_v = mLevels[0].DegreeV;
 
-        // Level 0: fully active. Finer levels: start inactive, activated by propagation.
         std::fill(mActiveFunctions[0].begin(), mActiveFunctions[0].end(), true);
         for (SizeType l = 1; l < mLevels.size(); ++l)
             std::fill(mActiveFunctions[l].begin(), mActiveFunctions[l].end(), false);
@@ -847,33 +848,63 @@ private:
             const SizeType num_cps_u_fine   = fine_level.KnotsU.size()   - polynomial_degree_u + 1;
             const SizeType num_cps_v_fine   = fine_level.KnotsV.size()   - polynomial_degree_v + 1;
 
+            // Phase 1 (T^B_{l+1}): activate fine children
+            for (SizeType j_v = 0; j_v < num_cps_v_fine; ++j_v) {
+                const double fine_supp_min_v =
+                    (j_v == 0) ? fine_level.KnotsV[0] : fine_level.KnotsV[j_v - 1];
+                const double fine_supp_max_v =
+                    fine_level.KnotsV[std::min(j_v + polynomial_degree_v, fine_level.KnotsV.size() - 1)];
+
+                for (SizeType j_u = 0; j_u < num_cps_u_fine; ++j_u) {
+                    const double fine_supp_min_u =
+                        (j_u == 0) ? fine_level.KnotsU[0] : fine_level.KnotsU[j_u - 1];
+                    const double fine_supp_max_u =
+                        fine_level.KnotsU[std::min(j_u + polynomial_degree_u, fine_level.KnotsU.size() - 1)];
+
+                    bool support_in_omega = true;
+                    for (SizeType k_u = 0; k_u + 1 < fine_level.KnotsU.size() && support_in_omega; ++k_u) {
+                        if (fine_level.KnotsU[k_u + 1] - fine_level.KnotsU[k_u] < 1e-10) continue;
+                        if (fine_level.KnotsU[k_u] < fine_supp_min_u - 1e-10) continue;
+                        if (fine_level.KnotsU[k_u + 1] > fine_supp_max_u + 1e-10) continue;
+                        for (SizeType k_v = 0; k_v + 1 < fine_level.KnotsV.size() && support_in_omega; ++k_v) {
+                            if (fine_level.KnotsV[k_v + 1] - fine_level.KnotsV[k_v] < 1e-10) continue;
+                            if (fine_level.KnotsV[k_v] < fine_supp_min_v - 1e-10) continue;
+                            if (fine_level.KnotsV[k_v + 1] > fine_supp_max_v + 1e-10) continue;
+                            const double cell_mid_u =
+                                0.5 * (fine_level.KnotsU[k_u] + fine_level.KnotsU[k_u + 1]);
+                            const double cell_mid_v =
+                                0.5 * (fine_level.KnotsV[k_v] + fine_level.KnotsV[k_v + 1]);
+                            if (!IsInsideRefinedRegion(cell_mid_u, cell_mid_v, l + 1))
+                                support_in_omega = false;
+                        }
+                    }
+                    if (support_in_omega)
+                        mActiveFunctions[l + 1][j_v * num_cps_u_fine + j_u] = true;
+                }
+            }
+
+            // Phase 2 (T^A_{l+1}): deactivate coarse parents
             for (SizeType i_v = 0; i_v < num_cps_v_coarse; ++i_v) {
                 for (SizeType i_u = 0; i_u < num_cps_u_coarse; ++i_u) {
                     if (!mActiveFunctions[l][i_v * num_cps_u_coarse + i_u]) continue;
 
-                    // Support of coarse B_{i_u, i_v}^l
                     const double support_min_u =
                         (i_u == 0) ? coarse_level.KnotsU[0] : coarse_level.KnotsU[i_u - 1];
                     const double support_max_u =
-                        coarse_level.KnotsU[std::min(i_u + polynomial_degree_u,
-                                                     coarse_level.KnotsU.size() - 1)];
+                        coarse_level.KnotsU[std::min(i_u + polynomial_degree_u, coarse_level.KnotsU.size() - 1)];
                     const double support_min_v =
                         (i_v == 0) ? coarse_level.KnotsV[0] : coarse_level.KnotsV[i_v - 1];
                     const double support_max_v =
-                        coarse_level.KnotsV[std::min(i_v + polynomial_degree_v,
-                                                     coarse_level.KnotsV.size() - 1)];
+                        coarse_level.KnotsV[std::min(i_v + polynomial_degree_v, coarse_level.KnotsV.size() - 1)];
 
-                    // Is every cell of this support inside Ω^{≥l+1}?
                     bool all_cells_covered = true;
-                    for (SizeType k_u = 0;
-                         k_u + 1 < coarse_level.KnotsU.size() && all_cells_covered; ++k_u) {
+                    for (SizeType k_u = 0; k_u + 1 < coarse_level.KnotsU.size() && all_cells_covered; ++k_u) {
                         if (coarse_level.KnotsU[k_u + 1] - coarse_level.KnotsU[k_u] < 1e-10) continue;
-                        if (coarse_level.KnotsU[k_u]     < support_min_u - 1e-10) continue;
+                        if (coarse_level.KnotsU[k_u] < support_min_u - 1e-10) continue;
                         if (coarse_level.KnotsU[k_u + 1] > support_max_u + 1e-10) continue;
-                        for (SizeType k_v = 0;
-                             k_v + 1 < coarse_level.KnotsV.size() && all_cells_covered; ++k_v) {
+                        for (SizeType k_v = 0; k_v + 1 < coarse_level.KnotsV.size() && all_cells_covered; ++k_v) {
                             if (coarse_level.KnotsV[k_v + 1] - coarse_level.KnotsV[k_v] < 1e-10) continue;
-                            if (coarse_level.KnotsV[k_v]     < support_min_v - 1e-10) continue;
+                            if (coarse_level.KnotsV[k_v] < support_min_v - 1e-10) continue;
                             if (coarse_level.KnotsV[k_v + 1] > support_max_v + 1e-10) continue;
                             const double cell_mid_u =
                                 0.5 * (coarse_level.KnotsU[k_u] + coarse_level.KnotsU[k_u + 1]);
@@ -883,32 +914,8 @@ private:
                                 all_cells_covered = false;
                         }
                     }
-                    if (!all_cells_covered) continue;
-
-                    // Mark coarse CP INACTIVE and activate its true children.
-                    mActiveFunctions[l][i_v * num_cps_u_coarse + i_u] = false;
-
-                    for (SizeType j_u = 0; j_u < num_cps_u_fine; ++j_u) {
-                        const double fine_supp_min_u =
-                            (j_u == 0) ? fine_level.KnotsU[0] : fine_level.KnotsU[j_u - 1];
-                        const double fine_supp_max_u =
-                            fine_level.KnotsU[std::min(j_u + polynomial_degree_u,
-                                                       fine_level.KnotsU.size() - 1)];
-                        if (fine_supp_min_u < support_min_u - 1e-10) continue;
-                        if (fine_supp_max_u > support_max_u + 1e-10) continue;
-
-                        for (SizeType j_v = 0; j_v < num_cps_v_fine; ++j_v) {
-                            const double fine_supp_min_v =
-                                (j_v == 0) ? fine_level.KnotsV[0] : fine_level.KnotsV[j_v - 1];
-                            const double fine_supp_max_v =
-                                fine_level.KnotsV[std::min(j_v + polynomial_degree_v,
-                                                           fine_level.KnotsV.size() - 1)];
-                            if (fine_supp_min_v < support_min_v - 1e-10) continue;
-                            if (fine_supp_max_v > support_max_v + 1e-10) continue;
-
-                            mActiveFunctions[l + 1][j_v * num_cps_u_fine + j_u] = true;
-                        }
-                    }
+                    if (all_cells_covered)
+                        mActiveFunctions[l][i_v * num_cps_u_coarse + i_u] = false;
                 }
             }
         }
