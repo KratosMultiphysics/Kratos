@@ -8,9 +8,10 @@ import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_ma
 
 def _validated_stage_file_paths(input_path, n_stages, filename_pattern, base_path=None):
     """Build stage file paths and ensure they stay within the configured input directory."""
+    base_path = Path(base_path).expanduser().resolve() if base_path is not None else None
     input_dir = Path(input_path).expanduser()
     if not input_dir.is_absolute() and base_path is not None:
-        input_dir = Path(base_path).expanduser() / input_dir
+        input_dir = base_path / input_dir
     input_dir = input_dir.resolve()
     if not input_dir.is_dir():
         raise FileNotFoundError(f"Input path does not exist or is not a directory: {input_dir}")
@@ -42,8 +43,6 @@ def run_stages(
 
     if input_path is None:
         input_path = project_path
-
-    project_path = str(Path(project_path).expanduser().resolve())
 
     project_parameters_filenames = _validated_stage_file_paths(
         input_path, n_stages, filename_pattern, base_path=project_path
