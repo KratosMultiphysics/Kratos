@@ -22,14 +22,17 @@ class TestPretension(KratosMultiphysics.KratosUnittest.TestCase):
 
             # Insert pre-tensioning.
             pre_tensioning_magnitude: float = 2e7
-            configuration["processes"]["constraints_process_list"].append({
-                "python_module" : "neumann_pre_tension_process",
-                "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-                "Parameters" : {
-                    "model_part_name" : "root.pre_tension_surface",
-                    "magnitude" : pre_tensioning_magnitude,
-                    "verbosity" : 3
+            configuration["processes"]["loads_process_list"].append({
+                "python_module": "assign_scalar_variable_to_conditions_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableToConditionsProcess",
+                "Parameters": {
+                    "model_part_name": "root.pre_tension_surface.control",
+                    "variable_name": "POINT_LOAD_X",
+                    "interval": [0, "End"],
+                    "value": pre_tensioning_magnitude
                 }})
+
 
             # Construct and run the analysis.
             parameters = KratosMultiphysics.Parameters(json.dumps(configuration))
@@ -39,14 +42,9 @@ class TestPretension(KratosMultiphysics.KratosUnittest.TestCase):
 
             # Check the reaction on the virtual nodes.
             model_part: KratosMultiphysics.ModelPart = model.GetModelPart("root").GetSubModelPart("pre_tension_surface")
-            positive_side_virtual_node: KratosMultiphysics.Node = model_part.GetNode(8)
-            negative_side_virtual_node: KratosMultiphysics.Node = model_part.GetNode(10)
-
+            virtual_node: KratosMultiphysics.Node = model_part.GetNode(8)
             self.assertAlmostEqual(
-                positive_side_virtual_node.GetSolutionStepValue(KratosMultiphysics.REACTION_X),
-                -pre_tensioning_magnitude)
-            self.assertAlmostEqual(
-                negative_side_virtual_node.GetSolutionStepValue(KratosMultiphysics.REACTION_X),
+                virtual_node.GetSolutionStepValue(KratosMultiphysics.REACTION_X),
                 pre_tensioning_magnitude)
 
 
@@ -58,13 +56,16 @@ class TestPretension(KratosMultiphysics.KratosUnittest.TestCase):
 
             # Insert pre-tensioning.
             pre_tensioning_magnitude: float = 1e-1
-            configuration["processes"]["constraints_process_list"].append({
-                "python_module" : "dirichlet_pre_tension_process",
-                "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-                "Parameters" : {
-                    "model_part_name" : "root.pre_tension_surface",
-                    "magnitude" : pre_tensioning_magnitude,
-                    "verbosity" : 3
+            configuration["processes"]["loads_process_list"].append({
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "root.pre_tension_surface.control",
+                    "variable_name": "DISPLACEMENT_X",
+                    "interval": [0, "End"],
+                    "constrained": True,
+                    "value": pre_tensioning_magnitude
                 }})
 
             # Construct and run the analysis.

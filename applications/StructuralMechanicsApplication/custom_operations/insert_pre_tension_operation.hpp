@@ -14,6 +14,7 @@
 // --- Core Includes ---
 #include "operations/operation.h" // Operation
 #include "containers/model.h" // Model
+#include "modeler/modeler.h" // Modeler
 
 // --- STL Includes ---
 #include <unordered_set>
@@ -78,44 +79,15 @@ namespace Kratos {
 /// @subsection pre_tensioning_out_of_plane_constraints Out-of-Plane Constraints
 ///          To apply a single pre-tensioning value (load or prescribed displacement) to the surface,
 ///          the out-of-plane displacement components on each set of nodes (original or duplicated) are
-///          averaged and tied to newly inserted virtual DoFs.
+///          averaged and tied to a newly inserted virtual DoF.
 ///          @f[
-///                 u_v^o - \frac{1}{m} \sum_{i=1}^m{ \left< u_o^i, n \right> } = 0
-///          @f]
-///          @f[
-///                 u_v^d - \frac{1}{m} \sum_{i=1}^m{ \left< u_d^i, n \right> } = 0
+///                 u_v - \frac{1}{m} \sum_{i=1}^m{ \left< u_o^i, n \right> - \left< u_d^i, n \right> } = 0
 ///          @f]
 ///          where
-///          - @f$u_v^o@f$ is the newly inserted virtual DoF belonging to the original set of nodes, and
-///          - @f$u_v^d@f$ is the newly inserted virtual DoF belonging to the duplicate set of nodes.
+///          - @f$u_v^o@f$ is the newly inserted virtual DoF.
 ///
-///          Once the virtual degrees-of-freedom @f$u_v^o@f$ and @f$u_v^d@f$ are defined, they can either
+///          Once the virtual degree-of-freedom @f$u_v@f$ is defined, it can either
 ///          be loaded (Neumann-type) or fixed (Dirichlet-type).
-///
-/// @subsection pre_tensioning_neumann_type Neumann-Type Pre-Tensioning
-///          Given a pre-tensioning force @f$f@f$, fix the reaction of @f$u_v^o@f$ to @f$f@f$ and
-///          the reaction of @f$u_v^d@f$ to @f$-f@f$.
-///          @f[
-///                 r_v^o - f = 0
-///          @f]
-///          @f[
-///                 r_v^d + f = 0
-///          @f]
-///          where
-///          - @f$r_v^0@f$ is the reaction of @f$u_v^o@f$, and
-///          - @f$r_v^d@f$ is the reaction of @f$u_v^d@f$.
-///
-///          @see @ref NeumannPreTensionProcess
-///          @see @ref InsertNeumannPreTensionOperation
-///
-/// @subsection pre_tensioning_dirichlet_type Dirichlet-Type Pre-Tensioning
-///          Fix the relative average out-of-plane displacement to a prescribed value @f$\alpha@f$.
-///          @f[
-///             u_v^o - u_v^d - \alpha = 0
-///          @f]
-///
-///          @see @ref DirichletPreTensionProcess
-///          @see @ref InsertDirichletPreTensionOperation
 ///
 /// @subsection pre_tensioning_implementation_notes Implementation Notes
 ///          Since in-plane displacement constraints reuse DoFs and are dense, they cannot be imposed
@@ -128,13 +100,16 @@ namespace Kratos {
 
 
 /// @brief Base class for @ref InsertDirichletPreTensionOperation and @ref InsertNeumannPreTensionOperation.
-/// @see @ref InsertDirichletPreTensionOperation
-/// @see @ref InsertNeumannPreTensionOperation
+/// @details Cut the mesh along the provided surface and apply fix the average
+///          out-of-plane displacement to a newly inserted DoF. This DoF can later
+///          be loaded or constrained by applying subsequent processes to the analysis.
 /// @see @ref pre_tensioning "Pre-Tensioning"
 /// @ingroup pre_tensioning
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) InsertPreTensionOperation : public Operation {
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) InsertPreTensionOperation final : public Operation {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(InsertPreTensionOperation);
+
+    InsertPreTensionOperation() noexcept = default;
 
     InsertPreTensionOperation(Model& rModel, Parameters Settings);
 
@@ -144,20 +119,23 @@ public:
 
     void Execute() override;
 
-    virtual void Apply(double Magnitude) = 0;
+    //void Apply(double Magnitude);
 
     const Parameters GetDefaultParameters() const override;
 
     virtual std::string Info() const;
 
 protected:
-    /// @brief Handle the average out-of-plane displacement.
-    virtual void InsertControlNodeConstraints(
+    /// @details Inserts a constraint that ties the average out-of-plane
+    ///          relative displacement of duplicated nodes to a single DoF.
+    void InsertControlNodeConstraints(
         ModelPart& rModelPart,
         array_1d<double,3> SurfaceNormal,
         const std::unordered_map<Node*,Node::Pointer> rDuplicateNodeMap,
         Node::Pointer pControlNode,
-        const std::unordered_set<const Dof<double>*> rPositiveSideDofs) = 0;
+        const std::unordered_set<const Dof<double>*> rPositiveSideDofs);
+
+    void AddControlDoFs(Node& rNode);
 
     struct Impl;
     std::unique_ptr<Impl> mpImpl;
@@ -166,72 +144,36 @@ private:
     InsertPreTensionOperation(const InsertPreTensionOperation&) = delete;
 
     InsertPreTensionOperation& operator=(const InsertPreTensionOperation&) = delete;
-}; // class InsertPreTensionOperation
 
-
-/// @brief Pre-tensioning defined by a surface and a prescribed displacement.
-/// @details Cut the mesh along the provided surface and apply fix the average
-///             out-of-plane displacement to the provided value while forbidding relative
-///             in-plane displacements.
-/// @see @ref pre_tensioning "Pre-Tensioning"
-/// @ingroup pre_tensioning
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) InsertDirichletPreTensionOperation final : public InsertPreTensionOperation {
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(InsertDirichletPreTensionOperation);
-
-    using InsertPreTensionOperation::InsertPreTensionOperation;
-
-    void Apply(double Magnitude) override;
-
-    std::string Info() const override;
-
-protected:
-    /// @details Inserts a constraint that ties the average out-of-plane
-    ///          relative displacement of duplicated nodes to a prescribed value.
-    void InsertControlNodeConstraints(
-        ModelPart& rModelPart,
-        array_1d<double,3> SurfaceNormal,
-        const std::unordered_map<Node*,Node::Pointer> rDuplicateNodeMap,
-        Node::Pointer pControlNode,
-        const std::unordered_set<const Dof<double>*> rPositiveSideDofs) override;
-
-private:
     Node::Pointer mpControlNode;
 
     std::size_t mPreTensionSurfaceSize;
-}; // class InsertDirichletPreTensionOperation
+}; // class InsertPreTensionOperation
 
 
-/// @brief Pre-tensioning defined by a surface and a force.
-/// @details Cut the mesh along the provided surface and apply a force to
-///             out-of-plane displacement components while forbidding relative
-///             in-plane displacements.
 /// @see @ref pre_tensioning "Pre-Tensioning"
 /// @ingroup pre_tensioning
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) InsertNeumannPreTensionOperation final : public InsertPreTensionOperation {
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PreTensionModeler final : public Modeler {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(InsertNeumannPreTensionOperation);
+    KRATOS_CLASS_POINTER_DEFINITION(PreTensionModeler);
 
-    using InsertPreTensionOperation::InsertPreTensionOperation;
+    PreTensionModeler() noexcept = default;
 
-    void Apply(double Magnitude) override;
+    PreTensionModeler(
+        Model& rModel,
+        Parameters Settings);
 
-    std::string Info() const override;
+    Modeler::Pointer Create(
+        Model& rModel,
+        Parameters Settings) const override;
 
-protected:
-    /// @details Loads the average out-of-plane displacement with a prescribed
-    ///          value on both sides of the pre-tension surface in opposite
-    ///          directions.
-    void InsertControlNodeConstraints(
-        ModelPart& rModelPart,
-        array_1d<double,3> SurfaceNormal,
-        const std::unordered_map<Node*,Node::Pointer> rDuplicateNodeMap,
-        Node::Pointer pControlNode,
-        const std::unordered_set<const Dof<double>*> rPositiveSideDofs) override;
+    void SetupModelPart() override;
+
+    const Parameters GetDefaultParameters() const override;
 
 private:
-    Condition::Pointer mpPositiveSideLoad, mpNegativeSideLoad;
-}; // class InsertNeumannPreTensionOperation
+    Model* mpModel;
+}; // class PreTensionModeler
 
 
 } // namespace Kratos

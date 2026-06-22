@@ -12,7 +12,6 @@
 // --- Structural Includes ---
 #include "custom_operations/insert_pre_tension_operation.hpp" // InsertPreTensionOperation
 #include "custom_conditions/point_load_condition_1d_1n.h" // PointLoadCondition1D1N
-#include "structural_mechanics_application_variables.h" // POINT_LOAD_X
 
 // --- Core Includes ---
 #include "includes/master_slave_constraint.h" // MasterSlaveConstraint
@@ -54,25 +53,25 @@ struct InsertPreTensionOperation::Impl {
 
 
 InsertPreTensionOperation::InsertPreTensionOperation(Model& rModel, Parameters Settings)
-    : Operation(),
-      mpImpl(new Impl) {
-    Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+    :   Operation(),
+        mpImpl(new Impl) {
+            Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
 
-    KRATOS_TRY
-        mpImpl->mpModelPart         = &rModel.GetModelPart(Settings["model_part_name"].GetString());
-        mpImpl->mVerbosity          = Settings["verbosity"].GetInt();
-    KRATOS_CATCH("")
+            KRATOS_TRY
+                mpImpl->mpModelPart         = &rModel.GetModelPart(Settings["model_part_name"].GetString());
+                mpImpl->mVerbosity          = Settings["verbosity"].GetInt();
+            KRATOS_CATCH("")
 
-    // This operation expects the pre-tension surface to be defined
-    // by a set of Geometries in the input ModelPart. It requires
-    // at least one Geometry.
-    KRATOS_ERROR_IF(mpImpl->mpModelPart->Geometries().empty())
-        << "InsertPreTensionOperation requires at least one Geometry in the provided ModelPart, "
-        << "but there aren't any in '" << mpImpl->mpModelPart->Name() << "'.";
+            // This operation expects the pre-tension surface to be defined
+            // by a set of Geometries in the input ModelPart. It requires
+            // at least one Geometry.
+            KRATOS_ERROR_IF(mpImpl->mpModelPart->Geometries().empty())
+                << "InsertPreTensionOperation requires at least one Geometry in the provided ModelPart, "
+                << "but there aren't any in '" << mpImpl->mpModelPart->Name() << "'.";
 
-    mpImpl->mpAdjacencyMap = std::make_shared<std::unordered_map<
-        Geometry<Node>::IndexType,
-        std::vector<Element::Pointer>>>();
+            mpImpl->mpAdjacencyMap = std::make_shared<std::unordered_map<
+                Geometry<Node>::IndexType,
+                std::vector<Element::Pointer>>>();
 }
 
 
@@ -482,10 +481,16 @@ public:
                     constraint_gradients(i_dimension, j_dimension) = gradient_component;
                     constraint_gradients(i_dimension, j_dimension + dimension_count) = -gradient_component;
                 } // for j_dimension in range(dimension_count)
-                displacements[i_dimension] = r_dofs[i_dimension]->GetSolutionStepValue();
-                displacements[i_dimension + dimension_count] = r_dofs[i_dimension + dimension_count]->GetSolutionStepValue();
             } // for i_dimension in range(dimension_count)
 
+            // Adjust for current the current state.
+            std::transform(
+                r_dofs.begin(),
+                r_dofs.end(),
+                displacements.begin(),
+                [] (const Dof<double>* p_dof) -> double {
+                    return p_dof->GetSolutionStepValue();
+                });
             constraint_gaps = prod(constraint_gradients, displacements);
 
             // Store constraint gradients and constraint gaps.
@@ -516,6 +521,14 @@ Dof<double>* FindDofInNode(Node& rNode, const Variable<double>& rVariable) noexc
 
 void InsertPreTensionOperation::Execute() {
     ModelPart& r_model_part = *mpImpl->mpModelPart;
+
+    // Construct a sub model part for the control node.
+    // The DISPLACEMENT_X DoF of this node can be used to
+    // either load or constrain the pre-tension surface later.
+    KRATOS_ERROR_IF(r_model_part.HasSubModelPart("control"))
+        << "InsertPreTensionOperation must create a new model part at "
+        << r_model_part.FullName() << ".control, but it already exists";
+    ModelPart& r_control_model_part = r_model_part.CreateSubModelPart("control");
 
     // Find elements connected to the pre-tension surface.
     // => each node will have a NEIGHBOUR_ELEMENTS variable
@@ -586,14 +599,14 @@ void InsertPreTensionOperation::Execute() {
 
     // Insert a new control node acting as a master for all
     // other nodes on the pre-tension surface.
-    Node::Pointer p_control_node = mpImpl->mpModelPart->CreateNewNode(
-        /*Id=*/mpImpl->mpModelPart->GetRootModelPart().Nodes().empty()
+    Node::Pointer p_control_node = r_control_model_part.CreateNewNode(
+        /*Id=*/r_control_model_part.GetRootModelPart().Nodes().empty()
             ? 1
-            : mpImpl->mpModelPart->GetRootModelPart().Nodes().back().Id() + 1,
+            : r_control_model_part.GetRootModelPart().Nodes().back().Id() + 1,
         /*x=*/0.0,
         /*y=*/0.0,
         /*z=*/0.0);
-    p_control_node->AddDof(DISPLACEMENT_X);
+    this->AddControlDoFs(*p_control_node);
     KRATOS_INFO_IF(this->Info(), 2 <= mpImpl->mVerbosity)
         << "insert control node " << p_control_node->Id() << ' '
         << "at [" << p_control_node->X() << ' ' << p_control_node->Y() << ' ' << p_control_node->Z() << "]\n";
@@ -608,7 +621,7 @@ void InsertPreTensionOperation::Execute() {
             for (Node& r_node : r_geometry) {
                 surface_nodes.insert(&r_node);
             } // for r_node in r_geometry
-        } // for r_geometry in r_model_part.Conditions()
+        } // for r_geometry in r_model_part.Geometries()
 
         // Find the first available node ID that can safely be
         // used to insert new ones.
@@ -678,9 +691,15 @@ void InsertPreTensionOperation::Execute() {
         }
     }
 
+    // Constraint equation identifiers specified by CONSTRAINT_LABELS must exceed the number of DoFs in the system.
     LinearMultifreedomConstraint::IndexType id_constraint = mpImpl->mpModelPart->GetRootModelPart().MasterSlaveConstraints().empty()
         ? 1
         : mpImpl->mpModelPart->GetRootModelPart().MasterSlaveConstraints().back().Id() + 1;
+    id_constraint = std::max<LinearMultifreedomConstraint::IndexType>(
+        id_constraint,
+        mpImpl->mpModelPart->GetRootModelPart().Nodes().empty()
+            ? 0
+            : mpImpl->mpModelPart->GetRootModelPart().Nodes().size() * mpImpl->mpModelPart->GetRootModelPart().Nodes().front().GetDofs().size());
 
     // Forbid relative in-plane displacements for each duplicated node pair.
     {
@@ -704,9 +723,16 @@ void InsertPreTensionOperation::Execute() {
                 if (positive_side_dofs.find(p_positive_side_dof) == positive_side_dofs.end()) continue;
 
                 Dof<double>* p_negative_side_dof = FindDofInNode(*rp_negative_side_node, *rp_variable);
-                if (p_positive_side_dof && p_negative_side_dof)
+                if (p_positive_side_dof && p_negative_side_dof) {
                     dof_pairs.push_back({p_positive_side_dof, p_negative_side_dof});
+                }
             } // for rp_variable in all_displacement_components
+
+            KRATOS_ERROR_IF(dof_pairs.empty())
+                << this->Info() << ": "
+                << "node " << rp_positive_side_node->Id() << " "
+                << "and its duplicate (" << rp_negative_side_node->Id() << ") "
+                << "have no displacement DoFs in common";
 
             MasterSlaveConstraint::DofPointerVectorType dofs(2 * dof_pairs.size());
             for (std::size_t i_pair=0ul; i_pair<dof_pairs.size(); ++i_pair) {
@@ -750,6 +776,7 @@ void InsertPreTensionOperation::Execute() {
                 Dof<double>* p_positive_side_dof = FindDofInNode(*rp_positive_side_node, *rp_variable);
                 if (positive_side_dofs.find(p_positive_side_dof) == positive_side_dofs.end()) continue;
                 Dof<double>* p_negative_side_dof = FindDofInNode(*rp_negative_side_node, *rp_variable);
+
                 if (p_positive_side_dof && p_negative_side_dof) {
                     LinearMultifreedomConstraint::DofPointerVectorType dofs(2);
                     LinearMultifreedomConstraint::MatrixType constraint_gradient(1, 2);
@@ -777,6 +804,55 @@ void InsertPreTensionOperation::Execute() {
         } // for rp_positive_side_node, rp_negative_side_node
     }
 
+    // Insert a condition that handles loading the virtual DoF.
+    {
+        Condition::IndexType condition_id = mpImpl->mpModelPart->GetRootModelPart().Conditions().empty()
+            ? 1
+            : mpImpl->mpModelPart->GetRootModelPart().Conditions().back().Id() + 1;
+        Properties::IndexType properties_id = mpImpl->mpModelPart->GetRootModelPart().PropertiesArray().empty()
+            ? 1
+            : mpImpl->mpModelPart->GetRootModelPart().PropertiesArray().back()->Id() + 1;
+        auto p_properties = Properties::Pointer(new Properties(properties_id));
+        p_properties->SetValue(CONSTRAINT_SCALE_FACTOR, 0.5);
+        auto p_control_condition = Condition::Pointer(new PointLoadCondition1D1N(
+            condition_id,
+            Geometry<Node>::Pointer(new Point2D<Node>(p_control_node)),
+            p_properties));
+        r_control_model_part.AddCondition(p_control_condition);
+        KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
+            << "insert condition " << p_control_condition->Id() <<' '
+            << "responsible for loading the virtual DoF "
+            << "(" << p_control_node->GetDof(DISPLACEMENT_X).GetVariable().Name() << " "
+            << "of node " << p_control_node->Id() << ")\n";
+    }
+
+    // Insert constraints for padding DoFs.
+    {
+        auto& r_control_node_dofs = p_control_node->GetDofs();
+        for (const auto& rp_control_dof : r_control_node_dofs) {
+            if (rp_control_dof->GetVariable().Key() == DISPLACEMENT_X.Key()) continue; // <== the control DoF is not for padding
+            LinearMultifreedomConstraint::DofPointerVectorType dofs(1);
+            LinearMultifreedomConstraint::MatrixType constraint_gradient(1, 1);
+            LinearMultifreedomConstraint::VectorType constraint_gap(1);
+            dofs[0] = rp_control_dof.get();
+            constraint_gradient(0, 0) = 1.0;
+            constraint_gap[0] = 0.0;
+
+            MasterSlaveConstraint::Pointer p_constraint(
+                new LinearMultifreedomConstraint(
+                    id_constraint,
+                    std::move(dofs),
+                    {id_constraint},
+                    constraint_gradient,
+                    constraint_gap));
+            KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
+                << "insert constraint " << p_constraint->Id() << " for padding DoF " << rp_control_dof->GetVariable().Name() << ' '
+                << "of control node " << p_control_node->Id() << '\n';
+            mpImpl->mpModelPart->AddMasterSlaveConstraint(p_constraint);
+            ++id_constraint;
+        }
+    }
+
     // Decide what to do with the control node in derived classes.
     this->InsertControlNodeConstraints(
         *mpImpl->mpModelPart,
@@ -801,7 +877,6 @@ std::string InsertPreTensionOperation::Info() const {
 
 
 /// @brief Tie the average [relative] out-of-plane displacement to a common control DoF.
-template <bool IsRelative>
 class OutOfPlaneDisplacementConstraint : public PlaneDisplacementConstraint {
 public:
     using PlaneDisplacementConstraint::PlaneDisplacementConstraint;
@@ -838,12 +913,24 @@ public:
             auto& r_dofs = this->GetDofs();
             KRATOS_ERROR_IF(r_dofs.empty());
 
-            const std::size_t controlled_dof_count = r_dofs.size() - 1;
-            KRATOS_ERROR_IF(IsRelative && controlled_dof_count % 2);
+            // Count the number of nodes on the pre-tension surface, which is
+            // necessary for averaging the displacements. Note that the last
+            // DoF's node is the virtual node and should not participate in
+            // averaging.
+            Node::IndexType pre_tension_node_count = 0;
+            {
+                std::unordered_set<Node::IndexType> node_ids;
+                for (const auto& rp_dof : r_dofs) node_ids.insert(rp_dof->Id());
+                KRATOS_ERROR_IF(node_ids.size() < 3)
+                    << this->Info() << " expects to act on at least 3 nodes (original, duplicate, control) "
+                    << "but it found only " << node_ids.size();
+                pre_tension_node_count = (node_ids.size() - 1) / 2;
+            }
 
-            const std::size_t positive_side_dof_count = IsRelative
-                ? controlled_dof_count / 2
-                : controlled_dof_count;
+            const std::size_t controlled_dof_count = r_dofs.size() - 1;
+            KRATOS_ERROR_IF(controlled_dof_count % 2);
+
+            const std::size_t positive_side_dof_count = controlled_dof_count / 2;
 
             // Find the plane's dimension by checking how many unique variables the DoFs reference.
             std::size_t dimension_count = 0ul;
@@ -861,17 +948,16 @@ public:
             Matrix constraint_gradient(1, r_dofs.size());
             Vector constraint_gap(1), displacements(r_dofs.size());
 
-            constexpr std::size_t dof_stride = IsRelative ? 2ul : 1ul;
+            constexpr std::size_t dof_stride = 2ul;
             for (std::size_t i_dof=0ul; i_dof<positive_side_dof_count; ++i_dof) {
                 constraint_gradient(0, dof_stride * i_dof) = normal[i_dof % dimension_count];
-                if constexpr (IsRelative)
-                    constraint_gradient(0, dof_stride * i_dof + 1) = -normal[i_dof % dimension_count];
+                constraint_gradient(0, dof_stride * i_dof + 1) = -normal[i_dof % dimension_count];
             }
 
             constraint_gap[0] = 0.0;
 
             // Add the control DoF's coefficient.
-            constraint_gradient(0, controlled_dof_count) = -1.0;
+            constraint_gradient(0, controlled_dof_count) = -1.0 * 0.5 * double(pre_tension_node_count);
 
             // Adjust for current the current state.
             std::transform(
@@ -891,15 +977,12 @@ public:
     }
 
     std::string Info() const override {
-        if constexpr (IsRelative)
-            return "OutOfPlaneRelativeDisplacementConstraint";
-        else
-            return "OutOfPlaneDisplacementConstraint";
+        return "OutOfPlaneRelativeDisplacementConstraint";
     }
 }; // class OutOfPlaneDisplacementConstraint
 
 
-void InsertDirichletPreTensionOperation::InsertControlNodeConstraints(
+void InsertPreTensionOperation::InsertControlNodeConstraints(
     ModelPart& rModelPart,
     array_1d<double,3> SurfaceNormal,
     const std::unordered_map<Node*,Node::Pointer> rDuplicateNodeMap,
@@ -932,7 +1015,14 @@ void InsertDirichletPreTensionOperation::InsertControlNodeConstraints(
             } // for rp_positive_side_node, rp_negative_side_node
 
             // Add the control node's DoF to the constraint equation.
-            Dof<double>* p_control_dof = mpControlNode->GetDofs()[0].get();
+            auto& r_dofs = mpControlNode->GetDofs();
+            const auto it_control_dof = std::find_if(
+                r_dofs.begin(),
+                r_dofs.end(),
+                [] (const auto& rp_dof) {return rp_dof->GetVariable().Key() == DISPLACEMENT_X.Key();});
+            KRATOS_ERROR_IF(it_control_dof == r_dofs.end())
+                << DISPLACEMENT_X.Name() << " is not a DoF in the control node";
+            Dof<double>* p_control_dof = &**it_control_dof;
             dofs.push_back(p_control_dof);
 
             // Construct and register the constraint equation.
@@ -942,7 +1032,7 @@ void InsertDirichletPreTensionOperation::InsertControlNodeConstraints(
             auto p_protected_surface_normal = std::make_shared<std::pair<
                 std::optional<array_1d<double,3>>,
                 LockObject>>();
-            MasterSlaveConstraint::Pointer p_constraint(new OutOfPlaneDisplacementConstraint<true>(
+            MasterSlaveConstraint::Pointer p_constraint(new OutOfPlaneDisplacementConstraint(
                 constraint_id,
                 mpImpl->mpModelPart->Geometries(),
                 std::move(dofs),
@@ -951,160 +1041,64 @@ void InsertDirichletPreTensionOperation::InsertControlNodeConstraints(
                 mpImpl->mpAdjacencyMap,
                 mpImpl->mVerbosity));
             mpImpl->mpModelPart->AddMasterSlaveConstraint(p_constraint);
-KRATOS_CATCH("")
-}
-
-
-void InsertDirichletPreTensionOperation::Apply(double Magnitude) {
-    KRATOS_ERROR_IF_NOT(mpControlNode);
-    KRATOS_ERROR_IF_NOT(mpControlNode->GetDofs().size() == 1);
-    KRATOS_TRY
-        Dof<double>& r_control_dof = *mpControlNode->GetDofs()[0].get();
-        r_control_dof.GetSolutionStepValue() = 0.5 * mPreTensionSurfaceSize * Magnitude - r_control_dof.GetSolutionStepValue();
-        r_control_dof.FixDof();
-    KRATOS_CATCH("")
-}
-
-
-std::string InsertDirichletPreTensionOperation::Info() const {
-    return "InsertDirichletPreTensionOperation";
-}
-
-
-void InsertNeumannPreTensionOperation::InsertControlNodeConstraints(
-    ModelPart& rModelPart,
-    array_1d<double,3> SurfaceNormal,
-    const std::unordered_map<Node*,Node::Pointer> rDuplicateNodeMap,
-    Node::Pointer pPositiveSideControlNode,
-    const std::unordered_set<const Dof<double>*> rPositiveSideDofs) {
-        KRATOS_TRY
-            const std::array<const Variable<double>*,3> all_displacement_components {
-                &DISPLACEMENT_X,
-                &DISPLACEMENT_Y,
-                &DISPLACEMENT_Z};
-            LinearMultifreedomConstraint::DofPointerVectorType positive_side_dofs, negative_side_dofs;
-
-            for (const auto& [rp_positive_side_node, rp_negative_side_node] : rDuplicateNodeMap) {
-                for (std::size_t i_variable=0ul; i_variable<all_displacement_components.size(); ++i_variable) {
-                    const Variable<double>& r_variable = *all_displacement_components[i_variable];
-                    Dof<double>* p_positive_side_dof = FindDofInNode(*rp_positive_side_node, r_variable);
-                    if (rPositiveSideDofs.find(p_positive_side_dof) == rPositiveSideDofs.end()) continue;
-
-                    Dof<double>* p_negative_side_dof = FindDofInNode(*rp_negative_side_node, r_variable);
-                    if (p_positive_side_dof && p_negative_side_dof) {
-                        positive_side_dofs.push_back(p_positive_side_dof);
-                        negative_side_dofs.push_back(p_negative_side_dof);
-                    } // if p_positive_side_dof && p_negative_side_dof
-                } // for rp_variable in all_displacement_components
-            } // for rp_positive_side_node, rp_negative_side_node
-
-            // Insert a new node acting as the control node on the negative side.
-            Node::Pointer p_negative_side_control_node = pPositiveSideControlNode->Clone(
-                mpImpl->mpModelPart->Nodes().empty()
-                    ? 1
-                    : mpImpl->mpModelPart->Nodes().back().Id() + 1);
-            KRATOS_INFO_IF(this->Info(), 2 <= mpImpl->mVerbosity)
-                << "insert negative side control node " << p_negative_side_control_node->Id() << ' '
-                << "at [" << p_negative_side_control_node->X() << ' '
-                << p_negative_side_control_node->Y() << ' '
-                << p_negative_side_control_node->Z() << "]\n";
-            mpImpl->mpModelPart->AddNode(p_negative_side_control_node);
-
-            // Add control DoFs.
-            positive_side_dofs.push_back(pPositiveSideControlNode->GetDofs()[0].get());
-            negative_side_dofs.push_back(p_negative_side_control_node->GetDofs()[0].get());
-
-            LinearMultifreedomConstraint::IndexType constraint_id = mpImpl->mpModelPart->GetRootModelPart().MasterSlaveConstraints().empty()
-                ? 1
-                : mpImpl->mpModelPart->GetRootModelPart().MasterSlaveConstraints().back().Id() + 1;
-            Condition::IndexType condition_id = mpImpl->mpModelPart->GetRootModelPart().Conditions().empty()
-                ? 1
-                : mpImpl->mpModelPart->GetRootModelPart().Conditions().back().Id() + 1;
-            auto p_protected_surface_normal = std::make_shared<std::pair<
-                    std::optional<array_1d<double,3>>,
-                    LockObject>>();
-
-            Properties::Pointer p_properties = mpImpl->mpModelPart->PropertiesArray().empty()
-                ? Properties::Pointer(new Properties(1))
-                : *mpImpl->mpModelPart->PropertiesArray().begin();
-            // Insert the positive side constraint and condition.
-            {
-                MasterSlaveConstraint::Pointer p_constraint(new OutOfPlaneDisplacementConstraint<false>(
-                    constraint_id,
-                    mpImpl->mpModelPart->Geometries(),
-                    std::move(positive_side_dofs),
-                    {constraint_id},
-                    p_protected_surface_normal,
-                    mpImpl->mpAdjacencyMap,
-                    mpImpl->mVerbosity));
-                mpPositiveSideLoad = Condition::Pointer(new PointLoadCondition1D1N(
-                    condition_id,
-                    Geometry<Node>::Pointer(new Point2D<Node>(pPositiveSideControlNode)),
-                    p_properties));
-
-                KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
-                    << "insert constraint " << p_constraint->Id() <<' '
-                    << "tying the average out-of-plane displacement on the positive side to "
-                    << pPositiveSideControlNode->GetDofs()[0]->GetVariable().Name() << ' '
-                    << "of node " << pPositiveSideControlNode->Id() << "\n";
-                mpImpl->mpModelPart->AddMasterSlaveConstraint(p_constraint);
-
-                KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
-                    << "insert condition " << mpPositiveSideLoad->Id() <<' '
-                    << "loading " << pPositiveSideControlNode->GetDofs()[0]->GetVariable().Name() << ' '
-                    << "of node " << pPositiveSideControlNode->Id() << "\n";
-                mpImpl->mpModelPart->AddCondition(mpPositiveSideLoad);
-
-                ++constraint_id;
-                ++condition_id;
-            }
-
-            // Insert the negative side constraint and condition.
-            {
-                MasterSlaveConstraint::Pointer p_constraint(new OutOfPlaneDisplacementConstraint<false>(
-                    constraint_id,
-                    mpImpl->mpModelPart->Geometries(),
-                    std::move(negative_side_dofs),
-                    {constraint_id},
-                    p_protected_surface_normal,
-                    mpImpl->mpAdjacencyMap,
-                    mpImpl->mVerbosity));
-                mpNegativeSideLoad = Condition::Pointer(new PointLoadCondition1D1N(
-                    condition_id,
-                    Geometry<Node>::Pointer(new Point2D<Node>(p_negative_side_control_node)),
-                    p_properties));
-
-                KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
-                    << "insert constraint " << p_constraint->Id() <<' '
-                    << "tying the average out-of-plane displacement on the positive side to "
-                    << p_negative_side_control_node->GetDofs()[0]->GetVariable().Name() << ' '
-                    << "of node " << p_negative_side_control_node->Id() << "\n";
-                mpImpl->mpModelPart->AddMasterSlaveConstraint(p_constraint);
-
-                KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
-                    << "insert condition " << mpNegativeSideLoad->Id() <<' '
-                    << "loading " << p_negative_side_control_node->GetDofs()[0]->GetVariable().Name() << ' '
-                    << "of node " << p_negative_side_control_node->Id() << "\n";
-                mpImpl->mpModelPart->AddCondition(mpNegativeSideLoad);
-
-                ++constraint_id;
-                ++condition_id;
-            }
         KRATOS_CATCH("")
 }
 
 
-void InsertNeumannPreTensionOperation::Apply(double Magnitude) {
-    KRATOS_ERROR_IF_NOT(mpPositiveSideLoad && mpNegativeSideLoad);
+void InsertPreTensionOperation::AddControlDoFs(Node& rControlNode) {
     KRATOS_TRY
-        mpPositiveSideLoad->SetValue(POINT_LOAD_X, Magnitude);
-        mpNegativeSideLoad->SetValue(POINT_LOAD_X, -Magnitude);
+        // Add the virtual DoF that should be manipulated to apply
+        // pre-tensioning.
+        rControlNode.AddDof(DISPLACEMENT_X);
+
+        // Add other DoFs potentially required by conditions as well as
+        // linear solvers' padding (e.g.: AMGCL).
+        const std::array<const Variable<double>*,5> potential_dof_variables {
+            &DISPLACEMENT_Y,
+            &DISPLACEMENT_Z,
+            &ROTATION_X,
+            &ROTATION_Y,
+            &ROTATION_Z};
+        const auto& r_dofs = mpImpl->mpModelPart->GetNodalSolutionStepVariablesList();
+        for (const auto& rp_variable : potential_dof_variables) {
+            if (r_dofs.Has(*rp_variable)) {
+                Dof<double>& rPaddingDof = rControlNode.AddDof(*rp_variable);
+                rPaddingDof.GetSolutionStepValue() = 0.0;
+                rPaddingDof.FixDof();
+            }
+        } // for rp_variable in potential_dof_variables
     KRATOS_CATCH("")
 }
 
 
-std::string InsertNeumannPreTensionOperation::Info() const {
-    return "InsertNeumannPreTensionOperation";
+PreTensionModeler::PreTensionModeler(
+    Model& rModel,
+    Parameters Settings)
+        :   Modeler(rModel, Settings),
+            mpModel(&rModel) {
+        KRATOS_TRY
+            Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        KRATOS_CATCH("")
+}
+
+
+Modeler::Pointer PreTensionModeler::Create(
+    Model& rModel,
+    Parameters Settings) const {
+        return Modeler::Pointer(new PreTensionModeler(rModel, Settings));
+}
+
+
+void PreTensionModeler::SetupModelPart() {
+    KRATOS_TRY
+        InsertPreTensionOperation op(*mpModel, this->mParameters);
+        op.Execute();
+    KRATOS_CATCH("")
+}
+
+
+const Parameters PreTensionModeler::GetDefaultParameters() const {
+    return InsertPreTensionOperation().GetDefaultParameters();
 }
 
 

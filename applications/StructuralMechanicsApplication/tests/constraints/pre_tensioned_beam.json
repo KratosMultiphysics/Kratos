@@ -38,6 +38,8 @@
         "builder_and_solver_settings" : {
             "type" : "p_multigrid",
             "advanced_settings" : {
+                "max_iterations" : 10,
+                "verbosity" : 3,
                 "constraint_imposition_settings" : {
                     "method" : "augmented_lagrange",
                     "max_iterations" : 20,
@@ -50,6 +52,15 @@
     },
     "processes": {
         "constraints_process_list": [
+            {
+                "help" : "The pre-tension process must be defined BEFORE any assignment process, because it creates the 'control' model part.",
+                "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+                "python_module" : "pre_tension_process",
+                "Parameters" : {
+                    "model_part_name" : "root.pre_tension_surface",
+                    "verbosity" : 3
+                }
+            },
             {
                 "python_module": "assign_vector_variable_process",
                 "kratos_module": "KratosMultiphysics",

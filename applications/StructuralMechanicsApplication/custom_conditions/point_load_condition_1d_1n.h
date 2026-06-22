@@ -21,6 +21,10 @@
 namespace Kratos {
 
 
+/// @brief Simple condition loading a single degree-of-freedom.
+/// @details This condition is primarily used to load virtual DoFs belonging to @ref MultfreedomConstraint "constraints".
+/// @see @ref pre_tensioning "Pre-Tensioning"
+/// @ingroup pre_tensioning
 class PointLoadCondition1D1N : public Condition {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PointLoadCondition1D1N);
@@ -49,14 +53,14 @@ public:
         Condition::EquationIdVectorType& rIndices,
         const ProcessInfo&) const override {
             rIndices.resize(1);
-            rIndices[0] = this->GetGeometry()[0].GetDofs()[0]->EquationId();
+            rIndices[0] = this->FindDof().EquationId();
     }
 
     void GetDofList(
         Condition::DofsVectorType& rDofs,
         const ProcessInfo&) const override {
             rDofs.resize(1);
-            rDofs[0] = this->GetGeometry()[0].GetDofs()[0].get();
+            rDofs[0] = &this->FindDof();
     }
 
     void GetValuesVector(
@@ -84,7 +88,7 @@ public:
         Condition::VectorType& rRhs,
         const ProcessInfo&) override {
             rRhs.resize(1);
-            rRhs[0] = this->GetValue(POINT_LOAD_X);
+            rRhs[0] = this->GetLoadFactor() * this->GetValue(POINT_LOAD_X);
     }
 
     void CalculateLocalSystem(
@@ -108,6 +112,29 @@ public:
         const ProcessInfo&) override {
             rMatrix.resize(1, 1, false);
             rMatrix(0, 0) = 0.0;
+    }
+
+    std::string Info() const override {
+        return "PointLoadCondition1D1N";
+    }
+
+private:
+    Dof<double>& FindDof() const {
+        auto& r_dofs = this->GetGeometry()[0].GetDofs();
+        const auto it_dof = std::find_if(
+            r_dofs.begin(),
+            r_dofs.end(),
+            [] (const auto& rp_dof) {return rp_dof->GetVariable().Key() == DISPLACEMENT_X.Key();});
+        KRATOS_ERROR_IF(it_dof == r_dofs.end())
+            << this->Info() << ": " << DISPLACEMENT_X.Name()
+            << " is not a DoF in node " << this->GetGeometry()[0].Id();
+        return **it_dof;
+    }
+
+    double GetLoadFactor() const {
+        return this->GetProperties().Has(CONSTRAINT_SCALE_FACTOR)
+            ? this->GetProperties()[CONSTRAINT_SCALE_FACTOR]
+            : 1.0;
     }
 }; // class PointLoadCondition1D1N
 

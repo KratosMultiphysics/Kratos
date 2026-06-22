@@ -1,6 +1,6 @@
 // --- Structural Includes ---
 #include "custom_python/add_custom_operations_to_python.hpp" // AddCustomOperationsToPython
-#include "custom_operations/insert_pre_tension_operation.hpp" // InsertNeumannPreTensionOperation, InsertDirichletPreTensionOperation
+#include "custom_operations/insert_pre_tension_operation.hpp" // InsertPreTensionOperation
 
 
 namespace Kratos::Python {
@@ -8,22 +8,12 @@ namespace Kratos::Python {
 
 void AddCustomOperationsToPython(pybind11::module& rModule) {
     pybind11::class_<
-        InsertDirichletPreTensionOperation,
-        InsertDirichletPreTensionOperation::Pointer,
+        InsertPreTensionOperation,
+        InsertPreTensionOperation::Pointer,
         Operation>(
             rModule,
-            "InsertDirichletPreTensionOperation")
+            "InsertPreTensionOperation")
                 .def(pybind11::init<Model&, Parameters>())
-                .def("Apply", &InsertDirichletPreTensionOperation::Apply, pybind11::arg("Magnitude"))
-                ;
-    pybind11::class_<
-        InsertNeumannPreTensionOperation,
-        InsertNeumannPreTensionOperation::Pointer,
-        Operation>(
-            rModule,
-            "InsertNeumannPreTensionOperation")
-                .def(pybind11::init<Model&, Parameters>())
-                .def("Apply", &InsertNeumannPreTensionOperation::Apply, pybind11::arg("Magnitude"))
                 ;
 }
 
