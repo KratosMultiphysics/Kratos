@@ -692,12 +692,17 @@ private:
     }
 
     /**
-     * @brief Top-down propagation that assigns active/inactive flags.
+     * @brief Two-phase THB active-function selection (supports the coexistence scenario).
      *
-     * A coarse CP at level l is deactivated only if ALL knot cells of its
-     * support lie inside a refinement domain at level ≥ l+1.
-     * Its true children (those whose support is contained within the coarse support)
-     * are then activated at level l+1.
+     * For each level pair (l, l+1):
+     *
+     *   Phase 1 (T^B_{l+1}): activate fine children
+     *      Activate fine CP j if supp(B_j^{l+1}) ⊆ Ω^{≥l+1}.
+     *      This is independent of parent status → coexistence is possible.
+     *
+     *   Phase 2 (T^A_{l+1}): deactivate coarse parents
+     *      Deactivate active coarse CP i if supp(B_i^l) ⊆ Ω^{≥l+1}.
+     *      CPs whose support straddles the boundary are retained (truncated at eval time).
      */
     void ComputeActiveFunctions()
     {
@@ -713,17 +718,37 @@ private:
             const SizeType num_cps_coarse = coarse_level.Knots.size() - polynomial_degree + 1;
             const SizeType num_cps_fine   = fine_level.Knots.size()   - polynomial_degree + 1;
 
+            // Phase 1 (T^B_{l+1}): activate fine children
+            for (SizeType j = 0; j < num_cps_fine; ++j) {
+                const double fine_supp_min =
+                    (j == 0) ? fine_level.Knots[0] : fine_level.Knots[j - 1];
+                const double fine_supp_max =
+                    fine_level.Knots[std::min(j + polynomial_degree,
+                                              fine_level.Knots.size() - 1)];
+
+                bool support_in_omega = true;
+                for (SizeType k = 0; k + 1 < fine_level.Knots.size() && support_in_omega; ++k) {
+                    if (fine_level.Knots[k + 1] - fine_level.Knots[k] < 1e-10) continue;
+                    if (fine_level.Knots[k] < fine_supp_min - 1e-10) continue;
+                    if (fine_level.Knots[k + 1] > fine_supp_max + 1e-10) continue;
+                    const double cell_mid = 0.5 * (fine_level.Knots[k] + fine_level.Knots[k + 1]);
+                    if (!IsInsideRefinedRegion(cell_mid, l + 1))
+                        support_in_omega = false;
+                }
+                if (support_in_omega)
+                    mActiveFunctions[l + 1][j] = true;
+            }
+
+            // Phase 2 (T^A_{l+1}): deactivate coarse parents
             for (SizeType i = 0; i < num_cps_coarse; ++i) {
                 if (!mActiveFunctions[l][i]) continue;
 
-                // Support of B_i^l in internal knot format
                 const double support_min =
                     (i == 0) ? coarse_level.Knots[0] : coarse_level.Knots[i - 1];
                 const double support_max =
                     coarse_level.Knots[std::min(i + polynomial_degree,
                                                 coarse_level.Knots.size() - 1)];
 
-                // Is every cell of this support inside Ω^{≥l+1}?
                 bool all_cells_covered = true;
                 for (SizeType k = 0; k + 1 < coarse_level.Knots.size() && all_cells_covered; ++k) {
                     if (coarse_level.Knots[k + 1] - coarse_level.Knots[k] < 1e-10) continue;
@@ -733,21 +758,8 @@ private:
                     if (!IsInsideRefinedRegion(cell_mid, l + 1))
                         all_cells_covered = false;
                 }
-                if (!all_cells_covered) continue;
-
-                // Deactivate coarse CP and activate its true children.
-                mActiveFunctions[l][i] = false;
-
-                for (SizeType j = 0; j < num_cps_fine; ++j) {
-                    const double fine_supp_min =
-                        (j == 0) ? fine_level.Knots[0] : fine_level.Knots[j - 1];
-                    const double fine_supp_max =
-                        fine_level.Knots[std::min(j + polynomial_degree,
-                                                  fine_level.Knots.size() - 1)];
-                    if (fine_supp_min < support_min - 1e-10) continue;
-                    if (fine_supp_max > support_max + 1e-10) continue;
-                    mActiveFunctions[l + 1][j] = true;
-                }
+                if (all_cells_covered)
+                    mActiveFunctions[l][i] = false;
             }
         }
     }
