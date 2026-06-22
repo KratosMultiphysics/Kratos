@@ -127,6 +127,6 @@ The following formulation is used for the $F_{external}$:
 
 $$F_{external} =   F_{0, internal} + \lambda (F_{0, external}- F_{0, internal})$$
 where $F_{0,internal}$ and $F_{0,external}$ are the sums of the respective internal and external forces at the start of the stage and $\lambda$ is the load fraction (or fraction of initial unbalance) that is applied. At this point, the fraction is tied to the current time in the stage:
-$$ \lambda = \frac{t - t_{start}}{t_{end} - t_{start}}$$,
+$$\lambda = \frac{t - t_{start}}{t_{end} - t_{start}}$$,
 
 where $t$, $t_{start}$ and $t_{end}$ are the current, start and end time of the stage. Since time is used in this way for the load stepping, the scheme is a static scheme (i.e. derivatives are disregarded) and it should **_not_** be used in combination with time dependent processes. 
