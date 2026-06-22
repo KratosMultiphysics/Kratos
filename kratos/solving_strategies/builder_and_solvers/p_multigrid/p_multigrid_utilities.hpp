@@ -25,6 +25,7 @@
 #include <limits> // std::numeric_limits
 #include <cstdint> // std::uint8_t
 #include <algorithm> // std::remove_if
+#include <span> // std::span
 
 
 namespace Kratos {
