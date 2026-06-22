@@ -156,9 +156,9 @@ public:
                 CurrentLevelCache.flat_index_to_local_position[static_cast<SizeType>(CurrentLevelCache.local_flat_indices[k])] = k;
         }
 
-        // collect active contributions with single-level truncation
-        // For each active CP at level l:
-        //   trunc(B_i^l) = B_i^l − sum_{j active at l+1} c_{ij} * B_j^{l+1}
+        // Collect active contributions with multi-level truncation.
+        // τ(B_i^l) = B_i^l − Σ_{m>l} Σ_{j active at m} D_{ij}^m * B_j^m
+        // where D coefficients are precomputed in ComputeTruncationData.
         mControlPointIndices.clear();
         std::vector<std::vector<double>> truncated_value_per_control_point;
 
@@ -174,18 +174,18 @@ public:
                 for (SizeType row = 0; row < number_of_shape_function_rows; ++row)
                     truncated_value[row] = CurrentLevelCache.values[row * CurrentLevelCache.number_of_nonzero_control_points + j];
 
-                // Subtract active level-(l+1) children (single-level truncation).
-                if (l < ActiveLevel) {
-                    const auto& TruncationEntries = rGeometry.GetTruncationData(l, flat_index);
-                    const auto& FinerLevelCache = level_caches[l + 1];
-                    for (const auto& TruncationEntry : TruncationEntries) {
-                        auto position_iterator = FinerLevelCache.flat_index_to_local_position.find(TruncationEntry.FineFlatIndex);
-                        if (position_iterator == FinerLevelCache.flat_index_to_local_position.end()) continue;
-                        const SizeType local_position = position_iterator->second;
-                        for (SizeType row = 0; row < number_of_shape_function_rows; ++row)
-                            truncated_value[row] -= TruncationEntry.Coefficient * 
-                                FinerLevelCache.values[row * FinerLevelCache.number_of_nonzero_control_points + local_position];
-                    }
+                // Multi-level truncation: subtract active fine-level contributions.
+                // Entries can target any FineLevel from l+1 to num_levels-1;
+                // skip levels beyond the active range (those B-splines are zero here).
+                for (const auto& TruncationEntry : rGeometry.GetTruncationData(l, flat_index)) {
+                    if (TruncationEntry.FineLevel > ActiveLevel) continue;
+                    const auto& FinerLevelCache = level_caches[TruncationEntry.FineLevel];
+                    auto position_iterator = FinerLevelCache.flat_index_to_local_position.find(TruncationEntry.FineFlatIndex);
+                    if (position_iterator == FinerLevelCache.flat_index_to_local_position.end()) continue;
+                    const SizeType local_position = position_iterator->second;
+                    for (SizeType row = 0; row < number_of_shape_function_rows; ++row)
+                        truncated_value[row] -= TruncationEntry.Coefficient
+                            * FinerLevelCache.values[row * FinerLevelCache.number_of_nonzero_control_points + local_position];
                 }
 
                 mControlPointIndices.push_back(rGeometry.PackedControlPointIndex(l, flat_index));
