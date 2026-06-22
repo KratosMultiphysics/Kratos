@@ -795,12 +795,25 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::Build(typename Interface::TSche
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_ERROR_IF(!pScheme) << "missing scheme";
     KRATOS_TRY
-    mpImpl->mpMaybeModelPart = &rModelPart;
-    mpImpl->template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/true>(
-        rModelPart,
-        *pScheme,
-        &rLhs,
-        &rRhs);
+        mpImpl->mpMaybeModelPart = &rModelPart;
+        mpImpl->template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/true>(
+            rModelPart,
+            *pScheme,
+            &rLhs,
+            &rRhs);
+        if (4 <= mpImpl->mVerbosity) {
+            KRATOS_INFO(this->Info()) << "writing DoF data to dofs.csv\n";
+            std::ofstream file("dofs.csv");
+            file << "Equation Id,Variable Name,constrained,Node Id,Initial Value,RHS\n";
+            for (const Dof<double>& r_dof : this->GetDofSet())
+                file
+                    << r_dof.EquationId() << ','
+                    << r_dof.GetVariable().Name() << ','
+                    << (r_dof.IsFixed() ? 1 : 0) << ','
+                    << r_dof.Id() << ','
+                    << r_dof.GetSolutionStepValue() << ','
+                    << rRhs[r_dof.EquationId()] << '\n';
+        }
     KRATOS_CATCH("")
 }
 
