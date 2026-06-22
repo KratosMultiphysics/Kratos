@@ -64,6 +64,7 @@ public:
     };
 
     struct TruncationEntry {
+        SizeType FineLevel;
         SizeType FineFlatIndex;
         double   Coefficient;
     };
@@ -754,10 +755,12 @@ private:
     }
 
     /**
-     * @brief Builds truncation coefficient lists for active coarse CPs.
+     * @brief Builds multi-level truncation coefficient lists for active coarse CPs.
      *
-     * For each active CP i at level l, stores entries {j_flat, M_U[j_u,i_u]*M_V[j_v,i_v]}
-     * for every active fine CP j at level l+1 with nonzero refinement coefficient.
+     * For each active CP i at level l, propagates refinement coefficients through the
+     * hierarchy: pending coefficients for inactive level-m CPs are forwarded to level
+     * m+1 via the refinement relation; coefficients landing on active CPs are stored as
+     * TruncationEntry {m, cp_flat, accumulated_coefficient}.
      */
     void ComputeTruncationData()
     {
@@ -765,51 +768,72 @@ private:
         const SizeType polynomial_degree_v = mLevels[0].DegreeV;
         const SizeType num_levels = mLevels.size();
 
+        // Pre-compute per-level dimensions and consecutive refinement matrices.
+        std::vector<SizeType> num_cps_u(num_levels), num_cps_v(num_levels);
+        for (SizeType l = 0; l < num_levels; ++l) {
+            num_cps_u[l] = mLevels[l].KnotsU.size() - polynomial_degree_u + 1;
+            num_cps_v[l] = mLevels[l].KnotsV.size() - polynomial_degree_v + 1;
+        }
+        std::vector<Matrix> ref_mat_u(num_levels - 1), ref_mat_v(num_levels - 1);
+        for (SizeType l = 0; l + 1 < num_levels; ++l) {
+            ref_mat_u[l] = ComputeRefinementMatrix1D(
+                mLevels[l].KnotsU, mLevels[l + 1].KnotsU, polynomial_degree_u);
+            ref_mat_v[l] = ComputeRefinementMatrix1D(
+                mLevels[l].KnotsV, mLevels[l + 1].KnotsV, polynomial_degree_v);
+        }
+
         mTruncationData.resize(num_levels);
+        for (SizeType l = 0; l < num_levels; ++l)
+            mTruncationData[l].assign(num_cps_u[l] * num_cps_v[l], TruncationEntryContainer{});
 
         for (SizeType l = 0; l + 1 < num_levels; ++l) {
-            const THBLevel& coarse_level = mLevels[l];
-            const THBLevel& fine_level   = mLevels[l + 1];
-            const SizeType num_cps_u_coarse = coarse_level.KnotsU.size() - polynomial_degree_u + 1;
-            const SizeType num_cps_v_coarse = coarse_level.KnotsV.size() - polynomial_degree_v + 1;
-            const SizeType num_cps_u_fine   = fine_level.KnotsU.size()   - polynomial_degree_u + 1;
-            const SizeType num_cps_v_fine   = fine_level.KnotsV.size()   - polynomial_degree_v + 1;
+            for (SizeType coarse_v = 0; coarse_v < num_cps_v[l]; ++coarse_v) {
+                for (SizeType coarse_u = 0; coarse_u < num_cps_u[l]; ++coarse_u) {
+                    const SizeType coarse_flat = coarse_v * num_cps_u[l] + coarse_u;
+                    if (!mActiveFunctions[l][coarse_flat]) continue;
 
-            const Matrix M_U = ComputeRefinementMatrix1D(
-                coarse_level.KnotsU, fine_level.KnotsU, polynomial_degree_u);
-            const Matrix M_V = ComputeRefinementMatrix1D(
-                coarse_level.KnotsV, fine_level.KnotsV, polynomial_degree_v);
+                    auto& entries = mTruncationData[l][coarse_flat];
 
-            mTruncationData[l].assign(
-                num_cps_u_coarse * num_cps_v_coarse, TruncationEntryContainer{});
-
-            for (SizeType i_v = 0; i_v < num_cps_v_coarse; ++i_v) {
-                for (SizeType i_u = 0; i_u < num_cps_u_coarse; ++i_u) {
-                    const SizeType i_flat = i_v * num_cps_u_coarse + i_u;
-                    if (!mActiveFunctions[l][i_flat]) continue;
-
-                    auto& entries = mTruncationData[l][i_flat];
-                    for (SizeType j_v = 0; j_v < num_cps_v_fine; ++j_v) {
-                        const double coeff_v = M_V(j_v, i_v);
-                        if (std::abs(coeff_v) < 1e-15) continue;
-                        for (SizeType j_u = 0; j_u < num_cps_u_fine; ++j_u) {
-                            const double coeff_u = M_U(j_u, i_u);
-                            if (std::abs(coeff_u) < 1e-15) continue;
-                            const SizeType j_flat = j_v * num_cps_u_fine + j_u;
-                            if (!mActiveFunctions[l + 1][j_flat]) continue;
-                            entries.push_back({j_flat, coeff_u * coeff_v});
+                    // Initialize pending_coefficients at level l+1 from the l -> l+1 refinement relation.
+                    std::unordered_map<SizeType, double> pending_coefficients;
+                    for (SizeType fine_v = 0; fine_v < num_cps_v[l + 1]; ++fine_v) {
+                        const double cv = ref_mat_v[l](fine_v, coarse_v);
+                        if (std::abs(cv) < 1e-15) continue;
+                        for (SizeType fine_u = 0; fine_u < num_cps_u[l + 1]; ++fine_u) {
+                            const double cu = ref_mat_u[l](fine_u, coarse_u);
+                            if (std::abs(cu) < 1e-15) continue;
+                            pending_coefficients[fine_v * num_cps_u[l + 1] + fine_u] += cu * cv;
                         }
+                    }
+
+                    // Propagate through levels l+1, l+2, ... stopping at active CPs.
+                    for (SizeType m = l + 1; m < num_levels; ++m) {
+                        std::unordered_map<SizeType, double> next_pending_coefficients;
+                        for (const auto& [cp_flat, coeff] : pending_coefficients) {
+                            if (std::abs(coeff) < 1e-15) continue;
+                            if (mActiveFunctions[m][cp_flat]) {
+                                // Active: store as truncation entry.
+                                entries.push_back({m, cp_flat, coeff});
+                            } else if (m + 1 < num_levels) {
+                                // Inactive: propagate through the m -> m+1 refinement relation.
+                                const SizeType cp_u = cp_flat % num_cps_u[m];
+                                const SizeType cp_v = cp_flat / num_cps_u[m];
+                                for (SizeType next_v = 0; next_v < num_cps_v[m + 1]; ++next_v) {
+                                    const double kv = ref_mat_v[m](next_v, cp_v);
+                                    if (std::abs(kv) < 1e-15) continue;
+                                    for (SizeType next_u = 0; next_u < num_cps_u[m + 1]; ++next_u) {
+                                        const double ku = ref_mat_u[m](next_u, cp_u);
+                                        if (std::abs(ku) < 1e-15) continue;
+                                        next_pending_coefficients[next_v * num_cps_u[m + 1] + next_u] += coeff * ku * kv;
+                                    }
+                                }
+                            }
+                        }
+                        pending_coefficients = std::move(next_pending_coefficients);
                     }
                 }
             }
         }
-        // Finest level: no truncation (nothing finer to subtract).
-        const SizeType num_cps_u_finest =
-            mLevels[num_levels - 1].KnotsU.size() - polynomial_degree_u + 1;
-        const SizeType num_cps_v_finest =
-            mLevels[num_levels - 1].KnotsV.size() - polynomial_degree_v + 1;
-        mTruncationData[num_levels - 1].assign(
-            num_cps_u_finest * num_cps_v_finest, TruncationEntryContainer{});
     }
 
     /**
