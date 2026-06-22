@@ -71,7 +71,6 @@ const std::string testParameters = R"(
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
-        "calculate_reactions":                true,
         "max_line_search_iterations":         5,
         "first_alpha_value":                  0.5,
         "second_alpha_value":                 1.0,

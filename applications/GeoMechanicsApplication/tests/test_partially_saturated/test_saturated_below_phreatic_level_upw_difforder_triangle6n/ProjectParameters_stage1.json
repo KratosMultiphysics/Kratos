@@ -40,7 +40,6 @@
     "reduction_factor"                 : 1.0,
     "increase_factor"                  : 1.0,
     "desired_iterations"               : 4,
-    "calculate_reactions"              : true,
     "rotation_dofs"                    : false,
     "linear_solver_settings": {
       "solver_type"                    : "LinearSolversApplication.sparse_lu",
