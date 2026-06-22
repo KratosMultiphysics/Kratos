@@ -39,6 +39,8 @@
 #include <amgcl/solver/runtime.hpp>
 #include <amgcl/preconditioner/runtime.hpp>
 #include <amgcl/coarsening/rigid_body_modes.hpp>
+#include "boost/property_tree/ptree.hpp"
+#include "boost/property_tree/json_parser.hpp"
 
 #ifdef AMGCL_GPGPU
 #include <amgcl/backend/vexcl.hpp>
@@ -252,88 +254,112 @@ AMGCLSolver<TSparse,TDense>::~AMGCLSolver() = default;
 
 
 template <class TSparse, class TDense>
-void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings)
-{
-    Parameters default_parameters = this->GetDefaultParameters();
+void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
+    // Settings can be defined in two distinct methods:
+    // - using a translation layer through Kratos, or
+    // - configuration directly passed on to AMGCL.
+    // The translation layer is a mess. It can produce incompatible settings,
+    // does not support all options, and sometimes silently manipulates user-
+    // provided settings. However, it is the original implementation and thus
+    // noone will let me remove it.
+    // Configuring AMGCL directly involves converting a Kratos JSON representation
+    // to a boost one, and passing it on to AMGCL.
+    if (!Settings.Has("direct_settings")) {
+        // Configuration through a Kratos translation layer.
+        Parameters default_parameters = this->GetDefaultParameters();
 
-    // Optionally set the a user-defined block size.
-    KRATOS_TRY
-    if (Settings.Has("block_size")) {
-        Parameters block_size_settings = Settings["block_size"].Clone();
-        default_parameters.RemoveValue("block_size");
+        // Optionally set the a user-defined block size.
+        KRATOS_TRY
+        if (Settings.Has("block_size")) {
+            Parameters block_size_settings = Settings["block_size"].Clone();
+            default_parameters.RemoveValue("block_size");
 
-        if (block_size_settings.IsInt()) {
-            mBlockSize = Settings["block_size"].GetInt();
-            default_parameters.AddInt("block_size", 1);
-        } else if (block_size_settings.IsString()) {
-            KRATOS_ERROR_IF_NOT(block_size_settings.GetString() == "auto")
-                << "Invalid value for \"block_size\": \"" << block_size_settings.GetString() << "\". "
-                << "Expecting a positive integer, or \"auto\".";
-            default_parameters.AddString("block_size", "auto");
-        } else {
-            KRATOS_ERROR << "Invalid type for \"block_size\". Expecting a positive integer, or \"auto\".";
+            if (block_size_settings.IsInt()) {
+                mBlockSize = Settings["block_size"].GetInt();
+                default_parameters.AddInt("block_size", 1);
+            } else if (block_size_settings.IsString()) {
+                KRATOS_ERROR_IF_NOT(block_size_settings.GetString() == "auto")
+                    << "Invalid value for \"block_size\": \"" << block_size_settings.GetString() << "\". "
+                    << "Expecting a positive integer, or \"auto\".";
+                default_parameters.AddString("block_size", "auto");
+            } else {
+                KRATOS_ERROR << "Invalid type for \"block_size\". Expecting a positive integer, or \"auto\".";
+            }
         }
+        Settings.ValidateAndAssignDefaults(default_parameters);
+        KRATOS_CATCH("")
+
+        KRATOS_TRY
+        CheckIfSelectedOptionIsAvailable(Settings,
+                                        "preconditioner_type",
+                                        {
+                                            "amg",
+                                            "relaxation",
+                                            "dummy"
+                                        });
+        KRATOS_CATCH("")
+
+        KRATOS_TRY
+        const std::string preconditioner_type = Settings["preconditioner_type"].GetString();
+        mAMGCLParameters.put("precond.class", preconditioner_type);
+        if (preconditioner_type == "relaxation")
+            this->SetSmootherType(Settings["smoother_type"].GetString());
+
+        mVerbosity=Settings["verbosity"].GetInt();
+        mGMRESSize = Settings["gmres_krylov_space_dimension"].GetInt();
+        mUseBlockMatricesIfPossible = Settings["use_block_matrices_if_possible"].GetBool();
+
+        // Termination criteria.
+        mTolerance = Settings["tolerance"].GetDouble();
+        mMaxIterationsNumber = Settings["max_iteration"].GetInt();
+        mAMGCLParameters.put("solver.tol", mTolerance);
+        mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
+
+        mFallbackToGMRES = false;
+        this->SetIterativeSolverType(Settings["krylov_type"].GetString());
+
+        // Multigrid preconditioner settings.
+        mProvideCoordinates = Settings["provide_coordinates"].GetBool();
+        mCoarseEnough = Settings["coarse_enough"].GetInt();
+        mUseAMGPreconditioning = preconditioner_type == "amg";
+
+        if(mUseAMGPreconditioning) {
+            this->SetSmootherType(Settings["smoother_type"].GetString());
+            this->SetCoarseningType(Settings["coarsening_type"].GetString());
+
+            const int max_levels = Settings["max_levels"].GetInt();
+            if(max_levels >= 0) mAMGCLParameters.put("precond.max_levels",  max_levels);
+
+            mAMGCLParameters.put("precond.npre",  Settings["pre_sweeps"].GetInt());
+            mAMGCLParameters.put("precond.npost",  Settings["post_sweeps"].GetInt());
+        } // is mUseAMGPreconditioning
+
+        // GPU settings.
+        mUseGPGPU = Settings["use_gpgpu"].GetBool();
+        if (mUseGPGPU) {
+            // ILU0 in a GPU backend has approximate iterative implementation.
+            // Increase the default number of iterations to make ILU0 more robust.
+            int ilu0_iters = 9;
+            if (mAMGCLParameters.get<std::string>("precond.type", "") == "ilu0")
+                mAMGCLParameters.put("precond.solve.iters", ilu0_iters);
+            if (mAMGCLParameters.get<std::string>("precond.relax.type", "") == "ilu0")
+                mAMGCLParameters.put("precond.relax.solve.iters", ilu0_iters);
+        }
+        KRATOS_CATCH("")
+    } else {
+        // Direct configuration => convert Parameters to boost props.
+        KRATOS_TRY
+            mAMGCLParameters.clear();
+            std::stringstream buffer;
+            buffer << Settings["direct_settings"].PrettyPrintJsonString();
+            boost::property_tree::read_json(
+                buffer,
+                mAMGCLParameters);
+            mUseAMGPreconditioning = false;
+        KRATOS_CATCH("")
     }
-    Settings.ValidateAndAssignDefaults(default_parameters);
-    KRATOS_CATCH("")
 
-    KRATOS_TRY
-    CheckIfSelectedOptionIsAvailable(Settings,
-                                     "preconditioner_type",
-                                     {
-                                        "amg",
-                                        "relaxation",
-                                        "dummy"
-                                     });
-    KRATOS_CATCH("")
 
-    KRATOS_TRY
-    const std::string preconditioner_type = Settings["preconditioner_type"].GetString();
-    mAMGCLParameters.put("precond.class", preconditioner_type);
-    if (preconditioner_type == "relaxation")
-        this->SetSmootherType(Settings["smoother_type"].GetString());
-
-    mVerbosity=Settings["verbosity"].GetInt();
-    mGMRESSize = Settings["gmres_krylov_space_dimension"].GetInt();
-    mUseBlockMatricesIfPossible = Settings["use_block_matrices_if_possible"].GetBool();
-
-    // Termination criteria.
-    mTolerance = Settings["tolerance"].GetDouble();
-    mMaxIterationsNumber = Settings["max_iteration"].GetInt();
-    mAMGCLParameters.put("solver.tol", mTolerance);
-    mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
-
-    mFallbackToGMRES = false;
-    this->SetIterativeSolverType(Settings["krylov_type"].GetString());
-
-    // Multigrid preconditioner settings.
-    mProvideCoordinates = Settings["provide_coordinates"].GetBool();
-    mCoarseEnough = Settings["coarse_enough"].GetInt();
-    mUseAMGPreconditioning = preconditioner_type == "amg";
-
-    if(mUseAMGPreconditioning) {
-        this->SetSmootherType(Settings["smoother_type"].GetString());
-        this->SetCoarseningType(Settings["coarsening_type"].GetString());
-
-        const int max_levels = Settings["max_levels"].GetInt();
-        if(max_levels >= 0) mAMGCLParameters.put("precond.max_levels",  max_levels);
-
-        mAMGCLParameters.put("precond.npre",  Settings["pre_sweeps"].GetInt());
-        mAMGCLParameters.put("precond.npost",  Settings["post_sweeps"].GetInt());
-    } // is mUseAMGPreconditioning
-
-    // GPU settings.
-    mUseGPGPU = Settings["use_gpgpu"].GetBool();
-    if (mUseGPGPU) {
-        // ILU0 in a GPU backend has approximate iterative implementation.
-        // Increase the default number of iterations to make ILU0 more robust.
-        int ilu0_iters = 9;
-        if (mAMGCLParameters.get<std::string>("precond.type", "") == "ilu0")
-            mAMGCLParameters.put("precond.solve.iters", ilu0_iters);
-        if (mAMGCLParameters.get<std::string>("precond.relax.type", "") == "ilu0")
-            mAMGCLParameters.put("precond.relax.solve.iters", ilu0_iters);
-    }
-    KRATOS_CATCH("")
 }
 
 
@@ -416,7 +442,7 @@ void AMGCLSolver<TSparse,TDense>::ProvideAdditionalData(SparseMatrixType& rA,
         KRATOS_WARNING_IF("AMGCLSolver", mBlockSize.value() != detected_block_size)
             << "The user-specified block size (" << mBlockSize.value() << ") "
             << "does not match the detected block size (" << detected_block_size << "). "
-            << "Continuing with the user-specified block size (" << mBlockSize.value() << ").";
+            << "Continuing with the user-specified block size (" << mBlockSize.value() << ").\n";
     } else {
         mBlockSize = detected_block_size;
     }
