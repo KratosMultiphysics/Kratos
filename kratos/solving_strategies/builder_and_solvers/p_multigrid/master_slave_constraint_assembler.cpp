@@ -461,17 +461,19 @@ MasterSlaveConstraintAssembler<TSparse,TDense>::FinalizeConstraintIteration(type
     if (!mpImpl->mDependentSystem.has_value())
         return true;
 
-    BalancedProduct<TSparse,TSparse,TSparse>(mpImpl->mMasterSlaveRelations,
-                                             rSolution,
-                                             mpImpl->mDependentSystem.value().mSolution);
+    BalancedProduct<TSparse,TSparse,TSparse>(
+        mpImpl->mMasterSlaveRelations,
+        rSolution,
+        mpImpl->mDependentSystem.value().mSolution);
     typename TSparse::VectorType constraint_residual = this->GetConstraintGapVector();
-    BalancedProduct<TSparse,TSparse,TSparse>(this->GetRelationMatrix(),
-                                             mpImpl->mDependentSystem.value().mSolution,
-                                             constraint_residual,
-                                             static_cast<typename TSparse::DataType>(-1));
+    BalancedProduct<TSparse,TSparse,TSparse>(
+        this->GetRelationMatrix(),
+        mpImpl->mDependentSystem.value().mSolution,
+        constraint_residual,
+        static_cast<typename TSparse::DataType>(-1));
 
-    rReport.maybe_constraint_residual = TSparse::TwoNorm(constraint_residual);
-    rReport.constraints_converged = true;
+    rReport.maybe_constraint_absolute_residual = TSparse::TwoNorm(constraint_residual);
+    rReport.constraints_absolute_converged = true;
     rStream.Submit(rReport.Tag(2), mpImpl->mVerbosity);
     return true;
 }

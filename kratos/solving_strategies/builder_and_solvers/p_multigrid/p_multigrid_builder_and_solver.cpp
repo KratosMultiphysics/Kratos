@@ -111,22 +111,25 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
     {
         KRATOS_TRY
         // Inner loop for multigrid.
-        rReport.multigrid_converged = false;
+        rReport.multigrid_absolute_converged = false;
+        rReport.multigrid_relative_converged = false;
         rReport.multigrid_iteration = 0ul;
 
         while (   rReport.multigrid_iteration < static_cast<std::size_t>(mMaxIterations)
-               && !rReport.multigrid_converged) {
-            rReport.maybe_multigrid_residual.reset();
+               && !(rReport.multigrid_absolute_converged || rReport.multigrid_relative_converged)) {
+            rReport.maybe_multigrid_absolute_residual.reset();
+            rReport.maybe_multigrid_relative_residual.reset();
 
             // Solve the coarse grid and apply its correction.
             if (mMaybeHierarchy.has_value()) {
-                std::visit([&rSolutionUpdate, &rResidual, &rStream, this](auto& r_hierarchy){
-                                return r_hierarchy.template ApplyCoarseCorrection<TSparse>(
-                                    rSolutionUpdate,
-                                    rResidual,
-                                    *mpConstraintAssembler,
-                                    rStream);},
-                           mMaybeHierarchy.value());
+                std::visit(
+                    [&rSolutionUpdate, &rResidual, &rStream, this] (auto& r_hierarchy) {
+                        return r_hierarchy.template ApplyCoarseCorrection<TSparse>(
+                            rSolutionUpdate,
+                            rResidual,
+                            *mpConstraintAssembler,
+                            rStream);},
+                    mMaybeHierarchy.value());
 
                 // Update the fine solution.
                 TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
@@ -146,11 +149,13 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
             BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidual, static_cast<typename TSparse::DataType>(-1));
 
             // Emit status and check for convergence.
-            rReport.maybe_multigrid_residual = TSparse::TwoNorm(rResidual) / InitialResidualNorm;
-            rReport.multigrid_converged = rReport.maybe_multigrid_residual.value() < mTolerance;
+            rReport.maybe_multigrid_absolute_residual = TSparse::TwoNorm(rResidual) / InitialResidualNorm;
+            rReport.maybe_multigrid_relative_residual = rReport.maybe_multigrid_absolute_residual.value() / InitialResidualNorm;
+            rReport.multigrid_absolute_converged = rReport.maybe_multigrid_absolute_residual.value() < mTolerance;
+            rReport.multigrid_relative_converged = rReport.maybe_multigrid_relative_residual.value() < mTolerance;
             if (   rReport.multigrid_iteration + 1 < static_cast<std::size_t>(mMaxIterations)
-                && !rReport.multigrid_converged)
-                rStream.Submit(rReport.Tag(3), mVerbosity);
+                && !(rReport.multigrid_absolute_converged || rReport.multigrid_relative_converged))
+                    rStream.Submit(rReport.Tag(3), mVerbosity);
 
             ++rReport.multigrid_iteration;
         } // while i_multigrid_iteration <= mMaxIterations
@@ -169,14 +174,17 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
         KRATOS_TRY
         bool constraint_status = false;
         PMGStatusStream::Report status_report {
-            /*grid_level=*/                 0ul,
-            /*multigrid_converged=*/        false,
-            /*multigrid_iteration=*/        0ul,
-            /*maybe_multigrid_residual=*/   {},
-            /*constraints_converged=*/      false,
-            /*constraint_iteration=*/       0ul,
-            /*maybe_constraint_residual=*/  {}
-        };
+            .grid_level                         = 0ul,
+            .multigrid_absolute_converged       = false,
+            .multigrid_relative_converged       = false,
+            .multigrid_iteration                = 0ul,
+            .maybe_multigrid_absolute_residual  = {},
+            .maybe_multigrid_relative_residual  = {},
+            .constraints_absolute_converged     = false,
+            .constraints_relative_converged     = false,
+            .constraint_iteration               = 0ul,
+            .maybe_constraint_absolute_residual = {},
+            .maybe_constraint_relative_residual = {}};
 
         typename TSparse::VectorType residual(rRhs.size()),
                                      residual_update(rRhs.size()),
@@ -193,7 +201,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
 
         // Outer loop for constraints.
         do {
-            status_report.maybe_multigrid_residual.reset();
+            status_report.maybe_multigrid_absolute_residual.reset();
+            status_report.maybe_multigrid_relative_residual.reset();
 
             // Initialize the constraint assembler and update residuals.
             mpConstraintAssembler->InitializeConstraintIteration(
@@ -227,11 +236,13 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                 rStream);
             if (constraint_status) {
                 rStream.Submit(status_report.Tag(2), mVerbosity);
-                status_report.maybe_constraint_residual.reset();
+                status_report.maybe_constraint_absolute_residual.reset();
+                status_report.maybe_constraint_relative_residual.reset();
                 break;
             } else {
                 rStream.Submit(status_report.Tag(3), mVerbosity);
-                status_report.maybe_constraint_residual.reset();
+                status_report.maybe_constraint_absolute_residual.reset();
+                status_report.maybe_constraint_relative_residual.reset();
             }
 
             ++status_report.constraint_iteration;
@@ -307,7 +318,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
             rRhs,
             mpInterface->GetDofSet());
 
-        return status_report.multigrid_converged && status_report.constraints_converged;
+        return (status_report.multigrid_absolute_converged || status_report.multigrid_relative_converged) && (status_report.constraints_absolute_converged || status_report.constraints_relative_converged);
         KRATOS_CATCH("")
     }
 

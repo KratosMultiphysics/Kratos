@@ -392,14 +392,16 @@ void PGrid<TSparse,TDense>::ExecuteMultigridLoop(PMGStatusStream& rStream,
 {
     KRATOS_TRY
 
-    rReport.multigrid_converged = false;
+    rReport.multigrid_absolute_converged = false;
+    rReport.multigrid_relative_converged = false;
     rReport.multigrid_iteration = 0ul;
-    rReport.maybe_multigrid_residual.reset();
+    rReport.maybe_multigrid_absolute_residual.reset();
+    rReport.maybe_multigrid_relative_residual.reset();
 
     // The multigrid hierarchy depth is currently capped at 1,
     // so the linear solver is used here instead of invoking
     // lower grids.
-    rReport.multigrid_converged = mpSolver->PerformSolutionStep(mLhs, mSolution, mRhs);
+    rReport.multigrid_relative_converged = mpSolver->PerformSolutionStep(mLhs, mSolution, mRhs);
 
     KRATOS_CATCH("")
 }
@@ -416,25 +418,29 @@ void PGrid<TSparse,TDense>::ExecuteConstraintLoop(PMGStatusStream& rStream,
     // Impose constraints and solve the coarse system.
     KRATOS_TRY
     do {
-        rReport.constraints_converged = false;
-        rReport.maybe_constraint_residual.reset();
+        rReport.constraints_absolute_converged = false;
+        rReport.constraints_relative_converged = false;
+        rReport.maybe_constraint_absolute_residual.reset();
+        rReport.maybe_constraint_relative_residual.reset();
 
         // Initialize the constraint assembler.
-        mpConstraintAssembler->InitializeConstraintIteration(mLhs,
-                                                             mSolution,
-                                                             mRhs,
-                                                             mIndirectDofSet.begin(),
-                                                             mIndirectDofSet.end());
+        mpConstraintAssembler->InitializeConstraintIteration(
+            mLhs,
+            mSolution,
+            mRhs,
+            mIndirectDofSet.begin(),
+            mIndirectDofSet.end());
 
         // Get an update on the solution with respect to the current right hand side.
         this->ExecuteMultigridLoop(rStream, rReport);
-        constraints_finished = mpConstraintAssembler->FinalizeConstraintIteration(mLhs,
-                                                                                  mSolution,
-                                                                                  mRhs,
-                                                                                  mIndirectDofSet.begin(),
-                                                                                  mIndirectDofSet.end(),
-                                                                                  rReport,
-                                                                                  rStream);
+        constraints_finished = mpConstraintAssembler->FinalizeConstraintIteration(
+            mLhs,
+            mSolution,
+            mRhs,
+            mIndirectDofSet.begin(),
+            mIndirectDofSet.end(),
+            rReport,
+            rStream);
 
         // Update state log.
         if (!constraints_finished) {
@@ -447,7 +453,8 @@ void PGrid<TSparse,TDense>::ExecuteConstraintLoop(PMGStatusStream& rStream,
     BalancedProduct<TSparse,TSparse,TSparse>(mLhs, mSolution, mRhs, static_cast<typename TSparse::DataType>(-1));
 
     // Update state log.
-    rReport.maybe_multigrid_residual = TSparse::TwoNorm(mRhs) / initial_residual;
+    rReport.maybe_multigrid_absolute_residual = TSparse::TwoNorm(mRhs);
+    rReport.maybe_multigrid_relative_residual = rReport.maybe_multigrid_absolute_residual.value() / initial_residual;
     rStream.Submit(rReport.Tag(2), mVerbosity);
 
     mpConstraintAssembler->Finalize(mLhs, mSolution, mRhs, mIndirectDofSet);
@@ -490,7 +497,7 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     this->ExecuteConstraintLoop(rStream, status_report);
     this->Prolong<TParentSparse>(rParentSolution, mSolution, rParentConstraintAssembler);
 
-    return status_report.multigrid_converged && status_report.constraints_converged;
+    return (status_report.multigrid_absolute_converged || status_report.multigrid_relative_converged) && (status_report.constraints_absolute_converged || status_report.constraints_relative_converged);
 }
 
 
