@@ -50,6 +50,8 @@ class UPwSolver(GeoSolver):
             "rayleigh_m": 0.0,
             "rayleigh_k": 0.0,
             "strategy_type": "newton_raphson",
+            "quasi_newton_type": "bfgs",
+            "quasi_newton_raphson_restart_interval": 5,
             "max_piping_iterations": 50,
             "convergence_criterion": "Displacement_criterion",
             "water_pressure_relative_tolerance": 1.0e-4,

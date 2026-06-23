@@ -18,6 +18,7 @@
 #include "builder_and_solver_factory.hpp"
 #include "convergence_criteria_factory.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/geo_mechanics_quasi_newton_raphson_strategy.hpp"
 #include "factories/standard_linear_solver_factory.h"
 #include "parameters_utilities.h"
 #include "scheme_factory.hpp"
@@ -70,6 +71,20 @@ public:
             auto strategy_parameters = Parameters{};
             auto result =
                 std::make_unique<GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
+                    rModelPart, scheme, criteria, builder_and_solver, strategy_parameters,
+                    max_iterations, compute_reactions, reform_dof_set_at_each_step, move_mesh_flag);
+            result->SetEchoLevel(echo_level);
+            return result;
+        }
+        if (rSolverSettings[strategy_type].GetString() == "quasi_newton_raphson") {
+            const auto max_iterations    = rSolverSettings["max_iterations"].GetInt();
+            const auto compute_reactions = rSolverSettings["compute_reactions"].GetBool();
+            const auto reform_dof_set_at_each_step = rSolverSettings["reform_dofs_at_each_step"].GetBool();
+            const auto move_mesh_flag = rSolverSettings["move_mesh_flag"].GetBool();
+
+            auto strategy_parameters = Parameters{};
+            auto result =
+                std::make_unique<GeoMechanicsQuasiNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
                     rModelPart, scheme, criteria, builder_and_solver, strategy_parameters,
                     max_iterations, compute_reactions, reform_dof_set_at_each_step, move_mesh_flag);
             result->SetEchoLevel(echo_level);

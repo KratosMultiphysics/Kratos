@@ -483,6 +483,19 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                          compute_reactions,
                                                                                          reform_step_dofs,
                                                                                          move_mesh_flag)
+        elif strategy_type.lower() == "quasi_newton_raphson":
+            self.strategy_params = KratosMultiphysics.Parameters("{}")
+            self.strategy_params.AddValue("quasi_newton_type", self.settings["quasi_newton_type"])
+            self.strategy_params.AddValue("quasi_newton_raphson_restart_interval", self.settings["quasi_newton_raphson_restart_interval"])
+            solving_strategy = GeoMechanicsApplication.GeoMechanicsQuasiNewtonRaphsonStrategy(self.computing_model_part,
+                                                                                         self.scheme,
+                                                                                         self.convergence_criterion,
+                                                                                         builder_and_solver,
+                                                                                         self.strategy_params,
+                                                                                         max_iterations,
+                                                                                         compute_reactions,
+                                                                                         reform_step_dofs,
+                                                                                         move_mesh_flag)
         elif strategy_type.lower() == "newton_raphson_with_piping":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("max_piping_iterations", self.settings["max_piping_iterations"])
