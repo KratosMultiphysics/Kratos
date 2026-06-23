@@ -79,6 +79,8 @@ public:
 
     using BaseType = Element;
 
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangianDisplacementParticle);
 
     // Constructor void 
@@ -94,13 +96,15 @@ public:
     // Constructor using an array of nodes with properties 
     TotalLagrangianDisplacementParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
-    { 
+    {
+        mThisIntegrationMethod =  GeometryData::IntegrationMethod::GI_GAUSS_1;  ///
     }
 
     // Copy constructor
     TotalLagrangianDisplacementParticle(TotalLagrangianDisplacementParticle const& rOther)
         : BaseType(rOther),
-        mThisConstitutiveLaw(rOther.mThisConstitutiveLaw)
+        mThisConstitutiveLaw(rOther.mThisConstitutiveLaw),
+        mThisIntegrationMethod(rOther.mThisIntegrationMethod)  ////
     {
     }
 
@@ -138,6 +142,23 @@ public:
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    IntegrationMethod GetIntegrationMethod() const override
+    {
+        return mThisIntegrationMethod;   ////
+    }
+
+    /**
+     * @brief This function tells the position of the particle in the list of neighbours
+     */
+    int GetNeighbourPosition(const std::vector<Element::Pointer>& rNeighbours) const
+    {
+        int i = 0; 
+        
+        while (i<rNeighbours.size() && this->Id() != rNeighbours[i]->Id()) i++;
+
+        return i;
+    }
+         
     /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The vector containing the equation IDs
@@ -164,6 +185,11 @@ public:
      * @brief Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(VectorType& rValues, int step = 0) const override;
+
+    /**
+     * @brief
+     */
+    virtual void GetNodalValuesVector(VectorType& rNodalValue) const;
 
     /**
      * @brief This is called during the assembling process in order to calculate the local system
@@ -294,6 +320,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo,
         const VectorType& rBodyForce,
         const Vector& rStressVector,
+        const Matrix& rConstitutiveMatrix,
         const double IntegrationWeight
     ) const; 
 
@@ -307,6 +334,58 @@ public:
         VectorType& rRHS,
         const double weight
     ) const;
+
+    /**
+     * @brief 
+    */
+   virtual void CalculateAndAddStabilizationLeftHandSide(
+    MatrixType& rLHS, 
+    const ProcessInfo& rProcessInfo
+    );
+
+    /**
+     * @brief 
+     */
+    virtual void CalculatePenalizationMatrix(
+        MatrixType& rPenalizationMatrix, 
+        const ProcessInfo& rProcessInfo,
+        const int index
+    );
+
+    /**
+     * @brief
+     */
+    virtual void CalculateDissipationMatrix(
+        MatrixType& rDissipationMatrix,
+        const ProcessInfo& rProcessInfo,
+        const int index
+    ); 
+
+    /**
+     * @brief
+     */
+    virtual void CalculateAndAddStabilizationRightHandSide(
+        VectorType& rRHS,
+        const ProcessInfo& rCurrentProcessInfo
+    );
+    
+    /**
+     * @brief
+     */
+    virtual void CalculatePenalizationResidualVector(
+        VectorType& rResidualVector,
+        const ProcessInfo& rProcessInfo,
+        const int index
+    );
+
+    /**
+     * @brief
+     */
+    virtual void CalculateDissipationResidualVector(
+        VectorType& rDissipationVector,
+        const ProcessInfo& rProcessInfo,
+        const int index
+    );
 
     /**
       * @brief This is called during the assembling process in order to calculate the elemental mass matrix
@@ -351,9 +430,16 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
 protected:
 
     ConstitutiveLaw::Pointer mThisConstitutiveLaw;
+    IntegrationMethod mThisIntegrationMethod; ////
 
     /**
      * @brief This function sets the used constitutive laws
@@ -364,11 +450,33 @@ protected:
     }
 
     /**
+     * @brief Sets the used integration method
+     * @details In SPH the inetgration points are the particles themselves,
+     * this method is implement to maintain compatibility and display the results on the integration points 
+     */
+    void SetIntegrationMethod(const IntegrationMethod ThisIntegrationMethod)
+    {
+        mThisIntegrationMethod = ThisIntegrationMethod; ////
+    }
+
+    /**
      * @brief It initializes the material
      */
     void InitializeMaterial();
 
 private:
+
+    /**
+     * @brief This method gets a value directly in the CL avoiding code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @tparam TType The type considered
+     */
+
+    template<class TType>
+    void GetValueOnConstituitiveLaw(const Variable<TType>& rVariable, std::vector<TType>& rOutput){
+        mThisConstitutiveLaw->GetValue(rVariable, rOutput[0]);   ////
+    }
 
 };
 

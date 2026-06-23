@@ -7,6 +7,7 @@ include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/ConstitutiveLawsApplication )
 
 ## SPH Core sources
 file(GLOB_RECURSE KRATOS_SPH_APPLICATION_CORE
@@ -31,6 +32,7 @@ file(GLOB_RECURSE KRATOS_SPH_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE
 add_library(KratosSPHCore SHARED ${KRATOS_SPH_APPLICATION_CORE} ${KRATOS_SPH_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosSPHCore PUBLIC KratosCore)
 target_link_libraries(KratosSPHCore PUBLIC KratosCore KratosStructuralMechanicsCore)
+target_link_libraries(KratosSPHCore PUBLIC KratosCore KratosConstitutiveLawsCore)
 set_target_properties(KratosSPHCore PROPERTIES COMPILE_DEFINITIONS "SPH_APPLICATION=EXPORT,API")
 
 ###############################################################

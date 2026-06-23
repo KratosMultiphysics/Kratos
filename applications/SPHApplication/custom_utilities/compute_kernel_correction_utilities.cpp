@@ -48,7 +48,7 @@ void ComputeKernelCorrectionUtilities::ComputeWeightedSums(ModelPart& rThisModel
 }
 
 void ComputeKernelCorrectionUtilities::ComputeGradientCorrection(ModelPart& rThisModelPart)
-{
+{   
     auto& rElem = rThisModelPart.Elements();
     const double h = rThisModelPart.GetProcessInfo()[SMOOTHING_LENGTH];
     const SizeType domain_size = rThisModelPart.GetProcessInfo()[DOMAIN_SIZE];

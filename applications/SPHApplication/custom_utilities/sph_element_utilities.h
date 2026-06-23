@@ -23,6 +23,14 @@ public:
     using VectorType = Vector;
 
     static void GetLocalBodyForces(Element& rElement, VectorType& body_force);
+    
+    static bool ComputeLumpedMassMatrix(const Properties& rProperties, const ProcessInfo& rProcessInfo);
+
+    static void ComputeLinearElasticAcousticTensor(MatrixType& rAcousticTensor, const VectorType& rNormal, const Properties& rProperties);
+
+    static void ComputeParticleJump(VectorType& rJumpVector, Element& rThisParticle, Element& rThisNeighbour, VectorType& rInitialDistance, const ProcessInfo& rProcessInfo);
+
+    static void ComputeWaveSpeed(double PressureWaveSpeed, double ShearWaveSpeed, const Properties& rProperties); 
 
 
 };

@@ -11,8 +11,9 @@
 #include "includes/model_part.h"
 
 /**
- * @class 
- * @brief 
+ * @class ComputeKernelCorrectionProcess
+ * @brief This class computes the kernel correction for the SPH method to ensure
+ * zeroth and first-order consistency in both domain and boundaries.
  */
 
 namespace Kratos
@@ -31,6 +32,9 @@ public:
 
     void Execute() override;
 
+    /**
+     * @details In a Total Lagrangian framework, the kernel corrections are compluted just once at trhe beginning of the simulation.
+     */
     void ExecuteInitialize() override;
 
 protected:

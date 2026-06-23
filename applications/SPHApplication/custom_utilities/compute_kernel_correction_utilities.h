@@ -27,15 +27,42 @@ public:
 
     static void ComputeWeightedSums(ModelPart& rThisModelPart);
 
+    /**
+     * @brief This function computes the integration correction which ensure fisrt-order consistency in the boundaries of the domain.
+     * @details J. Bonet and T.S.L. Lok "Variational and momentum preservation aspects of Smooth Particle Hydrodynamic formulations"
+     */
     static void ComputeGradientCorrection(ModelPart& rThisModelPart);
+    
+    /**
+     * @brief This function computes the integration correction which ensure fisrt-order consistency in the boundaries of the domain.
+     * @details J. Bonet and S. Kulasegaram "Correction and stabilization of smooth particle 
+     * hydrodynamics methods with applications  in metal forming simulations"
+     */
+    static void ComputeIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters, unsigned int& iter);
 
+    /**
+     * @brief This function applies the kernel correction
+     */
     static void ApplyKernelCorrection(Element& IP, double& kernel_target);
     
+    /**
+     * @brief This function applies the gradient and the kernel corrections
+     */
     static void ApplyKernelGradientCorrection(Element& IP, double& kernel_target, Vector& dkernel_target);
 
+    static void ApplyKernelGradientCorrectionInverted(Element& JP, double& kernel_target, Vector& dkernel_target);
+
+    /**
+     * @brief This function applies the integration correction
+     */
+    static void ApplyIntegrationCorrection(Element& IP, double& kernel_target, Vector& dkernel_target, bool IsParticleItself);
+
+    /**
+     * @brief These functions check the effectiveness of the kernel corrections
+     */
     static bool VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
 
-    static void VerifyIntegrationCorrection(ModelPart& rThisModelPart);
+    static bool VerifyIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
 
 };
 
