@@ -1,4 +1,4 @@
-# Staged analysis on a truss with reset displacement option
+# Staged analysis on a truss with reset totals option
 
 In this test the ApplyFinalStressesOfPreviousStageToInitialState process is tested on the structural TrussLinearElement3D2N element. It consists of 4 stages, where the 'ApplyFinalStressesOfPreviousStageToInitialState' makes sure the total formulation of the structural trusses are converted to the 'staged displacement' definition of the GeoMechanicsApplication (i.e. DISPLACEMENT is the displacement with respect to the start of the stage).
 
@@ -13,7 +13,7 @@ The material is described using:
 -   A cross area of 1.0 m2
 
 The following stages can be distinguished:
-- Stage 1: A point load of 1e10 N is applied to node 11 in the negative x-direction. The 'reset_displacement' option is set to false. The beam is expected to contract.
+- Stage 1: A point load of 1e10 N is applied to node 11 in the negative x-direction. The 'reset_totals' option is set to false. The beam is expected to contract.
 - Stage 2: Essentially the same as stage 1: however, due to the 'apply_final_stresses_of_previous_stage_to_initial_state' process added in this stage, the stage displacement is expected to be 0.0, since the load was not changed.
 - Stage 3: A point load of 2e10 N is applied to node 11 in the negative x-direction. Therefore, the displacement (with respect to the start of the stage) is the same as in stage 1.
 - Stage 4: The load is removed. The beam is expected to expand again to its original shape.
