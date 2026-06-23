@@ -75,11 +75,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.n_in_el = 3 if self.dim == 2 else 4
         self.n_in_cond = 2 if self.dim == 2 else 3
 
-        # Set time integration parameters for RK4
+        # Set time integration parameters
         self.dt = settings["time_stepping"]["time_step"].GetDouble()
         self.max_cfl = settings["time_stepping"]["max_cfl_number"].GetDouble()
         self.cfl = self.max_cfl
         self.max_fourier = settings["time_stepping"]["max_fourier_number"].GetDouble()
+        
+        self.time_scheme = settings["time_scheme"].GetString()
+        self.startup_time = settings["startup_time"].GetDouble()
+        self.startup_time_scheme = settings["startup_time_scheme"].GetString() if self.startup_time > 0.0 else None
 
         # Set problem solving parameters
         self.clear_divergence_steps = settings["clear_divergence_steps"].GetInt()
@@ -327,6 +331,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         ## arrays to store wall values
         self.v_el_wall = xp.empty((self.connectivity_wall.shape[0], self.n_in_cond, self.dim), dtype=cfd_utils.PRECISION)
+
+        # Arrays for time integration to be allocated according to the current time scheme 
+        # Note that their size may depend on the time scheme, which might change among time steps
+        self.k = None
+        self.v_stage = xp.empty((len(self.model_part.Nodes), self.dim), dtype=cfd_utils.PRECISION) 
 
         #work arrays for intermediate computations
         self.pool = python_pool.BufferPool(
@@ -656,6 +665,44 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.slip_node_ids = xp.where(slip_adaptor_data > 0)[0] # Get the ids of the nodes with SLIP flag
             #self.slip_vel_indices = (slip_node_ids[:, None] * self.dim + xp.arange(self.dim)).ravel() # Broadcast with dimension to get the component indices
 
+    @classmethod
+    def GetButcherTableau(self, time_scheme):
+        if time_scheme == "FE": # Forward-Euler
+            A = (
+                (),
+            )
+            b = (1.0,)
+            c = (0.0,)
+        elif time_scheme == "RK2": # 2nd order Heun Runge-Kutta
+            A = (
+                (),
+                (1.0),
+            )
+            b = (0.5, 0.5)
+            c = (0.0, 1.0)
+        elif time_scheme == "SSPRK3": # 3rd order Strong Stability Preserving Runge-Kutta 
+            A = (
+                (),
+                (1.0,),
+                (0.25, 0.25),
+            )
+            b = (1.0/6.0, 1.0/6.0, 2.0/3.0)
+            c = (0.0, 1.0, 0.5)
+        elif time_scheme == "RK4": # 4th order Runge-Kutta
+            A = (
+                (),
+                (0.5,),
+                (0.0, 0.5),
+                (0.0, 0.0, 1.0),
+            )
+            b = (1/6, 1/3, 1/3, 1/6)
+            c = (0.0, 0.5, 0.5, 1.0)
+        else:
+            available_time_schemes = ["FE", "RK2", "SSPRK3", "RK4"]
+            raise ValueError(f"Provided time scheme '{time_scheme}' is not available. Available options are: {available_time_schemes}.")
+
+        return A, b, c
+
     def SolveStep1(self,vold,v_dirichlet,p,b,dt):
 
         #xp.cuda.Stream.null.synchronize() #FIXME: remove after debugging, just to be sure we are not measuring asynchronously some previous step computations
@@ -679,72 +726,107 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.pool.Release(div_proj)
         #print(f"ComputeDivergenceProjection time: {time.perf_counter() - t0}")
 
-        # Advance in time by runge kutta
-        # --- k1 ---
-        t0 = time.perf_counter()
-        k1 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
-        self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN, self.tau_1, out=k1)
-        #self.ComputeVelocityResidualWall(v_el_wall, out=k1)
-        k1.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
-        #print(f"k1 time: {time.perf_counter() - t0}")
+        # Get current time scheme data
+        time_scheme = self.time_scheme if self.time > self.startup_time else self.startup_time_scheme
+        A, b, c = self.GetButcherTableau(time_scheme)
+        n_stages = len(b)
+        if (self.k == None or len(self.k) != n_stages):
+            self.k = [xp.empty((self.nnodes, self.dim), dtype=cfd_utils.PRECISION) for _ in range(n_stages)]
 
-        # --- k2 ---
-        t0 = time.perf_counter()
-        v2 = vold + 0.5 * dt * k1
-        self.ApplyVelocitySlipConditions(v2, self.normals)
-        self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v2)
+        for i in range(n_stages):
+            # Calculate current stage velocity
+            self.v_stage[:] = vold
+            for j, a_ij in enumerate(A[i]):
+                if a_ij != 0.0:
+                    aux = dt * a_ij
+                    self.v_stage += aux * self.k[j]
+            self.ApplyVelocitySlipConditions(self.v_stage, self.normals)
+            self.ApplyVelocityDirichletConditions(vold, v_dirichlet, c[i], self.v_stage)
 
-        t_el_data = time.perf_counter()
-        vel = self.ElemData(v2, self.connectivity, self.v_el)
-        #v_el_wall = self.ElemData(v2, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v2, reusing pool array for output
-        t_k2_res = time.perf_counter()
-        k2 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
-        self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k2)
-        #self.ComputeVelocityResidualWall(v_el_wall, out=k2)
-        #print(f"\tk2 residual: {time.perf_counter() - t_k2_res}")
+            # Calculate current stage residual
+            v_stage_el = self.ElemData(self.v_stage, self.connectivity, self.v_el)
+            #v_stage_el_wall = self.ElemData(self.v_stage, self.connectivity_wall, out=self.v_el_wall)
+            self.ComputeVelocityResidual(v_stage_el, pel, b_el, conv_proj_el, div_proj_el, self.DN, self.tau_1, out=self.k[i])
+            #self.ComputeVelocityResidualWall(v_stage_el_wall, out=self.k[i])
+            self.k[i].reshape(-1)[:] *= (1.0/self.rho) * self.Minv
 
-
-        t_k2_update = time.perf_counter()
-        k2.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
-        #print(f"\tk2 update: {time.perf_counter() - t_k2_update}")
-        #print(f"k2 time: {time.perf_counter() - t0}")
-
-        # --- k3 ---
-        t0 = time.perf_counter()
-        v3 = vold + 0.5 * dt * k2
-        self.ApplyVelocitySlipConditions(v3, self.normals)
-        self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v3)
-
-        vel = self.ElemData(v3, self.connectivity, self.v_el)
-        #v_el_wall = self.ElemData(v3, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v3, reusing pool array for output
-        k3 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
-        self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k3)
-        #self.ComputeVelocityResidualWall(v_el_wall, out=k3)
-        k3.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
-        #print(f"k3 time: {time.perf_counter() - t0}")
-        # --- k4 ---
-        t0 = time.perf_counter()
-        v4 = vold + dt * k3
-        self.ApplyVelocitySlipConditions(v4, self.normals)
-        self.ApplyVelocityDirichletConditions(vold,v_dirichlet,1.0,v4)
-
-        vel = self.ElemData(v4, self.connectivity, self.v_el)
-        #v_el_wall = self.ElemData(v4, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v4, reusing pool array for output
-        k4 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
-        self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k4)
-        #self.ComputeVelocityResidualWall(v_el_wall, out=k4)
-        k4.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
-        #print(f"k4 time: {time.perf_counter() - t0}")
-
-        # --- final RK4 update ---
-        vnew = vold + (dt/6.0) * (k1 + 2*k2 + 2*k3 + k4) #TODO: we can accumulate to save two arrays
-        t0 = time.perf_counter()
+        # RK final update
+        vnew = xp.empty_like(vold)
+        vnew[:] = vold
+        for i in range(n_stages):
+            aux = dt * b[i]
+            vnew += aux * self.k[i]
         self.ApplyVelocitySlipConditions(vnew, self.normals)
-        #print(f"Apply SLIP time: {time.perf_counter() - t0}")
-        t0 = time.perf_counter()
-        self.ApplyVelocityDirichletConditions(vold, v_dirichlet,1.0,vnew)
-        #print(f"Apply DIRICHLET time: {time.perf_counter() - t0}")
+        self.ApplyVelocityDirichletConditions(vold, v_dirichlet, 1.0, vnew)
+
         return vnew
+
+        # # Advance in time by runge kutta
+        # # --- k1 ---
+        # t0 = time.perf_counter()
+        # k1 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
+        # self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN, self.tau_1, out=k1)
+        # #self.ComputeVelocityResidualWall(v_el_wall, out=k1)
+        # k1.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
+        # #print(f"k1 time: {time.perf_counter() - t0}")
+
+        # # --- k2 ---
+        # t0 = time.perf_counter()
+        # v2 = vold + 0.5 * dt * k1
+        # self.ApplyVelocitySlipConditions(v2, self.normals)
+        # self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v2)
+
+        # t_el_data = time.perf_counter()
+        # vel = self.ElemData(v2, self.connectivity, self.v_el)
+        # #v_el_wall = self.ElemData(v2, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v2, reusing pool array for output
+        # t_k2_res = time.perf_counter()
+        # k2 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
+        # self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k2)
+        # #self.ComputeVelocityResidualWall(v_el_wall, out=k2)
+        # #print(f"\tk2 residual: {time.perf_counter() - t_k2_res}")
+
+
+        # t_k2_update = time.perf_counter()
+        # k2.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
+        # #print(f"\tk2 update: {time.perf_counter() - t_k2_update}")
+        # #print(f"k2 time: {time.perf_counter() - t0}")
+
+        # # --- k3 ---
+        # t0 = time.perf_counter()
+        # v3 = vold + 0.5 * dt * k2
+        # self.ApplyVelocitySlipConditions(v3, self.normals)
+        # self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v3)
+
+        # vel = self.ElemData(v3, self.connectivity, self.v_el)
+        # #v_el_wall = self.ElemData(v3, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v3, reusing pool array for output
+        # k3 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
+        # self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k3)
+        # #self.ComputeVelocityResidualWall(v_el_wall, out=k3)
+        # k3.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
+        # #print(f"k3 time: {time.perf_counter() - t0}")
+        # # --- k4 ---
+        # t0 = time.perf_counter()
+        # v4 = vold + dt * k3
+        # self.ApplyVelocitySlipConditions(v4, self.normals)
+        # self.ApplyVelocityDirichletConditions(vold,v_dirichlet,1.0,v4)
+
+        # vel = self.ElemData(v4, self.connectivity, self.v_el)
+        # #v_el_wall = self.ElemData(v4, self.connectivity_wall, out=self.v_el_wall) # Get the velocity at the wall nodes for the intermediate velocity v4, reusing pool array for output
+        # k4 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
+        # self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k4)
+        # #self.ComputeVelocityResidualWall(v_el_wall, out=k4)
+        # k4.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
+        # #print(f"k4 time: {time.perf_counter() - t0}")
+
+        # # --- final RK4 update ---
+        # vnew = vold + (dt/6.0) * (k1 + 2*k2 + 2*k3 + k4) #TODO: we can accumulate to save two arrays
+        # t0 = time.perf_counter()
+        # self.ApplyVelocitySlipConditions(vnew, self.normals)
+        # #print(f"Apply SLIP time: {time.perf_counter() - t0}")
+        # t0 = time.perf_counter()
+        # self.ApplyVelocityDirichletConditions(vold, v_dirichlet,1.0,vnew)
+        # #print(f"Apply DIRICHLET time: {time.perf_counter() - t0}")
+        # return vnew
 
     def SolveStep2(self,vfrac,p,dt):
 
@@ -1094,7 +1176,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 "time_step" : 0.1,
                 "max_cfl_number" : 0.5,
                 "max_fourier_number" : 0.5
-            }
+            },
+            "time_scheme" : "RK4",
+            "startup_time" : 0.0,
+            "startup_time_scheme" : "FE"
         }""")
         return default_settings
 
