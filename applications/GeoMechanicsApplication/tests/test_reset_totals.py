@@ -14,7 +14,7 @@ class KratosGeoMechanicsResetTotalsTests(KratosUnittest.TestCase):
     """
     def test_reset_totals_truss(self):
         """
-        Tests reset displacement in a truss in 4 stages
+        Tests reset totals in a truss in 4 stages
         stage 1: load is applied
         stage 2: load is kept constant
         stage 3: load is doubled
@@ -78,11 +78,11 @@ class KratosGeoMechanicsResetTotalsTests(KratosUnittest.TestCase):
 
     def test_reset_totals_beam(self):
         """
-        Tests reset displacement in a beam in 4 stages
-        stage 1: load is applied / reset displacement is true
-        stage 2: load is applied / reset displacement is true
-        stage 3: load is applied / reset displacement is false
-        stage 4: load is removed / reset displacement is false
+        Tests reset totals in a beam in 4 stages
+        stage 1: load is applied / reset totals is true
+        stage 2: load is applied / reset totals is true
+        stage 3: load is applied / reset totals is false
+        stage 4: load is removed / reset totals is false
         """
         project_path = test_helper.get_file_path('beam_with_reset_totals')
         n_stages = 4
@@ -134,9 +134,9 @@ class KratosGeoMechanicsResetTotalsTests(KratosUnittest.TestCase):
 
     def test_reset_totals_shell_Dirichlet(self):
         """
-        Tests reset displacement in a shell, loaded with prescribed Displacement
+        Tests reset totals in a shell, loaded with prescribed Displacement
         Verifies that the prescribed displacement is not erased by reset_totals.
-        load is applied / reset displacement is true, prescribed Z displacement -20 on node 3
+        load is applied / reset totals is true, prescribed Z displacement -20 on node 3
         """
         test_name  = 'shell_with_reset_totals'
         file_path  = test_helper.get_file_path(os.path.join('.', test_name))

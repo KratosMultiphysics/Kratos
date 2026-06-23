@@ -35,7 +35,7 @@ public:
                                     const Parameters&            rProjectParameters = {})
         : mpStrategy(std::move(strategy)),
           mrModelPart(mpStrategy->GetModelPart()),
-          mResetDisplacements{ResetTotals},
+          mResetTotals{ResetTotals},
           mProjectParameters{rProjectParameters},
           mWorkingDirectory{rWorkingDirectory}
     {
@@ -148,7 +148,7 @@ private:
 
     std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> mpStrategy;
     ModelPart&                                                  mrModelPart;
-    bool                                                        mResetDisplacements;
+    bool                                                        mResetTotals;
     Parameters                                                  mProjectParameters;
     std::filesystem::path                                       mWorkingDirectory;
     std::unique_ptr<GeoOutputWriter>                            mWriter;

@@ -1,4 +1,4 @@
-# Shell with reset displacement
+# Shell with reset totals
 
 This tests verifies that in a shell, the prescribed displacement is not erased by the 'reset_totals' functionality
 when that option is switched on.
