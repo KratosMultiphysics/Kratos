@@ -42,7 +42,7 @@ class LinkConstraintProcess(KratosMultiphysics.Process):
     def ExecuteBeforeSolutionLoop(self) -> None:
         self.__is_active = self.__interval.IsInInterval(self.__model_part.ProcessInfo[KratosMultiphysics.TIME])
 
-        id: int = self.__GetLastConstraintId() + 1
+        id: int = self.__GetFirstValidConstraintID() + 1
         for id_first, id_second in self.__node_pairs:
             constraint = KratosMultiphysics.StructuralMechanicsApplication.LinkConstraint(
                 id,
@@ -66,14 +66,16 @@ class LinkConstraintProcess(KratosMultiphysics.Process):
                 constraint.Set(KratosMultiphysics.ACTIVE, self.__is_active)
 
 
-    def __GetLastConstraintId(self) -> int:
-        constraint_count: int = len(self.__model_part.MasterSlaveConstraints)
-        last_constraint_id: int
-        if constraint_count:
-            last_constraint_id = self.__model_part.MasterSlaveConstraints.back().Id
-        else:
-            last_constraint_id = 0
-        return self.__model_part.GetCommunicator().GetDataCommunicator().MaxAll(last_constraint_id)
+    def __GetFirstValidConstraintID(self) -> int:
+        # This function must return a valid constraint ID for a MultifreedomConstraint.
+        # Such a valid ID must not be less than the number of DoFs in the assembled system.
+        # One safe way of generating an upper bound for DoFs is to multiply the number of
+        # nodes in the root model part by the number of DoFs nodes have. Since fetching
+        # DoFs from nodes is not exposed to python, the next best thing is fetching
+        # historical variables.
+        dofs_per_node: int = len(self.__model_part.GetHistoricalVariablesNames())
+        node_count: int = len(self.__model_part.GetRootModelPart().Nodes)
+        return self.__model_part.GetCommunicator().GetDataCommunicator().SumAll(dofs_per_node * node_count)
 
 
 def Factory(parameters: KratosMultiphysics.Parameters,
