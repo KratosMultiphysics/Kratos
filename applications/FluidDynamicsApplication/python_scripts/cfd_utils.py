@@ -4,6 +4,7 @@ import numpy as np
 import scipy.sparse as sp
 import KratosMultiphysics as KM
 import KratosMultiphysics.FluidDynamicsApplication.python_pool as python_pool
+from typing import Any, Callable, Optional, Tuple
 
 # Einsum optimization configuration
 opt_type = True
@@ -1142,191 +1143,339 @@ class CFDUtils:
             return None
 
 
+
+
+
     def robust_cg(
         self,
         A,
         b,
-        x0=None,
-        atol=0.0,
-        rtol=1e-5,
-        maxiter=200,
-        M=None,
-        callback=None,
-        mixed_precision=True,
-        ref_interval=50,  #interval for exact residual calculation
-        fallback_to_minres=True,
-        verbose=True,
+        x0 = None,
+        *,
+        xp,
+        rtol = 1e-5,
+        atol = 0.0,
+        maxiter = None,
+        M = None,
+        callback = None,
+        recompute_residual_every: int = 50,
+        residual_gap_tol: float = 0.1,
+        replace_residual: bool = True,
+        restart_on_residual_replacement: bool = True,
+        use_mixed_reductions: bool = True,
+        return_info_dict: bool = False,
     ):
         """
-        Robust preconditioned Conjugate Gradient solver.
-        
-        Features:
-            - ref_interval=20 reduces accumulation errors in single precision.
-            - Fallback catches CG breakdown and runs native CuPy/SciPy MINRES
-            initialized from all zeros (x0=None) AND drops the preconditioner (M=None).
+        Conjugate Gradient with periodic true-residual checks.
+
+        Parameters
+        ----------
+        A:
+            Matrix, sparse matrix, LinearOperator-like object, or callable.
+            Must represent a Hermitian/symmetric positive-definite operator.
+
+        b:
+            Right-hand side vector.
+
+        x0:
+            Initial guess.
+
+        xp:
+            Array namespace, typically `cupy` or `numpy`.
+
+        rtol, atol:
+            Convergence is accepted when
+                ||b - A x|| <= max(atol, rtol * ||b||).
+            Note that this is checked using the true residual, not only the
+            recursively updated residual.
+
+        maxiter:
+            Maximum number of iterations. Defaults to 10 * n.
+
+        M:
+            Preconditioner. May be None, callable, matrix-like, or object with
+            `.matvec`.
+
+        callback:
+            Called as callback(x) after each iteration.
+
+        recompute_residual_every:
+            Recompute r_exact = b - A x every this many iterations. Use 0 or None
+            to disable periodic checks. Even when disabled, the true residual is
+            still computed before accepting convergence from the recursive residual.
+
+        residual_gap_tol:
+            If
+                ||r_exact - r|| / max(||r_exact||, tiny) > residual_gap_tol,
+            the recursive residual is considered unreliable.
+
+        replace_residual:
+            Replace r by r_exact when the residual gap is too large.
+
+        restart_on_residual_replacement:
+            Restart the CG direction after residual replacement. This is the safer
+            choice because replacing r disturbs the strict recurrence.
+
+        use_mixed_reductions:
+            If True, use FP32 products/squares with FP64 accumulation for dot/norm.
+            If False, use xp.vdot and xp.linalg.norm.
+
+        return_info_dict:
+            If False, return SciPy/CuPy-style info integer:
+            0 on convergence, iteration count on failure.
+            If True, return a dictionary with residual histories and reason.
+
+        Returns
+        -------
+        x, info
+            x is the approximate solution. info is either an integer or a dict.
         """
 
-        try:
-            import cupy as cp
-            xp = cp.get_array_module(b)
-            is_cupy = (xp is cp)
-        except ImportError:
-            import numpy as xp
-            is_cupy = False
+        def dot_mixed(xp, a, b):
+            """
+            Dot product for real-valued vectors with FP32 product and FP64 accumulation.
 
-        orig_dtype = xp.asarray(b).dtype
+            For complex vectors, replace this with an xp.vdot-based implementation.
+            """
+            return xp.sum(a * b, dtype=xp.float64)
 
-        def _as_host_bool(value):
-            return bool(value.item()) if hasattr(value, "item") else bool(value)
 
-        def _is_nonfinite(value):
-            return _as_host_bool(~xp.isfinite(value))
+        def norm_mixed(xp, a):
+            """
+            Euclidean norm with FP32 square and FP64 accumulation.
+            """
+            return xp.sqrt(xp.sum(a * a, dtype=xp.float64))
 
-        def _matvec(op, v):
-            if hasattr(op, "matvec"):
-                return op.matvec(v)
-            if callable(op):
-                return op(v)
-            return op @ v
 
-        def _psolve(precond, v):
-            if precond is None:
-                return v
-            if hasattr(precond, "matvec"):
-                return precond.matvec(v)
-            if callable(precond):
-                return precond(v)
-            return precond @ v
+        def dot_default(xp, a, b):
+            """
+            Default namespace dot product. Useful if you do not want mixed reductions.
+            """
+            return xp.vdot(a, b)
 
-        def _zero_like_b(dtype):
-            return xp.zeros_like(b, dtype=dtype)
 
-        if atol < 0.0 or rtol < 0.0:
-            raise ValueError("Tolerances must be non-negative")
+        def norm_default(xp, a):
+            """
+            Default namespace norm. Useful if you do not want mixed reductions.
+            """
+            return xp.linalg.norm(a)
 
-        b = xp.asarray(b)
+
+        def make_system(A, M, x0, b, xp):
+            """
+            Small local replacement for CuPy/SciPy's private _make_system helper.
+
+            It supports:
+            - A as an object with .matvec(v)
+            - A as a callable A(v)
+            - A as an array/sparse matrix supporting A @ v
+
+            Same for M. If M is None, identity preconditioning is used.
+            """
+            b = xp.asarray(b)
+
+            n = b.shape[0]
+            if x0 is None:
+                x = xp.zeros_like(b)
+            else:
+                x = xp.asarray(x0).copy()
+
+            if hasattr(A, "matvec"):
+                matvec = A.matvec
+                shape = A.shape
+            elif callable(A):
+                matvec = A
+                shape = (n, n)
+            else:
+                matvec = lambda v: A @ v
+                shape = A.shape
+
+            if M is None:
+                psolve = lambda r: r
+            elif hasattr(M, "matvec"):
+                psolve = M.matvec
+            elif callable(M):
+                psolve = M
+            else:
+                psolve = lambda r: M @ r
+
+            class Operator:
+                def __init__(self, shape, matvec):
+                    self.shape = shape
+                    self.matvec = matvec
+
+            class Preconditioner:
+                def __init__(self, matvec):
+                    self.matvec = matvec
+
+            return Operator(shape, matvec), Preconditioner(psolve), x, b
+
+
+
+
+
+        Aop, Mop, x, b = make_system(A, M, x0, b, xp)
+        matvec = Aop.matvec
+        psolve = Mop.matvec
+
+        n = Aop.shape[0]
         if maxiter is None:
-            maxiter = 2 * b.size
+            maxiter = n * 10
 
-        if mixed_precision and orig_dtype == xp.float32:
-            acc_dtype = xp.float64
-        else:
-            acc_dtype = orig_dtype
+        if n == 0:
+            x_empty = xp.empty_like(b)
+            if return_info_dict:
+                return x_empty, {"converged": True, "iterations": 0, "reason": "empty system"}
+            return x_empty, 0
 
-        b_acc = b.astype(acc_dtype, copy=False)
-        b_norm = xp.linalg.norm(b_acc)
-        b_norm_value = float(b_norm.item()) if hasattr(b_norm, "item") else float(b_norm)
+        dot = dot_mixed if use_mixed_reductions else dot_default
+        norm = norm_mixed if use_mixed_reductions else norm_default
 
-        if _as_host_bool(b_norm == 0):
-            return _zero_like_b(orig_dtype), 0
+        b_norm = norm(xp, b)
+        b_norm_host = float(b_norm)
 
-        threshold = max(atol, rtol * b_norm_value)
+        if b_norm_host == 0.0:
+            if return_info_dict:
+                return b, {"converged": True, "iterations": 0, "reason": "zero rhs"}
+            return b, 0
 
-        # Native MINRES Fallback Execution (Preconditioner Stripped)
-        def _run_native_minres_fallback():
-            if verbose:
-                print("CG breakdown detected. Re-solving from zero using native MINRES WITHOUT preconditioning.")
-            
-            if is_cupy:
-                from cupyx.scipy.sparse.linalg import minres
+        stop_atol = max(float(atol), float(rtol) * b_norm_host)
+
+        # Initial true residual.
+        r = b - matvec(x)
+        resid = norm(xp, r)
+        resid_host = float(resid)
+
+        recursive_residual_norms = [resid_host]
+        true_residual_norms = [resid_host]
+        residual_gap_ratios = []
+        replacement_iterations = []
+
+        if resid_host <= stop_atol:
+            if return_info_dict:
+                return x, {
+                    "converged": True,
+                    "iterations": 0,
+                    "reason": "initial guess satisfies tolerance",
+                    "residual_norm": resid_host,
+                    "recursive_residual_norms": recursive_residual_norms,
+                    "true_residual_norms": true_residual_norms,
+                    "residual_gap_ratios": residual_gap_ratios,
+                    "replacement_iterations": replacement_iterations,
+                }
+            return x, 0
+
+        iters = 0
+        rho = 0
+        restart_p = True
+        tiny = 1e-300
+
+        reason = "maximum iterations reached"
+        converged = False
+
+        while iters < maxiter:
+            z = psolve(r)
+
+            rho1 = rho
+            rho = dot(xp, r, z)
+
+            rho_host = float(rho)
+            if not bool(xp.isfinite(rho)) or rho_host <= 0.0:
+                reason = "non-positive or non-finite r^T M r"
+                break
+
+                rk = rhs - matrix @ xk
+            if restart_p:
+                p = z.copy() if hasattr(z, "copy") else z
+                restart_p = False
             else:
-                from scipy.sparse.linalg import minres
+                beta = rho / rho1
+                p = z + beta * p
 
-            effective_tol = max(rtol, atol / b_norm_value if b_norm_value > 0 else rtol)
+            q = matvec(p)
+            denom = dot(xp, p, q)
+            denom_host = float(denom)
 
-            try:
-                # We explicitly pass x0=None and M=None to isolate the raw matrix system
-                x_min, info_min = minres(
-                    A, 
-                    b, 
-                    x0=None, 
-                    tol=effective_tol, 
-                    maxiter=maxiter, 
-                    M=None,  # Preconditioner is dropped here
-                    callback=callback
-                )
-                return xp.asarray(x_min, dtype=acc_dtype), info_min
-            except Exception as e:
-                if verbose:
-                    print(f"MINRES fallback encountered an execution error: {e}")
-                return _zero_like_b(acc_dtype), -2
+            if not bool(xp.isfinite(denom)) or denom_host <= 0.0:
+                reason = "non-positive or non-finite p^T A p"
+                break
 
-        # Standard CG Engine Loop
-        def _run_cg_loop(current_x0, iterations_allocated):
-            # MODIFICATION 1: Safely allocate a zero vector if x0 is None instead of raising ValueError
-            if current_x0 is None:
-                x = _zero_like_b(acc_dtype)
-                r = b_acc.copy()
-            else:
-                x = xp.asarray(current_x0, dtype=acc_dtype)
-                if _as_host_bool(xp.any(x)):
-                    Ax = xp.asarray(_matvec(A, x.astype(orig_dtype, copy=False)), dtype=acc_dtype)
-                    r = b_acc - Ax
-                else:
-                    r = b_acc.copy()
+            alpha = rho / denom
 
-            rho_prev = None
-            p = None
-            
+            if not bool(xp.isfinite(alpha)):
+                reason = "non-finite alpha"
+                break
 
-            for iteration in range(iterations_allocated):
-                if ref_interval is not None and ref_interval > 0 and iteration > 0 and iteration % ref_interval == 0:
-                    Ax = xp.asarray(_matvec(A, x.astype(orig_dtype, copy=False)), dtype=acc_dtype)
-                    r = b_acc - Ax
-                    # MODIFICATION 2: Clear search history to protect orthogonality after true residual modification
-                    rho_prev = None
+            x = x + alpha * p
+            r = r - alpha * q
 
-                r_norm = xp.linalg.norm(r)
-                if _as_host_bool(r_norm < threshold):
-                    print("CG converged in:",iteration," iterations, with norm:",r_norm)
-                    return x, 0
+            iters += 1
 
-                z = xp.asarray(_psolve(M, r.astype(orig_dtype, copy=False)), dtype=acc_dtype)
-                rho_cur = xp.dot(r, z)
+            if callback is not None:
+                callback(x)
 
-                if _as_host_bool(rho_cur == 0) or _is_nonfinite(rho_cur):
-                    print("CG breakdown detected. rho_cur =", rho_cur)
-                    return x, -2  # Breakdown signal
+            # Cheap recursive residual norm.
+            resid = norm(xp, r)
+            resid_host = float(resid)
+            recursive_residual_norms.append(resid_host)
 
-                # Adjusted logic condition to safely restart the recurrence tracking sequence
-                if iteration > 0 and rho_prev is not None:
-                    beta = rho_cur / rho_prev
-                    p = z + beta * p
-                else:
-                    p = z.copy()
+            if not bool(xp.isfinite(resid)):
+                reason = "non-finite recursive residual"
+                break
 
-                p_orig = p.astype(orig_dtype, copy=False)
-                Ap = xp.asarray(_matvec(A, p_orig), dtype=acc_dtype)
-                p_Ap = xp.dot(p, Ap)
+            # Compute exact residual when the recursive residual claims convergence
+            # or at the requested reliability-check frequency.
+            need_exact_residual = resid_host <= stop_atol
 
-                if _as_host_bool(p_Ap <= 0) or _is_nonfinite(p_Ap):
-                    print("CG breakdown detected. p_Ap =", p_Ap)
-                    return x, -3  # Breakdown signal
+            if recompute_residual_every:
+                need_exact_residual = need_exact_residual or (iters % recompute_residual_every == 0)
 
-                alpha = rho_cur / p_Ap
-                x += alpha * p
-                r -= alpha * Ap
-                rho_prev = rho_cur
+            if need_exact_residual:
+                r_exact = b - matvec(x)
+                resid_exact = norm(xp, r_exact)
+                resid_exact_host = float(resid_exact)
+                true_residual_norms.append(resid_exact_host)
 
-                if callback is not None:
-                    callback(x.astype(orig_dtype, copy=False))
+                if not bool(xp.isfinite(resid_exact)):
+                    reason = "non-finite true residual"
+                    break
 
-            print("CG converged in:",iteration," iterations")
+                if resid_exact_host <= stop_atol:
+                    resid = resid_exact
+                    resid_host = resid_exact_host
+                    converged = True
+                    reason = "true residual satisfies tolerance"
+                    break
 
-            r_norm = xp.linalg.norm(r)
-            if _as_host_bool(r_norm < threshold):
-                return x, 0
+                gap = norm(xp, r_exact - r) / max(resid_exact_host, tiny)
+                gap_host = float(gap)
+                residual_gap_ratios.append(gap_host)
 
-            return x, iterations_allocated
+                if replace_residual and gap_host > residual_gap_tol:
+                    r = r_exact
+                    resid = resid_exact
+                    resid_host = resid_exact_host
+                    replacement_iterations.append(iters)
 
-        # --- Execution Pipeline ---
-        
-        # Step 1: Run standard CG tracking from user-provided x0 and M
-        x_res, info = _run_cg_loop(x0, maxiter)
+                    if restart_on_residual_replacement:
+                        restart_p = True
+                        rho = 0
+                        continue
 
-        # Step 2: Handle breakdown by pivoting to MINRES with clean slates (x0=None, M=None)
-        if (info < -1 or info == maxiter) and fallback_to_minres:
-            print("falling back to minres")
-            x_res, info = _run_native_minres_fallback()
+        info_int = 0 if converged else iters
 
-        return x_res.astype(orig_dtype, copy=False), info
+        if return_info_dict:
+            return x, {
+                "converged": converged,
+                "iterations": iters,
+                "info": info_int,
+                "reason": reason,
+                "residual_norm": resid_host,
+                "tolerance": stop_atol,
+                "recursive_residual_norms": recursive_residual_norms,
+                "true_residual_norms": true_residual_norms,
+                "residual_gap_ratios": residual_gap_ratios,
+                "replacement_iterations": replacement_iterations,
+            }
+
+        return x, info_int
