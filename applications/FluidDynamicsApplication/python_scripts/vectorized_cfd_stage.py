@@ -695,13 +695,30 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 (0.0, 0.5),
                 (0.0, 0.0, 1.0),
             )
-            b = (1/6, 1/3, 1/3, 1/6)
+            b = (1.0/6.0, 1.0/3.0, 1.0/3.0, 1.0/6.0)
             c = (0.0, 0.5, 0.5, 1.0)
         else:
             available_time_schemes = ["FE", "RK2", "SSPRK3", "RK4"]
             raise ValueError(f"Provided time scheme '{time_scheme}' is not available. Available options are: {available_time_schemes}.")
 
         return A, b, c
+    
+    @classmethod
+    def GetPressureFactor(self, time_scheme):
+        """
+        Pressure factor coming from the intermediate RK evaluation of the pressure term
+        """
+        if time_scheme == "FE": # Forward-Euler
+            return 1.0
+        elif time_scheme == "RK2": # 2nd order Heun Runge-Kutta
+            return 0.5
+        elif time_scheme == "SSPRK3": # 3rd order Strong Stability Preserving Runge-Kutta 
+            return 0.5
+        elif time_scheme == "RK4": # 4th order Runge-Kutta
+            return 0.5
+        else:
+            available_time_schemes = ["FE", "RK2", "SSPRK3", "RK4"]
+            raise ValueError(f"Provided time scheme '{time_scheme}' is not available. Available options are: {available_time_schemes}.")
 
     def SolveStep1(self,vold,v_dirichlet,p,b,dt):
 
@@ -832,6 +849,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         nelem = self.DN.shape[0]
 
+        # Get factor coming from the RK substep approximation of the pressure term
+        time_scheme = self.time_scheme if self.time > self.startup_time else self.startup_time_scheme
+        p_factor = self.GetPressureFactor(time_scheme)
+
         # Gather data from the database
         pel = self.ElemData(p, self.connectivity , self.p_el)
         vel_frac = self.ElemData(vfrac, self.connectivity, self.v_el)
@@ -845,7 +866,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         t0 = time.perf_counter()
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN, out=self.pool.Get(0,(nelem,self.n_in_el, self.n_in_el))) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
         #print(f"Time to compute elemental Laplacian contributions: {time.perf_counter()-t0}")
-        coef = (dt / self.rho / 2.0 + self.tau_1) * self.elemental_volumes
+        coef = (p_factor * dt / self.rho + self.tau_1) * self.elemental_volumes
         L_el *= coef[:, None, None] # scale LHS elemental contributions
         t0 = time.perf_counter()
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
@@ -856,9 +877,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         rhs_el = self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel_frac, out=self.pool.Get(1,(nelem,self.n_in_el)))
         xp.negative(rhs_el, out=rhs_el) # in-place negation to avoid allocation
 
-        # (dt/rho/2 + tau)*(∇q,∇pold) = (dt/rho/2 + tau)*Lij*pj
+        # (coef*dt/rho + tau)*(∇q,∇pold) = (coef*dt/rho + tau)*Lij*pj
         aux_scalar = self.cfd_utils.ApplyLaplacian(self.DN, pel, out=self.pool.Get(0,(nelem,self.n_in_el)))
-        aux_scalar *= (dt / self.rho / 2.0)
+        aux_scalar *= (p_factor * dt / self.rho)
         rhs_el += aux_scalar
         self.pool.Release(aux_scalar)
 
@@ -908,6 +929,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #tmp = self.tmp_elem #reusing
         nelem = self.DN.shape[0]
 
+        # Get factor coming from the RK substep approximation of the pressure term
+        time_scheme = self.time_scheme if self.time > self.startup_time else self.startup_time_scheme
+        p_factor = self.GetPressureFactor(time_scheme)
+
         # Gather elemental pressure increments from the nodal values
         delta_p_el = self.ElemData(delta_p, self.connectivity, out=self.pool.Get(0,(nelem, self.n_in_el)))
 
@@ -924,7 +949,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Update the fractional velocity with the pressure gradient contribution
         ##v = xp.empty(vfrac.shape, dtype=cfd_utils.PRECISION) #TODO: can we allocate this once and reuse it?
-        v.ravel()[:] = vfrac.ravel() + (0.5*dt/self.rho) * self.Minv * grad_dp_nodal.ravel()
+        v.ravel()[:] = vfrac.ravel() + (p_factor * dt / self.rho) * self.Minv * grad_dp_nodal.ravel()
         self.pool.Release(grad_dp_nodal)
 
         self.ApplyVelocitySlipConditions(v, self.normals)
