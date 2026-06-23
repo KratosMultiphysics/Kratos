@@ -76,7 +76,7 @@ public:
         SizeType PolynomialDegreeV,
         SizeType DerivativeOrder)
         : mDerivativeOrder(DerivativeOrder)
-        , mNurbs(PolynomialDegreeU, PolynomialDegreeV, DerivativeOrder)
+        , mTensorProductNurbs(PolynomialDegreeU, PolynomialDegreeV, DerivativeOrder)
     {}
 
     ///@}
@@ -132,26 +132,26 @@ public:
 
         for (SizeType l = 0; l <= ActiveLevel; ++l) {
             const auto& CurrentLevel = AllLevels[l];
-            mNurbs.ResizeDataContainers(PolynomialDegreeU, PolynomialDegreeV, mDerivativeOrder);
+            mTensorProductNurbs.ResizeDataContainers(PolynomialDegreeU, PolynomialDegreeV, mDerivativeOrder);
             if (!CurrentLevel.Weights.empty())
-                mNurbs.ComputeNurbsShapeFunctionValues(
+                mTensorProductNurbs.ComputeNurbsShapeFunctionValues(
                     CurrentLevel.KnotsU, CurrentLevel.KnotsV, CurrentLevel.Weights, u, v);
             else
-                mNurbs.ComputeBSplineShapeFunctionValues(
+                mTensorProductNurbs.ComputeBSplineShapeFunctionValues(
                     CurrentLevel.KnotsU, CurrentLevel.KnotsV, u, v);
 
             auto& CurrentLevelCache = level_caches[l];
-            CurrentLevelCache.number_of_nonzero_control_points = mNurbs.NumberOfNonzeroControlPoints();
+            CurrentLevelCache.number_of_nonzero_control_points = mTensorProductNurbs.NumberOfNonzeroControlPoints();
             const SizeType NumberOfControlPointsU = CurrentLevel.KnotsU.size() - PolynomialDegreeU + 1;
             const SizeType NumberOfControlPointsV = CurrentLevel.KnotsV.size() - PolynomialDegreeV + 1;
-            CurrentLevelCache.local_flat_indices = mNurbs.ControlPointIndices(
+            CurrentLevelCache.local_flat_indices = mTensorProductNurbs.ControlPointIndices(
                                                         NumberOfControlPointsU, NumberOfControlPointsV);
             CurrentLevelCache.values.resize(
                 number_of_shape_function_rows * CurrentLevelCache.number_of_nonzero_control_points);
             for (SizeType row = 0; row < number_of_shape_function_rows; ++row)
                 for (SizeType k = 0; k < CurrentLevelCache.number_of_nonzero_control_points; ++k)
                     CurrentLevelCache.values[row * CurrentLevelCache.number_of_nonzero_control_points + k]
-                        = mNurbs(k, row);
+                        = mTensorProductNurbs(k, row);
             for (SizeType k = 0; k < CurrentLevelCache.number_of_nonzero_control_points; ++k)
                 CurrentLevelCache.flat_index_to_local_position[static_cast<SizeType>(CurrentLevelCache.local_flat_indices[k])] = k;
         }
@@ -208,7 +208,7 @@ private:
     ///@{
 
     SizeType                  mDerivativeOrder = 0;
-    NurbsSurfaceShapeFunction mNurbs;
+    NurbsSurfaceShapeFunction mTensorProductNurbs;
     std::vector<IndexType>    mControlPointIndices;
     /// Shape function values: layout [row * num_nonzero + cp_idx].
     std::vector<double>       mValues;
