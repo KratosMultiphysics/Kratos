@@ -2617,9 +2617,9 @@ namespace Kratos
 
     void CouplingNitscheCondition::CalculateVariationDerivativeMoment(
         IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rDerivativeMoment,
-        Matrix& rFirstVariationDerivativeMoment,
-        Matrix& rSecondVariationDerivativeMoment,
+        array_1d<array_1d<double, 3>,2>& rDerivativeMoment,
+        array_1d<std::vector<array_1d<double, 3>>,2>& rFirstVariationDerivativeMoment,
+        array_1d<std::vector<std::vector<array_1d<double, 3>>>,2>& rSecondVariationDerivativeMoment,
         const array_1d<double, 3>& rMomentCartesian,
         const std::vector<array_1d<double, 3>>& rFirstVariationMomentCartesian,
         const std::vector<std::vector<array_1d<double, 3>>>& rSecondVariationMomentCartesian,
@@ -2642,6 +2642,15 @@ namespace Kratos
 
         Matrix T_patch = ZeroMatrix(3, 3); //Equivalent to Tm (k_cu to k_ca)
         Matrix T_hat_patch = ZeroMatrix(3, 3); //Equivalent to T_e_g (m_ca to m_cu)
+        array_1d<Matrix, 2> variation_T_patch; //Equivalent to variation Tm (k_cu to k_ca)
+        array_1d<Matrix, 2> variation_T_hat_patch; //Equivalent to variation T_e_g (m_ca to m_cu)
+        variation_T_patch[0] = ZeroMatrix(3, 3);
+        variation_T_patch[1] = ZeroMatrix(3, 3);
+        variation_T_hat_patch[0] = ZeroMatrix(3, 3);
+        variation_T_hat_patch[1] = ZeroMatrix(3, 3);
+
+        CalculateVariationTransformation(IntegrationPointIndex, rReferenceKinematic, variation_T_patch, variation_T_hat_patch, rPatch);
+
         if (rPatch==PatchType::Master)
         {
             T_patch = m_T_vector_master[IntegrationPointIndex];
@@ -2701,13 +2710,17 @@ namespace Kratos
                                     second_variation_derivative_curvature_curvilinear, rReferenceKinematic, rActualKinematic, rThisConstitutiveVariablesCurvature, rPatch);
         
         // 1. Calculate Derivative Moment
-        // array_1d<double, 3> dk_1_ca = prod(T_patch,dk_cu[0]) + prod(Tm_d[0],k_cu);
-        // array_1d<double, 3> dk_2_ca = prod(T_patch,dk_cu[1]) + prod(Tm_d[1],k_cu);
-        // _dm_ca[0] = prod(db,dk_1_ca);
-        // _dm_ca[1] = prod(db,dk_2_ca);
+        array_1d<double, 3> dk_1_cartesian = prod(T_patch,derivative_curvature_curvilinear[0]) + prod(variation_T_patch[0],curvature_curvilinear);
+        array_1d<double, 3> dk_2_cartesian = prod(T_patch,derivative_curvature_curvilinear[1]) + prod(variation_T_patch[1],curvature_curvilinear);
 
-        // _dm_cu[0] = prod(T_e_g,_dm_ca[0]) + prod(T_e_g_d[0],_m_ca);
-        // _dm_cu[1] = prod(T_e_g,_dm_ca[1]) + prod(T_e_g_d[1],_m_ca);
+        array_1d<array_1d<double, 3>,2> derivative_moment_cartesian;
+        derivative_moment_cartesian[0] = prod(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix, dk_1_cartesian);
+        derivative_moment_cartesian[1] = prod(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix, dk_2_cartesian);
+
+        rDerivativeMoment[0] = prod(T_hat_patch, derivative_moment_cartesian[0]) + prod(variation_T_hat_patch[0],rMomentCartesian);
+        rDerivativeMoment[1] = prod(T_hat_patch, derivative_moment_cartesian[1]) + prod(variation_T_hat_patch[1],rMomentCartesian);
+
+        // 2. Calculate First Variation Derivative Moment
 
     }
 

@@ -492,9 +492,9 @@ private:
 
     void CalculateVariationDerivativeMoment(
         IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rDerivativeMoment,
-        Matrix& rFirstVariationDerivativeMoment,
-        Matrix& rSecondVariationDerivativeMoment,
+        array_1d<array_1d<double, 3>,2>& rDerivativeMoment,
+        array_1d<std::vector<array_1d<double, 3>>,2>& rFirstVariationDerivativeMoment,
+        array_1d<std::vector<std::vector<array_1d<double, 3>>>,2>& rSecondVariationDerivativeMoment,
         const array_1d<double, 3>& rMomentCartesian,
         const std::vector<array_1d<double, 3>>& rFirstVariationMomentCartesian,
         const std::vector<std::vector<array_1d<double, 3>>>& rSecondVariationMomentCartesian,
