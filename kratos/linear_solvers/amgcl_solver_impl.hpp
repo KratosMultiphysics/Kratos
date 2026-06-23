@@ -264,7 +264,7 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
     // noone will let me remove it.
     // Configuring AMGCL directly involves converting a Kratos JSON representation
     // to a boost one, and passing it on to AMGCL.
-    if (!Settings.Has("direct_settings") || Settings["direct_settings"].size() == 0) {
+    if (!Settings.Has("direct_settings") || Settings["direct_settings"].begin() == Settings["direct_settings"].end()) {
         // Configuration through a Kratos translation layer.
         Parameters default_parameters = this->GetDefaultParameters();
 
