@@ -29,6 +29,7 @@ NewmarkQuasistaticUPwScheme = KratosGeo.NewmarkQuasistaticUPwScheme
 # Strategies
 GeoMechanicsNewtonRaphsonStrategy = KratosGeo.GeoMechanicsNewtonRaphsonStrategy
 GeoMechanicsNewtonRaphsonErosionProcessStrategy = KratosGeo.GeoMechanicsNewtonRaphsonErosionProcessStrategy
+GeoMechanicsQuasiNewtonRaphsonStrategy = KratosGeo.GeoMechanicsQuasiNewtonRaphsonStrategy
 
 # Processes
 ApplyCPhiReductionProcess = KratosGeo.ApplyCPhiReductionProcess

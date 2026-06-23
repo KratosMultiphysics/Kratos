@@ -89,7 +89,9 @@ public:
                     "body_domain_sub_model_part_list": [],
                     "rebuild_level": 2,
                     "quasi_newton_type": "broyden",
-                    "quasi_newton_raphson_restart_interval": 5
+                    "quasi_newton_raphson_restart_interval": 50,
+                    "quasi_newton_raphson_max_rank" : 10
+
                 }  )");
 
         // Validate against defaults -- this also ensures no type mismatch
@@ -97,17 +99,17 @@ public:
 
         // Select the quasi-Newton update scheme (low-rank secant approximation of the Jacobian/its inverse).
         const std::string quasi_newton_type = rParameters["quasi_newton_type"].GetString();
-        if (quasi_newton_type == "bfgs") {
-            mQuasiNewtonType = QuasiNewtonType::BFGS;
+        if (quasi_newton_type == "lbfgs") {
+            mQuasiNewtonType = QuasiNewtonType::LBFGS;
         } else if (quasi_newton_type == "broyden") {
             mQuasiNewtonType = QuasiNewtonType::Broyden;
         } else {
             KRATOS_ERROR << "Unknown 'quasi_newton_type': '" << quasi_newton_type
-                         << "'. Valid options are 'broyden' and 'bfgs'." << std::endl;
+                         << "'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
         }
 
-
-		mRestartInterval = rParameters["quasi_newton_raphson_restart_interval"].GetInt();
+        mRestartInterval = rParameters["quasi_newton_raphson_restart_interval"].GetInt();
+        mMaxRank         = rParameters["quasi_newton_raphson_max_rank"].GetInt();
 
         // it is required to use a direct solver without scaling for the quasi-newton strategy, as the strategy depends on reusing the factorization of the initial stiffness matrix.
         auto linear_solver_settings = Parameters(R"(
@@ -117,7 +119,6 @@ public:
             }  )");
 
         mpLinearSolver = LinearSolverFactoryType().Create(linear_solver_settings);
-        
     }
 
     bool SolveSolutionStep() override
@@ -142,44 +143,26 @@ public:
         p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
-        // ---- Build K0 ONCE and LU-factor it ONCE ----
         TSparseSpace::SetToZero(rDx);
         TSparseSpace::SetToZero(rb);
 
+        LBFGSRankStorage lbfgs_rank_storage;
+        BroydenRankStorage broyden_rank_storage;
+
+
+        bool clear_storage = false;
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
-            BuildAndConstrainK0(rA, rDx, rb); // builds A & b, applies constraints + Dirichlet, factorizes
-            BaseType::mStiffnessMatrixIsBuilt = true;
+            clear_storage = true;
         } else {
             BuildReducedResidual(rb);
         }
 
-        // ---- Broyden low-rank storage (all vectors live in the REDUCED space): K_k = K0 + sum_i U_i V_i^T ----
-        std::vector<TSystemVectorType> numerator_list;   // u_i
-        std::vector<TSystemVectorType> denominator_list; // v_i
-        std::vector<TSystemVectorType> K0inv_Ui_list;    // z_i = K0^{-1} u_i (cached)
-
-        // ---- BFGS low-rank storage (all vectors live in the REDUCED space) ----
-        std::vector<TSystemVectorType> bfgs_s_list;   // delta_u_i (steps)
-        std::vector<TSystemVectorType> bfgs_y_list;   // delta_g_i (residual/gradient changes)
-        std::vector<double>            bfgs_rho_list; // 1 / (delta_g_i . delta_u_i)
-
-        const std::size_t n = rb.size();
-        TSystemVectorType rb_new(n);
-        TSystemVectorType K0s(n);
-        TSystemVectorType u_col(n);
-        TSystemVectorType z_col(n);
-
+        TSystemVectorType rb_new(rb.size());
 
         for (; iteration_number <= mMaxIterationNumber; ++iteration_number) {
+            // check if we need to clear the low-rank storage and rebuild A_0
             if (iteration_number > 1 && (iteration_number - 1) % mRestartInterval == 0) {
-                // rebuild & refactorize K0 (reduced), clear Broyden memory
-                BuildAndConstrainK0(rA, rDx, rb);
-                numerator_list.clear();
-                denominator_list.clear();
-                K0inv_Ui_list.clear();
-                bfgs_s_list.clear();
-                bfgs_y_list.clear();
-                bfgs_rho_list.clear();
+                clear_storage = true;
             }
 
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
@@ -188,120 +171,61 @@ public:
                 mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
             }
 
+            // Quasi-Newton solve: rDx = H_k * rb   (H_k approximates rA_k^{-1})
+            if (mQuasiNewtonType == QuasiNewtonType::LBFGS) {
+                if (clear_storage) {
+                    BuildAndConstrainA0(rA, rDx, rb, lbfgs_rank_storage);
+                    clear_storage = false;
+                }
+                this->LBfgsSolve(rA, rDx, rb, lbfgs_rank_storage);
+            }
+			else if (mQuasiNewtonType == QuasiNewtonType::Broyden) {
+                if (clear_storage) {
+                    BuildAndConstrainA0(rA, rDx, rb, broyden_rank_storage);
+                    clear_storage = false;
+                }
+                this->ShermanMorrisSolve(rA, rDx, rb, broyden_rank_storage);
+            }
+            else {
+                KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
+            }
+
+            UpdateDatabaseReduced(rA, rDx, rb, HasConstraints);
+            BuildReducedResidual(rb_new);
+
+            TSystemVectorType delta_b = rb - rb_new;
+
+            if (mQuasiNewtonType == QuasiNewtonType::LBFGS) {
+                this->UpdateLBFGSRank(lbfgs_rank_storage, rDx, delta_b);
+
+			}
+			else if (mQuasiNewtonType == QuasiNewtonType::Broyden)
+            {
+                this->UpdateBroydenRank(broyden_rank_storage, rA, rDx, delta_b);
+            }
+            else
+            {
+                KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
+            }
+
+            TSparseSpace::Copy(rb_new, rb);
+            MotherType::EchoInfo(iteration_number);
+            p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
+            mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             if (is_converged) {
                 break;
             }
 
-            // Quasi-Newton solve in reduced space: rDx_hat = H_k * rb_hat   (H_k approximates K_k^{-1})
-            if (mQuasiNewtonType == QuasiNewtonType::BFGS) {
-                this->BfgsSolve(rA, rDx, rb, bfgs_s_list, bfgs_y_list, bfgs_rho_list);
-            } else {
-                this->ShermanMorrisSolve(rA, rDx, rb, numerator_list, denominator_list, K0inv_Ui_list);
-            }
-
-            bool do_line_search = false;
-            if (do_line_search) {
-                LineSearch(rA, rDx, rb, rb_new, n, HasConstraints);
-            } else {
-                // Apply the reduced increment to the database (mapped to full space if MPC), then rebuild residual.
-                UpdateDatabaseReduced(rA, rDx, rb, HasConstraints);
-                BuildReducedResidual(rb_new);
-            }
-
-            // ---- Store the new secant pair / low-rank update (reduced space) ----
-            if (mQuasiNewtonType == QuasiNewtonType::BFGS) {
-                // BFGS curvature pair:  s = delta_u = rDx,  y = delta_g = rb - rb_new
-                // The pair is only stored if the curvature condition y . s > 0 holds, which
-                // guarantees the (implicit) inverse Hessian approximation stays positive definite.
-                TSystemVectorType y_col(n);
-                noalias(y_col) = rb - rb_new;
-                const double y_dot_s = TSparseSpace::Dot(y_col, rDx);
-                if (y_dot_s > std::numeric_limits<double>::epsilon()) {
-
-                    const std::size_t max_memory = 5;   // e.g. 10
-                    if (bfgs_s_list.size() >= max_memory) {
-                        bfgs_s_list.erase(bfgs_s_list.begin());
-                        bfgs_y_list.erase(bfgs_y_list.begin());
-                        bfgs_rho_list.erase(bfgs_rho_list.begin());
-                    }
-                    //numerator_list.push_back(u_col);
-                    //denominator_list.push_back(v_col);
-                    //K0inv_Ui_list.push_back(z_col);
-
-
-                    bfgs_s_list.push_back(rDx);
-                    bfgs_y_list.push_back(y_col);
-                    bfgs_rho_list.push_back(1.0 / y_dot_s);
-                }
-            } else {
-                // ---- Build the new Broyden rank-1 column (reduced space) ----
-                //   s     = rDx (reduced step actually taken)
-                //   K_k s = K0 s + U (V^T s)
-                //   y     = rb - rb_new
-                //   u_col = y - K_k s
-                //   v_col = s / (s . s)
-                //   z_col = K0^{-1} u_col
-                const double s_dot_s = TSparseSpace::Dot(rDx, rDx);
-                if (s_dot_s > std::numeric_limits<double>::epsilon()) {
-                    const std::size_t k = numerator_list.size();
-                    TSparseSpace::Mult(rA, rDx, K0s); // K0 * s   (reduced A)
-                    if (k > 0) {
-                        Vector VtS(k);
-                        for (std::size_t i = 0; i < k; ++i) {
-                            VtS[i] = TSparseSpace::Dot(denominator_list[i], rDx);
-                        }
-                        for (std::size_t i = 0; i < k; ++i) {
-                            noalias(K0s) += VtS[i] * numerator_list[i];
-                        }
-                    }
-
-                    TSystemVectorType y_col(n);
-                    noalias(y_col) = rb - rb_new;
-
-                    noalias(u_col) = y_col - K0s;
-
-                    TSystemVectorType v_col(n);
-                    noalias(v_col) = rDx / s_dot_s;
-
-                    TSparseSpace::SetToZero(z_col);
-                    TSystemVectorType u_solve(n);
-                    TSparseSpace::Copy(u_col, u_solve);
-                    mpLinearSolver->PerformSolutionStep(rA, z_col, u_solve);
-
-
-                    const std::size_t max_memory = 5;   // e.g. 10
-                    if (numerator_list.size() >= max_memory) {
-                        numerator_list.erase(numerator_list.begin());
-                        denominator_list.erase(denominator_list.begin());
-                        K0inv_Ui_list.erase(K0inv_Ui_list.begin());
-                    }
-                    numerator_list.push_back(u_col);
-                    denominator_list.push_back(v_col);
-                    K0inv_Ui_list.push_back(z_col);
-
-
-                    //numerator_list.push_back(u_col);
-                    //denominator_list.push_back(v_col);
-                    //K0inv_Ui_list.push_back(z_col);
-                }
-            }
-
-            // Advance: R := R_new
-            TSparseSpace::Copy(rb_new, rb);
-
-            // Per-iteration housekeeping
-            MotherType::EchoInfo(iteration_number);
-            p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
-            mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
         }
 
         if (!is_converged) {
             MotherType::MaxIterationsExceeded();
         } else {
-            KRATOS_INFO_IF("GeoMechanicsQuasiNewtonRaphsonStrategy[Broyden]", this->GetEchoLevel() > 0)
+            KRATOS_INFO_IF("GeoMechanicsQuasiNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
                 << "Convergence achieved after " << iteration_number << " / " << mMaxIterationNumber
-                << " Broyden iterations (rank-" << numerator_list.size() << " update)" << std::endl;
+                << std::endl;
         }
 
         if (mCalculateReactionsFlag) {
@@ -315,33 +239,127 @@ public:
 
 private:
     /// The available quasi-Newton update schemes.
-    enum class QuasiNewtonType { Broyden, BFGS };
+    enum class QuasiNewtonType { Broyden, LBFGS };
 
-    QuasiNewtonType                mQuasiNewtonType = QuasiNewtonType::Broyden;
-	unsigned int 			  mRestartInterval = 10; // rebuild K0 every N iterations to refresh curvature
+    QuasiNewtonType mQuasiNewtonType = QuasiNewtonType::Broyden;
+    unsigned int    mRestartInterval = 100; // rebuild K0 every N iterations to refresh curvature
+    unsigned int    mMaxRank = 10; // maximum number of low-rank updates to store (Broyden or BFGS)
     typename TLinearSolver::Pointer mpLinearSolver;
 
-    /// Builds A and b, applies master-slave constraints (A <- T^T A T, b <- T^T b) and
-    /// Dirichlet conditions, then factorizes the resulting (reduced) K0. Leaves rA holding
-    /// the reduced operator used throughout the Broyden iteration.
-    void BuildAndConstrainK0(TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb)
+    struct RankStorage {
+        virtual void Clear()   = 0;
+        virtual ~RankStorage() = default;
+    };
+
+    struct BroydenRankStorage : RankStorage {
+        std::vector<TSystemVectorType> u_list; // u_i
+        std::vector<TSystemVectorType> v_list; // v_i
+        std::vector<TSystemVectorType> z_list; // z_i = rA0^{-1} u_i (cached)
+
+        void Clear()
+        {
+            u_list.clear();
+            v_list.clear();
+            z_list.clear();
+        }
+    };
+
+    struct LBFGSRankStorage : RankStorage {
+        std::vector<TSystemVectorType> dx_list;  // step differences
+        std::vector<TSystemVectorType> db_list;  // gradient/residual differences
+        std::vector<double>            rho_list; // curvature scalars
+
+        void Clear()
+        {
+            dx_list.clear();
+            db_list.clear();
+            rho_list.clear();
+        }
+    };
+
+    void UpdateBroydenRank(BroydenRankStorage&      rBroydenRankStorage,
+                           TSystemMatrixType&       rA_0,
+                           const TSystemVectorType& rDx,
+                           const TSystemVectorType& rDb)
     {
+        // ---- Build the new Broyden rank-1 column  ----
+        //   rA_k rDx = rA_0 rDx + U (V^T rDx)
+        //   db_hat = rA_k rDx
+        //   u_col = rDb - y_hat
+        //   v_col = rDx / (rDx . rDx)
+        //   z_col = rA_0^{-1} u_col
+
+        TSystemVectorType db_hat(rDx.size());
+
+        const double d_x_squared = TSparseSpace::Dot(rDx, rDx);
+        if (d_x_squared > std::numeric_limits<double>::epsilon()) {
+            const std::size_t k = rBroydenRankStorage.u_list.size();
+            TSparseSpace::Mult(rA_0, rDx, db_hat);
+            if (k > 0) {
+                Vector v_list_dot_dx(k);
+                for (std::size_t i = 0; i < k; ++i) {
+                    v_list_dot_dx[i] = TSparseSpace::Dot(rBroydenRankStorage.v_list[i], rDx);
+                }
+                for (std::size_t i = 0; i < k; ++i) {
+                    noalias(db_hat) += v_list_dot_dx[i] * rBroydenRankStorage.u_list[i];
+                }
+            }
+            TSystemVectorType u_col = rDb - db_hat;
+            TSystemVectorType v_col = rDx / d_x_squared;
+
+            TSystemVectorType z_col(rDx.size());
+            mpLinearSolver->PerformSolutionStep(rA_0, z_col, u_col);
+
+            if (rBroydenRankStorage.u_list.size() >= mMaxRank) {
+                rBroydenRankStorage.u_list.erase(rBroydenRankStorage.u_list.begin());
+                rBroydenRankStorage.v_list.erase(rBroydenRankStorage.v_list.begin());
+                rBroydenRankStorage.z_list.erase(rBroydenRankStorage.z_list.begin());
+            }
+            rBroydenRankStorage.u_list.push_back(u_col);
+            rBroydenRankStorage.v_list.push_back(v_col);
+            rBroydenRankStorage.z_list.push_back(z_col);
+        }
+    }
+
+    void UpdateLBFGSRank(LBFGSRankStorage& rLBFGSRankStorage, const TSystemVectorType& rDx, const TSystemVectorType& rDb)
+    {
+        const double db_dot_dx = TSparseSpace::Dot(rDb, rDx);
+        if (db_dot_dx > std::numeric_limits<double>::epsilon()) {
+            if (rLBFGSRankStorage.dx_list.size() >= mMaxRank) {
+                rLBFGSRankStorage.dx_list.erase(rLBFGSRankStorage.dx_list.begin());
+                rLBFGSRankStorage.db_list.erase(rLBFGSRankStorage.db_list.begin());
+                rLBFGSRankStorage.rho_list.erase(rLBFGSRankStorage.rho_list.begin());
+            }
+            rLBFGSRankStorage.dx_list.push_back(rDx);
+            rLBFGSRankStorage.db_list.push_back(rDb);
+            rLBFGSRankStorage.rho_list.push_back(1.0 / db_dot_dx);
+        }
+    }
+
+    /// Builds A and b, applies master-slave constraints
+    /// Dirichlet conditions, then factorizes the resulting (reduced) rA_0.
+    void BuildAndConstrainA0(TSystemMatrixType& rA_0, TSystemVectorType& rDx, TSystemVectorType& rb, RankStorage& rRankStorage)
+    {
+        rRankStorage.Clear();
+
         auto       p_builder_and_solver = MotherType::GetBuilderAndSolver();
         auto       p_scheme             = MotherType::GetScheme();
         ModelPart& r_model_part         = BaseType::GetModelPart();
 
-        TSparseSpace::SetToZero(rA);
+        TSparseSpace::SetToZero(rA_0);
         TSparseSpace::SetToZero(rb);
 
         // Build raw A and b together (ApplyConstraints needs the raw b to form T^T b consistently).
-        p_builder_and_solver->Build(p_scheme, r_model_part, rA, rb);
+        p_builder_and_solver->Build(p_scheme, r_model_part, rA_0, rb);
 
         if (!r_model_part.MasterSlaveConstraints().empty()) {
-            p_builder_and_solver->ApplyConstraints(p_scheme, r_model_part, rA, rb); // A <- T^T A T ; b <- T^T b ; builds mT
+            p_builder_and_solver->ApplyConstraints(p_scheme, r_model_part, rA_0, rb); // A <- T^T A T ; b <- T^T b ; builds mT
         }
-        p_builder_and_solver->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
+        p_builder_and_solver->ApplyDirichletConditions(p_scheme, r_model_part, rA_0, rDx, rb);
 
-        mpLinearSolver->InitializeSolutionStep(rA, rDx, rb); // factorize the reduced K0
+        mpLinearSolver->InitializeSolutionStep(rA_0, rDx, rb); // factorize rA_0
+
+        BaseType::mStiffnessMatrixIsBuilt = true;
     }
 
     /// Builds the residual and reduces it to the constrained space: b_hat = T^T b (slaves zeroed).
@@ -374,109 +392,61 @@ private:
         }
     }
 
-    void LineSearch(TSystemMatrixType& rA,
-                    TSystemVectorType& rDx,
-                    TSystemVectorType& rb,
-                    TSystemVectorType& rb_new,
-                    unsigned int       n,
-                    bool               HasConstraints)
+    void LBfgsSolve(TSystemMatrixType& rA_0, TSystemVectorType& rDx, TSystemVectorType& rb, const LBFGSRankStorage& rLBFGSRankStorage)
     {
-        // rDx (reduced) is the proposed full Broyden step direction. Find alpha that reduces ||R||.
-        TSystemVectorType s_dir(n);
-        TSparseSpace::Copy(rDx, s_dir); // keep the reduced direction
-
-        const double r0 = TSparseSpace::TwoNorm(rb); // ||R|| at alpha = 0
-
-        // alpha = 1/2 (incremental: apply +0.5 s)
-        noalias(rDx) = 0.5 * s_dir;
-        UpdateDatabaseReduced(rA, rDx, rb, HasConstraints);
-        BuildReducedResidual(rb_new);
-        const double rh = TSparseSpace::TwoNorm(rb_new);
-
-        // alpha = 1 (apply the other +0.5 s)
-        noalias(rDx) = 0.5 * s_dir;
-        UpdateDatabaseReduced(rA, rDx, rb, HasConstraints);
-        BuildReducedResidual(rb_new);
-        const double rf = TSparseSpace::TwoNorm(rb_new);
-
-        // parabola through (0, r0), (1/2, rh), (1, rf) -> vertex
-        double       alpha = 1.0;
-        const double denom = (2.0 * r0 - 4.0 * rh + 2.0 * rf);
-        if (std::abs(denom) > std::numeric_limits<double>::epsilon()) {
-            alpha = (3.0 * r0 - 4.0 * rh + rf) / denom; // = -b/2a
-        }
-        alpha = std::clamp(alpha, 0.1, 1.0);
-
-        if (alpha != 1.0) {
-            // currently at alpha=1; move to alpha
-            noalias(rDx) = (alpha - 1.0) * s_dir;
-            UpdateDatabaseReduced(rA, rDx, rb, HasConstraints);
-            BuildReducedResidual(rb_new);
-        }
-        // the ACTUAL reduced step taken is alpha*s_dir -> used for the Broyden update
-        noalias(rDx) = alpha * s_dir;
-    }
-
-    /// Solves rDx = H_k * rb using the L-BFGS two-loop recursion, with the seed
-    /// inverse Hessian H_0 = K0^{-1} applied through the cached factorization of the
-    /// (reduced) initial stiffness matrix. The stored pairs satisfy the secant condition
-    /// H_{i+1} * delta_g_i = delta_u_i.
-    void BfgsSolve(TSystemMatrixType&              rA,
-                   TSystemVectorType&              rDx,
-                   TSystemVectorType&              rb,
-                   std::vector<TSystemVectorType>& rSList,
-                   std::vector<TSystemVectorType>& rYList,
-                   std::vector<double>&            rRhoList)
-    {
-        const std::size_t k = rSList.size();
+        const std::size_t k = rLBFGSRankStorage.dx_list.size();
         Vector            alpha(k);
 
         TSystemVectorType q(rb.size());
         TSparseSpace::Copy(rb, q); // q = rb
 
         // First loop: newest to oldest
-        for (std::ptrdiff_t i = static_cast<std::ptrdiff_t>(k) - 1; i >= 0; --i) {
-            alpha[i] = rRhoList[i] * TSparseSpace::Dot(rSList[i], q);
-            noalias(q) -= alpha[i] * rYList[i];
+        for (auto i = k; i-- > 0;) {
+            alpha[i] = rLBFGSRankStorage.rho_list[i] * TSparseSpace::Dot(rLBFGSRankStorage.dx_list[i], q);
+            noalias(q) -= alpha[i] * rLBFGSRankStorage.db_list[i];
         }
 
-        // Seed: rDx = H_0 * q = K0^{-1} q (reuses the cached factorization)
+        // Seed: rDx = H_0 * q = rA_0^{-1} q (reuses the cached factorization)
         TSparseSpace::SetToZero(rDx);
-        mpLinearSolver->PerformSolutionStep(rA, rDx, q);
+        mpLinearSolver->PerformSolutionStep(rA_0, rDx, q);
 
         // Second loop: oldest to newest
         for (std::size_t i = 0; i < k; ++i) {
-            const double beta = rRhoList[i] * TSparseSpace::Dot(rYList[i], rDx);
-            noalias(rDx) += (alpha[i] - beta) * rSList[i];
+            const double beta =
+                rLBFGSRankStorage.rho_list[i] * TSparseSpace::Dot(rLBFGSRankStorage.db_list[i], rDx);
+            noalias(rDx) += (alpha[i] - beta) * rLBFGSRankStorage.dx_list[i];
         }
     }
 
-    /// Solves rDx = (K0 + U V^T)^{-1} rb (Sherman-Morrison-Woodbury).
-    void ShermanMorrisSolve(TSystemMatrixType&              rA,
-                            TSystemVectorType&              rDx,
-                            TSystemVectorType&              rb,
-                            std::vector<TSystemVectorType>& rUVectorList,
-                            std::vector<TSystemVectorType>& rVVectorList,
-                            std::vector<TSystemVectorType>& rZVectorList)
+    /// Solves rDx = (rA_0 + U V^T)^{-1} rb (Sherman-Morrison-Woodbury).
+    void ShermanMorrisSolve(TSystemMatrixType&        rA_0,
+                            TSystemVectorType&        rDx,
+                            TSystemVectorType&        rb,
+                            const BroydenRankStorage& rBroydenRankStorage)
     {
-        mpLinearSolver->PerformSolutionStep(rA, rDx, rb); // rDx = K0^{-1} rb
+        mpLinearSolver->PerformSolutionStep(rA_0, rDx, rb); // rDx = rA_0^{-1} rb
 
-        const std::size_t k = rUVectorList.size();
+        // add the low rank correction, rDx = rDx - Z * (I + V^T Z)^{-1} (V^T rDx), where Z = rA_0^{-1} U
+        const std::size_t k = rBroydenRankStorage.u_list.size();
         if (k > 0) {
-            Vector VtW(k);
+            Vector v_list_dot_dx(k);
             for (std::size_t i = 0; i < k; ++i) {
-                VtW[i] = TSparseSpace::Dot(rVVectorList[i], rDx);
+                v_list_dot_dx[i] = TSparseSpace::Dot(rBroydenRankStorage.v_list[i], rDx);
             }
+            // M = I + V^T Z, where Z = rA_0^{-1} U
             Matrix M(k, k);
             for (std::size_t i = 0; i < k; ++i) {
                 for (std::size_t j = 0; j < k; ++j) {
-                    M(i, j) = (i == j ? 1.0 : 0.0) + TSparseSpace::Dot(rVVectorList[i], rZVectorList[j]);
+                    M(i, j) = (i == j ? 1.0 : 0.0) + TSparseSpace::Dot(rBroydenRankStorage.v_list[i],
+                                                                       rBroydenRankStorage.z_list[j]);
                 }
             }
+
+            // alpha = M^{-1} (V^T rDx)
             Vector alpha;
-            SolveSmallDense(M, alpha, VtW);
+            SolveSmallDense(M, alpha, v_list_dot_dx);
             for (std::size_t j = 0; j < k; ++j) {
-                noalias(rDx) -= alpha[j] * rZVectorList[j];
+                noalias(rDx) -= alpha[j] * rBroydenRankStorage.z_list[j];
             }
         }
     }
