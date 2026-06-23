@@ -52,7 +52,7 @@ double CalculateGridVolume(Element::Pointer pElement)
     return volume;
 }
 
-void SetTotalMPVolumeOnGrid(Element::Pointer pElement, const double rVolumeRatio)
+void SetGridVolumeRatio(Element::Pointer pElement, const double rVolumeRatio)
 {
     pElement->GetGeometry().SetValue(TOTAL_MP_VOLUME, rVolumeRatio * CalculateGridVolume(pElement));
 }
@@ -150,7 +150,7 @@ ModelPart::GeometryType::Pointer Generate3D8NGeometry(ModelPart& rModelpart)
     
     return p_geometry;
 }
-ModelPart::PropertiesType::Pointer CreateCommonProperties(ModelPart& rModelpart)
+ModelPart::PropertiesType::Pointer Create2DCommonProperties(ModelPart& rModelpart)
 {
     auto p_elem_prop = rModelpart.CreateNewProperties(0);
     ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticIsotropicPlaneStrain2DLaw");
@@ -158,6 +158,20 @@ ModelPart::PropertiesType::Pointer CreateCommonProperties(ModelPart& rModelpart)
     p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
     p_elem_prop->SetValue(DENSITY, 1000);
     p_elem_prop->SetValue(THICKNESS, 0.1);
+    p_elem_prop->SetValue(YOUNG_MODULUS, 1.0e6);
+    p_elem_prop->SetValue(POISSON_RATIO, 0.0);
+    p_elem_prop->SetValue(PENALTY_FACTOR, 1e-4);
+    p_elem_prop->SetValue(VOLUME_RATIO_THRESHOLD, 0.9);
+    return p_elem_prop;
+}
+
+ModelPart::PropertiesType::Pointer Create3DCommonProperties(ModelPart& rModelpart)
+{
+    auto p_elem_prop = rModelpart.CreateNewProperties(0);
+    ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticIsotropic3DLaw");
+    auto p_this_law = r_clone_cl.Clone();
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
+    p_elem_prop->SetValue(DENSITY, 1000);
     p_elem_prop->SetValue(YOUNG_MODULUS, 1.0e6);
     p_elem_prop->SetValue(POISSON_RATIO, 0.0);
     p_elem_prop->SetValue(PENALTY_FACTOR, 1e-4);
@@ -219,7 +233,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestNumericalStiffnessElement2D4N, KratosMPMFastSuite)
     auto p_geometry = Generate2D4NGeometry(r_model_part);
     
     // Create material properties
-    ModelPart::PropertiesType::Pointer p_properties = CreateCommonProperties(r_model_part);
+    ModelPart::PropertiesType::Pointer p_properties = Create2DCommonProperties(r_model_part);
     
     // Create test element and assign TOTAL_MP_VOLUME by volume ratio
     const Element& new_element = KratosComponents<Element>::Get("MPMSoftStiffness2D4N");
@@ -237,17 +251,17 @@ KRATOS_TEST_CASE_IN_SUITE(TestNumericalStiffnessElement2D4N, KratosMPMFastSuite)
     const ProcessInfo& process_info = r_model_part.GetProcessInfo();
 
     // Empty grid
-    SetTotalMPVolumeOnGrid(p_element, 0.0);
+    SetGridVolumeRatio(p_element, 0.0);
     ref_is_active = false;
     ConductMPMNumericalStiffnessMatrixTest(p_element, ref_is_active, ref_lhs, ref_rhs, process_info);
     
     // Almost Full Grid
-    SetTotalMPVolumeOnGrid(p_element, 0.99);
+    SetGridVolumeRatio(p_element, 0.99); // Note: This is above the threshold of 0.9, so the element should be inactive
     ref_is_active = false;
     ConductMPMNumericalStiffnessMatrixTest(p_element, ref_is_active, ref_lhs, ref_rhs, process_info);
     
     // Half Filled Grid 
-    SetTotalMPVolumeOnGrid(p_element, 0.5);
+    SetGridVolumeRatio(p_element, 0.5);
     ref_is_active = true;
 
     ref_lhs(0,0)=   10 ; ref_lhs(0,1)=  2.5; ref_lhs(0,2)=   -5; ref_lhs(0,3)= -2.5; ref_lhs(0,4)=   -5; ref_lhs(0,5)= -2.5; ref_lhs(0,6)=    0; ref_lhs(0,7)=  2.5;
