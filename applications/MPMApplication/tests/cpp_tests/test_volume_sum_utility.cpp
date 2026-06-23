@@ -515,19 +515,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestVolumeSumUtility3D8N, KratosMPMFastSuite)
     mp_displacement[2] = 0.0;
     MoveMaterialPoints(r_mpm_model_part, mp_displacement);
 
-    std::vector<array_1d<double, 3 >> mp_coordinate;
-    std::vector<double> mp_volume;
-    for (auto& r_element : r_mpm_model_part.Elements())
-    {
-        r_element.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate, r_mpm_model_part.GetProcessInfo());
-        r_element.CalculateOnIntegrationPoints(MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
-        KRATOS_WATCH(r_element.Id())
-        KRATOS_WATCH(mp_coordinate[0])
-        KRATOS_WATCH(mp_volume)
-    }
-    KRATOS_WATCH(r_background_model_part.Elements())
-
-
     SearchAndCalculateVolume<3>(r_background_model_part, r_mpm_model_part);
     GetVolumeVector(r_background_model_part, grid_volume_vector);
     ref_grid_volume_vector = ZeroVector(8);
