@@ -980,6 +980,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             #vnew[:] = vold
             
             vmax = xp.max(xp.linalg.norm(vold, axis=1))
+            
+            # Guard against NaN and zero velocity (e.g., starting from rest)
+            # NaN comparisons silently fail, and vmax=0 causes all velocities to trigger retry
+            if not xp.isfinite(vmax) or vmax < 1e-15:
+                vmax = 1e-15  # Set minimum threshold to avoid division by zero and false triggers
+            
             repeat_step1 = True
 
             while(repeat_step1):
@@ -1014,7 +1020,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 ##check if velocity increased significantly after step 1, if so, reduce CFL and repeat step 1
                 if(self.clear_divergence_steps == 0): # if we are clearing divergence, we expect some velocity increase, so skip the check
                     vmax_after_step1 = xp.max(xp.linalg.norm(vfrac, axis=1))
-                    if(vmax_after_step1 > 1.25 * vmax):
+                    # Guard against NaN: NaN comparisons silently return False, bypassing the retry logic
+                    if not xp.isfinite(vmax_after_step1):
+                        print(f"----- Warning: NaN detected in velocity after step 1, repeating step with reduced CFL")
+                        repeat_step1 = True
+                        self.cfl = self.cfl * 0.7
+                        current_time = backup_current_time
+                    elif(vmax_after_step1 > 1.25 * vmax):
                         print(f"----- Warning: local max velocity increased significantly after step 1: {vmax_after_step1} vs {vmax}")
                         repeat_step1 = True
                         ##vold[:] = vold_backup #not needed as it is not modified in step1
@@ -1042,7 +1054,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
             # First time clear divergence
             vmax_after_step3 = xp.max(xp.linalg.norm(vnew, axis=1))
-            if self.clear_divergence_steps > 0:
+            # Guard against NaN: NaN comparisons silently return False, bypassing the retry logic
+            if not xp.isfinite(vmax_after_step3):
+                print(f"-----****!!!! Warning: NaN detected in velocity after step 3, redoing step")
+                vnew[:] = vold_backup
+                p[:] = pold_backup
+                current_time = backup_current_time
+                self.cfl = self.cfl * 0.5
+            elif self.clear_divergence_steps > 0:
                 self.clear_divergence_steps -= 1
                 p.fill(0.0)
                 pold.fill(0.0)
