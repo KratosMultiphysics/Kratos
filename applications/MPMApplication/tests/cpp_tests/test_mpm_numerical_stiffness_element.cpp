@@ -109,7 +109,47 @@ ModelPart::GeometryType::Pointer Generate2D3NGeometry(ModelPart& rModelpart)
     return p_geometry;
 }
 
+ModelPart::GeometryType::Pointer Generate3D4NGeometry(ModelPart& rModelpart)
+{
+    
+    rModelpart.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+    AddVariablesAndDofs(rModelpart);
 
+    // Create Geometry
+    rModelpart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+    rModelpart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+    rModelpart.CreateNewNode(3, 0.0 , 1.0 , 0.0);
+    rModelpart.CreateNewNode(4, 0.0 , 0.0 , 1.0);
+
+    std::vector<ModelPart::IndexType> geometry_node_ids {1, 2, 3, 4};
+
+    ModelPart::GeometryType::Pointer p_geometry = rModelpart.CreateNewGeometry("Tetrahedra3D4", geometry_node_ids);
+    
+    return p_geometry;
+}
+
+ModelPart::GeometryType::Pointer Generate3D8NGeometry(ModelPart& rModelpart)
+{
+    
+    rModelpart.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+    AddVariablesAndDofs(rModelpart);
+
+    // Create Geometry
+    rModelpart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+    rModelpart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+    rModelpart.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+    rModelpart.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+    rModelpart.CreateNewNode(5, 0.0 , 0.0 , 1.0);
+    rModelpart.CreateNewNode(6, 1.0 , 0.0 , 1.0);
+    rModelpart.CreateNewNode(7, 1.0 , 1.0 , 1.0);
+    rModelpart.CreateNewNode(8, 0.0 , 1.0 , 1.0);
+
+    std::vector<ModelPart::IndexType> geometry_node_ids {1, 2, 3, 4, 5, 6, 7, 8};
+
+    ModelPart::GeometryType::Pointer p_geometry = rModelpart.CreateNewGeometry("Hexahedra3D8", geometry_node_ids);
+    
+    return p_geometry;
+}
 ModelPart::PropertiesType::Pointer CreateCommonProperties(ModelPart& rModelpart)
 {
     auto p_elem_prop = rModelpart.CreateNewProperties(0);
