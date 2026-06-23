@@ -1,0 +1,7 @@
+node_modules/
+dist/
+out/
+media/webview.js
+media/webview.js.map
+media/style.css
+*.vsix

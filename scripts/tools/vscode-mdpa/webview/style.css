@@ -1,0 +1,181 @@
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size, 13px);
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+}
+
+#app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+#sidebar {
+  width: 280px;
+  min-width: 200px;
+  flex: 0 0 auto;
+  border-right: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+  overflow-y: auto;
+  padding: 8px 10px;
+  box-sizing: border-box;
+}
+
+#viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#render-root {
+  position: absolute;
+  inset: 0;
+}
+
+#render-root canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#toolbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  display: flex;
+  gap: 4px;
+}
+
+#toolbar button,
+.node-label {
+  font-family: var(--vscode-font-family);
+}
+
+#toolbar button {
+  background: var(--vscode-button-secondaryBackground, rgba(90, 93, 94, 0.31));
+  color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+  border: 1px solid var(--vscode-panel-border, transparent);
+  border-radius: 3px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+#toolbar button:hover {
+  background: var(--vscode-button-secondaryHoverBackground, rgba(90, 93, 94, 0.5));
+}
+
+#toolbar button.active {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+#stats {
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+#stats .stat-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+#stats .stat-key {
+  opacity: 0.75;
+}
+
+#stats .warn {
+  color: var(--vscode-editorWarning-foreground, #cca700);
+}
+
+#outline-header {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  margin: 6px 0;
+}
+
+.outline-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  white-space: nowrap;
+}
+
+.outline-row input[type="checkbox"] {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.outline-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(128, 128, 128, 0.5);
+}
+
+.outline-label {
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.outline-label:hover {
+  text-decoration: underline;
+}
+
+.outline-count {
+  opacity: 0.55;
+  margin-left: 4px;
+}
+
+.outline-section {
+  font-weight: 600;
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+
+.node-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  font-size: 10px;
+  color: var(--vscode-editorCodeLens-foreground, var(--vscode-foreground));
+  background: var(--vscode-editor-background);
+  padding: 0 2px;
+  border-radius: 2px;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+#labels {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+
+#message {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 10;
+  font-size: 11px;
+  opacity: 0.7;
+}

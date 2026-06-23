@@ -1,0 +1,109 @@
+{
+  "name": "vscode-mdpa",
+  "displayName": "Kratos MDPA Preview",
+  "description": "Preview, organize, and manage Kratos Multiphysics .mdpa model-part files: 3D mesh viewer with a navigable ModelPart/SubModelPart outline and toggleable layers.",
+  "version": "0.1.0",
+  "publisher": "kratos-multiphysics",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "Visualization",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "kratos",
+    "mdpa",
+    "mesh",
+    "finite element",
+    "fem"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "languages": [
+      {
+        "id": "mdpa",
+        "aliases": [
+          "Kratos MDPA",
+          "mdpa"
+        ],
+        "extensions": [
+          ".mdpa"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mdpa",
+        "scopeName": "source.mdpa",
+        "path": "./syntaxes/mdpa.tmLanguage.json"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "kratos.mdpaPreview",
+        "displayName": "Kratos MDPA Preview",
+        "selector": [
+          {
+            "filenamePattern": "*.mdpa"
+          }
+        ],
+        "priority": "option"
+      }
+    ],
+    "commands": [
+      {
+        "command": "kratos.mdpa.openPreview",
+        "title": "Open MDPA Preview",
+        "category": "Kratos MDPA"
+      },
+      {
+        "command": "kratos.mdpa.resetCamera",
+        "title": "Reset Camera",
+        "category": "Kratos MDPA"
+      },
+      {
+        "command": "kratos.mdpa.toggleNodeIds",
+        "title": "Toggle Node IDs",
+        "category": "Kratos MDPA"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "kratos.mdpa.openPreview",
+          "when": "resourceExtname == .mdpa && activeCustomEditorId != kratos.mdpaPreview",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "kratos.mdpa.openPreview",
+          "when": "resourceExtname == .mdpa",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "node esbuild.js --production",
+    "typecheck": "tsc --noEmit -p ./",
+    "build:tests": "tsc -p ./tsconfig.test.json",
+    "test": "npm run build:tests && node --test out/test/"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.0",
+    "@types/vscode": "^1.84.0",
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@kitware/vtk.js": "^29.6.0"
+  }
+}

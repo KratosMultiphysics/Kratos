@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "target": "ES2021",
+    "lib": [
+      "ES2021"
+    ],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": false,
+    "rootDir": "src",
+    "outDir": "out"
+  },
+  "include": [
+    "src/parser/**/*.ts",
+    "src/test/**/*.ts"
+  ]
+}

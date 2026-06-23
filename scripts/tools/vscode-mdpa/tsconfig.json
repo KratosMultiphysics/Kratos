@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2021",
+    "lib": [
+      "ES2021",
+      "DOM"
+    ],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
+    "rootDir": ".",
+    "outDir": "out"
+  },
+  "include": [
+    "src/**/*.ts",
+    "webview/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "media"
+  ]
+}

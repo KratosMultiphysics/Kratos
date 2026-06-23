@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Kratos MDPA",
+  "scopeName": "source.mdpa",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#blocks" },
+    { "include": "#variables" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comments": {
+      "match": "//.*$",
+      "name": "comment.line.double-slash.mdpa"
+    },
+    "blocks": {
+      "match": "^\\s*(Begin|End)\\s+([A-Za-z]\\w*)",
+      "captures": {
+        "1": { "name": "keyword.control.block.mdpa" },
+        "2": { "name": "entity.name.section.mdpa" }
+      }
+    },
+    "variables": {
+      "match": "\\b([A-Z][A-Z0-9_]+)\\b",
+      "name": "variable.other.constant.mdpa"
+    },
+    "numbers": {
+      "match": "[-+]?\\b\\d+(\\.\\d*)?([eE][-+]?\\d+)?\\b",
+      "name": "constant.numeric.mdpa"
+    }
+  }
+}
