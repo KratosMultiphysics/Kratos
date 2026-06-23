@@ -102,7 +102,6 @@ class GeoMechanicalSolver(PythonSolver):
             "number_cycles"              : 5,
             "increase_factor"            : 2.0,
             "reduction_factor"           : 0.5,
-            "calculate_reactions"        : true,
             "max_line_search_iterations" : 5,
             "first_alpha_value"          : 0.5,
             "second_alpha_value"         : 1.0,
@@ -135,6 +134,13 @@ class GeoMechanicalSolver(PythonSolver):
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
+
+        # Since `ValidateSettings` of the base class enforces that defaults must exist for all given input parameters,
+        # we first check for any deprecated input parameters, and if we find them, we'll remove them.
+        if self.settings.Has("calculate_reactions"):
+            from KratosMultiphysics import kratos_utilities
+            kratos_utilities.IssueDeprecationWarning('GeoMechanicsApplication', 'Use of calculate_reactions is deprecated, please change to compute_reactions')
+            self.settings.RemoveValue("calculate_reactions")
 
         super().ValidateSettings()
 
