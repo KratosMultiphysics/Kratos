@@ -482,6 +482,90 @@ KRATOS_TEST_CASE_IN_SUITE(TestVolumeSumUtility2D3N, KratosMPMFastSuite)
     std::vector<double> current_mp_volume;
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TestVolumeSumUtility3D8N, KratosMPMFastSuite)
+{
+    Model current_model;
+    ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
+    ModelPart& r_background_model_part = current_model.CreateModelPart("BackgroundModelPart");
+    const IndexType grid_case = 20; //3D8N
+    PrepareBackgroundModelPart(r_background_model_part, grid_case);
+    
+    auto initial_geometry1 = r_background_model_part.GetElement(1).pGetGeometry();
+    auto rThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+
+    r_mpm_model_part.CreateNewProperties(0);
+    PrepareMPMModelPart(r_mpm_model_part, initial_geometry1, rThisIntegrationMethod);
+
+    // Initial location
+    Vector grid_volume_vector;
+    SearchAndCalculateVolume<3>(r_background_model_part, r_mpm_model_part);
+    GetVolumeVector(r_background_model_part, grid_volume_vector);
+
+    Vector ref_grid_volume_vector = ZeroVector(8);
+    ref_grid_volume_vector[0] = 22.0;
+    KRATOS_EXPECT_VECTOR_EQ(grid_volume_vector, ref_grid_volume_vector);
+    
+    // Move material points and recalculate mp volume at grid
+    Vector mp_displacement(3);
+    mp_displacement[0] = 0.0;
+    mp_displacement[1] = 0.0;
+    mp_displacement[2] = 1.0;
+    MoveMaterialPoints(r_mpm_model_part, mp_displacement);
+
+    SearchAndCalculateVolume<3>(r_background_model_part, r_mpm_model_part);
+    GetVolumeVector(r_background_model_part, grid_volume_vector);
+
+    ref_grid_volume_vector = ZeroVector(8);
+    ref_grid_volume_vector[4] = 22.0;
+
+    KRATOS_EXPECT_VECTOR_EQ(grid_volume_vector, ref_grid_volume_vector);
+
+    // Move material points and recalculate mp volume at grid
+    mp_displacement[0] = 0.5;
+    mp_displacement[1] = 0.5;
+    mp_displacement[2] = 0.0;
+    MoveMaterialPoints(r_mpm_model_part, mp_displacement);
+
+    std::vector<array_1d<double, 3 >> mp_coordinate;
+    std::vector<double> mp_volume;
+    for (auto& r_element : r_mpm_model_part.Elements())
+    {
+        r_element.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate, r_mpm_model_part.GetProcessInfo());
+        r_element.CalculateOnIntegrationPoints(MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+        KRATOS_WATCH(r_element.Id())
+        KRATOS_WATCH(mp_coordinate[0])
+        KRATOS_WATCH(mp_volume)
+    }
+    KRATOS_WATCH(r_background_model_part.Elements())
+
+
+    SearchAndCalculateVolume<3>(r_background_model_part, r_mpm_model_part);
+    GetVolumeVector(r_background_model_part, grid_volume_vector);
+    ref_grid_volume_vector = ZeroVector(8);
+    ref_grid_volume_vector[4] = 4.0;
+    ref_grid_volume_vector[5] = 5.0;
+    ref_grid_volume_vector[6] = 6.0;
+    ref_grid_volume_vector[7] = 7.0;
+
+    KRATOS_EXPECT_VECTOR_EQ(grid_volume_vector, ref_grid_volume_vector);
+
+    // Delete, search material points and recalculate mp volume at grid
+    auto& mp_2 = r_mpm_model_part.GetElement(7);
+    mp_2.GetGeometry().clear();
+    mp_2.Reset(ACTIVE);
+    mp_2.Set(TO_ERASE);
+    MaterialPointEraseProcess(r_mpm_model_part).Execute();
+
+    SearchAndCalculateVolume<3>(r_background_model_part, r_mpm_model_part);
+    GetVolumeVector(r_background_model_part, grid_volume_vector);
+    ref_grid_volume_vector = ZeroVector(8);
+    ref_grid_volume_vector[4] = 4.0;
+    ref_grid_volume_vector[5] = 5.0;
+    ref_grid_volume_vector[6] = 6.0;
+    ref_grid_volume_vector[7] = 7.0 - 4.5;
+
+    KRATOS_EXPECT_VECTOR_EQ(grid_volume_vector, ref_grid_volume_vector);
+}
 // TODO:
 // KRATOS_TEST_CASE_IN_SUITE(TestVolumeSumUtility3D4N, KratosMPMFastSuite)
 // KRATOS_TEST_CASE_IN_SUITE(TestVolumeSumUtility3D8N, KratosMPMFastSuite)
