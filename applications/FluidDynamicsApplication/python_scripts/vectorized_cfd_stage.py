@@ -895,7 +895,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Ensure it is wrapped as xp array just in case
         p = xp.asarray(p, dtype=cfd_utils.PRECISION)
 
-        return p
+        return p, is_converged
 
     def SolveStep3(self, vfrac, v_dirichlet, delta_p, dt, out=None):
         if out is None:
@@ -1030,8 +1030,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.step_1_total_time += time.perf_counter() - t1
 
             t2 = time.perf_counter()
-            p = self.SolveStep2(vfrac, pold, substep_dt)
+            p, is_converged = self.SolveStep2(vfrac, pold, substep_dt)
             delta_p = p - pold #TODO: most probably we could modify p in place
+            if is_converged==False:
+                delta_p.fill(0.0) #anyhow we will redo the step
             self.step_2_total_time += time.perf_counter() - t2
 
             t3 = time.perf_counter()
@@ -1044,7 +1046,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 self.clear_divergence_steps -= 1
                 p.fill(0.0)
                 pold.fill(0.0)
-            elif(vmax_after_step3 > 1.25 * vmax): #end of step velocity exploded! - redo full step
+            elif(vmax_after_step3 > 1.25 * vmax or is_converged==False): #end of step velocity exploded or pressure solver did not converge - redo full step
+                if(vmax_after_step3 > 1.25 * vmax):
+                    print("end of step velocity blew up ... redoing full step")
+                elif(is_converged==False):
+                    print("pressure solve failed to converge ... redoing full step")
                 vnew[:] = vold_backup
                 p[:] = pold_backup
                 current_time = backup_current_time # reset current time to before step 3 to repeat it with the new CFL
@@ -1251,8 +1257,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 precond = self.preconditioner.aspreconditioner()
                 print("doing div cleareance step")
                 t0 = time.perf_counter()
-                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
-                #sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, ref_interval=50, maxiter=500)
+                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
+                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=500,xp=xp)
                 print("status=",status)
             else:
                 t0 = time.perf_counter()
@@ -1263,12 +1269,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 factor = 1.0
                 exact_res_recalculation=10
                 t0 = time.perf_counter()
-                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=self.pressure_max_iteration)
-                #sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, ref_interval=50, maxiter=self.pressure_max_iteration)
+                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=self.pressure_max_iteration)
+                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration,xp=xp)
             print(f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
             is_converged = status == 0 # Note that the status is 0 if the solver converged
             if not is_converged:
+                print("************************************************************************")
                 print("CG failed to converge.")
+                print("************************************************************************")
             return sol, is_converged
         else:
             #FIXME: USE AMGCL FROM FUTURE NAMESPACE HERE!
