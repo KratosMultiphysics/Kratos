@@ -75,7 +75,16 @@ class LinkConstraintProcess(KratosMultiphysics.Process):
         # historical variables.
         dofs_per_node: int = len(self.__model_part.GetHistoricalVariablesNames())
         node_count: int = len(self.__model_part.GetRootModelPart().Nodes)
-        return self.__model_part.GetCommunicator().GetDataCommunicator().SumAll(dofs_per_node * node_count)
+        max_dofs: int = self.__model_part.GetCommunicator().GetDataCommunicator().SumAll(dofs_per_node * node_count)
+
+        constraint_count: int = len(self.__model_part.MasterSlaveConstraints)
+        last_constraint_id: int
+        if constraint_count:
+            last_constraint_id = self.__model_part.MasterSlaveConstraints.back().Id
+        else:
+            last_constraint_id = 0
+        last_constraint_id = self.__model_part.GetCommunicator().GetDataCommunicator().MaxAll(last_constraint_id)
+        return max(max_dofs, last_constraint_id)
 
 
 def Factory(parameters: KratosMultiphysics.Parameters,
