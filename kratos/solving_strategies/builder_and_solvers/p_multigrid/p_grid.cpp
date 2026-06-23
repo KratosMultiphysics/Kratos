@@ -22,102 +22,147 @@
 #include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 #include "utilities/builtin_timer.h" // BuiltinTimer
+#include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // DiagonalScaling
+#include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_utilities.hpp" // detail::DofData
 
 // System includes
 #include <limits> // std::numeric_limits
+#include <vector> // std::vector
 
 
 namespace Kratos {
 
 
 template <class TSparse, class TDense>
-PGrid<TSparse,TDense>::PGrid(Parameters Settings,
-                             const unsigned CurrentDepth,
-                             Parameters SmootherSettings,
-                             Parameters LeafSolverSettings,
-                             Parameters DiagonalScalingSettings)
-    : mRestrictionOperator(),
-      mProlongationOperator(),
-      mLhs(),
-      mSolution(),
-      mRhs(),
-      mDofSet(),
-      mIndirectDofSet(),
-      mDofMap(),
-      mpConstraintAssembler(),
-      mpDiagonalScaling(),
-      mpSolver(),
-      mMaybeChild(),
-      mVerbosity(),
-      mDepth(CurrentDepth)
-{
-    // Sanity checks.
-    KRATOS_ERROR_IF_NOT(mDepth) << "PGrid can only have positive depths (the original system is at depth=0)";
+struct PGrid<TSparse,TDense>::Impl {
+    typename TSparse::MatrixType mRestrictionOperator;
 
-    KRATOS_TRY
-    Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+    typename TSparse::MatrixType mProlongationOperator;
 
-    // Check float precision.
-    using value_type = typename TSparse::DataType;
-    const std::string precision = Settings["precision"].Get<std::string>();
-    if constexpr (std::is_same_v<value_type,double>) {
-        KRATOS_ERROR_IF_NOT(precision == "double")
-            << "attempting to construct a PGrid with inconsistent sparse space type "
-            << "(requested precision: \"" << precision << "\" "
-            << " build precision: \"double\")";
-    } else if constexpr (std::is_same_v<value_type,float>) {
-        KRATOS_ERROR_IF_NOT(precision == "single")
-            << "attempting to construct a PGrid with inconsistent sparse space type "
-            << "(requested precision: \"" << precision << "\" "
-            << " build precision: \"single\")";
-    } else {
-        static_assert(!std::is_same_v<value_type,value_type>, "unhandled sparse space type");
-    }
+    typename TSparse::MatrixType mLhs;
 
-    mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(Settings["constraint_imposition_settings"],
-                                                                       "Grid " + std::to_string(mDepth) + " constraints");
-    mpDiagonalScaling = std::make_unique<Scaling>(DiagonalScalingSettings);
-    mVerbosity = Settings["verbosity"].Get<int>();
+    typename TSparse::VectorType mSolution;
 
-    const int max_depth = Settings["max_depth"].Get<int>();
-    KRATOS_ERROR_IF_NOT(0 <= max_depth) << Settings << "\n\"max_depth\" must be non-negative";
-    if (mDepth < static_cast<unsigned>(max_depth)) {
-        KRATOS_TRY
-        KRATOS_ERROR_IF_NOT(SmootherSettings.Has("solver_type"));
-        const std::string solver_name = SmootherSettings["solver_type"].Get<std::string>();
-        using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
-        KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
-            << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
-            << "Make sure you imported the application it is defined in and that the spelling is correct.";
-        const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
-        mpSolver = r_factory.Create(SmootherSettings);
-        mMaybeChild = std::unique_ptr<PGrid>(new PGrid(Settings,
-                                                       mDepth + 1u,
-                                                       SmootherSettings,
-                                                       LeafSolverSettings,
-                                                       DiagonalScalingSettings));
-        KRATOS_CATCH(std::to_string(mDepth + 1u));
-    } else {
-        KRATOS_ERROR_IF_NOT(LeafSolverSettings.Has("solver_type"));
-        const std::string solver_name = LeafSolverSettings["solver_type"].Get<std::string>();
-        using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
+    typename TSparse::VectorType mRhs;
 
-        if (!SolverFactoryRegistry::Has(solver_name)) {
-            std::stringstream message;
-            message << "PMultigridBuilderAndSolver: "
-                    << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
-                    << "Make sure you imported the application it is defined in and that the spelling is correct. "
-                    << "Registered options are:\n";
-            for ([[maybe_unused]] const auto& [r_name, r_entry] : SolverFactoryRegistry::GetComponents()) {
-                message << "\t" << r_name << "\n";
-            }
-            KRATOS_ERROR << message.str();
-        } // if not SolverFactoryRegistry::Has(solver_name)
+    VariablesList::Pointer mpVariableList;
 
-        const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
-        mpSolver = r_factory.Create(LeafSolverSettings);
-    }
-    KRATOS_CATCH("")
+    /// @details Array of @ref Dof "DoFs" unique to the current grid level.
+    ///          DoFs need a pointer to a @ref NodalData object, which is why
+    ///          pairs of @ref NodalData and @ref Dof are stored instead of just
+    ///          DoFs.
+    std::vector<detail::DofData> mDofSet;
+
+    IndirectDofSet mIndirectDofSet;
+
+    std::vector<std::size_t> mDofMap;
+
+    std::shared_ptr<ConstraintAssembler<TSparse,TDense>> mpConstraintAssembler;
+
+    std::unique_ptr<Scaling> mpDiagonalScaling;
+
+    typename LinearSolverType::Pointer mpSolver;
+
+    std::optional<std::unique_ptr<PGrid>> mMaybeChild;
+
+    int mVerbosity;
+
+    unsigned mDepth;
+}; // struct PGrid::Impl
+
+
+template <class TSparse, class TDense>
+PGrid<TSparse,TDense>::PGrid(
+    Parameters Settings,
+    const unsigned CurrentDepth,
+    Parameters SmootherSettings,
+    Parameters LeafSolverSettings,
+    Parameters DiagonalScalingSettings)
+        : mpImpl(new Impl {
+            .mRestrictionOperator = {},
+            .mProlongationOperator = {},
+            .mLhs = {},
+            .mSolution = {},
+            .mRhs = {},
+            .mDofSet = {},
+            .mIndirectDofSet = {},
+            .mDofMap = {},
+            .mpConstraintAssembler = {},
+            .mpDiagonalScaling = {},
+            .mpSolver = {},
+            .mMaybeChild = {},
+            .mVerbosity = {},
+            .mDepth = CurrentDepth}) {
+                // Sanity checks.
+                KRATOS_ERROR_IF_NOT(mpImpl->mDepth) << "PGrid can only have positive depths (the original system is at depth=0)";
+
+                KRATOS_TRY
+                Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+
+                // Check float precision.
+                using value_type = typename TSparse::DataType;
+                const std::string precision = Settings["precision"].Get<std::string>();
+                if constexpr (std::is_same_v<value_type,double>) {
+                    KRATOS_ERROR_IF_NOT(precision == "double")
+                        << "attempting to construct a PGrid with inconsistent sparse space type "
+                        << "(requested precision: \"" << precision << "\" "
+                        << " build precision: \"double\")";
+                } else if constexpr (std::is_same_v<value_type,float>) {
+                    KRATOS_ERROR_IF_NOT(precision == "single")
+                        << "attempting to construct a PGrid with inconsistent sparse space type "
+                        << "(requested precision: \"" << precision << "\" "
+                        << " build precision: \"single\")";
+                } else {
+                    static_assert(!std::is_same_v<value_type,value_type>, "unhandled sparse space type");
+                }
+
+                mpImpl->mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(
+                    Settings["constraint_imposition_settings"],
+                    "Grid " + std::to_string(mpImpl->mDepth) + " constraints");
+                mpImpl->mpDiagonalScaling = std::make_unique<Scaling>(DiagonalScalingSettings);
+                mpImpl->mVerbosity = Settings["verbosity"].Get<int>();
+
+                const int max_depth = Settings["max_depth"].Get<int>();
+                KRATOS_ERROR_IF_NOT(0 <= max_depth) << Settings << "\n\"max_depth\" must be non-negative";
+                if (mpImpl->mDepth < static_cast<unsigned>(max_depth)) {
+                    KRATOS_TRY
+                    KRATOS_ERROR_IF_NOT(SmootherSettings.Has("solver_type"));
+                    const std::string solver_name = SmootherSettings["solver_type"].Get<std::string>();
+                    using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
+                    KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
+                        << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
+                        << "Make sure you imported the application it is defined in and that the spelling is correct.";
+                    const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
+                    mpImpl->mpSolver = r_factory.Create(SmootherSettings);
+                    mpImpl->mMaybeChild = std::unique_ptr<PGrid>(
+                        new PGrid(
+                            Settings,
+                            mpImpl->mDepth + 1u,
+                            SmootherSettings,
+                            LeafSolverSettings,
+                            DiagonalScalingSettings));
+                    KRATOS_CATCH(std::to_string(mpImpl->mDepth + 1u));
+                } else {
+                    KRATOS_ERROR_IF_NOT(LeafSolverSettings.Has("solver_type"));
+                    const std::string solver_name = LeafSolverSettings["solver_type"].Get<std::string>();
+                    using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
+
+                    if (!SolverFactoryRegistry::Has(solver_name)) {
+                        std::stringstream message;
+                        message << "PMultigridBuilderAndSolver: "
+                                << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
+                                << "Make sure you imported the application it is defined in and that the spelling is correct. "
+                                << "Registered options are:\n";
+                        for ([[maybe_unused]] const auto& [r_name, r_entry] : SolverFactoryRegistry::GetComponents()) {
+                            message << "\t" << r_name << "\n";
+                        }
+                        KRATOS_ERROR << message.str();
+                    } // if not SolverFactoryRegistry::Has(solver_name)
+
+                    const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
+                    mpImpl->mpSolver = r_factory.Create(LeafSolverSettings);
+                }
+                KRATOS_CATCH("")
 }
 
 
@@ -143,6 +188,18 @@ PGrid<TSparse,TDense>::PGrid()
             Parameters(R"("norm")"))
 {
 }
+
+
+template <class TSparse, class TDense>
+PGrid<TSparse,TDense>::PGrid(PGrid&&) noexcept = default;
+
+
+template <class TSparse, class TDense>
+PGrid<TSparse,TDense>::~PGrid() = default;
+
+
+template <class TSparse, class TDense>
+PGrid<TSparse,TDense>& PGrid<TSparse,TDense>::operator=(PGrid&&) noexcept = default;
 
 
 template <class TSparse, class TDense>
@@ -195,19 +252,19 @@ void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
             rModelPart,
             pParentLhs->size1(),
             rParentDofSet,
-            mRestrictionOperator,
-            mpVariableList,
-            mDofSet,
-            mIndirectDofSet,
-            mDofMap);
+            mpImpl->mRestrictionOperator,
+            mpImpl->mpVariableList,
+            mpImpl->mDofSet,
+            mpImpl->mIndirectDofSet,
+            mpImpl->mDofMap);
 
         // Compute the coarse LHS matrix.
         typename TSparse::MatrixType left_multiplied_lhs;
-        SparseUtils::MatrixMultiplication(mRestrictionOperator, *pParentLhs, left_multiplied_lhs);
-        SparseUtils::TransposeMatrix(mProlongationOperator, mRestrictionOperator, 1.0);
-        SparseUtils::MatrixMultiplication(left_multiplied_lhs, mProlongationOperator, mLhs);
+        SparseUtils::MatrixMultiplication(mpImpl->mRestrictionOperator, *pParentLhs, left_multiplied_lhs);
+        SparseUtils::TransposeMatrix(mpImpl->mProlongationOperator, mpImpl->mRestrictionOperator, 1.0);
+        SparseUtils::MatrixMultiplication(left_multiplied_lhs, mpImpl->mProlongationOperator, mpImpl->mLhs);
 
-        KRATOS_INFO_IF("Grid " + std::to_string(mDepth), 2 <= this->mVerbosity)
+        KRATOS_INFO_IF("Grid " + std::to_string(mpImpl->mDepth), 2 <= this->mpImpl->mVerbosity)
             << ": grid construction took " << timer << "\n";
     } // if AssembleLHS
 
@@ -215,13 +272,13 @@ void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
     if constexpr (AssembleRHS) {
         // Sanity checks
         KRATOS_ERROR_IF_NOT(pParentRhs);
-        KRATOS_ERROR_IF_NOT(mRestrictionOperator.size2() == pParentRhs->size())
-            << "expecting an RHS vector of size " << mRestrictionOperator.size2()
+        KRATOS_ERROR_IF_NOT(mpImpl->mRestrictionOperator.size2() == pParentRhs->size())
+            << "expecting an RHS vector of size " << mpImpl->mRestrictionOperator.size2()
             << " but got " << pParentRhs->size();
 
         // Allocate the coarse vectors.
-        mSolution.resize(mRestrictionOperator.size1(), false);
-        mRhs.resize(mRestrictionOperator.size1(), false);
+        mpImpl->mSolution.resize(mpImpl->mRestrictionOperator.size1(), false);
+        mpImpl->mRhs.resize(mpImpl->mRestrictionOperator.size1(), false);
     } // if AssembleRHS
 
     // Compute coarse constraints.
@@ -233,9 +290,9 @@ void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
     switch (rParentConstraintAssembler.GetImposition()) {
         // The parent does not impose constraints, so neither must the current level.
         case ConstraintImposition::None:
-            KRATOS_ERROR_IF_NOT(mpConstraintAssembler->GetImposition() == ConstraintImposition::None)
-                << "PMultigridBuilderAndSolver: grid " << mDepth
-                << " imposes constraints (" << mpConstraintAssembler->GetValue(mpConstraintAssembler->GetImpositionVariable()) << ")"
+            KRATOS_ERROR_IF_NOT(mpImpl->mpConstraintAssembler->GetImposition() == ConstraintImposition::None)
+                << "PMultigridBuilderAndSolver: grid " << mpImpl->mDepth
+                << " imposes constraints (" << mpImpl->mpConstraintAssembler->GetValue(mpImpl->mpConstraintAssembler->GetImpositionVariable()) << ")"
                 << " but its parent does not";
             break;
 
@@ -245,12 +302,12 @@ void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
         case ConstraintImposition::MasterSlave:
             if (AssembleLHS) {
                 SparseUtils::MatrixMultiplication(rParentConstraintAssembler.GetRelationMatrix(),
-                                                  mProlongationOperator,
-                                                  mpConstraintAssembler->GetRelationMatrix());
+                                                  mpImpl->mProlongationOperator,
+                                                  mpImpl->mpConstraintAssembler->GetRelationMatrix());
             }
 
             if (AssembleRHS) {
-                mpConstraintAssembler->GetConstraintGapVector() = rParentConstraintAssembler.GetConstraintGapVector();
+                mpImpl->mpConstraintAssembler->GetConstraintGapVector() = rParentConstraintAssembler.GetConstraintGapVector();
             }
             break;
 
@@ -266,33 +323,37 @@ void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
         case ConstraintImposition::AugmentedLagrange:
             if (AssembleLHS) {
                 SparseUtils::MatrixMultiplication(rParentConstraintAssembler.GetRelationMatrix(),
-                                                  mProlongationOperator,
-                                                  mpConstraintAssembler->GetRelationMatrix());
+                                                  mpImpl->mProlongationOperator,
+                                                  mpImpl->mpConstraintAssembler->GetRelationMatrix());
 
                 typename TSparse::MatrixType tmp;
-                SparseUtils::MatrixMultiplication(mRestrictionOperator,
+                SparseUtils::MatrixMultiplication(mpImpl->mRestrictionOperator,
                                                   rParentConstraintAssembler.GetHessian(),
                                                   tmp);
                 SparseUtils::MatrixMultiplication(tmp,
-                                                  mProlongationOperator,
-                                                  mpConstraintAssembler->GetHessian());
+                                                  mpImpl->mProlongationOperator,
+                                                  mpImpl->mpConstraintAssembler->GetHessian());
             }
 
             if (AssembleRHS) {
-                mpConstraintAssembler->GetConstraintGapVector() = rParentConstraintAssembler.GetConstraintGapVector();
+                mpImpl->mpConstraintAssembler->GetConstraintGapVector() = rParentConstraintAssembler.GetConstraintGapVector();
             }
             break;
 
         // No other impositions are supported for now.
         default:
-            KRATOS_ERROR << "PMultigridBuilderAndSolver: unsupported constraint imposition at depth " << mDepth
+            KRATOS_ERROR << "PMultigridBuilderAndSolver: unsupported constraint imposition at depth " << mpImpl->mDepth
                          << " (parent: " << rParentConstraintAssembler.GetValue(rParentConstraintAssembler.GetImpositionVariable())
-                         << " child: " << mpConstraintAssembler->GetValue(mpConstraintAssembler->GetImpositionVariable()) << ")";
+                         << " child: " << mpImpl->mpConstraintAssembler->GetValue(mpImpl->mpConstraintAssembler->GetImpositionVariable()) << ")";
     } // switch rParentConstraintAssembler.GetImposition()
     KRATOS_CATCH("")
 
     KRATOS_TRY
-    mpConstraintAssembler->AllocateSystem(mLhs, mSolution, mRhs, mIndirectDofSet);
+    mpImpl->mpConstraintAssembler->AllocateSystem(
+        mpImpl->mLhs,
+        mpImpl->mSolution,
+        mpImpl->mRhs,
+        mpImpl->mIndirectDofSet);
     KRATOS_CATCH("")
 }
 
@@ -302,35 +363,35 @@ void PGrid<TSparse,TDense>::ApplyDirichletConditions(typename IndirectDofSet::co
                                                      [[maybe_unused]] typename IndirectDofSet::const_iterator itParentDofEnd)
 {
 
-    if (mIndirectDofSet.empty()) return;
+    if (mpImpl->mIndirectDofSet.empty()) return;
 
     // Apply dirichlet conditions on the restriction operator.
     KRATOS_TRY
-    block_for_each(mIndirectDofSet.begin(),
-                   mIndirectDofSet.end(),
+    block_for_each(mpImpl->mIndirectDofSet.begin(),
+                   mpImpl->mIndirectDofSet.end(),
                    [this, itParentDofBegin](const Dof<double>& r_dof){
         const std::size_t i_dof = r_dof.EquationId();
-        const typename TSparse::IndexType i_entry_begin = mRestrictionOperator.index1_data()[i_dof];
-        const typename TSparse::IndexType i_entry_end = mRestrictionOperator.index1_data()[i_dof + 1];
+        const typename TSparse::IndexType i_entry_begin = mpImpl->mRestrictionOperator.index1_data()[i_dof];
+        const typename TSparse::IndexType i_entry_end = mpImpl->mRestrictionOperator.index1_data()[i_dof + 1];
 
         if (r_dof.IsFixed()) {
             // Zero out the whole row, except the entry related to the dof on the fine grid.
-            const auto i_fine_dof = mDofMap[i_dof];
+            const auto i_fine_dof = mpImpl->mDofMap[i_dof];
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
-                const auto i_column = mRestrictionOperator.index2_data()[i_entry];
+                const auto i_column = mpImpl->mRestrictionOperator.index2_data()[i_entry];
                 if (i_column == i_fine_dof) {
-                    mRestrictionOperator.value_data()[i_entry] = static_cast<typename TSparse::DataType>(1);
+                    mpImpl->mRestrictionOperator.value_data()[i_entry] = static_cast<typename TSparse::DataType>(1);
                 } else {
-                    mRestrictionOperator.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
+                    mpImpl->mRestrictionOperator.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
                 }
             } // for i_entry in range(i_entry_begin, i_entry_end)
         } /*if r_dof.IsFixed()*/ else {
             // Zero out the column which is associated with the zero'ed row.
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
-                const auto i_column = mRestrictionOperator.index2_data()[i_entry];
+                const auto i_column = mpImpl->mRestrictionOperator.index2_data()[i_entry];
                 const auto it_column_dof = itParentDofBegin + i_column;
                 if (it_column_dof->IsFixed()) {
-                    mRestrictionOperator.value_data()[i_entry] = 0.0;
+                    mpImpl->mRestrictionOperator.value_data()[i_entry] = 0.0;
                 }
             } // for i_entry in range(i_entry_begin, i_entry_end)
         } /*not r_dof.IsFixed()*/
@@ -340,19 +401,22 @@ void PGrid<TSparse,TDense>::ApplyDirichletConditions(typename IndirectDofSet::co
     // Apply dirichlet conditions on the prolongation operator.
     // @todo make this more efficient.
     KRATOS_TRY
-    mProlongationOperator = decltype(mProlongationOperator)();
-    SparseMatrixMultiplicationUtility::TransposeMatrix(mProlongationOperator, mRestrictionOperator, 1.0);
+    mpImpl->mProlongationOperator = decltype(mpImpl->mProlongationOperator)();
+    SparseMatrixMultiplicationUtility::TransposeMatrix(
+        mpImpl->mProlongationOperator,
+        mpImpl->mRestrictionOperator,
+        1.0);
     KRATOS_CATCH("")
 
     // Apply dirichlet conditions on the LHS.
     KRATOS_TRY
-    mpDiagonalScaling->Cache<TSparse>(mLhs);
-    const auto diagonal_scale = mpDiagonalScaling->Evaluate();
+    mpImpl->mpDiagonalScaling->template Cache<TSparse>(mpImpl->mLhs);
+    const auto diagonal_scale = mpImpl->mpDiagonalScaling->Evaluate();
     Kratos::ApplyDirichletConditions<TSparse,TDense>(
-        mLhs,
-        mRhs,
-        mIndirectDofSet.begin(),
-        mIndirectDofSet.end(),
+        mpImpl->mLhs,
+        mpImpl->mRhs,
+        mpImpl->mIndirectDofSet.begin(),
+        mpImpl->mIndirectDofSet.end(),
         diagonal_scale);
     KRATOS_CATCH("")
 }
@@ -362,7 +426,11 @@ template <class TSparse, class TDense>
 void PGrid<TSparse,TDense>::ApplyConstraints()
 {
     KRATOS_TRY
-    mpConstraintAssembler->Initialize(mLhs, mSolution, mRhs, mIndirectDofSet);
+    mpImpl->mpConstraintAssembler->Initialize(
+        mpImpl->mLhs,
+        mpImpl->mSolution,
+        mpImpl->mRhs,
+        mpImpl->mIndirectDofSet);
     KRATOS_CATCH("")
 }
 
@@ -375,13 +443,17 @@ void PGrid<TSparse,TDense>::Initialize(ModelPart& rModelPart,
                                        const typename TParentSparse::VectorType&)
 {
     KRATOS_TRY
-    if (mpSolver->AdditionalPhysicalDataIsNeeded())
-        mpSolver->ProvideAdditionalData(mLhs,
-                                        mSolution,
-                                        mRhs,
-                                        mIndirectDofSet,
-                                        rModelPart);
-    mpSolver->InitializeSolutionStep(mLhs, mSolution, mRhs);
+    if (mpImpl->mpSolver->AdditionalPhysicalDataIsNeeded())
+        mpImpl->mpSolver->ProvideAdditionalData(
+            mpImpl->mLhs,
+            mpImpl->mSolution,
+            mpImpl->mRhs,
+            mpImpl->mIndirectDofSet,
+            rModelPart);
+    mpImpl->mpSolver->InitializeSolutionStep(
+        mpImpl->mLhs,
+        mpImpl->mSolution,
+        mpImpl->mRhs);
     KRATOS_CATCH("")
 }
 
@@ -401,7 +473,10 @@ void PGrid<TSparse,TDense>::ExecuteMultigridLoop(PMGStatusStream& rStream,
     // The multigrid hierarchy depth is currently capped at 1,
     // so the linear solver is used here instead of invoking
     // lower grids.
-    rReport.multigrid_relative_converged = mpSolver->PerformSolutionStep(mLhs, mSolution, mRhs);
+    rReport.multigrid_relative_converged = mpImpl->mpSolver->PerformSolutionStep(
+        mpImpl->mLhs,
+        mpImpl->mSolution,
+        mpImpl->mRhs);
 
     KRATOS_CATCH("")
 }
@@ -412,7 +487,7 @@ void PGrid<TSparse,TDense>::ExecuteConstraintLoop(PMGStatusStream& rStream,
                                                   PMGStatusStream::Report& rReport)
 {
     bool constraints_finished = false;
-    auto initial_residual = TSparse::TwoNorm(mRhs);
+    auto initial_residual = TSparse::TwoNorm(mpImpl->mRhs);
     initial_residual = initial_residual ? initial_residual : 1;
 
     // Impose constraints and solve the coarse system.
@@ -424,40 +499,48 @@ void PGrid<TSparse,TDense>::ExecuteConstraintLoop(PMGStatusStream& rStream,
         rReport.maybe_constraint_relative_residual.reset();
 
         // Initialize the constraint assembler.
-        mpConstraintAssembler->InitializeConstraintIteration(
-            mLhs,
-            mSolution,
-            mRhs,
-            mIndirectDofSet.begin(),
-            mIndirectDofSet.end());
+        mpImpl->mpConstraintAssembler->InitializeConstraintIteration(
+            mpImpl->mLhs,
+            mpImpl->mSolution,
+            mpImpl->mRhs,
+            mpImpl->mIndirectDofSet.begin(),
+            mpImpl->mIndirectDofSet.end());
 
         // Get an update on the solution with respect to the current right hand side.
         this->ExecuteMultigridLoop(rStream, rReport);
-        constraints_finished = mpConstraintAssembler->FinalizeConstraintIteration(
-            mLhs,
-            mSolution,
-            mRhs,
-            mIndirectDofSet.begin(),
-            mIndirectDofSet.end(),
+        constraints_finished = mpImpl->mpConstraintAssembler->FinalizeConstraintIteration(
+            mpImpl->mLhs,
+            mpImpl->mSolution,
+            mpImpl->mRhs,
+            mpImpl->mIndirectDofSet.begin(),
+            mpImpl->mIndirectDofSet.end(),
             rReport,
             rStream);
 
         // Update state log.
         if (!constraints_finished) {
-            rStream.Submit(rReport.Tag(3), mVerbosity);
+            rStream.Submit(rReport.Tag(3), mpImpl->mVerbosity);
             ++rReport.constraint_iteration;
         }
     } while (!constraints_finished);
 
     // Update the residual.
-    BalancedProduct<TSparse,TSparse,TSparse>(mLhs, mSolution, mRhs, static_cast<typename TSparse::DataType>(-1));
+    BalancedProduct<TSparse,TSparse,TSparse>(
+        mpImpl->mLhs,
+        mpImpl->mSolution,
+        mpImpl->mRhs,
+        static_cast<typename TSparse::DataType>(-1));
 
     // Update state log.
-    rReport.maybe_multigrid_absolute_residual = TSparse::TwoNorm(mRhs);
+    rReport.maybe_multigrid_absolute_residual = TSparse::TwoNorm(mpImpl->mRhs);
     rReport.maybe_multigrid_relative_residual = rReport.maybe_multigrid_absolute_residual.value() / initial_residual;
-    rStream.Submit(rReport.Tag(2), mVerbosity);
+    rStream.Submit(rReport.Tag(2), mpImpl->mVerbosity);
 
-    mpConstraintAssembler->Finalize(mLhs, mSolution, mRhs, mIndirectDofSet);
+    mpImpl->mpConstraintAssembler->Finalize(
+        mpImpl->mLhs,
+        mpImpl->mSolution,
+        mpImpl->mRhs,
+        mpImpl->mIndirectDofSet);
     KRATOS_CATCH("")
 }
 
@@ -483,7 +566,7 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     #endif
 
     PMGStatusStream::Report status_report {
-        /*grid_level=*/                 static_cast<std::size_t>(mDepth),
+        /*grid_level=*/                 static_cast<std::size_t>(mpImpl->mDepth),
         /*multigrid_converged=*/        false,
         /*multigrid_iteration=*/        0ul,
         /*multigrid_residual=*/         {},
@@ -492,10 +575,10 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
         /*maybe_constraint_residual=*/  {}
     };
 
-    TSparse::SetToZero(mSolution);
-    this->Restrict<TParentSparse>(mRhs, rParentRhs, rParentConstraintAssembler);
+    TSparse::SetToZero(mpImpl->mSolution);
+    this->Restrict<TParentSparse>(mpImpl->mRhs, rParentRhs, rParentConstraintAssembler);
     this->ExecuteConstraintLoop(rStream, status_report);
-    this->Prolong<TParentSparse>(rParentSolution, mSolution, rParentConstraintAssembler);
+    this->Prolong<TParentSparse>(rParentSolution, mpImpl->mSolution, rParentConstraintAssembler);
 
     return (status_report.multigrid_absolute_converged || status_report.multigrid_relative_converged) && (status_report.constraints_absolute_converged || status_report.constraints_relative_converged);
 }
@@ -508,7 +591,11 @@ void PGrid<TSparse,TDense>::Finalize(ModelPart& rModelPart,
                                      const typename TParentSparse::VectorType&,
                                      const typename TParentSparse::VectorType&)
 {
-    mpConstraintAssembler->Finalize(mLhs, mSolution, mRhs, mIndirectDofSet);
+    mpImpl->mpConstraintAssembler->Finalize(
+        mpImpl->mLhs,
+        mpImpl->mSolution,
+        mpImpl->mRhs,
+        mpImpl->mIndirectDofSet);
 }
 
 
@@ -524,14 +611,15 @@ void PGrid<TSparse,TDense>::Restrict(typename TSparse::VectorType& rCoarseIndepe
     rParentConstraintAssembler.ComputeDependentResidual(fine_dependent_residual);
 
     // Use the restriction operator to transform the dependent residual to the coarse grid.
-    rCoarseIndependentResidual.resize(mRestrictionOperator.size1(), false);
+    rCoarseIndependentResidual.resize(mpImpl->mRestrictionOperator.size1(), false);
     TSparse::SetToZero(rCoarseIndependentResidual);
-    BalancedProduct<TSparse,TParentSparse,TSparse>(mRestrictionOperator,
-                                                   fine_dependent_residual,
-                                                   rCoarseIndependentResidual);
+    BalancedProduct<TSparse,TParentSparse,TSparse>(
+        mpImpl->mRestrictionOperator,
+        fine_dependent_residual,
+        rCoarseIndependentResidual);
 
     // Transform the coarse residual from dependent to independent space.
-    mpConstraintAssembler->ComputeIndependentResidual(rCoarseIndependentResidual);
+    mpImpl->mpConstraintAssembler->ComputeIndependentResidual(rCoarseIndependentResidual);
     KRATOS_CATCH("")
 }
 
@@ -545,12 +633,12 @@ void PGrid<TSparse,TDense>::Prolong(typename TParentSparse::VectorType& rFineInd
     KRATOS_TRY
     // Transform the coarse residual from independent space to dependent space.
     typename TSparse::VectorType dependent_solution = rCoarseIndependentSolution;
-    mpConstraintAssembler->ComputeDependentSolution(dependent_solution);
+    mpImpl->mpConstraintAssembler->ComputeDependentSolution(dependent_solution);
 
     // Use the prolongation operator to transform the dependent residual to the fine grid.
-    rFineIndependentSolution.resize(mProlongationOperator.size1(), false);
+    rFineIndependentSolution.resize(mpImpl->mProlongationOperator.size1(), false);
     TParentSparse::SetToZero(rFineIndependentSolution);
-    BalancedProduct<TSparse,TSparse,TParentSparse>(mProlongationOperator,
+    BalancedProduct<TSparse,TSparse,TParentSparse>(mpImpl->mProlongationOperator,
                                                    rCoarseIndependentSolution,
                                                    rFineIndependentSolution);
 
@@ -563,18 +651,18 @@ void PGrid<TSparse,TDense>::Prolong(typename TParentSparse::VectorType& rFineInd
 template <class TSparse, class TDense>
 void PGrid<TSparse,TDense>::Clear()
 {
-    mRestrictionOperator = decltype(mRestrictionOperator)();
-    mProlongationOperator = decltype(mProlongationOperator)();
-    mLhs = decltype(mLhs)();
-    mSolution = decltype(mSolution)();
-    mRhs = decltype(mRhs)();
-    mIndirectDofSet = decltype(mIndirectDofSet)();
-    mDofSet = decltype(mDofSet)();
-    mpConstraintAssembler.reset();
-    mpSolver.reset();
+    mpImpl->mRestrictionOperator = decltype(mpImpl->mRestrictionOperator)();
+    mpImpl->mProlongationOperator = decltype(mpImpl->mProlongationOperator)();
+    mpImpl->mLhs = decltype(mpImpl->mLhs)();
+    mpImpl->mSolution = decltype(mpImpl->mSolution)();
+    mpImpl->mRhs = decltype(mpImpl->mRhs)();
+    mpImpl->mIndirectDofSet = decltype(mpImpl->mIndirectDofSet)();
+    mpImpl->mDofSet = decltype(mpImpl->mDofSet)();
+    mpImpl->mpConstraintAssembler.reset();
+    mpImpl->mpSolver.reset();
 
-    if (mMaybeChild.has_value()) {
-        mMaybeChild.value().reset();
+    if (mpImpl->mMaybeChild.has_value()) {
+        mpImpl->mMaybeChild.value().reset();
     }
 }
 
@@ -602,6 +690,20 @@ Parameters PGrid<TSparse,TDense>::GetDefaultParameters()
     }
 
     return output;
+}
+
+
+template <class TSparse, class TDense>
+std::optional<const PGrid<TSparse,TDense>*> PGrid<TSparse,TDense>::GetChild() const {
+    return mpImpl->mMaybeChild.has_value()
+        ? mpImpl->mMaybeChild.value().get()
+        : std::optional<const PGrid*>();
+}
+
+
+template <class TSparse, class TDense>
+const typename TSparse::VectorType& PGrid<TSparse,TDense>::GetSolution() const {
+    return mpImpl->mSolution;
 }
 
 
