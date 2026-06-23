@@ -230,7 +230,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestNumericalStiffnessElement2D4N, KratosMPMFastSuite)
     InitializeAllElement(r_model_part);
     KRATOS_EXPECT_DOUBLE_EQ(p_element->GetValue(GRID_VOLUME), 0.1);
     
-    bool is_active;
+    bool ref_is_active;
     Matrix ref_lhs = ZeroMatrix(8,8);
     Vector ref_rhs = ZeroVector(8);
     
@@ -238,17 +238,17 @@ KRATOS_TEST_CASE_IN_SUITE(TestNumericalStiffnessElement2D4N, KratosMPMFastSuite)
 
     // Empty grid
     SetTotalMPVolumeOnGrid(p_element, 0.0);
-    is_active = false;
-    ConductMPMNumericalStiffnessMatrixTest(p_element, is_active, ref_lhs, ref_rhs, process_info);
+    ref_is_active = false;
+    ConductMPMNumericalStiffnessMatrixTest(p_element, ref_is_active, ref_lhs, ref_rhs, process_info);
     
     // Almost Full Grid
     SetTotalMPVolumeOnGrid(p_element, 0.99);
-    is_active = false;
-    ConductMPMNumericalStiffnessMatrixTest(p_element, is_active, ref_lhs, ref_rhs, process_info);
+    ref_is_active = false;
+    ConductMPMNumericalStiffnessMatrixTest(p_element, ref_is_active, ref_lhs, ref_rhs, process_info);
     
     // Half Filled Grid 
     SetTotalMPVolumeOnGrid(p_element, 0.5);
-    is_active = true;
+    ref_is_active = true;
 
     ref_lhs(0,0)=   10 ; ref_lhs(0,1)=  2.5; ref_lhs(0,2)=   -5; ref_lhs(0,3)= -2.5; ref_lhs(0,4)=   -5; ref_lhs(0,5)= -2.5; ref_lhs(0,6)=    0; ref_lhs(0,7)=  2.5;
     ref_lhs(1,0)=  2.5 ; ref_lhs(1,1)=   10; ref_lhs(1,2)=  2.5; ref_lhs(1,3)=    0; ref_lhs(1,4)= -2.5; ref_lhs(1,5)=   -5; ref_lhs(1,6)= -2.5; ref_lhs(1,7)=   -5;
@@ -270,7 +270,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestNumericalStiffnessElement2D4N, KratosMPMFastSuite)
 
     AssignPredefinedDisplacement(p_element);
  
-    ConductMPMNumericalStiffnessMatrixTest(p_element, is_active, ref_lhs, ref_rhs, process_info);
+    ConductMPMNumericalStiffnessMatrixTest(p_element, ref_is_active, ref_lhs, ref_rhs, process_info);
 
 }
 
@@ -294,7 +294,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestNumericalStiffnessElement2D3N, KratosMPMFastSuite)
     InitializeAllElement(r_model_part);
     KRATOS_EXPECT_DOUBLE_EQ(p_element->GetValue(GRID_VOLUME), 0.05);
     
-    bool is_active;
+    bool ref_is_active;
     Matrix ref_lhs = ZeroMatrix(6,6);
     Vector ref_rhs = ZeroVector(6);
     
@@ -302,17 +302,17 @@ KRATOS_TEST_CASE_IN_SUITE(TestNumericalStiffnessElement2D3N, KratosMPMFastSuite)
 
     // Empty grid
     SetTotalMPVolumeOnGrid(p_element, 0.0);
-    is_active = false;
-    ConductMPMNumericalStiffnessMatrixTest(p_element, is_active, ref_lhs, ref_rhs, process_info);
+    ref_is_active = false;
+    ConductMPMNumericalStiffnessMatrixTest(p_element, ref_is_active, ref_lhs, ref_rhs, process_info);
     
     // Almost Full Grid
     SetTotalMPVolumeOnGrid(p_element, 0.99);
-    is_active = false;
-    ConductMPMNumericalStiffnessMatrixTest(p_element, is_active, ref_lhs, ref_rhs, process_info);
+    ref_is_active = false;
+    ConductMPMNumericalStiffnessMatrixTest(p_element, ref_is_active, ref_lhs, ref_rhs, process_info);
     
     // Half Filled Grid 
     SetTotalMPVolumeOnGrid(p_element, 0.5);
-    is_active = true;
+    ref_is_active = true;
 
     ref_lhs(0,0)=  3.75; ref_lhs(0,1)=  1.25; ref_lhs(0,2)= -2.5; ref_lhs(0,3)= -1.25; ref_lhs(0,4)= -1.25; ref_lhs(0,5)=    0;
     ref_lhs(1,0)=  1.25; ref_lhs(1,1)=  3.75; ref_lhs(1,2)=    0; ref_lhs(1,3)= -1.25; ref_lhs(1,4)= -1.25; ref_lhs(1,5)= -2.5;
@@ -330,7 +330,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestNumericalStiffnessElement2D3N, KratosMPMFastSuite)
 
     AssignPredefinedDisplacement(p_element);
  
-    ConductMPMNumericalStiffnessMatrixTest(p_element, is_active, ref_lhs, ref_rhs, process_info);
+    ConductMPMNumericalStiffnessMatrixTest(p_element, ref_is_active, ref_lhs, ref_rhs, process_info);
 
 }
 
