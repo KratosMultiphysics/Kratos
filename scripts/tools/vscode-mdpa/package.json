@@ -95,11 +95,13 @@
     "package": "node esbuild.js --production",
     "typecheck": "tsc --noEmit -p ./",
     "build:tests": "tsc -p ./tsconfig.test.json",
-    "test": "npm run build:tests && node --test out/test/"
+    "test": "npm run build:tests && node --test out/test/",
+    "install-ext": "bash install.sh"
   },
   "devDependencies": {
     "@types/node": "^18.19.0",
     "@types/vscode": "^1.84.0",
+    "@vscode/vsce": "^2.22.0",
     "esbuild": "^0.20.2",
     "typescript": "^5.4.5"
   },
