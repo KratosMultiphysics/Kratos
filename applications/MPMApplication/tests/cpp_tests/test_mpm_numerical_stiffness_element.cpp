@@ -297,7 +297,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestNumericalStiffnessElement2D3N, KratosMPMFastSuite)
     auto p_geometry = Generate2D3NGeometry(r_model_part);
     
     // Create material properties
-    ModelPart::PropertiesType::Pointer p_properties = CreateCommonProperties(r_model_part);
+    ModelPart::PropertiesType::Pointer p_properties = Create2DCommonProperties(r_model_part);
     
     // Create test element and assign TOTAL_MP_VOLUME by volume ratio
     const Element& new_element = KratosComponents<Element>::Get("MPMSoftStiffness2D3N");
@@ -315,17 +315,17 @@ KRATOS_TEST_CASE_IN_SUITE(TestNumericalStiffnessElement2D3N, KratosMPMFastSuite)
     const ProcessInfo& process_info = r_model_part.GetProcessInfo();
 
     // Empty grid
-    SetTotalMPVolumeOnGrid(p_element, 0.0);
+    SetGridVolumeRatio(p_element, 0.0);
     ref_is_active = false;
     ConductMPMNumericalStiffnessMatrixTest(p_element, ref_is_active, ref_lhs, ref_rhs, process_info);
     
     // Almost Full Grid
-    SetTotalMPVolumeOnGrid(p_element, 0.99);
+    SetGridVolumeRatio(p_element, 0.99); // Note: This is above the threshold of 0.9, so the element should be inactive
     ref_is_active = false;
     ConductMPMNumericalStiffnessMatrixTest(p_element, ref_is_active, ref_lhs, ref_rhs, process_info);
     
     // Half Filled Grid 
-    SetTotalMPVolumeOnGrid(p_element, 0.5);
+    SetGridVolumeRatio(p_element, 0.5);
     ref_is_active = true;
 
     ref_lhs(0,0)=  3.75; ref_lhs(0,1)=  1.25; ref_lhs(0,2)= -2.5; ref_lhs(0,3)= -1.25; ref_lhs(0,4)= -1.25; ref_lhs(0,5)=    0;
