@@ -8,11 +8,11 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import Gi
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
-class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
+class KratosGeoMechanicsResetTotalsTests(KratosUnittest.TestCase):
     """
     This class contains benchmark tests which are checked with the analytical solution
     """
-    def test_reset_displacement_truss(self):
+    def test_reset_totals_truss(self):
         """
         Tests reset displacement in a truss in 4 stages
         stage 1: load is applied
@@ -31,7 +31,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         eps = F/(E*A)
 
         # get stages
-        test_name = 'truss_with_reset_displacement'
+        test_name = 'truss_with_reset_totals'
         project_path = test_helper.get_file_path(os.path.join('.', test_name))
         n_stages = 4
 
@@ -76,7 +76,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacement_stages[stage_nr-1][idx][0], -2 * eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr}")
 
 
-    def test_reset_displacement_beam(self):
+    def test_reset_totals_beam(self):
         """
         Tests reset displacement in a beam in 4 stages
         stage 1: load is applied / reset displacement is true
@@ -84,7 +84,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         stage 3: load is applied / reset displacement is false
         stage 4: load is removed / reset displacement is false
         """
-        project_path = test_helper.get_file_path('beam_with_reset_displacement')
+        project_path = test_helper.get_file_path('beam_with_reset_totals')
         n_stages = 4
         run_multiple_stages.run_stages(project_path, n_stages)
 
@@ -98,7 +98,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         eps = (F*L**3)/(3*E*I)
 
         reader = GiDOutputFileReader()
-        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_1.post.res"))
+        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_totals_stage_1.post.res"))
         time = 1.0
         end_node_id = 11
         actual_max_deflection = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, [end_node_id])[0][1]
@@ -108,7 +108,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         total_max_deflection = reader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data, [end_node_id])[0][1]
         self.assertAlmostEqual(total_max_deflection, expected_max_deflection, places=None, delta=abs(rel_tolerance * expected_max_deflection))
 
-        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_2.post.res"))
+        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_totals_stage_2.post.res"))
         time = 2.0
         displacement_vectors = reader.nodal_values_at_time("DISPLACEMENT", time, output_data)
         total_displacement_vectors = reader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data)
@@ -117,7 +117,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(u[1], 0.0, places=None, delta=abs_tolerance)
             self.assertAlmostEqual(u_total[1], 0.0, places=None, delta=abs_tolerance)
 
-        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_3.post.res"))
+        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_totals_stage_3.post.res"))
         time = 3.0
         displacement_vectors = reader.nodal_values_at_time("DISPLACEMENT", time, output_data)
         total_displacement_vectors = reader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data)
@@ -125,20 +125,20 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(u[1], 0.0, places=None, delta=abs_tolerance)
             self.assertAlmostEqual(u_total[1], 0.0, places=None, delta=abs_tolerance)
 
-        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_4.post.res"))
+        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_totals_stage_4.post.res"))
         time = 4.0
         actual_max_deflection = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, [end_node_id])[0][1]
         self.assertAlmostEqual(actual_max_deflection, -expected_max_deflection, places=None, delta=abs(rel_tolerance * expected_max_deflection))
         total_max_deflection = reader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data, [end_node_id])[0][1]
         self.assertAlmostEqual(total_max_deflection, -expected_max_deflection, places=None, delta=abs(rel_tolerance * expected_max_deflection))
 
-    def test_reset_displacement_shell_Dirichlet(self):
+    def test_reset_totals_shell_Dirichlet(self):
         """
         Tests reset displacement in a shell, loaded with prescribed Displacement
-        Verifies that the prescribed displacement is not erased by reset_displacement.
+        Verifies that the prescribed displacement is not erased by reset_totals.
         load is applied / reset displacement is true, prescribed Z displacement -20 on node 3
         """
-        test_name  = 'shell_with_reset_displacement'
+        test_name  = 'shell_with_reset_totals'
         file_path  = test_helper.get_file_path(os.path.join('.', test_name))
         simulation = test_helper.run_kratos(file_path)
         displacement = test_helper.get_displacement(simulation)

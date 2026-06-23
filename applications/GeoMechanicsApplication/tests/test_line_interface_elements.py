@@ -164,7 +164,7 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
         os.chdir(initial_cwd)
 
-    def assert_results_of_multi_stage_test_with_reset_displacement(self, stage, displacement_vector):
+    def assert_results_of_multi_stage_test_with_reset_totals(self, stage, displacement_vector):
         expected_displacement_vectors = [[0.0, 0.0, 0.0]] * 3  # the first three nodes have been fixed
         expected_displacement_vectors += [displacement_vector] * 3  # the last three nodes have prescribed non-zero displacements
         self.assertVectorsAlmostEqual(test_helper.get_displacement(stage), expected_displacement_vectors)
@@ -187,7 +187,7 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             stage = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
             stage.Run()
 
-            self.assert_results_of_multi_stage_test_with_reset_displacement(stage, displacement_vector)
+            self.assert_results_of_multi_stage_test_with_reset_totals(stage, displacement_vector)
 
         os.chdir(initial_directory)
 
