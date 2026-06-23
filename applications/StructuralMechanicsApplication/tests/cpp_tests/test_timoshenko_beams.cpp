@@ -217,7 +217,7 @@ TEST_P(ParametrizedFinalizeSolutionStepForTimoshenkoBeams, FinalizeSolutionStepI
         [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override {return std::make_shared<MockConstitutiveLaw>();}
         [[nodiscard]] SizeType GetStrainSize() const override {return 6;} // should be 3 for 2D, but for those elements it seems no problem
         [[nodiscard]] bool RequiresFinalizeMaterialResponse() override { return true; }
-        [[nodisard]] StressMeasure GetStressMeasure() override {return StressMeasure_PK2;}
+        [[nodiscard]] StressMeasure GetStressMeasure() override {return StressMeasure_PK2;}
 
         MOCK_METHOD(void, FinalizeMaterialResponsePK2, (Parameters&), (override));
     };
