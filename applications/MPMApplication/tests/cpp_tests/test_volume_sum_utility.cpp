@@ -47,6 +47,27 @@ void GetVolumeVector(ModelPart& rBackgroundModelPart, Vector& rVolumeVector)
     }
 }
 
+void GenerateGridnodes(
+    ModelPart& rBackgroundModelPart,
+    const double dx,
+    const double dy,
+    const double dz,
+    const size_t NumberOfRows,
+    const size_t NumberOfColumns,
+    const size_t NumberOfLayers = 1)
+{
+    // Nodes
+    IndexType point_index = 1;
+    for (size_t layer = 0; layer < NumberOfLayers; ++layer){
+        for (size_t row = 0; row < NumberOfRows; ++row){
+            for (size_t col = 0; col < NumberOfColumns; ++col){
+                rBackgroundModelPart.CreateNewNode(point_index, double(col) * dx, double(row) * dy, double(layer) * dz);
+                point_index += 1;
+            }
+        }
+    }
+}
+
 void PrepareBackgroundModelPart(ModelPart& rBackgroundModelPart, const int caseIndex )
 {
     rBackgroundModelPart.AddNodalSolutionStepVariable(TOTAL_MP_VOLUME);
@@ -66,55 +87,30 @@ void PrepareBackgroundModelPart(ModelPart& rBackgroundModelPart, const int caseI
     //  |/  |/  |/  |
     //  1---2---3---4
 
-    bool is_skew = false;
     std::string element;
-    IndexType number_of_nodes = 16;
     switch (caseIndex)
     {
     case 0:
         element = "Element2D4N";
         break;
-    case 1:
-        is_skew = true;
-        element = "Element2D4N";
-        break;
     case 10:
-        element = "Element2D3N";
-        break;
-    case 11:
-        is_skew = true;
         element = "Element2D3N";
         break;
     case 20:
         element = "Element3D8N";
-        number_of_nodes *= 2;
         break;
-    case 21:
-        is_skew = true;
-        element = "Element3D8N";
-        number_of_nodes *= 2;
+    case 30:
+        element = "Element3D4N";
         break;
     default:
         break;
     }
 
-
-    // Nodes
-    std::vector<Node::Pointer> point_vector(number_of_nodes);
-    const double dx = 1.0;
-    const double dy = 1.0;
-    IndexType point_index = 1;
-    for (size_t row = 0; row < 4; ++row) {
-        for (size_t col = 0; col < 4; ++col) {
-            double myskew = (col > 0 && row == 1 && is_skew) ? 0.1 : 0.0;
-            point_vector[point_index-1] = rBackgroundModelPart.CreateNewNode(point_index,
-                double(col)*dx + myskew, double(row)*dy, 0.0);
-            point_index += 1;
-        }
-    }
-
     if (element == "Element2D4N")
     {
+        // Nodes
+        GenerateGridnodes(rBackgroundModelPart, 1.0, 1.0, 1.0, 4, 4, 1);
+        // Grid elements
         rBackgroundModelPart.CreateNewElement( element, 1, { 1, 2, 6, 5 }, nullptr);
         rBackgroundModelPart.CreateNewElement( element, 2, { 2, 3, 7, 6 }, nullptr);
         rBackgroundModelPart.CreateNewElement( element, 3, { 3, 4, 8, 7 }, nullptr);
@@ -129,6 +125,10 @@ void PrepareBackgroundModelPart(ModelPart& rBackgroundModelPart, const int caseI
     }
     else if (element == "Element2D3N")
     {
+        // Nodes
+        GenerateGridnodes(rBackgroundModelPart, 1.0, 1.0, 1.0, 4, 4, 1);
+
+        // Grid elements
         rBackgroundModelPart.CreateNewElement(element, 1, { 1, 2, 6 }, nullptr);
         rBackgroundModelPart.CreateNewElement(element, 2, { 2, 3, 7 }, nullptr);
         rBackgroundModelPart.CreateNewElement(element, 3, { 3, 4, 8 }, nullptr);
@@ -155,20 +155,100 @@ void PrepareBackgroundModelPart(ModelPart& rBackgroundModelPart, const int caseI
     }
     else if (element == "Element3D8N")
     {
-        IndexType point_index = number_of_nodes/2 + 1;
-        for (size_t row = 0; row < 4; ++row) {
-            for (size_t col = 0; col < 4; ++col) {
-                double myskew = (col > 0 && row == 1 && is_skew) ? 0.1 : 0.0;
-                point_vector[point_index - 1] = rBackgroundModelPart.CreateNewNode(point_index,
-                    double(col) * dx + myskew, double(row) * dy, 1.0);
-                point_index += 1;
-            }
-        }
-        rBackgroundModelPart.CreateNewElement(element, 1, { 1, 2, 6, 5, 17,18,22,21}, nullptr);
-        rBackgroundModelPart.CreateNewElement(element, 2, { 2, 3, 7, 6 , 18,19,23,22}, nullptr);
+        // Nodes
+        GenerateGridnodes(rBackgroundModelPart, 1.0, 1.0, 1.0, 3, 3, 3);
+        KRATOS_WATCH(rBackgroundModelPart.Nodes())
 
-        rBackgroundModelPart.CreateNewElement(element, 4, { 5, 6, 10, 9 , 21,22,26,25}, nullptr);
-        rBackgroundModelPart.CreateNewElement(element, 5, { 6, 7, 11, 10 ,22,23,27,26}, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 1, { 1, 2, 5, 4, 10, 11, 14, 13}, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 2, { 2, 3, 6, 5, 11, 12, 15, 14}, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 3, { 5, 6, 9, 8, 14, 15, 18, 17}, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 4, { 4, 5, 8, 7, 13, 14, 17, 16}, nullptr);
+        
+        rBackgroundModelPart.CreateNewElement(element, 5, { 10, 11, 14, 13, 19, 20, 23, 22}, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 6, { 11, 12, 15, 14, 20, 21, 24, 23}, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 7, { 14, 15, 18, 17, 23, 24, 27, 26}, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 8, { 13, 14, 17, 16, 22, 23, 26, 25}, nullptr);
+    }
+    else if (element == "Element3D4N")
+    {
+        // Nodes
+        rBackgroundModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+        rBackgroundModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+        rBackgroundModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+        rBackgroundModelPart.CreateNewNode(4, 0.0, 0.0, 1.0);
+        rBackgroundModelPart.CreateNewNode(5, 1.0, 1.0, 0.0);
+        rBackgroundModelPart.CreateNewNode(6, 1.0, 0.0, 1.0);
+        rBackgroundModelPart.CreateNewNode(7, 0.0, 1.0, 1.0);
+        rBackgroundModelPart.CreateNewNode(8, 1.0, 1.0, 1.0);
+        rBackgroundModelPart.CreateNewNode(9, 2.0, 0.0, 0.0);
+        rBackgroundModelPart.CreateNewNode(10, 0.0, 2.0, 0.0);
+        rBackgroundModelPart.CreateNewNode(11, 0.0, 0.0, 2.0);
+        rBackgroundModelPart.CreateNewNode(12, 2.0, 1.0, 0.0);
+        rBackgroundModelPart.CreateNewNode(13, 1.0, 2.0, 0.0);
+        rBackgroundModelPart.CreateNewNode(14, 2.0, 0.0, 1.0);
+        rBackgroundModelPart.CreateNewNode(15, 1.0, 0.0, 2.0);
+        rBackgroundModelPart.CreateNewNode(16, 0.0, 2.0, 1.0);
+        rBackgroundModelPart.CreateNewNode(17, 0.0, 1.0, 2.0);
+        rBackgroundModelPart.CreateNewNode(18, 2.0, 1.0, 1.0);
+        rBackgroundModelPart.CreateNewNode(19, 1.0, 2.0, 1.0);
+        rBackgroundModelPart.CreateNewNode(20, 1.0, 1.0, 2.0);
+        rBackgroundModelPart.CreateNewNode(21, 2.0, 2.0, 0.0);
+        rBackgroundModelPart.CreateNewNode(22, 2.0, 0.0, 2.0);
+        rBackgroundModelPart.CreateNewNode(23, 0.0, 2.0, 2.0);
+        rBackgroundModelPart.CreateNewNode(24, 2.0, 2.0, 1.0);
+        rBackgroundModelPart.CreateNewNode(25, 2.0, 1.0, 2.0);
+        rBackgroundModelPart.CreateNewNode(26, 1.0, 2.0, 2.0);
+        rBackgroundModelPart.CreateNewNode(27, 2.0, 2.0, 2.0);
+
+        // Grid elements
+        rBackgroundModelPart.CreateNewElement(element,  1, { 1,  2,  5, 4 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element,  2, { 1,  2,  5, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element,  3, { 4,  7,  8, 1 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element,  4, { 1,  3,  7, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element,  5, { 1,  4,  6, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element,  6, { 3,  5,  8, 1 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element,  7, {12, 18,  8, 9 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element,  8, { 9, 12,  5, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element,  9, {14,  6,  8, 9 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 10, { 9,  2,  6, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 11, { 9, 14, 18, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 12, { 2,  5,  8, 9 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 13, { 7, 17, 11, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 14, { 8,  7,  4, 1 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 15, {20, 15, 11, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 16, { 8,  6, 15, 1 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 17, { 8, 20, 17, 1 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 18, { 6,  4, 11, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 19, { 6, 15, 22, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 20, { 8,  6, 14, 2 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 21, {20, 25, 22, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 22, { 8, 18, 25, 2 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 23, { 8, 20, 15, 2 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 24, {18, 14, 22, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 25, { 3,  7,  8, 0 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 26, {10,  3,  5, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 27, {16, 19,  8, 0 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 28, {10, 13, 19, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 29, {10, 16,  7, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 30, {13,  5,  8, 0 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 31, {13, 19,  8, 1 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 32, {21, 13,  5, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 33, {24, 18,  8, 1 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 34, {21, 12, 18, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 35, {21, 24, 19, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 36, {12,  5,  8, 1 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 37, {19, 26, 23, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 38, { 8, 19, 16, 3 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 39, {20, 17, 23, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 40, { 8,  7, 17, 3 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 41, { 8, 20, 26, 3 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 42, { 7, 16, 23, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 43, {18, 25, 27, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 44, { 8, 18, 24, 7 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 45, {20, 26, 27, 8 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 46, { 8, 19, 26, 7 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 47, { 8, 20, 25, 7 }, nullptr);
+        rBackgroundModelPart.CreateNewElement(element, 48, {19, 24, 27, 8 }, nullptr);
     }
     ResetGridVolume(rBackgroundModelPart);
 }
