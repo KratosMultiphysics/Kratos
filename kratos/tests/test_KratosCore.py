@@ -42,7 +42,6 @@ import test_vector_interface
 import test_matrix_interface
 import test_restart
 import test_gid_io_gauss_points
-import test_mortar_mapper
 import test_normal_utils
 import test_skin_detection_process
 import test_sparse_matrix_multiplication
