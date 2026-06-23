@@ -12,6 +12,15 @@
 
 #pragma once
 
+// Boost's UBLAS pollutes macros into Kratos, breaking MSVC (of course, what else)
+// when including <span>, because it manipulates iterator debugging macros (namely,
+// _ITERATOR_DEBUG_LEVEL). They already realized this and have an open issue about it,
+// but after 6 years it still stays unsolved https://github.com/boostorg/ublas/issues/77.
+// The only viable fix is to make sure that <span> is always included BEFORE any UBLAS
+// header. Of course this can't be guaranteed easily, so <span> must precede boost includes
+// in all headers. Wow.
+#include <span> // std::span
+
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // CSRHashMap, CSRHashSet
 #include "geometries/geometry_data.h" // GeometryData
@@ -25,7 +34,6 @@
 #include <limits> // std::numeric_limits
 #include <cstdint> // std::uint8_t
 #include <algorithm> // std::remove_if
-#include <span> // std::span
 
 
 namespace Kratos {
