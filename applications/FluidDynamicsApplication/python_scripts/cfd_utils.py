@@ -3,8 +3,7 @@
 import numpy as np
 import scipy.sparse as sp
 import KratosMultiphysics as KM
-import KratosMultiphysics.FluidDynamicsApplication as CFDApp
-import warnings
+import KratosMultiphysics.FluidDynamicsApplication.python_pool as python_pool
 
 # Einsum optimization configuration
 opt_type = True
@@ -76,6 +75,26 @@ def configure(parallel_type : str, precision : str):
 
     # Flag to prevent configure to be performed again
     _configured = True
+
+def reset():
+    """
+    Auxiliary function to reset the environment in very specific situations (e.g., testing)
+    """
+    
+    # Specify the global variables in the module
+    global xp, sparse, sparse_linalg, asnumpy
+    global USE_CUPY, PRECISION, _configured
+
+    # Backend modules to be defined
+    xp = None
+    sparse = None
+    sparse_linalg = None
+    asnumpy = None
+
+    # Configuration flags
+    USE_CUPY = None
+    PRECISION = None
+    _configured = False # Auxiliary flag to ensure that backend is configured once
 
 class CFDUtils:
 
