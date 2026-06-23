@@ -469,17 +469,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestVolumeSumUtility2D3N, KratosMPMFastSuite)
     GetVolumeVector(r_background_model_part, grid_volume_vector);
     ref_grid_volume_vector[7] = 0.0;
     KRATOS_EXPECT_VECTOR_EQ(grid_volume_vector, ref_grid_volume_vector);
-
-
-
-    IndexType grid_id = 0;
-    for (auto& r_element : r_background_model_part.Elements()) {
-        r_element.GetGeometry().SetId(grid_id);
-        grid_id++;
-    }
-
-    std::vector<array_1d<double, 3 >> mp_coordinate;
-    std::vector<double> current_mp_volume;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestVolumeSumUtility3D8N, KratosMPMFastSuite)
