@@ -131,6 +131,49 @@ test("handles flag-form NodalData and irregular whitespace", () => {
   assert.equal(boundary!.lineCount, 2);
 });
 
+test("parses node-only SubModelPart (boundary-condition pattern)", () => {
+  // Simulates the common GiD/Python pattern: SubModelPart lists only nodes.
+  // The webview will infer induced geometry; the parser just stores the IDs.
+  const text = [
+    "Begin Nodes",
+    "1 0.0 0.0 0.0",
+    "2 1.0 0.0 0.0",
+    "3 1.0 1.0 0.0",
+    "4 0.0 1.0 0.0",
+    "End Nodes",
+    "Begin Elements Element2D3N",
+    "1 1 1 2 3",
+    "2 1 1 3 4",
+    "End Elements",
+    "Begin SubModelPart Wall",
+    "  Begin SubModelPartNodes",
+    "  2",
+    "  3",
+    "  End SubModelPartNodes",
+    "End SubModelPart",
+  ].join("\n");
+
+  const model = parseMdpa(text);
+  assert.equal(model.nodes.length, 4);
+  assert.equal(model.blocks.length, 1);
+  assert.equal(model.blocks[0].entities.length, 2);
+
+  const wall = model.subModelParts[0];
+  assert.ok(wall, "Wall SubModelPart exists");
+  assert.deepEqual(wall.nodeIds, [2, 3]);
+  assert.deepEqual(wall.elementIds, [], "parser stores no explicit elements");
+
+  // Verify that a webview-style induced geometry pass would find element 1
+  // (nodes 1,2,3 — but node 1 is NOT in wall.nodeIds) → NOT induced.
+  // Element 2 has nodes 1,3,4 → also not induced (node 1, 4 not in wall).
+  // Neither element is fully contained → induced set is empty → point cloud fallback.
+  const nodeSet = new Set(wall.nodeIds); // {2, 3}
+  const induced = model.blocks[0].entities.filter((e) =>
+    e.nodeIds.every((nid) => nodeSet.has(nid))
+  );
+  assert.equal(induced.length, 0, "no element is fully within the 2-node wall set");
+});
+
 test("performance: parses the large cube fixture quickly", () => {
   const text = fixture("applications/MetisApplication/tests/cube.mdpa");
   const start = Date.now();

@@ -197,8 +197,34 @@ function buildPartLayer(
     const c = geometryById.get(gid);
     if (c) cells.push(c);
   }
-  // Node-only group: render its nodes as a point cloud.
-  if (cells.length === 0 && part.nodeIds.length) {
+  // When no entities are explicitly listed but we have nodes, infer entities
+  // whose entire connectivity is contained within this SubModelPart's node set.
+  // This handles the common pattern where SubModelParts carry only
+  // SubModelPartNodes (e.g. for boundary-condition application) and lets the
+  // viewer show the surface/line geometry touching those nodes.
+  let induced = false;
+  if (cells.length === 0 && part.nodeIds.length > 0) {
+    const nodeSet = new Set(part.nodeIds);
+    for (const cell of elementById.values()) {
+      if (cell.nodeIds.every((nid) => nodeSet.has(nid))) {
+        cells.push(cell);
+      }
+    }
+    for (const cell of conditionById.values()) {
+      if (cell.nodeIds.every((nid) => nodeSet.has(nid))) {
+        cells.push(cell);
+      }
+    }
+    for (const cell of geometryById.values()) {
+      if (cell.nodeIds.every((nid) => nodeSet.has(nid))) {
+        cells.push(cell);
+      }
+    }
+    induced = cells.length > 0;
+  }
+
+  // Final fallback: point cloud when no geometry can be inferred at all.
+  if (cells.length === 0 && part.nodeIds.length > 0) {
     for (const nid of part.nodeIds) {
       cells.push({ cellType: undefined, nodeIds: [nid] });
     }
@@ -207,13 +233,13 @@ function buildPartLayer(
   const color = nextColor();
   const id = `smp:${part.path}`;
   const created = addLayer(id, cells, color, false);
-  const total =
-    part.elementIds.length +
-    part.conditionIds.length +
-    part.geometryIds.length +
-    (part.elementIds.length + part.conditionIds.length + part.geometryIds.length === 0
-      ? part.nodeIds.length
-      : 0);
+  const explicitCount =
+    part.elementIds.length + part.conditionIds.length + part.geometryIds.length;
+  const total = explicitCount > 0
+    ? explicitCount
+    : induced
+    ? cells.length
+    : part.nodeIds.length;
 
   return {
     label: part.name,
