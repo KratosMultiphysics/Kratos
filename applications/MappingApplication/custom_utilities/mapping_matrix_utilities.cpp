@@ -28,16 +28,16 @@ namespace Kratos {
 
 namespace {
 
-typedef typename MapperDefinitions::SparseSpaceType MappingSparseSpaceType;
-typedef typename MapperDefinitions::DenseSpaceType  DenseSpaceType;
+using MappingSparseSpaceType = typename MapperDefinitions::SparseSpaceType;
+using DenseSpaceType = typename MapperDefinitions::DenseSpaceType;
 
-typedef MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType> MappingMatrixUtilitiesType;
+using MappingMatrixUtilitiesType = MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType>;
 
-typedef typename MapperLocalSystem::MatrixType MatrixType;
-typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
+using MatrixType = typename MapperLocalSystem::MatrixType;
+using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
 
-typedef std::size_t IndexType;
-typedef std::size_t SizeType;
+using IndexType = std::size_t;
+using SizeType = std::size_t;
 
 /***********************************************************************************/
 /* Functions for internal use in this file */
@@ -73,18 +73,31 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
 
         return_type GetValue() { return std::move(mIndices); }
 
+        /**
+         * @brief Performs a local reduction by mapping origin IDs to destination IDs.
+         * @details This function iterates through the destination IDs provided in the entry
+         * and inserts the associated origin IDs into the internal index structure, 
+         * resizing the container if necessary.
+         * @param rEntry A pair where the first element contains origin IDs and the second contains destination IDs.
+         */
         void LocalReduce(const value_type& rEntry)
         {
             const auto& r_origin_ids = rEntry.first;
             const auto& r_destination_ids = rEntry.second;
-            for (const auto id_dest : r_destination_ids) {
-                if (id_dest >= mIndices.size()) {
+            for (const int id_dest : r_destination_ids) {
+                if (id_dest >= static_cast<int>(mIndices.size())) {
                     mIndices.resize(id_dest + 1);
                 }
                 mIndices[id_dest].insert(r_origin_ids.begin(), r_origin_ids.end());
             }
         }
 
+        /**
+         * @brief Merges another GraphReduction container into the current one.
+         * @details This operation is protected by a critical section to ensure thread safety
+         * during the synchronization of the index containers.
+         * @param rOther The other GraphReduction instance to be merged into this one.
+         */
         void ThreadSafeReduce(GraphReduction& rOther)
         {
             KRATOS_CRITICAL_SECTION
