@@ -2253,8 +2253,8 @@ namespace Kratos
 
                 for(IndexType ll = 0; ll < 2; ll++)
                 {
-                    rSecondVariationShear[r][s](0) += P_ij_rs(2, ll) * n_contravariant(ll) + P_ij_r[r](2, ll) * n_contravariant(ll) + P_ij_r[s](2, ll) * n_contravariant(ll);
-                    rSecondVariationShear[r][s](1) += P_ij_rs(2, ll) * t_contravariant(ll) + P_ij_r[r](2, ll) * t_contravariant(ll) + P_ij_r[s](2, ll) * t_contravariant(ll);
+                    rSecondVariationShear[r][s][0] += P_ij_rs(2, ll) * n_contravariant(ll) + P_ij_r[r](2, ll) * n_contravariant(ll) + P_ij_r[s](2, ll) * n_contravariant(ll);
+                    rSecondVariationShear[r][s][1] += P_ij_rs(2, ll) * t_contravariant(ll) + P_ij_r[r](2, ll) * t_contravariant(ll) + P_ij_r[s](2, ll) * t_contravariant(ll);
                 }
 
                 rSecondVariationShear[s][r][0] = rSecondVariationShear[r][s][0];
@@ -2539,13 +2539,13 @@ namespace Kratos
         array_1d<double,3> a3_2 = tilde_A3_2/norm_2(rActualKinematic.a3_tilde) - rActualKinematic.a3*bar_A3_2/norm_2(rActualKinematic.a3_tilde);
 
         // 1. Calculate Curvature
-        rDerivativeCurvatureCurvilinear[0](0) = inner_prod(A1_11,rReferenceKinematic.a3) + inner_prod(A1_1,A3_1) - inner_prod(a1_11,rActualKinematic.a3) - inner_prod(a1_1,a3_1);
-        rDerivativeCurvatureCurvilinear[0](1) = inner_prod(A2_21,rReferenceKinematic.a3) + inner_prod(A2_2,A3_1) - inner_prod(a2_21,rActualKinematic.a3) - inner_prod(a2_2,a3_1);
-        rDerivativeCurvatureCurvilinear[0](2) = inner_prod(A1_12,rReferenceKinematic.a3) + inner_prod(A1_2,A3_1) - inner_prod(a1_12,rActualKinematic.a3) - inner_prod(a1_2,a3_1);
+        rDerivativeCurvatureCurvilinear[0][0] = inner_prod(A1_11,rReferenceKinematic.a3) + inner_prod(A1_1,A3_1) - inner_prod(a1_11,rActualKinematic.a3) - inner_prod(a1_1,a3_1);
+        rDerivativeCurvatureCurvilinear[0][1] = inner_prod(A2_21,rReferenceKinematic.a3) + inner_prod(A2_2,A3_1) - inner_prod(a2_21,rActualKinematic.a3) - inner_prod(a2_2,a3_1);
+        rDerivativeCurvatureCurvilinear[0][2] = inner_prod(A1_12,rReferenceKinematic.a3) + inner_prod(A1_2,A3_1) - inner_prod(a1_12,rActualKinematic.a3) - inner_prod(a1_2,a3_1);
 
-        rDerivativeCurvatureCurvilinear[1](0) = inner_prod(A1_12,rReferenceKinematic.a3) + inner_prod(A1_1,A3_2) - inner_prod(a1_12,rActualKinematic.a3) - inner_prod(a1_1,a3_2);
-        rDerivativeCurvatureCurvilinear[1](1) = inner_prod(A2_22,rReferenceKinematic.a3) + inner_prod(A2_2,A3_2) - inner_prod(a2_22,rActualKinematic.a3) - inner_prod(a2_2,a3_2);
-        rDerivativeCurvatureCurvilinear[1](2) = inner_prod(A2_21,rReferenceKinematic.a3) + inner_prod(A1_2,A3_2) - inner_prod(a2_21,rActualKinematic.a3) - inner_prod(a1_2,a3_2);
+        rDerivativeCurvatureCurvilinear[1][0] = inner_prod(A1_12,rReferenceKinematic.a3) + inner_prod(A1_1,A3_2) - inner_prod(a1_12,rActualKinematic.a3) - inner_prod(a1_1,a3_2);
+        rDerivativeCurvatureCurvilinear[1][1] = inner_prod(A2_22,rReferenceKinematic.a3) + inner_prod(A2_2,A3_2) - inner_prod(a2_22,rActualKinematic.a3) - inner_prod(a2_2,a3_2);
+        rDerivativeCurvatureCurvilinear[1][2] = inner_prod(A2_21,rReferenceKinematic.a3) + inner_prod(A1_2,A3_2) - inner_prod(a2_21,rActualKinematic.a3) - inner_prod(a1_2,a3_2);
 
         // 2. Calculate First and Second Variation Curvature
         std::vector<array_1d<double,3> > a3_r;
@@ -2605,13 +2605,13 @@ namespace Kratos
             a3_1_r[r] = tilde_a3_1_r[r]/norm_2(rActualKinematic.a3_tilde) - tilde_a3_1*bar_a3_r[r]/pow(norm_2(rActualKinematic.a3_tilde),2) - ((a3_r[r]*bar_a3_1 + rActualKinematic.a3*bar_a3_1_r[r]) - rActualKinematic.a3*bar_a3_1*bar_a3_r[r])/pow(norm_2(rActualKinematic.a3_tilde),2);
             a3_2_r[r] = tilde_a3_2_r[r]/norm_2(rActualKinematic.a3_tilde) - tilde_a3_2*bar_a3_r[r]/pow(norm_2(rActualKinematic.a3_tilde),2) - ((a3_r[r]*bar_a3_2 + rActualKinematic.a3*bar_a3_2_r[r]) - rActualKinematic.a3*bar_a3_2*bar_a3_r[r])/pow(norm_2(rActualKinematic.a3_tilde),2);
 
-            rFirstVariationDerivativeCurvatureCurvilinear[r][0](0) = -inner_prod(a1_11_r,rActualKinematic.a3) - inner_prod(a1_11,a3_r[r]) - inner_prod(a1_1_r,a3_1) - inner_prod(a1_1,a3_1_r[r]);
-            rFirstVariationDerivativeCurvatureCurvilinear[r][0](1) = -inner_prod(a2_21_r,rActualKinematic.a3) - inner_prod(a2_21,a3_r[r]) - inner_prod(a2_2_r,a3_1) - inner_prod(a2_2,a3_1_r[r]);
-            rFirstVariationDerivativeCurvatureCurvilinear[r][0](2) = -inner_prod(a1_12_r,rActualKinematic.a3) - inner_prod(a1_12,a3_r[r]) - inner_prod(a1_2_r,a3_1) - inner_prod(a1_2,a3_1_r[r]);
+            rFirstVariationDerivativeCurvatureCurvilinear[0][r][0] = -inner_prod(a1_11_r,rActualKinematic.a3) - inner_prod(a1_11,a3_r[r]) - inner_prod(a1_1_r,a3_1) - inner_prod(a1_1,a3_1_r[r]);
+            rFirstVariationDerivativeCurvatureCurvilinear[0][r][1] = -inner_prod(a2_21_r,rActualKinematic.a3) - inner_prod(a2_21,a3_r[r]) - inner_prod(a2_2_r,a3_1) - inner_prod(a2_2,a3_1_r[r]);
+            rFirstVariationDerivativeCurvatureCurvilinear[0][r][2] = -inner_prod(a1_12_r,rActualKinematic.a3) - inner_prod(a1_12,a3_r[r]) - inner_prod(a1_2_r,a3_1) - inner_prod(a1_2,a3_1_r[r]);
 
-            rFirstVariationDerivativeCurvatureCurvilinear[r][1](0) = -inner_prod(a1_12_r,rActualKinematic.a3) - inner_prod(a1_12,a3_r[r]) - inner_prod(a1_1_r,a3_2) - inner_prod(a1_1,a3_2_r[r]);
-            rFirstVariationDerivativeCurvatureCurvilinear[r][1](1) = -inner_prod(a2_22_r,rActualKinematic.a3) - inner_prod(a2_22,a3_r[r]) - inner_prod(a2_2_r,a3_2) - inner_prod(a2_2,a3_2_r[r]);
-            rFirstVariationDerivativeCurvatureCurvilinear[r][1](2) = -inner_prod(a2_21_r,rActualKinematic.a3) - inner_prod(a2_21,a3_r[r]) - inner_prod(a1_2_r,a3_2) - inner_prod(a1_2,a3_2_r[r]);
+            rFirstVariationDerivativeCurvatureCurvilinear[1][r][0] = -inner_prod(a1_12_r,rActualKinematic.a3) - inner_prod(a1_12,a3_r[r]) - inner_prod(a1_1_r,a3_2) - inner_prod(a1_1,a3_2_r[r]);
+            rFirstVariationDerivativeCurvatureCurvilinear[1][r][1] = -inner_prod(a2_22_r,rActualKinematic.a3) - inner_prod(a2_22,a3_r[r]) - inner_prod(a2_2_r,a3_2) - inner_prod(a2_2,a3_2_r[r]);
+            rFirstVariationDerivativeCurvatureCurvilinear[1][r][2] = -inner_prod(a2_21_r,rActualKinematic.a3) - inner_prod(a2_21,a3_r[r]) - inner_prod(a1_2_r,a3_2) - inner_prod(a1_2,a3_2_r[r]);
 
             for (IndexType s = 0; s < mat_size; s++)
             {
@@ -2664,13 +2664,13 @@ namespace Kratos
                                             + 2.0*rActualKinematic.a3*bar_a3_2*bar_a3_r[r]*bar_a3_2_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3);
 
                 //variation: derivative of the derivative of the curvature
-                rSecondVariationDerivativeCurvatureCurvilinear[0][r][s](0) = -inner_prod(a1_11_r,a3_r[s]) - inner_prod(a1_11_s,a3_r[r]) - inner_prod(a1_11,a3_rs) - inner_prod(a1_1_r,a3_1_r[s]) - inner_prod(a1_1_s,a3_1_r[r]) - inner_prod(a1_1,a3_1_rs);
-                rSecondVariationDerivativeCurvatureCurvilinear[0][r][s](1) = -inner_prod(a2_21_r,a3_r[s]) - inner_prod(a2_21_s,a3_r[r]) - inner_prod(a2_21,a3_rs) - inner_prod(a2_2_r,a3_1_r[s]) - inner_prod(a2_2_s,a3_1_r[r]) - inner_prod(a2_2,a3_1_rs);
-                rSecondVariationDerivativeCurvatureCurvilinear[0][r][s](2) = -inner_prod(a1_12_r,a3_r[s]) - inner_prod(a1_12_s,a3_r[r]) - inner_prod(a1_12,a3_rs) - inner_prod(a1_2_r,a3_1_r[s]) - inner_prod(a1_2_s,a3_1_r[r]) - inner_prod(a1_2,a3_1_rs);
+                rSecondVariationDerivativeCurvatureCurvilinear[0][r][s][0] = -inner_prod(a1_11_r,a3_r[s]) - inner_prod(a1_11_s,a3_r[r]) - inner_prod(a1_11,a3_rs) - inner_prod(a1_1_r,a3_1_r[s]) - inner_prod(a1_1_s,a3_1_r[r]) - inner_prod(a1_1,a3_1_rs);
+                rSecondVariationDerivativeCurvatureCurvilinear[0][r][s][1] = -inner_prod(a2_21_r,a3_r[s]) - inner_prod(a2_21_s,a3_r[r]) - inner_prod(a2_21,a3_rs) - inner_prod(a2_2_r,a3_1_r[s]) - inner_prod(a2_2_s,a3_1_r[r]) - inner_prod(a2_2,a3_1_rs);
+                rSecondVariationDerivativeCurvatureCurvilinear[0][r][s][2] = -inner_prod(a1_12_r,a3_r[s]) - inner_prod(a1_12_s,a3_r[r]) - inner_prod(a1_12,a3_rs) - inner_prod(a1_2_r,a3_1_r[s]) - inner_prod(a1_2_s,a3_1_r[r]) - inner_prod(a1_2,a3_1_rs);
 
-                rSecondVariationDerivativeCurvatureCurvilinear[1][r][s](0) = -inner_prod(a1_12_r,a3_r[s]) - inner_prod(a1_12_s,a3_r[r]) - inner_prod(a1_12,a3_rs) - inner_prod(a1_2_r,a3_2_r[s]) - inner_prod(a1_2_s,a3_2_r[r]) - inner_prod(a1_2,a3_2_rs);
-                rSecondVariationDerivativeCurvatureCurvilinear[1][r][s](1) = -inner_prod(a2_22_r,a3_r[s]) - inner_prod(a2_22_s,a3_r[r]) - inner_prod(a2_22,a3_rs) - inner_prod(a2_2_r,a3_2_r[s]) - inner_prod(a2_2_s,a3_2_r[r]) - inner_prod(a2_2,a3_2_rs);
-                rSecondVariationDerivativeCurvatureCurvilinear[1][r][s](2) = -inner_prod(a2_21_r,a3_r[s]) - inner_prod(a2_21_s,a3_r[r]) - inner_prod(a2_21,a3_rs) - inner_prod(a1_2_r,a3_2_r[s]) - inner_prod(a1_2_s,a3_2_r[r]) - inner_prod(a1_2,a3_2_rs);
+                rSecondVariationDerivativeCurvatureCurvilinear[1][r][s][0] = -inner_prod(a1_12_r,a3_r[s]) - inner_prod(a1_12_s,a3_r[r]) - inner_prod(a1_12,a3_rs) - inner_prod(a1_2_r,a3_2_r[s]) - inner_prod(a1_2_s,a3_2_r[r]) - inner_prod(a1_2,a3_2_rs);
+                rSecondVariationDerivativeCurvatureCurvilinear[1][r][s][1] = -inner_prod(a2_22_r,a3_r[s]) - inner_prod(a2_22_s,a3_r[r]) - inner_prod(a2_22,a3_rs) - inner_prod(a2_2_r,a3_2_r[s]) - inner_prod(a2_2_s,a3_2_r[r]) - inner_prod(a2_2,a3_2_rs);
+                rSecondVariationDerivativeCurvatureCurvilinear[1][r][s][2] = -inner_prod(a2_21_r,a3_r[s]) - inner_prod(a2_21_s,a3_r[r]) - inner_prod(a2_21,a3_rs) - inner_prod(a1_2_r,a3_2_r[s]) - inner_prod(a1_2_s,a3_2_r[r]) - inner_prod(a1_2,a3_2_rs);
             }
         }
     }
