@@ -126,7 +126,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
     def run_simulation_and_checks(self, project_parameters):
 
-
         project = self.run_analysis(project_parameters)
 
         model = project.GetModel()
@@ -429,11 +428,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def update_all_expected_results(self):
         print("Updating the expected results...")
 
-        for case_name in ["linear_elastic", "mohr_coulomb_clay-sand"]:
-            self.update_expected_results(case_name)
+        self.update_expected_results("linear_elastic")
+        self.update_expected_results("mohr_coulomb_clay-sand", analysis_type="staged_construction_broyden")
+        self.update_expected_results("mohr_coulomb_clay-sand", analysis_type="staged_construction_lbfgs")
 
-    def update_expected_results(self, case_name):
-        self.analysis_type = "staged_construction"
+    def update_expected_results(self, case_name, analysis_type="staged_construction"):
+        self.analysis_type = analysis_type
         self.test_path = Path(
             test_helper.get_file_path(
                 Path("crow_validation") / case_name / self.analysis_type
@@ -496,21 +496,21 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                         }
                     )
 
-    def get_project_parameters(self, material_model_dir_name):
+    def get_project_parameters(self, material_model_dir_name, analysis_type="staged_construction"):
 
-        self.analysis_type = "staged_construction"
+        self.analysis_type = analysis_type
         self.test_path = Path(
             test_helper.get_file_path(
                 Path("crow_validation") / material_model_dir_name / self.analysis_type
             )
         )
 
+        project_parameters_file_name = "staged_construction.json"
         with context_managers.set_cwd_to(self.test_path):
             with open(
-                Path("..") / ".." / "common" / f"{self.analysis_type}.json", "r"
+                Path("..") / ".." / "common" / project_parameters_file_name, "r"
             ) as analysis_file:
                 return Kratos.Parameters(analysis_file.read())
-
 
     def test_staged_construction_with_linear_elastic_behavior(self):
         project_parameters = self.get_project_parameters("linear_elastic")
@@ -519,12 +519,14 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self.run_simulation_and_checks(project_parameters)
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_broyden(self):
-        project_parameters = self.get_project_parameters("mohr_coulomb_clay-sand")
+        project_parameters = self.get_project_parameters("mohr_coulomb_clay-sand",
+                                                         analysis_type="staged_construction_broyden")
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_lbfgs(self):
-        project_parameters = self.get_project_parameters("mohr_coulomb_clay-sand")
+        project_parameters = self.get_project_parameters("mohr_coulomb_clay-sand",
+                                                         analysis_type="staged_construction_lbfgs")
 
         # set all quasi newton raphson solvers to use L-BFGS
         for stage in project_parameters["stages"].values():
@@ -534,7 +536,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self.run_simulation_and_checks(project_parameters)
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_using_save_and_load(self):
-        project_parameters = self.get_project_parameters("mohr_coulomb_clay-sand")
+        project_parameters = self.get_project_parameters("mohr_coulomb_clay-sand",
+                                                         analysis_type="staged_construction_broyden")
         self.run_analysis = (
             helper_utilities.run_multistage_analysis_with_intermediate_save_and_load
         )
