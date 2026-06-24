@@ -80,6 +80,7 @@ void AddCustomResponsesToPython(pybind11::module& m)
         .def("CalculateValue", &SensorResolutionMatrixResponseUtils::CalculateValue)
         .def("CalculateGradient", &SensorResolutionMatrixResponseUtils::CalculateGradient)
         .def("GetFilter", &SensorResolutionMatrixResponseUtils::GetFilter)
+        .def("GetResolutionMatrix", &SensorResolutionMatrixResponseUtils::GetResolutionMatrix)
         ;
 }
 

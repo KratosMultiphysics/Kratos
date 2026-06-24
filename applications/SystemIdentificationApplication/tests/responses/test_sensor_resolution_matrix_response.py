@@ -151,7 +151,7 @@ class TestSensorResolutionMatrixResponse(UnitTest.TestCase):
             "sensor_group_name"   : "sensors",
             "sensor_mask_name"    : "mask_exp",
             "step_size"           : 1.5,
-            "filter_radius"       : 1e-8,
+            "filter_radius"       : 0.0,
             "filter_function_type": "linear",
             "node_cloud_mesh"     : false,
             "max_items_in_bucket" : 10,
