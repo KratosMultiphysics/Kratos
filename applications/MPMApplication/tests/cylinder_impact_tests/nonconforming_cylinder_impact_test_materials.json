@@ -17,23 +17,24 @@
         }
     }
     ,{
-            "model_part_name": "Background_Grid",
-            "properties_id": 2,
-            "Material": {
-                "constitutive_law": {
-                    "name": "LinearElasticIsotropicPlaneStress2DLaw"
-                },
-                "Variables": {
-                    "THICKNESS"                   : 0.3,
-                    "DENSITY"                     : 1379.0,
-                    "YOUNG_MODULUS"               : 21.6e6,
-                    "POISSON_RATIO"               : 0.0,
-                    "PENALTY_FACTOR"              : 1e-6,
-                    "VOLUME_RATIO_THRESHOLD"      : 0.3
+        "help" : "The following properties is not used unless add_numerical_stiffness is set to true in the solver settings.",
+        "model_part_name": "Background_Grid",
+        "properties_id": 2,
+        "Material": {
+            "constitutive_law": {
+                "name": "LinearElasticIsotropicPlaneStress2DLaw"
+            },
+            "Variables": {
+                "THICKNESS"                   : 0.3,
+                "DENSITY"                     : 1379.0,
+                "YOUNG_MODULUS"               : 21.6e6,
+                "POISSON_RATIO"               : 0.0,
+                "PENALTY_FACTOR"              : 1e-6,
+                "VOLUME_RATIO_THRESHOLD"      : 0.3
 
-                },
-                "Tables": null
-            }
+            },
+            "Tables": null
+        }
     }
 ]
 }

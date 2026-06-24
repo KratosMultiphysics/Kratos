@@ -1,7 +1,7 @@
 {
     "problem_data": {
         "problem_name": "stabilized_nonconforming_cylinder_impact_test",
-        "help": "the resulting reaction from this test is unstable on purpose",
+        "help": "the resulting reaction from this test is stabilized using numerical stiffness elements",
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
@@ -14,7 +14,7 @@
         "solver_type": "Dynamic",
         "compute_reactions": true,
         "model_part_name": "MPM_Material",
-        "add_numerical_stiffness": false,
+        "add_numerical_stiffness": true,
         "domain_size": 2,
         "echo_level": 0,
         "analysis_type": "non_linear",
@@ -86,7 +86,7 @@
                 "Parameters": {
                 "entity_type": "Condition",
                 "check_variables": [ "MPC_CONTACT_FORCE"],
-                "input_file_name": "cylinder_impact_tests/nonconforming_cylinder_impact_test_contact_force_results.json",
+                "input_file_name": "cylinder_impact_tests/stabilized_nonconforming_cylinder_impact_test_contact_force_results.json",
                 "model_part_name": "Background_Grid.Slip2D_Non_Conforming_Auto1",
                 "tolerance"            : 1e-8,
                 "relative_tolerance"   : 1e-8,
@@ -107,7 +107,7 @@
         "Parameters": {
             "entity_type": "Condition",
             "gauss_points_output_variables": [ "MPC_CONTACT_FORCE" ],
-            "output_file_name": "nonconforming_cylinder_impact_test_contact_force_results.json",
+            "output_file_name": "stabilized_nonconforming_cylinder_impact_test_contact_force_results.json",
             "model_part_name": "Background_Grid.Slip2D_Non_Conforming_Auto1",
             "time_frequency": 5e-4
         }

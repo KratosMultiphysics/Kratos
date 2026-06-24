@@ -159,3 +159,7 @@ class PQMPMExplicitHexTest(MPMTestFactory):
 
 class DynamicCylinderImpactPenaltyNonConformingReactionTest(MPMTestFactory):
     file_name = "cylinder_impact_tests/nonconforming_cylinder_impact_test"
+
+class DynamicCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest(MPMTestFactory):
+    file_name = "cylinder_impact_tests/stabilized_nonconforming_cylinder_impact_test"  
+    
