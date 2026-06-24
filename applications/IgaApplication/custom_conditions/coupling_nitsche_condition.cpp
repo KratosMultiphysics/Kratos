@@ -2159,10 +2159,11 @@ namespace Kratos
     void CouplingNitscheCondition::CalculateVariationShear(
         IndexType IntegrationPointIndex,
         array_1d<double, 2>& rShear,
-        Matrix& rFirstVariationShear,
-        Matrix& rSecondVariationShear,
+        std::vector<array_1d<double, 2>>& rFirstVariationShear,
+        std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
+        const KinematicVariables& rReferenceKinematic,
         const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
         const PatchType& rPatch)
     {
         //1. this is equivalent to get_var_of_pk1_trans_shear_forces_nln
@@ -2170,14 +2171,149 @@ namespace Kratos
 
     void CouplingNitscheCondition::CalculateVariationShearPK2(
         IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rShear,
-        Matrix& rFirstVariationShear,
-        Matrix& rSecondVariationShear,
+        array_1d<double, 2>& rShear,
+        std::vector<array_1d<double, 2>>& rFirstVariationShear,
+        std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
+        const KinematicVariables& rReferenceKinematic,
         const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
         const PatchType& rPatch)
     {
-        //2. this is equivalent to get_var_of_trans_shear_forces_nln
+        //This is equivalent to get_var_of_trans_shear_forces_nln
+
+        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
+        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
+        
+        const SizeType number_of_control_points = r_geometry.size();
+        const SizeType mat_size = number_of_control_points * 3;
+        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
+
+        // Compute Variation Moment
+        array_1d<double, 3> moment_curvilinear = ZeroVector(3);
+        array_1d<double, 3> moment_cartesian = ZeroVector(3);
+        std::vector<array_1d<double, 3>> first_variation_moment_curvilinear;
+        std::vector<array_1d<double, 3>> first_variation_moment_cartesian;
+        std::vector<std::vector<array_1d<double, 3>>> second_variation_moment_curvilinear;
+        std::vector<std::vector<array_1d<double, 3>>> second_variation_moment_cartesian;
+        first_variation_moment_curvilinear.resize(mat_size);
+        first_variation_moment_cartesian.resize(mat_size);
+        second_variation_moment_curvilinear.resize(mat_size);
+        second_variation_moment_cartesian.resize(mat_size);
+        for(IndexType i = 0; i < mat_size; i++)
+        {
+            second_variation_moment_curvilinear[i].resize(mat_size);
+            second_variation_moment_cartesian[i].resize(mat_size);
+            first_variation_moment_curvilinear[i] = ZeroVector(3);
+            first_variation_moment_cartesian[i] = ZeroVector(3);
+
+            for(IndexType j = 0; j < mat_size; j++)
+            {
+                second_variation_moment_curvilinear[i][j] = ZeroVector(3);
+                second_variation_moment_cartesian[i][j] = ZeroVector(3);
+            }
+        }
+        CalculateVariationMoment(IntegrationPointIndex, moment_curvilinear, moment_cartesian, first_variation_moment_curvilinear, first_variation_moment_cartesian,
+                                second_variation_moment_curvilinear, second_variation_moment_cartesian, rActualKinematic, rThisConstitutiveVariablesCurvature, rPatch);
+
+        // Compute Variation Derivative Moment
+        array_1d<array_1d<double, 3>, 2> derivative_moment_curvilinear;
+        derivative_moment_curvilinear[0] = ZeroVector(3);
+        derivative_moment_curvilinear[1] = ZeroVector(3);
+        array_1d<std::vector<array_1d<double, 3>>,2> first_variation_derivative_moment_curvilinear;
+        array_1d<std::vector<std::vector<array_1d<double, 3>>>,2> second_variation_derivative_moment_curvilinear;
+        first_variation_derivative_moment_curvilinear[0].resize(mat_size);
+        first_variation_derivative_moment_curvilinear[1].resize(mat_size);
+        second_variation_derivative_moment_curvilinear[0].resize(mat_size);
+        second_variation_derivative_moment_curvilinear[1].resize(mat_size);
+        for(IndexType i = 0; i < mat_size; i++)
+        {
+            second_variation_derivative_moment_curvilinear[0][i].resize(mat_size);
+            second_variation_derivative_moment_curvilinear[1][i].resize(mat_size);
+            first_variation_derivative_moment_curvilinear[0][i] = ZeroVector(3);
+            first_variation_derivative_moment_curvilinear[1][i] = ZeroVector(3);
+
+            for(IndexType j = 0; j < mat_size; j++)
+            {
+                second_variation_derivative_moment_curvilinear[0][i][j] = ZeroVector(3);
+                second_variation_derivative_moment_curvilinear[1][i][j] = ZeroVector(3);
+            }
+        }
+        CalculateVariationDerivativeMoment(IntegrationPointIndex, derivative_moment_curvilinear, first_variation_derivative_moment_curvilinear, second_variation_derivative_moment_curvilinear,
+                                          moment_cartesian, first_variation_moment_cartesian, second_variation_moment_cartesian, rReferenceKinematic, rActualKinematic, rThisConstitutiveVariablesCurvature, rPatch);
+
+        // 0. Calculate Metric
+        array_1d<double, 3> A1_1 = ZeroVector(3);
+        array_1d<double, 3> A1_2 = ZeroVector(3);
+        array_1d<double, 3> A2_2 = ZeroVector(3);
+        array_1d<double, 3> a_contravariant_1 = ZeroVector(3);
+        array_1d<double, 3> a_contravariant_2 = ZeroVector(3);
+
+        if (rPatch==PatchType::Master)
+        {
+            a_contravariant_1 = m_reference_contravariant_base_master[IntegrationPointIndex][0];
+            a_contravariant_2 = m_reference_contravariant_base_master[IntegrationPointIndex][1];
+        }
+        else
+        {
+            a_contravariant_1 = m_reference_contravariant_base_slave[IntegrationPointIndex][0];
+            a_contravariant_2 = m_reference_contravariant_base_slave[IntegrationPointIndex][1];
+        }
+
+        for (SizeType i = 0; i < number_of_control_points; ++i)
+        {
+            A1_1[0] += (r_geometry.GetPoint( i ).X0()) * r_DDN_DDe(i, 0);
+            A1_1[1] += (r_geometry.GetPoint( i ).Y0()) * r_DDN_DDe(i, 0);
+            A1_1[2] += (r_geometry.GetPoint( i ).Z0()) * r_DDN_DDe(i, 0);
+
+            A1_2[0] += (r_geometry.GetPoint( i ).X0()) * r_DDN_DDe(i, 1);
+            A1_2[1] += (r_geometry.GetPoint( i ).Y0()) * r_DDN_DDe(i, 1);
+            A1_2[2] += (r_geometry.GetPoint( i ).Z0()) * r_DDN_DDe(i, 1);
+
+            A2_2[0] += (r_geometry.GetPoint( i ).X0()) * r_DDN_DDe(i, 2);
+            A2_2[1] += (r_geometry.GetPoint( i ).Y0()) * r_DDN_DDe(i, 2);
+            A2_2[2] += (r_geometry.GetPoint( i ).Z0()) * r_DDN_DDe(i, 2);
+        }
+
+        //Christoffel symbols
+        double gamma1_11 = inner_prod(A1_1, a_contravariant_1);
+        double gamma1_12 = inner_prod(A1_2, a_contravariant_1);
+        double gamma1_22 = inner_prod(A2_2, a_contravariant_1);
+        double gamma2_11 = inner_prod(A1_1, a_contravariant_2);
+        double gamma2_12 = inner_prod(A1_2, a_contravariant_2);
+        double gamma2_22 = inner_prod(A2_2, a_contravariant_2);
+
+        // 1. Calculate Shear 
+        rShear[0] = derivative_moment_curvilinear[0][0] + derivative_moment_curvilinear[1][2] 
+                  + moment_curvilinear[0]*(gamma1_11 + gamma2_12) + moment_curvilinear[2]*(gamma1_12 + gamma2_22) 
+                  + moment_curvilinear[0]*gamma1_11 + moment_curvilinear[1]*gamma1_22 + moment_curvilinear[2]*gamma1_12 + moment_curvilinear[2]*gamma1_12;
+        rShear[1] = derivative_moment_curvilinear[0][2] + derivative_moment_curvilinear[1][1] 
+                  + moment_curvilinear[2]*(gamma1_11 + gamma2_12) + moment_curvilinear[1]*(gamma1_12 + gamma2_22) 
+                  + moment_curvilinear[0]*gamma2_11 + moment_curvilinear[1]*gamma2_22 + moment_curvilinear[2]*gamma2_12 + moment_curvilinear[2]*gamma2_12;
+
+        // 2. Calculate First Variation Shear 
+        for(IndexType r = 0; r < mat_size; r++)
+        {
+            rFirstVariationShear[0][r] = first_variation_derivative_moment_curvilinear[0][r][0] + first_variation_derivative_moment_curvilinear[1][r][2] 
+                                    + first_variation_moment_curvilinear[r][0]*(gamma1_11 + gamma2_12) + first_variation_moment_curvilinear[r][2]*(gamma1_12 + gamma2_22) + first_variation_moment_curvilinear[r][0]*gamma1_11 + first_variation_moment_curvilinear[r][1]*gamma1_22 
+                                    + first_variation_moment_curvilinear[r][2]*gamma1_12 + first_variation_moment_curvilinear[r][2]*gamma1_12;
+            rFirstVariationShear[1][r] = first_variation_derivative_moment_curvilinear[0][r][2] + first_variation_derivative_moment_curvilinear[1][r][1] 
+                                    + first_variation_moment_curvilinear[r][2]*(gamma1_11 + gamma2_12) + first_variation_moment_curvilinear[r][1]*(gamma1_12 + gamma2_22) + first_variation_moment_curvilinear[r][0]*gamma2_11 + first_variation_moment_curvilinear[r][1]*gamma2_22 
+                                    + first_variation_moment_curvilinear[r][2]*gamma2_12 + first_variation_moment_curvilinear[r][2]*gamma2_12;
+        }
+
+        // 3. Calculate Second Variation Shear 
+        for(IndexType r = 0; r < mat_size; r++)
+        {
+            for(IndexType s = 0; s < mat_size; s++)
+            {
+            rSecondVariationShear[0][r][s] = second_variation_derivative_moment_curvilinear[0][r][s][0] + second_variation_derivative_moment_curvilinear[1][r][s][2] 
+                            + second_variation_moment_curvilinear[r][s][0]*(gamma1_11 + gamma2_12) + second_variation_moment_curvilinear[r][s][2]*(gamma1_12 + gamma2_22) + second_variation_moment_curvilinear[r][s][0]*gamma1_11 
+                            + second_variation_moment_curvilinear[r][s][1]*gamma1_22 + second_variation_moment_curvilinear[r][s][2]*gamma1_12 + second_variation_moment_curvilinear[r][s][2]*gamma1_12;
+            rSecondVariationShear[1][r][s] = second_variation_derivative_moment_curvilinear[0][r][s][2] + second_variation_derivative_moment_curvilinear[1][r][s][1] 
+                            + second_variation_moment_curvilinear[r][s][2]*(gamma1_11 + gamma2_12) + second_variation_moment_curvilinear[r][s][1]*(gamma1_12 + gamma2_22) + second_variation_moment_curvilinear[r][s][0]*gamma2_11 
+                            + second_variation_moment_curvilinear[r][s][1]*gamma2_22 + second_variation_moment_curvilinear[r][s][2]*gamma2_12 + second_variation_moment_curvilinear[r][s][2]*gamma2_12;
+            }
+        }
     }
 
     void CouplingNitscheCondition::CalculateVariationDerivativeCurvature(

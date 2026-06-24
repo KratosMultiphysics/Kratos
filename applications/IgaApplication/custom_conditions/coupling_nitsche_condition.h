@@ -464,19 +464,21 @@ private:
     void CalculateVariationShear(
         IndexType IntegrationPointIndex,
         array_1d<double, 2>& rShear,
-        Matrix& rFirstVariationShear,
-        Matrix& rSecondVariationShear,
+        std::vector<array_1d<double, 2>>& rFirstVariationShear,
+        std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
+        const KinematicVariables& rReferenceKinematic,
         const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
         const PatchType& rPatch);
 
     void CalculateVariationShearPK2(
         IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rShear,
-        Matrix& rFirstVariationShear,
-        Matrix& rSecondVariationShear,
+        array_1d<double, 2>& rShear,
+        std::vector<array_1d<double, 2>>& rFirstVariationShear,
+        std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
+        const KinematicVariables& rReferenceKinematic,
         const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
         const PatchType& rPatch);
     
     // Testing the new format
