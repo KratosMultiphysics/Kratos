@@ -2166,7 +2166,101 @@ namespace Kratos
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
         const PatchType& rPatch)
     {
-        //1. this is equivalent to get_var_of_pk1_trans_shear_forces_nln
+        //This is equivalent to get_var_of_pk1_trans_shear_forces_nln
+        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
+        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
+        
+        const SizeType number_of_control_points = r_geometry.size();
+        const SizeType mat_size = number_of_control_points * 3;
+        
+        const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
+        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
+        const Matrix& r_DDDN_DDDe = r_geometry.ShapeFunctionDerivatives(3, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
+
+        // Compute Variation Shear PK2
+        array_1d<double, 2> shear_curvilinear = ZeroVector(2);
+        std::vector<array_1d<double, 2>> first_variation_shear_curvilinear;
+        std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_curvilinear;
+        first_variation_shear_curvilinear.resize(mat_size);
+        second_variation_shear_curvilinear.resize(mat_size);
+        for(IndexType i = 0; i < mat_size; i++)
+        {
+            second_variation_shear_curvilinear[i].resize(mat_size);
+            first_variation_shear_curvilinear[i] = ZeroVector(2);
+
+            for(IndexType j = 0; j < mat_size; j++)
+            {
+                second_variation_shear_curvilinear[i][j] = ZeroVector(2);
+            }
+        }
+        CalculateVariationShearPK2(IntegrationPointIndex, shear_curvilinear, first_variation_shear_curvilinear, second_variation_shear_curvilinear,
+                                   rReferenceKinematic, rActualKinematic, rThisConstitutiveVariablesCurvature, rPatch);
+        
+        array_1d<double, 3> n_contravariant = ZeroVector(3); //equivalent to T_cov
+        array_1d<double, 3> t_contravariant = ZeroVector(3); //equivalent to T2_cov
+
+        n_contravariant[0] = rReferenceKinematic.a1[0]*rReferenceKinematic.n[0]/norm_2(rReferenceKinematic.n) + rReferenceKinematic.a1[1]*rReferenceKinematic.n[1]/norm_2(rReferenceKinematic.n) + rReferenceKinematic.a1[2]*rReferenceKinematic.n[2]/norm_2(rReferenceKinematic.n);
+        n_contravariant[1] = rReferenceKinematic.a2[0]*rReferenceKinematic.n[0]/norm_2(rReferenceKinematic.n) + rReferenceKinematic.a2[1]*rReferenceKinematic.n[1]/norm_2(rReferenceKinematic.n) + rReferenceKinematic.a2[2]*rReferenceKinematic.n[2]/norm_2(rReferenceKinematic.n);
+
+        t_contravariant[0] = rReferenceKinematic.a1[0]*rReferenceKinematic.t[0]/norm_2(rReferenceKinematic.t) + rReferenceKinematic.a1[1]*rReferenceKinematic.t[1]/norm_2(rReferenceKinematic.t) + rReferenceKinematic.a1[2]*rReferenceKinematic.t[2]/norm_2(rReferenceKinematic.t);
+        t_contravariant[1] = rReferenceKinematic.a2[0]*rReferenceKinematic.t[0]/norm_2(rReferenceKinematic.t) + rReferenceKinematic.a2[1]*rReferenceKinematic.t[1]/norm_2(rReferenceKinematic.t) + rReferenceKinematic.a2[2]*rReferenceKinematic.t[2]/norm_2(rReferenceKinematic.t);
+
+        // 1. Calculate Traction Shear
+        Matrix Palphabeta = ZeroMatrix(3, 3);
+        Palphabeta(0,2) = shear_curvilinear[0];
+        Palphabeta(1,2) = shear_curvilinear[1];
+        Palphabeta(2,0) = shear_curvilinear[0];
+        Palphabeta(2,1) = shear_curvilinear[1];
+
+        for(IndexType ll = 0; ll < 2; ll++)
+        {
+            rShear[0] += Palphabeta(2, ll) * n_contravariant[ll];
+            rShear[1] += Palphabeta(2, ll) * t_contravariant[ll];
+        }
+        
+        // 2. Calculate First Variation Traction Shear
+        std::vector<Matrix> P_ij_r;
+        P_ij_r.resize(mat_size);
+
+        for(IndexType r = 0; r < mat_size; r++)
+        {
+            P_ij_r[r] = ZeroMatrix(3, 3);
+            P_ij_r[r](0, 2) = first_variation_shear_curvilinear[r][0];
+            P_ij_r[r](1, 2) = first_variation_shear_curvilinear[r][1];
+            P_ij_r[r](2, 0) = first_variation_shear_curvilinear[r][0];
+            P_ij_r[r](2, 1) = first_variation_shear_curvilinear[r][1];
+
+            for(IndexType ll = 0; ll < 3; ll++)
+            {
+                rFirstVariationShear[r][0] += P_ij_r[r](2, ll) * n_contravariant(ll) + Palphabeta(2, ll) * n_contravariant(ll);
+                rFirstVariationShear[r][1] += P_ij_r[r](2, ll) * t_contravariant(ll) + Palphabeta(2, ll) * t_contravariant(ll);
+            }
+        }
+
+        // 3. Calculate Second Variation Traction Shear
+        for(IndexType r = 0; r < mat_size; r++)
+        {
+            for(IndexType s = 0; s <= r; s++)
+            {
+                //stress tensor components PK1
+                Matrix P_ij_rs = ZeroMatrix(3, 3);
+                //shear part
+                P_ij_rs(0, 2) = second_variation_shear_curvilinear[r][s][0];
+                P_ij_rs(1, 2) = second_variation_shear_curvilinear[r][s][1];
+                P_ij_rs(2, 0) = second_variation_shear_curvilinear[r][s][0];
+                P_ij_rs(2, 1) = second_variation_shear_curvilinear[r][s][1];
+
+
+                for(IndexType ll = 0; ll < 2; ll++)
+                {
+                    rSecondVariationShear[r][s](0) += P_ij_rs(2, ll) * n_contravariant(ll) + P_ij_r[r](2, ll) * n_contravariant(ll) + P_ij_r[s](2, ll) * n_contravariant(ll);
+                    rSecondVariationShear[r][s](1) += P_ij_rs(2, ll) * t_contravariant(ll) + P_ij_r[r](2, ll) * t_contravariant(ll) + P_ij_r[s](2, ll) * t_contravariant(ll);
+                }
+
+                rSecondVariationShear[s][r][0] = rSecondVariationShear[r][s][0];
+                rSecondVariationShear[s][r][1] = rSecondVariationShear[r][s][1];
+            }
+        }
     }
 
     void CouplingNitscheCondition::CalculateVariationShearPK2(
@@ -2293,10 +2387,10 @@ namespace Kratos
         // 2. Calculate First Variation Shear 
         for(IndexType r = 0; r < mat_size; r++)
         {
-            rFirstVariationShear[0][r] = first_variation_derivative_moment_curvilinear[0][r][0] + first_variation_derivative_moment_curvilinear[1][r][2] 
+            rFirstVariationShear[r][0] = first_variation_derivative_moment_curvilinear[0][r][0] + first_variation_derivative_moment_curvilinear[1][r][2] 
                                     + first_variation_moment_curvilinear[r][0]*(gamma1_11 + gamma2_12) + first_variation_moment_curvilinear[r][2]*(gamma1_12 + gamma2_22) + first_variation_moment_curvilinear[r][0]*gamma1_11 + first_variation_moment_curvilinear[r][1]*gamma1_22 
                                     + first_variation_moment_curvilinear[r][2]*gamma1_12 + first_variation_moment_curvilinear[r][2]*gamma1_12;
-            rFirstVariationShear[1][r] = first_variation_derivative_moment_curvilinear[0][r][2] + first_variation_derivative_moment_curvilinear[1][r][1] 
+            rFirstVariationShear[r][1] = first_variation_derivative_moment_curvilinear[0][r][2] + first_variation_derivative_moment_curvilinear[1][r][1] 
                                     + first_variation_moment_curvilinear[r][2]*(gamma1_11 + gamma2_12) + first_variation_moment_curvilinear[r][1]*(gamma1_12 + gamma2_22) + first_variation_moment_curvilinear[r][0]*gamma2_11 + first_variation_moment_curvilinear[r][1]*gamma2_22 
                                     + first_variation_moment_curvilinear[r][2]*gamma2_12 + first_variation_moment_curvilinear[r][2]*gamma2_12;
         }
@@ -2306,10 +2400,10 @@ namespace Kratos
         {
             for(IndexType s = 0; s < mat_size; s++)
             {
-            rSecondVariationShear[0][r][s] = second_variation_derivative_moment_curvilinear[0][r][s][0] + second_variation_derivative_moment_curvilinear[1][r][s][2] 
+            rSecondVariationShear[r][s][0] = second_variation_derivative_moment_curvilinear[0][r][s][0] + second_variation_derivative_moment_curvilinear[1][r][s][2] 
                             + second_variation_moment_curvilinear[r][s][0]*(gamma1_11 + gamma2_12) + second_variation_moment_curvilinear[r][s][2]*(gamma1_12 + gamma2_22) + second_variation_moment_curvilinear[r][s][0]*gamma1_11 
                             + second_variation_moment_curvilinear[r][s][1]*gamma1_22 + second_variation_moment_curvilinear[r][s][2]*gamma1_12 + second_variation_moment_curvilinear[r][s][2]*gamma1_12;
-            rSecondVariationShear[1][r][s] = second_variation_derivative_moment_curvilinear[0][r][s][2] + second_variation_derivative_moment_curvilinear[1][r][s][1] 
+            rSecondVariationShear[r][s][1] = second_variation_derivative_moment_curvilinear[0][r][s][2] + second_variation_derivative_moment_curvilinear[1][r][s][1] 
                             + second_variation_moment_curvilinear[r][s][2]*(gamma1_11 + gamma2_12) + second_variation_moment_curvilinear[r][s][1]*(gamma1_12 + gamma2_22) + second_variation_moment_curvilinear[r][s][0]*gamma2_11 
                             + second_variation_moment_curvilinear[r][s][1]*gamma2_22 + second_variation_moment_curvilinear[r][s][2]*gamma2_12 + second_variation_moment_curvilinear[r][s][2]*gamma2_12;
             }
