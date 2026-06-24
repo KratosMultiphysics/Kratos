@@ -16,13 +16,14 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 class SensorDataInputController(ModelPartController):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
-            "sensor_group_name": "",
-            "sensor_mask_name" : "",
-            "mask_scaling"     : "l2_norm",
-            "h5_file_name"     : "",
-            "data_field_name"  : "",
-            "echo_level"       : 0,
-            "kd_tree_settings" : {
+            "sensor_group_name"     : "",
+            "sensor_mask_name"      : "",
+            "domain_model_part_name": "",
+            "mask_scaling"          : "l2_norm",
+            "h5_file_name"          : "",
+            "data_field_name"       : "",
+            "echo_level"            : 0,
+            "kd_tree_settings"      : {
                 "use_kd_tree"  : true,
                 "leaf_max_size": 100
             }
@@ -34,6 +35,7 @@ class SensorDataInputController(ModelPartController):
 
         self.sensor_group_name = parameters["sensor_group_name"].GetString()
         self.sensor_mask_name = parameters["sensor_mask_name"].GetString()
+        self.domain_model_part_name = parameters["domain_model_part_name"].GetString()
         self.h5_file_name = parameters["h5_file_name"].GetString()
         self.data_field_name = parameters["data_field_name"].GetString()
         self.echo_level = parameters["echo_level"].GetInt()
@@ -71,13 +73,17 @@ class SensorDataInputController(ModelPartController):
                     raise RuntimeError(f"The sensor data not found or not a dataset at \"{current_sensor_data_field_name}\" [ sensor name = \"{sensor_name}\", sensor id = \"{sensor_id}\" ]. Found data = \n{dataset}")
 
                 container_type = dataset.attrs["__container_type"]
-                model_part = self.model[dataset.attrs["__model_part_name"]]
-                if container_type == "NodalExpression":
-                    ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Nodes, Kratos.DoubleNDData(dataset[:]), copy=False)
-                elif container_type == "ConditionExpression":
-                    ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Conditions, Kratos.DoubleNDData(dataset[:]), copy=False)
-                elif container_type == "ElementExpression":
-                    ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Elements, Kratos.DoubleNDData(dataset[:]), copy=False)
+                if "__model_part_name" in dataset.attrs.keys():
+                    domain_model_part = self.model[dataset.attrs["__model_part_name"]]
+                else:
+                    domain_model_part = self.model[self.domain_model_part_name]
+
+                if container_type in ["NodalExpression", "NodesArray"]:
+                    ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(domain_model_part.Nodes, Kratos.DoubleNDData(dataset[:]), copy=False)
+                elif container_type in ["ConditionExpression", "ConditionsArray"]:
+                    ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(domain_model_part.Conditions, Kratos.DoubleNDData(dataset[:]), copy=False)
+                elif container_type in ["ElementExpression", "ElementsArray"]:
+                    ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(domain_model_part.Elements, Kratos.DoubleNDData(dataset[:]), copy=False)
                 else:
                     raise RuntimeError(f"Unsupported container type = \"{container_type}\" requested for dataset at \"{current_sensor_data_field_name}\".")
 

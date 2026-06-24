@@ -5,7 +5,6 @@ from KratosMultiphysics.OptimizationApplication.optimization_analysis import Opt
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OptimizationComponentFactory
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAnalysisTimeLogger
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.response_sensitivity_analysis import ResponseSensitivityAnalysis
 
@@ -37,12 +36,19 @@ class SensorGroupSensitivityAnalysis(OptimizationAnalysis):
 
     def _CreateAlgorithm(self):
         default_settings = Kratos.Parameters("""{
-            "module"           : "KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers",
-            "sensor_group_name": ""
+            "module"            : "KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers",
+            "sensor_group_name" : "",
+            "control_variable"  : "",
+            "control_model_part": "",
+            "control_container" : ""
         }""")
         algorithm_settings = self.project_parameters["algorithm_settings"]
         algorithm_settings.AddMissingParameters(default_settings)
         self.sensor_group_name = algorithm_settings["sensor_group_name"].GetString()
+        self.control_variable = Kratos.KratosGlobals.GetVariable(algorithm_settings["control_variable"].GetString() + "_SENSITIVITY")
+        self.control_container = algorithm_settings["control_container"].GetString()
+        self.control_model_part_name = algorithm_settings["control_model_part"].GetString()
+
         self._algorithm = OptimizationComponentFactory(self.model, algorithm_settings, self.optimization_problem)
 
     def __Solve(self) -> None:
@@ -55,10 +61,21 @@ class SensorGroupSensitivityAnalysis(OptimizationAnalysis):
 
         # clear sensor data containers
         for sensor in list_of_sensors:
-            sensor.ClearContainerExpressions()
+            sensor.ClearTensorAdaptors()
 
         for process_type in self.GetAlgorithm().GetProcessesOrder():
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteBeforeSolutionLoop)
+
+        if self.control_container == "nodal_historical":
+            container = (self.model[self.control_model_part_name].Nodes, True)
+        elif self.control_container == "nodal_non_historical":
+            container = (self.model[self.control_model_part_name].Nodes, False)
+        elif self.control_container == "conditions":
+            container = (self.model[self.control_model_part_name].Conditions, False)
+        elif self.control_container == "elements":
+            container = (self.model[self.control_model_part_name].Elements, False)
+        else:
+            raise RuntimeError(f"Unsupported control container type [ control_container = \"{self.control_container}\" ]. Followings are supported:\n\t" + "\n\t".join(["nodal_historical", "nodal_non_historical", "conditions", "elements"]))
 
         for execution_policy in self.optimization_problem.GetListOfExecutionPolicies():
             sensor_model_part.ProcessInfo[KratosSI.TEST_ANALYSIS_NAME] = execution_policy.GetName()
@@ -80,10 +97,11 @@ class SensorGroupSensitivityAnalysis(OptimizationAnalysis):
                     CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteInitializeSolutionStep)
 
                 # now run the sensor analysis to get sensor sensitivities.
-                sensitivities = self.GetAlgorithm().CalculateGradient(sensor)
+                self.GetAlgorithm().CalculateGradient(sensor)
+                tensor_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(container[0], self.control_variable)
+                self.GetAlgorithm().GetGradient(self.control_variable, tensor_adaptor)
 
-                for variable, expression in sensitivities.items():
-                    sensor_group_data.GetUnBufferedData().SetValue(f"{variable.Name()}", expression.Clone(), overwrite=True)
+                sensor_group_data.GetUnBufferedData().SetValue(f"{self.control_variable.Name()}", tensor_adaptor.Clone(), overwrite=True)
 
                 for process_type in self.GetAlgorithm().GetProcessesOrder():
                     CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteFinalizeSolutionStep)

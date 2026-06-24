@@ -54,5 +54,9 @@ class SensorSensitivityHDF5OutputProcess(Kratos.OutputProcess):
                 for ta_name, ta in sensor.GetTensorAdaptorsMap().items():
                     current_dataset_name = f"{self.hdf5_dataset_prefix}/{sensor.GetName()}/{ta_name}"
                     dataset = h5_file.create_dataset(current_dataset_name, data=ta.data)
-                    dataset.attrs["__container_type"] = ta.__class__.__name__
+                    model_part = Kratos.ModelPartUtils.GetModelPart(self.model, ta.GetContainer())
+                    dataset.attrs["__container_type"] = ta.GetContainer().__class__.__name__
+                    if model_part is not None:
+                        dataset.attrs["__model_part_name"] = model_part.FullName()
+
 

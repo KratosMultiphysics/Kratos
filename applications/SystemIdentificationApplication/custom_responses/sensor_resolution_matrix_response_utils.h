@@ -59,9 +59,12 @@ public:
     TensorAdaptor<double>::Pointer CalculateGradient() const;
 
     std::variant<
+        std::monostate,
         ExplicitFilterUtils<ModelPart::NodesContainerType>::Pointer,
         ExplicitFilterUtils<ModelPart::ConditionsContainerType>::Pointer,
         ExplicitFilterUtils<ModelPart::ElementsContainerType>::Pointer> GetFilter();
+
+    Matrix GetResolutionMatrix() const;
 
     ///@}
 
@@ -74,6 +77,7 @@ private:
     double mStepSize;
 
     std::variant<
+        std::monostate,
         ExplicitFilterUtils<ModelPart::NodesContainerType>::Pointer,
         ExplicitFilterUtils<ModelPart::ConditionsContainerType>::Pointer,
         ExplicitFilterUtils<ModelPart::ElementsContainerType>::Pointer> mpFilter;
