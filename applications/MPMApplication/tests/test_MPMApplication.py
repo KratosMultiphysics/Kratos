@@ -154,7 +154,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TPQMPMExplicitTriTest('test_execution'))
     nightSuite.addTest(TPQMPMExplicitHexTest('test_execution'))
 
-    # nightSuite.addTest(TDynamicCylinderImpactPenaltyNonConformingReactionTest('test_execution'))
+    nightSuite.addTest(TDynamicCylinderImpactPenaltyNonConformingReactionTest('test_execution'))
     nightSuite.addTest(TDynamicCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest('test_execution'))
 
     nightSuite.addTest(TMPMRestartTestBeamStaticLineLoad2D('test_execution'))
