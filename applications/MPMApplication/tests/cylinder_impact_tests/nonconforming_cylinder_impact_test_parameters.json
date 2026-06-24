@@ -1,0 +1,115 @@
+{
+    "problem_data": {
+        "problem_name": "flat_inclined_friction",
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0,
+        "end_time": 0.056
+    },
+    "solver_settings": {
+        "time_stepping": {
+            "time_step": 5e-4
+        },
+        "solver_type": "Dynamic",
+        "compute_reactions": true,
+        "model_part_name": "MPM_Material",
+        "add_numerical_stiffness": false,
+        "domain_size": 2,
+        "echo_level": 0,
+        "analysis_type": "non_linear",
+        "time_integration_method": "implicit",
+        "scheme_type": "newmark",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "cylinder_impact_tests/nonconforming_cylinder_impact_test_body",
+            "restart_load_file_label": "12500"
+        },
+        "material_import_settings": {
+            "materials_filename": "cylinder_impact_tests/nonconforming_cylinder_impact_test_materials.json"
+        },
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance": 0.0001,
+        "displacement_absolute_tolerance": 1e-09,
+        "residual_relative_tolerance": 1e-09,
+        "residual_absolute_tolerance": 1e-09,
+        "max_iteration": 200,
+        "grid_model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "cylinder_impact_tests/nonconforming_cylinder_impact_test_grid"
+        },
+        "pressure_dofs": false,
+        "linear_solver_settings": {
+            "solver_type": "LinearSolversApplication.pardiso_lu"
+        },
+        "auxiliary_variables_list": [
+            "NORMAL",
+            "IS_STRUCTURE",
+            "NODAL_AREA"
+        ]
+    },
+    "processes": {
+        "constraints_process_list": [],
+        "loads_process_list": [{
+            "python_module" : "apply_mpm_particle_dirichlet_condition_process",
+            "kratos_module" : "KratosMultiphysics.MPMApplication",
+            "process_name"  : "ApplyMPMParticleDirichletContitionProcess",
+            "Parameters"    : {
+                "model_part_name"         : "Background_Grid.Slip2D_Non_Conforming_Auto1",
+                "constrained"             : "contact_slip",
+                "particles_per_condition" : 1,
+                "penalty_factor"          : 1e15,
+                "option"                  : "flip_normal"
+            }
+        }],
+        "list_other_processes": [
+            {
+                "python_module": "assign_initial_velocity_to_material_point_process",
+                "kratos_module": "KratosMultiphysics.MPMApplication",
+                "process_name": "AssignInitialVelocityToMaterialPointProcess",
+                "Parameters": {
+                    "model_part_name": "Initial_MPM_Material.Parts_Material_domain_Material_domain_Auto1",
+                    "variable_name": "MP_VELOCITY",
+                    "modulus": -1.0,
+                    "direction": [
+                        0.0,
+                        1.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "mpm_from_json_check_result_process",
+                "kratos_module": "KratosMultiphysics.MPMApplication",
+                "help": "",
+                "process_name": "MPMFromJsonCheckResultProcess",
+                "Parameters": {
+                "entity_type": "Condition",
+                "check_variables": [ "MPC_CONTACT_FORCE"],
+                "input_file_name": "cylinder_impact_tests/nonconforming_cylinder_impact_test_contact_force_results.json",
+                "model_part_name": "Background_Grid.Slip2D_Non_Conforming_Auto1",
+                "tolerance"            : 1e-8,
+                "relative_tolerance"   : 1e-8,
+                "time_frequency": 5e-4
+                }
+            }],
+        "initial_conditions_processes": [],
+        "gravity": [],
+        "other_output_processes":[
+        ]
+    },
+    "print_output_process" : [            
+    {
+        "python_module": "mpm_json_output_process",
+        "kratos_module": "KratosMultiphysics.MPMApplication",
+        "help": "",
+        "process_name": "MPMJsonOutputProcess",
+        "Parameters": {
+            "entity_type": "Condition",
+            "gauss_points_output_variables": [ "MPC_CONTACT_FORCE" ],
+            "output_file_name": "nonconforming_cylinder_impact_test_contact_force_results.json",
+            "model_part_name": "Background_Grid.Slip2D_Non_Conforming_Auto1",
+            "time_frequency": 5e-4
+        }
+    }
+    ]
+}

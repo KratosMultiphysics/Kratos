@@ -156,3 +156,6 @@ class PQMPMExplicitTriTest(MPMTestFactory):
 
 class PQMPMExplicitHexTest(MPMTestFactory):
     file_name = "pqmpm_tests/pqmpm_explicit_hex_test"
+
+class DynamicCylinderImpactPenaltyNonConformingReactionTest(MPMTestFactory):
+    file_name = "cylinder_impact_tests/nonconforming_cylinder_impact_test"
