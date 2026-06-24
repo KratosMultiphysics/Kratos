@@ -146,9 +146,8 @@ public:
         TSparseSpace::SetToZero(rDx);
         TSparseSpace::SetToZero(rb);
 
-        LBFGSRankStorage lbfgs_rank_storage;
+        LBFGSRankStorage   lbfgs_rank_storage;
         BroydenRankStorage broyden_rank_storage;
-
 
         bool clear_storage = false;
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
@@ -178,16 +177,15 @@ public:
                     clear_storage = false;
                 }
                 this->LBfgsSolve(rA, rDx, rb, lbfgs_rank_storage);
-            }
-			else if (mQuasiNewtonType == QuasiNewtonType::Broyden) {
+            } else if (mQuasiNewtonType == QuasiNewtonType::Broyden) {
                 if (clear_storage) {
                     BuildAndConstrainA0(rA, rDx, rb, broyden_rank_storage);
                     clear_storage = false;
                 }
                 this->ShermanMorrisSolve(rA, rDx, rb, broyden_rank_storage);
-            }
-            else {
-                KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
+            } else {
+                KRATOS_ERROR
+                    << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
             }
 
             UpdateDatabaseReduced(rA, rDx, rb, HasConstraints);
@@ -198,14 +196,11 @@ public:
             if (mQuasiNewtonType == QuasiNewtonType::LBFGS) {
                 this->UpdateLBFGSRank(lbfgs_rank_storage, rDx, delta_b);
 
-			}
-			else if (mQuasiNewtonType == QuasiNewtonType::Broyden)
-            {
+            } else if (mQuasiNewtonType == QuasiNewtonType::Broyden) {
                 this->UpdateBroydenRank(broyden_rank_storage, rA, rDx, delta_b);
-            }
-            else
-            {
-                KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
+            } else {
+                KRATOS_ERROR
+                    << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
             }
 
             TSparseSpace::Copy(rb_new, rb);
@@ -217,7 +212,6 @@ public:
             if (is_converged) {
                 break;
             }
-
         }
 
         if (!is_converged) {
@@ -256,7 +250,7 @@ private:
         std::vector<TSystemVectorType> v_list; // v_i
         std::vector<TSystemVectorType> z_list; // z_i = rA0^{-1} u_i (cached)
 
-        void Clear()
+        void Clear() override
         {
             u_list.clear();
             v_list.clear();
@@ -269,7 +263,7 @@ private:
         std::vector<TSystemVectorType> db_list;  // gradient/residual differences
         std::vector<double>            rho_list; // curvature scalars
 
-        void Clear()
+        void Clear() override
         {
             dx_list.clear();
             db_list.clear();
