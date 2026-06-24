@@ -48,7 +48,7 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
                               const SizeType NumNodesOrigin,
                               const SizeType NumNodesDestination)
 {
-   // one set for each row storing the corresponding col-IDs
+    // one set for each row storing the corresponding col-IDs
     using indices_type = std::vector<std::unordered_set<IndexType>>;
 
     struct TLSData
@@ -57,14 +57,52 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         EquationIdVectorType DestinationIds;
     };
 
-    const auto result = block_for_each<AccumReduction<indices_type>>(
+    // Reduction merging the per-row column-IDs contributed by the local systems.
+    // It keeps a single accumulator per thread (grown on demand) rather than one
+    // NumNodesDestination-sized container per local system. The previous version
+    // allocated a full NumNodesDestination-sized vector of sets for *every* local
+    // system and stored them all simultaneously, so the peak memory was
+    // O(num_local_systems * NumNodesDestination). On large interfaces this
+    // exhausts memory and the run appears to hang (allocation/swapping).
+    struct GraphReduction
+    {
+        using value_type = std::pair<EquationIdVectorType, EquationIdVectorType>; // (origin_ids, destination_ids)
+        using return_type = indices_type;
+
+        indices_type mIndices;
+
+        return_type GetValue() { return std::move(mIndices); }
+
+        void LocalReduce(const value_type& rEntry)
+        {
+            const auto& r_origin_ids = rEntry.first;
+            const auto& r_destination_ids = rEntry.second;
+            for (const auto id_dest : r_destination_ids) {
+                if (id_dest >= mIndices.size()) {
+                    mIndices.resize(id_dest + 1);
+                }
+                mIndices[id_dest].insert(r_origin_ids.begin(), r_origin_ids.end());
+            }
+        }
+
+        void ThreadSafeReduce(GraphReduction& rOther)
+        {
+            KRATOS_CRITICAL_SECTION
+            if (rOther.mIndices.size() > mIndices.size()) {
+                mIndices.resize(rOther.mIndices.size());
+            }
+            for (IndexType i = 0; i < rOther.mIndices.size(); ++i) {
+                mIndices[i].insert(rOther.mIndices[i].begin(), rOther.mIndices[i].end());
+            }
+        }
+    };
+
+    indices_type indices = block_for_each<GraphReduction>(
         rMapperLocalSystems.begin(),
         rMapperLocalSystems.end(),
         TLSData(),
-        [NumNodesDestination](auto& rpLocalSys, TLSData& rTLS) -> indices_type
+        [](auto& rpLocalSys, TLSData& rTLS) -> GraphReduction::value_type
         {
-            indices_type local_indices(NumNodesDestination);
-
             rTLS.OriginIds.clear();
             rTLS.DestinationIds.clear();
 
@@ -72,31 +110,13 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
                 rTLS.OriginIds,
                 rTLS.DestinationIds);
 
-            for (const auto id_dest : rTLS.DestinationIds) {
-                auto& r_indices = local_indices[id_dest];
-
-                for (const auto id_origin : rTLS.OriginIds) {
-                    r_indices.insert(id_origin);
-                }
-            }
-
-            return local_indices;
+            return {rTLS.OriginIds, rTLS.DestinationIds};
         }
     );
 
-    indices_type indices(NumNodesDestination);
-
-    for (auto& r_indices : indices) {
-        r_indices.reserve(3);
-    }
-
-    for (const auto& r_local_indices : result) {
-        for (IndexType i = 0; i < NumNodesDestination; ++i) {
-            indices[i].insert(
-                r_local_indices[i].begin(),
-                r_local_indices[i].end());
-        }
-    }
+    // The highest touched destination row may be smaller than the number of
+    // destination nodes, so make sure every row exists before building the CSR.
+    indices.resize(NumNodesDestination);
 
     // computing the number of non-zero entries
     SizeType num_non_zero_entries = 0;
