@@ -5,18 +5,15 @@ import KratosMultiphysics.kratos_utilities as KratosUtilities
 import KratosMultiphysics.FluidDynamicsApplication.cfd_utils as cfd_utils
 from KratosMultiphysics.FluidDynamicsApplication.vectorized_cfd_stage import VectorizedCFDStage
 
-class VectorizedFluidDynamicsAnalysisTest(KratosUnittest.TestCase):
-    def test_open_mp_float32(self):
-        self.parallel_type = "open_mp"
-        self.precision = "float32"
-        self._CustomizeTestSettings()
-        self._RunVectorizedAnalysis()
+# Check if cupy is available for GPU tests
+try:
+    import cupy
+    HAS_CUPY = True
+except ImportError:
+    HAS_CUPY = False
+    print("Skipping tests that require CuPy.")
 
-    def test_gpu_float32(self):
-        self.parallel_type = "gpu"
-        self.precision = "float32"
-        self._CustomizeTestSettings()
-        self._RunVectorizedAnalysis()
+class _VectorizedFluidDynamicsAnalysisTest(KratosUnittest.TestCase):
 
     def setUp(self):
         self.print_output = False
@@ -131,6 +128,22 @@ class VectorizedFluidDynamicsAnalysisTest(KratosUnittest.TestCase):
         json_check_settings["Parameters"]["tolerance"].SetDouble(self.check_absolute_tolerance)
         json_check_settings["Parameters"]["relative_tolerance"].SetDouble(self.check_relative_tolerance)
         self.parameters["processes"]["json_check_process_list"].Append(json_check_settings)
+
+@KratosUnittest.skipUnless(HAS_CUPY, "CuPy not available")
+class VectorizedFluidDynamicsAnalysisTestGPU(_VectorizedFluidDynamicsAnalysisTest):
+    def test_gpu_float32(self):
+        self.parallel_type = "gpu"
+        self.precision = "float32"
+        self._CustomizeTestSettings()
+        self._RunVectorizedAnalysis()
+
+@KratosUnittest.skipUnless(HAS_CUPY, "CuPy not available")
+class VectorizedFluidDynamicsAnalysisTestOpenMP(_VectorizedFluidDynamicsAnalysisTest):
+    def test_open_mp_float32(self):
+        self.parallel_type = "open_mp"
+        self.precision = "float32"
+        self._CustomizeTestSettings()
+        self._RunVectorizedAnalysis()
 
 if __name__ == '__main__':
     KratosUnittest.main()
