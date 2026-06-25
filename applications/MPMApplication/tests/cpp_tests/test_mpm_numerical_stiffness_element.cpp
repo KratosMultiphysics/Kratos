@@ -160,7 +160,7 @@ ModelPart::PropertiesType::Pointer Create2DCommonProperties(ModelPart& rModelpar
     p_elem_prop->SetValue(THICKNESS, 0.1);
     p_elem_prop->SetValue(YOUNG_MODULUS, 1.0e6);
     p_elem_prop->SetValue(POISSON_RATIO, 0.0);
-    p_elem_prop->SetValue(PENALTY_FACTOR, 1e-4);
+    p_elem_prop->SetValue(PENALTY_COEFFICIENT, 1e-4);
     p_elem_prop->SetValue(VOLUME_RATIO_THRESHOLD, 0.9);
     return p_elem_prop;
 }
@@ -174,7 +174,7 @@ ModelPart::PropertiesType::Pointer Create3DCommonProperties(ModelPart& rModelpar
     p_elem_prop->SetValue(DENSITY, 1000);
     p_elem_prop->SetValue(YOUNG_MODULUS, 1.0e6);
     p_elem_prop->SetValue(POISSON_RATIO, 0.0);
-    p_elem_prop->SetValue(PENALTY_FACTOR, 1e-4);
+    p_elem_prop->SetValue(PENALTY_COEFFICIENT, 1e-4);
     p_elem_prop->SetValue(VOLUME_RATIO_THRESHOLD, 0.9);
     return p_elem_prop;
 }

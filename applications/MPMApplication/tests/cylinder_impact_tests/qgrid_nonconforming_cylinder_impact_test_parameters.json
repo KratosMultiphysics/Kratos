@@ -57,7 +57,7 @@
                 "model_part_name"         : "Background_Grid.Slip2D_Non_Conforming_Auto1",
                 "constrained"             : "contact_slip",
                 "material_points_per_condition" : 1,
-                "penalty_factor"          : 1e15,
+                "penalty_coefficient"          : 1e15,
                 "option"                  : "flip_normal"
             }
         }],

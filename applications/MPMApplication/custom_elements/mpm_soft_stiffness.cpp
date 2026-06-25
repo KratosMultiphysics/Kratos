@@ -166,7 +166,7 @@ void MPMSoftStiffness::Initialize(const ProcessInfo& rCurrentProcessInfo)
         this->SetValue(GRID_VOLUME, grid_volume);
 
         // Initialize penalty factor
-        if (!this->GetProperties().Has(PENALTY_FACTOR)) // temporary check for PENALTY_FACTOR TODO: move to mpm_solver as one of the checks
+        if (!this->GetProperties().Has(PENALTY_COEFFICIENT)) // temporary check for PENALTY_COEFFICIENT TODO: move to mpm_solver as one of the checks
         {
             KRATOS_ERROR <<  "Penalty factor is not initialized" << std::endl;
         }
@@ -590,7 +590,7 @@ void MPMSoftStiffness::InitializeSolutionStep(const ProcessInfo& rCurrentProcess
     if ((0.0 < volume_ratio) && (volume_ratio < GetProperties()[VOLUME_RATIO_THRESHOLD]))
     {
         this->Set(ACTIVE, true);
-        mGridVariables.stiffness_multiplier = this->GetProperties()[PENALTY_FACTOR] * std::max(0.0, 1.0 - volume_ratio);
+        mGridVariables.stiffness_multiplier = this->GetProperties()[PENALTY_COEFFICIENT] * std::max(0.0, 1.0 - volume_ratio);
         
     }
     else if (volume_ratio == 0 || volume_ratio > GetProperties()[VOLUME_RATIO_THRESHOLD])
@@ -603,7 +603,7 @@ void MPMSoftStiffness::InitializeSolutionStep(const ProcessInfo& rCurrentProcess
                         ", TOTAL_MP_VOLUME = " << this->GetValue(TOTAL_MP_VOLUME) << ", Grid Volume = " << this->GetValue(GRID_VOLUME) << std::endl;
     }
     
-    // KRATOS_WATCH(this->GetProperties()[PENALTY_FACTOR])
+    // KRATOS_WATCH(this->GetProperties()[PENALTY_COEFFICIENT])
     // KRATOS_WATCH(volume_ratio)
     // KRATOS_WATCH(mGridVariables.stiffness_multiplier)
 
@@ -611,7 +611,7 @@ void MPMSoftStiffness::InitializeSolutionStep(const ProcessInfo& rCurrentProcess
 
     //     KRATOS_WATCH(this->Id())
     //     KRATOS_WATCH(mGridVariables.stiffness_multiplier)
-    //     KRATOS_WATCH(this->GetProperties()[PENALTY_FACTOR])
+    //     KRATOS_WATCH(this->GetProperties()[PENALTY_COEFFICIENT])
     //     KRATOS_WATCH(mGridVariables.volume)
     //     KRATOS_WATCH(this->GetValue(TOTAL_MP_VOLUME))
     // }

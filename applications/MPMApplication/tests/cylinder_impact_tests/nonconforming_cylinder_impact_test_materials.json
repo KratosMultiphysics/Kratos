@@ -29,7 +29,7 @@
                 "DENSITY"                     : 1379.0,
                 "YOUNG_MODULUS"               : 21.6e6,
                 "POISSON_RATIO"               : 0.0,
-                "PENALTY_FACTOR"              : 1e-6,
+                "PENALTY_COEFFICIENT"          : 1e-6,
                 "VOLUME_RATIO_THRESHOLD"      : 0.3
 
             },

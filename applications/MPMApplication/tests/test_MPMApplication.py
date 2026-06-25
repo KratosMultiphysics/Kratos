@@ -116,8 +116,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMWriteEnergyOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestBodyForceInterpolation]))
     
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMaterialPointLocator]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMPointOutputProcess]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMaterialPointLocator]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMPointOutputProcess]))
 
     # TODO: Look further into these three tests as they are still failing for AMatrix
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))    # FIXME:

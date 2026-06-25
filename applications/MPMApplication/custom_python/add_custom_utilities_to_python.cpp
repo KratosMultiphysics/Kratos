@@ -78,6 +78,7 @@ namespace Kratos::Python{
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
         m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
+        m.def("CalculateTotalMPVolume", pybind11::overload_cast<const ModelPart&>(&MPMVolumeSumUtility::AddModelPartMPMVolumeIntoGrid), pybind11::arg("MPMModelPart"));
 
         // Calculate energy utility
         py::class_< MPMEnergyCalculationUtility> (m,"EnergyCalculationUtility")
