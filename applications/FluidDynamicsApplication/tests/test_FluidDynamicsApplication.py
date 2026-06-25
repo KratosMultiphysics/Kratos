@@ -69,7 +69,7 @@ if HAS_CUPY:
 from test_cfd_utils import TestCFDUtils
 from vectorized_fluid_dynamics_analysis_test import VectorizedFluidDynamicsAnalysisTestOpenMP
 if HAS_CUPY:
-    from vectorized_fluid_dynamics_analysis_test import VectorizedFluidDynamicsAnalysisTestCuPy
+    from vectorized_fluid_dynamics_analysis_test import VectorizedFluidDynamicsAnalysisTestGPU
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -154,7 +154,7 @@ def AssembleTestSuites():
     nightSuite.addTest(AdjointFluidTest('testCylinder'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([VectorizedFluidDynamicsAnalysisTestOpenMP]))
     if HAS_CUPY:
-        nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([VectorizedFluidDynamicsAnalysisTestCuPy]))
+        nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([VectorizedFluidDynamicsAnalysisTestGPU]))
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
