@@ -18,7 +18,7 @@ The test is performed in 3 stages of 2 steps, with the following conditions:
 - Load:
   - In stage 1 a vertical displacement of -0.1 [m] is instantly applied at the top
   - In stage 2 a vertical displacement of +0.2 [m] is instantly applied at the top
-  - In stage 3 a vertical displacement of -0.1 [m] is instantly applied at the top, whilst reset_displacement = true
+  - In stage 3 a vertical displacement of -0.1 [m] is instantly applied at the top, whilst reset_totals = true
 
 The result is a uniform strain and stress field.
 - In the first stage step 1 total, incremental and stage displacement are equal -0.1 [m].
