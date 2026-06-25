@@ -1196,7 +1196,25 @@ namespace Kratos
                 first_variations_traction(2, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[2];
             }
 
-            //////////////////////// Additional shear //////////////////////////
+            // 2. Second Variation Traction + Shear
+            array_1d<double, 3> diff_displacement = displacement_vector_master - displacement_vector_slave;
+            for (IndexType i = 0; i < 3 * number_of_nodes_master; i++)
+            {
+                for (IndexType j = 0; j < 3 * number_of_nodes_master; j++)
+                {   
+                    array_1d<double, 3> shear_component_master = second_variation_shear_master[i][j][0] * kinematic_variables_master.a3;
+                    second_variations_traction_master(i, j) += inner_prod(shear_component_master, diff_displacement);
+                }
+            }
+            
+            for (IndexType i = 0; i < 3 * number_of_nodes_slave; i++)
+            {
+                for (IndexType j = 0; j < 3 * number_of_nodes_slave; j++)
+                {
+                    array_1d<double, 3> shear_component_slave = second_variation_shear_slave[i][j][0] * kinematic_variables_slave.a3;
+                    second_variations_traction_slave(i, j) -= inner_prod(shear_component_slave, diff_displacement);
+                }
+            }
 
             // Differential area
             const double integration_weight = integration_points[point_number].Weight();
@@ -2964,6 +2982,8 @@ namespace Kratos
                     + H(0, 1) * ddn[0] + H(1, 1) * ddn[1] + H(2, 1) * ddn[2]);
                 rSecondVariationCurvatureCurvilinear[r][s][2] = -(r_DDN_DDe(kr, 1) * S_dn(dirr, s) + r_DDN_DDe(ks, 1) * S_dn(dirs, r)
                     + H(0, 2) * ddn[0] + H(1, 2) * ddn[1] + H(2, 2) * ddn[2]);
+
+                rSecondVariationCurvatureCurvilinear[s][r] = rSecondVariationCurvatureCurvilinear[r][s];
             }
         }
     }
