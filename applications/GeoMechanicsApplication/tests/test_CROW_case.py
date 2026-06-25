@@ -116,6 +116,9 @@ def get_expected_results_from_csv(csv_filepath):
             for row in reader
         }
 
+def max_abs_nodal_result_value(values_by_node_id_and_result_item, node_ids, result_item_name):
+    return max([abs(values_by_node_id_and_result_item[node_id][result_item_name]) for node_id in node_ids])
+
 
 class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def setUp(self):
@@ -163,9 +166,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
             relative_tolerance = 0.02
 
-            expected_max_abs_bending_moment = max([abs(expected_results[node_id][csv_fieldname_bending_moment]) for node_id in node_ids])
-            expected_max_abs_shear_force = max([abs(expected_results[node_id][csv_fieldname_shear_force]) for node_id in node_ids])
-            expected_max_abs_horizontal_total_displacement = max([abs(expected_results[node_id][csv_fieldname_horizontal_total_displacement]) for node_id in node_ids])
+            expected_max_abs_bending_moment = max_abs_nodal_result_value(expected_results, node_ids, csv_fieldname_bending_moment)
+            expected_max_abs_shear_force = max_abs_nodal_result_value(expected_results, node_ids, csv_fieldname_shear_force)
+            expected_max_abs_horizontal_total_displacement = max_abs_nodal_result_value(expected_results, node_ids, csv_fieldname_horizontal_total_displacement)
 
             for (
                 node_id,
