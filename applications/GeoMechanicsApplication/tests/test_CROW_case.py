@@ -129,12 +129,13 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.test_path = None
         self.csv_files_dir = None
 
-    def initialize_test_parameters(self, material_model_dir_name, analysis_type, variant=None):
+    def initialize_test_parameters(self, material_model_dir_name, analysis_type, variant):
         self.analysis_type = analysis_type
 
-        base_path = Path(test_helper.get_file_path(Path("crow_validation") / material_model_dir_name / analysis_type))
-        self.test_path = base_path if variant is None else base_path / variant
-        self.csv_files_dir = base_path
+        base_test_path = Path(test_helper.get_file_path(Path("crow_validation") / material_model_dir_name / analysis_type))
+        self.test_path = base_test_path / variant
+        self.test_path.mkdir(exist_ok=True)
+        self.csv_files_dir = base_test_path
 
     def run_simulation_and_checks(self, project_parameters):
 
@@ -510,12 +511,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
     def get_project_parameters(self, material_model_dir_name, analysis_type="staged_construction"):
 
-        self.analysis_type = analysis_type
-        self.test_path = Path(
-            test_helper.get_file_path(
-                Path("crow_validation") / material_model_dir_name / self.analysis_type
-            )
-        )
+        # self.analysis_type = analysis_type
+        # self.test_path = Path(
+        #     test_helper.get_file_path(
+        #         Path("crow_validation") / material_model_dir_name / self.analysis_type
+        #     )
+        # )
 
         project_parameters_file_name = "staged_construction.json"
         with context_managers.set_cwd_to(self.test_path):
@@ -525,7 +526,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 return Kratos.Parameters(analysis_file.read())
 
     def test_staged_construction_with_linear_elastic_behavior(self):
-        self.initialize_test_parameters(material_model_dir_name=linear_elastic_dir_name, analysis_type="staged_construction")
+        self.initialize_test_parameters(material_model_dir_name=linear_elastic_dir_name, analysis_type="staged_construction", variant="as-is")
         project_parameters = self.get_project_parameters(linear_elastic_dir_name)
 
         with context_managers.set_cwd_to(self.test_path):
@@ -534,7 +535,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def test_staged_construction_with_mohr_coulomb_clay_sand_broyden(self):
         self.initialize_test_parameters(material_model_dir_name=mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction", variant="broyden")
         project_parameters = self.get_project_parameters(mohr_coulomb_clay_sand_dir_name,
-                                                         analysis_type="staged_construction_broyden")
+                                                         analysis_type="staged_construction")
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 

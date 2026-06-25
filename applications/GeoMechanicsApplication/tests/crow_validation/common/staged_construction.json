@@ -23,7 +23,7 @@
                     {
                         "name": "Modelers.KratosMultiphysics.ImportMDPAModeler",
                         "Parameters": {
-                            "input_filename": "../../common/model",
+                            "input_filename": "../../../common/model",
                             "model_part_name": "PorousDomain"
                         }
                     }
@@ -76,7 +76,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../../common/initial_materials.json"
+                        "materials_filename": "../../../common/initial_materials.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -292,7 +292,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -508,7 +508,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -810,7 +810,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -1119,7 +1119,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -1436,7 +1436,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -1748,7 +1748,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
