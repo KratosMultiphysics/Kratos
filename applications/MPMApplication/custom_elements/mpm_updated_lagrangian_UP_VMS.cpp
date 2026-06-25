@@ -476,10 +476,10 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddRHS(
     CalculateAndAddPressureForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized terms of the momentum equation
-    CalculateAndAddStabilizedDisplacement( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
+    CalculateAndAddStabilizedDisplacementVMS( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
-    CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
+    CalculateAndAddStabilizedPressureVMS( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
 }
 
@@ -489,7 +489,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddRHS(
 
 
 
-void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
+void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacementVMS(VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         Vector& rVolumeForce,
         const double& rIntegrationWeight)
@@ -542,7 +542,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType
 //************************************************************************************
 //************************************************************************************
 
-void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressureVMS(VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         Vector& rVolumeForce,
         const double& rIntegrationWeight)

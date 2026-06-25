@@ -193,18 +193,18 @@ protected:
     /**
      * Calculation of stabilization terms for the continuity equation
      */
-    void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-                                           GeneralVariables& rVariables,
-                                           Vector& rVolumeForce,
-                                           const double& rIntegrationWeight);
+    void CalculateAndAddStabilizedPressureVMS(VectorType& rRightHandSideVector,
+                                              GeneralVariables& rVariables,
+                                              Vector& rVolumeForce,
+                                              const double& rIntegrationWeight);
 
     /**
      * Calculation stabilization terms for the momentum equation
      */
-    void CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
-                                               GeneralVariables& rVariables,
-                                               Vector& rVolumeForce,
-                                               const double& rIntegrationWeight);
+    void CalculateAndAddStabilizedDisplacementVMS(VectorType& rRightHandSideVector,
+                                                  GeneralVariables& rVariables,
+                                                  Vector& rVolumeForce,
+                                                  const double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
