@@ -2643,7 +2643,7 @@ namespace Kratos
         rDerivativeCurvatureCurvilinear[1][1] = inner_prod(A2_22,rReferenceKinematic.a3) + inner_prod(A2_2,A3_2) - inner_prod(a2_22,rActualKinematic.a3) - inner_prod(a2_2,a3_2);
         rDerivativeCurvatureCurvilinear[1][2] = inner_prod(A2_21,rReferenceKinematic.a3) + inner_prod(A1_2,A3_2) - inner_prod(a2_21,rActualKinematic.a3) - inner_prod(a1_2,a3_2);
 
-        // 2. Calculate First and Second Variation Curvature
+        // 2. Calculate First Variation Curvature
         std::vector<array_1d<double,3> > a3_r;
         a3_r.resize(mat_size);
         std::vector<array_1d<double,3> > a3_1_r;
@@ -2708,6 +2708,33 @@ namespace Kratos
             rFirstVariationDerivativeCurvatureCurvilinear[1][r][0] = -inner_prod(a1_12_r,rActualKinematic.a3) - inner_prod(a1_12,a3_r[r]) - inner_prod(a1_1_r,a3_2) - inner_prod(a1_1,a3_2_r[r]);
             rFirstVariationDerivativeCurvatureCurvilinear[1][r][1] = -inner_prod(a2_22_r,rActualKinematic.a3) - inner_prod(a2_22,a3_r[r]) - inner_prod(a2_2_r,a3_2) - inner_prod(a2_2,a3_2_r[r]);
             rFirstVariationDerivativeCurvatureCurvilinear[1][r][2] = -inner_prod(a2_21_r,rActualKinematic.a3) - inner_prod(a2_21,a3_r[r]) - inner_prod(a1_2_r,a3_2) - inner_prod(a1_2,a3_2_r[r]);
+        }
+        
+        // 3. Calculate Second Variation Curvature
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            IndexType kr = r / 3;
+            IndexType dirr = r % 3;
+
+            array_1d<double,3> a1_r = ZeroVector(3);
+            array_1d<double,3> a2_r = ZeroVector(3);
+            array_1d<double,3> a1_1_r = ZeroVector(3);
+            array_1d<double,3> a1_2_r = ZeroVector(3);
+            array_1d<double,3> a2_2_r = ZeroVector(3);
+            array_1d<double,3> a1_11_r = ZeroVector(3);
+            array_1d<double,3> a1_12_r = ZeroVector(3);
+            array_1d<double,3> a2_21_r = ZeroVector(3);
+            array_1d<double,3> a2_22_r = ZeroVector(3);
+
+            a1_r[dirr] = r_DN_De(kr,0);
+            a2_r[dirr] = r_DN_De(kr,1);
+            a1_1_r[dirr] = r_DDN_DDe(kr,0);
+            a1_2_r[dirr] = r_DDN_DDe(kr,1);
+            a2_2_r[dirr] = r_DDN_DDe(kr,2);
+            a1_11_r[dirr] = r_DDDN_DDDe(kr,0);
+            a1_12_r[dirr] = r_DDDN_DDDe(kr,1);
+            a2_21_r[dirr] = r_DDDN_DDDe(kr,2);
+            a2_22_r[dirr] = r_DDDN_DDDe(kr,3);
 
             for (IndexType s = 0; s < mat_size; s++)
             {
@@ -2724,15 +2751,15 @@ namespace Kratos
                 array_1d<double,3> a2_21_s = ZeroVector(3);
                 array_1d<double,3> a2_22_s = ZeroVector(3);
 
-                a1_s[dirr] = r_DN_De(kr,0);
-                a2_s[dirr] = r_DN_De(kr,1);
-                a1_1_s[dirr] = r_DDN_DDe(kr,0);
-                a1_2_s[dirr] = r_DDN_DDe(kr,1);
-                a2_2_s[dirr] = r_DDN_DDe(kr,2);
-                a1_11_s[dirr] = r_DDDN_DDDe(kr,0);
-                a1_12_s[dirr] = r_DDDN_DDDe(kr,1);
-                a2_21_s[dirr] = r_DDDN_DDDe(kr,2);
-                a2_22_s[dirr] = r_DDDN_DDDe(kr,3);
+                a1_s[dirs] = r_DN_De(ks,0);
+                a2_s[dirs] = r_DN_De(ks,1);
+                a1_1_s[dirs] = r_DDN_DDe(ks,0);
+                a1_2_s[dirs] = r_DDN_DDe(ks,1);
+                a2_2_s[dirs] = r_DDN_DDe(ks,2);
+                a1_11_s[dirs] = r_DDDN_DDDe(ks,0);
+                a1_12_s[dirs] = r_DDDN_DDDe(ks,1);
+                a2_21_s[dirs] = r_DDDN_DDDe(ks,2);
+                a2_22_s[dirs] = r_DDDN_DDDe(ks,3);
 
                 //second variation of the the surface normal
                 array_1d<double,3> tilde_a3_rs = MathUtils<double>::CrossProduct(a1_r,a2_s) + MathUtils<double>::CrossProduct(a1_s,a2_r);
