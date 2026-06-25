@@ -68,11 +68,10 @@
                 "process_name": "AssignInitialVelocityToMaterialPointProcess",
                 "Parameters": {
                     "model_part_name": "Initial_MPM_Material.Parts_Material_domain_Material_domain_Auto1",
-                    "variable_name": "MP_VELOCITY",
-                    "modulus": -1.0,
+                    "modulus": 1.0,
                     "direction": [
                         0.0,
-                        1.0,
+                        -1.0,
                         0.0
                     ]
                 }
