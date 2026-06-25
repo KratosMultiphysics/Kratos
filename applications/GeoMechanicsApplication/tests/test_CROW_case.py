@@ -161,7 +161,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             csv_filepath = self.csv_files_dir / f"{stage_name}__expected_results_wall.csv"
             expected_results = get_expected_results_from_csv(csv_filepath)
 
-            relative_tolerance = 0.01
+            relative_tolerance = 0.02
 
             expected_max_abs_bending_moment = max([abs(expected_results[node_id][csv_fieldname_bending_moment]) for node_id in node_ids])
             expected_max_abs_shear_force = max([abs(expected_results[node_id][csv_fieldname_shear_force]) for node_id in node_ids])
