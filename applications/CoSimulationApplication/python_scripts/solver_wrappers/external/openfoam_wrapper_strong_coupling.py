@@ -179,20 +179,26 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
         print("\nKRATOS: SolveSolutionStep Ende\n")
 
     def Predict(self):
-        print("Kratos: Predict")
+        super().Predict()
 
     def InitializeSolutionStep(self):
-        print("Kratos: InitializeSolutionStep")
+        super().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        print("Kratos: FinalizeSolutionStep")
+
+        tol = 1e-12
+        if self.current_time + tol >= self.end_time:
+            print("Kratos: sending finalize signal to OpenFOAM")
+            self.sendControlSignal("finalize")
+        else:
+            self.sendControlSignal("coupling_ongoing", {"coupling_ongoing": True})
+        
+        super().OutputSolutionStep()
 
     def OutputSolutionStep(self):
-        print("Kratos: OutputSolutionStep")
+        super().OutputSolutionStep()
 
     def Finalize(self):
-        print("Kratos: Finalize")
-        self.sendControlSignal("finalize")
         super().Finalize()
 
     def _GetIOType(self):
