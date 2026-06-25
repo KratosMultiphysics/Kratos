@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "truss_with_reset_displacement_stage_1",
-        "start_time":           0.0,
-        "end_time":             1.0,
+        "problem_name":         "truss_with_reset_totals_stage_3",
+        "start_time":           2.0,
+        "end_time":             3.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -12,8 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "truss_with_reset_displacement"
+            "input_type":       "use_input_model_part"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -30,7 +29,7 @@
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
-        "reset_displacements":                false,
+        "reset_totals":                       false,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -77,7 +76,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "truss_with_reset_displacement_stage_1",
+                "output_name": "truss_with_reset_totals_stage_3",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -126,7 +125,14 @@
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
-    }],
+    },{
+            "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
+            "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
+            "Parameters"    : {
+                "model_part_name": "PorousDomain.Truss-auto-1"
+            }
+        }],
     "loads_process_list": [{
         "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
@@ -135,7 +141,7 @@
             "model_part_name": "PorousDomain.Point_Load-auto-1",
             "variable_name":   "POINT_LOAD",
             "active":          [true,false,false],
-            "value":           [-1e10,0.0,0.0],
+            "value":           [-2e10,0.0,0.0],
             "table":           [0,0,0]
         }
     }]

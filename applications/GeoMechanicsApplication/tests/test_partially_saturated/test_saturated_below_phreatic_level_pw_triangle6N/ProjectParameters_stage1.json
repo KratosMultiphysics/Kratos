@@ -29,7 +29,7 @@
     "block_builder"                    : true,
     "solution_type"                    : "Steady_State_Groundwater_Flow",
     "scheme_type"                      : "Backward_Euler",
-    "reset_displacements"              : true,
+    "reset_totals"                     : true,
     "strategy_type"                    : "newton_raphson",
     "convergence_criterion"            : "water_pressure_criterion",
     "water_pressure_relative_tolerance": 0.0001,
