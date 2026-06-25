@@ -4,6 +4,7 @@ import shutil
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 
 import test_helper
@@ -52,7 +53,7 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
 
     def _get_numerical_relative_water_pressures(self, time, stage_no):
         output_file_path = os.path.join(self.test_path, f"1D-Consolidationtest_stage{stage_no}.post.res")
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         output_data = reader.read_output_from(output_file_path)
         # Invert the sign of the water pressures resulting from the numerical solution, to make them match the
         # analytical solution which assumes compressive water pressures to be positive rather than negative.
@@ -62,7 +63,7 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
 
     def _get_numerical_settlement_values(self, time, stage_no, node_ids):
         output_file_path = os.path.join(self.test_path, f"1D-Consolidationtest_stage{stage_no}.post.res")
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         output_data = reader.read_output_from(output_file_path)
         # Settlement corresponds to downward total displacement. Invert the sign of the total displacement values to
         # make them match the analytical solution which assumes the settlement values to be positive.

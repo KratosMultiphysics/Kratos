@@ -326,13 +326,10 @@ private:
     ///@{
 
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
+    requires (TCheckIndex == 0)
     static constexpr bool IsDimensionDynamicImpl()
     {
-        if constexpr(TCheckIndex == 0) {
-            return false;
-        } else {
-            static_assert(TCheckIndex != TCheckIndex, "Invalid dimension index.");
-        }
+        return false;
     }
 
     ///@}
@@ -567,25 +564,21 @@ public:
      * @param rValue                    Container to retireve the contiguous array pointer.
      * @return PrimitiveType const*     Contiguous array pointer.
      */
-    inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
+    inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue) requires (IsContiguous)
     {
-        if constexpr(IsContiguous) {
-            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-                return rValue.data().data();
-            } else {
-                // since the underlying data structure for recusive static data types
-                // is contiguous in ublas types, we can do the following to get the
-                // contiguous array.
-                if constexpr(TSize > 0) {
-                    return reinterpret_cast<PrimitiveType const *>(&rValue[0]);
-                } else {
-                    // not returning nullptr so, the return value can be subjected to
-                    // arithmetic operations
-                    return 0;
-                }
-            }
+        if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+            return rValue.data().data();
         } else {
-            static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+            // since the underlying data structure for recusive static data types
+            // is contiguous in ublas types, we can do the following to get the
+            // contiguous array.
+            if constexpr(TSize > 0) {
+                return reinterpret_cast<PrimitiveType const *>(&rValue[0]);
+            } else {
+                // not returning nullptr so, the return value can be subjected to
+                // arithmetic operations
+                return 0;
+            }
         }
     }
 
@@ -599,25 +592,21 @@ public:
      * @param rValue                    Container to retireve the contiguous array pointer.
      * @return PrimitiveType const*     Contiguous array pointer.
      */
-    inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
+    inline static PrimitiveType * GetContiguousData(ContainerType& rValue) requires (IsContiguous)
     {
-        if constexpr(IsContiguous) {
-            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-                return rValue.data().data();
-            } else {
-                // since the underlying data structure for recusive static data types
-                // is contiguous in ublas types, we can do the following to get the
-                // contiguous array.
-                if constexpr(TSize > 0) {
-                    return reinterpret_cast<PrimitiveType*>(&rValue[0]);
-                } else {
-                    // not returning nullptr so, the return value can be subjected to
-                    // arithmetic operations
-                    return 0;
-                }
-            }
+        if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+            return rValue.data().data();
         } else {
-            static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+            // since the underlying data structure for recusive static data types
+            // is contiguous in ublas types, we can do the following to get the
+            // contiguous array.
+            if constexpr(TSize > 0) {
+                return reinterpret_cast<PrimitiveType*>(&rValue[0]);
+            } else {
+                // not returning nullptr so, the return value can be subjected to
+                // arithmetic operations
+                return 0;
+            }
         }
     }
 
@@ -970,25 +959,21 @@ public:
      * @param rValue                    Container to retireve the contiguous array pointer.
      * @return PrimitiveType const*     Contiguous array pointer.
      */
-    inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
+    inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue) requires (IsContiguous)
     {
-        if constexpr(IsContiguous) {
-            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-                return rValue.data().begin();
-            } else {
-                // since the underlying data structure for recusive static data types
-                // is contiguous in ublas types, we can do the following to get the
-                // contiguous array.
-                if (rValue.size() > 0) {
-                    return reinterpret_cast<PrimitiveType const *>(&rValue[0]);
-                } else {
-                    // not returning nullptr so, the return value can be subjected to
-                    // arithmetic operations
-                    return 0;
-                }
-            }
+        if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+            return rValue.data().begin();
         } else {
-            static_assert(!std::is_same_v<TDataType, TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
+            // since the underlying data structure for recusive static data types
+            // is contiguous in ublas types, we can do the following to get the
+            // contiguous array.
+            if (rValue.size() > 0) {
+                return reinterpret_cast<PrimitiveType const *>(&rValue[0]);
+            } else {
+                // not returning nullptr so, the return value can be subjected to
+                // arithmetic operations
+                return 0;
+            }
         }
     }
 
@@ -1002,25 +987,21 @@ public:
      * @param rValue                    Container to retireve the contiguous array pointer.
      * @return PrimitiveType const*     Contiguous array pointer.
      */
-    inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
+    inline static PrimitiveType * GetContiguousData(ContainerType& rValue) requires (IsContiguous)
     {
-        if constexpr(IsContiguous) {
-            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-                return rValue.data().begin();
-            } else {
-                // since the underlying data structure for recusive static data types
-                // is contiguous in ublas types, we can do the following to get the
-                // contiguous array.
-                if (rValue.size() > 0) {
-                    return reinterpret_cast<PrimitiveType*>(&rValue[0]);
-                } else {
-                    // not returning nullptr so, the return value can be subjected to
-                    // arithmetic operations
-                    return 0;
-                }
-            }
+        if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+            return rValue.data().begin();
         } else {
-            static_assert(!std::is_same_v<TDataType, TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
+            // since the underlying data structure for recusive static data types
+            // is contiguous in ublas types, we can do the following to get the
+            // contiguous array.
+            if (rValue.size() > 0) {
+                return reinterpret_cast<PrimitiveType*>(&rValue[0]);
+            } else {
+                // not returning nullptr so, the return value can be subjected to
+                // arithmetic operations
+                return 0;
+            }
         }
     }
 
@@ -1386,25 +1367,21 @@ public:
      * @param rValue                    Container to retireve the contiguous array pointer.
      * @return PrimitiveType const*     Contiguous array pointer.
      */
-    inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
+    inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue) requires (IsContiguous)
     {
-        if constexpr(IsContiguous) {
-            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-                return rValue.data().begin();
-            } else {
-                // since the underlying data structure for recusive static data types
-                // is contiguous in ublas types, we can do the following to get the
-                // contiguous array.
-                if (rValue.size1() > 0 && rValue.size2() > 0) {
-                    return reinterpret_cast<PrimitiveType const*>(&rValue(0, 0));
-                } else {
-                    // not returning nullptr so, the return value can be subjected to
-                    // arithmetic operations
-                    return 0;
-                }
-            }
+        if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+            return rValue.data().begin();
         } else {
-            static_assert(!std::is_same_v<TDataType, TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
+            // since the underlying data structure for recusive static data types
+            // is contiguous in ublas types, we can do the following to get the
+            // contiguous array.
+            if (rValue.size1() > 0 && rValue.size2() > 0) {
+                return reinterpret_cast<PrimitiveType const*>(&rValue(0, 0));
+            } else {
+                // not returning nullptr so, the return value can be subjected to
+                // arithmetic operations
+                return 0;
+            }
         }
     }
 
@@ -1418,25 +1395,21 @@ public:
      * @param rValue                    Container to retireve the contiguous array pointer.
      * @return PrimitiveType const*     Contiguous array pointer.
      */
-    inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
+    inline static PrimitiveType * GetContiguousData(ContainerType& rValue) requires (IsContiguous)
     {
-        if constexpr(IsContiguous) {
-            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-                return rValue.data().begin();
-            } else {
-                // since the underlying data structure for recusive static data types
-                // is contiguous in ublas types, we can do the following to get the
-                // contiguous array.
-                if (rValue.size1() > 0 && rValue.size2() > 0) {
-                    return reinterpret_cast<PrimitiveType*>(&rValue(0, 0));
-                } else {
-                    // not returning nullptr so, the return value can be subjected to
-                    // arithmetic operations
-                    return 0;
-                }
-            }
+        if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+            return rValue.data().begin();
         } else {
-            static_assert(!std::is_same_v<TDataType, TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
+            // since the underlying data structure for recusive static data types
+            // is contiguous in ublas types, we can do the following to get the
+            // contiguous array.
+            if (rValue.size1() > 0 && rValue.size2() > 0) {
+                return reinterpret_cast<PrimitiveType*>(&rValue(0, 0));
+            } else {
+                // not returning nullptr so, the return value can be subjected to
+                // arithmetic operations
+                return 0;
+            }
         }
     }
 
@@ -1916,13 +1889,10 @@ private:
     ///@{
 
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
+    requires (TCheckIndex == TCurrentIndex)
     static constexpr bool IsDimensionDynamicImpl()
     {
-        if constexpr(TCheckIndex == TCurrentIndex) {
-            return true;
-        } else {
-            static_assert(TCheckIndex != TCheckIndex, "Invalid dimension index.");
-        }
+        return true;
     }
 
     ///@}
@@ -2152,13 +2122,9 @@ public:
      * @param rValue                    Container to retireve the contiguous array pointer.
      * @return PrimitiveType const*     Contiguous array pointer.
      */
-    inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
+    inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue) requires (IsContiguous)
     {
-        if constexpr(IsContiguous) {
-            return rValue.data();
-        } else {
-            static_assert(!std::is_same_v<TDataType, TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
-        }
+        return rValue.data();
     }
 
     /**
@@ -2171,13 +2137,9 @@ public:
      * @param rValue                    Container to retireve the contiguous array pointer.
      * @return PrimitiveType const*     Contiguous array pointer.
      */
-    inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
+    inline static PrimitiveType * GetContiguousData(ContainerType& rValue) requires (IsContiguous)
     {
-        if constexpr(IsContiguous) {
-            return rValue.data();
-        } else {
-            static_assert(!std::is_same_v<TDataType, TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
-        }
+        return rValue.data();
     }
 
     /**

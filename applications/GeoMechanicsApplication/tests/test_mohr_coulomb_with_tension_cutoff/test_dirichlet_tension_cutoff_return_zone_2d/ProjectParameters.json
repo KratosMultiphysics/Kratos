@@ -36,13 +36,11 @@
         "number_cycles":                      10,
         "reduction_factor":                   1.0,
         "increase_factor":                    1.0,
-        "calculate_reactions":                true,
         "linear_solver_settings":             {
               "solver_type"                    : "LinearSolversApplication.sparse_lu",
               "scaling": true
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["Init", "SideLeft", "SideRight", "SideBottom", "SideTop"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {

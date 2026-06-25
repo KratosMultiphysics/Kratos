@@ -27,7 +27,6 @@
         "compute_reactions":                  true,
         "move_mesh_flag":                     true,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    true,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
@@ -51,7 +50,6 @@
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
-        "calculate_reactions":                true,
         "max_line_search_iterations":         5,
         "first_alpha_value":                  0.5,
         "second_alpha_value":                 1.0,
@@ -64,7 +62,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Soil_drained-auto-2"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-2","Solid_Displacement-auto-1","Surface_Load-auto-1"],
         "body_domain_sub_model_part_list":    ["Soil_drained-auto-2"]
     },
     "output_processes": {

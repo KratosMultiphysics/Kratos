@@ -77,6 +77,9 @@ TetrahedralMeshOrientationCheck::TetrahedralMeshOrientationCheck(
     // Validate and assign default parameters
     ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 
+    // Store the number of inverted entities to print
+    mNumberOfInvertedEntitiesToPrint = ThisParameters["number_of_inverted_entities_to_print"].GetInt();
+
     // Create and set options based on parameters
     Flags options;
 
@@ -157,10 +160,18 @@ void TetrahedralMeshOrientationCheck::Execute()
             const bool switched = this->Orient(r_geometry);
             if (switched) {
                 ++elem_switch_count;
-                if (mOptions.Is(DETAILED_INVERTED_ENTITIES_MESSAGE)) {
-                    ss_elements << "Element number: " << it_elem->Id() << " is inverted. Volume: " << r_geometry.DomainSize() << "\n";
-                } else {
-                    ss_elements << "\t" << it_elem->Id() << ",";
+                if (mNumberOfInvertedEntitiesToPrint != -1 && static_cast<int>(elem_switch_count) <= mNumberOfInvertedEntitiesToPrint) {
+                    // Append the element ID to the stringstream
+                    if (mOptions.Is(DETAILED_INVERTED_ENTITIES_MESSAGE)) {
+                        ss_elements << "Element number: " << it_elem->Id() << " is inverted. Volume: " << r_geometry.DomainSize() << "\n";
+                    } else {
+                        ss_elements << "\t" << it_elem->Id();
+                        if (static_cast<int>(elem_switch_count) == mNumberOfInvertedEntitiesToPrint) {
+                            ss_elements << " ...";
+                        } else {
+                            ss_elements << ",";
+                        }
+                    }
                 }
             }
         }
@@ -282,10 +293,17 @@ void TetrahedralMeshOrientationCheck::Execute()
                         r_face_geom(0).swap(r_face_geom(1));
                         face_normal = -face_normal;
                         ++cond_switch_count;
-                        if (mOptions.Is(DETAILED_INVERTED_ENTITIES_MESSAGE)) {
-                            ss_conditions << "Condition number: " << (list_conditions[0])->Id() << " is inverted. Area: " << r_face_geom.DomainSize() << "\n";
-                        } else {
-                            ss_conditions << "\t" << (list_conditions[0])->Id() << ",";
+                        if (mNumberOfInvertedEntitiesToPrint != -1 && static_cast<int>(cond_switch_count) <= mNumberOfInvertedEntitiesToPrint) {
+                            if (mOptions.Is(DETAILED_INVERTED_ENTITIES_MESSAGE)) {
+                                ss_conditions << "Condition number: " << (list_conditions[0])->Id() << " is inverted. Area: " << r_face_geom.DomainSize() << "\n";
+                            } else {
+                                ss_conditions << "\t" << (list_conditions[0])->Id();
+                                if (static_cast<int>(cond_switch_count) == mNumberOfInvertedEntitiesToPrint) {
+                                    ss_conditions << " ...";
+                                } else {
+                                    ss_conditions << ",";
+                                }
+                            }
                         }
                     }
 
@@ -379,7 +397,8 @@ const Parameters TetrahedralMeshOrientationCheck::GetDefaultParameters() const
         "assign_neighbour_elements_to_conditions" : false,
         "allow_repeated_conditions"               : false,
         "make_volumes_positive"                   : false,
-        "detailed_inverted_entities_message"      : false
+        "detailed_inverted_entities_message"      : false,
+        "number_of_inverted_entities_to_print"    : 20 // -1 to unlimited
     })");
 
     return default_parameters;

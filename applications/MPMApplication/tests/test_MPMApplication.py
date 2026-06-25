@@ -19,6 +19,7 @@ from mpm_test_factory import BeamCantileverDynamicHyperelasticUPTest as TBeamCan
 
 from mpm_test_factory import CooksMembraneCompressibleTest as TCooksMembraneCompressibleTest
 from mpm_test_factory import CooksMembraneUPCompressibleTest as TCooksMembraneUPCompressibleTest
+from mpm_test_factory import CooksMembraneUPCompressibleQuadsTest as TCooksMembraneUPCompressibleQuadsTest
 from mpm_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
 
 from mpm_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
@@ -28,6 +29,9 @@ from mpm_test_factory import GravityApplicationTest as TGravityApplicationTest
 from mpm_test_factory import GravityTimeStepTableTest as TGravityTimeStepTableTest
 
 from mpm_test_factory import PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
+from mpm_test_factory import LagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
+from mpm_test_factory import LagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest as TLagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest
+from mpm_test_factory import PerturbedLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPerturbedLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 
 from mpm_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 from mpm_test_factory import PenaltyBasedSlipTest as TPenaltyBasedSlipTest
@@ -50,6 +54,9 @@ from mpm_test_factory import PQMPMExplicitQuadTest as TPQMPMExplicitQuadTest
 from mpm_test_factory import PQMPMExplicitTriTest as TPQMPMExplicitTriTest
 from mpm_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
 
+
+from mpm_test_factory import InitialConditionPrescribedVelocityTest as TInitialConditionPrescribedVelocityTest
+
 from mpm_test_factory import DynamicQGridCylinderImpactPenaltyNonConformingReactionTest as TDynamicQGridCylinderImpactPenaltyNonConformingReactionTest
 from mpm_test_factory import DynamicQGridCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest as TDynamicQGridCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest
 from mpm_test_factory import DynamicTGridCylinderImpactPenaltyNonConformingReactionTest as TDynamicTGridCylinderImpactPenaltyNonConformingReactionTest
@@ -58,6 +65,7 @@ from mpm_test_factory import DynamicTGridCylinderImpactPenaltyNonConformingNumer
 ##### RESTART TESTS #####
 from restart_tests import MPMRestartTestBeamStaticLineLoad2D  as TMPMRestartTestBeamStaticLineLoad2D
 from restart_tests import MPMRestartTestDynamicCantilever2D    as TMPMRestartTestDynamicCantilever2D
+from restart_tests import MPMRestartTestCantileverLagrange2D    as TMPMRestartTestCantileverLagrange2D
 
 
 
@@ -68,9 +76,11 @@ from test_material_point_erase_process      import TestMaterialPointEraseProcess
 from test_search_material_point_element     import TestSearchMaterialPointElement     as TTestSearchMPElement
 from test_search_material_point_condition   import TestSearchMaterialPointCondition   as TTestSearchMPCondition
 from test_mpm_vtk_output_process            import TestMPMVtkOutputProcess            as TTestMPMVtkOutputProcess
+from test_mpm_write_energy_output_process   import TestMPMWriteEnergyOutputProcess    as TTestMPMWriteEnergyOutputProcess
 from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
 from test_static_loading_conditions_line    import TestStaticLoadingConditionsLine    as TTestStaticLoadingConditionsLine
 from test_static_loading_conditions_surface import TestStaticLoadingConditionsSurface as TTestStaticLoadingConditionsSurface
+from test_interpolate_body_force            import TestBodyForceInterpolationMPM      as TTestBodyForceInterpolation
 from test_material_point_locator            import TestMaterialPointLocator           as TTestMaterialPointLocator
 from test_mpm_point_output_process          import TestMPMPointOutputProcess          as TTestMPMPointOutputProcess
 
@@ -103,6 +113,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMVtkOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMWriteEnergyOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestBodyForceInterpolation]))
+    
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMaterialPointLocator]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMPointOutputProcess]))
 
@@ -121,6 +134,9 @@ def AssembleTestSuites():
     smallSuite.addTest(TPenaltyBasedSlipTest('test_execution'))
 
     smallSuite.addTest(TFrictionConformingTest('test_execution'))
+    
+    smallSuite.addTest(TInitialConditionPrescribedVelocityTest('test_execution'))
+    
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
@@ -133,8 +149,12 @@ def AssembleTestSuites():
     nightSuite.addTest(TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TCooksMembraneCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
+    nightSuite.addTest(TCooksMembraneUPCompressibleQuadsTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TLagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TPerturbedLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverDynamicConsistentMassTest('test_execution'))
     nightSuite.addTest(TBeamCantileverDynamicHyperelasticUPTest('test_execution'))
@@ -163,6 +183,7 @@ def AssembleTestSuites():
 
     nightSuite.addTest(TMPMRestartTestBeamStaticLineLoad2D('test_execution'))
     nightSuite.addTest(TMPMRestartTestDynamicCantilever2D('test_execution'))
+    nightSuite.addTest(TMPMRestartTestCantileverLagrange2D('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nightly and you can use to validate

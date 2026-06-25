@@ -30,14 +30,12 @@
         "compute_reactions": false,
         "move_mesh_flag": false,
         "reform_dofs_at_each_step": false,
-        "nodal_smoothing": true,
         "block_builder": true,
         "rebuild_level": 2,
         "prebuild_dynamics": false,
         "solution_type": "dynamic",
         "rayleigh_m": 0.1,
         "rayleigh_k": 0.001,
-        "calculate_reactions": true,
         "rotation_dofs": true,
         "reset_displacements": false,
         "scheme_type": "newmark",
@@ -57,17 +55,8 @@
             "tolerance": 1e-06,
             "max_iteration": 1000
         },
-        "problem_domain_sub_model_part_list": [
-            "beam"
-        ],
-        "processes_sub_model_part_list": [
-            "moving_load",
-            "rotation",
-            "displacementXYZ"
-        ],
-        "body_domain_sub_model_part_list": [
-            "beam"
-        ]
+        "problem_domain_sub_model_part_list": ["beam"],
+        "body_domain_sub_model_part_list"   : ["beam"]
     },
     "output_processes": {
         "gid_output": [

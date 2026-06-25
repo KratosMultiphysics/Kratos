@@ -35,14 +35,13 @@ void NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(Node& rNode,
     }
 }
 
-void NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
-    const ModelPart::NodesContainerType& rNodes,
-    const Variable<array_1d<double, 3>>& rDestinationVariable,
-    const array_1d<double, 3>&           rNewValues,
-    IndexType                            SolutionStepIndex)
+void NodeUtilities::AssignUpdatedVectorVariableToNodes(const ModelPart::NodesContainerType& rNodes,
+                                                       const Variable<array_1d<double, 3>>& rDestinationVariable,
+                                                       const array_1d<double, 3>& rNewValues,
+                                                       IndexType                  SolutionStepIndex)
 {
     block_for_each(rNodes, [&rDestinationVariable, &rNewValues, SolutionStepIndex](Node& rNode) {
-        AssignUpdatedVectorVariableToNonFixedComponents(rNode, rDestinationVariable, rNewValues, SolutionStepIndex);
+        rNode.FastGetSolutionStepValue(rDestinationVariable, SolutionStepIndex) = rNewValues;
     });
 }
 
@@ -57,5 +56,4 @@ std::map<IndexType, IndexType> NodeUtilities::CreateGlobalToLocalNodeIndexMap(co
 
     return result;
 }
-
 } // namespace Kratos

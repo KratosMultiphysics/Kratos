@@ -19,7 +19,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/model_part.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "processes/parallel_distance_calculation_process.h"
@@ -88,20 +87,16 @@ double ParallelDistanceCalculationProcess<TDim>::FindMaximumEdgeSize()
 
     double h_max = 0.0;
 
-    for(ModelPart::ElementsContainerType::iterator it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); it++)
-    {
+    for(ModelPart::ElementsContainerType::iterator it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); it++) {
         Geometry<NodeType >&geom = it->GetGeometry();
 
         double h = 0.0;
 
-        for(unsigned int i=0; i<TDim+1; i++)
-        {
-
+        for(unsigned int i=0; i<TDim+1; i++) {
             double xc = geom[i].X();
             double yc = geom[i].Y();
             double zc = geom[i].Z();
-            for(unsigned int j=i+1; j<TDim+1; j++)
-            {
+            for(unsigned int j=i+1; j<TDim+1; j++) {
                 double x = geom[j].X();
                 double y = geom[j].Y();
                 double z = geom[j].Z();
@@ -414,7 +409,7 @@ void ParallelDistanceCalculationProcess<TDim>::ExtendDistancesByLayer()
 
     // Set the TLS container
     array_1d<double,TDim+1> visited, N;
-    BoundedMatrix <double, TDim+1,TDim> DN_DX;
+    BoundedMatrix <double, TDim+1,TDim> DN_DX = ZeroMatrix(TDim+1, TDim);
     typedef std::tuple<array_1d<double,TDim+1>, array_1d<double,TDim+1>, BoundedMatrix<double, TDim+1, TDim>> TLSType;
     TLSType tls_container = std::make_tuple(visited, N, DN_DX);
 

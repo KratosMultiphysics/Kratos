@@ -8,7 +8,7 @@
           "name"                 : "SmallStrainUDSM2DPlaneStrainLaw"
         },
         "Variables": {
-          "IGNORE_UNDRAINED"     : false,
+          "GEO_DRAINAGE_TYPE"    : "FULLY_COUPLED",
           "BIOT_COEFFICIENT"     : 1,
           "DENSITY_SOLID"        : 2038.735983690112,
           "DENSITY_WATER"        : 1019.367991845056,
@@ -20,7 +20,7 @@
           "PERMEABILITY_XY"      : 0,
           "DYNAMIC_VISCOSITY"    : 0.0013,
           "RETENTION_LAW"        : "SaturatedBelowPhreaticLevelLaw",
-          "RESIDUAL_SATURATION"  : 0.06203,
+          "RESIDUAL_SATURATION"  : 0.0,
           "SATURATED_SATURATION" : 1,
           "UDSM_NAME"            : "../../UDSM.dll",
           "UDSM_NUMBER"          : 1,

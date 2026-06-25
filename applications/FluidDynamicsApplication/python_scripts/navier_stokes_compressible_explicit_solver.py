@@ -47,6 +47,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
                 "input_filename": "",
                 "reorder": false
             },
+            "enforce_element_and_conditions_replacement": true,
             "material_import_settings": {
                 "materials_filename": "FluidMaterials.json"
             },

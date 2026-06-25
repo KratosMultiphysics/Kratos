@@ -30,14 +30,12 @@
         "compute_reactions": false,
         "move_mesh_flag": false,
         "reform_dofs_at_each_step": false,
-        "nodal_smoothing": true,
         "block_builder": true,
         "rebuild_level": 0,
         "prebuild_dynamics": true,
         "solution_type": "dynamic",
         "rayleigh_m": 0.0,
         "rayleigh_k": 0.0,
-        "calculate_reactions": true,
         "rotation_dofs": true,
         "reset_displacements": false,
         "scheme_type": "newmark",
@@ -57,17 +55,8 @@
             "tolerance": 1e-06,
             "max_iteration": 1000
         },
-        "problem_domain_sub_model_part_list": [
-            "soil"
-        ],
-        "processes_sub_model_part_list": [
-            "load",
-            "bottom",
-            "sides"
-        ],
-        "body_domain_sub_model_part_list": [
-            "soil"
-        ]
+        "problem_domain_sub_model_part_list": ["soil"],
+        "body_domain_sub_model_part_list"   : ["soil"]
     },
     "output_processes": {},
     "processes": {

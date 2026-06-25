@@ -27,7 +27,6 @@
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
@@ -44,14 +43,12 @@
         "number_cycles":                      1,
         "reduction_factor":                   1.0,
         "increase_factor":                    1.0,
-        "calculate_reactions":                true,
         "rotation_dofs":                      false,
         "linear_solver_settings":             {
             "solver_type":   "LinearSolversApplication.sparse_lu",
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["Bottom","Left","Top"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {

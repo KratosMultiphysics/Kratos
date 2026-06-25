@@ -10,11 +10,12 @@
 //  Main authors:    Vahid Galavi
 //
 
-#include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
+#include "custom_constitutive/small_strain_umat_2D_interface_law.h"
 #include "constitutive_law_dimension.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 SmallStrainUMAT2DInterfaceLaw::SmallStrainUMAT2DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : SmallStrainUMATLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
@@ -34,28 +35,28 @@ void SmallStrainUMAT2DInterfaceLaw::UpdateInternalDeltaStrainVector(Constitutive
 {
     const Vector& rStrainVector = rValues.GetStrainVector();
 
-    mDeltaStrainVector[INDEX_3D_ZZ] = rStrainVector(INDEX_2D_INTERFACE_ZZ) - mStrainVectorFinalized[INDEX_3D_ZZ];
-    mDeltaStrainVector[INDEX_3D_XZ] = rStrainVector(INDEX_2D_INTERFACE_XZ) - mStrainVectorFinalized[INDEX_3D_XZ];
+    mDeltaStrainVector[2] = rStrainVector[1] - mStrainVectorFinalized[2];
+    mDeltaStrainVector[5] = rStrainVector[0] - mStrainVectorFinalized[5];
 }
 
 void SmallStrainUMAT2DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
 {
-    rStressVector(INDEX_2D_INTERFACE_ZZ) = mStressVector[INDEX_3D_ZZ];
-    rStressVector(INDEX_2D_INTERFACE_XZ) = mStressVector[INDEX_3D_XZ];
+    rStressVector[1] = mStressVector[2];
+    rStressVector[0] = mStressVector[5];
 }
 
 void SmallStrainUMAT2DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
 {
     KRATOS_TRY
-    mStressVectorFinalized[INDEX_3D_ZZ] = rStressVector(INDEX_2D_INTERFACE_ZZ);
-    mStressVectorFinalized[INDEX_3D_XZ] = rStressVector(INDEX_2D_INTERFACE_XZ);
+    mStressVectorFinalized[2] = rStressVector[1];
+    mStressVectorFinalized[5] = rStressVector[0];
     KRATOS_CATCH("")
 }
 
 void SmallStrainUMAT2DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
-    mStrainVectorFinalized[INDEX_3D_ZZ] = rStrainVector(INDEX_2D_INTERFACE_ZZ);
-    mStrainVectorFinalized[INDEX_3D_XZ] = rStrainVector(INDEX_2D_INTERFACE_XZ);
+    mStrainVectorFinalized[2] = rStrainVector[1];
+    mStrainVectorFinalized[5] = rStrainVector[0];
 }
 
 void SmallStrainUMAT2DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
@@ -64,29 +65,25 @@ void SmallStrainUMAT2DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Para
         // transfer fortran style matrix to C++ style
         for (unsigned int i = 0; i < VoigtSize; i++) {
             for (unsigned int j = 0; j < VoigtSize; j++) {
-                rConstitutiveMatrix(i, j) =
-                    mMatrixD[getIndex3D(static_cast<indexStress2DInterface>(j))]
-                            [getIndex3D(static_cast<indexStress2DInterface>(i))];
+                rConstitutiveMatrix(i, j) = mMatrixD[getIndex3D(j)][getIndex3D(i)];
             }
         }
     } else {
         for (unsigned int i = 0; i < VoigtSize; i++) {
             for (unsigned int j = 0; j < VoigtSize; j++) {
-                rConstitutiveMatrix(i, j) =
-                    mMatrixD[getIndex3D(static_cast<indexStress2DInterface>(i))]
-                            [getIndex3D(static_cast<indexStress2DInterface>(j))];
+                rConstitutiveMatrix(i, j) = mMatrixD[getIndex3D(i)][getIndex3D(j)];
             }
         }
     }
 }
 
-indexStress3D SmallStrainUMAT2DInterfaceLaw::getIndex3D(indexStress2DInterface index2D) const
+std::size_t SmallStrainUMAT2DInterfaceLaw::getIndex3D(std::size_t index2D)
 {
     switch (index2D) {
-    case INDEX_2D_INTERFACE_ZZ:
-        return INDEX_3D_ZZ;
-    case INDEX_2D_INTERFACE_XZ:
-        return INDEX_3D_XZ;
+    case 0:
+        return 5;
+    case 1:
+        return 2;
     default:
         KRATOS_ERROR << "invalid index: " << index2D << std::endl;
     }
@@ -100,17 +97,15 @@ void SmallStrainUMAT2DInterfaceLaw::save(Serializer& rSerializer) const
 void SmallStrainUMAT2DInterfaceLaw::load(Serializer& rSerializer){
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUMATLaw)}
 
-SmallStrainUMAT2DInterfaceLaw::SmallStrainUMAT2DInterfaceLaw() = default;
-
 Vector& SmallStrainUMAT2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
         SmallStrainUMATLaw::GetValue(rThisVariable, rValue);
-    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rThisVariable == CAUCHY_STRESS_VECTOR || rThisVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
 
-        rValue[INDEX_2D_INTERFACE_ZZ] = mStressVectorFinalized[INDEX_3D_ZZ];
-        rValue[INDEX_2D_INTERFACE_XZ] = mStressVectorFinalized[INDEX_3D_XZ];
+        rValue[1] = mStressVectorFinalized[2];
+        rValue[0] = mStressVectorFinalized[5];
     }
     return rValue;
 }
@@ -121,9 +116,32 @@ void SmallStrainUMAT2DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
 {
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUMATLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
-    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) &&
+               rValue.size() == VoigtSize) {
         this->SetInternalStressVector(rValue);
     }
 }
 
+SizeType SmallStrainUMAT2DInterfaceLaw::WorkingSpaceDimension() { return Dimension; }
+
+SizeType SmallStrainUMAT2DInterfaceLaw::GetStrainSize() const { return VoigtSize; }
+
+ConstitutiveLaw::StrainMeasure SmallStrainUMAT2DInterfaceLaw::GetStrainMeasure()
+{
+    return StrainMeasure_Infinitesimal;
+}
+
+ConstitutiveLaw::StressMeasure SmallStrainUMAT2DInterfaceLaw::GetStressMeasure()
+{
+    return StressMeasure_Cauchy;
+}
+
+std::string SmallStrainUMAT2DInterfaceLaw::Info() const { return "SmallStrainUMAT2DInterfaceLaw"s; }
+
+void SmallStrainUMAT2DInterfaceLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
+
+void SmallStrainUMAT2DInterfaceLaw::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUMAT2DInterfaceLaw Data";
+}
 } // namespace Kratos

@@ -277,7 +277,7 @@ void ApplyConstitutiveLaw(
  * 
  * @param grad_H_sum 
  */
-void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
+void ComputeGradientTaylorExpansionContribution(const Vector& rDistanceVector, Matrix& grad_H_sum);
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D

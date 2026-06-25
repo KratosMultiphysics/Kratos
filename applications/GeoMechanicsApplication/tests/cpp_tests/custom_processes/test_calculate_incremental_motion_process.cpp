@@ -33,10 +33,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessDisplacement, KratosG
 
     std::vector<intrusive_ptr<Node>> nodes = {p_node_1, p_node_2};
 
-    for (auto p_node : nodes) {
-        p_node->AddDof(DISPLACEMENT_X);
-        p_node->AddDof(DISPLACEMENT_Y);
-        p_node->AddDof(DISPLACEMENT_Z);
+    for (const auto& rp_node : nodes) {
+        rp_node->AddDof(DISPLACEMENT_X);
+        rp_node->AddDof(DISPLACEMENT_Y);
+        rp_node->AddDof(DISPLACEMENT_Z);
     }
 
     // set up displacement values
@@ -73,10 +73,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessRotation, KratosGeoMe
 
     std::vector<intrusive_ptr<Node>> nodes = {p_node_1, p_node_2};
 
-    for (auto p_node : nodes) {
-        p_node->AddDof(ROTATION_X);
-        p_node->AddDof(ROTATION_Y);
-        p_node->AddDof(ROTATION_Z);
+    for (const auto& rp_node : nodes) {
+        rp_node->AddDof(ROTATION_X);
+        rp_node->AddDof(ROTATION_Y);
+        rp_node->AddDof(ROTATION_Z);
     }
 
     p_node_1->FastGetSolutionStepValue(ROTATION, 0) = Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
@@ -107,6 +107,15 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessUndefined, KratosGeoM
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         CalculateIncrementalMotionProcess(r_model_part, Parameters(R"({"variable_name": "NOTHING"})")),
         "Invalid variable name: NOTHING. Expected DISPLACEMENT or ROTATION.");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoCalculateIncrementalMotionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("dummy", 2);
+    const CalculateIncrementalMotionProcess process(r_model_part, {R"({"variable_name": "DISPLACEMENT"})"});
+
+    KRATOS_EXPECT_EQ(process.Info(), "CalculateIncrementalMotionProcess");
 }
 
 } // namespace Kratos::Testing
