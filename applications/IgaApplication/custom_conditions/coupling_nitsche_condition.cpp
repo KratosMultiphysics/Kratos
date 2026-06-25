@@ -565,11 +565,11 @@ namespace Kratos
         array_1d<double, 3> e2_1 = tilde_t2_1/bar_tilde_t2 + inner_prod(e2,tilde_t2_1)*e2/bar_tilde_t2;
 
         //derivative of covariant base vectors
-        double A_1 = 2.0*inner_prod(A1_1,rKinematicVariables.a1)*a_ab_contravariant[1] + 2.0*a_ab_contravariant[0]*inner_prod(A1_2,rKinematicVariables.a2) - 2.0*a_ab_contravariant[2]*(inner_prod(A1_1,rKinematicVariables.a2) + inner_prod(rKinematicVariables.a1,A1_2)); //check
-        array_1d<double, 3> A1_con_1 = inv_det_g_ab*(2.0*inner_prod(A1_2,rKinematicVariables.a2)*rKinematicVariables.a1 + a_ab_contravariant[1]*A1_1 -(inner_prod(A1_1,rKinematicVariables.a2)+ inner_prod(rKinematicVariables.a1,A1_2))*rKinematicVariables.a2 - a_ab_contravariant[2]*A1_2) 
-                                     - pow(inv_det_g_ab,2)*(a_ab_contravariant[1]*rKinematicVariables.a1 - a_ab_contravariant[2]*rKinematicVariables.a2)*A_1;
-        array_1d<double, 3> A2_con_1 = inv_det_g_ab*(-(inner_prod(A1_2,rKinematicVariables.a1)+inner_prod(rKinematicVariables.a2,A1_1))*rKinematicVariables.a1 + a_ab_contravariant[2]*A1_1 + 2.0*inner_prod(A1_1,rKinematicVariables.a1)*rKinematicVariables.a2 - a_ab_contravariant[0]*A1_2) 
-                                     - pow(inv_det_g_ab,2)*(-a_ab_contravariant[2]*rKinematicVariables.a1 + a_ab_contravariant[0]*rKinematicVariables.a2)*A_1;
+        double A_1 = 2.0*inner_prod(A1_1,rKinematicVariables.a1)*rKinematicVariables.a_ab_covariant[1] + 2.0*rKinematicVariables.a_ab_covariant[0]*inner_prod(A1_2,rKinematicVariables.a2) - 2.0*rKinematicVariables.a_ab_covariant[2]*(inner_prod(A1_1,rKinematicVariables.a2) + inner_prod(rKinematicVariables.a1,A1_2)); //check
+        array_1d<double, 3> A1_con_1 = inv_det_g_ab*(2.0*inner_prod(A1_2,rKinematicVariables.a2)*rKinematicVariables.a1 + rKinematicVariables.a_ab_covariant[1]*A1_1 -(inner_prod(A1_1,rKinematicVariables.a2)+ inner_prod(rKinematicVariables.a1,A1_2))*rKinematicVariables.a2 - rKinematicVariables.a_ab_covariant[2]*A1_2) 
+                                     - pow(inv_det_g_ab,2)*(rKinematicVariables.a_ab_covariant[1]*rKinematicVariables.a1 - rKinematicVariables.a_ab_covariant[2]*rKinematicVariables.a2)*A_1;
+        array_1d<double, 3> A2_con_1 = inv_det_g_ab*(-(inner_prod(A1_2,rKinematicVariables.a1)+inner_prod(rKinematicVariables.a2,A1_1))*rKinematicVariables.a1 + rKinematicVariables.a_ab_covariant[2]*A1_1 + 2.0*inner_prod(A1_1,rKinematicVariables.a1)*rKinematicVariables.a2 - rKinematicVariables.a_ab_covariant[0]*A1_2) 
+                                     - pow(inv_det_g_ab,2)*(-rKinematicVariables.a_ab_covariant[2]*rKinematicVariables.a1 + rKinematicVariables.a_ab_covariant[0]*rKinematicVariables.a2)*A_1;
 
         Matrix G_d1 = ZeroMatrix(2, 2);
         G_d1(0, 0) = inner_prod(e1_1, a_contravariant_1) + inner_prod(e1, A1_con_1);
@@ -605,11 +605,11 @@ namespace Kratos
 
         rT_hat[0](1, 0) = G(0, 1) * G_d1(0, 1) + G_d1(0, 1) * G(0, 1);
         rT_hat[0](1, 1) = G(1, 1) * G_d1(1, 1) + G_d1(1, 1) * G(1, 1);
-        rT_hat[0](1, 2) = 2 * (G(0, 1) * G(1, 1) + G(0, 1) * G(1, 1));
+        rT_hat[0](1, 2) = 2 * (G(0, 1) * G_d1(1, 1) + G_d1(0, 1) * G(1, 1));
 
-        rT_hat[0](2, 0) = G(0, 0) * G(0, 1);
-        rT_hat[0](2, 1) = G(1, 0) * G(1, 1);
-        rT_hat[0](2, 2) = (G(0, 0) * G_d1(1, 1) + G_d1(1, 0) * G(0, 1) + G_d1(0, 0) * G(1, 1) + G_d1(1, 0) * G(0, 1));
+        rT_hat[0](2, 0) = G(0, 0) * G_d1(0, 1) + G_d1(0, 0) * G(0, 1);
+        rT_hat[0](2, 1) = G(1, 0) * G_d1(1, 1) + G_d1(1, 0) * G(1, 1);
+        rT_hat[0](2, 2) = (G(0, 0) * G_d1(1, 1) + G(1, 0) * G_d1(0, 1) + G_d1(0, 0) * G(1, 1) + G_d1(1, 0) * G(0, 1));
 
         // in the 2.direction
         array_1d<double, 3> e1_2 = A1_2/norm_2(rKinematicVariables.a1) + inner_prod(e1,A1_2)*e1/norm_2(rKinematicVariables.a1);
@@ -617,9 +617,9 @@ namespace Kratos
         array_1d<double, 3> e2_2 = tilde_t2_2/bar_tilde_t2 + inner_prod(e2,tilde_t2_2)*e2/bar_tilde_t2;
         
         //derivative of covariant base vectors
-        double A_2 = 2.0*inner_prod(A1_2,rKinematicVariables.a1)*a_ab_contravariant[1] + 2.0*a_ab_contravariant[0]*inner_prod(A2_2,rKinematicVariables.a2) - 2.0*a_ab_contravariant[2]*(inner_prod(A1_2,rKinematicVariables.a2) + inner_prod(rKinematicVariables.a1,A2_2));
-        array_1d<double, 3> A1_con_2 = inv_det_g_ab*(2.0*inner_prod(A2_2,rKinematicVariables.a2)*rKinematicVariables.a1 + a_ab_contravariant[1]*A1_2 -(inner_prod(A1_2,rKinematicVariables.a2)+ inner_prod(rKinematicVariables.a1,A2_2))*rKinematicVariables.a2 - a_ab_contravariant[2]*A2_2) - pow(inv_det_g_ab,2)*(a_ab_contravariant[1]*rKinematicVariables.a1 - a_ab_contravariant[2]*rKinematicVariables.a2)*A_2;
-        array_1d<double, 3> A2_con_2 = inv_det_g_ab*(-(inner_prod(A2_2,rKinematicVariables.a1)+inner_prod(rKinematicVariables.a2,A1_2))*rKinematicVariables.a1 + a_ab_contravariant[2]*A1_2 + 2.0*inner_prod(A1_2,rKinematicVariables.a1)*rKinematicVariables.a2 - a_ab_contravariant[0]*A2_2) - pow(inv_det_g_ab,2)*(-a_ab_contravariant[2]*rKinematicVariables.a1 + a_ab_contravariant[0]*rKinematicVariables.a2)*A_2;
+        double A_2 = 2.0*inner_prod(A1_2,rKinematicVariables.a1)*rKinematicVariables.a_ab_covariant[1] + 2.0*rKinematicVariables.a_ab_covariant[0]*inner_prod(A2_2,rKinematicVariables.a2) - 2.0*rKinematicVariables.a_ab_covariant[2]*(inner_prod(A1_2,rKinematicVariables.a2) + inner_prod(rKinematicVariables.a1,A2_2));
+        array_1d<double, 3> A1_con_2 = inv_det_g_ab*(2.0*inner_prod(A2_2,rKinematicVariables.a2)*rKinematicVariables.a1 + rKinematicVariables.a_ab_covariant[1]*A1_2 -(inner_prod(A1_2,rKinematicVariables.a2)+ inner_prod(rKinematicVariables.a1,A2_2))*rKinematicVariables.a2 - rKinematicVariables.a_ab_covariant[2]*A2_2) - pow(inv_det_g_ab,2)*(rKinematicVariables.a_ab_covariant[1]*rKinematicVariables.a1 - rKinematicVariables.a_ab_covariant[2]*rKinematicVariables.a2)*A_2;
+        array_1d<double, 3> A2_con_2 = inv_det_g_ab*(-(inner_prod(A2_2,rKinematicVariables.a1)+inner_prod(rKinematicVariables.a2,A1_2))*rKinematicVariables.a1 + rKinematicVariables.a_ab_covariant[2]*A1_2 + 2.0*inner_prod(A1_2,rKinematicVariables.a1)*rKinematicVariables.a2 - rKinematicVariables.a_ab_covariant[0]*A2_2) - pow(inv_det_g_ab,2)*(-rKinematicVariables.a_ab_covariant[2]*rKinematicVariables.a1 + rKinematicVariables.a_ab_covariant[0]*rKinematicVariables.a2)*A_2;
 
         Matrix G_d2 = ZeroMatrix(2, 2);
         G_d2(0, 0) = inner_prod(e1_2, a_contravariant_1) + inner_prod(e1, A1_con_2);
@@ -655,11 +655,11 @@ namespace Kratos
 
         rT_hat[1](1, 0) = G(0, 1) * G_d2(0, 1) + G_d2(0, 1) * G(0, 1);
         rT_hat[1](1, 1) = G(1, 1) * G_d2(1, 1) + G_d2(1, 1) * G(1, 1);
-        rT_hat[1](1, 2) = 2 * (G(0, 1) * G(1, 1) + G(0, 1) * G(1, 1));
+        rT_hat[1](1, 2) = 2 * (G(0, 1) * G_d2(1, 1) + G_d2(0, 1) * G(1, 1));
 
-        rT_hat[1](2, 0) = G(0, 0) * G(0, 1);
-        rT_hat[1](2, 1) = G(1, 0) * G(1, 1);
-        rT_hat[1](2, 2) = (G(0, 0) * G_d2(1, 1) + G_d2(1, 0) * G(0, 1) + G_d2(0, 0) * G(1, 1) + G_d2(1, 0) * G(0, 1));
+        rT_hat[1](2, 0) = G(0, 0) * G_d2(0, 1) + G_d2(0, 0) * G(0, 1);
+        rT_hat[1](2, 1) = G(1, 0) * G_d2(1, 1) + G_d2(1, 0) * G(1, 1);
+        rT_hat[1](2, 2) = (G(0, 0) * G_d2(1, 1) + G(1, 0) * G_d2(0, 1) + G_d2(0, 0) * G(1, 1) + G_d2(1, 0) * G(0, 1));
     }
 
     void CouplingNitscheCondition::CalculateConstitutiveVariables(
@@ -1101,6 +1101,77 @@ namespace Kratos
                     H(1, index + 1) = -N_slave(point_number, i);
                     H(2, index + 2) = -N_slave(point_number, i);
             }
+
+            //////////////////////// Additional shear //////////////////////////
+            // Compute Variation Shear PK2
+            array_1d<double, 2> shear_curvilinear_master = ZeroVector(2);
+            array_1d<double, 2> shear_curvilinear_slave = ZeroVector(2);
+            std::vector<array_1d<double, 2>> first_variation_shear_curvilinear_master;
+            std::vector<array_1d<double, 2>> first_variation_shear_curvilinear_slave;
+            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_curvilinear_master;
+            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_curvilinear_slave;
+            first_variation_shear_curvilinear_master.resize(mat_size);
+            first_variation_shear_curvilinear_slave.resize(mat_size);
+            second_variation_shear_curvilinear_master.resize(mat_size);
+            second_variation_shear_curvilinear_slave.resize(mat_size);
+            for(IndexType i = 0; i < mat_size; i++)
+            {
+                second_variation_shear_curvilinear_master[i].resize(mat_size);
+                second_variation_shear_curvilinear_slave[i].resize(mat_size);
+                first_variation_shear_curvilinear_master[i] = ZeroVector(2);
+                first_variation_shear_curvilinear_slave[i] = ZeroVector(2);
+
+                for(IndexType j = 0; j < mat_size; j++)
+                {
+                    second_variation_shear_curvilinear_master[i][j] = ZeroVector(2);
+                    second_variation_shear_curvilinear_slave[i][j] = ZeroVector(2);
+                }
+            }
+            CalculateVariationShearPK2(point_number, shear_curvilinear_master, first_variation_shear_curvilinear_master, second_variation_shear_curvilinear_master,
+                                    kinematic_variables_reference_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
+            CalculateVariationShearPK2(point_number, shear_curvilinear_slave, first_variation_shear_curvilinear_slave, second_variation_shear_curvilinear_slave,
+                                    kinematic_variables_reference_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
+
+            // Compute Variation Shear
+            array_1d<double, 2> shear_master = ZeroVector(2);
+            array_1d<double, 2> shear_slave = ZeroVector(2);
+            std::vector<array_1d<double, 2>> first_variation_shear_master;
+            std::vector<array_1d<double, 2>> first_variation_shear_slave;
+            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_master;
+            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_slave;
+            first_variation_shear_master.resize(mat_size);
+            first_variation_shear_slave.resize(mat_size);
+            second_variation_shear_master.resize(mat_size);
+            second_variation_shear_slave.resize(mat_size);
+            for(IndexType i = 0; i < mat_size; i++)
+            {
+                second_variation_shear_master[i].resize(mat_size);
+                second_variation_shear_slave[i].resize(mat_size);
+                first_variation_shear_master[i] = ZeroVector(2);
+                first_variation_shear_slave[i] = ZeroVector(2);
+
+                for(IndexType j = 0; j < mat_size; j++)
+                {
+                    second_variation_shear_master[i][j] = ZeroVector(2);
+                    second_variation_shear_slave[i][j] = ZeroVector(2);
+                }
+            }
+            CalculateVariationShear(point_number, shear_master, first_variation_shear_master, second_variation_shear_master,
+                                    kinematic_variables_reference_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
+            CalculateVariationShear(point_number, shear_slave, first_variation_shear_slave, second_variation_shear_slave,
+                                    kinematic_variables_reference_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
+
+            // 1. Traction + Shear
+            array_1d<double, 3> shear_vector_master = ZeroVector(3);
+            array_1d<double, 3> shear_vector_slave = ZeroVector(3);
+
+            shear_vector_master = kinematic_variables_master.a3 * shear_master[0];
+            shear_vector_slave = kinematic_variables_slave.a3 * shear_slave[0];
+
+            traction_vector_master += shear_vector_master;
+            traction_vector_slave += shear_vector_slave;
+
+            //////////////////////// Additional shear //////////////////////////
 
             // Differential area
             const double integration_weight = integration_points[point_number].Weight();
@@ -2531,12 +2602,12 @@ namespace Kratos
         array_1d<double,3> A3_1 = tilde_A3_1/norm_2(rReferenceKinematic.a3_tilde) - rReferenceKinematic.a3*bar_A3_1/norm_2(rReferenceKinematic.a3_tilde);
         array_1d<double,3> A3_2 = tilde_A3_2/norm_2(rReferenceKinematic.a3_tilde) - rReferenceKinematic.a3*bar_A3_2/norm_2(rReferenceKinematic.a3_tilde);
 
-        array_1d<double,3> tilde_a3_1 = MathUtils<double>::CrossProduct(A1_1,rActualKinematic.a2) + MathUtils<double>::CrossProduct(rActualKinematic.a1,A1_2);
-        array_1d<double,3> tilde_a3_2 = MathUtils<double>::CrossProduct(A1_2,rActualKinematic.a2) + MathUtils<double>::CrossProduct(rActualKinematic.a1,A2_2);
-        double bar_a3_1 = inner_prod(rActualKinematic.a3,tilde_A3_1);
-        double bar_a3_2 = inner_prod(rActualKinematic.a3,tilde_A3_2);
-        array_1d<double,3> a3_1 = tilde_A3_1/norm_2(rActualKinematic.a3_tilde) - rActualKinematic.a3*bar_A3_1/norm_2(rActualKinematic.a3_tilde);
-        array_1d<double,3> a3_2 = tilde_A3_2/norm_2(rActualKinematic.a3_tilde) - rActualKinematic.a3*bar_A3_2/norm_2(rActualKinematic.a3_tilde);
+        array_1d<double,3> tilde_a3_1 = MathUtils<double>::CrossProduct(a1_1,rActualKinematic.a2) + MathUtils<double>::CrossProduct(rActualKinematic.a1,a1_2);
+        array_1d<double,3> tilde_a3_2 = MathUtils<double>::CrossProduct(a1_2,rActualKinematic.a2) + MathUtils<double>::CrossProduct(rActualKinematic.a1,a2_2);
+        double bar_a3_1 = inner_prod(rActualKinematic.a3,tilde_a3_1);
+        double bar_a3_2 = inner_prod(rActualKinematic.a3,tilde_a3_2);
+        array_1d<double,3> a3_1 = tilde_a3_1/norm_2(rActualKinematic.a3_tilde) - rActualKinematic.a3*bar_a3_1/norm_2(rActualKinematic.a3_tilde);
+        array_1d<double,3> a3_2 = tilde_a3_2/norm_2(rActualKinematic.a3_tilde) - rActualKinematic.a3*bar_a3_2/norm_2(rActualKinematic.a3_tilde);
 
         // 1. Calculate Curvature
         rDerivativeCurvatureCurvilinear[0][0] = inner_prod(A1_11,rReferenceKinematic.a3) + inner_prod(A1_1,A3_1) - inner_prod(a1_11,rActualKinematic.a3) - inner_prod(a1_1,a3_1);
@@ -2694,7 +2765,7 @@ namespace Kratos
         const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
 
         // 1. Calculate Curvature
-        rCurvatureCurvilinear = rThisConstitutiveVariablesCurvature.StressVector;
+        rCurvatureCurvilinear = - rActualKinematic.b_ab_covariant + m_B_ab_covariant_vector_slave[IntegrationPointIndex];
 
         // 2. Calculate First Variation Curvature
         Matrix da3 = ZeroMatrix(3, 3);
