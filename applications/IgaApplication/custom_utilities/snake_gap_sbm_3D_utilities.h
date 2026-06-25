@@ -11,6 +11,7 @@
 #pragma once
 
 // System includes
+#include <algorithm>
 #include <array>
 #include <map>
 #include <set>
@@ -57,6 +58,61 @@ using NodeType = Node;
 
     using NodePointerType = Node::Pointer;
     using NeighbourGeometriesVectorType = std::vector<Geometry<Node>::Pointer>;
+    using SkinEdgeKey = std::pair<IndexType, IndexType>;
+
+    struct SkinEdgeKeyHash
+    {
+        std::size_t operator()(const SkinEdgeKey& rKey) const
+        {
+            const std::size_t first_hash = std::hash<IndexType>{}(rKey.first);
+            const std::size_t second_hash = std::hash<IndexType>{}(rKey.second);
+            return first_hash ^ (second_hash + 0x9e3779b9 + (first_hash << 6) + (first_hash >> 2));
+        }
+    };
+
+    using SkinEdgeControlPointMap = std::unordered_map<
+        SkinEdgeKey,
+        std::vector<NodePointerType>,
+        SkinEdgeKeyHash>;
+
+    struct SkinTopFaceKey
+    {
+        std::array<IndexType, 3> NodeIds = {{0, 0, 0}};
+
+        SkinTopFaceKey() = default;
+
+        SkinTopFaceKey(
+            const IndexType Id0,
+            const IndexType Id1,
+            const IndexType Id2)
+        {
+            NodeIds = {{Id0, Id1, Id2}};
+            std::sort(NodeIds.begin(), NodeIds.end());
+        }
+
+        bool operator<(const SkinTopFaceKey& rOther) const
+        {
+            return NodeIds < rOther.NodeIds;
+        }
+
+        bool operator==(const SkinTopFaceKey& rOther) const
+        {
+            return NodeIds == rOther.NodeIds;
+        }
+    };
+
+    struct SkinTopFaceKeyHash
+    {
+        std::size_t operator()(const SkinTopFaceKey& rKey) const
+        {
+            std::size_t seed = 0;
+            for (const auto id : rKey.NodeIds) {
+                const std::size_t value_hash = std::hash<IndexType>{}(id);
+                seed ^= value_hash + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            }
+            return seed;
+        }
+    };
 
     struct SpanKey3D
     {
@@ -372,11 +428,41 @@ using NodeType = Node;
         NurbsSurfaceType::Pointer pGeometry;
         Geometry<Node>::Pointer pNeighbourGeometry;
         NodePointerType pOppositeNode;
+        std::array<NodePointerType, 3> FaceNodes;
 
         bool HasType1NeighbourPath = false;
         bool HasNeighbourActiveSpan = false;
         SpanKey3D NeighbourActiveSpan;
     };
+
+    struct CurvedEdgeData
+    {
+        SkinEdgeKey Key;
+        std::vector<NodePointerType> LinearControlNodes;
+        std::vector<NodePointerType> CurvedControlNodes;
+        std::vector<NodePointerType> CurrentControlNodes;
+        double Alpha = 0.0;
+        bool IsCurved = false;
+    };
+
+    struct CurvedTopFaceData
+    {
+        SkinTopFaceKey Key;
+        std::array<NodePointerType, 3> CornerNodes;
+        std::vector<NodePointerType> CurrentControlNodes;
+        NurbsSurfaceType::Pointer pSurfaceGeometry;
+        double Alpha = 0.0;
+        bool IsCurved = false;
+    };
+
+    using CurvedEdgeRegistry = std::unordered_map<
+        SkinEdgeKey,
+        CurvedEdgeData,
+        SkinEdgeKeyHash>;
+    using CurvedTopFaceRegistry = std::unordered_map<
+        SkinTopFaceKey,
+        CurvedTopFaceData,
+        SkinTopFaceKeyHash>;
 
     using LateralFaceRegistry = std::unordered_map<
         CanonicalFaceKey3D,
@@ -529,6 +615,9 @@ using NodeType = Node;
 
         IndexType FirstType1LateralFaceIndex = 0;
         IndexType SecondType1LateralFaceIndex = 0;
+
+        bool RequiresQuadrature = false;
+        NurbsVolumeType::Pointer pVolumeGeometry;
     };
 
     struct Type2OpenFaceData
@@ -572,11 +661,19 @@ using NodeType = Node;
 
         double CharacteristicLength = 0.0;
 
+        NodePointerType pSurrogateNode;
+        NodePointerType pProjectionNode0;
+        NodePointerType pProjectionNode1;
+        NodePointerType pProjectionNode2;
+
         IndexType SurrogateNodeId = 0;
         IndexType ProjectionNodeId0 = 0;
         IndexType ProjectionNodeId1 = 0;
         IndexType ProjectionNodeId2 = 0;
         IndexType CornerProjectionNodeId = 0;
+
+        bool RequiresQuadrature = false;
+        NurbsVolumeType::Pointer pVolumeGeometry;
     };
 
     struct Type3CreationSummary
@@ -644,6 +741,12 @@ using NodeType = Node;
         const ModelPart& rSkinSubModelPart,
         const ModelPart& rSurrogateSubModelPart) const;
 
+    void SetGapApproximationOrder(
+        const std::size_t GapApproximationOrder);
+
+    void SetStoreGapDebugGeometries(
+        const bool StoreGapDebugGeometries);
+
     
     // type 1 element creation----------------------------
     void ClearLateralFaceRegistry();
@@ -670,6 +773,7 @@ using NodeType = Node;
     // type 2 element creation----------------------------
     Type2CreationResult CreateType2GapGeometries(
         ModelPart& rRootModelPart,
+        ModelPart& rSkinSubModelPart,
         Type1CreationResult& rType1CreationResult,
         const ExternalSpanDataMap& rExternalSpans,
         const KnotSpanGridInfo& rGridInfo,
@@ -682,6 +786,15 @@ using NodeType = Node;
         const ExternalSpanDataMap& rExternalSpans,
         const KnotSpanGridInfo& rGridInfo,
         const Type2CreationResult& rType2CreationResult,
+        const std::size_t IntegrationOrder,
+        const std::size_t NumberOfShapeFunctionsDerivatives);
+
+    void FinalizeType2AndType3GapGeometries(
+        ModelPart& rRootModelPart,
+        ModelPart& rSkinSubModelPart,
+        Type2CreationResult& rType2CreationResult,
+        Type3CreationResult& rType3CreationResult,
+        const KnotSpanGridInfo& rGridInfo,
         const std::size_t IntegrationOrder,
         const std::size_t NumberOfShapeFunctionsDerivatives);
 
@@ -1281,6 +1394,9 @@ private:
     // type 1 element creation methods
     Vector CreateOpenUnitKnotVectorDegree1() const;
 
+    Vector CreateOpenUnitKnotVector(
+        const std::size_t PolynomialDegree) const;
+
     CanonicalFaceKey3D MakeCanonicalFaceKey3D(
         const IndexType NodeId0,
         const IndexType NodeId1,
@@ -1412,14 +1528,41 @@ private:
     NurbsVolumeType::Pointer CreateType2CollapsedEdgeVolume(
         const NodePointerType& pEdgeNode0,
         const NodePointerType& pEdgeNode1,
-        const NodePointerType& pProjectionNode0,
-        const NodePointerType& pProjectionNode1) const;
+        const std::vector<NodePointerType>& rSkinEdgeControlNodes) const;
 
-    NurbsVolumeType::Pointer CreateType3CollapsedCornerVolume(
+    NurbsVolumeType::Pointer CreateType2LinearCollapsedEdgeVolume(
+        const NodePointerType& pEdgeNode0,
+        const NodePointerType& pEdgeNode1,
+        const NodePointerType& pSkinNode0,
+        const NodePointerType& pSkinNode1) const;
+
+    struct Type3CollapsedCornerData
+    {
+        NurbsVolumeType::Pointer pVolume;
+        NurbsSurfaceType::Pointer pTopSurface;
+        std::array<NodePointerType, 3> ProjectionNodes;
+    };
+
+    Type3CollapsedCornerData CreateType3CollapsedCornerVolume(
+        const ModelPart& rSkinSubModelPart,
+        const double MaximumProjectionDistance,
         const NodePointerType& pSurrogateNode,
         const NodePointerType& pProjectionNode0,
         const NodePointerType& pProjectionNode1,
         const NodePointerType& pProjectionNode2) const;
+
+    Type3CollapsedCornerData CreateType3LinearCollapsedCornerVolume(
+        const NodePointerType& pSurrogateNode,
+        const NodePointerType& pProjectionNode0,
+        const NodePointerType& pProjectionNode1,
+        const NodePointerType& pProjectionNode2,
+        const bool CreateTopSurface = true) const;
+
+    Type3CollapsedCornerData CreateType3CollapsedCornerVolumeFromTopControlNodes(
+        const NodePointerType& pSurrogateNode,
+        const std::array<NodePointerType, 3>& rProjectionNodes,
+        const std::vector<NodePointerType>& rTopControlNodes,
+        const bool CreateTopSurface = true) const;
 
     void OrientTriangleFaceAwayFromOppositeNode(
         NodePointerType& rpNode0,
@@ -1465,7 +1608,79 @@ private:
         const SpanKey3D& rA,
         const SpanKey3D& rB) const;
 
+    double MaximumSkinProjectionDistance(
+        const KnotSpanGridInfo& rGridInfo) const;
+
+    bool ProjectPointToSkinBoundaryAlongDirection(
+        const ModelPart& rSkinSubModelPart,
+        const array_1d<double, 3>& rPoint,
+        const array_1d<double, 3>& rDirection,
+        const double MaximumDistance,
+        array_1d<double, 3>& rProjectionPoint) const;
+
+    bool ProjectPointToClosestSkinBoundary(
+        const ModelPart& rSkinSubModelPart,
+        const array_1d<double, 3>& rPoint,
+        array_1d<double, 3>& rProjectionPoint,
+        double& rProjectionDistance) const;
+
+    std::vector<NodePointerType> GetOrCreateQuadraticSkinEdgeControlNodes(
+        ModelPart& rSkinSubModelPart,
+        const NodePointerType& pSkinNode0,
+        const NodePointerType& pSkinNode1,
+        const double MaximumProjectionDistance,
+        const std::string& rContext);
+
+    NodePointerType CreateOrReuseAuxiliaryControlNode(
+        ModelPart& rSkinSubModelPart,
+        const array_1d<double, 3>& rPoint) const;
+
+    std::vector<NodePointerType> CreateStraightSkinEdgeControlNodes(
+        ModelPart& rSkinSubModelPart,
+        const NodePointerType& pSkinNode0,
+        const NodePointerType& pSkinNode1) const;
+
+    std::vector<NodePointerType> GetOrCreateFinalSkinEdgeControlNodes(
+        ModelPart& rSkinSubModelPart,
+        const NodePointerType& pSkinNode0,
+        const NodePointerType& pSkinNode1,
+        const double MaximumProjectionDistance,
+        const std::string& rContext);
+
+    void UpdateLateralFaceRegistryGeometries(
+        ModelPart& rRootModelPart,
+        ModelPart& rSkinSubModelPart);
+
+    NurbsSurfaceType::Pointer CreateCollapsedTriangleSurfaceWithCurvedEdge(
+        const NodePointerType& pApexNode,
+        const std::vector<NodePointerType>& rSkinEdgeControlNodes) const;
+
+    NurbsSurfaceType::Pointer CreateCollapsedTriangleSurfaceWithCurvedTop(
+        const NodePointerType& pNode0,
+        const NodePointerType& pNode1,
+        const NodePointerType& pNode2) const;
+
+    const std::vector<NodePointerType>* FindCachedSkinEdgeControlNodes(
+        const NodePointerType& pNode0,
+        const NodePointerType& pNode1) const;
+
+    struct SkinProjectionTriangleData
+    {
+        array_1d<double, 3> A = ZeroVector(3);
+        array_1d<double, 3> B = ZeroVector(3);
+        array_1d<double, 3> C = ZeroVector(3);
+        array_1d<double, 3> Center = ZeroVector(3);
+        double Radius = 0.0;
+    };
+
     int mEchoLevel = 0;
+    std::size_t mGapApproximationOrder = 1;
+    bool mStoreGapDebugGeometries = false;
+    SkinEdgeControlPointMap mSkinEdgeControlNodes;
+    std::set<SkinEdgeKey> mLinearSkinEdges;
+    CurvedEdgeRegistry mCurvedEdgeRegistry;
+    CurvedTopFaceRegistry mCurvedTopFaceRegistry;
+    std::vector<SkinProjectionTriangleData> mSkinProjectionTriangleData;
     LateralFaceRegistry mLateralFaceRegistry;
 };
 
