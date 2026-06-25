@@ -121,6 +121,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
 
+        self.common_test_files_dir = Path(test_helper.get_file_path("crow_validation")) / "common"
         self.run_analysis = helper_utilities.run_orchestrator
 
         # The following attributes will be populated by the specific simulation runs
@@ -452,7 +453,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
 
         mdpa_file_path_without_file_extension = test_helper.get_file_path(
-            Path("crow_validation") / "common" / "model"
+            self.common_test_files_dir / "model"
         )
         model = Kratos.Model()
         main_model_part = model.CreateModelPart("PorousDomain")
@@ -519,7 +520,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         project_parameters_file_name = "staged_construction.json"
         with context_managers.set_cwd_to(self.test_path):
             with open(
-                Path("..") / ".." / "common" / project_parameters_file_name, "r"
+                self.common_test_files_dir / project_parameters_file_name, "r"
             ) as analysis_file:
                 return Kratos.Parameters(analysis_file.read())
 
