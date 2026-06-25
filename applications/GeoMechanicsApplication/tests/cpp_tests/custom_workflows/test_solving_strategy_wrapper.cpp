@@ -46,7 +46,7 @@ const std::string testParameters = R"(
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Backward_Euler",
-        "reset_displacements":                false,
+        "reset_totals":                       false,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -118,9 +118,9 @@ ModelPart& CreateDummyModelPart(Model& rModel)
 
 SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(ModelPart& rModelPart)
 {
-    const auto reset_displacements = true;
+    const auto reset_totals = true;
     return SolvingStrategyWrapperType{
-        SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_displacements};
+        SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_totals};
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)

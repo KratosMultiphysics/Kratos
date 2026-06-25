@@ -37,7 +37,7 @@
         "rayleigh_m": 0.0001,
         "rayleigh_k": 0.0001,
         "rotation_dofs": true,
-        "reset_displacements": false,
+        "reset_totals": false,
         "scheme_type": "newmark",
         "newmark_beta": 0.25,
         "newmark_gamma": 0.5,

@@ -22,7 +22,7 @@
         },
         "buffer_size":                        2,
         "echo_level":                         1,
-        "reset_displacements":                false,
+        "reset_totals":                       false,
         "clear_storage":                      false,
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,

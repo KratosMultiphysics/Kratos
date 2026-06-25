@@ -1,8 +1,6 @@
-import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.FluidDynamicsApplication
 import numpy as np
-import KratosMultiphysics.FluidDynamicsApplication.python_pool
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.FluidDynamicsApplication.python_pool
 
 
 try:
@@ -10,6 +8,7 @@ try:
     HAS_CUPY = True
 except ImportError:
     HAS_CUPY = False
+    print("Skipping tests that require CuPy.")
 
 class TestBufferPoolNumPy(KratosUnittest.TestCase):
 
@@ -20,22 +19,22 @@ class TestBufferPoolNumPy(KratosUnittest.TestCase):
             dtype=np.float64
         )
 
-    def test_Get_basic(self):
+    def test_get_basic(self):
         buf = self.pool.Get(0, (10, 10))
         self.assertEqual(buf.shape, (10, 10))
         self.assertEqual(buf.dtype, np.float64)
         self.assertTrue(self.pool.in_use[0])
 
-    def test_Get_reshape_is_view(self):
+    def test_get_reshape_is_view(self):
         buf = self.pool.Get(0, (20, 5))
         self.assertIs(buf.base, self.pool.buffers[0])
         self.pool.Release(0)
 
-    def test_Get_exceeds_size(self):
+    def test_get_exceeds_size(self):
         with self.assertRaises(ValueError):
             self.pool.Get(0, (50, 50))  # requires 2500 > 100
 
-    def test_Get_smaller_than_required(self):
+    def test_get_smaller_than_required(self):
         # Request shape that fits but check that the returned buffer
         # is exactly the required size, not smaller.
         buf = self.pool.Get(0, (5, 5))  # requires 25
@@ -43,17 +42,17 @@ class TestBufferPoolNumPy(KratosUnittest.TestCase):
         self.assertEqual(buf.shape, (5, 5))
         self.pool.Release(0)
 
-    def test_double_Get_raises(self):
+    def test_double_get_raises(self):
         self.pool.Get(0, (5, 5))
         with self.assertRaises(RuntimeError):
             self.pool.Get(0, (2, 2))
 
-    def test_Release_basic(self):
+    def test_release_basic(self):
         self.pool.Get(1, (20, 10))
         self.pool.Release(1)
         self.assertFalse(self.pool.in_use[1])
 
-    def test_Release_not_in_use(self):
+    def test_release_not_in_use(self):
         with self.assertRaises(RuntimeError):
             self.pool.Release(0)
 
@@ -103,8 +102,8 @@ class TestBufferPoolNumPy(KratosUnittest.TestCase):
 
 # --- CuPy Test Suite (Kratos style, auto-skip) ---
 
-@UnitTest.skipUnless(HAS_CUPY, "CuPy not available")
-class TestBufferPoolCuPy(UnitTest.TestCase):
+@KratosUnittest.skipUnless(HAS_CUPY, "CuPy not available")
+class TestBufferPoolCuPy(KratosUnittest.TestCase):
 
     def setUp(self):
         self.pool = KratosMultiphysics.FluidDynamicsApplication.python_pool.BufferPool(
@@ -113,14 +112,14 @@ class TestBufferPoolCuPy(UnitTest.TestCase):
             dtype=cp.float32
         )
 
-    def test_Get_basic(self):
+    def test_get_basic(self):
         buf = self.pool.Get(0, (10, 10))
         self.assertEqual(buf.shape, (10, 10))
         self.assertEqual(buf.dtype, cp.float32)
         self.assertTrue(self.pool.in_use[0])
         self.pool.Release(0)
 
-    def test_Get_exceeds_size(self):
+    def test_get_exceeds_size(self):
         with self.assertRaises(ValueError):
             self.pool.Get(0, (30, 30))  # requires 900 > 500
 
@@ -130,13 +129,13 @@ class TestBufferPoolCuPy(UnitTest.TestCase):
         self.assertEqual(buf.shape, (10, 10))
         self.pool.Release(0)
 
-    def test_Get_smaller_than_required(self):
+    def test_get_smaller_than_required(self):
         buf = self.pool.Get(1, (5, 5))
         self.assertEqual(buf.size, 25)
         self.assertEqual(buf.shape, (5, 5))
         self.pool.Release(1)
 
-    def test_double_Get_raises(self):
+    def test_double_get_raises(self):
         self.pool.Get(0, (5, 5))
         with self.assertRaises(RuntimeError):
             self.pool.Get(0, (2, 2))
@@ -173,4 +172,4 @@ class TestBufferPoolCuPy(UnitTest.TestCase):
 
 
 if __name__ == "__main__":
-    UnitTest.main()
+    KratosUnittest.main()

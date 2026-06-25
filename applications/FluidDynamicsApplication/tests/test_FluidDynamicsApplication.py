@@ -9,6 +9,13 @@ except:
     sympy_available = False
     print("Skipping tests that require sympy")
 
+try:
+    import cupy
+    HAS_CUPY = True
+except ImportError:
+    HAS_CUPY = False
+    print("Skipping tests that require CuPy.")
+
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
@@ -57,7 +64,12 @@ from slip_spurious_tangential_correction_test import SlipSpuriousTangentialCorre
 from apply_wall_law_process_test import ApplyWallLawProcessTest
 from test_navier_stokes_fractional_vectorial_convection import NavierStokesFractionalVectorialConvectionTest
 from test_python_pool import TestBufferPoolNumPy
+if HAS_CUPY:
+    from test_python_pool import TestBufferPoolCuPy
 from test_cfd_utils import TestCFDUtils
+from vectorized_fluid_dynamics_analysis_test import VectorizedFluidDynamicsAnalysisTestOpenMP
+if HAS_CUPY:
+    from vectorized_fluid_dynamics_analysis_test import VectorizedFluidDynamicsAnalysisTestGPU
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -99,7 +111,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyWallLawProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCFDUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBufferPoolNumPy]))
-
+    if HAS_CUPY:
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBufferPoolCuPy]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -139,9 +152,13 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesFractionalVectorialConvectionTest]))
     nightSuite.addTest(AdjointFluidTest('testCylinder'))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([VectorizedFluidDynamicsAnalysisTestOpenMP]))
+    if HAS_CUPY:
+        nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([VectorizedFluidDynamicsAnalysisTestGPU]))
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))

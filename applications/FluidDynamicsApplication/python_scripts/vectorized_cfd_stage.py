@@ -80,7 +80,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.max_cfl = settings["time_stepping"]["max_cfl_number"].GetDouble()
         self.cfl = self.max_cfl
         self.max_fourier = settings["time_stepping"]["max_fourier_number"].GetDouble()
-        
+
         self.time_scheme = settings["time_scheme"].GetString()
         self.startup_time = settings["startup_time"].GetDouble()
         self.startup_time_scheme = settings["startup_time_scheme"].GetString() if self.startup_time > 0.0 else None
@@ -338,10 +338,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         ## arrays to store wall values
         self.v_el_wall = xp.empty((self.connectivity_wall.shape[0], self.n_in_cond, self.dim), dtype=cfd_utils.PRECISION)
 
-        # Arrays for time integration to be allocated according to the current time scheme 
+        # Arrays for time integration to be allocated according to the current time scheme
         # Note that their size may depend on the time scheme, which might change among time steps
         self.k = None
-        self.v_stage = xp.empty((len(self.model_part.Nodes), self.dim), dtype=cfd_utils.PRECISION) 
+        self.v_stage = xp.empty((len(self.model_part.Nodes), self.dim), dtype=cfd_utils.PRECISION)
 
         #work arrays for intermediate computations
         self.pool = python_pool.BufferPool(
@@ -686,7 +686,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             )
             b = (0.5, 0.5)
             c = (0.0, 1.0)
-        elif time_scheme == "SSPRK3": # 3rd order Strong Stability Preserving Runge-Kutta 
+        elif time_scheme == "SSPRK3": # 3rd order Strong Stability Preserving Runge-Kutta
             A = (
                 (),
                 (1.0,),
@@ -708,7 +708,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             raise ValueError(f"Provided time scheme '{time_scheme}' is not available. Available options are: {available_time_schemes}.")
 
         return A, b, c
-    
+
     @classmethod
     def GetPressureFactor(self, time_scheme):
         """
@@ -718,7 +718,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             return 1.0
         elif time_scheme == "RK2": # 2nd order Heun Runge-Kutta
             return 0.5
-        elif time_scheme == "SSPRK3": # 3rd order Strong Stability Preserving Runge-Kutta 
+        elif time_scheme == "SSPRK3": # 3rd order Strong Stability Preserving Runge-Kutta
             return 0.5
         elif time_scheme == "RK4": # 4th order Runge-Kutta
             return 0.5
@@ -1016,14 +1016,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             vold_backup[:] = vold
             pold_backup[:] = pold
             #vnew[:] = vold
-            
+
             vmax = xp.max(xp.linalg.norm(vold, axis=1))
-            
+
             # Guard against NaN and zero velocity (e.g., starting from rest)
             # NaN comparisons silently fail, and vmax=0 causes all velocities to trigger retry
             if not xp.isfinite(vmax) or vmax < 1e-15:
                 vmax = 1e-15  # Set minimum threshold to avoid division by zero and false triggers
-            
+
             repeat_step1 = True
 
             while(repeat_step1):
@@ -1068,7 +1068,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                         print(f"----- Warning: local max velocity increased significantly after step 1: {vmax_after_step1} vs {vmax}")
                         repeat_step1 = True
                         ##vold[:] = vold_backup #not needed as it is not modified in step1
-                        ##pold[:] = pold_backup 
+                        ##pold[:] = pold_backup
                         self.cfl = self.cfl * 0.7 # reduce CFL and repeat step 1
                         current_time = backup_current_time # reset current time to before step 1 to repeat it with the new CFL
                     else:
@@ -1114,9 +1114,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 current_time = backup_current_time # reset current time to before step 3 to repeat it with the new CFL
                 self.cfl = self.cfl * 0.5 # reduce CFL and redo the step
                 print(f"-----****!!!! Warning: local max velocity increased significantly after step 3: {vmax_after_step3} vs {vmax}")
-            
+
             #for the next substep
-            pold[:] = p 
+            pold[:] = p
             vold [:] = vnew
 
             #self.outfile.write(str(current_time)+" " + str(np.linalg.norm(vold))+" "+str(np.linalg.norm(p))+"\n") #please do not remove this, it is used for testing purposes
@@ -1344,7 +1344,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 xp.asarray(self.L.index1_data())),
                 shape=(self.L.Size1(), self.L.Size2()))
 
-            sol, status = self.cfd_utils.robust_cg(A_np, rhs, rtol=self.pressure_tolerance)
+            sol, status = self.cfd_utils.robust_cg(A_np, rhs, rtol=self.pressure_tolerance, xp=xp)
             is_converged = status == 0 # Note that the status is 0 if the solver converged
 
             return sol, is_converged
