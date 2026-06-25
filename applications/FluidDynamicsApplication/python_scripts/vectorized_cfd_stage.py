@@ -1277,7 +1277,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 print("doing div cleareance step")
                 t0 = time.perf_counter()
                 #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
-                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=500,xp=xp)
+                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=None, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=500,xp=xp)
                 print("status=",status)
             else:
                 t0 = time.perf_counter()
