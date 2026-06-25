@@ -89,7 +89,7 @@ void GapSbmSolidCondition::InitializeMemberVariables()
         mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder /4* penalty / h;
         if (mDim == 3)
         {
-            mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * mBasisFunctionsOrder /9* penalty / h;
+            mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder /9* penalty / h;
         }
     }
     // Compute the normals
@@ -97,27 +97,6 @@ void GapSbmSolidCondition::InitializeMemberVariables()
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
     mNormalPhysicalSpace = mNormalParameterSpace;
 
-    
-
-    // DEBUG sphere
-    Vector center =  ZeroVector(3);
-    center[0] = 1.0; center[1] = 1.0; if (mDim == 3) {center[2] = 1.0;}
-    Vector true_normal = r_geometry.Center().Coordinates()- center;
-    true_normal = true_normal / MathUtils<double>::Norm(true_normal);
-
-    // mNormalPhysicalSpace = true_normal;
-
-    
-
-    // if (inner_prod(mNormalPhysicalSpace, true_normal) < 0.0) {
-    //     // KRATOS_WATCH("ERROR WITH NORMALS!!!!!!!!!!!!!!!!!!!!!!!")
-    //     // KRATOS_WATCH(true_normal)
-    //     // KRATOS_WATCH(mNormalPhysicalSpace)
-    //     // KRATOS_WATCH("--------------------")
-
-    //     mNormalPhysicalSpace *= -1;
-    //     // exit(0);
-    // }
     SetValue(NORMAL, mNormalPhysicalSpace);
 
     // calculate the integration weight
@@ -145,6 +124,19 @@ void GapSbmSolidCondition::InitializeSbmMemberVariables()
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = r_geometry.Center().Coordinates() - r_surrogate_geometry.Center().Coordinates();
+
+
+    // if (inner_prod(mNormalPhysicalSpace, mDistanceVector) < 0.0) {
+    //     // KRATOS_WATCH("ERROR WITH NORMALS!!!!!!!!!!!!!!!!!!!!!!!")
+    //     // KRATOS_WATCH(true_normal)
+    //     // KRATOS_WATCH(mNormalPhysicalSpace)
+    //     // KRATOS_WATCH("--------------------")
+
+    //     // mNormalPhysicalSpace *= -1;
+    //     // SetValue(NORMAL, mNormalPhysicalSpace);
+    //     // exit(0);
+    //     this->SetValue(ACTIVATION_LEVEL, 4.0);
+    // }
 
 }
 
@@ -371,6 +363,9 @@ void GapSbmSolidCondition::CalculateRightHandSide(
     // ASSEMBLE
     //-----------------------------------------------------
     Vector u_D = this->GetValue(DISPLACEMENT);
+
+    //FIXME:
+    u_D = r_true_geometry.GetValue(PROJECTION_NODE)->GetValue(DISPLACEMENT);
 
     if (this->Has(DIRECTION)){
         // ASSIGN BC BY DIRECTION

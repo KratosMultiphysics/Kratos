@@ -539,7 +539,7 @@ private:
     std::size_t mInternalDivisions;
     double mGapRelativeToleranceForSubdivisions = 0.1;
     std::size_t mNumberOfInterpolationLevels = 3; // number of additional levels of interpolation for the gap elements (in addition to the corner nodes)
-    std::size_t mGapApproximationOrder; // Order of quadrature of the Gap elemennts and conditions
+    std::size_t mGapApproximationOrder = 1; // Order of quadrature of the Gap elemennts and conditions
     std::size_t mGapInterpolationOrder; // Order of the Gap elements
     std::string mGapSbmType; // "default" (uses ordered points of the curve) or
                              // "interpolation" (interpolates the points on the curve -- no assumption on their order)
