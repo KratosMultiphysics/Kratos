@@ -1114,16 +1114,22 @@ namespace Kratos
             first_variation_shear_curvilinear_slave.resize(mat_size);
             second_variation_shear_curvilinear_master.resize(mat_size);
             second_variation_shear_curvilinear_slave.resize(mat_size);
-            for(IndexType i = 0; i < mat_size; i++)
+            for(IndexType i = 0; i < number_of_nodes_master * 3; i++)
             {
                 second_variation_shear_curvilinear_master[i].resize(mat_size);
-                second_variation_shear_curvilinear_slave[i].resize(mat_size);
                 first_variation_shear_curvilinear_master[i] = ZeroVector(2);
-                first_variation_shear_curvilinear_slave[i] = ZeroVector(2);
-
-                for(IndexType j = 0; j < mat_size; j++)
+                for(IndexType j = 0; j < number_of_nodes_master * 3; j++)
                 {
                     second_variation_shear_curvilinear_master[i][j] = ZeroVector(2);
+                }
+            }
+            for(IndexType i = 0; i < number_of_nodes_slave * 3; i++)
+            {
+                second_variation_shear_curvilinear_slave[i].resize(mat_size);
+                first_variation_shear_curvilinear_slave[i] = ZeroVector(2);
+
+                for(IndexType j = 0; j < number_of_nodes_slave * 3; j++)
+                {
                     second_variation_shear_curvilinear_slave[i][j] = ZeroVector(2);
                 }
             }
@@ -1143,16 +1149,23 @@ namespace Kratos
             first_variation_shear_slave.resize(mat_size);
             second_variation_shear_master.resize(mat_size);
             second_variation_shear_slave.resize(mat_size);
-            for(IndexType i = 0; i < mat_size; i++)
+            for(IndexType i = 0; i < number_of_nodes_master * 3; i++)
             {
                 second_variation_shear_master[i].resize(mat_size);
-                second_variation_shear_slave[i].resize(mat_size);
                 first_variation_shear_master[i] = ZeroVector(2);
-                first_variation_shear_slave[i] = ZeroVector(2);
 
-                for(IndexType j = 0; j < mat_size; j++)
+                for(IndexType j = 0; j < number_of_nodes_master * 3; j++)
                 {
                     second_variation_shear_master[i][j] = ZeroVector(2);
+                }
+            }
+            for(IndexType i = 0; i < number_of_nodes_slave * 3; i++)
+            {
+                second_variation_shear_slave[i].resize(number_of_nodes_slave * 3);
+                first_variation_shear_slave[i] = ZeroVector(2);
+
+                for(IndexType j = 0; j < number_of_nodes_slave * 3; j++)
+                {
                     second_variation_shear_slave[i][j] = ZeroVector(2);
                 }
             }
@@ -1170,6 +1183,18 @@ namespace Kratos
 
             traction_vector_master += shear_vector_master;
             traction_vector_slave += shear_vector_slave;
+
+            // 1. First Variation Traction + Shear
+            for (SizeType i=0;i<3 * number_of_nodes_master;++i){
+                first_variations_traction(0, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[0];
+                first_variations_traction(1, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[1];
+                first_variations_traction(2, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[2];
+            }
+            for (SizeType i=0;i<3 * number_of_nodes_slave;++i){
+                first_variations_traction(0, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[0];
+                first_variations_traction(1, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[1];
+                first_variations_traction(2, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[2];
+            }
 
             //////////////////////// Additional shear //////////////////////////
 
@@ -2666,7 +2691,7 @@ namespace Kratos
             //variation of the surface normal
             tilde_a3_r[r] = MathUtils<double>::CrossProduct(a1_r,rActualKinematic.a2) + MathUtils<double>::CrossProduct(rActualKinematic.a1,a2_r);
             bar_a3_r[r] = inner_prod(rActualKinematic.a3,tilde_a3_r[r]);
-            a3_r[r] = tilde_a3_r[r]/norm_2(rActualKinematic.a3_tilde) - rActualKinematic.a2*bar_a3_r[r]/norm_2(rActualKinematic.a3_tilde);
+            a3_r[r] = tilde_a3_r[r]/norm_2(rActualKinematic.a3_tilde) - rActualKinematic.a3*bar_a3_r[r]/norm_2(rActualKinematic.a3_tilde);
 
             //variation: derivative of the surface normal
             tilde_a3_1_r[r] = MathUtils<double>::CrossProduct(a1_1_r,rActualKinematic.a2) + MathUtils<double>::CrossProduct(a1_1,a2_r) + MathUtils<double>::CrossProduct(a1_r,a1_2) + MathUtils<double>::CrossProduct(rActualKinematic.a1,a1_2_r);
