@@ -93,6 +93,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Save materials import settings
         self.material_import_settings = settings["material_import_settings"]
 
+        #flags to control algorithmic behaviour
+        self.deactivate_pressure_stabilization = False #switches on and off the pressure stabilization
+        self.force_first_order_splitting = False
+
         # Call base analysis stage constructor
         # Note that this must be done at the end (indeed, after creating the model part)
         # Otherwise the model part is not created when calling the _AddVariables()
@@ -162,9 +166,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         xp.reciprocal(denom, out=tau_1)
         tau_2[:] = h**2/(c_1 * tau_1)
 
-        if self.clear_divergence_steps > 0:
-            tau_1.fill(0.0)
-            tau_2.fill(0.0)
+        # if self.clear_divergence_steps > 0:
+        #     self.deactivate_pressure_stabilization = True
+        #     self.force_first_order_splitting = True
+            #tau_1.fill(0.0)
+            #tau_2.fill(0.0)
 
         return tau_1, tau_2
 
@@ -866,7 +872,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         t0 = time.perf_counter()
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN, out=self.pool.Get(0,(nelem,self.n_in_el, self.n_in_el))) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
         #print(f"Time to compute elemental Laplacian contributions: {time.perf_counter()-t0}")
-        coef = (p_factor * dt / self.rho + self.tau_1) * self.elemental_volumes
+        if(self.clear_divergence_steps>0 or self.deactivate_pressure_stabilization == True):
+            coef = (p_factor * dt / self.rho ) * self.elemental_volumes
+        else:
+            coef = (p_factor * dt / self.rho + self.tau_1) * self.elemental_volumes
         L_el *= coef[:, None, None] # scale LHS elemental contributions
         t0 = time.perf_counter()
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
@@ -884,10 +893,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.pool.Release(aux_scalar)
 
         # -tau*(∇q,Pi_pressure)
-        aux_scalar = self.cfd_utils.ComputePressureStabilizationProjectionTerm(self.N, self.DN, pres_proj_el,out=self.pool.Get(0,(nelem,self.n_in_el)))
-        aux_scalar *= self.tau_1[:,xp.newaxis]
-        rhs_el -= aux_scalar
-        self.pool.Release(aux_scalar)
+        if(self.clear_divergence_steps>0 or self.deactivate_pressure_stabilization == False):
+            aux_scalar = self.cfd_utils.ComputePressureStabilizationProjectionTerm(self.N, self.DN, pres_proj_el,out=self.pool.Get(0,(nelem,self.n_in_el)))
+            aux_scalar *= self.tau_1[:,xp.newaxis]
+            rhs_el -= aux_scalar
+            self.pool.Release(aux_scalar)
 
         # scale RHS elemental contributions by elemental volumes (integration)
         rhs_el *= self.elemental_volumes[:,xp.newaxis]
@@ -997,6 +1007,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.update_precond = True # Update preconditioner at the first substep
         current_time = self.time - self.dt
         while (self.time - current_time > 1.0e-12):
+            if self.force_first_order_splitting == True:
+                pold.fill(0.0)
+                
             ##
             backup_current_time = current_time
             # Explicitly backup the state once per substep
@@ -1088,6 +1101,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 self.cfl = self.cfl * 0.5
             elif self.clear_divergence_steps > 0:
                 self.clear_divergence_steps -= 1
+                #if(self.clear_divergence_steps > 5):
                 p.fill(0.0)
                 pold.fill(0.0)
             elif(vmax_after_step3 > 1.25 * vmax or is_converged==False): #end of step velocity exploded or pressure solver did not converge - redo full step
