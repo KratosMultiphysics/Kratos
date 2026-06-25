@@ -157,9 +157,15 @@ class PQMPMExplicitTriTest(MPMTestFactory):
 class PQMPMExplicitHexTest(MPMTestFactory):
     file_name = "pqmpm_tests/pqmpm_explicit_hex_test"
 
-class DynamicCylinderImpactPenaltyNonConformingReactionTest(MPMTestFactory):
-    file_name = "cylinder_impact_tests/nonconforming_cylinder_impact_test"
+### Penalty Non-conforming BC with/without numerical stiffness tests
+class DynamicQGridCylinderImpactPenaltyNonConformingReactionTest(MPMTestFactory):
+    file_name = "cylinder_impact_tests/qgrid_nonconforming_cylinder_impact_test"
 
-class DynamicCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest(MPMTestFactory):
-    file_name = "cylinder_impact_tests/stabilized_nonconforming_cylinder_impact_test"  
+class DynamicQGridCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest(MPMTestFactory):
+    file_name = "cylinder_impact_tests/qgrid_stabilized_nonconforming_cylinder_impact_test"
+
+class DynamicTGridCylinderImpactPenaltyNonConformingReactionTest(MPMTestFactory):
+    file_name = "cylinder_impact_tests/tgrid_nonconforming_cylinder_impact_test"
     
+class DynamicTGridCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest(MPMTestFactory):
+    file_name = "cylinder_impact_tests/tgrid_stabilized_nonconforming_cylinder_impact_test"

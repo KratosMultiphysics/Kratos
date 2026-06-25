@@ -50,8 +50,10 @@ from mpm_test_factory import PQMPMExplicitQuadTest as TPQMPMExplicitQuadTest
 from mpm_test_factory import PQMPMExplicitTriTest as TPQMPMExplicitTriTest
 from mpm_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
 
-from mpm_test_factory import DynamicCylinderImpactPenaltyNonConformingReactionTest as TDynamicCylinderImpactPenaltyNonConformingReactionTest
-from mpm_test_factory import DynamicCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest as TDynamicCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest
+from mpm_test_factory import DynamicQGridCylinderImpactPenaltyNonConformingReactionTest as TDynamicQGridCylinderImpactPenaltyNonConformingReactionTest
+from mpm_test_factory import DynamicQGridCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest as TDynamicQGridCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest
+from mpm_test_factory import DynamicTGridCylinderImpactPenaltyNonConformingReactionTest as TDynamicTGridCylinderImpactPenaltyNonConformingReactionTest
+from mpm_test_factory import DynamicTGridCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest as TDynamicTGridCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest
 
 ##### RESTART TESTS #####
 from restart_tests import MPMRestartTestBeamStaticLineLoad2D  as TMPMRestartTestBeamStaticLineLoad2D
@@ -154,8 +156,10 @@ def AssembleTestSuites():
     nightSuite.addTest(TPQMPMExplicitTriTest('test_execution'))
     nightSuite.addTest(TPQMPMExplicitHexTest('test_execution'))
 
-    nightSuite.addTest(TDynamicCylinderImpactPenaltyNonConformingReactionTest('test_execution'))
-    nightSuite.addTest(TDynamicCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest('test_execution'))
+    nightSuite.addTest(TDynamicQGridCylinderImpactPenaltyNonConformingReactionTest('test_execution'))
+    nightSuite.addTest(TDynamicQGridCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest('test_execution'))
+    nightSuite.addTest(TDynamicTGridCylinderImpactPenaltyNonConformingReactionTest('test_execution'))
+    nightSuite.addTest(TDynamicTGridCylinderImpactPenaltyNonConformingNumericalStiffnessReactionTest('test_execution'))
 
     nightSuite.addTest(TMPMRestartTestBeamStaticLineLoad2D('test_execution'))
     nightSuite.addTest(TMPMRestartTestDynamicCantilever2D('test_execution'))

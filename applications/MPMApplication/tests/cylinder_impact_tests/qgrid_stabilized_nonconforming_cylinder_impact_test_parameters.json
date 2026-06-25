@@ -22,8 +22,7 @@
         "scheme_type": "newmark",
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "cylinder_impact_tests/nonconforming_cylinder_impact_test_body",
-            "restart_load_file_label": "12500"
+            "input_filename": "cylinder_impact_tests/qgrid_nonconforming_cylinder_impact_test_body"
         },
         "material_import_settings": {
             "materials_filename": "cylinder_impact_tests/nonconforming_cylinder_impact_test_materials.json"
@@ -36,7 +35,7 @@
         "max_iteration": 200,
         "grid_model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "cylinder_impact_tests/nonconforming_cylinder_impact_test_grid"
+            "input_filename": "cylinder_impact_tests/qgrid_nonconforming_cylinder_impact_test_grid"
         },
         "pressure_dofs": false,
         "linear_solver_settings": {
@@ -57,7 +56,7 @@
             "Parameters"    : {
                 "model_part_name"         : "Background_Grid.Slip2D_Non_Conforming_Auto1",
                 "constrained"             : "contact_slip",
-                "particles_per_condition" : 1,
+                "material_points_per_condition" : 1,
                 "penalty_factor"          : 1e15,
                 "option"                  : "flip_normal"
             }
@@ -86,7 +85,7 @@
                 "Parameters": {
                 "entity_type": "Condition",
                 "check_variables": [ "MPC_CONTACT_FORCE"],
-                "input_file_name": "cylinder_impact_tests/stabilized_nonconforming_cylinder_impact_test_contact_force_results.json",
+                "input_file_name": "cylinder_impact_tests/qgrid_stabilized_nonconforming_cylinder_impact_test_contact_force_results.json",
                 "model_part_name": "Background_Grid.Slip2D_Non_Conforming_Auto1",
                 "tolerance"            : 1e-8,
                 "relative_tolerance"   : 1e-8,
@@ -107,7 +106,7 @@
         "Parameters": {
             "entity_type": "Condition",
             "gauss_points_output_variables": [ "MPC_CONTACT_FORCE" ],
-            "output_file_name": "stabilized_nonconforming_cylinder_impact_test_contact_force_results.json",
+            "output_file_name": "qgrid_stabilized_nonconforming_cylinder_impact_test_contact_force_results.json",
             "model_part_name": "Background_Grid.Slip2D_Non_Conforming_Auto1",
             "time_frequency": 5e-4
         }
