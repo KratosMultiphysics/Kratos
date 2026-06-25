@@ -79,6 +79,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.dt = settings["time_stepping"]["time_step"].GetDouble()
         self.max_cfl = settings["time_stepping"]["max_cfl_number"].GetDouble()
         self.cfl = self.max_cfl
+        self.cfl_number_increase_factor = settings["time_stepping"]["cfl_number_increase_factor"].GetDouble()
+        self.cfl_number_decrease_factor = settings["time_stepping"]["cfl_number_decrease_factor"].GetDouble()
         self.max_fourier = settings["time_stepping"]["max_fourier_number"].GetDouble()
 
         self.time_scheme = settings["time_scheme"].GetString()
@@ -87,6 +89,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Set problem solving parameters
         self.clear_divergence_steps = settings["clear_divergence_steps"].GetInt()
+        self.velocity_safety_factor = settings["velocity_safety_factor"].GetDouble()
         self.pressure_max_iteration = settings["linear_solver_settings"]["max_iteration"].GetInt()
         self.pressure_tolerance = settings["linear_solver_settings"]["tolerance"].GetDouble()
 
@@ -872,10 +875,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         t0 = time.perf_counter()
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN, out=self.pool.Get(0,(nelem,self.n_in_el, self.n_in_el))) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
         #print(f"Time to compute elemental Laplacian contributions: {time.perf_counter()-t0}")
-        if(self.clear_divergence_steps>0 or self.deactivate_pressure_stabilization == True):
-            coef = (p_factor * dt / self.rho ) * self.elemental_volumes
-        else:
+        if (self.clear_divergence_steps == 0 and self.deactivate_pressure_stabilization == False):
             coef = (p_factor * dt / self.rho + self.tau_1) * self.elemental_volumes
+        else:
+            coef = (p_factor * dt / self.rho) * self.elemental_volumes
         L_el *= coef[:, None, None] # scale LHS elemental contributions
         t0 = time.perf_counter()
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
@@ -893,7 +896,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.pool.Release(aux_scalar)
 
         # -tau*(∇q,Pi_pressure)
-        if(self.clear_divergence_steps>0 or self.deactivate_pressure_stabilization == False):
+        if (self.clear_divergence_steps == 0 and self.deactivate_pressure_stabilization == False):
             aux_scalar = self.cfd_utils.ComputePressureStabilizationProjectionTerm(self.N, self.DN, pres_proj_el,out=self.pool.Get(0,(nelem,self.n_in_el)))
             aux_scalar *= self.tau_1[:,xp.newaxis]
             rhs_el -= aux_scalar
@@ -999,6 +1002,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v_new_dirichlet = (v.ravel()[self.fix_vel_indices]).copy()
         v_old_dirichlet = (vold.ravel()[self.fix_vel_indices]).copy()
 
+        #TODO: allocate this once and reuse it
         vold_backup = xp.empty_like(vold)
         pold_backup = xp.empty_like(pold)
         vnew = xp.empty_like(vold)
@@ -1007,25 +1011,30 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.update_precond = True # Update preconditioner at the first substep
         current_time = self.time - self.dt
         while (self.time - current_time > 1.0e-12):
-            if self.force_first_order_splitting == True:
+            # If force_first_order_splitting is True, we reset the old pressure to zero
+            # Note that this essentially turns the scheme into first order as the pressure does not appear in the fractional step calculation
+            # This is useful if we want to ensure that the pressure correction is computed from scratch at each step
+            if self.force_first_order_splitting:
                 pold.fill(0.0)
-                
-            ##
-            backup_current_time = current_time
+
             # Explicitly backup the state once per substep
+            backup_current_time = current_time
             vold_backup[:] = vold
             pold_backup[:] = pold
-            #vnew[:] = vold
 
-            vmax = xp.max(xp.linalg.norm(vold, axis=1))
+            # Get maximum velocity magnitude from previous and current step
+            # Note that we consider current substep as old one might be zero (e.g., starting from rest) or BCs might change the velocity significantly
+            vmax = max(xp.max(xp.linalg.norm(vold, axis=1)), xp.max(xp.linalg.norm(v, axis=1)))
 
-            # Guard against NaN and zero velocity (e.g., starting from rest)
+            # Guard maximum velocity against NaN and zero velocity (e.g., starting from rest)
             # NaN comparisons silently fail, and vmax=0 causes all velocities to trigger retry
             if not xp.isfinite(vmax) or vmax < 1e-15:
                 vmax = 1e-15  # Set minimum threshold to avoid division by zero and false triggers
 
-            repeat_step1 = True
+            # STEP 1: Solve for fractional velocity
+            t1 = time.perf_counter()
 
+            repeat_step1 = True
             while(repeat_step1):
                 print(f"========== Next Kratos time: {self.time:.3e} current substep time: {current_time:.3e} vmax= {vmax:.3f} CFL= {self.cfl:.2f}")
                 # Compute convective operator spectral radius
@@ -1052,7 +1061,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 self.tau_1, self.tau_2 = self.ComputeTau(self.h, rho_conv, self.dyn_visc, self.rho, substep_dt)
 
                 # Perform fractional step
-                t1 = time.perf_counter()
                 vfrac = self.SolveStep1(vold, v_dirichlet, pold, b, substep_dt)
 
                 ##check if velocity increased significantly after step 1, if so, reduce CFL and repeat step 1
@@ -1062,66 +1070,61 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                     if not xp.isfinite(vmax_after_step1):
                         print(f"----- Warning: NaN detected in velocity after step 1, repeating step with reduced CFL")
                         repeat_step1 = True
-                        self.cfl = self.cfl * 0.7
+                        self.cfl *= self.cfl_number_decrease_factor
                         current_time = backup_current_time
-                    elif(vmax_after_step1 > 1.25 * vmax):
+                    elif(vmax_after_step1 > self.velocity_safety_factor * vmax):
                         print(f"----- Warning: local max velocity increased significantly after step 1: {vmax_after_step1} vs {vmax}")
                         repeat_step1 = True
-                        ##vold[:] = vold_backup #not needed as it is not modified in step1
-                        ##pold[:] = pold_backup
-                        self.cfl = self.cfl * 0.7 # reduce CFL and repeat step 1
+                        self.cfl *= self.cfl_number_decrease_factor
                         current_time = backup_current_time # reset current time to before step 1 to repeat it with the new CFL
                     else:
                         repeat_step1 = False
-                        self.cfl = min(self.cfl*1.05, self.max_cfl) # increase CFL for next step if we are well below the limit
+                        self.cfl = min(self.cfl*self.cfl_number_increase_factor, self.max_cfl) # Increase CFL for next step if we are well below the limit
                 else:
                     repeat_step1 = False
 
             self.step_1_total_time += time.perf_counter() - t1
 
+            # STEP 2: Solve for pressure
             t2 = time.perf_counter()
             p, is_converged = self.SolveStep2(vfrac, pold, substep_dt)
-            delta_p = p - pold #TODO: most probably we could modify p in place
-            if is_converged==False:
-                delta_p.fill(0.0) #anyhow we will redo the step
+            if is_converged:
+                delta_p = p - pold
+            else:
+                print("pressure solve failed to converge ... redoing full step")
+                current_time = backup_current_time # reset current time to before step 3 to repeat it with the new CFL
+                self.cfl *= self.cfl_number_decrease_factor # reduce CFL and redo the step
+                continue
+
             self.step_2_total_time += time.perf_counter() - t2
 
+            # STEP 3: Calculate the new velocity
             t3 = time.perf_counter()
             vnew = self.SolveStep3(vfrac, v_dirichlet, delta_p, substep_dt, out=vnew) # Note that vnew is assigned to vold in here for the next substep
+            vmax_after_step3 = xp.max(xp.linalg.norm(vnew, axis=1))
             self.step_3_total_time += time.perf_counter() - t3
 
-            # First time clear divergence
-            vmax_after_step3 = xp.max(xp.linalg.norm(vnew, axis=1))
-            # Guard against NaN: NaN comparisons silently return False, bypassing the retry logic
-            if not xp.isfinite(vmax_after_step3):
+            # Perform the current substep solution update
+            # This includes checkinig the validity of the solution and deciding whether to accept it or redo the step with a reduced CFL
+            if not xp.isfinite(vmax_after_step3): # Guard against NaN: NaN comparisons silently return False, bypassing the retry logic
                 print(f"-----****!!!! Warning: NaN detected in velocity after step 3, redoing step")
-                vnew[:] = vold_backup
-                p[:] = pold_backup
                 current_time = backup_current_time
-                self.cfl = self.cfl * 0.5
-            elif self.clear_divergence_steps > 0:
-                self.clear_divergence_steps -= 1
-                #if(self.clear_divergence_steps > 5):
-                p.fill(0.0)
-                pold.fill(0.0)
-            elif(vmax_after_step3 > 1.25 * vmax or is_converged==False): #end of step velocity exploded or pressure solver did not converge - redo full step
-                if(vmax_after_step3 > 1.25 * vmax):
-                    print("end of step velocity blew up ... redoing full step")
-                elif(is_converged==False):
-                    print("pressure solve failed to converge ... redoing full step")
-                vnew[:] = vold_backup
-                p[:] = pold_backup
-                current_time = backup_current_time # reset current time to before step 3 to repeat it with the new CFL
-                self.cfl = self.cfl * 0.5 # reduce CFL and redo the step
-                print(f"-----****!!!! Warning: local max velocity increased significantly after step 3: {vmax_after_step3} vs {vmax}")
+                self.cfl *= self.cfl_number_decrease_factor
+            else: # Solution is valid, check if we need to clear divergence or redo the step due to velocity explosion
+                if self.clear_divergence_steps: # If we are clearing divergence, we expect some velocity increase, so we skip the velocity explosion check and just clear the divergence
+                    self.clear_divergence_steps -= 1
+                    p.fill(0.0)
+                    pold.fill(0.0)
+                elif (vmax_after_step3 > self.velocity_safety_factor * vmax): # End of step velocity exploded - redo full step
+                    print(f"-----****!!!! Warning: local max velocity increased significantly after step 3: {vmax_after_step3} vs {vmax}")
+                    current_time = backup_current_time # reset current time to before step 3 to repeat it with the new CFL
+                    self.cfl *= self.cfl_number_decrease_factor
+                else: # Solution is valid, update the state for the next substep
+                    pold[:] = p
+                    vold [:] = vnew
 
-            #for the next substep
-            pold[:] = p
-            vold [:] = vnew
-
-            #self.outfile.write(str(current_time)+" " + str(np.linalg.norm(vold))+" "+str(np.linalg.norm(p))+"\n") #please do not remove this, it is used for testing purposes
-
-        # Update Kratos database
+        # Update Kratos database once the substep loop is finished
+        # Note that we do not update the Kratos database until the substep loop is finished, to avoid unnecessary data transfer between CPU and GPU
         self.v_adaptor.data = cfd_utils.asnumpy(vold) # Note that vold is actually the vnew obtained in the last substep
         self.v_adaptor.StoreData()
         self.p_adaptor.data = cfd_utils.asnumpy(p)
@@ -1236,10 +1239,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 "tolerance" : 1e-6
             },
             "clear_divergence_steps" : 1,
+            "velocity_safety_factor" : 1.25,
             "time_stepping" : {
                 "time_step" : 0.1,
                 "max_cfl_number" : 0.5,
-                "max_fourier_number" : 0.5
+                "max_fourier_number" : 0.5,
+                "cfl_number_increase_factor" : 1.05,
+                "cfl_number_decrease_factor" : 0.7
             },
             "time_scheme" : "RK4",
             "startup_time" : 0.0,
