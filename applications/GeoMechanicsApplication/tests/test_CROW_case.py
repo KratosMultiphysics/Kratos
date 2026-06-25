@@ -509,15 +509,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                         }
                     )
 
-    def get_project_parameters(self, material_model_dir_name, analysis_type="staged_construction"):
-
-        # self.analysis_type = analysis_type
-        # self.test_path = Path(
-        #     test_helper.get_file_path(
-        #         Path("crow_validation") / material_model_dir_name / self.analysis_type
-        #     )
-        # )
-
+    def get_project_parameters(self):
         project_parameters_file_name = "staged_construction.json"
         with context_managers.set_cwd_to(self.test_path):
             with open(
@@ -527,21 +519,19 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
     def test_staged_construction_with_linear_elastic_behavior(self):
         self.initialize_test_parameters(material_model_dir_name=linear_elastic_dir_name, analysis_type="staged_construction", variant="as-is")
-        project_parameters = self.get_project_parameters(linear_elastic_dir_name)
+        project_parameters = self.get_project_parameters()
 
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_broyden(self):
         self.initialize_test_parameters(material_model_dir_name=mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction", variant="broyden")
-        project_parameters = self.get_project_parameters(mohr_coulomb_clay_sand_dir_name,
-                                                         analysis_type="staged_construction")
+        project_parameters = self.get_project_parameters()
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 
     def no_test_staged_construction_with_mohr_coulomb_clay_sand_lbfgs(self):
-        project_parameters = self.get_project_parameters(mohr_coulomb_clay_sand_dir_name,
-                                                         analysis_type="staged_construction_lbfgs")
+        project_parameters = self.get_project_parameters()
 
         # set all quasi newton raphson solvers to use L-BFGS
         for stage in project_parameters["stages"].values():
@@ -551,8 +541,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self.run_simulation_and_checks(project_parameters)
 
     def no_test_staged_construction_with_mohr_coulomb_clay_sand_using_save_and_load(self):
-        project_parameters = self.get_project_parameters(mohr_coulomb_clay_sand_dir_name,
-                                                         analysis_type="staged_construction_broyden")
+        project_parameters = self.get_project_parameters()
         self.run_analysis = (
             helper_utilities.run_multistage_analysis_with_intermediate_save_and_load
         )
