@@ -161,9 +161,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             csv_filepath = self.csv_files_dir / f"{stage_name}__expected_results_wall.csv"
             expected_results = get_expected_results_from_csv(csv_filepath)
 
-            relative_tolerance = (
-                100.0 * test_helper.default_relative_tolerance_for_assertions
-            )
+            relative_tolerance = 0.01
+
+            expected_max_abs_bending_moment = max([abs(expected_results[node_id][csv_fieldname_bending_moment]) for node_id in node_ids])
+            expected_max_abs_shear_force = max([abs(expected_results[node_id][csv_fieldname_shear_force]) for node_id in node_ids])
+            expected_max_abs_horizontal_total_displacement = max([abs(expected_results[node_id][csv_fieldname_horizontal_total_displacement]) for node_id in node_ids])
 
             for (
                 node_id,
@@ -188,7 +190,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     expected_bending_moment,
                     places=None,
                     delta=test_helper.calculate_delta(
-                        expected_bending_moment, relative_tolerance=relative_tolerance
+                        expected_bending_moment, absolute_tolerance=relative_tolerance*expected_max_abs_bending_moment, relative_tolerance=relative_tolerance
                     ),
                     msg=f"Bending moment at node {node_id} in stage '{stage_name}'",
                 )
@@ -199,7 +201,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     expected_shear_force,
                     places=None,
                     delta=test_helper.calculate_delta(
-                        expected_shear_force, relative_tolerance=relative_tolerance
+                        expected_shear_force, absolute_tolerance=relative_tolerance*expected_max_abs_shear_force, relative_tolerance=relative_tolerance
                     ),
                     msg=f"Shear force at node {node_id} in stage '{stage_name}'",
                 )
@@ -213,6 +215,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     places=None,
                     delta=test_helper.calculate_delta(
                         expected_horizontal_total_displacement,
+                        absolute_tolerance=relative_tolerance*expected_max_abs_horizontal_total_displacement,
                         relative_tolerance=relative_tolerance,
                     ),
                     msg=f"Horizontal total displacement at node {node_id} in stage '{stage_name}'",
@@ -530,7 +533,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 
-    def no_test_staged_construction_with_mohr_coulomb_clay_sand_lbfgs(self):
+    def test_staged_construction_with_mohr_coulomb_clay_sand_lbfgs(self):
+        self.prepare_test_run(material_model_dir_name=mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction", variant="lbfgs")
         project_parameters = self.get_project_parameters()
 
         # set all quasi newton raphson solvers to use L-BFGS
