@@ -116,15 +116,23 @@ def get_expected_results_from_csv(csv_filepath):
             for row in reader
         }
 
+
 def max_abs_nodal_value(values_by_node_id_and_result_item, node_ids, result_item_name):
-    return max([abs(values_by_node_id_and_result_item[node_id][result_item_name]) for node_id in node_ids])
+    return max(
+        [
+            abs(values_by_node_id_and_result_item[node_id][result_item_name])
+            for node_id in node_ids
+        ]
+    )
 
 
 class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
 
-        self.common_test_files_dir = Path(test_helper.get_file_path("crow_validation")) / "common"
+        self.common_test_files_dir = (
+            Path(test_helper.get_file_path("crow_validation")) / "common"
+        )
         self.run_analysis = helper_utilities.run_orchestrator
 
         # The following attributes will be populated by the specific simulation runs
@@ -135,7 +143,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def prepare_test_run(self, material_model_dir_name, analysis_type, variant):
         self.analysis_type = analysis_type
 
-        base_test_path = Path(test_helper.get_file_path(Path("crow_validation") / material_model_dir_name / analysis_type))
+        base_test_path = Path(
+            test_helper.get_file_path(
+                Path("crow_validation") / material_model_dir_name / analysis_type
+            )
+        )
         self.test_path = base_test_path / variant
         self.test_path.mkdir(exist_ok=True)
         self.csv_files_dir = base_test_path
@@ -161,13 +173,21 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 self.file_path_to_json_output(stage_name, wall_output_postfix)
             )
 
-            csv_filepath = self.csv_files_dir / f"{stage_name}__expected_results_wall.csv"
+            csv_filepath = (
+                self.csv_files_dir / f"{stage_name}__expected_results_wall.csv"
+            )
             expected_results = get_expected_results_from_csv(csv_filepath)
 
-            expected_max_abs_bending_moment = max_abs_nodal_value(expected_results, node_ids, csv_fieldname_bending_moment)
-            expected_max_abs_shear_force = max_abs_nodal_value(expected_results, node_ids, csv_fieldname_shear_force)
-            expected_max_abs_horizontal_total_displacement = max_abs_nodal_value(expected_results, node_ids, csv_fieldname_horizontal_total_displacement)
-            
+            expected_max_abs_bending_moment = max_abs_nodal_value(
+                expected_results, node_ids, csv_fieldname_bending_moment
+            )
+            expected_max_abs_shear_force = max_abs_nodal_value(
+                expected_results, node_ids, csv_fieldname_shear_force
+            )
+            expected_max_abs_horizontal_total_displacement = max_abs_nodal_value(
+                expected_results, node_ids, csv_fieldname_horizontal_total_displacement
+            )
+
             relative_tolerance = 0.02
 
             for (
@@ -193,7 +213,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     expected_bending_moment,
                     places=None,
                     delta=test_helper.calculate_delta(
-                        expected_bending_moment, absolute_tolerance=relative_tolerance*expected_max_abs_bending_moment, relative_tolerance=relative_tolerance
+                        expected_bending_moment,
+                        absolute_tolerance=relative_tolerance
+                        * expected_max_abs_bending_moment,
+                        relative_tolerance=relative_tolerance,
                     ),
                     msg=f"Bending moment at node {node_id} in stage '{stage_name}'",
                 )
@@ -204,7 +227,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     expected_shear_force,
                     places=None,
                     delta=test_helper.calculate_delta(
-                        expected_shear_force, absolute_tolerance=relative_tolerance*expected_max_abs_shear_force, relative_tolerance=relative_tolerance
+                        expected_shear_force,
+                        absolute_tolerance=relative_tolerance
+                        * expected_max_abs_shear_force,
+                        relative_tolerance=relative_tolerance,
                     ),
                     msg=f"Shear force at node {node_id} in stage '{stage_name}'",
                 )
@@ -218,7 +244,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     places=None,
                     delta=test_helper.calculate_delta(
                         expected_horizontal_total_displacement,
-                        absolute_tolerance=relative_tolerance*expected_max_abs_horizontal_total_displacement,
+                        absolute_tolerance=relative_tolerance
+                        * expected_max_abs_horizontal_total_displacement,
                         relative_tolerance=relative_tolerance,
                     ),
                     msg=f"Horizontal total displacement at node {node_id} in stage '{stage_name}'",
@@ -280,7 +307,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 )
 
             # Get results of D-Sheet Piling analysis (if they exist)
-            csv_file_path = self.csv_files_dir / f"{stage_name}__DSheetPiling_results.csv"
+            csv_file_path = (
+                self.csv_files_dir / f"{stage_name}__DSheetPiling_results.csv"
+            )
             if csv_file_path.exists() and data_extractor_dsheetpiling:
                 data_points = test_helper.get_data_points_from_file(
                     csv_file_path,
@@ -448,8 +477,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         print("Updating the expected results...")
 
         self.update_expected_results(linear_elastic_dir_name)
-        self.update_expected_results(mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction_broyden")
-        self.update_expected_results(mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction_lbfgs")
+        self.update_expected_results(
+            mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction_broyden"
+        )
+        self.update_expected_results(
+            mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction_lbfgs"
+        )
 
     def update_expected_results(self, case_name, analysis_type="staged_construction"):
         self.analysis_type = analysis_type
@@ -524,20 +557,32 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 return Kratos.Parameters(analysis_file.read())
 
     def test_staged_construction_with_linear_elastic_behavior(self):
-        self.prepare_test_run(material_model_dir_name=linear_elastic_dir_name, analysis_type="staged_construction", variant="as-is")
+        self.prepare_test_run(
+            material_model_dir_name=linear_elastic_dir_name,
+            analysis_type="staged_construction",
+            variant="as-is",
+        )
         project_parameters = self.get_project_parameters()
 
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_broyden(self):
-        self.prepare_test_run(material_model_dir_name=mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction", variant="broyden")
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type="staged_construction",
+            variant="broyden",
+        )
         project_parameters = self.get_project_parameters()
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_lbfgs(self):
-        self.prepare_test_run(material_model_dir_name=mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction", variant="lbfgs")
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type="staged_construction",
+            variant="lbfgs",
+        )
         project_parameters = self.get_project_parameters()
 
         # set all quasi newton raphson solvers to use L-BFGS
@@ -548,7 +593,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self.run_simulation_and_checks(project_parameters)
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_linear_iteration(self):
-        self.prepare_test_run(material_model_dir_name=mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction", variant="linear_iteration")
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type="staged_construction",
+            variant="linear_iteration",
+        )
         project_parameters = self.get_project_parameters()
 
         for stage in project_parameters["stages"].values():
@@ -557,13 +606,15 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 
-    def no_test_staged_construction_with_mohr_coulomb_clay_sand_using_save_and_load(self):
+    def no_test_staged_construction_with_mohr_coulomb_clay_sand_using_save_and_load(
+        self,
+    ):
         project_parameters = self.get_project_parameters()
         self.run_analysis = (
             helper_utilities.run_multistage_analysis_with_intermediate_save_and_load
         )
         with context_managers.set_cwd_to(self.test_path):
-            self.run_simulation_and_checks( project_parameters)
+            self.run_simulation_and_checks(project_parameters)
 
 
 if __name__ == "__main__":
