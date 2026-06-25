@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "truss_with_reset_displacement_stage_2",
+        "problem_name":         "truss_with_reset_totals_stage_2",
         "start_time":           1.0,
         "end_time":             2.0,
         "echo_level":           1,
@@ -29,7 +29,7 @@
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
-        "reset_displacements":                true,
+        "reset_totals":                       true,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -76,7 +76,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "truss_with_reset_displacement_stage_2",
+                "output_name": "truss_with_reset_totals_stage_2",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
