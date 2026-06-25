@@ -544,6 +544,16 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 
+    def test_staged_construction_with_mohr_coulomb_clay_sand_linear_iteration(self):
+        self.prepare_test_run(material_model_dir_name=mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction", variant="linear_iteration")
+        project_parameters = self.get_project_parameters()
+
+        for stage in project_parameters["stages"].values():
+            solver_settings = stage["stage_settings"]["solver_settings"]
+            solver_settings["strategy_type"].SetString("newton_raphson")
+        with context_managers.set_cwd_to(self.test_path):
+            self.run_simulation_and_checks(project_parameters)
+
     def no_test_staged_construction_with_mohr_coulomb_clay_sand_using_save_and_load(self):
         project_parameters = self.get_project_parameters()
         self.run_analysis = (
