@@ -818,24 +818,22 @@ void LinearTimoshenkoCurvedBeamElement2D3N::FinalizeSolutionStep(const ProcessIn
 
     if (mConstitutiveLawVector.empty()) return;
 
-    const auto& r_geometry = GetGeometry();
-    const auto& r_props    = GetProperties();
-    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
-    const auto  strain_size        = mConstitutiveLawVector[0]->GetStrainSize();
+    const auto& r_geometry   = GetGeometry();
+    const auto& r_properties = GetProperties();
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    const auto  strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     VectorType strain_vector(strain_size);
     VectorType stress_vector(strain_size);
-    strain_vector.clear();
-    stress_vector.clear();
 
-    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_properties, rCurrentProcessInfo);
     cl_values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
 
-    for (auto integration_point = std::size_t{0}; integration_point < integration_points.size(); ++integration_point) {
+    for (auto integration_point = std::size_t{0}; integration_point < r_integration_points.size(); ++integration_point) {
         if (!mConstitutiveLawVector[integration_point]->RequiresFinalizeMaterialResponse()) continue;
-        noalias(strain_vector) = CalculateStrainVector(integration_points[integration_point].X());
+        noalias(strain_vector) = CalculateStrainVector(r_integration_points[integration_point].X());
         mConstitutiveLawVector[integration_point]->FinalizeMaterialResponse(cl_values, mConstitutiveLawVector[integration_point]->GetStressMeasure());
     }
 

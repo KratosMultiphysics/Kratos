@@ -834,14 +834,14 @@ void LinearTimoshenkoCurvedBeamElement3D3N::FinalizeSolutionStep(const ProcessIn
     if (mConstitutiveLawVector.empty()) return;
 
     const auto& r_geometry = GetGeometry();
-    const auto& r_props    = GetProperties();
-    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
-    const auto  strain_size        = mConstitutiveLawVector[0]->GetStrainSize();
+    const auto& r_properties = GetProperties();
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    const auto  strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     VectorType strain_vector(strain_size);
     VectorType stress_vector(strain_size);
 
-    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_properties, rCurrentProcessInfo);
     cl_values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -852,9 +852,9 @@ void LinearTimoshenkoCurvedBeamElement3D3N::FinalizeSolutionStep(const ProcessIn
     BoundedMatrix<double, 3, 3> frenet_serret;
     BoundedMatrix<double, 6, 6> element_frenet_serret;
     array_3 t, n, b, shape_functions, d_shape_functions;
-    for (auto integration_point = std::size_t{0}; integration_point < integration_points.size(); ++integration_point) {
+    for (auto integration_point = std::size_t{0}; integration_point < r_integration_points.size(); ++integration_point) {
         if (!mConstitutiveLawVector[integration_point]->RequiresFinalizeMaterialResponse()) continue;
-        const auto xi = integration_points[integration_point].X();
+        const auto xi = r_integration_points[integration_point].X();
         noalias(shape_functions)   = GetShapeFunctionsValues(xi);
         noalias(d_shape_functions) = GetFirstDerivativesShapeFunctionsValues(xi, GetJacobian(xi));
         GetTangentandTransverseUnitVectors(xi, t, n, b);
