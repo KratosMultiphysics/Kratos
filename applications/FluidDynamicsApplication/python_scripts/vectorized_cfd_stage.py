@@ -880,6 +880,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         else:
             coef = (p_factor * dt / self.rho) * self.elemental_volumes
         L_el *= coef[:, None, None] # scale LHS elemental contributions
+
+        # account for compressibility: add (bulk*dt)/(dim+1) to every elemental entry
+        self.bulk = 340.0**2*self.rho
+        compressibility_const = 1.0/(self.bulk * dt) * self.elemental_volumes
+        for idx in range(self.n_in_el):
+            L_el[:, idx, idx] += compressibility_const*self.N[idx]
+
+        
         t0 = time.perf_counter()
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
         #print(f"Time to assemble pressure LHS: {time.perf_counter()-t0}")
@@ -894,6 +902,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         aux_scalar *= (p_factor * dt / self.rho)
         rhs_el += aux_scalar
         self.pool.Release(aux_scalar)
+
+        #add compressibility
+        # Equivalent to: for e: for i: rhs_el[e,i] += compressibility_const[e] * pel[e,i] * self.N[i]
+        rhs_el += compressibility_const[:, None] * pel * self.N[None, :]
 
         # -tau*(∇q,Pi_pressure)
         if (self.clear_divergence_steps == 0 and self.deactivate_pressure_stabilization == False):
