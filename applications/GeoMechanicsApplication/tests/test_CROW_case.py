@@ -653,15 +653,18 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
         self.run_staged_construction_analysis_and_checks()
 
-    def no_test_staged_construction_with_mohr_coulomb_clay_sand_using_save_and_load(
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_save_and_load(
         self,
     ):
-        project_parameters = self.get_project_parameters()
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type="staged_construction",
+            variant="with_save_and_load",
+        )
         self.run_analysis = (
             helper_utilities.run_multistage_analysis_with_intermediate_save_and_load
         )
-        with context_managers.set_cwd_to(self.test_path):
-            self.run_simulation_and_checks(project_parameters)
+        self.run_staged_construction_analysis_and_checks()
 
 
 if __name__ == "__main__":
