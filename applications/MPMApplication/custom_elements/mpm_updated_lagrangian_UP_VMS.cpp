@@ -13,6 +13,7 @@
 
 // System includes
 #include <cmath>
+#include <limits>
 
 // Project includes
 #include "includes/define.h"
@@ -265,6 +266,58 @@ void MPMUpdatedLagrangianUPVMS::CalculatePressureVariables(GeneralVariables& rVa
         {
             rVariables.PressureGradient[i] += rVariables.DN_DX(j, i) * nodal_pressure;
         }
+    }
+
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMUpdatedLagrangianUPVMS::CalculateDynamicStabilizationVariables(
+    GeneralVariables& rVariables,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
+    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+    KRATOS_ERROR_IF(delta_time <= std::numeric_limits<double>::epsilon())
+        << "DELTA_TIME must be positive to calculate dynamic ASGS stabilization variables." << std::endl;
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(NEWMARK_BETA))
+        << "NEWMARK_BETA is required to calculate dynamic ASGS stabilization variables." << std::endl;
+    const double beta = rCurrentProcessInfo[NEWMARK_BETA];
+    KRATOS_ERROR_IF(beta <= std::numeric_limits<double>::epsilon())
+        << "NEWMARK_BETA must be positive to calculate dynamic ASGS stabilization variables." << std::endl;
+
+    array_1d<double, 3> previous_velocity = ZeroVector(3);
+    array_1d<double, 3> previous_acceleration = ZeroVector(3);
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        const array_1d<double, 3>& r_nodal_previous_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, 1);
+        const array_1d<double, 3>& r_nodal_previous_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, 1);
+
+        noalias(previous_velocity) += r_N(0, i) * r_nodal_previous_velocity;
+        noalias(previous_acceleration) += r_N(0, i) * r_nodal_previous_acceleration;
+    }
+
+    const double density = GetProperties()[DENSITY] / rVariables.detFT;
+    const double velocity_coefficient = 1.0 / (beta * delta_time);
+    const double acceleration_coefficient = 0.5 / beta - 1.0;
+
+    rVariables.DynamicCoefficient = density / (beta * delta_time * delta_time);
+    rVariables.DynamicRHS = ZeroVector(dimension);
+    rVariables.DiscreteAcceleration = ZeroVector(dimension);
+
+    for (unsigned int i = 0; i < dimension; ++i) {
+        rVariables.DynamicRHS[i] = density * (
+            velocity_coefficient * previous_velocity[i]
+            + acceleration_coefficient * previous_acceleration[i]);
     }
 
     KRATOS_CATCH("")

@@ -145,6 +145,10 @@ protected:
 
     void CalculatePressureVariables(GeneralVariables& rVariables);
 
+    void CalculateDynamicStabilizationVariables(
+        GeneralVariables& rVariables,
+        const ProcessInfo& rCurrentProcessInfo);
+
     /**
      * Calculation and addition of the matrices of the LHS
      */
