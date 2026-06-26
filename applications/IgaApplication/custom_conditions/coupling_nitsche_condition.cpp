@@ -991,12 +991,50 @@ namespace Kratos
             constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
             constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave;
 
+            //////////////////////// Additional shear //////////////////////////
+            // Compute Variation Shear PK2
+            array_1d<double, 2> shear_curvilinear_master = ZeroVector(2);
+            array_1d<double, 2> shear_curvilinear_slave = ZeroVector(2);
+            std::vector<array_1d<double, 2>> first_variation_shear_curvilinear_master;
+            std::vector<array_1d<double, 2>> first_variation_shear_curvilinear_slave;
+            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_curvilinear_master;
+            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_curvilinear_slave;
+            first_variation_shear_curvilinear_master.resize(mat_size);
+            first_variation_shear_curvilinear_slave.resize(mat_size);
+            second_variation_shear_curvilinear_master.resize(mat_size);
+            second_variation_shear_curvilinear_slave.resize(mat_size);
+            for(IndexType i = 0; i < number_of_nodes_master * 3; i++)
+            {
+                second_variation_shear_curvilinear_master[i].resize(mat_size);
+                first_variation_shear_curvilinear_master[i] = ZeroVector(2);
+                for(IndexType j = 0; j < number_of_nodes_master * 3; j++)
+                {
+                    second_variation_shear_curvilinear_master[i][j] = ZeroVector(2);
+                }
+            }
+            for(IndexType i = 0; i < number_of_nodes_slave * 3; i++)
+            {
+                second_variation_shear_curvilinear_slave[i].resize(mat_size);
+                first_variation_shear_curvilinear_slave[i] = ZeroVector(2);
+
+                for(IndexType j = 0; j < number_of_nodes_slave * 3; j++)
+                {
+                    second_variation_shear_curvilinear_slave[i][j] = ZeroVector(2);
+                }
+            }
+            CalculateVariationShearPK2(point_number, shear_curvilinear_master, first_variation_shear_curvilinear_master, second_variation_shear_curvilinear_master,
+                                    kinematic_variables_reference_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
+            CalculateVariationShearPK2(point_number, shear_curvilinear_slave, first_variation_shear_curvilinear_slave, second_variation_shear_curvilinear_slave,
+                                    kinematic_variables_reference_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
+
+            //////////////////////// Additional shear //////////////////////////
+
             // calculate traction vectors
             array_1d<double, 3> traction_vector_master;
             array_1d<double, 3> traction_vector_slave;
 
-            CalculateTraction(point_number, traction_vector_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
-            CalculateTraction(point_number, traction_vector_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
+            CalculateTraction(point_number, traction_vector_master, shear_curvilinear_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
+            CalculateTraction(point_number, traction_vector_slave, shear_curvilinear_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
 
             // calculate the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
             Matrix first_variations_stress_covariant_master = ZeroMatrix(3, 3 * number_of_nodes_master);
@@ -1009,8 +1047,8 @@ namespace Kratos
             Matrix first_variations_traction_master = ZeroMatrix(3, 3 * number_of_nodes_master);
             Matrix first_variations_traction_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
 
-            CalculateFirstVariationTraction(point_number, first_variations_traction_master, first_variations_stress_covariant_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
-            CalculateFirstVariationTraction(point_number, first_variations_traction_slave, first_variations_stress_covariant_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
+            CalculateFirstVariationTraction(point_number, first_variations_traction_master, first_variations_stress_covariant_master, first_variation_shear_curvilinear_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
+            CalculateFirstVariationTraction(point_number, first_variations_traction_slave, first_variations_stress_covariant_slave, first_variation_shear_curvilinear_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
 
             Matrix first_variations_traction = ZeroMatrix(3, mat_size);
             for (SizeType i=0;i<3 * number_of_nodes_master;++i){
@@ -1080,9 +1118,9 @@ namespace Kratos
             Matrix second_variations_traction_master = ZeroMatrix(3 * number_of_nodes_master, 3 * number_of_nodes_master);
             Matrix second_variations_traction_slave = ZeroMatrix(3 * number_of_nodes_slave, 3 * number_of_nodes_slave);
 
-            CalculateSecondVariationTraction(point_number, second_variations_traction_master, kinematic_variables_master, first_variations_stress_covariant_master, displacement_vector_master, displacement_vector_slave, 
+            CalculateSecondVariationTraction(point_number, second_variations_traction_master, second_variation_shear_curvilinear_master, kinematic_variables_master, first_variations_stress_covariant_master, displacement_vector_master, displacement_vector_slave, 
                                              second_variations_traction_product_vector_master, second_variations_traction_product_vector_slave_master, PatchType::Master);
-            CalculateSecondVariationTraction(point_number, second_variations_traction_slave, kinematic_variables_slave, first_variations_stress_covariant_slave, displacement_vector_master, displacement_vector_slave, 
+            CalculateSecondVariationTraction(point_number, second_variations_traction_slave, second_variation_shear_curvilinear_slave, kinematic_variables_slave, first_variations_stress_covariant_slave, displacement_vector_master, displacement_vector_slave, 
                                              second_variations_traction_product_vector_slave, second_variations_traction_product_vector_master_slave, PatchType::Slave);
 
             //Penalty part & RHS
@@ -1103,41 +1141,6 @@ namespace Kratos
             }
 
             //////////////////////// Additional shear //////////////////////////
-            // Compute Variation Shear PK2
-            array_1d<double, 2> shear_curvilinear_master = ZeroVector(2);
-            array_1d<double, 2> shear_curvilinear_slave = ZeroVector(2);
-            std::vector<array_1d<double, 2>> first_variation_shear_curvilinear_master;
-            std::vector<array_1d<double, 2>> first_variation_shear_curvilinear_slave;
-            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_curvilinear_master;
-            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_curvilinear_slave;
-            first_variation_shear_curvilinear_master.resize(mat_size);
-            first_variation_shear_curvilinear_slave.resize(mat_size);
-            second_variation_shear_curvilinear_master.resize(mat_size);
-            second_variation_shear_curvilinear_slave.resize(mat_size);
-            for(IndexType i = 0; i < number_of_nodes_master * 3; i++)
-            {
-                second_variation_shear_curvilinear_master[i].resize(mat_size);
-                first_variation_shear_curvilinear_master[i] = ZeroVector(2);
-                for(IndexType j = 0; j < number_of_nodes_master * 3; j++)
-                {
-                    second_variation_shear_curvilinear_master[i][j] = ZeroVector(2);
-                }
-            }
-            for(IndexType i = 0; i < number_of_nodes_slave * 3; i++)
-            {
-                second_variation_shear_curvilinear_slave[i].resize(mat_size);
-                first_variation_shear_curvilinear_slave[i] = ZeroVector(2);
-
-                for(IndexType j = 0; j < number_of_nodes_slave * 3; j++)
-                {
-                    second_variation_shear_curvilinear_slave[i][j] = ZeroVector(2);
-                }
-            }
-            CalculateVariationShearPK2(point_number, shear_curvilinear_master, first_variation_shear_curvilinear_master, second_variation_shear_curvilinear_master,
-                                    kinematic_variables_reference_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
-            CalculateVariationShearPK2(point_number, shear_curvilinear_slave, first_variation_shear_curvilinear_slave, second_variation_shear_curvilinear_slave,
-                                    kinematic_variables_reference_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
-
             // Compute Variation Shear
             array_1d<double, 2> shear_master = ZeroVector(2);
             array_1d<double, 2> shear_slave = ZeroVector(2);
@@ -1215,6 +1218,7 @@ namespace Kratos
                     second_variations_traction_slave(i, j) -= inner_prod(shear_component_slave, diff_displacement);
                 }
             }
+            //////////////////////// Additional shear //////////////////////////
 
             // Differential area
             const double integration_weight = integration_points[point_number].Weight();
@@ -1754,8 +1758,38 @@ namespace Kratos
             array_1d<double, 3> traction_vector_master;
             array_1d<double, 3> traction_vector_slave;
 
-            CalculateTraction(point_number, traction_vector_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
-            CalculateTraction(point_number, traction_vector_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
+            array_1d<double, 2> shear_curvilinear_master = ZeroVector(2);
+            array_1d<double, 2> shear_curvilinear_slave = ZeroVector(2);
+            std::vector<array_1d<double, 2>> first_variation_shear_curvilinear_master;
+            std::vector<array_1d<double, 2>> first_variation_shear_curvilinear_slave;
+            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_curvilinear_master;
+            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_curvilinear_slave;
+            first_variation_shear_curvilinear_master.resize(mat_size);
+            first_variation_shear_curvilinear_slave.resize(mat_size);
+            second_variation_shear_curvilinear_master.resize(mat_size);
+            second_variation_shear_curvilinear_slave.resize(mat_size);
+            for(IndexType i = 0; i < number_of_nodes_master * 3; i++)
+            {
+                second_variation_shear_curvilinear_master[i].resize(mat_size);
+                first_variation_shear_curvilinear_master[i] = ZeroVector(2);
+                for(IndexType j = 0; j < number_of_nodes_master * 3; j++)
+                {
+                    second_variation_shear_curvilinear_master[i][j] = ZeroVector(2);
+                }
+            }
+            for(IndexType i = 0; i < number_of_nodes_slave * 3; i++)
+            {
+                second_variation_shear_curvilinear_slave[i].resize(mat_size);
+                first_variation_shear_curvilinear_slave[i] = ZeroVector(2);
+
+                for(IndexType j = 0; j < number_of_nodes_slave * 3; j++)
+                {
+                    second_variation_shear_curvilinear_slave[i][j] = ZeroVector(2);
+                }
+            }
+
+            CalculateTraction(point_number, traction_vector_master, shear_curvilinear_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
+            CalculateTraction(point_number, traction_vector_slave, shear_curvilinear_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
 
             // calculate the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
             Matrix first_variations_stress_covariant_master = ZeroMatrix(3, 3*number_of_nodes_master);
@@ -1768,8 +1802,8 @@ namespace Kratos
             Matrix first_variations_traction_master = ZeroMatrix(3, 3*number_of_nodes_master);
             Matrix first_variations_traction_slave = ZeroMatrix(3, 3*number_of_nodes_slave);
 
-            CalculateFirstVariationTraction(point_number, first_variations_traction_master, first_variations_stress_covariant_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
-            CalculateFirstVariationTraction(point_number, first_variations_traction_slave, first_variations_stress_covariant_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
+            CalculateFirstVariationTraction(point_number, first_variations_traction_master, first_variations_stress_covariant_master, first_variation_shear_curvilinear_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
+            CalculateFirstVariationTraction(point_number, first_variations_traction_slave, first_variations_stress_covariant_slave, first_variation_shear_curvilinear_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
 
             Matrix first_variations_traction = ZeroMatrix(3, mat_size);
             for (SizeType i=0;i<3 * number_of_nodes_master;++i){
@@ -1822,9 +1856,9 @@ namespace Kratos
 
             if(norm_2(kinematic_variables_reference_master.a3_tilde) > tol_surface_normal && norm_2(kinematic_variables_reference_slave.a3_tilde) > tol_surface_normal)
             {
-                CalculateSecondVariationTraction(point_number, second_variations_traction_master, kinematic_variables_master, first_variations_stress_covariant_master, traction_vector_master, traction_vector_slave, 
+                CalculateSecondVariationTraction(point_number, second_variations_traction_master, second_variation_shear_curvilinear_master, kinematic_variables_master, first_variations_stress_covariant_master, traction_vector_master, traction_vector_slave, 
                                                  second_variations_traction_product_vector_master, second_variations_traction_product_vector_slave_master, PatchType::Master);
-                CalculateSecondVariationTraction(point_number, second_variations_traction_slave, kinematic_variables_slave, first_variations_stress_covariant_slave, traction_vector_master, traction_vector_slave, 
+                CalculateSecondVariationTraction(point_number, second_variations_traction_slave, second_variation_shear_curvilinear_slave, kinematic_variables_slave, first_variations_stress_covariant_slave, traction_vector_master, traction_vector_slave, 
                                                  second_variations_traction_product_vector_slave, second_variations_traction_product_vector_master_slave, PatchType::Slave);
             }
             
@@ -2235,6 +2269,7 @@ namespace Kratos
     void CouplingNitscheCondition::CalculateTraction(
         IndexType IntegrationPointIndex,
         array_1d<double, 3>& rTraction,
+        array_1d<double, 2> rShear, 
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
         const PatchType& rPatch)
@@ -2255,19 +2290,26 @@ namespace Kratos
         }
 
         // Compute the stress components
-        Matrix Palphabeta = ZeroMatrix(2, 2);
+        Matrix Palphabeta = ZeroMatrix(3, 3);
         Palphabeta(0,0) = stress_vector_covariant[0];
         Palphabeta(1,1) = stress_vector_covariant[1];
         Palphabeta(0,1) = stress_vector_covariant[2];
         Palphabeta(1,0) = Palphabeta(0,1);
+        Palphabeta(0,2) = rShear[0];
+        Palphabeta(1,2) = rShear[1];
+        Palphabeta(2,0) = rShear[0];
+        Palphabeta(2,1) = rShear[1];
         
         // Compute the traction vectors
         rTraction[0] = rActualKinematic.a1[0]*(Palphabeta(0,0)*n_contravariant_vector[0]+Palphabeta(0,1)*n_contravariant_vector[1]) 
-                     + rActualKinematic.a2[0]*(Palphabeta(1,0)*n_contravariant_vector[0]+Palphabeta(1,1)*n_contravariant_vector[1]);
+                     + rActualKinematic.a2[0]*(Palphabeta(1,0)*n_contravariant_vector[0]+Palphabeta(1,1)*n_contravariant_vector[1])
+                     + rActualKinematic.a3[0]*(Palphabeta(2,0)*n_contravariant_vector[0]+Palphabeta(2,1)*n_contravariant_vector[1]);
         rTraction[1] = rActualKinematic.a1[1]*(Palphabeta(0,0)*n_contravariant_vector[0]+Palphabeta(0,1)*n_contravariant_vector[1]) 
-                     + rActualKinematic.a2[1]*(Palphabeta(1,0)*n_contravariant_vector[0]+Palphabeta(1,1)*n_contravariant_vector[1]);
+                     + rActualKinematic.a2[1]*(Palphabeta(1,0)*n_contravariant_vector[0]+Palphabeta(1,1)*n_contravariant_vector[1])
+                     + rActualKinematic.a3[1]*(Palphabeta(2,0)*n_contravariant_vector[0]+Palphabeta(2,1)*n_contravariant_vector[1]);
         rTraction[2] = rActualKinematic.a1[2]*(Palphabeta(0,0)*n_contravariant_vector[0]+Palphabeta(0,1)*n_contravariant_vector[1]) 
-                     + rActualKinematic.a2[2]*(Palphabeta(1,0)*n_contravariant_vector[0]+Palphabeta(1,1)*n_contravariant_vector[1]);
+                     + rActualKinematic.a2[2]*(Palphabeta(1,0)*n_contravariant_vector[0]+Palphabeta(1,1)*n_contravariant_vector[1])
+                     + rActualKinematic.a3[2]*(Palphabeta(2,0)*n_contravariant_vector[0]+Palphabeta(2,1)*n_contravariant_vector[1]);
     }
 
     void CouplingNitscheCondition::CalculateVariationShear(
@@ -3372,6 +3414,7 @@ namespace Kratos
         IndexType IntegrationPointIndex,
         Matrix& rFirstVariationTraction,
         Matrix& rFirstVariationStressCovariant,
+        std::vector<array_1d<double, 2>>& rFirstVariationShear,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
         const PatchType& rPatch)
@@ -3409,6 +3452,23 @@ namespace Kratos
         }
 
         rFirstVariationTraction = prod(n_a, rFirstVariationStressCovariant);
+
+        // shear vector * covariant base vector
+        Matrix n_a_shear = ZeroMatrix(3, 2); 
+        for (IndexType r = 0; r < 3; r++)
+        {
+            n_a_shear (r, 0) = rActualKinematic.a3[r] * n_contravariant_vector[0];
+            n_a_shear (r, 1) = rActualKinematic.a3[r] * n_contravariant_vector[1];
+        }
+
+        Matrix first_variations_shear = ZeroMatrix(2, mat_size);
+        for(IndexType r = 0;  r < mat_size; r++)
+        {
+            first_variations_shear(0, r) = rFirstVariationShear[r][0];
+            first_variations_shear(1, r) = rFirstVariationShear[r][1];
+        }
+
+        rFirstVariationTraction += prod(n_a_shear, first_variations_shear);
 
         //2. derivative normal vector * stress covariant
         
@@ -3481,6 +3541,7 @@ namespace Kratos
     void CouplingNitscheCondition::CalculateSecondVariationTraction(
         IndexType IntegrationPointIndex,
         Matrix& rSecondVariationTraction,
+        std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
         const KinematicVariables& rActualKinematic,
         Matrix& rFirstVariationStressCovariant, 
         array_1d<double, 3>& rDisplacementMaster,
@@ -3603,6 +3664,27 @@ namespace Kratos
         rSecondVariationTraction -= prod(trans(displacement_dNCovariant1_slave), r_DN_Dxi)*n_contravariant_vector(0);
         rSecondVariationTraction -= prod(trans(displacement_dNCovariant2_slave), r_DN_Deta)*n_contravariant_vector(1);
         rSecondVariationTraction -= (prod(trans(displacement_dNCovariant3_slave), r_DN_Dxi)*n_contravariant_vector(1) + prod(trans(displacement_dNCovariant3_slave), r_DN_Deta)*n_contravariant_vector(0));
+
+        //shear part
+        array_1d<double, 3> delta_displacement = ZeroVector(3); 
+        if (rPatch==PatchType::Master)
+        {
+            delta_displacement = rDisplacementMaster - rDisplacementSlave;
+        }
+        else
+        {
+            delta_displacement = -rDisplacementMaster + rDisplacementSlave;
+        }
+
+        for(IndexType r = 0; r < mat_size; r++)
+        {
+            for(IndexType s = 0; s < mat_size; s++)
+            {
+                rSecondVariationTraction(r, s) += (rActualKinematic.a3[0]*(rSecondVariationShear[r][s][0]*n_contravariant_vector[0]+rSecondVariationShear[r][s][1]*n_contravariant_vector[1]))*delta_displacement[0] +
+                                                  (rActualKinematic.a3[1]*(rSecondVariationShear[r][s][0]*n_contravariant_vector[0]+rSecondVariationShear[r][s][1]*n_contravariant_vector[1]))*delta_displacement[1] +
+                                                  (rActualKinematic.a3[2]*(rSecondVariationShear[r][s][0]*n_contravariant_vector[0]+rSecondVariationShear[r][s][1]*n_contravariant_vector[1]))*delta_displacement[2]; 
+            }  
+        }
     }
     
     ///@}
