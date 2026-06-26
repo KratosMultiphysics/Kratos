@@ -128,6 +128,9 @@ void MPMUpdatedLagrangianUPVMS::InitializeGeneralVariables(
     rVariables.tau1 = 0;
     rVariables.tau2 = 0;
     rVariables.BulkModulus = CalculateBulkModulus();
+    rVariables.DynamicCoefficient = 0;
+    rVariables.DynamicRHS = ZeroVector(dimension);
+    rVariables.DiscreteAcceleration = ZeroVector(dimension);
 
     // Set Pressure and Pressure Gradient in gauss points
     rVariables.PressureGP = 0;

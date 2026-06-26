@@ -219,10 +219,14 @@ protected:
         // Variables including all integration points
         Matrix CurrentDisp;
 
-        // Stabilization parameters
+        // VMS Stabilization parameters and variables
         double tau1;
         double tau2;
         double BulkModulus;
+
+        double DynamicCoefficient;
+        Vector DynamicRHS;
+        Vector DiscreteAcceleration;
 
         // Pressure at gauss points and pressure gradient
         double PressureGP;
