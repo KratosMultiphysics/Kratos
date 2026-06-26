@@ -173,7 +173,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.common_test_files_dir = (
             Path(test_helper.get_file_path("crow_validation")) / "common"
         )
-        self.run_analysis = helper_utilities.run_orchestrator
 
         # The following attributes will be populated by the specific simulation runs
         self.analysis_type = None
@@ -187,6 +186,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         analysis_type,
         variant,
         modify_project_parameters=None,
+        run_analysis=helper_utilities.run_orchestrator,
     ):
         self.analysis_type = analysis_type
 
@@ -199,6 +199,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.test_path.mkdir(exist_ok=True)
         self.csv_files_dir = base_test_path
         self.modify_project_parameters = modify_project_parameters
+        self.run_analysis = run_analysis
 
     def run_staged_construction_analysis_and_checks(self):
         project_parameters = self.get_project_parameters()
@@ -660,9 +661,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
             analysis_type="staged_construction",
             variant="with_save_and_load",
-        )
-        self.run_analysis = (
-            helper_utilities.run_multistage_analysis_with_intermediate_save_and_load
+            run_analysis=(
+                helper_utilities.run_multistage_analysis_with_intermediate_save_and_load
+            ),
         )
         self.run_staged_construction_analysis_and_checks()
 
