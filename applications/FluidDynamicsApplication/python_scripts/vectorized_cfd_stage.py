@@ -96,9 +96,20 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Save materials import settings
         self.material_import_settings = settings["material_import_settings"]
 
-        #flags to control algorithmic behaviour
+        # Flags to control algorithmic behaviour
         self.deactivate_pressure_stabilization = False #switches on and off the pressure stabilization
         self.force_first_order_splitting = False
+
+        # Set compressibility parameter
+        if settings["weak_compressibility"].GetBool():
+            if settings["weak_compressibility_matrix"].GetString() == "lumped":
+                self.compressibility = "lumped"
+            elif settings["weak_compressibility_matrix"].GetString() == "consistent":
+                self.compressibility = "consistent"
+            else:
+                raise ValueError(f"Provided compressibility is '{self.compressibility}'. It must be either 'lumped' or 'consistent'.")
+        else:
+            self.compressibility = None
 
         # Call base analysis stage constructor
         # Note that this must be done at the end (indeed, after creating the model part)
@@ -233,6 +244,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         else:
             self.rho = self.GetComputingModelPart().GetProperties(1).GetValue(KM.DENSITY)
             self.dyn_visc = self.GetComputingModelPart().GetProperties(1).GetValue(KM.DYNAMIC_VISCOSITY)
+            if self.compressibility is not None:
+                sound_velocity = self.GetComputingModelPart().GetProperties(1).GetValue(KM.SOUND_VELOCITY)
+                self.bulk_modulus = self.rho * sound_velocity**2
 
     def _AddVariables(self):
         self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
@@ -871,27 +885,28 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         pres_proj_el = self.ElemData(pres_proj, self.connectivity, out=self.conv_proj_el) # reuse conv_proj_el as temporary for the elemental pressure projection
         self.pool.Release(pres_proj)
 
-        # Assemble pressure LHS (set to zero is done internally)
-        t0 = time.perf_counter()
+        # Calculate the Laplacian elemental contributions (including stabilization Laplacian) of the pressure LHS
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN, out=self.pool.Get(0,(nelem,self.n_in_el, self.n_in_el))) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
-        #print(f"Time to compute elemental Laplacian contributions: {time.perf_counter()-t0}")
         if (self.clear_divergence_steps == 0 and self.deactivate_pressure_stabilization == False):
             coef = (p_factor * dt / self.rho + self.tau_1) * self.elemental_volumes
         else:
             coef = (p_factor * dt / self.rho) * self.elemental_volumes
         L_el *= coef[:, None, None] # scale LHS elemental contributions
 
-        # account for compressibility: add (bulk*dt)/(dim+1) to every elemental entry
-        self.bulk = 340.0**2*self.rho
-        if (self.clear_divergence_steps == 0):
-            compressibility_const = 1.0/(self.bulk * dt) * self.elemental_volumes
-            for idx in range(self.n_in_el):
-                L_el[:, idx, idx] += compressibility_const*self.N[idx]
+        # Account for compressibility in the pressure LHS: (1/kappa*dt) * M * (p - p_old) where M is the mass matrix and kappa is the bulk modulus
+        if (self.clear_divergence_steps == 0 and self.compressibility is not None):
+            compressibility_const = (self.elemental_volumes / (self.bulk_modulus * dt))
+            if self.compressibility == "lumped": # Lumped mass matrix approximation for compressibility term
+                for idx in range(self.n_in_el):
+                    L_el[:, idx, idx] += compressibility_const * self.N[idx]
+            elif self.compressibility == "consistent": # Consistent mass matrix approximation for compressibility term
+                M_e = self.cfd_utils.GetElementalMassMatrix(self.dim)
+                L_el += compressibility_const[:, None, None] * M_e
+            else:
+                raise ValueError(f"Weak compressibility value '{self.compressibility}' is not valid.")
 
-        
-        t0 = time.perf_counter()
+        # Assemble pressure LHS (set to zero is done internally)
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
-        #print(f"Time to assemble pressure LHS: {time.perf_counter()-t0}")
         self.pool.Release(L_el)
 
         # -(q,∇·ufrac)
@@ -904,10 +919,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         rhs_el += aux_scalar
         self.pool.Release(aux_scalar)
 
-        #add compressibility
-        # Equivalent to: for e: for i: rhs_el[e,i] += compressibility_const[e] * pel[e,i] * self.N[i]
-        if (self.clear_divergence_steps == 0):
-            rhs_el += compressibility_const[:, None] * pel * self.N[None, :]
+        # (1/kappa*dt) * M * p_old
+        if (self.clear_divergence_steps == 0 and self.compressibility is not None):
+            compressibility_const = 1.0/(self.bulk_modulus * dt) * self.elemental_volumes
+            if self.compressibility == "lumped": # Lumped mass matrix approximation for compressibility term
+                rhs_el += compressibility_const[:, None] * pel * self.N[None, :] # Equivalent to: for e: for i: rhs_el[e,i] += compressibility_const[e] * pel[e,i] * self.N[i]
+            elif self.compressibility == "consistent": # Consistent mass matrix approximation for compressibility term
+                M_e = self.cfd_utils.GetElementalMassMatrix(self.dim)
+                rhs_el += compressibility_const[:, None] * xp.einsum("IJ,eJ->eI", M_e, pel, optimize=True)
+            else:
+                raise ValueError(f"Weak compressibility value '{self.compressibility}' is not valid.")
 
         # -tau*(∇q,Pi_pressure)
         if (self.clear_divergence_steps == 0 and self.deactivate_pressure_stabilization == False):
@@ -1263,7 +1284,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             },
             "time_scheme" : "RK4",
             "startup_time" : 0.0,
-            "startup_time_scheme" : "FE"
+            "startup_time_scheme" : "FE",
+            "weak_compressibility" : true,
+            "weak_compressibility_matrix" : "lumped"
         }""")
         return default_settings
 
