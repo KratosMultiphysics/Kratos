@@ -287,8 +287,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateDynamicStabilizationVariables(
     GeneralVariables& rVariables,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // DynamicCoefficient = rho / (beta * dt^2)
-    // DynamicRHS = rho * (1/(beta*dt) * v_n + (0.5/beta - 1.0) * a_n)
+    // rho * a_{n+1} = DynamicCoefficient * delta_displacement_current - known_dynamic_terms.
+    // DynamicRHS stores the full dynamic residual contribution to be subtracted in
+    // the stabilized momentum residual.
     
     KRATOS_TRY
 
@@ -309,6 +310,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateDynamicStabilizationVariables(
 
     array_1d<double, 3> previous_velocity = ZeroVector(3);
     array_1d<double, 3> previous_acceleration = ZeroVector(3);
+    array_1d<double, 3> current_displacement = ZeroVector(3);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const array_1d<double, 3>& r_nodal_previous_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, 1);
@@ -316,6 +318,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateDynamicStabilizationVariables(
 
         noalias(previous_velocity) += r_N(0, i) * r_nodal_previous_velocity;
         noalias(previous_acceleration) += r_N(0, i) * r_nodal_previous_acceleration;
+        for (unsigned int j = 0; j < dimension; ++j) {
+            current_displacement[j] += r_N(0, i) * rVariables.CurrentDisp(i, j);
+        }
     }
 
     const double density = mMP.density;
@@ -327,9 +332,13 @@ void MPMUpdatedLagrangianUPVMS::CalculateDynamicStabilizationVariables(
     rVariables.DiscreteAcceleration = ZeroVector(dimension);
 
     for (unsigned int i = 0; i < dimension; ++i) {
-        rVariables.DynamicRHS[i] = density * (
+        const double known_dynamic_terms = density * (
             velocity_coefficient * previous_velocity[i]
             + acceleration_coefficient * previous_acceleration[i]);
+        rVariables.DynamicRHS[i] = known_dynamic_terms
+            - rVariables.DynamicCoefficient * current_displacement[i];
+        rVariables.DiscreteAcceleration[i] = rVariables.DynamicCoefficient / density * current_displacement[i]
+            - known_dynamic_terms / density;
     }
 
     KRATOS_CATCH("")
@@ -706,6 +715,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     Vector row_displacement_pressure_gradient_projection = prod(rVariables.DN_DX, rVariables.PressureGradient);
     Vector row_displacement_deviatoric_pressure_gradient_projection = prod(
@@ -731,6 +741,20 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
             {
                 for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
                 {
+                    if (idim == jdim) {
+                        rLeftHandSideMatrix(indexi + i, indexj + j) += rVariables.tau1
+                            * rVariables.DynamicCoefficient
+                            * r_N(0, j)
+                            * row_displacement_pressure_gradient_projection(i)
+                            * rIntegrationWeight;
+
+                        rLeftHandSideMatrix(indexi + i, indexj + j) += rVariables.tau1
+                            * rVariables.DynamicCoefficient
+                            * r_N(0, j)
+                            * row_displacement_deviatoric_pressure_gradient_projection(indexi)
+                            * rIntegrationWeight;
+                    }
+
                     rLeftHandSideMatrix(indexi + i, indexj + j) -= rVariables.tau1
                         * row_displacement_pressure_gradient_projection(i)
                         * column_displacement_pressure_gradient_projection(j)
@@ -862,6 +886,13 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSid
                     * volumetric_strain_linearization
                     * rVariables.DN_DX(i, k)
                     * column_displacement_deviatoric_pressure_gradient_projection(indexj)
+                    * rIntegrationWeight;
+
+                rLeftHandSideMatrix(index_p, index_up + k) += rVariables.tau1
+                    * volumetric_strain_linearization
+                    * rVariables.DN_DX(i, k)
+                    * rVariables.DynamicCoefficient
+                    * r_N(0, j)
                     * rIntegrationWeight;
 
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau2
