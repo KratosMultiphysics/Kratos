@@ -197,7 +197,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
 
 
         // Compute ASGS stabilization variables
-        CalculateStabilizationVariables(Variables);
+        CalculateStabilizationVariables(Variables, rCurrentProcessInfo);
 
     }
 
@@ -233,7 +233,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
 //************************************************************************************
 //************************************************************************************
 
-void MPMUpdatedLagrangianUPVMS::CalculateStabilizationVariables(GeneralVariables& rVariables)
+void MPMUpdatedLagrangianUPVMS::CalculateStabilizationVariables(
+    GeneralVariables& rVariables,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -241,6 +243,13 @@ void MPMUpdatedLagrangianUPVMS::CalculateStabilizationVariables(GeneralVariables
     ConvertPressureGradientInVoigt(rVariables.PressureGradient, rVariables.PressureGradientVoigt);
     CalculateTensorIdentityMatrix(rVariables.TensorIdentityMatrix);
     CalculateTaus(rVariables);
+
+    const bool is_dynamic = rCurrentProcessInfo.Has(IS_DYNAMIC)
+        ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
+        : false;
+    if (is_dynamic) {
+        CalculateDynamicStabilizationVariables(rVariables, rCurrentProcessInfo);
+    }
 
     KRATOS_CATCH("")
 }

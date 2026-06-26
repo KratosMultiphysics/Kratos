@@ -59,6 +59,8 @@ class MPMImplicitDynamicSolver(MPMSolver):
             raise Exception(err_msg)
 
         is_dynamic = self._IsDynamic()
+        grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.NEWMARK_BETA, newmark_beta)
+        grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_DYNAMIC, is_dynamic)
 
         return KratosMPM.MPMResidualBasedBossakScheme( grid_model_part,
                                                             domain_size,

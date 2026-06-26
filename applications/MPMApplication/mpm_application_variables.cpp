@@ -132,6 +132,7 @@ namespace Kratos
 
     // Stabilization variables
     KRATOS_CREATE_VARIABLE(int, STABILIZATION_TYPE)
+    KRATOS_CREATE_VARIABLE(bool, IS_DYNAMIC)
 
     // For friction
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( STICK_FORCE )

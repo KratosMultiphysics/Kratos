@@ -141,7 +141,9 @@ protected:
     void ConvertPressureGradientInVoigt(const Vector& rPressureGradient, Vector& rPressureGradientVoigt);
 
     // Calculation of ASGS stabilization variables
-    void CalculateStabilizationVariables(GeneralVariables& rVariables);
+    void CalculateStabilizationVariables(
+        GeneralVariables& rVariables,
+        const ProcessInfo& rCurrentProcessInfo);
 
     void CalculatePressureVariables(GeneralVariables& rVariables);
 
