@@ -202,11 +202,15 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.run_analysis = run_analysis
 
     def run_staged_construction_analysis_and_checks(self):
-        project_parameters = self.get_project_parameters()
-        if self.modify_project_parameters is not None:
-            self.modify_project_parameters(project_parameters)
-
         with context_managers.set_cwd_to(self.test_path):
+            with open(
+                self.common_test_files_dir / f"{self.analysis_type}.json", "r"
+            ) as analysis_file:
+                project_parameters = Kratos.Parameters(analysis_file.read())
+
+            if self.modify_project_parameters is not None:
+                self.modify_project_parameters(project_parameters)
+
             self.run_simulation_and_checks(project_parameters)
 
     def run_simulation_and_checks(self, project_parameters):
@@ -603,14 +607,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                             csv_fieldname_horizontal_total_displacement: f"{horizontal_total_displacement:.6}",
                         }
                     )
-
-    def get_project_parameters(self):
-        project_parameters_file_name = "staged_construction.json"
-        with context_managers.set_cwd_to(self.test_path):
-            with open(
-                self.common_test_files_dir / project_parameters_file_name, "r"
-            ) as analysis_file:
-                return Kratos.Parameters(analysis_file.read())
 
     def test_staged_construction_with_linear_elastic_behavior(self):
         self.prepare_test_run(
