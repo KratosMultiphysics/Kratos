@@ -582,7 +582,8 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacementVMS(VectorT
         for ( unsigned int jdim = 0; jdim < dimension; jdim ++ )
         {
             const double momentum_residual = -rVolumeForce[jdim] / rIntegrationWeight
-                - rVariables.PressureGradient[jdim];
+                - rVariables.PressureGradient[jdim]
+                - rVariables.DynamicRHS[jdim];
 
             rRightHandSideVector[index_up + jdim] -= rVariables.tau1
                 * momentum_residual
@@ -631,7 +632,8 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressureVMS(VectorType&
         for ( unsigned int idime = 0; idime < dimension; idime++ )
         {
             const double momentum_residual = -rVariables.PressureGradient[idime]
-                - rVolumeForce[idime] / rIntegrationWeight;
+                - rVolumeForce[idime] / rIntegrationWeight
+                - rVariables.DynamicRHS[idime];
 
             rRightHandSideVector[index_p] -= rVariables.tau1
                 * volumetric_strain_linearization
