@@ -178,6 +178,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.test_path = None
         self.csv_files_dir = None
         self.modify_project_parameters = None
+        self.run_analysis=None
 
     def prepare_test_run(
         self,
