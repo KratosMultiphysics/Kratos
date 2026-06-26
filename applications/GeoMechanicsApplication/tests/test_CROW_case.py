@@ -534,24 +534,24 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def update_all_expected_results(self):
         print("Updating the expected results...")
 
-        self.update_expected_results(linear_elastic_dir_name)
-        self.update_expected_results(
-            mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction_broyden"
-        )
-        self.update_expected_results(
-            mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction_lbfgs"
-        )
+        for case_name, variant in [
+            (linear_elastic_dir_name, "as-is"),
+            (mohr_coulomb_clay_sand_dir_name, "linear_iteration"),
+        ]:
+            self.update_expected_results(case_name, variant)
 
-    def update_expected_results(self, case_name, analysis_type=staged_construction):
-        self.analysis_type = analysis_type
-        self.test_path = Path(
+    def update_expected_results(self, case_name, variant):
+        self.analysis_type = staged_construction
+        base_test_path = Path(
             test_helper.get_file_path(
                 Path("crow_validation") / case_name / self.analysis_type
             )
         )
+        self.test_path = base_test_path / variant
+        self.csv_files_dir = base_test_path
 
         mdpa_file_path_without_file_extension = test_helper.get_file_path(
-            self.common_test_files_dir / "model"
+            Path(test_helper.get_file_path("crow_validation")) / "common" / "model"
         )
         model = Kratos.Model()
         main_model_part = model.CreateModelPart("PorousDomain")
@@ -568,7 +568,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             )
 
             with open(
-                self.test_path / f"{stage_name}__expected_results_wall.csv",
+                self.csv_files_dir / f"{stage_name}__expected_results_wall.csv",
                 "w",
                 newline="",
             ) as csv_file:
