@@ -201,7 +201,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.modify_project_parameters = modify_project_parameters
         self.run_analysis = run_analysis
 
-    def run_staged_construction_analysis_and_checks(self):
+    def run_simulation_and_checks(self):
         with context_managers.set_cwd_to(self.test_path):
             with open(
                 self.common_test_files_dir / f"{self.analysis_type}.json", "r"
@@ -211,10 +211,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             if self.modify_project_parameters is not None:
                 self.modify_project_parameters(project_parameters)
 
-            self.run_simulation_and_checks(project_parameters)
-
-    def run_simulation_and_checks(self, project_parameters):
-        project = self.run_analysis(project_parameters)
+            project = self.run_analysis(project_parameters)
 
         model = project.GetModel()
         sheet_pile_wall = model.GetModelPart("PorousDomain.Sheet_Pile_Wall")
@@ -614,7 +611,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             analysis_type="staged_construction",
             variant="as-is",
         )
-        self.run_staged_construction_analysis_and_checks()
+        self.run_simulation_and_checks()
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_broyden(self):
         self.prepare_test_run(
@@ -627,7 +624,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 )
             ),
         )
-        self.run_staged_construction_analysis_and_checks()
+        self.run_simulation_and_checks()
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_lbfgs(self):
         self.prepare_test_run(
@@ -640,7 +637,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 )
             ),
         )
-        self.run_staged_construction_analysis_and_checks()
+        self.run_simulation_and_checks()
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_linear_iteration(self):
         self.prepare_test_run(
@@ -648,7 +645,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             analysis_type="staged_construction",
             variant="linear_iteration",
         )
-        self.run_staged_construction_analysis_and_checks()
+        self.run_simulation_and_checks()
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_using_save_and_load(
         self,
@@ -661,7 +658,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 helper_utilities.run_multistage_analysis_with_intermediate_save_and_load
             ),
         )
-        self.run_staged_construction_analysis_and_checks()
+        self.run_simulation_and_checks()
 
 
 if __name__ == "__main__":
