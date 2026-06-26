@@ -181,7 +181,13 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.csv_files_dir = None
         self.modify_project_parameters = None
 
-    def prepare_test_run(self, material_model_dir_name, analysis_type, variant):
+    def prepare_test_run(
+        self,
+        material_model_dir_name,
+        analysis_type,
+        variant,
+        modify_project_parameters=None,
+    ):
         self.analysis_type = analysis_type
 
         base_test_path = Path(
@@ -192,6 +198,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.test_path = base_test_path / variant
         self.test_path.mkdir(exist_ok=True)
         self.csv_files_dir = base_test_path
+        self.modify_project_parameters = modify_project_parameters
 
     def run_staged_construction_analysis_and_checks(self):
         project_parameters = self.get_project_parameters()
@@ -617,11 +624,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
             analysis_type="staged_construction",
             variant="broyden",
-        )
-        self.modify_project_parameters = (
-            lambda project_parameters: set_quasi_newton_method(
-                project_parameters, "broyden"
-            )
+            modify_project_parameters=(
+                lambda project_parameters: set_quasi_newton_method(
+                    project_parameters, "broyden"
+                )
+            ),
         )
         self.run_staged_construction_analysis_and_checks()
 
@@ -630,11 +637,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
             analysis_type="staged_construction",
             variant="lbfgs",
-        )
-        self.modify_project_parameters = (
-            lambda project_parameters: set_quasi_newton_method(
-                project_parameters, "lbfgs"
-            )
+            modify_project_parameters=(
+                lambda project_parameters: set_quasi_newton_method(
+                    project_parameters, "lbfgs"
+                )
+            ),
         )
         self.run_staged_construction_analysis_and_checks()
 
