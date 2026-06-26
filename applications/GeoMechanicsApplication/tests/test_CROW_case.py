@@ -17,6 +17,7 @@ if test_helper.want_test_plots():
 
 linear_elastic_dir_name = "linear_elastic"
 mohr_coulomb_clay_sand_dir_name = "mohr_coulomb_clay-sand"
+staged_construction = "staged_construction"
 
 wall_output_postfix = "output_wall"
 interface_output_postfix = "output_interface"
@@ -541,7 +542,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             mohr_coulomb_clay_sand_dir_name, analysis_type="staged_construction_lbfgs"
         )
 
-    def update_expected_results(self, case_name, analysis_type="staged_construction"):
+    def update_expected_results(self, case_name, analysis_type=staged_construction):
         self.analysis_type = analysis_type
         self.test_path = Path(
             test_helper.get_file_path(
@@ -608,7 +609,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def test_staged_construction_with_linear_elastic_behavior(self):
         self.prepare_test_run(
             material_model_dir_name=linear_elastic_dir_name,
-            analysis_type="staged_construction",
+            analysis_type=staged_construction,
             variant="as-is",
         )
         self.run_simulation_and_checks()
@@ -616,7 +617,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def test_staged_construction_with_mohr_coulomb_clay_sand_broyden(self):
         self.prepare_test_run(
             material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
-            analysis_type="staged_construction",
+            analysis_type=staged_construction,
             variant="broyden",
             modify_project_parameters=(
                 lambda project_parameters: set_quasi_newton_method(
@@ -629,7 +630,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def test_staged_construction_with_mohr_coulomb_clay_sand_lbfgs(self):
         self.prepare_test_run(
             material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
-            analysis_type="staged_construction",
+            analysis_type=staged_construction,
             variant="lbfgs",
             modify_project_parameters=(
                 lambda project_parameters: set_quasi_newton_method(
@@ -642,7 +643,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def test_staged_construction_with_mohr_coulomb_clay_sand_linear_iteration(self):
         self.prepare_test_run(
             material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
-            analysis_type="staged_construction",
+            analysis_type=staged_construction,
             variant="linear_iteration",
         )
         self.run_simulation_and_checks()
@@ -652,7 +653,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     ):
         self.prepare_test_run(
             material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
-            analysis_type="staged_construction",
+            analysis_type=staged_construction,
             variant="with_save_and_load",
             run_analysis=(
                 helper_utilities.run_multistage_analysis_with_intermediate_save_and_load
