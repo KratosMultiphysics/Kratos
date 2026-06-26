@@ -57,7 +57,8 @@ public:
                            double&                      rValue) override;
     using BaseType::CalculateValue;
 
-    void CalculateMaterialResponsePK2(Parameters& rParameters) override;
+    [[nodiscard]] StressMeasure GetStressMeasure() override;
+    void                        CalculateMaterialResponsePK2(Parameters& rParameters) override;
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
     void FinalizeMaterialResponsePK2(Parameters& rParameters) override;
 
@@ -73,7 +74,7 @@ public:
                             const GeometryType& rElementGeometry,
                             const ProcessInfo&  rCurrentProcessInfo) const override;
 
-    std::string Info() const override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
     Table<double, double> mStressStrainTable;

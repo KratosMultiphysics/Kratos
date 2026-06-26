@@ -50,6 +50,11 @@ double& PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateValue(
     return BaseType::CalculateValue(rParameters, rVariable, rValue);
 }
 
+ConstitutiveLaw::StressMeasure PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::GetStressMeasure()
+{
+    return StressMeasure_PK2;
+}
+
 void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rParameters)
 {
     CalculateMaterialResponseCauchy(rParameters);

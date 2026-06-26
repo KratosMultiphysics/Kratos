@@ -169,6 +169,18 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_RequiresF
     KRATOS_EXPECT_TRUE(requires_finalize)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_HasPK2StresMeasure,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto law = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
+
+    // Act
+    const auto stress_measure = law.GetStressMeasure();
+    // Assert
+    KRATOS_EXPECT_EQ(stress_measure, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CloneCreatesEquivalentLaw,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
