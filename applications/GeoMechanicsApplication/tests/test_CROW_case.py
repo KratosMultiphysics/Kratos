@@ -179,6 +179,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.analysis_type = None
         self.test_path = None
         self.csv_files_dir = None
+        self.modify_project_parameters = None
 
     def prepare_test_run(self, material_model_dir_name, analysis_type, variant):
         self.analysis_type = analysis_type
@@ -191,6 +192,14 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.test_path = base_test_path / variant
         self.test_path.mkdir(exist_ok=True)
         self.csv_files_dir = base_test_path
+
+    def run_staged_construction_analysis_and_checks(self):
+        project_parameters = self.get_project_parameters()
+        if self.modify_project_parameters is not None:
+            self.modify_project_parameters(project_parameters)
+
+        with context_managers.set_cwd_to(self.test_path):
+            self.run_simulation_and_checks(project_parameters)
 
     def run_simulation_and_checks(self, project_parameters):
         project = self.run_analysis(project_parameters)
@@ -601,10 +610,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             analysis_type="staged_construction",
             variant="as-is",
         )
-        project_parameters = self.get_project_parameters()
-
-        with context_managers.set_cwd_to(self.test_path):
-            self.run_simulation_and_checks(project_parameters)
+        self.run_staged_construction_analysis_and_checks()
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_broyden(self):
         self.prepare_test_run(
@@ -612,10 +618,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             analysis_type="staged_construction",
             variant="broyden",
         )
-        project_parameters = self.get_project_parameters()
-        set_quasi_newton_method(project_parameters, "broyden")
-        with context_managers.set_cwd_to(self.test_path):
-            self.run_simulation_and_checks(project_parameters)
+        self.modify_project_parameters = (
+            lambda project_parameters: set_quasi_newton_method(
+                project_parameters, "broyden"
+            )
+        )
+        self.run_staged_construction_analysis_and_checks()
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_lbfgs(self):
         self.prepare_test_run(
@@ -623,10 +631,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             analysis_type="staged_construction",
             variant="lbfgs",
         )
-        project_parameters = self.get_project_parameters()
-        set_quasi_newton_method(project_parameters, "lbfgs")
-        with context_managers.set_cwd_to(self.test_path):
-            self.run_simulation_and_checks(project_parameters)
+        self.modify_project_parameters = (
+            lambda project_parameters: set_quasi_newton_method(
+                project_parameters, "lbfgs"
+            )
+        )
+        self.run_staged_construction_analysis_and_checks()
 
     def test_staged_construction_with_mohr_coulomb_clay_sand_linear_iteration(self):
         self.prepare_test_run(
@@ -634,9 +644,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             analysis_type="staged_construction",
             variant="linear_iteration",
         )
-        project_parameters = self.get_project_parameters()
-        with context_managers.set_cwd_to(self.test_path):
-            self.run_simulation_and_checks(project_parameters)
+        self.run_staged_construction_analysis_and_checks()
 
     def no_test_staged_construction_with_mohr_coulomb_clay_sand_using_save_and_load(
         self,
