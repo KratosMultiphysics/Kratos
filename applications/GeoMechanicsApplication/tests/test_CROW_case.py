@@ -126,6 +126,46 @@ def max_abs_nodal_value(values_by_node_id_and_result_item, node_ids, result_item
     )
 
 
+def set_quasi_newton_method(project_parameters, quasi_newton_method):
+    # Add/set quasi-Newton method settings that apply to all stages
+    for stage in project_parameters["stages"].values():
+        solver_settings = stage["stage_settings"]["solver_settings"]
+        solver_settings["strategy_type"].SetString("quasi_newton_raphson")
+        solver_settings.AddString("quasi_newton_type", quasi_newton_method)
+        solver_settings.AddInt("quasi_newton_raphson_restart_interval", 100)
+
+    # Add stage-dependent quasi-Newton method settings
+    stage_dependent_settings = {
+        "1_Initial_stage": {
+            "quasi_newton_raphson_max_rank": 10,
+        },
+        "2_Null_step": {
+            "quasi_newton_raphson_max_rank": 10,
+        },
+        "3_Wall_installation": {
+            "quasi_newton_raphson_max_rank": 10,
+        },
+        "4_First_excavation": {
+            "quasi_newton_raphson_max_rank": 10,
+        },
+        "5_Anchor_installation": {
+            "quasi_newton_raphson_max_rank": 20,
+        },
+        "6_Second_excavation": {
+            "quasi_newton_raphson_max_rank": 10,
+        },
+        "7_Third_excavation": {
+            "quasi_newton_raphson_max_rank": 20,
+        },
+    }
+    for stage_name, settings in stage_dependent_settings.items():
+        solver_settings = project_parameters["stages"][stage_name]["stage_settings"][
+            "solver_settings"
+        ]
+        for key, value in settings.items():
+            solver_settings.AddInt(key, value)
+
+
 class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
@@ -574,6 +614,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             variant="broyden",
         )
         project_parameters = self.get_project_parameters()
+        set_quasi_newton_method(project_parameters, "broyden")
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 
@@ -584,11 +625,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             variant="lbfgs",
         )
         project_parameters = self.get_project_parameters()
-
-        # set all quasi newton raphson solvers to use L-BFGS
-        for stage in project_parameters["stages"].values():
-            solver_settings = stage["stage_settings"]["solver_settings"]
-            solver_settings["quasi_newton_type"].SetString("lbfgs")
+        set_quasi_newton_method(project_parameters, "lbfgs")
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 
