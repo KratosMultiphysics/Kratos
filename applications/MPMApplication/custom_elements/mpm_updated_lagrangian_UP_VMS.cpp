@@ -278,6 +278,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateDynamicStabilizationVariables(
     GeneralVariables& rVariables,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    // DynamicCoefficient = rho / (beta * dt^2)
+    // DynamicRHS = rho * (1/(beta*dt) * v_n + (0.5/beta - 1.0) * a_n)
+    
     KRATOS_TRY
 
     GeometryType& r_geometry = GetGeometry();
@@ -306,7 +309,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateDynamicStabilizationVariables(
         noalias(previous_acceleration) += r_N(0, i) * r_nodal_previous_acceleration;
     }
 
-    const double density = GetProperties()[DENSITY] / rVariables.detFT;
+    const double density = mMP.density;
     const double velocity_coefficient = 1.0 / (beta * delta_time);
     const double acceleration_coefficient = 0.5 / beta - 1.0;
 
