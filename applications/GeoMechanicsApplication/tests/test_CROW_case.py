@@ -50,6 +50,8 @@ stages_to_be_plotted = [
     "7_Third_excavation",
 ]
 
+common_test_files_dir = Path(test_helper.get_file_path("crow_validation")) / "common"
+
 
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
     line = line.strip().lstrip("\ufeff").replace("ï»¿", "")
@@ -171,10 +173,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
 
-        self.common_test_files_dir = (
-            Path(test_helper.get_file_path("crow_validation")) / "common"
-        )
-
         # The following attributes will be populated by the specific simulation runs
         self.analysis_type = None
         self.test_path = None
@@ -205,7 +203,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def run_simulation_and_checks(self):
         with context_managers.set_cwd_to(self.test_path):
             with open(
-                self.common_test_files_dir / f"{self.analysis_type}.json", "r"
+                common_test_files_dir / f"{self.analysis_type}.json", "r"
             ) as analysis_file:
                 project_parameters = Kratos.Parameters(analysis_file.read())
 
@@ -550,9 +548,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.test_path = base_test_path / variant
         self.csv_files_dir = base_test_path
 
-        mdpa_file_path_without_file_extension = test_helper.get_file_path(
-            Path(test_helper.get_file_path("crow_validation")) / "common" / "model"
-        )
+        mdpa_file_path_without_file_extension = common_test_files_dir / "model"
         model = Kratos.Model()
         main_model_part = model.CreateModelPart("PorousDomain")
         Kratos.ModelPartIO(mdpa_file_path_without_file_extension).ReadModelPart(
