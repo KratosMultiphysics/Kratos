@@ -14,7 +14,6 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
-#include <unordered_set>
 
 // External includes
 
@@ -23,6 +22,7 @@
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "containers/sparse_contiguous_row_graph.h"
 
 namespace Kratos {
 
@@ -48,8 +48,10 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
                               const SizeType NumNodesOrigin,
                               const SizeType NumNodesDestination)
 {
-    // one set for each row storing the corresponding col-IDs
-    using indices_type = std::vector<std::unordered_set<IndexType>>;
+    // Single shared graph with per-row locks — one unordered_set per destination
+    // row, locked independently. Memory is O(NumNodesDestination + nnz) regardless
+    // of thread count or number of local systems.
+    SparseContiguousRowGraph<IndexType> graph(NumNodesDestination);
 
     struct TLSData
     {
@@ -57,120 +59,50 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         EquationIdVectorType DestinationIds;
     };
 
-    // Reduction merging the per-row column-IDs contributed by the local systems.
-    // It keeps a single accumulator per thread (grown on demand) rather than one
-    // NumNodesDestination-sized container per local system. The previous version
-    // allocated a full NumNodesDestination-sized vector of sets for *every* local
-    // system and stored them all simultaneously, so the peak memory was
-    // O(num_local_systems * NumNodesDestination). On large interfaces this
-    // exhausts memory and the run appears to hang (allocation/swapping).
-    struct GraphReduction
-    {
-        using value_type = std::pair<EquationIdVectorType, EquationIdVectorType>; // (origin_ids, destination_ids)
-        using return_type = indices_type;
-
-        indices_type mIndices;
-
-        return_type GetValue() { return std::move(mIndices); }
-
-        /**
-         * @brief Performs a local reduction by mapping origin IDs to destination IDs.
-         * @details This function iterates through the destination IDs provided in the entry
-         * and inserts the associated origin IDs into the internal index structure, 
-         * resizing the container if necessary.
-         * @param rEntry A pair where the first element contains origin IDs and the second contains destination IDs.
-         */
-        void LocalReduce(const value_type& rEntry)
-        {
-            const auto& r_origin_ids = rEntry.first;
-            const auto& r_destination_ids = rEntry.second;
-            for (const int id_dest : r_destination_ids) {
-                if (id_dest >= static_cast<int>(mIndices.size())) {
-                    mIndices.resize(id_dest + 1);
-                }
-                mIndices[id_dest].insert(r_origin_ids.begin(), r_origin_ids.end());
-            }
-        }
-
-        /**
-         * @brief Merges another GraphReduction container into the current one.
-         * @details This operation is protected by a critical section to ensure thread safety
-         * during the synchronization of the index containers.
-         * @param rOther The other GraphReduction instance to be merged into this one.
-         */
-        void ThreadSafeReduce(GraphReduction& rOther)
-        {
-            KRATOS_CRITICAL_SECTION
-            if (rOther.mIndices.size() > mIndices.size()) {
-                mIndices.resize(rOther.mIndices.size());
-            }
-            for (IndexType i = 0; i < rOther.mIndices.size(); ++i) {
-                mIndices[i].insert(rOther.mIndices[i].begin(), rOther.mIndices[i].end());
-            }
-        }
-    };
-
-    indices_type indices = block_for_each<GraphReduction>(
-        rMapperLocalSystems.begin(),
-        rMapperLocalSystems.end(),
-        TLSData(),
-        [](auto& rpLocalSys, TLSData& rTLS) -> GraphReduction::value_type
-        {
+    block_for_each(rMapperLocalSystems.begin(), rMapperLocalSystems.end(), TLSData(),
+        [&graph](auto& rpLocalSys, TLSData& rTLS) {
             rTLS.OriginIds.clear();
             rTLS.DestinationIds.clear();
 
-            rpLocalSys->EquationIdVectors(
-                rTLS.OriginIds,
-                rTLS.DestinationIds);
+            rpLocalSys->EquationIdVectors(rTLS.OriginIds, rTLS.DestinationIds);
 
-            return {rTLS.OriginIds, rTLS.DestinationIds};
+            for (const auto id_dest : rTLS.DestinationIds) {
+                graph.AddEntries(id_dest, rTLS.OriginIds);
+            }
         }
     );
 
-    // The highest touched destination row may be smaller than the number of
-    // destination nodes, so make sure every row exists before building the CSR.
-    indices.resize(NumNodesDestination);
+    // Export sorted CSR arrays (column indices are sorted per row by ExportCSRArrays).
+    // ExportCSRArrays allocates with new[] and transfers ownership to the caller.
+    IndexType* p_row_data = nullptr;
+    IndexType row_data_size = 0;
+    IndexType* p_col_data = nullptr;
+    IndexType col_data_size = 0;
+    graph.ExportCSRArrays(p_row_data, row_data_size, p_col_data, col_data_size);
 
-    // computing the number of non-zero entries
-    SizeType num_non_zero_entries = 0;
-    for (const auto& r_row_indices : indices) { // looping the indices per row
-        num_non_zero_entries += r_row_indices.size(); // adding the number of col-indices
-    }
+    const SizeType num_non_zero_entries = col_data_size;
 
     auto p_Mdo = Kratos::make_unique<typename MappingSparseSpaceType::MatrixType>(
         NumNodesDestination,
         NumNodesOrigin,
         num_non_zero_entries);
 
-    double* p_matrix_values = p_Mdo->value_data().begin();
     IndexType* p_matrix_row_indices = p_Mdo->index1_data().begin();
     IndexType* p_matrix_col_indices = p_Mdo->index2_data().begin();
+    double*    p_matrix_values       = p_Mdo->value_data().begin();
 
-    // filling the index1 vector - do NOT make parallel!
-    p_matrix_row_indices[0] = 0;
-    for (IndexType i=0; i<NumNodesDestination; ++i) {
-        p_matrix_row_indices[i+1] = p_matrix_row_indices[i] + indices[i].size();
-    }
-    
-    IndexPartition<IndexType>(NumNodesDestination).for_each(
-        [&](IndexType i) {
-            const IndexType row_begin = p_matrix_row_indices[i];
-            const IndexType row_end = p_matrix_row_indices[i + 1];
+    IndexPartition<IndexType>(NumNodesDestination + 1).for_each([&](IndexType i) {
+        p_matrix_row_indices[i] = p_row_data[i];
+    });
+    IndexPartition<IndexType>(num_non_zero_entries).for_each([&](IndexType i) {
+        p_matrix_col_indices[i] = p_col_data[i];
+        p_matrix_values[i] = 0.0;
+    });
 
-            IndexType j = row_begin;
-            for (const auto index : indices[i]) {
-                p_matrix_col_indices[j] = index;
-                p_matrix_values[j] = 0.0;
-                ++j;
-            }
+    delete[] p_row_data;
+    delete[] p_col_data;
 
-            indices[i].clear();
-
-            std::sort(&p_matrix_col_indices[row_begin], &p_matrix_col_indices[row_end]);
-        }
-    );  
-
-    p_Mdo->set_filled(indices.size()+1, num_non_zero_entries);
+    p_Mdo->set_filled(NumNodesDestination + 1, num_non_zero_entries);
 
     rpMdo.swap(p_Mdo);
 }
