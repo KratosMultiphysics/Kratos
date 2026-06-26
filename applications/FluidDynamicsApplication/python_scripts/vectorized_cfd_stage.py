@@ -52,7 +52,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Get and validate the solving settings
         # Note that these are encapsulated within the customary "solver_settings" block
         settings = project_parameters["solver_settings"]
-        settings.ValidateAndAssignDefaults(self._GetDefaultSolvingSettings())
+        settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSolvingSettings())
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = settings["model_part_name"].GetString()
