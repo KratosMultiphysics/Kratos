@@ -193,7 +193,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.csv_files_dir = base_test_path
 
     def run_simulation_and_checks(self, project_parameters):
-
         project = self.run_analysis(project_parameters)
 
         model = project.GetModel()
@@ -636,10 +635,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             variant="linear_iteration",
         )
         project_parameters = self.get_project_parameters()
-
-        for stage in project_parameters["stages"].values():
-            solver_settings = stage["stage_settings"]["solver_settings"]
-            solver_settings["strategy_type"].SetString("newton_raphson")
         with context_managers.set_cwd_to(self.test_path):
             self.run_simulation_and_checks(project_parameters)
 
