@@ -614,7 +614,19 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
         self.run_simulation_and_checks()
 
-    def test_staged_construction_with_mohr_coulomb_clay_sand_broyden(self):
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_linear_iteration(
+        self,
+    ):
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type=staged_construction,
+            variant="linear_iteration",
+        )
+        self.run_simulation_and_checks()
+
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_broydens_method(
+        self,
+    ):
         self.prepare_test_run(
             material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
             analysis_type=staged_construction,
@@ -627,7 +639,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
         self.run_simulation_and_checks()
 
-    def test_staged_construction_with_mohr_coulomb_clay_sand_lbfgs(self):
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_lbfgs(self):
         self.prepare_test_run(
             material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
             analysis_type=staged_construction,
@@ -640,15 +652,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
         self.run_simulation_and_checks()
 
-    def test_staged_construction_with_mohr_coulomb_clay_sand_linear_iteration(self):
-        self.prepare_test_run(
-            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
-            analysis_type=staged_construction,
-            variant="linear_iteration",
-        )
-        self.run_simulation_and_checks()
-
-    def test_staged_construction_with_mohr_coulomb_clay_sand_using_save_and_load(
+    def test_staged_construction_with_mohr_coulomb_clay_sand_with_intermediate_save_and_load(
         self,
     ):
         self.prepare_test_run(
