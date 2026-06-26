@@ -883,9 +883,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # account for compressibility: add (bulk*dt)/(dim+1) to every elemental entry
         self.bulk = 340.0**2*self.rho
-        compressibility_const = 1.0/(self.bulk * dt) * self.elemental_volumes
-        for idx in range(self.n_in_el):
-            L_el[:, idx, idx] += compressibility_const*self.N[idx]
+        if (self.clear_divergence_steps == 0):
+            compressibility_const = 1.0/(self.bulk * dt) * self.elemental_volumes
+            for idx in range(self.n_in_el):
+                L_el[:, idx, idx] += compressibility_const*self.N[idx]
 
         
         t0 = time.perf_counter()
@@ -905,7 +906,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         #add compressibility
         # Equivalent to: for e: for i: rhs_el[e,i] += compressibility_const[e] * pel[e,i] * self.N[i]
-        rhs_el += compressibility_const[:, None] * pel * self.N[None, :]
+        if (self.clear_divergence_steps == 0):
+            rhs_el += compressibility_const[:, None] * pel * self.N[None, :]
 
         # -tau*(∇q,Pi_pressure)
         if (self.clear_divergence_steps == 0 and self.deactivate_pressure_stabilization == False):
