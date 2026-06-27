@@ -76,6 +76,7 @@ class CadJsonInput : public IO
     typedef BrepSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepSurfaceType;
     typedef LocalRefinedBrepSurface<ContainerNodeType, THBSurfaceGeometry<3, ContainerNodeType>, false, ContainerEmbeddedNodeType> LocalRefinedBrepSurfaceType;
     typedef BrepCurveOnSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+    typedef BrepCurveOnLocalRefinedSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepCurveOnLocalRefinedSurfaceType;
     typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
     typedef PointOnGeometry<ContainerNodeType, 3, 2> PointOnGeometryOnSurfaceType;
     typedef PointOnGeometry<ContainerNodeType, 3, 1> PointOnGeometryOnCurveType;
@@ -83,6 +84,9 @@ class CadJsonInput : public IO
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
     typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
+    typedef DenseVector<typename BrepCurveOnLocalRefinedSurfaceType::Pointer> BrepCurveOnLocalRefinedSurfaceArrayType;
+    typedef DenseVector<typename BrepCurveOnLocalRefinedSurfaceType::Pointer> BrepCurveOnLocalRefinedSurfaceLoopType;
+    typedef DenseVector<DenseVector<typename BrepCurveOnLocalRefinedSurfaceType::Pointer>> BrepCurveOnLocalRefinedSurfaceLoopArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -252,16 +256,18 @@ private:
 
         if (rParameters.Has("boundary_loops"))
         {
-            BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
-            tie(outer_loops, inner_loops) =
-                ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
-
             if (is_local_refinement)
             {
+                BrepCurveOnLocalRefinedSurfaceLoopArrayType outer_loops, inner_loops;
+                tie(outer_loops, inner_loops) =
+                    ReadLocalRefinedBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
                 p_brep_surface = ReadLocalRefinement(p_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel, outer_loops, inner_loops);
             }
             else
             {
+                BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
+                tie(outer_loops, inner_loops) =
+                    ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
                 p_brep_surface = Kratos::make_shared<BrepSurfaceType>(
                     p_surface, outer_loops, inner_loops, is_trimmed);
             }
@@ -319,6 +325,27 @@ private:
         return trimming_brep_curve_vector;
     }
 
+    static BrepCurveOnLocalRefinedSurfaceLoopType ReadLocalRefinedTrimmingCurveVector(
+        const Parameters rParameters,
+        typename NurbsSurfaceType::Pointer pNurbsSurface,
+        ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType,
+        SizeType EchoLevel = 0)
+    {
+        KRATOS_ERROR_IF(rParameters.size() < 1)
+            << "Trimming curve list has no element." << std::endl;
+
+        BrepCurveOnLocalRefinedSurfaceLoopType trimming_brep_curve_vector(rParameters.size());
+
+        for (IndexType tc_idx = 0; tc_idx < rParameters.size(); tc_idx++)
+        {
+            trimming_brep_curve_vector[tc_idx] = ReadLocalRefinedTrimmingCurve(
+                rParameters[tc_idx], pNurbsSurface, rModelPart, ProjectionAlgorithmType, EchoLevel);
+        }
+
+        return trimming_brep_curve_vector;
+    }
+
     static typename BrepCurveOnSurfaceType::Pointer ReadTrimmingCurve(
         const Parameters rParameters,
         typename NurbsSurfaceType::Pointer pNurbsSurface,
@@ -352,6 +379,38 @@ private:
         return p_brep_curve_on_surface;
     }
 
+    static typename BrepCurveOnLocalRefinedSurfaceType::Pointer ReadLocalRefinedTrimmingCurve(
+        const Parameters rParameters,
+        typename NurbsSurfaceType::Pointer pNurbsSurface,
+        ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType,
+        SizeType EchoLevel = 0)
+    {
+        KRATOS_ERROR_IF_NOT(rParameters.Has("curve_direction"))
+            << "Missing 'curve_direction' in nurbs curve" << std::endl;
+        bool curve_direction = rParameters["curve_direction"].GetBool();
+
+        KRATOS_ERROR_IF_NOT(rParameters.Has("parameter_curve"))
+            << "Missing 'parameter_curve' in nurbs curve" << std::endl;
+
+        auto p_trimming_curve(ReadNurbsCurve<2, TEmbeddedNodeType>(
+            rParameters["parameter_curve"], rModelPart, ProjectionAlgorithmType, EchoLevel));
+
+        KRATOS_ERROR_IF_NOT(rParameters["parameter_curve"].Has("active_range"))
+            << "Missing 'active_range' in parameter_curve, in trimming curve." << std::endl;
+        Vector active_range_vector = rParameters["parameter_curve"]["active_range"].GetVector();
+        NurbsInterval brep_active_range(active_range_vector[0], active_range_vector[1]);
+
+        auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnLocalRefinedSurfaceType>(
+            pNurbsSurface, p_trimming_curve, brep_active_range, curve_direction);
+
+        if (rParameters.Has("trim_index")) {
+            p_brep_curve_on_surface->SetId(rParameters["trim_index"].GetInt());
+        }
+
+        return p_brep_curve_on_surface;
+    }
+
     static std::tuple<BrepCurveOnSurfaceLoopArrayType, BrepCurveOnSurfaceLoopArrayType>
         ReadBoundaryLoops(
             const Parameters rParameters,
@@ -374,6 +433,50 @@ private:
                 << "Missing 'trimming_curves' in boundary loops"
                 << bl_idx << " loop." << std::endl;
             auto trimming_curves(ReadTrimmingCurveVector(
+                rParameters[bl_idx]["trimming_curves"], pNurbsSurface, rModelPart, ProjectionAlgorithmType, EchoLevel));
+
+            if (loop_type == "outer")
+            {
+                outer_loops.resize(outer_loops.size() + 1);
+                outer_loops[outer_loops.size() - 1] = trimming_curves;
+            }
+            else if (loop_type == "inner")
+            {
+                inner_loops.resize(inner_loops.size() + 1);
+                inner_loops[inner_loops.size() - 1] = trimming_curves;
+            }
+            else
+            {
+                KRATOS_ERROR << "Loop type: " << loop_type
+                    << " is not supported." << std::endl;
+            }
+        }
+
+        return std::make_tuple(outer_loops, inner_loops);
+    }
+
+    static std::tuple<BrepCurveOnLocalRefinedSurfaceLoopArrayType, BrepCurveOnLocalRefinedSurfaceLoopArrayType>
+        ReadLocalRefinedBoundaryLoops(
+            const Parameters rParameters,
+            typename NurbsSurfaceType::Pointer pNurbsSurface,
+            ModelPart& rModelPart,
+            ProjectionAlgorithm ProjectionAlgorithmType,
+            SizeType EchoLevel = 0)
+    {
+        BrepCurveOnLocalRefinedSurfaceLoopArrayType outer_loops;
+        BrepCurveOnLocalRefinedSurfaceLoopArrayType inner_loops;
+
+        for (IndexType bl_idx = 0; bl_idx < rParameters.size(); bl_idx++)
+        {
+            KRATOS_ERROR_IF_NOT(rParameters[bl_idx].Has("loop_type"))
+                << "Missing 'loop_type' in boundary loops, in "
+                << bl_idx << " loop." << std::endl;
+            std::string loop_type = rParameters[bl_idx]["loop_type"].GetString();
+
+            KRATOS_ERROR_IF_NOT(rParameters[bl_idx].Has("trimming_curves"))
+                << "Missing 'trimming_curves' in boundary loops"
+                << bl_idx << " loop." << std::endl;
+            auto trimming_curves(ReadLocalRefinedTrimmingCurveVector(
                 rParameters[bl_idx]["trimming_curves"], pNurbsSurface, rModelPart, ProjectionAlgorithmType, EchoLevel));
 
             if (loop_type == "outer")
@@ -427,8 +530,8 @@ private:
         const Parameters rLocalRefParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0,
-        BrepCurveOnSurfaceLoopArrayType OuterLoops = {},
-        BrepCurveOnSurfaceLoopArrayType InnerLoops = {})
+        BrepCurveOnLocalRefinedSurfaceLoopArrayType OuterLoops = {},
+        BrepCurveOnLocalRefinedSurfaceLoopArrayType InnerLoops = {})
     {
         const IndexType brep_id = rFaceParameters["brep_id"].GetInt();
 
