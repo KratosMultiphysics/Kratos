@@ -17,6 +17,7 @@
 // Project includes
 #include "geometries/geometry.h"
 #include "geometries/brep_curve_on_surface.h"
+#include "geometries/brep_curve_on_local_refined_surface.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "utilities/geometry_utilities/brep_trimming_utilities.h"
 
@@ -67,6 +68,13 @@ public:
     typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>>
         BrepCurveOnSurfaceLoopArrayType;
 
+    typedef BrepCurveOnLocalRefinedSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>
+        BrepCurveOnLocalRefinedSurfaceType;
+    typedef DenseVector<typename BrepCurveOnLocalRefinedSurfaceType::Pointer>
+        BrepCurveOnLocalRefinedSurfaceLoopType;
+    typedef DenseVector<DenseVector<typename BrepCurveOnLocalRefinedSurfaceType::Pointer>>
+        BrepCurveOnLocalRefinedSurfaceLoopArrayType;
+
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
@@ -90,8 +98,8 @@ public:
     /// Constructor for trimmed locally-refined patch.
     LocalRefinedBrepSurface(
         typename LocalRefinedSurfaceType::Pointer pLocalRefinedSurface,
-        const BrepCurveOnSurfaceLoopArrayType& rOuterLoopArray,
-        const BrepCurveOnSurfaceLoopArrayType& rInnerLoopArray,
+        const BrepCurveOnLocalRefinedSurfaceLoopArrayType& rOuterLoopArray,
+        const BrepCurveOnLocalRefinedSurfaceLoopArrayType& rInnerLoopArray,
         bool IsTrimmed = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpLocalRefinedSurface(pLocalRefinedSurface)
@@ -194,8 +202,8 @@ public:
         return mpLocalRefinedSurface;
     }
 
-    const BrepCurveOnSurfaceLoopArrayType& GetOuterLoops() const { return mOuterLoopArray; }
-    const BrepCurveOnSurfaceLoopArrayType& GetInnerLoops() const { return mInnerLoopArray; }
+    const BrepCurveOnLocalRefinedSurfaceLoopArrayType& GetOuterLoops() const { return mOuterLoopArray; }
+    const BrepCurveOnLocalRefinedSurfaceLoopArrayType& GetInnerLoops() const { return mInnerLoopArray; }
 
     ///@}
     ///@name Mathematical Informations
@@ -374,8 +382,8 @@ private:
 
     typename LocalRefinedSurfaceType::Pointer mpLocalRefinedSurface;
 
-    BrepCurveOnSurfaceLoopArrayType mOuterLoopArray;
-    BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
+    BrepCurveOnLocalRefinedSurfaceLoopArrayType mOuterLoopArray;
+    BrepCurveOnLocalRefinedSurfaceLoopArrayType mInnerLoopArray;
 
     bool mIsTrimmed = false;
 
