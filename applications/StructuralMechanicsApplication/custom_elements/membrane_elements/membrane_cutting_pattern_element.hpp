@@ -78,17 +78,17 @@ namespace Kratos
         PropertiesType::Pointer pProperties
         ) const override;
 
-    /*void EquationIdVector(
+    void EquationIdVector(
       EquationIdVectorType& rResult,
       const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
       DofsVectorType& ElementalDofList,
-      const ProcessInfo& rCurrentProcessInfo) const override;*/
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
-    /*void Initialize(const ProcessInfo& rCurrentProcessInfo) override;*/
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    /*void CalculateLeftHandSide(
+    void CalculateLeftHandSide(
       MatrixType& rLeftHandSideMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -106,7 +106,7 @@ namespace Kratos
       Vector& rValues,
       int Step = 0) const override;
 
-    void GetFirstDerivativesVector(
+    /*void GetFirstDerivativesVector(
       Vector& rValues,
       int Step = 0) const override;
 
@@ -159,31 +159,31 @@ namespace Kratos
     // functions for cutting-pattern generation
     // ---------------------------------------------------------------------
     
-    void Relaxation(
+    /*void Relaxation(
       MatrixType& rLeftHandSideMatrix, 
       VectorType& rRightHandSideVector, 
-      const ProcessInfo& rCurrentProcessInfo);
+      const ProcessInfo& rCurrentProcessInfo);*/
 
     void OptimizationLeastSquare(
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
       double& rResponse,
-      ConstitutiveLaw::Parameters& rValues);
+      const ProcessInfo& rCurrentProcessInfo);
 
     void StiffnessMatrixLeastSquare(
       Matrix& rStiffnessMatrix,
       const IntegrationMethod& ThisMethod,
-      ConstitutiveLaw::Parameters& rValues);
+      const ProcessInfo& rCurrentProcessInfo);
 
     void InternalForcesLeastSquare(
       Vector& rInternalForces, 
       const IntegrationMethod& ThisMethod, 
-      ConstitutiveLaw::Parameters& rValues);
+      const ProcessInfo& rCurrentProcessInfo);
 
     void ResponseFunctionLeastSquare(
       double& rResponseLS, 
       const IntegrationMethod& ThisMethod, 
-      ConstitutiveLaw::Parameters& rValues);
+      const ProcessInfo& rCurrentProcessInfo);
 
     void StrainEulerAlmansi(
       Matrix& rStrain,

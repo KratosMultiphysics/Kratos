@@ -62,8 +62,88 @@ namespace Kratos
   }
 
 
+  void MembraneCuttingPatternElement::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+  {
+    KRATOS_TRY;
+    
+    SizeType num_nodes, local_size;
+    SizeType local_index = 0;
+    
+    num_nodes = GetGeometry().size();
+    
+    local_size = num_nodes * 3;
+    
+    const SizeType d_pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+    
+    if (rResult.size() != local_size)
+      rResult.resize(local_size, false);
+    
+      for (SizeType i_node = 0; i_node < num_nodes; ++i_node)
+      {
+        rResult[local_index++] = this->GetGeometry()[i_node].GetDof(DISPLACEMENT_X, d_pos).EquationId();
+        rResult[local_index++] = this->GetGeometry()[i_node].GetDof(DISPLACEMENT_Y, d_pos + 1).EquationId();
+        rResult[local_index++] = this->GetGeometry()[i_node].GetDof(DISPLACEMENT_Z, d_pos + 2).EquationId();
+      }
+      
+      KRATOS_CATCH("")
+    }
 
-  void MembraneCuttingPatternElement::Relaxation(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) {
+
+
+void MembraneCuttingPatternElement::GetDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    SizeType num_nodes, local_size;
+    num_nodes = GetGeometry().size();
+    local_size = num_nodes * 3;
+
+    if (rElementalDofList.size() != local_size)
+        rElementalDofList.resize(local_size);
+
+    SizeType local_index = 0;
+
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node)
+    {
+        rElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(DISPLACEMENT_Y);
+        rElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(DISPLACEMENT_Z);
+    }
+}
+
+
+void MembraneCuttingPatternElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
+
+        //Constitutive Law initialisation
+        if ( mConstitutiveLawVector.size() != integration_points.size() )
+            mConstitutiveLawVector.resize( integration_points.size() );
+
+        if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+            const GeometryType& r_geometry = GetGeometry();
+            const Properties& r_properties = GetProperties();
+            const auto& N_values = r_geometry.ShapeFunctionsValues(GetIntegrationMethod());
+            for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+                mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+                mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
+            }
+        } else {
+            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+        }
+
+    }
+    KRATOS_CATCH( "" )
+}
+
+
+  /*void MembraneCuttingPatternElement::Relaxation(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) {
 
   
     KRATOS_TRY;
@@ -89,10 +169,70 @@ namespace Kratos
 
 
     KRATOS_CATCH("");
-  }
+  }*/
 
 
-  void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, double& rResponse, ConstitutiveLaw::Parameters& rValues) {
+  void MembraneCuttingPatternElement::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+
+{
+    TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
+}
+
+
+void MembraneCuttingPatternElement::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType system_size = number_of_nodes * dimension;
+
+    Vector internal_forces = ZeroVector(system_size);
+    InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
+    rRightHandSideVector.resize(system_size);
+    noalias(rRightHandSideVector) = ZeroVector(system_size);
+    noalias(rRightHandSideVector) -= internal_forces;
+    //CalculateAndAddBodyForce(rRightHandSideVector,rCurrentProcessInfo);
+}
+
+
+void MembraneCuttingPatternElement::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+
+{
+    CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
+    CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
+}
+
+
+void MembraneCuttingPatternElement::GetValuesVector(
+    Vector& rValues,
+    int Step) const
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType mat_size = number_of_nodes * dimension;
+
+    if (rValues.size() != mat_size)
+        rValues.resize(mat_size, false);
+
+    for (SizeType i = 0; i < number_of_nodes; i++)
+    {
+        const array_1d<double, 3>& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        const SizeType index = i * 3;
+        rValues[index] = disp[0];
+        rValues[index + 1] = disp[1];
+        rValues[index + 2] = disp[2];
+    }
+}
+
+
+void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, double& rResponse, const ProcessInfo& rCurrentProcessInfo) {
 
 
     KRATOS_TRY;
@@ -110,17 +250,17 @@ namespace Kratos
 
     rResponse = 0.0;
 
-    this->StiffnessMatrixLeastSquare(rLeftHandSideMatrix, integration_method, rValues);
+    this->StiffnessMatrixLeastSquare(rLeftHandSideMatrix, integration_method, rCurrentProcessInfo);
     
-    this->InternalForcesLeastSquare(rRightHandSideVector, integration_method, rValues);
+    this->InternalForcesLeastSquare(rRightHandSideVector, integration_method, rCurrentProcessInfo);
 
-    this->ResponseFunctionLeastSquare(rResponse, integration_method, rValues);
+    this->ResponseFunctionLeastSquare(rResponse, integration_method, rCurrentProcessInfo);
 
     KRATOS_CATCH("");
   }
 
 
-  void MembraneCuttingPatternElement::StiffnessMatrixLeastSquare(Matrix& rStiffnessMatrix, const IntegrationMethod& ThisMethod, ConstitutiveLaw::Parameters& rValues) {
+  void MembraneCuttingPatternElement::StiffnessMatrixLeastSquare(Matrix& rStiffnessMatrix, const IntegrationMethod& ThisMethod, const ProcessInfo& rCurrentProcessInfo) {
 
     const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -132,8 +272,8 @@ namespace Kratos
 
     const double thickness = GetProperties()[THICKNESS];
 
-    double young_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
-    double poisson_ratio = rValues.GetMaterialProperties()[POISSON_RATIO];
+    double young_modulus = GetProperties()[YOUNG_MODULUS];
+    double poisson_ratio = GetProperties()[POISSON_RATIO];
 
     array_1d<Vector, 2> current_covariant_base_vectors;
     Matrix covariant_metric_current = ZeroMatrix(2);
@@ -195,7 +335,7 @@ namespace Kratos
 
   
 
-  void MembraneCuttingPatternElement::InternalForcesLeastSquare(Vector& rInternalForces, const IntegrationMethod& ThisMethod, ConstitutiveLaw::Parameters& rValues) {
+  void MembraneCuttingPatternElement::InternalForcesLeastSquare(Vector& rInternalForces, const IntegrationMethod& ThisMethod, const ProcessInfo& rCurrentProcessInfo) {
 
 
      const auto& r_geom = GetGeometry();
@@ -209,8 +349,8 @@ namespace Kratos
 
      const double thickness = GetProperties()[THICKNESS];
 
-     double young_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
-     double poisson_ratio = rValues.GetMaterialProperties()[POISSON_RATIO];
+     double young_modulus = GetProperties()[YOUNG_MODULUS];
+     double poisson_ratio = GetProperties()[POISSON_RATIO];
 
      array_1d<Vector, 2> current_covariant_base_vectors;
      Matrix covariant_metric_current = ZeroMatrix(2);
@@ -263,7 +403,7 @@ namespace Kratos
   }
 
 
-  void MembraneCuttingPatternElement::ResponseFunctionLeastSquare(double& rResponseLS, const IntegrationMethod& ThisMethod, ConstitutiveLaw::Parameters& rValues) {
+  void MembraneCuttingPatternElement::ResponseFunctionLeastSquare(double& rResponseLS, const IntegrationMethod& ThisMethod, const ProcessInfo& rCurrentProcessInfo) {
 
      const auto& r_geom = GetGeometry();
      const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -273,8 +413,8 @@ namespace Kratos
 
      const double thickness = GetProperties()[THICKNESS];
 
-     double young_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
-     double poisson_ratio = rValues.GetMaterialProperties()[POISSON_RATIO];
+     double young_modulus = GetProperties()[YOUNG_MODULUS];
+     double poisson_ratio = GetProperties()[POISSON_RATIO];
 
      array_1d<Vector, 2> current_covariant_base_vectors;
 
