@@ -16,10 +16,9 @@
 
 // Project includes
 #include "geometries/geometry.h"
-#include "geometries/brep_curve_on_surface.h"
 #include "geometries/brep_curve_on_local_refined_surface.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
-#include "utilities/geometry_utilities/brep_trimming_utilities.h"
+#include "utilities/geometry_utilities/local_refined_brep_trimming_utilities.h"
 
 namespace Kratos
 {
@@ -58,15 +57,8 @@ public:
 
     typedef TLocalRefinedSurfaceType LocalRefinedSurfaceType;
 
-    typedef BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>
-        BrepCurveOnSurfaceType;
-    typedef BrepTrimmingUtilities<TShiftedBoundary>
+    typedef LocalRefinedBrepTrimmingUtilities<TShiftedBoundary>
         BrepTrimmingUtilitiesType;
-
-    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
-    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
-    typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>>
-        BrepCurveOnSurfaceLoopArrayType;
 
     typedef BrepCurveOnLocalRefinedSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>
         BrepCurveOnLocalRefinedSurfaceType;
