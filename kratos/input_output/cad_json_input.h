@@ -176,7 +176,7 @@ private:
                 << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
                 << "\" - edges." << std::endl;
             if (rParameters[brep_index].Has("edges")) {
-                ReadBrepCurveOnSurfaces(rParameters[brep_index]["edges"], rModelPart, ProjectionAlgorithmType, EchoLevel);
+                ReadBrepCurveOnSurfaces(rParameters[brep_index]["edges"], rModelPart, ProjectionAlgorithmType, rLocalRefParameters, EchoLevel);
             }
         }
 
@@ -607,6 +607,7 @@ private:
         const Parameters rParameters,
         ModelPart& rModelPart,
         ProjectionAlgorithm ProjectionAlgorithmType,
+        const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(rParameters.IsArray())
@@ -617,7 +618,7 @@ private:
 
         for (IndexType i = 0; i < rParameters.size(); i++)
         {
-            ReadBrepEdge(rParameters[i], rModelPart, ProjectionAlgorithmType, EchoLevel);
+            ReadBrepEdge(rParameters[i], rModelPart, ProjectionAlgorithmType, rLocalRefParameters, EchoLevel);
         }
     }
 
@@ -625,6 +626,7 @@ private:
         const Parameters rParameters,
         ModelPart& rModelPart,
         ProjectionAlgorithm ProjectionAlgorithmType,
+        const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters))
@@ -638,7 +640,7 @@ private:
             }
             else if (rParameters["topology"].size() == 1)
             {
-                ReadBrepEdgeBrepCurveOnSurface(rParameters, rModelPart, EchoLevel);
+                ReadBrepEdgeBrepCurveOnSurface(rParameters, rModelPart, rLocalRefParameters, EchoLevel);
             }
             else { // More than one topology means that a coupling geometry is required.
                 ReadCouplingGeometry(rParameters, rModelPart, EchoLevel);
@@ -675,6 +677,7 @@ private:
     static void ReadBrepEdgeBrepCurveOnSurface(
         const Parameters & rParameters,
         ModelPart & rModelPart,
+        const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
         KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 3))
@@ -692,12 +695,39 @@ private:
         GeometryPointerType p_brep_trim =
             p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
 
-        auto p_brep_curve_on_surface
-            = dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_trim);
-        KRATOS_ERROR_IF(p_brep_curve_on_surface == nullptr)
-            << "dynamic_cast from Geometry to BrepCurveOnSurface not successfull. Brep Id: "
-            << GetIdOrName(rParameters["topology"][0]) << " and trim index: "
-            << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
+        bool is_local_refinement = false;
+        if (rLocalRefParameters.Has("breps") && rParameters["topology"][0].Has("brep_id")) {
+            const IndexType face_brep_id = rParameters["topology"][0]["brep_id"].GetInt();
+            const Parameters breps = rLocalRefParameters["breps"];
+            for (IndexType i = 0; i < breps.size(); ++i) {
+                if (breps[i].Has("brep_id") && (IndexType)breps[i]["brep_id"].GetInt() == face_brep_id) {
+                    is_local_refinement = breps[i].Has("locally_refined") && breps[i]["locally_refined"].GetBool();
+                    break;
+                }
+            }
+        }
+
+        typename BrepCurveOnLocalRefinedSurfaceType::NurbsCurveOnSurfacePointerType p_nurbs_curve_on_surface;
+        NurbsInterval brep_nurbs_interval;
+        if (is_local_refinement) {
+            auto p_brep_curve_on_local_refined_surface
+                = dynamic_pointer_cast<BrepCurveOnLocalRefinedSurfaceType>(p_brep_trim);
+            KRATOS_ERROR_IF(p_brep_curve_on_local_refined_surface == nullptr)
+                << "dynamic_cast from Geometry to BrepCurveOnLocalRefinedSurface not successfull. Brep Id: "
+                << GetIdOrName(rParameters["topology"][0]) << " and trim index: "
+                << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
+            p_nurbs_curve_on_surface = p_brep_curve_on_local_refined_surface->pGetCurveOnSurface();
+            brep_nurbs_interval = p_brep_curve_on_local_refined_surface->DomainInterval();
+        } else {
+            auto p_brep_curve_on_surface
+                = dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_trim);
+            KRATOS_ERROR_IF(p_brep_curve_on_surface == nullptr)
+                << "dynamic_cast from Geometry to BrepCurveOnSurface not successfull. Brep Id: "
+                << GetIdOrName(rParameters["topology"][0]) << " and trim index: "
+                << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
+            p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
+            brep_nurbs_interval = p_brep_curve_on_surface->DomainInterval();
+        }
 
         bool relative_direction = true;
         if (rParameters["topology"][0].Has("relative_direction")) {
@@ -709,10 +739,6 @@ private:
                 << "\" from geometry: \"" << GetIdOrName(rParameters["topology"][0])
                 << "\", no relative_direction is provided in the input." << std::endl;
         }
-
-        auto p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
-
-        auto brep_nurbs_interval = p_brep_curve_on_surface->DomainInterval();
         auto p_bre_edge_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
             p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
 
