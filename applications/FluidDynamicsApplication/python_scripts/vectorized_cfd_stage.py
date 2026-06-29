@@ -865,7 +865,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # #print(f"Apply DIRICHLET time: {time.perf_counter() - t0}")
         # return vnew
 
-    def SolveStep2(self, vfrac, p, dt, add_compressibility=False):
+    def SolveStep2(self, vfrac, p, dt, add_compressibility=False, first_order_splitting=False):
 
         nelem = self.DN.shape[0]
 
@@ -910,11 +910,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         rhs_el = self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel_frac, out=self.pool.Get(1,(nelem,self.n_in_el)))
         xp.negative(rhs_el, out=rhs_el) # in-place negation to avoid allocation
 
-        # (coef*dt/rho + tau)*(∇q,∇pold) = (coef*dt/rho + tau)*Lij*pj
-        aux_scalar = self.cfd_utils.ApplyLaplacian(self.DN, pel, out=self.pool.Get(0,(nelem,self.n_in_el)))
-        aux_scalar *= (p_factor * dt / self.rho)
-        rhs_el += aux_scalar
-        self.pool.Release(aux_scalar)
+        # (coef*dt/rho)*(∇q,∇pold) = (coef*dt/rho)*Lij*pj
+        if not first_order_splitting:
+            aux_scalar = self.cfd_utils.ApplyLaplacian(self.DN, pel, out=self.pool.Get(0,(nelem,self.n_in_el)))
+            aux_scalar *= (p_factor * dt / self.rho)
+            rhs_el += aux_scalar
+            self.pool.Release(aux_scalar)
 
         # (1/kappa*dt) * M * p_old
         if add_compressibility:
@@ -1035,20 +1036,20 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v_old_dirichlet = (vold.ravel()[self.fix_vel_indices]).copy()
 
         #TODO: allocate this once and reuse it
-        vold_backup = xp.empty_like(vold)
-        pold_backup = xp.empty_like(pold)
         vnew = xp.empty_like(vold)
 
         # Perform substepping
         self.update_precond = True # Update preconditioner at the first substep
         current_time = self.time - self.dt
         while (self.time - current_time > 1.0e-12):
-            # If startup_first_order_splitting is True, we reset the old pressure to zero
+            # If startup_first_order_splitting is True, we reset the old pressure to zero (note that this does not apply to compressibility terms)
             # Note that this essentially turns the scheme into first order as the pressure does not appear in the fractional step calculation
             # This is useful if we want to ensure that the pressure correction is computed from scratch at each step
+            p_zero = xp.zeros_like(pold)
+            first_order_splitting = False
             if (self.startup_first_order_splitting and self.time < self.startup_time):
-                KM.Logger.PrintInfo(self.__class__.__name__,f"\tStartup first order splitting is enabled. Resetting old pressure to zero.")
-                pold.fill(0.0)
+                first_order_splitting = True
+                KM.Logger.PrintInfo(self.__class__.__name__,f"\tStartup first order splitting is enabled.")
 
             # Explicitly backup the state once per substep
             backup_current_time = current_time
@@ -1092,7 +1093,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 self.tau_1, self.tau_2 = self.ComputeTau(self.h, rho_conv, self.dyn_visc, self.rho, substep_dt)
 
                 # Perform fractional step
-                vfrac = self.SolveStep1(vold, v_dirichlet, pold, b, substep_dt)
+                if not first_order_splitting:
+                    vfrac = self.SolveStep1(vold, v_dirichlet, pold, b, substep_dt)
+                else:
+                    vfrac = self.SolveStep1(vold, v_dirichlet, p_zero, b, substep_dt)
 
                 ##check if velocity increased significantly after step 1, if so, reduce CFL and repeat step 1
                 if(self.clear_divergence_steps == 0): # if we are clearing divergence, we expect some velocity increase, so skip the check
@@ -1122,9 +1126,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             add_compressibility = (self.clear_divergence_steps == 0 and self.time > self.startup_time) if self.compressibility is not None else False
             if self.compressibility:
                 KM.Logger.PrintInfo(self.__class__.__name__,f"\tAdding compressibility to pressure solve: {add_compressibility}.")
-            p, is_converged = self.SolveStep2(vfrac, pold, substep_dt, add_compressibility=add_compressibility)
+            p, is_converged = self.SolveStep2(vfrac, pold, substep_dt, add_compressibility=add_compressibility, first_order_splitting=first_order_splitting)
             if self.clear_divergence_steps > 0 or is_converged: # proceed in any case if it is the initial divergence clearance step, as pressure solver may not converge (stricter tolerance)
-                delta_p = p - pold
+                delta_p = p - pold if not first_order_splitting else p
             else:
                 KM.Logger.PrintWarning(self.__class__.__name__,f"Pressure solve failed to converge. Current CFL: {self.cfl:.3e}. Repeating full step with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
                 current_time = backup_current_time # reset current time to before step 3 to repeat it with the new CFL
