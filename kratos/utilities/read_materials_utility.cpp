@@ -21,7 +21,15 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/read_and_set_accessors_utilities.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos {
+static const auto model_part_name_key = "model_part_name"s;
+static const auto model_part_name_list_key = "model_part_name_list"s;
+static const auto properties_key = "properties"s;
+
 namespace {
 
 template <class TValueType>
@@ -125,22 +133,22 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
     CheckUniqueMaterialAssignment(Materials);
 
     // We create first the properties (to avoid property creation duplication when assigning subproperties)
-    for (IndexType i = 0; i < Materials["properties"].size(); ++i) {
-        Parameters material = Materials["properties"].GetArrayItem(i);
+    for (IndexType i = 0; i < Materials[properties_key].size(); ++i) {
+        Parameters material = Materials[properties_key].GetArrayItem(i);
 
-        // Get the properties for the specified model part.
-        ModelPart& r_model_part = mrModel.GetModelPart(material["model_part_name"].GetString());
+        // Get the properties for the (first) specified model part.
+        ModelPart& r_first_model_part = mrModel.GetModelPart(GetTargetModelPartNames(material).front());
         const IndexType property_id = material["properties_id"].GetInt();
-        const bool has_properties = r_model_part.RecursivelyHasProperties(property_id);
+        const bool has_properties = r_first_model_part.RecursivelyHasProperties(property_id);
         KRATOS_WARNING_IF("ReadMaterialsUtility", has_properties) << "WARNING:: The properties ID: " << property_id
-            << " is already defined in model part " << material["model_part_name"].GetString()
+            << " is already defined in model part " << r_first_model_part.Name()
             <<". This will overwrite the existing values" << std::endl;
-        Properties::Pointer p_prop = has_properties ? r_model_part.pGetProperties(property_id) : r_model_part.CreateNewProperties(property_id);
+        Properties::Pointer p_prop = has_properties ? r_first_model_part.pGetProperties(property_id) : r_first_model_part.CreateNewProperties(property_id);
     }
 
     // Now we assign the property block
-    for (IndexType i = 0; i < Materials["properties"].size(); ++i) {
-        Parameters material = Materials["properties"].GetArrayItem(i);
+    for (IndexType i = 0; i < Materials[properties_key].size(); ++i) {
+        Parameters material = Materials[properties_key].GetArrayItem(i);
         AssignPropertyBlock(material);
     }
 
@@ -436,13 +444,20 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 {
     KRATOS_TRY;
 
-    // Get the properties for the specified model part.
-    ModelPart& r_model_part = mrModel.GetModelPart(Data["model_part_name"].GetString());
+    // Make sure all model parts associated with this material have the same properties
+    const auto model_part_names = GetTargetModelPartNames(Data);
+    ModelPart& r_first_model_part = mrModel.GetModelPart(model_part_names.front());
     const IndexType property_id = Data["properties_id"].GetInt();
+    auto p_properties = r_first_model_part.pGetProperties(property_id);
+    for (auto it = model_part_names.begin() + 1; it != model_part_names.end(); ++it) {
+        mrModel.GetModelPart(*it).AddProperties(p_properties);
+    }
+
+    // Get the properties for the (first) specified model part.
     Parameters material_data = Data["Material"];
     Properties::Pointer p_prop;
-    if (r_model_part.RecursivelyHasProperties(property_id)) {
-        p_prop = r_model_part.pGetProperties(property_id);
+    if (r_first_model_part.RecursivelyHasProperties(property_id)) {
+        p_prop = r_first_model_part.pGetProperties(property_id);
 
         // Compute the size using the iterators
         std::size_t variables_size = 0;
@@ -463,31 +478,32 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
         KRATOS_WARNING_IF("ReadMaterialsUtility", tables_size > 0 && p_prop->HasTables())
             << "WARNING:: The properties ID: " << property_id << " already has tables." << std::endl;
     } else {
-        p_prop = r_model_part.CreateNewProperties(property_id);
+        p_prop = r_first_model_part.CreateNewProperties(property_id);
     }
 
     // Assign the p_properties to the model part's elements and conditions.
-    auto& r_elements_array = r_model_part.Elements();
-    auto& r_conditions_array = r_model_part.Conditions();
+    for (const auto& r_name : model_part_names) {
+        auto& r_model_part = mrModel.GetModelPart(r_name);
 
-    block_for_each(
-        r_elements_array,
-        [&p_prop](Element& rElement)
-        { rElement.SetProperties(p_prop); }
-    );
+        block_for_each(
+            r_model_part.Elements(),
+            [&p_prop](Element& rElement)
+            { rElement.SetProperties(p_prop); }
+        );
 
-    block_for_each(
-        r_conditions_array,
-        [&p_prop](Condition& rCondition)
-        { rCondition.SetProperties(p_prop); }
-    );
+        block_for_each(
+            r_model_part.Conditions(),
+            [&p_prop](Condition& rCondition)
+            { rCondition.SetProperties(p_prop); }
+        );
+    }
 
     // Assigning the materials
     AssignMaterialToProperty(material_data, *p_prop);
 
     // If existing, creating SubProperties
     if (Data.Has("sub_properties")) {
-        CreateSubProperties(r_model_part, Data["sub_properties"], *p_prop);
+        CreateSubProperties(r_first_model_part, Data["sub_properties"], *p_prop);
     }
 
     KRATOS_CATCH("");
@@ -500,12 +516,13 @@ void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
 {
     KRATOS_TRY;
 
+    CheckSuppliedModelPartNames(Materials);
+
     // Save all ModelPartNames in a vector
     std::vector<std::string> model_part_names;
-    for (IndexType i = 0; i < Materials["properties"].size(); ++i) {
-        if (Materials["properties"].GetArrayItem(i).Has("model_part_name")) {
-            model_part_names.push_back(Materials["properties"].GetArrayItem(i)["model_part_name"].GetString());
-        }
+    for (IndexType i = 0; i < Materials[properties_key].size(); ++i) {
+        std::ranges::copy(GetTargetModelPartNames(Materials[properties_key].GetArrayItem(i)),
+                          std::back_inserter(model_part_names));
     }
 
     // Number of properties (not subproperties)
@@ -554,6 +571,25 @@ void ReadMaterialsUtility::CheckModelPartIsNotRepeated(std::vector<std::string> 
     const auto it = std::adjacent_find(ModelPartsNames.begin(), ModelPartsNames.end());
     KRATOS_ERROR_IF_NOT(it == ModelPartsNames.end()) << "Materials for ModelPart \""
         << *it << "\" are specified multiple times!" << std::endl;
+}
+
+void ReadMaterialsUtility::CheckSuppliedModelPartNames(const Parameters& rAllMaterialParameters)
+{
+    for (IndexType i = 0; i < rAllMaterialParameters[properties_key].size(); ++i) {
+        const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
+        const auto property_id = property["properties_id"s].GetInt();
+        KRATOS_ERROR_IF(property.Has(model_part_name_key) && property.Has(model_part_name_list_key))
+            << "Property " << property_id <<  " provides 'model_part_name' as well as 'model_part_name_list'. Please, remove one of them, since they are mutually exclusive.\n";
+        KRATOS_ERROR_IF(property.Has(model_part_name_list_key) && property[model_part_name_list_key].GetStringArray().empty())
+            << "At least one model part name must be provided for property " << property_id << std::endl;
+    }
+}
+
+std::vector<std::string> ReadMaterialsUtility::GetTargetModelPartNames(const Parameters& rMaterialParameters)
+{
+    return rMaterialParameters.Has(model_part_name_list_key)
+               ? rMaterialParameters[model_part_name_list_key].GetStringArray()
+               : std::vector{rMaterialParameters[model_part_name_key].GetString()};
 }
 
 }  // namespace Kratos.
