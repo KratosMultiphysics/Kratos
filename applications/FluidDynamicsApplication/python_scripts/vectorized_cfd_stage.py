@@ -182,7 +182,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         denom = xp.maximum(denom_max, c_2*rho*rho_conv + c_1*viscosity/h**2) #TODO: check if we can reuse Fourier and CFL numbers here
         xp.reciprocal(denom, out=tau_1)
         tau_2[:] = h**2/(c_1 * tau_1)
-
+        tau_2.fill(0.0) ##TODO: if we keep this we shall better remove the related parts
         # if self.clear_divergence_steps > 0:
         #     self.deactivate_pressure_stabilization = True
         #     self.force_first_order_splitting = True
@@ -1351,13 +1351,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             #set a stricter tolerance during the clear divergence steps.
             if(self.clear_divergence_steps > 0):
                 #precond = JacobiPreconditioner(self.L)
-                factor = 1e-6
+                factor =   1. #1e-6
                 exact_res_recalculation=1
                 self.preconditioner.update_matrix_values(self.L)
                 precond = self.preconditioner.aspreconditioner()
                 KM.Logger.PrintInfo(self.__class__.__name__, f"Solving pressure with stricter tolerance {factor*self.pressure_tolerance} during divergence clearance step.")
                 t0 = time.perf_counter()
-                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=None, rtol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
+                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
                 sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=None, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=500,xp=xp)
             else:
                 t0 = time.perf_counter()
@@ -1369,7 +1369,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 factor = 1.0
                 exact_res_recalculation=10
                 t0 = time.perf_counter()
-                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=None,maxiter=self.pressure_max_iteration)
+                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=self.pressure_max_iteration)
                 sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration,xp=xp)
 
             if (self.echo_level > 0):
