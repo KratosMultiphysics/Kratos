@@ -1363,8 +1363,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 precond = self.preconditioner.aspreconditioner()
                 KM.Logger.PrintInfo(self.__class__.__name__, f"Solving pressure with stricter tolerance {factor*self.pressure_tolerance} during divergence clearance step.")
                 t0 = time.perf_counter()
-                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
-                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=None, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=500,xp=xp)
+                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
+                #sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=None, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=500,xp=xp)
             else:
                 t0 = time.perf_counter()
                 self.preconditioner.update_matrix_values(self.L)
@@ -1375,8 +1375,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 factor = 1.0
                 exact_res_recalculation=10
                 t0 = time.perf_counter()
-                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=self.pressure_max_iteration)
-                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration,xp=xp)
+                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=None,maxiter=self.pressure_max_iteration)
+                #sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration,xp=xp)
 
             if (self.echo_level > 0):
                 KM.Logger.PrintInfo(self.__class__.__name__, f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
