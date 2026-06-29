@@ -1102,7 +1102,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             # STEP 2: Solve for pressure
             t2 = time.perf_counter()
             p, is_converged = self.SolveStep2(vfrac, pold, substep_dt)
-            if is_converged:
+            if self.clear_divergence_steps > 0 or is_converged: #proceed in any case if it is the initial divergence cleareance step, as pressure solver may not converge
                 delta_p = p - pold
             else:
                 print("pressure solve failed to converge ... redoing full step")
