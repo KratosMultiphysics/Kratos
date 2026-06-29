@@ -884,10 +884,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Calculate the Laplacian elemental contributions (including stabilization Laplacian) of the pressure LHS
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN, out=self.pool.Get(0,(nelem,self.n_in_el, self.n_in_el))) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
-        if (self.clear_divergence_steps == 0 and self.deactivate_pressure_stabilization == False):
-            coef = (p_factor * dt / self.rho + self.tau_1) * self.elemental_volumes
-        else:
+        # if (self.clear_divergence_steps == 0 and self.deactivate_pressure_stabilization == False):
+        #     coef = (p_factor * dt / self.rho + self.tau_1) * self.elemental_volumes
+        # else:
+        #     coef = (p_factor * dt / self.rho) * self.elemental_volumes
+        if (self.clear_divergence_steps > 0 or self.deactivate_pressure_stabilization):
             coef = (p_factor * dt / self.rho) * self.elemental_volumes
+        else:
+            coef = (p_factor * dt / self.rho + self.tau_1) * self.elemental_volumes
         L_el *= coef[:, None, None] # scale LHS elemental contributions
 
         # Account for compressibility in the pressure LHS: (1/kappa*dt) * M * (p - p_old) where M is the mass matrix and kappa is the bulk modulus
@@ -928,7 +932,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 raise ValueError(f"Weak compressibility value '{self.compressibility}' is not valid.")
 
         # -tau*(∇q,Pi_pressure)
-        if (self.clear_divergence_steps == 0 and self.deactivate_pressure_stabilization == False):
+        if not (self.clear_divergence_steps > 0 or self.deactivate_pressure_stabilization):
             aux_scalar = self.cfd_utils.ComputePressureStabilizationProjectionTerm(self.N, self.DN, pres_proj_el,out=self.pool.Get(0,(nelem,self.n_in_el)))
             aux_scalar *= self.tau_1[:,xp.newaxis]
             rhs_el -= aux_scalar
@@ -1125,7 +1129,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             if self.compressibility:
                 KM.Logger.PrintInfo(self.__class__.__name__,f"\tAdding compressibility to pressure solve: {add_compressibility}.")
             p, is_converged = self.SolveStep2(vfrac, pold, substep_dt, add_compressibility=add_compressibility)
-            if self.clear_divergence_steps > 0 or is_converged:
+            if is_converged:
                 delta_p = p - pold
             else:
                 KM.Logger.PrintWarning(self.__class__.__name__,f"Pressure solve failed to converge. Current CFL: {self.cfl:.3e}. Repeating full step with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
