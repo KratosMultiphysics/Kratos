@@ -783,7 +783,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             # Calculate current stage residual
             v_stage_el = self.ElemData(self.v_stage, self.connectivity, self.v_el)
             #v_stage_el_wall = self.ElemData(self.v_stage, self.connectivity_wall, out=self.v_el_wall)
-            self.ComputeVelocityResidual(v_stage_el, pel, b_el, conv_proj_el, div_proj_el, self.DN, self.tau_1, out=self.k[i])
+            self.ComputeVelocityResidual(v_stage_el, pel, b_el, conv_proj_el, div_proj_el, self.DN, None, out=self.k[i])
             #self.ComputeVelocityResidualWall(v_stage_el_wall, out=self.k[i])
             self.k[i].reshape(-1)[:] *= (1.0/self.rho) * self.Minv
 
@@ -884,17 +884,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Calculate the Laplacian elemental contributions (including stabilization Laplacian) of the pressure LHS
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN, out=self.pool.Get(0,(nelem,self.n_in_el, self.n_in_el))) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
-        # if (self.clear_divergence_steps == 0 and self.deactivate_pressure_stabilization == False):
-        #     coef = (p_factor * dt / self.rho + self.tau_1) * self.elemental_volumes
-        # else:
-        #     coef = (p_factor * dt / self.rho) * self.elemental_volumes
         if (self.clear_divergence_steps > 0 or self.deactivate_pressure_stabilization):
             coef = (p_factor * dt / self.rho) * self.elemental_volumes
         else:
             coef = (p_factor * dt / self.rho + self.tau_1) * self.elemental_volumes
         L_el *= coef[:, None, None] # scale LHS elemental contributions
 
-        # Account for compressibility in the pressure LHS: (1/kappa*dt) * M * (p - p_old) where M is the mass matrix and kappa is the bulk modulus
+        # Account for compressibility in the pressure LHS: (1/kappa*dt) * M, where M is the mass matrix and kappa is the bulk modulus
         if add_compressibility:
             compressibility_const = (self.elemental_volumes / (self.bulk_modulus * dt))
             if self.compressibility == "lumped": # Lumped mass matrix approximation for compressibility term
@@ -1056,8 +1052,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
             # Explicitly backup the state once per substep
             backup_current_time = current_time
-            vold_backup[:] = vold
-            pold_backup[:] = pold
 
             # Get maximum velocity magnitude from previous and current step
             # Note that we consider current substep as old one might be zero (e.g., starting from rest) or BCs might change the velocity significantly
@@ -1109,7 +1103,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                         repeat_step1 = True
                         self.cfl *= self.cfl_number_decrease_factor
                         current_time = backup_current_time
-                    elif(vmax_after_step1 > self.velocity_safety_factor * vmax):
+                    elif (vmax_after_step1 > self.velocity_safety_factor * vmax):
                         KM.Logger.PrintWarning(self.__class__.__name__,f"Local max velocity increased significantly after step 1: {vmax_after_step1:.3e} vs {vmax:.3e}. Current CFL: {self.cfl:.3e}. Repeating step 1 with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
                         repeat_step1 = True
                         self.cfl *= self.cfl_number_decrease_factor
@@ -1129,7 +1123,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             if self.compressibility:
                 KM.Logger.PrintInfo(self.__class__.__name__,f"\tAdding compressibility to pressure solve: {add_compressibility}.")
             p, is_converged = self.SolveStep2(vfrac, pold, substep_dt, add_compressibility=add_compressibility)
-            if is_converged:
+            if self.clear_divergence_steps > 0 or is_converged: # proceed in any case if it is the initial divergence clearance step, as pressure solver may not converge (stricter tolerance)
                 delta_p = p - pold
             else:
                 KM.Logger.PrintWarning(self.__class__.__name__,f"Pressure solve failed to converge. Current CFL: {self.cfl:.3e}. Repeating full step with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
@@ -1141,7 +1135,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
             # STEP 3: Calculate the new velocity
             t3 = time.perf_counter()
-            vnew = self.SolveStep3(vfrac, v_dirichlet, delta_p, substep_dt, out=vnew) # Note that vnew is assigned to vold in here for the next substep
+            vnew = self.SolveStep3(vfrac, v_dirichlet, delta_p, substep_dt, out=vnew)
             vmax_after_step3 = xp.max(xp.linalg.norm(vnew, axis=1))
             self.step_3_total_time += time.perf_counter() - t3
 
@@ -1152,7 +1146,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 current_time = backup_current_time
                 self.cfl *= self.cfl_number_decrease_factor
             else: # Solution is valid, check if we need to clear divergence or redo the step due to velocity explosion
-                if self.clear_divergence_steps: # If we are clearing divergence, we expect some velocity increase, so we skip the velocity explosion check and just clear the divergence
+                if self.clear_divergence_steps > 0: # If we are clearing divergence, we expect some velocity increase, so we skip the velocity explosion check and just clear the divergence
                     self.clear_divergence_steps -= 1
                     p.fill(0.0)
                     pold.fill(0.0)
@@ -1363,8 +1357,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 precond = self.preconditioner.aspreconditioner()
                 KM.Logger.PrintInfo(self.__class__.__name__, f"Solving pressure with stricter tolerance {factor*self.pressure_tolerance} during divergence clearance step.")
                 t0 = time.perf_counter()
-                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
-                #sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=None, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=500,xp=xp)
+                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=None, rtol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
+                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=None, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=500,xp=xp)
             else:
                 t0 = time.perf_counter()
                 self.preconditioner.update_matrix_values(self.L)
@@ -1375,8 +1369,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 factor = 1.0
                 exact_res_recalculation=10
                 t0 = time.perf_counter()
-                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=None,maxiter=self.pressure_max_iteration)
-                #sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration,xp=xp)
+                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=None,maxiter=self.pressure_max_iteration)
+                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration,xp=xp)
 
             if (self.echo_level > 0):
                 KM.Logger.PrintInfo(self.__class__.__name__, f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
