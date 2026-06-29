@@ -43,7 +43,7 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Constructor with Id and geometry
@@ -154,7 +154,7 @@ public:
 
     /**
      * @brief Get the solution coefficient at the previous time step in the two-dimensional case.
-     * 
+     *
      * @param rValues solution coefficients at the previous time step
      */
     void GetSolutionCoefficientVector(
@@ -236,21 +236,21 @@ void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 //@}
 /**
- * @brief 
- * 
+ * @brief
+ *
  */
 void InitializeMemberVariables();
 
 /**
- * @brief 
- * 
+ * @brief
+ *
  */
 void InitializeSbmMemberVariables();
 
 
 /**
- * @brief Calculate the B matrix for the element in the two-dimensional case.
- * 
+ * @brief Calculate the B matrix for the element case.
+ *
  * @param rB B matrix to be calculated
  * @param r_DN_DX The shape function derivatives in the global coordinate system
  */
@@ -259,54 +259,108 @@ void CalculateB(
     Matrix& r_DN_DX) const;
 
 /**
+ * @brief Calculate the traction vector for the condition
+ *
+ * @param rStressVector
+ * @param rNormal
+ * @param rTraction
+ */
+void CalculateTraction(
+    const Vector& rStressVector,
+    const array_1d<double, 3>& rNormal,
+    Vector& rTraction) const;
+
+/**
  * @brief Compute the constitutive law response for the given strain vector.
- * 
- * @param matSize 
- * @param rStrain 
- * @param rValues 
- * @param rConstitutiVariables 
+ *
+ * @param matSize
+ * @param rStrain
+ * @param rValues
+ * @param rConstitutiVariables
  */
 void ApplyConstitutiveLaw(
-        SizeType matSize, 
-        Vector& rStrain, 
+        SizeType matSize,
+        Vector& rStrain,
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiVariables);
 
 /**
- * @brief 
- * 
- * @param H_sum_vec 
+ * @brief
+ *
+ * @param H_sum_vec
  */
 void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
- * @param derivative 
- * @param dx 
- * @param k 
- * @param dy 
- * @param n_k 
- * @return double 
+ * @param derivative
+ * @param dx
+ * @param k
+ * @param dy
+ * @param n_k
+ * @return double
  */
 double ComputeTaylorTerm(
-    double derivative, 
-    double dx, IndexType k, 
+    double derivative,
+    double dx, IndexType k,
     double dy, IndexType n_k);
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
- * @param derivative 
- * @param dx 
- * @param k 
- * @param dy 
- * @param n_k 
- * @return double 
+ * @param derivative
+ * @param dx
+ * @param k
+ * @param dy
+ * @param n_k
+ * @return double
  */
 double ComputeTaylorTerm3D(
-    double derivative, 
-    double dx, IndexType k_x, 
-    double dy, IndexType k_y, 
+    double derivative,
+    double dx, IndexType k_x,
+    double dy, IndexType k_y,
     double dz, IndexType k_z);
+
+
+/**
+ * @brief Calculate the initial Jacobian matrix for the condition.
+ *
+ * @param rGeometry
+ * @param rJacobian
+ */
+void CalculateInitialJacobian(
+    const GeometryType& rGeometry, Matrix& rJacobian) const
+{
+    GeometryType::JacobiansType J0;
+    rGeometry.Jacobian(J0,this->GetIntegrationMethod());
+
+    switch (mDim) {
+        case 2:
+        {
+            rJacobian.resize(2,2);
+            rJacobian(0,0) = J0[0](0,0);
+            rJacobian(0,1) = J0[0](0,1);
+            rJacobian(1,0) = J0[0](1,0);
+            rJacobian(1,1) = J0[0](1,1);
+            return;
+        }
+        case 3:
+        {
+            rJacobian.resize(3,3);
+            rJacobian(0,0) = J0[0](0,0);
+            rJacobian(0,1) = J0[0](0,1);
+            rJacobian(0,2) = J0[0](0,2);
+            rJacobian(1,0) = J0[0](1,0);
+            rJacobian(1,1) = J0[0](1,1);
+            rJacobian(1,2) = J0[0](1,2);
+            rJacobian(2,0) = J0[0](2,0);
+            rJacobian(2,1) = J0[0](2,1);
+            rJacobian(2,2) = J0[0](2,2);
+            return;
+        }
+        default:
+            KRATOS_ERROR << "Dimension not supported: " << mDim << std::endl;
+    }
+}
 
 ///@name Protected member Variables
 ///@{

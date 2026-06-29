@@ -245,6 +245,30 @@ protected:
         const Vector& rKnotVectorU,
         const Vector& rKnotVectorV);
 
+    static void RetrieveOrCreateNodeInModelPart(
+        ModelPart& rModelPart,
+        const IndexType NodeId,
+        const int NodeI,
+        const int NodeJ,
+        const int NodeK,
+        const Vector& rKnotVectorU,
+        const Vector& rKnotVectorV,
+        const Vector& rKnotVectorW);
+
+    /**
+     * @brief Checks if a point is inside the given skin boundary.
+     * @param rPointToSearch The point to be checked.
+     * @param rPointsBin Spatial bins to search for nearby points.
+     * @param rSkinModelPartIn Input skin model part.
+     * @return True if the point is inside the boundary, false otherwise.
+     */
+    static bool IsPointInsideSkinBoundary3D(
+        const Point& rPointToSearch, 
+        DynamicBins& rPointsBin,
+        const ModelPart& rSkinModelPartIn
+        );
+
+
 private:
 
     /**
@@ -377,6 +401,21 @@ private:
         std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
         );
+
+    /**
+     * @brief Recomputes surrogate nodal normals from the orientation of 2-node conditions. (2D case)
+     */
+    static void SetSurrogateNormals2D(
+        ModelPart& rSurrogateModelPart
+        );
+
+    /**
+     * @brief Recomputes surrogate nodal normals from the orientation of 4-node conditions. (3D case)
+     */
+    static void SetSurrogateNormals3D(
+        ModelPart& rSurrogateModelPart
+        );
+
     
     /**
      * @brief Checks if the knot span is at the border of the parameter sapce
@@ -494,19 +533,6 @@ private:
         std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable
         );
 
-    /**
-     * @brief Checks if a point is inside the given skin boundary.
-     * @param rPointToSearch The point to be checked.
-     * @param rPointsBin Spatial bins to search for nearby points.
-     * @param rSkinModelPartIn Input skin model part.
-     * @return True if the point is inside the boundary, false otherwise.
-     */
-    static bool IsPointInsideSkinBoundary3D(
-        const Point& rPointToSearch, 
-        DynamicBins& rPointsBin,
-        const ModelPart& rSkinModelPartIn
-        );
-
     
     /**
      * @brief Create a Surrogate Buondary From Snake Inner 3 D object
@@ -560,6 +586,20 @@ private:
         std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
         );
+
+    
+    /**
+     * @brief IsKnotSpanFullyInsideSkinBoundary3D
+     * 
+     */
+    static bool IsKnotSpanFullyInsideSkinBoundary3D(
+        const int I,
+        const int J,
+        const int K,
+        DynamicBins& rPointsBin,
+        const ModelPart& rSkinModelPart,
+        const array_1d<double, 3>& rKnotStepUVW,
+        const Vector& rStartingPosition);
 
 }; // Class SnakeSbmProcess
 

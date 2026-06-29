@@ -73,25 +73,42 @@ void SolidElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
     // calculate the integration weight
     const auto& r_geometry = GetGeometry();
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-   
-    Matrix InvJ0(2,2);
+    
+    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    mDim = r_DN_De[0].size2();
+
+    Matrix InvJ0(mDim,mDim);
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
 
     double DetJ0;
-    Matrix Jacobian = ZeroMatrix(2,2);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
 
+    Matrix Jacobian;
+    CalculateInitialJacobian(r_geometry, Jacobian);
     // Calculating inverse jacobian and jacobian determinant
     MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
-    const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
-    const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+    switch (mDim) {
+        case 2:
+        {
+            const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
+            const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+            SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
 
-    SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
+            break;
+        }
+        case 3:
+        {
+            const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(DetJ0);
+            SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
+            break;
+        }
+        default:
+            KRATOS_ERROR << "Unsupported dimension for SolidElement: " << mDim << std::endl;
+    }
+
+    
+    
 }
 
 
@@ -137,11 +154,10 @@ void SolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
      // reading integration points and local gradients
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    const unsigned int dim = r_DN_De[0].size2();
-    const SizeType mat_size = number_of_control_points * dim;
+    const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
 
-    KRATOS_ERROR_IF(dim != 2) << "SolidElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2 && mDim != 3) << "SolidElement only supports 2D and 3D elements, but the current element has dimension " << mDim << std::endl;
 
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
@@ -150,20 +166,17 @@ void SolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
     //-------------------------------------------------------------------------
     // Initialize DN_DX
-    Matrix DN_DX(number_of_control_points,dim);
-    Matrix InvJ0(dim,dim);
+    Matrix DN_DX(number_of_control_points, mDim);
+    Matrix InvJ0(mDim,mDim);
 
     // Initialize Jacobian
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
 
     double DetJ0;
-    Matrix Jacobian = ZeroMatrix(2,2);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-
+    Matrix Jacobian;
+    CalculateInitialJacobian(r_geometry, Jacobian);
+   
     // Calculating inverse jacobian and jacobian determinant
     MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
     
@@ -172,7 +185,9 @@ void SolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
     auto N = row(N_gausspoint,0); // these are the N which correspond to the gauss point "i_point"
 
-    Matrix B = ZeroMatrix(dim,mat_size);
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+
+    Matrix B = ZeroMatrix(strain_size,mat_size);
     CalculateB(B, DN_DX);
 
     // Obtain the tangent costitutive law matrix
@@ -182,7 +197,6 @@ void SolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     GetSolutionCoefficientVector(old_displacement);
     Vector old_strain = prod(B,old_displacement);
 
-    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables(strain_size);
     ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
@@ -204,11 +218,10 @@ void SolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
     // reading integration points and local gradients
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    const unsigned int dim = r_DN_De[0].size2();
-    const SizeType mat_size = number_of_control_points * dim;
+    const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
 
-    KRATOS_ERROR_IF(dim != 2) << "SolidElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2 && mDim != 3) << "SolidElement only supports 2D and 3D elements, but the current element has dimension " << mDim << std::endl;
     
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != mat_size)
@@ -217,19 +230,16 @@ void SolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
     //-------------------------------------------------------------------------
     // Initialize DN_DX
-    Matrix DN_DX(number_of_control_points,2);
-    Matrix InvJ0(2,2);
+    Matrix DN_DX(number_of_control_points,mDim);
+    Matrix InvJ0(mDim,mDim);
 
     // Initialize Jacobian
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
 
     double DetJ0;
-    Matrix Jacobian = ZeroMatrix(2,2);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
+    Matrix Jacobian;
+    CalculateInitialJacobian(r_geometry, Jacobian);
 
     // Calculating inverse jacobian and jacobian determinant
     MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
@@ -239,7 +249,8 @@ void SolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
     auto N = row(N_gausspoint,0); // these are the N which correspond to the gauss point "i_point"
 
-    Matrix B = ZeroMatrix(3,mat_size);
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    Matrix B = ZeroMatrix(strain_size,mat_size);
     CalculateB(B, DN_DX);
 
     ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
@@ -248,7 +259,6 @@ void SolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
     GetSolutionCoefficientVector(old_displacement);
     Vector old_strain = prod(B,old_displacement);
 
-    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables(strain_size);
     ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
@@ -257,10 +267,12 @@ void SolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
     Vector volume_force_local = this->GetValue(BODY_FORCE);
     // // Calculating the local RHS
     for ( IndexType i = 0; i < number_of_control_points; ++i ) {
-        const SizeType index = 2* i;
+        const SizeType index = mDim * i;
 
-        for ( IndexType j = 0; j < 2; ++j )
-            rRightHandSideVector[index + j] += int_to_reference_weight * N[i] * volume_force_local[j];
+        for (IndexType j = 0; j < mDim; ++j) {
+            rRightHandSideVector[index + j] +=
+                int_to_reference_weight * N[i] * volume_force_local[j];
+        }
     }
 
     // RHS = ExtForces - K*temp;
@@ -278,15 +290,18 @@ void SolidElement::EquationIdVector(
 
         const SizeType number_of_control_points = GetGeometry().size();
 
-        if (rResult.size() != 2 * number_of_control_points)
-            rResult.resize(2 * number_of_control_points, false);
+        if (rResult.size() != mDim * number_of_control_points)
+            rResult.resize(mDim * number_of_control_points, false);
 
         const IndexType pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
-            const IndexType index = i * 2;
+            const IndexType index = i * mDim;
             rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos).EquationId();
             rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
+            if (mDim == 3) {
+                rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
+            }
         }
 
         KRATOS_CATCH("")
@@ -302,11 +317,14 @@ void SolidElement::EquationIdVector(
         const SizeType number_of_control_points = GetGeometry().size();
 
         rElementalDofList.resize(0);
-        rElementalDofList.reserve(2 * number_of_control_points);
+        rElementalDofList.reserve(mDim * number_of_control_points);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+            if (mDim == 3) {
+                rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+            }
         }
 
         KRATOS_CATCH("")
@@ -324,13 +342,21 @@ int SolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     else
     {
         // Verify that the constitutive law has the correct dimension
-        KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
-            << "THICKNESS not provided for element " << this->Id() << std::endl;
+        if (mDim == 2 && this->GetProperties()[CONSTITUTIVE_LAW]->GetStrainSize() != 3)
+        {
+            KRATOS_ERROR << "Wrong constitutive law used. This is a 2D element! Expected strain size is 3 (el id = ) "
+                         << this->Id() << std::endl;
+        }
+        else if (mDim == 3 && this->GetProperties()[CONSTITUTIVE_LAW]->GetStrainSize() != 6)
+        {
+            KRATOS_ERROR << "Wrong constitutive law used. This is a 3D element! Expected strain size is 6 (el id = ) "
+                         << this->Id() << std::endl;
+        }
 
-        // Check strain size
-        KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 3)
-            << "Wrong constitutive law used. This is a 2D element! Expected strain size is 3 (el id = ) "
-            << this->Id() << std::endl;
+        if (mDim == 2 && !this->GetProperties().Has(THICKNESS))
+        {
+            KRATOS_ERROR << "THICKNESS not provided for element " << this->Id() << std::endl;
+        }
     }
 
     return Element::Check(rCurrentProcessInfo);
@@ -358,21 +384,17 @@ void SolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());     
 
-    const SizeType mat_size = number_of_control_points * 2;
+    const SizeType mat_size = number_of_control_points * mDim;
 
     // Initialize DN_DX
-    const unsigned int dim = 2;
-    Matrix DN_DX(number_of_control_points,2);
-    Matrix InvJ0(dim,dim);
+    Matrix DN_DX(number_of_control_points,mDim);
+    Matrix InvJ0(mDim,mDim);
 
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     double DetJ0;
 
-    Matrix Jacobian = ZeroMatrix(2,2);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
+    Matrix Jacobian;
+    CalculateInitialJacobian(r_geometry, Jacobian);
 
     // Calculating inverse jacobian and jacobian determinant
     MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
@@ -381,13 +403,13 @@ void SolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     noalias(DN_DX) = prod(r_DN_De[0],InvJ0);
 
     // calculate the B matrix
-    Matrix B = ZeroMatrix(3,mat_size);
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    Matrix B = ZeroMatrix(strain_size,mat_size);
     CalculateB(B, DN_DX);
 
     // GET STRESS VECTOR
     ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
 
-    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
 
@@ -408,11 +430,16 @@ void SolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
 
     const Vector sigma = Values.GetStressVector();
-
-    SetValue(CAUCHY_STRESS_XX, sigma[0]);
-    SetValue(CAUCHY_STRESS_YY, sigma[1]);
-    SetValue(CAUCHY_STRESS_XY, sigma[2]);
-    // //---------------------
+    
+    if (mDim == 2) {
+        SetValue(CAUCHY_STRESS_XX, sigma[0]);
+        SetValue(CAUCHY_STRESS_YY, sigma[1]);
+        SetValue(CAUCHY_STRESS_XY, sigma[2]);
+    }
+    else if (mDim == 3) {
+        Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(sigma);
+        SetValue(CAUCHY_STRESS_TENSOR, stress_tensor);
+    }
 }
 
 void SolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
@@ -473,21 +500,38 @@ void SolidElement::CalculateB(
         Matrix& r_DN_DX) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 2;
+        const SizeType mat_size = number_of_control_points * mDim;
+        const SizeType strain_size = (mDim == 2) ? 3 : 6;
 
-        if (rB.size1() != 3 || rB.size2() != mat_size)
-            rB.resize(3, mat_size);
-        noalias(rB) = ZeroMatrix(3, mat_size);
+        if (rB.size1() != strain_size || rB.size2() != mat_size)
+            rB.resize(strain_size, mat_size, false);
 
-        for (IndexType r = 0; r < mat_size; r++)
-        {
-            // local node number kr and dof direction dirr
-            IndexType kr = r / 2;
-            IndexType dirr = r % 2;
+        noalias(rB) = ZeroMatrix(strain_size, mat_size);
 
-            rB(0, r) = r_DN_DX(kr,0) * (1-dirr);
-            rB(1, r) = r_DN_DX(kr,1) * dirr;
-            rB(2, r) = r_DN_DX(kr,0) * (dirr) + r_DN_DX(kr,1) * (1-dirr);
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            const SizeType index = i * mDim;
+
+            if (mDim == 2) {
+                rB(0, index + 0) = r_DN_DX(i, 0); // exx
+                rB(1, index + 1) = r_DN_DX(i, 1); // eyy
+
+                rB(2, index + 0) = r_DN_DX(i, 1); // gamma_xy
+                rB(2, index + 1) = r_DN_DX(i, 0);
+            }
+            else if (mDim == 3) {
+                rB(0, index + 0) = r_DN_DX(i, 0); // exx
+                rB(1, index + 1) = r_DN_DX(i, 1); // eyy
+                rB(2, index + 2) = r_DN_DX(i, 2); // ezz
+
+                rB(3, index + 0) = r_DN_DX(i, 1); // gamma_xy
+                rB(3, index + 1) = r_DN_DX(i, 0);
+
+                rB(4, index + 1) = r_DN_DX(i, 2); // gamma_yz
+                rB(4, index + 2) = r_DN_DX(i, 1);
+
+                rB(5, index + 0) = r_DN_DX(i, 2); // gamma_xz
+                rB(5, index + 2) = r_DN_DX(i, 0);
+            }
         }
     }
 
@@ -497,7 +541,7 @@ void SolidElement::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 2;
+        const SizeType mat_size = number_of_control_points * mDim;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -505,10 +549,11 @@ void SolidElement::GetSolutionCoefficientVector(
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
             const array_1d<double, 3>& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
-            IndexType index = i * 2;
+            IndexType index = i * mDim;
 
-            rValues[index] = displacement[0];
-            rValues[index + 1] = displacement[1];
+            for (IndexType j = 0; j < mDim; ++j) {
+                rValues[index + j] = displacement[j];
+            }
         }
     }
 
