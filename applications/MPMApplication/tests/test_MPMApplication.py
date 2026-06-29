@@ -22,6 +22,7 @@ from mpm_test_factory import CooksMembraneUPCompressibleTest as TCooksMembraneUP
 from mpm_test_factory import CooksMembraneUPCompressibleQuadsTest as TCooksMembraneUPCompressibleQuadsTest
 from mpm_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
 from mpm_test_factory import CooksMembraneUPIncompressibleASGSTest as TCooksMembraneUPIncompressibleASGSTest
+from mpm_test_factory import CooksMembraneUPIncompressibleASGSDynamicTest as TCooksMembraneUPIncompressibleASGSDynamicTest
 
 from mpm_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 from mpm_test_factory import CLDispNewtonianFluidTest as TCLDispNewtonianFluidTest
@@ -144,6 +145,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TCooksMembraneUPCompressibleQuadsTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleASGSTest('test_execution'))
+    nightSuite.addTest(TCooksMembraneUPIncompressibleASGSDynamicTest('test_execution'))
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TLagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
