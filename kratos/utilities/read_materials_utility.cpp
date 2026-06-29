@@ -481,7 +481,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
         p_prop = r_first_model_part.CreateNewProperties(property_id);
     }
 
-    // Assign the p_properties to the model part's elements and conditions.
+    // Assign the p_properties to the elements and conditions of all model parts.
     for (const auto& r_name : model_part_names) {
         auto& r_model_part = mrModel.GetModelPart(r_name);
 
