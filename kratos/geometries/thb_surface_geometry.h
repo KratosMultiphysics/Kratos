@@ -361,6 +361,17 @@ public:
         return (LocalDirectionIndex == 0) ? mLevels[0].DegreeU : mLevels[0].DegreeV;
     }
 
+    /// Returns the level-0 CP count in the requested direction.
+    /// Boundary CPs used for Dirichlet conditions always live on level 0 and are
+    /// always active, so the level-0 grid dimensions are the right answer here.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::PointsNumberInDirection: no levels defined." << std::endl;
+
+        return (DirectionIndex == 0) ? NumberOfControlPointsU(0) : NumberOfControlPointsV(0);
+    }
+
     void SpansLocalSpace(
         std::vector<double>& rSpans,
         IndexType DirectionIndex) const override
