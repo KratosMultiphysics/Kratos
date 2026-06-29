@@ -23,6 +23,7 @@
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 
 #include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
+#include "utilities/curve_axis_intersection.h"
 
 namespace Kratos
 {
@@ -342,11 +343,18 @@ public:
      */
     void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        /* When the `TShiftedBoundary` template parameter is true, the spans are computed using 
-        *  the shifted boundary method by invoking `SpansLocalSpaceSBM`.
-        *  Otherwise, the spans are computed using the standard method by invoking `SpansLocalSpace`
-        */
-        if constexpr (TShiftedBoundary) {
+        if (mpLocalRefinedSurface != nullptr) {
+            // Use fine THB knot spans instead of coarse background NURBS spans
+            std::vector<double> surface_spans_u, surface_spans_v;
+            mpLocalRefinedSurface->SpansLocalSpace(surface_spans_u, 0);
+            mpLocalRefinedSurface->SpansLocalSpace(surface_spans_v, 1);
+            CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
+                rSpans,
+                *(mpCurveOnSurface->pGetCurve()),
+                mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1(),
+                surface_spans_u, surface_spans_v,
+                1e-11);
+        } else if constexpr (TShiftedBoundary) {
             mpCurveOnSurface->SpansLocalSpaceSBM(rSpans,
                 mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
         } else {
