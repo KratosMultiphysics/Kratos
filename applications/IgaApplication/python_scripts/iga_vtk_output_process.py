@@ -344,32 +344,77 @@ class IgaVTKOutputProcess(KM.OutputProcess):
         u_min, u_max = knots_u[0], knots_u[-1]
         v_min, v_max = knots_v[0], knots_v[-1]
 
-        ku = self.__refine(knots_u, self.output_refinement[0])
-        kv = self.__refine(knots_v, self.output_refinement[1])
-
         pts, conn, offs, types = [], [], [], []
         uv_coords = []
 
         pid = 0
         c = 0
 
+        # Build list of (u0,u1,v0,v1) sub-cells.
+        # For locally refined surfaces, iterate over active cells so that
+        # level-1 span boundaries do not bleed into level-0 regions.
+        span_cells = []
+        if hasattr(brep_surface, 'GetActiveCells'):
+            for u0c, u1c, v0c, v1c in brep_surface.GetActiveCells():
+                ku = self.__refine([u0c, u1c], self.output_refinement[0])
+                kv = self.__refine([v0c, v1c], self.output_refinement[1])
+                for j in range(len(kv) - 1):
+                    for i in range(len(ku) - 1):
+                        span_cells.append((ku[i], ku[i+1], kv[j], kv[j+1]))
+        else:
+            ku = self.__refine(knots_u, self.output_refinement[0])
+            kv = self.__refine(knots_v, self.output_refinement[1])
+            for j in range(len(kv) - 1):
+                for i in range(len(ku) - 1):
+                    span_cells.append((ku[i], ku[i+1], kv[j], kv[j+1]))
+
         # Loop over knot spans and triangulate each parametric cell
-        for j in range(len(kv) - 1):
-            for i in range(len(ku) - 1):
+        for u0, u1, v0, v1 in span_cells:
 
-                u0, u1 = ku[i], ku[i + 1]
-                v0, v1 = kv[j], kv[j + 1]
+            if abs(u1 - u0) < 1e-12 or abs(v1 - v0) < 1e-12:
+                continue
 
-                if abs(u1 - u0) < 1e-12 or abs(v1 - v0) < 1e-12:
-                    continue
+            trimmed, tris = brep_surface.ComputeSpanTriangulationLocalSpace(u0, u1, v0, v1)
 
-                trimmed, tris = brep_surface.ComputeSpanTriangulationLocalSpace(u0, u1, v0, v1)
+            if not trimmed:
+                coords = [(u0,v0),(u1,v0),(u1,v1),(u0,v1)]
+                ids = []
 
-                if not trimmed:
-                    coords = [(u0,v0),(u1,v0),(u1,v1),(u0,v1)]
+                for u,v in coords:
+                    u = max(u_min, min(u_max, u))
+                    v = max(v_min, min(v_max, v))
+
+                    if not np.isfinite(u) or not np.isfinite(v):
+                        continue
+
+                    lc = KM.Array3()
+                    lc[0], lc[1], lc[2] = u, v, 0.0
+
+                    try:
+                        X = brep_surface.GlobalCoordinates(lc)
+                    except Exception as e:
+                        raise RuntimeError(
+                            f"Failed to compute global coordinates for BRep surface {brep_surface.Id} "
+                            f"at local coordinates (u, v)=({u}, {v})."
+                        ) from e
+
+                    pts.append([X[0], X[1], X[2]])
+                    uv_coords.append((u,v))
+                    ids.append(pid)
+                    pid += 1
+
+                conn.extend(ids)
+                offs.append(c)
+                c += 4
+                types.append(VTK_QUAD)
+
+            else:
+                for tri in tris:
                     ids = []
+                    for k in range(3):
+                        u = tri[k, 0]
+                        v = tri[k, 1]
 
-                    for u,v in coords:
                         u = max(u_min, min(u_max, u))
                         v = max(v_min, min(v_max, v))
 
@@ -394,42 +439,8 @@ class IgaVTKOutputProcess(KM.OutputProcess):
 
                     conn.extend(ids)
                     offs.append(c)
-                    c += 4
-                    types.append(VTK_QUAD)
-
-                else:
-                    for tri in tris:
-                        ids = []
-                        for k in range(3):
-                            u = tri[k, 0]
-                            v = tri[k, 1]
-
-                            u = max(u_min, min(u_max, u))
-                            v = max(v_min, min(v_max, v))
-
-                            if not np.isfinite(u) or not np.isfinite(v):
-                                continue
-
-                            lc = KM.Array3()
-                            lc[0], lc[1], lc[2] = u, v, 0.0
-
-                            try:
-                                X = brep_surface.GlobalCoordinates(lc)
-                            except Exception as e:
-                                raise RuntimeError(
-                                    f"Failed to compute global coordinates for BRep surface {brep_surface.Id} "
-                                    f"at local coordinates (u, v)=({u}, {v})."
-                                ) from e
-
-                            pts.append([X[0], X[1], X[2]])
-                            uv_coords.append((u,v))
-                            ids.append(pid)
-                            pid += 1
-
-                        conn.extend(ids)
-                        offs.append(c)
-                        c += 3
-                        types.append(VTK_TRIANGLE)
+                    c += 3
+                    types.append(VTK_TRIANGLE)
 
         offs.append(c)
 
