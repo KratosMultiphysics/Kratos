@@ -583,6 +583,12 @@ void ReadMaterialsUtility::CheckSuppliedModelPartNames(const Parameters& rAllMat
             << target_property <<  " provides 'model_part_name' as well as 'model_part_name_list'. Please, remove one of them, since they are mutually exclusive.\n";
         KRATOS_ERROR_IF(property.Has(model_part_name_list_key) && property[model_part_name_list_key].GetStringArray().empty())
             << target_property << " has an empty model part name list. Please, provide at least one model part name." << std::endl;
+        if (property.Has(model_part_name_list_key)) {
+            auto names = property[model_part_name_list_key].GetStringArray();
+            std::ranges::sort(names);
+            const auto pos = std::ranges::adjacent_find(names);
+            KRATOS_ERROR_IF_NOT(pos == names.end()) << target_property << " has a model part name list with non-unique names: '" << *pos << "'\n";
+        }
     }
 }
 

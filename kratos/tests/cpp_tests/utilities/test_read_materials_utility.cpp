@@ -148,6 +148,20 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityCanCreatePropertiesPerModelPart, K
     KRATOS_EXPECT_FALSE(r_model_part_bar.HasProperties(1))
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenTheModelPartNameListContainsNonUniqueNames, KratosCoreFastSuiteWithoutKernel) {
+    auto model = Model{};
+    const auto test_properties = R"({
+        "properties": [
+            {
+                "properties_id": 1,
+                "model_part_name_list": ["Foo", "Bar", "Foo"],
+                "Material": {}
+            }
+        ]
+    })"s;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 has a model part name list with non-unique names: 'Foo'")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityAssignsPropertiesOfModelPartToElement, KratosCoreFastSuiteWithoutKernel) {
     auto model = Model{};
     auto& r_model_part_foo = model.CreateModelPart("Foo"s);
