@@ -124,17 +124,29 @@ void GapSbmSolidCondition::InitializeSbmMemberVariables()
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = r_geometry.Center().Coordinates() - r_surrogate_geometry.Center().Coordinates();
-
-
+    
+    Vector center = ZeroVector(3);
+    center[0] = 1.0; center[1] = 1.0; center[2] = 1.0;
+    Vector true_normal = r_geometry.Center().Coordinates() - center;
+    true_normal /= MathUtils<double>::Norm(true_normal);
+    
+    // if (norm_2(mNormalPhysicalSpace - true_normal) > 5e-1)
+    // {
+    //     SetValue(NORMAL, mNormalPhysicalSpace);
+    //     KRATOS_WATCH(mNormalPhysicalSpace)
+    //     KRATOS_WATCH(true_normal)
+    // //     KRATOS_WATCH("error with the normal")
+    // //     exit(0);
+    // // }
     // if (inner_prod(mNormalPhysicalSpace, mDistanceVector) < 0.0) {
     //     // KRATOS_WATCH("ERROR WITH NORMALS!!!!!!!!!!!!!!!!!!!!!!!")
     //     // KRATOS_WATCH(true_normal)
     //     // KRATOS_WATCH(mNormalPhysicalSpace)
     //     // KRATOS_WATCH("--------------------")
 
-    //     // mNormalPhysicalSpace *= -1;
-    //     // SetValue(NORMAL, mNormalPhysicalSpace);
-    //     // exit(0);
+    //     mNormalPhysicalSpace *= -1;
+    //     SetValue(NORMAL, mNormalPhysicalSpace);
+    //     exit(0);
     //     this->SetValue(ACTIVATION_LEVEL, 4.0);
     // }
 

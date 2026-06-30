@@ -160,6 +160,21 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddInt("number_of_interpolation_levels", mParameters["number_of_interpolation_levels"].GetInt());
     if (mParameters.Has("polynomial_order"))
         snake_parameters.AddVector("polynomial_order", mParameters["polynomial_order"].GetVector());
+    snake_parameters.AddBool(
+        "store_gap_debug_geometries",
+        mParameters["store_gap_debug_geometries"].GetBool());
+    snake_parameters.AddBool(
+        "use_pyramid_quadrature_for_type1",
+        mParameters["use_pyramid_quadrature_for_type1"].GetBool());
+    snake_parameters.AddBool(
+        "use_tetra_quadrature_for_linear_type2_type3",
+        mParameters["use_tetra_quadrature_for_linear_type2_type3"].GetBool());
+    snake_parameters.AddBool(
+        "use_anisotropic_quadrature_for_curved_type2",
+        mParameters["use_anisotropic_quadrature_for_curved_type2"].GetBool());
+    snake_parameters.AddBool(
+        "use_triangle_radial_quadrature_for_curved_type3",
+        mParameters["use_triangle_radial_quadrature_for_curved_type3"].GetBool());
 
     // Create the surrogate_sub_model_part for inner and outer
 
@@ -318,8 +333,21 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
         snake_parameters.AddInt("number_of_interpolation_levels", mParameters["number_of_interpolation_levels"].GetInt());
     if (mParameters.Has("polynomial_order"))
         snake_parameters.AddVector("polynomial_order", mParameters["polynomial_order"].GetVector());
-    if (mParameters.Has("store_gap_debug_geometries"))
-        snake_parameters.AddBool("store_gap_debug_geometries", mParameters["store_gap_debug_geometries"].GetBool());
+    snake_parameters.AddBool(
+        "store_gap_debug_geometries",
+        mParameters["store_gap_debug_geometries"].GetBool());
+    snake_parameters.AddBool(
+        "use_pyramid_quadrature_for_type1",
+        mParameters["use_pyramid_quadrature_for_type1"].GetBool());
+    snake_parameters.AddBool(
+        "use_tetra_quadrature_for_linear_type2_type3",
+        mParameters["use_tetra_quadrature_for_linear_type2_type3"].GetBool());
+    snake_parameters.AddBool(
+        "use_anisotropic_quadrature_for_curved_type2",
+        mParameters["use_anisotropic_quadrature_for_curved_type2"].GetBool());
+    snake_parameters.AddBool(
+        "use_triangle_radial_quadrature_for_curved_type3",
+        mParameters["use_triangle_radial_quadrature_for_curved_type3"].GetBool());
         
     // Create the surrogate_sub_model_part for inner and outer
     SnakeGapSbmProcess snake_gap_sbm_process(*mpModel, snake_parameters);
@@ -360,7 +388,11 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "gap_element_name": "",
         "gap_interface_condition_name": "",
         "gap_sbm_type": "default",
-        "store_gap_debug_geometries": false
+        "store_gap_debug_geometries": false,
+        "use_pyramid_quadrature_for_type1": true,
+        "use_tetra_quadrature_for_linear_type2_type3": true,
+        "use_anisotropic_quadrature_for_curved_type2": true,
+        "use_triangle_radial_quadrature_for_curved_type3": true
     })");
 }
 
@@ -390,7 +422,11 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "gap_element_name": "",
         "gap_interface_condition_name": "",
         "gap_sbm_type": "default",
-        "store_gap_debug_geometries": false
+        "store_gap_debug_geometries": false,
+        "use_pyramid_quadrature_for_type1": true,
+        "use_tetra_quadrature_for_linear_type2_type3": true,
+        "use_anisotropic_quadrature_for_curved_type2": true,
+        "use_triangle_radial_quadrature_for_curved_type3": true
     })");
 }
 

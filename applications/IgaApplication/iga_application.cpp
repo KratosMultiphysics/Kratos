@@ -84,6 +84,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mGapSbmLoadSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmEnhancedSolidCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmEnhancedLoadSolidCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mGapSbmSolidInterfaceCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
@@ -136,6 +140,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SbmLoadSolidCondition", mSbmLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("GapSbmLoadSolidCondition", mGapSbmLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("GapSbmSolidCondition", mGapSbmSolidCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmEnhancedSolidCondition", mGapSbmEnhancedSolidCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmEnhancedLoadSolidCondition", mGapSbmEnhancedLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("GapSbmSolidInterfaceCondition", mGapSbmSolidInterfaceCondition)
 
 

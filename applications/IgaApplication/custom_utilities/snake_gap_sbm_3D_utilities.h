@@ -13,6 +13,7 @@
 // System includes
 #include <algorithm>
 #include <array>
+#include <functional>
 #include <map>
 #include <set>
 #include <string>
@@ -42,6 +43,10 @@ using NodeType = Node;
     using CoordinatesArrayType = GeometryType::CoordinatesArrayType;
     using PropertiesPointerType = Properties::Pointer;
     using BrepCurveType = BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType>;
+    using VolumeQuadratureConsumerType = std::function<void(
+        GeometriesArrayType&,
+        const std::vector<Geometry<Node>::Pointer>&,
+        double)>;
     
     using NurbsCurveGeometryType = NurbsCurveGeometry<3, PointerVector<Node>>;
     using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
@@ -425,7 +430,7 @@ using NodeType = Node;
         IndexType SurrogateConditionId = 0;
         SpanKey3D ExternalSpan;
 
-        NurbsSurfaceType::Pointer pGeometry;
+        GeometryType::Pointer pGeometry;
         Geometry<Node>::Pointer pNeighbourGeometry;
         NodePointerType pOppositeNode;
         std::array<NodePointerType, 3> FaceNodes;
@@ -441,6 +446,7 @@ using NodeType = Node;
         std::vector<NodePointerType> LinearControlNodes;
         std::vector<NodePointerType> CurvedControlNodes;
         std::vector<NodePointerType> CurrentControlNodes;
+        NodePointerType pQuadraticInterpolationNode;
         double Alpha = 0.0;
         bool IsCurved = false;
     };
@@ -450,7 +456,7 @@ using NodeType = Node;
         SkinTopFaceKey Key;
         std::array<NodePointerType, 3> CornerNodes;
         std::vector<NodePointerType> CurrentControlNodes;
-        NurbsSurfaceType::Pointer pSurfaceGeometry;
+        GeometryType::Pointer pSurfaceGeometry;
         double Alpha = 0.0;
         bool IsCurved = false;
     };
@@ -617,7 +623,6 @@ using NodeType = Node;
         IndexType SecondType1LateralFaceIndex = 0;
 
         bool RequiresQuadrature = false;
-        NurbsVolumeType::Pointer pVolumeGeometry;
     };
 
     struct Type2OpenFaceData
@@ -627,7 +632,7 @@ using NodeType = Node;
         NodePointerType pProjectionNode1;
         NodePointerType pOppositeNode;
 
-        NurbsSurfaceType::Pointer pSurfaceGeometry;
+        GeometryType::Pointer pSurfaceGeometry;
 
         std::vector<Geometry<Node>::Pointer> NeighbourGeometries;
 
@@ -673,7 +678,6 @@ using NodeType = Node;
         IndexType CornerProjectionNodeId = 0;
 
         bool RequiresQuadrature = false;
-        NurbsVolumeType::Pointer pVolumeGeometry;
     };
 
     struct Type3CreationSummary
@@ -747,6 +751,18 @@ using NodeType = Node;
     void SetStoreGapDebugGeometries(
         const bool StoreGapDebugGeometries);
 
+    void SetUsePyramidQuadratureForType1(
+        const bool UsePyramidQuadratureForType1);
+
+    void SetUseTetraQuadratureForLinearType2Type3(
+        const bool UseTetraQuadratureForLinearType2Type3);
+
+    void SetUseAnisotropicQuadratureForCurvedType2(
+        const bool UseAnisotropicQuadratureForCurvedType2);
+
+    void SetUseTriangleRadialQuadratureForCurvedType3(
+        const bool UseTriangleRadialQuadratureForCurvedType3);
+
     
     // type 1 element creation----------------------------
     void ClearLateralFaceRegistry();
@@ -796,14 +812,16 @@ using NodeType = Node;
         Type3CreationResult& rType3CreationResult,
         const KnotSpanGridInfo& rGridInfo,
         const std::size_t IntegrationOrder,
-        const std::size_t NumberOfShapeFunctionsDerivatives);
+        const std::size_t NumberOfShapeFunctionsDerivatives,
+        const VolumeQuadratureConsumerType& rVolumeQuadratureConsumer =
+            VolumeQuadratureConsumerType());
 
     NurbsSurfaceType::Pointer CreateCollapsedTriangleSurface(
         const NodePointerType& pNode0,
         const NodePointerType& pNode1,
         const NodePointerType& pNode2) const;
 
-    NurbsSurfaceType::Pointer GetOrCreateLateralFaceSurface(
+    GeometryType::Pointer GetOrCreateLateralFaceSurface(
         ModelPart& rDebugModelPart,
         IndexType& rNextGeometryId,
         const NodePointerType& pNode0,
@@ -819,7 +837,7 @@ using NodeType = Node;
         const NodePointerType& pNode1,
         const NodePointerType& pNode2,
         const NodePointerType& pOppositeNode,
-        const NurbsSurfaceType::Pointer& pSurfaceGeometry,
+        const GeometryType::Pointer& pSurfaceGeometry,
         const Geometry<Node>::Pointer& pNeighbourGeometry,
         const bool HasType1NeighbourPath,
         const bool HasNeighbourActiveSpan,
@@ -1465,12 +1483,55 @@ private:
     IntegrationPointsArrayType CreateCoonsVolumeGaussPoints(
         const std::size_t IntegrationOrder,
         const NurbsVolumeType& rGapVolume) const;
+
+    IntegrationPointsArrayType CreateCoonsVolumeGaussPoints(
+        const std::size_t IntegrationOrderU,
+        const std::size_t IntegrationOrderV,
+        const std::size_t IntegrationOrderW,
+        const NurbsVolumeType& rGapVolume) const;
     
     GeometriesArrayType CreateAndTagVolumeQuadraturePointGeometries(
         const NurbsVolumeType::Pointer& pVolumeGeometry,
         const Geometry<Node>::Pointer& pNeighbourGeometry,
         const std::size_t IntegrationOrder,
         const std::size_t NumberOfShapeFunctionsDerivatives) const;
+
+    GeometriesArrayType CreateAndTagAnisotropicVolumeQuadraturePointGeometries(
+        const NurbsVolumeType::Pointer& pVolumeGeometry,
+        const Geometry<Node>::Pointer& pNeighbourGeometry,
+        const std::size_t IntegrationOrderU,
+        const std::size_t IntegrationOrderV,
+        const std::size_t IntegrationOrderW,
+        const std::size_t NumberOfShapeFunctionsDerivatives) const;
+
+    GeometriesArrayType CreateDirectMappedVolumeQuadraturePointGeometries(
+        const Geometry<Node>::Pointer& pVolumeGeometry,
+        const IntegrationPointsArrayType& rReferenceIntegrationPoints) const;
+
+    GeometriesArrayType CreateNativeVolumeQuadraturePointGeometries(
+        const Geometry<Node>::Pointer& pVolumeGeometry,
+        const std::size_t IntegrationOrder) const;
+
+    GeometriesArrayType CreateAndTagPyramidVolumeQuadraturePointGeometries(
+        const std::array<NodePointerType, 4>& rBaseNodes,
+        const NodePointerType& pApexNode,
+        const std::size_t IntegrationOrder) const;
+
+    GeometriesArrayType CreateAndTagLinearTetraVolumeQuadraturePointGeometries(
+        const NodePointerType& pNode0,
+        const NodePointerType& pNode1,
+        const NodePointerType& pNode2,
+        const NodePointerType& pNode3,
+        const std::size_t IntegrationOrder) const;
+
+    GeometriesArrayType CreateAndTagCurvedType2QuadraturePointGeometries(
+        const NurbsVolumeType::Pointer& pVolumeGeometry,
+        const std::size_t IntegrationOrder) const;
+
+    GeometriesArrayType CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries(
+        const NodePointerType& pSurrogateNode,
+        const GeometryType::Pointer& pTopSurfaceGeometry,
+        const std::size_t IntegrationOrder) const;
 
     double CalculateType1CharacteristicLength(
         const SurrogateFaceData& rFaceData,
@@ -1505,7 +1566,7 @@ private:
         const NurbsSurfaceType& rGapSurface) const;
     
     GeometriesArrayType CreateSurfaceQuadraturePointGeometries(
-        const NurbsSurfaceType::Pointer& pSurfaceGeometry,
+        const GeometryType::Pointer& pSurfaceGeometry,
         const std::size_t IntegrationOrder,
         const std::size_t NumberOfShapeFunctionsDerivatives) const;
     
@@ -1676,6 +1737,10 @@ private:
     int mEchoLevel = 0;
     std::size_t mGapApproximationOrder = 1;
     bool mStoreGapDebugGeometries = false;
+    bool mUsePyramidQuadratureForType1 = true;
+    bool mUseTetraQuadratureForLinearType2Type3 = true;
+    bool mUseAnisotropicQuadratureForCurvedType2 = true;
+    bool mUseTriangleRadialQuadratureForCurvedType3 = true;
     SkinEdgeControlPointMap mSkinEdgeControlNodes;
     std::set<SkinEdgeKey> mLinearSkinEdges;
     CurvedEdgeRegistry mCurvedEdgeRegistry;

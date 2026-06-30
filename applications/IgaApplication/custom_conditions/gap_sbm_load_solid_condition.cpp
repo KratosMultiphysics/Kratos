@@ -184,9 +184,18 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
     // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
 
     //3D 
-    const double x = r_true_geometry.Center().X();
-    const double y = r_true_geometry.Center().Y();
-    const double z = r_true_geometry.Center().Z();
+    // const double x = r_true_geometry.Center().X();
+    // const double y = r_true_geometry.Center().Y();
+    // const double z = r_true_geometry.Center().Z();
+
+    const Vector projection_node_coordinates = r_true_geometry.GetValue(PROJECTION_NODE)->Coordinates();
+    const double x = projection_node_coordinates[0];
+    const double y = projection_node_coordinates[1];
+    const double z = projection_node_coordinates[2];
+
+    Kratos::array_1d<double, 3UL> projection_node_normal = -r_true_geometry.GetValue(PROJECTION_NODE)->GetValue(NORMAL);
+
+    projection_node_normal = mNormalPhysicalSpace;  //DEBUG
 
     const double c_vol = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu));
 
@@ -227,22 +236,34 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
         + std::cos(z) * std::cosh(x) * std::cosh(y)
         );
 
+    // lienar case
+
+    // const double sigma_diag = E / (1.0 - 2.0 * nu);
+    // const double sigma_off  = E / (1.0 + nu);
+
+    // const double sigma_xx  = sigma_diag; // sigma_xx
+    // const double sigma_yy  = sigma_diag; // sigma_yy
+    // const double sigma_zz  = sigma_diag; // sigma_zz
+    // const double sigma_xy  = sigma_off;  // sigma_xy
+    // const double sigma_yz  = sigma_off;  // sigma_yz
+    // const double sigma_xz  = sigma_off;  // sigma_xz
+
     array_1d<double, 3> traction;
 
     traction[0] =
-        sigma_xx * mNormalPhysicalSpace[0]
-        + sigma_xy * mNormalPhysicalSpace[1]
-        + sigma_xz * mNormalPhysicalSpace[2];
+        sigma_xx   * projection_node_normal[0]
+        + sigma_xy * projection_node_normal[1]
+        + sigma_xz * projection_node_normal[2];
     
     traction[1] =
-        sigma_xy * mNormalPhysicalSpace[0]
-        + sigma_yy * mNormalPhysicalSpace[1]
-        + sigma_yz * mNormalPhysicalSpace[2];
+        sigma_xy   * projection_node_normal[0]
+        + sigma_yy * projection_node_normal[1]
+        + sigma_yz * projection_node_normal[2];
     
     traction[2] =
-        sigma_xz * mNormalPhysicalSpace[0]
-        + sigma_yz * mNormalPhysicalSpace[1]
-        + sigma_zz * mNormalPhysicalSpace[2];
+        sigma_xz   * projection_node_normal[0]
+        + sigma_yz * projection_node_normal[1]
+        + sigma_zz * projection_node_normal[2];
 
     g_N = traction; //FIXME::
 
@@ -256,37 +277,6 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
         }
     }
 
-
-    // FIXME: fix for load and displacement applied on the same boundary
-    // if (this->Has(DIRECTION)){
-    //     // ASSIGN BC BY DIRECTION
-    //     //--------------------------------------------------------------------------------------------
-    //     Vector direction = this->GetValue(DIRECTION);
-    //     direction[0] = -y/(std::sqrt(x*x+y*y));
-    //     direction[1] = x/(std::sqrt(x*x+y*y));
-
-    //     const double g_NN = inner_prod(g_N, direction);
-
-    //     for (IndexType i = 0; i < number_of_control_points; i++) {
-    //         for (IndexType zdim = 0; zdim < 2; zdim++) {
-
-    //             rRightHandSideVector[2*i+zdim] += N_sum_vec(i)*direction[zdim]*g_NN * integration_weight;
-
-    //         }
-    //     }
-    // }
-    // else 
-    // {
-    //     for (IndexType i = 0; i < number_of_control_points; i++) {
-    //         for (IndexType zdim = 0; zdim < 2; zdim++) {
-                
-    //             rRightHandSideVector[2*i+zdim] += N_sum_vec(i)*g_N[zdim] * integration_weight;
-    
-    //         }
-    //     }
-    // }
-
-    
     KRATOS_CATCH("")
 }
 

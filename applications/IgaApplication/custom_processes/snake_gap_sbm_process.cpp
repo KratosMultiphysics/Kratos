@@ -100,6 +100,10 @@ const Parameters SnakeGapSbmProcess::GetDefaultParameters() const
         "number_of_interpolation_levels": 3,
         "use_for_local_refinement": false,
         "store_gap_debug_geometries": false,
+        "use_pyramid_quadrature_for_type1": true,
+        "use_tetra_quadrature_for_linear_type2_type3": true,
+        "use_anisotropic_quadrature_for_curved_type2": true,
+        "use_triangle_radial_quadrature_for_curved_type3": true,
         "gap_condition_name": "GapSbmSolidCondition"
     })");
 }
@@ -124,6 +128,10 @@ const Parameters SnakeGapSbmProcess::GetValidParameters() const
         "gap_sbm_type": "default",
         "use_for_local_refinement": false,
         "store_gap_debug_geometries": false,
+        "use_pyramid_quadrature_for_type1": true,
+        "use_tetra_quadrature_for_linear_type2_type3": true,
+        "use_anisotropic_quadrature_for_curved_type2": true,
+        "use_triangle_radial_quadrature_for_curved_type3": true,
         "lambda_inner" : 0.0,
         "lambda_outer" : 1.0,
         "skin_model_part_outer_initial_name": "initial_skin_model_part_out",    

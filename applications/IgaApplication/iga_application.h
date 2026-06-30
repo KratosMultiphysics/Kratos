@@ -57,6 +57,8 @@
 #include "custom_conditions/sbm_load_solid_condition.h"
 #include "custom_conditions/gap_sbm_solid_condition.h"
 #include "custom_conditions/gap_sbm_load_solid_condition.h"
+#include "custom_conditions/gap_sbm_enhanced_solid_condition.h"
+#include "custom_conditions/gap_sbm_enhanced_load_solid_condition.h"
 // SBM contact condition
 // Gap-SBM solid condition
 #include "custom_conditions/gap_sbm_solid_condition.h"
@@ -183,6 +185,8 @@ private:
     const SbmLoadSolidCondition mSbmLoadSolidCondition;
     const GapSbmSolidCondition mGapSbmSolidCondition;
     const GapSbmLoadSolidCondition mGapSbmLoadSolidCondition;
+    const GapSbmEnhancedSolidCondition mGapSbmEnhancedSolidCondition;
+    const GapSbmEnhancedLoadSolidCondition mGapSbmEnhancedLoadSolidCondition;
     const GapSbmSolidInterfaceCondition mGapSbmSolidInterfaceCondition;
 
 
