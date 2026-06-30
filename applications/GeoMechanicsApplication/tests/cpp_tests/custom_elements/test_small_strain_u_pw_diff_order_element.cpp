@@ -314,4 +314,32 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculatesFluidFluxVect
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_flux, expected_fluid_flux, Defaults::relative_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_MidNodePressuresAreInterpolatedFromCornerPressures,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = CreatePropertiesForUPwDiffOrderElementTest();
+    auto p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
+    SetSolutionStepValuesForGeneralCheck(p_element);
+
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    auto& r_geometry = p_element->GetGeometry();
+    for (auto counter = 0; auto& node : r_geometry) {
+        node.FastGetSolutionStepValue(WATER_PRESSURE) = counter * 1.0e5;
+        ++counter;
+    }
+    p_element->Initialize(dummy_process_info);
+    p_element->FinalizeNonLinearIteration(dummy_process_info);
+
+    // Act
+    p_element->FinalizeSolutionStep(dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_DOUBLE_EQ(p_element->GetGeometry()[3].FastGetSolutionStepValue(WATER_PRESSURE), 5.0e4);
+    KRATOS_EXPECT_DOUBLE_EQ(p_element->GetGeometry()[4].FastGetSolutionStepValue(WATER_PRESSURE), 1.5e5);
+    KRATOS_EXPECT_DOUBLE_EQ(p_element->GetGeometry()[5].FastGetSolutionStepValue(WATER_PRESSURE), 1.0e5);
+}
+
 } // namespace Kratos::Testing
