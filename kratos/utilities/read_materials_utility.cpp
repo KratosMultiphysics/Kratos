@@ -29,6 +29,7 @@ namespace Kratos {
 static const auto model_part_name_key = "model_part_name"s;
 static const auto model_part_name_list_key = "model_part_name_list"s;
 static const auto properties_key = "properties"s;
+static const auto properties_id_key = "properties_id"s;
 
 namespace {
 
@@ -138,7 +139,7 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
 
         // Get the properties for the (first) specified model part.
         ModelPart& r_first_model_part = mrModel.GetModelPart(GetTargetModelPartNames(material).front());
-        const IndexType property_id = material["properties_id"].GetInt();
+        const IndexType property_id = material[properties_id_key].GetInt();
         const bool has_properties = r_first_model_part.RecursivelyHasProperties(property_id);
         KRATOS_WARNING_IF("ReadMaterialsUtility", has_properties) << "WARNING:: The properties ID: " << property_id
             << " is already defined in model part " << r_first_model_part.Name()
@@ -415,7 +416,7 @@ void ReadMaterialsUtility::CreateSubProperties(
 
         } else { // We get or create the new subproperty
             // We get the subproperty id
-            const int sub_property_id = sub_prop["properties_id"].GetInt();
+            const int sub_property_id = sub_prop[properties_id_key].GetInt();
 
             // Actually creating it (ensures uniqueness)
             p_new_sub_prop = rModelPart.CreateNewProperties(sub_property_id);
@@ -447,7 +448,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     // Make sure all model parts associated with this material have the same properties
     const auto model_part_names = GetTargetModelPartNames(Data);
     ModelPart& r_first_model_part = mrModel.GetModelPart(model_part_names.front());
-    const IndexType property_id = Data["properties_id"].GetInt();
+    const IndexType property_id = Data[properties_id_key].GetInt();
     auto p_properties = r_first_model_part.pGetProperties(property_id);
     for (auto it = model_part_names.begin() + 1; it != model_part_names.end(); ++it) {
         mrModel.GetModelPart(*it).AddProperties(p_properties);
@@ -577,11 +578,11 @@ void ReadMaterialsUtility::CheckSuppliedModelPartNames(const Parameters& rAllMat
 {
     for (IndexType i = 0; i < rAllMaterialParameters[properties_key].size(); ++i) {
         const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
-        const auto property_id = property["properties_id"s].GetInt();
+        const auto target_property = "Property "s + (property.Has(properties_id_key) ? std::to_string(property[properties_id_key].GetInt()) : "without an ID"s);
         KRATOS_ERROR_IF(property.Has(model_part_name_key) && property.Has(model_part_name_list_key))
-            << "Property " << property_id <<  " provides 'model_part_name' as well as 'model_part_name_list'. Please, remove one of them, since they are mutually exclusive.\n";
+            << target_property <<  " provides 'model_part_name' as well as 'model_part_name_list'. Please, remove one of them, since they are mutually exclusive.\n";
         KRATOS_ERROR_IF(property.Has(model_part_name_list_key) && property[model_part_name_list_key].GetStringArray().empty())
-            << "At least one model part name must be provided for property " << property_id << std::endl;
+            << target_property << " has an empty model part name list. Please, provide at least one model part name." << std::endl;
     }
 }
 

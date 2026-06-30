@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAnEmptyModelPartN
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "At least one model part name must be provided for property 1")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 has an empty model part name list. Please, provide at least one model part name.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenBothModelPartNameAndNameListAreGiven, KratosCoreFastSuiteWithoutKernel) {
