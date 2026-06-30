@@ -204,7 +204,6 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
 
     for (auto node = num_p_nodes; node < num_u_nodes; ++node) {
         auto shape_functions_values = Vector(num_p_nodes);
-        KRATOS_INFO("local coords") << row(local_coordinates, node) << std::endl;
         // new object as a 3 long array is expected even for local space dimensions 1 and 2
         auto local_node_coordinate = array_1d<double, 3>{3, 0.0};
         std::ranges::copy(row(local_coordinates, node), local_node_coordinate.begin());
