@@ -355,6 +355,46 @@ public:
     }
 
     ///@}
+    ///@name Knot Span Accessors
+    ///@{
+
+    std::vector<double> KnotsU() const
+    {
+        std::vector<double> spans;
+        mpLocalRefinedSurface->SpansLocalSpace(spans, 0);
+        return spans;
+    }
+
+    std::vector<double> KnotsV() const
+    {
+        std::vector<double> spans;
+        mpLocalRefinedSurface->SpansLocalSpace(spans, 1);
+        return spans;
+    }
+
+    std::vector<std::array<double,4>> GetActiveCells() const
+    {
+        return mpLocalRefinedSurface->GetActiveCells();
+    }
+
+    bool ComputeSpanTriangulationLocalSpace(
+        const double u0,
+        const double u1,
+        const double v0,
+        const double v1,
+        std::vector<Matrix>& rTrianglesLocalSpace) const
+    {
+        bool is_trimmed = false;
+        BrepTrimmingUtilitiesType::ComputeSpanTriangulation(
+            mOuterLoopArray,
+            mInnerLoopArray,
+            u0, u1, v0, v1,
+            is_trimmed,
+            rTrianglesLocalSpace);
+        return is_trimmed;
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
