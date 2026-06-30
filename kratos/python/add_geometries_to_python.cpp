@@ -517,6 +517,43 @@ void  AddGeometriesToPython(pybind11::module& m)
                 -> typename THBSurfaceGeometry<3, NodeContainerType>::Pointer {
             return self.pGetLocalRefinedSurface();
         })
+        .def("EvaluateShapeFunctionsAtLocalCoordinates",
+            [](const LocalRefinedBrepSurface3DType& self,
+               const CoordinatesArrayType& rLocal,
+               const IndexType derivative_order) {
+                std::vector<IndexType> cp_ids;
+                Vector shape_functions_values;
+                self.ShapeFunctionsValuesAndCPIndices(
+                    rLocal, cp_ids, shape_functions_values, derivative_order, nullptr);
+                return py::make_tuple(cp_ids, shape_functions_values);
+            },
+            py::arg("local_coordinates"),
+            py::arg("derivative_order") = 0
+        )
+        .def("KnotsU", [](const LocalRefinedBrepSurface3DType& self) {
+            return self.KnotsU();
+        })
+        .def("KnotsV", [](const LocalRefinedBrepSurface3DType& self) {
+            return self.KnotsV();
+        })
+        .def("GetActiveCells", [](const LocalRefinedBrepSurface3DType& self) {
+            auto cells = self.GetActiveCells();
+            py::list result;
+            for (const auto& c : cells)
+                result.append(py::make_tuple(c[0], c[1], c[2], c[3]));
+            return result;
+        })
+        .def("ComputeSpanTriangulationLocalSpace",
+            [](const LocalRefinedBrepSurface3DType& self,
+               const double u0, const double u1,
+               const double v0, const double v1) {
+                std::vector<Matrix> triangles;
+                const bool is_trimmed =
+                    self.ComputeSpanTriangulationLocalSpace(u0, u1, v0, v1, triangles);
+                return py::make_tuple(is_trimmed, triangles);
+            },
+            py::arg("u0"), py::arg("u1"), py::arg("v0"), py::arg("v1")
+        )
         ;
 
     // THB-Spline geometry
