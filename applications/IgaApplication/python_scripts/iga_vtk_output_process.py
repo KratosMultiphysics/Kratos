@@ -127,7 +127,8 @@ class IgaVTKOutputProcess(KM.OutputProcess):
     def PrintOutput(self):
         time = float(self.model_part.ProcessInfo[KM.TIME])
 
-        with h5.File(self.output_file_name, "a") as file:
+        file_mode = "w" if self.printed_step_count == 0 else "a"
+        with h5.File(self.output_file_name, file_mode) as file:
             # Create or retrieve root group
             if "VTKHDF" not in file:
                 root = file.create_group("VTKHDF")
