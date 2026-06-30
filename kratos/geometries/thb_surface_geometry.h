@@ -456,6 +456,29 @@ public:
             rSpans.end());
     }
 
+    std::vector<std::array<double,4>> GetActiveCells() const
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::GetActiveCells: no levels defined." << std::endl;
+
+        std::vector<std::array<double,4>> cells;
+        for (SizeType l = 0; l < mLevels.size(); ++l) {
+            const auto spans_u = KnotSpanIntervals(mLevels[l].KnotsU);
+            const auto spans_v = KnotSpanIntervals(mLevels[l].KnotsV);
+            for (const auto& su : spans_u) {
+                for (const auto& sv : spans_v) {
+                    const double mu = 0.5 * (su.GetT0() + su.GetT1());
+                    const double mv = 0.5 * (sv.GetT0() + sv.GetT1());
+                    const bool in_this = (l == 0) || IsInsideDomain(mu, mv, l);
+                    const bool in_next = (l + 1 < mLevels.size()) && IsInsideDomain(mu, mv, l + 1);
+                    if (in_this && !in_next)
+                        cells.push_back({su.GetT0(), su.GetT1(), sv.GetT0(), sv.GetT1()});
+                }
+            }
+        }
+        return cells;
+    }
+
     /**
      * @brief Generates integration points for the hierarchical domain.
      *
