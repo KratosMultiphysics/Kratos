@@ -248,7 +248,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         grad_functional_t = DfjDxi(DN,functional_t)
         
         # region_transport_scalar functional
-        rv_funct_region_transport_scalar  = -2.0*(q_adj_gauss.transpose()*opt_t_gauss)
+        rv_funct_region_transport_scalar  = -2.0*(q_adj_gauss*opt_t_gauss)
         # transport_scalar_transfer
         rv_funct_transport_scalar_diffusion       = -2.0*Conductivity_gauss*(grad_q_adj.transpose()*grad_functional_t)
         rv_funct_transport_scalar_convection      = -ConvCoeff_gauss*((functional_v_gauss.transpose()*grad_functional_t)*q_adj_gauss + functional_t_gauss*(functional_v_gauss.transpose()*grad_q_adj)) 
