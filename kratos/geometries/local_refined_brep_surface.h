@@ -320,6 +320,18 @@ public:
         return rResult;
     }
 
+    void ShapeFunctionsValuesAndCPIndices(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr) const
+    {
+        mpLocalRefinedSurface->ShapeFunctionsValuesAndCPIndices(
+            rCoordinates, rControlPointIndices, rShapeFunctionsValues,
+            DerivativeOrder, pShapeFunctionDerivatives);
+    }
+
     Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
