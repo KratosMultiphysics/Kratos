@@ -77,6 +77,8 @@ public:
 
     SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override = 0;
 
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override = 0;
+
     void SpansLocalSpace(
         std::vector<double>& rSpans,
         IndexType DirectionIndex) const override = 0;
