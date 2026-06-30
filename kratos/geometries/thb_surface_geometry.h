@@ -321,6 +321,34 @@ public:
         return result;
     }
 
+    /// Evaluates THB shape functions at a single (u, v) point, returning node IDs
+    /// and values for the nonzero active basis functions.
+    void ShapeFunctionsValuesAndCPIndices(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr) const
+    {
+        const double u = rCoordinates[0];
+        const double v = rCoordinates[1];
+
+        THBSurfaceShapeFunction shape_function_container(
+            PolynomialDegree(0), PolynomialDegree(1), DerivativeOrder);
+        shape_function_container.ComputeShapeFunctionValues(*this, u, v);
+
+        const SizeType num_nonzero = shape_function_container.NumberOfNonzeroControlPoints();
+        const auto& packed_indices = shape_function_container.ControlPointIndices();
+
+        rControlPointIndices.resize(num_nonzero);
+        for (SizeType j = 0; j < num_nonzero; ++j)
+            rControlPointIndices[j] = this->pGetPoint(packed_indices[j])->Id();
+
+        rShapeFunctionsValues.resize(num_nonzero, false);
+        for (SizeType j = 0; j < num_nonzero; ++j)
+            rShapeFunctionsValues[j] = shape_function_container(j, 0);
+    }
+
     /// Returns the finest level whose refinement domain contains (u, v), or 0 if none.
     SizeType ActiveLevelAtPoint(double u, double v) const
     {
