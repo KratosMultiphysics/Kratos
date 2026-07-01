@@ -4,7 +4,7 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "SmallStrainUDSM2DPlaneStrainLaw" 
+              "name"             :  "SmallStrainUDSM2DPlaneStrainLaw"
           },
           "Variables": {
               "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
@@ -22,12 +22,12 @@
               "IS_FORTRAN_UDSM"          :  true,
               "INDEX_OF_UMAT_PHI_PARAMETER": 4,
               "INDEX_OF_UMAT_C_PARAMETER":   3,
-              "UMAT_PARAMETERS"          :  [30.0E6,
+              "UMAT_PARAMETERS"          :  [30.0E5,
                                              0.2,
-                                             1.0E3,
-                                             30.0,
+                                             100e3,
+                                             45,
                                              0.0,
-                                             1.0E3,
+                                             100e3,
                                              1.0,
                                              0.0 ],
               "STATE_VARIABLES"          :  [],

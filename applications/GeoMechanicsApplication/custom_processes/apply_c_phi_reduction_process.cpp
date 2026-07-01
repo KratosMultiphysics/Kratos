@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
+#include "custom_constitutive/mohr_coulomb_with_tension_cutoff_elastoplastic_tangent_matrix.h"
 #include "containers/model.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/mohr_coulomb_law.h"
@@ -23,6 +24,9 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
+
+#include <limits>
+#include <mutex>
 
 namespace Kratos
 {
@@ -45,7 +49,10 @@ bool UsesInternalMohrCoulombModel(const Element& rElement)
     KRATOS_ERROR_IF_NOT(rElement.GetProperties().Has(CONSTITUTIVE_LAW))
         << "Properties do not have CONSTITUTIVE_LAW" << std::endl;
 
-    return dynamic_cast<const MohrCoulombLaw*>(rElement.GetProperties()[CONSTITUTIVE_LAW].get()) != nullptr;
+    const auto* p_constitutive_law = rElement.GetProperties()[CONSTITUTIVE_LAW].get();
+    return dynamic_cast<const MohrCoulombLaw*>(p_constitutive_law) != nullptr ||
+           dynamic_cast<const MohrCoulombWithTensionCutOffElastoPlasticTangentMatrix*>(
+               p_constitutive_law) != nullptr;
 }
 } // namespace
 
@@ -184,6 +191,20 @@ void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double Reduc
     }
     rElement.SetProperties(p_new_properties);
 
+    static std::mutex debug_mutex;
+    static double last_printed_phi = std::numeric_limits<double>::quiet_NaN();
+    static double last_printed_c = std::numeric_limits<double>::quiet_NaN();
+    std::scoped_lock lock(debug_mutex);
+    if (ReducedPhi != last_printed_phi || ReducedC != last_printed_c) {
+        KRATOS_WATCH_CERR(rElement.Id())
+        KRATOS_WATCH_CERR(ReducedPhi)
+        KRATOS_WATCH_CERR(ReducedC)
+        KRATOS_WATCH_CERR(rElement.GetProperties().GetValue(GEO_FRICTION_ANGLE))
+        KRATOS_WATCH_CERR(rElement.GetProperties().GetValue(GEO_COHESION))
+        last_printed_phi = ReducedPhi;
+        last_printed_c = ReducedC;
+    }
+
     if (UsesInternalMohrCoulombModel(rElement))
         InitializeParametersForInternalMohrCoulombModel(rElement);
 }
@@ -200,6 +221,10 @@ void ApplyCPhiReductionProcess::InitializeParametersForInternalMohrCoulombModel(
     const auto  dummy_vector   = Vector();
     for (const auto& p_law : constitutive_laws) {
         if (const auto p_mohr_coulomb = dynamic_cast<MohrCoulombLaw*>(p_law.get())) {
+            p_mohr_coulomb->InitializeMaterial(r_properties, dummy_geometry, dummy_vector);
+        } else if (const auto p_mohr_coulomb =
+                       dynamic_cast<MohrCoulombWithTensionCutOffElastoPlasticTangentMatrix*>(
+                           p_law.get())) {
             p_mohr_coulomb->InitializeMaterial(r_properties, dummy_geometry, dummy_vector);
         }
     }

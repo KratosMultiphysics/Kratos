@@ -4,9 +4,10 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "GeoMohrCoulombLawPlaneStrain"
+              "name"             :  "GeoReferenceMohrCoulomb3DPlaneStrainLaw"
           },
-          "Variables": {
+
+            "Variables"        : {
               "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
               "DENSITY_SOLID"            :  2038.73598,
               "DENSITY_WATER"            :  0.0,
@@ -22,12 +23,17 @@
               "SATURATED_SATURATION"     :  1.0,
               "YOUNG_MODULUS"            :  30.0E5,
               "POISSON_RATIO"            :  0.2,
+              "FRACTURE_ENERGY"          :  50000.0,
+              "HARDENING_CURVE"          :  3,
+              "TANGENT_OPERATOR_ESTIMATION": 0,
               "GEO_COHESION"             :  100.0e3,
               "GEO_FRICTION_ANGLE"       :  45.0,
               "GEO_ENABLE_TENSION_CUT_OFF": true,
               "GEO_TENSILE_STRENGTH"     :  100.0e3,
               "GEO_DILATANCY_ANGLE"      :   0.0
-         }
+
+            },
+            "Tables"           : {}
       }
    }]
 }

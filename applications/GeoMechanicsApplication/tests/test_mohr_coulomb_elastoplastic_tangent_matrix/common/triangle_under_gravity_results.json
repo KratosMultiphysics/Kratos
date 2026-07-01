@@ -1,0 +1,27 @@
+{
+  "TIME": [],
+  "NODE_1": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "WATER_PRESSURE": []
+  },
+  "NODE_2": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "WATER_PRESSURE": []
+  },
+  "NODE_3": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "WATER_PRESSURE": []
+  },
+  "NODE_4": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "WATER_PRESSURE": []
+  }
+}

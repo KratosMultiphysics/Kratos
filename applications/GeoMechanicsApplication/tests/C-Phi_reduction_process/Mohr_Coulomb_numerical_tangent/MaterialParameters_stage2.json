@@ -4,7 +4,7 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "GeoMohrCoulombLawPlaneStrain"
+              "name"             :  "GeoMohrCoulombWithTensionCutOffElastoPlasticTangentMatrix2D"
           },
           "Variables": {
               "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
@@ -26,7 +26,9 @@
               "GEO_FRICTION_ANGLE"       :  45.0,
               "GEO_ENABLE_TENSION_CUT_OFF": true,
               "GEO_TENSILE_STRENGTH"     :  100.0e3,
-              "GEO_DILATANCY_ANGLE"      :   0.0
+              "GEO_DILATANCY_ANGLE"      :   0.0,
+              "GEO_USE_NUMERICAL_TANGENT_OPERATOR": true
+
          }
       }
    }]

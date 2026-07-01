@@ -113,7 +113,9 @@
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
 #include "custom_constitutive/mohr_coulomb_law.h"
+#include "custom_constitutive/mohr_coulomb_with_tension_cutoff_elastoplastic_tangent_matrix.h"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_constitutive/reference_3d_mohr_coulomb_plane_strain_law.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.h"
 #include "custom_constitutive/small_strain_udsm_law.h"
@@ -963,8 +965,11 @@ private:
 
     const MohrCoulombLaw mMohrCoulombLawPlaneStrain{std::make_unique<PlaneStrain>()};
     const MohrCoulombLaw mMohrCoulombLaw3D{std::make_unique<ThreeDimensional>()};
+    const Reference3DMohrCoulombPlaneStrainLaw mReference3DMohrCoulombPlaneStrainLaw;
 
     const InterfaceCoulombLaw mInterfaceCoulombLawPlaneStrain{std::make_unique<InterfacePlaneStrain>()};
+    const MohrCoulombWithTensionCutOffElastoPlasticTangentMatrix mMohrCoulombWithTensionCutOffElastoPlasticTangentMatrix2D{std::make_unique<PlaneStrain>()};
+    const MohrCoulombWithTensionCutOffElastoPlasticTangentMatrix mMohrCoulombWithTensionCutOffElastoPlasticTangentMatrix3D{std::make_unique<ThreeDimensional>()};
 
     ///@}
 

@@ -362,7 +362,11 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombLawPlaneStrain", mMohrCoulombLawPlaneStrain)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombLaw3D", mMohrCoulombLaw3D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoReferenceMohrCoulomb3DPlaneStrainLaw",
+                                     mReference3DMohrCoulombPlaneStrainLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombLawPlaneStrain", mInterfaceCoulombLawPlaneStrain)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOffElastoPlasticTangentMatrix2D", mMohrCoulombWithTensionCutOffElastoPlasticTangentMatrix2D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOffElastoPlasticTangentMatrix3D", mMohrCoulombWithTensionCutOffElastoPlasticTangentMatrix3D)
 
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)
@@ -394,6 +398,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(GEO_COMPRESSION_CAP_SIZE)
     KRATOS_REGISTER_VARIABLE(GEO_PRECONSOLIDATION_STRESS)
     KRATOS_REGISTER_VARIABLE(GEO_CAP_HARDENING_TYPE)
+    KRATOS_REGISTER_VARIABLE(GEO_USE_NUMERICAL_TANGENT_OPERATOR)
 
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_WATER)
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_SOLID)

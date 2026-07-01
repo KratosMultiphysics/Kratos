@@ -83,11 +83,14 @@ public:
                     "min_radius_factor": 0.5,
                     "search_neighbours_step": false,
                     "body_domain_sub_model_part_list": [],
-                    "rebuild_level": 2
+                    "rebuild_level": 2,
+                    "use_old_stiffness_in_first_iteration": false
                 }  )");
 
         // Validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
+        this->SetUseOldStiffnessInFirstIterationFlag(
+            rParameters["use_old_stiffness_in_first_iteration"].GetBool());
     }
 }; // Class GeoMechanicsNewtonRaphsonStrategy
 
