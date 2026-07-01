@@ -115,7 +115,7 @@ class StandardizedObjective(ResponseRoutine):
             return 0.0
 
     def GetAbsoluteChange(self) -> float:
-        return self.GetValue() * self.__scaling - self.GetInitialValue()
+        return self.GetStandardizedValue() - self.GetInitialValue()
 
     def GetInfo(self) -> dict:
         info = {
