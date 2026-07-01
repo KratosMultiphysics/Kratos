@@ -223,13 +223,14 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AllocateConstraints(P
         return;
     }
 
-    detail::MakeRelationTopology<TSparse,TDense>(std::distance(itDofBegin, itDofEnd),
-                                                 itConstraintBegin,
-                                                 itConstraintEnd,
-                                                 rProcessInfo,
-                                                 this->GetRelationMatrix(),
-                                                 this->GetConstraintGapVector(),
-                                                 mpImpl->mConstraintIdMap);
+    detail::MakeRelationTopology<TSparse,TDense>(
+        std::distance(itDofBegin, itDofEnd),
+        itConstraintBegin,
+        itConstraintEnd,
+        rProcessInfo,
+        this->GetRelationMatrix(),
+        this->GetConstraintGapVector(),
+        mpImpl->mConstraintIdMap);
 
     this->GetConstraintGapVector().resize(this->GetRelationMatrix().size1(), false);
 

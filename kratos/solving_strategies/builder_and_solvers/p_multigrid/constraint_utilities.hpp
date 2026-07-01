@@ -99,22 +99,23 @@ inline void ProcessMasterSlaveConstraint(std::vector<std::size_t>& rConstraintIn
 /// @param rConstraintIdMap Map relating slave DoF IDs to constraint equation indices, as well as the number
 ///                         of constraint objects defining the constraint equation.
 /// @see ProcessMasterSlaveConstraint
-inline void ProcessMultifreedomConstraint(std::vector<std::size_t>& rConstraintIndices,
-                                          std::vector<std::size_t>& rDofIds,
-                                          const MasterSlaveConstraint& rConstraint,
-                                          const std::vector<std::size_t>& rMasterDofIds,
-                                          const CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
-{
-    const auto& r_constraint_labels = rConstraint.GetData().GetValue(CONSTRAINT_LABELS);
-    rConstraintIndices.resize(r_constraint_labels.size());
-    std::transform(r_constraint_labels.begin(),
-                   r_constraint_labels.end(),
-                   rConstraintIndices.begin(),
-                   [&rConstraintIdMap](std::size_t constraint_label){
-                        return rConstraintIdMap.at(constraint_label).first;
-                   });
+inline void ProcessMultifreedomConstraint(
+    std::vector<std::size_t>& rConstraintIndices,
+    std::vector<std::size_t>& rDofIds,
+    const MasterSlaveConstraint& rConstraint,
+    const std::vector<std::size_t>& rMasterDofIds,
+    const CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap) {
+        const auto& r_constraint_labels = rConstraint.GetData().GetValue(CONSTRAINT_LABELS);
+        rConstraintIndices.resize(r_constraint_labels.size());
+        std::transform(
+            r_constraint_labels.begin(),
+            r_constraint_labels.end(),
+            rConstraintIndices.begin(),
+            [&rConstraintIdMap](std::size_t constraint_label){
+                return rConstraintIdMap.at(constraint_label).first;
+            });
 
-    rDofIds = rMasterDofIds;
+        rDofIds = rMasterDofIds;
 }
 
 
@@ -266,11 +267,12 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
             // belong to the same constraint equation).
             if (r_tls.slave_ids.empty()) {
                 // The constraint is a MultifreedomConstraint.
-                detail::ProcessMultifreedomConstraint(r_tls.constraint_indices,
-                                                      r_tls.dof_equation_ids,
-                                                      r_constraint,
-                                                      r_tls.master_ids,
-                                                      rConstraintIdMap);
+                detail::ProcessMultifreedomConstraint(
+                    r_tls.constraint_indices,
+                    r_tls.dof_equation_ids,
+                    r_constraint,
+                    r_tls.master_ids,
+                    rConstraintIdMap);
                 const auto& r_hessian = r_constraint.GetData().GetValue(GEOMETRIC_STIFFNESS_MATRIX);
                 r_tls.hessian.resize(r_hessian.size1(), r_hessian.size2());
                 std::copy(r_hessian.data().begin(),
@@ -278,14 +280,15 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                           r_tls.hessian.data().begin());
             } /*if r_tls.slave_ids.empty()*/ else {
                 // The constraint is a MasterSlaveConstraint.
-                detail::ProcessMasterSlaveConstraint(r_tls.constraint_indices,
-                                                     r_tls.dof_equation_ids,
-                                                     r_tls.relation_matrix,
-                                                     r_tls.constraint_gaps,
-                                                     r_constraint,
-                                                     r_tls.slave_ids,
-                                                     r_tls.master_ids,
-                                                     rConstraintIdMap);
+                detail::ProcessMasterSlaveConstraint(
+                    r_tls.constraint_indices,
+                    r_tls.dof_equation_ids,
+                    r_tls.relation_matrix,
+                    r_tls.constraint_gaps,
+                    r_constraint,
+                    r_tls.slave_ids,
+                    r_tls.master_ids,
+                    rConstraintIdMap);
 
                 // The standard MasterSlaveConstraint can only represent linear constraints,
                 // whose Hessian vanish, so there's no need assemble them into the global
