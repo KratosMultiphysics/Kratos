@@ -247,7 +247,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
         # Create shifted-boundary utility and flag BOUNDARY elements for calculating metric for initial remeshing (MMG)
         self.__CreateBoundaryUtility()
-        self.__FlagBoundaryElements()
+        #self.__FlagBoundaryElements()
 
         # Clone the solution step data for skin and skin points model parts
         t =  self.GetComputingModelPart().ProcessInfo[KM.TIME]
@@ -261,25 +261,13 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             skin_mp_points.ProcessInfo[KM.STEP] = step
 
     def Initialize(self):
-        #TODO remove all conditions of main model part that MMG created without being used in any sub model part
-        # bf_boundary_sub_model_part_names = ["AutomaticInlet2D_inlet","NoSlip2D_wall","Outlet2D_outlet"]
-        # cond_ids_used = []
-        # for bf_boundary_name in bf_boundary_sub_model_part_names:
-        #     bf_boundary_sub_model_part = self.main_model_part.GetSubModelPart(bf_boundary_name)
-        #     for cond in bf_boundary_sub_model_part.Conditions:
-        #         cond_ids_used.append(cond.Id)
-        # for cond in self.main_model_part.Conditions:
-        #     if cond.Id not in cond_ids_used:
-        #         cond.Set(KM.TO_ERASE, True)
-        # self.main_model_part.RemoveConditions(KM.TO_ERASE)
-
         # Run check and prepare process again
         #NOTE that this is necessary after 'initial_remeshing' of a MMG process to get correct parent elements for wall boundary conditions
-        prepare_model_part_settings = KM.Parameters("{}")
-        prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
-        prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
-        prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
-        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcessFluid(self.main_model_part, prepare_model_part_settings).Execute()
+        # prepare_model_part_settings = KM.Parameters("{}")
+        # prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
+        # prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
+        # prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
+        # check_and_prepare_model_process_fluid.CheckAndPrepareModelProcessFluid(self.main_model_part, prepare_model_part_settings).Execute()
 
         # If the solver requires an instance of the stabilized shifted boundary formulation class, set the process info variables
         #TODO not necessary?
@@ -333,7 +321,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         time_prev = datetime.datetime.now().replace(microsecond=0)
         if self.postprocess_skin_nodes:
             for sbm_utility in self.sbm_utilities:
-                sbm_utility.CalculateVariablesAtSkinPointsAndNodes()
+                sbm_utility.CalculateVariablesAtSkinPointsAndNodes()  # This method calculates the variables at the skin points as well
             self.__PrintAndResetTimer(time_prev, "post-process skin variables")
         elif self.postprocess_skin_points:
             for sbm_utility in self.sbm_utilities:
@@ -399,63 +387,59 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             sbm_utility = KM.ShiftedBoundaryPointBasedUtility(self.model, settings)
             self.sbm_utilities.append(sbm_utility)
             KM.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based utility created for skin model part '" + skin_model_part_name + "'.")
+
+        if len(self.sbm_utilities) == 0:
+            KM.Logger.PrintWarning('No shifted-boundary interface utility was created because no skin model part name was given.')
+
         self.__PrintAndResetTimer(time_prev, "create the shifted-boundary utilities")
 
     def __FlagBoundaryElements(self):
-        # Flag elements as BOUNDARY if they are intersected by the skin model parts
+        # Flag elements as BOUNDARY if they are located where the skin model parts are
         time_prev = datetime.datetime.now().replace(microsecond=0)
         for sbm_utility in self.sbm_utilities:
-            #TODO create separate function in sbm utility
-            #sbm_utility.FlagBoundaryElements()
-            sbm_utility.SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes()
+            sbm_utility.FindElementsAtTessellatedBoundary()
+            sbm_utility.FlagBoundaryElements()
         self.__PrintAndResetTimer(time_prev, "flag boundary elements")
 
     def __SetUpBoundaryUtility(self):
-        # Calculate the required neighbors
-        elemental_neighbors_process = KM.GenericFindElementalNeighboursProcess(self.main_model_part)
-        elemental_neighbors_process.Execute()
+        if len(self.sbm_utilities) > 0:
+            # Calculate the required neighbors
+            elemental_neighbors_process = KM.GenericFindElementalNeighboursProcess(self.main_model_part)
+            elemental_neighbors_process.Execute()
 
-        time_prev = datetime.datetime.now().replace(microsecond=0)
+            time_prev = datetime.datetime.now().replace(microsecond=0)
 
-        if len(self.sbm_utilities) == 1:
-            self.sbm_utilities[0].CalculateAndAddPointBasedInterface(self.deactivate_unstable_clusters)
-            KM.Logger.PrintInfo(self.__class__.__name__, "Extension operators were calculated and interface conditions added.")
-
-        elif len(self.sbm_utilities) > 1:
-            # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) embedded
+            # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) immersed
             self.sbm_utilities[0].ResetFlags()
             time_prev = self.__PrintAndResetTimer(time_prev, "reset flags")
 
-            # Set boundary flags and locate skin model part points in the volume model part elements for all skin model parts
+            # Set boundary flags and locate skin model part points in the volume model part elements for all skin model parts.
+            # NOTE that boundary elements are flagged after locating the skin points in case skin points are located in elements,
+            # which are not touching or intersected by the tessellated boundary
             for sbm_utility in self.sbm_utilities:
-                sbm_utility.SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes()
-                # To be done after setting tessellated boundary because nodes might be relocated
-                sbm_utility.LocateSkinPoints()
-            time_prev = self.__PrintAndResetTimer(time_prev, "tessellate skin and locate skin points")
+                sbm_utility.FindElementsAtTessellatedBoundary()
+                sbm_utility.MapSkinPointsToElements()
+                sbm_utility.FlagBoundaryElements()
+            time_prev = self.__PrintAndResetTimer(time_prev, "find boundary elements and skin points")
 
-            # To be done after locating the skin points because elements in which skin points are located
-            # might not be intersected by tessellated skin and might be marked as boundary when locating the skin points
-            self.sbm_utilities[0].SetInterfaceFlags()
-            time_prev = self.__PrintAndResetTimer(time_prev, "set interface flags")
+            # Flag interface elements after all boundary elements containing all skin geometries have been found.
+            self.sbm_utilities[0].FlagInterfaceElements()
+            time_prev = self.__PrintAndResetTimer(time_prev, "flag interface elements")
 
             # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements. Also find and deactivate unstable clusters if requested.
             # An unstable cluster is defined as enclosed fluid volume created by deactivated elements, in which no degree of freedom is fixed.
+            #NOTE Right now all cluster except for the biggest one will be deactivated.
             self.sbm_utilities[0].DeactivateElementsAndNodes(self.deactivate_unstable_clusters)
             time_prev = self.__PrintAndResetTimer(time_prev, "deactivate elements and nodes")
 
-            # Add Kratos conditions for points at the boundary based on extension operators
-            # NOTE that the same boundary sub model part is being used here for all skin model parts and their utilities to add conditions
+            # Add Kratos conditions for points at the boundary based on extension operators.
+            # NOTE that the same boundary sub model part is being used here for all skin model parts and their utilities to add conditions.
             for i_skin, sbm_utility in enumerate(self.sbm_utilities):
                 sbm_utility.CalculateAndAddSkinIntegrationPointConditions()
                 KM.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part '" + self.skin_model_part_names[i_skin] + "'.")
             time_prev = self.__PrintAndResetTimer(time_prev, "add conditions for all skin model parts")
 
             KM.Logger.PrintInfo(self.__class__.__name__, "Extension operators were calculated and interface conditions added.")
-
-        else:
-            KM.Logger.PrintWarning('Shifted-boundary interface utility was not set up because no boundary model part was given.')
-
-        KM.Logger.PrintInfo(self.__class__.__name__, self.main_model_part)
 
     def __PrintAndResetTimer(self, time_prev, process_description):
         time_curr = datetime.datetime.now().replace(microsecond=0)

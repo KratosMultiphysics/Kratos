@@ -17,11 +17,14 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "containers/pointer_vector.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/triangle_2d_3.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/exception.h"
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
+#include "includes/node.h"
 #include "includes/smart_pointers.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -38,8 +41,10 @@
 #include "utilities/variable_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/plane_3d.h"
-#include "processes/find_intersected_geometrical_objects_process.h"
 #include <cstddef>
+#include <numeric>
+#include <omp.h>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -48,115 +53,258 @@ namespace Kratos
 {
     namespace ShiftedBoundaryUtilityInternals {
 
-    template <>
-    double CalculatePointDistance<2>(
-        const Geometry<Node>& rObjectGeometry,
-        const Point& rPoint)
-    {
-        return GeometryUtils::PointDistanceToLineSegment3D(
-            rObjectGeometry[0],
-            rObjectGeometry[1],
-            rPoint);
-    }
+        // see FluidElementUtilities 2D
+        void VoigtTransformForProduct(
+            const array_1d<double,3>& rVector,
+            BoundedMatrix<double,2,3>& rVoigtMatrix)
+        {
+            rVoigtMatrix.clear();
 
-    template <>
-    double CalculatePointDistance<3>(
-        const Geometry<Node>& rObjectGeometry,
-        const Point& rPoint)
-    {
-        return GeometryUtils::PointDistanceToTriangle3D(
-            rObjectGeometry[0],
-            rObjectGeometry[1],
-            rObjectGeometry[2],
-            rPoint);
-    }
-
-    template <>
-    Plane3D CreateIntersectionPlane<2>(const std::vector< array_1d<double,3> >& rIntPtsVector)
-    {
-        // Since the Plane3D object only works in 3D, in 2D we define the intersection plane
-        // by extruding the intersection point 0 in the z-direction.
-        array_1d<double,3> z_coord_pt = rIntPtsVector[0];
-        z_coord_pt[2] = 1.0;
-        return Plane3D(Point{rIntPtsVector[0]}, Point{rIntPtsVector[1]}, Point{z_coord_pt});
-    }
-
-    template <>
-    Plane3D CreateIntersectionPlane<3>(const std::vector< array_1d<double,3> >& rIntPtsVector)
-    {
-        return Plane3D(Point{rIntPtsVector[0]}, Point{rIntPtsVector[1]}, Point{rIntPtsVector[2]});
-    }
-
-    // see FluidElementUtilities
-    void VoigtTransformForProduct(
-        const array_1d<double,3>& rVector,
-        BoundedMatrix<double,2,3>& rVoigtMatrix)
-    {
-        rVoigtMatrix.clear();
-
-        rVoigtMatrix(0,0) = rVector(0);
-        rVoigtMatrix(0,2) = rVector(1);
-        rVoigtMatrix(1,1) = rVector(1);
-        rVoigtMatrix(1,2) = rVector(0);
-    }
-
-    // see FluidElementUtilities
-    void VoigtTransformForProduct(
-        const array_1d<double,3>& rVector,
-        BoundedMatrix<double,3,6>& rVoigtMatrix)
-    {
-        rVoigtMatrix.clear();
-
-        rVoigtMatrix(0,0) = rVector(0);
-        rVoigtMatrix(0,3) = rVector(1);
-        rVoigtMatrix(0,5) = rVector(2);
-        rVoigtMatrix(1,1) = rVector(1);
-        rVoigtMatrix(1,3) = rVector(0);
-        rVoigtMatrix(1,4) = rVector(2);
-        rVoigtMatrix(2,2) = rVector(2);
-        rVoigtMatrix(2,4) = rVector(1);
-        rVoigtMatrix(2,5) = rVector(0);
-    }
-
-    // see FluidElementUtilities
-    template <>
-    void CalculateStrainMatrix<2>(
-        const Matrix& rDN_DX,
-        const std::size_t& NumNodes,
-        Matrix& rB)
-    {
-        rB.clear();
-        for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
-            const std::size_t col = 3 * i_node;
-            rB(0, col  ) = rDN_DX(i_node, 0);
-            rB(1, col+1) = rDN_DX(i_node, 1);
-            rB(2, col  ) = rDN_DX(i_node, 1);
-            rB(2, col+1) = rDN_DX(i_node, 0);
+            rVoigtMatrix(0,0) = rVector(0);
+            rVoigtMatrix(0,2) = rVector(1);
+            rVoigtMatrix(1,1) = rVector(1);
+            rVoigtMatrix(1,2) = rVector(0);
         }
-    }
 
-    template <>
-    void CalculateStrainMatrix<3>(
-        const Matrix& rDN_DX,
-        const std::size_t& NumNodes,
-        Matrix& rB)
-    {
-        rB.clear();
-        for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
-            const std::size_t col = 4 * i_node;
-            rB(0, col  ) = rDN_DX(i_node, 0);
-            rB(1, col+1) = rDN_DX(i_node, 1);
-            rB(2, col+2) = rDN_DX(i_node, 2);
-            rB(3, col  ) = rDN_DX(i_node, 1);
-            rB(3, col+1) = rDN_DX(i_node, 0);
-            rB(4, col+1) = rDN_DX(i_node, 2);
-            rB(4, col+2) = rDN_DX(i_node, 1);
-            rB(5, col  ) = rDN_DX(i_node, 2);
-            rB(5, col+2) = rDN_DX(i_node, 0);
+        // see FluidElementUtilities 3D
+        void VoigtTransformForProduct(
+            const array_1d<double,3>& rVector,
+            BoundedMatrix<double,3,6>& rVoigtMatrix)
+        {
+            rVoigtMatrix.clear();
+
+            rVoigtMatrix(0,0) = rVector(0);
+            rVoigtMatrix(0,3) = rVector(1);
+            rVoigtMatrix(0,5) = rVector(2);
+            rVoigtMatrix(1,1) = rVector(1);
+            rVoigtMatrix(1,3) = rVector(0);
+            rVoigtMatrix(1,4) = rVector(2);
+            rVoigtMatrix(2,2) = rVector(2);
+            rVoigtMatrix(2,4) = rVector(1);
+            rVoigtMatrix(2,5) = rVector(0);
         }
-    }
 
+        // see FluidElementUtilities 2D
+        template <>
+        void CalculateStrainMatrix<2>(
+            const Matrix& rDN_DX,
+            const std::size_t& NumNodes,
+            Matrix& rB)
+        {
+            rB.clear();
+            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
+                const std::size_t col = 3 * i_node;
+                rB(0, col  ) = rDN_DX(i_node, 0);
+                rB(1, col+1) = rDN_DX(i_node, 1);
+                rB(2, col  ) = rDN_DX(i_node, 1);
+                rB(2, col+1) = rDN_DX(i_node, 0);
+            }
+        }
+
+        // see FluidElementUtilities 3D
+        template <>
+        void CalculateStrainMatrix<3>(
+            const Matrix& rDN_DX,
+            const std::size_t& NumNodes,
+            Matrix& rB)
+        {
+            rB.clear();
+            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
+                const std::size_t col = 4 * i_node;
+                rB(0, col  ) = rDN_DX(i_node, 0);
+                rB(1, col+1) = rDN_DX(i_node, 1);
+                rB(2, col+2) = rDN_DX(i_node, 2);
+                rB(3, col  ) = rDN_DX(i_node, 1);
+                rB(3, col+1) = rDN_DX(i_node, 0);
+                rB(4, col+1) = rDN_DX(i_node, 2);
+                rB(4, col+2) = rDN_DX(i_node, 1);
+                rB(5, col  ) = rDN_DX(i_node, 2);
+                rB(5, col+2) = rDN_DX(i_node, 0);
+            }
+        }
+
+        void ElementBVH::build(const std::vector<BBox>& boxes) {
+            const int N = static_cast<int>(boxes.size());
+            prim_boxes = boxes;
+            prim_ids.resize(N);
+            std::iota(prim_ids.begin(), prim_ids.end(), 0);
+
+            nodes.clear();
+            nodes.reserve(2 * N);           // upper bound on node count
+            build_recursive(0, N);
+        }
+
+        void ElementBVH::query(const BBox& query_box, std::vector<std::size_t>& results) {
+            if (nodes.empty()) return;
+            // Iterative traversal with explicit stack (avoids recursion overhead)
+            int stack[64];
+            int top = 0;
+            stack[top++] = 0;
+
+            while (top > 0) {
+                const BVHNode& n = nodes[stack[--top]];
+                if (!n.bbox.overlaps(query_box)) continue;
+
+                if (n.is_leaf()) {
+                    const std::size_t end = n.prim_begin() + n.prim_count();
+                    for (std::size_t i = n.prim_begin(); i < end; ++i)
+                        results.push_back(prim_ids[i]);
+                } else {
+                    // Push both children; visit the one with smaller bbox first
+                    // (minor heuristic – avoids checking obviously far child first)
+                    stack[top++] = n.left_or_first;
+                    stack[top++] = n.right_or_count;
+                }
+            }
+        }
+
+        void ElementBVH::refit(const std::vector<BBox>& updated_boxes) {
+            // Step 1: update leaf-level primitive boxes
+            prim_boxes = updated_boxes;
+
+            // Step 2: refit all nodes bottom-up
+            // The flat array is built in pre-order (parent before children),
+            // so iterating in REVERSE order processes children before parents
+            refit_node(0);
+        }
+
+        int ElementBVH::build_recursive(int first, int count) {
+            int node_idx = static_cast<int>(nodes.size());
+            nodes.emplace_back();
+            BVHNode& node = nodes[node_idx];
+
+            // Compute bounding box of all primitives in [first, first+count)
+            node.bbox = BBox{};
+            for (int i = first; i < first + count; ++i)
+                node.bbox.expand(prim_boxes[prim_ids[i]]);
+
+            // Leaf condition
+            if (count <= MAX_LEAF_SIZE) {
+                node.left_or_first  = first;
+                node.right_or_count = -count;   // negative → leaf
+                return node_idx;
+            }
+
+            // SAH split
+            int   best_axis  = -1;
+            int   best_split = -1;
+            float best_cost  = std::numeric_limits<float>::max();
+
+            for (int axis = 0; axis < 3; ++axis) {
+                // Bin centroids
+                float ax_min = node.bbox.min[axis];
+                float ax_max = node.bbox.max[axis];
+                if (ax_max - ax_min < 1e-12f) continue;
+
+                struct Bin { BBox bbox; int count = 0; };
+                std::array<Bin, SAH_BINS> bins;
+
+                float inv_range = SAH_BINS / (ax_max - ax_min);
+                for (int i = first; i < first + count; ++i) {
+                    float c   = prim_boxes[prim_ids[i]].centroid(axis);
+                    int   bin = std::min(static_cast<int>((c - ax_min) * inv_range),
+                                        SAH_BINS - 1);
+                    bins[bin].bbox.expand(prim_boxes[prim_ids[i]]);
+                    bins[bin].count++;
+                }
+
+                // Sweep left→right, then right→left to evaluate split costs
+                std::array<float, SAH_BINS-1> left_area,  right_area;
+                std::array<int,   SAH_BINS-1> left_count, right_count;
+
+                BBox  running_box; int running_cnt = 0;
+                for (int b = 0; b < SAH_BINS-1; ++b) {
+                    running_box.expand(bins[b].bbox);
+                    running_cnt += bins[b].count;
+                    left_area [b] = running_box.half_surface_area();
+                    left_count[b] = running_cnt;
+                }
+                running_box = BBox{}; running_cnt = 0;
+                for (int b = SAH_BINS-2; b >= 0; --b) {
+                    running_box.expand(bins[b+1].bbox);
+                    running_cnt += bins[b+1].count;
+                    right_area [b] = running_box.half_surface_area();
+                    right_count[b] = running_cnt;
+                }
+
+                float parent_area = node.bbox.half_surface_area();
+                for (int b = 0; b < SAH_BINS-1; ++b) {
+                    if (left_count[b] == 0 || right_count[b] == 0) continue;
+                    float cost = (left_area[b]  * left_count[b] +
+                                right_area[b] * right_count[b]) / parent_area;
+                    if (cost < best_cost) {
+                        best_cost  = cost;
+                        best_axis  = axis;
+                        best_split = b;
+                    }
+                }
+            }
+
+            // Fallback: split at median along longest axis
+            if (best_axis == -1) {
+                best_axis  = node.bbox.longest_axis();
+                best_split = SAH_BINS / 2 - 1;
+            }
+
+            // Partition prim_ids in-place
+            float ax_min   = node.bbox.min[best_axis];
+            float ax_max   = node.bbox.max[best_axis];
+            float inv_range= SAH_BINS / (ax_max - ax_min + 1e-30f);
+
+            auto mid_it = std::partition(
+                prim_ids.begin() + first,
+                prim_ids.begin() + first + count,
+                [&](int id) {
+                    float c   = prim_boxes[id].centroid(best_axis);
+                    int   bin = std::min(static_cast<int>((c - ax_min) * inv_range),
+                                        SAH_BINS - 1);
+                    return bin <= best_split;
+                });
+
+            int left_count_val = static_cast<int>(mid_it - (prim_ids.begin() + first));
+
+            // Guard against degenerate splits (all in one side)
+            if (left_count_val == 0 || left_count_val == count) {
+                node.left_or_first  = first;
+                node.right_or_count = -count;
+                return node_idx;
+            }
+
+            // Build children (NB: node reference may be invalidated by push_back,
+            // so we save what we need and re-fetch by index afterwards)
+            int left_child  = build_recursive(first, left_count_val);
+            int right_child = build_recursive(first + left_count_val,
+                                            count  - left_count_val);
+
+            // Re-fetch node (vector may have reallocated during recursion)
+            nodes[node_idx].left_or_first  = left_child;
+            nodes[node_idx].right_or_count = right_child;
+
+            return node_idx;
+        }
+
+        void ElementBVH::refit_node(int idx) {
+            BVHNode& node = nodes[idx];
+
+            if (node.is_leaf()) {
+                // Recompute bbox from primitives
+                node.bbox = BBox{};
+                const int end = node.prim_begin() + node.prim_count();
+                for (int i = node.prim_begin(); i < end; ++i)
+                    node.bbox.expand(prim_boxes[prim_ids[i]]);
+            } else {
+                refit_node(node.left_or_first);
+                refit_node(node.right_or_count);
+                // Parent bbox = union of children
+                node.bbox = nodes[node.left_or_first].bbox;
+                node.bbox.expand(nodes[node.right_or_count].bbox);
+            }
+        }
     }  // namespace ShiftedBoundaryUtilityInternals
+
+    //----------------------------------------------------------------
+    //     PUBLIC METHODS
+    //----------------------------------------------------------------
 
     const Parameters ShiftedBoundaryPointBasedUtility::GetDefaultParameters() const
     {
@@ -224,7 +372,7 @@ namespace Kratos
         mpConditionPrototype = &KratosComponents<Condition>::Get(wall_condition_name);
 
         // Set which side of the skin model part is an enclosed area
-        //TODO use flood fill process (--> Manuel) and Octree to check and search for enclosed areas for setting the pressure! (robustness)
+        // If a side is given as enclosed, then the pressure of the first node will be set to zero.
         const std::string enclosed_area = ThisParameters["enclosed_area"].GetString();
         if (enclosed_area != "positive" && enclosed_area != "negative" && enclosed_area != "none") {
             KRATOS_ERROR << "Unknown 'enclosed_area' keyword given. 'positive' or 'negative' side or 'none' are supported by point based shifted boundary interface utility." << std::endl;
@@ -234,31 +382,6 @@ namespace Kratos
         } else if (enclosed_area == "negative") {
             mNegativeSideIsEnclosed = true;
         }
-
-        // If true, then elements will be declared SBM_BOUNDARY which are intersected by the tessellated skin geometry
-        mUseTessellatedBoundary = ThisParameters["use_tessellated_boundary"].GetBool();
-    }
-
-    void ShiftedBoundaryPointBasedUtility::CalculateAndAddPointBasedInterface(
-        const bool DeactivateUnstableClusters
-    )
-    {
-        //NOTE that its necessary to call these methods from outside for multiple interface utilities
-
-        // Reset all SBM flags
-        ResetFlags();
-        // Use tessellated boundary description of skin model part to find SBM_BOUNDARY element in which no skin points are located
-        // NOTE that nodes which are very close to the skin might be relocated here
-        if (mUseTessellatedBoundary) SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes();
-        // Locate skin points AFTER possible node relocation of SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes
-        LocateSkinPoints();
-        // Set the SBM_INTERFACE flag AFTER setting SBM_BOUNDARY flags is completed
-        SetInterfaceFlags();
-        // Deactivate SBM_BOUNDARY elements and nodes which are surrounded by deactivated elements
-        DeactivateElementsAndNodes(DeactivateUnstableClusters);
-        // Calculate the extension operators for nodes of elements in which skin points are located
-        // and add conditions for one or both sides of all skin points
-        CalculateAndAddSkinIntegrationPointConditions();
     }
 
     void ShiftedBoundaryPointBasedUtility::ResetFlags()
@@ -268,200 +391,99 @@ namespace Kratos
         // TODO container for relocated nodes? so that they can be set back to their original position if needed
         block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
             rNode.Set(ACTIVE, true);             // Nodes that belong to the elements to be assembled
-            rNode.Set(SBM_BOUNDARY, false);      // Nodes that belong to the support clouds of the positive side  //TODO use variables with correct names?
-            rNode.Set(SBM_INTERFACE, false);     // Nodes that belong to the support clouds of the negative side  //TODO use variables with correct names?
+            rNode.Set(SBM_BOUNDARY, false);      // Nodes that belong to the support clouds of the positive side
+            rNode.Set(SBM_INTERFACE, false);     // Nodes that belong to the support clouds of the negative side
             rNode.Set(MODIFIED, false);          // Nodes that have been relocated because of a small distance to the skin geometry
         });
         block_for_each(mpModelPart->Elements(), [](ElementType& rElement){
-            rElement.Set(ACTIVE, true);          // Elements in the positive distance region (the ones to be assembled)
-            rElement.Set(SBM_BOUNDARY, false);   // Elements in which the skin geometry is located (true boundary gamma)
-            rElement.Set(SBM_INTERFACE, false);  // Positive distance elements owning the surrogate boundary nodes
+            rElement.Set(ACTIVE, true);          // Elements to be assembled
+            rElement.Set(SBM_BOUNDARY, false);   // Elements in which the skin geometry is located (true boundary gamma) - tessellated skin and skin integration points.
+            rElement.Set(SBM_INTERFACE, false);  // Elements owning the surrogate boundary nodes
         });
 
         KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Boundary and interface flags were reset and all elements and nodes re-activated." << std::endl;
     }
 
-    void ShiftedBoundaryPointBasedUtility::SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes()
+    void ShiftedBoundaryPointBasedUtility::FindElementsAtTessellatedBoundary(double Tolerance)
     {
-        // Reset SELECTED flag which is used to mark elements which are intersected by the skin geometry
-        VariableUtils().SetFlag(SELECTED, false, mpModelPart->Elements());
+        // Check that the skin model part has elements
+        KRATOS_ERROR_IF_NOT(mpSkinDiscSubModelPart->NumberOfElements())
+            << "There are no elements in skin model part (boundary) '" << mpSkinDiscSubModelPart->FullName() << "'." << std::endl;
 
-        // Create and initialize find_intersected_objects_process
-        //TODO SPEED UP only search in sub model part where it's likely that skin points are located? --> several layers of elements surrounding the previous SBM_BOUNDARY
-        Flags find_intersected_options;
-        find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS, false);
-        find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS, true);
-        find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS, false);
-        find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS, true);
-        FindIntersectedGeometricalObjectsProcess find_intersected_objects_process = FindIntersectedGeometricalObjectsProcess(*mpModelPart, *mpSkinDiscSubModelPart, find_intersected_options);
-        find_intersected_objects_process.ExecuteInitialize();
-
-        // Find intersections
-        find_intersected_objects_process.FindIntersections();  // FindIntersectedSkinObjects marks intersected elements as SELECTED
-        const std::vector<PointerVector<GeometricalObject>>&  r_intersected_objects = find_intersected_objects_process.GetIntersections();
-
-        // Get elements in the same order as find_intersected_objects_process
-        const std::size_t n_elements = (find_intersected_objects_process.GetModelPart1()).NumberOfElements();
-        const auto& r_elements = (find_intersected_objects_process.GetModelPart1()).ElementsArray();
-
-        // Define the minimal distance to the skin geometry
-        // NOTE that a minimal distance of <5e-7 can already cause an ill-defined deactivated layer because of the tolerances of the geometrical operations (intersected elements and localization of skin points)
-        const double distance_threshold = 5e-6;
-        // Initialize a multiplier for the the distance by which nodes should be relocated --> length/1000 for a smooth deactivated element layer
-        const double relocation_multiplier = 1e-3;
-
-        // Get function pointer for calculating the distance between a node and an intersecting object
-        PointDistanceFunctionType p_point_distance_function;
-        IntersectionPlaneConstructorType p_intersection_plane_constructor;
-        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
-        switch (n_dim) {
-            case 2:
-                p_point_distance_function = ShiftedBoundaryUtilityInternals::CalculatePointDistance<2>;
-                p_intersection_plane_constructor = ShiftedBoundaryUtilityInternals::CreateIntersectionPlane<2>;
-                break;
-            case 3:
-                p_point_distance_function = ShiftedBoundaryUtilityInternals::CalculatePointDistance<3>;
-                p_intersection_plane_constructor = ShiftedBoundaryUtilityInternals::CreateIntersectionPlane<3>;
-                break;
-            default:
-                KRATOS_ERROR << "Wrong domain size.";
+        // Build AABB tree of the discretized skin geometry (single-threaded)
+        const std::size_t n_skin_elements = mpSkinDiscSubModelPart->NumberOfElements();
+        std::vector<ShiftedBoundaryUtilityInternals::BBox> skin_boxes(n_skin_elements);
+        std::vector<ElementType::Pointer> idx_to_skin_element_pointer(n_skin_elements);
+        idx_to_skin_element_pointer.reserve(n_skin_elements);
+        std::size_t idx = 0;
+        for (auto& rElement : mpSkinDiscSubModelPart->Elements()) {
+            skin_boxes[idx] = ShiftedBoundaryUtilityInternals::BBox(rElement.GetGeometry(), Tolerance);
+            idx_to_skin_element_pointer[idx] = &rElement;
+            idx += 1;
         }
+        mSkinBVH.build(skin_boxes);  // O(N_skin * log N_skin)
+        // TODO store skin bvh for entire simulation for moving boundary, but replace skin_boxes with mSkinBVH.refit(skin_boxes_updated) every time the skin moves
 
-        // Calculate nodal distances of all nodes of elements that are intersected and relocate nodes that are too close to the skin geometry
-        std::size_t n_relocated_nodes = 0;
-        // LockObject mutex;
-        // IndexPartition<std::size_t>(n_elements).for_each([&](std::size_t i_ele) {
-        //     const auto& r_element_intersecting_objects = r_intersected_objects[i_ele];
-        //     if (!r_element_intersecting_objects.empty()) {
-        //         auto& p_element = r_elements[i_ele];
-        //         auto& r_geom = p_element->GetGeometry();
-        //         const std::size_t n_nodes = r_geom.PointsNumber();
+        const std::size_t n_split_elements_estimated = mpSkinDiscSubModelPart->NumberOfElements() * mpModelPart->GetProcessInfo()[DOMAIN_SIZE] * 2;
+        mBoundaryElementsSet.clear();
+        mBoundaryElementsSet.reserve(n_split_elements_estimated);
 
-        //         // Calculate distance below which nodes get relocated and by which nodes get relocated
-        //         const double length = r_geom.Length();
-        //         const double relocation_distance = std::max(distance_threshold, relocation_multiplier * length);
+        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
+        std::vector< std::vector<ElementType::Pointer> > local_split_elements(num_threads);
+        for (auto& vec : local_split_elements) vec.reserve(n_split_elements_estimated/num_threads);
 
-        //         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-        //             auto& r_node = r_geom[i_node];
-        //             // Check that node was not already modified from the iteration of another element
-        //             if (!r_node.Is(MODIFIED)) {
-        //                 // Calculate minimal distance of node to skin geometry
-        //                 // NOTE that this distance value can be negative to move in negative normal direction
-        //                 const double distance_node = CalculateSkinDistanceToNode(r_node, r_element_intersecting_objects,
-        //                                                                          p_point_distance_function, p_intersection_plane_constructor,
-        //                                                                          relocation_distance, 0.01*relocation_distance);
+        // Parallel search over background mesh for elements, which are intersected by the discretized skin geometry
+        // NOTE that we already treat elements as intersected if one of their nodes coincides with the discretized skin geometry
+        // TODO build and use background mesh bvh, because it will always stay the same
+        // TODO use previously found boundary elements as a starting point (+ several layers?) for moving boundary
+        block_for_each(mpModelPart->Elements(), [&](ElementType& rElement){
+            auto& r_background_geom = rElement.GetGeometry();
+            const ShiftedBoundaryUtilityInternals::BBox element_box(r_background_geom, Tolerance);
+            std::vector<std::size_t> candidates;
+            mSkinBVH.query(element_box, candidates);
 
-        //                 // Relocate node in direction of normal if the skin geometry is too close
-        //                 //TODO do not move outer boundary elements?
-        //                 if (std::abs(distance_node) < relocation_distance) {
-        //                     // Get normal of first intersecting object
-        //                     const auto& r_int_obj = r_intersected_objects[i_ele][0];
-        //                     array_1d<double,3> local_coords;
-        //                     array_1d<double,3> unit_normal = r_int_obj.GetGeometry().Normal(local_coords);
-        //                     unit_normal /= norm_2(unit_normal);
-
-        //                     // Use negative normal direction for a negative distance value (so it moves away from skin geometry)
-        //                     if (distance_node < 0.0) {
-        //                         unit_normal *= (-1);
-        //                     }
-
-        //                     {
-        //                         std::scoped_lock<LockObject> lock(mutex);
-
-        //                         // Relocate node into the direction of the intersected object's (negative) normal
-        //                         r_node.X()  += relocation_distance * unit_normal[0];
-        //                         r_node.Y()  += relocation_distance * unit_normal[1];
-        //                         r_node.Z()  += relocation_distance * unit_normal[2];
-
-        //                         // NOTE that initial position (X0,Y0,Z0) is mesh output for visualization (ParaView)
-        //                         //TODO store also in deformation etc instead of initial position for visualization for moving geometry?
-        //                         r_node.X0() += relocation_distance * unit_normal[0];
-        //                         r_node.Y0() += relocation_distance * unit_normal[1];
-        //                         r_node.Z0() += relocation_distance * unit_normal[2];
-        //                         r_node.Set(MODIFIED, true);
-
-        //                         //TODO correction needed for acceleration of the node?? correction needed for FM-ALE??
-        //                         // mesh velocity += dx/dt (1st order approximation)
-
-        //                         n_relocated_nodes++;
-        //                     }
-        //                     //TODO: Check detJ of surrounding elements - if negative, then revert?
-        //                 }
-        //             }
-        //         }
-        //     }
-        // });
-
-        // Recalculate intersections if nodes were moved
-        // NOTE that entirely new process is necessary for taking update node positions into consideration (TODO change that??)
-        //TODO SPEED UP by calculating intersections only for elements surrounding the relocated nodes?
-        if (n_relocated_nodes > 0) {
-            FindIntersectedGeometricalObjectsProcess new_find_intersected_objects_process = FindIntersectedGeometricalObjectsProcess(*mpModelPart, *mpSkinDiscSubModelPart, find_intersected_options);
-            new_find_intersected_objects_process.ExecuteInitialize();
-            new_find_intersected_objects_process.FindIntersections();
-            const std::vector<PointerVector<GeometricalObject>>&  r_new_intersected_objects = new_find_intersected_objects_process.GetIntersections();
-
-            // // Mark elements as SBM_BOUNDARY that are intersected by the tessellated skin geometry
-            // IndexPartition<std::size_t>(n_elements).for_each([&](std::size_t i_ele) {
-            //     if (!r_new_intersected_objects[i_ele].empty()) {
-            //         r_elements[i_ele]->Set(SBM_BOUNDARY, true);
-            //     }
-            // });
-            for (std::size_t i_ele = 0; i_ele < n_elements; ++i_ele) {
-                if (!r_new_intersected_objects[i_ele].empty()) {
-                    auto p_elem = r_elements[i_ele];
-                    p_elem->Set(SBM_BOUNDARY, true);
-                    for (auto& r_node : p_elem->GetGeometry()) {
-                        r_node.Set(SBM_BOUNDARY, false);
-                        r_node.Set(SBM_INTERFACE, false);
-                    }
+            // Check the background element for intersections with skin elements that were found in proximity by the AABB tree query (candidates)
+            for (std::size_t idx : candidates) {
+                const ElementType::Pointer p_skin_elem = idx_to_skin_element_pointer[idx];
+                auto& r_skin_geom = p_skin_elem->GetGeometry();
+                if (r_background_geom.HasIntersection(r_skin_geom)) {  //TODO this already finds coinciding faces and elements ?!?
+                    local_split_elements[omp_get_thread_num()].push_back(&rElement);
+                    break;
                 }
             }
-        } else {
-            // // Mark elements as SBM_BOUNDARY that are intersected by the tessellated skin geometry
-            // IndexPartition<std::size_t>(n_elements).for_each([&](std::size_t i_ele) {
-            //     if (!r_intersected_objects[i_ele].empty()) {
-            //         r_elements[i_ele]->Set(SBM_BOUNDARY, true);
-            //     }
-            // });
-            for (std::size_t i_ele = 0; i_ele < n_elements; ++i_ele) {
-                if (!r_intersected_objects[i_ele].empty()) {
-                    auto p_elem = r_elements[i_ele];
-                    p_elem->Set(SBM_BOUNDARY, true);
-                    for (auto& r_node : p_elem->GetGeometry()) {
-                        r_node.Set(SBM_BOUNDARY, false);
-                        r_node.Set(SBM_INTERFACE, false);
-                    }
-                }
-            }
-        }
+        });
 
-        KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "'" << mSkinModelPartName << "' tessellated boundary flags were set. " << n_relocated_nodes << " nodes were relocated." << std::endl;
+        // Merge split elements that where found by each thread
+        for (auto& vec : local_split_elements) {
+            mBoundaryElementsSet.insert(vec.begin(), vec.end());
+        }
+        // Free space allocated previously by reserve
+        mBoundaryElementsSet.rehash(mBoundaryElementsSet.size());
     }
 
-    void ShiftedBoundaryPointBasedUtility::LocateSkinPoints()
+    void ShiftedBoundaryPointBasedUtility::MapSkinPointsToElements()
     {
         mSkinPointsMap.clear();
         // Map skin points (boundary) to elements of volume model part
         const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
         switch (n_dim) {
             case 2:
-                MapSkinPointsToElements<2>(mSkinPointsMap);
+                MapSkinPointsToElementsTemplated<2>(mSkinPointsMap);
                 break;
             case 3:
-                MapSkinPointsToElements<3>(mSkinPointsMap);
+                MapSkinPointsToElementsTemplated<3>(mSkinPointsMap);
                 break;
             default:
                 KRATOS_ERROR << "Wrong domain size.";
         }
+    }
 
-        // Mark elements as SBM_BOUNDARY (gamma) in which skin points were located
-        // NOTE that these elements should already be SBM_BOUNDARY because of the tessellated interface
+    void ShiftedBoundaryPointBasedUtility::FlagBoundaryElements()
+    {
+        // Mark elements as SBM_BOUNDARY (Gamma) in which the tessellated skin geometry and/ or skin integration points were located
         // NOTE that SBM_BOUNDARY elements will get deactivated and that the split elements BC is applied by means of the extension operators
-        // block_for_each(mSkinPointsMap.begin(), mSkinPointsMap.end(), [](const std::pair<ElementType::Pointer, SkinPointsDataVectorType>& rKeyData){
-        //    rKeyData.first->Set(SBM_BOUNDARY, true);
-        // });
-        for (auto& [p_elem, skin_pt_data] : mSkinPointsMap) {
+        //TODO nodes are reset here to not disturb other skin model parts - rethink this!
+        for (auto& p_elem : mBoundaryElementsSet) {
             p_elem->Set(SBM_BOUNDARY, true);
             for (auto& r_node : p_elem->GetGeometry()) {
                 r_node.Set(SBM_BOUNDARY, false);
@@ -470,7 +492,7 @@ namespace Kratos
         }
     }
 
-    void ShiftedBoundaryPointBasedUtility::SetInterfaceFlags()
+    void ShiftedBoundaryPointBasedUtility::FlagInterfaceElements()
     {
         // Find the surrogate boundary elements and mark them as SBM_INTERFACE (gamma_tilde)
         // Note that we rely on the fact that the neighbors are sorted according to the faces
@@ -569,7 +591,6 @@ namespace Kratos
         // Set the pressure of the first node of an enclosed volume to zero if one side is enclosed.
         auto skin_pt_element_iter = mSkinPointsMap.begin();
         bool enclosed_pressure_is_set = false;
-        //while (skin_pt_element_iter != mSkinPointsMap.end()) {
         if (mPositiveSideIsEnclosed || mNegativeSideIsEnclosed) {
             while (!enclosed_pressure_is_set && skin_pt_element_iter != mSkinPointsMap.end()) {
                 auto p_elem = skin_pt_element_iter->first;
@@ -586,7 +607,6 @@ namespace Kratos
 
         // Get max condition id
         std::size_t max_cond_id = block_for_each<MaxReduction<std::size_t>>(mpModelPart->Conditions(), [](const Condition& rCondition){return rCondition.Id();});
-        KRATOS_WATCH(max_cond_id)
 
         // Create the interface conditions
         //TODO: THIS CAN BE PARALLEL (WE JUST NEED TO MAKE CRITICAL THE CONDITION ID UPDATE)? And adding the condition????
@@ -663,131 +683,6 @@ namespace Kratos
         }
     }
 
-    template <std::size_t TDim>
-    void ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPointsTemplated()
-    {
-        constexpr std::size_t voigt_size = 3 * (TDim-1);
-        constexpr std::size_t block_size = TDim +1;
-
-        array_1d<double, 3> force_on_skin = ZeroVector(3);
-
-        std::size_t n_split_elements_without_correct_extension = 0;
-
-        // Loop over all elements containing skin points to integrate traction=sigma*n over the interface
-        // NOTE that both interface sides need to be integrated
-        LockObject mutex, mutex_valid_ex;
-        std::for_each(mSkinPointsMap.begin(), mSkinPointsMap.end(), [&](const std::pair<ElementType::Pointer, SkinPointsDataVectorType>& rKeyData){
-            const auto p_element = rKeyData.first;
-            const auto& skin_points_data_vector = rKeyData.second;
-            const auto& r_geom = p_element->GetGeometry();
-            const std::size_t n_nodes = r_geom.PointsNumber();
-            const std::size_t local_size = n_nodes * block_size;
-
-            // Calculate unknowns at the nodes of the element for the positive and the negative side of Gamma
-            Vector unknowns_pos = ZeroVector(local_size);
-            Vector unknowns_neg = ZeroVector(local_size);
-            const bool unknowns_calculated_successfully = CalculateUnknownsForBothSidesOfSplitElement<TDim>(p_element, unknowns_pos, unknowns_neg);
-            if (!unknowns_calculated_successfully) {
-                std::scoped_lock<LockObject> lock(mutex_valid_ex);
-                n_split_elements_without_correct_extension++;
-            }
-
-            // Get constitutive law, see FluidElementData and FluidElement::CalculateMaterialResponse
-            const auto p_constitutive_law =  p_element->GetProperties()[CONSTITUTIVE_LAW];
-            ConstitutiveLaw::Parameters constitutive_law_values(r_geom, p_element->GetProperties(), mpModelPart->GetProcessInfo());
-            Flags& r_cl_options = constitutive_law_values.GetOptions();
-            r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);  // not being used (?)
-            r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
-            // Iterate over the element's skin points adding a positive side and a negative side drag contribution
-            for (std::size_t i_skin_pt = 0; i_skin_pt < skin_points_data_vector.size(); ++i_skin_pt) {
-                // Get the skin point's position and area normal
-                const auto skin_pt_data = skin_points_data_vector[i_skin_pt];
-                const array_1d<double,3> skin_pt_position = std::get<0>(skin_pt_data);
-                const array_1d<double,3> skin_pt_area_normal = std::get<1>(skin_pt_data);
-                const std::size_t skin_pt_node_id = std::get<2>(skin_pt_data);
-
-                // Get normal and represented area of skin point
-                // NOTE that the normal points in fluid inward direction for the positive side of the skin and fluid outward for the negative side of the skin
-                const double skin_pt_area = norm_2(skin_pt_area_normal);
-                const array_1d<double,3> aux_unit_normal = skin_pt_area_normal / skin_pt_area;
-
-                // Get shape function values and derivatives of the element at the skin point
-                Vector skin_pt_N(n_nodes);
-                Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, TDim);
-                GetDataForSplitElementSkinPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
-
-                // Calculate velocity and pressure at skin point for positive and negative side of Gamma
-                array_1d<double, 3> u_pos = ZeroVector(3);
-                array_1d<double, 3> u_neg = ZeroVector(3);
-                double p_pos = 0.0;
-                double p_neg = 0.0;
-                for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                    const std::size_t row = i_node*block_size;
-                    for (std::size_t d = 0; d < TDim; ++d) {
-                        u_pos[d] += skin_pt_N(i_node) * unknowns_pos(row+d);
-                        u_neg[d] += skin_pt_N(i_node) * unknowns_neg(row+d);
-                    }
-                    p_pos += skin_pt_N(i_node) * unknowns_pos(row+TDim);
-                    p_neg += skin_pt_N(i_node) * unknowns_neg(row+TDim);
-                }
-                // NOTE that the pressure on the positive side of Gamma needs to be multiplied by the negative normal of the skin point,
-                // so it is pointing outwards of the fluid. The pressure on the negative side points outwards multiplied by the positive normal.
-                const array_1d<double, 3> traction_p = (p_neg-p_pos) * aux_unit_normal;
-
-                // Get the normal projection matrix in Voigt notation
-                BoundedMatrix<double, TDim, voigt_size> voigt_normal_proj_matrix = ZeroMatrix(TDim, voigt_size);
-                ShiftedBoundaryUtilityInternals::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
-
-                // Calculate strain rate for positive and negative side of Gamma
-                Matrix B_matrix = ZeroMatrix(voigt_size, local_size);
-                ShiftedBoundaryUtilityInternals::CalculateStrainMatrix<TDim>(skin_pt_DN_DX, n_nodes, B_matrix);
-                Vector strain_rate_pos = prod(B_matrix, unknowns_pos);
-                Vector strain_rate_neg = prod(B_matrix, unknowns_neg);
-
-                // Calculate the stress for the positive side
-                Vector shear_stress_pos = ZeroVector(voigt_size);
-                constitutive_law_values.SetStrainVector(strain_rate_pos);           //input
-                constitutive_law_values.SetStressVector(shear_stress_pos);          //output
-                p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
-
-                // Calculate the stress for the negative side
-                Vector shear_stress_neg = ZeroVector(voigt_size);
-                constitutive_law_values.SetStrainVector(strain_rate_neg);           //input
-                constitutive_law_values.SetStressVector(shear_stress_neg);          //output
-                p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
-
-                // Calculate shear stress at the skin point
-                // NOTE that the negative side shear stress needs to be multiplied by the negative normal, so that the normal is pointing inwards.
-                const array_1d<double, TDim> shear_proj_pos =  prod(voigt_normal_proj_matrix, shear_stress_pos);
-                const array_1d<double, TDim> shear_proj_neg = -prod(voigt_normal_proj_matrix, shear_stress_neg);
-                array_1d<double, 3> traction_tau = ZeroVector(3);
-                for (std::size_t d = 0; d < TDim ; ++d) {
-                    traction_tau(d) += shear_proj_pos(d) + shear_proj_neg(d);
-                }
-                const array_1d<double, 3> skin_pt_force = skin_pt_area * (traction_p + traction_tau);
-
-                // Add the shear stress and pressure drag contribution of the skin point to the skin drag of the skin geometry
-                {
-                    std::scoped_lock<LockObject> lock(mutex);
-                    force_on_skin += skin_pt_force;
-                }
-
-                // Store velocity, pressure and traction in a skin point model part
-                auto& skin_pt_in_model_part = mpSkinPointsSubModelPart->GetNode(skin_pt_node_id);
-                skin_pt_in_model_part.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY) = u_pos;
-                skin_pt_in_model_part.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY) = u_neg;
-                skin_pt_in_model_part.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = p_pos;
-                skin_pt_in_model_part.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = p_neg;
-                skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_PRESSURE) = traction_p;
-                skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_STRESS) = traction_tau;
-                skin_pt_in_model_part.FastGetSolutionStepValue(DRAG_FORCE) = skin_pt_force;
-            }
-        });
-        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedUtility", n_split_elements_without_correct_extension > 0)
-        << "The unknowns inside " << n_split_elements_without_correct_extension << " split elements were calculated without valid extension." << std::endl;
-    }
-
     void ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPointsAndNodes()
     {
         const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
@@ -803,259 +698,67 @@ namespace Kratos
         }
     }
 
-    template <std::size_t TDim>
-    void ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPointsAndNodesTemplated()
-    {
-        // Calculate variables at all skin points (integration points) and store them in the skin points model part
-        CalculateVariablesAtSkinPointsTemplated<TDim>();
-
-        // Create dictionaries to accumulate the weighted values and weights for each skin node for interpolation
-        std::unordered_map<std::size_t, array_1d<double,2>> dict_sum_weighted_p; //positive and negative side pressure
-        std::unordered_map<std::size_t, array_1d<array_1d<double,3>,2>> dict_sum_weighted_u; //positive and negative side velocity
-        // traction from pressure, traction from stress, drag force
-        std::unordered_map<std::size_t, double> dict_sum_weights;
-        for (auto& r_skin_node : mpSkinDiscSubModelPart->Nodes()) {
-            dict_sum_weighted_p[r_skin_node.Id()] = ZeroVector(2);
-            dict_sum_weighted_u[r_skin_node.Id()][0] = ZeroVector(3);
-            dict_sum_weighted_u[r_skin_node.Id()][1] = ZeroVector(3);
-            dict_sum_weights[r_skin_node.Id()] = 0.0;
-        }
-
-        // Set the bin-based fast point locator
-        //TODO faster to keep pointer_locator for all fluid iterations?
-        const std::size_t point_locator_max_results = 10000;
-        const double point_locator_tolerance = 1.0e-5;
-        BinBasedFastPointLocator<TDim> point_locator_skin(*mpSkinDiscSubModelPart);
-        point_locator_skin.UpdateSearchDatabase();
-
-
-        // Loop over all skin points and locate them in the skin model part to add their contribution to the skin nodes
-        LockObject mutex;
-        block_for_each(mpSkinPointsSubModelPart->Nodes(), [&](NodeType& rSkinPoint){
-            // Search for the skin point in the skin mesh to get the element containing the point and the shape function values
-            array_1d<double,3> skin_pt_position = rSkinPoint.Coordinates();
-            Vector aux_N(TDim+1); //Note that this restricts the use to tri and tetra
-            Element::Pointer p_element = nullptr;
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
-            const bool is_found = point_locator_skin.FindPointOnMesh(
-                skin_pt_position, aux_N, p_element,
-                search_results.begin(), point_locator_max_results, point_locator_tolerance);
-
-            if (is_found) {
-                // Get skin point variables
-                const double& r_p_pos = rSkinPoint.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-                const double& r_p_neg = rSkinPoint.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-                const array_1d<double,3>& r_u_pos = rSkinPoint.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY);
-                const array_1d<double,3>& r_u_neg = rSkinPoint.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY);
-                // const array_1d<double,3>& r_traction_p = rSkinPoint.FastGetSolutionStepValue(TRACTION_FROM_FLUID_PRESSURE);
-                // const array_1d<double,3>& r_traction_tau = rSkinPoint.FastGetSolutionStepValue(TRACTION_FROM_FLUID_STRESS);
-                // const array_1d<double,3>& r_drag_force = rSkinPoint.FastGetSolutionStepValue(DRAG_FORCE);
-
-                // Loop over the nodes of the element to add the skin point's contribution to each node
-                const auto& r_geom = p_element->GetGeometry();
-                for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-                    const IndexType node_id = r_geom[i_node].Id();
-                    const double N_i = aux_N(i_node);
-
-                    std::scoped_lock<LockObject> lock(mutex);
-                    dict_sum_weighted_p[node_id][0] += N_i * r_p_pos;
-                    dict_sum_weighted_p[node_id][1] += N_i * r_p_neg;
-                    dict_sum_weighted_u[node_id][0] += N_i * r_u_pos;
-                    dict_sum_weighted_u[node_id][1] += N_i * r_u_neg;
-                    // dict_sum_weighted_vectors[node_id][2] += N_i * r_traction_p;
-                    // dict_sum_weighted_vectors[node_id][3] += N_i * r_traction_tau;
-                    // dict_sum_weighted_vectors[node_id][4] += N_i * r_drag_force;
-                    dict_sum_weights[node_id] += N_i;
-                }
-            } else {
-                KRATOS_WARNING("ShiftedBoundaryPointBasedUtility") << "Skin point " << rSkinPoint.Id() << " could not be located in the skin mesh." << std::endl;
-            }
-        });
-
-        // Set the skin nodes variables based on the skin points contributions
-        block_for_each(mpSkinDiscSubModelPart->Nodes(), [&](NodeType& rSkinNode){
-            const auto& sum_weighted_p = dict_sum_weighted_p[rSkinNode.Id()];
-            const auto& sum_weighted_u = dict_sum_weighted_u[rSkinNode.Id()];
-            const double& sum_weights = dict_sum_weights[rSkinNode.Id()];
-
-            rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE)       = sum_weighted_p[0] / sum_weights;
-            rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE)       = sum_weighted_p[1] / sum_weights;
-            rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY) = sum_weighted_u[0] / sum_weights;
-            rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY) = sum_weighted_u[1] / sum_weights;
-            // rSkinNode.FastGetSolutionStepValue(TRACTION_FROM_FLUID_PRESSURE) = sum_weighted_vectors[2]   / sum_weights;
-            // rSkinNode.FastGetSolutionStepValue(TRACTION_FROM_FLUID_STRESS)   = sum_weighted_vectors[3]   / sum_weights;
-            // rSkinNode.FastGetSolutionStepValue(DRAG_FORCE)                   = sum_weighted_vectors[4]  / sum_weights;
-        });
-    }
+    //----------------------------------------------------------------
+    //     PROTECTED METHODS
+    //----------------------------------------------------------------
 
     template <std::size_t TDim>
-    bool ShiftedBoundaryPointBasedUtility::CalculateUnknownsForBothSidesOfSplitElement(
-        const ElementType::Pointer pElement,
-        Vector& rPositiveSideUnknowns,
-        Vector& rNegativeSideUnknowns)
-    {
-        //TODO ? Check whether the element is actually a part of the boundary
-        // if (!pElement->Is(SBM_BOUNDARY)) {
-        //     return 0;
-        // }
-        constexpr std::size_t block_size = TDim +1;
-        const auto& r_geom = pElement->GetGeometry();
-        const std::size_t n_nodes = r_geom.PointsNumber();
-
-        Vector sides_vector(n_nodes);
-        const std::size_t sides_found = mSidesVectorMap.count(pElement);
-        // Some deactivated elements containing Gamma might not have skin points and therefore no side vector (originally)
-        if (!sides_found) {
-            // Create sides vector based on the element's nodes belonging to SBM_BOUNDARY or SBM_INTERFACE, if possible.
-            // Helpful for sparse distributions of skin points.
-            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                auto& r_node = r_geom[i_node];
-                if (r_node.Is(SBM_BOUNDARY) && !r_node.Is(SBM_INTERFACE)) {
-                    sides_vector[i_node] =  1.0;
-                } else if (r_node.Is(SBM_INTERFACE) && !r_node.Is(SBM_BOUNDARY)) {
-                    sides_vector[i_node] = -1.0;
-                } else { return false; }
-            }
-            // Store the created sides vector for future calculations
-            mSidesVectorMap.insert(std::make_pair(pElement, sides_vector));
-        } else {
-            // Get sides vector for the element the skin node is located in
-            sides_vector = mSidesVectorMap[pElement];
-        }
-
-        // Calculate positive and negative side unknowns at all nodes of the element
-        bool element_is_without_positive_extension = false;
-        bool element_is_without_negative_extension = false;
-        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto p_node = r_geom(i_node);
-            const std::size_t row = i_node * block_size;
-
-            // Check whether extension exists for node
-            const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
-
-            // Initialize positive and negative side velocity and pressure
-            array_1d<double,3> u_node_pos = ZeroVector(3);
-            array_1d<double,3> u_node_neg = ZeroVector(3);
-            double p_node_pos = 0.0;
-            double p_node_neg = 0.0;
-
-            // Get unknowns at the node for positive and negative side
-            // The extension needs to be used for values on the other side on which the node is located
-            if (sides_vector[i_node] > 0.0) {
-                // Get nodal velocity and pressure directly for the positive side
-                u_node_pos = p_node->FastGetSolutionStepValue(VELOCITY);
-                p_node_pos = p_node->FastGetSolutionStepValue(PRESSURE);
-                // Calculate nodal velocity and pressure using the extension operator of the node for the negative side
-                if (extension_found) {
-                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
-                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the value at the support node
-                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
-                        const auto p_support_node = std::get<0>(*it_data);
-                        const double weight_support_node = std::get<1>(*it_data);
-                        u_node_neg += weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
-                        p_node_neg += weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
-                    }
-                } else { element_is_without_negative_extension = true; }
-            } else {
-                // Calculate nodal velocity and pressure using the extension operator of the node for the positive side
-                if (extension_found) {
-                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
-                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the value at the support node
-                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
-                        const auto p_support_node = std::get<0>(*it_data);
-                        const double weight_support_node = std::get<1>(*it_data);
-                        u_node_pos += weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
-                        p_node_pos += weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
-                    }
-                } else { element_is_without_negative_extension = true; }
-                // Get nodal velocity and pressure directly for the negative side
-                u_node_neg = p_node->FastGetSolutionStepValue(VELOCITY);
-                p_node_neg = p_node->FastGetSolutionStepValue(PRESSURE);
-            }
-
-            // Store positive and negative side unknowns at the node
-            for (std::size_t d = 0; d < TDim; ++d) {
-                rPositiveSideUnknowns(row+d) = u_node_pos(d);
-                rNegativeSideUnknowns(row+d) = u_node_neg(d);
-            }
-            rPositiveSideUnknowns(row+TDim) = p_node_pos;
-            rNegativeSideUnknowns(row+TDim) = p_node_neg;
-        }
-
-        if (element_is_without_positive_extension || element_is_without_negative_extension) { return false; }
-        else { return true; }
-    }
-
-    double ShiftedBoundaryPointBasedUtility::CalculateSkinDistanceToNode(
-        const Node& rNode,
-        const PointerVector<GeometricalObject>& rIntersectingObjects,
-        PointDistanceFunctionType pPointDistanceFunction,
-        IntersectionPlaneConstructorType pIntersectionPlaneConstructor,
-        const double& DistanceThreshold,
-        const double& ThresholdForSignedness)
-    {
-        double minimal_distance = 1.0;
-
-        // Compute distance of node to each given intersecting object
-        for (const auto& it_int_obj : rIntersectingObjects.GetContainer()) {
-            const auto& r_int_obj_geom = it_int_obj->GetGeometry();
-            double distance = pPointDistanceFunction(r_int_obj_geom, rNode);
-
-            // Check that the computed distance is the minimal one so far
-            if (distance < minimal_distance) {
-                minimal_distance = distance;
-                // Create plane to calculate signedness of distance if the distance value is
-                // below the minimal accepted distance and above the threshold at which the signedness makes a difference for resulting geometry
-                // In between these values the signedness ensures that the node moves away and not towards the skin geometry
-                if (minimal_distance < DistanceThreshold && minimal_distance > ThresholdForSignedness) {
-                    std::vector<array_1d<double,3>> plane_pts;
-                    for (std::size_t i_obj_node = 0; i_obj_node < r_int_obj_geom.PointsNumber(); ++i_obj_node){
-                        plane_pts.push_back(r_int_obj_geom[i_obj_node]);
-                    }
-                    Plane3D plane = pIntersectionPlaneConstructor(plane_pts);
-
-                    if (plane.CalculateSignedDistance(rNode) < 0.0){
-                        minimal_distance *= (-1);
-                    }
-                }
-            }
-        }
-
-        return minimal_distance;
-    }
-
-    template <std::size_t TDim>
-    void ShiftedBoundaryPointBasedUtility::MapSkinPointsToElements(
+    void ShiftedBoundaryPointBasedUtility::MapSkinPointsToElementsTemplated(
         SkinPointsToElementsMapType& rSkinPointsMap)
     {
-        //TODO SPEED UP
-        //TODO faster to only search in sub model part where it's likely that skin points are located?
-        // --> several layers of elements surrounding the previous SBM_BOUNDARY
-
         // Check that the skin model part has elements
         KRATOS_ERROR_IF_NOT(mpSkinDiscSubModelPart->NumberOfElements())
             << "There are no elements in skin model part (boundary) '" << mpSkinDiscSubModelPart->FullName() << "'." << std::endl;
 
-        // Set the bin-based fast point locator
-        //TODO faster to keep pointer_locator for all skin model parts and iterations?
-        //TODO UpdateSearchDatabase necessary whenever there is a node relocation?
-        const std::size_t point_locator_max_results = 10000;
-        const double point_locator_tolerance = 1.0e-5;
-        BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
-        point_locator.UpdateSearchDatabase();
+        // Check that the skin model part has elements
+        const std::size_t n_boundary_elements_found = mBoundaryElementsSet.size();
+        KRATOS_ERROR_IF_NOT(n_boundary_elements_found)
+            << "There are no elements in mBoundaryElementsSet. Maybe FindElementsAtTessellatedBoundary() was not called." << std::endl;
 
-        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        ElementsSetType bg_candidates;
+        bg_candidates.reserve(n_boundary_elements_found * 2 * TDim);
+        // Add elements, in which the skin boundary was already found to the search candidates and their immediate neighbors
+        const std::size_t n_faces = mBoundaryElementsSet.begin()->get()->GetGeometry().FacesNumber();
+        for (auto p_elem : mBoundaryElementsSet) {
+            bg_candidates.emplace(p_elem);
+            auto& r_neigh_elems = p_elem->GetValue(NEIGHBOUR_ELEMENTS);
+            for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
+                auto p_neigh_elem = r_neigh_elems(i_face).get();
+                if (p_neigh_elem != nullptr) {
+                    bg_candidates.emplace(p_neigh_elem);
+                }
+            }
+        }
 
-        //const std::size_t n_gp_per_element = mpSkinDiscSubModelPart->ElementsBegin()->GetGeometry().IntegrationPointsNumber(integration_method);
-        //const std::size_t n_skin_points = mpSkinDiscSubModelPart->NumberOfElements() * n_gp_per_element;
-        std::vector<Element::Pointer> skin_point_located_elements;
-        std::vector<array_1d<double,3>> skin_point_positions;
-        std::vector<array_1d<double,3>> skin_point_normals;
+        const std::size_t n_candidates = bg_candidates.size();
+        std::vector<ShiftedBoundaryUtilityInternals::BBox> candidate_boxes(n_candidates);
+        std::vector<ElementType::Pointer> idx_to_candidate_element_pointer(n_candidates);
+        idx_to_candidate_element_pointer.reserve(n_candidates);
+        std::size_t idx = 0;
+        for (auto p_elem : bg_candidates) {
+            candidate_boxes[idx] = ShiftedBoundaryUtilityInternals::BBox(p_elem->GetGeometry(), 1e-10);
+            idx_to_candidate_element_pointer[idx] = p_elem;
+            idx += 1;
+        }
+        ShiftedBoundaryUtilityInternals::ElementBVH candidate_bvh;
+        candidate_bvh.build(candidate_boxes);
 
+        // Create vectors for skin point data and sums for parallelization
+        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
+        const std::size_t n_skin_pts_expected = mpSkinDiscSubModelPart->NumberOfElements() * 3;
+        const std::size_t n_local_skin_pts_expected = n_skin_pts_expected/num_threads;
+        std::vector< std::vector<Element::Pointer> > local_skin_point_located_elements(num_threads);
+        for (auto& vec : local_skin_point_located_elements) vec.reserve(n_local_skin_pts_expected);
+        std::vector< std::vector<array_1d<double,3>> > local_skin_point_positions(num_threads);
+        for (auto& vec : local_skin_point_positions) vec.reserve(n_local_skin_pts_expected);
+        std::vector< std::vector<array_1d<double,3>> > local_skin_point_normals(num_threads);
+        for (auto& vec : local_skin_point_normals) vec.reserve(n_local_skin_pts_expected);
+        std::vector< std::size_t > local_n_skin_points_not_found(num_threads, 0);
+        std::vector< std::size_t > local_n_skin_points_found(num_threads, 0);
+
+        //TODO add nodes to mpSkinPointsSubModelPart in solver and update there as well!
         // Search the skin points (skin model part integration points) in the volume mesh elements
-        std::size_t n_skin_points_not_found = 0;
-        std::size_t n_skin_points_found = 0;
-        LockObject mutex;
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
         block_for_each(mpSkinDiscSubModelPart->Elements(), [&](ElementType& rSkinElement){
             const auto& r_skin_geom = rSkinElement.GetGeometry();
             const GeometryType::IntegrationPointsArrayType& integration_points = r_skin_geom.IntegrationPoints(integration_method);
@@ -1077,34 +780,52 @@ namespace Kratos
                 const double int_pt_weight = int_pt_detJs[i_int_pt] * integration_points[i_int_pt].Weight();
                 skin_pt_area_normal *= int_pt_weight;
 
-                // Search for the skin point in the volume mesh to get the element containing the point
-                Vector aux_N(TDim+1); //TODO this restricts the use to tri and tetra
+                // Search for the skin point in the volume mesh candidates to get the element containing the point
                 Element::Pointer p_element = nullptr;
-                typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
-                const bool is_found = point_locator.FindPointOnMesh(
-                    skin_pt_position, aux_N, p_element,
-                    search_results.begin(), point_locator_max_results, point_locator_tolerance);
+                const bool is_found = LocatePoint(candidate_bvh, idx_to_candidate_element_pointer, skin_pt_position, p_element);
 
-                // Add data to vectors (only one thread is allowed here at a time)
-                //TODO make local version of vectors and merge after loop to avoid lock?
-                {
-                    std::scoped_lock<LockObject> lock(mutex);
-                    if (is_found){
-                        skin_point_located_elements.push_back(p_element);
-                        skin_point_positions.push_back(skin_pt_position);
-                        skin_point_normals.push_back(skin_pt_area_normal);
-                        n_skin_points_found++;
-                    } else {
-                        n_skin_points_not_found++;
-                    }
+                // Add data to local vectors
+                const std::size_t thread_num = omp_get_thread_num();
+                if (is_found) {
+                    local_skin_point_located_elements[thread_num].emplace_back(p_element);
+                    local_skin_point_positions[thread_num].emplace_back(skin_pt_position);
+                    local_skin_point_normals[thread_num].emplace_back(skin_pt_area_normal);
+                    local_n_skin_points_found[thread_num]++;
+                } else {
+                    local_n_skin_points_not_found[thread_num]++;
                 }
             }
         });
+
+        // Create and reserve skin point data vectors
+        std::vector<Element::Pointer> skin_point_located_elements;
+        skin_point_located_elements.reserve(n_skin_pts_expected);
+        std::vector<array_1d<double,3>> skin_point_positions;
+        skin_point_positions.reserve(n_skin_pts_expected);
+        std::vector<array_1d<double,3>> skin_point_normals;
+        skin_point_normals.reserve(n_skin_pts_expected);
+
+        // Merge skin point data and sums
+        std::size_t n_skin_points_found = 0;
+        std::size_t n_skin_points_not_found = 0;
+        for (std::size_t i = 0; i < num_threads; ++i) {
+            skin_point_located_elements.insert(skin_point_located_elements.end(),
+                local_skin_point_located_elements[i].begin(), local_skin_point_located_elements[i].end());
+            skin_point_positions.insert(skin_point_positions.end(),
+                local_skin_point_positions[i].begin(),  local_skin_point_positions[i].end());
+            skin_point_normals.insert(skin_point_normals.end(),
+                local_skin_point_normals[i].begin(), local_skin_point_normals[i].end());
+            n_skin_points_found += local_n_skin_points_found[i];
+            n_skin_points_not_found += local_n_skin_points_not_found[i];
+        }
+
         if (n_skin_points_not_found > 0) {
             KRATOS_WARNING("ShiftedBoundaryPointBasedUtility")
                 << n_skin_points_not_found << " skin points have not been found in any volume model part element." << std::endl;
         }
 
+        // Store skin points and their data for each model part element with skin points in the skin points map
+        // and create a new node for each skin point in the skin points model part
         const std::size_t n_nodes_skin_point_model_part = mpSkinPointsSubModelPart->NumberOfNodes();
         for (std::size_t i_skin_pt = 0; i_skin_pt < skin_point_located_elements.size(); ++i_skin_pt) {
             auto p_element =  skin_point_located_elements[i_skin_pt];
@@ -1112,27 +833,52 @@ namespace Kratos
             auto& skin_pt_normal = skin_point_normals[i_skin_pt];
             const std::size_t skin_pt_node_id = n_nodes_skin_point_model_part + i_skin_pt;
 
-            // Check if skin point data already exists for the element in which the skin point is located in the map
-            if (rSkinPointsMap.find(p_element) == rSkinPointsMap.end()) {
-                // If element is not found, add the first skin point to the new key
-                SkinPointsDataVectorType skin_points_data_vector(1);
-                skin_points_data_vector[0] = std::make_tuple(skin_pt_position, skin_pt_normal, skin_pt_node_id);
-                auto skin_points_key_data = std::make_pair(p_element, skin_points_data_vector);
-                rSkinPointsMap.insert(skin_points_key_data);
-            } else {
-                // If element is found, resize the skin point data vector of the element and add the new skin point
-                SkinPointsDataVectorType& skin_points_data_vector = rSkinPointsMap[p_element];
-                const std::size_t n_skin_points_in_element = skin_points_data_vector.size();
-                skin_points_data_vector.resize(n_skin_points_in_element+1);
-                skin_points_data_vector[n_skin_points_in_element] = std::make_tuple(skin_pt_position, skin_pt_normal, skin_pt_node_id);
-            }
+            // Add skin point data to the element it was found in
+            auto& skin_points_data_vector = rSkinPointsMap[p_element]; // automatically inserts if not present
+            skin_points_data_vector.emplace_back(skin_pt_position, skin_pt_normal, skin_pt_node_id);
 
             // Add skin point to skin point model part
             mpSkinPointsSubModelPart->CreateNewNode(skin_pt_node_id, skin_pt_position[0], skin_pt_position[1], skin_pt_position[2]);
         }
 
+        // Add elements in which skin points were found to the set of boundary elements
+        for (auto& [p_elem, skin_pt_data] : mSkinPointsMap) {
+            mBoundaryElementsSet.insert(p_elem);
+        }
+
         KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "'" << mSkinModelPartName << "' skin points ("
             << n_skin_points_found << ") were mapped to volume mesh elements (" << rSkinPointsMap.size() << ")." << std::endl;
+    }
+
+    bool ShiftedBoundaryPointBasedUtility::LocatePoint(
+        ShiftedBoundaryUtilityInternals::ElementBVH& rCandidatesBvh,
+        std::vector<ElementType::Pointer>& rIdxToPointer,
+        array_1d<double,3>& rPointCoords,
+        ElementType::Pointer& pElement)
+    {
+        ShiftedBoundaryUtilityInternals::BBox pt_box;
+
+        pt_box.min[0] = pt_box.max[0] = rPointCoords[0];
+        pt_box.min[1] = pt_box.max[1] = rPointCoords[1];
+        pt_box.min[2] = pt_box.max[2] = rPointCoords[2];
+
+        std::vector<std::size_t> bbox_candidates;
+        bbox_candidates.reserve(20);
+        //TODO rCandidatesBvh is read-only here - safe for parallel queries ?!?
+        rCandidatesBvh.query(pt_box, bbox_candidates);
+
+        Element::GeometryType::CoordinatesArrayType coords;
+        bool is_inside = false;
+        for (auto elem_idx : bbox_candidates) {
+            auto p_elem = rIdxToPointer[elem_idx];
+            is_inside = p_elem->GetGeometry().IsInside(rPointCoords, coords);
+            if(is_inside) {
+                pElement = p_elem;
+                break;
+            }
+        }
+
+        return is_inside;
     }
 
     void ShiftedBoundaryPointBasedUtility::FindAndDeactivateUnstableClusters()
@@ -1216,6 +962,7 @@ namespace Kratos
         UnionFind union_find(num_elem);
 
         // Find roots of elements in chunks
+        // NOTE that it is faster sequentially, instead of dividing domain into chunks for parallelization
         for (const auto& edge : all_active_edges) {
             const std::size_t idx_A = element_id_to_index[edge.first];
             const std::size_t idx_B = element_id_to_index[edge.second];
@@ -1229,7 +976,7 @@ namespace Kratos
             if (rElement.Is(ACTIVE)) {
                 std::size_t root = union_find.find_parent(element_id_to_index[rElement.Id()]);
 
-                // Thread-local map updates - NO CONTENTION
+                // Add the element to the corresponding cluster
                 if (root_to_cluster.count(root) == 0) {
                     root_to_cluster[root] = clusters.size();
                     clusters.emplace_back();
@@ -1277,59 +1024,6 @@ namespace Kratos
         }
 
         return all_edges;
-    }
-
-    std::unordered_map<std::size_t, std::size_t> ShiftedBoundaryPointBasedUtility::PartitionGridByElementIds(std::size_t& rNumChunks)
-    {
-        // Get the size of the domain in each direction
-        struct BoundingBox { double x_min, x_max, y_min, y_max, z_min, z_max; };
-        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
-        BoundingBox bounds;
-        auto& first_coords = mpModelPart->NodesBegin()->Coordinates();
-        bounds.x_min = first_coords[0];
-        bounds.x_max = first_coords[0];
-        bounds.y_min = first_coords[1];
-        bounds.y_max = first_coords[1];
-        bounds.z_min = first_coords[2];
-        bounds.z_max = first_coords[2];
-        for(auto& rNode : mpModelPart->Nodes()) {
-            const auto& coords = rNode.Coordinates();
-            bounds.x_min = std::min(bounds.x_min, coords[0]);
-            bounds.y_min = std::min(bounds.y_min, coords[1]);
-            bounds.z_min = std::min(bounds.z_min, coords[2]);
-            bounds.x_max = std::max(bounds.x_max, coords[0]);
-            bounds.y_max = std::max(bounds.y_max, coords[1]);
-            bounds.z_max = std::max(bounds.z_max, coords[2]);
-        }
-
-        //TODO use METIS for splitting the domain into disconnected chunks (graph partitioning algorithm)?
-        // Use grid-based partitioning (spatial location) to create chunks for parallelization (num_chunks ~= 2x num_threads)
-        const std::size_t num_chunks_x = ceil(sqrt(double(num_threads))) + 1;
-        const std::size_t num_chunks_y = ceil(sqrt(double(num_threads)));
-        const std::size_t num_chunks_z = 1;
-        rNumChunks = num_chunks_x * num_chunks_y * num_chunks_z;
-
-        // Create a mapping from element IDs to chunk IDs
-        std::unordered_map<std::size_t, std::size_t> element_id_to_chunk;
-        for (auto& rElement : mpModelPart->Elements()) {
-            const auto& center = rElement.GetGeometry().Center().Coordinates();
-
-            // Normalize coordinates to [0, 1]
-            double norm_x = (center[0] - bounds.x_min) / (bounds.x_max - bounds.x_min);
-            double norm_y = (center[1] - bounds.y_min) / (bounds.y_max - bounds.y_min);
-            double norm_z = (center[2] - bounds.z_min) / (bounds.z_max - bounds.z_min);
-
-            // Calculate chunk ID based on the normalized spatial location of the element center
-            const std::size_t chunk_x = std::min( (std::size_t)(norm_x * num_chunks_x), num_chunks_x - 1 );
-            const std::size_t chunk_y = std::min( (std::size_t)(norm_y * num_chunks_y), num_chunks_y - 1 );
-            const std::size_t chunk_z = std::min( (std::size_t)(norm_z * num_chunks_z), num_chunks_z - 1 );
-            const std::size_t chunk_id = chunk_x + num_chunks_x * (chunk_y + num_chunks_y * chunk_z);
-
-            // Assign chunk ID to element ID
-            element_id_to_chunk[rElement.Id()] = chunk_id;
-        }
-
-        return element_id_to_chunk;
     }
 
     void ShiftedBoundaryPointBasedUtility::SetSidesVectorsAndSkinNormalsForSplitElements(
@@ -1491,7 +1185,7 @@ namespace Kratos
                         for (std::size_t i_cl_nod = 0; i_cl_nod < n_cloud_nodes; ++i_cl_nod) {
                             auto p_cl_node = cloud_nodes(i_cl_nod);
                             auto i_data = std::make_pair(p_cl_node, N_container[i_cl_nod]);
-                            cloud_data_vector(i_cl_nod) = i_data;
+                            cloud_data_vector[i_cl_nod] = i_data;
                         }
                         const auto ext_op_key_data = std::make_pair(p_node, cloud_data_vector);
                         //TODO make this threadsafe for parallelization
@@ -1743,6 +1437,8 @@ namespace Kratos
         Vector& rIntPtShapeFunctionValues,
         Matrix& rIntPtShapeFunctionDerivatives)
     {
+        //TODO get this when searching for skin point for the first time and store it in map
+
         const auto& r_geom = rElement.GetGeometry();
 
         // Compute the local coordinates of the integration point in the element's geometry
@@ -1898,14 +1594,6 @@ namespace Kratos
 
             if ((mPositiveSideIsEnclosed && rSidesVector[i_node] > 0) or (mNegativeSideIsEnclosed && rSidesVector[i_node] < 0)) {
                 auto& r_node = r_geom[i_node];
-                // Calculate dot product of average skin normal of the element and the normalized vector between averaged skin point and the element's node
-                // array_1d<double,3> avg_skin_pt_to_node = r_node.Coordinates() - rAvgSkinPosition;
-                // avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);
-                // double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
-                // if (mNegativeSideIsEnclosed) {
-                //     dot_product *= -1.0;
-                // }
-                // if (dot_product > 0.1 &&
                 if (r_node.Is(ACTIVE)) {
                     r_node.Fix(PRESSURE);
                     r_node.FastGetSolutionStepValue(PRESSURE) = 0.0;
@@ -1914,6 +1602,280 @@ namespace Kratos
             }
         }
         return false;
+    }
+
+    template <std::size_t TDim>
+    void ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPointsTemplated()
+    {
+        constexpr std::size_t voigt_size = 3 * (TDim-1);
+        constexpr std::size_t block_size = TDim +1;
+
+        std::size_t n_split_elements_without_correct_extension = 0;
+
+        // Loop over all elements containing skin points to integrate traction=sigma*n over the interface
+        // NOTE that both interface sides need to be integrated
+        LockObject mutex_valid_ex;
+        std::for_each(mSkinPointsMap.begin(), mSkinPointsMap.end(), [&](const std::pair<ElementType::Pointer, SkinPointsDataVectorType>& rKeyData){
+            const auto p_element = rKeyData.first;
+            const auto& skin_points_data_vector = rKeyData.second;
+            const auto& r_geom = p_element->GetGeometry();
+            const std::size_t n_nodes = r_geom.PointsNumber();
+            const std::size_t local_size = n_nodes * block_size;
+
+            // Calculate unknowns at the nodes of the element for the positive and the negative side of Gamma
+            Vector unknowns_pos = ZeroVector(local_size);
+            Vector unknowns_neg = ZeroVector(local_size);
+            const bool unknowns_calculated_successfully = CalculateUnknownsForBothSidesOfSplitElement<TDim>(p_element, unknowns_pos, unknowns_neg);
+            if (!unknowns_calculated_successfully) {
+                std::scoped_lock<LockObject> lock(mutex_valid_ex);
+                n_split_elements_without_correct_extension++;
+            }
+
+            // Get constitutive law, see FluidElementData and FluidElement::CalculateMaterialResponse
+            const auto p_constitutive_law =  p_element->GetProperties()[CONSTITUTIVE_LAW];
+            ConstitutiveLaw::Parameters constitutive_law_values(r_geom, p_element->GetProperties(), mpModelPart->GetProcessInfo());
+            Flags& r_cl_options = constitutive_law_values.GetOptions();
+            r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+            r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+            // Iterate over the element's skin points adding a positive side and a negative side drag contribution
+            for (std::size_t i_skin_pt = 0; i_skin_pt < skin_points_data_vector.size(); ++i_skin_pt) {
+                // Get the skin point's position and area normal
+                const auto skin_pt_data = skin_points_data_vector[i_skin_pt];
+                const array_1d<double,3> skin_pt_position = std::get<0>(skin_pt_data);
+                const array_1d<double,3> skin_pt_area_normal = std::get<1>(skin_pt_data);
+                const std::size_t skin_pt_node_id = std::get<2>(skin_pt_data);
+
+                // Get normal and represented area of skin point
+                // NOTE that the normal is defined to point in fluid inward direction for the positive side of the skin and fluid outward for the negative side of the skin
+                const double skin_pt_area = norm_2(skin_pt_area_normal);
+                const array_1d<double,3> aux_unit_normal = skin_pt_area_normal / skin_pt_area;
+
+                // Get shape function values and derivatives of the element at the skin point
+                Vector skin_pt_N(n_nodes);
+                Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, TDim);
+                GetDataForSplitElementSkinPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
+
+                // Calculate velocity and pressure at skin point for positive and negative side of Gamma
+                array_1d<double, 3> u_pos = ZeroVector(3);
+                array_1d<double, 3> u_neg = ZeroVector(3);
+                double p_pos = 0.0;
+                double p_neg = 0.0;
+                for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                    const std::size_t row = i_node*block_size;
+                    for (std::size_t d = 0; d < TDim; ++d) {
+                        u_pos[d] += skin_pt_N(i_node) * unknowns_pos(row+d);
+                        u_neg[d] += skin_pt_N(i_node) * unknowns_neg(row+d);
+                    }
+                    p_pos += skin_pt_N(i_node) * unknowns_pos(row+TDim);
+                    p_neg += skin_pt_N(i_node) * unknowns_neg(row+TDim);
+                }
+                // NOTE that the pressure on the positive side of Gamma needs to be multiplied by the negative normal of the skin point,
+                // so it is pointing outwards of the fluid. The pressure on the negative side points outwards multiplied by the positive normal.
+                const array_1d<double, 3> traction_p = (p_neg-p_pos) * aux_unit_normal;
+
+                // Get the normal projection matrix in Voigt notation
+                BoundedMatrix<double, TDim, voigt_size> voigt_normal_proj_matrix = ZeroMatrix(TDim, voigt_size);
+                ShiftedBoundaryUtilityInternals::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+
+                // Calculate strain rate for positive and negative side of Gamma
+                Matrix B_matrix = ZeroMatrix(voigt_size, local_size);
+                ShiftedBoundaryUtilityInternals::CalculateStrainMatrix<TDim>(skin_pt_DN_DX, n_nodes, B_matrix);
+                Vector strain_rate_pos = prod(B_matrix, unknowns_pos);
+                Vector strain_rate_neg = prod(B_matrix, unknowns_neg);
+
+                // Calculate the stress for the positive side
+                Vector shear_stress_pos = ZeroVector(voigt_size);
+                constitutive_law_values.SetStrainVector(strain_rate_pos);           //input
+                constitutive_law_values.SetStressVector(shear_stress_pos);          //output
+                p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
+
+                // Calculate the stress for the negative side
+                Vector shear_stress_neg = ZeroVector(voigt_size);
+                constitutive_law_values.SetStrainVector(strain_rate_neg);           //input
+                constitutive_law_values.SetStressVector(shear_stress_neg);          //output
+                p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
+
+                // Calculate shear stress at the skin point
+                // NOTE that the negative side shear stress needs to be multiplied by the negative normal, so that the normal is pointing inwards.
+                const array_1d<double, TDim> shear_proj_pos =  prod(voigt_normal_proj_matrix, shear_stress_pos);
+                const array_1d<double, TDim> shear_proj_neg = -prod(voigt_normal_proj_matrix, shear_stress_neg);
+                array_1d<double, 3> traction_tau = ZeroVector(3);
+                for (std::size_t d = 0; d < TDim ; ++d) {
+                    traction_tau(d) += shear_proj_pos(d) + shear_proj_neg(d);
+                }
+                const array_1d<double, 3> skin_pt_force = skin_pt_area * (traction_p + traction_tau);
+
+                // Store velocity, pressure and traction in a skin point model part
+                auto& skin_pt_in_model_part = mpSkinPointsSubModelPart->GetNode(skin_pt_node_id);
+                skin_pt_in_model_part.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY) = u_pos;
+                skin_pt_in_model_part.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY) = u_neg;
+                skin_pt_in_model_part.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = p_pos;
+                skin_pt_in_model_part.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = p_neg;
+                skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_PRESSURE) = traction_p;
+                skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_STRESS) = traction_tau;
+                skin_pt_in_model_part.FastGetSolutionStepValue(DRAG_FORCE) = skin_pt_force;
+            }
+        });
+        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedUtility", n_split_elements_without_correct_extension > 0)
+        << "The unknowns inside " << n_split_elements_without_correct_extension << " split elements were calculated without valid extension." << std::endl;
+    }
+
+    template <std::size_t TDim>
+    void ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPointsAndNodesTemplated()
+    {
+        // Calculate variables at all skin points (integration points) and store them in the skin points model part
+        CalculateVariablesAtSkinPointsTemplated<TDim>();
+
+        // Create dictionaries to accumulate the weighted values and weights for each skin node for interpolation
+        std::unordered_map<std::size_t, array_1d<double,2>> dict_sum_weighted_p; //positive and negative side pressure
+        std::unordered_map<std::size_t, array_1d<array_1d<double,3>,2>> dict_sum_weighted_u; //positive and negative side velocity
+        std::unordered_map<std::size_t, double> dict_sum_weights;
+        for (auto& r_skin_node : mpSkinDiscSubModelPart->Nodes()) {
+            dict_sum_weighted_p[r_skin_node.Id()] = ZeroVector(2);
+            dict_sum_weighted_u[r_skin_node.Id()][0] = ZeroVector(3);
+            dict_sum_weighted_u[r_skin_node.Id()][1] = ZeroVector(3);
+            dict_sum_weights[r_skin_node.Id()] = 0.0;
+        }
+
+        // Set the bin-based fast point locator
+        //TODO faster to store the skin points element and shape function values once?!?
+        BinBasedFastPointLocator<TDim> point_locator(*mpSkinDiscSubModelPart);
+        point_locator.UpdateSearchDatabase();
+        const std::size_t point_locator_max_results = 10000;
+        const double point_locator_tolerance = 1.0e-5;
+
+        // Loop over all skin points and locate them in the skin model part to add their contribution to the skin nodes
+        //TODO use local vectors and index instead of mutex!
+        LockObject mutex;
+        block_for_each(mpSkinPointsSubModelPart->Nodes(), [&](NodeType& rSkinPoint){
+            // Search for the skin point in the skin mesh to get the element containing the point and the shape function values
+            // TODO use skin BVH for this?!
+            array_1d<double,3> skin_pt_position = rSkinPoint.Coordinates();
+            Vector aux_N(TDim+1); //Note that this restricts the use to tri and tetra
+            Element::Pointer p_element = nullptr;
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
+            const bool is_found = point_locator.FindPointOnMesh(skin_pt_position, aux_N, p_element, search_results.begin(),
+                                                                point_locator_max_results, point_locator_tolerance);
+
+            if (is_found) {
+                // Get skin point variables
+                const double& r_p_pos = rSkinPoint.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                const double& r_p_neg = rSkinPoint.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                const array_1d<double,3>& r_u_pos = rSkinPoint.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY);
+                const array_1d<double,3>& r_u_neg = rSkinPoint.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY);
+
+                // Loop over the nodes of the element to add the skin point's contribution to each node
+                const auto& r_geom = p_element->GetGeometry();
+                for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                    const std::size_t node_id = r_geom[i_node].Id();
+                    const double N_i = aux_N(i_node);
+
+                    std::scoped_lock<LockObject> lock(mutex);
+                    dict_sum_weighted_p[node_id][0] += N_i * r_p_pos;
+                    dict_sum_weighted_p[node_id][1] += N_i * r_p_neg;
+                    dict_sum_weighted_u[node_id][0] += N_i * r_u_pos;
+                    dict_sum_weighted_u[node_id][1] += N_i * r_u_neg;
+                    dict_sum_weights[node_id] += N_i;
+                }
+            } else {
+                KRATOS_WARNING("ShiftedBoundaryPointBasedUtility") << "Skin point " << rSkinPoint.Id() << " could not be located in the skin mesh." << std::endl;
+            }
+        });
+
+        // Set the skin nodes variables based on the skin points contributions
+        block_for_each(mpSkinDiscSubModelPart->Nodes(), [&](NodeType& rSkinNode){
+            const auto& sum_weighted_p = dict_sum_weighted_p[rSkinNode.Id()];
+            const auto& sum_weighted_u = dict_sum_weighted_u[rSkinNode.Id()];
+            const double& sum_weights = dict_sum_weights[rSkinNode.Id()];
+
+            rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE)       = sum_weighted_p[0] / sum_weights;
+            rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE)       = sum_weighted_p[1] / sum_weights;
+            rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY) = sum_weighted_u[0] / sum_weights;
+            rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY) = sum_weighted_u[1] / sum_weights;
+        });
+    }
+
+    template <std::size_t TDim>
+    bool ShiftedBoundaryPointBasedUtility::CalculateUnknownsForBothSidesOfSplitElement(
+        const ElementType::Pointer pElement,
+        Vector& rPositiveSideUnknowns,
+        Vector& rNegativeSideUnknowns)
+    {
+        constexpr std::size_t block_size = TDim +1;
+        const auto& r_geom = pElement->GetGeometry();
+        const std::size_t n_nodes = r_geom.PointsNumber();
+
+        Vector sides_vector(n_nodes);
+        const std::size_t sides_found = mSidesVectorMap.count(pElement);
+        // Typically this method is called for elements containing skin points, so a side vector should be available.
+        if (sides_found) {
+            // Get sides vector for the element the skin node is located in
+            sides_vector = mSidesVectorMap[pElement];
+        } else {
+            return false;
+        }
+
+        // Calculate positive and negative side unknowns at all nodes of the element
+        bool element_is_without_extension = false;
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+            const auto p_node = r_geom(i_node);
+            const std::size_t row = i_node * block_size;
+
+            // Check whether extension exists for node
+            const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
+
+            // Initialize positive and negative side velocity and pressure
+            array_1d<double,3> u_node_pos = ZeroVector(3);
+            array_1d<double,3> u_node_neg = ZeroVector(3);
+            double p_node_pos = 0.0;
+            double p_node_neg = 0.0;
+
+            // Get unknowns at the node for positive and negative side
+            // The extension needs to be used for values on the other side on which the node is located
+            if (sides_vector[i_node] > 0.0) {
+                // Get nodal velocity and pressure directly for the positive side
+                u_node_pos = p_node->FastGetSolutionStepValue(VELOCITY);
+                p_node_pos = p_node->FastGetSolutionStepValue(PRESSURE);
+                // Calculate nodal velocity and pressure using the extension operator of the node for the negative side
+                if (extension_found) {
+                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
+                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the value at the support node
+                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+                        const auto p_support_node = std::get<0>(*it_data);
+                        const double weight_support_node = std::get<1>(*it_data);
+                        u_node_neg += weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
+                        p_node_neg += weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
+                    }
+                } else { element_is_without_extension = true; }
+            } else {
+                // Calculate nodal velocity and pressure using the extension operator of the node for the positive side
+                if (extension_found) {
+                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
+                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the value at the support node
+                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+                        const auto p_support_node = std::get<0>(*it_data);
+                        const double weight_support_node = std::get<1>(*it_data);
+                        u_node_pos += weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
+                        p_node_pos += weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
+                    }
+                } else { element_is_without_extension = true; }
+                // Get nodal velocity and pressure directly for the negative side
+                u_node_neg = p_node->FastGetSolutionStepValue(VELOCITY);
+                p_node_neg = p_node->FastGetSolutionStepValue(PRESSURE);
+            }
+
+            // Store positive and negative side unknowns at the node
+            for (std::size_t d = 0; d < TDim; ++d) {
+                rPositiveSideUnknowns(row+d) = u_node_pos(d);
+                rNegativeSideUnknowns(row+d) = u_node_neg(d);
+            }
+            rPositiveSideUnknowns(row+TDim) = p_node_pos;
+            rNegativeSideUnknowns(row+TDim) = p_node_neg;
+        }
+
+        if (element_is_without_extension) { return false; }
+        else { return true; }
     }
 
     ShiftedBoundaryPointBasedUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryPointBasedUtility::GetMLSShapeFunctionsFunction() const
@@ -2003,6 +1965,10 @@ namespace Kratos
         }
     }
 
+    //----------------------------------------------------------------
+    //     TEMPLATE INSTANTIATIONS
+    //----------------------------------------------------------------
+
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPointsTemplated<2>();
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPointsTemplated<3>();
 
@@ -2018,7 +1984,7 @@ namespace Kratos
         Vector& rPositiveSideUnknowns,
         Vector& rNegativeSideUnknowns);
 
-    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::MapSkinPointsToElements<2>(SkinPointsToElementsMapType& rSkinPointsMap);
-    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::MapSkinPointsToElements<3>(SkinPointsToElementsMapType& rSkinPointsMap);
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::MapSkinPointsToElementsTemplated<2>(SkinPointsToElementsMapType& rSkinPointsMap);
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::MapSkinPointsToElementsTemplated<3>(SkinPointsToElementsMapType& rSkinPointsMap);
 
 }  // namespace Kratos.

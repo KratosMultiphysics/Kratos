@@ -17,12 +17,15 @@
 // External includes
 
 // Project includes
+#include "containers/array_1d.h"
 #include "containers/model.h"
 #include "geometries/plane_3d.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/key_hash.h"
 #include "modified_shape_functions/modified_shape_functions.h"
+#include "utilities/binbased_fast_point_locator.h"
+#include <cstddef>
 
 namespace Kratos
 {
@@ -44,15 +47,6 @@ namespace Kratos
 
 namespace ShiftedBoundaryUtilityInternals {
 
-    //TODO
-    template <std::size_t TDim>
-    double CalculatePointDistance(
-        const Geometry<Node>& rObjectGeometry,
-        const Point& rPoint);
-
-    template <std::size_t TDim>
-    Plane3D CreateIntersectionPlane(const std::vector<array_1d<double,3>>& rIntPtsVector);
-
     void VoigtTransformForProduct(
         const array_1d<double,3>& rVector,
         BoundedMatrix<double,2,3>& rVoigtMatrix);
@@ -67,6 +61,133 @@ namespace ShiftedBoundaryUtilityInternals {
         const std::size_t& NumNodes,
         Matrix& rB);
 
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Bounding box
+    // ─────────────────────────────────────────────────────────────────────────────
+    struct BBox {
+        double min[3], max[3];
+
+        BBox() {
+            for (std::size_t i = 0; i < 3; ++i) {
+                min[i] = 1e30; max[i] = -1e30;
+            }
+        }
+
+        /**
+         * @brief Calculate min and max coordinates from element geometry enlarging by a tolerance
+         *
+         * @param rGeom
+         * @param Tolerance
+         */
+        BBox(const Element::GeometryType& rGeom, const double Tolerance=1e-12) {
+            min[0] = max[0] = rGeom[0].X();
+            min[1] = max[1] = rGeom[0].Y();
+            min[2] = max[2] = rGeom[0].Z();
+            for (std::size_t i = 1; i < rGeom.PointsNumber(); ++i) {
+                min[0] = std::min(min[0], rGeom[i].X());
+                min[1] = std::min(min[1], rGeom[i].Y());
+                min[2] = std::min(min[2], rGeom[i].Z());
+                max[0] = std::max(max[0], rGeom[i].X());
+                max[1] = std::max(max[1], rGeom[i].Y());
+                max[2] = std::max(max[2], rGeom[i].Z());
+            }
+            for (std::size_t d = 0; d < 3; ++d) {
+                min[d] -= Tolerance; max[d] += Tolerance;
+            }
+        }
+
+        void expand(double x, double y, double z) {
+            min[0]=std::min(min[0],x); max[0]=std::max(max[0],x);
+            min[1]=std::min(min[1],y); max[1]=std::max(max[1],y);
+            min[2]=std::min(min[2],z); max[2]=std::max(max[2],z);
+        }
+
+        void expand(const BBox& o) {
+            for (int i = 0; i < 3; ++i) {
+                min[i]=std::min(min[i],o.min[i]);
+                max[i]=std::max(max[i],o.max[i]);
+            }
+        }
+
+        bool overlaps(const BBox& o) const {
+            return max[0]>=o.min[0] && min[0]<=o.max[0] &&
+                max[1]>=o.min[1] && min[1]<=o.max[1] &&
+                max[2]>=o.min[2] && min[2]<=o.max[2];
+        }
+
+        double half_surface_area() const {
+            double dx=max[0]-min[0], dy=max[1]-min[1], dz=max[2]-min[2];
+            return dx*dy + dy*dz + dz*dx;
+        }
+
+        int longest_axis() const {
+            double d[3]={max[0]-min[0], max[1]-min[1], max[2]-min[2]};
+            return (d[0]>=d[1] && d[0]>=d[2]) ? 0 : (d[1]>=d[2] ? 1 : 2);
+        }
+
+        double centroid(int axis) const { return 0.5*(min[axis]+max[axis]); }
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Flat BVH node – 32 bytes, fits nicely in cache lines
+    // ─────────────────────────────────────────────────────────────────────────────
+    struct BVHNode {
+        BBox  bbox;            // 24 bytes
+        int   left_or_first;   //  4 bytes  (inner: left child index; leaf: first prim)
+        int   right_or_count;  //  4 bytes  (inner: right child index; leaf: -count)
+
+        bool is_leaf() const { return right_or_count <= 0; }
+        int  prim_begin() const { return left_or_first; }
+        int  prim_count() const { return -right_or_count; }
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Surface-mesh BVH  (built once, queried read-only)
+    // ─────────────────────────────────────────────────────────────────────────────
+    class ElementBVH {
+    public:
+        std::vector<BVHNode>   nodes;
+        std::vector<int>       prim_ids;   // reordered primitive indices
+        std::vector<BBox>      prim_boxes; // bbox per primitive (original order)
+
+        static constexpr int MAX_LEAF_SIZE = 4;   // tune: 4-8 is usually optimal
+        static constexpr int SAH_BINS      = 8;   // SAH binning resolution
+
+        void build(const std::vector<BBox>& boxes);
+
+        /**
+         * @brief Query: append all primitive indices whose bbox overlaps query_box
+         * Thread-safe (read-only after build).
+         * @param query_box
+         * @param results
+         */
+        void query(const BBox& query_box, std::vector<std::size_t>& results);
+
+        /**
+         * @brief update prim_boxes from new geometry, then refit the tree bottom-up
+         * O(N), no reallocation; called every time geometry changes (e.g. moving mesh)
+         * @param updated_boxes
+         */
+        void refit(const std::vector<BBox>& updated_boxes);
+
+    private:
+        /**
+         * @brief Recursive build with SAH binning
+         *
+         * @param first
+         * @param count
+         * @return node_idx
+         */
+        int build_recursive(int first, int count);
+
+        /**
+         * @brief Recursive refit
+         * Since tree is small after reuse iterative reverse traversal is cleaner and branchless
+         * @param idx
+         */
+        void refit_node(int idx);
+    };
+
 }  // namespace ShiftedBoundaryUtilityInternals
 
 ///@}
@@ -74,7 +195,7 @@ namespace ShiftedBoundaryUtilityInternals {
 ///@{
 
 /**
- * @brief Utilities for the SBM-WTE extension operator calculation
+ * @brief Utilities for the SBM boundary conditions via extension operators
  * This class provides the utilities for the calculation of the extension operator
  * in the Shifted Boundary Method Without Taylor Expansions allowing for a discontinuous interface (thin-walled structure),
  * which is defined by points on the surface of the interface (e.g. IGA integration points).
@@ -93,23 +214,19 @@ public:
     };
 
     // variable types
-    using IndexType = ModelPart::IndexType;
     using NodeType = ModelPart::NodeType;
     using ElementType = Element;
     using GeometryType = ModelPart::GeometryType;
-    using ShapeFunctionsGradientsType = GeometryType::ShapeFunctionsGradientsType;
 
     // function types
-    using PointDistanceFunctionType = std::function<double(const Geometry<Node>&, const Point&)>;
-    using IntersectionPlaneConstructorType = std::function<Plane3D(const std::vector<array_1d<double,3>>&)>;
     using MeshlessShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
     using ElementSizeFunctionType = std::function<double(const GeometryType&)>;
 
     // set and vector types
     using NodesSetType = std::unordered_set<NodeType::Pointer, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
     using ElementsSetType = std::unordered_set<ElementType::Pointer, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
-    using CloudDataVectorType = DenseVector<std::pair<NodeType::Pointer, double>>;
-    using SkinPointsDataVectorType = DenseVector<std::tuple< array_1d<double,3>, array_1d<double,3>, std::size_t >>; // vector of position, area normal and ID of skin points
+    using CloudDataVectorType = std::vector<std::pair<NodeType::Pointer, double>>;
+    using SkinPointsDataVectorType = std::vector<std::tuple< array_1d<double,3>, array_1d<double,3>, std::size_t >>; // vector of position, area normal and ID of skin points
     using EdgesVectorType = std::vector<std::pair<std::size_t, std::size_t>>;
 
     // map types
@@ -117,7 +234,6 @@ public:
     using SidesVectorToElementsMapType = std::unordered_map<ElementType::Pointer, Vector, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
     using AverageSkinToElementsMapType = std::unordered_map<ElementType::Pointer, std::pair<array_1d<double,3>, array_1d<double,3>>, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
     using NodesCloudMapType = std::unordered_map<NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
-    //using ClustersMapType = std::unordered_map<std::size_t, std::tuple<NodesSetType, ElementsSetType, std::unordered_set<std::size_t>>>;
 
     ///@}
     ///@name Pointer Definitions
@@ -151,50 +267,46 @@ public:
     ///@{
 
     //TODO
-    void CalculateAndAddPointBasedInterface(
-        const bool DeactivateUnstableClusters
-    );
-
-    //TODO
     void ResetFlags();
 
     /** TODO
      * @brief Set BOUNDARY flags for elements that are intersected by the tessellated skin geometry.
-       Calculate DISTANCE of nodes of intersected elements to the skin geometry and relocate those with a very small DISTANCE value in direction of the normal.
      * element BOUNDARY : elements in which a part of the surface is located (split/ intersected elements)
      */
-    void SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes();
+    void FindElementsAtTessellatedBoundary(double Tolerance = 1e-10);
 
     //TODO
-    // To be done after SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes() to locate skin points after node relocation in the updated volume part element geometries.
-    void LocateSkinPoints();
+    void MapSkinPointsToElements();
+
+    //TODO
+    // Elements that were found to be touched or intersected by the tessellated skin geometry or containing skin integration points are flagged as BOUNDARY elements.
+    void FlagBoundaryElements();
 
     // TODO Set the corresponding flags at the interface elements
     // element INTERFACE : elements owning the surrogate boundary nodes adjacent to an deactivated BOUNDARY element
-    // To be done after all necessary elements have been declared SBM_BOUNDARY (--> after SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes and LocateSkinPoints)
-    void SetInterfaceFlags();
+    // Makes all elements surrounding a BOUNDARY element INTERFACE elements.
+    // To be done after all necessary elements have been declared SBM_BOUNDARY (--> after FindElementsAtTessellatedBoundary and MapSkinPointsToElements)
+    void FlagInterfaceElements();
 
     // TODO node ACTIVE : nodes that belong to the elements to be assembled (all nodes as the interface is discontinuous)
     // element ACTIVE : elements which are not BOUNDARY (the ones to be assembled)
-    // To be done after all necessary elements have been declared SBM_BOUNDARY (--> after SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes and LocateSkinPoints)
-    void DeactivateElementsAndNodes(
-        const bool DeactivateUnstableClusters
-    );
+    // Deactivates BOUNDARY elements and nodes that are not part of any ACTIVE element anymore.
+    // If DeactivateUnstableClusters is true, than FindAndDeactivateUnstableClusters() is called.
+    // To be done after all necessary elements have been declared SBM_BOUNDARY (--> after FindElementsAtTessellatedBoundary and MapSkinPointsToElements)
+    void DeactivateElementsAndNodes(const bool DeactivateUnstableClusters);
 
     //TODO
     void CalculateAndAddSkinIntegrationPointConditions();
 
     //TODO
-    // Calculate positive and negative side pressure at the nodes of the skin model part
-    // Result is stored in POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE.
+    // Calculate positive and negative side pressure and velocity and traction at the integration points of the skin geometry - for mpSkinPointsSubModelPart.
+    // Results are stored in POSITIVE_FACE_PRESSURE, NEGATIVE_FACE_PRESSURE, POSITIVE_FACE_FLUID_VELOCITY, NEGATIVE_FACE_FLUID_VELOCITY, TRACTION_FROM_FLUID_PRESSURE, TRACTION_FROM_FLUID_STRESS, DRAG_FORCE.
     //TODO
-    template <std::size_t TDim>
-    void CalculateVariablesAtSkinPointsTemplated();
     void CalculateVariablesAtSkinPoints();
 
     //TODO
-    template <std::size_t TDim>
-    void CalculateVariablesAtSkinPointsAndNodesTemplated();
+    // Calls CalculateVariablesAtSkinPoints() and then calculates the values at the nodes of the skin model part using the skin points shape function values - for mpSkinDiscSubModelPart.
+    // Results are stored in POSITIVE_FACE_PRESSURE, NEGATIVE_FACE_PRESSURE, POSITIVE_FACE_FLUID_VELOCITY, NEGATIVE_FACE_FLUID_VELOCITY.
     void CalculateVariablesAtSkinPointsAndNodes();
 
     ///@}
@@ -237,28 +349,26 @@ protected:
     ///@name Static Member Variables
     ///@{
 
-    //static constexpr std::size_t VoigtSize = 3 * (TDim-1);
-    //static constexpr std::size_t BlockSize = TDim + 1;
-
     ///@}
     ///@name Member Variables
     ///@{
 
     ModelPart* mpModelPart = nullptr;
-    //TODO needs to be discretized to be used for FindIntersectedGeometricalObjectsProcess.
-    // Also right now integration points of mpSkinDiskretSubModelPart (1 GP) are taken as skin points with area and normal for SkinPointsSubModelPart.
-    ModelPart* mpSkinDiscSubModelPart = nullptr;
     ModelPart* mpBoundarySubModelPart = nullptr;
-    ModelPart* mpSkinPointsSubModelPart = nullptr;
 
+    //NOTE that right now integration points of mpSkinDiskretSubModelPart are taken as skin points with area and normal for SkinPointsSubModelPart.
+    ModelPart* mpSkinDiscSubModelPart = nullptr;
+    ModelPart* mpSkinPointsSubModelPart = nullptr;
     std::string mSkinModelPartName = "";
 
+    ShiftedBoundaryUtilityInternals::ElementBVH mSkinBVH;
+
+    ElementsSetType mBoundaryElementsSet;
     SkinPointsToElementsMapType mSkinPointsMap;
-    //TODO too big to store - (only) necessary for calculation of values at skin
+
     SidesVectorToElementsMapType mSidesVectorMap;
     NodesCloudMapType mExtensionOperatorMap;
 
-    bool mConformingBasis;
     ExtensionOperator mExtensionOperator;
     std::size_t mMLSExtensionOperatorOrder;
 
@@ -266,12 +376,6 @@ protected:
 
     bool mPositiveSideIsEnclosed = false;
     bool mNegativeSideIsEnclosed = false;
-
-    bool mCrossBoundaryNeighbors = false;
-    bool mUseTessellatedBoundary = true;
-
-    bool mAddedLeftEdge = false;
-    bool mAddedRightEdge = false;
 
     /// @brief Protected empty constructor for derived classes
     //ShiftedBoundaryPointBasedUtility() {}
@@ -285,41 +389,29 @@ protected:
     ///@{
 
     /**
-     * @brief Calculate the extension basis coefficients
-     * This method calculates the extension operator coefficients in a meshless fashion
-     * First, a cloud of points is created for each one of the "inner" nodes. This cloud of points is then used in the
-     * calculation of the MLS approximants at these points. Then, the basis is made conformant by using the meshless
-     * approximants to calculate the interpolation at each one of the point conditions location.
-     */
-    //void CalculateMeshlessBasedConformingExtensionBasis();
-
-    // TODO
-    double CalculateSkinDistanceToNode(
-        const NodeType& rNode,
-        const PointerVector<GeometricalObject>& rIntersectingObjects,
-        PointDistanceFunctionType pPointDistanceFunction,
-        IntersectionPlaneConstructorType pIntersectionPlaneConstructor,
-        const double& DistanceThreshold,
-        const double& ThresholdForSignedness);
-
-    /**
-     * @brief TODO. This method requires the skin to be stored in mpSkinDiskretSubModelPart as a Kratos model part with elements, integration points and area normals.
+     * @brief TODO. This method requires the skin to be stored in mpSkinDiscSubModelPart as a Kratos model part with elements, integration points and area normals.
      *
      * @tparam TDim Working space dimension
      * @param rSkinPointsMap
      */
     template <std::size_t TDim>
-    void MapSkinPointsToElements(SkinPointsToElementsMapType& rSkinPointsMap);
+    void MapSkinPointsToElementsTemplated(SkinPointsToElementsMapType& rSkinPointsMap);
+
+    //TODO
+    bool LocatePoint(
+        ShiftedBoundaryUtilityInternals::ElementBVH& rCandidatesBvh,
+        std::vector<ElementType::Pointer>& rIdxToPointer,
+        array_1d<double,3>& rPointCoords,
+        ElementType::Pointer& pElement);
 
     //TODO
     void FindAndDeactivateUnstableClusters();
 
     //TODO - move to separate process?
     std::vector<std::vector<ElementType::Pointer>> FindClusters();
-    //TODO
+
+    //TODO - move to separate process?
     EdgesVectorType GetActiveAdjacencyGraph();
-    //TODO - unused because clustering was slower with grid partitioning
-    std::unordered_map<std::size_t, std::size_t> PartitionGridByElementIds(std::size_t& rNumChunks);
 
     /**TODO*/
     void SetSidesVectorsAndSkinNormalsForSplitElements(
@@ -409,12 +501,25 @@ protected:
         std::size_t& r_ConditionId,
         const bool ConsiderPositiveSide);
 
+    // TODO
     bool SetEnclosedNodesPressure(
         ElementType& rElement,
         const Vector& rSidesVector,
         const array_1d<double,3>& rAvgSkinPosition,
         const array_1d<double,3>& rAvgSkinNormal);
 
+    //TODO
+    // Calculate positive and negative side pressure at the nodes of the skin model part
+    // Result is stored in POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE.
+    //TODO
+    template <std::size_t TDim>
+    void CalculateVariablesAtSkinPointsTemplated();
+
+    //TODO
+    template <std::size_t TDim>
+    void CalculateVariablesAtSkinPointsAndNodesTemplated();
+
+    //TODO
     template <std::size_t TDim>
     bool CalculateUnknownsForBothSidesOfSplitElement(
         const ElementType::Pointer pElement,
