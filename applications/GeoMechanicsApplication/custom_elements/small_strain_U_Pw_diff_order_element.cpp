@@ -37,6 +37,7 @@
 #include "custom_utilities/output_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geo_mechanics_application_constants.h"
 #include "stress_state_policy.h"
 
@@ -122,8 +123,10 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
         r_geom.IntegrationPoints(integration_method);
     const auto Np_container = mpPressureGeometry->ShapeFunctionsValues(integration_method);
 
-    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-        Np_container, this->GetPressureSolutionVector());
+    Vector corner_pressures(mpPressureGeometry->PointsNumber());
+    VariablesUtilities::GetNodalValues(*mpPressureGeometry, WATER_PRESSURE, corner_pressures.begin());
+    const auto fluid_pressures =
+        GeoTransportEquationUtilities::CalculateFluidPressures(Np_container, corner_pressures);
     const auto degrees_saturation = this->CalculateDegreesOfSaturation(fluid_pressures);
 
     const auto solid_densities =
@@ -199,8 +202,7 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
 
     auto local_coordinates = Matrix{};
     r_displacement_geometry.PointsLocalCoordinates(local_coordinates);
-    auto corner_pressures = Vector(num_p_nodes);
-    corner_pressures      = GetPressureSolutionVector();
+    const auto corner_pressures = VariablesUtilities::GetNodalValues(*mpPressureGeometry, WATER_PRESSURE);
 
     for (auto node = num_p_nodes; node < num_u_nodes; ++node) {
         auto shape_functions_values = Vector(num_p_nodes);
@@ -209,7 +211,7 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
         std::ranges::copy(row(local_coordinates, node), local_node_coordinate.begin());
         mpPressureGeometry->ShapeFunctionsValues(shape_functions_values, local_node_coordinate);
 
-        auto mid_node_pressure = std::inner_product(
+        const auto mid_node_pressure = std::inner_product(
             shape_functions_values.begin(), shape_functions_values.end(), corner_pressures.begin(), 0.0);
         NodeUtilities::ThreadSafeNodeWrite(r_displacement_geometry[node], WATER_PRESSURE, mid_node_pressure);
     }
@@ -1462,14 +1464,6 @@ void SmallStrainUPwDiffOrderElement::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
     rSerializer.load("PressureGeometry", mpPressureGeometry);
-}
-
-Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector() const
-{
-    Vector result(mpPressureGeometry->PointsNumber());
-    std::transform(mpPressureGeometry->begin(), mpPressureGeometry->end(), result.begin(),
-                   [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
-    return result;
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
