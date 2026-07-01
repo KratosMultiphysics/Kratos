@@ -23,6 +23,7 @@
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_strategy.hpp"
+#include "custom_strategies/custom_strategies/cutting_pattern_strategy.hpp"
 #include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
 #include "custom_strategies/custom_strategies/prebuckling_strategy.hpp"
 
@@ -71,6 +72,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef PrebucklingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PrebucklingStrategyType;
     typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingStrategyType;
+    typedef CuttingPatternStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > CuttingPatternStrategyType;
     typedef MechanicalExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MechanicalExplicitStrategyType;
 
 
@@ -118,6 +120,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< FormfindingStrategyType,typename FormfindingStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, Parameters, int, bool, bool, bool>())
         .def_static("WriteFormFoundMdpa", &FormfindingStrategyType::WriteFormFoundMdpa)
+        ;
+    
+    py::class_< CuttingPatternStrategyType,typename CuttingPatternStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"CuttingPatternStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, int, bool, bool, bool>())
+        // .def_static("WriteFormFoundMdpa", &CuttingPatternStrategyType::WriteFormFoundMdpa)
         ;
 
 

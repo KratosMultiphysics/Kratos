@@ -373,8 +373,11 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
        this->JacobiDeterminante(detJ, current_covariant_base_vectors);
 
        this->CauchyStress(cauchy_stress, shape_functions_gradients_i, young_modulus, poisson_ratio);
+       //KRATOS_WATCH (cauchy_stress)
 
        this->PreStress(prestress);
+
+       //KRATOS_WATCH (prestress)
 
        for (SizeType dof_r = 0; dof_r < number_dofs; ++dof_r)
        {
@@ -531,6 +534,7 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
   void MembraneCuttingPatternElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix, const IntegrationMethod& ThisMethod,
     const ProcessInfo& rCurrentProcessInfo)
   {
+    KRATOS_WATCH("debug")
     const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType number_of_nodes = r_geom.size();

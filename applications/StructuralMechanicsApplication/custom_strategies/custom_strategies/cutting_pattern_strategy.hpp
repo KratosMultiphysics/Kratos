@@ -19,7 +19,7 @@
 
 // Project includes
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "custom_utilities/project_vector_on_surface_utility.h"
+//#include "custom_utilities/project_vector_on_surface_utility.h"
 #include "includes/model_part_io.h"
 #include "input_output/vtk_output.h"
 #include "includes/gid_io.h"
@@ -69,7 +69,7 @@ public:
         ModelPart& rCuttingPatternModelPart,
         bool WriteCuttingPatternGeometryFile,
         const std::string& rPrintingFormat,
-        Parameters ProjectionSetting,
+        //Parameters ProjectionSetting,
         int MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
@@ -78,7 +78,7 @@ public:
     : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
         pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
         MoveMeshFlag),
-        mProjectionSettings(ProjectionSetting),
+        //mProjectionSettings(ProjectionSetting),
         mrCuttingPatternModelPart(rCuttingPatternModelPart),
         mPrintingFormat(rPrintingFormat),
         mWriteCuttingPatternGeometryFile(WriteCuttingPatternGeometryFile)
@@ -89,7 +89,7 @@ public:
     // Destructor
     ~CuttingPatternStrategy() = default;
 
-    /*static void WriteCuttingPatternMdpa(ModelPart& rModelPart)
+     static void WriteCuttingPatternMdpa(ModelPart& rModelPart)
     {
         Matrix output_matrix;
         const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -104,8 +104,8 @@ public:
         rModelPart.GetNodalSolutionStepVariablesList().clear();
 
         ModelPartIO model_part_io("cutting_pattern_result_model", IO::WRITE);
-        model_part_io.WriteCuttingPatternModelPart(rModelPart);
-    }*/
+        // model_part_io.WriteCuttingPatternModelPart(rModelPart);
+    }
 
 private:
     void UpdateDatabase(
@@ -125,7 +125,7 @@ private:
 
             r_node.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
         }
-        ProjectVectorOnSurfaceUtility::Execute(mrCuttingPatternModelPart, mProjectionSettings);
+        //ProjectVectorOnSurfaceUtility::Execute(mrCuttingPatternModelPart, mProjectionSettings);
 
         PrintResults();
     }
