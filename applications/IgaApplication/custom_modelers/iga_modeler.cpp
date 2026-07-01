@@ -11,6 +11,7 @@
 
 // Project includes
 #include "iga_modeler.h"
+#include "geometries/local_refined_surface_geometry.h"
 
 
 namespace Kratos
@@ -380,46 +381,64 @@ namespace Kratos
                     << " needs to have a dimension of 2 for type " << rGeometryType << ". LocalSpaceDimension: "
                     << geom.LocalSpaceDimension() << ". Geometry" << geom << std::endl;
 
-                SizeType number_of_cps_u = geom.PointsNumberInDirection(0);
-                SizeType number_of_cps_v = geom.PointsNumberInDirection(1);
+                using LocalRefinedType = LocalRefinedSurfaceGeometry<3, PointerVector<NodeType>>;
+                auto* p_local_refined_surface = dynamic_cast<LocalRefinedType*>(p_background_geometry.get());
 
-                IndexType u_start = 0;
-                IndexType u_end = number_of_cps_u;
-                IndexType v_start = 0;
-                IndexType v_end = number_of_cps_v;
+                if (p_local_refined_surface != nullptr) {
+                    const IndexType variation_u = (rGeometryType == "GeometrySurfaceVariationNodes" && local_coordinates[0] >= 0) ? 1 : 0;
+                    const IndexType variation_v = (rGeometryType == "GeometrySurfaceVariationNodes" && local_coordinates[1] >= 0) ? 1 : 0;
 
-                if (rGeometryType == "GeometrySurfaceNodes") {
-                    if (local_coordinates[0] >= 0) {
-                        u_start = local_coordinates[0] * (number_of_cps_u - 1);
-                        u_end = local_coordinates[0] * (number_of_cps_u - 1) + 1;
-                    }
-                    if (local_coordinates[1] >= 0) {
-                        v_start = local_coordinates[1] * (number_of_cps_v - 1);
-                        v_end = local_coordinates[1] * (number_of_cps_v - 1) + 1;
-                    }
+                    std::vector<NodeType::Pointer> boundary_points;
+                    p_local_refined_surface->GetActiveBoundaryPoints(
+                        local_coordinates[0], local_coordinates[1],
+                        variation_u, variation_v, boundary_points);
+
+                    for (auto& p_node : boundary_points)
+                        rModelPart.AddNode(p_node);
                 }
-                else if (rGeometryType == "GeometrySurfaceVariationNodes") {
-                    if (local_coordinates[0] == 0) {
-                        u_start = 1;
-                        u_end = 2;
-                    }
-                    if (local_coordinates[0] == 1) {
-                        u_start = number_of_cps_u - 2;
-                        u_end = number_of_cps_u - 1;
-                    }
-                    if (local_coordinates[1] == 0) {
-                        v_start = 1;
-                        v_end = 2;
-                    }
-                    if (local_coordinates[1] == 1) {
-                        v_start = number_of_cps_v - 2;
-                        v_end = number_of_cps_v - 1;
-                    }
-                }
+                else {
+                    // Tensor-product path (standard NURBS surface).
+                    SizeType number_of_cps_u = geom.PointsNumberInDirection(0);
+                    SizeType number_of_cps_v = geom.PointsNumberInDirection(1);
 
-                for (IndexType i = u_start; i < u_end; ++i) {
-                    for (IndexType j = v_start; j < v_end; ++j) {
-                        rModelPart.AddNode(p_background_geometry->pGetPoint(i + j * number_of_cps_u));
+                    IndexType u_start = 0;
+                    IndexType u_end = number_of_cps_u;
+                    IndexType v_start = 0;
+                    IndexType v_end = number_of_cps_v;
+
+                    if (rGeometryType == "GeometrySurfaceNodes") {
+                        if (local_coordinates[0] >= 0) {
+                            u_start = local_coordinates[0] * (number_of_cps_u - 1);
+                            u_end = local_coordinates[0] * (number_of_cps_u - 1) + 1;
+                        }
+                        if (local_coordinates[1] >= 0) {
+                            v_start = local_coordinates[1] * (number_of_cps_v - 1);
+                            v_end = local_coordinates[1] * (number_of_cps_v - 1) + 1;
+                        }
+                    }
+                    else if (rGeometryType == "GeometrySurfaceVariationNodes") {
+                        if (local_coordinates[0] == 0) {
+                            u_start = 1;
+                            u_end = 2;
+                        }
+                        if (local_coordinates[0] == 1) {
+                            u_start = number_of_cps_u - 2;
+                            u_end = number_of_cps_u - 1;
+                        }
+                        if (local_coordinates[1] == 0) {
+                            v_start = 1;
+                            v_end = 2;
+                        }
+                        if (local_coordinates[1] == 1) {
+                            v_start = number_of_cps_v - 2;
+                            v_end = number_of_cps_v - 1;
+                        }
+                    }
+
+                    for (IndexType i = u_start; i < u_end; ++i) {
+                        for (IndexType j = v_start; j < v_end; ++j) {
+                            rModelPart.AddNode(p_background_geometry->pGetPoint(i + j * number_of_cps_u));
+                        }
                     }
                 }
             }

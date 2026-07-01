@@ -75,6 +75,13 @@ public:
     ///@name Interface for locally refined geometries
     ///@{
 
+    virtual void GetActiveBoundaryPoints(
+        double LocalCoordinateU,
+        double LocalCoordinateV,
+        IndexType VariationU,
+        IndexType VariationV,
+        std::vector<typename NodeType::Pointer>& rPoints) const = 0;
+
     SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override = 0;
 
     SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override = 0;

@@ -401,21 +401,65 @@ public:
             << "THBSurfaceGeometry::PointsNumberInDirection: no levels defined." << std::endl;
 
         for (SizeType l = 0; l < mLevels.size(); ++l) {
-            const SizeType n_u = NumberOfControlPointsU(l);
-            const SizeType n_v = NumberOfControlPointsV(l);
+            const SizeType num_of_cps_u = NumberOfControlPointsU(l);
+            const SizeType num_of_cps_v = NumberOfControlPointsV(l);
             SizeType count = 0;
             if (DirectionIndex == 0) {
-                for (SizeType i = 0; i < n_u; ++i)
-                    for (SizeType j = 0; j < n_v; ++j)
-                        if (mActiveFunctions[l][i + j * n_u]) { ++count; break; }
+                for (SizeType i = 0; i < num_of_cps_u; ++i)
+                    for (SizeType j = 0; j < num_of_cps_v; ++j)
+                        if (mActiveFunctions[l][i + j * num_of_cps_u]) { ++count; break; }
             } else {
-                for (SizeType j = 0; j < n_v; ++j)
-                    for (SizeType i = 0; i < n_u; ++i)
-                        if (mActiveFunctions[l][i + j * n_u]) { ++count; break; }
+                for (SizeType j = 0; j < num_of_cps_v; ++j)
+                    for (SizeType i = 0; i < num_of_cps_u; ++i)
+                        if (mActiveFunctions[l][i + j * num_of_cps_u]) { ++count; break; }
             }
             if (count > 0) return count;
         }
         return 0;
+    }
+
+    void GetActiveBoundaryPoints(
+        double LocalCoordinateU,
+        double LocalCoordinateV,
+        IndexType VariationU,
+        IndexType VariationV,
+        std::vector<typename NodeType::Pointer>& rPoints) const override
+    {
+        rPoints.clear();
+        for (SizeType l = 0; l < mLevels.size(); ++l) {
+            const SizeType num_of_cps_u = NumberOfControlPointsU(l);
+            const SizeType num_of_cps_v = NumberOfControlPointsV(l);
+
+            // Determine target u index range for this level.
+            // VariationU is the offset from the boundary (0 = boundary row, 1 = second row).
+            // It is only applied when a specific boundary is selected (coordinate >= 0).
+            SizeType u_start = 0, u_end = num_of_cps_u;
+            if (LocalCoordinateU == 0.0 && VariationU < num_of_cps_u) {
+                u_start = VariationU;
+                u_end   = VariationU + 1;
+            } else if (LocalCoordinateU == 1.0 && VariationU < num_of_cps_u) {
+                u_start = num_of_cps_u - 1 - VariationU;
+                u_end   = num_of_cps_u - VariationU;
+            }
+
+            // Determine target v index range for this level.
+            SizeType v_start = 0, v_end = num_of_cps_v;
+            if (LocalCoordinateV == 0.0 && VariationV < num_of_cps_v) {
+                v_start = VariationV;
+                v_end   = VariationV + 1;
+            } else if (LocalCoordinateV == 1.0 && VariationV < num_of_cps_v) {
+                v_start = num_of_cps_v - 1 - VariationV;
+                v_end   = num_of_cps_v - VariationV;
+            }
+
+            for (SizeType i = u_start; i < u_end; ++i) {
+                for (SizeType j = v_start; j < v_end; ++j) {
+                    const SizeType flat = j * num_of_cps_u + i;
+                    if (mActiveFunctions[l][flat])
+                        rPoints.push_back(this->pGetPoint(PackedControlPointIndex(l, flat)));
+                }
+            }
+        }
     }
 
     void SpansLocalSpace(
