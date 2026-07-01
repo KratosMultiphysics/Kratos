@@ -35,7 +35,7 @@ jobs:
   job-filters:
     runs-on: ubuntu-latest
     outputs:
-      source: ${{ steps.filter.outputs.source }}
+      ci-build: ${{ steps.filter.outputs.ci-build }}
 
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +44,7 @@ jobs:
         with:
           filters: |
             ci-build:
-              - added|modified|deleted: '**'
+              - '**'
               - '!**/*.md'
               - '!licence.txt'
               - '!docs/**'
@@ -52,7 +52,6 @@ jobs:
   ubuntu:
     runs-on: ubuntu-latest
     needs: [changed-files, job-filters]
-    if: needs.job-filters.outputs.source.ci-build == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -76,13 +75,18 @@ jobs:
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
 
+    - name: Show filter result
+      run: echo "CI BUILD = ${{ needs.job-filters.outputs.ci-build }}"
+
     - name: CI configuration
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         python3 kratos/python_scripts/testing/ci_utilities.py
         python3 -m pip install --upgrade numpy==1.26.4
 
     - name: Build
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
@@ -106,6 +110,7 @@ jobs:
         rm -r ${GITHUB_WORKSPACE}/build
 
     - name: Build Dependencies
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
@@ -128,6 +133,7 @@ jobs:
         rm -r ${GITHUB_WORKSPACE}/build
 
     - name: Build Core Apps
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
@@ -150,6 +156,7 @@ jobs:
         rm -r ${GITHUB_WORKSPACE}/build
 
     - name: Build Research Apps
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
@@ -172,6 +179,7 @@ jobs:
         rm -r ${GITHUB_WORKSPACE}/build
 
     - name: Running C++ tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
@@ -182,6 +190,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running python tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
@@ -192,11 +201,13 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python3
 
     - name: Prepare Parallel Env
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         echo "localhost slots=2" >> ${GITHUB_WORKSPACE}/ci_hostfile
 
     - name: Running MPI C++ tests (2 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       timeout-minutes : 10
       run: |
@@ -208,6 +219,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 2
 
     - name: Running MPI C++ tests (3 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       timeout-minutes : 10
       run: |
@@ -219,6 +231,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 3
 
     - name: Running MPI C++ tests (4 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       timeout-minutes : 10
       run: |
@@ -230,6 +243,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 4
 
     - name: Running Python MPI tests (2 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
@@ -241,6 +255,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
@@ -252,6 +267,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
@@ -266,7 +282,6 @@ jobs:
   windows:
     runs-on: windows-2022
     needs: [changed-files, job-filters]
-    if: needs.job-filters.outputs.source.ci-build == 'true'
     env:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
@@ -278,11 +293,16 @@ jobs:
       with:
         python-version: '3.8'
 
+    - name: Show filter result
+      run: echo "CI BUILD = ${{ needs.job-filters.outputs.ci-build }}"
+
     - name: CI configuration
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Download boost
+      if: needs.job-filters.outputs.ci-build == 'true'
       run: |
         $url = "https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
@@ -290,6 +310,7 @@ jobs:
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
 
     - name: Installing dependencies
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: cmd
       run: |
         pip install numpy
@@ -299,6 +320,7 @@ jobs:
         pip install parameterized
 
     - name: Build
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: cmd
       run: |
         copy .\.github\workflows\configure.cmd
@@ -306,6 +328,7 @@ jobs:
         configure.cmd
 
     - name: Running C++ tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
@@ -313,6 +336,7 @@ jobs:
         python kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running python tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
@@ -323,7 +347,6 @@ jobs:
   rocky:
     runs-on: ubuntu-latest
     needs: [changed-files, job-filters]
-    if: needs.job-filters.outputs.source.ci-build == 'true'
     env:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
@@ -340,11 +363,16 @@ jobs:
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
 
+    - name: Show filter result
+      run: echo "CI BUILD = ${{ needs.job-filters.outputs.ci-build }}"
+
     - name: CI configuration
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: /usr/local/bin/python3.10  kratos/python_scripts/testing/ci_utilities.py
 
     - name: Build
+      if: needs.job-filters.outputs.ci-build == 'true'
       run: |
         if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
@@ -352,6 +380,7 @@ jobs:
         bash rocky_configure.sh
 
     - name: Running C++ tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       run: |
         if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
@@ -359,6 +388,7 @@ jobs:
         /usr/local/bin/python3.10  kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running python tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       run: |
         if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
@@ -383,11 +413,16 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    - name: Show filter result
+      run: echo "CI BUILD = ${{ needs.job-filters.outputs.ci-build }}"
+
     - name: CI configuration
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Build
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         export CC=/usr/bin/clang-14
@@ -425,6 +460,7 @@ jobs:
         cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
 
     - name: Running C++ tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
@@ -432,6 +468,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running python tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
@@ -439,6 +476,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
 
     - name: Running MPI C++ tests (2 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       timeout-minutes : 10
       run: |
@@ -447,6 +485,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 2
 
     - name: Running MPI C++ tests (3 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       timeout-minutes : 10
       run: |
@@ -455,6 +494,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 3
 
     - name: Running MPI C++ tests (4 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       timeout-minutes : 10
       run: |
@@ -463,6 +503,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 4
 
     - name: Running Python MPI tests (2 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
@@ -470,6 +511,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
@@ -477,6 +519,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
@@ -499,11 +542,16 @@ jobs:
       with:
         python-version: '3.8'
 
+    - name: Show filter result
+      run: echo "CI BUILD = ${{ needs.job-filters.outputs.ci-build }}"
+
     - name: CI configuration
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Download boost
+      if: needs.job-filters.outputs.ci-build == 'true'
       run: |
         $url = "https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
@@ -511,6 +559,7 @@ jobs:
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
 
     - name: Installing dependencies
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: cmd
       run: |
         pip install numpy
@@ -518,6 +567,7 @@ jobs:
         pip install scipy
 
     - name: Build
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: cmd
       run: |
         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
@@ -555,6 +605,7 @@ jobs:
         exit /b %errorlevel%
 
     - name: Running C++ tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
@@ -562,6 +613,7 @@ jobs:
         python kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running python tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
@@ -590,11 +642,16 @@ jobs:
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
 
+    - name: Show filter result
+      run: echo "CI BUILD = ${{ needs.job-filters.outputs.ci-build }}"
+
     - name: CI configuration
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Build
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         export CC=icx
@@ -604,6 +661,7 @@ jobs:
         bash configure.sh
 
     - name: Running C++ tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       continue-on-error: true # TODO segfaults in cpp-tests
       run: |
@@ -613,6 +671,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running python tests
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       continue-on-error: true # TODO segfaults in cpp-tests
       run: |
@@ -622,6 +681,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
 
     - name: Running MPI C++ tests (2 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       timeout-minutes : 10
       run: |
@@ -631,6 +691,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 2
 
     - name: Running MPI C++ tests (3 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       timeout-minutes : 10
       run: |
@@ -640,6 +701,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 3
 
     - name: Running MPI C++ tests (4 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       timeout-minutes : 10
       run: |
@@ -649,6 +711,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 4
 
     - name: Running Python MPI tests (2 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
@@ -658,6 +721,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
@@ -667,6 +731,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
+      if: needs.job-filters.outputs.ci-build == 'true'
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
