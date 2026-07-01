@@ -23,7 +23,7 @@
                     {
                         "name": "Modelers.KratosMultiphysics.ImportMDPAModeler",
                         "Parameters": {
-                            "input_filename": "../../common/model",
+                            "input_filename": "../../../common/model",
                             "model_part_name": "PorousDomain"
                         }
                     }
@@ -64,10 +64,7 @@
                     },
                     "solver_type": "U_Pw",
                     "solution_type": "static",
-                    "strategy_type": "quasi_newton",
-                    "quasi_newton_type": "broyden",
-                    "quasi_newton_restart_interval": 100,
-                    "quasi_newton_max_rank": 10,
+                    "strategy_type": "newton_raphson",
                     "scheme_type": "newmark",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
@@ -76,7 +73,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../../common/initial_materials.json"
+                        "materials_filename": "../../../common/initial_materials.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -280,10 +277,7 @@
                     },
                     "solver_type": "U_Pw",
                     "solution_type": "static",
-                    "strategy_type": "quasi_newton",
-                    "quasi_newton_type": "broyden",
-                    "quasi_newton_restart_interval": 100,
-                    "quasi_newton_max_rank": 10,
+                    "strategy_type": "newton_raphson",
                     "scheme_type": "newmark",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
@@ -292,7 +286,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -496,10 +490,7 @@
                     },
                     "solver_type": "U_Pw",
                     "solution_type": "static",
-                    "strategy_type": "quasi_newton",
-                    "quasi_newton_type": "broyden",
-                    "quasi_newton_restart_interval": 100,
-                    "quasi_newton_max_rank": 10,
+                    "strategy_type": "newton_raphson",
                     "scheme_type": "newmark",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
@@ -508,7 +499,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -518,7 +509,7 @@
                     "block_builder": true,
                     "reset_displacements": true,
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 1.0e-04,
+                    "residual_relative_tolerance": 1.0e-03,
                     "residual_absolute_tolerance": 1.0e-09,
                     "min_iterations": 6,
                     "max_iterations": 150,
@@ -798,10 +789,7 @@
                     },
                     "solver_type": "U_Pw",
                     "solution_type": "static",
-                    "strategy_type": "quasi_newton",
-                    "quasi_newton_type": "broyden",
-                    "quasi_newton_restart_interval": 100,
-                    "quasi_newton_max_rank": 10,
+                    "strategy_type": "newton_raphson",
                     "scheme_type": "newmark",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
@@ -810,7 +798,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -820,7 +808,7 @@
                     "block_builder": true,
                     "reset_displacements": false,
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 1.0e-04,
+                    "residual_relative_tolerance": 1.0e-03,
                     "residual_absolute_tolerance": 1.0e-09,
                     "min_iterations": 6,
                     "max_iterations": 500,
@@ -1107,10 +1095,7 @@
                     },
                     "solver_type": "U_Pw",
                     "solution_type": "static",
-                    "strategy_type": "quasi_newton",
-                    "quasi_newton_type": "broyden",
-                    "quasi_newton_restart_interval": 100,
-                    "quasi_newton_max_rank": 10,
+                    "strategy_type": "newton_raphson",
                     "scheme_type": "newmark",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
@@ -1119,7 +1104,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -1129,7 +1114,7 @@
                     "block_builder": true,
                     "reset_displacements": false,
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 1.0e-04,
+                    "residual_relative_tolerance": 1.0e-03,
                     "residual_absolute_tolerance": 1.0e-09,
                     "min_iterations": 6,
                     "max_iterations": 150,
@@ -1424,10 +1409,7 @@
                     },
                     "solver_type": "U_Pw",
                     "solution_type": "static",
-                    "strategy_type": "quasi_newton",
-                    "quasi_newton_type": "broyden",
-                    "quasi_newton_restart_interval": 100,
-                    "quasi_newton_max_rank": 10,
+                    "strategy_type": "newton_raphson",
                     "scheme_type": "newmark",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
@@ -1436,7 +1418,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -1449,7 +1431,7 @@
                     "residual_relative_tolerance": 1.0e-04,
                     "residual_absolute_tolerance": 1.0e-09,
                     "min_iterations": 6,
-                    "max_iterations": 150,
+                    "max_iterations": 300,
                     "number_cycles": 1,
                     "reduction_factor": 0.5,
                     "increase_factor": 2.0,
@@ -1736,10 +1718,7 @@
                     },
                     "solver_type": "U_Pw",
                     "solution_type": "static",
-                    "strategy_type": "quasi_newton",
-                    "quasi_newton_type": "broyden",
-                    "quasi_newton_restart_interval": 100,
-                    "quasi_newton_max_rank": 10,
+                    "strategy_type": "newton_raphson",
                     "scheme_type": "newmark",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
@@ -1748,7 +1727,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../MaterialParameters.json"
+                        "materials_filename": "../../MaterialParameters.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -1758,7 +1737,7 @@
                     "block_builder": true,
                     "reset_displacements": false,
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 1.0e-04,
+                    "residual_relative_tolerance": 1.0e-02,
                     "residual_absolute_tolerance": 1.0e-09,
                     "min_iterations": 6,
                     "max_iterations": 300,
