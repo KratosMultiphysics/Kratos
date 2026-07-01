@@ -330,8 +330,6 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_MidNodePressuresAreInte
         node.FastGetSolutionStepValue(WATER_PRESSURE) = counter * 1.0e5;
         ++counter;
     }
-    p_element->Initialize(dummy_process_info);
-    p_element->FinalizeNonLinearIteration(dummy_process_info);
 
     // Act
     p_element->FinalizeSolutionStep(dummy_process_info);
