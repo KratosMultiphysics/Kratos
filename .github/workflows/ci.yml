@@ -399,7 +399,6 @@ jobs:
   ubuntu-core-without-unity:
     runs-on: ubuntu-latest
     needs: [changed-files, job-filters]
-    if: needs.job-filters.outputs.source.ci-build == 'true'
     env:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
@@ -530,7 +529,6 @@ jobs:
   windows-core-without-unity:
     runs-on: windows-2022
     needs: [changed-files, job-filters]
-    if: needs.job-filters.outputs.source.ci-build == 'true'
     env:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
@@ -624,7 +622,6 @@ jobs:
   ubuntu-intel:
     runs-on: ubuntu-latest
     needs: [changed-files, job-filters]
-    if: needs.job-filters.outputs.source.ci-build == 'true'
     env:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
