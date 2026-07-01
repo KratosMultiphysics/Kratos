@@ -26,11 +26,11 @@ namespace Kratos
 {
 
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class GeoMechanicsQuasiNewtonRaphsonStrategy
+class GeoMechanicsQuasiNewtonStrategy
     : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(GeoMechanicsQuasiNewtonRaphsonStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION(GeoMechanicsQuasiNewtonStrategy);
 
     /// The definition of the linear solver factory type
     using LinearSolverFactoryType = LinearSolverFactory<TSparseSpace, TDenseSpace>;
@@ -62,35 +62,24 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    GeoMechanicsQuasiNewtonRaphsonStrategy(ModelPart&                    model_part,
-                                           typename TSchemeType::Pointer pScheme,
-                                           typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-                                           typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-                                           Parameters& rParameters,
-                                           int         MaxIterations          = 30,
-                                           bool        CalculateReactions     = false,
-                                           bool        ReformDofSetAtEachStep = false,
-                                           bool        MoveMeshFlag           = false)
+    GeoMechanicsQuasiNewtonStrategy(ModelPart&                    rModelPart,
+                                    typename TSchemeType::Pointer pScheme,
+                                    typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+                                    typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+                                    Parameters&                             rParameters,
+                                    int                                     MaxIterations = 30,
+                                    bool CalculateReactions                               = false,
+                                    bool ReformDofSetAtEachStep                           = false,
+                                    bool MoveMeshFlag                                     = false)
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+              rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         // only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters(R"(
                 {
-                    "min_iteration":    2,
-                    "number_cycles":    5,
-                    "increase_factor":  2.0,
-                    "reduction_factor": 0.5,
-                    "max_piping_iterations": 50,
-                    "desired_iterations": 4,
-                    "max_radius_factor": 20.0,
-                    "min_radius_factor": 0.5,
-                    "search_neighbours_step": false,
-                    "body_domain_sub_model_part_list": [],
-                    "rebuild_level": 2,
                     "quasi_newton_type": "broyden",
-                    "quasi_newton_raphson_restart_interval": 50,
-                    "quasi_newton_raphson_max_rank" : 10
+                    "quasi_newton_restart_interval": 50,
+                    "quasi_newton_max_rank" : 10
 
                 }  )");
 
@@ -98,8 +87,8 @@ public:
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         // Select the quasi-Newton update scheme (low-rank secant approximation of the Jacobian/its inverse).
-        const std::string quasi_newton_type = rParameters["quasi_newton_type"].GetString();
-        if (quasi_newton_type == "lbfgs") {
+        if (const std::string quasi_newton_type = rParameters["quasi_newton_type"].GetString();
+            quasi_newton_type == "lbfgs") {
             mQuasiNewtonType = QuasiNewtonType::LBFGS;
         } else if (quasi_newton_type == "broyden") {
             mQuasiNewtonType = QuasiNewtonType::Broyden;
@@ -108,8 +97,8 @@ public:
                          << "'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
         }
 
-        mRestartInterval = rParameters["quasi_newton_raphson_restart_interval"].GetInt();
-        mMaxRank         = rParameters["quasi_newton_raphson_max_rank"].GetInt();
+        mRestartInterval = rParameters["quasi_newton_restart_interval"].GetInt();
+        mMaxRank         = rParameters["quasi_newton_max_rank"].GetInt();
 
         // it is required to use a direct solver without scaling for the quasi-newton strategy, as the strategy depends on reusing the factorization of the initial stiffness matrix.
         auto linear_solver_settings = Parameters(R"(
@@ -136,7 +125,7 @@ public:
 
         // Are there master-slave constraints active? If so, we must operate in the
         // reduced (constrained) space: A_hat = T^T A T, b_hat = T^T b, and recover dx = T dx_hat.
-        const bool HasConstraints = !r_model_part.MasterSlaveConstraints().empty();
+        const auto has_constraints = !r_model_part.MasterSlaveConstraints().empty();
 
         unsigned int iteration_number                      = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
@@ -146,12 +135,9 @@ public:
         TSparseSpace::SetToZero(rDx);
         TSparseSpace::SetToZero(rb);
 
-        LBFGSRankStorage   lbfgs_rank_storage;
-        BroydenRankStorage broyden_rank_storage;
-
-        bool clear_storage = false;
-        if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
-            clear_storage = true;
+        bool rebuild_lhs = false;
+        if (BaseType::mRebuildLevel > 0 || !BaseType::mStiffnessMatrixIsBuilt) {
+            rebuild_lhs = true;
         } else {
             BuildReducedResidual(rb);
         }
@@ -159,11 +145,6 @@ public:
         TSystemVectorType rb_new(rb.size());
 
         for (; iteration_number <= mMaxIterationNumber; ++iteration_number) {
-            // check if we need to clear the low-rank storage and rebuild A_0
-            if (iteration_number > 1 && (iteration_number - 1) % mRestartInterval == 0) {
-                clear_storage = true;
-            }
-
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
             if (iteration_number > 1) {
                 p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
@@ -171,37 +152,14 @@ public:
             }
 
             // Quasi-Newton solve: rDx = H_k * rb   (H_k approximates rA_k^{-1})
-            if (mQuasiNewtonType == QuasiNewtonType::LBFGS) {
-                if (clear_storage) {
-                    BuildAndConstrainA0(rA, rDx, rb, lbfgs_rank_storage);
-                    clear_storage = false;
-                }
-                this->LBfgsSolve(rA, rDx, rb, lbfgs_rank_storage);
-            } else if (mQuasiNewtonType == QuasiNewtonType::Broyden) {
-                if (clear_storage) {
-                    BuildAndConstrainA0(rA, rDx, rb, broyden_rank_storage);
-                    clear_storage = false;
-                }
-                this->ShermanMorrisSolve(rA, rDx, rb, broyden_rank_storage);
-            } else {
-                KRATOS_ERROR
-                    << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
-            }
+            this->QuasiNewtonSolve(rA, rDx, rb, iteration_number, rebuild_lhs);
+            rebuild_lhs = false;
 
-            UpdateDatabaseReduced(rA, rDx, rb, HasConstraints);
+            UpdateDatabaseReduced(rA, rDx, rb, has_constraints);
             BuildReducedResidual(rb_new);
 
             TSystemVectorType delta_b = rb - rb_new;
-
-            if (mQuasiNewtonType == QuasiNewtonType::LBFGS) {
-                this->UpdateLBFGSRank(lbfgs_rank_storage, rDx, delta_b);
-
-            } else if (mQuasiNewtonType == QuasiNewtonType::Broyden) {
-                this->UpdateBroydenRank(broyden_rank_storage, rA, rDx, delta_b);
-            } else {
-                KRATOS_ERROR
-                    << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
-            }
+            this->UpdateRankStorage(rA, rDx, delta_b);
 
             TSparseSpace::Copy(rb_new, rb);
             MotherType::EchoInfo(iteration_number);
@@ -217,7 +175,7 @@ public:
         if (!is_converged) {
             MotherType::MaxIterationsExceeded();
         } else {
-            KRATOS_INFO_IF("GeoMechanicsQuasiNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+            KRATOS_INFO_IF("GeoMechanicsQuasiNewtonStrategy", this->GetEchoLevel() > 0)
                 << "Convergence achieved after " << iteration_number << " / " << mMaxIterationNumber
                 << std::endl;
         }
@@ -235,11 +193,6 @@ private:
     /// The available quasi-Newton update schemes.
     enum class QuasiNewtonType { Broyden, LBFGS };
 
-    QuasiNewtonType mQuasiNewtonType = QuasiNewtonType::Broyden;
-    unsigned int    mRestartInterval = 100; // rebuild K0 every N iterations to refresh curvature
-    unsigned int    mMaxRank = 10; // maximum number of low-rank updates to store (Broyden or BFGS)
-    typename TLinearSolver::Pointer mpLinearSolver;
-
     struct RankStorage {
         virtual void Clear()   = 0;
         virtual ~RankStorage() = default;
@@ -249,6 +202,8 @@ private:
         std::vector<TSystemVectorType> u_list; // u_i
         std::vector<TSystemVectorType> v_list; // v_i
         std::vector<TSystemVectorType> z_list; // z_i = rA0^{-1} u_i (cached)
+
+        using RankStorage::Clear;
 
         void Clear() override
         {
@@ -263,6 +218,8 @@ private:
         std::vector<TSystemVectorType> db_list;  // gradient/residual differences
         std::vector<double>            rho_list; // curvature scalars
 
+        using RankStorage::Clear;
+
         void Clear() override
         {
             dx_list.clear();
@@ -271,10 +228,14 @@ private:
         }
     };
 
-    void UpdateBroydenRank(BroydenRankStorage&      rBroydenRankStorage,
-                           TSystemMatrixType&       rA_0,
-                           const TSystemVectorType& rDx,
-                           const TSystemVectorType& rDb)
+    QuasiNewtonType    mQuasiNewtonType = QuasiNewtonType::Broyden;
+    LBFGSRankStorage   mLbfgsRankStorage;
+    BroydenRankStorage mBroydenRankStorage;
+    unsigned int       mRestartInterval = 100; // rebuild K0 every N iterations to refresh curvature
+    unsigned int mMaxRank = 10; // maximum number of low-rank updates to store (Broyden or BFGS)
+    typename TLinearSolver::Pointer mpLinearSolver;
+
+    void UpdateBroydenRank(TSystemMatrixType& rA_0, const TSystemVectorType& rDx, const TSystemVectorType& rDb)
     {
         // ---- Build the new Broyden rank-1 column  ----
         //   rA_k rDx = rA_0 rDx + U (V^T rDx)
@@ -287,15 +248,15 @@ private:
 
         const double d_x_squared = TSparseSpace::Dot(rDx, rDx);
         if (d_x_squared > std::numeric_limits<double>::epsilon()) {
-            const std::size_t k = rBroydenRankStorage.u_list.size();
+            const std::size_t k = mBroydenRankStorage.u_list.size();
             TSparseSpace::Mult(rA_0, rDx, db_hat);
             if (k > 0) {
                 Vector v_list_dot_dx(k);
                 for (std::size_t i = 0; i < k; ++i) {
-                    v_list_dot_dx[i] = TSparseSpace::Dot(rBroydenRankStorage.v_list[i], rDx);
+                    v_list_dot_dx[i] = TSparseSpace::Dot(mBroydenRankStorage.v_list[i], rDx);
                 }
                 for (std::size_t i = 0; i < k; ++i) {
-                    noalias(db_hat) += v_list_dot_dx[i] * rBroydenRankStorage.u_list[i];
+                    noalias(db_hat) += v_list_dot_dx[i] * mBroydenRankStorage.u_list[i];
                 }
             }
             TSystemVectorType u_col = rDb - db_hat;
@@ -304,29 +265,29 @@ private:
             TSystemVectorType z_col(rDx.size());
             mpLinearSolver->PerformSolutionStep(rA_0, z_col, u_col);
 
-            if (rBroydenRankStorage.u_list.size() >= mMaxRank) {
-                rBroydenRankStorage.u_list.erase(rBroydenRankStorage.u_list.begin());
-                rBroydenRankStorage.v_list.erase(rBroydenRankStorage.v_list.begin());
-                rBroydenRankStorage.z_list.erase(rBroydenRankStorage.z_list.begin());
+            if (mBroydenRankStorage.u_list.size() >= mMaxRank) {
+                mBroydenRankStorage.u_list.erase(mBroydenRankStorage.u_list.begin());
+                mBroydenRankStorage.v_list.erase(mBroydenRankStorage.v_list.begin());
+                mBroydenRankStorage.z_list.erase(mBroydenRankStorage.z_list.begin());
             }
-            rBroydenRankStorage.u_list.push_back(u_col);
-            rBroydenRankStorage.v_list.push_back(v_col);
-            rBroydenRankStorage.z_list.push_back(z_col);
+            mBroydenRankStorage.u_list.push_back(u_col);
+            mBroydenRankStorage.v_list.push_back(v_col);
+            mBroydenRankStorage.z_list.push_back(z_col);
         }
     }
 
-    void UpdateLBFGSRank(LBFGSRankStorage& rLBFGSRankStorage, const TSystemVectorType& rDx, const TSystemVectorType& rDb)
+    void UpdateLBFGSRank(const TSystemVectorType& rDx, const TSystemVectorType& rDb)
     {
         const double db_dot_dx = TSparseSpace::Dot(rDb, rDx);
         if (db_dot_dx > std::numeric_limits<double>::epsilon()) {
-            if (rLBFGSRankStorage.dx_list.size() >= mMaxRank) {
-                rLBFGSRankStorage.dx_list.erase(rLBFGSRankStorage.dx_list.begin());
-                rLBFGSRankStorage.db_list.erase(rLBFGSRankStorage.db_list.begin());
-                rLBFGSRankStorage.rho_list.erase(rLBFGSRankStorage.rho_list.begin());
+            if (mLbfgsRankStorage.dx_list.size() >= mMaxRank) {
+                mLbfgsRankStorage.dx_list.erase(mLbfgsRankStorage.dx_list.begin());
+                mLbfgsRankStorage.db_list.erase(mLbfgsRankStorage.db_list.begin());
+                mLbfgsRankStorage.rho_list.erase(mLbfgsRankStorage.rho_list.begin());
             }
-            rLBFGSRankStorage.dx_list.push_back(rDx);
-            rLBFGSRankStorage.db_list.push_back(rDb);
-            rLBFGSRankStorage.rho_list.push_back(1.0 / db_dot_dx);
+            mLbfgsRankStorage.dx_list.push_back(rDx);
+            mLbfgsRankStorage.db_list.push_back(rDb);
+            mLbfgsRankStorage.rho_list.push_back(1.0 / db_dot_dx);
         }
     }
 
@@ -386,9 +347,9 @@ private:
         }
     }
 
-    void LBfgsSolve(TSystemMatrixType& rA_0, TSystemVectorType& rDx, TSystemVectorType& rb, const LBFGSRankStorage& rLBFGSRankStorage)
+    void LBfgsSolve(TSystemMatrixType& rA_0, TSystemVectorType& rDx, TSystemVectorType& rb)
     {
-        const std::size_t k = rLBFGSRankStorage.dx_list.size();
+        const std::size_t k = mLbfgsRankStorage.dx_list.size();
         Vector            alpha(k);
 
         TSystemVectorType q(rb.size());
@@ -396,8 +357,8 @@ private:
 
         // First loop: newest to oldest
         for (auto i = k; i-- > 0;) {
-            alpha[i] = rLBFGSRankStorage.rho_list[i] * TSparseSpace::Dot(rLBFGSRankStorage.dx_list[i], q);
-            noalias(q) -= alpha[i] * rLBFGSRankStorage.db_list[i];
+            alpha[i] = mLbfgsRankStorage.rho_list[i] * TSparseSpace::Dot(mLbfgsRankStorage.dx_list[i], q);
+            noalias(q) -= alpha[i] * mLbfgsRankStorage.db_list[i];
         }
 
         // Seed: rDx = H_0 * q = rA_0^{-1} q (reuses the cached factorization)
@@ -407,54 +368,52 @@ private:
         // Second loop: oldest to newest
         for (std::size_t i = 0; i < k; ++i) {
             const double beta =
-                rLBFGSRankStorage.rho_list[i] * TSparseSpace::Dot(rLBFGSRankStorage.db_list[i], rDx);
-            noalias(rDx) += (alpha[i] - beta) * rLBFGSRankStorage.dx_list[i];
+                mLbfgsRankStorage.rho_list[i] * TSparseSpace::Dot(mLbfgsRankStorage.db_list[i], rDx);
+            noalias(rDx) += (alpha[i] - beta) * mLbfgsRankStorage.dx_list[i];
         }
     }
 
     /// Solves rDx = (rA_0 + U V^T)^{-1} rb (Sherman-Morrison-Woodbury).
-    void ShermanMorrisSolve(TSystemMatrixType&        rA_0,
-                            TSystemVectorType&        rDx,
-                            TSystemVectorType&        rb,
-                            const BroydenRankStorage& rBroydenRankStorage)
+    void ShermanMorrisSolve(TSystemMatrixType& rA_0, TSystemVectorType& rDx, TSystemVectorType& rb)
     {
         mpLinearSolver->PerformSolutionStep(rA_0, rDx, rb); // rDx = rA_0^{-1} rb
 
         // add the low rank correction, rDx = rDx - Z * (I + V^T Z)^{-1} (V^T rDx), where Z = rA_0^{-1} U
-        const std::size_t k = rBroydenRankStorage.u_list.size();
+        const std::size_t k = mBroydenRankStorage.u_list.size();
         if (k > 0) {
             Vector v_list_dot_dx(k);
             for (std::size_t i = 0; i < k; ++i) {
-                v_list_dot_dx[i] = TSparseSpace::Dot(rBroydenRankStorage.v_list[i], rDx);
+                v_list_dot_dx[i] = TSparseSpace::Dot(mBroydenRankStorage.v_list[i], rDx);
             }
-            // M = I + V^T Z, where Z = rA_0^{-1} U
-            Matrix M(k, k);
+            // Calculates: aux_matrix = I + V^T Z, where Z = rA_0^{-1} U
+            Matrix aux_matrix(k, k);
             for (std::size_t i = 0; i < k; ++i) {
                 for (std::size_t j = 0; j < k; ++j) {
-                    M(i, j) = (i == j ? 1.0 : 0.0) + TSparseSpace::Dot(rBroydenRankStorage.v_list[i],
-                                                                       rBroydenRankStorage.z_list[j]);
+                    aux_matrix(i, j) =
+                        (i == j ? 1.0 : 0.0) + TSparseSpace::Dot(mBroydenRankStorage.v_list[i],
+                                                                 mBroydenRankStorage.z_list[j]);
                 }
             }
 
-            // alpha = M^{-1} (V^T rDx)
+            // Calculates: alpha = aux_matrix^{-1} (V^T rDx)
             Vector alpha;
-            SolveSmallDense(M, alpha, v_list_dot_dx);
+            SolveSmallDense(aux_matrix, alpha, v_list_dot_dx);
             for (std::size_t j = 0; j < k; ++j) {
-                noalias(rDx) -= alpha[j] * rBroydenRankStorage.z_list[j];
+                noalias(rDx) -= alpha[j] * mBroydenRankStorage.z_list[j];
             }
         }
     }
 
     /**
      * @brief Solve a small dense k x k linear system M * x = b using
-     *        Gaussian elimination with partial pivoting. Returns false if M is singular.
+     *        Gaussian elimination with partial pivoting.
      *        Note: rM and rRhs are taken by value (mutated locally).
      */
-    bool SolveSmallDense(Matrix rM, Vector& rSolution, Vector rRhs)
+    void SolveSmallDense(Matrix rM, Vector& rSolution, Vector rRhs)
     {
         const std::size_t k = rRhs.size();
         rSolution.resize(k, false);
-        if (k == 0) return true;
+        if (k == 0) return;
 
         for (std::size_t i = 0; i < k; ++i) {
             std::size_t pivot     = i;
@@ -467,7 +426,8 @@ private:
                 }
             }
             if (pivot_val < std::numeric_limits<double>::epsilon()) {
-                return false; // singular
+                KRATOS_ERROR
+                    << "Singular matrix in GeoMechanicsQuasiNewtonStrategy SolveSmallDense." << std::endl;
             }
             if (pivot != i) {
                 for (std::size_t c = i; c < k; ++c)
@@ -491,9 +451,48 @@ private:
             }
             rSolution[i] = s / rM(i, i);
         }
-        return true;
     }
 
-}; // Class GeoMechanicsQuasiNewtonRaphsonStrategy
+    void QuasiNewtonSolve(TSystemMatrixType& rA_0,
+                          TSystemVectorType& rDx,
+                          TSystemVectorType& rb,
+                          const unsigned int IterationNumber,
+                          bool               RebuildLhs)
+    {
+        // rebuild the LHS if the restart interval is reached (to refresh curvature)
+        if (IterationNumber > 1 && (IterationNumber - 1) % mRestartInterval == 0) {
+            RebuildLhs = true;
+        }
+
+        if (mQuasiNewtonType == QuasiNewtonType::LBFGS) {
+            if (RebuildLhs) {
+                BuildAndConstrainA0(rA_0, rDx, rb, mLbfgsRankStorage);
+            }
+            LBfgsSolve(rA_0, rDx, rb);
+        } else if (mQuasiNewtonType == QuasiNewtonType::Broyden) {
+            if (RebuildLhs) {
+                BuildAndConstrainA0(rA_0, rDx, rb, mBroydenRankStorage);
+            }
+            ShermanMorrisSolve(rA_0, rDx, rb);
+        } else {
+            KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'."
+                         << std::endl;
+        }
+    }
+
+    void UpdateRankStorage(TSystemMatrixType& rA_0, TSystemVectorType& rDx, TSystemVectorType& rDeltaB)
+    {
+        if (mQuasiNewtonType == QuasiNewtonType::LBFGS) {
+            this->UpdateLBFGSRank(rDx, rDeltaB);
+
+        } else if (mQuasiNewtonType == QuasiNewtonType::Broyden) {
+            this->UpdateBroydenRank(rA_0, rDx, rDeltaB);
+        } else {
+            KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'."
+                         << std::endl;
+        }
+    }
+
+}; // Class GeoMechanicsQuasiNewtonStrategy
 
 } // namespace Kratos
