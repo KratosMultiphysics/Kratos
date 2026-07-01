@@ -178,7 +178,8 @@ AMGCLSolver<TSparse,TDense>::AMGCLSolver(Parameters Settings)
       mCoarseEnough(0),
       mFallbackToGMRES(false),
       mProvideCoordinates(false),
-      mUseBlockMatricesIfPossible(false)
+      mUseBlockMatricesIfPossible(false),
+      mUseGPGPU(false)
 {
     KRATOS_TRY
     mpImpl.reset(new Impl);
@@ -255,6 +256,27 @@ AMGCLSolver<TSparse,TDense>::~AMGCLSolver() = default;
 
 template <class TSparse, class TDense>
 void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
+    Parameters default_parameters = this->GetDefaultParameters();
+    // Optionally set the a user-defined block size.
+    KRATOS_TRY
+    if (Settings.Has("block_size")) {
+        Parameters block_size_settings = Settings["block_size"].Clone();
+        default_parameters.RemoveValue("block_size");
+
+        if (block_size_settings.IsInt()) {
+            mBlockSize = Settings["block_size"].GetInt();
+            default_parameters.AddInt("block_size", 1);
+        } else if (block_size_settings.IsString()) {
+            KRATOS_ERROR_IF_NOT(block_size_settings.GetString() == "auto")
+                << "Invalid value for \"block_size\": \"" << block_size_settings.GetString() << "\". "
+                << "Expecting a positive integer, or \"auto\".";
+            default_parameters.AddString("block_size", "auto");
+        } else {
+            KRATOS_ERROR << "Invalid type for \"block_size\". Expecting a positive integer, or \"auto\".";
+        }
+    }
+    KRATOS_CATCH("")
+
     // Settings can be defined in two distinct methods:
     // - using a translation layer through Kratos, or
     // - configuration directly passed on to AMGCL.
@@ -266,37 +288,21 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
     // to a boost one, and passing it on to AMGCL.
     if (!Settings.Has("direct_settings") || Settings["direct_settings"].begin() == Settings["direct_settings"].end()) {
         // Configuration through a Kratos translation layer.
-        Parameters default_parameters = this->GetDefaultParameters();
 
         // Optionally set the a user-defined block size.
         KRATOS_TRY
-        if (Settings.Has("block_size")) {
-            Parameters block_size_settings = Settings["block_size"].Clone();
-            default_parameters.RemoveValue("block_size");
-
-            if (block_size_settings.IsInt()) {
-                mBlockSize = Settings["block_size"].GetInt();
-                default_parameters.AddInt("block_size", 1);
-            } else if (block_size_settings.IsString()) {
-                KRATOS_ERROR_IF_NOT(block_size_settings.GetString() == "auto")
-                    << "Invalid value for \"block_size\": \"" << block_size_settings.GetString() << "\". "
-                    << "Expecting a positive integer, or \"auto\".";
-                default_parameters.AddString("block_size", "auto");
-            } else {
-                KRATOS_ERROR << "Invalid type for \"block_size\". Expecting a positive integer, or \"auto\".";
-            }
-        }
-        Settings.ValidateAndAssignDefaults(default_parameters);
+            Settings.ValidateAndAssignDefaults(default_parameters);
         KRATOS_CATCH("")
 
         KRATOS_TRY
-        CheckIfSelectedOptionIsAvailable(Settings,
-                                        "preconditioner_type",
-                                        {
-                                            "amg",
-                                            "relaxation",
-                                            "dummy"
-                                        });
+        CheckIfSelectedOptionIsAvailable(
+            Settings,
+            "preconditioner_type",
+            {
+                "amg",
+                "relaxation",
+                "dummy"
+            });
         KRATOS_CATCH("")
 
         KRATOS_TRY
@@ -356,6 +362,9 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
                 buffer,
                 mAMGCLParameters);
             mUseAMGPreconditioning = false;
+
+            if (Settings.Has("use_gpgpu"))
+                mUseGPGPU = Settings["use_gpgpu"].GetBool();
         KRATOS_CATCH("")
     }
 
@@ -802,6 +811,10 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
             this->PerformSolutionStep(rLhs, rSolution, rRhs);
         }
     }
+
+    KRATOS_INFO_IF("AMGCLSolver", 3 <= mVerbosity)
+        << iteration_count << " iterations "
+        << residual_norm << " residual\n";
 
     return residual_norm < mTolerance;
 
