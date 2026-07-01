@@ -354,8 +354,14 @@ public:
     {
         SizeType active_level = 0;
         for (SizeType l = 1; l < mLevels.size(); ++l) {
-            if (IsInsideDomain(u, v, l))
-                active_level = l;
+            for (const auto& dom : mRefinementDomains) {
+                if (dom.Level == l &&
+                    u >= dom.MinU && u <= dom.MaxU &&
+                    v >= dom.MinV && v <= dom.MaxV) {
+                    active_level = l;
+                    break;
+                }
+            }
         }
         return active_level;
     }
@@ -841,13 +847,13 @@ private:
         return result;
     }
 
-    /// Returns true if (u, v) is inside any refinement domain at level >= min_level.
+    /// Returns true if (u, v) is strictly inside (open interval) any refinement domain at level >= min_level.
     bool IsInsideRefinedRegion(double u, double v, SizeType min_level) const
     {
         for (const auto& dom : mRefinementDomains)
             if (dom.Level >= min_level &&
-                u >= dom.MinU && u <= dom.MaxU &&
-                v >= dom.MinV && v <= dom.MaxV)
+                u > dom.MinU && u < dom.MaxU &&
+                v > dom.MinV && v < dom.MaxV)
                 return true;
         return false;
     }
@@ -1043,13 +1049,13 @@ private:
         }
     }
 
-    /// Returns true if (u, v) is inside any refinement domain registered for the given level.
+    /// Returns true if (u, v) is strictly inside (open interval) any refinement domain for the given level.
     bool IsInsideDomain(double u, double v, SizeType Level) const
     {
         for (const auto& dom : mRefinementDomains) {
             if (dom.Level == Level &&
-                u >= dom.MinU && u <= dom.MaxU &&
-                v >= dom.MinV && v <= dom.MaxV)
+                u > dom.MinU && u < dom.MaxU &&
+                v > dom.MinV && v < dom.MaxV)
                 return true;
         }
         return false;
