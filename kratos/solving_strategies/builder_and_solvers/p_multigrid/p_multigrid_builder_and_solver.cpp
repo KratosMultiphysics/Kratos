@@ -72,7 +72,9 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
 
     int mMaxIterations;
 
-    typename TSparse::DataType mTolerance;
+    typename TSparse::DataType mAbsoluteTolerance;
+
+    typename TSparse::DataType mRelativeTolerance;
 
     int mMaxDepth;
 
@@ -90,7 +92,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
           mpRootGridSolver(),
           mpDiagonalScaling(),
           mMaxIterations(0),
-          mTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
+          mAbsoluteTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
+          mRelativeTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
           mMaxDepth(-1),
           mVerbosity(0)
     {}
@@ -105,7 +108,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                               const typename Interface::TSystemVectorType& rRhs,
                               typename Interface::TSystemVectorType& rSolutionUpdate,
                               typename Interface::TSystemVectorType& rResidual,
-                              const typename TSparse::DataType InitialResidualNorm,
+                              std::optional<const typename TSparse::DataType> MaybeInitialResidualNorm,
                               PMGStatusStream& rStream,
                               PMGStatusStream::Report& rReport)
     {
@@ -149,10 +152,12 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
             BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidual, static_cast<typename TSparse::DataType>(-1));
 
             // Emit status and check for convergence.
-            rReport.maybe_multigrid_absolute_residual = TSparse::TwoNorm(rResidual) / InitialResidualNorm;
-            rReport.maybe_multigrid_relative_residual = rReport.maybe_multigrid_absolute_residual.value() / InitialResidualNorm;
-            rReport.multigrid_absolute_converged = rReport.maybe_multigrid_absolute_residual.value() < mTolerance;
-            rReport.multigrid_relative_converged = rReport.maybe_multigrid_relative_residual.value() < mTolerance;
+            if (MaybeInitialResidualNorm.has_value()) {
+                rReport.maybe_multigrid_absolute_residual = TSparse::TwoNorm(rResidual);
+                rReport.maybe_multigrid_relative_residual = rReport.maybe_multigrid_absolute_residual.value() / MaybeInitialResidualNorm.value();
+                rReport.multigrid_absolute_converged = rReport.maybe_multigrid_absolute_residual.value() < mAbsoluteTolerance;
+                rReport.multigrid_relative_converged = rReport.maybe_multigrid_relative_residual.value() < mRelativeTolerance;
+            }
             if (   rReport.multigrid_iteration + 1 < static_cast<std::size_t>(mMaxIterations)
                 && !(rReport.multigrid_absolute_converged || rReport.multigrid_relative_converged))
                     rStream.Submit(rReport.Tag(3), mVerbosity);
@@ -186,16 +191,11 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
             .maybe_constraint_absolute_residual = {},
             .maybe_constraint_relative_residual = {}};
 
-        typename TSparse::VectorType residual(rRhs.size()),
-                                     residual_update(rRhs.size()),
-                                     solution_update(rSolution.size());
-
-        // Compute the initial residual norm if it will be used.
-        typename TSparse::DataType initial_residual_norm = 1;
-        if (0 < mTolerance || 3 <= mVerbosity) {
-            initial_residual_norm = TSparse::TwoNorm(rRhs);
-            initial_residual_norm = initial_residual_norm ? initial_residual_norm : 1;
-        }
+        typename TSparse::VectorType
+            residual(rRhs.size()),
+            residual_update(rRhs.size()),
+            solution_update(rSolution.size());
+        std::optional<typename TSparse::DataType> maybe_initial_residual_norm;
 
         mpInterface->GetLinearSystemSolver()->InitializeSolutionStep(rLhs, rSolution, rRhs);
 
@@ -214,6 +214,12 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
             TSparse::Copy(rRhs, residual);
             BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolution, residual, static_cast<typename TSparse::DataType>(-1));
 
+            // Compute the initial residual norm if it will be used.
+            if (!maybe_initial_residual_norm.has_value() || 3 <= mVerbosity) {
+                maybe_initial_residual_norm = TSparse::TwoNorm(rRhs);
+                maybe_initial_residual_norm = maybe_initial_residual_norm.value() ? maybe_initial_residual_norm.value() : 1;
+            }
+
             // Get an update on the solution with respect to the current residual.
             this->ExecuteMultigridLoop(
                 rLhs,
@@ -221,7 +227,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                 rRhs,
                 solution_update,
                 residual,
-                initial_residual_norm,
+                maybe_initial_residual_norm,
                 rStream,
                 status_report);
 
@@ -1104,7 +1110,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters
 
     // Set the relative residual tolerance and max W cycles.
     mpImpl->mMaxIterations = settings["max_iterations"].Get<int>();
-    mpImpl->mTolerance = settings["tolerance"].Get<double>();
+    mpImpl->mAbsoluteTolerance = settings["absolute_tolerance"].Get<double>();
+    mpImpl->mRelativeTolerance = settings["relative_tolerance"].Get<double>();
 
     // Set multifreedom constraint imposition strategy.
     mpImpl->mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(settings["constraint_imposition_settings"],
@@ -1209,7 +1216,8 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense>::GetDefaultParameters() co
         "name"              : "p_multigrid",
         "diagonal_scaling"  : "max",
         "max_iterations"    : 1e2,
-        "tolerance"         : 1e-8,
+        "relative_tolerance": 1e-8,
+        "absolute_tolerance": 1e-8,
         "verbosity"         : 1,
         "smoother_settings" : {
             "solver_type" : ""
