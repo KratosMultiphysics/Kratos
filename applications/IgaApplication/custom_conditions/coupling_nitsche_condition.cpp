@@ -1141,83 +1141,83 @@ namespace Kratos
             }
 
             //////////////////////// Additional shear //////////////////////////
-            // Compute Variation Shear
-            array_1d<double, 2> shear_master = ZeroVector(2);
-            array_1d<double, 2> shear_slave = ZeroVector(2);
-            std::vector<array_1d<double, 2>> first_variation_shear_master;
-            std::vector<array_1d<double, 2>> first_variation_shear_slave;
-            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_master;
-            std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_slave;
-            first_variation_shear_master.resize(mat_size);
-            first_variation_shear_slave.resize(mat_size);
-            second_variation_shear_master.resize(mat_size);
-            second_variation_shear_slave.resize(mat_size);
-            for(IndexType i = 0; i < number_of_nodes_master * 3; i++)
-            {
-                second_variation_shear_master[i].resize(mat_size);
-                first_variation_shear_master[i] = ZeroVector(2);
+            // // Compute Variation Shear
+            // array_1d<double, 2> shear_master = ZeroVector(2);
+            // array_1d<double, 2> shear_slave = ZeroVector(2);
+            // std::vector<array_1d<double, 2>> first_variation_shear_master;
+            // std::vector<array_1d<double, 2>> first_variation_shear_slave;
+            // std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_master;
+            // std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_slave;
+            // first_variation_shear_master.resize(mat_size);
+            // first_variation_shear_slave.resize(mat_size);
+            // second_variation_shear_master.resize(mat_size);
+            // second_variation_shear_slave.resize(mat_size);
+            // for(IndexType i = 0; i < number_of_nodes_master * 3; i++)
+            // {
+            //     second_variation_shear_master[i].resize(mat_size);
+            //     first_variation_shear_master[i] = ZeroVector(2);
 
-                for(IndexType j = 0; j < number_of_nodes_master * 3; j++)
-                {
-                    second_variation_shear_master[i][j] = ZeroVector(2);
-                }
-            }
-            for(IndexType i = 0; i < number_of_nodes_slave * 3; i++)
-            {
-                second_variation_shear_slave[i].resize(number_of_nodes_slave * 3);
-                first_variation_shear_slave[i] = ZeroVector(2);
+            //     for(IndexType j = 0; j < number_of_nodes_master * 3; j++)
+            //     {
+            //         second_variation_shear_master[i][j] = ZeroVector(2);
+            //     }
+            // }
+            // for(IndexType i = 0; i < number_of_nodes_slave * 3; i++)
+            // {
+            //     second_variation_shear_slave[i].resize(number_of_nodes_slave * 3);
+            //     first_variation_shear_slave[i] = ZeroVector(2);
 
-                for(IndexType j = 0; j < number_of_nodes_slave * 3; j++)
-                {
-                    second_variation_shear_slave[i][j] = ZeroVector(2);
-                }
-            }
-            CalculateVariationShear(point_number, shear_master, first_variation_shear_master, second_variation_shear_master,
-                                    kinematic_variables_reference_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
-            CalculateVariationShear(point_number, shear_slave, first_variation_shear_slave, second_variation_shear_slave,
-                                    kinematic_variables_reference_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
+            //     for(IndexType j = 0; j < number_of_nodes_slave * 3; j++)
+            //     {
+            //         second_variation_shear_slave[i][j] = ZeroVector(2);
+            //     }
+            // }
+            // CalculateVariationShear(point_number, shear_master, first_variation_shear_master, second_variation_shear_master,
+            //                         kinematic_variables_reference_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
+            // CalculateVariationShear(point_number, shear_slave, first_variation_shear_slave, second_variation_shear_slave,
+            //                         kinematic_variables_reference_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
-            // 1. Traction + Shear
-            array_1d<double, 3> shear_vector_master = ZeroVector(3);
-            array_1d<double, 3> shear_vector_slave = ZeroVector(3);
+            // // 1. Traction + Shear
+            // array_1d<double, 3> shear_vector_master = ZeroVector(3);
+            // array_1d<double, 3> shear_vector_slave = ZeroVector(3);
 
-            shear_vector_master = kinematic_variables_master.a3 * shear_master[0];
-            shear_vector_slave = kinematic_variables_slave.a3 * shear_slave[0];
+            // shear_vector_master = kinematic_variables_master.a3 * shear_master[0];
+            // shear_vector_slave = kinematic_variables_slave.a3 * shear_slave[0];
 
-            traction_vector_master += shear_vector_master;
-            traction_vector_slave += shear_vector_slave;
+            // traction_vector_master += shear_vector_master;
+            // traction_vector_slave += shear_vector_slave;
 
-            // 1. First Variation Traction + Shear
-            for (SizeType i=0;i<3 * number_of_nodes_master;++i){
-                first_variations_traction(0, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[0];
-                first_variations_traction(1, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[1];
-                first_variations_traction(2, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[2];
-            }
-            for (SizeType i=0;i<3 * number_of_nodes_slave;++i){
-                first_variations_traction(0, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[0];
-                first_variations_traction(1, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[1];
-                first_variations_traction(2, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[2];
-            }
+            // // 1. First Variation Traction + Shear
+            // for (SizeType i=0;i<3 * number_of_nodes_master;++i){
+            //     first_variations_traction(0, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[0];
+            //     first_variations_traction(1, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[1];
+            //     first_variations_traction(2, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[2];
+            // }
+            // for (SizeType i=0;i<3 * number_of_nodes_slave;++i){
+            //     first_variations_traction(0, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[0];
+            //     first_variations_traction(1, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[1];
+            //     first_variations_traction(2, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[2];
+            // }
 
-            // 2. Second Variation Traction + Shear
-            array_1d<double, 3> diff_displacement = displacement_vector_master - displacement_vector_slave;
-            for (IndexType i = 0; i < 3 * number_of_nodes_master; i++)
-            {
-                for (IndexType j = 0; j < 3 * number_of_nodes_master; j++)
-                {   
-                    array_1d<double, 3> shear_component_master = second_variation_shear_master[i][j][0] * kinematic_variables_master.a3;
-                    second_variations_traction_master(i, j) += inner_prod(shear_component_master, diff_displacement);
-                }
-            }
+            // // 2. Second Variation Traction + Shear
+            // array_1d<double, 3> diff_displacement = displacement_vector_master - displacement_vector_slave;
+            // for (IndexType i = 0; i < 3 * number_of_nodes_master; i++)
+            // {
+            //     for (IndexType j = 0; j < 3 * number_of_nodes_master; j++)
+            //     {   
+            //         array_1d<double, 3> shear_component_master = second_variation_shear_master[i][j][0] * kinematic_variables_master.a3;
+            //         second_variations_traction_master(i, j) += inner_prod(shear_component_master, diff_displacement);
+            //     }
+            // }
             
-            for (IndexType i = 0; i < 3 * number_of_nodes_slave; i++)
-            {
-                for (IndexType j = 0; j < 3 * number_of_nodes_slave; j++)
-                {
-                    array_1d<double, 3> shear_component_slave = second_variation_shear_slave[i][j][0] * kinematic_variables_slave.a3;
-                    second_variations_traction_slave(i, j) -= inner_prod(shear_component_slave, diff_displacement);
-                }
-            }
+            // for (IndexType i = 0; i < 3 * number_of_nodes_slave; i++)
+            // {
+            //     for (IndexType j = 0; j < 3 * number_of_nodes_slave; j++)
+            //     {
+            //         array_1d<double, 3> shear_component_slave = second_variation_shear_slave[i][j][0] * kinematic_variables_slave.a3;
+            //         second_variations_traction_slave(i, j) -= inner_prod(shear_component_slave, diff_displacement);
+            //     }
+            // }
             //////////////////////// Additional shear //////////////////////////
 
             // Differential area
@@ -2388,8 +2388,8 @@ namespace Kratos
 
             for(IndexType ll = 0; ll < 3; ll++)
             {
-                rFirstVariationShear[r][0] += P_ij_r[r](2, ll) * n_contravariant(ll) + Palphabeta(2, ll) * n_contravariant(ll);
-                rFirstVariationShear[r][1] += P_ij_r[r](2, ll) * t_contravariant(ll) + Palphabeta(2, ll) * t_contravariant(ll);
+                rFirstVariationShear[r][0] += P_ij_r[r](2, ll) * n_contravariant(ll);// + Palphabeta(2, ll) * n_contravariant(ll);
+                rFirstVariationShear[r][1] += P_ij_r[r](2, ll) * t_contravariant(ll);// + Palphabeta(2, ll) * t_contravariant(ll);
             }
         }
 
@@ -2409,8 +2409,8 @@ namespace Kratos
 
                 for(IndexType ll = 0; ll < 2; ll++)
                 {
-                    rSecondVariationShear[r][s][0] += P_ij_rs(2, ll) * n_contravariant(ll) + P_ij_r[r](2, ll) * n_contravariant(ll) + P_ij_r[s](2, ll) * n_contravariant(ll);
-                    rSecondVariationShear[r][s][1] += P_ij_rs(2, ll) * t_contravariant(ll) + P_ij_r[r](2, ll) * t_contravariant(ll) + P_ij_r[s](2, ll) * t_contravariant(ll);
+                    rSecondVariationShear[r][s][0] += P_ij_rs(2, ll) * n_contravariant(ll);// + P_ij_r[r](2, ll) * n_contravariant(ll) + P_ij_r[s](2, ll) * n_contravariant(ll);
+                    rSecondVariationShear[r][s][1] += P_ij_rs(2, ll) * t_contravariant(ll);// + P_ij_r[r](2, ll) * t_contravariant(ll) + P_ij_r[s](2, ll) * t_contravariant(ll);
                 }
 
                 rSecondVariationShear[s][r][0] = rSecondVariationShear[r][s][0];
@@ -2758,8 +2758,10 @@ namespace Kratos
             tilde_a3_2_r[r] = MathUtils<double>::CrossProduct(a1_2_r,rActualKinematic.a2) + MathUtils<double>::CrossProduct(a1_2,a2_r) + MathUtils<double>::CrossProduct(a1_r,a2_2) + MathUtils<double>::CrossProduct(rActualKinematic.a1,a2_2_r);
             bar_a3_1_r[r] = inner_prod(a3_r[r],tilde_a3_1) + inner_prod(rActualKinematic.a3,tilde_a3_1_r[r]);
             bar_a3_2_r[r] = inner_prod(a3_r[r],tilde_a3_2) + inner_prod(rActualKinematic.a3,tilde_a3_2_r[r]);
-            a3_1_r[r] = tilde_a3_1_r[r]/norm_2(rActualKinematic.a3_tilde) - tilde_a3_1*bar_a3_r[r]/pow(norm_2(rActualKinematic.a3_tilde),2) - ((a3_r[r]*bar_a3_1 + rActualKinematic.a3*bar_a3_1_r[r]) - rActualKinematic.a3*bar_a3_1*bar_a3_r[r])/pow(norm_2(rActualKinematic.a3_tilde),2);
-            a3_2_r[r] = tilde_a3_2_r[r]/norm_2(rActualKinematic.a3_tilde) - tilde_a3_2*bar_a3_r[r]/pow(norm_2(rActualKinematic.a3_tilde),2) - ((a3_r[r]*bar_a3_2 + rActualKinematic.a3*bar_a3_2_r[r]) - rActualKinematic.a3*bar_a3_2*bar_a3_r[r])/pow(norm_2(rActualKinematic.a3_tilde),2);
+            // a3_1_r[r] = tilde_a3_1_r[r]/norm_2(rActualKinematic.a3_tilde) - tilde_a3_1*bar_a3_r[r]/pow(norm_2(rActualKinematic.a3_tilde),2) - ((a3_r[r]*bar_a3_1 + rActualKinematic.a3*bar_a3_1_r[r])*norm_2(rActualKinematic.a3_tilde) - rActualKinematic.a3*bar_a3_1*bar_a3_r[r])/pow(norm_2(rActualKinematic.a3_tilde),2);
+            // a3_2_r[r] = tilde_a3_2_r[r]/norm_2(rActualKinematic.a3_tilde) - tilde_a3_2*bar_a3_r[r]/pow(norm_2(rActualKinematic.a3_tilde),2) - ((a3_r[r]*bar_a3_2 + rActualKinematic.a3*bar_a3_2_r[r])*norm_2(rActualKinematic.a3_tilde) - rActualKinematic.a3*bar_a3_2*bar_a3_r[r])/pow(norm_2(rActualKinematic.a3_tilde),2);
+            a3_1_r[r] = tilde_a3_1_r[r]/norm_2(rActualKinematic.a3_tilde) - tilde_a3_1*bar_a3_r[r]/pow(norm_2(rActualKinematic.a3_tilde),2) - ((tilde_a3_r[r]*bar_a3_1 + rActualKinematic.a3_tilde*bar_a3_1_r[r]) - 2*rActualKinematic.a3*bar_a3_1*bar_a3_r[r])/pow(norm_2(rActualKinematic.a3_tilde),2);
+            a3_2_r[r] = tilde_a3_2_r[r]/norm_2(rActualKinematic.a3_tilde) - tilde_a3_2*bar_a3_r[r]/pow(norm_2(rActualKinematic.a3_tilde),2) - ((tilde_a3_r[r]*bar_a3_2 + rActualKinematic.a3_tilde*bar_a3_2_r[r]) - 2*rActualKinematic.a3*bar_a3_2*bar_a3_r[r])/pow(norm_2(rActualKinematic.a3_tilde),2);
 
             rFirstVariationDerivativeCurvatureCurvilinear[0][r][0] = -inner_prod(a1_11_r,rActualKinematic.a3) - inner_prod(a1_11,a3_r[r]) - inner_prod(a1_1_r,a3_1) - inner_prod(a1_1,a3_1_r[r]);
             rFirstVariationDerivativeCurvatureCurvilinear[0][r][1] = -inner_prod(a2_21_r,rActualKinematic.a3) - inner_prod(a2_21,a3_r[r]) - inner_prod(a2_2_r,a3_1) - inner_prod(a2_2,a3_1_r[r]);
@@ -2824,12 +2826,18 @@ namespace Kratos
                 //second variation of the the surface normal
                 array_1d<double,3> tilde_a3_rs = MathUtils<double>::CrossProduct(a1_r,a2_s) + MathUtils<double>::CrossProduct(a1_s,a2_r);
                 double bar_a3_rs = inner_prod(a3_r[s],tilde_a3_r[r]) + inner_prod(rActualKinematic.a3,tilde_a3_rs);
+                // double bar_a3_rs = (inner_prod(tilde_a3_r[s],tilde_a3_r[r]) + inner_prod(rActualKinematic.a3_tilde,tilde_a3_rs))/norm_2(rActualKinematic.a3_tilde)
+                //                  - (inner_prod(tilde_a3_r[r],rActualKinematic.a3_tilde)*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),2));
 
+                // array_1d<double,3> a3_rs = (tilde_a3_rs*norm_2(rActualKinematic.a3_tilde)
+                //                           -bar_a3_r[s]*tilde_a3_r[r])/pow(norm_2(rActualKinematic.a3_tilde),2) 
+                //                          - bar_a3_rs*rActualKinematic.a3/norm_2(rActualKinematic.a3_tilde) 
+                //                          - bar_a3_r[r]*(a3_r[s]*norm_2(rActualKinematic.a3_tilde) 
+                //                          - bar_a3_r[s]*rActualKinematic.a3)/pow(norm_2(rActualKinematic.a3_tilde),2);
                 array_1d<double,3> a3_rs = (tilde_a3_rs*norm_2(rActualKinematic.a3_tilde)
                                           -bar_a3_r[s]*tilde_a3_r[r])/pow(norm_2(rActualKinematic.a3_tilde),2) 
-                                         - bar_a3_rs*rActualKinematic.a3/norm_2(rActualKinematic.a3_tilde) 
-                                         - bar_a3_r[r]*(a3_r[s]*norm_2(rActualKinematic.a3_tilde) 
-                                         - bar_a3_r[s]*rActualKinematic.a3)/pow(norm_2(rActualKinematic.a3_tilde),2);
+                                         - (bar_a3_rs*rActualKinematic.a3_tilde + bar_a3_r[r]*tilde_a3_r[s])/pow(norm_2(rActualKinematic.a3_tilde),2) 
+                                         + 2.0*bar_a3_r[r]* bar_a3_r[s]*rActualKinematic.a3_tilde/pow(norm_2(rActualKinematic.a3_tilde),3);
 
                 
                 //second variation of the derivative of the surface normal
@@ -2837,14 +2845,45 @@ namespace Kratos
                 array_1d<double,3> tilde_a3_2_rs = MathUtils<double>::CrossProduct(a1_2_r,a2_s) + MathUtils<double>::CrossProduct(a1_2_s,a2_r) + MathUtils<double>::CrossProduct(a1_r,a2_2_s) + MathUtils<double>::CrossProduct(a1_s,a2_2_r);
                 double bar_a3_1_rs = inner_prod(a3_rs,tilde_a3_1) + inner_prod(a3_r[r],tilde_a3_1_r[s]) + inner_prod(a3_r[s],tilde_a3_1_r[r]) + inner_prod(rActualKinematic.a3,tilde_a3_1_rs);
                 double bar_a3_2_rs = inner_prod(a3_rs,tilde_a3_2) + inner_prod(a3_r[r],tilde_a3_2_r[s]) + inner_prod(a3_r[s],tilde_a3_2_r[r]) + inner_prod(rActualKinematic.a3,tilde_a3_2_rs);
-                array_1d<double,3> a3_1_rs = tilde_a3_1_rs/norm_2(rActualKinematic.a3_tilde) - tilde_a3_1_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),2) - (tilde_a3_1_r[s]*bar_a3_r[r] + tilde_a3_1*bar_a3_1_rs)/pow(norm_2(rActualKinematic.a3_tilde),2)
-                                            + 2.0*tilde_a3_1*bar_a3_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3) - (a3_rs*bar_a3_1 + a3_r[r]*bar_a3_1_r[s] + a3_r[s]*bar_a3_1_r[r] + rActualKinematic.a3*bar_a3_1_rs)/pow(norm_2(rActualKinematic.a3_tilde),3)
-                                            + 2.0*(a3_r[r]*bar_a3_1 + rActualKinematic.a3*bar_a3_1_r[r])/pow(norm_2(rActualKinematic.a3_tilde),3) - (a3_r[s]*bar_a3_1*bar_a3_r[r] + rActualKinematic.a3*bar_a3_1_r[s]*bar_a3_r[r] + rActualKinematic.a3*bar_a3_1*bar_a3_rs)/pow(norm_2(rActualKinematic.a3_tilde),2)
-                                            + 2.0*rActualKinematic.a3*bar_a3_1*bar_a3_r[r]*bar_a3_1_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3);
-                array_1d<double,3> a3_2_rs = tilde_a3_2_rs/norm_2(rActualKinematic.a3_tilde) - tilde_a3_2_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),2) - (tilde_a3_2_r[s]*bar_a3_r[r] + tilde_a3_2*bar_a3_2_rs)/pow(norm_2(rActualKinematic.a3_tilde),2)
-                                            + 2.0*tilde_a3_2*bar_a3_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3) - (a3_rs*bar_a3_2 + a3_r[r]*bar_a3_2_r[s] + a3_r[s]*bar_a3_2_r[r] + rActualKinematic.a3*bar_a3_2_rs)/pow(norm_2(rActualKinematic.a3_tilde),3)
-                                            + 2.0*(a3_r[r]*bar_a3_2 + rActualKinematic.a3*bar_a3_2_r[r])/pow(norm_2(rActualKinematic.a3_tilde),3) - (a3_r[s]*bar_a3_2*bar_a3_r[r] + rActualKinematic.a3*bar_a3_2_r[s]*bar_a3_r[r] + rActualKinematic.a3*bar_a3_2*bar_a3_rs)/pow(norm_2(rActualKinematic.a3_tilde),2)
-                                            + 2.0*rActualKinematic.a3*bar_a3_2*bar_a3_r[r]*bar_a3_2_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3);
+                // double bar_a3_1_rs = (inner_prod(tilde_a3_rs,tilde_a3_1) + inner_prod(tilde_a3_r[r],tilde_a3_1_r[s]) + inner_prod(tilde_a3_r[s],tilde_a3_1_r[r]) + inner_prod(rActualKinematic.a3_tilde,tilde_a3_1_rs))/norm_2(rActualKinematic.a3_tilde)
+                //                    - (inner_prod(tilde_a3_r[r],tilde_a3_1) + inner_prod(rActualKinematic.a3_tilde,tilde_a3_1_r[r]))*bar_a3_r[s] /pow(norm_2(rActualKinematic.a3_tilde),2)
+                //                    - (inner_prod(tilde_a3_r[s],tilde_a3_1) + inner_prod(rActualKinematic.a3_tilde,tilde_a3_1_r[s]))*bar_a3_r[r]  /pow(norm_2(rActualKinematic.a3_tilde),2)
+                //                    - (inner_prod(rActualKinematic.a3_tilde,tilde_a3_1))*bar_a3_rs /pow(norm_2(rActualKinematic.a3_tilde),2)
+                //                    + 2.0*(inner_prod(rActualKinematic.a3_tilde,tilde_a3_1))*bar_a3_r[r]*bar_a3_r[s] /pow(norm_2(rActualKinematic.a3_tilde),3);
+                // double bar_a3_2_rs = (inner_prod(tilde_a3_rs,tilde_a3_2) + inner_prod(tilde_a3_r[r],tilde_a3_2_r[s]) + inner_prod(tilde_a3_r[s],tilde_a3_2_r[r]) + inner_prod(rActualKinematic.a3_tilde,tilde_a3_2_rs))/norm_2(rActualKinematic.a3_tilde)
+                //                    - (inner_prod(tilde_a3_r[r],tilde_a3_2) + inner_prod(rActualKinematic.a3_tilde,tilde_a3_2_r[r]))*bar_a3_r[s] /pow(norm_2(rActualKinematic.a3_tilde),2)
+                //                    - (inner_prod(tilde_a3_r[s],tilde_a3_2) + inner_prod(rActualKinematic.a3_tilde,tilde_a3_2_r[s]))*bar_a3_r[r]  /pow(norm_2(rActualKinematic.a3_tilde),2)
+                //                    - (inner_prod(rActualKinematic.a3_tilde,tilde_a3_2))*bar_a3_rs /pow(norm_2(rActualKinematic.a3_tilde),2)
+                //                    + 2.0*(inner_prod(rActualKinematic.a3_tilde,tilde_a3_2))*bar_a3_r[r]*bar_a3_r[s] /pow(norm_2(rActualKinematic.a3_tilde),3);
+                
+                array_1d<double,3> a3_1_rs = tilde_a3_1_rs/norm_2(rActualKinematic.a3_tilde) - tilde_a3_1_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),2) 
+                                            - (tilde_a3_1_r[s]*bar_a3_r[r] + tilde_a3_1*bar_a3_1_rs)/pow(norm_2(rActualKinematic.a3_tilde),2) + 2.0*tilde_a3_1*bar_a3_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3)
+                                            - (a3_rs*bar_a3_1 + a3_r[r]*bar_a3_1_r[s] + a3_r[s]*bar_a3_1_r[r] + rActualKinematic.a3*bar_a3_1_rs)/norm_2(rActualKinematic.a3_tilde)
+                                            + (a3_r[r]*bar_a3_1 + rActualKinematic.a3*bar_a3_1_r[r])*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),2)
+                                            + (a3_r[s]*bar_a3_1*bar_a3_r[r] + rActualKinematic.a3*bar_a3_1_r[s]*bar_a3_r[r] + rActualKinematic.a3*bar_a3_1*bar_a3_rs)/pow(norm_2(rActualKinematic.a3_tilde),2)
+                                            - 2.0*rActualKinematic.a3*bar_a3_1*bar_a3_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3);
+
+                array_1d<double,3> a3_2_rs = tilde_a3_2_rs/norm_2(rActualKinematic.a3_tilde) - tilde_a3_2_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),2) 
+                                            - (tilde_a3_2_r[s]*bar_a3_r[r] + tilde_a3_2*bar_a3_2_rs)/pow(norm_2(rActualKinematic.a3_tilde),2) + 2.0*tilde_a3_2*bar_a3_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3)
+                                            - (a3_rs*bar_a3_2 + a3_r[r]*bar_a3_2_r[s] + a3_r[s]*bar_a3_2_r[r] + rActualKinematic.a3*bar_a3_2_rs)/norm_2(rActualKinematic.a3_tilde)
+                                            + (a3_r[r]*bar_a3_2 + rActualKinematic.a3*bar_a3_2_r[r])*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),2)
+                                            + (a3_r[s]*bar_a3_2*bar_a3_r[r] + rActualKinematic.a3*bar_a3_2_r[s]*bar_a3_r[r] + rActualKinematic.a3*bar_a3_2*bar_a3_rs)/pow(norm_2(rActualKinematic.a3_tilde),2)
+                                            - 2.0*rActualKinematic.a3*bar_a3_2*bar_a3_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3);
+
+                // full form
+                // array_1d<double,3> a3_1_rs = tilde_a3_1_rs/norm_2(rActualKinematic.a3_tilde) - tilde_a3_1_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),2) 
+                //                             - (tilde_a3_1_r[s]*bar_a3_r[r] + tilde_a3_1*bar_a3_1_rs)/pow(norm_2(rActualKinematic.a3_tilde),2) + 2.0*tilde_a3_1*bar_a3_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3)
+                //                             - (tilde_a3_rs*bar_a3_1 + tilde_a3_r[r]*bar_a3_1_r[s] + tilde_a3_r[s]*bar_a3_1_r[r] + rActualKinematic.a3_tilde*bar_a3_1_rs)/pow(norm_2(rActualKinematic.a3_tilde),2) 
+                //                             + 2.0*(tilde_a3_r[r]*bar_a3_1 + rActualKinematic.a3_tilde*bar_a3_1_r[r])*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3)
+                //                             + 2.0*(tilde_a3_r[s]*bar_a3_1*bar_a3_r[r] + rActualKinematic.a3_tilde*bar_a3_1_r[s]*bar_a3_r[r] + rActualKinematic.a3_tilde*bar_a3_1*bar_a3_rs)/pow(norm_2(rActualKinematic.a3_tilde),3)
+                //                             - 6.0*rActualKinematic.a3_tilde*bar_a3_1*bar_a3_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),4);
+
+                // array_1d<double,3> a3_2_rs = tilde_a3_2_rs/norm_2(rActualKinematic.a3_tilde) - tilde_a3_2_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),2) 
+                //                             - (tilde_a3_2_r[s]*bar_a3_r[r] + tilde_a3_2*bar_a3_2_rs)/pow(norm_2(rActualKinematic.a3_tilde),2) + 2.0*tilde_a3_2*bar_a3_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3)
+                //                             - (tilde_a3_rs*bar_a3_2 + tilde_a3_r[r]*bar_a3_2_r[s] + tilde_a3_r[s]*bar_a3_2_r[r] + rActualKinematic.a3_tilde*bar_a3_2_rs)/pow(norm_2(rActualKinematic.a3_tilde),2)
+                //                             + 2.0*(tilde_a3_r[r]*bar_a3_2 + rActualKinematic.a3_tilde*bar_a3_2_r[r])*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),3)
+                //                             + 2.0*(tilde_a3_r[s]*bar_a3_2*bar_a3_r[r] + rActualKinematic.a3_tilde*bar_a3_2_r[s]*bar_a3_r[r] + rActualKinematic.a3_tilde*bar_a3_2*bar_a3_rs)/pow(norm_2(rActualKinematic.a3_tilde),3)
+                //                             - 6.0*rActualKinematic.a3_tilde*bar_a3_2*bar_a3_r[r]*bar_a3_r[s]/pow(norm_2(rActualKinematic.a3_tilde),4);
 
                 //variation: derivative of the derivative of the curvature
                 rSecondVariationDerivativeCurvatureCurvilinear[0][r][s][0] = -inner_prod(a1_11_r,a3_r[s]) - inner_prod(a1_11_s,a3_r[r]) - inner_prod(a1_11,a3_rs) - inner_prod(a1_1_r,a3_1_r[s]) - inner_prod(a1_1_s,a3_1_r[r]) - inner_prod(a1_1,a3_1_rs);
