@@ -449,9 +449,23 @@ template <class TParentSparse>
 void PGrid<TSparse,TDense>::Initialize(ModelPart& rModelPart,
                                        const typename TParentSparse::MatrixType&,
                                        const typename TParentSparse::VectorType&,
-                                       const typename TParentSparse::VectorType&)
+                                       const typename TParentSparse::VectorType& rRhs)
 {
     KRATOS_TRY
+    if (4 <= mpImpl->mVerbosity) {
+        const std::string file_name = "dofs_grid_" + std::to_string(this->mpImpl->mDepth) + ".csv";
+        KRATOS_INFO("PMultigridBuilderAndSolver") << "writing DoF data to " << file_name << "\n";
+        std::ofstream file(file_name);
+        file << "Equation Id,Variable Name,constrained,Node Id,Initial Value,RHS\n";
+        for (const Dof<double>& r_dof : mpImpl->mIndirectDofSet)
+            file
+                << r_dof.EquationId() << ','
+                << r_dof.GetVariable().Name() << ','
+                << (r_dof.IsFixed() ? 1 : 0) << ','
+                << r_dof.Id() << ','
+                << r_dof.GetSolutionStepValue() << ','
+                << rRhs[r_dof.EquationId()] << '\n';
+    }
     if (mpImpl->mpSolver->AdditionalPhysicalDataIsNeeded())
         mpImpl->mpSolver->ProvideAdditionalData(
             mpImpl->mLhs,
