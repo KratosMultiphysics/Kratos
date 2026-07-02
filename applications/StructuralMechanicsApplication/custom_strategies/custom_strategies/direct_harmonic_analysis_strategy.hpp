@@ -730,8 +730,6 @@ private:
                     const double u_real = std::real(u);
                     const double u_imag = std::imag(u);
 
-                    //KRATOS_WATCH(u_real)
-
                     // Store real part
                     p_dof->GetSolutionStepValue() = u_real;
 
