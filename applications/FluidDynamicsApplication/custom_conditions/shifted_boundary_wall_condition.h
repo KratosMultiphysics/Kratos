@@ -268,7 +268,7 @@ protected:
     ///@{
 
     /**
-     * @brief This function adds the terms for imposing a Navier-slip boundary condition at an integration point to the system.
+     * @brief This function adds the terms for enforcing a Navier-slip boundary condition at an integration point to the system via Nitsche's method.
      * NOTE that the condition does NOT account for mesh motion so far.
      * The stabilized Nitsche imposition of the Navier-slip boundary condition (Robin-type BC) consists of a
      * no penetration constraint in wall normal direction and a shear force imposition in tangential direction.
@@ -286,19 +286,6 @@ protected:
         const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * @brief This function penalizes a violation of a Dirichlet boundary condition at an integration point using a penalty constant.
-     * PENALTY_COEFFICIENT is taken as penalty constant from rCurrentProcessInfo.
-     * Penalization is added to LHS and RHS as violation of a zero velocity constraint.
-     * @param rLeftHandSideMatrix reference to the LHS matrix
-     * @param rRightHandSideVector reference to the RHS vector
-     * @param rCurrentProcessInfo reference to the ProcessInfo
-     */
-    // void AddDirichletPenalization(
-    //     MatrixType& rLHS,
-    //     VectorType& rRHS,
-    //     const ProcessInfo& rCurrentProcessInfo);
-
-    /**
      * @brief This function builds the strain matrix from the shape function derivatives utilizing Voigt notation.
      * @param rDN_DX matrix of shape function derivatives at all cloud points
      * @param NumNodes number of nodes of the geometry (cloud points)
@@ -310,13 +297,14 @@ protected:
         Matrix& rB);
 
     /**
-     * This function computes the penalty coefficient for the Nitsche normal imposition (penalization and stabilization)
+     * This function computes the penalty coefficient for the Nitsche normal penalization
+     * It includes the Schott et al. (doi: 10.1002/fld.4218) velocity stabilization term
      * @param rN the current Gauss pt. shape functions vector
-     * @param DeltaTime time step
-     * @param Gamma Nitsche penalty coefficient (gamma)
+     * @param DeltaTime time step size
+     * @param Gamma Nitsche penalty constant (gamma)
      * @param ParentSize size/ volume of the parent element
      * @param EffectiveViscosity effective viscosity
-     * @return double The normal penalty coefficient value
+     * @return double the normal penalty coefficient value
      */
     double ComputeSlipNormalPenaltyCoefficient(
         const Vector& rN,
@@ -326,13 +314,13 @@ protected:
         const double EffectiveViscosity) const;
 
     /**
-     * This function computes the penalty coefficients for the Nitsche tangential imposition
+     * This function computes the penalty coefficients for the Nitsche tangential penalization
      * @param SlipLength slip length for Navier-slip (zero for no-slip)
-     * @param Gamma Nitsche penalty coefficient (gamma)
-     * @param GammaShear Nitsche penalty coefficient for slip (gamma)
+     * @param Gamma Nitsche penalty constant (gamma)
+     * @param GammaShear Nitsche penalty constant for slip (gamma)
      * @param ParentSize size/ volume of the parent element
      * @param EffectiveViscosity effective viscosity
-     * @return a pair of double containing the two coefficients
+     * @return a pair of double containing the two coefficients for the tangential velocity and shear stress terms
      */
     std::pair<const double, const double> ComputeSlipTangentialPenaltyCoefficients(
         const double SlipLength,
@@ -342,12 +330,12 @@ protected:
         const double EffectiveViscosity) const;
 
     /**
-     * This function computes the Nitsche coefficients for the Nitsche tangential imposition
+     * This function computes the coefficients for the tangential Nitsche stabilization
      * @param SlipLength slip length for Navier-slip (zero for no-slip)
-     * @param GammaShear Nitsche penalty coefficient (gamma)
-     * @param CharactLength Characteristic length of the problem
+     * @param GammaShear Nitsche penalty constant (gamma)
+     * @param CharactLength characteristic length of the problem
      * @param EffectiveViscosity effective viscosity
-     * @return a pair of double containing the two coefficients
+     * @return a pair of double containing the two coefficients for the tangential velocity and shear stress terms
      */
     std::pair<const double, const double> ComputeSlipTangentialNitscheCoefficients(
         const double SlipLength,

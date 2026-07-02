@@ -340,36 +340,6 @@ void ShiftedBoundaryFluidElement<TBaseElement>::PrintInfo(std::ostream& rOStream
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Protected functions
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Operations
-
-template <class TBaseElement>
-void ShiftedBoundaryFluidElement<TBaseElement>::InitializeGeometryData(ShiftedBoundaryElementData& rData) const
-{
-    //NOTE necessary for (dis-)continuous level set with EmbeddedData
-    /*rData.PositiveIndices.clear();
-    rData.NegativeIndices.clear();
-
-    // Number of positive and negative distance function values
-    for (std::size_t i = 0; i < ShiftedBoundaryElementData::NumNodes; ++i){
-        if (rData.Distance[i] > 0.0) {
-            rData.NumPositiveNodes++;
-            rData.PositiveIndices.push_back(i);
-        }
-        else {
-            rData.NumNegativeNodes++;
-            rData.NegativeIndices.push_back(i);
-        }
-    }
-    rData.NumNegativeNodes = 0;
-    rData.NumPositiveNodes = NumNodes;
-    this->CalculateGeometryData(rData.PositiveSideWeights, rData.PositiveSideN, rData.PositiveSideDNDX);*/
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

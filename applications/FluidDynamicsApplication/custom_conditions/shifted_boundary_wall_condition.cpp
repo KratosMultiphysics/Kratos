@@ -127,6 +127,7 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(local_size);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
+    // Add the terms for enforcing a Navier-slip boundary condition at the integration point to the system via Nitsche's method
     AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
@@ -282,7 +283,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     const Matrix BtAt = prod(trans(B_matrix), trans(voigt_normal_proj_matrix));
 
     // ---------------------------------------------------------------
-    // Build aux_LHS by accumulating contributions directly
+    //      Build aux_LHS by accumulating contributions directly
     // ---------------------------------------------------------------
     MatrixType aux_LHS = ZeroMatrix(local_size, local_size);
 
@@ -308,7 +309,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     }
 
     /////////////////////////////////////////////////////////////////////////////////
-    // 2. Nitsche normal symmetric counterpart stabilization (shear stress + pressure)
+    // 2. Normal Nitsche symmetric counterpart stabilization (shear stress + pressure)
 
     // Fill the pressure to Voigt notation operator normal projected matrix
     Matrix trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(local_size, TDim);
@@ -340,13 +341,13 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     const Matrix Nt_Ptang = prod(trans(N_matrix), Ptang);
 
-    // Contribution coming from the traction vector tangential component (no contribution for no slip)
-    // pen * w * N^T * P_tang * A*C*B
-    noalias(aux_LHS) += pen_tang_w_1 * prod(Nt_Ptang, ACB);
-
     // Contribution coming from the tangential velocity (towards zero for slip)
     // pen * w * N^T * P_tang * N
     noalias(aux_LHS) += pen_tang_w_2 * prod(Nt_Ptang, N_matrix);
+
+    // Contribution coming from the traction vector tangential component (no contribution for no slip)
+    // pen * w * N^T * P_tang * A*C*B
+    noalias(aux_LHS) += pen_tang_w_1 * prod(Nt_Ptang, ACB);
 
     /////////////////////////////////////////////////////////////////////////////////
     // 4. Tangential Nitsche symmetric counterpart stabilization
@@ -360,10 +361,6 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     // BtAtPtang = BtAt * Ptang  (local_size x TDim)
     const Matrix BtAtPtang = prod(BtAt, Ptang);
 
-    // Contribution coming from the traction vector tangential component (no contribution for no slip)
-    // (-1) * pen * w * 2 * B^T*A^T*P_tang * A*C*B
-    noalias(aux_LHS) -= nitsche_tang_w_1 * prod(BtAtPtang, ACB);
-
     // Contribution coming from the tangential velocity (towards zero for slip)
     // (-1) * pen * w * 2 * B^T*A^T*P_tang * N (exploit sparsity)
     for (std::size_t i = 0; i < local_size; ++i) {
@@ -376,6 +373,10 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
         }
     }
 
+    // Contribution coming from the traction vector tangential component (no contribution for no slip)
+    // (-1) * pen * w * 2 * B^T*A^T*P_tang * A*C*B
+    noalias(aux_LHS) -= nitsche_tang_w_1 * prod(BtAtPtang, ACB);
+
     /////////////////////////////////////////////////////////////////////////////////
     // Add Nitsche Navier-slip contributions of the integration point to the local system (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
     // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well! TODO
@@ -383,35 +384,43 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     noalias(rRHS) -= prod(aux_LHS, unknown_values);
 }
 
-template<std::size_t TDim>
-void ShiftedBoundaryWallCondition<TDim>::CalculateStrainMatrix(
+template <>
+void ShiftedBoundaryWallCondition<2>::CalculateStrainMatrix(
     const Matrix& rDN_DX,
     const std::size_t NumNodes,
     Matrix& rB)
 {
     rB.clear();
 
-    if(TDim == 2) {
-        for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
-            const std::size_t col = BlockSize * i_node;
-            rB(0, col  ) = rDN_DX(i_node, 0);
-            rB(1, col+1) = rDN_DX(i_node, 1);
-            rB(2, col  ) = rDN_DX(i_node, 1);
-            rB(2, col+1) = rDN_DX(i_node, 0);
-        }
-    } else if(TDim == 3) {
-        for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
-            const std::size_t col = BlockSize * i_node;
-            rB(0, col  ) = rDN_DX(i_node, 0);
-            rB(1, col+1) = rDN_DX(i_node, 1);
-            rB(2, col+2) = rDN_DX(i_node, 2);
-            rB(3, col  ) = rDN_DX(i_node, 1);
-            rB(3, col+1) = rDN_DX(i_node, 0);
-            rB(4, col+1) = rDN_DX(i_node, 2);
-            rB(4, col+2) = rDN_DX(i_node, 1);
-            rB(5, col  ) = rDN_DX(i_node, 2);
-            rB(5, col+2) = rDN_DX(i_node, 0);
-        }
+    for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
+        const std::size_t col = BlockSize * i_node;
+        rB(0, col  ) = rDN_DX(i_node, 0);
+        rB(1, col+1) = rDN_DX(i_node, 1);
+        rB(2, col  ) = rDN_DX(i_node, 1);
+        rB(2, col+1) = rDN_DX(i_node, 0);
+    }
+}
+
+
+template <>
+void ShiftedBoundaryWallCondition<3>::CalculateStrainMatrix(
+    const Matrix& rDN_DX,
+    const std::size_t NumNodes,
+    Matrix& rB)
+{
+    rB.clear();
+
+    for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
+        const std::size_t col = BlockSize * i_node;
+        rB(0, col  ) = rDN_DX(i_node, 0);
+        rB(1, col+1) = rDN_DX(i_node, 1);
+        rB(2, col+2) = rDN_DX(i_node, 2);
+        rB(3, col  ) = rDN_DX(i_node, 1);
+        rB(3, col+1) = rDN_DX(i_node, 0);
+        rB(4, col+1) = rDN_DX(i_node, 2);
+        rB(4, col+2) = rDN_DX(i_node, 1);
+        rB(5, col  ) = rDN_DX(i_node, 2);
+        rB(5, col+2) = rDN_DX(i_node, 0);
     }
 }
 
@@ -434,6 +443,7 @@ double ShiftedBoundaryWallCondition<TDim>::ComputeSlipNormalPenaltyCoefficient(
     }
     const double int_pt_v_norm = norm_2(int_pt_v);
 
+    // Compute the velocity stabilization constant of the Schott et al. (doi: 10.1002/fld.4218)
     const double stab_constant_u = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize / 6.0 + int_pt_rho*ParentSize*ParentSize/DeltaTime / 12.0;
 
     // Compute the Nitsche coefficient (including the Schott et al. (doi: 10.1002/fld.4218) stabilization term)

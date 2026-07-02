@@ -290,7 +290,7 @@ protected:
      * This method checks if the element is intersected and calls the elemental data filling methods accordingly.
      * @param rData reference to the element data structure
      */
-    void InitializeGeometryData(ShiftedBoundaryElementData& rData) const;
+    void InitializeGeometryData(ShiftedBoundaryElementData& rData) const {};
 
     ///@}
     ///@name Protected  Access
@@ -339,7 +339,7 @@ private:
     /**
      * @brief Get the Surrogate Faces local Ids
      * This method returns a list with the local ids of the surrogate faces of INTERFACE elements.
-     * Surrogate faces are faces shared with BOUNDARY elements and for which all their nodes  lie in the surrogate boundary.
+     * Surrogate faces are faces shared with BOUNDARY elements, so their nodes are part of the surrogate boundary.
      * @return std::vector<std::size_t> List with the surrogate faces local ids
      */
     std::vector<std::size_t> GetSurrogateFacesIds();
