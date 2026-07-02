@@ -191,6 +191,33 @@ public:
         ComputeTruncationData();
     }
 
+    /// Replaces level-0 data after degree elevation. Must be called before AddLevel/AddRefinementDomain.
+    void SetLevel0(
+        const PointsArrayType& rPoints,
+        SizeType NewDegreeU,
+        SizeType NewDegreeV,
+        const Vector& rKnotsU,
+        const Vector& rKnotsV,
+        const Vector& rWeights = Vector())
+    {
+        KRATOS_ERROR_IF(mLevels.size() != 1)
+            << "THBSurfaceGeometry::SetLevel0: degree elevation must be applied before adding refinement levels." << std::endl;
+        KRATOS_ERROR_IF(mIsEliminated)
+            << "THBSurfaceGeometry::SetLevel0: cannot modify after EliminateInactiveFunctions." << std::endl;
+
+        mLevels[0].DegreeU  = NewDegreeU;
+        mLevels[0].DegreeV  = NewDegreeV;
+        mLevels[0].KnotsU   = rKnotsU;
+        mLevels[0].KnotsV   = rKnotsV;
+        mLevels[0].Weights  = rWeights;
+
+        this->Points() = rPoints;
+
+        const SizeType num_cps_u = rKnotsU.size() - NewDegreeU + 1;
+        const SizeType num_cps_v = rKnotsV.size() - NewDegreeV + 1;
+        mActiveFunctions[0].assign(num_cps_u * num_cps_v, true);
+    }
+
     /**
      * @brief Removes inactive control points from the ModelPart and compacts Points().
      *

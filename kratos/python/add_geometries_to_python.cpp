@@ -55,6 +55,7 @@
 #include "geometries/thb_surface_geometry.h"
 #include "geometries/thb_curve_geometry.h"
 #include "geometries/local_refined_brep_surface.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
 
 namespace Kratos::Python
 {
@@ -612,6 +613,36 @@ void  AddGeometriesToPython(pybind11::module& m)
              py::arg("model_part"))
         .def("EvaluateShapeFunctions", &THBSurfaceGeometry3DType::EvaluateShapeFunctions,
              py::arg("uv_values"))
+        .def("SetLevel0", &THBSurfaceGeometry3DType::SetLevel0,
+             py::arg("points"),
+             py::arg("degree_u"),
+             py::arg("degree_v"),
+             py::arg("knots_u"),
+             py::arg("knots_v"),
+             py::arg("weights") = Vector())
+        ;
+
+    // NurbsSurfaceRefinementUtilities: degree elevation helpers
+    using NurbsSurface3DType = NurbsSurfaceGeometry<3, NodeContainerType>;
+    py::class_<NurbsSurfaceRefinementUtilities>(m, "NurbsSurfaceRefinementUtilities")
+        .def_static("DegreeElevationU",
+            [](NurbsSurface3DType& rGeometry, SizeType t) {
+                PointerVector<NodeType> pts;
+                Vector knots, weights;
+                NurbsSurfaceRefinementUtilities::DegreeElevationU(rGeometry, t, pts, knots, weights);
+                return py::make_tuple(pts, knots, weights);
+            },
+            py::arg("geometry"), py::arg("times"),
+            "Elevate degree in U by `times`. Returns (points, knots_u, weights).")
+        .def_static("DegreeElevationV",
+            [](NurbsSurface3DType& rGeometry, SizeType t) {
+                PointerVector<NodeType> pts;
+                Vector knots, weights;
+                NurbsSurfaceRefinementUtilities::DegreeElevationV(rGeometry, t, pts, knots, weights);
+                return py::make_tuple(pts, knots, weights);
+            },
+            py::arg("geometry"), py::arg("times"),
+            "Elevate degree in V by `times`. Returns (points, knots_v, weights).")
         ;
 
     // THB-Spline curve geometry
