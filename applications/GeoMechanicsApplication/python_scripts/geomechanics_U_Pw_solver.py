@@ -66,7 +66,6 @@ class UPwSolver(GeoSolver):
             "number_cycles"              : 5,
             "increase_factor"            : 2.0,
             "reduction_factor"           : 0.5,
-            "calculate_reactions"        : true,
             "max_line_search_iterations" : 5,
             "first_alpha_value"          : 0.5,
             "second_alpha_value"         : 1.0,
