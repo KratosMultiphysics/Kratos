@@ -109,7 +109,7 @@ settings = KM.Parameters("""{
     "preconfiguration":      "eco",
     "imbalance":              0.03,
     "seed":                   0,
-    "suppress_output":        true,
+    "echo_level":             0,
     "num_trials":             3,
     "verbosity":              1,
     "synchronize_conditions": true
@@ -170,7 +170,7 @@ settings = KM.Parameters("""{
         "preconfiguration": "eco",
         "imbalance": 0.03,
         "seed": 0,
-        "suppress_output": true,
+        "echo_level": 0,
         "num_trials": 1
     }
 }""")
@@ -202,7 +202,7 @@ modeler.SetupModelPart()
 | `preconfiguration`       | string  | `"eco"` | KaHIP mode: `fast`, `eco`, `strong`, `fastsocial`, `ecosocial`, `strongsocial` |
 | `imbalance`              | double  | `0.03`  | Allowed weight imbalance fraction (0.03 = 3 %)                                 |
 | `seed`                   | int     | `0`     | Base random seed; trial i uses seed+i                                          |
-| `suppress_output`        | bool    | `true`  | Suppress KaHIP's stdout                                                        |
+| `echo_level`             | int     | `0`     | 0 = suppress KaHIP's stdout, >0 = print progress                               |
 | `num_trials`             | int     | `1`     | Run KaHIP this many times; keep the best (lowest edge cut)                     |
 | `verbosity`              | int     | `0`     | 0=silent, 1=info, 2=debug, 3=full debug                                        |
 | `synchronize_conditions` | bool    | `false` | Co-locate boundary conditions with their parent element                        |

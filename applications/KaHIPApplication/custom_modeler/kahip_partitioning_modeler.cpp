@@ -52,7 +52,7 @@ const Parameters KaHIPPartitioningModeler::GetDefaultParameters() const
             "preconfiguration": "eco",
             "imbalance":         0.03,
             "seed":              0,
-            "suppress_output":   true,
+            "echo_level":        0,
             "num_trials":        1
         }
     })");

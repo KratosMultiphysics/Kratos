@@ -83,7 +83,7 @@ class TestKaHIPMPIPartitioner(KratosUnittest.TestCase):
             "preconfiguration": "eco",
             "imbalance": 0.03,
             "seed": 0,
-            "suppress_output": true,
+            "echo_level": 0,
             "num_trials": 1
         }""")
         partitioner = KaHIPDivideHeterogeneousInputInMemoryProcess(
@@ -133,7 +133,7 @@ class TestKaHIPMPIPartitioner(KratosUnittest.TestCase):
                 "preconfiguration": "eco",
                 "imbalance": 0.03,
                 "seed": 0,
-                "suppress_output": true,
+                "echo_level": 0,
                 "num_trials": 1
             }
         }""")
@@ -181,7 +181,7 @@ class TestKaHIPMPIPartitioner(KratosUnittest.TestCase):
                 "preconfiguration": "fast",
                 "imbalance": 0.05,
                 "seed": 42,
-                "suppress_output": true,
+                "echo_level": 0,
                 "num_trials": 1
             }
         }""")

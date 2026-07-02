@@ -223,7 +223,7 @@ def _kahip_factory(mode: str, n_parts: int, imbalance: float,
         "preconfiguration":      "{mode}",
         "imbalance":             {imbalance},
         "seed":                  {seed},
-        "suppress_output":       true,
+        "echo_level":            0,
         "num_trials":            {num_trials},
         "verbosity":             0,
         "synchronize_conditions": false

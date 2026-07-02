@@ -131,7 +131,7 @@ class TestKaHIPPartitioner(KratosUnittest.TestCase):
                 "preconfiguration": "eco",
                 "imbalance": 0.05,
                 "seed": 1,
-                "suppress_output": true,
+                "echo_level": 0,
                 "num_trials": 3,
                 "verbosity": 0,
                 "synchronize_conditions": true
@@ -166,7 +166,7 @@ class TestKaHIPPartitioner(KratosUnittest.TestCase):
                 "preconfiguration": "fast",
                 "imbalance": 0.03,
                 "seed": 0,
-                "suppress_output": true,
+                "echo_level": 0,
                 "num_trials": 5
             }""")
 
@@ -203,7 +203,7 @@ class TestKaHIPPartitioner(KratosUnittest.TestCase):
                 "preconfiguration": "{mode}",
                 "imbalance": 0.03,
                 "seed": 0,
-                "suppress_output": true,
+                "echo_level": 0,
                 "num_trials": 1
             }}""")
 

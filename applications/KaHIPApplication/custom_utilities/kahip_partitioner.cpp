@@ -32,7 +32,7 @@ KaHIPPartitioner::KaHIPPartitioner(Parameters rSettings)
     mMode           = PreconfigurationToMode(rSettings["preconfiguration"].GetString());
     mImbalance      = rSettings["imbalance"].GetDouble();
     mSeed           = rSettings["seed"].GetInt();
-    mSuppressOutput = rSettings["suppress_output"].GetBool();
+    mEchoLevel      = rSettings["echo_level"].GetInt();
     mNumTrials      = rSettings["num_trials"].GetInt();
 
     KRATOS_ERROR_IF(mImbalance <= 0.0 || mImbalance >= 1.0)
@@ -91,13 +91,13 @@ std::vector<int> KaHIPPartitioner::PartitionGraph(
             rAdjncy.data(),
             &n_parts,
             &imbalance,
-            mSuppressOutput,
+            mEchoLevel == 0,
             seed,
             mMode,
             &edgecut,
             trial_part.data());
 
-        KRATOS_INFO_IF("KaHIPPartitioner", !mSuppressOutput)
+        KRATOS_INFO_IF("KaHIPPartitioner", mEchoLevel > 0)
             << "  Trial " << trial << " (seed=" << seed
             << "): edge cut = " << edgecut << std::endl;
 
@@ -124,7 +124,7 @@ Parameters KaHIPPartitioner::GetDefaultParameters()
         "preconfiguration": "eco",
         "imbalance":         0.03,
         "seed":              0,
-        "suppress_output":   true,
+        "echo_level":        0,
         "num_trials":        1
     })");
     return defaults;

@@ -124,7 +124,7 @@ KaHIPDivideHeterogeneousInputProcess::KaHIPDivideHeterogeneousInputProcess(
           // to the partitioner so it can call ValidateAndAssignDefaults cleanly.
           Parameters partitioner_settings(R"({})");
           const std::vector<std::string> partitioner_keys = {
-              "preconfiguration", "imbalance", "seed", "suppress_output", "num_trials"};
+              "preconfiguration", "imbalance", "seed", "echo_level", "num_trials"};
           for (const auto& key : partitioner_keys) {
               if (rSettings.Has(key)) {
                   partitioner_settings.AddValue(key, rSettings[key]);

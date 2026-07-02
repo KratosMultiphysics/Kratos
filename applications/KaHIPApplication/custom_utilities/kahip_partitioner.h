@@ -45,7 +45,7 @@ namespace Kratos
  *          - Configurable imbalance tolerance (fraction, e.g. 0.03 = 3 %)
  *          - Multi-trial mode: runs KaHIP multiple times with different seeds and keeps
  *            the partition with the minimum edge cut
- *          - Optional suppression of KaHIP's stdout output
+ *          - Configurable echo level to control KaHIP's stdout output
  *
  *          Thread safety: @c kaffpa() is not thread-safe. If partitioning multiple
  *          graphs concurrently, protect each call with an external mutex.
@@ -76,7 +76,7 @@ public:
      *     "preconfiguration": "eco",       // "fast"|"eco"|"strong"|"fastsocial"|"ecosocial"|"strongsocial"
      *     "imbalance":         0.03,        // allowed imbalance fraction
      *     "seed":              0,           // base random seed
-     *     "suppress_output":   true,        // suppress KaHIP stdout
+     *     "echo_level":        0,           // 0 = silent, >0 = print KaHIP progress
      *     "num_trials":        1            // repeat with seeds 0..num_trials-1; keep best
      * }
      * @endcode
@@ -148,8 +148,8 @@ private:
     /// Base random seed; successive trials use seed, seed+1, seed+2, …
     int mSeed;
 
-    /// When true, kaffpa() does not print to stdout
-    bool mSuppressOutput;
+    /// Verbosity level: 0 = silent (kaffpa() does not print to stdout), >0 = print progress
+    int mEchoLevel;
 
     /// Number of independent trials; the best (lowest edge cut) result is returned
     int mNumTrials;

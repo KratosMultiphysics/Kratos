@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(KaHIPPartitioner_DefaultParameters, KratosKaHIPFastSui
     KRATOS_EXPECT_EQ(p["preconfiguration"].GetString(), "eco");
     KRATOS_EXPECT_NEAR(p["imbalance"].GetDouble(), 0.03, 1e-14);
     KRATOS_EXPECT_EQ(p["seed"].GetInt(), 0);
-    KRATOS_EXPECT_TRUE(p["suppress_output"].GetBool());
+    KRATOS_EXPECT_EQ(p["echo_level"].GetInt(), 0);
     KRATOS_EXPECT_EQ(p["num_trials"].GetInt(), 1);
 }
 
