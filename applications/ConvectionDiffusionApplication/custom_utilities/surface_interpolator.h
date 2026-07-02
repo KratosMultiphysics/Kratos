@@ -28,7 +28,8 @@
 
 #include "includes/node.h"
 #include "utilities/math_utils.h"
-#include "spatial_containers/spatial_containers.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/binbased_fast_point_locator.h"
 #include "includes/model_part.h"
 
 // Application includes
@@ -112,28 +113,33 @@ namespace Kratos
                     << "through FastGetSolutionStepValue." << std::endl;
             }
 
+            BinBasedFastPointLocator<3> point_locator(mMainModelPart);
+            point_locator.UpdateSearchDatabase();
+
+            using ResultContainerType = BinBasedFastPointLocator<3>::ResultContainerType;
+
             for (unsigned m = 0; m < mModelPartVector.size(); m++)
             {
                 ModelPart &r_model_part = *(mModelPartVector[m]);
-                const unsigned number_of_nodes = r_model_part.NumberOfNodes();
 
-                for (unsigned i = 0; i < number_of_nodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it_node = r_model_part.NodesBegin() + i;
+                block_for_each(r_model_part.Nodes(), ResultContainerType(1000),
+                    [&](Node &rNode, ResultContainerType &rResults) {
+                        Vector shape_functions;
+                        Element::Pointer p_elem;
+                        const bool is_found = point_locator.FindPointOnMesh(
+                            rNode.Coordinates(), shape_functions, p_elem, rResults.begin(), rResults.size(), 1e-6);
+                        KRATOS_ERROR_IF_NOT(is_found)
+                            << "Node " << rNode.Id() << " at " << rNode.Coordinates()
+                            << " not found in model part " << mMainModelPart.Name() << std::endl;
 
-                    // Global position of this surface node
-                    const array_1d<double, 3> &node_global = it_node->Coordinates();
-
-                    // Find the 3D element containing this node
-                    array_1d<double, 3> node_local;
-                    ModelPart::ElementType::Pointer p_elem;
-                    FindElementContainingPoint(node_global, node_local, p_elem);
-                    KRATOS_ERROR_IF(p_elem == nullptr)
-                        << "Node " << it_node->Id() << " at " << node_global << " not found in model part " << mMainModelPart.Name() << std::endl;
-
-                    // Interpolate the variable and assign it to the surface node
-                    it_node->FastGetSolutionStepValue(mVariable) = InterpolateValue(p_elem, node_local);
-                }
+                        Geometry<Node> &r_geometry = p_elem->GetGeometry();
+                        TValueType value = mVariable.Zero();
+                        for (unsigned n = 0; n < r_geometry.size(); n++)
+                        {
+                            value += r_geometry[n].FastGetSolutionStepValue(mVariable) * shape_functions[n];
+                        }
+                        rNode.FastGetSolutionStepValue(mVariable) = value;
+                    });
             }
         }
 
@@ -161,49 +167,6 @@ namespace Kratos
         SurfaceInterpolator(SurfaceInterpolator const &rOther) = delete;
 
         ///@}
-        ///@name Private Operations
-        ///@{
-
-        /// @brief Find the element that contains the point
-        /// @param point Point inside the element we want to find
-        /// @param p_pos_local Local coordinates of the point inside the found element
-        /// @param p_elem Pointer to the element containing the point
-        void FindElementContainingPoint(const array_1d<double, 3> &point, array_1d<double, 3> &p_pos_local, ModelPart::ElementType::Pointer &p_elem)
-        {
-            p_elem = nullptr;
-            const unsigned number_of_elements = mMainModelPart.NumberOfElements();
-            for (unsigned int e = 0; e < number_of_elements; e++)
-            {
-                ModelPart::ElementsContainerType::iterator it_elem = mMainModelPart.ElementsBegin() + e;
-                Geometry<Node> &r_geometry = it_elem->GetGeometry();
-                if (r_geometry.IsInside(point, p_pos_local, 1e-6))
-                {
-                    p_elem = mMainModelPart.pGetElement(it_elem->Id());
-                    break;
-                }
-            }
-        }
-
-        /// @brief Interpolate the variable at a local position inside a 3D element
-        /// @param p_elem The element of the main model part
-        /// @param p_pos_local The local coordinates at which the variable is interpolated
-        /// @return Interpolated value of the variable
-        TValueType InterpolateValue(Element::Pointer p_elem, const array_1d<double, 3> &p_pos_local)
-        {
-            TValueType value = mVariable.Zero();
-
-            Geometry<Node> &r_geometry = p_elem->GetGeometry();
-            unsigned int NumNodes = r_geometry.size();
-
-            for (unsigned n = 0; n < NumNodes; n++)
-            {
-                const TValueType &nodal_value = r_geometry[n].FastGetSolutionStepValue(mVariable);
-                double shape_function_value = r_geometry.ShapeFunctionValue(n, p_pos_local);
-                value += nodal_value * shape_function_value;
-            }
-            return value;
-        }
-
         ///@}
     }; // Class SurfaceInterpolator
 

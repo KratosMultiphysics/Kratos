@@ -27,6 +27,8 @@
 #include "includes/kratos_parameters.h"
 #include "includes/node.h"
 #include "utilities/math_utils.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "includes/model_part.h"
 
 // Application includes
@@ -104,38 +106,35 @@ namespace Kratos
                     << "Surface model part " << r_model_part.Name() << " does not have the variable "
                     << mVariable.Name() << " in its nodal solution-step data." << std::endl;
 
-                const unsigned number_of_conditions = r_model_part.NumberOfConditions();
+                using TwoReduction = CombinedReduction<SumReduction<double>, SumReduction<double>>;
+                double integral, area;
+                std::tie(integral, area) = block_for_each<TwoReduction>(
+                    r_model_part.Conditions(),
+                    [&](Condition &rCond) -> std::tuple<double, double> {
+                        Geometry<Node> &r_geometry = rCond.GetGeometry();
+                        unsigned int NumNodes = r_geometry.size();
+                        GeometryData::IntegrationMethod integration_method = rCond.GetIntegrationMethod();
+                        const std::vector<IntegrationPoint<3>> r_integration_points = r_geometry.IntegrationPoints(integration_method);
+                        unsigned int r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
+                        Vector detJ_vector(r_number_integration_points);
+                        r_geometry.DeterminantOfJacobian(detJ_vector, integration_method);
+                        Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
 
-                double integral = 0.0; // \int{ |var|^2 dS }
-                double area = 0.0;     // Total surface area, for reporting
-
-                for (unsigned c = 0; c < number_of_conditions; c++)
-                {
-                    ModelPart::ConditionsContainerType::iterator it_cond = r_model_part.ConditionsBegin() + c;
-
-                    Geometry<Node> &r_geometry = it_cond->GetGeometry();
-                    unsigned int NumNodes = r_geometry.size();
-                    GeometryData::IntegrationMethod integration_method = it_cond->GetIntegrationMethod();
-                    const std::vector<IntegrationPoint<3>> r_integration_points = r_geometry.IntegrationPoints(integration_method);
-                    unsigned int r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
-                    Vector detJ_vector(r_number_integration_points);
-                    r_geometry.DeterminantOfJacobian(detJ_vector, integration_method);
-                    Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
-
-                    for (unsigned g = 0; g < r_number_integration_points; g++)
-                    {
-                        // Interpolate the variable at this Gauss point from the surface nodes.
-                        TValueType value = mVariable.Zero();
-                        for (unsigned n = 0; n < NumNodes; n++)
+                        double local_integral = 0.0;
+                        double local_area = 0.0;
+                        for (unsigned g = 0; g < r_number_integration_points; g++)
                         {
-                            value += r_geometry[n].FastGetSolutionStepValue(mVariable) * NContainer(g, n);
+                            TValueType value = mVariable.Zero();
+                            for (unsigned n = 0; n < NumNodes; n++)
+                            {
+                                value += r_geometry[n].FastGetSolutionStepValue(mVariable) * NContainer(g, n);
+                            }
+                            double Weight = r_integration_points[g].Weight() * detJ_vector[g];
+                            local_integral += SquaredValue(value) * Weight;
+                            local_area += Weight;
                         }
-
-                        double Weight = r_integration_points[g].Weight() * detJ_vector[g];
-                        integral += SquaredValue(value) * Weight;
-                        area += Weight;
-                    }
-                }
+                        return {local_integral, local_area};
+                    });
 
                 mL2Norms[m] = std::sqrt(integral / area);
 
