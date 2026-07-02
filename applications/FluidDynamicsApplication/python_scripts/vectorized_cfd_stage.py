@@ -88,7 +88,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.startup_time_scheme = settings["startup_time_scheme"].GetString() if self.startup_time > 0.0 else None
 
         # Set problem solving parameters
-        self.clear_divergence_steps = settings["clear_divergence_steps"].GetInt()
         self.velocity_safety_factor = settings["velocity_safety_factor"].GetDouble()
         self.pressure_max_iteration = settings["linear_solver_settings"]["max_iteration"].GetInt()
         self.pressure_tolerance = settings["linear_solver_settings"]["tolerance"].GetDouble()
@@ -97,7 +96,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.material_import_settings = settings["material_import_settings"]
 
         # Flags to control algorithmic behaviour
-        self.deactivate_pressure_stabilization = False #switches on and off the pressure stabilization
+        self.first_order_splitting = False #if true a first order scheme (i.e., Chorin projection) is used
+        self.deactivate_pressure_stabilization = False #switches on and off the stabilizaiton in the pressure Laplacian problem (step 2)
         self.startup_first_order_splitting = settings["startup_first_order_splitting"].GetBool() if self.startup_time > 0.0 else False
 
         # Set compressibility parameter
@@ -183,11 +183,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         xp.reciprocal(denom, out=tau_1)
         tau_2[:] = h**2/(c_1 * tau_1)
         tau_2.fill(0.0) ##TODO: if we keep this we shall better remove the related parts
-        # if self.clear_divergence_steps > 0:
-        #     self.deactivate_pressure_stabilization = True
-        #     self.force_first_order_splitting = True
-            #tau_1.fill(0.0)
-            #tau_2.fill(0.0)
 
         return tau_1, tau_2
 
@@ -740,7 +735,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             available_time_schemes = ["FE", "RK2", "SSPRK3", "RK4"]
             raise ValueError(f"Provided time scheme '{time_scheme}' is not available. Available options are: {available_time_schemes}.")
 
-    def SolveStep1(self,vold,v_dirichlet,p,b,dt):
+    def SolveStep1(self, vold, v_dirichlet, p, b, dt, gamma = 1.0):
 
         #xp.cuda.Stream.null.synchronize() #FIXME: remove after debugging, just to be sure we are not measuring asynchronously some previous step computations
 
@@ -764,7 +759,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #print(f"ComputeDivergenceProjection time: {time.perf_counter() - t0}")
 
         # Get current time scheme data
-        time_scheme = self.time_scheme if self.time > self.startup_time else self.startup_time_scheme
+        time_scheme = self.time_scheme if not self.is_startup else self.startup_time_scheme
         A, b, c = self.GetButcherTableau(time_scheme)
         n_stages = len(b)
         if (self.k == None or len(self.k) != n_stages):
@@ -783,7 +778,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             # Calculate current stage residual
             v_stage_el = self.ElemData(self.v_stage, self.connectivity, self.v_el)
             #v_stage_el_wall = self.ElemData(self.v_stage, self.connectivity_wall, out=self.v_el_wall)
-            self.ComputeVelocityResidual(v_stage_el, pel, b_el, conv_proj_el, div_proj_el, self.DN, None, out=self.k[i])
+            self.ComputeVelocityResidual(v_stage_el, pel, b_el, conv_proj_el, div_proj_el, self.DN, gamma=gamma, out=self.k[i])
             #self.ComputeVelocityResidualWall(v_stage_el_wall, out=self.k[i])
             self.k[i].reshape(-1)[:] *= (1.0/self.rho) * self.Minv
 
@@ -865,12 +860,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # #print(f"Apply DIRICHLET time: {time.perf_counter() - t0}")
         # return vnew
 
-    def SolveStep2(self, vfrac, p, dt, add_compressibility=False, first_order_splitting=False):
+    def SolveStep2(self, vfrac, p, dt, add_compressibility=False, gamma=1.0):
 
         nelem = self.DN.shape[0]
 
         # Get factor coming from the RK substep approximation of the pressure term
-        time_scheme = self.time_scheme if self.time > self.startup_time else self.startup_time_scheme
+        time_scheme = self.time_scheme if not self.is_startup else self.startup_time_scheme
         p_factor = self.GetPressureFactor(time_scheme)
 
         # Gather data from the database
@@ -884,7 +879,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Calculate the Laplacian elemental contributions (including stabilization Laplacian) of the pressure LHS
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN, out=self.pool.Get(0,(nelem,self.n_in_el, self.n_in_el))) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
-        if (self.clear_divergence_steps > 0 or self.deactivate_pressure_stabilization):
+        if self.deactivate_pressure_stabilization:
             coef = (p_factor * dt / self.rho) * self.elemental_volumes
         else:
             coef = (p_factor * dt / self.rho + self.tau_1) * self.elemental_volumes
@@ -892,7 +887,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Account for compressibility in the pressure LHS: (1/kappa*dt) * M, where M is the mass matrix and kappa is the bulk modulus
         if add_compressibility:
-            compressibility_const = (self.elemental_volumes / (self.bulk_modulus * dt))
+            compressibility_const = self.elemental_volumes / (self.bulk_modulus * dt)
             if self.compressibility == "lumped": # Lumped mass matrix approximation for compressibility term
                 for idx in range(self.n_in_el):
                     L_el[:, idx, idx] += compressibility_const * self.N[idx]
@@ -910,8 +905,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         rhs_el = self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel_frac, out=self.pool.Get(1,(nelem,self.n_in_el)))
         xp.negative(rhs_el, out=rhs_el) # in-place negation to avoid allocation
 
-        # (coef*dt/rho)*(∇q,∇pold) = (coef*dt/rho)*Lij*pj
-        if not first_order_splitting:
+        # (coef·dt/rho)*(∇q,gamma·∇pold) = (coef·dt/rho)·Lij·gamma·pj
+        # Note that gamma = 1 turns true, switching on 2nd order projection and thus adds this term
+        if bool(gamma): 
             aux_scalar = self.cfd_utils.ApplyLaplacian(self.DN, pel, out=self.pool.Get(0,(nelem,self.n_in_el)))
             aux_scalar *= (p_factor * dt / self.rho)
             rhs_el += aux_scalar
@@ -919,7 +915,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # (1/kappa*dt) * M * p_old
         if add_compressibility:
-            compressibility_const = 1.0/(self.bulk_modulus * dt) * self.elemental_volumes
+            compressibility_const = self.elemental_volumes /(self.bulk_modulus * dt)
             if self.compressibility == "lumped": # Lumped mass matrix approximation for compressibility term
                 rhs_el += compressibility_const[:, None] * pel * self.N[None, :] # Equivalent to: for e: for i: rhs_el[e,i] += compressibility_const[e] * pel[e,i] * self.N[i]
             elif self.compressibility == "consistent": # Consistent mass matrix approximation for compressibility term
@@ -929,7 +925,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 raise ValueError(f"Weak compressibility value '{self.compressibility}' is not valid.")
 
         # -tau*(∇q,Pi_pressure)
-        if not (self.clear_divergence_steps > 0 or self.deactivate_pressure_stabilization):
+        if not self.deactivate_pressure_stabilization:
             aux_scalar = self.cfd_utils.ComputePressureStabilizationProjectionTerm(self.N, self.DN, pres_proj_el,out=self.pool.Get(0,(nelem,self.n_in_el)))
             aux_scalar *= self.tau_1[:,xp.newaxis]
             rhs_el -= aux_scalar
@@ -976,7 +972,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         nelem = self.DN.shape[0]
 
         # Get factor coming from the RK substep approximation of the pressure term
-        time_scheme = self.time_scheme if self.time > self.startup_time else self.startup_time_scheme
+        time_scheme = self.time_scheme if not self.is_startup else self.startup_time_scheme
         p_factor = self.GetPressureFactor(time_scheme)
 
         # Gather elemental pressure increments from the nodal values
@@ -1042,14 +1038,26 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.update_precond = True # Update preconditioner at the first substep
         current_time = self.time - self.dt
         while (self.time - current_time > 1.0e-12):
+            # Check if current step is within the startup phase
+            self.is_startup = current_time < self.startup_time
+            check_vmax_step_1 = True if not self.is_startup else False
+            check_vmax_step_3 = True if not self.is_startup else False
+
             # If startup_first_order_splitting is True, we reset the old pressure to zero (note that this does not apply to compressibility terms)
             # Note that this essentially turns the scheme into first order as the pressure does not appear in the fractional step calculation
             # This is useful if we want to ensure that the pressure correction is computed from scratch at each step
-            p_zero = xp.zeros_like(pold)
-            first_order_splitting = False
-            if (self.startup_first_order_splitting and self.time < self.startup_time):
-                first_order_splitting = True
-                KM.Logger.PrintInfo(self.__class__.__name__,f"\tStartup first order splitting is enabled.")
+            self.first_order_splitting = False
+            if (self.startup_first_order_splitting and self.is_startup):
+                self.first_order_splitting = True
+                KM.Logger.PrintInfo(self.__class__.__name__, f"\tStartup first order splitting is enabled.")
+
+            # If first order projection is active, deactivate the pressure stabilization in the pressure solution step
+            gamma = 0.0 if self.first_order_splitting else 1.0
+            if self.first_order_splitting:
+                self.deactivate_pressure_stabilization = True
+            else:
+                self.deactivate_pressure_stabilization = False
+            KM.Logger.PrintInfo(self.__class__.__name__, f"\tFirst order splitting: {self.first_order_splitting}. Splitting gamma factor set to: {gamma}. Deactivate pressure stabilization: {self.deactivate_pressure_stabilization}.")
 
             # Explicitly backup the state once per substep
             backup_current_time = current_time
@@ -1093,42 +1101,40 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 self.tau_1, self.tau_2 = self.ComputeTau(self.h, rho_conv, self.dyn_visc, self.rho, substep_dt)
 
                 # Perform fractional step
-                if not first_order_splitting:
-                    vfrac = self.SolveStep1(vold, v_dirichlet, pold, b, substep_dt)
-                else:
-                    vfrac = self.SolveStep1(vold, v_dirichlet, p_zero, b, substep_dt)
+                vfrac = self.SolveStep1(vold, v_dirichlet, pold, b, substep_dt, gamma=gamma)
 
-                ##check if velocity increased significantly after step 1, if so, reduce CFL and repeat step 1
-                if(self.clear_divergence_steps == 0): # if we are clearing divergence, we expect some velocity increase, so skip the check
-                    vmax_after_step1 = xp.max(xp.linalg.norm(vfrac, axis=1))
-                    # Guard against NaN: NaN comparisons silently return False, bypassing the retry logic
-                    if not xp.isfinite(vmax_after_step1):
-                        KM.Logger.PrintWarning(self.__class__.__name__,f"NaN detected in velocity after step 1. Current CFL: {self.cfl:.3e}. Repeating step 1 with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
+                # Check fractional velocity             
+                vmax_after_step1 = xp.max(xp.linalg.norm(vfrac, axis=1))
+                if not xp.isfinite(vmax_after_step1): # Guard against NaN: NaN comparisons silently return False, bypassing the retry logic
+                    KM.Logger.PrintWarning(self.__class__.__name__,f"NaN detected in velocity after step 1.")
+                    repeat_step1 = True
+                elif check_vmax_step_1: # Skip the check during startup as velocity is expected to suddenly increase
+                    if vmax_after_step1 > self.velocity_safety_factor * vmax: # Check maximum fractional velocity against velocity safety factor
+                        KM.Logger.PrintWarning(self.__class__.__name__,f"Local max velocity increased significantly after step 1: {vmax_after_step1:.3e} vs {vmax:.3e}.")
                         repeat_step1 = True
-                        self.cfl *= self.cfl_number_decrease_factor
-                        current_time = backup_current_time
-                    elif (vmax_after_step1 > self.velocity_safety_factor * vmax):
-                        KM.Logger.PrintWarning(self.__class__.__name__,f"Local max velocity increased significantly after step 1: {vmax_after_step1:.3e} vs {vmax:.3e}. Current CFL: {self.cfl:.3e}. Repeating step 1 with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
-                        repeat_step1 = True
-                        self.cfl *= self.cfl_number_decrease_factor
-                        current_time = backup_current_time # reset current time to before step 1 to repeat it with the new CFL
-                    else:
-                        repeat_step1 = False
-                        self.cfl = min(self.cfl*self.cfl_number_increase_factor, self.max_cfl) # Increase CFL for next step if we are well below the limit
                 else:
                     repeat_step1 = False
+
+                # Prepare step 1 repetition
+                if repeat_step1:
+                    KM.Logger.PrintInfo(self.__class__.__name__,f"Current CFL: {self.cfl:.3e}. Repeating step 1 with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
+                    self.cfl *= self.cfl_number_decrease_factor # Calculate reduced CFL for step repetition
+                    current_time = backup_current_time # Reset current time to that before step 1 to repeat it with the new CFL
+                # else: #TODO: discuss about this (RZ: I think it is more robust to only increase the CFL after vnew is OK)
+                #     self.cfl = min(self.cfl*self.cfl_number_increase_factor, self.max_cfl) # Increase CFL for next step if we are well below the limit
 
             self.step_1_total_time += time.perf_counter() - t1
 
             # STEP 2: Solve for pressure
-            # Note that compressibility is only added after the startup time divergence clearance, and only if the user has specified it
+            # Note that weak compressibility is only added after the startup time and only if the user has specified it
             t2 = time.perf_counter()
-            add_compressibility = (self.clear_divergence_steps == 0 and self.time > self.startup_time) if self.compressibility is not None else False
+            compressibility_switch = bool(self.compressibility) if self.compressibility != None else False # True for both "lumped" and "consistent" compressibility values. False if None.
+            add_compressibility = compressibility_switch if not self.is_startup else False # Deavtivate weak compressibility during startup
             if self.compressibility:
                 KM.Logger.PrintInfo(self.__class__.__name__,f"\tAdding compressibility to pressure solve: {add_compressibility}.")
-            p, is_converged = self.SolveStep2(vfrac, pold, substep_dt, add_compressibility=add_compressibility, first_order_splitting=first_order_splitting)
-            if self.clear_divergence_steps > 0 or is_converged: # proceed in any case if it is the initial divergence clearance step, as pressure solver may not converge (stricter tolerance)
-                delta_p = p - pold if not first_order_splitting else p
+            p, is_converged = self.SolveStep2(vfrac, pold, substep_dt, add_compressibility=add_compressibility, gamma=gamma)
+            if is_converged:
+                delta_p = p - pold if not self.first_order_splitting else p.copy()
             else:
                 KM.Logger.PrintWarning(self.__class__.__name__,f"Pressure solve failed to converge. Current CFL: {self.cfl:.3e}. Repeating full step with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
                 current_time = backup_current_time # reset current time to before step 3 to repeat it with the new CFL
@@ -1143,24 +1149,27 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             vmax_after_step3 = xp.max(xp.linalg.norm(vnew, axis=1))
             self.step_3_total_time += time.perf_counter() - t3
 
-            # Perform the current substep solution update
-            # This includes checkinig the validity of the solution and deciding whether to accept it or redo the step with a reduced CFL
+            # Check substep velocity solution
+            repeat = False
             if not xp.isfinite(vmax_after_step3): # Guard against NaN: NaN comparisons silently return False, bypassing the retry logic
-                KM.Logger.PrintWarning(self.__class__.__name__,f"NaN detected in velocity after step 3. Current CFL: {self.cfl:.3e}. Repeating step with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
+                KM.Logger.PrintWarning(self.__class__.__name__,f"NaN detected in velocity after step 3.")
+                repeat = True
+            elif check_vmax_step_3: # Skip the check during startup as velocity is expected to suddenly increase
+                if vmax_after_step3 > self.velocity_safety_factor * vmax: # Check if we need to redo the substep due to velocity explosion
+                    KM.Logger.PrintWarning(self.__class__.__name__,f"Local max velocity increased significantly after step 3: {vmax_after_step3:.3e} vs {vmax:.3e}.")
+                    repeat = True
+                else: # Solution is valid, update the state for the next substep
+                    repeat = False
+
+            # Perform the current substep solution update
+            if repeat: # Solution is not valid, reset current status and skip update
+                KM.Logger.PrintInfo(self.__class__.__name__,f"Current CFL: {self.cfl:.3e}. Repeating substep with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
                 current_time = backup_current_time
                 self.cfl *= self.cfl_number_decrease_factor
-            else: # Solution is valid, check if we need to clear divergence or redo the step due to velocity explosion
-                if self.clear_divergence_steps > 0: # If we are clearing divergence, we expect some velocity increase, so we skip the velocity explosion check and just clear the divergence
-                    self.clear_divergence_steps -= 1
-                    p.fill(0.0)
-                    pold.fill(0.0)
-                elif (vmax_after_step3 > self.velocity_safety_factor * vmax): # End of step velocity exploded - redo full step
-                    KM.Logger.PrintWarning(self.__class__.__name__,f"Local max velocity increased significantly after step 3: {vmax_after_step3:.3e} vs {vmax:.3e}. Current CFL: {self.cfl:.3e}. Repeating full step with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
-                    current_time = backup_current_time # reset current time to before step 3 to repeat it with the new CFL
-                    self.cfl *= self.cfl_number_decrease_factor
-                else: # Solution is valid, update the state for the next substep
-                    pold[:] = p
-                    vold [:] = vnew
+            else: # Solution is valid, update the state for the next substep
+                pold[:] = p
+                vold[:] = vnew
+                self.cfl = min(self.cfl*self.cfl_number_increase_factor, self.max_cfl) # Increase CFL for next step if we are well below the limit
 
         # Update Kratos database once the substep loop is finished
         # Note that we do not update the Kratos database until the substep loop is finished, to avoid unnecessary data transfer between CPU and GPU
@@ -1169,13 +1178,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.p_adaptor.data = cfd_utils.asnumpy(p)
         self.p_adaptor.StoreData()
 
-    def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_elemental, proj_div_el, DN, tau, out=None):
+    def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_elemental, proj_div_el, DN, gamma=1.0, out=None):
         if out is None:
             raise ValueError("Output array must be provided to store the assembled residual values!")
         if out.shape != (self.nnodes,self.dim):
             raise ValueError(f"Output array has incompatible shape {out.shape}, expected {(self.nnodes,self.dim)}")
         res_assembled = out
 
+        if gamma not in (0,1):
+            raise ValueError(f"Provided 'gamma' is {gamma}. Accepted values are either 0 or 1.")
         ttot = time.perf_counter()
 
         #(w,b)
@@ -1211,11 +1222,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #print(f"\t\ttime {9}: {time.perf_counter() - t0}")
         self.pool.ReleaseByIndex(1)
 
-        #+(∇·w,p_gauss)
-        t0 = time.perf_counter()
-        res += self.cfd_utils.ComputeDNN(self.N, DN, p_elemental, out=self.pool.Get(1,v_elemental.shape))
-        #print(f"\t\ttime {10}: {time.perf_counter() - t0}")
-        self.pool.ReleaseByIndex(1)
+        #+(∇·w,gamma·p_gauss)
+        if gamma == 1:
+            t0 = time.perf_counter()
+            res += self.cfd_utils.ComputeDNN(self.N, DN, p_elemental, out=self.pool.Get(1,v_elemental.shape))
+            #print(f"\t\ttime {10}: {time.perf_counter() - t0}")
+            self.pool.ReleaseByIndex(1)
 
         #-(∇·w,tau_2·∇·v) + (∇·w,tau_2·Pi_div)
         t0 = time.perf_counter()
@@ -1277,7 +1289,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 "max_iteration" : 200,
                 "tolerance" : 1e-6
             },
-            "clear_divergence_steps" : 1,
             "velocity_safety_factor" : 1.25,
             "time_stepping" : {
                 "time_step" : 0.1,
@@ -1337,14 +1348,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # xp.divide(self.max_cfl, (rho_conv + eps), out=self.tmp_n_elem)
         # dt_cfl = xp.min(self.tmp_n_elem)
 
-        cfl_factor = 1.0
-        if self.clear_divergence_steps > 0:
-            cfl_factor = 0.1
-            KM.Logger.PrintInfo(self.__class__.__name__, "Applying stricter CFL condition for divergence clearance step.")
-
         #much better version avoiding vector divisions and mostly working with scalars
         max_rho_conv = xp.max(rho_conv)
-        dt_cfl = cfl_factor*self.cfl / (max_rho_conv + eps)
+        dt_cfl = self.cfl / (max_rho_conv + eps)
 
         # Return the most restrictive time step from all conditions
         return float(min(min(dt_cfl, self.dt_fourier), self.dt))
@@ -1352,29 +1358,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def _SolvePressure(self, rhs, previous_p):
         if USE_CUPY:
 
-            #set a stricter tolerance during the clear divergence steps.
-            if(self.clear_divergence_steps > 0):
-                #precond = JacobiPreconditioner(self.L)
-                factor =   1. #1e-6
-                exact_res_recalculation=1
-                self.preconditioner.update_matrix_values(self.L)
-                precond = self.preconditioner.aspreconditioner()
-                KM.Logger.PrintInfo(self.__class__.__name__, f"Solving pressure with stricter tolerance {factor*self.pressure_tolerance} during divergence clearance step.")
-                t0 = time.perf_counter()
-                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
-                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=None, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=500,xp=xp)
-            else:
-                t0 = time.perf_counter()
-                self.preconditioner.update_matrix_values(self.L)
-                if self.echo_level > 0:
-                    KM.Logger.PrintInfo(self.__class__.__name__, f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
-                precond = self.preconditioner.aspreconditioner()
+            t0 = time.perf_counter()
+            self.preconditioner.update_matrix_values(self.L)
+            if self.echo_level > 0:
+                KM.Logger.PrintInfo(self.__class__.__name__, f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
+            precond = self.preconditioner.aspreconditioner()
 
-                factor = 1.0
-                exact_res_recalculation=10
-                t0 = time.perf_counter()
-                #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond,maxiter=self.pressure_max_iteration)
-                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration,xp=xp)
+            t0 = time.perf_counter()
+            #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, M=precond,maxiter=self.pressure_max_iteration)
+            sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration,xp=xp)
 
             if (self.echo_level > 0):
                 KM.Logger.PrintInfo(self.__class__.__name__, f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
