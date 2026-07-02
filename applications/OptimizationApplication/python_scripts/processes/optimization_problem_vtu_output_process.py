@@ -91,4 +91,8 @@ class OptimizationProblemVtuOutputProcess(OptimizationProblemFieldOutputProcess)
         )
 
     def _CreateTensorAdaptorOutput(self, tensor_adaptor_data: TensorAdaptorData) -> TensorAdaptorOutput:
-        return TensorAdaptorVtuOutput(Kratos.ModelPartUtils.GetModelPart(self.model,tensor_adaptor_data.GetContainer()), self.parameters.Clone(), self.optimization_problem)
+        model_part = Kratos.ModelPartUtils.GetModelPart(self.model,tensor_adaptor_data.GetContainer())
+        if model_part is not None:
+            return TensorAdaptorVtuOutput(Kratos.ModelPartUtils.GetModelPart(self.model,tensor_adaptor_data.GetContainer()), self.parameters.Clone(), self.optimization_problem)
+        else:
+            raise RuntimeError("A model part is not found for the given tensor adaptor. Either remove the \"optimization_problem_vtu_output_process\" or check the tensor adaptor.")
