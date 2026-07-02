@@ -1,0 +1,14 @@
+Begin ModelPartData
+End ModelPartData
+Begin Properties 0
+End Properties
+Begin Properties 1
+End Properties
+Begin Nodes
+		1    -0.02    -0.02    0.04    
+		2     0.03     0.03    0.09    
+End Nodes
+Begin NodalData RADIUS
+1 0 0.04
+2 0 0.06
+End NodalData

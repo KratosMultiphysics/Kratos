@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<VTKFile byte_order="LittleEndian" type="Collection" version="1.0">
+   <Collection>
+      <DataSet file="Main/test_elements_0.vtu" name="test_elements" part="0" timestep="1.000000000e+00"/>
+      <DataSet file="Main/test_conditions_0.vtu" name="test_conditions" part="1" timestep="1.000000000e+00"/>
+   </Collection>
+</VTKFile>
