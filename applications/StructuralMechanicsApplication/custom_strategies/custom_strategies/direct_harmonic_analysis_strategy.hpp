@@ -700,20 +700,11 @@ private:
         for (auto& r_node : r_model_part.Nodes()) {
 
             // Initialize imaginary displacement
-            auto& r_displacement_imaginary =
-                r_node.FastGetSolutionStepValue(DISPLACEMENT_IMAGINARY);
+            auto& r_displacement_imaginary = r_node.FastGetSolutionStepValue(DISPLACEMENT_IMAGINARY);
+            auto& r_rotation_imaginary = r_node.FastGetSolutionStepValue(ROTATION_IMAGINARY);
 
-            r_displacement_imaginary[0] = 0.0;
-            r_displacement_imaginary[1] = 0.0;
-            r_displacement_imaginary[2] = 0.0;
-
-            // Initialize imaginary rotation
-            auto& r_rotation_imaginary =
-                r_node.FastGetSolutionStepValue(ROTATION_IMAGINARY);
-
-            r_rotation_imaginary[0] = 0.0;
-            r_rotation_imaginary[1] = 0.0;
-            r_rotation_imaginary[2] = 0.0;
+            r_displacement_imaginary = ZeroVector(3);
+            r_rotation_imaginary = ZeroVector(3);
 
             auto& r_node_dofs = r_node.GetDofs();
 
@@ -736,19 +727,14 @@ private:
                     // Store imaginary part
                     if (r_var == DISPLACEMENT_X) {
                         r_displacement_imaginary[0] = u_imag;
-
                     } else if (r_var == DISPLACEMENT_Y) {
                         r_displacement_imaginary[1] = u_imag;
-
                     } else if (r_var == DISPLACEMENT_Z) {
                         r_displacement_imaginary[2] = u_imag;
-
                     } else if (r_var == ROTATION_X) {
                         r_rotation_imaginary[0] = u_imag;
-
                     } else if (r_var == ROTATION_Y) {
                         r_rotation_imaginary[1] = u_imag;
-
                     } else if (r_var == ROTATION_Z) {
                         r_rotation_imaginary[2] = u_imag;
                     }
@@ -760,19 +746,14 @@ private:
 
                     if (r_var == DISPLACEMENT_X) {
                         r_displacement_imaginary[0] = 0.0;
-
                     } else if (r_var == DISPLACEMENT_Y) {
                         r_displacement_imaginary[1] = 0.0;
-
                     } else if (r_var == DISPLACEMENT_Z) {
                         r_displacement_imaginary[2] = 0.0;
-
                     } else if (r_var == ROTATION_X) {
                         r_rotation_imaginary[0] = 0.0;
-
                     } else if (r_var == ROTATION_Y) {
                         r_rotation_imaginary[1] = 0.0;
-
                     } else if (r_var == ROTATION_Z) {
                         r_rotation_imaginary[2] = 0.0;
                     }
