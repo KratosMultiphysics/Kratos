@@ -261,7 +261,6 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
             N_matrix(d, i_node*BlockSize + d) = r_N(i_node);
         }
     }
-    const Matrix N_matrix_trans = trans(N_matrix);
 
     // Precompute projection matrices
     // Normal projection in Voigt notation (A matrix)
@@ -337,7 +336,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     auto [pen_coeff_tang_1, pen_coeff_tang_2] = this->ComputeSlipTangentialPenaltyCoefficients(
         slip_length, gamma_penalty, gamma_penalty_shear, parent_size, effective_viscosity);
     const double pen_tang_w_1 = pen_coeff_tang_1 * weight;
-    const double pen_tang_w_2 = pen_coeff_tang_1 * weight;
+    const double pen_tang_w_2 = pen_coeff_tang_2 * weight;
 
     const Matrix Nt_Ptang = prod(trans(N_matrix), Ptang);
 
