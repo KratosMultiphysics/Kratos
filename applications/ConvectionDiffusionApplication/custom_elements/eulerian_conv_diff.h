@@ -138,6 +138,8 @@ protected:
 
     double CalculateTau(const ElementVariables& rVariables, double norm_vel, double h);
 
+    void ComputeTurbulentConductivity( const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX, double h, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+
     // Member Variables
 
 

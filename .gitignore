@@ -91,4 +91,3 @@ remote_*.md
 
 # External downloaded libs (TPL downloaded libs, etc...)
 external_libraries/tetgen/*
-applications/MeshingApplication/custom_external_libraries/*

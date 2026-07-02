@@ -62,7 +62,6 @@ public:
         double Emissivity;            // Ambient emissivity value
         double AmbientTemperature;    // Ambient temperature value
         double ConvectionCoefficient; // Ambient convection coefficient
-        bool UseLumpedMatrix;         // Use lumped (diagonal) LHS matrix
         Vector UnknownValues;         // Previous iteration unknown values
         Vector FaceHeatFluxValues;    // Nodal face heat flux values
 

@@ -103,10 +103,12 @@ namespace Kratos
         this-> GetNodalValues(Variables,rCurrentProcessInfo);
         double h = this->ComputeH(DN_DX);
 
-        // Fourier-based minimum conductivity to prevent pure-Neumann drift
-        // k_min = rho * cp * h^2 / dt ensures element Fourier number >= 1
-        const double k_fourier = Variables.density * Variables.specific_heat * h * h * Variables.dt_inv;
-        Variables.conductivity = std::max(Variables.conductivity, k_fourier);
+        if (this->GetValue(FLAG_VARIABLE) && this->GetProperties().Has(ARTIFICIAL_CONDUCTIVITY))
+        {        
+            Variables.conductivity = this->GetProperties()[ARTIFICIAL_CONDUCTIVITY];
+        } 
+
+        this->ComputeTurbulentConductivity(DN_DX, h, Variables, rCurrentProcessInfo);
 
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(Variables.phi+Variables.phi_old));
         const double norm_grad = norm_2(grad_phi_halfstep);
@@ -401,6 +403,53 @@ namespace Kratos
         inv_tau = std::max(inv_tau, 1e-2);
 
         return (rVariables.density*rVariables.specific_heat) / inv_tau;
+    }
+
+//----------------------------------------------------------------------------------------
+
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::ComputeTurbulentConductivity( 
+        const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX, double h, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+    {
+        const double Csmag = this->GetProperties().Has(C_SMAGORINSKY) ? this->GetProperties()[C_SMAGORINSKY] : 0.0;
+
+        bool has_velocity = false;
+        for (unsigned int i = 0; i < TNumNodes && !has_velocity; i++)
+            for (unsigned int k = 0; k < TDim; k++)
+                if (std::abs(rVariables.v[i][k]) > 1e-12)
+                    has_velocity = true;
+
+        if (Csmag > 0.0 && has_velocity) {
+            // Compute velocity gradient: vel_grad(k, j) = dv_k / dx_j
+            BoundedMatrix<double, TDim, TDim> vel_grad = ZeroMatrix(TDim, TDim);
+            for (unsigned int i = 0; i < TNumNodes; i++) {
+                for (unsigned int j = 0; j < TDim; j++) {
+                    for (unsigned int k = 0; k < TDim; k++) {
+                        vel_grad(k, j) += rDN_DX(i, j) * rVariables.v[i][k];
+                    }
+                }
+            }
+
+            // Compute |S| = sqrt(2 * S_ij * S_ij) where S_ij = 0.5*(dv_i/dx_j + dv_j/dx_i)
+            double S2 = 0.0;
+            for (unsigned int i = 0; i < TDim; i++) {
+                for (unsigned int j = 0; j < TDim; j++) {
+                    const double Sij = 0.5 * (vel_grad(i, j) + vel_grad(j, i));
+                    S2 += 2.0 * Sij * Sij;
+                }
+            }
+            const double strain_rate = std::sqrt(S2);
+
+            // Eddy viscosity (Smagorinsky): nu_t = (C_s * h)^2 * |S|
+            const double length_scale = Csmag * h;
+            const double eddy_viscosity = length_scale * length_scale * strain_rate;
+
+            // Turbulent thermal conductivity: k_t = rho * cp * nu_t / Pr_t
+            const double Pr_t = this->GetProperties().Has(PR_ART_VISC) ? this->GetProperties()[PR_ART_VISC] : 0.90;
+            const double k_turbulent = rVariables.density * rVariables.specific_heat * eddy_viscosity / Pr_t;
+
+            rVariables.conductivity += k_turbulent;
+        }
     }
 
 //----------------------------------------------------------------------------------------
