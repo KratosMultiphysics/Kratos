@@ -21,9 +21,9 @@
             "stage_preprocess": {
                 "modelers": [
                     {
-                        "name": "KratosMultiphysics.modelers.import_mdpa_modeler.ImportMDPAModeler",
+                        "name": "Modelers.KratosMultiphysics.ImportMDPAModeler",
                         "Parameters": {
-                            "input_filename": "../../common/crow_validation_gid",
+                            "input_filename": "../../common/model",
                             "model_part_name": "PorousDomain"
                         }
                     }
@@ -81,7 +81,7 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-04,
                     "residual_absolute_tolerance": 1.0e-09,
@@ -90,7 +90,6 @@
                     "number_cycles": 1,
                     "reduction_factor": 0.5,
                     "increase_factor": 2.0,
-                    "calculate_reactions": true,
                     "rotation_dofs": true,
                     "newmark_beta": 0.25,
                     "newmark_gamma": 0.5,
@@ -295,7 +294,7 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-04,
                     "residual_absolute_tolerance": 1.0e-09,
@@ -304,7 +303,6 @@
                     "number_cycles": 1,
                     "reduction_factor": 0.5,
                     "increase_factor": 2.0,
-                    "calculate_reactions": true,
                     "rotation_dofs": true,
                     "newmark_beta": 0.25,
                     "newmark_gamma": 0.5,
@@ -509,7 +507,7 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": true,
+                    "reset_totals": true,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-03,
                     "residual_absolute_tolerance": 1.0e-09,
@@ -518,7 +516,6 @@
                     "number_cycles": 1,
                     "reduction_factor": 0.5,
                     "increase_factor": 2.0,
-                    "calculate_reactions": true,
                     "rotation_dofs": true,
                     "newmark_beta": 0.25,
                     "newmark_gamma": 0.5,
@@ -573,8 +570,25 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side",
-                                "output_file_name": "3_Wall_installation_interface_output.json",
+                                "model_part_name": "PorousDomain.Sheet_Pile_Wall",
+                                "output_file_name": "3_Wall_installation__output_wall.json",
+                                "output_variables": [
+                                    "BENDING_MOMENT",
+                                    "SHEAR_FORCE",
+                                    "AXIAL_FORCE",
+                                    "TOTAL_DISPLACEMENT"
+                                ],
+                                "gauss_points_output_variables": [],
+                                "time_frequency": 0.9999999999
+                            }
+                        },
+                        {
+                            "python_module": "json_output_process",
+                            "kratos_module": "KratosMultiphysics",
+                            "process_name": "JsonOutputProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
+                                "output_file_name": "3_Wall_installation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -728,20 +742,13 @@
                                         "nodal_results": [
                                             "DISPLACEMENT",
                                             "TOTAL_DISPLACEMENT",
-                                            "ROTATION",
                                             "WATER_PRESSURE",
-                                            "REACTION",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "REACTION"
                                         ],
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "ENGINEERING_STRAIN_TENSOR"
                                         ]
                                     }
                                 },
@@ -799,7 +806,7 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-03,
                     "residual_absolute_tolerance": 1.0e-09,
@@ -808,13 +815,11 @@
                     "number_cycles": 1,
                     "reduction_factor": 0.5,
                     "increase_factor": 2.0,
-                    "calculate_reactions": true,
                     "rotation_dofs": true,
                     "newmark_beta": 0.25,
                     "newmark_gamma": 0.5,
                     "newmark_theta": 0.5,
                     "problem_domain_sub_model_part_list": [
-                        "Excavated_Soil_1",
                         "Excavated_Soil_2",
                         "Excavated_Soil_3",
                         "Soil_Below_Pit",
@@ -825,7 +830,6 @@
                         "Interface_Top_Right",
                         "Interface_Middle_Right",
                         "Interface_Bottom_Right",
-                        "Interface_Excavated_Soil_1",
                         "Interface_Excavated_Soil_2",
                         "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
@@ -833,7 +837,6 @@
                         "Sheet_Pile_Wall"
                     ],
                     "body_domain_sub_model_part_list": [
-                        "Excavated_Soil_1",
                         "Excavated_Soil_2",
                         "Excavated_Soil_3",
                         "Soil_Below_Pit",
@@ -844,7 +847,6 @@
                         "Interface_Top_Right",
                         "Interface_Middle_Right",
                         "Interface_Bottom_Right",
-                        "Interface_Excavated_Soil_1",
                         "Interface_Excavated_Soil_2",
                         "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
@@ -863,8 +865,25 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side",
-                                "output_file_name": "4_First_excavation_interface_output.json",
+                                "model_part_name": "PorousDomain.Sheet_Pile_Wall",
+                                "output_file_name": "4_First_excavation__output_wall.json",
+                                "output_variables": [
+                                    "BENDING_MOMENT",
+                                    "SHEAR_FORCE",
+                                    "AXIAL_FORCE",
+                                    "TOTAL_DISPLACEMENT"
+                                ],
+                                "gauss_points_output_variables": [],
+                                "time_frequency": 0.9999999999
+                            }
+                        },
+                        {
+                            "python_module": "json_output_process",
+                            "kratos_module": "KratosMultiphysics",
+                            "process_name": "JsonOutputProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
+                                "output_file_name": "4_First_excavation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -1032,20 +1051,13 @@
                                         "nodal_results": [
                                             "DISPLACEMENT",
                                             "TOTAL_DISPLACEMENT",
-                                            "ROTATION",
                                             "WATER_PRESSURE",
-                                            "REACTION",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "REACTION"
                                         ],
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "ENGINEERING_STRAIN_TENSOR"
                                         ]
                                     }
                                 },
@@ -1100,7 +1112,7 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-02,
                     "residual_absolute_tolerance": 1.0e-09,
@@ -1109,13 +1121,11 @@
                     "number_cycles": 1,
                     "reduction_factor": 0.5,
                     "increase_factor": 2.0,
-                    "calculate_reactions": true,
                     "rotation_dofs": true,
                     "newmark_beta": 0.25,
                     "newmark_gamma": 0.5,
                     "newmark_theta": 0.5,
                     "problem_domain_sub_model_part_list": [
-                        "Excavated_Soil_1",
                         "Excavated_Soil_2",
                         "Excavated_Soil_3",
                         "Soil_Below_Pit",
@@ -1126,7 +1136,6 @@
                         "Interface_Top_Right",
                         "Interface_Middle_Right",
                         "Interface_Bottom_Right",
-                        "Interface_Excavated_Soil_1",
                         "Interface_Excavated_Soil_2",
                         "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
@@ -1135,7 +1144,6 @@
                         "Anchor"
                     ],
                     "body_domain_sub_model_part_list": [
-                        "Excavated_Soil_1",
                         "Excavated_Soil_2",
                         "Excavated_Soil_3",
                         "Soil_Below_Pit",
@@ -1146,7 +1154,6 @@
                         "Interface_Top_Right",
                         "Interface_Middle_Right",
                         "Interface_Bottom_Right",
-                        "Interface_Excavated_Soil_1",
                         "Interface_Excavated_Soil_2",
                         "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
@@ -1166,8 +1173,25 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side",
-                                "output_file_name": "5_Anchor_installation_interface_output.json",
+                                "model_part_name": "PorousDomain.Sheet_Pile_Wall",
+                                "output_file_name": "5_Anchor_installation__output_wall.json",
+                                "output_variables": [
+                                    "BENDING_MOMENT",
+                                    "SHEAR_FORCE",
+                                    "AXIAL_FORCE",
+                                    "TOTAL_DISPLACEMENT"
+                                ],
+                                "gauss_points_output_variables": [],
+                                "time_frequency": 0.9999999999
+                            }
+                        },
+                        {
+                            "python_module": "json_output_process",
+                            "kratos_module": "KratosMultiphysics",
+                            "process_name": "JsonOutputProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
+                                "output_file_name": "5_Anchor_installation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -1338,20 +1362,13 @@
                                         "nodal_results": [
                                             "DISPLACEMENT",
                                             "TOTAL_DISPLACEMENT",
-                                            "ROTATION",
                                             "WATER_PRESSURE",
-                                            "REACTION",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "REACTION"
                                         ],
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "ENGINEERING_STRAIN_TENSOR"
                                         ]
                                     }
                                 },
@@ -1409,7 +1426,7 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-02,
                     "residual_absolute_tolerance": 1.0e-09,
@@ -1418,14 +1435,11 @@
                     "number_cycles": 1,
                     "reduction_factor": 0.5,
                     "increase_factor": 2.0,
-                    "calculate_reactions": true,
                     "rotation_dofs": true,
                     "newmark_beta": 0.25,
                     "newmark_gamma": 0.5,
                     "newmark_theta": 0.5,
                     "problem_domain_sub_model_part_list": [
-                        "Excavated_Soil_1",
-                        "Excavated_Soil_2",
                         "Excavated_Soil_3",
                         "Soil_Below_Pit",
                         "Soil_Bottom_Left",
@@ -1435,8 +1449,6 @@
                         "Interface_Top_Right",
                         "Interface_Middle_Right",
                         "Interface_Bottom_Right",
-                        "Interface_Excavated_Soil_1",
-                        "Interface_Excavated_Soil_2",
                         "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
                         "Interface_Bottom_Left",
@@ -1444,8 +1456,6 @@
                         "Anchor"
                     ],
                     "body_domain_sub_model_part_list": [
-                        "Excavated_Soil_1",
-                        "Excavated_Soil_2",
                         "Excavated_Soil_3",
                         "Soil_Below_Pit",
                         "Soil_Bottom_Left",
@@ -1455,8 +1465,6 @@
                         "Interface_Top_Right",
                         "Interface_Middle_Right",
                         "Interface_Bottom_Right",
-                        "Interface_Excavated_Soil_1",
-                        "Interface_Excavated_Soil_2",
                         "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
                         "Interface_Bottom_Left",
@@ -1475,8 +1483,25 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side",
-                                "output_file_name": "6_Second_excavation_interface_output.json",
+                                "model_part_name": "PorousDomain.Sheet_Pile_Wall",
+                                "output_file_name": "6_Second_excavation__output_wall.json",
+                                "output_variables": [
+                                    "BENDING_MOMENT",
+                                    "SHEAR_FORCE",
+                                    "AXIAL_FORCE",
+                                    "TOTAL_DISPLACEMENT"
+                                ],
+                                "gauss_points_output_variables": [],
+                                "time_frequency": 0.9999999999
+                            }
+                        },
+                        {
+                            "python_module": "json_output_process",
+                            "kratos_module": "KratosMultiphysics",
+                            "process_name": "JsonOutputProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
+                                "output_file_name": "6_Second_excavation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -1585,7 +1610,6 @@
                                     "PorousDomain.Interface_Top_Right",
                                     "PorousDomain.Interface_Middle_Right",
                                     "PorousDomain.Interface_Bottom_Right",
-                                    "PorousDomain.Interface_Excavated_Soil_2",
                                     "PorousDomain.Interface_Excavated_Soil_3",
                                     "PorousDomain.Interface_Middle_Left",
                                     "PorousDomain.Interface_Bottom_Left",
@@ -1647,20 +1671,13 @@
                                         "nodal_results": [
                                             "DISPLACEMENT",
                                             "TOTAL_DISPLACEMENT",
-                                            "ROTATION",
                                             "WATER_PRESSURE",
-                                            "REACTION",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "REACTION"
                                         ],
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "ENGINEERING_STRAIN_TENSOR"
                                         ]
                                     }
                                 },
@@ -1718,7 +1735,7 @@
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
-                    "reset_displacements": false,
+                    "reset_totals": false,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 1.0e-02,
                     "residual_absolute_tolerance": 1.0e-09,
@@ -1727,15 +1744,11 @@
                     "number_cycles": 1,
                     "reduction_factor": 0.5,
                     "increase_factor": 2.0,
-                    "calculate_reactions": true,
                     "rotation_dofs": true,
                     "newmark_beta": 0.25,
                     "newmark_gamma": 0.5,
                     "newmark_theta": 0.5,
                     "problem_domain_sub_model_part_list": [
-                        "Excavated_Soil_1",
-                        "Excavated_Soil_2",
-                        "Excavated_Soil_3",
                         "Soil_Below_Pit",
                         "Soil_Bottom_Left",
                         "Soil_Bottom_Right",
@@ -1744,18 +1757,12 @@
                         "Interface_Top_Right",
                         "Interface_Middle_Right",
                         "Interface_Bottom_Right",
-                        "Interface_Excavated_Soil_1",
-                        "Interface_Excavated_Soil_2",
-                        "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
                         "Interface_Bottom_Left",
                         "Sheet_Pile_Wall",
                         "Anchor"
                     ],
                     "body_domain_sub_model_part_list": [
-                        "Excavated_Soil_1",
-                        "Excavated_Soil_2",
-                        "Excavated_Soil_3",
                         "Soil_Below_Pit",
                         "Soil_Bottom_Left",
                         "Soil_Bottom_Right",
@@ -1764,9 +1771,6 @@
                         "Interface_Top_Right",
                         "Interface_Middle_Right",
                         "Interface_Bottom_Right",
-                        "Interface_Excavated_Soil_1",
-                        "Interface_Excavated_Soil_2",
-                        "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
                         "Interface_Bottom_Left",
                         "Sheet_Pile_Wall",
@@ -1784,8 +1788,25 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side",
-                                "output_file_name": "7_Third_excavation_interface_output.json",
+                                "model_part_name": "PorousDomain.Sheet_Pile_Wall",
+                                "output_file_name": "7_Third_excavation__output_wall.json",
+                                "output_variables": [
+                                    "BENDING_MOMENT",
+                                    "SHEAR_FORCE",
+                                    "AXIAL_FORCE",
+                                    "TOTAL_DISPLACEMENT"
+                                ],
+                                "gauss_points_output_variables": [],
+                                "time_frequency": 0.9999999999
+                            }
+                        },
+                        {
+                            "python_module": "json_output_process",
+                            "kratos_module": "KratosMultiphysics",
+                            "process_name": "JsonOutputProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
+                                "output_file_name": "7_Third_excavation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -1893,8 +1914,6 @@
                                     "PorousDomain.Interface_Top_Right",
                                     "PorousDomain.Interface_Middle_Right",
                                     "PorousDomain.Interface_Bottom_Right",
-                                    "PorousDomain.Interface_Excavated_Soil_2",
-                                    "PorousDomain.Interface_Excavated_Soil_3",
                                     "PorousDomain.Interface_Middle_Left",
                                     "PorousDomain.Interface_Bottom_Left",
                                     "PorousDomain.Sheet_Pile_Wall",
@@ -1955,20 +1974,13 @@
                                         "nodal_results": [
                                             "DISPLACEMENT",
                                             "TOTAL_DISPLACEMENT",
-                                            "ROTATION",
                                             "WATER_PRESSURE",
-                                            "REACTION",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "REACTION"
                                         ],
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "ENGINEERING_STRAIN_TENSOR"
                                         ]
                                     }
                                 },

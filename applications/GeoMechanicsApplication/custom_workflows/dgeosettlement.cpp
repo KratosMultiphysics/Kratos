@@ -106,9 +106,9 @@ std::size_t GetMaxNumberOfIterationsFrom(const Parameters& rProjectParameters)
     return static_cast<std::size_t>(rProjectParameters["solver_settings"]["max_iterations"].GetInt());
 }
 
-bool GetResetDisplacementsFrom(const Parameters& rProjectParameters)
+bool GetResetTotalsFrom(const Parameters& rProjectParameters)
 {
-    return rProjectParameters["solver_settings"]["reset_displacements"].GetBool();
+    return rProjectParameters["solver_settings"]["reset_totals"].GetBool();
 }
 
 } // namespace
@@ -361,7 +361,7 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     ResetValuesOfNodalVariable(DISPLACEMENT);
     ResetValuesOfNodalVariable(ROTATION);
 
-    if (GetResetDisplacementsFrom(rProjectParameters)) {
+    if (GetResetTotalsFrom(rProjectParameters)) {
         ResetValuesOfNodalVariable(TOTAL_DISPLACEMENT);
 
         VariableUtils{}.UpdateCurrentToInitialConfiguration(GetComputationalModelPart().Nodes());
@@ -376,7 +376,7 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
     return std::make_shared<SolvingStrategyWrapperType>(std::move(solving_strategy),
-                                                        GetResetDisplacementsFrom(rProjectParameters),
+                                                        GetResetTotalsFrom(rProjectParameters),
                                                         rWorkingDirectory, rProjectParameters);
 }
 
