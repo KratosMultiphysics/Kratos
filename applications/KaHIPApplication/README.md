@@ -32,10 +32,25 @@ serving as a drop-in alternative to `MetisApplication`. It:
 ## Prerequisites
 
 - Kratos Multiphysics (built with this application enabled)
-- KaHIP ≥ v3.25 (the in-tree build under `external_libraries/KaHIP` is used by default)
+- KaHIP ≥ v3.25, built separately (not vendored in this repository)
 - OpenMP (required by KaHIP)
 - MPI (optional; required for `KaHIPDivideHeterogeneousInputInMemoryProcess` and
   `KaHIPPartitioningModeler` MPI mode)
+
+## Building KaHIP
+
+KaHIP is not bundled with Kratos, the same way METIS or MMG are not. Build it
+separately and point Kratos at the result:
+
+```bash
+git clone https://github.com/KaHIP/KaHIP.git
+cd KaHIP
+# custom_external_libraries/KaHIP/configure.sh is provided as a build helper;
+# see its --help for the full option list (e.g. --no-mpi, --64bit, --python).
+bash /path/to/Kratos/applications/KaHIPApplication/custom_external_libraries/KaHIP/configure.sh --no-native
+```
+
+By default the script deploys the built headers/libraries into `KaHIP/deploy/`.
 
 ## CMake Configuration
 
@@ -43,14 +58,8 @@ serving as a drop-in alternative to `MetisApplication`. It:
 # Enable the application (add to configure.sh or cmake command line)
 add_app ${KRATOS_APP_DIR}/KaHIPApplication
 
-# Optional: point to a system or custom KaHIP installation.
-# When not set, KaHIP is automatically cloned from GitHub into
-# external_libraries/KaHIP/ and built using the configure.sh script
-# bundled in custom_external_libraries/KaHIP/.
--DKAHIP_ROOT=/path/to/kahip/build
-
-# Optional: disable the auto-download (error out if KaHIP is not found)
--DKAHIP_DOWNLOAD_IF_NOT_FOUND=OFF
+# Required: point to the KaHIP build/deploy directory
+-DKAHIP_ROOT=/path/to/kahip/deploy
 
 # Optional: enable 64-bit edge indices (for meshes with > 2^31 edge entries)
 -DKAHIP_64BIT=ON
@@ -59,17 +68,9 @@ add_app ${KRATOS_APP_DIR}/KaHIPApplication
 -DKAHIP_USE_PARHIP=OFF
 ```
 
-### Auto-download behaviour
-
-If `KAHIP_ROOT` is not set and no system KaHIP is found, CMake automatically:
-
-1. Clones the KaHIP repository into `external_libraries/KaHIP/`.
-2. Copies `custom_external_libraries/KaHIP/configure.sh` into the build
-   directory and invokes it (`--no-native`; `--no-mpi` unless `USE_MPI=ON`).
-3. Points `KAHIP_ROOT` at the resulting `external_libraries/KaHIP/deploy/`
-   directory for subsequent builds (no re-download once the source is present).
-
-Disable with `-DKAHIP_DOWNLOAD_IF_NOT_FOUND=OFF`.
+`KAHIP_ROOT` can also be set as an environment variable instead of a CMake
+cache variable. If unset, `FindKaHIP.cmake` falls back to standard system
+paths and `pkg-config`.
 
 ---
 

@@ -4,11 +4,8 @@
 #
 # Search order
 # 1. KAHIP_ROOT / KAHIP_DIR environment variables (or CMake cache variables)
-# 2. ${KRATOS_SOURCE_DIR}/external_libraries/KaHIP/deploy  (auto-built in-tree)
-# 3. ${KRATOS_SOURCE_DIR}/external_libraries/KaHIP/build   (in-tree build)
-# 4. ${KRATOS_SOURCE_DIR}/external_libraries/KaHIP         (in-tree source)
-# 5. Standard system paths
-# 6. pkg-config  (kahip)
+# 2. Standard system paths
+# 3. pkg-config  (kahip)
 #
 # Result variables
 # ----------------
@@ -38,14 +35,6 @@ if(DEFINED ENV{KAHIP_DIR})
 endif()
 if(DEFINED KAHIP_DIR)
     list(APPEND _kahip_search_hints "${KAHIP_DIR}")
-endif()
-
-# In-tree: search deploy/ (auto-built), build/, and source root
-if(DEFINED KRATOS_SOURCE_DIR)
-    set(_kahip_intree "${KRATOS_SOURCE_DIR}/external_libraries/KaHIP")
-    list(APPEND _kahip_search_hints "${_kahip_intree}/deploy")
-    list(APPEND _kahip_search_hints "${_kahip_intree}/build")
-    list(APPEND _kahip_search_hints "${_kahip_intree}")
 endif()
 
 # ── Header ────────────────────────────────────────────────────────────────────

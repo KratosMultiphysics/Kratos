@@ -401,9 +401,7 @@ if [[ $DEPLOY -eq 1 && $DRY_RUN -eq 0 ]]; then
         mkdir -p "${DEPLOY_DIR}/parallel"
 
         # ParHIP executables
-        for f in "${PARHIP_SRC_DIR}"/parhip*; do
-            [[ -f "$f" ]] && cp "$f" "${DEPLOY_DIR}/parhip" && ok "  parhip"
-        done
+        [[ -f "${PARHIP_SRC_DIR}/parhip" ]] && cp "${PARHIP_SRC_DIR}/parhip" "${DEPLOY_DIR}/parhip" && ok "  parhip"
         for f in "${PARHIP_SRC_DIR}"/toolbox*; do
             [[ -f "$f" ]] && cp "$f" "${DEPLOY_DIR}/toolbox" && ok "  toolbox"
         done
@@ -420,11 +418,11 @@ if [[ $DEPLOY -eq 1 && $DRY_RUN -eq 0 ]]; then
             [[ -f "$f" ]] && cp "$f" "${DEPLOY_DIR}/readbgf" && ok "  readbgf"
         done
 
-        # ParHIP library
-        for lib in "${PARHIP_SRC_DIR}"/libparhip_interface.a "${PARHIP_SRC_DIR}"/libparhip_interface.so*; do
+        # ParHIP library — keep the libparhip_interface* name, FindKaHIP.cmake
+        # searches for NAMES parhip_interface / parhip_interface_static.
+        for lib in "${PARHIP_SRC_DIR}"/libparhip_interface*.a "${PARHIP_SRC_DIR}"/libparhip_interface*.so*; do
             if [[ -f "$lib" ]]; then
-                DEST_NAME="libparhip.$(basename "$lib" | sed 's/libparhip_interface/libparhip/')"
-                cp "$lib" "${DEPLOY_DIR}/${DEST_NAME}" && ok "  $DEST_NAME"
+                cp "$lib" "${DEPLOY_DIR}/" && ok "  $(basename "$lib")"
             fi
         done
 
