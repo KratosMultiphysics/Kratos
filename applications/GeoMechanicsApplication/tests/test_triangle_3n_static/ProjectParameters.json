@@ -29,7 +29,7 @@
         "reform_dofs_at_each_step":           false,
         "block_builder":                      true,
         "solution_type":                      "static",
-        "reset_displacements":                true,
+        "reset_totals":                       true,
         "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-9,
