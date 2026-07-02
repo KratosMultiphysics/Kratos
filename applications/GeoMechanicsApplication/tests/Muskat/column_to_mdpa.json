@@ -1,0 +1,13 @@
+{
+    "dimension": 2,
+    "elements": {
+        "default": "SteadyStatePwElement2D6N"
+    },
+    "conditions": {
+        "default": "LineCondition{dim}{nn}N"
+    },
+    "boundaries_nodes_only": {
+        "physical_names": ["column_left_boundary", "column_right_boundary"],
+        "physical_tags": []
+    }
+}
