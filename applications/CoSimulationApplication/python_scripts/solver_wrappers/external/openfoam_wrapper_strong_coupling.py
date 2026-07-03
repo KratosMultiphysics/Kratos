@@ -87,17 +87,15 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
             self.ExportData(data_config)
 
     def AdvanceInTime(self, current_time):
-        next_time = current_time + self.time_step
         tol = 1e-10
 
-        if next_time > self.end_time + tol:
-            raise RuntimeError(
-                f"Trying to advance beyond end_time: "
-                f"current_time={current_time}, dt={self.time_step}, "
-                f"next_time={next_time}, end_time={self.end_time}"
-            )
+        if current_time >= self.end_time - tol:
+            self.current_time = self.end_time
+            return self.current_time
 
-        if abs(next_time - self.end_time) < tol:
+        next_time = current_time + self.time_step
+
+        if next_time > self.end_time:
             next_time = self.end_time
 
         self.current_time = next_time
