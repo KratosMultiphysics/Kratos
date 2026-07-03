@@ -131,7 +131,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def ApplyVelocitySlipConditions(self, v, normals): #TODO: normalize normals only once
         # Get velocity and normal view of slip nodes
-        n_slip_nodes = len(self.slip_node_ids)
         v_slip = v[self.slip_node_ids]
         n_unit = normals[self.slip_node_ids]
 
@@ -235,15 +234,29 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         else:
             raise ValueError('Please provide the name of the .json file containing the materials data as the "materials_filename" (string) parameter within the "material_import_settings" block!')
 
-        # Save dynamic viscosity and density from model part properties
+        # Save material properties from model part property container
         # Note that we are assuming that they are defined in the first property of the model part
         if not self.GetComputingModelPart().HasProperties(1):
             raise Exception("Fluid material properties must be provided in property with Id 1!")
         else:
-            self.rho = self.GetComputingModelPart().GetProperties(1).GetValue(KM.DENSITY)
-            self.dyn_visc = self.GetComputingModelPart().GetProperties(1).GetValue(KM.DYNAMIC_VISCOSITY)
+            # Get DENSITY
+            if self.GetComputingModelPart().GetProperties(1).Has(KM.DENSITY):
+                self.rho = self.GetComputingModelPart().GetProperties(1).GetValue(KM.DENSITY)
+            else:
+                raise Exception("DENSITY is not found in fluid properties.")
+            
+            # Get DYNAMIC_VISCOSITY
+            if self.GetComputingModelPart().GetProperties(1).Has(KM.DYNAMIC_VISCOSITY):
+                self.dyn_visc = self.GetComputingModelPart().GetProperties(1).GetValue(KM.DYNAMIC_VISCOSITY)
+            else:
+                raise Exception("DYNAMIC_VISCOSITY is not found in fluid properties.")
+            
+            # If weak compressibility is considered, get SOUND_VELOCITY
             if self.compressibility is not None:
-                sound_velocity = self.GetComputingModelPart().GetProperties(1).GetValue(KM.SOUND_VELOCITY)
+                if self.GetComputingModelPart().GetProperties(1).Has(KM.SOUND_VELOCITY):
+                    sound_velocity = self.GetComputingModelPart().GetProperties(1).GetValue(KM.SOUND_VELOCITY)
+                else:
+                    raise Exception("Weak compressibility is active but SOUND_VELOCITY is not found in fluid properties.")
                 self.bulk_modulus = self.rho * sound_velocity**2
 
     def _AddVariables(self):
@@ -1040,6 +1053,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         while (self.time - current_time > 1.0e-12):
             # Check if current step is within the startup phase
             self.is_startup = current_time < self.startup_time
+            KM.Logger.PrintInfo(self.__class__.__name__, f"\tStartup: {self.is_startup}.")
             check_vmax_step_1 = True if not self.is_startup else False
             check_vmax_step_3 = True if not self.is_startup else False
 
@@ -1053,10 +1067,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
             # If first order projection is active, deactivate the pressure stabilization in the pressure solution step
             gamma = 0.0 if self.first_order_splitting else 1.0
-            if self.first_order_splitting:
-                self.deactivate_pressure_stabilization = True
-            else:
-                self.deactivate_pressure_stabilization = False
+            self.deactivate_pressure_stabilization = True if self.is_startup else False
+            # if self.first_order_splitting:
+            #     self.deactivate_pressure_stabilization = True
+            # else:
+            #     self.deactivate_pressure_stabilization = False
             KM.Logger.PrintInfo(self.__class__.__name__, f"\tFirst order splitting: {self.first_order_splitting}. Splitting gamma factor set to: {gamma}. Deactivate pressure stabilization: {self.deactivate_pressure_stabilization}.")
 
             # Explicitly backup the state once per substep
@@ -1112,7 +1127,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                     if vmax_after_step1 > self.velocity_safety_factor * vmax: # Check maximum fractional velocity against velocity safety factor
                         KM.Logger.PrintWarning(self.__class__.__name__,f"Local max velocity increased significantly after step 1: {vmax_after_step1:.3e} vs {vmax:.3e}.")
                         repeat_step1 = True
-                else:
+                    else: # Maximum velocity is valid, move to step 2
+                        repeat_step1 = False
+                else: # Solution is assumed to be valid, move to step 2
                     repeat_step1 = False
 
                 # Prepare step 1 repetition
