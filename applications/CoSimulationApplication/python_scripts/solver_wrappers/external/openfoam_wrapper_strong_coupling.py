@@ -87,7 +87,20 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
             self.ExportData(data_config)
 
     def AdvanceInTime(self, current_time):
-        self.current_time = current_time + self.time_step
+        next_time = current_time + self.time_step
+        tol = 1e-10
+
+        if next_time > self.end_time + tol:
+            raise RuntimeError(
+                f"Trying to advance beyond end_time: "
+                f"current_time={current_time}, dt={self.time_step}, "
+                f"next_time={next_time}, end_time={self.end_time}"
+            )
+
+        if abs(next_time - self.end_time) < tol:
+            next_time = self.end_time
+
+        self.current_time = next_time
         print("AdvanceInTime!!! current_time =", self.current_time)
         return self.current_time
 
@@ -186,14 +199,14 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
 
     def FinalizeSolutionStep(self):
 
-        tol = 1e-12
+        tol = 1e-10
         if self.current_time + tol >= self.end_time:
             print("Kratos: sending finalize signal to OpenFOAM")
             self.sendControlSignal("finalize")
         else:
             self.sendControlSignal("coupling_ongoing", {"coupling_ongoing": True})
         
-        super().OutputSolutionStep()
+        super().FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
         super().OutputSolutionStep()
