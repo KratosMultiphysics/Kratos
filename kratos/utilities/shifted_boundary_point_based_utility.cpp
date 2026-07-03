@@ -743,7 +743,7 @@ namespace Kratos
 
         // Create vectors for skin point data and sums for parallelization
         const std::size_t num_threads = ParallelUtilities::GetNumThreads();
-        const std::size_t n_skin_pts_expected = mpSkinDiscSubModelPart->NumberOfElements() * 3;
+        const std::size_t n_skin_pts_expected = mpSkinPointsSubModelPart->NumberOfNodes();
         const std::size_t n_local_skin_pts_expected = n_skin_pts_expected/num_threads;
         std::vector< std::vector<Element::Pointer> > local_skin_point_located_elements(num_threads);
         for (auto& vec : local_skin_point_located_elements) vec.reserve(n_local_skin_pts_expected);
@@ -751,19 +751,18 @@ namespace Kratos
         for (auto& vec : local_skin_point_positions) vec.reserve(n_local_skin_pts_expected);
         std::vector< std::vector<array_1d<double,3>> > local_skin_point_normals(num_threads);
         for (auto& vec : local_skin_point_normals) vec.reserve(n_local_skin_pts_expected);
+        std::vector< std::vector<std::size_t> > local_skin_point_ids(num_threads);
+        for (auto& vec : local_skin_point_ids) vec.reserve(n_local_skin_pts_expected);
         std::vector< std::size_t > local_n_skin_points_not_found(num_threads, 0);
         std::vector< std::size_t > local_n_skin_points_found(num_threads, 0);
 
         // Search the skin points in the volume mesh elements
         block_for_each(mpSkinPointsSubModelPart->Nodes(), [&](NodeType& rSkinPoint){
-
             // Get position of skin point
             array_1d<double,3> skin_pt_position = rSkinPoint.Coordinates();
-
             // Get the normal at the skin point
             // NOTE that we assume here that the norm/ length of the normal is a measure of the area/ integration point weight
             array_1d<double,3> skin_pt_area_normal = rSkinPoint.GetValue(NORMAL);
-
             // Search for the skin point in the volume mesh candidates to get the element containing the point
             Element::Pointer p_element = nullptr;
             const bool is_found = LocatePoint(candidate_bvh, idx_to_candidate_element_pointer, skin_pt_position, p_element);
@@ -774,6 +773,7 @@ namespace Kratos
                 local_skin_point_located_elements[thread_num].emplace_back(p_element);
                 local_skin_point_positions[thread_num].emplace_back(skin_pt_position);
                 local_skin_point_normals[thread_num].emplace_back(skin_pt_area_normal);
+                local_skin_point_ids[thread_num].emplace_back(rSkinPoint.Id());
                 local_n_skin_points_found[thread_num]++;
             } else {
                 local_n_skin_points_not_found[thread_num]++;
@@ -787,6 +787,8 @@ namespace Kratos
         skin_point_positions.reserve(n_skin_pts_expected);
         std::vector<array_1d<double,3>> skin_point_normals;
         skin_point_normals.reserve(n_skin_pts_expected);
+        std::vector<std::size_t> skin_point_ids;
+        skin_point_ids.reserve(n_skin_pts_expected);
 
         // Merge skin point data and sums
         std::size_t n_skin_points_found = 0;
@@ -798,6 +800,8 @@ namespace Kratos
                 local_skin_point_positions[i].begin(),  local_skin_point_positions[i].end());
             skin_point_normals.insert(skin_point_normals.end(),
                 local_skin_point_normals[i].begin(), local_skin_point_normals[i].end());
+            skin_point_ids.insert(skin_point_ids.end(),
+                local_skin_point_ids[i].begin(), local_skin_point_ids[i].end());
             n_skin_points_found += local_n_skin_points_found[i];
             n_skin_points_not_found += local_n_skin_points_not_found[i];
         }
@@ -808,20 +812,15 @@ namespace Kratos
         }
 
         // Store skin points and their data for each model part element with skin points in the skin points map
-        // and create a new node for each skin point in the skin points model part
-        const std::size_t n_nodes_skin_point_model_part = mpSkinPointsSubModelPart->NumberOfNodes();
         for (std::size_t i_skin_pt = 0; i_skin_pt < skin_point_located_elements.size(); ++i_skin_pt) {
             auto p_element =  skin_point_located_elements[i_skin_pt];
             auto& skin_pt_position = skin_point_positions[i_skin_pt];
             auto& skin_pt_normal = skin_point_normals[i_skin_pt];
-            const std::size_t skin_pt_node_id = n_nodes_skin_point_model_part + i_skin_pt;
+            auto& skin_pt_node_id = skin_point_ids[i_skin_pt];
 
             // Add skin point data to the element it was found in
             auto& skin_points_data_vector = rSkinPointsMap[p_element]; // automatically inserts if not present
             skin_points_data_vector.emplace_back(skin_pt_position, skin_pt_normal, skin_pt_node_id);
-
-            // Add skin point to skin point model part
-            mpSkinPointsSubModelPart->CreateNewNode(skin_pt_node_id, skin_pt_position[0], skin_pt_position[1], skin_pt_position[2]);
         }
 
         // Add elements in which skin points were found to the set of boundary elements

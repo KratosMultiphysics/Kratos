@@ -473,11 +473,6 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 skin_pt_area_normal = elem_unit_normal * int_pt_w
                 new_node.SetValue(KM.NORMAL, skin_pt_area_normal)
 
-                KM.Logger.PrintInfo(self.__class__.__name__, skin_points_model_part.GetNode(n_skin_points-1).GetValue(KM.NORMAL))
-
-
-        KM.Logger.PrintInfo(self.__class__.__name__, "Skin points added to skin points model part from discretized skin model part '" + skin_model_part_name + "'.")
-
     def __PrintAndResetTimer(self, time_prev, process_description):
         time_curr = datetime.datetime.now().replace(microsecond=0)
         delta = time_curr - time_prev
