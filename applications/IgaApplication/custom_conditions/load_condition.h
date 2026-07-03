@@ -221,6 +221,23 @@ namespace Kratos
         ///@}
 
     private:
+        // Compute rotational shape functions
+        void CalculateRotationalShapeFunctions(
+            IndexType IntegrationPointIndex,
+            Vector& phi_r,
+            Matrix& phi_rs,
+            array_1d<double, 2>& diff_phi);
+
+        // Compute rotation
+        void CalculateRotation(
+            IndexType IntegrationPointIndex,
+            const Matrix &rShapeFunctionGradientValues,
+            Vector &phi_r,
+            Matrix &phi_rs,
+            array_1d<double, 2> &phi,
+            array_1d<double, 3> &trim_tangent,
+            const Vector &local_tangent);
+
         ///@name Serialization
         ///@{
 
