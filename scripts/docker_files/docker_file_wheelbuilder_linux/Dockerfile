@@ -1,4 +1,4 @@
-FROM quay.io/pypa/manylinux_2_34_x86_64
+FROM quay.io/pypa/manylinux_2_28_x86_64
 ENV MMG_ROOT=/external_libraries/mmg/mmg_5_5_1
 ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:{MMG_ROOT}/lib
 
@@ -61,7 +61,7 @@ RUN /opt/python/cp314-cp314/bin/python -m pip install --upgrade pip && \
 
 # 1. Enable CRB/EPEL and install dependencies (skip pmix-devel!)
 RUN yum install -y 'dnf-command(config-manager)' && \
-    yum config-manager --set-enabled crb && \
+    yum config-manager --set-enabled powertools && \
     yum install -y epel-release && \
     yum install -y libevent-devel hwloc-devel libfabric-devel libpsm2-devel numactl-devel libuuid-devel libnl3-devel
 

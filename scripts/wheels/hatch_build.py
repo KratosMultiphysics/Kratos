@@ -13,7 +13,7 @@ class CustomHook(BuildHookInterface):
         if sys.platform.startswith("linux"):
             # Linux: Force the PyPI-compliant manylinux tag
             build_data["infer_tag"] = False
-            build_data["tag"] = f"cp{py_version}-cp{py_version}-manylinux_2_34_x86_64"
+            build_data["tag"] = f"cp{py_version}-cp{py_version}-manylinux_2_28_x86_64"
         elif sys.platform == "darwin":
             build_data["infer_tag"] = True
         else:
