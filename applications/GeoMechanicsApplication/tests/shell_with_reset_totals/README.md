@@ -1,6 +1,6 @@
-# Shell with reset displacement
+# Shell with reset totals
 
-This tests verifies that in a shell, the prescribed displacement is not erased by the 'reset_displacement' functionality
+This tests verifies that in a shell, the prescribed displacement is not erased by the 'reset_totals' functionality
 when that option is switched on.
 
 ## Setup
@@ -17,7 +17,7 @@ direction of -20mm. The material is described using:
 -   Young's modulus is 4.32e8 N/mm2 and Poisson's ratio is 0.0.
 -   A thickness of 1300mm
 
-The essence of this test is that the 'reset_displacement' option is enabled in combination with the prescribed
+The essence of this test is that the 'reset_totals' option is enabled in combination with the prescribed
 displacement.
 
 ## Assertions

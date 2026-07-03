@@ -19,7 +19,7 @@ class KratosGeoMechanicsDirichletUConstantTests(KratosUnittest.TestCase):
         Young's modulus E = 10E+03 [N/m^2]
         stage 0: compress -0.1 [m] in 1 steps and keep constant the next step
         stage 1: elongate  0.2 [m] in 1 steps and keep constant the next step
-        stage 2: compress -0.1 [m] in 1 steps and keep constant the next step reset_displacement=true
+        stage 2: compress -0.1 [m] in 1 steps and keep constant the next step reset_totals=true
         """
         test_name = "dirichlet_u_constant"
         project_path = test_helper.get_file_path(test_name)

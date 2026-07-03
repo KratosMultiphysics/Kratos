@@ -1,33 +1,31 @@
 {
-   "properties": [{
-      "model_part_name":         "PorousDomain.Material_1",
-      "properties_id":           1,
-      "Material": {
-          "constitutive_law": {
-              "name"             :  "GeoMohrCoulombLawPlaneStrain"
-          },
-          "Variables": {
-              "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
-              "DENSITY_SOLID"            :  2038.73598,
-              "DENSITY_WATER"            :  0.0,
-              "POROSITY"                 :  0.0,
-              "BULK_MODULUS_SOLID"       :  1.0e9,
-              "BULK_MODULUS_FLUID"       :  2.0e6,
-              "PERMEABILITY_XX"          :  4.5e-13,
-              "PERMEABILITY_YY"          :  4.5e-13,
-              "PERMEABILITY_XY"          :  0.0,
-              "DYNAMIC_VISCOSITY"        :  8.90e-7,
-              "BIOT_COEFFICIENT"         :  1.0,
-              "RETENTION_LAW"            : "SaturatedLaw",
-              "SATURATED_SATURATION"     :  1.0,
-              "YOUNG_MODULUS"            :  30.0E6,
-              "POISSON_RATIO"            :  0.2,
-              "GEO_COHESION"             :  1000.0,
-              "GEO_FRICTION_ANGLE"       :  30.0,
-              "GEO_ENABLE_TENSION_CUT_OFF": true,
-              "GEO_TENSILE_STRENGTH"     :  1000.0,
-              "GEO_DILATANCY_ANGLE"      :   0.0
-         }
-      }
-   }]
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.Material_1",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoMohrCoulombLawPlaneStrain"
+                },
+                "Variables": {
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
+                    "DENSITY_SOLID": 2.03873598e+03,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.0,
+                    "BULK_MODULUS_SOLID": 1.0e+10,
+                    "BULK_MODULUS_FLUID": 2.2e+09,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "YOUNG_MODULUS": 3.0e+07,
+                    "POISSON_RATIO": 0.2,
+                    "GEO_COHESION": 1.0e+03,
+                    "GEO_FRICTION_ANGLE": 30.0,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
+                    "GEO_TENSILE_STRENGTH": 1.0e+03,
+                    "GEO_DILATANCY_ANGLE": 0.0
+                }
+            }
+        }
+    ]
 }

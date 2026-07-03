@@ -21,6 +21,7 @@
 // strategies
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/geo_mechanics_quasi_newton_strategy.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // builders and solvers
@@ -75,6 +76,8 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
 
     using GeoMechanicsNewtonRaphsonStrategyType =
         GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using GeoMechanicsQuasiNewtonStrategyType =
+        GeoMechanicsQuasiNewtonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
         GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
@@ -122,6 +125,11 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         m, "GeoMechanicsNewtonRaphsonStrategy")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>());
+
+    py::class_<GeoMechanicsQuasiNewtonStrategyType, typename GeoMechanicsQuasiNewtonStrategyType::Pointer, BaseSolvingStrategyType>(
+        m, "GeoMechanicsQuasiNewtonStrategy")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
+                      BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>()); 
 
     py::class_<GeoMechanicsNewtonRaphsonErosionProcessStrategyType,
                typename GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer, BaseSolvingStrategyType>(

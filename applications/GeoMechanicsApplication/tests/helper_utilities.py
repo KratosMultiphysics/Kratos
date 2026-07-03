@@ -12,7 +12,7 @@ NodalValue = Union[float, List[float]]
 NodalSeries = Dict[float, Dict[int, NodalValue]]
 
 
-def run_orchestrator(project_parameters: Kratos.Parameters) -> None:
+def run_orchestrator(project_parameters: Kratos.Parameters) -> Project:
     project = Project(project_parameters)
     orchestrator_reg_entry = Kratos.Registry[
         project.GetSettings()["orchestrator"]["name"].GetString()
@@ -21,6 +21,48 @@ def run_orchestrator(project_parameters: Kratos.Parameters) -> None:
     orchestrator_class = getattr(orchestrator_module, orchestrator_reg_entry["ClassName"])
     orchestrator_instance = orchestrator_class(project)
     orchestrator_instance.Run()
+
+    return project
+
+def set_checkpoint_to_load_from(orchestrator_settings, name_of_stage_to_load_from):
+    load_key = "load_from_checkpoint"
+    if name_of_stage_to_load_from:
+        folder_key = "stage_checkpoints_folder"
+        path_to_checkpoint = Path(orchestrator_settings[folder_key] if orchestrator_settings.Has(folder_key) else 'checkpoints') / name_of_stage_to_load_from
+        if orchestrator_settings.Has(load_key):
+            orchestrator_settings[load_key].SetString(f"{path_to_checkpoint}")
+        else:
+            orchestrator_settings.AddString(load_key, f"{path_to_checkpoint}")
+    elif orchestrator_settings.Has(load_key):
+        orchestrator_settings.RemoveValue(load_key)
+
+def run_multistage_analysis_with_intermediate_save_and_load(project_parameters) -> Project:
+    names_of_stages_to_be_run = project_parameters["orchestrator"]["settings"]["execution_list"].GetStringArray()[:]
+    if not names_of_stages_to_be_run:
+        raise ValueError("Stage execution list is empty")
+
+    orchestrator_reg_entry = Kratos.Registry[
+        project_parameters["orchestrator"]["name"].GetString()
+    ]
+    orchestrator_module = importlib.import_module(orchestrator_reg_entry["ModuleName"])
+    orchestrator_class = getattr(orchestrator_module, orchestrator_reg_entry["ClassName"])
+
+    project = Project(project_parameters)
+    name_of_previous_stage= None
+    for stage_name in names_of_stages_to_be_run:
+        project.GetModel().Reset()
+        orchestrator_instance = orchestrator_class(project)
+        orchestrator_settings = project.GetSettings()["orchestrator"]["settings"]
+
+        set_checkpoint_to_load_from(orchestrator_settings, name_of_previous_stage)
+        orchestrator_settings["execution_list"].SetStringArray([stage_name])
+        orchestrator_settings["stage_checkpoints"].SetStringArray([stage_name])
+
+        orchestrator_instance.Run()
+
+        name_of_previous_stage = stage_name
+
+    return project
 
 
 def _parse_gid_ascii_nodal_variable(filepath: Path, variable_name: str) -> NodalSeries:
