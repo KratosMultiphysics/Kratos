@@ -148,6 +148,25 @@ private:
         rDestinationMP.SetConditions(coupling_conditions.pConditions());
     }
 
+    void CopySubModelPartSurfaceInterface(ModelPart& rDestinationMP, ModelPart& rReferenceMP, bool is_model_part_iga)
+    {
+        rDestinationMP.SetNodes(rReferenceMP.pNodes());
+        rDestinationMP.SetNodalSolutionStepVariablesList(rReferenceMP.pGetNodalSolutionStepVariablesList());
+        rDestinationMP.SetConditions(rReferenceMP.pConditions());
+        rDestinationMP.SetElements(rReferenceMP.pElements());
+        rDestinationMP.SetProperties(rReferenceMP.pProperties());
+        
+        if (is_model_part_iga){
+            for (const auto& r_cond : rReferenceMP.Conditions())
+            {
+                const auto& r_geom = r_cond.GetGeometry();
+                const auto& r_parent = r_geom.GetGeometryParent(0);
+                const IndexType parent_id = r_parent.Id();
+                rDestinationMP.AddGeometry(rReferenceMP.GetRootModelPart().pGetGeometry(parent_id));
+            }
+        }
+    }
+
     void CreateIgaInterfaceBrepCurveOnSurfaceConditions(ModelPart& rInterfaceModelPart);
 
     void CreateFEMInterfaceNurbsCurveConditions(ModelPart& rInterfaceModelPart);
@@ -159,6 +178,7 @@ private:
         return Parameters( R"({
             "is_origin_iga"                : true,
             "is_surface_mapping"          : false,
+            "search_radius"              : 1.0e+10,
             "use_initial_configuration"    : true,
             "echo_level"                   : 0,
         })");

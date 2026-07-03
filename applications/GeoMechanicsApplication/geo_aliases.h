@@ -43,6 +43,7 @@ using KappaDependentFunction = std::function<double(double)>;
 using GeometryUniquePtr = std::unique_ptr<Geometry<Node>>;
 
 using BMatricesGetter               = std::function<std::vector<Matrix>()>;
+using ShapeFunctionGradientsGetter  = std::function<Geometry<Node>::ShapeFunctionsGradientsType()>;
 using StrainVectorsGetter           = std::function<std::vector<Vector>()>;
 using IntegrationCoefficientsGetter = std::function<std::vector<double>()>;
 using PropertiesGetter              = std::function<const Properties&()>;
@@ -50,4 +51,6 @@ using ProcessInfoGetter             = std::function<const ProcessInfo&()>;
 using ConstitutiveLawsGetter        = std::function<const std::vector<ConstitutiveLaw::Pointer>&()>;
 using RetentionLawsGetter           = std::function<const std::vector<RetentionLaw::Pointer>&()>;
 using MaterialPermeabilityMatrixGetter = std::function<Matrix()>;
+using NodalValuesGetter                = std::function<Vector(const Variable<double>&)>;
+using IntegrationPointValuesGetter     = std::function<std::vector<double>()>;
 } // namespace Kratos::Geo

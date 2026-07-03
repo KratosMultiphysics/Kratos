@@ -31,7 +31,7 @@
         "block_builder":                      true,
         "solution_type":                      "quasi_static",
         "scheme_type":                        "Backward_Euler",
-        "reset_displacements":                true,
+        "reset_totals":                       true,
         "strategy_type":                      "linear",
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-4,
@@ -42,7 +42,6 @@
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
         "desired_iterations":                 4,
-        "calculate_reactions":                true,
         "rotation_dofs":                      true,
         "linear_solver_settings":             {
          "solver_type": "LinearSolversApplication.sparse_lu",

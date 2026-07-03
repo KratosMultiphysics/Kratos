@@ -53,9 +53,9 @@ public:
         ExclusiveLowerAndInclusiveUpper
     };
 
-    CheckProperties(const Properties& rProperties, const std::string& rPrintName, Bounds RangeBoundsType);
+    CheckProperties(const Properties& rProperties, std::string PrintName, Bounds RangeBoundsType);
 
-    CheckProperties(const Properties& rProperties, const std::string& rPrintName, std::size_t ElementId, Bounds RangeBoundsType);
+    CheckProperties(const Properties& rProperties, std::string PrintName, std::size_t ElementId, Bounds RangeBoundsType);
 
     CheckProperties(const CheckProperties&) = delete;
 
@@ -130,7 +130,7 @@ public:
 
 private:
     const Properties&                mrProperties;
-    const std::string                mrPrintName;
+    const std::string                mPrintName;
     const std::optional<std::size_t> mElementId = std::nullopt;
     mutable Bounds                   mRangeBoundsType;
     const double                     mDefaultLowerBound = 0.0;
@@ -175,7 +175,7 @@ private:
         }
     }
 
-    std::string double_to_string(double value) const;
+    static std::string double_to_string(double value);
 
     std::string print_property_id() const;
 

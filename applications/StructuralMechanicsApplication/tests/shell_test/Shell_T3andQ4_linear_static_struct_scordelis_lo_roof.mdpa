@@ -62,7 +62,7 @@ Begin Elements ShellThickElementCorotational3D3N// GUI group identifier: Surface
          8          0         11         17         19
 End Elements
 
-Begin Elements ShellThickElementCorotational3D4N// GUI group identifier: Surface_Q4_thick
+Begin Elements MITCThickShellCorotationalElement3D4N// GUI group identifier: Surface_Q4_thick
         13          0         14         10         13         18
         14          0         12          8         10         14
         15          0         10          6         11         13

@@ -33,6 +33,7 @@ print_help() {
     echo " - CMake (can be installed from homebrew via 'brew install cmake')"
     echo " - LLVM (can be installed from homebrew via 'brew install llvm')"
     echo " - Boost (can be installed from homebrew via 'brew install boost')"
+    echo " - OpenMP (can be installed from homebrew via 'brew install libomp')"
     echo
     echo "Recommended build tools:"
     echo " - ccache ('brew install ccache')"
@@ -141,7 +142,11 @@ while getopts ":h C b: i: t: j: a: o:" arg; do
             if [[ "$OPTARG" == -DCMAKE_CXX_FLAGS* ]]; then
                 cmake_cxx_flags="${cmake_cxx_flags}${OPTARG#*-DCMAKE_CXX_FLAGS=} "
             else
-                cmake_arguments="$cmake_arguments;$OPTARG"
+                if [[ -z "$cmake_arguments" ]]; then
+                    cmake_arguments="$OPTARG"
+                else
+                    cmake_arguments="$cmake_arguments;$OPTARG"
+                fi
             fi
             ;;
         \?) # Unrecognized argument
@@ -224,6 +229,8 @@ toolchain_root="$(brew --prefix $found_package)"
 toolchain_bin="${toolchain_root}/bin"
 toolchain_lib="${toolchain_root}/lib"
 toolchain_include="${toolchain_root}/include"
+export cc="${toolchain_bin}/clang"
+export cxx="${toolchain_bin}/clang++"
 
 # Check other required homebrew dependencies
 get_homebrew_package boost
@@ -263,6 +270,8 @@ fi
 export KRATOS_INSTALL_PYTHON_USING_LINKS="ON"
 
 # Configure
+export OpenMP_ROOT=$(brew --prefix)/opt/libomp
+export LDFLAGS="$LDFLAGS -L${OpenMP_ROOT}/lib"
 if ! cmake                                                  \
     "-H$source_dir"                                         \
     "-B$build_dir"                                          \

@@ -30,8 +30,8 @@ namespace Kratos
  * @details Note that you may not override any load or save method of the Serializer base class, as they are not virtual.
  * @author Pooyan Dadvand
  */
-class KRATOS_API(KRATOS_CORE) FileSerializer 
-    : public Serializer 
+class KRATOS_API(KRATOS_CORE) FileSerializer
+    : public Serializer
 {
 public:
     ///@name Type Definitions
@@ -49,7 +49,7 @@ public:
      * @param Filename The name of the file for serialization.
      * @param rTrace Type of serialization trace to be employed (default: SERIALIZER_NO_TRACE).
      */
-    FileSerializer(std::string const& Filename, Serializer::TraceType const& rTrace = SERIALIZER_NO_TRACE);
+    FileSerializer(std::string const& Filename, Serializer::TraceType const& rTrace = SERIALIZER_NO_TRACE, const bool DataOnly = false);
 
     /**
      * @brief Destructor

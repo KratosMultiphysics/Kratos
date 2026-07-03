@@ -13,6 +13,10 @@
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace
 {
 
@@ -125,7 +129,7 @@ void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& C, Constitut
 {
     KRATOS_TRY
 
-    C = mpConstitutiveDimension->CalculateElasticMatrix(rValues.GetMaterialProperties());
+    C = mpConstitutiveDimension->CalculateElasticConstitutiveTensor(rValues.GetMaterialProperties());
 
     if (this->GetConsiderDiagonalEntriesOnlyAndNoShear()) {
         SetEntriesAboveDiagonalToZero(C);
@@ -198,23 +202,23 @@ void GeoIncrementalLinearElasticLaw::ResetMaterial(const Properties&, const Geom
 void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeoLinearElasticLaw)
-    rSerializer.save("StressVector", mStressVector);
-    rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
-    rSerializer.save("DeltaStrainVector", mDeltaStrainVector);
-    rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
-    rSerializer.save("IsModelInitialized", mIsModelInitialized);
-    rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
+    rSerializer.save("ConstitutiveDimension"s, mpConstitutiveDimension);
+    rSerializer.save("StressVector"s, mStressVector);
+    rSerializer.save("StressVectorFinalized"s, mStressVectorFinalized);
+    rSerializer.save("DeltaStrainVector"s, mDeltaStrainVector);
+    rSerializer.save("StrainVectorFinalized"s, mStrainVectorFinalized);
+    rSerializer.save("IsModelInitialized"s, mIsModelInitialized);
 }
 
 void GeoIncrementalLinearElasticLaw::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeoLinearElasticLaw)
-    rSerializer.load("StressVector", mStressVector);
-    rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
-    rSerializer.load("DeltaStrainVector", mDeltaStrainVector);
-    rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
-    rSerializer.load("IsModelInitialized", mIsModelInitialized);
-    rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
+    rSerializer.load("ConstitutiveDimension"s, mpConstitutiveDimension);
+    rSerializer.load("StressVector"s, mStressVector);
+    rSerializer.load("StressVectorFinalized"s, mStressVectorFinalized);
+    rSerializer.load("DeltaStrainVector"s, mDeltaStrainVector);
+    rSerializer.load("StrainVectorFinalized"s, mStrainVectorFinalized);
+    rSerializer.load("IsModelInitialized"s, mIsModelInitialized);
 }
 
 } // Namespace Kratos

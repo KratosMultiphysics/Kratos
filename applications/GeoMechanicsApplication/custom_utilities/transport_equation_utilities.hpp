@@ -55,8 +55,7 @@ public:
 
         std::vector<array_1d<double, TDim>> fluid_fluxes;
         fluid_fluxes.reserve(number_of_integration_points);
-        array_1d<double, TNumNodes> pressure_vector;
-        VariablesUtilities::GetNodalValues(rGeometry, WATER_PRESSURE, pressure_vector.begin());
+        const auto pressure_vector = VariablesUtilities::GetNodalValues<TNumNodes>(rGeometry, WATER_PRESSURE);
         Matrix N_container(number_of_integration_points, TNumNodes);
         N_container = rGeometry.ShapeFunctionsValues(IntegrationMethod);
         BoundedMatrix<double, TDim, TDim> permeability_matrix;

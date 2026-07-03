@@ -12,6 +12,8 @@
 //
 
 #include "stress_strain_utilities.h"
+#include "custom_constitutive/principal_stresses.hpp"
+#include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
@@ -21,7 +23,6 @@
 
 namespace Kratos
 {
-
 double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVector)
 {
     const auto LocalStressTensor =
@@ -144,17 +145,10 @@ Vector StressStrainUtilities::CalculateHenckyStrain(const Matrix& rDeformationGr
     // From tensor to vector
     if (rDeformationGradient.size1() == 2 && VoigtSize == 4) {
         // Plane strain
-        Vector StrainVector2D;
-        StrainVector2D = MathUtils<double>::StrainTensorToVector(ETensor, 3);
-        Vector StrainVector(4);
-        StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector2D[0];
-        StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector2D[1];
-        StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector2D[2];
-        return StrainVector;
-    } else {
-        return MathUtils<double>::StrainTensorToVector(ETensor, VoigtSize);
+        const auto StrainVector2D = MathUtils<double>::StrainTensorToVector(ETensor, 3);
+        return UblasUtilities::CreateVector({StrainVector2D[0], StrainVector2D[1], 0.0, StrainVector2D[2]});
     }
+    return MathUtils<double>::StrainTensorToVector(ETensor, VoigtSize);
 }
 
 Matrix StressStrainUtilities::CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient)
@@ -184,6 +178,15 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
     });
 
     return result;
+}
+
+std::pair<Geo::PrincipalStresses, Matrix> StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(const Vector& rStressVector)
+{
+    auto principal_stresses = Vector{};
+    auto eigen_vectors      = Matrix{};
+    CalculatePrincipalStresses(rStressVector, principal_stresses, eigen_vectors);
+
+    return std::make_pair(Geo::PrincipalStresses{principal_stresses}, eigen_vectors);
 }
 
 void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStressVector,
@@ -220,30 +223,24 @@ Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalSt
     return MathUtils<>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
 }
 
-Vector StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses)
+Geo::SigmaTau StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    auto result = Vector{2};
-    result[0]   = 0.5 * (rPrincipalStresses[0] + rPrincipalStresses[2]);
-    result[1]   = 0.5 * (rPrincipalStresses[0] - rPrincipalStresses[2]);
-    return result;
+    return Geo::SigmaTau{0.5 * (rPrincipalStresses.Values()[0] + rPrincipalStresses.Values()[2]),
+                         0.5 * (rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[2])};
 }
 
-Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau,
-                                                                   const Vector& rPrincipalStresses)
+Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+    const Geo::SigmaTau& rSigmaTau, const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    auto result = Vector{3};
-    result[0]   = rSigmaTau[0] + rSigmaTau[1];
-    result[1]   = rPrincipalStresses[1];
-    result[2]   = rSigmaTau[0] - rSigmaTau[1];
-    return result;
+    return Geo::PrincipalStresses{rSigmaTau.Sigma() + rSigmaTau.Tau(), rPrincipalStresses.Values()[1],
+                                  rSigmaTau.Sigma() - rSigmaTau.Tau()};
 }
 
-Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
+Geo::PQ StressStrainUtilities::TransformPrincipalStressesToPandQ(const Geo::PrincipalStresses& rPrincipalStresses)
 {
     auto stress_vector = Vector(6, 0.0);
-    std::ranges::copy(rPrincipalStresses, stress_vector.begin());
-    return UblasUtilities::CreateVector(
-        {CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)});
+    std::ranges::copy(rPrincipalStresses.Values(), stress_vector.begin());
+    return Geo::PQ{CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)};
 }
 
 std::vector<Vector> StressStrainUtilities::CalculateStressVectorsFromStrainVectors(

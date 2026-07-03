@@ -112,6 +112,11 @@ public:
         }
     }
 
+    static Vector GetNodalVariableVector(const Element::GeometryType&         rGeom,
+                                         const Variable<array_1d<double, 3>>& rVariable,
+                                         IndexType                            Dimension,
+                                         IndexType                            NumberOfDofs);
+
     static void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
                                        const Element::PropertiesType& rProperties);
 
@@ -122,6 +127,8 @@ public:
                                        const Element::PropertiesType& rProperties);
 
     static Matrix FillPermeabilityMatrix(const Element::PropertiesType& rProperties, std::size_t Dimension);
+
+    static Matrix FillInterfacePermeabilityMatrix(const Element::PropertiesType& rProperties, std::size_t Dimension);
 
     template <typename MatrixType1, typename MatrixType2>
     static void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUUBlockMatrix)
@@ -194,6 +201,31 @@ public:
         AssignMatrixAtPosition(rDestinationMatrix, rUUBlockMatrix, row_offset, column_offset);
     }
 
+    template <typename MatrixType1, typename MatrixType2>
+    static void AssignUPBlockMatrix(MatrixType1& rDestinationMatrix, const MatrixType2& rUPBlockMatrix)
+    {
+        constexpr auto row_offset    = std::size_t{0};
+        const auto     column_offset = rDestinationMatrix.size2() - rUPBlockMatrix.size2();
+        AssignMatrixAtPosition(rDestinationMatrix, rUPBlockMatrix, row_offset, column_offset);
+    }
+
+    template <typename MatrixType1, typename MatrixType2>
+    static void AssignPUBlockMatrix(MatrixType1& rDestinationMatrix, const MatrixType2& rPUBlockMatrix)
+    {
+        const auto     row_offset    = rDestinationMatrix.size1() - rPUBlockMatrix.size1();
+        constexpr auto column_offset = std::size_t{0};
+        AssignMatrixAtPosition(rDestinationMatrix, rPUBlockMatrix, row_offset, column_offset);
+    }
+
+    template <typename MatrixType1, typename MatrixType2>
+    static void AssignPPBlockMatrix(MatrixType1& rDestinationMatrix, const MatrixType2& rPPBlockMatrix)
+    {
+        const auto row_offset    = rDestinationMatrix.size1() - rPPBlockMatrix.size1();
+        const auto column_offset = rDestinationMatrix.size2() - rPPBlockMatrix.size2();
+
+        AssignMatrixAtPosition(rDestinationMatrix, rPPBlockMatrix, row_offset, column_offset);
+    }
+
     template <typename VectorType1, typename VectorType2>
     static void AssignVectorAtPosition(VectorType1& rDestinationVector, const VectorType2& rSourceVector, std::size_t Offset)
     {
@@ -209,6 +241,13 @@ public:
     {
         constexpr auto offset = std::size_t{0};
         AssignVectorAtPosition(rDestinationVector, rUBlockVector, offset);
+    }
+
+    template <typename VectorType1, typename VectorType2>
+    static void AssignPBlockVector(VectorType1& rDestinationVector, const VectorType2& rPBlockVector)
+    {
+        const auto offset = rDestinationVector.size() - rPBlockVector.size();
+        AssignVectorAtPosition(rDestinationVector, rPBlockVector, offset);
     }
 
     /**
