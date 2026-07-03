@@ -862,7 +862,6 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    unsigned int voigt_dimension = 0;
 
     const bool is_explicit_central_difference = (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)
@@ -873,15 +872,14 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
 
-
     // Here MP contribution in terms of momentum, inertia and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        for (unsigned int j = 0; j < dimension; j++){
+        for (unsigned int j = 0; j < dimension; j++)
+        {
             nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
-            nodal_inertia[j] = r_N(0, i) * mMP.acceleration[j] * mMP.mass;    
+            nodal_inertia[j] = r_N(0, i) * mMP.acceleration[j] * mMP.mass;
         }
-
 
         // Add in the predictor velocity increment for central difference explicit
         // This is the 'previous grid acceleration', which is actually
@@ -893,11 +891,9 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
             }
         }
 
-
         AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0), nodal_momentum);
         AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0), nodal_inertia);
         AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0), r_N(0, i)*mMP.mass);
-
     }
 }
 

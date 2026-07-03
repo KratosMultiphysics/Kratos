@@ -1,0 +1,61 @@
+{
+  "TIME": [
+    0.01
+  ],
+  "NODE_68": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.0
+    ]
+  },
+  "NODE_86": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.0
+    ]
+  },
+  "NODE_107": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.0
+    ]
+  },
+  "NODE_130": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.0
+    ]
+  }
+}

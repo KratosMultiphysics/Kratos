@@ -1,0 +1,109 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "UP_incompressible_cook_membrane_2D_asgs_dynamic_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.01
+    },
+    "solver_settings"  : {
+        "time_stepping"                   : {
+            "time_step" : 0.005
+        },
+        "solver_type"                     : "Dynamic",
+        "model_part_name"                 : "MPM_Material",
+        "domain_size"                     : 2,
+        "echo_level"                      : 0,
+        "analysis_type"                   : "non_linear",
+        "time_integration_method"         : "implicit",
+        "scheme_type"                     : "newmark",
+        "material_import_settings"        : {
+            "materials_filename" : "cooks_membrane_tests/UP_vms_stabilization_dynamic/UP_incompressible_cook_membrane_2D_asgs_dynamic_test_materials.json"
+        },
+        "compute_reactions"               : true,
+        "convergence_criterion"           : "residual_criterion",
+        "displacement_relative_tolerance" : 0.0001,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 0.0001,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 10,
+        "model_import_settings"           : {
+            "input_type" : "use_input_model_part"
+        },
+        "grid_model_import_settings"      : {
+            "input_type" : "use_input_model_part"
+        },
+        "pressure_dofs"                   : true,
+        "stabilization"                   : "asgs",
+        "linear_solver_settings"          : {
+            "solver_type" : "LinearSolversApplication.sparse_lu"
+        },
+        "auxiliary_variables_list"        : ["NORMAL","IS_STRUCTURE"]
+    },
+    "processes"        : {
+        "constraints_process_list"     : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Background_Grid.Displacement_Auto3",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"           : [{
+            "python_module" : "apply_mpm_particle_neumann_condition_process",
+            "kratos_module" : "KratosMultiphysics.MPMApplication",
+            "process_name"  : "ApplyMPMParticleNeumannConditionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Background_Grid.Nonconforming_Point_Load_Auto2",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 1.56,
+                "direction"       : [0.0,1.0,0.0]
+            }
+        }],
+        "list_other_processes"         : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "help"            : "",
+            "process_name"    : "FromJsonCheckResultProcess",
+            "Parameters"      : {
+                "check_variables" : ["DISPLACEMENT","PRESSURE"],
+                "input_file_name" : "cooks_membrane_tests/UP_vms_stabilization_dynamic/UP_incompressible_cook_membrane_2D_asgs_dynamic_test_results.json",
+                "model_part_name" : "Background_Grid.Nonconforming_Point_Load_Auto2",
+                "time_frequency"  : 0.005
+            }
+        }],
+        "initial_conditions_processes" : []
+    },
+    "modelers"         : [{
+        "name"       : "Modelers.KratosMultiphysics.ImportMDPAModeler",
+        "parameters" : {
+            "input_filename"  : "cooks_membrane_tests/UP_vms_stabilization_dynamic/UP_incompressible_cook_membrane_2D_asgs_dynamic_test_Grid",
+            "model_part_name" : "Background_Grid"
+        }
+    },{
+        "name"       : "Modelers.KratosMultiphysics.ImportMDPAModeler",
+        "parameters" : {
+            "input_filename"  : "cooks_membrane_tests/UP_vms_stabilization_dynamic/UP_incompressible_cook_membrane_2D_asgs_dynamic_test_Body",
+            "model_part_name" : "Initial_MPM_Material"
+        }
+    },{
+        "name"       : "Modelers.KratosMultiphysics.CreateEntitiesFromGeometriesModeler",
+        "parameters" : {
+            "elements_list"   : [{
+                "model_part_name" : "Initial_MPM_Material.Material_domain_Auto3",
+                "element_name"    : "MPMUpdatedLagrangianUP2D3N"
+            },{
+                "model_part_name" : "Background_Grid.Grid_Auto3",
+                "element_name"    : "Element2D3N"
+            }],
+            "conditions_list" : [{
+                "model_part_name" : "Background_Grid.Nonconforming_Point_Load_Auto2",
+                "condition_name"  : "MPMGridPointLoadCondition2D1N"
+            }]
+        }
+    }],
+    "analysis_stage"   : "KratosMultiphysics.MPMApplication.mpm_analysis"
+}

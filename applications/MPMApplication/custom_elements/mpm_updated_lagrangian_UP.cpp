@@ -349,7 +349,6 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia = ZeroVector(3);
 
-
     // Here MP contribution in terms of momentum, inertia, mass-pressure and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -365,11 +364,7 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
         AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0), nodal_inertia);
         AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MPRESSURE, 0), nodal_mpressure);
         AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0), r_N(0, i)*mMP.mass);
-
     }
-
-
-
 }
 //************************************************************************************
 //************************************************************************************
@@ -466,7 +461,7 @@ double MPMUpdatedLagrangianUP::CalculateVolumetricStrainFunction(GeneralVariable
 //************************************************************************************
 
 
-double MPMUpdatedLagrangianUP::CalculateFunctionFromLinearizationOfVolumetricStrain(GeneralVariables & rVariables)
+double MPMUpdatedLagrangianUP::CalculateVolumetricStrainLinearization(GeneralVariables & rVariables)
 {
     KRATOS_TRY
 
@@ -737,7 +732,6 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-    double functionJ = this->CalculateFunctionFromLinearizationOfVolumetricStrain( functionJ, rVariables );
 
     // Assemble components considering added DOF matrix system
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -771,7 +765,7 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     const double volumetric_strain_linearization_factor =
-        this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
+        this->CalculateVolumetricStrainLinearization(rVariables);
 
     // Assemble components considering added DOF matrix system
     unsigned int index_p = dimension;

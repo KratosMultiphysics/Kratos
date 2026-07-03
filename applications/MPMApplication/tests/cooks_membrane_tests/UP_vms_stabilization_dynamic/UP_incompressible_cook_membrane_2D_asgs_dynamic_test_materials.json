@@ -1,0 +1,19 @@
+{
+    "properties" : [{
+        "model_part_name" : "Initial_MPM_Material.Material_domain_Auto3",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "HyperElasticNeoHookeanPlaneStrainUP2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"                   : 1.0,
+                "MATERIAL_POINTS_PER_ELEMENT" : 6,
+                "DENSITY"                     : 1.0,
+                "YOUNG_MODULUS"               : 250.0,
+                "POISSON_RATIO"               : 0.5
+            },
+            "Tables"           : null
+        }
+    }]
+}

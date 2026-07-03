@@ -219,10 +219,10 @@ protected:
         // Variables including all integration points
         Matrix CurrentDisp;
 
-        //  ONLY FOR UP VMS -------
-        // Stabilization parameters
+        // VMS Stabilization parameters and variables
         double tau1;
         double tau2;
+        double BulkModulus;
 
         double DynamicCoefficient;
         Vector DynamicRHS;
@@ -232,8 +232,6 @@ protected:
         double PressureGP;
         Vector PressureGradient;
         Vector PressureGradientVoigt;
-        // Matrix VolumetricConstitutiveMatrix;
-        Matrix Identity;
         Matrix TensorIdentityMatrix;
 
         //Variables for OSGS variable
@@ -242,8 +240,6 @@ protected:
 
         //Modulus
         double ShearModulus;
-        double BulkModulus;
-
     };
 
 public:
@@ -614,7 +610,6 @@ protected:
      * nodal BODY_FORCE values using shape functions.
      * This is mainly used for external loading or MMS-based forcing.
      */
-
     array_1d<double, 3> ComputeMaterialPointBodyForce();
     
     /**

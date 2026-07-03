@@ -62,6 +62,7 @@ namespace Kratos
         /// Elements, using QuadraturePointGeometries:
         mMPMUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+        mMPMUpdatedLagrangianUPVMS(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianPQ(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
 
         /// Deprecated Elements
@@ -328,8 +329,8 @@ namespace Kratos
 
         // Stabilization variables
         KRATOS_REGISTER_VARIABLE(STABILIZATION_TYPE)
-
         KRATOS_REGISTER_VARIABLE(IS_DYNAMIC)
+
         // For friction
         KRATOS_REGISTER_VARIABLE(STICK_FORCE)
         KRATOS_REGISTER_VARIABLE(FRICTION_STATE)
@@ -338,7 +339,6 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(FRICTION_ASSIGNED)
         KRATOS_REGISTER_VARIABLE(HAS_INITIAL_MOMENTUM)
         KRATOS_REGISTER_VARIABLE(INITIAL_LOOP_COMPLETE)
-
     }
 
 }  // namespace Kratos.

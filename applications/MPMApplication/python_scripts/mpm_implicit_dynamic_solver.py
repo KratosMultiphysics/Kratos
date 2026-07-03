@@ -50,7 +50,6 @@ class MPMImplicitDynamicSolver(MPMSolver):
         if(scheme_type == "newmark"):
             damp_factor_m = 0.0
             newmark_beta = self.settings["newmark_beta"].GetDouble()
-            grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_DYNAMIC, True)
         elif(scheme_type == "bossak"):
             damp_factor_m = self.settings["damp_factor_m"].GetDouble()
             newmark_beta = self.settings["newmark_beta"].GetDouble()
@@ -60,6 +59,8 @@ class MPMImplicitDynamicSolver(MPMSolver):
             raise Exception(err_msg)
 
         is_dynamic = self._IsDynamic()
+        grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.NEWMARK_BETA, newmark_beta)
+        grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_DYNAMIC, is_dynamic)
 
         return KratosMPM.MPMResidualBasedBossakScheme( grid_model_part,
                                                             domain_size,

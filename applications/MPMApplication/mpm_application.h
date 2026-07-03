@@ -237,8 +237,8 @@ private:
     // Elements
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian;
     const MPMUpdatedLagrangianUP mMPMUpdatedLagrangianUP;
-    const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
     const MPMUpdatedLagrangianUPVMS mMPMUpdatedLagrangianUPVMS;
+    const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
 
     // Deprecated Elements
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D3N;
@@ -380,5 +380,4 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_MPM_APPLICATION_H_INCLUDED  defined
-
 

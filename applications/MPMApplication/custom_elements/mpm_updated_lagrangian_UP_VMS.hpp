@@ -19,28 +19,12 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name  Enum's
-///@{
-///@}
-///@name  Functions
-///@{
-///@}
 ///@name Kratos Classes
 ///@{
 
-/// Large Displacement Lagrangian Element for 3D and 2D geometries. (base class)
-
 /**
- * Implements a Large Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D and 2D (base class)
+ * Updated Lagrangian U-P MPM element with ASGS stabilization.
  */
-
 class MPMUpdatedLagrangianUPVMS
     : public MPMUpdatedLagrangianUP
 {
@@ -62,10 +46,6 @@ public:
     /// Counted pointer of LargeDisplacementElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMUpdatedLagrangianUPVMS );
     ///@}
-
-
-public:
-
 
     ///@name Life Cycle
     ///@{
@@ -117,48 +97,20 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    ///@}
-    ///@name Protected Operators
+    ///@name Protected Static Member Variables
     ///@{
 
     static const unsigned int msIndexVoigt3D6C [6][2];
     static const unsigned int msIndexVoigt2D4C [4][2];
     static const unsigned int msIndexVoigt2D3C [3][2];
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-    void Calculate(
-        const Variable<double>& rVariable,
-        double& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    double CalculateElementSize() const;
 
-
-    void Calculate(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        array_1d<double, 3 > & rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void Calculate(
-        const Variable<Vector >& rVariable,
-        Vector& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(
-        const Variable<Matrix >& rVariable,
-        Matrix& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    /*
-        Compute Element Size
-    */
-    void ComputeElementSize(double& ElementSize);
-
-       /**
+    /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
@@ -170,37 +122,35 @@ protected:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag) override;
 
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
     // Calculation of stabilization parameters
-    void CalculateTaus(const int& stabilization_type, GeneralVariables& rVariables);
+    void CalculateTaus(GeneralVariables& rVariables);
 
+    double CalculateShearModulus() const;
 
-     // To compute identity tensor
-    void CalculateTensorIdentityMatrix (GeneralVariables& rVariables, Matrix& rTensorIdentityMatrix);
+    double CalculateBulkModulus() const;
 
-    double& TensorIdentityComponent (double& rCabcd, GeneralVariables& rVariables,
-    const unsigned int& a, const unsigned int& b, const unsigned int& c, const unsigned int& d);
+    // To compute identity tensor
+    void CalculateTensorIdentityMatrix(Matrix& rTensorIdentityMatrix);
+
+    double CalculateTensorIdentityComponent(
+        const unsigned int a,
+        const unsigned int b,
+        const unsigned int c,
+        const unsigned int d) const;
 
     // To compute vector in voigt notation to multiply
+    void ConvertPressureGradientInVoigt(const Vector& rPressureGradient, Vector& rPressureGradientVoigt);
 
-    void ConvertPressureGradientInVoigt(Vector& PressureGradient, Vector& PressureGradientVoigt);
+    // Calculation of ASGS stabilization variables
+    void CalculateStabilizationVariables(
+        GeneralVariables& rVariables,
+        const ProcessInfo& rCurrentProcessInfo);
 
-    /*
-     * Calculation of Specific variables: pressure and gradient pressure
-     */
+    void CalculatePressureVariables(GeneralVariables& rVariables);
 
-    void SetSpecificVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-     /*
-     * Compute coefficients for dynamic terms (only for stabilization and for Newmark scheme integration)
-     */
-
-    void ComputeDynamicTerms(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
-
+    void CalculateDynamicStabilizationVariables(
+        GeneralVariables& rVariables,
+        const ProcessInfo& rCurrentProcessInfo);
     /*
      * Operations related with the osgs stabilization
      */
@@ -211,7 +161,6 @@ protected:
     /**
      * Calculation and addition of the matrices of the LHS
      */
-
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                             GeneralVariables& rVariables,
                             const double& rIntegrationWeight,
@@ -220,7 +169,6 @@ protected:
     /**
      * Calculation and addition of the vectors of the RHS
      */
-
     void CalculateAndAddRHS(VectorType& rRightHandSideVector,
                             GeneralVariables& rVariables,
                             Vector& rVolumeForce,
@@ -230,100 +178,54 @@ protected:
     /**
      * Calculation of the Kuu Stabilization Term matrix
      */
-
-    virtual void CalculateAndAddKuuStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        const double& rIntegrationWeight
-                                       );
+    void CalculateAndAddKuuStab(MatrixType& rK,
+                                GeneralVariables& rVariables,
+                                const double& rIntegrationWeight);
 
     /**
      * Calculation of the Kup Stabilization Term matrix
      */
-
-    virtual void CalculateAndAddKupStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        const double& rIntegrationWeight
-                                       );
+    void CalculateAndAddKupStab(MatrixType& rK,
+                                GeneralVariables& rVariables,
+                                const double& rIntegrationWeight);
 
     /**
-     * Calculation of the Kup Stabilization Term matrix
+     * Calculation of the Kpu Stabilization Term matrix
      */
-
-
-    virtual void CalculateAndAddKpuStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        const double& rIntegrationWeight
-                                       );
+    void CalculateAndAddKpuStab(MatrixType& rK,
+                                GeneralVariables& rVariables,
+                                const double& rIntegrationWeight);
 
     /**
      * Calculation of the Kpp Stabilization Term matrix
      */
     void CalculateAndAddKppStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        const double& rIntegrationWeight
-                                       ) override;
-
-
+                                GeneralVariables& rVariables,
+                                const double& rIntegrationWeight) override;
 
     /**
      * Calculation of stabilization terms for the continuity equation
      */
-    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            Vector& rVolumeForce,
-            const double& rIntegrationWeight);
+    void CalculateAndAddStabilizedPressureVMS(VectorType& rRightHandSideVector,
+                                              GeneralVariables& rVariables,
+                                              Vector& rVolumeForce,
+                                              const double& rIntegrationWeight);
 
     /**
      * Calculation stabilization terms for the momentum equation
      */
-    virtual void CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            Vector& rVolumeForce,
-            const double& rIntegrationWeight);
+    void CalculateAndAddStabilizedDisplacementVMS(VectorType& rRightHandSideVector,
+                                                  GeneralVariables& rVariables,
+                                                  Vector& rVolumeForce,
+                                                  const double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
+    void InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
 
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    double m_mp_pressure;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
@@ -334,23 +236,11 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
     ///@}
 
-}; // Class UpdatedLagrangian
+}; // Class MPMUpdatedLagrangianUPVMS
 
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name Input and output
-///@{
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined
+#endif // KRATOS_mpm_updated_lagrangian_UP_VMS_H_INCLUDED defined

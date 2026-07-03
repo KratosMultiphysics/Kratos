@@ -157,8 +157,8 @@ class ManufacturedSolutionTestMPM(KratosUnittest.TestCase):
 
 
                 # Check obtained solution
-            expected_displacement_errors = [0.061741121494231554, 0.01315577912357445, 0.0023808302557733114, 0.0006914797525142623]
-            expected_pressure_errors = [0.3512984202753765, 0.06785187675173988, 0.019846247942924864, 0.010634726964042784]
+            expected_displacement_errors = [0.059050438617262495, 0.011619680072543217, 0.002022936325799709, 0.0005747578331724184]
+            expected_pressure_errors = [0.34107698233680467, 0.0610061266267544, 0.018100887087712784, 0.009617672301907826]
 
             for i in range(len(self.meshes_list)):
                 self.assertAlmostEqual(err_v[i], expected_displacement_errors[i])
