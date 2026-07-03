@@ -1,18 +1,13 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.project import Project
-import importlib
+import KratosMultiphysics.json_utilities as json_utilities
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
-from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
-    GiDOutputFileReader,
-)
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import unit_to_k_unit
 import test_helper
+import helper_utilities
 
 import argparse
 import csv
-import os
-import json
 from pathlib import Path
 import sys
 
@@ -20,132 +15,42 @@ if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
 
+linear_elastic_dir_name = "linear_elastic"
+mohr_coulomb_clay_sand_dir_name = "mohr_coulomb_clay-sand"
+staged_construction = "staged_construction"
+
+wall_output_postfix = "output_wall"
+interface_output_postfix = "output_interface"
+
 csv_fieldname_node = "node"
 csv_fieldname_bending_moment = "bending_moment_in_Nm_per_m"
 csv_fieldname_shear_force = "shear_force_in_N_per_m"
-csv_fieldname_horizontal_displacement = "horizontal_displacement_in_m"
+csv_fieldname_normal_force = "normal_force_in_N_per_m"
+csv_fieldname_horizontal_total_displacement = "horizontal_total_displacement_in_m"
 
 csv_fieldnames = [
     csv_fieldname_node,  # this one must come first
     csv_fieldname_bending_moment,
     csv_fieldname_shear_force,
-    csv_fieldname_horizontal_displacement,
+    csv_fieldname_normal_force,
+    csv_fieldname_horizontal_total_displacement,
 ]
 
+stages_to_be_checked = [
+    "3_Wall_installation",
+    "4_First_excavation",
+    "6_Second_excavation",
+    "7_Third_excavation",
+]
+stages_to_be_plotted = [
+    "3_Wall_installation",
+    "4_First_excavation",
+    "5_Anchor_installation",
+    "6_Second_excavation",
+    "7_Third_excavation",
+]
 
-def get_sheetpile_node_ids():
-    return [
-        3968,
-        3982,
-        3996,
-        4010,
-        4026,
-        4036,
-        4051,
-        4066,
-        4075,
-        4090,
-        4102,
-        4120,
-        4135,
-        4148,
-        4161,
-        4172,
-        4188,
-        4204,
-        4218,
-        4231,
-        4241,
-        4256,
-        4271,
-        4280,
-        4297,
-        4308,
-        4322,
-        4338,
-        4352,
-        4361,
-        4375,
-        4390,
-        4403,
-        4415,
-        4430,
-        4444,
-        4457,
-        4470,
-        4483,
-        4497,
-        4509,
-        4522,
-        4536,
-        4547,
-        4560,
-        4571,
-        4582,
-        4595,
-        4604,
-        4614,
-        4624,
-        4633,
-        4639,
-    ]
-
-
-def get_soil_side_node_ids_of_right_interfaces():
-    return [
-        4761,
-        4762,
-        4763,
-        4764,
-        4765,
-        4766,
-        4767,
-        4768,
-        4769,
-        4770,
-        4771,
-        4772,
-        4773,
-        4774,
-        4775,
-        4776,
-        4777,
-        4778,
-        4779,
-        4780,
-        4781,
-        4782,
-        4783,
-        4784,
-        4785,
-        4786,
-        4787,
-        4788,
-        4789,
-        4790,
-        4791,
-        4792,
-        4793,
-        4794,
-        4795,
-        4796,
-        4797,
-        4798,
-        4799,
-        4800,
-        4801,
-        4802,
-        4803,
-        4804,
-        4805,
-        4806,
-        4807,
-        4808,
-        4809,
-        4811,
-        4812,
-        4813,
-    ]
+common_test_files_dir = Path(test_helper.get_file_path("crow_validation")) / "common"
 
 
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
@@ -170,6 +75,12 @@ def extract_bending_moment_and_y_from_line(line):
 
 def extract_horizontal_displacements_from_line(line):
     return _extract_x_and_y_from_line(
+        line, index_of_x=4, index_of_y=0, x_transform=lambda x: x / 1000.0
+    )
+
+
+def extract_horizontal_displacements_from_dsheetpiling_line(line):
+    return _extract_x_and_y_from_line(
         line, index_of_x=3, index_of_y=0, x_transform=lambda x: x / 1000.0
     )
 
@@ -179,6 +90,10 @@ def extract_shear_force_and_y_from_line(line):
     return _extract_x_and_y_from_line(
         line, index_of_x=2, index_of_y=0, x_transform=lambda x: -x
     )
+
+
+def extract_normal_force_and_y_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=5, index_of_y=0)
 
 
 def extract_normal_traction_and_y_from_line(line):
@@ -205,498 +120,423 @@ def get_expected_results_from_csv(csv_filepath):
         }
 
 
+def max_abs_nodal_value(values_by_node_id_and_result_item, node_ids, result_item_name):
+    return max(
+        [
+            abs(values_by_node_id_and_result_item[node_id][result_item_name])
+            for node_id in node_ids
+        ]
+    )
+
+
+def set_quasi_newton_method(project_parameters, quasi_newton_method):
+    # Add/set quasi-Newton method settings that apply to all stages
+    for stage in project_parameters["stages"].values():
+        solver_settings = stage["stage_settings"]["solver_settings"]
+        solver_settings["strategy_type"].SetString("quasi_newton")
+        solver_settings.AddString("quasi_newton_type", quasi_newton_method)
+        solver_settings.AddInt("quasi_newton_restart_interval", 100)
+        solver_settings.AddInt("quasi_newton_max_rank", 10)
+
+
+
 class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
 
-        self.stages_info = None  # Will be populated by the specific simulation runs
+        # The following attributes will be populated by the specific simulation runs
+        self.analysis_type = None
+        self.test_path = None
+        self.csv_files_dir = None
+        self.modify_project_parameters = None
+        self.run_analysis=None
 
-    def run_staged_construction_analysis_and_checks(self, material_model_dir_name):
-        # fmt: off
-        self.stages_info = {
-            "initial_stage":      {"end_time": -1.0, "base_name": "1_Initial_stage"},
-            "null_step":          {"end_time":  0.0, "base_name": "2_Null_step"},
-            "wall_installation":  {"end_time":  1.0, "base_name": "3_Wall_installation"},
-            "first_excavation":   {"end_time":  2.0, "base_name": "4_First_excavation"},
-            "strut_installation": {"end_time":  3.0, "base_name": "5_Anchor_installation"},
-            "second_excavation":  {"end_time":  4.0, "base_name": "6_Second_excavation"},
-            "third_excavation":   {"end_time":  5.0, "base_name": "7_Third_excavation"},
-        }
-        # fmt: on
+    def prepare_test_run(
+        self,
+        material_model_dir_name,
+        analysis_type,
+        variant,
+        modify_project_parameters=None,
+        run_analysis=helper_utilities.run_orchestrator,
+    ):
+        self.analysis_type = analysis_type
 
-        self.run_simulation_and_checks(
-            Path(material_model_dir_name) / "staged_construction",
-            "staged_construction.json",
+        base_test_path = Path(
+            test_helper.get_file_path(
+                Path("crow_validation") / material_model_dir_name / analysis_type
+            )
         )
+        self.test_path = base_test_path / variant
+        self.test_path.mkdir(exist_ok=True)
+        self.csv_files_dir = base_test_path
+        self.modify_project_parameters = modify_project_parameters
+        self.run_analysis = run_analysis
 
-    def run_simulation_and_checks(self, relative_test_path, analysis_filename):
-        project_path = test_helper.get_file_path(
-            Path("crow_validation") / relative_test_path
-        )
-
-        with context_managers.set_cwd_to(project_path):
+    def run_simulation_and_checks(self):
+        with context_managers.set_cwd_to(self.test_path):
             with open(
-                Path("..") / ".." / "common" / analysis_filename, "r"
-            ) as parameter_file:
-                project_parameters = Kratos.Parameters(parameter_file.read())
-                project = Project(project_parameters)
-                orchestrator_reg_entry = Kratos.Registry[
-                    project.GetSettings()["orchestrator"]["name"].GetString()
-                ]
-                orchestrator_module = importlib.import_module(
-                    orchestrator_reg_entry["ModuleName"]
-                )
-                orchestrator_class = getattr(
-                    orchestrator_module, orchestrator_reg_entry["ClassName"]
-                )
-                orchestrator_instance = orchestrator_class(project)
-                orchestrator_instance.Run()
+                common_test_files_dir / f"{self.analysis_type}.json", "r"
+            ) as analysis_file:
+                project_parameters = Kratos.Parameters(analysis_file.read())
+
+            if self.modify_project_parameters is not None:
+                self.modify_project_parameters(project_parameters)
+
+            project = self.run_analysis(project_parameters)
+
+        model = project.GetModel()
+        sheet_pile_wall = model.GetModelPart("PorousDomain.Sheet_Pile_Wall")
 
         if test_helper.want_test_plots():
-            self.create_wall_plots(project_path)
-            self.create_interface_plots(project_path)
+            self.create_wall_plots(sheet_pile_wall.Nodes)
+            self.create_interface_plots(
+                model.GetModelPart("PorousDomain.Right_Side_Of_Right_Interfaces").Nodes
+            )
 
         # Check the obtained results
-        reader = GiDOutputFileReader()
-        node_ids = get_sheetpile_node_ids()
+        node_ids = [node.Id for node in sheet_pile_wall.Nodes]
 
-        for stage_name in [
-            "wall_installation",
-            "first_excavation",
-            "second_excavation",
-            "third_excavation",
-        ]:
-            base_name = self.stages_info[stage_name]["base_name"]
-            csv_filepath = Path(project_path) / f"{base_name}__expected_results_wall.csv"
+        for stage_name in stages_to_be_checked:
+            json_output = json_utilities.read_external_json(
+                self.file_path_to_json_output(stage_name, wall_output_postfix)
+            )
+
+            csv_filepath = (
+                self.csv_files_dir / f"{stage_name}__expected_results_wall.csv"
+            )
             expected_results = get_expected_results_from_csv(csv_filepath)
 
-            output_data = reader.read_output_from(
-                Path(project_path) / "gid_output" / f"{base_name}.post.res"
+            expected_max_abs_bending_moment = max_abs_nodal_value(
+                expected_results, node_ids, csv_fieldname_bending_moment
             )
-            end_time = self.stages_info[stage_name]["end_time"]
-            bending_moments = reader.nodal_values_at_time(
-                "BENDING_MOMENT", end_time, output_data, node_ids=node_ids
+            expected_max_abs_shear_force = max_abs_nodal_value(
+                expected_results, node_ids, csv_fieldname_shear_force
             )
-            shear_forces = reader.nodal_values_at_time(
-                "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
+            expected_max_abs_horizontal_total_displacement = max_abs_nodal_value(
+                expected_results, node_ids, csv_fieldname_horizontal_total_displacement
             )
-            horizontal_displacements = [
-                displacement_vector[0]
-                for displacement_vector in reader.nodal_values_at_time(
-                    "DISPLACEMENT", end_time, output_data, node_ids=node_ids
-                )
-            ]
 
-            for node_id, bending_moment, shear_force, horizontal_displacement in zip(
-                node_ids, bending_moments, shear_forces, horizontal_displacements
+            relative_tolerance = 0.02
+
+            for (
+                node_id,
+                bending_moment,
+                shear_force,
+                horizontal_total_displacement,
+            ) in zip(
+                node_ids,
+                test_helper.get_bending_moments_from_json_output(json_output, node_ids),
+                test_helper.get_shear_forces_from_json_output(json_output, node_ids),
+                test_helper.get_total_displacement_x_from_json_output(
+                    json_output, node_ids
+                ),
             ):
                 expected_nodal_results = expected_results[node_id]
+
+                expected_bending_moment = expected_nodal_results[
+                    csv_fieldname_bending_moment
+                ]
                 self.assertAlmostEqual(
                     bending_moment,
-                    expected_nodal_results[csv_fieldname_bending_moment],
+                    expected_bending_moment,
+                    places=None,
+                    delta=test_helper.calculate_delta(
+                        expected_bending_moment,
+                        absolute_tolerance=relative_tolerance
+                        * expected_max_abs_bending_moment,
+                        relative_tolerance=relative_tolerance,
+                    ),
                     msg=f"Bending moment at node {node_id} in stage '{stage_name}'",
                 )
+
+                expected_shear_force = expected_nodal_results[csv_fieldname_shear_force]
                 self.assertAlmostEqual(
                     shear_force,
-                    expected_nodal_results[csv_fieldname_shear_force],
+                    expected_shear_force,
+                    places=None,
+                    delta=test_helper.calculate_delta(
+                        expected_shear_force,
+                        absolute_tolerance=relative_tolerance
+                        * expected_max_abs_shear_force,
+                        relative_tolerance=relative_tolerance,
+                    ),
                     msg=f"Shear force at node {node_id} in stage '{stage_name}'",
                 )
+
+                expected_horizontal_total_displacement = expected_nodal_results[
+                    csv_fieldname_horizontal_total_displacement
+                ]
                 self.assertAlmostEqual(
-                    horizontal_displacement,
-                    expected_nodal_results[csv_fieldname_horizontal_displacement],
-                    msg=f"Horizontal displacement at node {node_id} in stage '{stage_name}'",
+                    horizontal_total_displacement,
+                    expected_horizontal_total_displacement,
+                    places=None,
+                    delta=test_helper.calculate_delta(
+                        expected_horizontal_total_displacement,
+                        absolute_tolerance=relative_tolerance
+                        * expected_max_abs_horizontal_total_displacement,
+                        relative_tolerance=relative_tolerance,
+                    ),
+                    msg=f"Horizontal total displacement at node {node_id} in stage '{stage_name}'",
                 )
 
-    def read_json_output(self, project_path, stage):
-        with open(
-            os.path.join(project_path, f"{stage['base_name']}_interface_output.json"),
-            "r",
-        ) as output_file:
-            return json.load(output_file)
+    def file_path_to_json_output(self, stage_name, postfix):
+        return self.test_path / f"{stage_name}__{postfix}.json"
 
     def get_variable_collections_per_stage(
         self,
         kratos_variable_label,
-        variable_plot_label,
-        project_path,
-        structural_stages,
-        data_extractor,
+        stage_names,
+        nodes,
+        postfix_json_output,
+        transform_output,
+        postfix_fem_comparison_csv,
+        data_extractor_fem_comparison,
+        data_extractor_dsheetpiling=None,
     ):
-        node_ids = get_soil_side_node_ids_of_right_interfaces()
-
-        # Since the coordinates do not change between stages, we base them on the first stage
-        y_coords = self.get_y_coords(
-            project_path, structural_stages[0]["base_name"], node_ids
-        )
+        node_ids = [node.Id for node in nodes]
+        y_coords = [node.Y for node in nodes]
 
         variable_data_collections = []
-        for stage in structural_stages:
-            json_data = self.read_json_output(project_path, stage)
-            variable_kratos_data = []
-            index = 0 if variable_plot_label == "Normal traction" else 1
-            for node_label in [f"NODE_{node_id}" for node_id in node_ids]:
-                variable_kratos_data.append(
-                    json_data[node_label][kratos_variable_label][0][index]
-                )
+        for stage_name in stage_names:
+            json_data = json_utilities.read_external_json(
+                self.file_path_to_json_output(stage_name, postfix_json_output)
+            )
+            variable_kratos_data = test_helper.get_nodal_values_from_json_output(
+                json_data, kratos_variable_label, node_ids
+            )
 
             variable_kratos_data = [
-                unit_to_k_unit(value) for value in variable_kratos_data
+                transform_output(value) for value in variable_kratos_data
             ]
             sorted_y, sorted_data = zip(*sorted(zip(y_coords, variable_kratos_data)))
-            data_series_collection = []
-            data_series_collection.append(
+            data_series_collection = [
                 plot_utils.DataSeries(
                     zip(sorted_data, sorted_y),
-                    f"{variable_plot_label} [Kratos]",
+                    "Kratos",
                     line_style="-",
                     marker=".",
                 )
-            )
-            fem_comparison_csv = (
-                Path(project_path) / f"{stage['base_name']}__FE_comparison_interface.csv"
-            )
-            if fem_comparison_csv.exists():
-                fem_comparison_variable = test_helper.get_data_points_from_file(
-                    fem_comparison_csv, data_extractor
-                )
+            ]
 
+            # Get results of comparison FE analysis (if they exist)
+            csv_file_path = (
+                self.csv_files_dir / f"{stage_name}__{postfix_fem_comparison_csv}.csv"
+            )
+            if csv_file_path.exists():
+                data_points = test_helper.get_data_points_from_file(
+                    csv_file_path, data_extractor_fem_comparison
+                )
                 data_series_collection.append(
                     plot_utils.DataSeries(
-                        fem_comparison_variable,
-                        f"{variable_plot_label} [FEM Comparison_with excavation stages]",
+                        data_points,
+                        label="Commercial FE package",
                         marker="3",
                     )
                 )
+
+            # Get results of D-Sheet Piling analysis (if they exist)
+            csv_file_path = (
+                self.csv_files_dir / f"{stage_name}__DSheetPiling_results.csv"
+            )
+            if csv_file_path.exists() and data_extractor_dsheetpiling:
+                data_points = test_helper.get_data_points_from_file(
+                    csv_file_path,
+                    data_extractor_dsheetpiling,
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        data_points,
+                        "D-Sheet Piling",
+                        marker="1",
+                    )
+                )
+
             variable_data_collections.append(data_series_collection)
 
         return variable_data_collections
 
-    def create_interface_plots(self, project_path):
-        structural_stages = self.get_plot_stages()
-
-        normal_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
-        normal_traction_plot_label = "Normal traction"
+    def create_interface_plots(self, interface_nodes):
+        effective_traction_vector_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
+        postfix_fem_comparison_csv = "FE_comparison_interface"
+        to_normal_traction_in_kPa = lambda traction_vector: unit_to_k_unit(
+            traction_vector[0]
+        )
         normal_traction_collections = self.get_variable_collections_per_stage(
-            normal_traction_kratos_label,
-            normal_traction_plot_label,
-            project_path,
-            structural_stages,
+            effective_traction_vector_label,
+            stages_to_be_plotted,
+            interface_nodes,
+            interface_output_postfix,
+            to_normal_traction_in_kPa,
+            postfix_fem_comparison_csv,
             extract_normal_traction_and_y_from_line,
         )
 
-        plot_titles = [stage["base_name"] for stage in structural_stages]
         plot_utils.make_sub_plots(
             normal_traction_collections,
-            Path(project_path) / "normal_tractions_all_stages.svg",
-            titles=plot_titles,
+            self.test_path / "normal_tractions_all_stages.svg",
+            titles=stages_to_be_plotted,
             xlabel=r"Normal Traction [$\mathrm{kN} / \mathrm{m}^2$]",
-            ylabel="y [m]",
+            ylabel=r"$y$ [m]",
         )
 
-        shear_traction_plot_label = "Shear traction"
-        shear_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
+        to_shear_traction_in_kPa = lambda traction_vector: unit_to_k_unit(
+            traction_vector[1]
+        )
         shear_traction_collections = self.get_variable_collections_per_stage(
-            shear_traction_kratos_label,
-            shear_traction_plot_label,
-            project_path,
-            structural_stages,
+            effective_traction_vector_label,
+            stages_to_be_plotted,
+            interface_nodes,
+            interface_output_postfix,
+            to_shear_traction_in_kPa,
+            postfix_fem_comparison_csv,
             extract_shear_traction_and_y_from_line,
         )
 
         plot_utils.make_sub_plots(
             shear_traction_collections,
-            Path(project_path) / "shear_tractions_all_stages.svg",
-            titles=plot_titles,
+            self.test_path / "shear_tractions_all_stages.svg",
+            titles=stages_to_be_plotted,
             xlabel=r"Shear Traction [$\mathrm{kN} / \mathrm{m}^2$]",
-            ylabel="y [m]",
+            ylabel=r"$y$ [m]",
         )
 
-    def get_plot_stages(self):
-        return [
-            self.stages_info["wall_installation"],
-            self.stages_info["first_excavation"],
-            self.stages_info["strut_installation"],
-            self.stages_info["second_excavation"],
-            self.stages_info["third_excavation"],
-        ]
-
-    def get_y_coords(self, project_path, stage_base_name, node_ids):
-        coordinates = test_helper.read_coordinates_from_post_msh_file(
-            Path(project_path) / "gid_output" / f"{stage_base_name}.post.msh",
-            node_ids=node_ids,
-        )
-        return [coord[1] for coord in coordinates]
-
-    def get_wall_variable_collections_per_stage(
-        self,
-        kratos_variable_label,
-        variable_plot_label,
-        project_path,
-        plot_stages,
-        data_extractor,
+    def get_bending_moment_data_series_per_stage(
+        self, nodes, postfix_fem_comparison_csv
     ):
-        node_ids = get_sheetpile_node_ids()
-
-        y_coords = self.get_y_coords(
-            project_path, plot_stages[0]["base_name"], node_ids
-        )
-
-        variable_data_collections = []
-        reader = GiDOutputFileReader()
-
-        for stage in plot_stages:
-            output_data = reader.read_output_from(
-                Path(project_path) / "gid_output" / f"{stage['base_name']}.post.res"
-            )
-
-            variable_kratos_data = reader.nodal_values_at_time(
-                kratos_variable_label,
-                stage["end_time"],
-                output_data,
-                node_ids=node_ids,
-            )
-
-            variable_kratos_data = [
-                unit_to_k_unit(value) for value in variable_kratos_data
-            ]
-
-            data_series_collection = [
-                plot_utils.DataSeries(
-                    zip(variable_kratos_data, y_coords),
-                    f"{variable_plot_label} [Kratos]",
-                    line_style="-",
-                    marker=".",
-                )
-            ]
-
-            fem_comparison_csv = (
-                Path(project_path) / f"{stage['base_name']}_comparison_FEM.csv"
-            )
-            if fem_comparison_csv.exists():
-                fem_comparison_variable = test_helper.get_data_points_from_file(
-                    fem_comparison_csv, data_extractor
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        fem_comparison_variable,
-                        f"{variable_plot_label} [FEM Comparison]",
-                        marker="2",
-                    )
-                )
-
-            fem_comparison_csv = (
-                Path(project_path) / f"{stage['base_name']}__FE_comparison_wall.csv"
-            )
-            if fem_comparison_csv.exists():
-                fem_comparison_variable = test_helper.get_data_points_from_file(
-                    fem_comparison_csv, data_extractor
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        fem_comparison_variable,
-                        f"{variable_plot_label} [FEM Comparison_with excavation stages]",
-                        marker="3",
-                    )
-                )
-
-            if (Path(project_path) / f"{stage['base_name']}__DSheetPiling_results.csv").exists():
-                comparison_variable = test_helper.get_data_points_from_file(
-                    Path(project_path) / f"{stage['base_name']}__DSheetPiling_results.csv",
-                    data_extractor,
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        comparison_variable,
-                        f"{variable_plot_label} [D-Sheet Piling]",
-                        marker="1",
-                    )
-                )
-
-            variable_data_collections.append(data_series_collection)
-
-        return variable_data_collections
-
-    def get_wall_horizontal_displacement_collections_per_stage(
-        self, project_path, plot_stages, data_extractor
-    ):
-        node_ids = get_sheetpile_node_ids()
-
-        y_coords = self.get_y_coords(
-            project_path, plot_stages[0]["base_name"], node_ids
-        )
-
-        variable_data_collections = []
-        reader = GiDOutputFileReader()
-
-        for stage in plot_stages:
-            output_data = reader.read_output_from(
-                Path(project_path) / "gid_output" / f"{stage['base_name']}.post.res"
-            )
-
-            displacements = reader.nodal_values_at_time(
-                "DISPLACEMENT",
-                stage["end_time"],
-                output_data,
-                node_ids=node_ids,
-            )
-
-            horizontal_displacements = [value[0] for value in displacements]
-
-            data_series_collection = [
-                plot_utils.DataSeries(
-                    zip(horizontal_displacements, y_coords),
-                    "Horizontal displacement [Kratos]",
-                    line_style="-",
-                    marker=".",
-                )
-            ]
-
-            if (
-                Path(project_path) / f"{stage['base_name']}__FE_comparison_wall.csv"
-            ).exists():
-                comparison_variable = test_helper.get_data_points_from_file(
-                    Path(project_path) / f"{stage['base_name']}__FE_comparison_wall.csv",
-                    data_extractor,
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        comparison_variable,
-                        "Horizontal displacement [FEM Comparison_with excavation stages]",
-                        marker="2",
-                    )
-                )
-
-            if (
-                Path(project_path)
-                / f"{stage['base_name']}_comparison_FEM_with_excavation_stages.csv"
-            ).exists():
-                comparison_variable = test_helper.get_data_points_from_file(
-                    Path(project_path)
-                    / f"{stage['base_name']}_comparison_FEM_with_excavation_stages.csv",
-                    data_extractor,
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        comparison_variable,
-                        "Horizontal displacement [FEM Comparison_with_excavation_stages]",
-                        marker="3",
-                    )
-                )
-
-            if (Path(project_path) / f"{stage['base_name']}__DSheetPiling_results.csv").exists():
-                comparison_variable = test_helper.get_data_points_from_file(
-                    Path(project_path) / f"{stage['base_name']}__DSheetPiling_results.csv",
-                    data_extractor,
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        comparison_variable,
-                        "Horizontal displacement [D-Sheet Piling]",
-                        marker="1",
-                    )
-                )
-
-            variable_data_collections.append(data_series_collection)
-
-        return variable_data_collections
-
-    def create_wall_plots(self, project_path):
-        plot_stages = self.get_plot_stages()
-        plot_titles = [stage["base_name"] for stage in plot_stages]
-
-        bending_moment_collections = self.get_wall_variable_collections_per_stage(
+        return self.get_variable_collections_per_stage(
             "BENDING_MOMENT",
-            "Bending moment",
-            project_path,
-            plot_stages,
+            stages_to_be_plotted,
+            nodes,
+            wall_output_postfix,
+            unit_to_k_unit,
+            postfix_fem_comparison_csv,
             extract_bending_moment_and_y_from_line,
+            data_extractor_dsheetpiling=extract_bending_moment_and_y_from_line,
+        )
+
+    def get_shear_force_data_series_per_stage(self, nodes, postfix_fem_comparison_csv):
+        return self.get_variable_collections_per_stage(
+            "SHEAR_FORCE",
+            stages_to_be_plotted,
+            nodes,
+            wall_output_postfix,
+            unit_to_k_unit,
+            postfix_fem_comparison_csv,
+            extract_shear_force_and_y_from_line,
+            data_extractor_dsheetpiling=extract_shear_force_and_y_from_line,
+        )
+
+    def get_normal_force_data_series_per_stage(self, nodes, postfix_fem_comparison_csv):
+        return self.get_variable_collections_per_stage(
+            "AXIAL_FORCE",
+            stages_to_be_plotted,
+            nodes,
+            wall_output_postfix,
+            unit_to_k_unit,
+            postfix_fem_comparison_csv,
+            extract_normal_force_and_y_from_line,
+        )
+
+    def get_horizontal_total_displacement_data_series_per_stage(
+        self, nodes, postfix_fem_comparison_csv
+    ):
+        no_transformation = lambda value: value
+        return self.get_variable_collections_per_stage(
+            "TOTAL_DISPLACEMENT_X",
+            stages_to_be_plotted,
+            nodes,
+            wall_output_postfix,
+            no_transformation,
+            postfix_fem_comparison_csv,
+            extract_horizontal_displacements_from_line,
+            data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line,
+        )
+
+    def create_wall_plots(self, nodes):
+        postfix_fem_comparison_csv = "FE_comparison_wall"
+
+        bending_moment_collections = self.get_bending_moment_data_series_per_stage(
+            nodes, postfix_fem_comparison_csv
         )
         plot_utils.make_sub_plots(
             bending_moment_collections,
-            Path(project_path) / "bending_moments.svg",
-            titles=plot_titles,
+            self.test_path / "bending_moments.svg",
+            titles=stages_to_be_plotted,
             xlabel="Bending moment [kNm/m]",
-            ylabel="y [m]",
+            ylabel=r"$y$ [m]",
         )
 
-        shear_force_collections = self.get_wall_variable_collections_per_stage(
-            "SHEAR_FORCE",
-            "Shear force",
-            project_path,
-            plot_stages,
-            extract_shear_force_and_y_from_line,
+        shear_force_collections = self.get_shear_force_data_series_per_stage(
+            nodes, postfix_fem_comparison_csv
         )
         plot_utils.make_sub_plots(
             shear_force_collections,
-            Path(project_path) / "shear_forces.svg",
-            titles=plot_titles,
+            self.test_path / "shear_forces.svg",
+            titles=stages_to_be_plotted,
             xlabel="Shear force [kN/m]",
-            ylabel="y [m]",
+            ylabel=r"$y$ [m]",
         )
 
-        horizontal_displacement_collections = (
-            self.get_wall_horizontal_displacement_collections_per_stage(
-                project_path, plot_stages, extract_horizontal_displacements_from_line
+        normal_force_collections = self.get_normal_force_data_series_per_stage(
+            nodes, postfix_fem_comparison_csv
+        )
+        plot_utils.make_sub_plots(
+            normal_force_collections,
+            self.test_path / "normal_forces.svg",
+            titles=stages_to_be_plotted,
+            xlabel="Normal force [kN/m]",
+            ylabel=r"$y$ [m]",
+        )
+
+        horizontal_total_displacement_collections = (
+            self.get_horizontal_total_displacement_data_series_per_stage(
+                nodes, postfix_fem_comparison_csv
             )
         )
         plot_utils.make_sub_plots(
-            horizontal_displacement_collections,
-            Path(project_path) / "horizontal_displacements.svg",
-            titles=plot_titles,
-            xlabel="Horizontal displacement [m]",
-            ylabel="y [m]",
+            horizontal_total_displacement_collections,
+            self.test_path / "horizontal_total_displacements.svg",
+            titles=stages_to_be_plotted,
+            xlabel="Horizontal total displacement [m]",
+            ylabel=r"$y$ [m]",
         )
 
-    def update_expected_results(self):
+    def update_all_expected_results(self):
         print("Updating the expected results...")
 
-        # fmt: off
-        self.stages_info = {
-            "initial_stage":      {"end_time": -1.0, "base_name": "1_Initial_stage"},
-            "null_step":          {"end_time":  0.0, "base_name": "2_Null_step"},
-            "wall_installation":  {"end_time":  1.0, "base_name": "3_Wall_installation"},
-            "first_excavation":   {"end_time":  2.0, "base_name": "4_First_excavation"},
-            "strut_installation": {"end_time":  3.0, "base_name": "5_Anchor_installation"},
-            "second_excavation":  {"end_time":  4.0, "base_name": "6_Second_excavation"},
-            "third_excavation":   {"end_time":  5.0, "base_name": "7_Third_excavation"},
-        }
-        # fmt: on
+        for case_name, variant in [
+            (linear_elastic_dir_name, "as-is"),
+            (mohr_coulomb_clay_sand_dir_name, "linear_iteration"),
+        ]:
+            self.update_expected_results(case_name, variant)
 
-        target_dir = Path(
+    def update_expected_results(self, case_name, variant):
+        self.analysis_type = staged_construction
+        base_test_path = Path(
             test_helper.get_file_path(
-                Path("crow_validation") / "linear_elastic" / "staged_construction"
+                Path("crow_validation") / case_name / self.analysis_type
             )
         )
+        self.test_path = base_test_path / variant
+        self.csv_files_dir = base_test_path
 
-        reader = GiDOutputFileReader()
-        node_ids = get_sheetpile_node_ids()
+        mdpa_file_path_without_file_extension = common_test_files_dir / "model"
+        model = Kratos.Model()
+        main_model_part = model.CreateModelPart("PorousDomain")
+        Kratos.ModelPartIO(mdpa_file_path_without_file_extension).ReadModelPart(
+            main_model_part
+        )
+        node_ids = [
+            node.Id for node in model.GetModelPart("PorousDomain.Sheet_Pile_Wall").Nodes
+        ]
 
-        for stage_name in [
-            "wall_installation",
-            "first_excavation",
-            "second_excavation",
-            "third_excavation",
-        ]:
-            base_name = self.stages_info[stage_name]["base_name"]
-            output_data = reader.read_output_from(
-                target_dir / "gid_output" / f"{base_name}.post.res"
+        for stage_name in stages_to_be_checked:
+            json_output = json_utilities.read_external_json(
+                self.file_path_to_json_output(stage_name, wall_output_postfix)
             )
-            end_time = self.stages_info[stage_name]["end_time"]
-            bending_moments = reader.nodal_values_at_time(
-                "BENDING_MOMENT", end_time, output_data, node_ids=node_ids
-            )
-            shear_forces = reader.nodal_values_at_time(
-                "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
-            )
-            horizontal_displacements = [
-                displacement_vector[0]
-                for displacement_vector in reader.nodal_values_at_time(
-                    "DISPLACEMENT", end_time, output_data, node_ids=node_ids
-                )
-            ]
 
             with open(
-                target_dir / f"{base_name}__expected_results_wall.csv",
+                self.csv_files_dir / f"{stage_name}__expected_results_wall.csv",
                 "w",
                 newline="",
             ) as csv_file:
@@ -707,21 +547,91 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     node_id,
                     bending_moment,
                     shear_force,
-                    horizontal_displacement,
+                    normal_force,
+                    horizontal_total_displacement,
                 ) in zip(
-                    node_ids, bending_moments, shear_forces, horizontal_displacements
+                    node_ids,
+                    test_helper.get_bending_moments_from_json_output(
+                        json_output, node_ids
+                    ),
+                    test_helper.get_shear_forces_from_json_output(
+                        json_output, node_ids
+                    ),
+                    test_helper.get_normal_forces_from_json_output(
+                        json_output, node_ids
+                    ),
+                    test_helper.get_total_displacement_x_from_json_output(
+                        json_output, node_ids
+                    ),
                 ):
                     writer.writerow(
                         {
                             csv_fieldname_node: node_id,
-                            csv_fieldname_bending_moment: bending_moment,
-                            csv_fieldname_shear_force: shear_force,
-                            csv_fieldname_horizontal_displacement: horizontal_displacement,
+                            csv_fieldname_bending_moment: f"{bending_moment:.6}",
+                            csv_fieldname_shear_force: f"{shear_force:.6}",
+                            csv_fieldname_normal_force: f"{normal_force:.6}",
+                            csv_fieldname_horizontal_total_displacement: f"{horizontal_total_displacement:.6}",
                         }
                     )
 
     def test_staged_construction_with_linear_elastic_behavior(self):
-        self.run_staged_construction_analysis_and_checks("linear_elastic")
+        self.prepare_test_run(
+            material_model_dir_name=linear_elastic_dir_name,
+            analysis_type=staged_construction,
+            variant="as-is",
+        )
+        self.run_simulation_and_checks()
+
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_linear_iteration(
+        self,
+    ):
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type=staged_construction,
+            variant="linear_iteration",
+        )
+        self.run_simulation_and_checks()
+
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_broydens_method(
+        self,
+    ):
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type=staged_construction,
+            variant="broyden",
+            modify_project_parameters=(
+                lambda project_parameters: set_quasi_newton_method(
+                    project_parameters, "broyden"
+                )
+            ),
+        )
+        self.run_simulation_and_checks()
+
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_lbfgs(self):
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type=staged_construction,
+            variant="lbfgs",
+            modify_project_parameters=(
+                lambda project_parameters: set_quasi_newton_method(
+                    project_parameters, "lbfgs"
+                )
+            ),
+        )
+        self.run_simulation_and_checks()
+
+    def test_staged_construction_with_mohr_coulomb_clay_sand_with_intermediate_save_and_load(
+        self,
+    ):
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type=staged_construction,
+            variant="with_save_and_load",
+            run_analysis=(
+                helper_utilities.run_multistage_analysis_with_intermediate_save_and_load
+            ),
+        )
+        self.run_simulation_and_checks()
 
 
 if __name__ == "__main__":
@@ -730,7 +640,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.update_expected_results:
-        KratosGeoMechanicsCrowValidation().update_expected_results()
+        KratosGeoMechanicsCrowValidation().update_all_expected_results()
         sys.exit(0)
 
     KratosUnittest.main()

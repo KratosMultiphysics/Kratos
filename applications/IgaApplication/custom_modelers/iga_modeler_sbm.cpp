@@ -771,9 +771,6 @@ void IgaModelerSbm::CreateConditions(
         // Set knot span sizes to the condition
         new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
 
-        for (SizeType i = 0; i < (*it)->size(); ++i) {
-            rModelPart.Nodes().push_back((*it)->pGetPoint(i));
-        }
         rIdCounter++;
         count_list_closest_condition++;
     }
@@ -828,10 +825,6 @@ void IgaModelerSbm::CreateConditions(
             }
             new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
                         
-            for (SizeType i = 0; i < (*it)->size(); ++i) {
-                // These are the control points associated with the basis functions involved in the condition we are creating
-                rModelPart.Nodes().push_back((*it)->pGetPoint(i));
-            }
             rIdCounter++;
             count_list_closest_condition++;
         }
