@@ -1,0 +1,19 @@
+{
+    "properties" : [{
+        "model_part_name" : "Initial_MPM_Material.Material_domain_Auto4",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "DispNewtonianFluidPlaneStrainUP2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"                   : 1.0,
+                "MATERIAL_POINTS_PER_ELEMENT" : 3,
+                "DENSITY"                     : 1000.0,
+                "BULK_MODULUS"                : 20000000000.0,
+                "DYNAMIC_VISCOSITY"           : 0.00101
+            },
+            "Tables"           : null
+        }
+    }]
+}

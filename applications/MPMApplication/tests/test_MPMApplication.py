@@ -27,6 +27,7 @@ from mpm_test_factory import CooksMembraneUPIncompressibleASGSDynamicTest as TCo
 
 from mpm_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 from mpm_test_factory import CLDispNewtonianFluidTest as TCLDispNewtonianFluidTest
+from mpm_test_factory import NewtonianFluidUPASGSSloshingSmallTest as TNewtonianFluidUPASGSSloshingSmallTest
 
 from mpm_test_factory import GravityApplicationTest as TGravityApplicationTest
 from mpm_test_factory import GravityTimeStepTableTest as TGravityTimeStepTableTest
@@ -156,6 +157,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TCooksMembraneUPCompressibleASGSTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleASGSTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleASGSDynamicTest('test_execution'))
+    nightSuite.addTest(TNewtonianFluidUPASGSSloshingSmallTest('test_execution'))
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TLagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))

@@ -100,6 +100,9 @@ class CLLinearElastic3DQuadTest(MPMTestFactory):
 class CLDispNewtonianFluidTest(MPMTestFactory):
     file_name = "cl_tests/fluid_cl/newtonian_fluid_test"
 
+class NewtonianFluidUPASGSSloshingSmallTest(MPMTestFactory):
+    file_name = "newtonian_tests/newtonian_fluid_UP_asgs_sloshing_small_test/newtonian_fluid_UP_asgs_sloshing_small_test"
+
 
 ### Friction tests
 class FrictionConformingTest(MPMTestFactory):

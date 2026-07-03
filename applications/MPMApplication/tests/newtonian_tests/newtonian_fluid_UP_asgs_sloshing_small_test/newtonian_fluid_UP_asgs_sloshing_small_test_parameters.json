@@ -1,0 +1,130 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "water_sloshing",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.03
+    },
+    "solver_settings"  : {
+        "time_stepping"                   : {
+            "time_step" : 0.01
+        },
+        "solver_type"                     : "Dynamic",
+        "model_part_name"                 : "MPM_Material",
+        "domain_size"                     : 2,
+        "echo_level"                      : 0,
+        "analysis_type"                   : "non_linear",
+        "time_integration_method"         : "implicit",
+        "scheme_type"                     : "newmark",
+        "material_import_settings"        : {
+            "materials_filename" : "newtonian_tests/newtonian_fluid_UP_asgs_sloshing_small_test/newtonian_fluid_UP_asgs_sloshing_small_test_materials.json"
+        },
+        "compute_reactions"               : true,
+        "convergence_criterion"           : "residual_criterion",
+        "displacement_relative_tolerance" : 0.0001,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 0.0001,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 10,
+        "model_import_settings"           : {
+            "input_type" : "use_input_model_part"
+        },
+        "grid_model_import_settings"      : {
+            "input_type" : "use_input_model_part"
+        },
+        "pressure_dofs"                   : true,
+        "stabilization"                   : "asgs",
+        "linear_solver_settings"          : {
+            "solver_type" : "LinearSolversApplication.sparse_lu"
+        },
+        "auxiliary_variables_list"        : ["NORMAL","IS_STRUCTURE"]
+    },
+    "processes"        : {
+        "constraints_process_list"     : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Background_Grid.Displacement_Auto5",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Background_Grid.Displacement_Auto6",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,null,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Background_Grid.Displacement_Auto7",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,true],
+                "value"           : [null,0.0,0.0]
+            }
+        }],
+        "loads_process_list"           : [],
+        "list_other_processes"         : [{
+            "python_module" : "assign_body_acceleration_to_material_point_process",
+            "kratos_module" : "KratosMultiphysics.MPMApplication",
+            "process_name"  : "AssignBodyAccelerationToMaterialPointProcess",
+            "Parameters"    : {
+                "model_part_name"             : "MPM_Material",
+                "variable_name"               : "MP_VOLUME_ACCELERATION",
+                "modulus"                     : -9.8,
+                "component"                   : [1,0,0.0],
+                "set_initial_mp_acceleration" : true
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT","PRESSURE"],
+                "input_file_name"  : "newtonian_tests/newtonian_fluid_UP_asgs_sloshing_small_test/newtonian_fluid_UP_asgs_sloshing_small_test_results.json",
+                "model_part_name"  : "Background_Grid",
+                "time_frequency"   : 0.03
+            }
+    	}
+        ]
+    },
+    "output_processes" : {
+        
+    },
+    "modelers"         : [{
+        "name"       : "Modelers.KratosMultiphysics.ImportMDPAModeler",
+        "parameters" : {
+            "input_filename"  : "newtonian_tests/newtonian_fluid_UP_asgs_sloshing_small_test/water_sloshing_Grid",
+            "model_part_name" : "Background_Grid"
+        }
+    },{
+        "name"       : "Modelers.KratosMultiphysics.ImportMDPAModeler",
+        "parameters" : {
+            "input_filename"  : "newtonian_tests/newtonian_fluid_UP_asgs_sloshing_small_test/water_sloshing_Body",
+            "model_part_name" : "Initial_MPM_Material"
+        }
+    },{
+        "name"       : "Modelers.KratosMultiphysics.CreateEntitiesFromGeometriesModeler",
+        "parameters" : {
+            "elements_list"   : [{
+                "model_part_name" : "Initial_MPM_Material.Material_domain_Auto4",
+                "element_name"    : "MPMUpdatedLagrangianUP2D3N"
+            },{
+                "model_part_name" : "Background_Grid.Grid_Auto4",
+                "element_name"    : "Element2D3N"
+            }],
+            "conditions_list" : []
+        }
+    }],
+    "analysis_stage"   : "KratosMultiphysics.MPMApplication.mpm_analysis"
+}
