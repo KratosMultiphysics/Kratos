@@ -145,4 +145,22 @@ KRATOS_TEST_CASE_IN_SUITE(CreatedLineSearchStrategyUsesMaxIterationsInput, Krato
     KRATOS_EXPECT_EQ(static_cast<int>(p_line_search_strategy->GetMaxIterationNumber()), max_number_of_iterations);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForQuasiNewtonStrategy, KratosGeoMechanicsFastSuite)
+{
+    Model      model;
+    const int  buffer_size      = 2;
+    auto&      dummy_model_part = model.CreateModelPart("dummy", buffer_size);
+    Parameters parameters{testParameters};
+    parameters["strategy_type"].SetString("quasi_newton");
+    parameters.AddString("quasi_newton_type", "broyden");
+    parameters.AddInt("quasi_newton_restart_interval", 50);
+    parameters.AddInt("quasi_newton_max_rank", 10);
+
+    const auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
+
+    KRATOS_EXPECT_TRUE(created_strategy->GetMoveMeshFlag()) // since it is set to true in the parameters
+    KRATOS_EXPECT_NE(created_strategy, nullptr);
+    KRATOS_EXPECT_EQ(created_strategy->Check(), 0);
+}
+
 } // namespace Kratos::Testing
