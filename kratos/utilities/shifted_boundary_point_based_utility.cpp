@@ -343,12 +343,10 @@ namespace Kratos
 
         // Get and check sub model part for skin discretization
         mSkinModelPartName = ThisParameters["skin_model_part_name"].GetString();
-        //TODO mpSkinDiscSubModelPart = &rModel.GetModelPart(mSkinModelPartName + ".Disc");
         mpSkinDiscSubModelPart = &rModel.GetModelPart(mSkinModelPartName);
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedUtility", mpSkinDiscSubModelPart->NumberOfElements() == 0) << "Provided SBM skin discretization model part has no elements." << std::endl;
 
         // Get and check sub model part for skin points
-        //TODO mpSkinPointsSubModelPart = &rModel.GetModelPart(mSkinModelPartName + ".Points");
         mpSkinPointsSubModelPart = &rModel.GetModelPart(mSkinModelPartName + "Points");
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedUtility", mpSkinPointsSubModelPart->NumberOfNodes() != 0) << "Provided SBM skin points model part has nodes." << std::endl;
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedUtility", mpSkinPointsSubModelPart->NumberOfElements() != 0) << "Provided SBM skin points model part has elements." << std::endl;
@@ -387,8 +385,7 @@ namespace Kratos
     void ShiftedBoundaryPointBasedUtility::ResetFlags()
     {
         // Activate all elements and initialize flags to false
-        // NOTE Resetting the SBM flags will eliminate previously embedded model parts except for their wall conditions!
-        // TODO container for relocated nodes? so that they can be set back to their original position if needed
+        // NOTE Resetting the SBM flags will eliminate previously immersed model parts except for their wall conditions (which remain in mpBoundarySubModelPart)!
         block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
             rNode.Set(ACTIVE, true);             // Nodes that belong to the elements to be assembled
             rNode.Set(SBM_BOUNDARY, false);      // Nodes that belong to the support clouds of the positive side
@@ -410,7 +407,7 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(mpSkinDiscSubModelPart->NumberOfElements())
             << "There are no elements in skin model part (boundary) '" << mpSkinDiscSubModelPart->FullName() << "'." << std::endl;
 
-        // Build AABB tree of the discretized skin geometry (single-threaded)
+        // Build AABBs of the discretized skin geometry (single-threaded)
         const std::size_t n_skin_elements = mpSkinDiscSubModelPart->NumberOfElements();
         std::vector<ShiftedBoundaryUtilityInternals::BBox> skin_boxes(n_skin_elements);
         std::vector<ElementType::Pointer> idx_to_skin_element_pointer(n_skin_elements);
@@ -421,43 +418,45 @@ namespace Kratos
             idx_to_skin_element_pointer[idx] = &rElement;
             idx += 1;
         }
+        // Build BVH (AABB tree) of the discretized skin geometry
         mSkinBVH.build(skin_boxes);  // O(N_skin * log N_skin)
         // TODO store skin bvh for entire simulation for moving boundary, but replace skin_boxes with mSkinBVH.refit(skin_boxes_updated) every time the skin moves
 
-        const std::size_t n_split_elements_estimated = mpSkinDiscSubModelPart->NumberOfElements() * mpModelPart->GetProcessInfo()[DOMAIN_SIZE] * 2;
+        const std::size_t n_intersected_elements_estimated = mpSkinDiscSubModelPart->NumberOfElements() * mpModelPart->GetProcessInfo()[DOMAIN_SIZE] * 2;
         mBoundaryElementsSet.clear();
-        mBoundaryElementsSet.reserve(n_split_elements_estimated);
+        mBoundaryElementsSet.reserve(n_intersected_elements_estimated);
 
         const std::size_t num_threads = ParallelUtilities::GetNumThreads();
-        std::vector< std::vector<ElementType::Pointer> > local_split_elements(num_threads);
-        for (auto& vec : local_split_elements) vec.reserve(n_split_elements_estimated/num_threads);
+        std::vector< std::vector<ElementType::Pointer> > local_intersected_elements(num_threads);
+        for (auto& vec : local_intersected_elements) vec.reserve(n_intersected_elements_estimated/num_threads);
 
         // Parallel search over background mesh for elements, which are intersected by the discretized skin geometry
         // NOTE that we already treat elements as intersected if one of their nodes coincides with the discretized skin geometry
         // TODO build and use background mesh bvh, because it will always stay the same
-        // TODO use previously found boundary elements as a starting point (+ several layers?) for moving boundary
+        // TODO OR use previously found boundary elements as a starting point (+ several layers?) for moving boundary
         block_for_each(mpModelPart->Elements(), [&](ElementType& rElement){
             auto& r_background_geom = rElement.GetGeometry();
             const ShiftedBoundaryUtilityInternals::BBox element_box(r_background_geom, Tolerance);
             std::vector<std::size_t> candidates;
             mSkinBVH.query(element_box, candidates);
 
-            // Check the background element for intersections with skin elements that were found in proximity by the AABB tree query (candidates)
+            // Check the background element for intersections with any skin element candidate (skin element which were found in proximity by the BVH query)
+            // NOTE that "HasIntersection" of the geometry should already find coinciding nodes and faces!
             for (std::size_t idx : candidates) {
                 const ElementType::Pointer p_skin_elem = idx_to_skin_element_pointer[idx];
                 auto& r_skin_geom = p_skin_elem->GetGeometry();
-                if (r_background_geom.HasIntersection(r_skin_geom)) {  //TODO this already finds coinciding faces and elements ?!?
-                    local_split_elements[omp_get_thread_num()].push_back(&rElement);
+                if (r_background_geom.HasIntersection(r_skin_geom)) {
+                    local_intersected_elements[omp_get_thread_num()].push_back(&rElement);
                     break;
                 }
             }
         });
 
-        // Merge split elements that where found by each thread
-        for (auto& vec : local_split_elements) {
+        // Merge intersected background elements that were found by each thread
+        for (auto& vec : local_intersected_elements) {
             mBoundaryElementsSet.insert(vec.begin(), vec.end());
         }
-        // Free space allocated previously by reserve
+        // Free space, which was previously allocated by reserve
         mBoundaryElementsSet.rehash(mBoundaryElementsSet.size());
     }
 
@@ -481,7 +480,7 @@ namespace Kratos
     void ShiftedBoundaryPointBasedUtility::FlagBoundaryElements()
     {
         // Mark elements as SBM_BOUNDARY (Gamma) in which the tessellated skin geometry and/ or skin integration points were located
-        // NOTE that SBM_BOUNDARY elements will get deactivated and that the split elements BC is applied by means of the extension operators
+        // NOTE that SBM_BOUNDARY elements will get deactivated and that the BC inside boundary elements will be applied by means of the extension operators
         //TODO nodes are reset here to not disturb other skin model parts - rethink this!
         for (auto& p_elem : mBoundaryElementsSet) {
             p_elem->Set(SBM_BOUNDARY, true);
@@ -496,7 +495,6 @@ namespace Kratos
     {
         // Find the surrogate boundary elements and mark them as SBM_INTERFACE (gamma_tilde)
         // Note that we rely on the fact that the neighbors are sorted according to the faces
-        // TODO faster to declare surrounding elements INTERFACE when setting the BOUNDARY flag or when deactivating BOUNDARY elements?! Although it is cleaner this way.
         LockObject mutex;
         block_for_each(mpModelPart->Elements(), [&mutex](ElementType& rElement){
             if (rElement.Is(SBM_BOUNDARY)) {
@@ -707,10 +705,10 @@ namespace Kratos
         SkinPointsToElementsMapType& rSkinPointsMap)
     {
         // Check that the skin model part has elements
-        KRATOS_ERROR_IF_NOT(mpSkinDiscSubModelPart->NumberOfElements())
-            << "There are no elements in skin model part (boundary) '" << mpSkinDiscSubModelPart->FullName() << "'." << std::endl;
+        KRATOS_ERROR_IF_NOT(mpSkinPointsSubModelPart->NumberOfNodes())
+            << "There are no nodes in skin points model part '" << mpSkinPointsSubModelPart->FullName() << "'." << std::endl;
 
-        // Check that the skin model part has elements
+        // Check that BOUNDARY elements were already founnd by FindElementsAtTessellatedBoundary()
         const std::size_t n_boundary_elements_found = mBoundaryElementsSet.size();
         KRATOS_ERROR_IF_NOT(n_boundary_elements_found)
             << "There are no elements in mBoundaryElementsSet. Maybe FindElementsAtTessellatedBoundary() was not called." << std::endl;
@@ -756,44 +754,29 @@ namespace Kratos
         std::vector< std::size_t > local_n_skin_points_not_found(num_threads, 0);
         std::vector< std::size_t > local_n_skin_points_found(num_threads, 0);
 
-        //TODO add nodes to mpSkinPointsSubModelPart in solver and update there as well!
-        // Search the skin points (skin model part integration points) in the volume mesh elements
-        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        block_for_each(mpSkinDiscSubModelPart->Elements(), [&](ElementType& rSkinElement){
-            const auto& r_skin_geom = rSkinElement.GetGeometry();
-            const GeometryType::IntegrationPointsArrayType& integration_points = r_skin_geom.IntegrationPoints(integration_method);
-            // Get detJ for all integration points of the skin element
-            Vector int_pt_detJs;
-            r_skin_geom.DeterminantOfJacobian(int_pt_detJs, integration_method);
+        // Search the skin points in the volume mesh elements
+        block_for_each(mpSkinPointsSubModelPart->Nodes(), [&](NodeType& rSkinPoint){
 
-            for (std::size_t i_int_pt = 0; i_int_pt < integration_points.size(); ++i_int_pt) {
-                // Get position of skin point
-                const array_1d<double,3> skin_pt_local_coords = integration_points[i_int_pt].Coordinates();
-                array_1d<double,3> skin_pt_position = ZeroVector(3);
-                r_skin_geom.GlobalCoordinates(skin_pt_position, skin_pt_local_coords);
+            // Get position of skin point
+            array_1d<double,3> skin_pt_position = rSkinPoint.Coordinates();
 
-                // Get normal at the skin point and make its length a measure of the area/ integration weight
-                array_1d<double,3> skin_pt_area_normal = r_skin_geom.Normal(skin_pt_local_coords);
-                // Normalize normal
-                skin_pt_area_normal /= std::max(norm_2(skin_pt_area_normal), 1e-10);  // tolerance = std::pow(1e-3 * h, Dim-1)
-                // Scale normal with integration weight
-                const double int_pt_weight = int_pt_detJs[i_int_pt] * integration_points[i_int_pt].Weight();
-                skin_pt_area_normal *= int_pt_weight;
+            // Get the normal at the skin point
+            // NOTE that we assume here that the norm/ length of the normal is a measure of the area/ integration point weight
+            array_1d<double,3> skin_pt_area_normal = rSkinPoint.GetValue(NORMAL);
 
-                // Search for the skin point in the volume mesh candidates to get the element containing the point
-                Element::Pointer p_element = nullptr;
-                const bool is_found = LocatePoint(candidate_bvh, idx_to_candidate_element_pointer, skin_pt_position, p_element);
+            // Search for the skin point in the volume mesh candidates to get the element containing the point
+            Element::Pointer p_element = nullptr;
+            const bool is_found = LocatePoint(candidate_bvh, idx_to_candidate_element_pointer, skin_pt_position, p_element);
 
-                // Add data to local vectors
-                const std::size_t thread_num = omp_get_thread_num();
-                if (is_found) {
-                    local_skin_point_located_elements[thread_num].emplace_back(p_element);
-                    local_skin_point_positions[thread_num].emplace_back(skin_pt_position);
-                    local_skin_point_normals[thread_num].emplace_back(skin_pt_area_normal);
-                    local_n_skin_points_found[thread_num]++;
-                } else {
-                    local_n_skin_points_not_found[thread_num]++;
-                }
+            // Add data to local vectors
+            const std::size_t thread_num = omp_get_thread_num();
+            if (is_found) {
+                local_skin_point_located_elements[thread_num].emplace_back(p_element);
+                local_skin_point_positions[thread_num].emplace_back(skin_pt_position);
+                local_skin_point_normals[thread_num].emplace_back(skin_pt_area_normal);
+                local_n_skin_points_found[thread_num]++;
+            } else {
+                local_n_skin_points_not_found[thread_num]++;
             }
         });
 
@@ -864,8 +847,7 @@ namespace Kratos
 
         std::vector<std::size_t> bbox_candidates;
         bbox_candidates.reserve(20);
-        //TODO rCandidatesBvh is read-only here - safe for parallel queries ?!?
-        rCandidatesBvh.query(pt_box, bbox_candidates);
+        rCandidatesBvh.query(pt_box, bbox_candidates);  // read-only query of the BVH - safe for parallel execution
 
         Element::GeometryType::CoordinatesArrayType coords;
         bool is_inside = false;

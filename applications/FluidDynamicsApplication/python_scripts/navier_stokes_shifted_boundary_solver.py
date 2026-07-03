@@ -9,6 +9,9 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 import datetime
+import numpy
+
+
 
 class ShiftedBoundaryFormulation(object):
     """Helper class to define shifted boundary dependent parameters."""
@@ -211,6 +214,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             skin_mp.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_FLUID_VELOCITY)
             skin_mp.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_FLUID_VELOCITY)
             skin_mp_points = self.model.GetModelPart(skin_mp_name + "Points")
+            skin_mp_points.AddNodalSolutionStepVariable(KM.NORMAL)
             skin_mp_points.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_PRESSURE)
             skin_mp_points.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_PRESSURE)
             skin_mp_points.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_FLUID_VELOCITY)
@@ -413,6 +417,13 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             self.sbm_utilities[0].ResetFlags()
             time_prev = self.__PrintAndResetTimer(time_prev, "reset flags")
 
+            # Create skin points in skin points model part from the discretized skin model part if the skin points model part is empty and the skin model part is not empty.
+            for skin_mp_name in self.skin_model_part_names:
+                skin_mp = self.model.GetModelPart(skin_mp_name)
+                skin_mp_points = self.model.GetModelPart(skin_mp_name+"Points")
+                if skin_mp_points.NumberOfNodes() == 0 and skin_mp.NumberOfNodes() != 0:
+                    self.__FillSkinPointsFromDiscModelPart(skin_mp_name, skin_mp, skin_mp_points)
+
             # Set boundary flags and locate skin model part points in the volume model part elements for all skin model parts.
             # NOTE that boundary elements are flagged after locating the skin points in case skin points are located in elements,
             # which are not touching or intersected by the tessellated boundary
@@ -440,6 +451,32 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             time_prev = self.__PrintAndResetTimer(time_prev, "add conditions for all skin model parts")
 
             KM.Logger.PrintInfo(self.__class__.__name__, "Extension operators were calculated and interface conditions added.")
+
+    def __FillSkinPointsFromDiscModelPart(self, skin_model_part_name, skin_model_part, skin_points_model_part):
+        # Create skin points in skin points model part from the discretized skin model part if the skin points model part is empty and the skin model part is not empty.
+        n_skin_points = skin_points_model_part.NumberOfNodes()
+
+        # Get integration points of each skin element and add as skin point
+        for element in skin_model_part.Elements:
+            integration_points = element.GetIntegrationPoints()
+            integration_points_weights = element.GetIntegrationPointWeights()
+            elem_normal = element.GetGeometry().Normal()
+            elem_unit_normal = elem_normal / max(1e-10, numpy.linalg.norm(elem_normal))
+
+            for int_pt, int_pt_w in zip(integration_points, integration_points_weights):
+                # Add integration point as node to skin points model part and add its area normal as nodal variable
+                new_node = skin_points_model_part.CreateNewNode(n_skin_points, int_pt[0], int_pt[1], int_pt[2])
+                n_skin_points += 1
+
+                # Calculate and set the area normal of the integration point
+                # NOTE that the length of the normal will be used as integration weight for the boundary condition!
+                skin_pt_area_normal = elem_unit_normal * int_pt_w
+                new_node.SetValue(KM.NORMAL, skin_pt_area_normal)
+
+                KM.Logger.PrintInfo(self.__class__.__name__, skin_points_model_part.GetNode(n_skin_points-1).GetValue(KM.NORMAL))
+
+
+        KM.Logger.PrintInfo(self.__class__.__name__, "Skin points added to skin points model part from discretized skin model part '" + skin_model_part_name + "'.")
 
     def __PrintAndResetTimer(self, time_prev, process_description):
         time_curr = datetime.datetime.now().replace(microsecond=0)
