@@ -37,6 +37,7 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
                 "solver_type"           : "feast"
             },
             "compute_stabilization_factor" : false,
+            "stabilization_method" : 1,
             "number_of_conditions" : 1
         }""")
 
@@ -68,6 +69,9 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
             self.params["eigen_system_settings"]["number_of_eigenvalues"].SetInt(15)
         elif solver_type == "spectra_sym_g_eigs_shift":
             self.params["eigen_system_settings"]["number_of_eigenvalues"].SetInt(math.ceil(eigenvalue_nitsche_stabilization_size-1))
+
+        stabilization_method = params["stabilization_method"].GetInt()
+        self.model_part_condition.ProcessInfo.SetValue(IGA.STABILIZATION_METHOD, stabilization_method)
 
     def ExecuteInitializeSolutionStep(self):
         # Get the model parts which divide the problem
