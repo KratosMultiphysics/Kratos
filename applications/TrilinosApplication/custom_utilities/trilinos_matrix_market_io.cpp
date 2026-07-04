@@ -49,7 +49,7 @@ Teuchos::RCP<FEMatrix> ReadMatrix(
 
     const auto p_row_map = p_crs->getRowMap();
     const auto p_col_map = p_crs->getColMap();
-    const LO num_local_rows = static_cast<LO>(p_crs->getNodeNumRows());
+    const LO num_local_rows = static_cast<LO>(p_crs->getLocalNumRows());
 
     // Per-row max entry count for the FECrsGraph.
     std::size_t max_entries = 0;
