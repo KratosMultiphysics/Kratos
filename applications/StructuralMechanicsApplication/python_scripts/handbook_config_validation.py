@@ -27,7 +27,7 @@ class Schema_Validation:
                 "boundary_conditions" : {"type": "array", "items" : {"type" : "number"}},
                 "analysis_methods"  :   {"type": "array", "items": {"type": "string"}}
             },
-            "required": ["type", "submodelpart", "analysis_methods"]
+            "required": ["type", "submodelpart"]
         }
 
         self.column_schema = {
