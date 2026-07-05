@@ -44,12 +44,12 @@ class Panel(StructuralComponent):
                  sub_model_part, 
                  boundary_conditions: list[float]):
         super().__init__(sub_model_part, boundary_conditions)
+        self.sub_model_part = sub_model_part
         self.geometry = None
         self.material = None
         self.response = None
         self.load_state = None
         self.analysis_methods = self._CreateAnalysisMethods()
-        self.analysis_results = []
     
     @classmethod
     def FromKratosParametersObject(cls, sub_model_part, data):
@@ -67,6 +67,15 @@ class Panel(StructuralComponent):
     def Initialize(self):
         self.ExtractGeometry()
         self.ExtractMaterial()
+
+    def PrepareAnalysis(self) -> None:
+        self.ExtractMaterial()
+        self.ExtractResponse()
+        self.ClassifyLoadState()
+
+    def RunAnalysis(self) -> None:
+        self.RunMethods()
+        self.StoreResults()
     
     def ExtractMaterial(self) -> None:
         if self.sub_model_part.NumberOfElements() == 0:
@@ -158,18 +167,9 @@ class Panel(StructuralComponent):
             f"tau_xy={tau_xy_panel:.6e}"
         )
 
-
-    def PrepareAnalysis(self) -> None:
-        self.ExtractMaterial()
-        self.ExtractResponse()
-        self.ClassifyLoadState()
-
-    def RunAnalysis(self) -> None:
-        self.RunMethods()
-
     def RunMethods(self) -> None:
         self._RequireLoadState()
-
+        self.analysis_results = []
         for method in self.analysis_methods:
             if method.IsApplicable(self):
                 result = method.Evaluate(self)
@@ -178,6 +178,20 @@ class Panel(StructuralComponent):
                 KratosMultiphysics.Logger.PrintInfo(
                 "Panel",
                 f"{result.method_name}: RF={result.value:.6e}"
+            )
+                
+    def StoreResults(self) -> None:
+        for result in self.analysis_results:
+            if result.output_variable is None:
+                continue
+
+            self.sub_model_part.SetValue(result.output_variable, result.value)
+
+            KratosMultiphysics.Logger.PrintInfo(
+                "Panel",
+                f"Stored/read back {result.method_name}: "
+                f"{result.output_variable.Name()}={self.sub_model_part.GetValue(result.output_variable):.6e} "
+                f"on '{self.sub_model_part.Name}'"
             )
 
     def ClassifyLoadState(self) -> None:

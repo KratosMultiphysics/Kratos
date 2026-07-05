@@ -1,6 +1,7 @@
 import numpy as np
 from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.analysis_result import AnalysisResult
 from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.method_base import HandbookMethod
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 class PanelUniaxialBuckling(HandbookMethod):
     name = "panel_uniaxial_buckling"
@@ -66,4 +67,4 @@ class PanelBiaxialBuckling(HandbookMethod):
 
         rf = sigma_x_crit / sigma_x
 
-        return AnalysisResult(self.name, self.category, rf)
+        return AnalysisResult(self.name, self.category, rf, output_variable=SMA.RESPONSE_VALUE)

@@ -5,5 +5,5 @@ class AnalysisResult:
     method_name: str
     category: str
     value: float
-    output_variable: object
+    output_variable: object | None = None
     metadata: dict = field(default_factory=dict)

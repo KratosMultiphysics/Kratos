@@ -4,6 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 from KratosMultiphysics.StructuralMechanicsApplication.handbook_config_validation import Schema_Validation
 from KratosMultiphysics.StructuralMechanicsApplication.structural_components.structural_component_factory import CreateStructuralComponent
+from KratosMultiphysics.StructuralMechanicsApplication.reserve_factor_response import ReserveFactorResponse
 
 def Factory(settings: KratosMultiphysics.Parameters, Model: KratosMultiphysics.Model) -> KratosMultiphysics.Process:
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -32,4 +33,11 @@ class StressAnalysisProcess(KratosMultiphysics.Process):
         for component in self.structural_components:
             component.PrepareAnalysis()
             component.RunAnalysis()
-    
+
+            response = ReserveFactorResponse(self.modelpart, component.sub_model_part.Name)
+            rf = response.CalculateValue()
+
+            KratosMultiphysics.Logger.PrintInfo(
+                "ReserveFactorResponse",
+                f"{component.sub_model_part.Name}: RF={rf:.6e}"
+            )
