@@ -14,7 +14,9 @@
 // Project includes
 #include "shell_7p_element.hpp"
 #include "utilities/math_utils.h"
+#include "utilities/integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 //READ SOLVER SCRIPT*********************************************************************************************************************************
 // https://github.com/KratosMultiphysics/Kratos/blob/master/applications/StructuralMechanicsApplication/python_scripts/structural_mechanics_solver.py
@@ -200,12 +202,12 @@ void Shell7pElement::CalculateLeftHandSide(
     Matrix gmkonr = ZeroMatrix(3);
     double detJ_surface = 0.0;
 
-    array_1d<double,2> gpcoord3;
-    gpcoord3[0] =  1.0 / std::sqrt(3.0);
-    gpcoord3[1] = -1.0 / std::sqrt(3.0);
-    array_1d<double,2> gpweight;
-    gpweight[0] = 1.0;
-    gpweight[1] = 1.0;
+    array_1d<double,2> gpcoord_t;
+    gpcoord_t[0] =  1.0 / std::sqrt(3.0);
+    gpcoord_t[1] = -1.0 / std::sqrt(3.0);
+    array_1d<double,2> gpweight_t;
+    gpweight_t[0] = 1.0;
+    gpweight_t[1] = 1.0;
 
     double amdet_body = 0.0;
     double gmdet_body = 0.0;
@@ -377,8 +379,8 @@ void Shell7pElement::CalculateLeftHandSide(
 
         //-------------------------------------- loop over GP in thickness direction for preintegration of constitutive law
         for (SizeType k=0; k<2; ++k){           // separate function PreintegrateThroughThicknessConstitutive() ?
-            double Theta3 = gpcoord3[k];
-            double tweight = gpweight[k];
+            double Theta3 = gpcoord_t[k];
+            double tweight = gpweight_t[k];
             CovariantBaseVectorsShellBody(gkovr,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,Theta3,thickness);
             CovariantMetric(gmkovr,gkovr);
             ContravariantMetric(gmkonr,gmkovr,gmdet_body);
@@ -402,43 +404,40 @@ void Shell7pElement::CalculateLeftHandSide(
         noalias(DB) = prod(Dmatrix, Bop);
         rLeftHandSideMatrix += prod(trans(Bop), DB) * weight;
         ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
-
+        
         // shape functions for (incompatible strains) EAS strains formulated at the center of the element
         CalculateEASShapeFunctions(M0_eas,r,s,eas_modes_per_kinematic_variable_set,num_eas_modes);
         // basis transformation of EAS strains formulated in midpoint to the current GP
         BasisTransformationEASShapeFunctions(T, M0_eas, M_eas, akonr0_eas, akovr, detJ0_surface, detJ_surface);
-
         //==============================================================
-        //       L^T (nhyb,nd) = M^T (nhyb,12) * D(12,12) * B(12,nd)
+        //       L^T (num_eas_modes,nd) = M^T (num_eas_modes,12) * D(12,12) * B(12,nd)
         // here:   "Lt"            "transP"         "D"       "bop"   
         //==============================================================
         noalias(Lt) += prod(trans(M_eas), DB) * weight; // * thickness*0.5; check whether weight 2D Jacobian insted of 3D one
-        //         D (nhyb,nhyb) = M^T(nhyb,12) * D(12,12) * M(12,nhyb)
+        //         D (num_eas_modes,num_eas_modes) = M^T(num_eas_modes,12) * D(12,12) * M(12,num_eas_modes)
         // here: "Dtild"           "transP"         "D"      "transP"    
         //=============================================================
         Matrix DM = ZeroMatrix(12,num_eas_modes);
         noalias(DM) = prod(Dmatrix, M_eas);   
         noalias(Dtild) += prod(trans(M_eas), DM) * weight; // * thickness*0.5; check whether weight 2D Jacobian insted of 3D one    
-
-        ////////////////////////////////////////////////////////////////END EAS STUFF////////////////////////////////////////////////////////////////
+        
+        /////////////////////////////////////////////////////////END EAS STUFF////////////////////////////////////////////////////////////////
     }
 
-        //------------------------------------ make inverse of matrix Dtilde //
-        double det_Dtild = 0.0;
-        const double det_tol = 1.0e-14;
-
-        // Generic Kratos inversion for dynamic-size Matrix
-        MathUtils<double>::InvertMatrix(Dtild, Dtild_inv, det_Dtild);
-
-        KRATOS_ERROR_IF(std::abs(det_Dtild) < det_tol) << "Singular or near-singular Dtild. det = " << det_Dtild << " in element " << Id() << std::endl;
-        
-        //----------------- make modifications to stiffness matrices due to eas //
-        //===================================================================//
-        // estif(nd,nd) = estif(nd,nd) - Ltrans(nhyb,nd) * Dtilde^-1(nhyb,nhyb) * L(nd,nhyb) //
-        //===================================================================//
-        Matrix temp = ZeroMatrix(num_eas_modes, number_dofs);
-        noalias(temp) = prod(Dtild_inv, Lt);
-        rLeftHandSideMatrix -= prod(trans(Lt), temp);       
+    //------------------------------------ make inverse of matrix Dtilde //
+    double det_Dtild = 0.0;
+    const double det_tol = 1.0e-14;
+    // Generic Kratos inversion for dynamic-size Matrix
+    MathUtils<double>::InvertMatrix(Dtild, Dtild_inv, det_Dtild);
+    KRATOS_ERROR_IF(std::abs(det_Dtild) < det_tol) << "Singular or near-singular Dtild. det = " << det_Dtild << " in element " << Id() << std::endl;
+    
+    //----------------- make modifications to stiffness matrices due to eas //
+    //===================================================================//
+    // estif(nd,nd) = estif(nd,nd) - L(nd,num_eas_modes) * Dtilde^-1(num_eas_modes,num_eas_modes) * Lt(num_eas_modes,nd) //
+    //===================================================================//
+    Matrix temp = ZeroMatrix(num_eas_modes, number_dofs);
+    noalias(temp) = prod(Dtild_inv, Lt);                    // check order of multiplication
+    rLeftHandSideMatrix -= prod(trans(Lt), temp);       
 }
 
 void Shell7pElement::CovariantBaseVectorsMidsurface(array_1d<Vector,3>& akovr,
@@ -1163,6 +1162,113 @@ void Shell7pElement::BasisTransformationEASShapeFunctions(Matrix& T, const Matri
 
     noalias(M_eas) = prod(T, M0_eas);
 
+}
+
+void Shell7pElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    const auto& r_geom = GetGeometry();
+
+    // LUMPED MASS MATRIX
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType nodal_num_dofs = 6;
+    const SizeType number_dofs = number_of_nodes * nodal_num_dofs;
+
+    if (rMassMatrix.size1() != number_dofs) {
+        rMassMatrix.resize(number_dofs, number_dofs, false);
+    }
+    noalias(rMassMatrix) = ZeroMatrix(number_dofs, number_dofs);
+
+    const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
+
+
+    // const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+    const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);     // Rows: GP, Columns: element nodes. Ncontainer(k,i) = N_i evaluated at GP k. For Quad4: Ncontainer(k,i) = N_i evaluated at GP k, where i=0..3 and k=0..3
+    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method); // Stack of matrices: one for each GP. [GP][N_node][derivative direction] Quad4: For GP k: node 0 [ dN0/dξ  dN0/dη ]
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);                                                                                                            // node 1 [ dN1/dξ  dN1/dη ]    
+        
+        
+        array_1d<Vector,2> reference_covariant_base_vectors;
+        array_1d<Vector,3> gkovr;
+        Matrix gmkovr = ZeroMatrix(3);
+        Matrix gmkonr = ZeroMatrix(3);
+
+        double detJ = 0.0;
+        double gmdet_body = 0.0;
+        array_1d<double,2> gpcoord_t;
+        gpcoord_t[0] =  1.0 / std::sqrt(3.0);
+        gpcoord_t[1] = -1.0 / std::sqrt(3.0);
+        array_1d<double,2> gpweight_t;
+        gpweight_t[0] = 1.0;
+        gpweight_t[1] = 1.0;
+
+        double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+        const double thickness = GetProperties()[THICKNESS];
+        double h2 = thickness * 0.5;
+        double h2h2 = h2 * h2;
+
+    for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+
+        const double integration_weight_i = r_integration_points[point_number].Weight();
+        const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+        const Vector& Nshape = row(Ncontainer,point_number);
+
+        double facv  = 0.0;
+        double facw  = 0.0;
+        double facvw = 0.0;
+
+        // CovariantBaseVectorsMidsurface(reference_covariant_base_vectors,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,thickness);
+        // JacobiDeterminante(detJ_surface,reference_covariant_base_vectors);
+
+        //-------------------------------------- loop over GP in thickness direction
+        for (SizeType k=0; k<2; ++k){           
+            double Theta3 = gpcoord_t[k];
+            double tweight = gpweight_t[k];
+            CovariantBaseVectorsShellBody(gkovr,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,Theta3,thickness);
+            CovariantMetric(gmkovr,gkovr);
+            ContravariantMetric(gmkonr,gmkovr,gmdet_body);
+
+            double scalefactor = std::sqrt(gmdet_body) * tweight;
+            facv  += scalefactor;
+            facw  += scalefactor * Theta3 * Theta3;
+            facvw  += scalefactor * Theta3;
+
+        }
+
+        facv  *= density * integration_weight_i;
+        facw  *= density * integration_weight_i;
+        facvw *= density * integration_weight_i;
+
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            for (IndexType j = 0; j < number_of_nodes; ++j) {
+
+                const double NiNj = Nshape[i] * Nshape[j];
+                double inertia_v = facv * NiNj;
+
+                for (IndexType k = 0; k < 3; ++k) {
+                    rMassMatrix(j*nodal_num_dofs + k, i*nodal_num_dofs + k) += inertia_v;
+                }
+
+//                double inertia_w = facw * NiNj * h2h2;
+//                for (IndexType k = 3; k < 6; ++k) {
+//                    rMassMatrix(j*nodal_num_dofs + k, i*nodal_num_dofs + k) += inertia_w;
+//                }
+//
+                if (std::abs(facvw)>1.0e-14) {
+                    double inertia_vw = facvw * NiNj * h2;
+                    rMassMatrix(j*nodal_num_dofs + 3, i*nodal_num_dofs + 0) += inertia_vw;
+                    rMassMatrix(j*nodal_num_dofs + 4, i*nodal_num_dofs + 1) += inertia_vw;
+                    rMassMatrix(j*nodal_num_dofs + 5, i*nodal_num_dofs + 2) += inertia_vw;
+                    rMassMatrix(j*nodal_num_dofs + 0, i*nodal_num_dofs + 3) += inertia_vw;
+                    rMassMatrix(j*nodal_num_dofs + 1, i*nodal_num_dofs + 4) += inertia_vw;
+                    rMassMatrix(j*nodal_num_dofs + 2, i*nodal_num_dofs + 5) += inertia_vw;
+                }
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
 
