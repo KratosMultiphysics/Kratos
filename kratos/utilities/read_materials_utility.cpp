@@ -579,6 +579,8 @@ void ReadMaterialsUtility::ValidateTargetModelPartNames(const Parameters& rAllMa
     for (IndexType i = 0; i < rAllMaterialParameters[properties_key].size(); ++i) {
         const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
         const auto target_property = "Property "s + (property.Has(properties_id_key) ? std::to_string(property[properties_id_key].GetInt()) : "without an ID"s);
+        KRATOS_ERROR_IF(!property.Has(model_part_name_key) && !property.Has(model_part_name_list_key))
+            << target_property << " does not provide any model part name. Please, provide either 'model_part_name' or 'model_part_name_list'.\n";
         KRATOS_ERROR_IF(property.Has(model_part_name_key) && property.Has(model_part_name_list_key))
             << target_property <<  " provides 'model_part_name' as well as 'model_part_name_list'. Please, remove one of them, since they are mutually exclusive.\n";
         KRATOS_ERROR_IF(property.Has(model_part_name_list_key) && property[model_part_name_list_key].GetStringArray().empty())

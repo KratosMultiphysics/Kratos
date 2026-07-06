@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenNeitherAModelPart
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Getting a value that does not exist. entry string : model_part_name")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 does not provide any model part name. Please, provide either 'model_part_name' or 'model_part_name_list'.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAnEmptyModelPartNameListIsGiven, KratosCoreFastSuiteWithoutKernel) {
