@@ -173,12 +173,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.boundary_sub_model_part_name = self.shifted_boundary_formulation.boundary_sub_model_part_name
 
         # Create a skin model part and skin points model part
-        #TODO create sub model parts for discretization and points?
         for skin_mp_name in self.skin_model_part_names:
             if not self.model.HasModelPart(skin_mp_name):
                 skin_mp = self.model.CreateModelPart(skin_mp_name)
-                # skin_mp.CreateSubModelPart("Disc")
-                # skin_mp.CreateSubModelPart("Points")
             if not self.model.HasModelPart(skin_mp_name + "Points"):
                 self.model.CreateModelPart(skin_mp_name + "Points")
 
@@ -322,6 +319,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
     def FinalizeSolutionStep(self):
         # Compute Variables for skin model parts in sbm utilities
+        #TODO only call these functions if it is an output step?! AND call CalculateVariablesAtSkinPoints() for every FSI iteration?
         time_prev = datetime.datetime.now().replace(microsecond=0)
         if self.postprocess_skin_nodes:
             for sbm_utility in self.sbm_utilities:
@@ -427,11 +425,14 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             # Set boundary flags and locate skin model part points in the volume model part elements for all skin model parts.
             # NOTE that boundary elements are flagged after locating the skin points in case skin points are located in elements,
             # which are not touching or intersected by the tessellated boundary
+            #TODO call UpdateBoundaryElements() instead of FindElementsAtTessellatedBoundary() whenever the skin geometry has moved
             for sbm_utility in self.sbm_utilities:
                 sbm_utility.FindElementsAtTessellatedBoundary()
+                time_prev = self.__PrintAndResetTimer(time_prev, "find boundary elements of tessellated skin")
                 sbm_utility.MapSkinPointsToElements()
+                time_prev = self.__PrintAndResetTimer(time_prev, "find skin points")
                 sbm_utility.FlagBoundaryElements()
-            time_prev = self.__PrintAndResetTimer(time_prev, "find boundary elements and skin points")
+                time_prev = self.__PrintAndResetTimer(time_prev, "flag boundary elements")
 
             # Flag interface elements after all boundary elements containing all skin geometries have been found.
             self.sbm_utilities[0].FlagInterfaceElements()

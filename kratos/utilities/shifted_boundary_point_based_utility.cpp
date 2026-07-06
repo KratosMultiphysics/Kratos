@@ -37,7 +37,6 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/shifted_boundary_point_based_utility.h"
-#include "utilities/binbased_fast_point_locator.h"
 #include "utilities/variable_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/plane_3d.h"
@@ -418,10 +417,12 @@ namespace Kratos
             idx_to_skin_element_pointer[idx] = &rElement;
             idx += 1;
         }
+
         // Build BVH (AABB tree) of the discretized skin geometry
         mSkinBVH.build(skin_boxes);  // O(N_skin * log N_skin)
-        // TODO store skin bvh for entire simulation for moving boundary, but replace skin_boxes with mSkinBVH.refit(skin_boxes_updated) every time the skin moves
+        mBVHIdxToSkinElementVector = idx_to_skin_element_pointer;
 
+        // Reset the set of boundary elements
         const std::size_t n_intersected_elements_estimated = mpSkinDiscSubModelPart->NumberOfElements() * mpModelPart->GetProcessInfo()[DOMAIN_SIZE] * 2;
         mBoundaryElementsSet.clear();
         mBoundaryElementsSet.reserve(n_intersected_elements_estimated);
@@ -432,8 +433,6 @@ namespace Kratos
 
         // Parallel search over background mesh for elements, which are intersected by the discretized skin geometry
         // NOTE that we already treat elements as intersected if one of their nodes coincides with the discretized skin geometry
-        // TODO build and use background mesh bvh, because it will always stay the same
-        // TODO OR use previously found boundary elements as a starting point (+ several layers?) for moving boundary
         block_for_each(mpModelPart->Elements(), [&](ElementType& rElement){
             auto& r_background_geom = rElement.GetGeometry();
             const ShiftedBoundaryUtilityInternals::BBox element_box(r_background_geom, Tolerance);
@@ -443,7 +442,62 @@ namespace Kratos
             // Check the background element for intersections with any skin element candidate (skin element which were found in proximity by the BVH query)
             // NOTE that "HasIntersection" of the geometry should already find coinciding nodes and faces!
             for (std::size_t idx : candidates) {
-                const ElementType::Pointer p_skin_elem = idx_to_skin_element_pointer[idx];
+                const ElementType::Pointer p_skin_elem = mBVHIdxToSkinElementVector[idx];
+                auto& r_skin_geom = p_skin_elem->GetGeometry();
+                if (r_background_geom.HasIntersection(r_skin_geom)) {
+                    local_intersected_elements[omp_get_thread_num()].push_back(&rElement);
+                    break;
+                }
+            }
+        });
+
+        // Merge intersected background elements that were found by each thread
+        for (auto& vec : local_intersected_elements) {
+            mBoundaryElementsSet.insert(vec.begin(), vec.end());
+        }
+        // Free space, which was previously allocated by reserve
+        mBoundaryElementsSet.rehash(mBoundaryElementsSet.size());
+    }
+
+    void ShiftedBoundaryPointBasedUtility::UpdateBoundaryElements(double Tolerance)
+    {
+        // Build AABBs of the discretized skin geometry (single-threaded)
+        const std::size_t n_skin_elements = mpSkinDiscSubModelPart->NumberOfElements();
+        std::vector<ShiftedBoundaryUtilityInternals::BBox> skin_boxes(n_skin_elements);
+        std::vector<ElementType::Pointer> idx_to_skin_element_pointer(n_skin_elements);
+        idx_to_skin_element_pointer.reserve(n_skin_elements);
+        std::size_t idx = 0;
+        for (auto& rElement : mpSkinDiscSubModelPart->Elements()) {
+            skin_boxes[idx] = ShiftedBoundaryUtilityInternals::BBox(rElement.GetGeometry(), Tolerance);
+            idx_to_skin_element_pointer[idx] = &rElement;
+            idx += 1;
+        }
+
+        // Refit BVH (AABB tree) with updated skin geometry (instead of rebuilding the BVH from scratch) whenever the skin geometry moves
+        mSkinBVH.refit(skin_boxes);
+        mBVHIdxToSkinElementVector = idx_to_skin_element_pointer;
+
+        // Reset the set of boundary elements
+        const std::size_t n_intersected_elements_estimated = mpSkinDiscSubModelPart->NumberOfElements() * mpModelPart->GetProcessInfo()[DOMAIN_SIZE] * 2;
+        mBoundaryElementsSet.clear();
+        mBoundaryElementsSet.reserve(n_intersected_elements_estimated);
+
+        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
+        std::vector< std::vector<ElementType::Pointer> > local_intersected_elements(num_threads);
+        for (auto& vec : local_intersected_elements) vec.reserve(n_intersected_elements_estimated/num_threads);
+
+        // Parallel search over background mesh candidates for elements, which are intersected by the discretized skin geometry
+        // NOTE that we already treat elements as intersected if one of their nodes coincides with the discretized skin geometry
+        block_for_each(mpModelPart->Elements(), [&](ElementType& rElement){
+            auto& r_background_geom = rElement.GetGeometry();
+            const ShiftedBoundaryUtilityInternals::BBox element_box(r_background_geom, Tolerance);
+            std::vector<std::size_t> candidates;
+            mSkinBVH.query(element_box, candidates);
+
+            // Check the background element for intersections with any skin element candidate (skin element which were found in proximity by the skin BVH query)
+            // NOTE that "HasIntersection" of the geometry should already find coinciding nodes and faces!
+            for (std::size_t idx : candidates) {
+                const ElementType::Pointer p_skin_elem = mBVHIdxToSkinElementVector[idx];
                 auto& r_skin_geom = p_skin_elem->GetGeometry();
                 if (r_background_geom.HasIntersection(r_skin_geom)) {
                     local_intersected_elements[omp_get_thread_num()].push_back(&rElement);
@@ -713,9 +767,10 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(n_boundary_elements_found)
             << "There are no elements in mBoundaryElementsSet. Maybe FindElementsAtTessellatedBoundary() was not called." << std::endl;
 
+        // Create a set of background mesh candidates for the skin point search
         ElementsSetType bg_candidates;
         bg_candidates.reserve(n_boundary_elements_found * 2 * TDim);
-        // Add elements, in which the skin boundary was already found to the search candidates and their immediate neighbors
+        // Add elements, in which the skin boundary was already found and their immediate neighbors to the search candidates
         const std::size_t n_faces = mBoundaryElementsSet.begin()->get()->GetGeometry().FacesNumber();
         for (auto p_elem : mBoundaryElementsSet) {
             bg_candidates.emplace(p_elem);
@@ -1719,27 +1774,42 @@ namespace Kratos
             dict_sum_weights[r_skin_node.Id()] = 0.0;
         }
 
-        // Set the bin-based fast point locator
         //TODO faster to store the skin points element and shape function values once?!?
-        BinBasedFastPointLocator<TDim> point_locator(*mpSkinDiscSubModelPart);
-        point_locator.UpdateSearchDatabase();
-        const std::size_t point_locator_max_results = 10000;
-        const double point_locator_tolerance = 1.0e-5;
-
         // Loop over all skin points and locate them in the skin model part to add their contribution to the skin nodes
         //TODO use local vectors and index instead of mutex!
         LockObject mutex;
         block_for_each(mpSkinPointsSubModelPart->Nodes(), [&](NodeType& rSkinPoint){
             // Search for the skin point in the skin mesh to get the element containing the point and the shape function values
-            // TODO use skin BVH for this?!
             array_1d<double,3> skin_pt_position = rSkinPoint.Coordinates();
-            Vector aux_N(TDim+1); //Note that this restricts the use to tri and tetra
+            Vector skin_pt_N(TDim+1); //Note that this restricts the use to tri and tetra
             Element::Pointer p_element = nullptr;
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
-            const bool is_found = point_locator.FindPointOnMesh(skin_pt_position, aux_N, p_element, search_results.begin(),
-                                                                point_locator_max_results, point_locator_tolerance);
 
-            if (is_found) {
+            // Create bounding box for the skin point
+            ShiftedBoundaryUtilityInternals::BBox pt_box;
+            pt_box.min[0] = pt_box.max[0] = skin_pt_position[0];
+            pt_box.min[1] = pt_box.max[1] = skin_pt_position[1];
+            pt_box.min[2] = pt_box.max[2] = skin_pt_position[2];
+
+            // Get skin element candidates from the skin AABB tree
+            std::vector<std::size_t> candidates;
+            candidates.reserve(20);
+            mSkinBVH.query(pt_box, candidates);  // read-only query of the BVH - safe for parallel execution
+
+            // Check candidates until the skin element containing the skin point is found and get its shape function values
+            Element::GeometryType::CoordinatesArrayType local_coords;
+            bool is_inside = false;
+            for (auto elem_idx : candidates) {
+                auto p_elem = mBVHIdxToSkinElementVector[elem_idx];
+                auto& r_geom = p_elem->GetGeometry();
+                is_inside = r_geom.IsInside(skin_pt_position, local_coords);
+                if(is_inside) {
+                    p_element = p_elem;
+                    r_geom.ShapeFunctionsValues(skin_pt_N, local_coords);
+                    break;
+                }
+            }
+
+            if (is_inside) {
                 // Get skin point variables
                 const double& r_p_pos = rSkinPoint.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
                 const double& r_p_neg = rSkinPoint.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
@@ -1750,7 +1820,7 @@ namespace Kratos
                 const auto& r_geom = p_element->GetGeometry();
                 for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
                     const std::size_t node_id = r_geom[i_node].Id();
-                    const double N_i = aux_N(i_node);
+                    const double N_i = skin_pt_N(i_node);
 
                     std::scoped_lock<LockObject> lock(mutex);
                     dict_sum_weighted_p[node_id][0] += N_i * r_p_pos;

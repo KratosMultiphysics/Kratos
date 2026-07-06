@@ -23,8 +23,6 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/key_hash.h"
-#include "modified_shape_functions/modified_shape_functions.h"
-#include "utilities/binbased_fast_point_locator.h"
 #include <cstddef>
 
 namespace Kratos
@@ -276,6 +274,9 @@ public:
     void FindElementsAtTessellatedBoundary(double Tolerance = 1e-10);
 
     //TODO
+    void UpdateBoundaryElements(double Tolerance = 1e-10);
+
+    //TODO
     void MapSkinPointsToElements();
 
     //TODO
@@ -362,6 +363,7 @@ protected:
     std::string mSkinModelPartName = "";
 
     ShiftedBoundaryUtilityInternals::ElementBVH mSkinBVH;
+    std::vector<ElementType::Pointer> mBVHIdxToSkinElementVector;
 
     ElementsSetType mBoundaryElementsSet;
     SkinPointsToElementsMapType mSkinPointsMap;
