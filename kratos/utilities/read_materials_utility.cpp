@@ -137,14 +137,21 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
     for (IndexType i = 0; i < Materials[properties_key].size(); ++i) {
         Parameters material = Materials[properties_key].GetArrayItem(i);
 
-        // Get the properties for the (first) specified model part.
-        ModelPart& r_first_model_part = mrModel.GetModelPart(GetTargetModelPartNames(material).front());
+        // Check whether any properties will be overwritten
         const IndexType property_id = material[properties_id_key].GetInt();
-        const bool has_properties = r_first_model_part.RecursivelyHasProperties(property_id);
-        KRATOS_WARNING_IF("ReadMaterialsUtility", has_properties) << "WARNING:: The properties ID: " << property_id
-            << " is already defined in model part " << r_first_model_part.Name()
+        const auto model_part_names = GetTargetModelPartNames(material);
+        auto names_of_model_parts_with_properties = std::vector<std::string>{};
+        auto has_properties = [&r_model = mrModel, property_id](const auto& r_name) {
+            return r_model.GetModelPart(r_name).RecursivelyHasProperties(property_id);
+        };
+        std::ranges::copy_if(model_part_names, std::back_inserter(names_of_model_parts_with_properties), has_properties);
+        if (!names_of_model_parts_with_properties.empty()) {
+            KRATOS_WARNING("ReadMaterialsUtility") << "WARNING:: The properties ID: " << property_id
+            << " is already defined in model part(s) " << names_of_model_parts_with_properties
             <<". This will overwrite the existing values" << std::endl;
-        Properties::Pointer p_prop = has_properties ? r_first_model_part.pGetProperties(property_id) : r_first_model_part.CreateNewProperties(property_id);
+        } else {
+            mrModel.GetModelPart(model_part_names.front()).CreateNewProperties(property_id);
+        }
     }
 
     // Now we assign the property block
