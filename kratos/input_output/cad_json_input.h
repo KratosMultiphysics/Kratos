@@ -750,12 +750,18 @@ private:
                 << "\" from geometry: \"" << GetIdOrName(rParameters["topology"][0])
                 << "\", no relative_direction is provided in the input." << std::endl;
         }
-        auto p_brep_edge_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
-            p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
-
-        SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_brep_edge_brep_curve_on_surface);
-
-        rModelPart.AddGeometry(p_brep_edge_brep_curve_on_surface);
+        if (is_local_refinement) {
+            auto p_brep_edge = Kratos::make_shared<BrepCurveOnLocalRefinedSurfaceType>(
+                p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
+            p_brep_edge->SetLocalRefinedSurface(p_geometry);
+            SetIdOrName<BrepCurveOnLocalRefinedSurfaceType>(rParameters, p_brep_edge);
+            rModelPart.AddGeometry(p_brep_edge);
+        } else {
+            auto p_brep_edge = Kratos::make_shared<BrepCurveOnSurfaceType>(
+                p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
+            SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_brep_edge);
+            rModelPart.AddGeometry(p_brep_edge);
+        }
     }
 
     static void ReadCouplingGeometry(
