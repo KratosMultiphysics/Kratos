@@ -20,6 +20,9 @@
 #include "includes/define_python.h"
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
+#ifdef KRATOS_USE_EIGEN_BACKEND
+#include "includes/kratos_eigen_interface.h"
+#endif
 #include "containers/array_1d.h"
 #include "python/add_vector_to_python.h"
 
@@ -408,6 +411,56 @@ void  AddVectorToPython(pybind11::module& m)
     py::implicitly_convertible<py::buffer, Vector>();
     py::implicitly_convertible<py::list, Vector>();
     py::implicitly_convertible<array_1d<double,3>, Vector>();
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    // System vector type of the Eigen sparse backend (the strategies' RHS and
+    // solution vectors). Bound standalone (not through CreateVectorInterface,
+    // whose slice support requires the uBLAS vector-expression concept).
+    using EigenSystemVectorType = EigenVector<double>;
+    py::class_<EigenSystemVectorType, Kratos::shared_ptr<EigenSystemVectorType>> eigen_vector_binder(m, "EigenVector", py::buffer_protocol());
+    eigen_vector_binder.def(py::init<>());
+    eigen_vector_binder.def(py::init<const EigenSystemVectorType&>());
+    eigen_vector_binder.def(py::init<std::size_t>());
+    eigen_vector_binder.def(py::init<std::size_t, double>());
+    eigen_vector_binder.def(py::init( [](const py::list& input)
+    {
+        EigenSystemVectorType tmp(input.size());
+        for(unsigned int i=0; i<tmp.size(); ++i)
+            tmp[i] = py::cast<double>(input[i]);
+        return tmp;
+    }));
+    eigen_vector_binder.def(py::init( [](py::buffer b)
+    {
+        py::buffer_info info = b.request();
+        KRATOS_ERROR_IF( info.format != py::format_descriptor<double>::value ) << "Expected a double array\n";
+        KRATOS_ERROR_IF( info.ndim != 1 ) << "Buffer dimension of 1 is required, got: " << info.ndim << std::endl;
+        EigenSystemVectorType vec(info.shape[0]);
+        for( int i=0; i<info.shape[0]; ++i )
+            vec[i] = static_cast<double*>(info.ptr)[i];
+        return vec;
+    }));
+    eigen_vector_binder.def("Size", [](const EigenSystemVectorType& self){ return static_cast<std::size_t>(self.size()); });
+    eigen_vector_binder.def("Resize", [](EigenSystemVectorType& self, const std::size_t new_size){ if(static_cast<std::size_t>(self.size()) != new_size) self.resize(new_size, false); });
+    eigen_vector_binder.def("Fill", [](EigenSystemVectorType& self, const double value){ self.setConstant(value); });
+    eigen_vector_binder.def("__len__", [](const EigenSystemVectorType& self){ return static_cast<std::size_t>(self.size()); });
+    eigen_vector_binder.def("__setitem__", [](EigenSystemVectorType& self, const unsigned int i, const double value){ self[i] = value; });
+    eigen_vector_binder.def("__getitem__", [](const EigenSystemVectorType& self, const unsigned int i){ return self[i]; });
+    eigen_vector_binder.def("__iter__", [](EigenSystemVectorType& self){ return py::make_iterator(self.data(), self.data() + self.size()); }, py::keep_alive<0,1>());
+    eigen_vector_binder.def("__str__", PrintObject<EigenSystemVectorType>);
+    eigen_vector_binder.def_buffer( [](EigenSystemVectorType& self)-> py::buffer_info
+    {
+        return py::buffer_info(
+            self.data(),
+            sizeof(double),
+            py::format_descriptor<double>::format(),
+            1,
+        {static_cast<std::size_t>(self.size())},
+        {sizeof(double)}
+        );
+    });
+    py::implicitly_convertible<py::buffer, EigenSystemVectorType>();
+    py::implicitly_convertible<py::list, EigenSystemVectorType>();
+#endif
 
     //***********************************************************************************
         //***********************************************************************************

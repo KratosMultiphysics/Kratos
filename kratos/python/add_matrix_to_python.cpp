@@ -19,6 +19,9 @@
 #include "includes/define_python.h"
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
+#ifdef KRATOS_USE_EIGEN_BACKEND
+#include "includes/kratos_eigen_interface.h"
+#endif
 #include "add_matrix_to_python.h"
 #include "containers/array_1d.h"
 
@@ -145,6 +148,29 @@ namespace Kratos::Python
                                                         rA.index2_data().begin(),
                                                         rA.index2_data().end()
                                                         ) ;});
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+        // With the Eigen backend the system matrices of the strategies are
+        // Eigen-backed; expose the type so e.g. GetSystemMatrix() is usable.
+        using EigenSparseMatrixType = EigenCompressedMatrix<double>;
+        auto eigen_compressed_matrix_binder = CreateMatrixInterface< EigenSparseMatrixType >(m,"EigenCompressedMatrix");
+        eigen_compressed_matrix_binder.def(py::init<const EigenSparseMatrixType::size_type, const EigenSparseMatrixType::size_type>());
+        eigen_compressed_matrix_binder.def("value_data", [](const EigenSparseMatrixType& rA) ->  std::vector<double>
+                                                    {return std::vector<double>(
+                                                        rA.value_data().begin(),
+                                                        rA.value_data().end()
+                                                        ) ;});
+        eigen_compressed_matrix_binder.def("index1_data", [](const EigenSparseMatrixType& rA) -> std::vector<std::size_t>
+                                                    {return std::vector<std::size_t>(
+                                                        rA.index1_data().begin(),
+                                                        rA.index1_data().end()
+                                                        ) ;});
+        eigen_compressed_matrix_binder.def("index2_data", [](const EigenSparseMatrixType& rA) -> std::vector<std::size_t>
+                                                    {return std::vector<std::size_t>(
+                                                        rA.index2_data().begin(),
+                                                        rA.index2_data().end()
+                                                        ) ;});
+#endif
 
         //here we add the complex dense matrix
         auto cplx_matrix_binder = CreateMatrixInterface< ComplexMatrix >(m,"ComplexMatrix");
