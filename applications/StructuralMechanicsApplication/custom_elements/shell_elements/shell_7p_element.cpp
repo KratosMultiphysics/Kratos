@@ -315,6 +315,7 @@ void Shell7pElement::CalculateLeftHandSide(
     Matrix amkonr0_eas = ZeroMatrix(3);
     double amdet0_body = 0.0;
     double detJ0_surface = 0.0;
+    double A_element = GetGeometry().Area();
 
     array_1d<double,3> local_coords;
     local_coords[0] = 0.0;      // the EAS modes are initially formulated at the element center
@@ -390,14 +391,16 @@ void Shell7pElement::CalculateLeftHandSide(
 
             CalculateMaterialLaw(Dmatrix,gmkonr,thickness,ConstitutiveLawType::gStVenantKirchhoff, Theta3, scalefactor);
         }
-        Dmatrix(2,2) *= 5.0/6.0; 
-        Dmatrix(2,4) *= 5.0/6.0; 
-        Dmatrix(4,2) *= 5.0/6.0;        // separate function ApplyShearCorrections()?
-        Dmatrix(4,4) *= 5.0/6.0;
-        Dmatrix(8,8) *= 0.7;     
-        Dmatrix(8,10) *= 0.7;
-        Dmatrix(10,8) *= 0.7;
-        Dmatrix(10,10) *= 0.7;
+
+        double f_s = 1.0; // thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element));
+        Dmatrix(2,2) *= 5.0/6.0 * f_s; 
+        Dmatrix(2,4) *= 5.0/6.0 * f_s; 
+        Dmatrix(4,2) *= 5.0/6.0 * f_s;        // separate function ApplyShearCorrections()?
+        Dmatrix(4,4) *= 5.0/6.0 * f_s;
+        Dmatrix(8,8) *= 0.7 * f_s;     
+        Dmatrix(8,10) *= 0.7 * f_s;
+        Dmatrix(10,8) *= 0.7 * f_s;
+        Dmatrix(10,10) *= 0.7 * f_s;
 
         double weight = integration_weight_i * detJ_surface; // * thickness*0.5; 
         Matrix DB = ZeroMatrix(12,number_dofs); 
@@ -823,6 +826,9 @@ void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const 
     const array_1d<array_1d<Vector,3>,4>& akovr_ans, const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
     const Matrix& N_ans, const SizeType& number_of_nodes) const
 {
+    const double thickness = GetProperties()[THICKNESS];
+    double A_element = GetGeometry().Area();
+    double sqrt_f_s = std::sqrt(thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element)));
     for (SizeType inode = 0; inode < number_of_nodes; ++inode)
   {
     const SizeType node_start = inode*6;
@@ -874,19 +880,19 @@ void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const 
       const double N1_ans = frq[isamp];
       const double N2_ans = fsq[isamp];
 /*--------------------------------------------------E13(CONST)-------- */
-      Bop(2,node_start+0) += dNd1*a3x1*N1_ans;
-      Bop(2,node_start+1) += dNd1*a3y1*N1_ans;
-      Bop(2,node_start+2) += dNd1*a3z1*N1_ans;
-      Bop(2,node_start+3) += N1*a1x1*N1_ans;
-      Bop(2,node_start+4) += N1*a1y1*N1_ans;
-      Bop(2,node_start+5) += N1*a1z1*N1_ans;
+      Bop(2,node_start+0) += dNd1*a3x1*N1_ans*sqrt_f_s;
+      Bop(2,node_start+1) += dNd1*a3y1*N1_ans*sqrt_f_s;
+      Bop(2,node_start+2) += dNd1*a3z1*N1_ans*sqrt_f_s;
+      Bop(2,node_start+3) += N1*a1x1*N1_ans*sqrt_f_s;
+      Bop(2,node_start+4) += N1*a1y1*N1_ans*sqrt_f_s;
+      Bop(2,node_start+5) += N1*a1z1*N1_ans*sqrt_f_s;
 /*----------------------- --------------------------E23(CONST)-------- */
-      Bop(4,node_start+0) += dNd2*a3x2*N2_ans;
-      Bop(4,node_start+1) += dNd2*a3y2*N2_ans;
-      Bop(4,node_start+2) += dNd2*a3z2*N2_ans;
-      Bop(4,node_start+3) += N2*a2x2*N2_ans;  
-      Bop(4,node_start+4) += N2*a2y2*N2_ans;
-      Bop(4,node_start+5) += N2*a2z2*N2_ans;
+      Bop(4,node_start+0) += dNd2*a3x2*N2_ans*sqrt_f_s;
+      Bop(4,node_start+1) += dNd2*a3y2*N2_ans*sqrt_f_s;
+      Bop(4,node_start+2) += dNd2*a3z2*N2_ans*sqrt_f_s;
+      Bop(4,node_start+3) += N2*a2x2*N2_ans*sqrt_f_s;  
+      Bop(4,node_start+4) += N2*a2y2*N2_ans*sqrt_f_s;
+      Bop(4,node_start+5) += N2*a2z2*N2_ans*sqrt_f_s;
     }
   }
 
@@ -1184,12 +1190,10 @@ void Shell7pElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
 
 
     // const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
-    const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);     // Rows: GP, Columns: element nodes. Ncontainer(k,i) = N_i evaluated at GP k. For Quad4: Ncontainer(k,i) = N_i evaluated at GP k, where i=0..3 and k=0..3
-    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method); // Stack of matrices: one for each GP. [GP][N_node][derivative direction] Quad4: For GP k: node 0 [ dN0/dξ  dN0/dη ]
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);                                                                                                            // node 1 [ dN1/dξ  dN1/dη ]    
+    const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
+    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
         
-        
-        array_1d<Vector,2> reference_covariant_base_vectors;
         array_1d<Vector,3> gkovr;
         Matrix gmkovr = ZeroMatrix(3);
         Matrix gmkonr = ZeroMatrix(3);
@@ -1205,8 +1209,8 @@ void Shell7pElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
 
         double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
         const double thickness = GetProperties()[THICKNESS];
-        double h2 = thickness * 0.5;
-        double h2h2 = h2 * h2;
+        //double h2 = thickness * 0.5;
+        //double h2h2 = h2 * h2;
 
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
 
@@ -1217,9 +1221,6 @@ void Shell7pElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
         double facv  = 0.0;
         double facw  = 0.0;
         double facvw = 0.0;
-
-        // CovariantBaseVectorsMidsurface(reference_covariant_base_vectors,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,thickness);
-        // JacobiDeterminante(detJ_surface,reference_covariant_base_vectors);
 
         //-------------------------------------- loop over GP in thickness direction
         for (SizeType k=0; k<2; ++k){           
@@ -1250,13 +1251,13 @@ void Shell7pElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
                     rMassMatrix(j*nodal_num_dofs + k, i*nodal_num_dofs + k) += inertia_v;
                 }
 
-//                double inertia_w = facw * NiNj * h2h2;
-//                for (IndexType k = 3; k < 6; ++k) {
-//                    rMassMatrix(j*nodal_num_dofs + k, i*nodal_num_dofs + k) += inertia_w;
-//                }
-//
+                double inertia_w = facw * NiNj; // * h2h2;
+                for (IndexType k = 3; k < 6; ++k) {
+                    rMassMatrix(j*nodal_num_dofs + k, i*nodal_num_dofs + k) += inertia_w;
+                }
+
                 if (std::abs(facvw)>1.0e-14) {
-                    double inertia_vw = facvw * NiNj * h2;
+                    double inertia_vw = facvw * NiNj; // * h2;
                     rMassMatrix(j*nodal_num_dofs + 3, i*nodal_num_dofs + 0) += inertia_vw;
                     rMassMatrix(j*nodal_num_dofs + 4, i*nodal_num_dofs + 1) += inertia_vw;
                     rMassMatrix(j*nodal_num_dofs + 5, i*nodal_num_dofs + 2) += inertia_vw;
