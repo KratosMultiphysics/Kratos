@@ -196,7 +196,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     typedef DefaultSparseSpaceType SparseSpaceType;
     typedef DefaultLocalSpaceType LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
     py::class_<BasicGenericFunctionUtility,  BasicGenericFunctionUtility::Pointer >(m,"BasicGenericFunctionUtility")
         .def(py::init<const std::string&>() )
