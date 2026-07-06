@@ -19,7 +19,8 @@
 // External includes
 
 // Project includes
-#include "spaces/ublas_space.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -57,19 +58,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef UblasSpace<TDataType, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    
-    typedef UblasSpace<TDataType, Matrix, Vector> LocalSpaceType;
-    
-    typedef typename SparseSpaceType::MatrixType SparseMatrixType;
-
-    typedef typename SparseSpaceType::VectorType VectorType;
-
-    typedef typename LocalSpaceType::MatrixType DenseMatrixType;
-
-    typedef typename LocalSpaceType::VectorType DenseVectorType;
-    
-    typedef std::size_t SizeType;
+    /// Definition of the data type
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -78,7 +68,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -107,7 +96,6 @@ public:
             R[i] = normal_distribution(generator);
     }
     
-    
     /**
      * @brief This method initializes a vector using a normal distribution. The mean and the variance is taken from the norm of the matrix
      * @param K The stiffness matrix
@@ -125,9 +113,9 @@ public:
         // Frobenius norm computed from the CSR values so that any sparse
         // matrix exposing the compressed_matrix member surface works
         const auto& r_values = K.value_data();
-        TDataType sum_squared = TDataType();
-        for (SizeType i = 0; i < r_values.size(); ++i)
-            sum_squared += std::pow(r_values[i], 2);
+        const TDataType sum_squared = IndexPartition<SizeType>(r_values.size()).template for_each<SumReduction<TDataType>>([&r_values](const SizeType i) {
+            return r_values[i] * r_values[i];
+        });
         const TDataType normK = std::sqrt(sum_squared);
         const TDataType aux_value = (Inverse == false) ? normK : (normK > threshold) ? 1.0/normK : 1.0;
         NormalDestributionRandom(R, aux_value, 0.25 * aux_value);
@@ -137,11 +125,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -150,9 +136,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-
 private:
-    
     ///@name Private static Member Variables
     ///@{
 
