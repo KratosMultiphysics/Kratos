@@ -51,7 +51,7 @@ std::shared_ptr<Properties> CreatePropertiesForUPwDiffOrderElementTest()
     p_properties->SetValue(PERMEABILITY_YY, 9.084000e-06);
     p_properties->SetValue(PERMEABILITY_XY, 0.000000e+00);
     p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    // Biot alpha = 0, no coupling
+    // Biot alpha = 0.0, no coupling
     p_properties->SetValue(BIOT_COEFFICIENT, 0.000000e+00);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
@@ -105,44 +105,47 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
 Matrix ExpectedLeftHandSide()
 {
     return UblasUtilities::CreateMatrix(
-        {{8531959.3787335716, -2715844.4022770403, 932795.698924731, -52972.802024035424,
-          1814814.8148148144, -833333.33333333302, -3649940.2628434869, 268817.20430107455,
-          -586618.87694146018, 154965.21189120878, -7043010.7526881732, 3178368.1214421256, 0, 0, 0},
-         {-2715844.4022770403, 7883152.3648886075, -886306.13535736862, 1687934.8513598982, 0,
+        {{8531959.3787335716, -2715844.4022770403, 932795.698924731, -52972.802024035424, 1814814.8148148144,
+          -833333.33333333302, -3649940.2628434869, 268817.20430107455, -586618.87694146018,
+          154965.21189120878, -7043010.7526881732, 3178368.1214421256, 0.0, 0.0, 0.0},
+         {-2715844.4022770403, 7883152.3648886075, -886306.13535736862, 1687934.8513598982, 0.0,
           907407.40740740718, 3602150.537634409, -6663679.8088410972, 154965.21189120901,
-          -388186.09881228721, -154965.21189120901, -3426628.7160025295, 0, 0, 0},
-         {932795.698924731, -886306.13535736862, 2414874.5519713252, -790.63883617966258,
-          111111.11111111108, 833333.33333333314, -3236559.1397849452, 3387096.7741935472,
-          46594.982078852947, -3380771.6635041102, -268817.20430107508, 47438.330170777976, 0, 0, 0},
-         {-52972.802024035424, 1687934.8513598982, -790.63883617966258, 4824609.9515074827, 0,
+          -388186.09881228721, -154965.21189120901, -3426628.7160025295, 0.0, 0.0, 0.0},
+         {932795.698924731, -886306.13535736862, 2414874.5519713252, -790.63883617966258, 111111.11111111108,
+          833333.33333333314, -3236559.1397849452, 3387096.7741935472, 46594.982078852947,
+          -3380771.6635041102, -268817.20430107508, 47438.330170777976, 0.0, 0.0, 0.0},
+         {-52972.802024035424, 1687934.8513598982, -790.63883617966258, 4824609.9515074827, 0.0,
           55555.55555555554, 53763.440860215087, -6456989.2473118249, -47438.330170777976,
-          118174.15138098202, 47438.330170777976, -229285.26249209302, 0, 0, 0},
-         {1814814.8148148144, 0, 111111.11111111108, 0, 5629629.6296296297, 0, -296296.29629629571,
-          0, -592592.59259259282, 0, -6666666.666666666, 0, 0, 0, 0},
-         {-833333.33333333302, 907407.40740740718, 833333.33333333314, 55555.55555555554, 0,
+          118174.15138098202, 47438.330170777976, -229285.26249209302, 0.0, 0.0, 0.0},
+         {1814814.8148148144, 0.0, 111111.11111111108, 0.0, 5629629.6296296297, 0.0,
+          -296296.29629629571, 0.0, -592592.59259259282, 0.0, -6666666.666666666, 0.0, 0.0, 0.0, 0.0},
+         {-833333.33333333302, 907407.40740740718, 833333.33333333314, 55555.55555555554, 0.0,
           2814814.8148148148, -1.1334696144634405e-10, -148148.14814814785, -3333333.3333333326,
-          -296296.29629629641, 3333333.3333333326, -3333333.333333333, 0, 0, 0},
+          -296296.29629629641, 3333333.3333333326, -3333333.333333333, 0.0, 0.0, 0.0},
          {-3649940.2628434869, 3602150.537634409, -3236559.1397849452, 53763.440860215087,
           -296296.29629629641, -1.1334696144634405e-10, 19923536.43966547, -3655913.9784946213,
-          -13385902.03106332, 3225806.4516129009, 645161.29032257735, -3225806.4516129037, 0, 0, 0},
-         {268817.20430107467, -6663679.8088410972, 3387096.7741935472, -6456989.2473118249, 0,
+          -13385902.03106332, 3225806.4516129009, 645161.29032257735, -3225806.4516129037, 0.0, 0.0, 0.0},
+         {268817.20430107467, -6663679.8088410972, 3387096.7741935472, -6456989.2473118249, 0.0,
           -148148.1481481482, -3655913.9784946213, 19639187.57467144, 3225806.4516129023,
-          -6692951.0155316582, -3225806.4516129023, 322580.64516128716, 0, 0, 0},
+          -6692951.0155316582, -3225806.4516129023, 322580.64516128716, 0.0, 0.0, 0.0},
          {-586618.87694145949, 154965.21189120889, 46594.982078852947, -47438.330170777976,
           -592592.59259259235, -3333333.3333333326, -13385902.031063316, 3225806.4516129023,
-          19464755.077658299, -2846299.810246679, -4946236.5591397816, 2846299.8102466771, 0, 0, 0},
-         {154965.21189120878, -388186.09881228651, -3380771.6635041102, 118174.15138098202, 0,
+          19464755.077658299, -2846299.810246679, -4946236.5591397816, 2846299.8102466771, 0.0, 0.0, 0.0},
+         {154965.21189120878, -388186.09881228651, -3380771.6635041102, 118174.15138098202, 0.0,
           -296296.29629629618, 3225806.4516129009, -6692951.0155316582, -2846299.8102466785,
-          18650783.610935409, 2846299.8102466785, -11391524.351676149, 0, 0, 0},
+          18650783.610935409, 2846299.8102466785, -11391524.351676149, 0.0, 0.0, 0.0},
          {-7043010.7526881713, -154965.21189120889, -268817.20430107508, 47438.330170777976,
           -6666666.666666666, 3333333.3333333326, 645161.29032257712, -3225806.4516129023,
-          -4946236.5591397816, 2846299.810246679, 18279569.892473117, -2846299.8102466771, 0, 0, 0},
-         {3178368.1214421256, -3426628.7160025286, 47438.330170777976, -229285.26249209302, 0,
+          -4946236.5591397816, 2846299.810246679, 18279569.892473117, -2846299.8102466771, 0.0, 0.0, 0.0},
+         {3178368.1214421256, -3426628.7160025286, 47438.330170777976, -229285.26249209302, 0.0,
           -3333333.333333333, -3225806.4516129037, 322580.64516128669, 2846299.8102466771,
-          -11391524.351676149, -2846299.8102466771, 18058191.018342815, 0, 0, 0},
-         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.00096896000000000005, 0.00048448000000000002, 0.00048448000000000002},
-         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.00048448000000000002, -0.00048448000000000002, 0},
-         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.00048448000000000002, 0, -0.00048448000000000002}});
+          -11391524.351676149, -2846299.8102466771, 18058191.018342815, 0.0, 0.0, 0.0},
+         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.00096896000000000005,
+          0.00048448000000000002, 0.00048448000000000002},
+         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.00048448000000000002,
+          -0.00048448000000000002, 0.0},
+         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.00048448000000000002, 0.0,
+          -0.00048448000000000002}});
 }
 
 Vector RightHandSideRegressionValues()
@@ -311,7 +314,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculatesFluidFluxVect
     p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_fluxes, process_info);
 
     // Assert
-    // With uniform pressure (∇p = 0) and gravity [0,-10,0]:
+    // With uniform pressure (∇p = 0) and gravity [0.0,-10,0]:
     // q_y = (1/μ) * k_yy * (0 + ρ_w * g_y) = (1/0.01) * 9.084e-6 * 1000 * (-10) = -9.084
     const array_1d<double, 3> expected_fluid_flux{0., -9.084, 0.}; // sign follows PORE_PRESSURE_SIGN_FACTOR
     for (const auto& fluid_flux : fluid_fluxes)
@@ -326,9 +329,8 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_SetValuesOnIntegrationP
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
 
-    auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
-    p_element->SetValuesOnIntegrationPoints(
-        PK2_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
+    const auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
+    p_element->SetValuesOnIntegrationPoints(PK2_STRESS_VECTOR, std::vector{3, stress_vector}, dummy_process_info);
 
     // Act
     auto actual_pk2_stress_vectors = std::vector<Vector>{};
@@ -344,13 +346,13 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CheckThrowsOnFaultyInpu
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
-    p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
+    p_properties->SetValue(SATURATED_SATURATION, 1.0);
 
     // Zero domain size (all nodes coincident)
     PointerVector<Node> coincident_nodes;
     for (int i = 0; i < 6; ++i)
         coincident_nodes.push_back(make_intrusive<Node>(i + 1, 0.0, 0.0, 0.0));
-    auto p_element = Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(coincident_nodes, p_properties);
+    auto p_element = ElementSetupUtilities::Create2D6NDiffOrderElement(coincident_nodes, p_properties);
     const auto dummy_process_info = ProcessInfo{};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Element 1 has non-positive size 0");
@@ -362,43 +364,37 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CheckThrowsOnFaultyInpu
     nodes.push_back(make_intrusive<Node>(4, 0.5, 0.0, 0.0));
     nodes.push_back(make_intrusive<Node>(5, 0.5, 0.5, 0.0));
     nodes.push_back(make_intrusive<Node>(6, 0.0, 0.5, 0.0));
-    p_element = Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, p_properties);
+    p_element = ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable DISPLACEMENT on nodes 1 2 3 4 5 6");
 
     auto solution_step_variables = Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable VELOCITY on nodes 1 2 3 4 5 6");
 
-    solution_step_variables = Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT), std::cref(VELOCITY)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    solution_step_variables.push_back(std::cref(VELOCITY));
+    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable ACCELERATION on nodes 1 2 3 4 5 6");
 
-    solution_step_variables =
-        Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    solution_step_variables.push_back(std::cref(ACCELERATION));
+    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable WATER_PRESSURE on nodes 1 2 3 4 5 6");
 
-    solution_step_variables = Geo::ConstVariableDataRefs{
-        std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION), std::cref(WATER_PRESSURE)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    solution_step_variables.push_back(std::cref(WATER_PRESSURE));
+    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable DT_WATER_PRESSURE on nodes 1 2 3 4 5 6");
 
-    solution_step_variables =
-        Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION),
-                                   std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    solution_step_variables.push_back(std::cref(DT_WATER_PRESSURE));
+    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable VOLUME_ACCELERATION on nodes 1 2 3 4 5 6");
 
-    solution_step_variables = Geo::ConstVariableDataRefs{
-        std::cref(DISPLACEMENT),   std::cref(VELOCITY),          std::cref(ACCELERATION),
-        std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    solution_step_variables.push_back(std::cref(VOLUME_ACCELERATION));
+    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
         "Missing the DoF for the variable DISPLACEMENT_X on nodes 1 2 3 4 5 6");
@@ -406,43 +402,43 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CheckThrowsOnFaultyInpu
     const auto degrees_of_freedom =
         Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
                                std::cref(DISPLACEMENT_Z), std::cref(WATER_PRESSURE)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables, degrees_of_freedom);
+    ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables, degrees_of_freedom);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
         "DENSITY_SOLID does not exist in the material properties with Id 0 at element with Id 1.");
 
-    p_properties->SetValue(DENSITY_SOLID, 2.650000e+03);
+    p_properties->SetValue(DENSITY_SOLID, 2.65e+03);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
         "DENSITY_WATER does not exist in the material properties with Id 0 at element with Id 1.");
 
-    p_properties->SetValue(DENSITY_WATER, 1.000000e+03);
+    p_properties->SetValue(DENSITY_WATER, 1.0e+03);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "BULK_MODULUS_SOLID does not exist in the material "
                                       "properties with Id 0 at element with Id 1.");
 
-    p_properties->SetValue(BULK_MODULUS_SOLID, 1.000000e+12);
+    p_properties->SetValue(BULK_MODULUS_SOLID, 1.0e+12);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
         "POROSITY does not exist in the material properties with Id 0 at element with Id 1.");
 
-    p_properties->SetValue(POROSITY, 1.000000e-01);
+    p_properties->SetValue(POROSITY, 0.1);
     p_properties->SetValue(GEO_DRAINAGE_TYPE, "fully_coupled");
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
         "PERMEABILITY_XX does not exist in the parameter list with Id 0 at element with Id 1.");
 
-    p_properties->SetValue(PERMEABILITY_XX, 9.084000e-06);
+    p_properties->SetValue(PERMEABILITY_XX, 9.084e-06);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
         "PERMEABILITY_YY does not exist in the parameter list with Id 0 at element with Id 1.");
 
-    p_properties->SetValue(PERMEABILITY_YY, 9.084000e-06);
+    p_properties->SetValue(PERMEABILITY_YY, 9.084e-06);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
         "PERMEABILITY_XY does not exist in the parameter list with Id 0 at element with Id 1.");
 
-    p_properties->SetValue(PERMEABILITY_XY, 0.000000e+00);
+    p_properties->SetValue(PERMEABILITY_XY, 0.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
         "CONSTITUTIVE_LAW does not exist in the parameter list with Id 0 at element with Id 1.");
@@ -476,14 +472,14 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     // MEAN_EFFECTIVE_STRESS
     std::vector<double> mean_effective_stress;
     p_element->CalculateOnIntegrationPoints(MEAN_EFFECTIVE_STRESS, mean_effective_stress, dummy_process_info);
-    const auto expected_mean_effective_stress = UblasUtilities::CreateVector({0, 0, 0});
+    const auto expected_mean_effective_stress = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mean_effective_stress, expected_mean_effective_stress,
                                        Defaults::relative_tolerance);
 
     // MEAN_STRESS
     std::vector<double> mean_stress;
     p_element->CalculateOnIntegrationPoints(MEAN_STRESS, mean_stress, dummy_process_info);
-    const auto expected_mean_stress = UblasUtilities::CreateVector({0, 0, 0});
+    const auto expected_mean_stress = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mean_stress, expected_mean_stress, Defaults::relative_tolerance);
 
     // ENGINEERING_VON_MISES_STRAIN
@@ -544,7 +540,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     // DERIVATIVE_OF_SATURATION
     std::vector<double> derivative_of_saturation;
     p_element->CalculateOnIntegrationPoints(DERIVATIVE_OF_SATURATION, derivative_of_saturation, dummy_process_info);
-    const auto expected_derivative_of_saturation = UblasUtilities::CreateVector({0, 0, 0});
+    const auto expected_derivative_of_saturation = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(derivative_of_saturation, expected_derivative_of_saturation,
                                        Defaults::relative_tolerance);
 
@@ -613,9 +609,9 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     std::vector<Vector> strain_vectors;
     p_element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, strain_vectors, dummy_process_info);
     std::vector<Vector> expected_strain_vectors;
-    expected_strain_vectors.push_back(UblasUtilities::CreateVector({0.026935483871, 0, 0, -0.0243548387097}));
-    expected_strain_vectors.push_back(UblasUtilities::CreateVector({-0.005, 0, 0, -0.0243548387097}));
-    expected_strain_vectors.push_back(UblasUtilities::CreateVector({-0.00411764705882, 0, 0, 0.0338235294118}));
+    expected_strain_vectors.push_back(UblasUtilities::CreateVector({0.026935483871, 0.0, 0.0, -0.0243548387097}));
+    expected_strain_vectors.push_back(UblasUtilities::CreateVector({-0.005, 0.0, 0.0, -0.0243548387097}));
+    expected_strain_vectors.push_back(UblasUtilities::CreateVector({-0.00411764705882, 0.0, 0.0, 0.0338235294118}));
     for (std::size_t i = 0; i < strain_vectors.size(); i++)
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(strain_vectors[i], expected_strain_vectors[i],
                                            Defaults::relative_tolerance);
@@ -623,7 +619,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     // Act & Assert: TOTAL_STRESS_VECTOR
     std::vector<Vector> total_stress_vectors;
     p_element->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
-    const auto expected_total_stress_vector = UblasUtilities::CreateVector({-1.5, 0, 1.5, 0});
+    const auto expected_total_stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
     for (const auto& total_stress_vector : total_stress_vectors)
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(total_stress_vector, expected_total_stress_vector,
                                            Defaults::relative_tolerance);
@@ -634,11 +630,11 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
                                             green_lagrange_strain_vectors, dummy_process_info);
     std::vector<Vector> expected_green_lagrange_strain_vectors;
     expected_green_lagrange_strain_vectors.push_back(
-        UblasUtilities::CreateVector({0.026935483871, 0, 0, -0.0243548387097}));
+        UblasUtilities::CreateVector({0.026935483871, 0.0, 0.0, -0.0243548387097}));
     expected_green_lagrange_strain_vectors.push_back(
-        UblasUtilities::CreateVector({-0.005, 0, 0, -0.0243548387097}));
+        UblasUtilities::CreateVector({-0.005, 0.0, 0.0, -0.0243548387097}));
     expected_green_lagrange_strain_vectors.push_back(
-        UblasUtilities::CreateVector({-0.00411764705882, 0, 0, 0.0338235294118}));
+        UblasUtilities::CreateVector({-0.00411764705882, 0.0, 0.0, 0.0338235294118}));
     for (std::size_t i = 0; i < green_lagrange_strain_vectors.size(); i++)
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(green_lagrange_strain_vectors[i],
                                            expected_green_lagrange_strain_vectors[i],
@@ -662,7 +658,8 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     // Act & Assert: CAUCHY_STRESS_TENSOR
     std::vector<Matrix> stress_matrices;
     p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, stress_matrices, dummy_process_info);
-    const auto expected_stress_matrix = UblasUtilities::CreateMatrix({{-1.5, 0, 0}, {0, 0, 0}, {0, 0, 1.5}});
+    const auto expected_stress_matrix =
+        UblasUtilities::CreateMatrix({{-1.5, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 1.5}});
     for (const auto& stress_matrix : stress_matrices)
         KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance);
 
@@ -676,11 +673,11 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     p_element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_TENSOR, strain_matrices, dummy_process_info);
     std::vector<Matrix> expected_strain_matrices;
     expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
-        {{0.026935483870967739, -0.012177419354838709, 0}, {-0.012177419354838709, 0, 0}, {0, 0, 0}}));
+        {{0.026935483870967739, -0.012177419354838709, 0.0}, {-0.012177419354838709, 0.0, 0.0}, {0.0, 0.0, 0}}));
     expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
-        {{-0.0049999999999999966, -0.012177419354838711, 0}, {-0.012177419354838711, 0, 0}, {0, 0, 0}}));
+        {{-0.0049999999999999966, -0.012177419354838711, 0.0}, {-0.012177419354838711, 0.0, 0.0}, {0.0, 0.0, 0}}));
     expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
-        {{-0.0041176470588235262, 0.016911764705882348, 0}, {0.016911764705882348, 0, 0}, {0, 0, 0}}));
+        {{-0.0041176470588235262, 0.016911764705882348, 0.0}, {0.016911764705882348, 0.0, 0.0}, {0.0, 0.0, 0}}));
     for (auto i = std::size_t{0}; i < strain_matrices.size(); i++)
         KRATOS_EXPECT_MATRIX_NEAR(strain_matrices[i], expected_strain_matrices[i], Defaults::absolute_tolerance);
 
@@ -706,7 +703,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     p_element->Initialize(dummy_process_info);
 
     // Act & Assert
-    auto direction_vector = std::vector({1, 2, 3, 4, 5, 6});
+    auto direction_vector = std::vector({1, 2, 3, 4, 5, 6}); // the size will be fixed in CalculateOnIntegrationPoints
     p_element->CalculateOnIntegrationPoints(K0_MAIN_DIRECTION, direction_vector, dummy_process_info);
     KRATOS_EXPECT_EQ(direction_vector.size(), 3);
     for (auto i = std::size_t{0}; i < direction_vector.size(); i++)
@@ -725,34 +722,30 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateDampingMatrix,
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
 
-    const auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
-    p_element->SetValuesOnIntegrationPoints(
-        CAUCHY_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
-
     // Act
-    Matrix dumping_matrix;
-    p_element->CalculateDampingMatrix(dumping_matrix, dummy_process_info);
+    Matrix damping_matrix;
+    p_element->CalculateDampingMatrix(damping_matrix, dummy_process_info);
 
     // Assert
     // clang-format off
-    const auto expected_dumping_matrix = UblasUtilities::CreateMatrix({
-        {8531991.5916965343,-2715844.4022770403,932780.35941855819,-52972.802024035424,1814797.9413580243,-833333.33333333302,-3649924.9233373138,268817.20430107455,-586652.62385504041,154965.21189120878,-7042996.9471326172,3178368.1214421256,0,0,0},
-        {-2715844.4022770403,7883184.5778515702,-886306.13535736862,1687919.5118537254,0,907390.53395061707,3602150.537634409,-6663664.4693349246,154965.21189120901,-388219.84572586743,-154965.21189120901,-3426614.910446974,0,0,0},
-        {932780.35941855819,-886306.13535736862,2414906.7649342883,-790.63883617966258,111094.23765432095,833333.33333333314,-3236543.8002787721,3387096.7741935472,46608.787634408502,-3380771.6635041102,-268850.9512146553,47438.330170777976,0,0,0},
-        {-52972.802024035424,1687919.5118537254,-790.63883617966258,4824642.1644704454,0,55538.682098765414,53763.440860215087,-6456973.9078056524,-47438.330170777976,118187.95693653758,47438.330170777976,-229319.00940567328,0,0,0},
-        {1814797.9413580243,0,111094.23765432095,0,5629663.3765432099,0,-296326.97530864138,0,-592572.6512345681,0,-6666646.7253086418,0,0,0,0},
-        {-833333.33333333302,907390.53395061707,833333.33333333314,55538.682098765414,0,2814848.5617283951,-1.1334696144634405e-10,-148178.82716049353,-3333333.3333333326,-296276.35493827169,3333333.3333333326,-3333313.3919753083,0,0,0},
-        {-3649924.9233373138,3602150.537634409,-3236543.8002787721,53763.440860215087,-296326.97530864208,-1.1334696144634405e-10,19923711.31003584,-3655913.9784946213,-13385773.179211468,3225806.4516129009,645290.14217442914,-3225806.4516129037,0,0,0},
-        {268817.20430107467,-6663664.4693349246,3387096.7741935472,-6456973.9078056524,0,-148178.82716049388,-3655913.9784946213,19639362.445041809,3225806.4516129023,-6692822.1636798065,-3225806.4516129023,322709.49701313901,0,0,0},
-        {-586652.62385503971,154965.21189120889,46608.787634408502,-47438.330170777976,-592572.65123456763,-3333333.3333333326,-13385773.179211464,3225806.4516129023,19464937.617781755,-2846299.810246679,-4946101.5714854607,2846299.8102466771,0,0,0},
-        {154965.21189120878,-388219.84572586673,-3380771.6635041102,118187.95693653758,0,-296276.35493827146,3225806.4516129009,-6692822.1636798065,-2846299.8102466785,18650966.151058864,2846299.8102466785,-11391389.364021828,0,0,0},
-        {-7042996.9471326154,-154965.21189120889,-268850.9512146553,47438.330170777976,-6666646.7253086418,3333333.3333333326,645290.14217442891,-3225806.4516129023,-4946101.5714854607,2846299.810246679,18279752.432596572,-2846299.8102466771,0,0,0},
-        {3178368.1214421256,-3426614.9104469731,47438.330170777976,-229319.00940567328,0,-3333313.3919753083,-3225806.4516129037,322709.49701313855,2846299.8102466771,-11391389.364021828,-2846299.8102466771,18058373.558466271,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}});
+    const auto expected_damping_matrix = UblasUtilities::CreateMatrix({
+        {8531991.5916965343,-2715844.4022770403,932780.35941855819,-52972.802024035424,1814797.9413580243,-833333.33333333302,-3649924.9233373138,268817.20430107455,-586652.62385504041,154965.21189120878,-7042996.9471326172,3178368.1214421256,0.0,0.0,0.0},
+        {-2715844.4022770403,7883184.5778515702,-886306.13535736862,1687919.5118537254,0.0,907390.53395061707,3602150.537634409,-6663664.4693349246,154965.21189120901,-388219.84572586743,-154965.21189120901,-3426614.910446974,0.0,0.0,0.0},
+        {932780.35941855819,-886306.13535736862,2414906.7649342883,-790.63883617966258,111094.23765432095,833333.33333333314,-3236543.8002787721,3387096.7741935472,46608.787634408502,-3380771.6635041102,-268850.9512146553,47438.330170777976,0.0,0.0,0.0},
+        {-52972.802024035424,1687919.5118537254,-790.63883617966258,4824642.1644704454,0.0,55538.682098765414,53763.440860215087,-6456973.9078056524,-47438.330170777976,118187.95693653758,47438.330170777976,-229319.00940567328,0.0,0.0,0.0},
+        {1814797.9413580243,0.0,111094.23765432095,0.0,5629663.3765432099,0.0,-296326.97530864138,0.0,-592572.6512345681,0.0,-6666646.7253086418,0.0,0.0,0.0,0.0},
+        {-833333.33333333302,907390.53395061707,833333.33333333314,55538.682098765414,0.0,2814848.5617283951,-1.1334696144634405e-10,-148178.82716049353,-3333333.3333333326,-296276.35493827169,3333333.3333333326,-3333313.3919753083,0.0,0.0,0.0},
+        {-3649924.9233373138,3602150.537634409,-3236543.8002787721,53763.440860215087,-296326.97530864208,-1.1334696144634405e-10,19923711.31003584,-3655913.9784946213,-13385773.179211468,3225806.4516129009,645290.14217442914,-3225806.4516129037,0.0,0.0,0.0},
+        {268817.20430107467,-6663664.4693349246,3387096.7741935472,-6456973.9078056524,0.0,-148178.82716049388,-3655913.9784946213,19639362.445041809,3225806.4516129023,-6692822.1636798065,-3225806.4516129023,322709.49701313901,0.0,0.0,0.0},
+        {-586652.62385503971,154965.21189120889,46608.787634408502,-47438.330170777976,-592572.65123456763,-3333333.3333333326,-13385773.179211464,3225806.4516129023,19464937.617781755,-2846299.810246679,-4946101.5714854607,2846299.8102466771,0.0,0.0,0.0},
+        {154965.21189120878,-388219.84572586673,-3380771.6635041102,118187.95693653758,0.0,-296276.35493827146,3225806.4516129009,-6692822.1636798065,-2846299.8102466785,18650966.151058864,2846299.8102466785,-11391389.364021828,0.0,0.0,0.0},
+        {-7042996.9471326154,-154965.21189120889,-268850.9512146553,47438.330170777976,-6666646.7253086418,3333333.3333333326,645290.14217442891,-3225806.4516129023,-4946101.5714854607,2846299.810246679,18279752.432596572,-2846299.8102466771,0.0,0.0,0.0},
+        {3178368.1214421256,-3426614.9104469731,47438.330170777976,-229319.00940567328,0.0,-3333313.3919753083,-3225806.4516129037,322709.49701313855,2846299.8102466771,-11391389.364021828,-2846299.8102466771,18058373.558466271,0.0,0.0,0.0},
+        {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
+        {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
+        {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0}});
     // clang-format on
-    KRATOS_EXPECT_MATRIX_NEAR(dumping_matrix, expected_dumping_matrix, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(damping_matrix, expected_damping_matrix, Defaults::absolute_tolerance);
 }
 
 struct DiffOrderElementTestParam {
@@ -772,7 +765,7 @@ Element::Pointer Create2D6(ModelPart& rModelPart, const Properties::Pointer& rPr
     nodes.push_back(rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0));
     nodes.push_back(rModelPart.CreateNewNode(5, 0.5, 0.5, 0.0));
     nodes.push_back(rModelPart.CreateNewNode(6, 0.0, 0.5, 0.0));
-    return Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, rProperties);
+    return ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, rProperties);
 }
 
 Element::Pointer Create2D8(ModelPart& rModelPart, const Properties::Pointer& rProperties)
@@ -889,8 +882,7 @@ TEST_P(DiffOrderElementTests, FinalizeSolutionStepReturnsIntermediateNodePressur
     // Set input pressures: 10 * index
     for (std::size_t i = 0; i < r_geometry.size(); ++i) {
         r_geometry[i].SetBufferSize(2); // or higher if your test needs more steps
-        r_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE)    = static_cast<double>(10 * i);
-        r_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE, 1) = 0.0;
+        r_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE) = static_cast<double>(10 * i);
     }
     // Act: use public API
     p_element->Initialize(ProcessInfo{});
