@@ -358,6 +358,11 @@ public:
     ///@name Knot Span Accessors
     ///@{
 
+    void SpansLocalSpace(std::vector<double>& rSpans, IndexType LocalDirectionIndex = 0) const override
+    {
+        mpLocalRefinedSurface->SpansLocalSpace(rSpans, LocalDirectionIndex);
+    }
+
     std::vector<double> KnotsU() const
     {
         std::vector<double> spans;
