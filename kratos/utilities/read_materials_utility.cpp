@@ -585,7 +585,7 @@ void ReadMaterialsUtility::ValidatePropertyIds(const Parameters& rAllMaterialPar
 {
     for (IndexType i = 0; i < rAllMaterialParameters[properties_key].size(); ++i) {
         const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
-        KRATOS_ERROR_IF_NOT(property.Has(properties_id_key)) << "Property at index " << i << " does not have a '" << properties_id_key << "' key. Please, provide a unique ID for each property.\n";
+        KRATOS_ERROR_IF_NOT(property.Has(properties_id_key)) << "Property at index " << i << " does not have a '" << properties_id_key << "'. Please, provide a unique ID for each property.\n";
     }
 }
 
@@ -595,9 +595,9 @@ void ReadMaterialsUtility::ValidateTargetModelPartNames(const Parameters& rAllMa
         const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
         const auto property_id = property[properties_id_key].GetInt();
         KRATOS_ERROR_IF(!property.Has(model_part_name_key) && !property.Has(model_part_name_list_key))
-            << "Property " << property_id << " does not provide any model part name. Please, provide either 'model_part_name' or 'model_part_name_list'.\n";
+            << "Property " << property_id << " does not provide any model part name. Please, provide either '" << model_part_name_key << "' or '" << model_part_name_list_key << "'.\n";
         KRATOS_ERROR_IF(property.Has(model_part_name_key) && property.Has(model_part_name_list_key))
-            << "Property " << property_id <<  " provides 'model_part_name' as well as 'model_part_name_list'. Please, remove one of them, since they are mutually exclusive.\n";
+            << "Property " << property_id <<  " provides '" << model_part_name_key << "' as well as '" << model_part_name_list_key << "'. Please, remove one of them, since they are mutually exclusive.\n";
         KRATOS_ERROR_IF(property.Has(model_part_name_list_key) && property[model_part_name_list_key].GetStringArray().empty())
             << "Property " << property_id << " has an empty model part name list. Please, provide at least one model part name." << std::endl;
         if (property.Has(model_part_name_list_key)) {

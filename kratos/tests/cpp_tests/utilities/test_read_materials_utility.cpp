@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAPropertyDoesNotH
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property at index 0 does not have a 'properties_id' key. Please, provide a unique ID for each property.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property at index 0 does not have a 'properties_id'. Please, provide a unique ID for each property.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenNeitherAModelPartNameNorANameListIsGiven, KratosCoreFastSuiteWithoutKernel) {
