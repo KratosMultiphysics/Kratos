@@ -53,6 +53,7 @@ cmake                                              ^
 -DCMAKE_CXX_FLAGS=" %KRATOS_PARALLEL_BUILD_FLAG% " ^
 -DCMAKE_POLICY_VERSION_MINIMUM=3.5                 ^
 -DUSE_EIGEN_MKL=OFF                                ^
+-DKRATOS_LINEAR_ALGEBRA_BACKEND="ublas" ^
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 rem Build
