@@ -517,7 +517,7 @@ void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
 {
     KRATOS_TRY;
 
-    CheckSuppliedModelPartNames(Materials);
+    ValidateTargetModelPartNames(Materials);
 
     // Save all ModelPartNames in a vector
     std::vector<std::string> model_part_names;
@@ -574,7 +574,7 @@ void ReadMaterialsUtility::CheckModelPartIsNotRepeated(std::vector<std::string> 
         << *it << "\" are specified multiple times!" << std::endl;
 }
 
-void ReadMaterialsUtility::CheckSuppliedModelPartNames(const Parameters& rAllMaterialParameters)
+void ReadMaterialsUtility::ValidateTargetModelPartNames(const Parameters& rAllMaterialParameters)
 {
     for (IndexType i = 0; i < rAllMaterialParameters[properties_key].size(); ++i) {
         const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
