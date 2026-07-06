@@ -850,7 +850,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                     aux = dt * a_ij
                     self.v_stage += aux * self.k[j]
             self.ApplyVelocitySlipConditions(self.v_stage, self.normals)
-            self.ApplyOutletBackflowCorrection(self.v_stage, self.normals)
+            self.ApplyOutletBackflowCorrection(self.v_stage, self.unit_normals_outlet)
             self.ApplyVelocityDirichletConditions(vold, v_dirichlet, c[i], self.v_stage)
 
             # Calculate current stage residual
@@ -867,7 +867,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             aux = dt * b[i]
             vnew += aux * self.k[i]
         self.ApplyVelocitySlipConditions(vnew, self.normals)
-        self.ApplyOutletBackflowCorrection(vnew, self.normals)
+        self.ApplyOutletBackflowCorrection(self.v_stage, self.unit_normals_outlet)
         self.ApplyVelocityDirichletConditions(vold, v_dirichlet, 1.0, vnew)
 
         return vnew
@@ -1075,7 +1075,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.pool.Release(grad_dp_nodal)
 
         self.ApplyVelocitySlipConditions(v, self.normals)
-        self.ApplyOutletBackflowCorrection(v, self.normals)
+        self.ApplyOutletBackflowCorrection(v, self.unit_normals_outlet)
         self.ApplyVelocityDirichletConditions(vfrac, v_dirichlet, 1.0, v)
 
         return v
