@@ -506,6 +506,24 @@ else()
   message(FATAL_ERROR "Invalid option chosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
 endif ()
 
+# Linear algebra backend for the sparse system types ("ublas" default | "eigen").
+# The definition is set globally (as for KRATOS_SMP_*) because it changes the
+# meaning of the default space aliases and hence the mangled names of everything
+# instantiated with them: the core and every application in one build must agree.
+if(NOT DEFINED KRATOS_LINEAR_ALGEBRA_BACKEND)
+  message(STATUS "\"KRATOS_LINEAR_ALGEBRA_BACKEND\" not defined, defaulting to \"ublas\"")
+  set(KRATOS_LINEAR_ALGEBRA_BACKEND "ublas")
+endif(NOT DEFINED KRATOS_LINEAR_ALGEBRA_BACKEND)
+
+if (KRATOS_LINEAR_ALGEBRA_BACKEND STREQUAL "ublas")
+  message(STATUS "Using uBLAS as sparse linear algebra backend")
+elseif (KRATOS_LINEAR_ALGEBRA_BACKEND STREQUAL "eigen")
+  message(STATUS "Using Eigen as sparse linear algebra backend")
+  add_definitions( -DKRATOS_USE_EIGEN_BACKEND )
+else()
+  message(FATAL_ERROR "Invalid option chosen for \"KRATOS_LINEAR_ALGEBRA_BACKEND\"! Available options are: \"ublas\", \"eigen\"")
+endif ()
+
 option(KRATOS_USE_TBB "Enable Intel Threading Building Blocks (TBB) support" OFF)
 
 if(KRATOS_USE_TBB)
@@ -654,6 +672,12 @@ message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
 # Include dir for external libraries
 include_directories( SYSTEM ${KRATOS_SOURCE_DIR}/external_libraries )
+
+# Eigen (header-only). Added at top level so both the core and any application
+# can use it (e.g. as sparse linear-algebra backend); EIGEN_MPL2_ONLY is set
+# globally so every translation unit agrees on the licensed subset.
+include_directories( SYSTEM ${KRATOS_SOURCE_DIR}/external_libraries/eigen3 )
+add_definitions( -DEIGEN_MPL2_ONLY )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
