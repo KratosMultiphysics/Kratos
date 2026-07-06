@@ -136,9 +136,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Check for zero normals and print corresponding indices
         normal_norms = xp.linalg.norm(n_unit, axis=1)
-        if self.zero_normal_indices is None:
+        if self.slip_zero_normal_indices is None:
             zero_normal_mask = (normal_norms < 1e-15)
-            self.zero_normal_indices = self.slip_node_ids[xp.where(zero_normal_mask)[0]]
+            self.slip_zero_normal_indices = self.slip_node_ids[xp.where(zero_normal_mask)[0]]
 
         # Normalize normals (avoid division by zero)
         normal_norms_clipped = xp.maximum(normal_norms, 1e-15)
@@ -149,7 +149,31 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v[self.slip_node_ids] -= (v_dot_n[:,None] * n_unit)
 
         # Set velocity to zero at nodes with zero normal (i.e., treat them as no-slip)
-        v[self.zero_normal_indices,:] = 0.0
+        v[self.slip_zero_normal_indices,:] = 0.0
+
+    def ApplyOutletBackflowCorrection(self, v, normals): #TODO: normalize normals only once
+        # Get velocity and normal view of slip nodes
+        v_outlet = v[self.outlet_node_ids]
+        n_unit = normals[self.outlet_node_ids]
+
+        # Check for zero normals and print corresponding indices
+        normal_norms = xp.linalg.norm(n_unit, axis=1)
+        if self.outlet_zero_normal_indices is None:
+            zero_normal_mask = (normal_norms < 1e-15)
+            self.outlet_zero_normal_indices = self.outlet_node_ids[xp.where(zero_normal_mask)[0]]
+
+        # Normalize normals (avoid division by zero)
+        normal_norms_clipped = xp.maximum(normal_norms, 1e-15)
+        n_unit /= normal_norms_clipped[:,None]
+
+        # Remove normal velocity component to prevent inflow
+        v_dot_n = xp.sum(v_outlet * n_unit, axis=1)
+        outlet_backflow_mask = v_dot_n < 0.0
+        v_outlet[outlet_backflow_mask] -= (v_dot_n[outlet_backflow_mask,None] * n_unit[outlet_backflow_mask])
+        v[self.outlet_node_ids] = v_outlet
+
+        # Set velocity to zero at nodes with zero normal (i.e., treat them as no-slip)
+        v[self.outlet_zero_normal_indices,:] = 0.0
 
     def ComputeH(self,DN):
         return xp.mean(1.0 / xp.linalg.norm(DN, axis=2), axis=1)
@@ -357,8 +381,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.tau_1 = xp.empty(self.DN.shape[0], dtype=cfd_utils.PRECISION)
         self.tau_2 = xp.empty(self.DN.shape[0], dtype=cfd_utils.PRECISION)
 
-        ## arrays to store wall values
-        self.v_el_wall = xp.empty((self.connectivity_wall.shape[0], self.n_in_cond, self.dim), dtype=cfd_utils.PRECISION)
+        ## arrays to store boundary values
+        # self.v_el_wall = xp.empty((self.connectivity_wall.shape[0], self.n_in_cond, self.dim), dtype=cfd_utils.PRECISION)
 
         # Arrays for time integration to be allocated according to the current time scheme
         # Note that their size may depend on the time scheme, which might change among time steps
@@ -392,22 +416,26 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.model_part.ProcessInfo[KM.STEP] = 0
 
         vol_geometries = []
+        wall_nodes = []
         wall_geometries = []
+        outlet_nodes = []
         outlet_geometries = []
         for g in self.model_part.Geometries:
             if (len(g) == self.dim + 1):
                 vol_geometries.append(g.Id)
             elif (len(g) == self.dim):
-                wall_nodes = 0
-                outlet_nodes = 0
+                n_wall_nodes = 0
+                n_outlet_nodes = 0
                 for node in g:
                     if node.Is(KM.WALL):
-                        wall_nodes += 1
+                        n_wall_nodes += 1
+                        wall_nodes.append(node.Id)
                     elif node.Is(KM.OUTLET):
-                        outlet_nodes += 1
-                if wall_nodes == len(g):
+                        n_outlet_nodes += 1
+                        outlet_nodes.append(node.Id)
+                if n_wall_nodes == len(g):
                     wall_geometries.append(g.Id)
-                elif outlet_nodes == len(g):
+                elif n_outlet_nodes == len(g):
                     outlet_geometries.append(g.Id)
             else:
                 raise Exception (f"Only linear simplicial elements are supported! Geometry with Id {g.Id} has {len(g)} nodes, expected {self.dim} (skin) or {self.dim+1} (volume).")
@@ -416,9 +444,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.vol_mp.AddGeometries(vol_geometries)
 
         self.wall_mp = self.model_part.CreateSubModelPart("fluid_wall_model_part")
+        self.wall_mp.AddNodes(wall_nodes)
         self.wall_mp.AddGeometries(wall_geometries)
 
         self.outlet_mp = self.model_part.CreateSubModelPart("fluid_outlet_model_part")
+        self.outlet_mp.AddNodes(outlet_nodes)
         self.outlet_mp.AddGeometries(outlet_geometries)
 
         self.nnodes = len(self.model_part.Nodes)
@@ -445,11 +475,17 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.connectivity -= 1 #have indices to start in 0
         self.connectivity = self.connectivity.astype(np.int64) #############OUCH!!! TODO: this by defaults should be probably int64
 
-        self.connectivity_adaptor_wall = KM.TensorAdaptors.ConnectivityIdsTensorAdaptor(self.wall_mp.Geometries)
-        self.connectivity_adaptor_wall.CollectData()
-        self.connectivity_wall = self.connectivity_adaptor_wall.data
-        self.connectivity_wall -= 1 #have indices to start in 0
-        self.connectivity_wall = self.connectivity_wall.astype(np.int64) #############OUCH!!! TODO: this by defaults should be probably int64
+        # self.connectivity_adaptor_wall = KM.TensorAdaptors.ConnectivityIdsTensorAdaptor(self.wall_mp.Geometries)
+        # self.connectivity_adaptor_wall.CollectData()
+        # self.connectivity_wall = self.connectivity_adaptor_wall.data
+        # self.connectivity_wall -= 1 #have indices to start in 0
+        # self.connectivity_wall = self.connectivity_wall.astype(np.int64) #############OUCH!!! TODO: this by defaults should be probably int64
+
+        self.connectivity_adaptor_outlet = KM.TensorAdaptors.ConnectivityIdsTensorAdaptor(self.outlet_mp.Geometries)
+        self.connectivity_adaptor_outlet.CollectData()
+        self.connectivity_outlet = self.connectivity_adaptor_outlet.data
+        self.connectivity_outlet -= 1 #have indices to start in 0
+        self.connectivity_outlet = self.connectivity_outlet.astype(np.int64) #############OUCH!!! TODO: this by defaults should be probably int64
 
         # Preallocation of elemental arrays of velocities, pressures and body force
         # self.vec_elemental_data = np.empty((*self.connectivity.shape, v.shape[1]))
@@ -458,7 +494,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Preallocation of local array of shape functions
         self.N = np.ones(self.dim+1)/(self.dim+1)
-        self.N_wall = np.ones(self.dim)/(self.dim)
 
         # Obtain the shape function derivatives
         geometry_adaptor_DN = KM.TensorAdaptors.GeometriesTensorAdaptor(
@@ -489,39 +524,59 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Move stuff to the GPU
         self.DN = xp.asarray(self.DN, dtype=cfd_utils.PRECISION)
         self.N = xp.asarray(self.N, dtype=cfd_utils.PRECISION)
-        self.N_wall = xp.asarray(self.N_wall, dtype=cfd_utils.PRECISION)
         max_idx = self.connectivity.max()
         if max_idx >= np.iinfo(np.int32).max: #use 32 bit integers for connectivities
             KM.Logger.PrintWarning(self.__class__.__name__, f"Warning: Max index {max_idx} is too large for int32.")
 
         self.connectivity = xp.asarray(self.connectivity, dtype=xp.int32)
-        self.connectivity_wall = xp.asarray(self.connectivity_wall, dtype=xp.int32)
+        # self.connectivity_wall = xp.asarray(self.connectivity_wall, dtype=xp.int32)
 
         # Compute h per every element
         self.h = self.ComputeH(self.DN)
 
         # Get nodal normals for the slip condition
         # Note that the normals are already computed by the corresponding process Initialize() method (see base class)
+        #FIXME: This assumes that the slip wall normals have been already computed elsewhere and stored in NORMAL nodal variable
         self.normals_adaptor.CollectData()
         self.normals = self.normals_adaptor.data.reshape((len(self.model_part.Nodes),self.dim))
         self.normals = xp.asarray(self.normals, dtype=cfd_utils.PRECISION)
 
-        # Get wall normals for the wall condition
-        # Note that constant normals are assumed within the wall geometries by using a single integration point quadrature (no curved boundaries are considered)
-        self.normals_wall_adaptor = KM.TensorAdaptors.GeometriesTensorAdaptor(
-            self.wall_mp.Geometries,
+        # # Get wall normals for the wall condition
+        # # Note that constant normals are assumed within the wall geometries by using a single integration point quadrature (no curved boundaries are considered)
+        # self.normals_wall_adaptor = KM.TensorAdaptors.GeometriesTensorAdaptor(
+        #     self.wall_mp.Geometries,
+        #     KM.TensorAdaptors.GeometriesTensorAdaptor.DatumType.Normals,
+        #     KM.GeometryData.IntegrationMethod.GI_GAUSS_1)
+        # self.normals_wall_adaptor.CollectData()
+        # n_wall_geom = self.normals_wall_adaptor.data.shape[0]
+        # n_wall_int_pts = self.normals_wall_adaptor.data.shape[1]
+        # self.normals_wall = self.normals_wall_adaptor.data.reshape((n_wall_geom, n_wall_int_pts, 3))
+        # self.normals_wall = xp.asarray(self.normals_wall[:,:,:self.dim], dtype=cfd_utils.PRECISION) # Drop third component in 2D
+        # if(self.normals_wall_adaptor.data.shape[1]!=0):
+        #     self.normals_wall = xp.squeeze(self.normals_wall, axis=1) # Drop integration point dimension (note that we are using a single integration point, so this is safe)
+
+        # normals_wall_norms = xp.linalg.norm(self.normals_wall, axis=1, keepdims=True)
+        # self.unit_normals_wall = self.normals_wall / (normals_wall_norms + 1.0e-12) # avoid division by zero
+        
+        # Get wall normals for the outlet inflow correction
+        # Note that constant normals are assumed within the outlet geometries by using a single integration point quadrature (no curved boundaries are considered)
+        self.normals_outlet_adaptor = KM.TensorAdaptors.GeometriesTensorAdaptor(
+            self.outlet_mp.Geometries,
             KM.TensorAdaptors.GeometriesTensorAdaptor.DatumType.Normals,
             KM.GeometryData.IntegrationMethod.GI_GAUSS_1)
-        self.normals_wall_adaptor.CollectData()
-        n_wall_geom = self.normals_wall_adaptor.data.shape[0]
-        n_wall_int_pts = self.normals_wall_adaptor.data.shape[1]
-        self.normals_wall = self.normals_wall_adaptor.data.reshape((n_wall_geom, n_wall_int_pts, 3))
-        self.normals_wall = xp.asarray(self.normals_wall[:,:,:self.dim], dtype=cfd_utils.PRECISION) # Drop third component in 2D
-        if(self.normals_wall_adaptor.data.shape[1]!=0):
-            self.normals_wall = xp.squeeze(self.normals_wall, axis=1) # Drop integration point dimension (note that we are using a single integration point, so this is safe)
+        self.normals_outlet_adaptor.CollectData()
+        n_outlet_geom = self.normals_outlet_adaptor.data.shape[0]
+        n_outlet_int_pts = self.normals_outlet_adaptor.data.shape[1]
+        normals_outlet = self.normals_outlet_adaptor.data.reshape((n_outlet_geom, n_outlet_int_pts, 3))
+        normals_outlet = xp.asarray(normals_outlet[:,:,:self.dim], dtype=cfd_utils.PRECISION) # Drop third component in 2D
+        if self.normals_outlet_adaptor.data.shape[1]!=0:
+            normals_outlet = xp.squeeze(normals_outlet, axis=1) # Drop integration point dimension (note that we are using a single integration point, so this is safe)
 
-        normals_wall_norms = xp.linalg.norm(self.normals_wall, axis=1, keepdims=True)
-        self.unit_normals_wall = self.normals_wall / (normals_wall_norms + 1.0e-12) # avoid division by zero
+        outlet_n_nodes = self.outlet_mp.NumberOfNodes()
+        self.unit_normals_outlet = xp.zeros((outlet_n_nodes, self.dim), dtype=cfd_utils.PRECISION) # Drop third component in 2D
+        outlet_elem_normals = xp.repeat(normals_outlet[:, None, :], self.connectivity_outlet.shape[1], axis=1) # Replicate elemental normal to every local node
+        self.cfd_utils.AssembleVector(self.connectivity_outlet, outlet_elem_normals, self.unit_normals_outlet) # Assemble the geometry normals to the nodes
+        self.unit_normals_outlet /= (xp.linalg.norm(self.unit_normals_outlet, axis=1, keepdims=True) + 1.0e-12) # Normalize avoiding division by zero
 
         # Calculate the wall tangential projector (I - n⊗n) to be used in the wall condition
         #I = xp.eye(self.dim, dtype=cfd_utils.PRECISION)
@@ -529,9 +584,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Declare boundary condition arrays
         self.fix_vel_indices = None
-        #self.slip_vel_indices = None
         self.slip_node_ids = None
-        self.zero_normal_indices = None
+        self.slip_zero_normal_indices = None
+        self.outlet_node_ids = None
+        self.outlet_zero_normal_indices = None
         self.fix_pres_indices = None
 
         # Declare boundary conditions masks
@@ -684,14 +740,22 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Check if slip indices have been computed
         # Note that we only compute this once assuming the slip to not change in time
         if self.slip_node_ids is None:
-            # Get SLIP flag nodal data
-            slip_adaptor = KM.TensorAdaptors.FlagsTensorAdaptor(self.model_part.Nodes, KM.SLIP)
-            slip_adaptor.CollectData()
-            slip_adaptor_data = xp.asarray(slip_adaptor.data, dtype=np.int32)
+            self.slip_node_ids = self.GetNodeIndicesFromFlag(KM.SLIP)
 
-            # Compute slip nodes component indices
-            self.slip_node_ids = xp.where(slip_adaptor_data > 0)[0] # Get the ids of the nodes with SLIP flag
-            #self.slip_vel_indices = (slip_node_ids[:, None] * self.dim + xp.arange(self.dim)).ravel() # Broadcast with dimension to get the component indices
+    def GetOutletIndices(self):
+        # Check if outlet indices have been computed
+        # Note that we only compute this once assuming the outlet to not change in time
+        if self.outlet_node_ids is None:
+            self.outlet_node_ids = self.GetNodeIndicesFromFlag(KM.OUTLET)
+
+    def GetNodeIndicesFromFlag(self, flag):
+        # Get flag nodal data
+        flag_adaptor = KM.TensorAdaptors.FlagsTensorAdaptor(self.model_part.Nodes, flag)
+        flag_adaptor.CollectData()
+        flag_adaptor_data = xp.asarray(flag_adaptor.data, dtype=np.int32)
+
+        # Compute flag nodes component indices
+        return xp.where(flag_adaptor_data > 0)[0] # Get the ids of the nodes with flag value True
 
     @classmethod
     def GetButcherTableau(self, time_scheme):
@@ -786,6 +850,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                     aux = dt * a_ij
                     self.v_stage += aux * self.k[j]
             self.ApplyVelocitySlipConditions(self.v_stage, self.normals)
+            self.ApplyOutletBackflowCorrection(self.v_stage, self.normals)
             self.ApplyVelocityDirichletConditions(vold, v_dirichlet, c[i], self.v_stage)
 
             # Calculate current stage residual
@@ -802,6 +867,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             aux = dt * b[i]
             vnew += aux * self.k[i]
         self.ApplyVelocitySlipConditions(vnew, self.normals)
+        self.ApplyOutletBackflowCorrection(vnew, self.normals)
         self.ApplyVelocityDirichletConditions(vold, v_dirichlet, 1.0, vnew)
 
         return vnew
@@ -1008,6 +1074,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.pool.Release(grad_dp_nodal)
 
         self.ApplyVelocitySlipConditions(v, self.normals)
+        self.ApplyOutletBackflowCorrection(v, self.normals)
         self.ApplyVelocityDirichletConditions(vfrac, v_dirichlet, 1.0, v)
 
         return v
@@ -1016,6 +1083,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Get boundary condition data
         self.GetSlipIndices()
+        self.GetOutletIndices()
         self.GetFixityIndices()
 
         nelem = self.DN.shape[0]
@@ -1268,24 +1336,43 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #print(f"\t Time inside ComputeVelocityResidual: {time.perf_counter() - ttot}")
         # return res_assembled
 
-    def ComputeVelocityResidualWall(self, v_elemental_wall, out=None):
-        if out is None:
-            raise ValueError("Output array must be provided to store the assembled residual values!")
-        if out.shape != (self.nnodes,self.dim):
-            raise ValueError(f"Output array has incompatible shape {out.shape}, expected {(self.nnodes,self.dim)}")
-        res_assembled = out
+    # def ComputeVelocityResidualWall(self, v_elemental_wall, out=None):
+    #     if out is None:
+    #         raise ValueError("Output array must be provided to store the assembled residual values!")
+    #     if out.shape != (self.nnodes,self.dim):
+    #         raise ValueError(f"Output array has incompatible shape {out.shape}, expected {(self.nnodes,self.dim)}")
+    #     res_assembled = out
 
-        # Compute the viscous wall law contribution
-        # We use the 0 position of the pool as it is ensured to be sufficient as the number of wall elements is always less than the number of volume elements
-        slip_length = self.wall_mp.ProcessInfo[KratosFluid.SLIP_LENGTH] #TODO: think on how to handle this properly
-        res_wall_shape = v_elemental_wall.shape
-        res_wall = self.cfd_utils.ComputeNavierSlipWallContribution(v_elemental_wall, self.wall_tangential_projector, self.dyn_visc, slip_length, out=self.pool.Get(0,res_wall_shape))
-        res_wall *= self.wall_areas[:, None, None]
+    #     # Compute the viscous wall law contribution
+    #     # We use the 0 position of the pool as it is ensured to be sufficient as the number of wall elements is always less than the number of volume elements
+    #     slip_length = self.wall_mp.ProcessInfo[KratosFluid.SLIP_LENGTH] #TODO: think on how to handle this properly
+    #     res_wall_shape = v_elemental_wall.shape
+    #     res_wall = self.cfd_utils.ComputeNavierSlipWallContribution(v_elemental_wall, self.wall_tangential_projector, self.dyn_visc, slip_length, out=self.pool.Get(0,res_wall_shape))
+    #     res_wall *= self.wall_areas[:, None, None]
 
-        # Vectorized assembly of the wall contributions into the nodal residual
-        # Note that this is assumed to be done on top of the volume residual (no innitialization of the assembled residual is done)
-        self.cfd_utils.AssembleVector(self.connectivity_wall, res_wall, res_assembled)
-        self.pool.Release(res_wall)
+    #     # Vectorized assembly of the wall contributions into the nodal residual
+    #     # Note that this is assumed to be done on top of the volume residual (no innitialization of the assembled residual is done)
+    #     self.cfd_utils.AssembleVector(self.connectivity_wall, res_wall, res_assembled)
+    #     self.pool.Release(res_wall)
+
+    # def ComputeVelocityResidualOutlet(self, v_elemental_outlet, out=None):
+    #     if out is None:
+    #         raise ValueError("Output array must be provided to store the assembled residual values!")
+    #     if out.shape != (self.nnodes,self.dim):
+    #         raise ValueError(f"Output array has incompatible shape {out.shape}, expected {(self.nnodes,self.dim)}")
+    #     res_assembled = out
+
+    #     # Compute the outlet inflow prevention contribution
+    #     # We use the 0 position of the pool as it is ensured to be sufficient as the number of wall elements is always less than the number of volume elements
+    #     beta = 0.0 #TODO: think on how to handle this properly
+    #     res_outlet_shape = v_elemental_outlet.shape
+    #     res_outlet = self.cfd_utils.ComputeOutletBackflowContribution(self.N_boundary, v_elemental_outlet, self.unit_normals_outlet, self.rho, beta, out=self.pool.Get(0,res_outlet_shape))
+    #     res_outlet *= self.outlet_areas[:, None, None]
+
+    #     # Vectorized assembly of the outlet contributions into the nodal residual
+    #     # Note that this is assumed to be done on top of the volume residual (no innitialization of the assembled residual is done)
+    #     self.cfd_utils.AssembleVector(self.connectivity_outlet, res_outlet, res_assembled)
+    #     self.pool.Release(res_outlet)
 
     def GetStep(self):
         return self.model_part.ProcessInfo[KM.STEP]
