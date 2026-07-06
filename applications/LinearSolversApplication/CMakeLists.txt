@@ -27,17 +27,16 @@ option(USE_EIGEN_SUITESPARSE
 ################### PYBIND11
 include(pybind11Tools)
 
-target_compile_definitions(KratosLinearSolversCore PUBLIC
-                           EIGEN_MPL2_ONLY)
+# Eigen lives in the top-level external_libraries/eigen3 and is made available
+# globally (include path + EIGEN_MPL2_ONLY) by the root CMakeLists.txt.
 target_include_directories(KratosLinearSolversCore
                            PUBLIC "${KRATOS_SOURCE_DIR}/kratos"
-                           SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3"
-                                         "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/spectra1/include"
+                           SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/spectra1/include"
                            INTERFACE "$<INSTALL_INTERFACE:include/kratos>"
                                      "$<BUILD_INTERFACE:${KRATOS_SOURCE_DIR}/kratos>"
-                           SYSTEM INTERFACE "$<INSTALL_INTERFACE:include/kratos/applications/LinearSolversApplication/external_libraries/eigen3>"
+                           SYSTEM INTERFACE "$<INSTALL_INTERFACE:include/kratos/external_libraries/eigen3>"
                                             "$<INSTALL_INTERFACE:include/kratos/applications/LinearSolversApplication/external_libraries/spectra1/include>"
-                                            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3>"
+                                            "$<BUILD_INTERFACE:${KRATOS_SOURCE_DIR}/external_libraries/eigen3>"
                                             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/spectra1/include>")
 
 if( USE_EIGEN_MKL MATCHES ON )
@@ -97,9 +96,9 @@ if( USE_EIGEN_FEAST MATCHES ON )
 endif()
 
 if (USE_EIGEN_SUITESPARSE)
-    include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindCHOLMOD.cmake")
-    include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindSPQR.cmake")
-    include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindUMFPACK.cmake")
+    include("${KRATOS_SOURCE_DIR}/external_libraries/eigen3/cmake/FindCHOLMOD.cmake")
+    include("${KRATOS_SOURCE_DIR}/external_libraries/eigen3/cmake/FindSPQR.cmake")
+    include("${KRATOS_SOURCE_DIR}/external_libraries/eigen3/cmake/FindUMFPACK.cmake")
     target_compile_definitions(KratosLinearSolversCore PUBLIC KRATOS_USE_EIGEN_SUITESPARSE)
 endif()
 
