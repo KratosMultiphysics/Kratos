@@ -97,8 +97,8 @@ class CoSimulationAnalysis(AnalysisStage):
             return solver._GetSolver(solver_name)
         
     def KeepAdvancingSolutionLoop(self) -> bool:
-        tolerance = 1e-7
-        return self.time < self.end_time - 1e-7
+        tolerance = 1e-12
+        return self.time < self.end_time - tolerance
 
     @staticmethod
     def Flush():
