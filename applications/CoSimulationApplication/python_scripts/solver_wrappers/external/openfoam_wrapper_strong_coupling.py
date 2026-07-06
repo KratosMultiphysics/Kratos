@@ -87,18 +87,7 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
             self.ExportData(data_config)
 
     def AdvanceInTime(self, current_time):
-        tol = 1e-10
-
-        if current_time >= self.end_time - tol:
-            self.current_time = self.end_time
-            return self.current_time
-
-        next_time = current_time + self.time_step
-
-        if next_time > self.end_time:
-            next_time = self.end_time
-
-        self.current_time = next_time
+        self.current_time = current_time + self.time_step
         print("AdvanceInTime!!! current_time =", self.current_time)
         return self.current_time
 
@@ -146,15 +135,7 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
             return
         
         elif self.firstIteration and not self.isFirstSolverInSequence:
-            # for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
-            #     data_config = {
-            #         "type" : "coupling_interface_data",
-            #         "interface_data" : self.GetInterfaceData(data_name)
-            #     }
-            #     print("    Export Data " + data_name)
-            #     print("             To " + self.settings["io_settings"]["co_sim_io_settings"]["my_name"].GetString())
-            #     self.ExportData(data_config)
-                          
+
             for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
                 data_config = {
                 "type" : "coupling_interface_data",
@@ -196,14 +177,15 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
         super().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
+        tol = 1e-7
 
-        tol = 1e-10
-        if self.current_time + tol >= self.end_time:
-            print("Kratos: sending finalize signal to OpenFOAM")
-            self.sendControlSignal("finalize")
-        else:
-            self.sendControlSignal("coupling_ongoing", {"coupling_ongoing": True})
-        
+        is_last_step = self.current_time + tol >= self.end_time
+
+        self.sendControlSignal(
+            "coupling_ongoing",
+            {"coupling_ongoing": not is_last_step}
+        )
+
         super().FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
