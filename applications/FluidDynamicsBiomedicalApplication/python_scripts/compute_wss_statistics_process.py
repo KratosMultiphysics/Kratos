@@ -3,6 +3,7 @@ from numpy import isin
 import KratosMultiphysics
 
 # Import applications
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.FluidDynamicsBiomedicalApplication as KratosBio
 
 def Factory(settings, model):
@@ -46,7 +47,7 @@ class ComputeWssStatisticsProcess(KratosMultiphysics.Process):
             KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(
                 skin_model_part,
                 skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                KratosBio.WALL_NORMAL)
+                KratosFluid.WALL_NORMAL)
 
         # Initialize the WSS variables
         KratosBio.WssStatisticsUtilities.InitializeWSSVariables(skin_model_part)
@@ -58,11 +59,11 @@ class ComputeWssStatisticsProcess(KratosMultiphysics.Process):
             KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(
                 skin_model_part,
                 skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                KratosBio.WALL_NORMAL)
+                KratosFluid.WALL_NORMAL)
 
         if self.settings["calculate_wss"].GetBool():
             is_normal_historical = False
-            KratosBio.WssStatisticsUtilities.CalculateWSS(skin_model_part, KratosBio.WALL_NORMAL, is_normal_historical)
+            KratosBio.WssStatisticsUtilities.CalculateWSS(skin_model_part, KratosFluid.WALL_NORMAL, is_normal_historical)
 
         if self.settings["calculate_osi"].GetBool():
             KratosBio.WssStatisticsUtilities.CalculateOSI(skin_model_part)
