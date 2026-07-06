@@ -4,26 +4,25 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_PRECONDITIONER_FACTORY_H_INCLUDED )
-#define  KRATOS_PRECONDITIONER_FACTORY_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
 #include "linear_solvers/preconditioner.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
@@ -150,12 +149,23 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 ///@}
 
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSparseSpaceType;
+// The registration typedefs follow the default (configure-time selected)
+// linear-algebra backend, so the KRATOS_REGISTER_* macros register into the
+// component map the python-exposed strategies look up.
+typedef DefaultSparseSpaceType SparseSpaceType;
+typedef DefaultLocalSpaceType LocalSparseSpaceType;
 
 typedef PreconditionerFactory<SparseSpaceType, LocalSparseSpaceType> PreconditionerFactoryType;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<PreconditionerFactoryType>;
+// The uBLAS double precision variant is always explicitly instantiated in
+// kratos_components.cpp (as RealSparseSpace/RealDenseSpace), regardless of
+// the configured default backend, so applications hard-coding uBLAS types
+// can safely import it.
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<PreconditionerFactory<
+    TUblasSparseSpace<double>,
+    TUblasDenseSpace<double>
+>>;
 
 #ifdef KRATOS_REGISTER_PRECONDITIONER
 #undef KRATOS_REGISTER_PRECONDITIONER
@@ -164,5 +174,3 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Precon
     KratosComponents<PreconditionerFactoryType>::Add(name, reference);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_PRECONDITIONER_FACTORY_H_INCLUDED  defined
