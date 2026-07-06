@@ -95,6 +95,9 @@ class CoSimulationAnalysis(AnalysisStage):
             return solver
         else:
             return solver._GetSolver(solver_name)
+        
+    def KeepAdvancingSolutionLoop(self) -> bool:
+        return self.time < self.end_time - 1e-7
 
     @staticmethod
     def Flush():
