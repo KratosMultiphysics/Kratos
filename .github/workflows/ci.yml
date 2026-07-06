@@ -40,8 +40,15 @@ jobs:
       matrix:
         build-type: [Custom, FullDebug]
         compiler: [gcc, clang]
+        la-backend: [ublas]
+        include:
+          # One job with the Eigen sparse linear-algebra backend
+          - build-type: Custom
+            compiler: gcc
+            la-backend: eigen
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
+      KRATOS_LINEAR_ALGEBRA_BACKEND: ${{ matrix.la-backend }}
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_linux.json"
       KRATOS_CI_CORES: 4                              # Current limits are 4 CPU and 16 GB Ram
