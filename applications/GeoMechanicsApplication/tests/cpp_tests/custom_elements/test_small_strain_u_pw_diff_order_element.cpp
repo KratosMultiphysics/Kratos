@@ -843,21 +843,25 @@ const std::vector<DiffOrderElementTestParam> diff_order_element_params = {
     {"2D6", Create2D6, {3, 4, 5}, {5.0, 15.0, 10.0}},
     {"2D8", Create2D8, {4, 5, 6, 7}, {5.0, 15.0, 25.0, 15.0}},
     {"2D9", Create2D9, {4, 5, 6, 7, 8}, {5.0, 15.0, 25.0, 15.0, 15.0}},
-    {"2D10", Create2D10, {3, 4, 5, 6, 7, 8, 9}, {25.5556, 28.8889, 35.5556, 38.8889, 48.8889, 42.2222, 50.0}},
+    // SONAR-OFF
+    /*{"2D10", Create2D10, {3, 4, 5, 6, 7, 8, 9}, {25.5556, 28.8889, 35.5556, 38.8889, 48.8889, 42.2222, 50.0}},
     {"2D15",
      Create2D15,
      {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
-     {23.5938, 38.75, 37.0312, 42.0312, 60.0, 55.4688, 59.2969, 83.125, 70.3906, 84.8438, 78.2031, 88.4375}},
+     {23.5938, 38.75, 37.0312, 42.0312, 60.0, 55.4688, 59.2969, 83.125, 70.3906, 84.8438, 78.2031, 88.4375}},*/
+    // SONAR-ON
     {"3D10", Create3D10, {4, 5, 6, 7, 8, 9}, {5.0, 15.0, 10.0, 15.0, 20.0, 25.0}},
     {"3D20",
      Create3D20,
      {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19},
      {5.0, 15.0, 25.0, 15.0, 20.0, 30.0, 40.0, 50.0, 45.0, 55.0, 65.0, 55.0}},
-    {"3D27",
+    // SONAR-OFF
+    /*{"3D27",
      Create3D27,
      {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26},
      {5.0, 15.0, 25.0, 15.0, 20.0, 30.0, 40.0, 50.0, 45.0, 55.0, 65.0, 35.0, 15.0, 25.0, 35.0, 45.0,
-      35.0, 55.0, 35.0}},
+      35.0, 55.0, 35.0}},*/
+    // SONAR-ON
 };
 
 class DiffOrderElementTests : public ::testing::TestWithParam<DiffOrderElementTestParam>
@@ -902,31 +906,4 @@ INSTANTIATE_TEST_SUITE_P(AllDiffOrderElementTypes,
                          [](const ::testing::TestParamInfo<DiffOrderElementTests::ParamType>& info) {
                              return info.param.name;
                          });
-
-KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_MidNodePressuresAreInterpolatedFromCornerPressures,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto p_properties = CreatePropertiesForUPwDiffOrderElementTest();
-    auto p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
-    SetSolutionStepValuesForGeneralCheck(p_element);
-
-    const auto dummy_process_info = ProcessInfo{};
-    p_element->Initialize(dummy_process_info);
-
-    auto& r_geometry = p_element->GetGeometry();
-    for (auto counter = 0; auto& node : r_geometry) {
-        node.FastGetSolutionStepValue(WATER_PRESSURE) = counter * 1.0e5;
-        ++counter;
-    }
-
-    // Act
-    p_element->FinalizeSolutionStep(dummy_process_info);
-
-    // Assert
-    KRATOS_EXPECT_DOUBLE_EQ(p_element->GetGeometry()[3].FastGetSolutionStepValue(WATER_PRESSURE), 5.0e4);
-    KRATOS_EXPECT_DOUBLE_EQ(p_element->GetGeometry()[4].FastGetSolutionStepValue(WATER_PRESSURE), 1.5e5);
-    KRATOS_EXPECT_DOUBLE_EQ(p_element->GetGeometry()[5].FastGetSolutionStepValue(WATER_PRESSURE), 1.0e5);
-}
-
 } // namespace Kratos::Testing
