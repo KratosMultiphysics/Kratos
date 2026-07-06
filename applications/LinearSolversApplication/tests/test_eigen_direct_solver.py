@@ -10,6 +10,8 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
     def __ExecuteEigenDirectSolverTest(self,
                                        class_name: str,
                                        solver_type: str) -> None:
+        if KratosMultiphysics.Kernel.LinearAlgebraBackend() == "eigen":
+            self.skipTest("This test builds the system with uBLAS containers, but with KRATOS_LINEAR_ALGEBRA_BACKEND=eigen the sparse solvers operate on the Eigen system types (covered by the C++ backend parity tests).")
         space = KratosMultiphysics.UblasSparseSpace()
 
         settings = KratosMultiphysics.Parameters('{ "solver_type" : "LinearSolversApplication.' + solver_type + '" }')
@@ -52,6 +54,8 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
     def __ExecuteEigenDirectSolverMatrixRHSTest(self, solver_type: str) -> None:
+        if KratosMultiphysics.Kernel.LinearAlgebraBackend() == "eigen":
+            self.skipTest("This test builds the system with uBLAS containers, but with KRATOS_LINEAR_ALGEBRA_BACKEND=eigen the sparse solvers operate on the Eigen system types (covered by the C++ backend parity tests).")
         space = KratosMultiphysics.UblasSparseSpace()
     
         settings = KratosMultiphysics.Parameters(
