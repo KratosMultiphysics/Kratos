@@ -251,9 +251,7 @@ public:
         )
     {
         using AIndex = typename AMatrix::index_array_type::value_type;
-        using AValue = typename AMatrix::value_type;
         using BIndex = typename BMatrix::index_array_type::value_type;
-        using BValue = typename BMatrix::value_type;
         using CIndex = typename CMatrix::index_array_type::value_type;
         using CValue = typename CMatrix::value_type;
 
