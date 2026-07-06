@@ -28,6 +28,7 @@
 #include "linear_solvers/monotonicity_preserving_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos {
 
@@ -35,15 +36,9 @@ namespace Kratos {
 namespace detail {
 
 
-template <class TSparseDataType,
-          class TDenseDataType>
-void RegisterLinearSolvers()
+template <class SpaceType, class LocalSpaceType>
+void RegisterLinearSolversForSpace()
 {
-    using SpaceType = TUblasSparseSpace<TSparseDataType>;
-    using LocalSpaceType = TUblasDenseSpace<TDenseDataType>;
-    using ComplexSpaceType = TUblasSparseSpace<std::complex<TSparseDataType>>;
-    using ComplexLocalSpaceType = TUblasDenseSpace<std::complex<TDenseDataType>>;
-
     using CGSolverType = CGSolver<SpaceType,  LocalSpaceType>;
     static auto CGSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,CGSolverType>();
     KratosComponents<LinearSolverFactory<SpaceType,LocalSpaceType>>::Add("cg", CGSolverFactory);
@@ -80,21 +75,29 @@ void RegisterLinearSolvers()
     static auto MonotonicityPreservingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,MonotonicityPreservingSolverType>();
     KratosComponents<LinearSolverFactory<SpaceType,LocalSpaceType>>::Add("monotonicity_preserving",MonotonicityPreservingSolverFactory );
 
-    using SkylineLUComplexSolverType = SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType>;
-    static auto SkylineLUComplexSolverFactory = StandardLinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, SkylineLUComplexSolverType>();
-    KratosComponents<LinearSolverFactory<ComplexSpaceType,ComplexLocalSpaceType>>::Add("skyline_lu_complex", SkylineLUComplexSolverFactory);
-
-    // using LinearSolverType = LinearSolver<SpaceType,  LocalSpaceType>;
-    // using IterativeSolverType = IterativeSolver<SpaceType,  LocalSpaceType>;
-//         KRATOS_REGISTER_LINEAR_SOLVER("LinearSolver", StandardLinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
-
-    // DeflatedCGSolver's utilities are not templated on the space type (and thus the floating point type),
-    // so they can only be defined for double precision floats.
-    if constexpr (std::is_same_v<TSparseDataType,double>) {
+    // DeflatedCGSolver's utilities are not templated on the space type (they are
+    // bound to the uBLAS CSR matrix and to double precision floats), so it can
+    // only be registered for the uBLAS double space.
+    if constexpr (std::is_same_v<SpaceType, TUblasSparseSpace<double>>) {
         using DeflatedCGSolverType = DeflatedCGSolver<SpaceType,  LocalSpaceType>;
         static auto DeflatedCGSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,DeflatedCGSolverType>();
         KratosComponents<LinearSolverFactory<SpaceType,LocalSpaceType>>::Add("deflated_cg", DeflatedCGSolverFactory);
     }
+}
+
+
+template <class TSparseDataType,
+          class TDenseDataType>
+void RegisterLinearSolvers()
+{
+    RegisterLinearSolversForSpace<TUblasSparseSpace<TSparseDataType>, TUblasDenseSpace<TDenseDataType>>();
+
+    using ComplexSpaceType = TUblasSparseSpace<std::complex<TSparseDataType>>;
+    using ComplexLocalSpaceType = TUblasDenseSpace<std::complex<TDenseDataType>>;
+
+    using SkylineLUComplexSolverType = SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType>;
+    static auto SkylineLUComplexSolverFactory = StandardLinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, SkylineLUComplexSolverType>();
+    KratosComponents<LinearSolverFactory<ComplexSpaceType,ComplexLocalSpaceType>>::Add("skyline_lu_complex", SkylineLUComplexSolverFactory);
 }
 
 
@@ -105,5 +108,11 @@ void RegisterLinearSolvers()
 {
     detail::RegisterLinearSolvers</*TSparseDataType=*/double,/*TDenseDataType*/double>();
     detail::RegisterLinearSolvers</*TSparseDataType=*/float,/*TDenseDataType*/double>();
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    // The default (Eigen) sparse spaces additionally get their own registrations
+    // so that the python-exposed strategies find their solvers.
+    detail::RegisterLinearSolversForSpace<TDefaultSparseSpace<double>, TDefaultDenseSpace<double>>();
+    detail::RegisterLinearSolversForSpace<TDefaultSparseSpace<float>, TDefaultDenseSpace<double>>();
+#endif
 };
 } // Namespace Kratos
