@@ -222,7 +222,7 @@ public:
 	template<typename TColumnType>
 	static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
 	{
-		if (rX.size() != rM.size1())
+		if (static_cast<std::size_t>(rX.size()) != rM.size1())
 			rX.resize(rM.size1(), false);
 
 		for (std::size_t i = 0; i < rM.size1(); i++) {
