@@ -27,7 +27,8 @@ class CoSimulationAnalysis(AnalysisStage):
         problem_data_defaults = KM.Parameters("""{
             "problem_name" : "default_co_simulation",
             "print_colors" : false,
-            "echo_level"   : 1
+            "echo_level"   : 1, 
+            "time_tolerance" : 1e-12
         }""")
 
         problem_data = cosim_settings["problem_data"]
@@ -65,6 +66,7 @@ class CoSimulationAnalysis(AnalysisStage):
 
         ## Stepping and time settings
         self.end_time = self.cosim_settings["problem_data"]["end_time"].GetDouble()
+        self.time_tolerance = self.cosim_settings["problem_data"]["time_tolerance"].GetDouble()
         self.time = self.cosim_settings["problem_data"]["start_time"].GetDouble()
         self.step = 0
 
@@ -97,8 +99,7 @@ class CoSimulationAnalysis(AnalysisStage):
             return solver._GetSolver(solver_name)
         
     def KeepAdvancingSolutionLoop(self) -> bool:
-        tolerance = 1e-12
-        return self.time < self.end_time - tolerance
+        return self.time < self.end_time -  self.time_tolerance
 
     @staticmethod
     def Flush():
