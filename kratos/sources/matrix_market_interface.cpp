@@ -18,6 +18,9 @@
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
 #include "spaces/ublas_space.h"
+#ifdef KRATOS_USE_EIGEN_BACKEND
+#include "includes/kratos_eigen_interface.h"
+#endif
 #include "includes/matrix_market_interface.h"
 
 namespace Kratos {
@@ -273,18 +276,34 @@ bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
             filled[I[i]]++;
         }
 
-    // Create the matrix
-    CompressedMatrixType *m = new CompressedMatrixType(size1, size2, nnz2);
+    // Create the matrix by writing the already-computed CSR arrays directly
+    // (columns/values are already ordered per-row from the loops above).
+    // This avoids building the matrix through element-by-element operator()
+    // insertion: that path is merely slow for uBLAS compressed_matrix, but is
+    // unsafe/incorrect for the Eigen-backed compressed matrix, whose
+    // operator() is not meant to be used to build up the sparsity pattern
+    // from scratch.
+    M = CompressedMatrixType(size1, size2, nnz2);
 
-    int k = 0;
+    auto row_ptr = M.index1_data().begin();
+    auto col_ptr = M.index2_data().begin();
+    auto val_ptr = M.value_data().begin();
+
+    row_ptr[0] = 0;
 
     for (int i = 0; i < size1; i++)
+    {
         for (int j = 0; j < nz[i]; j++)
-            (*m)(i, columns[indices[i] + j]) = values[k++];
+        {
+            const int index = indices[i] + j;
+            col_ptr[index] = columns[index];
+            val_ptr[index] = values[index];
+        }
 
-    M.resize(m->size1(), m->size2(), false);
+        row_ptr[i + 1] = indices[i] + nz[i];
+    }
 
-    M = *m;
+    M.set_filled(static_cast<std::size_t>(size1) + 1, static_cast<std::size_t>(nnz2));
 
     delete[] I;
     delete[] J;
@@ -295,8 +314,6 @@ bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
     delete[] columns;
     delete[] values;
     delete[] nz;
-
-    delete m;
 
     return true;
 }
@@ -621,4 +638,15 @@ template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::ComplexVect
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::Vector>(const char *FileName, const Kratos::Vector &V);
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::TUblasSparseSpace<float>::VectorType>(const char *FileName, const Kratos::TUblasSparseSpace<float>::VectorType &V);
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, const Kratos::ComplexVector &V);
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+// Eigen system-matrix/vector variants, so the direct solvers of the Eigen
+// backend can be exercised from python without a uBLAS<->Eigen conversion.
+// Only ReadMatrixMarketMatrix is instantiated: WriteMatrixMarketMatrix relies
+// on the uBLAS-only nested iterator1/iterator2 concept, which the Eigen
+// wrapper does not mirror (it exposes the CSR storage arrays instead).
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::EigenCompressedMatrix<double>>(const char *FileName, Kratos::EigenCompressedMatrix<double> &M);
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::EigenVector<double>>(const char *FileName, Kratos::EigenVector<double> &V);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::EigenVector<double>>(const char *FileName, const Kratos::EigenVector<double> &V);
+#endif
 }
