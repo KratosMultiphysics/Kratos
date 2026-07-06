@@ -1021,7 +1021,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Apply pressure BCs
         t0 = time.perf_counter()
-        self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_pres_indices, self.csr_data_indices, self.csr_diag_indices, self.L, rhs_p)
+        fix_diag_values = self.L.diagonal()[self.fix_pres_indices]
+        self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_pres_indices, self.csr_data_indices, self.csr_diag_indices, self.L, rhs_p, diag_value=fix_diag_values)
         #print(f"Time to apply pressure BCs: {time.perf_counter()-t0}")
 
         t0 = time.perf_counter()
