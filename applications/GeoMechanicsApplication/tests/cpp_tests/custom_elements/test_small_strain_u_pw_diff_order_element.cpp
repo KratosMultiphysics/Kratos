@@ -314,7 +314,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculatesFluidFluxVect
     p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_fluxes, process_info);
 
     // Assert
-    // With uniform pressure (∇p = 0) and gravity [0.0,-10,0]:
+    // With uniform pressure (∇p = 0) and gravity [0,-10,0]:
     // q_y = (1/μ) * k_yy * (0 + ρ_w * g_y) = (1/0.01) * 9.084e-6 * 1000 * (-10) = -9.084
     const array_1d<double, 3> expected_fluid_flux{0., -9.084, 0.}; // sign follows PORE_PRESSURE_SIGN_FACTOR
     for (const auto& fluid_flux : fluid_fluxes)
@@ -902,5 +902,31 @@ INSTANTIATE_TEST_SUITE_P(AllDiffOrderElementTypes,
                          [](const ::testing::TestParamInfo<DiffOrderElementTests::ParamType>& info) {
                              return info.param.name;
                          });
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_MidNodePressuresAreInterpolatedFromCornerPressures,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = CreatePropertiesForUPwDiffOrderElementTest();
+    auto p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
+    SetSolutionStepValuesForGeneralCheck(p_element);
+
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    auto& r_geometry = p_element->GetGeometry();
+    for (auto counter = 0; auto& node : r_geometry) {
+        node.FastGetSolutionStepValue(WATER_PRESSURE) = counter * 1.0e5;
+        ++counter;
+    }
+
+    // Act
+    p_element->FinalizeSolutionStep(dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_DOUBLE_EQ(p_element->GetGeometry()[3].FastGetSolutionStepValue(WATER_PRESSURE), 5.0e4);
+    KRATOS_EXPECT_DOUBLE_EQ(p_element->GetGeometry()[4].FastGetSolutionStepValue(WATER_PRESSURE), 1.5e5);
+    KRATOS_EXPECT_DOUBLE_EQ(p_element->GetGeometry()[5].FastGetSolutionStepValue(WATER_PRESSURE), 1.0e5);
+}
 
 } // namespace Kratos::Testing
