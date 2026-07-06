@@ -575,6 +575,19 @@ namespace Kratos:: Python
         eigen_sparse_space_binder.def("Size2", &SparseSpaceType::Size2);
         eigen_sparse_space_binder.def("IsDistributed", &SparseSpaceType::IsDistributed);
         eigen_sparse_space_binder.def("FastestDirectSolverList", &SparseSpaceType::FastestDirectSolverList);
+
+        // Backend-agnostic aliases: scripts that build system matrices/vectors
+        // to feed directly into a linear solver (bypassing the C++
+        // builder-and-solver) should use these instead of hardcoding
+        // UblasSparseSpace/CompressedMatrix/Vector, so no uBLAS<->Eigen
+        // conversion is needed when the Eigen backend is active.
+        m.attr("SparseSpace") = m.attr("EigenSparseSpace");
+        m.attr("SparseMatrix") = m.attr("EigenCompressedMatrix");
+        m.attr("SparseVector") = m.attr("EigenVector");
+#else
+        m.attr("SparseSpace") = m.attr("UblasSparseSpace");
+        m.attr("SparseMatrix") = m.attr("CompressedMatrix");
+        m.attr("SparseVector") = m.attr("Vector");
 #endif
 
         auto cplx_sparse_space_binder = CreateSpaceInterface< ComplexSparseSpaceType >(m,"UblasComplexSparseSpace");
