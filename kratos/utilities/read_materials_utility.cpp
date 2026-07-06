@@ -517,6 +517,7 @@ void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
 {
     KRATOS_TRY;
 
+    ValidatePropertyIds(Materials);
     ValidateTargetModelPartNames(Materials);
 
     // Save all ModelPartNames in a vector
@@ -573,23 +574,30 @@ void ReadMaterialsUtility::CheckModelPartIsNotRepeated(std::vector<std::string> 
     KRATOS_ERROR_IF_NOT(it == ModelPartsNames.end()) << "Materials for ModelPart \""
         << *it << "\" are specified multiple times!" << std::endl;
 }
+void ReadMaterialsUtility::ValidatePropertyIds(const Parameters& rAllMaterialParameters)
+{
+    for (IndexType i = 0; i < rAllMaterialParameters[properties_key].size(); ++i) {
+        const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
+        KRATOS_ERROR_IF_NOT(property.Has(properties_id_key)) << "Property at index " << i << " does not have a '" << properties_id_key << "' key. Please, provide a unique ID for each property.\n";
+    }
+}
 
 void ReadMaterialsUtility::ValidateTargetModelPartNames(const Parameters& rAllMaterialParameters)
 {
     for (IndexType i = 0; i < rAllMaterialParameters[properties_key].size(); ++i) {
         const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
-        const auto target_property = "Property "s + (property.Has(properties_id_key) ? std::to_string(property[properties_id_key].GetInt()) : "without an ID"s);
+        const auto property_id = property[properties_id_key].GetInt();
         KRATOS_ERROR_IF(!property.Has(model_part_name_key) && !property.Has(model_part_name_list_key))
-            << target_property << " does not provide any model part name. Please, provide either 'model_part_name' or 'model_part_name_list'.\n";
+            << "Property " << property_id << " does not provide any model part name. Please, provide either 'model_part_name' or 'model_part_name_list'.\n";
         KRATOS_ERROR_IF(property.Has(model_part_name_key) && property.Has(model_part_name_list_key))
-            << target_property <<  " provides 'model_part_name' as well as 'model_part_name_list'. Please, remove one of them, since they are mutually exclusive.\n";
+            << "Property " << property_id <<  " provides 'model_part_name' as well as 'model_part_name_list'. Please, remove one of them, since they are mutually exclusive.\n";
         KRATOS_ERROR_IF(property.Has(model_part_name_list_key) && property[model_part_name_list_key].GetStringArray().empty())
-            << target_property << " has an empty model part name list. Please, provide at least one model part name." << std::endl;
+            << "Property " << property_id << " has an empty model part name list. Please, provide at least one model part name." << std::endl;
         if (property.Has(model_part_name_list_key)) {
             auto names = property[model_part_name_list_key].GetStringArray();
             std::ranges::sort(names);
             const auto pos = std::ranges::adjacent_find(names);
-            KRATOS_ERROR_IF_NOT(pos == names.end()) << target_property << " has a model part name list with non-unique names: '" << *pos << "'\n";
+            KRATOS_ERROR_IF_NOT(pos == names.end()) << "Property " << property_id << " has a model part name list with non-unique names: '" << *pos << "'\n";
         }
     }
 }

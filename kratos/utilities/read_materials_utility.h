@@ -299,6 +299,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      */
     void CheckModelPartIsNotRepeated(std::vector<std::string>);
 
+    static void ValidatePropertyIds(const Parameters& rAllMaterialParameters);
     static void ValidateTargetModelPartNames(const Parameters& rAllMaterialParameters);
     [[nodiscard]] static std::vector<std::string> GetTargetModelPartNames(const Parameters& rMaterialParameters);
 
