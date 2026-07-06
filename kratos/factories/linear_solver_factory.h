@@ -24,6 +24,7 @@
 #include "includes/kratos_components.h"
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos
 {
@@ -151,14 +152,25 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSparseSpaceType;
+// The registration typedefs follow the default (configure-time selected)
+// linear-algebra backend, so the KRATOS_REGISTER_* macros register into the
+// component map the python-exposed strategies look up.
+typedef DefaultSparseSpaceType SparseSpaceType;
+typedef DefaultLocalSpaceType LocalSparseSpaceType;
 
 typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactoryType>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<
     TUblasSparseSpace<float>,
+    TUblasDenseSpace<double>
+>>;
+// The uBLAS double precision variant is always explicitly instantiated in
+// kratos_components.cpp (as RealSparseSpace/RealDenseSpace), regardless of
+// the configured default backend, so applications hard-coding uBLAS types
+// (e.g. LinearSolversApplication's MKL smoothers) can safely import it.
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<
+    TUblasSparseSpace<double>,
     TUblasDenseSpace<double>
 >>;
 
