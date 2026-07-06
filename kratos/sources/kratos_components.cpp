@@ -162,7 +162,19 @@ template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSp
 template class KratosComponents<LinearSolverFactory<SinglePrecisionRealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<ExplicitBuilder<RealSparseSpace, RealDenseSpace>>;
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+// With the Eigen backend the default sparse spaces differ from the uBLAS ones
+// registered above, so their factory components are instantiated in addition
+// (the uBLAS ones are kept so that applications hardcoding UblasSpace keep
+// finding their factories).
+template class KratosComponents<LinearSolverFactory<TDefaultSparseSpace<double>, TDefaultDenseSpace<double>>>;
+template class KratosComponents<LinearSolverFactory<TDefaultSparseSpace<float>, TDefaultDenseSpace<double>>>;
+template class KratosComponents<PreconditionerFactory<TDefaultSparseSpace<double>, TDefaultDenseSpace<double>>>;
+#endif
+
+// The explicit builder component follows the default spaces (see register_factories.h)
+template class KratosComponents<ExplicitBuilder<DefaultSparseSpaceType, DefaultLocalSpaceType>>;
 
 // Specialize array of components for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
