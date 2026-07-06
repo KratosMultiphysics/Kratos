@@ -262,6 +262,17 @@ private:
                 tie(outer_loops, inner_loops) =
                     ReadLocalRefinedBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
                 p_brep_surface = ReadLocalRefinement(p_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel, outer_loops, inner_loops);
+
+                // Propagate LocalRefinedSurface to all boundary trimming curves
+                auto p_lrs = dynamic_pointer_cast<LocalRefinedBrepSurfaceType>(p_brep_surface);
+                if (p_lrs) {
+                    for (const auto& loop : outer_loops)
+                        for (const auto& curve : loop)
+                            curve->SetLocalRefinedSurface(p_lrs);
+                    for (const auto& loop : inner_loops)
+                        for (const auto& curve : loop)
+                            curve->SetLocalRefinedSurface(p_lrs);
+                }
             }
             else
             {
