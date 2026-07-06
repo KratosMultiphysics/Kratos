@@ -85,11 +85,19 @@ public:
 
             auto strategy_parameters = Parameters{};
 
-            strategy_parameters.AddValue("quasi_newton_type", rSolverSettings["quasi_newton_type"]);
-            strategy_parameters.AddValue("quasi_newton_restart_interval",
-                                         rSolverSettings["quasi_newton_restart_interval"]);
-            strategy_parameters.AddValue("quasi_newton_max_rank",
-                                         rSolverSettings["quasi_newton_max_rank"]);
+            if (rSolverSettings.Has("quasi_newton_type")) {
+                strategy_parameters.AddValue("quasi_newton_type",
+                                             rSolverSettings["quasi_newton_type"]);
+            }
+            if (rSolverSettings.Has("quasi_newton_restart_interval")) {
+                strategy_parameters.AddValue("quasi_newton_restart_interval",
+                                             rSolverSettings["quasi_newton_restart_interval"]);
+            }
+            if (rSolverSettings.Has("quasi_newton_max_rank")) {
+                strategy_parameters.AddValue("quasi_newton_max_rank",
+                                             rSolverSettings["quasi_newton_max_rank"]);
+            }
+
             auto result =
                 std::make_unique<GeoMechanicsQuasiNewtonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
                     rModelPart, scheme, criteria, builder_and_solver, strategy_parameters,

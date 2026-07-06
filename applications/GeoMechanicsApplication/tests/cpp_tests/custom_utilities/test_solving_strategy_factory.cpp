@@ -163,4 +163,20 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForQuasiNewtonStrategy, 
     KRATOS_EXPECT_EQ(created_strategy->Check(), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForQuasiNewtonStrategyDefaultSettings, KratosGeoMechanicsFastSuite)
+{
+    Model      model;
+    const int  buffer_size      = 2;
+    auto&      dummy_model_part = model.CreateModelPart("dummy", buffer_size);
+    Parameters parameters{testParameters};
+    parameters["strategy_type"].SetString("quasi_newton");
+
+    const auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
+    using QuasiNewtonStrategyType =
+        GeoMechanicsQuasiNewtonStrategy<SparseSpaceType, DenseSpaceType, LinearSolverType>;
+    auto p_quasi_newton_strategy = dynamic_cast<QuasiNewtonStrategyType*>(created_strategy.get());
+
+    KRATOS_EXPECT_NE(p_quasi_newton_strategy, nullptr);
+}
+
 } // namespace Kratos::Testing
