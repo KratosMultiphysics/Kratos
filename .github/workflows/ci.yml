@@ -32,6 +32,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
 
+  # see https://github.com/dorny/paths-filter.
+  # This job is intended to generate a list of files that have changes in the commit and trigger the rest of the jobs based on the result. Specifically, any files matching the documentation folder or *.md / *.txt files are modified, the compilation triggers. Otherwise the jobs accept the changes without triggering the compilation or running test.
   job_filters:
     runs-on: ubuntu-latest
     outputs:
