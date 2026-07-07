@@ -416,7 +416,7 @@ protected:
     EdgesVectorType GetActiveAdjacencyGraph();
 
     /**TODO*/
-    void SetSidesVectorsAndSkinNormalsForSplitElements(
+    void SetSidesForSkinPointElements(
         const SkinPointsToElementsMapType& rSkinPointsMap,
         SidesVectorToElementsMapType& rSidesVectorMap,
         AverageSkinToElementsMapType& rAvgSkinMap);
@@ -426,7 +426,7 @@ protected:
      *
      * @param rExtensionOperatorMap
      */
-    void SetExtensionOperatorsForSplitElementNodes(
+    void SetExtensionForSkinPointElements(
         const SidesVectorToElementsMapType& rSidesVectorMap,
         AverageSkinToElementsMapType& rAvgSkinMap,
         NodesCloudMapType& rExtensionOperatorMap);
@@ -475,7 +475,7 @@ protected:
      * @param rCloudNodeVectorPositiveSide
      * @param rCloudNodeVectorNegativeSide
      */
-    void CreateCloudNodeVectorsForSplitElement(
+    void CreateCloudVectorsForSkinPointElement(
         const ElementType& rElement,
         const Vector& rSidesVector,
         NodesCloudMapType& rExtensionOperatorMap,
@@ -483,28 +483,28 @@ protected:
         PointerVector<NodeType>& rCloudNodeVectorNegativeSide);
 
     /* TODO */
-    void GetDataForSplitElementSkinPoint(
+    void GetDataForSkinPointInElement(
         const ElementType& rElement,
-        const array_1d<double,3>& rIntPtCoordinates,
-        Vector& rIntPtShapeFunctionValues,
-        Matrix& rIntPtShapeFunctionDerivatives);
+        const array_1d<double,3>& rSkinPtCoordinates,
+        Vector& rSkinPtShapeFunctionValues,
+        Matrix& rSkinPtShapeFunctionDerivatives);
 
     /* TODO */
-    bool AddIntegrationPointCondition(
+    bool AddSkinPointCondition(
         const ElementType& rElement,
         const Vector& rSidesVector,
         const double ElementSize,
-        const array_1d<double,3>& rIntPtCoordinates,
-        const array_1d<double,3>& rIntPtAreaNormal,
+        const array_1d<double,3>& rSkinPtCoordinates,
+        const array_1d<double,3>& rSkinPtAreaNormal,
         NodesCloudMapType& rExtensionOperatorMap,
         const PointerVector<NodeType>& rCloudNodeVector,
-        const Vector& rIntPtShapeFunctionValues,
-        const Matrix& rIntPtShapeFunctionDerivatives,
+        const Vector& rSkinPtShapeFunctionValues,
+        const Matrix& rSkinPtShapeFunctionDerivatives,
         std::size_t& r_ConditionId,
         const bool ConsiderPositiveSide);
 
     // TODO
-    bool SetEnclosedNodesPressure(
+    bool FixPressureOfEnclosedNode(
         ElementType& rElement,
         const Vector& rSidesVector,
         const array_1d<double,3>& rAvgSkinPosition,
@@ -522,8 +522,9 @@ protected:
     void CalculateVariablesAtSkinPointsAndNodesTemplated();
 
     //TODO
+    // both sides of the element
     template <std::size_t TDim>
-    bool CalculateUnknownsForBothSidesOfSplitElement(
+    bool CalculateUnknownsForSkinPointElement(
         const ElementType::Pointer pElement,
         Vector& rPositiveSideUnknowns,
         Vector& rNegativeSideUnknowns);

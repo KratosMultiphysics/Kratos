@@ -535,14 +535,9 @@ namespace Kratos
     {
         // Mark elements as SBM_BOUNDARY (Gamma) in which the tessellated skin geometry and/ or skin integration points were located
         // NOTE that SBM_BOUNDARY elements will get deactivated and that the BC inside boundary elements will be applied by means of the extension operators
-        //TODO nodes are reset here to not disturb other skin model parts - rethink this!
-        for (auto& p_elem : mBoundaryElementsSet) {
-            p_elem->Set(SBM_BOUNDARY, true);
-            for (auto& r_node : p_elem->GetGeometry()) {
-                r_node.Set(SBM_BOUNDARY, false);
-                r_node.Set(SBM_INTERFACE, false);
-            }
-        }
+        std::for_each(mBoundaryElementsSet.begin(), mBoundaryElementsSet.end(), [](ElementType::Pointer pElement) {
+            pElement->Set(SBM_BOUNDARY, true);
+        });
     }
 
     void ShiftedBoundaryPointBasedUtility::FlagInterfaceElements()
@@ -625,19 +620,27 @@ namespace Kratos
 
     void ShiftedBoundaryPointBasedUtility::CalculateAndAddSkinIntegrationPointConditions()
     {
-        // Iterate over the split elements to create a vector for each element defining both sides using the element's skin points normals and positions
+        // Nodes are reset here to not be disturbed by other skin model parts - TODO rethink this
+        for (auto& p_elem : mBoundaryElementsSet) {
+            for (auto& r_node : p_elem->GetGeometry()) {
+                r_node.Set(SBM_BOUNDARY, false);
+                r_node.Set(SBM_INTERFACE, false);
+            }
+        }
+
+        // Iterate over the elements which contain skin integration points to create a vector for each element defining both sides.
         // The resulting vector is as long as the number of nodes of the element and a positive value stands for the positive side of the boundary, a negative one for the negative side.
         // Also store the average position and average normal of the skin points located in the element
         // Nodes on the positive side will be declared SBM_BOUNDARY and nodes on the negative side SBM_INTERFACE which is used in the creation of the support clouds
         mSidesVectorMap.clear();
         AverageSkinToElementsMapType avg_skin_map;
-        SetSidesVectorsAndSkinNormalsForSplitElements(mSkinPointsMap, mSidesVectorMap, avg_skin_map);
+        SetSidesForSkinPointElements(mSkinPointsMap, mSidesVectorMap, avg_skin_map);
         //KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Sides vectors and skin normals were set." << std::endl;
 
-        // Iterate over the split elements to create an extension basis for each node of the element (MLS shape functions values for support cloud of node)
+        // Iterate over the elements which contain skin integration points to create an extension basis for each node of the element (MLS shape functions values for support cloud of node)
         // NOTE that no extension bases will be calculated and added for a node for which not a sufficient number of support nodes were found
         mExtensionOperatorMap.clear();
-        SetExtensionOperatorsForSplitElementNodes(mSidesVectorMap, avg_skin_map, mExtensionOperatorMap);
+        SetExtensionForSkinPointElements(mSidesVectorMap, avg_skin_map, mExtensionOperatorMap);
         //KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Extension operators were set." << std::endl;
 
         // Set the pressure of the first node of an enclosed volume to zero if one side is enclosed.
@@ -648,7 +651,7 @@ namespace Kratos
                 auto p_elem = skin_pt_element_iter->first;
                 const array_1d<double,3> avg_skin_position = avg_skin_map[p_elem].first;
                 const array_1d<double,3> avg_skin_normal = avg_skin_map[p_elem].second;
-                enclosed_pressure_is_set = SetEnclosedNodesPressure(*p_elem, mSidesVectorMap[p_elem], avg_skin_position, avg_skin_normal);
+                enclosed_pressure_is_set = FixPressureOfEnclosedNode(*p_elem, mSidesVectorMap[p_elem], avg_skin_position, avg_skin_normal);
                 skin_pt_element_iter++;
             }
         }
@@ -677,7 +680,7 @@ namespace Kratos
             // NOTE that the obtained clouds are sorted by id to properly get the extension operator data //TODO: necessary? ids are compared anyway?!
             PointerVector<NodeType> cloud_nodes_vector_pos;
             PointerVector<NodeType> cloud_nodes_vector_neg;
-            CreateCloudNodeVectorsForSplitElement(*p_element, mSidesVectorMap[p_element], mExtensionOperatorMap, cloud_nodes_vector_pos, cloud_nodes_vector_neg);
+            CreateCloudVectorsForSkinPointElement(*p_element, mSidesVectorMap[p_element], mExtensionOperatorMap, cloud_nodes_vector_pos, cloud_nodes_vector_neg);
 
             // Calculate parent element size for the SBM BC imposition
             const double h = p_element_size_func(r_geom);
@@ -692,20 +695,20 @@ namespace Kratos
                 const array_1d<double,3> skin_pt_position = std::get<0>(skin_pt_data);
                 const array_1d<double,3> skin_pt_area_normal = std::get<1>(skin_pt_data);
 
-                // Get the split element's shape function values and derivatives at the skin/ integration point
+                // Get the element's shape function values and derivatives at the skin/ integration point
                 Vector skin_pt_N(n_nodes);
                 Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, n_dim);
-                GetDataForSplitElementSkinPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
+                GetDataForSkinPointInElement(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
 
                 // Add skin pt. condition for positive side of boundary - using support cloud data for negative nodes
                 // NOTE that the boundary normal is negative in order to point outward (from positive to negative side),
                 // because positive side is where dot product of vector to node with average normal is positive
-                n_skin_pt_conditions_added_pos += AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
+                n_skin_pt_conditions_added_pos += AddSkinPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
                 mExtensionOperatorMap, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/true);
 
                 // Add skin pt. condition for negative side of boundary - using support cloud data for positive nodes
                 // NOTE that boundary normal is pointing outward (from negative to positive side)
-                n_skin_pt_conditions_added_neg += AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal,
+                n_skin_pt_conditions_added_neg += AddSkinPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal,
                 mExtensionOperatorMap, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/false);
             }
         }
@@ -1062,11 +1065,13 @@ namespace Kratos
         return all_edges;
     }
 
-    void ShiftedBoundaryPointBasedUtility::SetSidesVectorsAndSkinNormalsForSplitElements(
+    void ShiftedBoundaryPointBasedUtility::SetSidesForSkinPointElements(
         const SkinPointsToElementsMapType& rSkinPointsMap,
         SidesVectorToElementsMapType& rSidesVectorMap,
         AverageSkinToElementsMapType& rAvgSkinMap)
     {
+        //TODO SPEED UP
+
         // Set DISTANCE values for all nodes to zero as variable will be used to have a majority vote on the definition of the positive and negative side
         //TODO faster than looping through the nodes of elements with skin points without parallelization?
         VariableUtils().SetVariable(DISTANCE, 0.0, mpModelPart->Nodes());
@@ -1158,7 +1163,7 @@ namespace Kratos
         }
     }
 
-    void ShiftedBoundaryPointBasedUtility::SetExtensionOperatorsForSplitElementNodes(
+    void ShiftedBoundaryPointBasedUtility::SetExtensionForSkinPointElements(
         const SidesVectorToElementsMapType& rSidesVectorMap,
         AverageSkinToElementsMapType& rAvgSkinMap,
         NodesCloudMapType& rExtensionOperatorMap)
@@ -1166,7 +1171,7 @@ namespace Kratos
         // Get the extension operator shape functions function
         auto p_meshless_sh_func = mExtensionOperator == ExtensionOperator::MLS ? GetMLSShapeFunctionsFunction() : GetRBFShapeFunctionsFunction();
 
-        // Get support node clouds for all nodes of all split elements and calculate their extension operators
+        // Get support node clouds for all nodes of all elements which contain skin integration points and calculate their extension operators
         // NOTE that only extension operators are calculated and added to the map if a sufficient number of support nodes was found
         //TODO make parallel
         for (const auto& [p_element, sides_vector]: rSidesVectorMap) {
@@ -1243,6 +1248,8 @@ namespace Kratos
         Matrix& rCloudCoordinates,
         const Kratos::Flags& rSearchSideFlag)
     {
+        //TODO SPEED UP
+
         // Find the support cloud of nodes on the search side (other side as the given node)
         // NOTE that we use an unordered_set to ensure that these are unique
         // NOTE that we check the order of the MLS interpolation to add nodes from enough layers
@@ -1253,7 +1260,7 @@ namespace Kratos
 
         // Find elemental neighbors of the given node and add their nodes to the cloud nodes set if they are located on the search side
         // This is the first layer of sampling/ support points
-        // NOTE that the sides of the first layer of nodes at gamma_tilde already need to be defined in their flags (done by SetSidesVectorsAndSkinNormalsForSplitElements)
+        // NOTE that the sides of the first layer of nodes at gamma_tilde already need to be defined in their flags (done by SetSidesForSkinPointElements)
         // NOTE that taking the nodes of neighboring elements is the same as adding the nodal neighbors directly for triangles and tetrahedra
         //TODO add neighboring nodes directly? for tetra and hex elements?
         auto& r_elem_neigh_vect = pOtherSideNode->GetValue(NEIGHBOUR_ELEMENTS);
@@ -1329,6 +1336,8 @@ namespace Kratos
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesSetType& SupportNodesSet)
     {
+        //TODO SPEED UP
+
         // Find elemental neighbors of the nodes of the previous layer and add their nodes
         // NOTE that taking the nodes of neighboring elements is the same as adding the nodal neighbors directly for triangles and tetrahedra
         for (auto& p_node : PreviousLayerNodes) {
@@ -1365,6 +1374,8 @@ namespace Kratos
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesSetType& SupportNodesSet)
     {
+        //TODO SPEED UP
+
         // Find elemental neighbors of the nodes of the previous layer
         // NOTE that taking the nodes of neighboring elements is the same as adding the nodal neighbors directly for triangles and tetrahedra
         for (auto& p_node : PreviousLayerNodes) {
@@ -1399,13 +1410,15 @@ namespace Kratos
         }
     }
 
-    void ShiftedBoundaryPointBasedUtility::CreateCloudNodeVectorsForSplitElement(
+    void ShiftedBoundaryPointBasedUtility::CreateCloudVectorsForSkinPointElement(
         const ElementType& rElement,
         const Vector& rSidesVector,
         NodesCloudMapType& rExtensionOperatorMap,
         PointerVector<NodeType>& rCloudNodeVectorPositiveSide,
         PointerVector<NodeType>& rCloudNodeVectorNegativeSide)
     {
+        //TODO SPEED UP
+
         // Create an auxiliary set with all the cloud nodes that affect the current element for each side separately
         // NOTE that a node can only be found if sufficient cloud nodes were found for the creation of the extension basis
         // NOTE that only active nodes are part of the extension operator support nodes
@@ -1467,11 +1480,11 @@ namespace Kratos
         std::sort(rCloudNodeVectorNegativeSide.ptr_begin(), rCloudNodeVectorNegativeSide.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
     }
 
-    void ShiftedBoundaryPointBasedUtility::GetDataForSplitElementSkinPoint(
+    void ShiftedBoundaryPointBasedUtility::GetDataForSkinPointInElement(
         const ElementType& rElement,
-        const array_1d<double,3>& rIntPtCoordinates,
-        Vector& rIntPtShapeFunctionValues,
-        Matrix& rIntPtShapeFunctionDerivatives)
+        const array_1d<double,3>& rSkinPtCoordinates,
+        Vector& rSkinPtShapeFunctionValues,
+        Matrix& rSkinPtShapeFunctionDerivatives)
     {
         //TODO get this when searching for skin point for the first time and store it in map
 
@@ -1479,10 +1492,10 @@ namespace Kratos
 
         // Compute the local coordinates of the integration point in the element's geometry
         array_1d<double,3> int_pt_local_coords = ZeroVector(3);
-        r_geom.PointLocalCoordinates(int_pt_local_coords, rIntPtCoordinates);
+        r_geom.PointLocalCoordinates(int_pt_local_coords, rSkinPtCoordinates);
 
         // Get N of the element at the integration point
-        r_geom.ShapeFunctionsValues(rIntPtShapeFunctionValues, int_pt_local_coords);
+        r_geom.ShapeFunctionsValues(rSkinPtShapeFunctionValues, int_pt_local_coords);
 
         // Get DN_DX of the element at the integration point
         Matrix aux_DN_DXi_parent, aux_J_parent, aux_J_inv_parent;
@@ -1490,22 +1503,24 @@ namespace Kratos
         r_geom.ShapeFunctionsLocalGradients(aux_DN_DXi_parent, int_pt_local_coords);
         r_geom.Jacobian(aux_J_parent, int_pt_local_coords);
         MathUtils<double>::InvertMatrix(aux_J_parent, aux_J_inv_parent, aux_detJ_parent);
-        rIntPtShapeFunctionDerivatives = prod(aux_DN_DXi_parent, aux_J_inv_parent);
+        rSkinPtShapeFunctionDerivatives = prod(aux_DN_DXi_parent, aux_J_inv_parent);
     }
 
-    bool ShiftedBoundaryPointBasedUtility::AddIntegrationPointCondition(
+    bool ShiftedBoundaryPointBasedUtility::AddSkinPointCondition(
         const ElementType& rElement,
         const Vector& rSidesVector,
         const double ElementSize,
-        const array_1d<double,3>& rIntPtCoordinates,
-        const array_1d<double,3>& rIntPtAreaNormal,
+        const array_1d<double,3>& rSkinPtCoordinates,
+        const array_1d<double,3>& rSkinPtAreaNormal,
         NodesCloudMapType& rExtensionOperatorMap,
         const PointerVector<NodeType>& rCloudNodeVector,
-        const Vector& rIntPtShapeFunctionValues,
-        const Matrix& rIntPtShapeFunctionDerivatives,
+        const Vector& rSkinPtShapeFunctionValues,
+        const Matrix& rSkinPtShapeFunctionDerivatives,
         std::size_t& r_ConditionId,
         const bool ConsiderPositiveSide)
     {
+        //TODO SPEED UP
+
         const auto& r_geom = rElement.GetGeometry();
 
         // Initialize the extension operator containers
@@ -1514,7 +1529,7 @@ namespace Kratos
         Vector N_container = ZeroVector(n_cl_nodes);
         Matrix DN_DX_container = ZeroMatrix(n_cl_nodes, n_dim);
 
-        array_1d<double,3> area_normal = rIntPtAreaNormal;
+        array_1d<double,3> area_normal = rSkinPtAreaNormal;
         double skin_pt_weight = norm_2(area_normal);
 
         // Do not add wall condition for 0D skin elements, this also prevents problems with zero normal
@@ -1540,9 +1555,9 @@ namespace Kratos
                 for (std::size_t i_cl = 0; i_cl < n_cl_nodes; ++i_cl) {
                     auto& p_cl_node = rCloudNodeVector(i_cl);
                     if (p_node->Id() == p_cl_node->Id()) {
-                        N_container(i_cl) += rIntPtShapeFunctionValues(i_node);
+                        N_container(i_cl) += rSkinPtShapeFunctionValues(i_node);
                         for (std::size_t d = 0; d < n_dim; ++d) {
-                            DN_DX_container(i_cl, d) += rIntPtShapeFunctionDerivatives(i_node, d);
+                            DN_DX_container(i_cl, d) += rSkinPtShapeFunctionDerivatives(i_node, d);
                         }
                         break;
                     }
@@ -1550,8 +1565,8 @@ namespace Kratos
             // If node is on the other side of the boundary, then get its shape function values and derivatives for the skin point and its extension operator data
             } else {
                 // Get the weight as the corresponding nodal shape function value of the node at the position of the skin point
-                const double i_node_N = rIntPtShapeFunctionValues(i_node);
-                const auto i_node_grad_N = row(rIntPtShapeFunctionDerivatives, i_node);
+                const double i_node_N = rSkinPtShapeFunctionValues(i_node);
+                const auto i_node_grad_N = row(rSkinPtShapeFunctionDerivatives, i_node);
 
                 // If node on the other side does not have an extension basis, then no wall condition is created
                 const std::size_t found = rExtensionOperatorMap.count(p_node);
@@ -1590,9 +1605,9 @@ namespace Kratos
         Matrix DN_DX_container_2 = ZeroMatrix(n_nodes, n_dim);
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
             cloud_node_vector(i_node) = r_geom(i_node);
-            N_container_2(i_node) = rIntPtShapeFunctionValues(i_node);
+            N_container_2(i_node) = rSkinPtShapeFunctionValues(i_node);
             for (std::size_t d = 0; d < n_dim; ++d) {
-                DN_DX_container_2(i_node, d) += rIntPtShapeFunctionDerivatives(i_node, d);
+                DN_DX_container_2(i_node, d) += rSkinPtShapeFunctionDerivatives(i_node, d);
             }
         }*/
 
@@ -1604,12 +1619,12 @@ namespace Kratos
 
         //TODO for laplacian static heat testing:
         // Set Dirichlet boundary condition
-        //const double dirichlet_value = std::pow(rIntPtCoordinates(0),2) + std::pow(rIntPtCoordinates(1),2);
+        //const double dirichlet_value = std::pow(rSkinPtCoordinates(0),2) + std::pow(rSkinPtCoordinates(1),2);
         //p_cond->SetValue(TEMPERATURE, dirichlet_value);
 
         // Store the SBM BC data in the condition database
         p_cond->SetValue(ELEMENT_H, ElementSize);
-        p_cond->SetValue(INTEGRATION_COORDINATES, rIntPtCoordinates);
+        p_cond->SetValue(INTEGRATION_COORDINATES, rSkinPtCoordinates);
         p_cond->SetValue(NORMAL, area_normal/ skin_pt_weight);
         p_cond->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
         p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
@@ -1618,7 +1633,7 @@ namespace Kratos
         return true;
     }
 
-    bool ShiftedBoundaryPointBasedUtility::SetEnclosedNodesPressure(
+    bool ShiftedBoundaryPointBasedUtility::FixPressureOfEnclosedNode(
         ElementType& rElement,
         const Vector& rSidesVector,
         const array_1d<double,3>& rAvgSkinPosition,
@@ -1646,7 +1661,7 @@ namespace Kratos
         constexpr std::size_t voigt_size = 3 * (TDim-1);
         constexpr std::size_t block_size = TDim +1;
 
-        std::size_t n_split_elements_without_correct_extension = 0;
+        std::size_t n_elements_without_correct_extension = 0;
 
         // Loop over all elements containing skin points to integrate traction=sigma*n over the interface
         // NOTE that both interface sides need to be integrated
@@ -1661,10 +1676,10 @@ namespace Kratos
             // Calculate unknowns at the nodes of the element for the positive and the negative side of Gamma
             Vector unknowns_pos = ZeroVector(local_size);
             Vector unknowns_neg = ZeroVector(local_size);
-            const bool unknowns_calculated_successfully = CalculateUnknownsForBothSidesOfSplitElement<TDim>(p_element, unknowns_pos, unknowns_neg);
+            const bool unknowns_calculated_successfully = CalculateUnknownsForSkinPointElement<TDim>(p_element, unknowns_pos, unknowns_neg);
             if (!unknowns_calculated_successfully) {
                 std::scoped_lock<LockObject> lock(mutex_valid_ex);
-                n_split_elements_without_correct_extension++;
+                n_elements_without_correct_extension++;
             }
 
             // Get constitutive law, see FluidElementData and FluidElement::CalculateMaterialResponse
@@ -1690,7 +1705,7 @@ namespace Kratos
                 // Get shape function values and derivatives of the element at the skin point
                 Vector skin_pt_N(n_nodes);
                 Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, TDim);
-                GetDataForSplitElementSkinPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
+                GetDataForSkinPointInElement(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
 
                 // Calculate velocity and pressure at skin point for positive and negative side of Gamma
                 array_1d<double, 3> u_pos = ZeroVector(3);
@@ -1753,8 +1768,8 @@ namespace Kratos
                 skin_pt_in_model_part.FastGetSolutionStepValue(DRAG_FORCE) = skin_pt_force;
             }
         });
-        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedUtility", n_split_elements_without_correct_extension > 0)
-        << "The unknowns inside " << n_split_elements_without_correct_extension << " split elements were calculated without valid extension." << std::endl;
+        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedUtility", n_elements_without_correct_extension > 0)
+        << "The unknowns inside " << n_elements_without_correct_extension << " elements which contain skin integration points were calculated without valid extension." << std::endl;
     }
 
     template <std::size_t TDim>
@@ -1848,7 +1863,7 @@ namespace Kratos
     }
 
     template <std::size_t TDim>
-    bool ShiftedBoundaryPointBasedUtility::CalculateUnknownsForBothSidesOfSplitElement(
+    bool ShiftedBoundaryPointBasedUtility::CalculateUnknownsForSkinPointElement(
         const ElementType::Pointer pElement,
         Vector& rPositiveSideUnknowns,
         Vector& rNegativeSideUnknowns)
@@ -2026,11 +2041,11 @@ namespace Kratos
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPointsAndNodesTemplated<2>();
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPointsAndNodesTemplated<3>();
 
-    template bool KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::CalculateUnknownsForBothSidesOfSplitElement<2>(
+    template bool KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::CalculateUnknownsForSkinPointElement<2>(
         const ElementType::Pointer pElement,
         Vector& rPositiveSideUnknowns,
         Vector& rNegativeSideUnknowns);
-    template bool KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::CalculateUnknownsForBothSidesOfSplitElement<3>(
+    template bool KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility::CalculateUnknownsForSkinPointElement<3>(
         const ElementType::Pointer pElement,
         Vector& rPositiveSideUnknowns,
         Vector& rNegativeSideUnknowns);
