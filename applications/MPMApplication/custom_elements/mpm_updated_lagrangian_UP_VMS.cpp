@@ -258,7 +258,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateStabilizationVariables(
     CalculatePressureVariables(rVariables);
     ConvertPressureGradientInVoigt(rVariables.PressureGradient, rVariables.PressureGradientVoigt);
     CalculateTensorIdentityMatrix(rVariables.TensorIdentityMatrix);
-    CalculateTaus(rVariables);
+    CalculateTaus(rVariables, rCurrentProcessInfo);
 
     const bool is_dynamic = rCurrentProcessInfo.Has(IS_DYNAMIC)
         ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
@@ -434,48 +434,49 @@ double MPMUpdatedLagrangianUPVMS::CalculateElementSize() const
 
 // Calculate stabilization parameters
 
-void MPMUpdatedLagrangianUPVMS::CalculateTaus(GeneralVariables& rVariables)
+void MPMUpdatedLagrangianUPVMS::CalculateTaus(
+    GeneralVariables& rVariables,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    const double constant1 = 1.0;
-    const double constant2 = 1.0;
-    const double shear_modulus = CalculateShearModulus();
     const double characteristic_element_size = CalculateElementSize();
 
-    rVariables.tau1 = constant1 * characteristic_element_size * characteristic_element_size / (2.0 * shear_modulus);
-    rVariables.tau2 = 2 * constant2 * shear_modulus;
+    if (GetProperties().Has(DYNAMIC_VISCOSITY)) {
 
-
-     if (GetProperties().Has(DYNAMIC_VISCOSITY)){
-        const double constant1=8000.0;
-        const double constant2=4000.0;
-        const double& viscosity=GetProperties()[DYNAMIC_VISCOSITY];
-        GeometryType& r_geometry = GetGeometry();
+        const double constant1 = 16;
+        const double constant2 = 4;
+        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+        const double& viscosity = GetProperties()[DYNAMIC_VISCOSITY]/ delta_time;
+         GeometryType& r_geometry = GetGeometry();
         const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
-        VectorType veloc_mp=ZeroVector(3);
-        double norm_veloc=0.0;
-        array_1d<double, 3 > nodal_veloc = ZeroVector(3);
-        for ( unsigned int j = 0; j < number_of_nodes; j++ ){
-            nodal_veloc = r_geometry[j].FastGetSolutionStepValue(VELOCITY,0);
-            for (unsigned int k = 0; k < dimension; k++)
-            {
-               veloc_mp[k] += r_N(0, j) * nodal_veloc[k];
+        VectorType veloc_mp = ZeroVector(3);
+         double norm_veloc = 0.0;
+        array_1d<double, 3> nodal_veloc = ZeroVector(3);
+        for (unsigned int j = 0; j < number_of_nodes; ++j) {
+            nodal_veloc = r_geometry[j].FastGetSolutionStepValue(VELOCITY, 0);
+            for (unsigned int k = 0; k < dimension; ++k) {
+                veloc_mp[k] += r_N(0, j) * nodal_veloc[k];
             }
         }
-        for (unsigned int k = 0; k < dimension; k++)
-        {
-            norm_veloc+=pow(veloc_mp[k],2);
+        for (unsigned int k = 0; k < dimension; ++k) {
+            norm_veloc += std::pow(veloc_mp[k], 2);
         }
-        norm_veloc=std::sqrt(norm_veloc);
-        rVariables.tau1 = constant1*viscosity/pow(characteristic_element_size,2) + constant2*((mMP.density*norm_veloc)/characteristic_element_size);
-        rVariables.tau1 = pow(rVariables.tau1,-1);
-        rVariables.tau2 = pow(characteristic_element_size,2)/(rVariables.tau1);
-
-         }
-
+        norm_veloc = std::sqrt(norm_veloc); 
+        rVariables.tau1 = constant1 * viscosity / std::pow(characteristic_element_size, 2)
+            + constant2 * ((mMP.density * norm_veloc) / (characteristic_element_size * delta_time)); 
+        rVariables.tau1 = std::pow(rVariables.tau1, -1);
+        rVariables.tau2 = std::pow(characteristic_element_size, 2) / rVariables.tau1;
+        //rVariables.tau2 = 2.0 * constant2 * viscosity;
+    } else {
+        const double constant1 = 1.0;
+        const double constant2 = 1.0;
+        const double shear_modulus = CalculateShearModulus();
+        rVariables.tau1 = constant1 * characteristic_element_size * characteristic_element_size / (2.0 * shear_modulus);
+        rVariables.tau2 = 2.0 * constant2 * shear_modulus;
+    }
 
     KRATOS_CATCH("")
 }

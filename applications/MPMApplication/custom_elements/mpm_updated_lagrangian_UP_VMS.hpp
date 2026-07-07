@@ -123,7 +123,9 @@ protected:
         const bool CalculateResidualVectorFlag) override;
 
     // Calculation of stabilization parameters
-    void CalculateTaus(GeneralVariables& rVariables);
+    void CalculateTaus(
+        GeneralVariables& rVariables,
+        const ProcessInfo& rCurrentProcessInfo);
 
     double CalculateShearModulus() const;
 
