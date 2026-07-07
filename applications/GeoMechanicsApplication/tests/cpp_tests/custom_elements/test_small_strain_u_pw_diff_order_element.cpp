@@ -158,7 +158,6 @@ Vector RightHandSideRegressionValues()
 
 namespace Kratos::Testing
 {
-
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateShearCapacity, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -608,10 +607,10 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     // Act & Assert: ENGINEERING_STRAIN_VECTOR
     std::vector<Vector> strain_vectors;
     p_element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, strain_vectors, dummy_process_info);
-    std::vector<Vector> expected_strain_vectors;
-    expected_strain_vectors.push_back(UblasUtilities::CreateVector({0.026935483871, 0.0, 0.0, -0.0243548387097}));
-    expected_strain_vectors.push_back(UblasUtilities::CreateVector({-0.005, 0.0, 0.0, -0.0243548387097}));
-    expected_strain_vectors.push_back(UblasUtilities::CreateVector({-0.00411764705882, 0.0, 0.0, 0.0338235294118}));
+    const auto expected_strain_vectors =
+        std::vector{UblasUtilities::CreateVector({0.026935483871, 0.0, 0.0, -0.0243548387097}),
+                    UblasUtilities::CreateVector({-0.005, 0.0, 0.0, -0.0243548387097}),
+                    UblasUtilities::CreateVector({-0.00411764705882, 0.0, 0.0, 0.0338235294118})};
     for (std::size_t i = 0; i < strain_vectors.size(); i++)
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(strain_vectors[i], expected_strain_vectors[i],
                                            Defaults::relative_tolerance);
@@ -671,13 +670,16 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     // Act & Assert: ENGINEERING_STRAIN_TENSOR
     std::vector<Matrix> strain_matrices;
     p_element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_TENSOR, strain_matrices, dummy_process_info);
-    std::vector<Matrix> expected_strain_matrices;
-    expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
-        {{0.026935483870967739, -0.012177419354838709, 0.0}, {-0.012177419354838709, 0.0, 0.0}, {0.0, 0.0, 0}}));
-    expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
-        {{-0.0049999999999999966, -0.012177419354838711, 0.0}, {-0.012177419354838711, 0.0, 0.0}, {0.0, 0.0, 0}}));
-    expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
-        {{-0.0041176470588235262, 0.016911764705882348, 0.0}, {0.016911764705882348, 0.0, 0.0}, {0.0, 0.0, 0}}));
+    const auto expected_strain_matrices = std::vector<Matrix>{
+        UblasUtilities::CreateMatrix({{0.026935483870967739, -0.012177419354838709, 0.0},
+                                      {-0.012177419354838709, 0.0, 0.0},
+                                      {0.0, 0.0, 0}}),
+        UblasUtilities::CreateMatrix({{-0.0049999999999999966, -0.012177419354838711, 0.0},
+                                      {-0.012177419354838711, 0.0, 0.0},
+                                      {0.0, 0.0, 0}}),
+        UblasUtilities::CreateMatrix({{-0.0041176470588235262, 0.016911764705882348, 0.0},
+                                      {0.016911764705882348, 0.0, 0.0},
+                                      {0.0, 0.0, 0}})};
     for (auto i = std::size_t{0}; i < strain_matrices.size(); i++)
         KRATOS_EXPECT_MATRIX_NEAR(strain_matrices[i], expected_strain_matrices[i], Defaults::absolute_tolerance);
 
