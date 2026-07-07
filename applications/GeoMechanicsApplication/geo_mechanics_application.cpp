@@ -14,10 +14,11 @@
 
 // Application includes
 #include "geo_mechanics_application.h"
-
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/tension_cutoff.h"
 #include "custom_constitutive/thermal_filter_law.h"
+#include "custom_elements/lobatto_integration_scheme.h"
+#include "custom_elements/lumped_integration_scheme.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
 #include "custom_retention/saturated_law.h"
 #include "custom_retention/van_genuchten_law.h"
@@ -43,6 +44,10 @@ void KratosGeoMechanicsApplication::Register()
                     << "  //    / / //       //   / /          \n"
                     << " ((____/ / ((____   ((___/ /  MECHANICS\n"
                     << " Initializing KratosGeoMechanicsApplication..." << std::endl;
+
+    // Register custom geometries
+    KRATOS_REGISTER_GEOMETRY("LineInterfaceGeometryInPlaneStrain2Plus2N", mLineInterfaceGeometryInPlaneStrain2Plus2N)
+    KRATOS_REGISTER_GEOMETRY("LineInterfaceGeometryInPlaneStrain3Plus3N", mLineInterfaceGeometryInPlaneStrain3Plus3N)
 
     // Register Elements
     //  transient one-phase flow elements:
@@ -628,5 +633,7 @@ void KratosGeoMechanicsApplication::Register()
     Serializer::Register("CoulombYieldSurface", CoulombYieldSurface{});
     Serializer::Register("TensionCutoff", TensionCutoff{});
     Serializer::Register("GeoThermalFilterLaw", GeoThermalFilterLaw{});
+    Serializer::Register("LobattoIntegrationScheme", LobattoIntegrationScheme{});
+    Serializer::Register("LumpedIntegrationScheme", LumpedIntegrationScheme{});
 }
 } // namespace Kratos.
