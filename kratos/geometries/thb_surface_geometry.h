@@ -186,12 +186,15 @@ public:
             const Vector knotsU = BisectKnots(previous_level.KnotsU);
             const Vector knotsV = BisectKnots(previous_level.KnotsV);
             if (i == 0 && StartingId > 0) {
+                IndexType effective_start = StartingId;
+                for (const auto& node : rModelPart.GetRootModelPart().Nodes())
+                    effective_start = std::max(effective_start, node.Id() + IndexType(1));
                 AddLevelImpl(knotsU, knotsV, Vector(),
                     [&rModelPart](IndexType id, double x, double y, double z)
                         -> typename NodeType::Pointer {
                         return rModelPart.CreateNewNode(id, x, y, z);
                     },
-                    StartingId);
+                    effective_start);
             } else {
                 AddLevel(knotsU, knotsV, rModelPart);
             }
