@@ -35,18 +35,20 @@ Methods such as `IsObjectFound`, `Reserve`, and `Clear` provide essential utilit
 
 ### Python exposition
 
+Bindings live in [`add_search_strategies_to_python.cpp`](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python/add_search_strategies_to_python.cpp) (`BindSpatialSearchResultContainer`).
+
 #### Instantiation
 
-The class is exposed with several template instantiations for different types (`Node`, `GeometricalObject`, `Element`, `Condition`) with two communication types:
-- **SYNCHRONOUS**: This mode presumably ensures a consistent, uniform handling of communication across all nodes or elements during spatial searches, regardless of their heterogeneity or distribution.
-- **ASYNCHRONOUS**: Asynchronous communication, which is **not implemented yet**.
-
-Each type and communication mode combination is then bound to the module with a specific class name, such as `SpatialSearchResultContainerNode` for nodes with homogeneous communication, or `SpatialSearchResultContainerNodeHeterogeneous` for nodes with heterogeneous communication.
+The class is exposed with four template instantiations, one per `TObjectType` (`Node`, `GeometricalObject`, `Element`, `Condition`), all of them using `SpatialSearchCommunication::SYNCHRONOUS` — `ASYNCHRONOUS` is declared in the enum but **not implemented**, and therefore not bound to Python. Each instantiation is registered under its own class name:
+- `SpatialSearchResultContainerNode`
+- `SpatialSearchResultContainerGeometricalObject`
+- `SpatialSearchResultContainerElement`
+- `SpatialSearchResultContainerCondition`
 
 #### Methods exposed
 
 ##### Constructor (`__init__`):
-Initializes the container with a reference to a `DataCommunicator` instance.
+Only the default constructor is exposed, e.g. `Kratos.SpatialSearchResultContainerGeometricalObject()`. It does **not** take a `DataCommunicator` — synchronization is always driven from the owning [`SpatialSearchResultContainerVector`](spatial_search_result_container_vector) via `SynchronizeAll(data_communicator)`.
 
 ##### IsObjectFound
 Checks if an object has been found during the spatial search.
@@ -61,8 +63,9 @@ Returns the number of results found globally across all participating nodes or p
 Reserves space in the container to accommodate additional results, improving efficiency.
 
 ##### AddResult
-- One version simply adds an object to the container.
+- One version simply adds an object (`TObjectType*`) to the container.
 - Another version adds an object along with its associated distance, allowing spatial contexts to consider proximity.
+- When `TObjectType` is `GeometricalObject`, an additional overload accepting a full `SpatialSearchResult<GeometricalObject>` is also exposed.
 
 ##### Clear
 Clears all contents of the container, resetting it to an empty state.
@@ -79,16 +82,27 @@ Retrieves the local index of an object within the container.
 ##### SetLocalIndex
 Sets the local index of an object within the container.
 
-##### GetResultIsLocal
-Checks if a result is local to the current process or node.
-
-See [Spatial Search Result Container Vector GetResultIsLocal](spatial_search_result_container_vector#GetResultIsLocal).
-
 ##### GetLocalResults
 Retrieves a list of results that are local to the current node or process.
 
 ##### GetGlobalResults
 Retrieves a list of results that are global, spanning all nodes or processes.
+
+> **Note**: bulk-query helpers such as `GetResultIsLocal`, `GetResultRank`, `GetResultIsActive`, `GetResultIsInside`, `GetResultShapeFunctions`, `GetResultIndices`, `GetResultNodeIndices`, `GetResultPartitionIndices` and `GetResultCoordinates` are **not** methods of `SpatialSearchResultContainer` itself. They live on [`SpatialSearchResultContainerVector`](spatial_search_result_container_vector), which computes them for every point at once (more efficient than querying one `SpatialSearchResultContainer` at a time, since they share a single `GlobalPointerCommunicator`).
+
+#### Other operations (C++ only, not exposed to Python)
+
+##### `IsLocalPoint`
+Returns `true` if `GetLocalIndex() >= 0`, i.e. if the point that originated this container's results belongs to the current rank.
+
+##### `IsLocalSearch`
+Overloaded helper that checks whether a given rank (or the rank stored at a given global index of a ranks vector) matches the current `DataCommunicator`'s rank.
+
+##### `IsSynchronized` / `GetIsSynchronized` / `SetIsSynchronized`
+Query/set whether `SynchronizeAll` has already been run for this container. `operator()`/`begin()`/`end()` (which iterate over `mGlobalResults`) raise `KRATOS_ERROR` if the container has not been synchronized yet; `operator[]` (over `mLocalResults`) works regardless.
+
+##### `RemoveResultsFromRanksList`
+Removes, from the local and global results, the entries whose rank appears in a given list of ranks. Used internally by `ParallelSpatialSearch` (`KeepOnlySmallestLambdaResult`) to discard all but the closest result once the minimum distance/rank has been determined across partitions.
 
 #### Member variables
 
@@ -124,8 +138,7 @@ int main() {
     SpatialSearchResultContainer<GeometricalObject> search_results;
 
     // Create a geometric object and a search result in a more complete way
-    Node::Pointer p_node = Kratos::make_intrusive<Node>(rank + 1, 0.0, 0.0, 0.0); // Unique ID per rank
-    GeometricalObject test_object(Kratos::Point(p_node));
+    GeometricalObject test_object(rank + 1); // Unique ID per rank
     SpatialSearchResult<GeometricalObject> test_result(&test_object);
     test_result.SetDistance(0.5); // Set some arbitrary distance
 
@@ -156,7 +169,7 @@ int main() {
     - Start by initializing **MPI** and retrieving the default data communicator, which handles data transfer between different computational nodes.
 
 2. **Creating the container**:
-    - The `SpatialSearchResultContainer` is initialized using the data communicator to handle the synchronization of data across different processes.
+    - The `SpatialSearchResultContainer` is created with its (parameterless) default constructor. It does not store a `DataCommunicator` itself; synchronization across ranks is always driven externally, from the `SpatialSearchResultContainerVector` that owns it.
 
 3. **Adding results**:
     - A `GeometricalObject` and corresponding `SpatialSearchResult` are created. The result is then added to the container. This represents a local operation.
@@ -183,11 +196,6 @@ def run_python_example():
     """Demonstrates the SpatialSearchResultContainer workflow in Python."""
     data_comm = Kratos.Testing.GetDefaultDataCommunicator()
     rank = data_comm.Rank()
-    world_size = data_comm.Size()
-
-    # In a real case, the ModelPart would be part of a larger analysis
-    model = Kratos.Model()
-    model_part = model.CreateModelPart("Main")
 
     # 1. Create the container
     container = Kratos.SpatialSearchResultContainerGeometricalObject()
@@ -195,9 +203,10 @@ def run_python_example():
         print("1. Containers created on all ranks.")
 
     # 2. Add a unique result on each rank
-    node_id = rank + 1
-    new_node = model_part.CreateNewNode(node_id, 0.0, 0.0, 0.0)
-    test_object = Kratos.GeometricalObject(Kratos.Point2D(new_node))
+    # NOTE: Kratos.GeometricalObject only exposes an Id-based constructor to Python
+    # (unlike C++, it cannot be built directly from a Point/geometry there)
+    object_id = rank + 1
+    test_object = Kratos.GeometricalObject(object_id)
     container.AddResult(test_object)
 
     print(f"[Rank {rank}] Local results before sync: {container.NumberOfLocalResults()}")

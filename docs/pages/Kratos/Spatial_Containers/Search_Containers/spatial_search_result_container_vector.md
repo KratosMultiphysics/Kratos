@@ -27,18 +27,22 @@ Can be found in [`spatial_search_result_container_vector.h`](https://github.com/
 
 ### Python exposition
 
+Bindings live in [`add_search_strategies_to_python.cpp`](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python/add_search_strategies_to_python.cpp) (`BindSpatialSearchResultContainerVector`). `SpatialSearchResultContainerVector` is mostly used internally by [`ParallelSpatialSearch`](parallel_spatial_search), which returns one to Python from every search call, but it can also be created and populated directly.
+
 #### Instantiation
 
-The class is exposed with several template instantiations for different types (`Node`, `GeometricalObject`, `Element`, `Condition`) with two communication types:
-- **SYNCHRONOUS**: This mode presumably ensures a consistent, uniform handling of communication across all nodes or elements during spatial searches, regardless of their heterogeneity or distribution.
-- **ASYNCHRONOUS**: Asynchronous communication, which is **not implemented yet**.
-
-Each type and communication mode combination is then bound to the module with a specific class name, such as `SpatialSearchResultContainerVectorNode` for nodes with homogeneous communication, or `SpatialSearchResultContainerVectorNodeHeterogeneous` for nodes with heterogeneous communication.
+The class is exposed with four template instantiations, one per `TObjectType` (`Node`, `GeometricalObject`, `Element`, `Condition`), all of them using `SpatialSearchCommunication::SYNCHRONOUS` — `ASYNCHRONOUS` is declared in the enum but **not implemented**, and therefore not bound to Python. Each instantiation is registered under its own class name:
+- `SpatialSearchResultContainerVectorNode`
+- `SpatialSearchResultContainerVectorGeometricalObject`
+- `SpatialSearchResultContainerVectorElement`
+- `SpatialSearchResultContainerVectorCondition`
 
 #### Methods exposed
 
 ##### Constructor (`__init__`)
-Initializes a new instance of `SpatialSearchResultContainerVector`.
+Only the default (parameterless) constructor is exposed, e.g. `Kratos.SpatialSearchResultContainerVectorGeometricalObject()`.
+
+> **Note**: `InitializeResults(NumberOfResults)` (plural, bulk pre-sizing) exists in C++ but is **not** exposed to Python — only the singular `InitializeResult()` below is. From Python, pre-size the vector by calling `InitializeResult()` once per point.
 
 ##### NumberOfSearchResults
 Returns the number of search results contained in the vector.
@@ -53,59 +57,39 @@ Checks if a result is available in the container.
 Clears all the contents of the container, resetting it to its initial state.
 
 ##### SynchronizeAll
-Synchronizes all search results across different computational entities or nodes, ensuring consistency. In order to be efficient, and this is a very important operation that would affect performance, all the global pointers of all the solutions stored are processed at once as it would be stored in this class.
+Synchronizes all the [`SpatialSearchResultContainer`](spatial_search_result_container) instances held by this vector across ranks in a single, batched MPI communication (building/using a shared `GlobalPointerCommunicator`), rather than synchronizing each point's container individually. This method exists **only** on `SpatialSearchResultContainerVector` — after it runs, every contained `SpatialSearchResultContainer::IsSynchronized()` becomes `true` and `GetGlobalResults()` becomes populated.
 
-See [Spatial Search Result Container SynchronizeAll](spatial_search_result_container#SynchronizeAll).
+All the methods below are **bulk** queries: they exist only on `SpatialSearchResultContainerVector` (not on the individual [`SpatialSearchResultContainer`](spatial_search_result_container)), and compute the answer for every search point at once, reusing a single `GlobalPointerCommunicator` — much more efficient than looping over each point's container and resolving global pointers one by one.
 
 ##### GetDistances
-Retrieves the distances associated with the search results. This method can be called instead of the one in [Spatial Search Result Container](spatial_search_result_container) in order to perform all the global pointers operations at once for the sake of efficiency.
-
-See [Spatial Search Result Container GetDistances](spatial_search_result_container#GetDistances).
+Retrieves, for every search point, the list of distances to its found objects.
 
 ##### GetResultIsLocal
-Checks if the result is local to the computational entity or node. This method can be called instead of the one in [Spatial Search Result Container](spatial_search_result_container) in order to perform all the global pointers operations at once for the sake of efficiency.
-
-See [Spatial Search Result Container GetResultIsLocal](spatial_search_result_container#GetResultIsLocal).
+Retrieves, for every search point, whether each found object is local to the current rank. Takes the `DataCommunicator` as an argument.
 
 ##### GetResultRank
-Retrieves the rank of the result within the container. This method can be called instead of the one in [Spatial Search Result Container](spatial_search_result_container) in order to perform all the global pointers operations at once for the sake of efficiency.
-
-See [Spatial Search Result Container GetResultRank](spatial_search_result_container#GetResultRank).
+Retrieves, for every search point, the owning rank of each found object.
 
 ##### GetResultIsActive
-Determines whether the result is active. This method can be called instead of the one in [Spatial Search Result Container](spatial_search_result_container) in order to perform all the global pointers operations at once for the sake of efficiency.
-
-See [Spatial Search Result Container GetResultIsActive](spatial_search_result_container#GetResultIsActive).
+Retrieves, for every search point, whether each found object is `ACTIVE`. Takes the `DataCommunicator` as an argument.
 
 ##### GetResultIsInside
-Checks if the result is inside a specified boundary or criteria. This method can be called instead of the one in [Spatial Search Result Container](spatial_search_result_container) in order to perform all the global pointers operations at once for the sake of efficiency.
-
-See [Spatial Search Result Container GetResultIsInside](spatial_search_result_container#GetResultIsInside).
+Retrieves, for every search point, whether the point lies inside the geometry of each found object (only meaningful when `TObjectType` is `GeometricalObject`). Takes the points container, the `DataCommunicator`, and an optional `Tolerance` as arguments.
 
 ##### GetResultShapeFunctions
-Retrieves the shape functions associated with the search result. This method can be called instead of the one in [Spatial Search Result Container](spatial_search_result_container) in order to perform all the global pointers operations at once for the sake of efficiency.
-
-See [Spatial Search Result Container GetResultShapeFunctions](spatial_search_result_container#GetResultShapeFunctions).
+Retrieves, for every search point, the shape function values of the found object's geometry evaluated at the point (only meaningful when `TObjectType` is `GeometricalObject`). Takes the points container and the `DataCommunicator` as arguments.
 
 ##### GetResultIndices
-Gets the indices of the search results. This method can be called instead of the one in [Spatial Search Result Container](spatial_search_result_container) in order to perform all the global pointers operations at once for the sake of efficiency.
-
-See [Spatial Search Result Container GetResultIndices](spatial_search_result_container#GetResultIndices).
+Retrieves, for every search point, the `Id()` of each found object.
 
 ##### GetResultNodeIndices
-Retrieves the node indices of the search results. This method can be called instead of the one in [Spatial Search Result Container](spatial_search_result_container) in order to perform all the global pointers operations at once for the sake of efficiency.
-
-See [Spatial Search Result Container GetResultNodeIndices](spatial_search_result_container#GetResultNodeIndices).
+Retrieves, for every search point, the node ids of each found object's geometry.
 
 ##### GetResultPartitionIndices
-Gets the partition indices related to the search results. This method can be called instead of the one in [Spatial Search Result Container](spatial_search_result_container) in order to perform all the global pointers operations at once for the sake of efficiency.
-
-See [Spatial Search Result Container GetResultPartitionIndices](spatial_search_result_container#GetResultPartitionIndices).
+Retrieves, for every search point, the partition indices of each found object's geometry nodes.
 
 ##### GetResultCoordinates
-Retrieves the coordinates of the search results. This method can be called instead of the one in [Spatial Search Result Container](spatial_search_result_container) in order to perform all the global pointers operations at once for the sake of efficiency.
-
-See [Spatial Search Result Container GetResultCoordinates](spatial_search_result_container#GetResultCoordinates).
+Retrieves, for every search point, the coordinates of each found object's geometry nodes.
 
 ##### GetGlobalPointerCommunicator
 Obtains the communicator used for global pointer operations across computational entities.
@@ -132,172 +116,89 @@ This variable is a pointer to `GlobalPointerCommunicatorType`. It facilitates co
 To help you use the `SpatialSearchResultContainerVector`, here's a simple example that demonstrates how you might use this class in your code:
 
 ```cpp
-#include "geometries/point.h"
+#include "includes/data_communicator.h"
+#include "includes/geometrical_object.h"
 #include "spatial_containers/spatial_search_result_container_vector.h"
 
-int main() {
-    // Assuming you have a suitable MPI environment set up
-    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+void Example() {
+    // A serial communicator works out of the box; in MPI use the model part's DataCommunicator
+    DataCommunicator data_comm;
 
-    // Create an instance of the container for GeometricalObjects
-    SpatialSearchResultContainerVector<GeometricalObject> container;
+    // Create an instance of the container vector for GeometricalObjects
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
-    // Assume 'indexes' are the indices for which you want to initialize results
-    std::vector<std::size_t> indexes = {0, 1, 2};  // Example indexes
+    // Pre-size the vector: one SpatialSearchResultContainer per search point
+    const std::size_t number_of_points = 3;
+    container_vector.InitializeResults(number_of_points);
 
-    // Initialize the results for these indexes
-    container.InitializeResults(indexes.size());
+    // Objects being "found" by the search, kept alive for the scope of the example
+    std::vector<GeometricalObject> objects = {GeometricalObject(1), GeometricalObject(2), GeometricalObject(3)};
 
-    // Now you can add results to these initialized positions
-    for (std::size_t idx : indexes) {
-        GeometricalObject* pObj = new GeometricalObject;  // Assuming GeometricalObject is properly defined
-        SpatialSearchResult<GeometricalObject> result(pObj);
-        result.SetDistance(0.1 * idx);  // Example distance setting
-
-        container[idx].AddResult(result);  // Adding result to the specific container
+    // Add one result to each initialized position
+    for (std::size_t idx = 0; idx < number_of_points; ++idx) {
+        SpatialSearchResult<GeometricalObject> result(&objects[idx]);
+        result.SetDistance(0.1 * idx);
+        container_vector[idx].AddResult(result);
     }
 
-    // Optionally, synchronize results across MPI processes
-    container.SynchronizeAll(r_data_comm);
+    // Synchronize results across MPI ranks (a no-op with a serial communicator)
+    container_vector.SynchronizeAll(data_comm);
 
-    // Access and print out results
-    for (std::size_t idx : indexes) {
-        auto& results = container[idx].GetLocalResults();
-        for (auto& res : results) {
-            std::cout << "Object at index " << idx << " has distance: " << res.GetDistance() << std::endl;
+    // Access and print out the (now synchronized) results
+    for (std::size_t idx = 0; idx < number_of_points; ++idx) {
+        for (auto& r_result : container_vector[idx].GetLocalResults()) {
+            std::cout << "Object at index " << idx << " has distance: " << r_result.GetDistance() << std::endl;
         }
     }
-
-    // Remember to clean up any dynamic allocations if needed
-    for (std::size_t idx : indexes) {
-        auto& results = container[idx].GetLocalResults();
-        for (auto& res : results) {
-            delete res.GetResult();  // Assuming GetResult returns a pointer to GeometricalObject
-        }
-    }
-
-    return 0;
 }
 ```
 
 ### Key Points to Remember
-- You need an MPI environment to use the `SpatialSearchResultContainerVector` as it handles results across different processes.
-- You should initialize the results for the specific indexes you are going to use.
-- `AddResult` method allows you to add spatial search results into the container.
-- You can synchronize results across different processes using the `SynchronizeAll` method if needed.
-- Always manage memory carefully, especially when dynamically allocating objects like `GeometricalObject`.
+- `InitializeResults(N)` pre-sizes the vector with `N` empty `SpatialSearchResultContainer` instances (C++ only, see the note above about the Python binding).
+- `AddResult` method allows you to add spatial search results into the container at the corresponding position, obtained via `operator[]`.
+- Call `SynchronizeAll` once, on the vector, after all local results have been added — this synchronizes every point in a single, batched MPI communication instead of one round-trip per point.
+- Objects referenced by `SpatialSearchResult` (via `GlobalPointer`) are **not** owned by the container: their lifetime must be managed by the caller (e.g. the `ModelPart` that owns the nodes/elements/conditions), following the project's `Kratos::shared_ptr`/`unique_ptr` conventions — never `new`/`delete` them manually.
 
 #### Advanced example
 
 Here a code example that primarily focuses on performing spatial searches to identify and process geometrical objects relative to specified nodes within a model part. It integrates with search algorithms, data communication across computational partitions, and error-checking mechanisms.
 
+This mirrors the pattern used by `ParallelSpatialSearch::SearchNearest` internally (see [`test_spatial_search_result_container_vector.cpp`](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/tests/cpp_tests/spatial_containers/test_spatial_search_result_container_vector.cpp), `SpatialSearchResultContainerVectorGetResultShapeFunctions`, for the fully compilable version this is based on):
+
 ```cpp
-// Auxiliary stuff
-bool is_local = true; // Flag to determine if the current operation is local to this processor (in parallel environments).
-SpatialSearchResultContainer<GeometricalObject>* p_container = nullptr; // Pointer to a container for storing search results.
+// The search results, already populated by a search (e.g. SearchNearest) and containing
+// one SpatialSearchResultContainer<GeometricalObject> per point in rModelPart.Nodes()
+SpatialSearchResultContainerVector<GeometricalObject>& r_geometrical_object_results = ...;
 
-// The search results
-SpatialSearchResultContainerVector<GeometricalObject> geometrical_object_results;
+// Data communicator (e.g. from the model part performing the search)
+const DataCommunicator& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
 
-// Perform search, for example SearchNearest
-... // Here the SearchNearest is performed, look at parallel_spatial_search
-
-// Data communicator
-ModelPart& r_root_model_part = rModelPart.GetRootModelPart();
-const Communicator& r_communicator = r_root_model_part.GetCommunicator();
-const DataCommunicator& r_data_communicator = r_communicator.GetDataCommunicator();
-
-// Nodes array
+// Points that were searched, in the same order used to build r_geometrical_object_results
 auto& r_array_nodes = rModelPart.Nodes();
-const auto it_node_begin = r_array_nodes.begin();
 
-// Getting the number of results
-const std::size_t number_of_search_results = geometrical_object_results.NumberOfSearchResults();
-
-// Get all indices
-std::vector<std::vector<std::vector<IndexType>>> all_indices;
-geometrical_object_results.GetResultNodeIndices(all_indices);
-
-// Get all is inside flags
+// Bulk queries: computed once for every point at once (cheaper than per-point global pointer round-trips)
+const std::size_t number_of_search_results = r_geometrical_object_results.NumberOfSearchResults();
 std::vector<std::vector<bool>> all_is_inside;
-geometrical_object_results.GetResultIsInside(all_is_inside, r_array_nodes, r_data_communicator, IsInsideTolerance);
-
-// Get all shape functions
+r_geometrical_object_results.GetResultIsInside(all_is_inside, r_array_nodes, r_data_communicator, 1.0e-5);
 std::vector<std::vector<Vector>> all_shape_functions;
-geometrical_object_results.GetResultShapeFunctions(all_shape_functions, r_array_nodes, r_data_communicator);
+r_geometrical_object_results.GetResultShapeFunctions(all_shape_functions, r_array_nodes, r_data_communicator);
 
-// Iterate overs solutions
-for (unsigned int Index = 0; Index < number_of_search_results; ++Index) {
-    // Get container
-    p_container = &geometrical_object_results[Index];
+// Iterate over the search results, one entry per point
+for (std::size_t index = 0; index < number_of_search_results; ++index) {
+    auto& r_container = r_geometrical_object_results[index];
 
-    // If local point
-    const bool is_local_point = p_container->IsLocalPoint();
+    // IsLocalPoint(): true if the point that originated this container belongs to this rank
+    const bool is_local_point = r_container.IsLocalPoint();
 
-    // At least one result
-    if (p_container->NumberOfGlobalResults() > 0) {
-        // Check
-        KRATOS_DEBUG_ERROR_IF(p_container->NumberOfGlobalResults() > 1 && is_local_point) << "More than one result found for node " << (it_node_begin + p_container->GetLocalIndex())->Id() << " when using SearchNearest!" << std::endl;
+    // At least one result found (globally) for this point
+    if (r_container.NumberOfGlobalResults() > 0 && all_is_inside[index][0]) {
+        const Vector& r_shape_function = all_shape_functions[index][0];
 
-        // If local search
-        const bool is_local_search = p_container->IsLocalSearch(0);
-
-        // Getting if it is local
-        is_local = is_local_search && is_local_point;
-        is_local = r_data_communicator.MaxAll(is_local); // At least active in one partition
-        if (is_local) {
-            if (is_local_point) {
-                // Get the node
-                auto it_node = it_node_begin + p_container->GetLocalIndex();
-                auto p_node = *(it_node.base());
-                auto& r_node = *p_node;
-
-                // Check is actually inside (not just found)
-                KRATOS_ERROR_IF(p_container->NumberOfLocalResults() == 0) << "Local results should not be null" << std::endl;
-                const auto& r_local_result = p_container->GetLocalResults()[0];
-                const GeometricalObject* p_geometrical_object = r_local_result.Get().get(); // Intrussive_ptr?
-                const auto& r_geometry = p_geometrical_object->GetGeometry();
-                const bool is_found = all_is_inside[Index];
-
-                // If found
-                if (is_found) {
-                    // Reserve
-                    const std::size_t vector_size = rListVariables.size() * r_geometry.size();
-                    partial_constraints.reserve(vector_size);
-                    partial_constraints_pairs.reserve(vector_size);
-
-                    // Compute shape function
-                    const Vector& r_shape_function = all_shape_functions[Index][0];
-                    for (unsigned int i = 0; i < r_geometry.size(); i++) {
-                        if (std::abs(r_shape_function[i]) > ZeroTolerance) {
-                            // Do something with the shape function
-                        }
-                    }
-                }
-            }
-        } else {
-            // Check if is inside
-            const bool is_found = all_is_inside[Index];
-
-            if (is_found) {
-                // Getting the shape function and indices of the nodes, and parent index to be used linked to the results
-                const Vector& r_shape_function = all_shape_functions[Index][0];
-                const auto& r_indices = all_indices[Index][0];
-
-                if (is_local_point) {
-                    // Get the node
-                    auto it_node = it_node_begin + p_container->GetLocalIndex();
-                    auto p_node = *(it_node.base());
-
-                    // Now that all nodes exist we can then generate the MPC
-                    for (unsigned int i = 0; i < r_indices.size(); i++) {
-                        const std::size_t index = r_indices[i];
-                        if (std::abs(r_shape_function[i]) > ZeroTolerance) {
-                            KRATOS_DEBUG_ERROR_IF_NOT(rPrimaryModelPart.HasNode(index)) << "Node " << index << " has not being bring to the modelpart" << std::endl;
-                            auto& r_node_linked = rPrimaryModelPart.GetNode(index);
-                            // Do something with the shape function
-                        }
-                    }
+        if (is_local_point) {
+            // The point belongs to this rank: link it to the found object's nodes
+            for (std::size_t i = 0; i < r_shape_function.size(); ++i) {
+                if (std::abs(r_shape_function[i]) > std::numeric_limits<double>::epsilon()) {
+                    // Do something with the shape function (e.g. build a linear constraint)
                 }
             }
         }
@@ -305,27 +206,24 @@ for (unsigned int Index = 0; Index < number_of_search_results; ++Index) {
 }
 ```
 
-##### How to use `geometrical_object_results`
+##### How to use `r_geometrical_object_results`
 
 1. **Retrieve search results**:
-   - The number of search results is obtained using `geometrical_object_results.NumberOfSearchResults()`. This number defines the loop bounds for processing each search result.
+   - The number of search results is obtained using `NumberOfSearchResults()`. This number defines the loop bounds for processing each search result, and matches the number of points passed to the search.
 
 2. **Access individual results**:
-   - The appropriate search results container is accessed within the distributed computation loop.
+   - `r_geometrical_object_results[index]` gives the `SpatialSearchResultContainer` for the point at position `index` in the original input range.
 
-##### Detecting Local Results
+##### Detecting local results
 
 1. **Local vs global results**:
-   - Each search result container (`SpatialSearchResultContainer`) contains methods like `IsLocalPoint()` and `NumberOfGlobalResults()` to determine if the current result is local to the MPI rank or if it's a result visible globally across multiple ranks.
+   - Each result container (`SpatialSearchResultContainer`) exposes `IsLocalPoint()` (does the *search point* belong to this rank?) and `NumberOfGlobalResults()`/`NumberOfLocalResults()` (how many *found objects*, globally vs. on this rank).
 
-2. **Handling local search**:
-   - Local flags (`is_local_point`, `is_local_search`) are used to determine the execution flow and locality of data. This involves verifying node existence, geometry inclusion, and constraint application based on local data without needing further synchronization with other ranks.
+2. **Bulk vs per-point queries**:
+   - Prefer the `SpatialSearchResultContainerVector` bulk methods (`GetResultIsInside`, `GetResultShapeFunctions`, `GetDistances`, `GetResultIndices`, ...) over calling the equivalent per-point logic manually: they compute all points in one pass over a single `GlobalPointerCommunicator`, instead of one MPI round-trip per point.
 
 3. **Using MPI**:
-   - For results that might influence or be influenced by other ranks, MPI operations are used to synchronize and aggregate data (`r_data_communicator.MaxAll()` for coordinate comparison and aggregation).
-
-4. **Distinction between local and remote data**:
-   - Decisions based on local vs. remote data (e.g., whether a node should be considered isolated or constraints applied) hinge on the outcome of these local/global checks and MPI communications.
+   - Bulk queries already take care of the necessary MPI communication internally (through `Apply`/`GlobalPointerCommunicator`); no manual `DataCommunicator` calls are required beyond passing it in.
 
 ##### Practical steps for developers:
 
@@ -341,30 +239,30 @@ Similar to the previous C++ example, here you have a python example:
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-class TestSpatialSearchResultContainerVector(KratosUnittest):
+class TestSpatialSearchResultContainerVector(KratosUnittest.TestCase):
     def test_vector_workflow(self):
         data_comm = Kratos.Testing.GetDefaultDataCommunicator()
         rank = data_comm.Rank()
         world_size = data_comm.Size()
         num_searches_per_rank = 2
 
-        model = Kratos.Model()
-        model_part = model.CreateModelPart("Main")
-
         # 1. Create the container vector
         results_vector = Kratos.SpatialSearchResultContainerVectorGeometricalObject()
 
-        # 2. Initialize containers for all local search points
-        results_vector.InitializeResults(num_searches_per_rank)
+        # 2. Initialize one container per local search point
+        # NOTE: only the singular InitializeResult() (no argument) is exposed to Python,
+        # so pre-sizing in bulk (InitializeResults(N), C++-only) becomes a simple loop here
+        for _ in range(num_searches_per_rank):
+            results_vector.InitializeResult()
         self.assertEqual(results_vector.NumberOfSearchResults(), num_searches_per_rank)
 
         # 3. Simulate a search and add results to each container
-        # In a real case, these objects would be in a ModelPart
+        # NOTE: Kratos.GeometricalObject only exposes an Id-based constructor to Python
+        # (unlike C++, it cannot be built directly from a Point/geometry there)
         for i in range(num_searches_per_rank):
             # Create a unique object ID based on rank and search index
             object_id = rank * num_searches_per_rank + i + 1
-            node = model_part.CreateNewNode(object_id, 0, 0, 0)
-            found_object = Kratos.GeometricalObject(Kratos.Point2D(node))
+            found_object = Kratos.GeometricalObject(object_id)
 
             # Add the found object to the i-th search result container
             results_vector[i].AddResult(found_object, 0.1 * object_id)
@@ -396,7 +294,7 @@ if __name__ == '__main__':
 #### Key Python Operations Explained
 
 1.  **Initialization**
-    * A `SpatialSearchResultContainerVector` is created. Using `InitializeResults(N)`, it's pre-sized to hold `N` empty `SpatialSearchResultContainer` instances, one for each search point this rank is responsible for.
+    * A `SpatialSearchResultContainerVector` is created, then pre-sized by calling `InitializeResult()` once per search point this rank is responsible for, appending one empty `SpatialSearchResultContainer` each time.
 
 2.  **Populating Local Results**
     * The script loops through the initialized containers. For each one, it simulates a search by creating a sample `GeometricalObject` and adding it to the corresponding container using `results_vector[i].AddResult(...)`. At this point, all data is still local to its rank.
