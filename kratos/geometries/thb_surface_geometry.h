@@ -140,11 +140,16 @@ public:
         ModelPart& rModelPart,
         const Vector& rWeights = Vector())
     {
+        IndexType next_id = 1;
+        for (const auto& node : rModelPart.GetRootModelPart().Nodes())
+            next_id = std::max(next_id, node.Id() + IndexType(1));
+
         AddLevelImpl(rKnotsU, rKnotsV, rWeights,
             [&rModelPart](IndexType id, double x, double y, double z)
                 -> typename NodeType::Pointer {
                 return rModelPart.CreateNewNode(id, x, y, z);
-            });
+            },
+            next_id);
     }
 
     /// Adds NLevels via uniform bisection; new nodes are orphan.
@@ -166,6 +171,30 @@ public:
         for (SizeType i = 0; i < NLevels; ++i) {
             const THBLevel& previous_level = mLevels.back();
             AddLevel(BisectKnots(previous_level.KnotsU), BisectKnots(previous_level.KnotsV), rModelPart);
+        }
+    }
+
+    /// Like AddLevel(NLevels, rModelPart) but the first level's nodes start at StartingId.
+    /// Use when sibling geometries' nodes are not yet in rModelPart at call time —
+    /// StartingId should be set to (max CP id across entire JSON) + 1.
+    void AddLevel(const SizeType NLevels, ModelPart& rModelPart, IndexType StartingId)
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::AddLevel: no base level defined." << std::endl;
+        for (SizeType i = 0; i < NLevels; ++i) {
+            const THBLevel& previous_level = mLevels.back();
+            const Vector knotsU = BisectKnots(previous_level.KnotsU);
+            const Vector knotsV = BisectKnots(previous_level.KnotsV);
+            if (i == 0 && StartingId > 0) {
+                AddLevelImpl(knotsU, knotsV, Vector(),
+                    [&rModelPart](IndexType id, double x, double y, double z)
+                        -> typename NodeType::Pointer {
+                        return rModelPart.CreateNewNode(id, x, y, z);
+                    },
+                    StartingId);
+            } else {
+                AddLevel(knotsU, knotsV, rModelPart);
+            }
         }
     }
 
@@ -752,7 +781,8 @@ private:
         const Vector& rKnotsU,
         const Vector& rKnotsV,
         const Vector& rWeights,
-        TNodeFactory CreateNode)
+        TNodeFactory CreateNode,
+        IndexType NextNodeId = 0)
     {
         KRATOS_ERROR_IF(mLevels.empty())
             << "THBSurfaceGeometry::AddLevel: no base level defined." << std::endl;
@@ -773,9 +803,12 @@ private:
 
         const SizeType coarse_cp_offset = ControlPointOffset(last_level_index);
 
-        IndexType next_node_id = 1;
-        for (SizeType i = 0; i < this->PointsNumber(); ++i)
-            next_node_id = std::max(next_node_id, this->GetPoint(i).Id() + IndexType(1));
+        IndexType next_node_id = NextNodeId;
+        if (next_node_id == 0) {
+            next_node_id = 1;
+            for (SizeType i = 0; i < this->PointsNumber(); ++i)
+                next_node_id = std::max(next_node_id, this->GetPoint(i).Id() + IndexType(1));
+        }
 
         // P'_{j_v, j_u} = sum_{i_v, i_u} M_V[j_v, i_v] * M_U[j_u, i_u] * P_{i_v, i_u}
         for (SizeType j_v = 0; j_v < num_cps_v_fine; ++j_v) {

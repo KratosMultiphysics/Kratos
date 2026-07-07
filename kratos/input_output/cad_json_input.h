@@ -161,13 +161,30 @@ private:
         const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
+        // Pre-scan all CP IDs across all breps to get a global max.
+        // THB refinement creates new nodes; starting IDs above this max
+        IndexType max_json_cp_id = 0;
+        for (IndexType brep_i = 0; brep_i < rParameters.size(); ++brep_i) {
+            if (!rParameters[brep_i].Has("faces")) continue;
+            const Parameters faces = rParameters[brep_i]["faces"];
+            for (IndexType face_i = 0; face_i < faces.size(); ++face_i) {
+                if (!faces[face_i].Has("surface")) continue;
+                const Parameters surf = faces[face_i]["surface"];
+                if (!surf.Has("control_points")) continue;
+                const Parameters cps = surf["control_points"];
+                for (IndexType cps_i = 0; cps_i < cps.size(); ++cps_i)
+                    max_json_cp_id = std::max(max_json_cp_id, (IndexType)cps[cps_i][0].GetInt());
+            }
+        }
+        const IndexType next_node_id_hint = (max_json_cp_id > 0) ? max_json_cp_id + 1 : 0;
+
         for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++) {
             KRATOS_INFO_IF("ReadBreps", (EchoLevel > 0))
                 << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
                 << "\" - faces." << std::endl;
             if (rParameters[brep_index].Has("faces"))
             {
-                ReadBrepSurfaces(rParameters[brep_index]["faces"], rModelPart, ProjectionAlgorithmType, rLocalRefParameters, EchoLevel);
+                ReadBrepSurfaces(rParameters[brep_index]["faces"], rModelPart, ProjectionAlgorithmType, rLocalRefParameters, EchoLevel, next_node_id_hint);
             }
         }
 
@@ -199,7 +216,8 @@ private:
         ModelPart& rModelPart,
         ProjectionAlgorithm ProjectionAlgorithmType,
         const Parameters rLocalRefParameters,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel = 0,
+        IndexType NextNodeIdHint = 0)
     {
         KRATOS_ERROR_IF_NOT(rParameters.IsArray())
             << "\"faces\" section needs to be an array of BrepSurfaces." << std::endl;
@@ -209,7 +227,7 @@ private:
 
         for (IndexType brep_surface_i = 0; brep_surface_i < rParameters.size(); ++brep_surface_i)
         {
-            ReadBrepSurface(rParameters[brep_surface_i], rModelPart, ProjectionAlgorithmType, rLocalRefParameters, EchoLevel);
+            ReadBrepSurface(rParameters[brep_surface_i], rModelPart, ProjectionAlgorithmType, rLocalRefParameters, EchoLevel, NextNodeIdHint);
         }
     }
 
@@ -218,7 +236,8 @@ private:
         ModelPart& rModelPart,
         ProjectionAlgorithm ProjectionAlgorithmType,
         const Parameters rLocalRefParameters,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel = 0,
+        IndexType NextNodeIdHint = 0)
     {
         KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3))
             << "Reading BrepSurface \"" << GetIdOrName(rParameters) << "\"" << std::endl;
@@ -261,7 +280,7 @@ private:
                 BrepCurveOnLocalRefinedSurfaceLoopArrayType outer_loops, inner_loops;
                 tie(outer_loops, inner_loops) =
                     ReadLocalRefinedBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
-                p_brep_surface = ReadLocalRefinement(p_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel, outer_loops, inner_loops);
+                p_brep_surface = ReadLocalRefinement(p_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel, outer_loops, inner_loops, NextNodeIdHint);
 
                 // Propagate LocalRefinedSurface to all boundary trimming curves
                 auto p_lrs = dynamic_pointer_cast<LocalRefinedBrepSurfaceType>(p_brep_surface);
@@ -292,7 +311,7 @@ private:
 
             if (is_local_refinement)
             {
-                p_brep_surface = ReadLocalRefinement(p_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel);
+                p_brep_surface = ReadLocalRefinement(p_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel, {}, {}, NextNodeIdHint);
             }
             else
             {
@@ -542,7 +561,8 @@ private:
         ModelPart& rModelPart,
         SizeType EchoLevel = 0,
         BrepCurveOnLocalRefinedSurfaceLoopArrayType OuterLoops = {},
-        BrepCurveOnLocalRefinedSurfaceLoopArrayType InnerLoops = {})
+        BrepCurveOnLocalRefinedSurfaceLoopArrayType InnerLoops = {},
+        IndexType NextNodeIdHint = 0)
     {
         const IndexType brep_id = rFaceParameters["brep_id"].GetInt();
 
@@ -581,7 +601,10 @@ private:
                 pNurbsSurface->PolynomialDegree(0), pNurbsSurface->PolynomialDegree(1),
                 pNurbsSurface->KnotsU(), pNurbsSurface->KnotsV());
 
-        p_local_surface->AddLevel(max_level, rModelPart);
+        if (NextNodeIdHint > 0)
+            p_local_surface->AddLevel(max_level, rModelPart, NextNodeIdHint);
+        else
+            p_local_surface->AddLevel(max_level, rModelPart);
 
         for (SizeType i = 0; i < local_ref.size(); ++i) {
             const Parameters entry = local_ref[i];
