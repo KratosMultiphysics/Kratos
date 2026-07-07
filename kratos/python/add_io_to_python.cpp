@@ -179,6 +179,10 @@ void  AddIOToPython(pybind11::module& m)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<int>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<double>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalResults)
+        .def("PrintNonHistoricalOutput", (void (UnvOutput::*)(const Variable<bool>&, const double)) &UnvOutput::WriteNodalNonHistoricalResults)
+        .def("PrintNonHistoricalOutput", (void (UnvOutput::*)(const Variable<int>&, const double)) &UnvOutput::WriteNodalNonHistoricalResults)
+        .def("PrintNonHistoricalOutput", (void (UnvOutput::*)(const Variable<double>&, const double)) &UnvOutput::WriteNodalNonHistoricalResults)
+        .def("PrintNonHistoricalOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalNonHistoricalResults)
         ;
 
 
@@ -261,5 +265,3 @@ void  AddIOToPython(pybind11::module& m)
     ;
 }
 }  // namespace Kratos::Python.
-
-
