@@ -200,31 +200,11 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
     const auto num_u_nodes             = r_displacement_geometry.PointsNumber();
     const auto num_p_nodes             = mpPressureGeometry->PointsNumber();
 
-    // Keep legacy-compatible post-processing ranges for mixed-order geometries.
-    SizeType first_interpolated_node = num_p_nodes;
-    switch (num_u_nodes) {
-    case 6:  // 2D T6P3
-    case 8:  // 2D Q8P4
-    case 9:  // 2D Q9P4
-    case 20: // 3D H20P8
-    case 27: // 3D H27P8
-        break;
-    case 10:
-        first_interpolated_node = r_displacement_geometry.WorkingSpaceDimension() == 2 ? 3 : 4; // 2D T10P6 / 3D T10P4
-        break;
-    case 15: // 2D T15P10
-        first_interpolated_node = 3;
-        break;
-    default:
-        KRATOS_ERROR << "Unexpected geometry type for different order interpolation element "
-                     << this->Id() << std::endl;
-    }
-
     auto local_coordinates = Matrix{};
     r_displacement_geometry.PointsLocalCoordinates(local_coordinates);
     const auto corner_pressures = VariablesUtilities::GetNodalValues(*mpPressureGeometry, WATER_PRESSURE);
 
-    for (auto node = first_interpolated_node; node < num_u_nodes; ++node) {
+    for (auto node = num_p_nodes; node < num_u_nodes; ++node) {
         auto shape_functions_values = Vector(num_p_nodes);
         // new object as a 3 long array is expected even for local space dimensions 1 and 2
         auto local_node_coordinate = array_1d<double, 3>{3, 0.0};
