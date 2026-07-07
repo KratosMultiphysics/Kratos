@@ -20,8 +20,6 @@
 #include "custom_utilities/registration_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
-#include "geometries/triangle_2d_10.h"
-#include "geometries/triangle_2d_15.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
@@ -787,26 +785,6 @@ Element::Pointer Create2D9(ModelPart& rModelPart, const Properties::Pointer& rPr
         nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
     return make_intrusive<SmallStrainUPwDiffOrderElement>(
         1, Geometry<Node>::Pointer(std::make_shared<Quadrilateral2D9<Node>>(nodes)), rProperties,
-        std::make_unique<PlaneStrainStressState>());
-}
-
-Element::Pointer Create2D10(ModelPart& rModelPart, const Properties::Pointer& rProperties)
-{
-    PointerVector<Node> nodes;
-    for (int i = 0; i < 10; ++i)
-        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
-    return make_intrusive<SmallStrainUPwDiffOrderElement>(
-        1, Geometry<Node>::Pointer(std::make_shared<Triangle2D10<Node>>(nodes)), rProperties,
-        std::make_unique<PlaneStrainStressState>());
-}
-
-Element::Pointer Create2D15(ModelPart& rModelPart, const Properties::Pointer& rProperties)
-{
-    PointerVector<Node> nodes;
-    for (int i = 0; i < 15; ++i)
-        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
-    return make_intrusive<SmallStrainUPwDiffOrderElement>(
-        1, Geometry<Node>::Pointer(std::make_shared<Triangle2D15<Node>>(nodes)), rProperties,
         std::make_unique<PlaneStrainStressState>());
 }
 
