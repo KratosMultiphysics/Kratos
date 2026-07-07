@@ -22,6 +22,7 @@
 #include "containers/model.h"
 
 // Application includes
+#include "custom_utilities/iga_flags.h"
 #include "iga_application_variables.h"
 
 namespace Kratos
@@ -392,6 +393,8 @@ public:
         SparseMatrixType reduced_stabilization_matrix;
         SparseMatrixType reduced_stiffness_matrix;
 
+        Vector rResult;
+        std::size_t number_of_nodes_master, number_of_nodes_slave, number_of_nodes;
         if(rModelPart.ConditionsBegin()->GetGeometry().NumberOfGeometryParts() != 0) // Coupling Nitsche condition
         {
             // 1. find the DOFs on the current interface boundary
@@ -410,7 +413,7 @@ public:
                     }
                 }
             }
-            const std::size_t number_of_nodes_master = reduced_model_part_master.NumberOfNodes();
+            number_of_nodes_master = reduced_model_part_master.NumberOfNodes();
 
             Model reduced_model_slave;
             ModelPart& reduced_model_part_slave = reduced_model_slave.CreateModelPart("new_model");
@@ -427,10 +430,9 @@ public:
                     }
                 }
             }
-            const std::size_t number_of_nodes_slave = reduced_model_part_slave.NumberOfNodes();
+            number_of_nodes_slave = reduced_model_part_slave.NumberOfNodes();
 
             // 2. create the result vector
-            Vector rResult;
             rResult.resize((number_of_nodes_master+number_of_nodes_slave)*3);
 
             IndexType i_master = 0;
@@ -456,33 +458,63 @@ public:
             }
 
             // 3. assigned the value of the reduced stifness and stabilization matrices based on result vector
-            reduced_stabilization_matrix = ZeroMatrix((number_of_nodes_master+number_of_nodes_slave)*3,(number_of_nodes_master+number_of_nodes_slave)*3);
+            IndexType n_dofs = (number_of_nodes_master + number_of_nodes_slave) * 3;
+            reduced_stabilization_matrix = ZeroMatrix(n_dofs, n_dofs);
+            reduced_stiffness_matrix = ZeroMatrix(n_dofs, n_dofs);
 
-            for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++)
-            {
-                for (IndexType j = 0; j <= i; j++)
-                {
-                    reduced_stabilization_matrix(i,j) = rStabilizationMatrix(rResult(i),rResult(j));
-                    if (i != j)
-                    {
-                        reduced_stabilization_matrix(j,i) = rStabilizationMatrix(rResult(i),rResult(j));
+            std::unordered_map<IndexType, IndexType> eq_to_local;
+            for (IndexType i = 0; i < n_dofs; ++i) {
+                eq_to_local[rResult[i]] = i;
+            }
+
+            for (auto it_i = rStiffnessMatrix.begin1(); it_i != rStiffnessMatrix.end1(); ++it_i) {
+                IndexType eq_i = it_i.index1();
+                
+                auto it_local_i = eq_to_local.find(eq_i);
+                if (it_local_i == eq_to_local.end()) continue;
+                IndexType local_i = it_local_i->second;
+                
+                for (auto it_j = it_i.begin(); it_j != it_i.end(); ++it_j) {
+                    IndexType eq_j = it_j.index2();
+                    double stiff_val = *it_j;
+                    
+                    auto it_local_j = eq_to_local.find(eq_j);
+                    if (it_local_j == eq_to_local.end()) continue;
+                    IndexType local_j = it_local_j->second;
+                    
+                    if (local_i >= local_j) {
+                        reduced_stiffness_matrix(local_i, local_j) = stiff_val;
+                        if (local_i != local_j) {
+                            reduced_stiffness_matrix(local_j, local_i) = stiff_val;
+                        }
                     }
                 }
             }
 
-            reduced_stiffness_matrix = ZeroMatrix((number_of_nodes_master+number_of_nodes_slave)*3,(number_of_nodes_master+number_of_nodes_slave)*3);
-
-            for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++)
-            {
-                for (IndexType j = 0; j <= i; j++)
-                {
-                    reduced_stiffness_matrix(i,j) = rStiffnessMatrix(rResult(i),rResult(j));
-                    if (i != j)
-                    {
-                        reduced_stiffness_matrix(j,i) = rStiffnessMatrix(rResult(i),rResult(j));
+            for (auto it_i = rStabilizationMatrix.begin1(); it_i != rStabilizationMatrix.end1(); ++it_i) {
+                IndexType eq_i = it_i.index1();
+                
+                auto it_local_i = eq_to_local.find(eq_i);
+                if (it_local_i == eq_to_local.end()) continue;
+                IndexType local_i = it_local_i->second;
+                
+                for (auto it_j = it_i.begin(); it_j != it_i.end(); ++it_j) {
+                    IndexType eq_j = it_j.index2();
+                    double stab_val = *it_j;
+                    
+                    auto it_local_j = eq_to_local.find(eq_j);
+                    if (it_local_j == eq_to_local.end()) continue;
+                    IndexType local_j = it_local_j->second;
+                    
+                    if (local_i >= local_j) {
+                        reduced_stabilization_matrix(local_i, local_j) = stab_val;
+                        if (local_i != local_j) {
+                            reduced_stabilization_matrix(local_j, local_i) = stab_val;
+                        }
                     }
                 }
             }
+
         }
         else // Support Nitsche condition
         {
@@ -502,10 +534,9 @@ public:
                     }
                 }
             }
-            const std::size_t number_of_nodes = reduced_model_part.NumberOfNodes();
+            number_of_nodes = reduced_model_part.NumberOfNodes();
 
             // 2. create the result vector
-            Vector rResult;
             rResult.resize((number_of_nodes)*3);
 
             IndexType i = 0;
@@ -549,18 +580,166 @@ public:
         DenseVectorType Eigenvalues;
         DenseMatrixType Eigenvectors;
 
-        // Solve for eigenvalues and eigenvectors
-        BuiltinTimer system_solve_time;
-        this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
+        if (rModelPart.GetProcessInfo()[STABILIZATION_METHOD] == 1)
+        {
+            DenseVectorType x(reduced_stiffness_matrix.size1());
+            DenseVectorType Qx(reduced_stiffness_matrix.size1());
+            DenseVectorType Kx(reduced_stiffness_matrix.size1());
+
+            for (IndexType i = 0; i < x.size(); ++i) x[i] = 1.0;
+
+            double lambda_max = 0.0;
+
+            for (IndexType iter = 0; iter < 100; ++iter) {
+
+                TSparseSpace::Mult(reduced_stabilization_matrix, x, Qx);
+                TSparseSpace::Mult(reduced_stiffness_matrix, x, Kx);
+                
+                double lambda_old = lambda_max;
+                double numerator = TSparseSpace::Dot(x, Qx);
+                double denominator = TSparseSpace::Dot(x, Kx);
+                lambda_max = numerator / denominator;
+
+                double norm = std::sqrt(TSparseSpace::Dot(Qx, Qx));
+                TSparseSpace::Assign(x, 1.0 / norm, Qx);
+                
+                // Convergence check
+                if (std::abs(lambda_max - lambda_old) < 1e-8) {
+                    break;
+                }
+            }
+
+            Eigenvalues.resize(1);
+            Eigenvalues[0] = lambda_max;
+        }
+        else if (rModelPart.GetProcessInfo()[STABILIZATION_METHOD] == 2)
+        {
+            double stabilization_parameter = norm_frobenius(reduced_stabilization_matrix)/norm_frobenius(reduced_stiffness_matrix);
+            // double stabilization_parameter_2 = max(reduced_stabilization_matrix)/max(reduced_stiffness_matrix);
+            Eigenvalues.resize(1);
+            Eigenvalues[0] = stabilization_parameter;
+        }
+        else if (rModelPart.GetProcessInfo()[STABILIZATION_METHOD] == 3)
+        {
+            BuiltinTimer system_solve_time;
+            this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
                 reduced_stabilization_matrix,
                 reduced_stiffness_matrix,
                 Eigenvalues,
                 Eigenvectors);
 
-        KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
+            KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
                 << system_solve_time.ElapsedSeconds() << std::endl;
-
+        }
         rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_VECTOR] = Eigenvalues;
+
+        if (rModelPart.Conditions().begin()->Is(IgaFlags::FIX_ROTATION_X))
+        {
+            SparseMatrixType& rStabilizationRotationMatrix = this->GetStabilizationMatrix();
+
+            // Get the global stabilization matrix of the respective model part, linked with the Nitsche stabilization scheme.
+            rModelPart.GetProcessInfo()[BUILD_LEVEL] = 3;
+            TSparseSpace::SetToZero(rStabilizationRotationMatrix);
+
+            this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStabilizationRotationMatrix,b);
+
+            if (BaseType::GetEchoLevel() == 4) {
+                TSparseSpace::WriteMatrixMarketMatrix("StabilizationRotationMatrix.mm", rStabilizationRotationMatrix, false);
+            }
+
+            IndexType n_dofs = (number_of_nodes_master + number_of_nodes_slave) * 3;
+            SparseMatrixType reduced_stabilization_rotation_matrix = ZeroMatrix(n_dofs, n_dofs);
+
+            std::unordered_map<IndexType, IndexType> eq_to_local;
+            for (IndexType i = 0; i < n_dofs; ++i) {
+                eq_to_local[rResult[i]] = i;
+            }
+
+            for (auto it_i = rStabilizationRotationMatrix.begin1(); it_i != rStabilizationRotationMatrix.end1(); ++it_i) {
+                IndexType eq_i = it_i.index1();
+                
+                auto it_local_i = eq_to_local.find(eq_i);
+                if (it_local_i == eq_to_local.end()) continue;
+                IndexType local_i = it_local_i->second;
+                
+                for (auto it_j = it_i.begin(); it_j != it_i.end(); ++it_j) {
+                    IndexType eq_j = it_j.index2();
+                    double stab_val = *it_j;
+                    
+                    auto it_local_j = eq_to_local.find(eq_j);
+                    if (it_local_j == eq_to_local.end()) continue;
+                    IndexType local_j = it_local_j->second;
+                    
+                    if (local_i >= local_j) {
+                        reduced_stabilization_rotation_matrix(local_i, local_j) = stab_val;
+                        if (local_i != local_j) {
+                            reduced_stabilization_rotation_matrix(local_j, local_i) = stab_val;
+                        }
+                    }
+                }
+            }
+       
+            // Eigenvector matrix and eigenvalue vector are initialized by the solver
+            DenseVectorType Eigenvaluesrotation;
+            DenseMatrixType Eigenvectorsrotation;
+
+            if (rModelPart.GetProcessInfo()[STABILIZATION_METHOD] == 1)
+            {
+                DenseVectorType x(reduced_stiffness_matrix.size1());
+                DenseVectorType Qx(reduced_stiffness_matrix.size1());
+                DenseVectorType Kx(reduced_stiffness_matrix.size1());
+
+                // Initialize
+                for (IndexType i = 0; i < x.size(); ++i) x[i] = 1.0;
+
+                double lambda_max_rot = 0.0;
+
+                for (IndexType iter = 0; iter < 100; ++iter) {
+                    TSparseSpace::Mult(reduced_stabilization_rotation_matrix, x, Qx);
+                    TSparseSpace::Mult(reduced_stiffness_matrix, x, Kx);
+                    
+                    double lambda_old = lambda_max_rot;
+                    double numerator = TSparseSpace::Dot(x, Qx);
+                    double denominator = TSparseSpace::Dot(x, Kx);
+                    lambda_max_rot = numerator / denominator;
+                    
+                    double norm = std::sqrt(TSparseSpace::Dot(Qx, Qx));
+                    TSparseSpace::Assign(x, 1.0 / norm, Qx);
+                    
+                    // Convergence check
+                    if (std::abs(lambda_max_rot - lambda_old) < 1e-8) {
+                        break;
+                    }
+                }
+
+                Eigenvaluesrotation.resize(1);
+                Eigenvaluesrotation[0] = lambda_max_rot;
+            }
+            else if (rModelPart.GetProcessInfo()[STABILIZATION_METHOD] == 2)
+            {
+                double stabilization_parameter_rotation = norm_frobenius(reduced_stabilization_rotation_matrix)/norm_frobenius(reduced_stiffness_matrix);
+                Eigenvaluesrotation.resize(1);
+                Eigenvaluesrotation[0] = stabilization_parameter_rotation;
+            }
+            else if (rModelPart.GetProcessInfo()[STABILIZATION_METHOD] == 3)
+            {
+                BuiltinTimer system_solve_time;
+                this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
+                    reduced_stabilization_rotation_matrix,
+                    reduced_stiffness_matrix,
+                    Eigenvaluesrotation,
+                    Eigenvectorsrotation);
+
+                KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
+                << system_solve_time.ElapsedSeconds() << std::endl;
+            }
+            rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_ROTATION_VECTOR] = Eigenvaluesrotation;
+        }
+        else
+        {
+            DenseVectorType Eigenvaluesrotation(1, 0.0);
+            rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_ROTATION_VECTOR] = Eigenvaluesrotation;
+        }
 
         return true;
     }
