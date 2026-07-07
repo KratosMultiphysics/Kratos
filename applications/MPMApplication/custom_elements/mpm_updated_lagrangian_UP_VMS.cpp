@@ -263,7 +263,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateStabilizationVariables(
     const bool is_dynamic = rCurrentProcessInfo.Has(IS_DYNAMIC)
         ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
         : false;
-    if (is_dynamic && !GetProperties().Has(DYNAMIC_VISCOSITY)) {
+    if (is_dynamic) {
         CalculateDynamicStabilizationVariables(rVariables, rCurrentProcessInfo);
     }
 
@@ -738,8 +738,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressureVMS(VectorType&
         for ( unsigned int idime = 0; idime < dimension; idime++ )
         {
             const double momentum_residual = -rVariables.PressureGradient[idime]
-                - rVolumeForce[idime] / rIntegrationWeight
-                - rVariables.DynamicRHS[idime];
+                - rVolumeForce[idime] / rIntegrationWeight;
 
             rRightHandSideVector[index_p] -= rVariables.tau1
                 * volumetric_strain_linearization
@@ -985,13 +984,6 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSid
                     * column_displacement_deviatoric_pressure_gradient_projection(indexj)
                     * rIntegrationWeight;
 
-                rLeftHandSideMatrix(index_p, index_up + k) += rVariables.tau1
-                    * volumetric_strain_linearization
-                    * rVariables.DN_DX(i, k)
-                    * rVariables.DynamicCoefficient
-                    * r_N(0, j)
-                    * rIntegrationWeight;
-
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau2
                     * volumetric_strain_linearization
                     * pressure_compressibility_shape_function
@@ -1084,7 +1076,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
     const bool is_dynamic = rCurrentProcessInfo.Has(IS_DYNAMIC)
         ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
         : false;
-    if (is_dynamic && !GetProperties().Has(DYNAMIC_VISCOSITY)) {
+    if (is_dynamic) {
         this-> CalculateDynamicStabilizationVariables(Variables, rCurrentProcessInfo);
     }
 
