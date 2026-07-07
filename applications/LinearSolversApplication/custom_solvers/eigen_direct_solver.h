@@ -9,6 +9,9 @@
 
 #pragma once
 
+// System includes
+#include <type_traits>
+
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Sparse>
@@ -59,7 +62,9 @@ private:
 
     EigenDirectSolver(const EigenDirectSolver &Other);
 
-    UblasWrapper<typename TSolverType::Scalar> m_a_wrapper;
+    // The wrapper's map type matches what the solver's Compute expects, so the
+    // copy fallback always produces the exact index type the solver needs.
+    UblasWrapper<typename TSolverType::Scalar, typename TSolverType::SparseMatrix> m_a_wrapper;
 
 public:
     KRATOS_CLASS_POINTER_DEFINITION(EigenDirectSolver);
@@ -96,11 +101,33 @@ public:
      */
     void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        m_a_wrapper = UblasWrapper<DataType>(rA);
+        using SolverMatrixType = typename TSolverType::SparseMatrix;
 
-        const auto& a = m_a_wrapper.matrix();
+        // Zero-copy fast path: when the system matrix is already an Eigen sparse
+        // matrix whose storage index matches the solver's (the Eigen backend for
+        // the pure-Eigen solvers), hand the solver a Map over its own CSR arrays
+        // with no index rebuild. This is what makes an Eigen-backend solve cheaper
+        // than uBLAS. Otherwise (uBLAS backend, or an index mismatch such as
+        // MKL/Pardiso which requires int) copy once through UblasWrapper.
+        constexpr bool is_native_eigen = requires (SparseMatrixType& rMatrix) {
+            rMatrix.outerIndexPtr(); rMatrix.innerIndexPtr(); rMatrix.valuePtr();
+            requires std::is_same_v<typename SparseMatrixType::StorageIndex,
+                                    typename SolverMatrixType::StorageIndex>;
+        };
 
-        const bool success = m_solver.Compute(a);
+        bool success;
+        if constexpr (is_native_eigen) {
+            KRATOS_DEBUG_ERROR_IF_NOT(rA.isCompressed())
+                << "The Eigen system matrix must be in compressed (CSR) storage "
+                   "before solving." << std::endl;
+            const Eigen::Map<const SolverMatrixType> a(
+                rA.rows(), rA.cols(), rA.nonZeros(),
+                rA.outerIndexPtr(), rA.innerIndexPtr(), rA.valuePtr());
+            success = m_solver.Compute(a);
+        } else {
+            m_a_wrapper = UblasWrapper<typename TSolverType::Scalar, SolverMatrixType>(rA);
+            success = m_solver.Compute(m_a_wrapper.matrix());
+        }
 
         KRATOS_ERROR_IF(!success) << "Decomposition failed!" << std::endl;
     }

@@ -11,6 +11,9 @@
 #if !defined(KRATOS_EIGENSYSTEM_SOLVER_H_INCLUDED)
 #define KRATOS_EIGENSYSTEM_SOLVER_H_INCLUDED
 
+// System includes
+#include <type_traits>
+
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
@@ -330,7 +333,25 @@ private:
         typedef typename BaseType::VectorRefType VectorRefType;
         typedef typename BaseType::ConstVectorRefType ConstVectorRefType;
 
-        void Compute(MatrixMapType a) override {mSolver.Compute(a);}
+        void Compute(MatrixMapType a) override
+        {
+            // The eigensystem matrices are wrapped as an int-indexed MatrixMapType,
+            // but the wrapped direct solver may track a different storage index
+            // (the pure-Eigen solvers follow the system backend index, which is
+            // long for the Eigen backend). Convert once into the solver's own
+            // matrix type when they differ; this is not a hot path (the matrix was
+            // already copied by UblasWrapper), so the extra conversion is cheap.
+            using SolverMatrix = typename TSolver::SparseMatrix;
+            if constexpr (std::is_same_v<typename MatrixMapType::StorageIndex,
+                                         typename SolverMatrix::StorageIndex>) {
+                mSolver.Compute(a);
+            } else {
+                const SolverMatrix mat = a;
+                mSolver.Compute(Eigen::Map<const SolverMatrix>(
+                    mat.rows(), mat.cols(), mat.nonZeros(),
+                    mat.outerIndexPtr(), mat.innerIndexPtr(), mat.valuePtr()));
+            }
+        }
         void Solve(ConstVectorRefType b, VectorRefType x) override {mSolver.Solve(b, x);}
         private:
             TSolver mSolver;
