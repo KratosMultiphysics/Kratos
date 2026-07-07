@@ -423,6 +423,7 @@ private:
     void CalculateTraction(
         IndexType IntegrationPointIndex,
         array_1d<double, 3>& rTraction,
+        array_1d<double, 2> rShear, 
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
         const PatchType& rPatch);
@@ -438,6 +439,7 @@ private:
         IndexType IntegrationPointIndex,
         Matrix& rFirstVariationTraction,
         Matrix& rFirstVariationStressCovariant,
+        std::vector<array_1d<double, 2>>& rFirstVariationShear,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
         const PatchType& rPatch);
@@ -452,6 +454,7 @@ private:
     void CalculateSecondVariationTraction(
         IndexType IntegrationPointIndex,
         Matrix& rSecondVariationTraction,
+        std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
         const KinematicVariables& rActualKinematic,
         Matrix& rFirstVariationStressCovariant, 
         array_1d<double, 3>& rDisplacementMaster,
