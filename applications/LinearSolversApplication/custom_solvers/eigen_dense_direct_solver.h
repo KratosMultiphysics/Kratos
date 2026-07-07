@@ -7,8 +7,7 @@
 //  Author: Thomas Oberbichler
 */
 
-#if !defined(KRATOS_EIGEN_DENSE_DIRECT_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_DENSE_DIRECT_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 #include <Eigen/Core>
@@ -40,15 +39,15 @@ private:
 public:
     KRATOS_CLASS_POINTER_DEFINITION(EigenDenseDirectSolver);
 
-    typedef DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    using BaseType = DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>;
 
-    typedef typename TSparseSpaceType::MatrixType MatrixType;
+    using MatrixType = typename TSparseSpaceType::MatrixType;
 
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    using VectorType = typename TSparseSpaceType::VectorType;
 
-    typedef typename TSparseSpaceType::DataType DataType;
+    using DataType = typename TSparseSpaceType::DataType;
 
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    using DenseMatrixType = typename TDenseSpaceType::MatrixType;
 
     EigenDenseDirectSolver() {}
 
@@ -186,5 +185,3 @@ inline std::ostream &operator<<(
 }
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_EIGEN_DENSE_DIRECT_SOLVER_H_INCLUDED)

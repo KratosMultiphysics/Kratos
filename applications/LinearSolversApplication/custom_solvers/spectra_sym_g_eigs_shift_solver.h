@@ -7,8 +7,7 @@
 //  Authors: Armin Geiser
 */
 
-#if !defined(KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED)
-#define KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 #include <Eigen/Core>
@@ -18,7 +17,6 @@
 #endif // defined EIGEN_USE_MKL_ALL
 
 // Project includes
-#include "includes/define.h"
 #include "linear_solvers_define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
@@ -41,13 +39,13 @@ class SpectraSymGEigsShiftSolver
   public:
     KRATOS_CLASS_POINTER_DEFINITION(SpectraSymGEigsShiftSolver);
 
-    typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
+    using BaseType = IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>;
 
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+    using SparseMatrixType = typename TSparseSpaceType::MatrixType;
 
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    using VectorType = typename TSparseSpaceType::VectorType;
 
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    using DenseMatrixType = typename TDenseSpaceType::MatrixType;
 
     SpectraSymGEigsShiftSolver(
         Parameters param
@@ -398,5 +396,3 @@ inline std::ostream& operator <<(
 }
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED)

@@ -7,8 +7,7 @@
 //  Author: Thomas Oberbichler
 */
 
-#if !defined(KRATOS_EIGEN_SPARSE_QR_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_SPARSE_QR_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 #include <Eigen/Sparse>
@@ -77,5 +76,3 @@ public:
 };
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_EIGEN_SPARSE_QR_SOLVER_H_INCLUDED)

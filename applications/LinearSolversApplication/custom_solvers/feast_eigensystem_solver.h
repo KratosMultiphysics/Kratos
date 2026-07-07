@@ -7,13 +7,11 @@
 //  Author:  Quirin Aumann
 */
 
-#if !defined(KRATOS_FEAST_EIGENSYSTEM_SOLVER_H_INCLUDED)
-#define KRATOS_FEAST_EIGENSYSTEM_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 #include "includes/ublas_interface.h"
@@ -462,5 +460,3 @@ inline std::ostream& operator <<(
 }
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_FEAST_EIGENSYSTEM_SOLVER_H_INCLUDED)
