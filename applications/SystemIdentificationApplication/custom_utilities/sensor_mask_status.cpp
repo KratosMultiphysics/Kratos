@@ -67,6 +67,19 @@ TensorAdaptor<double>::ContainerPointerType SensorMaskStatus::pGetMaskContainer(
     KRATOS_CATCH("");
 }
 
+Vector SensorMaskStatus::GetSensorStatus() const
+{
+    KRATOS_TRY
+
+    Vector result(GetSensorModelPart().NumberOfNodes());
+    IndexPartition<IndexType>(result.size()).for_each([&](const auto Index) {
+        result[Index] = (GetSensorModelPart().NodesBegin() + Index)->GetValue(SENSOR_STATUS);
+    });
+    return result;
+
+    KRATOS_CATCH("")
+}
+
 void SensorMaskStatus::Update()
 {
     KRATOS_TRY

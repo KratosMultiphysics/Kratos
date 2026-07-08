@@ -84,6 +84,11 @@ public:
     TensorAdaptor<double>::ContainerPointerType pGetMaskContainer() const;
 
     /**
+     * @brief Returns the current sensor status vector
+     */
+    Vector GetSensorStatus() const;
+
+    /**
      * @brief Updates the masks with the corresponding SENSOR_STATUS.
      */
     void Update();
