@@ -1007,17 +1007,6 @@ private:
         return result;
     }
 
-    /// Returns true if (u, v) is strictly inside (open interval) any refinement domain at level >= min_level.
-    bool IsInsideRefinedRegion(double u, double v, SizeType min_level) const
-    {
-        for (const auto& dom : mRefinementDomains)
-            if (dom.Level >= min_level &&
-                u > dom.MinU && u < dom.MaxU &&
-                v > dom.MinV && v < dom.MaxV)
-                return true;
-        return false;
-    }
-
     /// Returns true if the closed cell [u_lo,u_hi]×[v_lo,v_hi] is entirely inside (closed)
     bool IsCellInsideRefinedRegion(
         double u_lo, double u_hi,
