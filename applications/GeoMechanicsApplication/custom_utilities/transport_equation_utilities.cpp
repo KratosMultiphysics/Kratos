@@ -52,13 +52,9 @@ std::vector<double> GeoTransportEquationUtilities::CalculateInverseBiotModuli(
     const auto bulk_modulus_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(rProperties)
                                         ? TINY
                                         : rProperties[BULK_MODULUS_FLUID];
-    std::vector<double> result;
-    result.reserve(rBiotCoefficients.size());
-    for (std::size_t i = 0; i < rBiotCoefficients.size(); ++i) {
-        result.push_back(CalculateInverseBiotModulus(rBiotCoefficients[i], rDegreesOfSaturation[i],
-                                                     DerivativesOfSaturation[i], bulk_modulus_fluid, rProperties));
-    }
-    return result;
+
+    return CalculateInverseBiotModuli(rBiotCoefficients, rDegreesOfSaturation,
+                                      DerivativesOfSaturation, bulk_modulus_fluid, rProperties);
 }
 
 std::vector<double> GeoTransportEquationUtilities::CalculateInverseBiotModuli(
