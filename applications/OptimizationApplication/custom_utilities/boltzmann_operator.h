@@ -18,7 +18,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "tensor_adaptors/tensor_adaptor.h"
+#include "containers/nd_data.h"
 
 // Application includes
 
@@ -42,9 +42,9 @@ public:
 
     double CalculateValue() const;
 
-    TensorAdaptor<double>::Pointer CalculateGradient() const;
+    NDData<double>::Pointer CalculateGradient() const;
 
-    void Update(const TensorAdaptor<double>& rInputTensorAdaptor);
+    void Update(NDData<double>::Pointer pNDData);
 
     ///@}
 private:
@@ -60,7 +60,7 @@ private:
 
     double mExtremeValue;
 
-    TensorAdaptor<double>::Pointer mpTensorAdaptor;
+    NDData<double>::Pointer mpNDData;
 
     ///@}
 };

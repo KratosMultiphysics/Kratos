@@ -32,7 +32,7 @@ class TestBoltzmannOperator(kratos_unittest.TestCase):
         boltzmann_operator = KratosOA.BoltzmannOperator(3.0)
         boltzmann_operator.Update(self.nodal_ta)
         ref_value = boltzmann_operator.CalculateValue()
-        analytical_gradient = boltzmann_operator.CalculateGradient()
+        analytical_gradient = boltzmann_operator.CalculateGradient().to_numpy()
 
         delta = 1e-9
         for i in range(self.nodal_ta.data.shape[0]):
@@ -40,7 +40,7 @@ class TestBoltzmannOperator(kratos_unittest.TestCase):
             boltzmann_operator.Update(self.nodal_ta)
             sensitivity = (boltzmann_operator.CalculateValue() - ref_value) / delta
             self.nodal_ta.data[i] -= delta
-            self.assertAlmostEqual(sensitivity, analytical_gradient.data[i], 5)
+            self.assertAlmostEqual(sensitivity, analytical_gradient[i], 5)
 
 if __name__ == "__main__":
     kratos_unittest.main()

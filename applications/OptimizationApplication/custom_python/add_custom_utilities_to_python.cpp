@@ -138,7 +138,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<const double>(), py::arg("beta"))
         .def("CalculateValue", &BoltzmannOperator::CalculateValue)
         .def("CalculateGradient", &BoltzmannOperator::CalculateGradient)
-        .def("Update", &BoltzmannOperator::Update, py::arg("input_expression"))
+        .def("Update", &BoltzmannOperator::Update, py::arg("input_nd_data"))
+        .def("Update", [](BoltzmannOperator& rSelf, TensorAdaptor<double>::Pointer pTensorAdaptor){ rSelf.Update(pTensorAdaptor->pGetStorage()); }, py::arg("input_tensor_adaptor"))
         ;
 }
 

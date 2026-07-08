@@ -41,19 +41,20 @@ double BoltzmannOperator::CalculateValue() const
     }
 }
 
-TensorAdaptor<double>::Pointer BoltzmannOperator::CalculateGradient() const
+NDData<double>::Pointer BoltzmannOperator::CalculateGradient() const
 {
     KRATOS_TRY
 
-    auto p_result = mpTensorAdaptor->Clone();
+    auto p_result = Kratos::make_shared<NDData<double>>(mpNDData->Shape());
+    auto input_data_view = mpNDData->ViewData();
     auto output_data_view = p_result->ViewData();
     const auto number_of_entities = p_result->Size();
 
     if (mDenominator > std::numeric_limits<double>::epsilon()) {
         const double denominator_square = mDenominator * mDenominator;
 
-        IndexPartition<IndexType>(number_of_entities).for_each([this, &output_data_view, denominator_square](const auto Index) {
-            const double value = output_data_view[Index];
+        IndexPartition<IndexType>(number_of_entities).for_each([this, &output_data_view, &input_data_view, denominator_square](const auto Index) {
+            const double value = input_data_view[Index];
 
             const double exp_beta_x_k = std::exp(this->mBeta * value - this->mExtremeValue);
             const double numerator_gradient = exp_beta_x_k * (1 + this->mBeta * value);
@@ -71,16 +72,16 @@ TensorAdaptor<double>::Pointer BoltzmannOperator::CalculateGradient() const
     KRATOS_CATCH("");
 }
 
-void BoltzmannOperator::Update(const TensorAdaptor<double>& rTensorAdaptor)
+void BoltzmannOperator::Update(NDData<double>::Pointer pNDData)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(rTensorAdaptor.Shape().size() == 1)
-        << "Boltzmann operator can only be used with scalar tensor adaptors [ tensor adaptor = "
-        << rTensorAdaptor << " ].\n";
+    KRATOS_ERROR_IF_NOT(pNDData->Shape().size() == 1)
+        << "Boltzmann operator can only be used with scalar nd data [ nd data = "
+        << *pNDData << " ].\n";
 
-    const auto number_of_entities = rTensorAdaptor.Size();
-    const auto data_view = rTensorAdaptor.ViewData();
+    const auto number_of_entities = pNDData->Size();
+    const auto data_view = pNDData->ViewData();
 
     // this is identified to avoid std::exp giving inf for intermediate values of the summation.
     mExtremeValue = (mBeta > 0 ? std::ranges::max(data_view) : std::ranges::min(data_view)) * this->mBeta;
@@ -91,7 +92,7 @@ void BoltzmannOperator::Update(const TensorAdaptor<double>& rTensorAdaptor)
         return std::make_tuple(value * temp, temp);
     });
 
-    mpTensorAdaptor = rTensorAdaptor.Clone();
+    mpNDData = pNDData;
 
     KRATOS_CATCH("");
 }
