@@ -197,11 +197,6 @@ private:
     [[nodiscard]] static double CalculateInverseBiotModulus(double BiotCoefficient,
                                                             double DegreeOfSaturation,
                                                             double DerivativeOfSaturation,
-                                                            const Properties& rProperties);
-
-    [[nodiscard]] static double CalculateInverseBiotModulus(double BiotCoefficient,
-                                                            double DegreeOfSaturation,
-                                                            double DerivativeOfSaturation,
                                                             double BulkModulusFluid,
                                                             const Properties& rProperties);
 

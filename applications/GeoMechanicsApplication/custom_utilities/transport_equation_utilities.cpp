@@ -52,9 +52,13 @@ std::vector<double> GeoTransportEquationUtilities::CalculateInverseBiotModuli(
     const auto bulk_modulus_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(rProperties)
                                         ? TINY
                                         : rProperties[BULK_MODULUS_FLUID];
-
-    return CalculateInverseBiotModuli(rBiotCoefficients, rDegreesOfSaturation,
-                                      DerivativesOfSaturation, bulk_modulus_fluid, rProperties);
+    std::vector<double> result;
+    result.reserve(rBiotCoefficients.size());
+    for (std::size_t i = 0; i < rBiotCoefficients.size(); ++i) {
+        result.push_back(CalculateInverseBiotModulus(rBiotCoefficients[i], rDegreesOfSaturation[i],
+                                                     DerivativesOfSaturation[i], bulk_modulus_fluid, rProperties));
+    }
+    return result;
 }
 
 std::vector<double> GeoTransportEquationUtilities::CalculateInverseBiotModuli(
@@ -112,19 +116,6 @@ double GeoTransportEquationUtilities::CalculateBiotCoefficient(const Matrix& rCo
     return rProperties.Has(BIOT_COEFFICIENT)
                ? rProperties[BIOT_COEFFICIENT]
                : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProperties[BULK_MODULUS_SOLID];
-}
-
-double GeoTransportEquationUtilities::CalculateInverseBiotModulus(double BiotCoefficient,
-                                                                  double DegreeOfSaturation,
-                                                                  double DerivativeOfSaturation,
-                                                                  const Properties& rProperties)
-{
-    const auto bulk_modulus_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(rProperties)
-                                        ? TINY
-                                        : rProperties[BULK_MODULUS_FLUID];
-
-    return CalculateInverseBiotModulus(BiotCoefficient, DegreeOfSaturation, DerivativeOfSaturation,
-                                       bulk_modulus_fluid, rProperties);
 }
 
 double GeoTransportEquationUtilities::CalculateInverseBiotModulus(double BiotCoefficient,
