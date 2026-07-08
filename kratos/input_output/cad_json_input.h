@@ -606,13 +606,26 @@ private:
         else
             p_local_surface->AddLevel(max_level, rModelPart);
 
+        auto shift_to_nearest_knot = [](double value, const Vector& knots) -> double {
+            KRATOS_ERROR_IF(knots.empty()) << "Knot vector is empty." << std::endl;
+            double nearest = knots[0];
+            double min_dist = std::abs(value - knots[0]);
+            for (SizeType k = 1; k < knots.size(); ++k) {
+                const double dist = std::abs(value - knots[k]);
+                if (dist < min_dist) { min_dist = dist; nearest = knots[k]; }
+            }
+            return nearest;
+        };
+
         for (SizeType i = 0; i < local_ref.size(); ++i) {
             const Parameters entry = local_ref[i];
             const SizeType level  = entry["refinement_level"].GetInt();
-            const double   min_u  = entry["refined_region"]["u_range"][0].GetDouble();
-            const double   max_u  = entry["refined_region"]["u_range"][1].GetDouble();
-            const double   min_v  = entry["refined_region"]["v_range"][0].GetDouble();
-            const double   max_v  = entry["refined_region"]["v_range"][1].GetDouble();
+            const Vector& knots_u = p_local_surface->Levels()[level - 1].KnotsU;
+            const Vector& knots_v = p_local_surface->Levels()[level - 1].KnotsV;
+            const double min_u = shift_to_nearest_knot(entry["refined_region"]["u_range"][0].GetDouble(), knots_u);
+            const double max_u = shift_to_nearest_knot(entry["refined_region"]["u_range"][1].GetDouble(), knots_u);
+            const double min_v = shift_to_nearest_knot(entry["refined_region"]["v_range"][0].GetDouble(), knots_v);
+            const double max_v = shift_to_nearest_knot(entry["refined_region"]["v_range"][1].GetDouble(), knots_v);
             p_local_surface->AddRefinementDomain(level, min_u, max_u, min_v, max_v);
         }
 
