@@ -409,14 +409,14 @@ public:
     }
 
     /// Returns the finest level whose refinement domain contains (u, v), or 0 if none.
-    SizeType ActiveLevelAtPoint(double u, double v) const
+    SizeType ActiveLevelAtPoint(double u, double v, double eps = 1e-10) const
     {
         SizeType active_level = 0;
         for (SizeType l = 1; l < mLevels.size(); ++l) {
             for (const auto& dom : mRefinementDomains) {
                 if (dom.Level == l &&
-                    u >= dom.MinU && u <= dom.MaxU &&
-                    v >= dom.MinV && v <= dom.MaxV) {
+                    u >= dom.MinU - eps && u <= dom.MaxU + eps &&
+                    v >= dom.MinV - eps && v <= dom.MaxV + eps) {
                     active_level = l;
                     break;
                 }
@@ -1018,6 +1018,21 @@ private:
         return false;
     }
 
+    /// Returns true if the closed cell [u_lo,u_hi]×[v_lo,v_hi] is entirely inside (closed)
+    bool IsCellInsideRefinedRegion(
+        double u_lo, double u_hi,
+        double v_lo, double v_hi,
+        SizeType min_level,
+        double eps = 1e-10) const
+    {
+        for (const auto& dom : mRefinementDomains)
+            if (dom.Level >= min_level &&
+                u_lo >= dom.MinU - eps && u_hi <= dom.MaxU + eps &&
+                v_lo >= dom.MinV - eps && v_hi <= dom.MaxV + eps)
+                return true;
+        return false;
+    }
+
     /**
      * @brief Builds multi-level truncation coefficient lists for active coarse CPs.
      *
@@ -1158,11 +1173,10 @@ private:
                             if (fine_level.KnotsV[k_v + 1] - fine_level.KnotsV[k_v] < 1e-10) continue;
                             if (fine_level.KnotsV[k_v] < fine_supp_min_v - 1e-10) continue;
                             if (fine_level.KnotsV[k_v + 1] > fine_supp_max_v + 1e-10) continue;
-                            const double cell_mid_u =
-                                0.5 * (fine_level.KnotsU[k_u] + fine_level.KnotsU[k_u + 1]);
-                            const double cell_mid_v =
-                                0.5 * (fine_level.KnotsV[k_v] + fine_level.KnotsV[k_v + 1]);
-                            if (!IsInsideRefinedRegion(cell_mid_u, cell_mid_v, l + 1))
+                            if (!IsCellInsideRefinedRegion(
+                                    fine_level.KnotsU[k_u], fine_level.KnotsU[k_u + 1],
+                                    fine_level.KnotsV[k_v], fine_level.KnotsV[k_v + 1],
+                                    l + 1))
                                 support_in_omega = false;
                         }
                     }
@@ -1194,11 +1208,10 @@ private:
                             if (coarse_level.KnotsV[k_v + 1] - coarse_level.KnotsV[k_v] < 1e-10) continue;
                             if (coarse_level.KnotsV[k_v] < support_min_v - 1e-10) continue;
                             if (coarse_level.KnotsV[k_v + 1] > support_max_v + 1e-10) continue;
-                            const double cell_mid_u =
-                                0.5 * (coarse_level.KnotsU[k_u] + coarse_level.KnotsU[k_u + 1]);
-                            const double cell_mid_v =
-                                0.5 * (coarse_level.KnotsV[k_v] + coarse_level.KnotsV[k_v + 1]);
-                            if (!IsInsideRefinedRegion(cell_mid_u, cell_mid_v, l + 1))
+                            if (!IsCellInsideRefinedRegion(
+                                    coarse_level.KnotsU[k_u], coarse_level.KnotsU[k_u + 1],
+                                    coarse_level.KnotsV[k_v], coarse_level.KnotsV[k_v + 1],
+                                    l + 1))
                                 all_cells_covered = false;
                         }
                     }
