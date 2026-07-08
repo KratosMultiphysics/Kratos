@@ -16,6 +16,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 #include <algorithm>
+#include <mutex>
 
 using namespace std::string_literals;
 
@@ -299,6 +300,9 @@ bool ConstitutiveLawUtilities::IsUndrained(const Properties& rProperties)
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
 {
+    static std::mutex     replace_mutex;
+    const std::lock_guard lock(replace_mutex);
+
     const auto fully_coupled_drainage_type     = "FULLY_COUPLED"s;
     const auto constant_pw_field_drainage_type = "CONSTANT_PW_FIELD"s;
 
@@ -311,7 +315,7 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
                 << "Soon GEO_DRAINAGE_TYPE will be a mandatory material input. "
                    "Currently, the default value is "
                 << fully_coupled_drainage_type << "." << std::endl;
-            rProperties[GEO_DRAINAGE_TYPE] = fully_coupled_drainage_type;
+            rProperties.SetValue(GEO_DRAINAGE_TYPE, fully_coupled_drainage_type);
         }
         return;
     }
@@ -323,8 +327,8 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
         << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
            "GEO_DRAINAGE_TYPE"
         << std::endl;
-    rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? constant_pw_field_drainage_type
-                                                                   : fully_coupled_drainage_type;
+    rProperties.SetValue(GEO_DRAINAGE_TYPE, rProperties[IGNORE_UNDRAINED] ? constant_pw_field_drainage_type
+                                                                          : fully_coupled_drainage_type);
     rProperties.Erase(IGNORE_UNDRAINED);
 }
 
