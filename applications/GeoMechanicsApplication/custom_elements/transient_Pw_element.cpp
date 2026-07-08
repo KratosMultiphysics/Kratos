@@ -14,7 +14,6 @@
 #include "custom_elements/transient_Pw_element.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/check_utilities.hpp"
-#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
@@ -342,9 +341,9 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     std::vector<double> biot_coefficients(number_of_integration_points, r_properties[BIOT_COEFFICIENT]);
     const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
     const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
-    const auto bulk_modulus_fluid        = r_properties[BULK_MODULUS_FLUID];
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, bulk_modulus_fluid, r_properties);
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation,
+        r_properties[BULK_MODULUS_FLUID], r_properties);
 
     // Loop over integration points
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {

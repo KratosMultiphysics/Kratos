@@ -68,15 +68,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_GivesExpectedResult_WithEx
     Properties properties;
     properties[POROSITY]                = 0.5;
     properties[BULK_MODULUS_SOLID]      = 1.0e9;
-    const auto biot_coefficient         = std::vector<double>{1.0};
-    const auto degree_of_saturation     = std::vector<double>{0.3};
-    const auto derivative_of_saturation = std::vector<double>{0.2};
+    const auto biot_coefficient         = std::vector<double>{1.0, 1.0};
+    const auto degree_of_saturation     = std::vector<double>{0.3, 0.3};
+    const auto derivative_of_saturation = std::vector<double>{0.2, 0.2};
 
     constexpr auto bulk_modulus_fluid = 2.0e6;
     constexpr auto expected_value     = -0.09999992485;
     const auto     result             = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficient, degree_of_saturation, derivative_of_saturation, bulk_modulus_fluid, properties)[0];
-    KRATOS_EXPECT_DOUBLE_EQ(result, expected_value);
+        biot_coefficient, degree_of_saturation, derivative_of_saturation, bulk_modulus_fluid, properties);
+    ASSERT_EQ(result.size(), 2);
+    for (const auto& r : result) {
+        KRATOS_EXPECT_DOUBLE_EQ(r, expected_value);
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ExplicitBulkModulusFluid_WithImplicitBulkModulusFluid,
@@ -87,21 +90,27 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ExplicitBulkModulusFluid_W
     properties[POROSITY]                = 0.5;
     properties[BULK_MODULUS_SOLID]      = 1.0e9;
     properties[BULK_MODULUS_FLUID]      = 2.0e6;
-    const auto biot_coefficient         = std::vector<double>{1.0};
-    const auto degree_of_saturation     = std::vector<double>{0.3};
-    const auto derivative_of_saturation = std::vector<double>{0.2};
+    const auto biot_coefficient         = std::vector<double>{1.0, 1.0};
+    const auto degree_of_saturation     = std::vector<double>{0.3, 0.3};
+    const auto derivative_of_saturation = std::vector<double>{0.2, 0.2};
 
     const auto result_using_constant_pw = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficient, degree_of_saturation, derivative_of_saturation, properties)[0];
+        biot_coefficient, degree_of_saturation, derivative_of_saturation, properties);
 
     properties[GEO_DRAINAGE_TYPE] = "FULLY_COUPLED"s;
     const auto result_using_fully_coupled = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficient, degree_of_saturation, derivative_of_saturation, properties)[0];
+        biot_coefficient, degree_of_saturation, derivative_of_saturation, properties);
 
     constexpr auto expected_value_using_constant_pw = 1e10;
-    KRATOS_EXPECT_GT(result_using_constant_pw, expected_value_using_constant_pw);
+    ASSERT_EQ(result_using_constant_pw.size(), 2);
+    for (const auto& r : result_using_constant_pw) {
+        KRATOS_EXPECT_GT(r, expected_value_using_constant_pw);
+    }
     constexpr auto expected_value_using_fully_coupled = -0.09999992485;
-    KRATOS_EXPECT_DOUBLE_EQ(result_using_fully_coupled, expected_value_using_fully_coupled);
+    ASSERT_EQ(result_using_fully_coupled.size(), 2);
+    for (const auto& r : result_using_fully_coupled) {
+        KRATOS_EXPECT_DOUBLE_EQ(r, expected_value_using_fully_coupled);
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_DoesThrow_ForEmptyProperties, KratosGeoMechanicsFastSuiteWithoutKernel)
