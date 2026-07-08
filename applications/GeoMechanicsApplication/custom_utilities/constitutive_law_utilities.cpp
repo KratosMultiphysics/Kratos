@@ -16,7 +16,6 @@
 #include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 #include <algorithm>
-#include <mutex>
 
 using namespace std::string_literals;
 
@@ -300,9 +299,6 @@ bool ConstitutiveLawUtilities::IsUndrained(const Properties& rProperties)
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
 {
-    static std::mutex     replace_mutex;
-    const std::lock_guard lock(replace_mutex);
-
     const auto fully_coupled_drainage_type     = "FULLY_COUPLED"s;
     const auto constant_pw_field_drainage_type = "CONSTANT_PW_FIELD"s;
 
