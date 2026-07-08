@@ -352,10 +352,15 @@ public:
     void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
         if (mpLocalRefinedSurface != nullptr) {
-            // Use fine THB knot spans instead of coarse background NURBS spans
+            const double t_mid = 0.5 * (mCurveNurbsInterval.GetT0() + mCurveNurbsInterval.GetT1());
+            CoordinatesArrayType param_mid = ZeroVector(3);
+            param_mid[0] = t_mid;
+            CoordinatesArrayType uv_mid = ZeroVector(3);
+            mpCurveOnSurface->pGetCurve()->GlobalCoordinates(uv_mid, param_mid);
+
             std::vector<double> surface_spans_u, surface_spans_v;
-            mpLocalRefinedSurface->SpansLocalSpace(surface_spans_u, 0);
-            mpLocalRefinedSurface->SpansLocalSpace(surface_spans_v, 1);
+            mpLocalRefinedSurface->SpansLocalSpace(surface_spans_u, 0, uv_mid[1]); // v-position filters u-spans
+            mpLocalRefinedSurface->SpansLocalSpace(surface_spans_v, 1, uv_mid[0]); // u-position filters v-spans
             CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
                 rSpans,
                 *(mpCurveOnSurface->pGetCurve()),

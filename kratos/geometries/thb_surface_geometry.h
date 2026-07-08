@@ -565,6 +565,59 @@ public:
             rSpans.end());
     }
 
+    void SpansLocalSpace(
+        std::vector<double>& rSpans,
+        IndexType DirectionIndex,
+        double PositionOtherDirection) const override
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::SpansLocalSpace: no levels defined." << std::endl;
+
+        rSpans.clear();
+
+        const double tol = 1e-10;
+
+        for (SizeType l = 0; l < mLevels.size(); ++l) {
+            const auto spans_u = KnotSpanIntervals(mLevels[l].KnotsU);
+            const auto spans_v = KnotSpanIntervals(mLevels[l].KnotsV);
+
+            for (const auto& span_u : spans_u) {
+                for (const auto& span_v : spans_v) {
+                    const double mid_u = 0.5 * (span_u.GetT0() + span_u.GetT1());
+                    const double mid_v = 0.5 * (span_v.GetT0() + span_v.GetT1());
+
+                    const bool in_this_level =
+                        (l == 0) || IsInsideDomain(mid_u, mid_v, l);
+                    const bool in_next_level =
+                        (l + 1 < mLevels.size()) && IsInsideDomain(mid_u, mid_v, l + 1);
+
+                    if (!in_this_level || in_next_level)
+                        continue;
+
+                    if (DirectionIndex == 0) {
+                        if (PositionOtherDirection < span_v.GetT0() - tol ||
+                            PositionOtherDirection > span_v.GetT1() + tol)
+                            continue;
+                        rSpans.push_back(span_u.GetT0());
+                        rSpans.push_back(span_u.GetT1());
+                    } else {
+                        if (PositionOtherDirection < span_u.GetT0() - tol ||
+                            PositionOtherDirection > span_u.GetT1() + tol)
+                            continue;
+                        rSpans.push_back(span_v.GetT0());
+                        rSpans.push_back(span_v.GetT1());
+                    }
+                }
+            }
+        }
+
+        std::sort(rSpans.begin(), rSpans.end());
+        rSpans.erase(
+            std::unique(rSpans.begin(), rSpans.end(),
+                [](double a, double b) { return std::abs(b - a) < 1e-10; }),
+            rSpans.end());
+    }
+
     std::vector<std::array<double,4>> GetActiveCells() const
     {
         KRATOS_ERROR_IF(mLevels.empty())

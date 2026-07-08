@@ -363,6 +363,14 @@ public:
         mpLocalRefinedSurface->SpansLocalSpace(rSpans, LocalDirectionIndex);
     }
 
+    void SpansLocalSpace(
+        std::vector<double>& rSpans,
+        IndexType DirectionIndex,
+        double PositionOtherDirection) const override
+    {
+        mpLocalRefinedSurface->SpansLocalSpace(rSpans, DirectionIndex, PositionOtherDirection);
+    }
+
     std::vector<double> KnotsU() const
     {
         std::vector<double> spans;

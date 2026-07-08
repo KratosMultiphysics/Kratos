@@ -2040,6 +2040,14 @@ public:
             << *this << std::endl;
     }
 
+    virtual void SpansLocalSpace(
+        std::vector<double>& rSpans,
+        IndexType LocalDirectionIndex,
+        double PositionOtherDirection) const
+    {
+        SpansLocalSpace(rSpans, LocalDirectionIndex);
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
