@@ -302,6 +302,7 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings)
     mMaxIterationsNumber = Settings["max_iteration"].GetInt();
     mAMGCLParameters.put("solver.tol", mTolerance);
     mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
+    mAMGCLParameters.put("solver.verbose", mVerbosity >= 1);
 
     mFallbackToGMRES = false;
     this->SetIterativeSolverType(Settings["krylov_type"].GetString());
