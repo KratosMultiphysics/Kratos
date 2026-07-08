@@ -6,9 +6,6 @@ from KratosMultiphysics.KratosUnittest import WorkFolderScope
 
 # --- STD Imports ---
 import pathlib
-import contextlib
-import os
-from typing import Generator
 import math
 
 

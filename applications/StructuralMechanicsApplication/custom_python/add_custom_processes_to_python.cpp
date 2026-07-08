@@ -113,7 +113,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<SetSphericalLocalAxesProcess, SetSphericalLocalAxesProcess::Pointer, Process>(m,"SetSphericalLocalAxesProcess")
         .def(py::init<ModelPart&, Parameters>());
-        
+
     py::class_<SetAutomatedInitialVariableProcess, SetAutomatedInitialVariableProcess::Pointer, Process>(m,"SetAutomatedInitialVariableProcess")
     .def(py::init<ModelPart&, Parameters>());
 }
