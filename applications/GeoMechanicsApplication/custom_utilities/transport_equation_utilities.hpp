@@ -174,6 +174,12 @@ public:
                                                                         const std::vector<double>& DerivativesOfSaturation,
                                                                         const Properties& rProperties);
 
+    [[nodiscard]] static std::vector<double> CalculateInverseBiotModuli(const std::vector<double>& rBiotCoefficients,
+                                                                        const std::vector<double>& rDegreesOfSaturation,
+                                                                        const std::vector<double>& DerivativesOfSaturation,
+                                                                        double BulkModulusFluid,
+                                                                        const Properties& rProperties);
+
     [[nodiscard]] static double CalculateBulkModulus(const Matrix& rConstitutiveMatrix);
 
     [[nodiscard]] static std::vector<double> CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices,
@@ -191,6 +197,12 @@ private:
     [[nodiscard]] static double CalculateInverseBiotModulus(double BiotCoefficient,
                                                             double DegreeOfSaturation,
                                                             double DerivativeOfSaturation,
+                                                            const Properties& rProperties);
+
+    [[nodiscard]] static double CalculateInverseBiotModulus(double BiotCoefficient,
+                                                            double DegreeOfSaturation,
+                                                            double DerivativeOfSaturation,
+                                                            double BulkModulusFluid,
                                                             const Properties& rProperties);
 
     [[nodiscard]] static double CalculatePermeabilityUpdateFactor(const Vector&     rStrainVector,
