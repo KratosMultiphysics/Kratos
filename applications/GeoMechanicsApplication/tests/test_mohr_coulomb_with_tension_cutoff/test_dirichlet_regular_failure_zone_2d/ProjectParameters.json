@@ -26,7 +26,7 @@
         "compute_reactions":                  true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Backward_Euler",
-        "reset_displacements":                false,
+        "reset_totals":                       false,
         "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "residual_criterion",
         "residual_relative_tolerance":        1.0E-4,
@@ -36,7 +36,6 @@
         "number_cycles":                      10,
         "reduction_factor":                   1.0,
         "increase_factor":                    1.0,
-        "calculate_reactions":                true,
         "linear_solver_settings":             {
               "solver_type"                    : "LinearSolversApplication.sparse_lu",
               "scaling": true
@@ -67,7 +66,7 @@
                         "node_output":         true,
                         "skin_output":         false,
                         "nodal_results":       ["DISPLACEMENT","REACTION"],
-                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR", "ENGINEERING_STRAIN_TENSOR","GEO_PLASTICITY_STATUS"]
+                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR", "ENGINEERING_STRAIN_TENSOR","TOTAL_STRESS_TENSOR","GEO_PLASTICITY_STATUS"]
                     }
                 }
             }

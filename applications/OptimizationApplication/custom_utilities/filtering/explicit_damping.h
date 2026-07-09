@@ -20,7 +20,6 @@
 #include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
-#include "entity_point.h"
 
 namespace Kratos
 {
@@ -31,15 +30,13 @@ namespace Kratos
 template<class TContainerType>
 class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitDamping
 {
-  public:
+public:
     ///@name Type definitions
     ///@{
 
     using EntityType = typename TContainerType::value_type;
 
-    using EntityPointType = EntityPoint<EntityType>;
-
-    using EntityPointVector = std::vector<typename EntityPointType::Pointer>;
+    using EntityPointVector = std::vector<typename EntityType::Pointer>;
 
     /// Pointer definition of ContainerMapper
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitDamping);
