@@ -11,6 +11,7 @@
 //
 
 // Project includes
+#include "spaces/default_spaces.h"
 
 // Application includes
 #include "distance_smoothing_process.h"
@@ -18,7 +19,7 @@
 namespace Kratos
 {
 
-typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
+typedef TDefaultSparseSpace<double> SparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 

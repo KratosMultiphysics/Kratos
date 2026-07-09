@@ -22,6 +22,7 @@
 #include "custom_utilities/compute_div_sigma_utility.h"
 
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // builder_and_solvers
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
@@ -60,7 +61,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;

@@ -44,6 +44,7 @@
 #include "custom_processes/two_fluid_navier_stokes_fractional_convection_process.h"
 
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
@@ -60,7 +61,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 

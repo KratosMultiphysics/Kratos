@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_utilities/fluid_auxiliary_utilities.h"
@@ -51,7 +52,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
