@@ -132,29 +132,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def( "GetIterationsNumber",&LinearSolverType::GetIterationsNumber)
     ;
 
-#ifdef KRATOS_USE_EIGEN_BACKEND
-    // With the Eigen backend the default-space "LinearSolver" above is
-    // Eigen-typed. The uBLAS-space LinearSolver is additionally exposed
-    // because applications register solvers bound to the uBLAS types (e.g.
-    // the eigensystem solvers of the LinearSolversApplication) that need it
-    // as python base class.
-    using UblasLinearSolverType = LinearSolver<TUblasSparseSpace<double>, TUblasDenseSpace<double>>;
-    bool (UblasLinearSolverType::*pointer_to_ublas_solve)(UblasLinearSolverType::SparseMatrixType& rA, UblasLinearSolverType::VectorType& rX, UblasLinearSolverType::VectorType& rB) = &UblasLinearSolverType::Solve;
-    bool (UblasLinearSolverType::*pointer_to_ublas_multi_solve)(UblasLinearSolverType::SparseMatrixType& rA, UblasLinearSolverType::DenseMatrixType& rX, UblasLinearSolverType::DenseMatrixType& rB) = &UblasLinearSolverType::Solve;
-    void (UblasLinearSolverType::*pointer_to_ublas_solve_eigen)(UblasLinearSolverType::SparseMatrixType& rK, UblasLinearSolverType::SparseMatrixType& rM, UblasLinearSolverType::DenseVectorType& Eigenvalues, UblasLinearSolverType::DenseMatrixType& Eigenvectors) = &UblasLinearSolverType::Solve;
-
-    py::class_<UblasLinearSolverType, UblasLinearSolverType::Pointer>(m,"UblasLinearSolver")
-    .def(py::init< >() )
-    .def("Initialize",&UblasLinearSolverType::Initialize)
-    .def("Solve",pointer_to_ublas_solve)
-    .def("Solve",pointer_to_ublas_solve_eigen)
-    .def("Solve",pointer_to_ublas_multi_solve)
-    .def("Clear",&UblasLinearSolverType::Clear)
-    .def("__str__", PrintObject<UblasLinearSolverType>)
-    .def( "GetIterationsNumber",&UblasLinearSolverType::GetIterationsNumber)
-    ;
-#endif
-
     py::class_<ComplexLinearSolverType, ComplexLinearSolverType::Pointer>(m,"ComplexLinearSolver")
     .def(py::init< >() )
     .def("Initialize",&ComplexLinearSolverType::Initialize)

@@ -513,16 +513,11 @@ namespace Kratos:: Python
         .def("SetConstantConstraints", &ResidualBasedBlockBuilderAndSolverType::SetConstantConstraints)
         ;
 
-#ifndef KRATOS_USE_EIGEN_BACKEND
-        // The Lagrange-multiplier block builder relies on uBLAS-only sparse
-        // construction (push_back, AssembleSparseMatrixByBlocks), so it is not
-        // yet available with the Eigen sparse backend.
         typedef ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType;
         py::class_< ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType, ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier")
         .def(py::init< LinearSolverType::Pointer > ())
         .def(py::init< LinearSolverType::Pointer, Parameters > ())
         ;
-#endif
 
 #ifndef KRATOS_USE_EIGEN_BACKEND
         // PMultigridBuilderAndSolver is explicitly instantiated for the uBLAS
@@ -547,9 +542,10 @@ namespace Kratos:: Python
         //********************************************************************
         //********************************************************************
 
-        // NOTE: bound to the actual uBLAS space in every backend mode, so that
-        // scripts operating on uBLAS containers keep working when the default
-        // backend is Eigen
+#ifndef KRATOS_USE_EIGEN_BACKEND
+        // The uBLAS-real space interface exists only under the ublas backend:
+        // the two linear-algebra backends are mutually exclusive. Scripts
+        // should use the backend-agnostic SparseSpace alias below.
         using UblasSparseSpaceInterfaceType = TUblasSparseSpace<double>;
         auto sparse_space_binder = CreateSpaceInterface< UblasSparseSpaceInterfaceType >(m,"UblasSparseSpace");
         sparse_space_binder.def("TwoNorm", TwoNorm<UblasSparseSpaceInterfaceType>);
@@ -563,6 +559,7 @@ namespace Kratos:: Python
         // Information functions
         sparse_space_binder.def("IsDistributed", &UblasSparseSpaceInterfaceType::IsDistributed);
         sparse_space_binder.def("FastestDirectSolverList", &UblasSparseSpaceInterfaceType::FastestDirectSolverList);
+#endif // !KRATOS_USE_EIGEN_BACKEND
 
 #ifdef KRATOS_USE_EIGEN_BACKEND
         // The default (Eigen) sparse space used by the strategies

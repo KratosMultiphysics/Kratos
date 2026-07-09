@@ -133,6 +133,11 @@ namespace Kratos::Python
         auto compressed_matrix_binder = CreateMatrixInterface< CompressedMatrix >(m,"CompressedMatrix");
         compressed_matrix_binder.def(py::init<const CompressedMatrix::size_type, const CompressedMatrix::size_type>());
         compressed_matrix_binder.def(py::init<const CompressedMatrix& >());
+        // Finalize the storage after building the matrix by element insertion.
+        // For uBLAS this completes the row-pointer array; the Eigen counterpart
+        // re-compresses the storage. Backend-agnostic scripts building a
+        // SparseMatrix by __setitem__ must call this before using the matrix.
+        compressed_matrix_binder.def("Compress", [](CompressedMatrix& rA){ rA.complete_index1_data(); });
         compressed_matrix_binder.def("value_data", [](const CompressedMatrix& rA) ->  std::vector<double>
                                                     {return std::vector<double>(
                                                         rA.value_data().begin(),
@@ -155,6 +160,11 @@ namespace Kratos::Python
         using EigenSparseMatrixType = EigenCompressedMatrix<double>;
         auto eigen_compressed_matrix_binder = CreateMatrixInterface< EigenSparseMatrixType >(m,"EigenCompressedMatrix");
         eigen_compressed_matrix_binder.def(py::init<const EigenSparseMatrixType::size_type, const EigenSparseMatrixType::size_type>());
+        eigen_compressed_matrix_binder.def(py::init<const EigenSparseMatrixType&>());
+        // Element insertion through __setitem__ (coeffRef) leaves the Eigen
+        // matrix in uncompressed mode; the CSR-array accessors and the solvers
+        // require compressed storage, so scripts must call this after building.
+        eigen_compressed_matrix_binder.def("Compress", [](EigenSparseMatrixType& rA){ rA.makeCompressed(); });
         eigen_compressed_matrix_binder.def("value_data", [](const EigenSparseMatrixType& rA) ->  std::vector<double>
                                                     {return std::vector<double>(
                                                         rA.value_data().begin(),
@@ -233,6 +243,21 @@ namespace Kratos::Python
         cplx_compressed_matrix_binder.def(py::init< const ComplexCompressedMatrix::size_type, const ComplexCompressedMatrix::size_type >());
         cplx_compressed_matrix_binder.def(py::init< const CompressedMatrix& >());
         cplx_compressed_matrix_binder.def(py::init< const ComplexCompressedMatrix& >());
+#ifdef KRATOS_USE_EIGEN_BACKEND
+        // The complex sparse system stays uBLAS in every backend, so provide
+        // the same real->complex container conversion for the (real) Eigen
+        // backend matrix that the uBLAS pair has.
+        cplx_compressed_matrix_binder.def(py::init([](const EigenCompressedMatrix<double>& rA){
+            ComplexCompressedMatrix result(rA.size1(), rA.size2(), rA.nnz());
+            const auto row_ptr = rA.index1_data();
+            const auto col_ptr = rA.index2_data();
+            const auto val_ptr = rA.value_data();
+            for (std::size_t i = 0; i < rA.size1(); ++i)
+                for (auto k = row_ptr[i]; k < row_ptr[i + 1]; ++k)
+                    result.push_back(i, col_ptr[k], std::complex<double>(val_ptr[k], 0.0));
+            return result;
+        }));
+#endif
         cplx_compressed_matrix_binder.def("value_data", [](const ComplexCompressedMatrix& rA) ->  std::vector<std::complex<double>>
                                                     {return std::vector<std::complex<double>>(
                                                         rA.value_data().begin(),
