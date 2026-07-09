@@ -143,6 +143,27 @@ void KratosLinearSolversApplication::Register()
         TUblasSparseSpace<double>,
         TUblasDenseSpace<double>>>::Add("mkl_ilut", mkl_ilut_factory);
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    // Register the MKL smoothers also against the default (eigen) space, so the
+    // python-exposed LinearSolverFactory can construct them under this backend.
+    // The uBLAS-space registrations above stay in place for code that builds
+    // uBLAS-space solvers directly. (Under the ublas backend the default space
+    // IS the uBLAS space, so this second registration only exists here.)
+    static auto mkl_ilu0_default_factory = StandardLinearSolverFactory<
+        TDefaultSparseSpace<double>,
+        TDefaultDenseSpace<double>,
+        MKLILU0Smoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>
+    >();
+    KRATOS_REGISTER_LINEAR_SOLVER("mkl_ilu0", mkl_ilu0_default_factory);
+
+    static auto mkl_ilut_default_factory = StandardLinearSolverFactory<
+        TDefaultSparseSpace<double>,
+        TDefaultDenseSpace<double>,
+        MKLILUTSmoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>
+    >();
+    KRATOS_REGISTER_LINEAR_SOLVER("mkl_ilut", mkl_ilut_default_factory);
+#endif // KRATOS_USE_EIGEN_BACKEND
+
 #endif // defined USE_EIGEN_MKL
 
 #ifdef KRATOS_USE_EIGEN_SUITESPARSE
