@@ -327,3 +327,14 @@ class DEMPropertiesMeasureUtility:
             return 2 * total_contact_number / total_particle_number
         else:
             raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+        
+    def MeasureGlobalFabricTensor(self):
+        if self.DEM_parameters["ContactMeshOption"].GetBool():
+            measured_fabric_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateGlobalFabricTensor(self.contact_model_part)
+            measured_fabric_tensor = np.array(measured_fabric_tensor)
+            deviatoric_tensor = 15/2 * (measured_fabric_tensor - 1/3 * np.eye(3)) 
+            second_invariant_of_deviatoric_tensor = (0.5 * np.sum(deviatoric_tensor * deviatoric_tensor))**0.5
+            eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
+            return eigenvalues, second_invariant_of_deviatoric_tensor, measured_fabric_tensor
+        else:
+            raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')

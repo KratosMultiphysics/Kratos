@@ -251,6 +251,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CalculateTotalStressTensorWithinSphere", &ContactElementGlobalPhysicsCalculator::CalculateTotalStressTensorWithinSphere)
         .def("CalculateTotalStressTensorWithinCubic", &ContactElementGlobalPhysicsCalculator::CalculateTotalStressTensorWithinCubic)
         .def("CalculateFabricTensorWithinSphere", &ContactElementGlobalPhysicsCalculator::CalculateFabricTensorWithinSphere)
+        .def("CalculateGlobalFabricTensor", &ContactElementGlobalPhysicsCalculator::CalculateGlobalFabricTensor)
         .def("CalculateAveragedCoordinationNumberWithinSphere", &ContactElementGlobalPhysicsCalculator::CalculateAveragedCoordinationNumberWithinSphere)
         .def("CalculateUnbalancedForceWithinSphere", &ContactElementGlobalPhysicsCalculator::CalculateUnbalancedForceWithinSphere)
         ;

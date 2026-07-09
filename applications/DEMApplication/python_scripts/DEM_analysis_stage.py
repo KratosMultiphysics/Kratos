@@ -912,6 +912,9 @@ class DEMAnalysisStage(AnalysisStage):
     
     def MeasureGlobalMeanCoordinationNumber(self):
         return self.DEMPropertiesMeasureUtility.MeasureGlobalMeanCoordinationNumber()
+    
+    def MeasureGlobalFabricTensor(self):
+        return self.DEMPropertiesMeasureUtility.MeasureGlobalFabricTensor()
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:
