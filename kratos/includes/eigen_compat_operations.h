@@ -90,6 +90,16 @@ inline auto trans(const Eigen::MatrixBase<TDerived>& rM)
     return rM.transpose();
 }
 
+/// Transpose of a sparse matrix — e.g. for 0.5 * (K + trans(K)) symmetrization
+/// of a system matrix. Unlike the dense overload this MATERIALIZES the result
+/// (one O(nnz) copy): Eigen's lazy sparse transpose flips the storage order,
+/// and sparse binary operations require both sides to share the same order.
+template<class TDerived>
+inline typename TDerived::PlainObject trans(const Eigen::SparseMatrixBase<TDerived>& rM)
+{
+    return rM.transpose();
+}
+
 /// 1-norm.
 template<class TDerived>
 inline auto norm_1(const Eigen::MatrixBase<TDerived>& rX)
