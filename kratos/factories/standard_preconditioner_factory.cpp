@@ -58,10 +58,8 @@ namespace Kratos
 
     void RegisterPreconditioners()
     {
-        detail::RegisterPreconditionersForSpace<TUblasSparseSpace<double>, TUblasDenseSpace<double>>();
-#ifdef KRATOS_USE_EIGEN_BACKEND
-        // The default (Eigen) sparse space additionally gets its own registrations
+        // The real space follows the configure-time selected linear-algebra
+        // backend exclusively.
         detail::RegisterPreconditionersForSpace<TDefaultSparseSpace<double>, TDefaultDenseSpace<double>>();
-#endif
     };
 } // Namespace Kratos

@@ -157,15 +157,9 @@ typedef DefaultLocalSpaceType LocalSparseSpaceType;
 
 typedef PreconditionerFactory<SparseSpaceType, LocalSparseSpaceType> PreconditionerFactoryType;
 
+// Only the default (backend-selected) space is instantiated: the two
+// linear-algebra backends are mutually exclusive for the real sparse spaces.
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<PreconditionerFactoryType>;
-// The uBLAS double precision variant is always explicitly instantiated in
-// kratos_components.cpp (as RealSparseSpace/RealDenseSpace), regardless of
-// the configured default backend, so applications hard-coding uBLAS types
-// can safely import it.
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<PreconditionerFactory<
-    TUblasSparseSpace<double>,
-    TUblasDenseSpace<double>
->>;
 
 #ifdef KRATOS_REGISTER_PRECONDITIONER
 #undef KRATOS_REGISTER_PRECONDITIONER

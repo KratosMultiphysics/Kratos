@@ -160,18 +160,12 @@ typedef DefaultLocalSpaceType LocalSparseSpaceType;
 
 typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
 
+// Only the default (backend-selected) spaces are instantiated: the two
+// linear-algebra backends are mutually exclusive for the real sparse spaces.
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactoryType>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<
-    TUblasSparseSpace<float>,
-    TUblasDenseSpace<double>
->>;
-// The uBLAS double precision variant is always explicitly instantiated in
-// kratos_components.cpp (as RealSparseSpace/RealDenseSpace), regardless of
-// the configured default backend, so applications hard-coding uBLAS types
-// (e.g. LinearSolversApplication's MKL smoothers) can safely import it.
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<
-    TUblasSparseSpace<double>,
-    TUblasDenseSpace<double>
+    TDefaultSparseSpace<float>,
+    TDefaultDenseSpace<double>
 >>;
 
 #ifdef KRATOS_REGISTER_LINEAR_SOLVER

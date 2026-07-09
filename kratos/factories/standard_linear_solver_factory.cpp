@@ -86,12 +86,12 @@ void RegisterLinearSolversForSpace()
 }
 
 
+// The complex sparse space stays uBLAS in every backend (there is no Eigen
+// complex space) — a deliberate, documented exception to backend exclusivity.
 template <class TSparseDataType,
           class TDenseDataType>
-void RegisterLinearSolvers()
+void RegisterComplexLinearSolvers()
 {
-    RegisterLinearSolversForSpace<TUblasSparseSpace<TSparseDataType>, TUblasDenseSpace<TDenseDataType>>();
-
     using ComplexSpaceType = TUblasSparseSpace<std::complex<TSparseDataType>>;
     using ComplexLocalSpaceType = TUblasDenseSpace<std::complex<TDenseDataType>>;
 
@@ -106,13 +106,11 @@ void RegisterLinearSolvers()
 
 void RegisterLinearSolvers()
 {
-    detail::RegisterLinearSolvers</*TSparseDataType=*/double,/*TDenseDataType*/double>();
-    detail::RegisterLinearSolvers</*TSparseDataType=*/float,/*TDenseDataType*/double>();
-#ifdef KRATOS_USE_EIGEN_BACKEND
-    // The default (Eigen) sparse spaces additionally get their own registrations
-    // so that the python-exposed strategies find their solvers.
+    // The real spaces follow the configure-time selected linear-algebra
+    // backend exclusively.
     detail::RegisterLinearSolversForSpace<TDefaultSparseSpace<double>, TDefaultDenseSpace<double>>();
     detail::RegisterLinearSolversForSpace<TDefaultSparseSpace<float>, TDefaultDenseSpace<double>>();
-#endif
+    detail::RegisterComplexLinearSolvers</*TSparseDataType=*/double,/*TDenseDataType*/double>();
+    detail::RegisterComplexLinearSolvers</*TSparseDataType=*/float,/*TDenseDataType*/double>();
 };
 } // Namespace Kratos
