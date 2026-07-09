@@ -58,6 +58,9 @@
 #include "custom_elements/low_mach_navier_stokes.h"
 #include "custom_elements/incompressible_navier_stokes_p2_p1_continuous.h"
 
+#include "custom_elements/first_order_stokes_variable_viscosity_bvs_gl.h"
+#include "custom_conditions/first_order_stokes_variable_viscosity_condition.h"
+
 #include "custom_conditions/wall_condition.h"
 #include "custom_conditions/fs_werner_wengle_wall_condition.h"
 #include "custom_conditions/fs_generalized_wall_condition.h"
@@ -444,6 +447,14 @@ private:
     /// Incompressible Navier-Stokes div-stable wall condition
     const NavierStokesP2P1ContinuousWallCondition<2> mNavierStokesP2P1ContinuousWallCondition2D;
     const NavierStokesP2P1ContinuousWallCondition<3> mNavierStokesP2P1ContinuousWallCondition3D;
+
+    // KratosFECompiler-based elements
+    const FirstOrderStokesVariableViscosityBvsGl<2> mFirstOrderStokesVariableViscosityBvsGl2D3N;
+    const FirstOrderStokesVariableViscosityBvsGl<3> mFirstOrderStokesVariableViscosityBvsGl3D4N;
+
+    // KratosFECompiler-based conditions
+    const FirstOrderStokesVariableViscosityCondition<2> mFirstOrderStokesVariableViscosityCondition2D2N;
+    const FirstOrderStokesVariableViscosityCondition<3> mFirstOrderStokesVariableViscosityCondition3D3N;
 
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;

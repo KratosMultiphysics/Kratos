@@ -149,6 +149,9 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     // Incompressible Navier-Stokes div-stable wall condition
     mNavierStokesP2P1ContinuousWallCondition2D(0, Element::GeometryType::Pointer(new Line2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
     mNavierStokesP2P1ContinuousWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+    // KratosFECompiler-based conditions
+    mFirstOrderStokesVariableViscosityCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
+    mFirstOrderStokesVariableViscosityCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
     // Embedded Navier-Stokes symbolic elements
     mEmbeddedNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
     mEmbeddedNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
@@ -184,6 +187,9 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     // Incompressbile Navier-Stokes div-stable elements
     mIncompressibleNavierStokesP2P1Continuous2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
     mIncompressibleNavierStokesP2P1Continuous3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
+    // KratosFECompiler-based elements
+    mFirstOrderStokesVariableViscosityBvsGl2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mFirstOrderStokesVariableViscosityBvsGl3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     // Fluid adjoint elements
     mVMSAdjointElement2D(0,Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -440,6 +446,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("IncompressibleNavierStokesP2P1Continuous2D6N",mIncompressibleNavierStokesP2P1Continuous2D6N);
     KRATOS_REGISTER_ELEMENT("IncompressibleNavierStokesP2P1Continuous3D10N",mIncompressibleNavierStokesP2P1Continuous3D10N);
 
+    // KratosFECompiler-based elements
+    KRATOS_REGISTER_ELEMENT("FirstOrderStokesVariableViscosityBvsGl2D3N", mFirstOrderStokesVariableViscosityBvsGl2D3N);
+    KRATOS_REGISTER_ELEMENT("FirstOrderStokesVariableViscosityBvsGl3D4N", mFirstOrderStokesVariableViscosityBvsGl3D4N);
+
     // Adjoint elements
     KRATOS_REGISTER_ELEMENT("VMSAdjointElement2D", mVMSAdjointElement2D);   // old naming convention
     KRATOS_REGISTER_ELEMENT("VMSAdjointElement3D", mVMSAdjointElement3D);   // old naming convention
@@ -492,6 +502,10 @@ void KratosFluidDynamicsApplication::Register() {
     // Register adjoint conditions
     KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition2D2N", mAdjointMonolithicWallCondition2D2N);
     KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition3D3N", mAdjointMonolithicWallCondition3D3N);
+
+    // KratosFECompiler-based conditions
+    KRATOS_REGISTER_CONDITION("FirstOrderStokesVariableViscosityCondition2D2N", mFirstOrderStokesVariableViscosityCondition2D2N);
+    KRATOS_REGISTER_CONDITION("FirstOrderStokesVariableViscosityCondition3D3N", mFirstOrderStokesVariableViscosityCondition3D3N);
 
     // Register constitutive laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);

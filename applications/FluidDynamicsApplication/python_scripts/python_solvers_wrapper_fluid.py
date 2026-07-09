@@ -43,6 +43,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif solver_type == "monolithic_iga":
             solver_module_name = "navier_stokes_monolithic_iga_solver"
 
+        elif solver_type == "first_order_stokes_variable_viscosity":
+            solver_module_name = "first_order_stokes_variable_viscosity_solver"
+
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper. Solver type is : " + solver_type)
 
