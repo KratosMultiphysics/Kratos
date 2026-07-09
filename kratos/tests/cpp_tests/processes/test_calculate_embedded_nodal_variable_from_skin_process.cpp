@@ -21,12 +21,13 @@
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "testing/testing.h"
 
 namespace Kratos::Testing {
 
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 using EmbeddedNodalVariableProcessDouble = CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>;
 using EmbeddedNodalVariableProcessArray = CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>;

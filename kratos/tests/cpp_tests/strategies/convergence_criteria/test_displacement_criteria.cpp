@@ -20,12 +20,13 @@
 #include "containers/model.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos::Testing
 {
 using GeometryType = Geometry<Node>;
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
 
 using DofsArrayType = ModelPart::DofsArrayType;
 

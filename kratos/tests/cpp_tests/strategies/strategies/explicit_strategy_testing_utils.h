@@ -26,6 +26,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/test_utilities/test_element.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
@@ -40,7 +41,7 @@ namespace ExplicitStrategyTestingUtils
 typedef Node NodeType;
 typedef Geometry<NodeType> GeometryType;
 typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+typedef TDefaultSparseSpace<double> SparseSpaceType;
 typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 
 class AuxiliaryExplicitStrategiesTestElement : public Element

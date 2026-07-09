@@ -22,6 +22,7 @@
 /* Utility includes */
 #include "containers/model.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/condition_number_utility.h"
 
 /* Element include */
@@ -47,7 +48,7 @@ namespace Kratos::Testing
 {
     /// Initial definitons
     using GeometryType = Geometry<Node>;
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using SparseSpaceType = TDefaultSparseSpace<double>;
     using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
     /// The direct solver

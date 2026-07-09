@@ -24,6 +24,7 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/variable_utils.h"
 
 /* Linear Solver includes */
@@ -32,7 +33,7 @@
 namespace Kratos::Testing
 {
 
-using SpaceType = TUblasSparseSpace<double>;
+using SpaceType = TDefaultSparseSpace<double>;
 using LocalSpaceType = TUblasDenseSpace<double>;
 using SparseMatrixType = typename SpaceType::MatrixType;
 
@@ -83,9 +84,10 @@ KRATOS_TEST_CASE_IN_SUITE(MonotonictyPreservingSolver, KratosCoreFastSuite)
     }  )" );
 
     MonotonicityPreservingSolver<SpaceType, LocalSpaceType> linear_solver(settings);
-    SpaceType::MatrixType rA(5,5);
-    SpaceType::VectorType rX = ZeroVector(5);
-    SpaceType::VectorType rB = ZeroVector(5);
+    SpaceType::VectorType rX(5);
+    SpaceType::SetToZero(rX);
+    SpaceType::VectorType rB(5);
+    SpaceType::SetToZero(rB);
     ModelPart::DofsArrayType dof_set;
     for (std::size_t i = 0; i < model_part.NumberOfNodes(); i++) {
         auto it_node = model_part.NodesBegin() + i;
@@ -93,19 +95,37 @@ KRATOS_TEST_CASE_IN_SUITE(MonotonictyPreservingSolver, KratosCoreFastSuite)
         p_dof->SetEquationId(i);
         dof_set.push_back(p_dof);
     }
-    rA(0,0) = 1.0;
-    rA(1,1) = 1.0;
-    rA(2,2) = 1.0;
-    rA(3,3) = 1.0;
-    rA(4,4) = 1.0;
-    rA(1,0) = 1.0;
-    rA(0,1) = 1.0;
-    rA(2,0) = 2.0;
-    rA(0,2) = 2.0;
-    rA(3,4) = 3.0;
-    rA(4,3) = 3.0;
-    rA(4,0) = -1.0;
-    rA(0,4) = -1.0;
+    // Build the matrix by writing the CSR arrays directly (row-sorted entries),
+    // valid for both the uBLAS and the Eigen backend matrix; the solver reads
+    // the compressed storage through index1_data()/index2_data()/value_data().
+    // row 0: (0,0)=1 (0,1)=1 (0,2)=2 (0,4)=-1 | row 1: (1,0)=1 (1,1)=1
+    // row 2: (2,0)=2 (2,2)=1 | row 3: (3,3)=1 (3,4)=3 | row 4: (4,0)=-1 (4,3)=3 (4,4)=1
+    const std::vector<std::vector<std::pair<std::size_t, double>>> entries {
+        {{0, 1.0}, {1, 1.0}, {2, 2.0}, {4, -1.0}},
+        {{0, 1.0}, {1, 1.0}},
+        {{0, 2.0}, {2, 1.0}},
+        {{3, 1.0}, {4, 3.0}},
+        {{0, -1.0}, {3, 3.0}, {4, 1.0}}
+    };
+    std::size_t nnz = 0;
+    for (const auto& r_row : entries) nnz += r_row.size();
+    SpaceType::MatrixType rA(5, 5, nnz);
+    {
+        auto row_ptr = rA.index1_data().begin();
+        auto col_ptr = rA.index2_data().begin();
+        auto val_ptr = rA.value_data().begin();
+        row_ptr[0] = 0;
+        std::size_t k = 0;
+        for (std::size_t i = 0; i < entries.size(); ++i) {
+            for (const auto& r_entry : entries[i]) {
+                col_ptr[k] = r_entry.first;
+                val_ptr[k] = r_entry.second;
+                ++k;
+            }
+            row_ptr[i + 1] = k;
+        }
+        rA.set_filled(entries.size() + 1, nnz);
+    }
     if (linear_solver.AdditionalPhysicalDataIsNeeded()) {
         linear_solver.ProvideAdditionalData(rA, rX, rB, dof_set, model_part);
     }

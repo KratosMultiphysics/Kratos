@@ -22,6 +22,7 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "geometries/line_2d_2.h"
 #include "tests/test_utilities/test_bar_element.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
@@ -35,7 +36,7 @@ namespace Testing
 typedef Node NodeType;
 typedef Geometry<NodeType> GeometryType;
 typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+typedef TDefaultSparseSpace<double> SparseSpaceType;
 
 // The builder ans solver type
 typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;

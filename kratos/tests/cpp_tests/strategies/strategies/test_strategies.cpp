@@ -24,6 +24,7 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 /* Element include */
 #include "tests/test_utilities/test_element.h"
@@ -59,7 +60,7 @@ namespace Kratos
         // TODO: Create test for the other components
         typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef TDefaultSparseSpace<double> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
         // The direct solver
