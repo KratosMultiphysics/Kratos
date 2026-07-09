@@ -20,6 +20,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 // #include "includes/gid_io.h"
 #include "processes/structured_mesh_generator_process.h"
+#include "spaces/default_spaces.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
@@ -202,7 +203,7 @@ namespace Kratos::Testing
 
         // Types definition
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef TDefaultSparseSpace<double> SparseSpaceType;
         typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
         typedef MixedGenericCriteria<SparseSpaceType, LocalSpaceType> MixedGenericCriteriaType;
 

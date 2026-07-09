@@ -20,6 +20,7 @@
 // #include "includes/gid_io.h"
 #include "utilities/variable_utils.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
@@ -42,7 +43,7 @@ namespace Kratos
     {
         typedef Node NodeType;
 
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef TDefaultSparseSpace<double> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
         // The direct solver

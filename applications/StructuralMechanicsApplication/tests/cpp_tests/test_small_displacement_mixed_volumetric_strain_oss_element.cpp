@@ -18,6 +18,7 @@
 // #include "includes/gid_io.h"
 #include "includes/variables.h"
 #include "factories/linear_solver_factory.h"
+#include "spaces/default_spaces.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
@@ -31,7 +32,7 @@ namespace Kratos::Testing
 {
 
 typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+typedef TDefaultSparseSpace<double> SparseSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
 KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElement2D3N, KratosStructuralMechanicsFastSuite)

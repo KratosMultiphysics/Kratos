@@ -18,6 +18,7 @@
 // #include "includes/gid_io.h"
 #include "includes/variables.h"
 #include "factories/linear_solver_factory.h"
+#include "spaces/default_spaces.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
@@ -599,7 +600,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement3D8NDynam
     KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElementZienkiewiczPatch, KratosStructuralMechanicsFastSuite)
     {
         using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
-        using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+        using SparseSpaceType = TDefaultSparseSpace<double>;
         using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
         Model current_model;
