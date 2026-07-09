@@ -115,6 +115,25 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityCreatesAPropertyAndAssignsItToTheM
     KRATOS_EXPECT_TRUE(r_model_part_foo.HasProperties(1))
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityStillAcceptsDeprecatedModelPartNameInput, KratosCoreFastSuiteWithoutKernel) {
+    auto model = Model{};
+    auto& r_model_part_foo = model.CreateModelPart("Foo"s);
+    const auto test_properties = R"({
+        "properties": [
+            {
+                "properties_id": 1,
+                "model_part_name": "Foo",
+                "Material": {}
+            }
+        ]
+    })"s;
+
+    auto utility = ReadMaterialsUtility{model};
+    utility.ReadMaterials(test_properties);
+
+    KRATOS_EXPECT_TRUE(r_model_part_foo.HasProperties(1))
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityCanCreatePropertiesSharedByModelParts, KratosCoreFastSuiteWithoutKernel) {
     auto model = Model{};
     auto& r_model_part_foo = model.CreateModelPart("Foo"s);
