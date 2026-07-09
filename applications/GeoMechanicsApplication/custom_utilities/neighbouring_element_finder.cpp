@@ -49,7 +49,7 @@ void NeighbouringElementFinder::AddNeighbouringElementsToEntitiesBasedOnOverlapp
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         AddNeighbouringElementsBasedOnBoundaryGeometry(rElement, r_boundary_geometry);
-        if (mEnableReverseSearch) {
+        if (r_boundary_geometry.size() > 1 && mEnableReverseSearch) {
             constexpr auto reverse_search = true;
             AddNeighbouringElementsBasedOnBoundaryGeometry(rElement, r_boundary_geometry, reverse_search);
         }
@@ -82,7 +82,7 @@ void NeighbouringElementFinder::SetElementAsNeighbourOfAllEntitiesWithIdenticalN
     for (auto it = start; it != end; ++it) {
         const auto& r_entities = it->second;
         for (auto& rp_entity : r_entities) {
-            if (rp_entity->GetGeometry().Id() == pElement->GetGeometry().Id()) continue;
+            if (pElement == rp_entity.get()) continue;
             rp_entity->GetValue(NEIGHBOUR_ELEMENTS).push_back(Element::WeakPointer{pElement});
         }
     }
@@ -131,7 +131,7 @@ bool NeighbouringElementFinder::AreQuadraticRotatedEquivalents(std::vector<std::
                                                                const std::vector<std::size_t>& rSecond)
 {
     const auto amount_of_needed_rotations = std::ranges::find(First, rSecond[0]) - First.begin();
-    const auto first_mid_side_node_id     = First.begin() + First.size() / 2;
+    const auto first_mid_side_node_id = First.begin() + static_cast<std::ptrdiff_t>(First.size() / 2);
     std::rotate(First.begin(), First.begin() + amount_of_needed_rotations, first_mid_side_node_id);
 
     std::rotate(first_mid_side_node_id, first_mid_side_node_id + amount_of_needed_rotations, First.end());

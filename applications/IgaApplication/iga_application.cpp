@@ -32,11 +32,15 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mShell6pElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mLaplacianElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mSolidElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mStokesElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mNavierStokesElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
@@ -46,11 +50,15 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingPenaltyCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mCouplingPenalty6pCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingLagrangeCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingNitscheCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenaltyCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportPenalty6pCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportLagrangeCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
@@ -94,18 +102,22 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
+    KRATOS_REGISTER_ELEMENT("Shell6pElement", mShell6pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianElement", mLaplacianElement)
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
+    KRATOS_REGISTER_ELEMENT("NavierStokesElement", mNavierStokesElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
     KRATOS_REGISTER_CONDITION("LoadMomentDirector5pCondition", mLoadMomentDirector5pCondition)
     KRATOS_REGISTER_CONDITION("CouplingPenaltyCondition", mCouplingPenaltyCondition)
+    KRATOS_REGISTER_CONDITION("CouplingPenalty6pCondition", mCouplingPenalty6pCondition)
     KRATOS_REGISTER_CONDITION("CouplingLagrangeCondition", mCouplingLagrangeCondition)
     KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
+    KRATOS_REGISTER_CONDITION("SupportPenalty6pCondition", mSupportPenalty6pCondition)
     KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
     KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
     KRATOS_REGISTER_CONDITION("SupportLaplacianCondition", mSupportLaplacianCondition)
@@ -170,6 +182,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINE_LOAD)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INTERFACE_TRACTION)
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DEAD_LOAD)
     KRATOS_REGISTER_VARIABLE(PRESSURE_FOLLOWER_LOAD)
@@ -190,6 +203,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(INTEGRATE_CONSERVATIVE)
 
     KRATOS_REGISTER_VARIABLE(PENALTY_FACTOR)
+    KRATOS_REGISTER_VARIABLE(PENALTY_ROTATION_FACTOR)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTOR_LAGRANGE_MULTIPLIER_REACTION)
 
     KRATOS_REGISTER_VARIABLE(NITSCHE_STABILIZATION_FACTOR)

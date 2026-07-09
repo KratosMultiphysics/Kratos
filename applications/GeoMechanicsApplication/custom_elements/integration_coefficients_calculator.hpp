@@ -66,7 +66,7 @@ private:
 
     friend class Serializer;
     void save(const Serializer& rSerializer) const;
-    void load(const Serializer& rSerializer) const;
+    void load(const Serializer& rSerializer);
 };
 
 } // namespace Kratos

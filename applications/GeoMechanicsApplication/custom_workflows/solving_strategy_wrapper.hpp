@@ -30,12 +30,12 @@ class SolvingStrategyWrapper : public StrategyWrapper
 {
 public:
     explicit SolvingStrategyWrapper(std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy,
-                                    bool                         ResetDisplacements = false,
+                                    bool                         ResetTotals        = false,
                                     const std::filesystem::path& rWorkingDirectory  = "",
                                     const Parameters&            rProjectParameters = {})
         : mpStrategy(std::move(strategy)),
           mrModelPart(mpStrategy->GetModelPart()),
-          mResetDisplacements{ResetDisplacements},
+          mResetTotals{ResetTotals},
           mProjectParameters{rProjectParameters},
           mWorkingDirectory{rWorkingDirectory}
     {
@@ -148,7 +148,7 @@ private:
 
     std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> mpStrategy;
     ModelPart&                                                  mrModelPart;
-    bool                                                        mResetDisplacements;
+    bool                                                        mResetTotals;
     Parameters                                                  mProjectParameters;
     std::filesystem::path                                       mWorkingDirectory;
     std::unique_ptr<GeoOutputWriter>                            mWriter;
