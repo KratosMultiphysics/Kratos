@@ -291,7 +291,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @brief Checks if the materials are assigned uniquely to the modelparts
      * @param Materials The parameters containing the properties of the materials
      */
-    void CheckUniqueMaterialAssignment(Parameters Materials);
+    void CheckUniqueMaterialAssignment(Parameters& Materials);
 
     /**
      * @brief Check if a model part is repeated inside materials
@@ -299,9 +299,10 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      */
     void CheckModelPartIsNotRepeated(std::vector<std::string>);
 
-    static void ValidatePropertyIds(const Parameters& rAllMaterialParameters);
-    static void ValidateTargetModelPartNames(const Parameters& rAllMaterialParameters);
-    [[nodiscard]] static std::vector<std::string> GetTargetModelPartNames(const Parameters& rMaterialParameters);
+    static void ValidatePropertyIds(const Parameters& rMaterials);
+    static void ReplaceModelPartNameByAssignTo(Parameters& rMaterials);
+    static void ValidateTargetModelPartNames(const Parameters& rMaterials);
+    [[nodiscard]] static std::vector<std::string> GetTargetModelPartNames(const Parameters& rMaterial);
 
 
     ///@}

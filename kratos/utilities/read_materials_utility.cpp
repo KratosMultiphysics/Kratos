@@ -27,7 +27,7 @@ using namespace std::string_literals;
 
 namespace Kratos {
 static const auto model_part_name_key = "model_part_name"s;
-static const auto model_part_name_list_key = "model_part_name_list"s;
+static const auto assign_to_key = "assign_to"s;
 static const auto properties_key = "properties"s;
 static const auto properties_id_key = "properties_id"s;
 
@@ -520,11 +520,12 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
+void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters& Materials)
 {
     KRATOS_TRY;
 
     ValidatePropertyIds(Materials);
+    ReplaceModelPartNameByAssignTo(Materials);
     ValidateTargetModelPartNames(Materials);
 
     // Save all ModelPartNames in a vector
@@ -581,39 +582,55 @@ void ReadMaterialsUtility::CheckModelPartIsNotRepeated(std::vector<std::string> 
     KRATOS_ERROR_IF_NOT(it == ModelPartsNames.end()) << "Materials for ModelPart \""
         << *it << "\" are specified multiple times!" << std::endl;
 }
-void ReadMaterialsUtility::ValidatePropertyIds(const Parameters& rAllMaterialParameters)
+void ReadMaterialsUtility::ValidatePropertyIds(const Parameters& rMaterials)
 {
-    for (IndexType i = 0; i < rAllMaterialParameters[properties_key].size(); ++i) {
-        const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
+    for (IndexType i = 0; i < rMaterials[properties_key].size(); ++i) {
+        const auto property = rMaterials[properties_key].GetArrayItem(i);
         KRATOS_ERROR_IF_NOT(property.Has(properties_id_key)) << "Property at index " << i << " does not have a '" << properties_id_key << "'. Please, provide a unique ID for each property.\n";
     }
 }
 
-void ReadMaterialsUtility::ValidateTargetModelPartNames(const Parameters& rAllMaterialParameters)
+void ReadMaterialsUtility::ReplaceModelPartNameByAssignTo(Parameters& rMaterials)
 {
-    for (IndexType i = 0; i < rAllMaterialParameters[properties_key].size(); ++i) {
-        const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
-        const auto property_id = property[properties_id_key].GetInt();
-        KRATOS_ERROR_IF(!property.Has(model_part_name_key) && !property.Has(model_part_name_list_key))
-            << "Property " << property_id << " does not provide any model part name. Please, provide either '" << model_part_name_key << "' or '" << model_part_name_list_key << "'.\n";
-        KRATOS_ERROR_IF(property.Has(model_part_name_key) && property.Has(model_part_name_list_key))
-            << "Property " << property_id <<  " provides '" << model_part_name_key << "' as well as '" << model_part_name_list_key << "'. Please, remove one of them, since they are mutually exclusive.\n";
-        KRATOS_ERROR_IF(property.Has(model_part_name_list_key) && property[model_part_name_list_key].GetStringArray().empty())
-            << "Property " << property_id << " has an empty model part name list. Please, provide at least one model part name." << std::endl;
-        if (property.Has(model_part_name_list_key)) {
-            auto names = property[model_part_name_list_key].GetStringArray();
-            std::ranges::sort(names);
-            const auto pos = std::ranges::adjacent_find(names);
-            KRATOS_ERROR_IF_NOT(pos == names.end()) << "Property " << property_id << " has a model part name list with non-unique names: '" << *pos << "'\n";
+    for (IndexType i = 0; i < rMaterials[properties_key].size(); ++i) {
+        auto property = rMaterials[properties_key].GetArrayItem(i);
+        if (property.Has(model_part_name_key)) {
+            const auto property_id = property[properties_id_key].GetInt();
+            KRATOS_ERROR_IF(property.Has(assign_to_key)) << "Property " << property_id << " provides both '" << model_part_name_key << "' and '" << assign_to_key
+                << "'. Please, remove '" << model_part_name_key << "' since it has been deprecated.\n";
+
+            KRATOS_WARNING("ReadMaterialsUtility") << "Property " << property_id << " contains '" << model_part_name_key << "', which has been deprecated. Please, use '" << assign_to_key << "' instead.\n";
+            property.AddString(assign_to_key, property[model_part_name_key].GetString());
+            property.RemoveValue(model_part_name_key);
+            rMaterials[properties_key].SetArrayItem(i, property);
         }
     }
 }
 
-std::vector<std::string> ReadMaterialsUtility::GetTargetModelPartNames(const Parameters& rMaterialParameters)
+void ReadMaterialsUtility::ValidateTargetModelPartNames(const Parameters& rMaterials)
 {
-    return rMaterialParameters.Has(model_part_name_list_key)
-               ? rMaterialParameters[model_part_name_list_key].GetStringArray()
-               : std::vector{rMaterialParameters[model_part_name_key].GetString()};
+    for (IndexType i = 0; i < rMaterials[properties_key].size(); ++i) {
+        const auto property = rMaterials[properties_key].GetArrayItem(i);
+        const auto property_id = property[properties_id_key].GetInt();
+        KRATOS_ERROR_IF_NOT(property.Has(assign_to_key))
+            << "Property " << property_id << " has not been assigned to any model part(s). Please, add input item '" << assign_to_key << "'.\n";
+        if (property[assign_to_key].IsStringArray()) {
+            auto names = property[assign_to_key].GetStringArray();
+            KRATOS_ERROR_IF(names.empty())
+                << "Property " << property_id << " has an empty list of model part names. Please, provide at least one model part name." << std::endl;
+
+            std::ranges::sort(names);
+            const auto pos = std::ranges::adjacent_find(names);
+            KRATOS_ERROR_IF_NOT(pos == names.end()) << "Property " << property_id << " has a list of non-unique model part names: '" << *pos << "'\n";
+        }
+    }
+}
+
+std::vector<std::string> ReadMaterialsUtility::GetTargetModelPartNames(const Parameters& rMaterial)
+{
+    return rMaterial[assign_to_key].IsStringArray()
+               ? rMaterial[assign_to_key].GetStringArray()
+               : std::vector{rMaterial[assign_to_key].GetString()};
 }
 
 }  // namespace Kratos.

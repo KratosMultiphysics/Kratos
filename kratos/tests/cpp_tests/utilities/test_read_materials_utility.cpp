@@ -21,19 +21,22 @@ using namespace std::string_literals;
 
 namespace Kratos::Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAnEmptyStringIsGiven, KratosCoreFastSuiteWithoutKernel) {
+KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAnEmptyStringIsGiven, KratosCoreFastSuiteWithoutKernel)
+{
     auto model = Model{};
     const auto test_properties = ""s;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "attempting to parse an empty input; check that your input string or stream contains the expected JSON")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAnEmptyJsonObjectIsGiven, KratosCoreFastSuiteWithoutKernel) {
+KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAnEmptyJsonObjectIsGiven, KratosCoreFastSuiteWithoutKernel)
+{
     auto model = Model{};
     const auto test_properties = "{}"s;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Getting a value that does not exist. entry string : properties")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityDoesNotRaiseAnErrorWhenTheProperyListIsEmpty, KratosCoreFastSuiteWithoutKernel) {
+KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityDoesNotRaiseAnErrorWhenTheProperyListIsEmpty, KratosCoreFastSuiteWithoutKernel)
+{
     auto model = Model{};
     const auto test_properties = R"({
         "properties": []
@@ -41,19 +44,20 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityDoesNotRaiseAnErrorWhenTheProperyL
     EXPECT_NO_THROW((ReadMaterialsUtility{test_properties, model}));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAPropertyDoesNotHaveAnID, KratosCoreFastSuiteWithoutKernel) {
+KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAPropertyDoesNotHaveAnID, KratosCoreFastSuiteWithoutKernel)
+{
     auto model = Model{};
     const auto test_properties = R"({
         "properties": [
             {
-                "model_part_name": "Foo"
+                "assign_to": "Foo"
             }
         ]
     })"s;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property at index 0 does not have a 'properties_id'. Please, provide a unique ID for each property.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenNeitherAModelPartNameNorANameListIsGiven, KratosCoreFastSuiteWithoutKernel) {
+KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAPropertyHasNotBeenAssignedToAnyModelPart, KratosCoreFastSuiteWithoutKernel) {
     auto model = Model{};
     const auto test_properties = R"({
         "properties": [
@@ -62,34 +66,34 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenNeitherAModelPart
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 does not provide any model part name. Please, provide either 'model_part_name' or 'model_part_name_list'.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 has not been assigned to any model part(s). Please, add input item 'assign_to'.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAnEmptyModelPartNameListIsGiven, KratosCoreFastSuiteWithoutKernel) {
+KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAnEmptyListOfModelPartNamesIsGiven, KratosCoreFastSuiteWithoutKernel) {
     auto model = Model{};
     const auto test_properties = R"({
         "properties": [
             {
                 "properties_id": 1,
-                "model_part_name_list": []
+                "assign_to": []
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 has an empty model part name list. Please, provide at least one model part name.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 has an empty list of model part names. Please, provide at least one model part name.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenBothModelPartNameAndNameListAreGiven, KratosCoreFastSuiteWithoutKernel) {
+KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenBothModelPartNameAndAssignToAreGiven, KratosCoreFastSuiteWithoutKernel) {
     auto model = Model{};
     const auto test_properties = R"({
         "properties": [
             {
                 "properties_id": 1,
                 "model_part_name": "Foo",
-                "model_part_name_list": ["Bar"]
+                "assign_to": ["Bar"]
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 provides 'model_part_name' as well as 'model_part_name_list'.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 provides both 'model_part_name' and 'assign_to'. Please, remove 'model_part_name' since it has been deprecated.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityCreatesAPropertyAndAssignsItToTheModelPart, KratosCoreFastSuiteWithoutKernel) {
@@ -99,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityCreatesAPropertyAndAssignsItToTheM
         "properties": [
             {
                 "properties_id": 1,
-                "model_part_name": "Foo",
+                "assign_to": "Foo",
                 "Material": {}
             }
         ]
@@ -119,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityCanCreatePropertiesSharedByModelPa
         "properties": [
             {
                 "properties_id": 1,
-                "model_part_name_list": ["Foo", "Bar"],
+                "assign_to": ["Foo", "Bar"],
                 "Material": {}
             }
         ]
@@ -140,12 +144,12 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityCanCreatePropertiesPerModelPart, K
         "properties": [
             {
                 "properties_id": 1,
-                "model_part_name": "Foo",
+                "assign_to": "Foo",
                 "Material": {}
             },
             {
                 "properties_id": 2,
-                "model_part_name": "Bar",
+                "assign_to": "Bar",
                 "Material": {}
             }
         ]
@@ -166,12 +170,12 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenTheModelPartNameL
         "properties": [
             {
                 "properties_id": 1,
-                "model_part_name_list": ["Foo", "Bar", "Foo"],
+                "assign_to": ["Foo", "Bar", "Foo"],
                 "Material": {}
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 has a model part name list with non-unique names: 'Foo'")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 has a list of non-unique model part names: 'Foo'")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityAssignsPropertiesOfModelPartToElement, KratosCoreFastSuiteWithoutKernel) {
@@ -184,7 +188,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityAssignsPropertiesOfModelPartToElem
         "properties": [
             {
                 "properties_id": 1,
-                "model_part_name": "Foo",
+                "assign_to": "Foo",
                 "Material": {}
             }
         ]
@@ -214,7 +218,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityAssignsSharedPropertiesOfModelPart
         "properties": [
             {
                 "properties_id": 1,
-                "model_part_name_list": ["Foo", "Bar"],
+                "assign_to": ["Foo", "Bar"],
                 "Material": {}
             }
         ]
@@ -239,7 +243,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityAssignsPropertiesOfModelPartToCond
         "properties": [
             {
                 "properties_id": 1,
-                "model_part_name": "Foo",
+                "assign_to": "Foo",
                 "Material": {}
             }
         ]
@@ -269,7 +273,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityAssignsSharedPropertiesOfModelPart
         "properties": [
             {
                 "properties_id": 1,
-                "model_part_name_list": ["Foo", "Bar"],
+                "assign_to": ["Foo", "Bar"],
                 "Material": {}
             }
         ]
