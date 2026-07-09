@@ -12,6 +12,10 @@
 
 #pragma once
 
+// The Eigen-real LinearSolver instantiations exist only under the eigen
+// backend: the two linear-algebra backends are mutually exclusive.
+#ifdef KRATOS_USE_EIGEN_BACKEND
+
 // Project includes
 #include "linear_solvers/linear_solver.h"
 #include "spaces/eigen_space.h"
@@ -33,3 +37,5 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) LinearSolver<
 
 
 } // namespace Kratos
+
+#endif // KRATOS_USE_EIGEN_BACKEND

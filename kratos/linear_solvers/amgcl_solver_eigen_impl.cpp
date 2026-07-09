@@ -95,6 +95,10 @@ private:
 }; // struct AMGCLAdaptor
 
 
+// The Eigen-real AMGCLSolver instantiations exist only under the eigen
+// backend: the two linear-algebra backends are mutually exclusive.
+#ifdef KRATOS_USE_EIGEN_BACKEND
+
 template class KRATOS_API(KRATOS_CORE) AMGCLSolver<
     TEigenSparseSpace<double>,
     TUblasDenseSpace<double>
@@ -104,6 +108,8 @@ template class KRATOS_API(KRATOS_CORE) AMGCLSolver<
     TEigenSparseSpace<float>,
     TUblasDenseSpace<double>
 >;
+
+#endif // KRATOS_USE_EIGEN_BACKEND
 
 
 } // namespace Kratos

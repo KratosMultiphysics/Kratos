@@ -107,6 +107,11 @@ private:
 }; // struct AMGCLAdaptor
 
 
+// The uBLAS-real AMGCLSolver instantiations exist only under the ublas
+// backend (the AMGCLAdaptor specialization above stays available for
+// uBLAS-typed template code such as the p-multigrid grids).
+#ifndef KRATOS_USE_EIGEN_BACKEND
+
 template class KRATOS_API(KRATOS_CORE) AMGCLSolver<
     TUblasSparseSpace<double>,
     TUblasDenseSpace<double>
@@ -116,6 +121,8 @@ template class KRATOS_API(KRATOS_CORE) AMGCLSolver<
     TUblasSparseSpace<float>,
     TUblasDenseSpace<double>
 >;
+
+#endif // !KRATOS_USE_EIGEN_BACKEND
 
 
 } // namespace Kratos
