@@ -15,10 +15,7 @@
 
 // Project includes
 #include "custom_solvers/mkl_smoother_base.hpp" // MKLSmootherBase
-#include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
-#ifdef KRATOS_USE_EIGEN_BACKEND
-#include "spaces/eigen_space.h" // TEigenSparseSpace
-#endif
+#include "spaces/default_spaces.h" // TDefaultSparseSpace, TDefaultDenseSpace
 
 // STL includes
 #include <optional> // std::optional
@@ -180,15 +177,8 @@ MKLSmootherBase<TSparse,TDense>::MakeSystemView(const SparseMatrix& rLhs,
 }
 
 
-template class MKLSmootherBase<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
-
-
-template class MKLSmootherBase<TUblasSparseSpace<float>,TUblasDenseSpace<double>>;
-
-
-#ifdef KRATOS_USE_EIGEN_BACKEND
-template class MKLSmootherBase<TEigenSparseSpace<double>,TUblasDenseSpace<double>>;
-#endif
+// Instantiated on the configure-time selected linear-algebra backend only.
+template class MKLSmootherBase<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>;
 
 
 } // namespace Kratos

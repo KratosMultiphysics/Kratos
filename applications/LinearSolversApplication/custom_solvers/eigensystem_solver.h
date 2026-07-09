@@ -26,14 +26,15 @@
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "custom_utilities/ublas_wrapper.h"
+#include "spaces/default_spaces.h"
 #include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
 
 template<
-    class TSparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>,
-    class TDenseSpaceType = UblasSpace<double, Matrix, Vector>,
+    class TSparseSpaceType = TDefaultSparseSpace<double>,
+    class TDenseSpaceType = TDefaultDenseSpace<double>,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigensystemSolver
@@ -51,6 +52,8 @@ class EigensystemSolver
     using VectorType = typename TSparseSpaceType::VectorType;
 
     using DenseMatrixType = typename TDenseSpaceType::MatrixType;
+
+    using DenseVectorType = typename TDenseSpaceType::VectorType;
 
     EigensystemSolver(
         Parameters param
@@ -87,7 +90,7 @@ class EigensystemSolver
     void Solve(
         SparseMatrixType& rK,
         SparseMatrixType& rM,
-        VectorType& rEigenvalues,
+        DenseVectorType& rEigenvalues,
         DenseMatrixType& rEigenvectors) override
     {
         using scalar_t = double;

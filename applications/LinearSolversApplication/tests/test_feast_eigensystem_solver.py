@@ -11,7 +11,8 @@ from math import sqrt
 class TestFeastEigensystemSolver(KratosUnittest.TestCase):
     def test_real_symmetric_gev(self):
 
-        space = KratosMultiphysics.UblasSparseSpace()
+        # Backend-agnostic alias: the real FEAST solver follows the active backend
+        space = KratosMultiphysics.SparseSpace()
 
         settings = KratosMultiphysics.Parameters('''{
             "solver_type": "feast",
@@ -25,7 +26,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
             "echo_level": 0
          }''')
 
-        K = KratosMultiphysics.CompressedMatrix()
+        K = KratosMultiphysics.SparseMatrix()
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
@@ -38,9 +39,10 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         self.assertEqual(n, 900)
 
         # create an identity matrix
-        M = KratosMultiphysics.CompressedMatrix(n, n)
+        M = KratosMultiphysics.SparseMatrix(n, n)
         for i in range(n):
             M[i, i] = 1.0
+        M.Compress()
 
         # create result containers (they will be resized inside the solver)
         eigenvalues = KratosMultiphysics.Vector(n)
@@ -57,18 +59,23 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         self.assertAlmostEqual(eigenvalues[2], 0.153184311127333, 7)
 
         for i in range(eigenvalues.Size()):
-            eigenvector = KratosMultiphysics.Vector(n)
+            # System-space vectors so space.Mult operates in place on both backends
+            eigenvector = KratosMultiphysics.SparseVector(n)
             for j in range(n):
                 eigenvector[j] = eigenvectors[i,j]
 
-            _aux_1 = KratosMultiphysics.Vector(n,0)
-            _aux_2 = KratosMultiphysics.Vector(n,0)
+            _aux_1 = KratosMultiphysics.SparseVector(n)
+            _aux_2 = KratosMultiphysics.SparseVector(n)
+            space.SetToZeroVector(_aux_1)
+            space.SetToZeroVector(_aux_2)
 
             space.Mult(K,eigenvector,_aux_1)
             space.Mult(M,eigenvector,_aux_2)
-            _aux_2 *= eigenvalues[i]
 
-            self.assertVectorAlmostEqual(_aux_1, _aux_2)
+            # K*phi == lambda*M*phi, compared element-wise (the eigen backend
+            # vector exposes no python arithmetic operators)
+            for j in range(n):
+                self.assertAlmostEqual(_aux_1[j], eigenvalues[i] * _aux_2[j], 7)
 
     def test_real_general_gev(self):
 
@@ -86,7 +93,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
             "echo_level": 0
          }''')
 
-        K = KratosMultiphysics.CompressedMatrix()
+        K = KratosMultiphysics.SparseMatrix()
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
@@ -98,9 +105,10 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         n = K.Size1()
 
         # create an identity matrix
-        M = KratosMultiphysics.CompressedMatrix(n, n)
+        M = KratosMultiphysics.SparseMatrix(n, n)
         for i in range(n):
             M[i, i] = 1
+        M.Compress()
 
         # create result containers (they will be resized inside the solver)
         # eigenvalues and vectors of unsymmetric matrices are required to be real here
@@ -153,15 +161,17 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
             "echo_level": 0
          }''')
 
-        K = KratosMultiphysics.CompressedMatrix(2,2)
+        K = KratosMultiphysics.SparseMatrix(2,2)
         K[0,0] = 1/sqrt(2)
         K[1,1] = 1
+        K.Compress()
 
         n = K.Size1()
 
-        M = KratosMultiphysics.CompressedMatrix(n, n)
+        M = KratosMultiphysics.SparseMatrix(n, n)
         M[0,1] = 1
         M[1,0] = -1/sqrt(2)
+        M.Compress()
 
         # create result containers
         eigenvalues = KratosMultiphysics.ComplexVector(n)

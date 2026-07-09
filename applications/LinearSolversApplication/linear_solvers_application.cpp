@@ -123,46 +123,21 @@ void KratosLinearSolversApplication::Register()
     static auto ComplexPardisoLLTFactory = ComplexPardisoLLTType::Factory();
     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
 
-    // ILU0 smoother.
+    // MKL ILU smoothers: registered against the default (backend-selected)
+    // space only — the linear-algebra backends are mutually exclusive.
     static auto mkl_ilu0_factory = StandardLinearSolverFactory<
-        TUblasSparseSpace<double>,
-        TUblasDenseSpace<double>,
-        MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>
-    >();
-    KratosComponents<LinearSolverFactory<
-        TUblasSparseSpace<double>,
-        TUblasDenseSpace<double>>>::Add("mkl_ilu0", mkl_ilu0_factory);
-
-    // ILUT smoother.
-    static auto mkl_ilut_factory = StandardLinearSolverFactory<
-        TUblasSparseSpace<double>,
-        TUblasDenseSpace<double>,
-        MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>
-    >();
-    KratosComponents<LinearSolverFactory<
-        TUblasSparseSpace<double>,
-        TUblasDenseSpace<double>>>::Add("mkl_ilut", mkl_ilut_factory);
-
-#ifdef KRATOS_USE_EIGEN_BACKEND
-    // Register the MKL smoothers also against the default (eigen) space, so the
-    // python-exposed LinearSolverFactory can construct them under this backend.
-    // The uBLAS-space registrations above stay in place for code that builds
-    // uBLAS-space solvers directly. (Under the ublas backend the default space
-    // IS the uBLAS space, so this second registration only exists here.)
-    static auto mkl_ilu0_default_factory = StandardLinearSolverFactory<
         TDefaultSparseSpace<double>,
         TDefaultDenseSpace<double>,
         MKLILU0Smoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>
     >();
-    KRATOS_REGISTER_LINEAR_SOLVER("mkl_ilu0", mkl_ilu0_default_factory);
+    KRATOS_REGISTER_LINEAR_SOLVER("mkl_ilu0", mkl_ilu0_factory);
 
-    static auto mkl_ilut_default_factory = StandardLinearSolverFactory<
+    static auto mkl_ilut_factory = StandardLinearSolverFactory<
         TDefaultSparseSpace<double>,
         TDefaultDenseSpace<double>,
         MKLILUTSmoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>
     >();
-    KRATOS_REGISTER_LINEAR_SOLVER("mkl_ilut", mkl_ilut_default_factory);
-#endif // KRATOS_USE_EIGEN_BACKEND
+    KRATOS_REGISTER_LINEAR_SOLVER("mkl_ilut", mkl_ilut_factory);
 
 #endif // defined USE_EIGEN_MKL
 

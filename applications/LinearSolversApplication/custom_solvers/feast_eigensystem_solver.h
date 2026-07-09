@@ -16,6 +16,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
+#include "spaces/default_spaces.h"
 
 extern "C" {
     #include <feast.h>
@@ -174,10 +175,10 @@ template<
     bool TSymmetric,
     typename TScalarIn,
     typename TScalarOut,
-    class TSparseSpaceTypeIn = TUblasSparseSpace<TScalarIn>,
-    class TDenseSpaceTypeIn = TUblasDenseSpace<TScalarIn>,
-    class TSparseSpaceTypeOut = TUblasSparseSpace<TScalarOut>,
-    class TDenseSpaceTypeOut = TUblasDenseSpace<TScalarOut>>
+    class TSparseSpaceTypeIn = TDefaultSparseSpace<TScalarIn>,
+    class TDenseSpaceTypeIn = TDefaultDenseSpace<TScalarIn>,
+    class TSparseSpaceTypeOut = TDefaultSparseSpace<TScalarOut>,
+    class TDenseSpaceTypeOut = TDefaultDenseSpace<TScalarOut>>
 class FEASTEigensystemSolver
     : public LinearSolver<TSparseSpaceTypeIn, TDenseSpaceTypeOut>
 {

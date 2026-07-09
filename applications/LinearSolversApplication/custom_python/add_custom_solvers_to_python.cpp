@@ -110,8 +110,7 @@ void register_eigensystem_solver(pybind11::module& m, const std::string& name)
 {
     namespace py = pybind11;
 
-    using Base = LinearSolver<UblasSpace<double, CompressedMatrix, Vector>,
-        UblasSpace<double, Matrix, Vector>>;
+    using Base = LinearSolver<TDefaultSparseSpace<double>, TDefaultDenseSpace<double>>;
 
     using EigenSystemSolverType = EigensystemSolver<>;
 
@@ -128,8 +127,9 @@ void register_feast_eigensystem_solver(pybind11::module& m, const std::string& n
 
     using DataTypeIn = typename EigenSystemSolverType::ValueTypeIn;
     using DataTypeOut = typename EigenSystemSolverType::ValueTypeOut;
-    using SparseSpaceType = TUblasSparseSpace<DataTypeIn>;
-    using DenseSpaceType = TUblasDenseSpace<DataTypeOut>;
+    // Real spaces follow the configure-time backend; complex resolves to uBLAS
+    using SparseSpaceType = TDefaultSparseSpace<DataTypeIn>;
+    using DenseSpaceType = TDefaultDenseSpace<DataTypeOut>;
     using Base = LinearSolver<SparseSpaceType, DenseSpaceType>;
 
     py::class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
@@ -142,8 +142,7 @@ void register_spectra_sym_g_eigs_shift_solver(pybind11::module& m, const std::st
 {
     namespace py = pybind11;
 
-    using Base = LinearSolver<UblasSpace<double, CompressedMatrix, Vector>,
-        UblasSpace<double, Matrix, Vector>>;
+    using Base = LinearSolver<TDefaultSparseSpace<double>, TDefaultDenseSpace<double>>;
 
     using SpectraSymGEigsRealSolverType = SpectraSymGEigsShiftSolver<>;
 
@@ -234,16 +233,16 @@ void AddCustomSolversToPython(pybind11::module& m)
     register_solver<EigenPardisoLDLTSolver<complex>>(m, "ComplexPardisoLDLTSolver");
     register_solver<EigenPardisoLLTSolver<complex>>(m, "ComplexPardisoLLTSolver");
 
-    pybind11::class_<MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
-                     MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::Pointer,
-                     LinearSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>(m, "MKLILU0Smoother")
+    pybind11::class_<MKLILU0Smoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>,
+                     MKLILU0Smoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>::Pointer,
+                     LinearSolver<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>>(m, "MKLILU0Smoother")
         .def(pybind11::init<>())
         .def(pybind11::init<Parameters>())
         ;
 
-    pybind11::class_<MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
-                     MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::Pointer,
-                     LinearSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>(m, "MKLILUTSmoother")
+    pybind11::class_<MKLILUTSmoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>,
+                     MKLILUTSmoother<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>::Pointer,
+                     LinearSolver<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>>(m, "MKLILUTSmoother")
         .def(pybind11::init<>())
         .def(pybind11::init<Parameters>())
         ;
@@ -286,8 +285,8 @@ void AddCustomSolversToPython(pybind11::module& m)
     // --- spectra eigensystem solver
     register_spectra_sym_g_eigs_shift_solver(m, "SpectraSymGEigsShiftSolver");
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
 
     typedef FEASTConditionNumberUtility<SparseSpaceType, LocalSpaceType> FEASTConditionNumberUtilityType;
     py::class_<FEASTConditionNumberUtilityType,FEASTConditionNumberUtilityType::Pointer>(m,"FEASTConditionNumberUtility")
