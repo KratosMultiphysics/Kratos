@@ -1,6 +1,11 @@
+# Import Kratos 
 import KratosMultiphysics
-from KratosMultiphysics import kratos_utilities
-from  KratosMultiphysics.deprecation_management import DeprecationManager
+
+# Import the DeprecationManager to handle deprecated variables and provide warnings to the user
+from KratosMultiphysics.deprecation_management import DeprecationManager
+
+# Import the os module to handle file paths and directories
+import os
 
 def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
     """
@@ -30,16 +35,22 @@ class UnvOutputProcess(KratosMultiphysics.OutputProcess):
         # IMPORTANT: when "output_control_type" is "time",
         # then paraview will not be able to group them
         default_parameters = KratosMultiphysics.Parameters("""{
-            "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "output_interval"                    : 1.0,
-            "output_control_type"                : "step",
-            "nodal_solution_step_data_variables" : [],
-            "nodal_data_value_variables"         : []
+            "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "output_control_type"                         : "step",
+            "output_interval"                             : 1.0,
+            "output_path"                                 : "UNV_Output",
+            "custom_name_prefix"                          : "",
+            "custom_name_postfix"                         : "",                                     
+            "save_output_files_in_folder"                 : true,
+            "entity_type"                                 : "automatic",
+            "write_deformed_configuration"                : false,
+            "nodal_solution_step_data_variables"          : [],
+            "nodal_data_value_variables"                  : []
         }""")
 
         # Validate the provided settings against the default parameters, adding any missing parameters from the defaults
         model_part_name = settings["model_part_name"].GetString()
-        self.model_part = model[model_part_name]
+        self.model = model
         self.settings = settings
 
         # Warning: we may be changing the parameters object here:
@@ -48,8 +59,15 @@ class UnvOutputProcess(KratosMultiphysics.OutputProcess):
         # Validate the settings against the default parameters, adding any missing parameters from the defaults
         self.settings.ValidateAndAssignDefaults(default_parameters)
 
-        # self.unv_io = KratosMultiphysics.UnvOutput(self.model_part, self.settings)
-        self.unv_io = KratosMultiphysics.UnvOutput(self.model_part, "nxout")
+        # Ensure the output path exists, creating it if necessary
+        output_path = self.settings["output_path"].GetString()
+        save_output_files_in_folder = self.settings["save_output_files_in_folder"].GetBool()
+        if save_output_files_in_folder:
+            if not os.path.exists(output_path):
+                os.makedirs(output_path)
+
+        # Initialize the UNV output handler with the model and settings, and prepare the mesh for output
+        self.unv_io = KratosMultiphysics.UnvOutput(self.model, self.settings)
         self.unv_io.InitializeMesh()
         self.unv_io.WriteMesh()
 
@@ -83,26 +101,13 @@ class UnvOutputProcess(KratosMultiphysics.OutputProcess):
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
-    def ExecuteInitialize(self) -> None:
-        """
-        This function initializes the process by generating the list of nodal variables
-        from the input settings.
-        """
-        self.nodal_variables = kratos_utilities.GenerateVariableListFromInput(self.settings["nodal_solution_step_data_variables"])
-        self.nodal_non_historical_variables = kratos_utilities.GenerateVariableListFromInput(self.settings["nodal_data_value_variables"])
-
     def PrintOutput(self) -> None:
         """
         This function prints the output for the nodal variables and nodal non-historical variables
         at the current control value, and schedules the next output.
         """
-        # Print output for nodal historical variables
-        for variable in self.nodal_variables:
-            self.unv_io.PrintOutput(variable, self.controller.GetCurrentControlValue())
-
-        # Print output for nodal non-historical variables
-        for variable in self.nodal_non_historical_variables:
-            self.unv_io.PrintNonHistoricalOutput(variable, self.controller.GetCurrentControlValue())
+        # Print the output for the nodal variables and nodal non-historical variables at the current control value
+        self.unv_io.PrintOutput()
 
         # Schedule next output
         self.controller.Update()

@@ -8,7 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos Roig
-//
+//  Contributors:    Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -18,7 +18,8 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
+#include "containers/model.h"
+#include "utilities/string_utilities.h"
 
 namespace Kratos 
 {
@@ -36,12 +37,125 @@ namespace Kratos
  * 2412 - Element Dataset
  * 2414 - Result  Dataset
  * @author Carlos Roig
+ * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) UnvOutput 
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    // Scalar UNV variables: quantities that are single-valued per node/element
+    static inline const std::vector<std::pair<int, std::string>> unv_scalar_variables = {
+        {7,   "Strain Energy"},
+        {10,  "Kinetic Energy"},
+        {13,  "Strain Energy Density"},
+        {14,  "Kinetic Energy Density"},
+        {15,  "Hydrostatic Pressure"},
+        {17,  "Code Check Value"},
+        {18,  "Coefficient of Pressure"},
+        {21,  "Failure Index for Ply"},
+        {22,  "Failure Index for Bonding"},
+        {23,  "Reaction Heat Flow"},
+        {24,  "Stress Error Density"},
+        {28,  "Length"},
+        {29,  "Area"},
+        {30,  "Volume"},
+        {31,  "Mass"},
+        {36,  "Strain Energy Error Norm"},
+        {38,  "Heat Transfer Coefficient"},
+        {40,  "Kinetic Energy Dissipation Rate"},
+        {41,  "Strain Energy Error"},
+        {42,  "Mass Flow"},
+        {44,  "Heat Flow"},
+        {45,  "View Factor"},
+        {46,  "Heat Load"},
+        {50,  "Contact Pressure"},
+        {55,  "Infrared Heat Flux"},
+        {56,  "Diffuse Solar Heat Flux"},
+        {57,  "Collimated Solar Heat Flux"},
+        {58,  "Safety Factor"},
+        {59,  "Fatigue Damage"},
+        {61,  "Fatigue Life"},
+        {62,  "Quality Index"},
+        {101, "Gap Thickness"},
+        {108, "Layered Shear Strain Rate"},
+        {113, "Bulk Temperature"},
+        {114, "Peak Temperature"},
+        {115, "Temperature at Fill"},
+        {116, "Mass Density"},
+        {118, "Volumetric Shrinkage"},
+        {119, "Filling Time"},
+        {120, "Ejection Time"},
+        {121, "No-flow Time"},
+        {122, "Weld Line Meeting Angle"},
+        {123, "Weld Line Underflow"},
+        {124, "Original Runner Diameter"},
+        {125, "Optimized Runner Diameter"},
+        {126, "Change in Runner Diameter"},
+        {127, "Averaged Layered Cure"},
+        {129, "Cure Rate"},
+        {130, "Cure Time"},
+        {131, "Induction Time"},
+        {132, "Temperature at Cure"},
+        {133, "Percent Gelation"},
+        {138, "Part Ejection Time"},
+        {139, "Part Peak Temperature"},
+        {140, "Part Average Temperature"},
+        {145, "Wall Temperature Convergence"},
+        {149, "Line Pressure"},
+        {150, "Reynold's Number"},
+        {151, "Line Film Coefficient"},
+        {152, "Line Temperature"},
+        {153, "Line Bulk Temperature"},
+        {154, "Mold Temperature"},
+        {156, "Rod Heater Temperature"},
+        {158, "Original Line Diameter"},
+        {159, "Optimized Line Diameter"},
+        {160, "Change in Line Diameter"},
+        {161, "Air Traps"},
+        {162, "Weld Lines"},
+        {163, "Injection Growth"},
+        {164, "Temp Diff (Celcius)"},
+        {165, "Shear Rate"},
+        {166, "Viscosity"},
+        {167, "Percentage"},
+        {168, "Time"},
+        {170, "Speed"},
+        {171, "Flow Rate"},
+        {172, "Thickness Ratio"},
+        {301, "Sound Pressure"},
+        {302, "Sound Power"},
+        {304, "Sound Energy"},
+        {305, "Sound Energy Density"},
+    };
+
+    // 3-component vector UNV variables: quantities with X, Y, Z components per node/element
+    static inline const std::vector<std::pair<int, std::string>> unv_vector3_variables = {
+        {16,  "Heat Gradient"},
+        {32,  "Constraint Force"},
+        {39,  "Temperature Gradient"},
+        {43,  "Mass Flux"},
+        {49,  "Contact Forces"},
+        {105, "Flow Vector at Fill"},
+        {106, "Bulk Flow Vector"},
+        {107, "Core Displacement"},
+        {169, "Flow Direction"},
+        {303, "Sound Intensity"},
+    };
+
+    /**
+     * @brief Pointer definition of UnvOutput
+     * @details This defines a pointer to UnvOutput
+     * - AUTOMATIC: The entity type is automatically determined based on the model part.
+     * - ELEMENTS: The entity type is explicitly set to elements, and the data will be printed for each element in the dataset.
+     * - CONDITIONS: The entity type is explicitly set to conditions, and the data will be printed for each condition in the dataset.
+     */
+    enum class EntityType {
+        AUTOMATIC = 0,
+        ELEMENTS  = 1,
+        CONDITIONS= 2
+    }; 
 
     /**
      * @brief Pointer definition of UnvOutput
@@ -193,19 +307,53 @@ public:
         return static_cast<typename std::underlying_type<Enumeration>::type>(Value);
     }
 
+    /**
+     * @brief Struct to hold the lists of variables to be outputted in UNV format.
+     * @details This struct contains vectors of pointers to different types of variables (bool, int, double, array_1d<double, 3>) that are to be outputted in UNV format. It is used to organize and manage the variables for output operations.
+     */
+    struct VariablesLists
+    {
+        std::vector<const Variable<bool>*> mBoolVariables;
+        std::vector<const Variable<int>*> mIntVariables;
+        std::vector<const Variable<double>*> mDoubleVariables;
+        std::vector<const Variable<array_1d<double, 3>>*> mArray1DVariables;
+        // std::vector<const Variable<Vector>*> mVectorVariables; // NOTE: Current unsupported
+        // std::vector<const Variable<Matrix>*> mMatrixVariables; // NOTE: Current unsupported
+
+        /**
+         * @brief Initializes the variable lists based on the provided variable names.
+         * @param rVariableNames A vector of variable names to be initialized.
+         * @param rUnvVariableKeys A map to store the corresponding UNV variable keys for the initialized variables.
+         */
+        void Initialize(
+            const std::vector<std::string>& rVariableNames,
+            std::unordered_map<std::size_t, int>& rUnvVariableKeys
+            );
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /**
-     * @brief This constructor initializes the UnvOutput class with a reference to a ModelPart and an output file name.
-     * @param rModelPart Reference to the ModelPart to be outputted.
-     * @param rrOutputFileWithoutExtension Name of the output file without extension.
+     * @brief Constructor of the class (Model + Parameters)
+     * @details This constructor initializes the UnvOutput class with a reference to a Model and a set of parameters.
+     * @param rModel Reference to the Model to be outputted.
+     * @param Settings Parameters for the output process, including output file name and other settings.
      */
     UnvOutput(
-        Kratos::ModelPart&
-        rModelPart, 
-        const std::string& rrOutputFileWithoutExtension
+        Model& rModel,
+        Parameters Settings
+        );
+
+    /**
+     * @brief This constructor initializes the UnvOutput class with a reference to a ModelPart and an output file name.
+     * @param rModelPart Reference to the ModelPart to be outputted.
+     * @param rOutputFileWithoutExtension Name of the output file without extension.
+     */
+    UnvOutput(
+        Kratos::ModelPart& rModelPart, 
+        const std::string& rOutputFileWithoutExtension
         );
 
     ///@}
@@ -219,27 +367,15 @@ public:
 
     /**
      * @brief Writes 'mrOutputModelPart' associated mesh.
-     * 
+     * @details This function writes the mesh of the 'mrOutputModelPart' to the output file. It includes the nodes, elements, and conditions of the model part, along with their associated data. The function ensures that the mesh is properly formatted and ready for output in UNV format.
      */
     void WriteMesh();
 
     /**
-     * @brief Writes 'mrOutputModelPart' associated nodes.
-     * @details This function writes the nodes of the 'mrOutputModelPart' to the output file. It iterates through each node in the model part, retrieves its coordinates, and writes them to the output file in the appropriate format.
+     * @brief Writes the results for the specified variable at the given timestep.
+     * @details Uses the mHistoricalVariables and mNonHistoricalVariables to write the results for the specified variable at the given timestep. The function retrieves the values of the variable for each node in the 'mrOutputModelPart' and writes them to the output file in the appropriate format. It supports various variable types, including bool, int, double, array_1d<double,3>, Vector, and Matrix.
      */
-    void WriteNodes();
-
-    /**
-     * @brief Writes 'mrOutputModelPart' associated conditions.
-     * @details This function writes the conditions of the 'mrOutputModelPart' to the output file. It iterates through each condition in the model part, retrieves its geometry, and writes the appropriate data based on the geometry type (e.g., triangles, quadrilaterals, tetrahedra, hexahedra). The function also handles unsupported geometries by throwing an error. 
-     */
-    void WriteElements();
-
-    /**
-     * @brief Writes 'mrOutputModelPart' associated conditions.
-     * @details This function writes the conditions of the 'mrOutputModelPart' to the output file. It iterates through each condition in the model part, retrieves its geometry, and writes the appropriate data based on the geometry type (e.g., triangles, quadrilaterals). The function also handles unsupported geometries by throwing an error. 
-     */
-    void WriteConditions();
+    void PrintOutput();
 
     /**
      * @brief Writes a result dataset containing the rVariable value for a given timestep
@@ -266,6 +402,46 @@ public:
     void WriteNodalNonHistoricalResults(const Variable<array_1d<double,3>>& rVariable, const double TimeStep);
     void WriteNodalNonHistoricalResults(const Variable<Vector>& rVariable, const double TimeStep);
     void WriteNodalNonHistoricalResults(const Variable<Matrix>& rVariable, const double TimeStep);
+
+    ///@}
+private:
+    ///@name Member Variables
+    ///@{
+
+    Kratos::ModelPart& mrOutputModelPart;                  /// Reference to the model part to be printed
+    std::string mOutputFileName;                           /// Name of the output file
+    
+    VariablesLists mHistoricalVariables;                   /// List of historical variables to be printed
+    VariablesLists mNonHistoricalVariables;                /// List of non-historical variables to be printed
+
+    std::unordered_map<std::size_t, int> mUnvVariableKeys; /// Map to store the keys of the UNV variables for quick access
+
+    EntityType mEntityType = EntityType::AUTOMATIC;        /// Type of entity to be printed (automatic, elements, or conditions)
+    bool mWriteDeformedConfiguration = false;              /// Flag to indicate if the deformed configuration should be written
+    bool mInitializedOutputFile = false;                   /// Flag to indicate if the output file has been initialized
+    bool mMeshWritten = false;                             /// Flag to indicate if the mesh has been written to the output file
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief Writes 'mrOutputModelPart' associated nodes.
+     * @details This function writes the nodes of the 'mrOutputModelPart' to the output file. It iterates through each node in the model part, retrieves its coordinates, and writes them to the output file in the appropriate format.
+     */
+    void WriteNodes();
+
+    /**
+     * @brief Writes 'mrOutputModelPart' associated conditions.
+     * @details This function writes the conditions of the 'mrOutputModelPart' to the output file. It iterates through each condition in the model part, retrieves its geometry, and writes the appropriate data based on the geometry type (e.g., triangles, quadrilaterals, tetrahedra, hexahedra). The function also handles unsupported geometries by throwing an error. 
+     */
+    void WriteElements();
+
+    /**
+     * @brief Writes 'mrOutputModelPart' associated conditions.
+     * @details This function writes the conditions of the 'mrOutputModelPart' to the output file. It iterates through each condition in the model part, retrieves its geometry, and writes the appropriate data based on the geometry type (e.g., triangles, quadrilaterals). The function also handles unsupported geometries by throwing an error. 
+     */
+    void WriteConditions();
 
     /**
      * @brief Returns the type of unv data associated to a Kratos Variable
@@ -309,18 +485,10 @@ public:
 
     /**
      * @brief Get the id of the UNV variable name corresponding to rVariable. 1000+ if none found.
-     * @details This function returns the id of the UNV variable name corresponding to the given Kratos variable (rVariable). If no corresponding UNV variable is found, it returns a value greater than or equal to 1000.
-     * @param rVariable Kratos Variable
-     * @return int      Id of the unv variable corresponding to rVariable
+     * @details This function retrieves the UNV variable name corresponding to the provided Kratos variable (rVariable). It checks if the variable's key exists in the mUnvVariableKeys map. If found, it returns the associated UNV variable name; otherwise, it returns a value greater than or equal to 1000, indicating that no corresponding UNV variable name was found.
+     * @param rVariable The Kratos variable for which to retrieve the UNV variable name
      */
-    template<class TVariablebleType>
-    int GetUnvVariableName(const TVariablebleType& rVariable) {
-        if(rVariable == VELOCITY)       return 11;
-        if(rVariable == TEMPERATURE)    return 5;
-        if(rVariable == PRESSURE)       return 117;
-
-        return 1000;
-    }
+    int GetUnvVariableName(const VariableData& rVariable);
 
     /**
      * @brief Writes a result dataset using the results in node mode
@@ -429,14 +597,14 @@ public:
         rOutputFile << std::setw(6) << "-1" << "\n";
         rOutputFile.close();
     }
-    ///@}
-private:
-    ///@name Member Variables
-    ///@{
 
-    Kratos::ModelPart& mrOutputModelPart; /// Reference to the model part to be printed
-    std::string mOutputFileName;          /// Name of the output file
-    
+    /**
+     * @brief Returns the default parameters for the UnvOutput class.
+     * @details This function returns a Parameters object containing the default parameters for the UnvOutput class. The default parameters include the output path, custom name prefix, custom name postfix, and model part name. These parameters can be used to configure the UnvOutput class when creating an instance of it.
+     * @return Parameters object containing the default parameters for the UnvOutput class.
+     */
+    const Parameters GetDefaultParameters() const;
+
     ///@}
 }; /// class UnvOutput
 

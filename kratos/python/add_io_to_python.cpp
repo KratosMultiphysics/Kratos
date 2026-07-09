@@ -172,9 +172,11 @@ void  AddIOToPython(pybind11::module& m)
         ;
 
     py::class_<UnvOutput, UnvOutput::Pointer>(m, "UnvOutput")
+        .def(py::init<Model&, Parameters>())
         .def(py::init<ModelPart&, const std::string &>())
         .def("InitializeMesh", &UnvOutput::InitializeOutputFile)
         .def("WriteMesh", &UnvOutput::WriteMesh)
+        .def("PrintOutput", &UnvOutput::PrintOutput)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<bool>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<int>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<double>&, const double)) &UnvOutput::WriteNodalResults)
