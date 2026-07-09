@@ -17,6 +17,9 @@
 // Project includes
 #include "custom_solvers/mkl_ilu.hpp" // MKLILUSmootherBase
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
+#ifdef KRATOS_USE_EIGEN_BACKEND
+#include "spaces/eigen_space.h" // TEigenSparseSpace
+#endif
 
 // STL includes
 #include <vector> // std::vector
@@ -398,6 +401,17 @@ template class MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double
 
 
 template class MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+template class MKLILUSmootherBase<TEigenSparseSpace<double>,TUblasDenseSpace<double>>;
+
+
+template class MKLILU0Smoother<TEigenSparseSpace<double>,TUblasDenseSpace<double>>;
+
+
+template class MKLILUTSmoother<TEigenSparseSpace<double>,TUblasDenseSpace<double>>;
+#endif
 
 
 } // namespace Kratos

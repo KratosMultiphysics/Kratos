@@ -16,6 +16,9 @@
 // Project includes
 #include "custom_solvers/mkl_smoother_base.hpp" // MKLSmootherBase
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
+#ifdef KRATOS_USE_EIGEN_BACKEND
+#include "spaces/eigen_space.h" // TEigenSparseSpace
+#endif
 
 // STL includes
 #include <optional> // std::optional
@@ -65,16 +68,20 @@ void MKLSmootherBase<TSparse,TDense>::InitializeSolutionStep(SparseMatrix& rLhs,
     mpImpl->mMaybeRowExtents.emplace(rLhs.index1_data().size());
     mpImpl->mMaybeColumnIndices.emplace(rLhs.index2_data().size());
 
-    for (auto [p_source_array, p_target_array] : {std::make_pair(&rLhs.index1_data(), &mpImpl->mMaybeRowExtents.value()),
-                                                  std::make_pair(&rLhs.index2_data(), &mpImpl->mMaybeColumnIndices.value())}) {
-        auto& r_source = *p_source_array;
-        auto& r_target = *p_target_array;
-        IndexPartition<typename TSparse::IndexType>(p_source_array->size()).for_each(
-            [&r_source, &r_target](typename TSparse::IndexType i) mutable {
-                r_target[i] = static_cast<MKL_INT>(r_source[i])
-                            + static_cast<MKL_INT>(1); //< intel sometimes exclusively uses 1-based indexing
+    // index1_data()/index2_data() return lvalue references for uBLAS matrices
+    // but value proxies for the Eigen-backend matrix, so bind them with
+    // decltype(auto) instead of taking the address of the returned object.
+    const auto copy_shifted = [](const auto& rSource, std::vector<MKL_INT>& rTarget) {
+        IndexPartition<typename TSparse::IndexType>(rTarget.size()).for_each(
+            [&rSource, &rTarget](typename TSparse::IndexType i) {
+                rTarget[i] = static_cast<MKL_INT>(rSource[i])
+                           + static_cast<MKL_INT>(1); //< intel sometimes exclusively uses 1-based indexing
             });
-    } // for p_source_array, p_target_array in array_pairs
+    };
+    decltype(auto) r_row_extents = rLhs.index1_data();
+    decltype(auto) r_column_indices = rLhs.index2_data();
+    copy_shifted(r_row_extents, mpImpl->mMaybeRowExtents.value());
+    copy_shifted(r_column_indices, mpImpl->mMaybeColumnIndices.value());
 
     KRATOS_CATCH("")
 }
@@ -177,6 +184,11 @@ template class MKLSmootherBase<TUblasSparseSpace<double>,TUblasDenseSpace<double
 
 
 template class MKLSmootherBase<TUblasSparseSpace<float>,TUblasDenseSpace<double>>;
+
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+template class MKLSmootherBase<TEigenSparseSpace<double>,TUblasDenseSpace<double>>;
+#endif
 
 
 } // namespace Kratos
