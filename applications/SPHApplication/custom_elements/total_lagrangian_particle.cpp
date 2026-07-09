@@ -157,6 +157,7 @@ void TotalLagrangianDisplacementParticle<TKernelType>::EquationIdVector(
             rResult[local_index++] = r_geom[0].GetDof(DISPLACEMENT_Z, xpos + 2).EquationId();
         }
     }
+
     KRATOS_CATCH("")
 }
 
@@ -349,7 +350,7 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAll(
     if (CalculateStiffnessMatrixFlag) {
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     } else {
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);  /// modified for stabilization (see if it is necessary)
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false); 
     }
     Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
@@ -368,19 +369,17 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAll(
         CalculateAndAddKg(rLHS, this_kinematic_variables.DW_DX, this_constitutive_variables.StressVector, gauss_weight);
 
         /* Material stiffness matrix */
-        CalculateAndAddKm(rLHS, this_kinematic_variables.B, this_constitutive_variables.C, gauss_weight);
-
-        /* Stabilization term */
-        CalculateAndAddStabilizationLeftHandSide(rLHS, rProcessInfo);
+        CalculateAndAddKm(rLHS, this_kinematic_variables.B, this_constitutive_variables.C, gauss_weight);  
     }
 
     if (CalculateResidualVectorFlag){
-
         CalculateAndAddResidualVector(rRHS, this_kinematic_variables, rProcessInfo, body_force, this_constitutive_variables.StressVector, this_constitutive_variables.C, gauss_weight);
-        
-        /* Stabilization term */
-        CalculateAndAddStabilizationRightHandSide(rRHS, rProcessInfo);
     }
+
+    if (rProcessInfo[PENALIZATION_COEFFICIENT] != 0.0){
+        CalculateAndAddPenalization(rLHS, rRHS, this_kinematic_variables, rProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+    }
+        
     
     KRATOS_CATCH("")
 }
@@ -391,8 +390,12 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateKinematicVariabl
     KRATOS_TRY
     CalculateDeformationGradient(rThisKinematicVariables.F, rThisKinematicVariables.DW_DX, rThisKinematicVariables.W, rProcessInfo);
     rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
-    
-    CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.F, rThisKinematicVariables.DW_DX);
+
+    if (GetGeometry().WorkingSpaceDimension() == 2){
+        Calculate2DB(rThisKinematicVariables.B, rThisKinematicVariables.F, rThisKinematicVariables.DW_DX);
+    } else {
+        Calculate3DB(rThisKinematicVariables.B, rThisKinematicVariables.F, rThisKinematicVariables.DW_DX);
+    }
 
     KRATOS_CATCH("")
 }
@@ -441,7 +444,7 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateDeformationGradi
 }
 
 template<class TKernelType>
-void TotalLagrangianDisplacementParticle<TKernelType>::CalculateB(MatrixType& rB, const MatrixType& rF, const MatrixType& rDW_DX)
+void TotalLagrangianDisplacementParticle<TKernelType>::Calculate2DB(MatrixType& rB, const MatrixType& rF, const MatrixType& rDW_DX)
 {
     const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
     const SizeType domain_size = GetGeometry().WorkingSpaceDimension();
@@ -454,6 +457,36 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateB(MatrixType& rB
         rB(1, index + 1) = rF(1, 1) * rDW_DX(i, 1);
         rB(2, index + 0) = rF(0, 0) * rDW_DX(i, 1) + rF(0, 1) * rDW_DX(i, 0);
         rB(2, index + 1) = rF(1, 0) * rDW_DX(i, 1) + rF(1, 1) * rDW_DX(i, 0);
+    }
+
+}
+
+template<class TKernelType>
+void TotalLagrangianDisplacementParticle<TKernelType>::Calculate3DB(MatrixType& rB, const MatrixType& rF, const MatrixType& rDW_DX)
+{
+    const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
+    const SizeType domain_size = GetGeometry().WorkingSpaceDimension();
+
+    for (IndexType i =0; i < number_of_neigh; ++i){
+        const IndexType index = i * domain_size;
+        rB(0, index + 0) = rF(0, 0) * rDW_DX(i, 0);
+        rB(0, index + 1) = rF(1, 0) * rDW_DX(i, 0);
+        rB(0, index + 2) = rF(2, 0) * rDW_DX(i, 0);
+        rB(1, index + 0) = rF(0, 1) * rDW_DX(i, 1);
+        rB(1, index + 1) = rF(1, 1) * rDW_DX(i, 1);
+        rB(1, index + 2) = rF(2, 1) * rDW_DX(i, 1);
+        rB(2, index + 0) = rF(0, 2) * rDW_DX(i, 2);
+        rB(2, index + 1) = rF(1, 2) * rDW_DX(i, 2);
+        rB(2, index + 2) = rF(2, 2) * rDW_DX(i, 2);
+        rB(3, index + 0) = rF(0, 0) * rDW_DX(i, 1) + rF(0, 1) * rDW_DX(i, 0);
+        rB(3, index + 1) = rF(1, 0) * rDW_DX(i, 1) + rF(1, 1) * rDW_DX(i, 0);
+        rB(3, index + 2) = rF(2, 0) * rDW_DX(i, 1) + rF(2, 1) * rDW_DX(i, 0);
+        rB(4, index + 0) = rF(0, 1) * rDW_DX(i, 2) + rF(0, 2) * rDW_DX(i, 1);
+        rB(4, index + 1) = rF(1, 1) * rDW_DX(i, 2) + rF(1, 2) * rDW_DX(i, 1);
+        rB(4, index + 2) = rF(2, 1) * rDW_DX(i, 2) + rF(2, 2) * rDW_DX(i, 1);
+        rB(5, index + 0) = rF(0, 2) * rDW_DX(i, 0) + rF(0, 0) * rDW_DX(i, 2);
+        rB(5, index + 1) = rF(1, 2) * rDW_DX(i, 0) + rF(1, 0) * rDW_DX(i, 2);
+        rB(5, index + 2) = rF(2, 2) * rDW_DX(i, 0) + rF(2, 0) * rDW_DX(i, 2);
     }
 
 }
@@ -562,278 +595,65 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAndAddExternelFo
 }
 
 template<class TKernelType>
-void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAndAddStabilizationLeftHandSide(
-    MatrixType& rLHS, 
-    const ProcessInfo& rProcessInfo
-    ) 
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAndAddPenalization(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    KinematicVariables& rThisKinematicVariables,
+    const ProcessInfo& rProcessInfo,
+    bool CalculateStiffnessMatrixFlag,
+    bool CalculateResidualVectorFlag
+    )
 {
     KRATOS_TRY
+    
+    const auto& r_props = GetProperties();
     const auto& r_neighbours = GetValue(NEIGHBOURS);
     const SizeType number_of_neigh = r_neighbours.size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-    int index = GetNeighbourPosition(r_neighbours);
+    // Initialization of variables
+    double norm_dist, kernel, norm_dkernel, penalization_factor;
+    VectorType X_AB_target(dimension), normal(dimension), dkernel(dimension), displacement_jump(dimension);
+    MatrixType AcousticTensor(dimension, dimension);
 
-    MatrixType PenalizationMatrix = ZeroMatrix(dimension, dimension * number_of_neigh);
-    CalculatePenalizationMatrix(PenalizationMatrix, rProcessInfo, index);
-    noalias(project(rLHS, range(index * dimension, (index + 1) * dimension), range(0, dimension * number_of_neigh))) -= PenalizationMatrix;
-    
-    if (GetGeometry()[0].SolutionStepsDataHas(VELOCITY)){
-        MatrixType DissipationMatrix = ZeroMatrix(dimension, dimension * number_of_neigh);
-        CalculateDissipationMatrix(DissipationMatrix, rProcessInfo, index);
-        noalias(project(rLHS, range(index * dimension, (index + 1) * dimension), range(0, dimension * number_of_neigh))) -= DissipationMatrix;
-    }
-    
-    KRATOS_CATCH("")
-}
+    const int self_index = GetNeighbourPosition(r_neighbours);
 
-template<class TKernelType>
-void TotalLagrangianDisplacementParticle<TKernelType>::CalculatePenalizationMatrix(
-    MatrixType& rPenalizationMatrix,
-    const ProcessInfo& rProcessInfo,
-    const int index
-    )
-{
-    KRATOS_TRY
-    const auto& r_geom = GetGeometry();
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
-    const SizeType number_of_neigh = r_neighbours.size();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const double alpha = rProcessInfo.GetValue(PENALIZATION_COEFFICIENT);
     const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
 
-    // Initialization of variables
-    VectorType normal(dimension), X_AB_target(dimension), dkernel(dimension);
-    double factor, kernel, alpha;
-    alpha = 1.0; 
-
     const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
-    const double weight1 = r_geom[0].GetValue(VOLUME);
-    
-    for (IndexType i = 0; i < number_of_neigh; ++i){
-        
-        const auto& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
-        const double weight2 = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
+    const double weight1 = GetGeometry()[0].GetValue(VOLUME);
 
-        for (IndexType d = 0; d < dimension; ++d){
-            X_AB_target[d] = IPcoords[d] - JPcoords[d];
-        }
+    for (IndexType i = 0; i < number_of_neigh; ++i){
+
+        const double weight2 = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
+        const auto& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
+
+        for (IndexType d = 0; d < dimension; ++d) X_AB_target[d] = IPcoords[d] - JPcoords[d];
 
         TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
         TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
         ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel);
 
-        double norm_dist = norm_2(X_AB_target);
+        norm_dist = norm_2(X_AB_target);
         if (norm_dist < 1e-15) continue; 
-        
+
         normal = X_AB_target / norm_dist; 
         
-        double norm_dkernel = norm_2(dkernel);
-        factor = alpha * weight1 * weight2 * norm_dkernel / norm_dist;
+        penalization_factor = alpha * weight1 * weight2 * norm_2(dkernel) / norm_dist;
 
-        MatrixType AcousticTensor(dimension, dimension);
-        SPHElementUtilities::ComputeLinearElasticAcousticTensor(AcousticTensor, normal, GetProperties());
+        SPHElementUtilities::ComputeLinearElasticAcousticTensor(AcousticTensor, normal, r_props);
 
-        noalias(project(rPenalizationMatrix, range(0, dimension), range(i * dimension, (i + 1) * dimension))) += factor * AcousticTensor;
-        noalias(project(rPenalizationMatrix, range(0, dimension), range(index * dimension, (index + 1) * dimension))) -= factor * AcousticTensor;
-    
-    }
-    
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianDisplacementParticle<TKernelType>::CalculateDissipationMatrix(
-    MatrixType& rDissipationMatrix,
-    const ProcessInfo& rProcessInfo,
-    const int index
-)
-{
-    KRATOS_TRY
-    const auto& r_geom = GetGeometry();
-    const auto& r_props = GetProperties();
-
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
-    const SizeType number_of_neigh = r_neighbours.size();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
-
-    // Initialization of variables
-    MatrixType temp(dimension, dimension); 
-    VectorType normal(dimension), dkernel(dimension), X_AB_target(dimension);
-    double factor, kernel, alpha, pressure_wave_speed, shear_wave_speed; 
-    alpha = 1.0; 
-
-    const double density = r_props[DENSITY];
-    const double weight1 = r_geom[0].GetValue(VOLUME);
-    const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
-
-    SPHElementUtilities::ComputeWaveSpeed(pressure_wave_speed, shear_wave_speed, r_props);
-
-    for (IndexType i = 0; i < number_of_neigh; ++i){
-        const double weight2 = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
-        const auto& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
-
-        for (IndexType d = 0; d < dimension; ++d){
-            X_AB_target[d] = IPcoords[d] - JPcoords[d];
+        if (CalculateStiffnessMatrixFlag){
+            noalias(project(rLHS, range(self_index * dimension, (self_index + 1) * dimension), range(i * dimension, (i + 1) * dimension))) -= penalization_factor * AcousticTensor;
+            noalias(project(rLHS, range(self_index * dimension, (self_index + 1) * dimension), range(self_index * dimension, (self_index + 1) * dimension))) += penalization_factor * AcousticTensor;
         }
 
-        double norm_dist = norm_2(X_AB_target);
-        if (norm_dist < 1e-15) continue;
-        normal = X_AB_target / norm_dist;
-
-        TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
-        TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
-        ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel);
-
-        factor  = alpha * density * weight1 * weight2 * norm_2(dkernel);
-        temp = pressure_wave_speed * outer_prod(normal, normal) + shear_wave_speed * (IdentityMatrix(dimension) - outer_prod(normal, normal));
-
-        noalias(project(rDissipationMatrix, range(0, dimension), range(i * dimension, (i + 1) * dimension))) += factor * temp;
-        noalias(project(rDissipationMatrix, range(0, dimension), range(index * dimension, (index + 1) * dimension))) -= factor * temp;
-    }
-
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAndAddStabilizationRightHandSide(
-    VectorType& rRHS,
-    const ProcessInfo& rProcessInfo
-    )
-{
-    KRATOS_TRY
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
-    const SizeType number_of_neigh = r_neighbours.size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-    int index = GetNeighbourPosition(r_neighbours);
-
-    VectorType PenalizationResidualVector = ZeroVector(dimension);
-    CalculatePenalizationResidualVector(PenalizationResidualVector, rProcessInfo, index);
-    noalias(project(rRHS, range(index * dimension, (index + 1) * dimension))) += PenalizationResidualVector;
-    
-    if (GetGeometry()[0].SolutionStepsDataHas(VELOCITY)){
-        VectorType DissipationResidualVector = ZeroVector(dimension);
-        CalculateDissipationResidualVector(DissipationResidualVector, rProcessInfo, index);
-        noalias(project(rRHS, range(index * dimension, (index + 1) * dimension))) += DissipationResidualVector;
-    }
-    
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianDisplacementParticle<TKernelType>::CalculatePenalizationResidualVector(
-    VectorType& rPenalizationResidualVector,
-    const ProcessInfo& rProcessInfo,
-    const int index
-)
-{
-    KRATOS_TRY
-    const auto& r_geom = GetGeometry();
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
-    const SizeType number_of_neigh = r_neighbours.size();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
-
-    // Initialization of variables
-    VectorType normal(dimension), X_AB_target(dimension), dkernel(dimension);
-    double factor, kernel, alpha;
-    VectorType jump(dimension); noalias(jump) = ZeroVector(dimension);
-    alpha = 1.0;  
-
-    const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
-    const double weight1 = r_geom[0].GetValue(VOLUME);
-    
-    for (IndexType i = 0; i < number_of_neigh; ++i){
-        
-        const auto& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
-        const double weight2 = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
-
-        for (IndexType d = 0; d < dimension; ++d){
-            X_AB_target[d] = IPcoords[d] - JPcoords[d];
+        if (CalculateResidualVectorFlag){
+            SPHElementUtilities::ComputeParticleJump(displacement_jump, *this, *r_neighbours[i], X_AB_target, rProcessInfo); 
+            noalias(project(rRHS, range(self_index * dimension, (self_index + 1) * dimension))) += penalization_factor * prod(AcousticTensor, displacement_jump);
         }
-
-        TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
-        TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
-        ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel);
-
-        double norm_dist = norm_2(X_AB_target);
-        if (norm_dist < 1e-15) continue;
-
-        normal = X_AB_target / norm_dist;
-        double norm_dkernel = norm_2(dkernel);
-        
-        factor = alpha * weight1 * weight2 * norm_dkernel / norm_dist; 
-
-        SPHElementUtilities::ComputeParticleJump(jump, *this, *r_neighbours[i], X_AB_target, rProcessInfo);
-
-        MatrixType AcousticTensor(dimension, dimension);
-        SPHElementUtilities::ComputeLinearElasticAcousticTensor(AcousticTensor, normal, GetProperties());
-
-        noalias(rPenalizationResidualVector) += factor * prod(AcousticTensor, jump); 
     }
-
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianDisplacementParticle<TKernelType>::CalculateDissipationResidualVector(
-    VectorType& rDisspationResidualVector,
-    const ProcessInfo& rProcessInfo,
-    const int index
-)
-{
-    KRATOS_TRY
-    const auto& r_geom = GetGeometry();
-    const auto& r_props = GetProperties();
-
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
-    const SizeType number_of_neigh = r_neighbours.size();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
-
-    // Initialization of variables
-    MatrixType temp(dimension, dimension); 
-    VectorType normal(dimension), dkernel(dimension), X_AB_target(dimension);
-    VectorType jump = ZeroVector(dimension);
-    double factor, kernel, alpha, pressure_wave_speed, shear_wave_speed; 
-    alpha = 1.0; 
-
-    const double density = r_props[DENSITY];
-    const double weight1 = r_geom[0].GetValue(VOLUME);
-    const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
-
-    SPHElementUtilities::ComputeWaveSpeed(pressure_wave_speed, shear_wave_speed, r_props);
-
-    VectorType nodal_values = ZeroVector(number_of_neigh * dimension);
-    GetNodalValuesVector(nodal_values);
-
-    for (IndexType i = 0; i < number_of_neigh; ++i){
-        const double weight2 = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
-        const auto& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
-
-        for (IndexType d = 0; d < dimension; ++d){
-            X_AB_target[d] = IPcoords[d] - JPcoords[d];
-        }
-
-        double norm_dist = norm_2(X_AB_target);
-        if (norm_dist < 1e-15) continue;
-        normal = X_AB_target / norm_dist;
-
-        TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
-        TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
-        ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel);
-
-        factor  = alpha * density * weight1 * weight2 * norm_2(dkernel);
-        temp = pressure_wave_speed * outer_prod(normal, normal) + shear_wave_speed * (IdentityMatrix(dimension) - outer_prod(normal, normal));
-
-        for (IndexType d = 0; d < dimension; d++){
-            jump[d] = nodal_values[i * dimension + d] - nodal_values[index * dimension + d]; 
-        }
-
-        noalias(rDisspationResidualVector) += factor * prod(temp, jump); 
-    }
-
     KRATOS_CATCH("")
 }
 
@@ -914,6 +734,66 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateDampingMatrix(Ma
     const SizeType mat_size = GetGeometry().WorkingSpaceDimension() * r_neighbours.size();
 
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(*this, rDampingMatrix, rProcessInfo, mat_size);
+
+    if (rProcessInfo[DISSIPATION_COEFFICIENT] != 0.0) CalculateAndAddDissipation(rDampingMatrix, rProcessInfo);
+
+}
+
+template<class TKernelType>
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAndAddDissipation(
+    MatrixType& rDampingMatrix,
+    const ProcessInfo& rProcessInfo
+)
+{
+    KRATOS_TRY
+    const auto& r_props = GetProperties();
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType number_of_neigh = r_neighbours.size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Initialization of variables
+    double pressure_wave_speed, shear_wave_speed, norm_dist, kernel, 
+        norm_dkernel, dissipation_factor;
+    VectorType X_AB_target(dimension), normal(dimension), dkernel(dimension), jump(dimension);
+    MatrixType DissipationMatrix(dimension, dimension);
+
+    const int self_index = GetNeighbourPosition(r_neighbours);
+
+    const double alpha = rProcessInfo.GetValue(DISSIPATION_COEFFICIENT);
+    const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
+
+    const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
+    const double weight1 = GetGeometry()[0].GetValue(VOLUME);
+    const double density = r_props[DENSITY];
+
+    SPHElementUtilities::ComputeWaveSpeed(pressure_wave_speed, shear_wave_speed, r_props);
+
+    for (IndexType i = 0; i < number_of_neigh; ++i){
+
+        const double weight2 = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
+        const auto& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
+
+        for (IndexType d = 0; d < dimension; ++d) X_AB_target[d] = IPcoords[d] - JPcoords[d];
+
+        TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
+        TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
+        ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel);
+
+        norm_dist = norm_2(X_AB_target);
+        if (norm_dist < 1e-15) continue; 
+
+        normal = X_AB_target / norm_dist; 
+        
+        dissipation_factor  = alpha * density * weight1 * weight2 * norm_2(dkernel);
+
+        DissipationMatrix = pressure_wave_speed * outer_prod(normal, normal) + shear_wave_speed * (IdentityMatrix(dimension) - outer_prod(normal, normal));
+
+        noalias(project(rDampingMatrix, range(self_index * dimension, (self_index + 1) * dimension), range(i * dimension, (i + 1) * dimension))) -= dissipation_factor * DissipationMatrix;
+        noalias(project(rDampingMatrix, range(self_index * dimension, (self_index + 1) * dimension), range(self_index * dimension, (self_index + 1) * dimension))) += dissipation_factor * DissipationMatrix;
+        
+    }
+
+    KRATOS_CATCH("")
 }
 
 template<class TKernelType>
@@ -1053,6 +933,7 @@ int TotalLagrangianDisplacementParticle<TKernelType>::Check(const ProcessInfo& r
 }
 
 template class TotalLagrangianDisplacementParticle<CubicKernel2D>;
+template class TotalLagrangianDisplacementParticle<CubicKernel3D>;
 
 }
 

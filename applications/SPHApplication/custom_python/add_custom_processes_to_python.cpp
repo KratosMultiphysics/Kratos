@@ -11,6 +11,7 @@
 #include "custom_processes/neighbours_search_process.h"
 #include "custom_processes/compute_kernel_correction_process.h"
 #include "custom_processes/compute_volume_process.h"
+#include "custom_processes/assign_stabilization_coefficients_process.h"
 
 
 namespace Kratos::Python {
@@ -29,6 +30,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
     
     py::class_<ComputeVolumeProcess, ComputeVolumeProcess::Pointer, Process>(m,"ComputeVolumeProcess")
+        .def(py::init<ModelPart&, Parameters>())
+        ;
+    
+    py::class_<AssignStabilizationCoefficientsProcess, AssignStabilizationCoefficientsProcess::Pointer, Process>(m,"AssignStabilizationCoefficientsProcess")
         .def(py::init<ModelPart&, Parameters>())
         ;
 

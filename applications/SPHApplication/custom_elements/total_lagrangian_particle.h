@@ -32,7 +32,7 @@ protected:
         MatrixType B;
         double detF;
         MatrixType F;
-        VectorType Displacement;
+        VectorType Velocities;
 
         /**
          * @brief Default constructor
@@ -51,7 +51,7 @@ protected:
             B = ZeroMatrix(StrainSize, DomainSize * NumberOfNeighbours);
             detF = 1.0;
             F = IdentityMatrix(DomainSize);
-            Displacement = ZeroVector(DomainSize * NumberOfNeighbours);
+            Velocities = ZeroVector(DomainSize * NumberOfNeighbours);
         }
     };
     
@@ -257,9 +257,18 @@ public:
     );
 
     /**
-     * @brief This function computes the deformation matrix B
+     * @brief This function computes the deformation matrix B for 2D simulations
      */
-    void CalculateB(
+    void Calculate2DB(
+        MatrixType& rB,
+        const MatrixType& rF,
+        const MatrixType& rDW_DX
+    );
+
+    /**
+     * @brief This function computes the deformation matrix B for 3D simulations 
+     */
+    void Calculate3DB(
         MatrixType& rB,
         const MatrixType& rF,
         const MatrixType& rDW_DX
@@ -336,56 +345,20 @@ public:
     ) const;
 
     /**
-     * @brief 
-    */
-   virtual void CalculateAndAddStabilizationLeftHandSide(
-    MatrixType& rLHS, 
-    const ProcessInfo& rProcessInfo
-    );
-
-    /**
-     * @brief 
+     * @brief This function calculates the contribution of the penalization to the LHS and RHS
+     * @details A pairwise elastic spring is introduced between neighboring particles to suppress spurious zero-energy 
+     * modes and improve the stability of the discretization. 
+     * @cite "A review of mesh-free Smoothed Particle Hydrodynamics for large strain solid dynamics: 
+     * from displacement-based formulations to first-order conservation laws"  Chun Hean Lee et al. 2026
      */
-    virtual void CalculatePenalizationMatrix(
-        MatrixType& rPenalizationMatrix, 
-        const ProcessInfo& rProcessInfo,
-        const int index
-    );
-
-    /**
-     * @brief
-     */
-    virtual void CalculateDissipationMatrix(
-        MatrixType& rDissipationMatrix,
-        const ProcessInfo& rProcessInfo,
-        const int index
-    ); 
-
-    /**
-     * @brief
-     */
-    virtual void CalculateAndAddStabilizationRightHandSide(
+    virtual void CalculateAndAddPenalization(
+        MatrixType& rLHS,
         VectorType& rRHS,
-        const ProcessInfo& rCurrentProcessInfo
-    );
-    
-    /**
-     * @brief
-     */
-    virtual void CalculatePenalizationResidualVector(
-        VectorType& rResidualVector,
+        KinematicVariables& rThisKinematicVariables,
         const ProcessInfo& rProcessInfo,
-        const int index
-    );
-
-    /**
-     * @brief
-     */
-    virtual void CalculateDissipationResidualVector(
-        VectorType& rDissipationVector,
-        const ProcessInfo& rProcessInfo,
-        const int index
-    );
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag 
+    ); 
 
     /**
       * @brief This is called during the assembling process in order to calculate the elemental mass matrix
@@ -406,6 +379,18 @@ public:
         MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
+    
+    /**
+     * @brief This function calculates the contribution of the dissipation to the LHS and RHS
+     * @details A viscous interaction is introduced between neighboring particles to damp high-frequency oscillations, reduce spurious zero-energy modes, 
+     * and improve the numerical stability during shock-wave propagation and dynamic simulations.
+     * @cite "A review of mesh-free Smoothed Particle Hydrodynamics for large strain solid dynamics: 
+     * from displacement-based formulations to first-order conservation laws"  Chun Hean Lee et al. 2026
+     */
+    virtual void CalculateAndAddDissipation(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rProcessInfo
+    );
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 

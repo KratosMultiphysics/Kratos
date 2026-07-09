@@ -187,7 +187,9 @@ private:
     // Adding the particle elements
 
     const SmallDisplacementParticle<CubicKernel2D> mSmallDisplacementCubicParticle2D;
+    const SmallDisplacementParticle<CubicKernel3D> mSmallDisplacementCubicParticle3D;
     const TotalLagrangianDisplacementParticle<CubicKernel2D> mTotalLagrangianDisplacementCubicParticle2D;
+    const TotalLagrangianDisplacementParticle<CubicKernel3D> mTotalLagrangianDisplacementCubicParticle3D;
 
     /* CONSTITUTIVE LAWS */ 
     const VolumetricLinearElastic2DLaw mVolumetricLinearElastic2DLaw;

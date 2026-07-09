@@ -71,26 +71,20 @@ void SPHElementUtilities::ComputeParticleJump(
     const auto& particle_position = rThisParticle.GetGeometry()[0].Coordinates();
     const auto& neighbour_position = rThisNeighbour.GetGeometry()[0].Coordinates();
 
-    bool linear_reconstruction = true;
-
-    if (linear_reconstruction){
-        std::vector<Matrix> def_gradient_particle;
-        std::vector<Matrix> def_gradient_neighbour;
+    std::vector<Matrix> def_gradient_particle;
+    std::vector<Matrix> def_gradient_neighbour;
         
-        rThisParticle.CalculateOnIntegrationPoints(F_DEFORMATION_GRADIENT, def_gradient_particle, rProcessInfo);
-        const VectorType particle_interface_position = particle_position - 0.5 * prod(def_gradient_particle[0], rInitialDistance);
-        rThisNeighbour.CalculateOnIntegrationPoints(F_DEFORMATION_GRADIENT, def_gradient_neighbour, rProcessInfo);
-        const VectorType neighbour_interface_position = neighbour_position + 0.5 * prod(def_gradient_neighbour[0], rInitialDistance);
+    rThisParticle.CalculateOnIntegrationPoints(F_DEFORMATION_GRADIENT, def_gradient_particle, rProcessInfo);
+    const VectorType particle_interface_position = particle_position - 0.5 * prod(def_gradient_particle[0], rInitialDistance);
+    rThisNeighbour.CalculateOnIntegrationPoints(F_DEFORMATION_GRADIENT, def_gradient_neighbour, rProcessInfo);
+    const VectorType neighbour_interface_position = neighbour_position + 0.5 * prod(def_gradient_neighbour[0], rInitialDistance);
 
-        for (IndexType d = 0; d < dimension; ++d) rJumpVector[d] = neighbour_interface_position[d] - particle_interface_position[d];
-    } else {
-        for (IndexType d = 0; d < dimension; ++d) rJumpVector[d] = neighbour_position[d] - particle_position[d];
-    }
+    for (IndexType d = 0; d < dimension; ++d) rJumpVector[d] = neighbour_interface_position[d] - particle_interface_position[d];
 }
 
 void SPHElementUtilities::ComputeWaveSpeed(
-    double PressureWaveSpeed, 
-    double ShearWaveSpeed, 
+    double& PressureWaveSpeed, 
+    double& ShearWaveSpeed, 
     const Properties& rProperties)
 {
     const double density = rProperties[DENSITY];
