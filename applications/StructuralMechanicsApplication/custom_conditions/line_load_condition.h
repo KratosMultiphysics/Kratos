@@ -58,25 +58,27 @@ public:
     ///@{
 
     /// We define the base class BaseLoadCondition
-    typedef BaseLoadCondition BaseType;
+    using BaseType = BaseLoadCondition;
 
     /// Definition of the index type
-    typedef BaseType::IndexType IndexType;
+    using IndexType = typename BaseType::IndexType;
 
     /// Definition of the size type
-    typedef BaseType::SizeType SizeType;
+    using SizeType = typename BaseType::SizeType;
 
     /// Definition of the node type
-    typedef BaseType::NodeType NodeType;
+    using NodeType = typename BaseType::NodeType;
 
     /// Definition of the properties type
-    typedef BaseType::PropertiesType PropertiesType;
+    using PropertiesType = typename BaseType::PropertiesType;
 
     /// Definition of the geometry type with given NodeType
-    typedef BaseType::GeometryType GeometryType;
+    using GeometryType = typename BaseType::GeometryType;
 
     /// Definition of nodes container type, redefined from GeometryType
-    typedef BaseType::NodesArrayType NodesArrayType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
+
+    using array_3 = array_1d<double, 3>;
 
     /// Counted pointer of LineLoadCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineLoadCondition );
@@ -154,8 +156,8 @@ public:
      * @param rOutput The values of interest (array_1d)
      */
     void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3>>& rVariable,
-        std::vector< array_1d<double, 3>>& rOutput,
+        const Variable<array_3>& rVariable,
+        std::vector< array_3>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -247,7 +249,7 @@ protected:
      */
     void CalculateAndSubKp(
         Matrix& rK,
-        const array_1d<double, 3>& rTangentXi,
+        const array_3& rTangentXi,
         const Matrix& rDN_De,
         const Vector& rN,
         const double Pressure,
@@ -266,7 +268,7 @@ protected:
     void CalculateAndAddPressureForce(
         VectorType& rRightHandSideVector,
         const Vector& rN,
-        const array_1d<double, 3>& rNormal,
+        const array_3& rNormal,
         const double Pressure,
         const double IntegrationWeight
         ) const;
@@ -277,7 +279,7 @@ protected:
      * @param rJacobian The jacobian matrix
      */
     void GetLocalAxis1(
-        array_1d<double, 3>& rLocalAxis,
+        array_3& rLocalAxis,
         const Matrix& rJacobian
         ) const;
 
@@ -285,7 +287,7 @@ protected:
      * @brief This method provides the local axis
      * @param rLocalAxis The local axis
      */
-    void GetLocalAxis2(array_1d<double, 3>& rLocalAxis) const;
+    void GetLocalAxis2(array_3& rLocalAxis) const;
 
     /**
      * @brief This method provides the cross tangent matrix
@@ -294,7 +296,7 @@ protected:
      */
     void GetCrossTangentMatrix(
         BoundedMatrix<double, TDim, TDim>& rCrossTangentMatrix,
-        const array_1d<double, 3>& rTangentXi
+        const array_3& rTangentXi
         ) const;
 
     ///@}
