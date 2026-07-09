@@ -38,7 +38,7 @@ public:
      * @details J. Bonet and S. Kulasegaram "Correction and stabilization of smooth particle 
      * hydrodynamics methods with applications  in metal forming simulations"
      */
-    static void ComputeIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters, unsigned int& iter);
+    //static void ComputeIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters, unsigned int& iter);
 
     /**
      * @brief This function applies the kernel correction
@@ -62,7 +62,7 @@ public:
      */
     static bool VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
 
-    static bool VerifyIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
+    //static bool VerifyIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
 
 };
 
