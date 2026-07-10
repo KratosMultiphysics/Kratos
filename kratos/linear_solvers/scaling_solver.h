@@ -93,7 +93,7 @@ public:
     using IndexIteratorType = decltype(std::declval<SparseMatrixType&>().index1_data().begin());
 
     /// Definition of the const index iterator type
-    using ConstIndexIteratorType = std::decltype(std::declval<const SparseMatrixType&>().index1_data().begin());
+    using ConstIndexIteratorType = decltype(std::declval<const SparseMatrixType&>().index1_data().begin());
 
     /// Definition of the value iterator type
     using ValueIteratorType = std::decltype(std::declval<SparseMatrixType&>().value_data().begin());
