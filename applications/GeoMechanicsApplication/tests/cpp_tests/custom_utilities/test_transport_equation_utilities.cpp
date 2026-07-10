@@ -75,10 +75,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_GivesExpectedResult_WithEx
 
     constexpr auto bulk_modulus_fluid = 2.0e6;
     const auto     expected_values    = std::vector<double>(2, -0.09999992485);
-    const auto     result_vector      = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+    const auto     results            = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, bulk_modulus_fluid, properties);
-    ASSERT_EQ(result_vector.size(), 2);
-    KRATOS_EXPECT_VECTOR_EQ(result_vector, expected_values);
+    ASSERT_EQ(results.size(), 2);
+    KRATOS_EXPECT_VECTOR_EQ(results, expected_values);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ExplicitBulkModulusFluid_WithImplicitBulkModulusFluid,
@@ -93,20 +93,20 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ExplicitBulkModulusFluid_W
     const auto degrees_of_saturation     = std::vector<double>{0.3, 0.3};
     const auto derivatives_of_saturation = std::vector<double>{0.2, 0.2};
 
-    const auto result_using_constant_pw = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+    const auto results_using_constant_pw = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, properties);
 
     properties[GEO_DRAINAGE_TYPE] = "FULLY_COUPLED"s;
-    const auto result_using_fully_coupled = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+    const auto results_using_fully_coupled = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, properties);
 
     const auto expected_values_using_constant_pw = std::vector<double>(2, 1.5e+59);
-    ASSERT_EQ(result_using_constant_pw.size(), 2);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(result_using_constant_pw, expected_values_using_constant_pw,
+    ASSERT_EQ(results_using_constant_pw.size(), 2);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results_using_constant_pw, expected_values_using_constant_pw,
                                        Defaults::relative_tolerance);
     const auto expected_values_using_fully_coupled = std::vector<double>(2, -0.09999992485);
-    ASSERT_EQ(result_using_fully_coupled.size(), 2);
-    KRATOS_EXPECT_VECTOR_EQ(result_using_fully_coupled, expected_values_using_fully_coupled);
+    ASSERT_EQ(results_using_fully_coupled.size(), 2);
+    KRATOS_EXPECT_VECTOR_EQ(results_using_fully_coupled, expected_values_using_fully_coupled);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_DoesThrow_ForEmptyProperties, KratosGeoMechanicsFastSuiteWithoutKernel)
