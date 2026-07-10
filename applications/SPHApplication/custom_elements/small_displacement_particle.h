@@ -158,41 +158,7 @@ public:
      * @brief Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(VectorType& rValues, int step = 0) const override;
-
-    /**
-     * @brief
-     */
-    void GlobalSizeVector(
-        VectorType& rLocalVector,
-        VectorType& rNodalValue,
-        IndexType i
-    )
-    {
-        IndexType dofs_per_node = rLocalVector.size();
-        rLocalVector.clear();
-        rLocalVector[0] = rNodalValue[dofs_per_node * i];
-        rLocalVector[1] = rNodalValue[dofs_per_node * i + 1];
-    };
     
-    /**
-     * @brief
-     */
-    virtual void GetShapeFunctionDerivatives(
-        MatrixType& rB,
-        VectorType& rCGCK,
-        const double volume
-    );
-
-    /**
-     * @brief
-     */
-    virtual void CalculateStrainVector(
-        VectorType& rStrainVector,
-        VectorType& rCGCK,
-        const VectorType& rNodalValues,
-        const double volume
-    );
-
     /**
      * @brief This is called during the assembling process in order to calculate the local system
      * @param rLeftHandSideMatrix the elemental left hand side matrix
@@ -248,7 +214,15 @@ public:
     /**
      * @brief
      */
-    virtual void CalculateB(
+    virtual void Calculate2DB(
+        MatrixType& rB,
+        const MatrixType& rDW_DX
+    );
+
+    /**
+     * @brief
+     */
+    virtual void Calculate3DB(
         MatrixType& rB,
         const MatrixType& rDW_DX
     );

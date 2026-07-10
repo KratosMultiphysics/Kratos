@@ -34,12 +34,12 @@ void ReadAndSetAccessorsUtilities::ReadAndSetAccessors(
         // Loop over the accessors list
         for (auto iter = accessors.begin(); iter != accessors.end(); ++iter) {
             auto accessor_param = accessors.GetValue(iter.name());
-            
+
             // Table Accessor
             if (accessor_param["accessor_type"].GetString() == "table_accessor") {
                 // Independent Variable
                 std::string input_var_name = accessor_param["properties"]["table_input_variable"].GetString();
-                Variable<double> *p_input_var = static_cast<Variable<double> *>(KratosComponents<VariableData>::pGet(input_var_name));
+                const Variable<double> *p_input_var = static_cast<const Variable<double> *>(KratosComponents<VariableData>::pGet(input_var_name));
 
                 // Dependent Variable
                 std::string output_var_name = accessor_param["properties"]["table_output_variable"].GetString();

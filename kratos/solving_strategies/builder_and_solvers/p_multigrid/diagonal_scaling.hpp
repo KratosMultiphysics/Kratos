@@ -134,11 +134,16 @@ void Scaling::Cache(const typename TSparse::MatrixType& rMatrix)
         ? std::pow(static_cast<Value>(1) / static_cast<Value>(rMatrix.size1()), static_cast<Value>(2))
         : static_cast<Value>(1);
 
-    const auto [abs_max, square_norm] = IndexPartition<typename TSparse::IndexType>(rMatrix.size1()).template for_each<Reduction>([&rMatrix, norm_coefficient](auto i_row){
+    // Note: structured bindings on the result of for_each<CombinedReduction> crash
+    // Intel LLVM (icx-cl) with an ICE in LLVM IR generation.
+    // Use std::get<> explicitly to work around the bug.
+    const auto result = IndexPartition<typename TSparse::IndexType>(rMatrix.size1()).template for_each<Reduction>([&rMatrix, norm_coefficient](auto i_row){
         const auto maybe_diagonal_entry = detail::FindDiagonal<TSparse>(rMatrix, i_row);
         const Value diagonal_entry = maybe_diagonal_entry.has_value() ? *maybe_diagonal_entry : static_cast<Value>(0);
         return std::make_tuple(std::abs(diagonal_entry), norm_coefficient * diagonal_entry * diagonal_entry);
     });
+    const Value abs_max = std::get<0>(result);
+    const Value square_norm = std::get<1>(result);
 
     this->Cache(abs_max, std::sqrt(square_norm));
 

@@ -41,7 +41,7 @@ LinearMultifreedomConstraint::LinearMultifreedomConstraint(const IndexType Id,
         << "(" << rRelationMatrix.size1() << "x" << rRelationMatrix.size2() << ")";
 
     // Store input data.
-    this->SetValue(GEOMETRIC_STIFFNESS_MATRIX, rRelationMatrix);
+    this->SetValue(CONSTITUTIVE_MATRIX, rRelationMatrix);
     this->SetValue(INTERNAL_FORCES_VECTOR, rConstraintGaps);
 }
 
@@ -50,7 +50,7 @@ void LinearMultifreedomConstraint::CalculateLocalSystem(MatrixType& rRelationMat
                                                         VectorType& rConstraintGaps,
                                                         const ProcessInfo&) const
 {
-    rRelationMatrix = this->GetData().GetValue(GEOMETRIC_STIFFNESS_MATRIX);
+    rRelationMatrix = this->GetData().GetValue(CONSTITUTIVE_MATRIX);
     rConstraintGaps = this->GetData().GetValue(INTERNAL_FORCES_VECTOR);
 }
 

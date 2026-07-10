@@ -2,6 +2,7 @@ import KratosMultiphysics
 
 # Import application
 import KratosMultiphysics.SPHApplication as SPHApplication
+import KratosMultiphysics.ConstitutiveLawsApplication as CLA#####
 
 # Import base class 
 from KratosMultiphysics.python_solver import PythonSolver
@@ -132,6 +133,7 @@ class SPHSolver(PythonSolver):
         # Add displacements.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(CLA.PLASTIC_STRAIN_VECTOR)####
         # Add specific variables for the problem conditions.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)

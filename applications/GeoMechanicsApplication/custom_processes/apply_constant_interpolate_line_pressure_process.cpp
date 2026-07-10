@@ -21,9 +21,9 @@ namespace Kratos
 {
 using namespace std::string_literals;
 
-ApplyConstantInterpolateLinePressureProcess::ApplyConstantInterpolateLinePressureProcess(ModelPart& model_part,
+ApplyConstantInterpolateLinePressureProcess::ApplyConstantInterpolateLinePressureProcess(ModelPart& rModelPart,
                                                                                          Parameters rParameters)
-    : Process(Flags()), mrModelPart(model_part)
+    : Process(Flags()), mrModelPart(rModelPart)
 {
     KRATOS_TRY
 
@@ -102,7 +102,7 @@ std::string ApplyConstantInterpolateLinePressureProcess::Info() const
     return "ApplyConstantInterpolateLinePressureProcess"s;
 }
 
-double ApplyConstantInterpolateLinePressureProcess::CalculatePressure(const Node& rNode)
+double ApplyConstantInterpolateLinePressureProcess::CalculatePressure(const Node& rNode) const
 {
     // find top boundary
     std::vector<Node*> TopBoundaryNodes;
@@ -127,8 +127,11 @@ double ApplyConstantInterpolateLinePressureProcess::CalculatePressure(const Node
     }
 }
 
-void ApplyConstantInterpolateLinePressureProcess::CalculateBoundaryPressure(
-    const Node& rNode, const std::vector<Node*>& BoundaryNodes, double& pressure, double& coordinate, bool isBottom)
+void ApplyConstantInterpolateLinePressureProcess::CalculateBoundaryPressure(const Node& rNode,
+                                                                            const std::vector<Node*>& BoundaryNodes,
+                                                                            double& pressure,
+                                                                            double& coordinate,
+                                                                            bool    isBottom) const
 {
     // find top boundary
     std::vector<Node*> LeftBoundaryNodes;
@@ -142,15 +145,10 @@ void ApplyConstantInterpolateLinePressureProcess::CalculateBoundaryPressure(
         const Node* RightNode = FindClosestNodeOnBoundaryNodes(rNode, RightBoundaryNodes, isBottom);
 
         InterpolateBoundaryPressure(rNode, LeftNode, RightNode, pressure, coordinate);
-        return;
-
     } else if (!LeftBoundaryNodes.empty()) {
         InterpolateBoundaryPressureWithOneContainer(rNode, LeftBoundaryNodes, pressure, coordinate);
-        return;
-
     } else if (!RightBoundaryNodes.empty()) {
         InterpolateBoundaryPressureWithOneContainer(rNode, RightBoundaryNodes, pressure, coordinate);
-        return;
 
     } else {
         KRATOS_ERROR << "There is not enough points around interpolation, node Id" << rNode.Id() << std::endl;
@@ -267,7 +265,7 @@ void ApplyConstantInterpolateLinePressureProcess::FindTwoClosestNodeOnBoundaryNo
 }
 
 Node* ApplyConstantInterpolateLinePressureProcess::FindClosestNodeOnBoundaryNodes(
-    const Node& rNode, const std::vector<Node*>& BoundaryNodes, const bool isBottom)
+    const Node& rNode, const std::vector<Node*>& BoundaryNodes, bool isBottom) const
 {
     const double       HorizontalCoordinate = rNode.Coordinates()[mHorizontalDirection];
     std::vector<Node*> FoundNodes;
@@ -345,7 +343,7 @@ void ApplyConstantInterpolateLinePressureProcess::FindRightBoundaryNodes(const N
     }
 }
 
-int ApplyConstantInterpolateLinePressureProcess::GetMaxNodeID()
+int ApplyConstantInterpolateLinePressureProcess::GetMaxNodeID() const
 {
     KRATOS_TRY
 
@@ -374,8 +372,11 @@ void ApplyConstantInterpolateLinePressureProcess::FindBoundaryNodes()
         const auto Id = static_cast<int>(rNode.Id());
         for (const auto& r_boundary_node : BoundaryNodes) {
             if (Id == r_boundary_node) {
-                mBoundaryNodes[iPosition] = &rNode;
-                iPosition++;
+#pragma omp critical(boundary_node_assignment)
+                {
+                    mBoundaryNodes[iPosition] = &rNode;
+                    iPosition++;
+                }
             }
         }
     });
@@ -383,23 +384,23 @@ void ApplyConstantInterpolateLinePressureProcess::FindBoundaryNodes()
     KRATOS_CATCH("")
 }
 
-void ApplyConstantInterpolateLinePressureProcess::FillListOfBoundaryNodesFast(std::vector<int>& BoundaryNodes)
+void ApplyConstantInterpolateLinePressureProcess::FillListOfBoundaryNodesFast(std::vector<int>& BoundaryNodes) const
 {
-    const int ID_UNDEFINED = -1;
-    const int N_ELEMENT    = 10;
+    constexpr int ID_UNDEFINED = -1;
+    constexpr int N_ELEMENT    = 10;
 
-    std::vector<std::vector<int>> ELementsOfNodes;
-    std::vector<int>              ELementsOfNodesSize;
+    std::vector<std::vector<int>> elements_of_nodes;
+    std::vector<int>              elements_of_nodes_size;
 
     int MaxNodeID = GetMaxNodeID();
 
-    ELementsOfNodes.resize(MaxNodeID);
-    ELementsOfNodesSize.resize(MaxNodeID);
+    elements_of_nodes.resize(MaxNodeID);
+    elements_of_nodes_size.resize(MaxNodeID);
 
-    for (unsigned int i = 0; i < ELementsOfNodes.size(); ++i) {
-        ELementsOfNodes[i].resize(N_ELEMENT);
-        ELementsOfNodesSize[i] = 0;
-        std::fill(ELementsOfNodes[i].begin(), ELementsOfNodes[i].end(), ID_UNDEFINED);
+    for (unsigned int i = 0; i < elements_of_nodes.size(); ++i) {
+        elements_of_nodes[i].resize(N_ELEMENT);
+        elements_of_nodes_size[i] = 0;
+        std::ranges::fill(elements_of_nodes[i], ID_UNDEFINED);
     }
 
     const auto nElements = static_cast<unsigned int>(mrModelPart.NumberOfElements());
@@ -412,11 +413,11 @@ void ApplyConstantInterpolateLinePressureProcess::FillListOfBoundaryNodesFast(st
             auto ElementId = static_cast<int>(pElemIt->Id());
 
             int index = NodeID - 1;
-            ELementsOfNodesSize[index]++;
-            if (ELementsOfNodesSize[index] > N_ELEMENT - 1) {
-                ELementsOfNodes[index].push_back(ElementId);
+            elements_of_nodes_size[index]++;
+            if (elements_of_nodes_size[index] > N_ELEMENT - 1) {
+                elements_of_nodes[index].push_back(ElementId);
             } else {
-                ELementsOfNodes[index][ELementsOfNodesSize[index] - 1] = ElementId;
+                elements_of_nodes[index][elements_of_nodes_size[index] - 1] = ElementId;
             }
         }
     }
@@ -434,7 +435,7 @@ void ApplyConstantInterpolateLinePressureProcess::FillListOfBoundaryNodesFast(st
                     static_cast<int>(pElemIt->GetGeometry().GenerateEdges()[iEdge].GetPoint(iPoint).Id());
             }
 
-            if (IsMoreThanOneElementWithThisEdgeFast(FaceID, ELementsOfNodes, ELementsOfNodesSize))
+            if (IsMoreThanOneElementWithThisEdgeFast(FaceID, elements_of_nodes, elements_of_nodes_size))
                 continue;
             auto add_boundary_node_if_missing = [&BoundaryNodes](int node_id) {
                 if (std::ranges::find(BoundaryNodes, node_id) == BoundaryNodes.end()) {
@@ -453,15 +454,15 @@ void ApplyConstantInterpolateLinePressureProcess::FillListOfBoundaryNodesFast(st
 
 bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEdgeFast(
     const std::vector<int>&              rFaceIDs,
-    const std::vector<std::vector<int>>& rELementsOfNodes,
-    const std::vector<int>&              rELementsOfNodesSize) const
+    const std::vector<std::vector<int>>& rElementsOfNodes,
+    const std::vector<int>&              rElementsOfNodesSize)
 
 {
-    const auto ContainsElementInRange = [](std::vector<vector<int>>& ElementIDs, int element_id,
-                                           unsigned int begin, unsigned int end) {
+    const auto ContainsElementInRange = [](const std::vector<vector<int>>& ElementIDs,
+                                           int element_id, unsigned int begin, unsigned int end) {
         for (unsigned int iPointInner = begin; iPointInner < end; ++iPointInner) {
             const auto& rElementIds = ElementIDs[iPointInner];
-            if (std::find(rElementIds.begin(), rElementIds.end(), element_id) != rElementIds.end()) {
+            if (std::ranges::find(rElementIds, element_id) != rElementIds.end()) {
                 return true;
             }
         }
@@ -470,7 +471,7 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
 
     int nMaxElements = 0;
     for (auto node_id : rFaceIDs) {
-        nMaxElements += rELementsOfNodesSize[node_id - 1];
+        nMaxElements += rElementsOfNodesSize[node_id - 1];
     }
 
     if (nMaxElements == 0) return false;
@@ -487,8 +488,8 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
     for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
         int NodeID = rFaceIDs[iPoint];
         int index  = NodeID - 1;
-        for (int i = 0; i < rELementsOfNodesSize[index]; ++i) {
-            int iElementID        = rELementsOfNodes[index][i];
+        for (int i = 0; i < rElementsOfNodesSize[index]; ++i) {
+            int iElementID        = rElementsOfNodes[index][i];
             ElementIDs[iPoint][i] = iElementID;
         }
     }
@@ -502,8 +503,7 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
                   ContainsElementInRange(ElementIDs, element_id, iPoint + 1,
                                          static_cast<int>(ElementIDs.size()))))
                 continue;
-            if (std::find(SharedElementIDs.begin(), SharedElementIDs.end(), element_id) ==
-                SharedElementIDs.end()) {
+            if (std::ranges::find(SharedElementIDs, element_id) == SharedElementIDs.end()) {
                 SharedElementIDs.push_back(element_id);
             }
         }

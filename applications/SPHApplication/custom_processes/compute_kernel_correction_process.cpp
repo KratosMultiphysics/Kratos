@@ -16,11 +16,22 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        bool flag = mrThisParameters["controls"].GetBool();
+        unsigned int iter;
+
         ComputeKernelCorrectionUtilities::ComputeWeightedSums(mrThisModelPart);
-
         ComputeKernelCorrectionUtilities::ComputeGradientCorrection(mrThisModelPart);
+        //ComputeKernelCorrectionUtilities::ComputeIntegrationCorrection(mrThisModelPart, mrThisParameters, iter);
+        
+        if (flag == true){
+            bool correction_flag = ComputeKernelCorrectionUtilities::VerifyKernelCorrection(mrThisModelPart, mrThisParameters);
+            KRATOS_INFO("ComputeKernelCorrectionProcess")<<"Performing verification of kernel and kernel gradient corrections..."<<std::endl
+                <<"Kernel correction verification completed. Result: "<<(correction_flag ? "successful" : "failed")<<std::endl;
+            KRATOS_INFO("ComputeKernelCorrectionProcess")<<"The integration correction process was executed"<<std::endl
+                <<"Number of iterations for convergence: "<< iter <<std::endl;
+        }
 
-        ComputeKernelCorrectionUtilities::VerifyIntegrationCorrection(mrThisModelPart);
+        KRATOS_INFO("ComputeKernelCorrectionProcess")<<"The kernel correction process was executed"<<std::endl;
 
         KRATOS_CATCH("")
     }
@@ -28,13 +39,5 @@ namespace Kratos
     void ComputeKernelCorrectionProcess::ExecuteInitialize()
     {
         this->Execute();
-
-        if (mrThisParameters["controls"].GetBool()){
-            bool correction_flag = ComputeKernelCorrectionUtilities::VerifyKernelCorrection(mrThisModelPart, mrThisParameters);
-            KRATOS_INFO("ComputeKernelCorrectionProcess")<<"Performing verification of kernel and kernel gradient corrections..."<<std::endl
-                <<"Kernel correction verification completed. Result: "<<(correction_flag ? "successful" : "failed")<<std::endl;
-        }
-        
-        KRATOS_INFO("ComputeKernelCorrectionProcess")<<"The kernel correction process was executed"<<std::endl;
     }
 }

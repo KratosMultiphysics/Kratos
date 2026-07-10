@@ -512,7 +512,55 @@ public:
                 rIntegrationInfo);
         }
     }
+    ///@}
+    ///@name Span Triangulation Utilities
+    ///@{
 
+    /* @brief Computes the triangulation of a given knot span in the parameter space
+     *
+     * This function evaluates the trimming state of a parametric knot span
+     * defined by the intervals [u0,u1] × [v0,v1]. It delegates the geometric
+     * processing to BrepTrimmingUtilities, which performs clipping of the span
+     * against the outer and inner trimming loops and computes a triangulation
+     * of the resulting domain.
+     *
+     * @param u0 lower bound of the knot span in u-direction.
+     * @param u1 upper bound of the knot span in u-direction.
+     * @param v0 lower bound of the knot span in v-direction.
+     * @param v1 upper bound of the knot span in v-direction.
+     * @param rTriangles vector containing the resulting triangles in local
+     *        coordinates. Each triangle is stored as a 3x3 matrix where rows
+     *        correspond to vertices and columns to spatial coordinates.
+     *
+     * @return bool indicating whether the span is trimmed.
+     *         - false: full (untrimmed) span.
+     *         - true: partially trimmed or completely outside the domain.
+     *
+     * @note If the span lies completely outside the trimmed domain, the returned
+     *       triangle vector will be empty.
+     *
+     * @see BrepTrimmingUtilities::ComputeSpanTriangulation
+     */
+
+    bool ComputeSpanTriangulationLocalSpace(
+        const double u0,
+        const double u1,
+        const double v0,
+        const double v1,
+        std::vector<Matrix>& rTrianglesLocalSpace) const
+    {
+        bool is_trimmed = false;
+
+        BrepTrimmingUtilitiesType::ComputeSpanTriangulation(
+            mOuterLoopArray,
+            mInnerLoopArray,
+            u0, u1,
+            v0, v1,
+            is_trimmed,
+            rTrianglesLocalSpace);
+
+        return is_trimmed;
+    }
     ///@}
     ///@name Quadrature Point Geometries
     ///@{

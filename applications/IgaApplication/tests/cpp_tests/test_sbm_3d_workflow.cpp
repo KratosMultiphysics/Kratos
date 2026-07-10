@@ -436,7 +436,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportInner3D, KratosIgaFastSuite)
     auto& r_support_model_part = model.GetModelPart("IgaModelPart.SBM_Support_inner");
 
     KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfConditions(), 48);
-    KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfNodes(), 125);
+    KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfNodes(), 0);
     KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfElements(), 1);
     KRATOS_EXPECT_EQ(r_support_model_part.NumberOfConditions(), 192);
     KRATOS_EXPECT_EQ(r_support_model_part.NumberOfNodes(), 0);

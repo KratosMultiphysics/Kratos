@@ -48,7 +48,7 @@ void ComputeKernelCorrectionUtilities::ComputeWeightedSums(ModelPart& rThisModel
 }
 
 void ComputeKernelCorrectionUtilities::ComputeGradientCorrection(ModelPart& rThisModelPart)
-{
+{   
     auto& rElem = rThisModelPart.Elements();
     const double h = rThisModelPart.GetProcessInfo()[SMOOTHING_LENGTH];
     const SizeType domain_size = rThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -187,8 +187,8 @@ bool ComputeKernelCorrectionUtilities::VerifyKernelCorrection(ModelPart& rThisMo
 
     KRATOS_CATCH("")
 }
-
-void ComputeKernelCorrectionUtilities::VerifyIntegrationCorrection(ModelPart& rThisModelPart)
+/*
+bool ComputeKernelCorrectionUtilities::VerifyIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters)
 {
     KRATOS_TRY
     auto& rElem = rThisModelPart.Elements();
@@ -229,6 +229,7 @@ void ComputeKernelCorrectionUtilities::VerifyIntegrationCorrection(ModelPart& rT
         KRATOS_WATCH(control);
     }
     KRATOS_CATCH("")
-}
+    return false;
+}*/
 
 }

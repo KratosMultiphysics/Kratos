@@ -36,7 +36,9 @@ KratosSPHApplication::KratosSPHApplication():
     /* ELEMENTS */
     
     mSmallDisplacementCubicParticle2D(0, Element::GeometryType::Pointer(new Point2D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
-    mTotalLagrangianDisplacementCubicParticle2D(0, Element::GeometryType::Pointer(new Point2D<NodeType >(Element::GeometryType::PointsArrayType(1))))
+    mSmallDisplacementCubicParticle3D(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
+    mTotalLagrangianDisplacementCubicParticle2D(0, Element::GeometryType::Pointer(new Point2D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
+    mTotalLagrangianDisplacementCubicParticle3D(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1))))
 
     /* CONDITION */
     //mFixedDirectionCondition(0, Condition::GeometryType::Pointer(new Point2D<NodeType>(Condition::GeometryType::PointsArrayType(1))))
@@ -49,7 +51,9 @@ void KratosSPHApplication::Register()
 
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementCubicParticle2D", mSmallDisplacementCubicParticle2D)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementCubicParticle3D", mSmallDisplacementCubicParticle3D)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianDisplacementCubicParticle2D", mTotalLagrangianDisplacementCubicParticle2D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianDisplacementCubicParticle3D", mTotalLagrangianDisplacementCubicParticle3D)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("VolumetricLinearElastic2DLaw", mVolumetricLinearElastic2DLaw)
 

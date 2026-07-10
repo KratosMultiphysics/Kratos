@@ -35,6 +35,8 @@ PYBIND11_MODULE(KratosSPHApplication,m)
         KratosApplication>(m, "KratosSPHApplication")
         .def(py::init<>())
         ;
+    
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SMOOTHING_LENGTH)
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);

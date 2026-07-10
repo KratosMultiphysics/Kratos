@@ -204,13 +204,12 @@ void CalculateRayleighDampingMatrix(
     const double alpha = GetRayleighAlpha(rElement.GetProperties(), rCurrentProcessInfo);
     const double beta = GetRayleighBeta(rElement.GetProperties(), rCurrentProcessInfo);
 
-    if (std::abs(alpha) < 1E-12 && std::abs(beta) < 1E-12) {
-        // no damping specified, only setting the matrix to zero
-        if (rDampingMatrix.size1() != MatrixSize || rDampingMatrix.size2() != MatrixSize) {
-            rDampingMatrix.resize(MatrixSize, MatrixSize, false);
-        }
-        noalias(rDampingMatrix) = ZeroMatrix(MatrixSize, MatrixSize);
-    } else if (std::abs(alpha) > 1E-12 && std::abs(beta) < 1E-12) {
+    if (rDampingMatrix.size1() != MatrixSize || rDampingMatrix.size2() != MatrixSize) {
+        rDampingMatrix.resize(MatrixSize, MatrixSize, false);
+    }
+    rDampingMatrix.clear();
+
+    if (std::abs(alpha) > 1E-12 && std::abs(beta) < 1E-12) {
         // damping only required with the mass matrix
         rElement.CalculateMassMatrix(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
         rDampingMatrix *= alpha;

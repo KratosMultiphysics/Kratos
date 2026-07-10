@@ -25,18 +25,22 @@
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
+#include "custom_elements/shell_6p_element.h"
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
+#include "custom_elements/navier_stokes_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/load_moment_director_5p_condition.h"
 #include "custom_conditions/coupling_penalty_condition.h"
+#include "custom_conditions/coupling_penalty_6p_condition.h"
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
+#include "custom_conditions/support_penalty_6p_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
 #include "custom_conditions/support_laplacian_condition.h"
@@ -140,18 +144,22 @@ private:
     const Shell3pElement mShell3pElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
+    const Shell6pElement mShell6pElement;
     const LaplacianElement mLaplacianElement;
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
+    const NavierStokesElement mNavierStokesElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
     const LoadCondition mLoadCondition;
     const LoadMomentDirector5pCondition mLoadMomentDirector5pCondition;
     const CouplingPenaltyCondition mCouplingPenaltyCondition;
+    const CouplingPenalty6pCondition mCouplingPenalty6pCondition;
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
+    const SupportPenalty6pCondition mSupportPenalty6pCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;
     const SupportLaplacianCondition mSupportLaplacianCondition;

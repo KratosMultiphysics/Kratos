@@ -151,14 +151,151 @@ namespace Kratos
     };
     ///@} // Kratos Classes
 
-    //template void BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints<
-    //    DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>, Node>(
-    //    BrepTrimmingUtilities::IntegrationPointsArrayType& rIntegrationPoints,
-    //    const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rOuterLoops,
-    //    const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rInnerLoops,
-    //    const std::vector<double>& rSpansU,
-    //    const std::vector<double>& rSpansV,
-    //    IntegrationInfo& rIntegrationInfo);
+    template<bool TShiftedBoundary>
+    void BrepTrimmingUtilities<TShiftedBoundary>::ComputeSpanTriangulation(
+        const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
+        const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
+        const double u0,
+        const double u1,
+        const double v0,
+        const double v1,
+        bool& rIsTrimmed,
+        std::vector<Matrix>& rTriangles)
+    {
+        using namespace Clipper2Lib;
+
+        rTriangles.clear();
+        rIsTrimmed = true; // assume trimmed unless proven otherwise
+
+        const double factor = 1e-10;
+
+        for (IndexType i_outer_loops = 0; i_outer_loops < rOuterLoops.size(); ++i_outer_loops)
+        {
+            Paths64 all_loops(1 + rInnerLoops.size());
+
+            Point64 int_point;
+            int_point.x = static_cast<cInt>(std::numeric_limits<int>::min());
+            int_point.y = static_cast<cInt>(std::numeric_limits<int>::min());
+
+            for (IndexType j = 0; j < rOuterLoops[i_outer_loops].size(); ++j)
+            {
+                CurveTessellation<PointerVector<Node>> curve_tesselation;
+                auto geometry_outer = *(rOuterLoops[i_outer_loops][j].get());
+
+                curve_tesselation.Tessellate(geometry_outer, 0.001, 1, true);
+                auto tesselation = curve_tesselation.GetTessellation();
+
+                for (IndexType u = 0; u < tesselation.size(); ++u)
+                {
+                    auto new_int_point = BrepTrimmingUtilities::ToIntPoint(
+                        std::get<1>(tesselation[u])[0],
+                        std::get<1>(tesselation[u])[1],
+                        factor);
+
+                    if (!(int_point.x == new_int_point.x && int_point.y == new_int_point.y))
+                    {
+                        all_loops[0].push_back(new_int_point); 
+                        int_point = new_int_point;
+                    }
+                }
+            }
+
+            for (IndexType i_inner_loops = 0; i_inner_loops < rInnerLoops.size(); ++i_inner_loops)
+            {
+                int_point.x = static_cast<cInt>(std::numeric_limits<int>::min());
+                int_point.y = static_cast<cInt>(std::numeric_limits<int>::min());
+
+                for (IndexType j = 0; j < rInnerLoops[i_inner_loops].size(); ++j)
+                {
+                    CurveTessellation<PointerVector<Node>> curve_tesselation;
+                    auto geometry_inner = *(rInnerLoops[i_inner_loops][j].get());
+
+                    curve_tesselation.Tessellate(geometry_inner, 0.001, 1, true);
+                    auto tesselation = curve_tesselation.GetTessellation();
+
+                    for (IndexType u = 0; u < tesselation.size(); ++u)
+                    {
+                        auto new_int_point = BrepTrimmingUtilities::ToIntPoint(
+                            std::get<1>(tesselation[u])[0],
+                            std::get<1>(tesselation[u])[1],
+                            factor);
+
+                        if (!(int_point.x == new_int_point.x && int_point.y == new_int_point.y))
+                        {
+                            all_loops[i_inner_loops + 1].push_back(new_int_point);
+                            int_point = new_int_point;
+                        }
+                    }
+                }
+            }
+
+            // Clip with knot span (rectangle)
+            Rect64 rectangle(
+                static_cast<cInt>(u0 / factor),
+                static_cast<cInt>(v0 / factor),
+                static_cast<cInt>(u1 / factor),
+                static_cast<cInt>(v1 / factor));
+
+            Paths64 solution_outer = RectClip(rectangle, all_loops);
+
+            const double span_area = std::abs(Area(rectangle.AsPath()));
+
+            if (solution_outer.empty())
+                continue;
+
+            double clip_area = std::abs(Area(solution_outer[0]));
+            for (IndexType k = 1; k < solution_outer.size(); ++k)
+                clip_area -= std::abs(Area(solution_outer[k]));
+
+            // Subtract inner loops
+            Clipper64 clipper_operation_inner;
+            clipper_operation_inner.AddSubject(solution_outer);
+
+            Paths64 solution_inner;
+            clipper_operation_inner.Execute(
+                ClipType::Difference,
+                FillRule::NonZero,
+                solution_inner);
+
+            // Classify the knot span
+            if (clip_area / span_area < 1e-6)
+            {
+                continue; // empty for this outer loop
+            }
+
+            if (std::abs(1.0 - clip_area / span_area) < 1e-6)
+            {
+                // FULL → not trimmed
+                rIsTrimmed = false;
+
+                Matrix tri1(3,2), tri2(3,2);
+
+                tri1(0,0)=u0; tri1(0,1)=v0;
+                tri1(1,0)=u1; tri1(1,1)=v0;
+                tri1(2,0)=u1; tri1(2,1)=v1;
+
+                tri2(0,0)=u0; tri2(0,1)=v0;
+                tri2(1,0)=u1; tri2(1,1)=v1;
+                tri2(2,0)=u0; tri2(2,1)=v1;
+
+                rTriangles.push_back(tri1);
+                rTriangles.push_back(tri2);
+            }
+            else
+            {
+                rIsTrimmed = true;
+
+                for (IndexType i = 0; i < solution_inner.size(); ++i)
+                {
+                    BrepTrimmingUtilities::Triangulate_OPT(
+                        solution_inner[i],
+                        rTriangles,
+                        factor,
+                        span_area);
+                }
+            }
+        }
+    }
 
     template class KRATOS_API(KRATOS_CORE) BrepTrimmingUtilities<true>;
     template class KRATOS_API(KRATOS_CORE) BrepTrimmingUtilities<false>;

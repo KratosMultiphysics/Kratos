@@ -10,20 +10,18 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_RESULT_DATABASE_H_INCLUDED )
-#define  KRATOS_RESULT_DATABASE_H_INCLUDED
+#pragma once 
 
 // System includes
+#include <unordered_map>
 
 // External includes
-#include <unordered_map>
 
 // Project includes
 #include "includes/table.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -49,7 +47,7 @@ namespace Kratos
  * @brief This class stores the results of a entity
  * @author Vicente Mataix Ferrandiz
 */
-class EntityDatabase
+class KRATOS_API(KRATOS_CORE) EntityDatabase
 {
 public:
     ///@name Type Definitions
@@ -59,16 +57,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(EntityDatabase);
 
     /// GP database definition
-    typedef std::vector<Table<double, double>*> GPDatabaseType;
+    using GPDatabaseType = std::vector<Table<double, double>*>;
 
     /// Base type definition
-    typedef std::vector<GPDatabaseType> DataType;
+    using DataType = std::vector<GPDatabaseType>;
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -232,13 +230,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(VariableDatabase);
 
     /// Base type definition
-    typedef std::vector<EntityDatabase> DataType;
+    using DataType = std::vector<EntityDatabase>;
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -409,10 +407,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ResultDatabase);
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -582,27 +580,21 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    std::unordered_map<IndexType, VariableDatabase> mData; // The database storing the values
+    std::unordered_map<IndexType, VariableDatabase> mData; /// The database storing the values
 
-    Vector mCommonColumn; /// This vector stores the common column (usually TIME), so it needs to be initialized at the begining
+    Vector mCommonColumn;                                  /// This vector stores the common column (usually TIME), so it needs to be initialized at the begining
 
     ///@}
 
 }; // Class ResultDatabase
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
 ///@}
-
-
 }  // namespace Kratos.
-
-#endif // KRATOS_RESULT_DATABASE_H_INCLUDED  defined

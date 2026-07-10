@@ -11,6 +11,8 @@
 //
 
 #include "transport_equation_utilities.hpp"
+
+#include "constitutive_law_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 
 namespace Kratos
@@ -102,9 +104,11 @@ double GeoTransportEquationUtilities::CalculateInverseBiotModulus(double BiotCoe
                                                                   double DerivativeOfSaturation,
                                                                   const Properties& rProperties)
 {
-    const auto bulk_modulus_fluid = rProperties[IGNORE_UNDRAINED] ? TINY : rProperties[BULK_MODULUS_FLUID];
-    double result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
-                    rProperties[POROSITY] / bulk_modulus_fluid;
+    const auto bulk_modulus_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(rProperties)
+                                        ? TINY
+                                        : rProperties[BULK_MODULUS_FLUID];
+    auto result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
+                  rProperties[POROSITY] / bulk_modulus_fluid;
 
     result *= DegreeOfSaturation;
     result -= DerivativeOfSaturation * rProperties[POROSITY];

@@ -40,7 +40,7 @@ struct Line2D2NGeometryWithVelocityVectorData {
         }
     }
 
-    Vector ExpectedVelocity2DFlat() const
+    [[nodiscard]] Vector ExpectedVelocity2DFlat() const
     {
         auto result            = Vector(4);
         subrange(result, 0, 2) = subrange(velocity_vector, 0, 2);
@@ -48,7 +48,7 @@ struct Line2D2NGeometryWithVelocityVectorData {
         return result;
     }
 
-    Vector ExpectedVelocity3DFlat() const
+    [[nodiscard]] Vector ExpectedVelocity3DFlat() const
     {
         auto result            = Vector(6);
         subrange(result, 0, 3) = velocity_vector;

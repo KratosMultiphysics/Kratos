@@ -495,7 +495,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When3DPropertyHasInvalidValue, Kra
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(r_current_process_info),
         "THERMAL_CONDUCTIVITY_SOLID_ZZ in the properties with Id 0 at element with Id 1 has an "
-        "invalid value: -5 is out of the range [0, -).")
+        "invalid value: -5 is out of the range (0, -).")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D4N, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -794,6 +794,38 @@ KRATOS_TEST_CASE_IN_SUITE(TransientThermalElement_GetIntegrationMethodForAllRegi
         1, std::make_shared<Hexahedra3D27<Node>>(nodes), p_properties);
     KRATOS_EXPECT_EQ(p_transient_thermal_element_3D27N->GetIntegrationMethod(),
                      GeometryData::IntegrationMethod::GI_GAUSS_2);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenThermalConductivityAtDiagonalIsZero, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model      this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 2);
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+    GenerateTransientThermalElement3D4N(model_part);
+    SetupElement(model_part);
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    p_element->GetProperties().SetValue(THERMAL_CONDUCTIVITY_WATER, 0.0);
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(r_current_process_info),
+        "Error: THERMAL_CONDUCTIVITY_WATER in the properties with Id 0 at element with Id 1 has an "
+        "invalid value: 0 is out of the range (0, -).")
+
+    p_element->GetProperties().SetValue(THERMAL_CONDUCTIVITY_WATER, 1.0);
+    p_element->GetProperties().SetValue(THERMAL_CONDUCTIVITY_SOLID_XX, 0.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(r_current_process_info),
+        "Error: THERMAL_CONDUCTIVITY_SOLID_XX in the properties with Id 0 at element with Id 1 has "
+        "an invalid value: 0 is out of the range (0, -).")
+
+    p_element->GetProperties().SetValue(THERMAL_CONDUCTIVITY_SOLID_XX, 1.0);
+    p_element->GetProperties().SetValue(THERMAL_CONDUCTIVITY_SOLID_YY, 0.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(r_current_process_info),
+        "Error: THERMAL_CONDUCTIVITY_SOLID_YY in the properties with Id 0 at element with Id 1 has "
+        "an invalid value: 0 is out of the range (0, -).")
 }
 
 } // namespace Kratos::Testing

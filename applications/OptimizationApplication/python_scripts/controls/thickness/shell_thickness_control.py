@@ -146,9 +146,6 @@ class ShellThicknessControl(Control):
                 self.control_phi_field = new_control_field.Clone()
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
-
-                self.filter.Update()
-
                 self.thickness_projection.Update()
                 return True
 

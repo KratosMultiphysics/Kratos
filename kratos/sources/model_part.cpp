@@ -1597,29 +1597,15 @@ void ModelPart::AddGeometry(ModelPart::GeometryType::Pointer pNewGeometry)
 {
     if (IsSubModelPart()) {
         mpParentModelPart->AddGeometry(pNewGeometry);
-        GetMesh(0).AddGeometry(pNewGeometry);
     }
-    else
-    {
-        auto existing_geometry_it = this->GetMesh(0).Geometries().find(pNewGeometry->Id());
-        if( existing_geometry_it == GetMesh(0).Geometries().end()) //geometry did not exist
-        {
-            GetMesh(0).AddGeometry(pNewGeometry);
-        }
-        else  //geometry did exist already
-        {
-            // Check if the connectivities coincide
-            // First check for the geometry type
-            KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*existing_geometry_it, *pNewGeometry)) << "Attempting to add geometry with Id: " << pNewGeometry->Id() << ". A different geometry with the same Id already exists." << std::endl;
-            // Check that the connectivities are the same
-            // note that we deliberately check the node ids and not the pointer adresses as there might be very rare situations
+    else {
+        const auto& r_entity = ReferenceGetter<typename ModelPart::GeometryType>::Get(pNewGeometry);
+        const auto& r_entities = Container<ModelPart::GeometryContainerType>::GetContainer(this->GetMesh());
+                
+        ModelPart::IsValidEntity(r_entities, &r_entity, this->FullName(), this->GetRootModelPart().FullName());
+    }
 
-            // (e.g., creating nodes bypassing the model part interface) with same connectivities but different pointer addresses
-            for (IndexType i_node = 0; i_node < existing_geometry_it->PointsNumber(); ++i_node) {
-                KRATOS_ERROR_IF((*existing_geometry_it)[i_node].Id() != (*pNewGeometry)[i_node].Id()) << "Attempting to add a new geometry with Id: " << pNewGeometry->Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
-            }
-        }
-    }
+    GetMesh(0).AddGeometry(pNewGeometry);
 }
 
 /** Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part

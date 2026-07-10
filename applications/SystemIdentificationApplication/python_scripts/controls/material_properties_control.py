@@ -178,9 +178,6 @@ class MaterialPropertiesControl(Control):
                 self.control_phi_field.data[:] = new_control_field.data
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
-
-                self.filter.Update()
-
                 return True
         return False
 

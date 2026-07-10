@@ -32,7 +32,7 @@ protected:
         MatrixType B;
         double detF;
         MatrixType F;
-        VectorType Displacement;
+        VectorType Velocities;
 
         /**
          * @brief Default constructor
@@ -51,7 +51,7 @@ protected:
             B = ZeroMatrix(StrainSize, DomainSize * NumberOfNeighbours);
             detF = 1.0;
             F = IdentityMatrix(DomainSize);
-            Displacement = ZeroVector(DomainSize * NumberOfNeighbours);
+            Velocities = ZeroVector(DomainSize * NumberOfNeighbours);
         }
     };
     
@@ -79,6 +79,8 @@ public:
 
     using BaseType = Element;
 
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangianDisplacementParticle);
 
     // Constructor void 
@@ -94,13 +96,15 @@ public:
     // Constructor using an array of nodes with properties 
     TotalLagrangianDisplacementParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
-    { 
+    {
+        mThisIntegrationMethod =  GeometryData::IntegrationMethod::GI_GAUSS_1;  ///
     }
 
     // Copy constructor
     TotalLagrangianDisplacementParticle(TotalLagrangianDisplacementParticle const& rOther)
         : BaseType(rOther),
-        mThisConstitutiveLaw(rOther.mThisConstitutiveLaw)
+        mThisConstitutiveLaw(rOther.mThisConstitutiveLaw),
+        mThisIntegrationMethod(rOther.mThisIntegrationMethod)  ////
     {
     }
 
@@ -138,6 +142,23 @@ public:
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    IntegrationMethod GetIntegrationMethod() const override
+    {
+        return mThisIntegrationMethod;   ////
+    }
+
+    /**
+     * @brief This function tells the position of the particle in the list of neighbours
+     */
+    int GetNeighbourPosition(const std::vector<Element::Pointer>& rNeighbours) const
+    {
+        int i = 0; 
+        
+        while (i<rNeighbours.size() && this->Id() != rNeighbours[i]->Id()) i++;
+
+        return i;
+    }
+         
     /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The vector containing the equation IDs
@@ -164,6 +185,11 @@ public:
      * @brief Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(VectorType& rValues, int step = 0) const override;
+
+    /**
+     * @brief
+     */
+    virtual void GetNodalValuesVector(VectorType& rNodalValue) const;
 
     /**
      * @brief This is called during the assembling process in order to calculate the local system
@@ -231,9 +257,18 @@ public:
     );
 
     /**
-     * @brief This function computes the deformation matrix B
+     * @brief This function computes the deformation matrix B for 2D simulations
      */
-    void CalculateB(
+    void Calculate2DB(
+        MatrixType& rB,
+        const MatrixType& rF,
+        const MatrixType& rDW_DX
+    );
+
+    /**
+     * @brief This function computes the deformation matrix B for 3D simulations 
+     */
+    void Calculate3DB(
         MatrixType& rB,
         const MatrixType& rF,
         const MatrixType& rDW_DX
@@ -294,6 +329,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo,
         const VectorType& rBodyForce,
         const Vector& rStressVector,
+        const Matrix& rConstitutiveMatrix,
         const double IntegrationWeight
     ) const; 
 
@@ -307,6 +343,22 @@ public:
         VectorType& rRHS,
         const double weight
     ) const;
+
+    /**
+     * @brief This function calculates the contribution of the penalization to the LHS and RHS
+     * @details A pairwise elastic spring is introduced between neighboring particles to suppress spurious zero-energy 
+     * modes and improve the stability of the discretization. 
+     * @cite "A review of mesh-free Smoothed Particle Hydrodynamics for large strain solid dynamics: 
+     * from displacement-based formulations to first-order conservation laws"  Chun Hean Lee et al. 2026
+     */
+    virtual void CalculateAndAddPenalization(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        KinematicVariables& rThisKinematicVariables,
+        const ProcessInfo& rProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag 
+    ); 
 
     /**
       * @brief This is called during the assembling process in order to calculate the elemental mass matrix
@@ -327,6 +379,18 @@ public:
         MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
+    
+    /**
+     * @brief This function calculates the contribution of the dissipation to the LHS and RHS
+     * @details A viscous interaction is introduced between neighboring particles to damp high-frequency oscillations, reduce spurious zero-energy modes, 
+     * and improve the numerical stability during shock-wave propagation and dynamic simulations.
+     * @cite "A review of mesh-free Smoothed Particle Hydrodynamics for large strain solid dynamics: 
+     * from displacement-based formulations to first-order conservation laws"  Chun Hean Lee et al. 2026
+     */
+    virtual void CalculateAndAddDissipation(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rProcessInfo
+    );
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -351,9 +415,16 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
 protected:
 
     ConstitutiveLaw::Pointer mThisConstitutiveLaw;
+    IntegrationMethod mThisIntegrationMethod; ////
 
     /**
      * @brief This function sets the used constitutive laws
@@ -364,11 +435,33 @@ protected:
     }
 
     /**
+     * @brief Sets the used integration method
+     * @details In SPH the inetgration points are the particles themselves,
+     * this method is implement to maintain compatibility and display the results on the integration points 
+     */
+    void SetIntegrationMethod(const IntegrationMethod ThisIntegrationMethod)
+    {
+        mThisIntegrationMethod = ThisIntegrationMethod; ////
+    }
+
+    /**
      * @brief It initializes the material
      */
     void InitializeMaterial();
 
 private:
+
+    /**
+     * @brief This method gets a value directly in the CL avoiding code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @tparam TType The type considered
+     */
+
+    template<class TType>
+    void GetValueOnConstituitiveLaw(const Variable<TType>& rVariable, std::vector<TType>& rOutput){
+        mThisConstitutiveLaw->GetValue(rVariable, rOutput[0]);   ////
+    }
 
 };
 
