@@ -21,9 +21,7 @@
 #include "includes/expect.h"
 #include "includes/registry.h"
 
-namespace Kratos {
-
-namespace Testing {
+namespace Kratos::Testing {
 
 namespace
 {
@@ -141,6 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(RegistrySubValue, KratosCoreFastSuite)
 
     registry_item.AddItem<double>("sub_value_item", value);
     auto& sub_item = registry_item.GetItem("sub_value_item");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(registry_item.GetItem("sub_value_item_2"), "");
 
     KRATOS_EXPECT_EQ(sub_item.Name(),"sub_value_item");
     KRATOS_EXPECT_TRUE(sub_item.HasValue());
@@ -315,5 +314,4 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryIsSameType, KratosCoreFastSuite) {
     KRATOS_EXPECT_FALSE(Registry::GetItem("variables.all.VELOCITY").IsSameType(test_double));
 }
 
-}
-}  // namespace Kratos.
+}  // namespace Kratos::Testing.

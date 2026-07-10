@@ -13,15 +13,11 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 #include <cstddef>
-#include <vector>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "containers/variable.h"
 #include "includes/kratos_components.h"
 #include "includes/exception.h"
@@ -64,7 +60,7 @@ class KRATOS_API(KRATOS_CORE) DataValueContainer
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Define local flag
     KRATOS_DEFINE_LOCAL_FLAG(OVERWRITE_OLD_VALUES);
 
@@ -91,7 +87,9 @@ public:
     ///@{
 
     /// Default constructor.
-    DataValueContainer() {}
+    DataValueContainer() noexcept = default;
+
+    DataValueContainer(DataValueContainer&&) noexcept = default;
 
     /// Copy constructor.
     DataValueContainer(DataValueContainer const& rOther)
@@ -118,7 +116,7 @@ public:
      * @param rThisVariable The VariableData object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     const TDataType& operator()(const VariableData& rThisVariable) const
     {
         return GetValue<TDataType>(rThisVariable);
@@ -131,7 +129,7 @@ public:
      * @param rThisVariable The Variable object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     TDataType& operator()(const Variable<TDataType>& rThisVariable)
     {
         return GetValue<TDataType>(rThisVariable);
@@ -144,7 +142,7 @@ public:
      * @param rThisVariable The Variable object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     const TDataType& operator()(const Variable<TDataType>& rThisVariable) const
     {
         return GetValue<TDataType>(rThisVariable);
@@ -157,7 +155,7 @@ public:
      * @param rThisVariable The VariableData object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     TDataType& operator[](const VariableData& rThisVariable)
     {
         return GetValue<TDataType>(rThisVariable);
@@ -170,7 +168,7 @@ public:
      * @param rThisVariable The VariableData object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     const TDataType& operator[](const VariableData& rThisVariable) const
     {
         return GetValue<TDataType>(rThisVariable);
@@ -183,7 +181,7 @@ public:
      * @param rThisVariable The Variable object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     TDataType& operator[](const Variable<TDataType>& rThisVariable)
     {
         return GetValue<TDataType>(rThisVariable);
@@ -191,12 +189,12 @@ public:
 
     /**
      * @brief Index operator for retrieving a data value by a Variable (const version).
-     * @details This operator allows you to retrieve a data value by providing a Variable object. 
+     * @details This operator allows you to retrieve a data value by providing a Variable object.
      * @tparam TDataType The data type of the value to retrieve.
      * @param rThisVariable The Variable object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
     {
         return GetValue<TDataType>(rThisVariable);
@@ -238,21 +236,15 @@ public:
         return mData.end();
     }
 
+    DataValueContainer& operator=(DataValueContainer&&) noexcept = default;
+
     /**
      * @brief Assignment operator for copying data from another DataValueContainer.
      * @details This operator allows you to assign the contents of another DataValueContainer to this container.
      * @param rOther The DataValueContainer to copy data from.
      * @return A reference to the modified DataValueContainer.
      */
-    DataValueContainer& operator=(const DataValueContainer& rOther)
-    {
-        Clear();
-
-        for(const_iterator i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
-            mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
-
-        return *this;
-    }
+    DataValueContainer& operator=(const DataValueContainer& rOther);
 
     ///@}
     ///@name Operations
@@ -264,7 +256,7 @@ public:
      * @param rThisVariable The variable for which the value is to be retrieved.
      * @return Reference to the value of the provided variable.
      */
-    template<class TDataType> 
+    template<class TDataType>
     TDataType& GetValue(const Variable<TDataType>& rThisVariable)
     {
         typename ContainerType::iterator i;
@@ -284,13 +276,72 @@ public:
     }
 
     /**
+     * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
+     * @details This method returns a reference to a value represented by @p rThisVariable from the
+     *          database. If the @p rThisVariable is not found, then a new value is created using
+     *          @p rThisVariable::Zero() method and then reference to new value is returned.
+     *
+     * @warning Multiple Emplace functions can be run concurrently OVER DIFFERENT DATABASES.
+     *          Concurrent Emplaces onto the same database ARE NOT THREADSAFE.
+     *
+     * @param rThisVariable     Variable representing the value.
+     * @return TDataType&       Reference to the value.
+     */
+    template<class TDataType>
+    TDataType& Emplace(const Variable<TDataType>& rThisVariable)
+    {
+        auto i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()));
+
+        if (i != mData.end()) {
+            return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
+        } else {
+            auto p_source_variable = &rThisVariable.GetSourceVariable();
+            auto& r_new_value = mData.emplace_back(p_source_variable,p_source_variable->Clone(p_source_variable->pZero()));
+            return *(static_cast<TDataType*>(r_new_value.second) + rThisVariable.GetComponentIndex());
+        }
+    }
+
+    /**
+     * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
+     * @details This method returns a reference to a value represented by @p rThisVariable from the
+     *          database. If the @p rThisVariable is not found, then a new value is created using
+     *          @p rInitValue and then reference to new value is returned.
+     *
+     *          In the case if @p rThisVariable is a component, then first a new value representing
+     *          the source variable is created with @p Zero() method, and then @p rInitValue
+     *          is used to initialize the component referred by @p rThisVariable.
+     *
+     * @warning Multiple Emplace functions can be run concurrently OVER DIFFERENT DATABASES.
+     *          Concurrent Emplaces onto the same database ARE NOT THREADSAFE.
+     *
+     * @param rThisVariable     Variable representing the value.
+     * @param rInitValue        Initialization value in case the @p rThisVariable is not found in the database.
+     * @return TDataType&       Reference to the value.
+     */
+    template<class TDataType>
+    TDataType& Emplace(const Variable<TDataType>& rThisVariable, const TDataType& rInitValue)
+    {
+        auto i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()));
+
+        if (i != mData.end()) {
+            return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
+        } else {
+            auto p_source_variable = &rThisVariable.GetSourceVariable();
+            auto& r_new_value = mData.emplace_back(p_source_variable, p_source_variable->Clone(p_source_variable->pZero()));
+            auto p_value = static_cast<TDataType*>(r_new_value.second) + rThisVariable.GetComponentIndex();
+            *p_value = rInitValue;
+            return *p_value;
+        }
+    }
+
+    /**
      * @brief Gets the value associated with a given variable (const version).
      * @tparam TDataType The data type of the variable.
      * @param rThisVariable The variable for which the value is to be retrieved.
      * @return Const reference to the value of the provided variable.
      * @todo Make the variable of the constant version consistent with the one of the "classical" one
      */
-    template<class TDataType> 
+    template<class TDataType>
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
     {
         typename ContainerType::const_iterator i;
@@ -316,7 +367,7 @@ public:
      * @param rThisVariable The variable for which the value is to be set.
      * @param rValue The value to be set for the variable.
      */
-    template<class TDataType> 
+    template<class TDataType>
     void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue)
     {
         typename ContainerType::iterator i;
@@ -335,7 +386,7 @@ public:
      * @tparam TDataType The data type of the variable.
      * @param rThisVariable The variable whose associated value is to be erased.
      */
-    template<class TDataType> 
+    template<class TDataType>
     void Erase(const Variable<TDataType>& rThisVariable)
     {
         typename ContainerType::iterator i;
@@ -378,7 +429,7 @@ public:
      * @param rThisVariable The variable for which the check is to be made.
      * @return True if the variable has an associated value in the container, otherwise false.
      */
-    template<class TDataType> 
+    template<class TDataType>
     bool Has(const Variable<TDataType>& rThisVariable) const
     {
         return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())) != mData.end());

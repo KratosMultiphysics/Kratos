@@ -39,8 +39,8 @@ namespace Kratos
 
         // Auxiliar vectors to store pointers to the new entities
         // These vectors will be use when renumbering the entities ids.
-        ModelPart::NodesContainerType new_nodes_vect;
-        ModelPart::ConditionsContainerType new_conds_vect;
+        std::vector<Node::Pointer> new_nodes_vect;
+        std::vector<Condition::Pointer> new_conds_vect;
 
         // Set the new condition properties
         Properties::Pointer p_cond_prop = this->SetSkinEntitiesProperties();
@@ -121,8 +121,8 @@ namespace Kratos
         unsigned int &rTempNodeId,
         unsigned int &rTempCondId,
         Properties::Pointer pCondProp,
-        ModelPart::NodesContainerType &rNewNodesVect,
-        ModelPart::ConditionsContainerType &rNewCondsVect)
+        std::vector<Node::Pointer> &rNewNodesVect,
+        std::vector<Condition::Pointer> &rNewCondsVect)
     {
         // Set the split utility and compute the splitting pattern
         const auto &r_geom = pElement->GetGeometry();
@@ -178,8 +178,8 @@ namespace Kratos
 
     template<std::size_t TDim>
     void EmbeddedSkinUtility<TDim>::RenumberAndAddSkinEntities(
-        const ModelPart::NodesContainerType &rNewNodesVect,
-        const ModelPart::ConditionsContainerType &rNewCondsVect)
+        const std::vector<Node::Pointer> &rNewNodesVect,
+        const std::vector<Condition::Pointer> &rNewCondsVect)
     {
         // Once all the entities have been created, renumber the ids.
         // Created entities local number partial reduction
@@ -207,13 +207,13 @@ namespace Kratos
         for (int i_node = 0; i_node < static_cast<int>(rNewNodesVect.size()); ++i_node){
             auto it_node = new_nodes_begin + i_node;
             const unsigned int new_id = new_node_id + i_node;
-            it_node->SetId(new_id);
+            (*it_node)->SetId(new_id);
         }
 
         for (int i_cond = 0; i_cond < static_cast<int>(rNewCondsVect.size()); ++i_cond){
             auto it_cond = new_conds_begin + i_cond;
             const unsigned int new_id = new_cond_id + i_cond;
-            it_cond->SetId(new_id);
+            (*it_cond)->SetId(new_id);
         }
 
         // Add the created conditions to the skin model part

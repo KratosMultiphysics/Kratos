@@ -35,7 +35,6 @@ const std::string parameter_field_string =
 const std::string excavation_string =
     R"({
     "model_part_name": "PorousDomain.Excavation-auto-1",
-    "variable_name": "EXCAVATION",
     "deactivate_soil_part": false
 })";
 

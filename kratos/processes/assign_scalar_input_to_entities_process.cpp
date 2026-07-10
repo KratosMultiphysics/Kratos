@@ -34,6 +34,17 @@ const Kratos::Flags AssignScalarInputToEntitiesProcess<TEntity, THistorical>::GE
 
 template<class TEntity, bool THistorical>
 AssignScalarInputToEntitiesProcess<TEntity, THistorical>::AssignScalarInputToEntitiesProcess(
+    Model& rModel,
+    Parameters rParameters
+    ) : AssignScalarInputToEntitiesProcess(rModel.GetModelPart(rParameters["model_part_name"].GetString()), rParameters)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity, bool THistorical>
+AssignScalarInputToEntitiesProcess<TEntity, THistorical>::AssignScalarInputToEntitiesProcess(
     ModelPart& rModelPart,
     Parameters rParameters
     ) : Process(Flags()) ,
@@ -75,6 +86,18 @@ AssignScalarInputToEntitiesProcess<TEntity, THistorical>::AssignScalarInputToEnt
     ComputeExtrapolationWeight();
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity, bool THistorical>
+Process::Pointer AssignScalarInputToEntitiesProcess<TEntity, THistorical>::Create(
+    Model& rModel,
+    Parameters ThisParameters
+    )
+{
+    return Kratos::make_shared<AssignScalarInputToEntitiesProcess<TEntity, THistorical>>(rModel, ThisParameters);
 }
 
 /***********************************************************************************/
@@ -123,7 +146,6 @@ const Parameters AssignScalarInputToEntitiesProcess<TEntity, THistorical>::GetDe
     const Parameters default_parameters( R"(
     {
         "model_part_name"    : "MODEL_PART_NAME",
-        "mesh_id"            : 0,
         "variable_name"      : "VARIABLE_NAME",
         "file"               : "",
         "transfer_algorithm" : "nearest_neighbour"
@@ -173,7 +195,7 @@ array_1d<double, 3> AssignScalarInputToEntitiesProcess<Element, AssignScalarInpu
 template<>
 PointerVectorSet<Node, IndexedObject>& AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh().Nodes();
+    return mrModelPart.Nodes();
 }
 
 /***********************************************************************************/
@@ -182,7 +204,7 @@ PointerVectorSet<Node, IndexedObject>& AssignScalarInputToEntitiesProcess<Node, 
 template<>
 PointerVectorSet<Node, IndexedObject>& AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh().Nodes();
+    return mrModelPart.Nodes();
 }
 
 /***********************************************************************************/
@@ -191,7 +213,7 @@ PointerVectorSet<Node, IndexedObject>& AssignScalarInputToEntitiesProcess<Node, 
 template<>
 PointerVectorSet<Condition, IndexedObject>& AssignScalarInputToEntitiesProcess<Condition, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh().Conditions();
+    return mrModelPart.Conditions();
 }
 
 /***********************************************************************************/
@@ -200,7 +222,7 @@ PointerVectorSet<Condition, IndexedObject>& AssignScalarInputToEntitiesProcess<C
 template<>
 PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh().Elements();
+    return mrModelPart.Elements();
 }
 
 /***********************************************************************************/

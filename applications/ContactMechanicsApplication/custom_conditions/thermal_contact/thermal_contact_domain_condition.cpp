@@ -53,7 +53,7 @@ ThermalContactDomainCondition::ThermalContactDomainCondition( ThermalContactDoma
 {
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 ThermalContactDomainCondition&  ThermalContactDomainCondition::operator=(ThermalContactDomainCondition const& rOther)
@@ -276,7 +276,7 @@ void ThermalContactDomainCondition::FinalizeSolutionStep(const ProcessInfo& Curr
 
 void ThermalContactDomainCondition::CalculateHeatConductivity()
 {
-  //Initilialize penalty parameter
+  //Initialize penalty parameter
   //double penalty_parameter = 1000;
   double penalty_parameter = GetProperties()[PENALTY_PARAMETER];
 
@@ -688,7 +688,7 @@ int  ThermalContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInf
 }
 
 
-//Note: in the restart the contact mesh is generated from the begining
+//Note: in the restart the contact mesh is generated from the beginning
 
 void ThermalContactDomainCondition::save( Serializer& rSerializer ) const
 {

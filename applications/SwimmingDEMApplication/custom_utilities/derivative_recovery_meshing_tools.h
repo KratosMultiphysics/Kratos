@@ -99,7 +99,6 @@ void FillUpEdgesModelPartFromSimplicesModelPart(ModelPart& r_edges_model_part, M
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
 virtual std::string Info() const
 {
     return "";

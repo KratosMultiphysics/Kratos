@@ -62,7 +62,7 @@ class DamNoorzaiHeatFluxProcess : public Process
         rParameters["alpha"];
         rParameters["specific_heat"];
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
@@ -87,7 +87,7 @@ class DamNoorzaiHeatFluxProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
         KRATOS_TRY;
 
@@ -119,7 +119,7 @@ class DamNoorzaiHeatFluxProcess : public Process
     {
         KRATOS_TRY;
 
-        this->ExecuteInitialize();
+        this->ExecuteBeforeSolutionLoop();
 
         KRATOS_CATCH("");
     }

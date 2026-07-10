@@ -37,7 +37,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 //#include "utilities/enrichment_utilities.h"
 
-#include <boost/timer.hpp>
+#include <chrono>
 #include "utilities/timer.h"
 
 #ifdef _OPENMP
@@ -84,7 +84,7 @@ namespace Kratos
         array_1d<double,3> aux = ZeroVector(3); //dimension = number of nodes
         array_1d<double,3> vel = ZeroVector(3); //dimension = number of nodes
         BoundedMatrix<double,3,2> DN_DX = ZeroMatrix(3,2);
-        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
+        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimension coincides with space dimension
 
         //initialize it with given value
 	//        glob_min_dt=max_dt;
@@ -101,7 +101,7 @@ namespace Kratos
             ms_vel_gauss[0] = v[0];
             ms_vel_gauss[1] = v[1];
 
-            //direction of the height is stored in the auxilliary vector
+            //direction of the height is stored in the auxiliary vector
             for (unsigned int i=1; i<3; i++)
 	      {
                 array_1d<double,3> const& vi = im->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
@@ -154,7 +154,7 @@ namespace Kratos
       void TransferToEulerianMesh_Face_Heat_Flux(ModelPart& rEulerianModelPart, ModelPart & rLagrangianModelPart)
       {
         KRATOS_TRY
-	  //defintions for spatial search
+	  //definitions for spatial search
 	  typedef Node PointType;
         typedef Node ::Pointer PointTypePointer;
         typedef std::vector<PointType::Pointer> PointVector;
@@ -172,7 +172,7 @@ namespace Kratos
         typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
 
         //starting calculating time of construction of the kdtree
-        boost::timer kdtree_construction;
+		const auto start{std::chrono::steady_clock::now()};
 
         for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
 	     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
@@ -182,8 +182,10 @@ namespace Kratos
 	    //putting the nodes of the destination_model part in an auxiliary list
 	    list_of_nodes.push_back(pnode);
 	  }
-
-        std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
+	   
+	    const auto finish{std::chrono::steady_clock::now()};
+        const std::chrono::duration<double> kdtree_construction{finish - start};
+        std::cout << "kdt constructin time " << kdtree_construction.count() << std::endl;
 
         //create a spatial database with the list of new nodes
         unsigned int bucket_size = 20;
@@ -261,7 +263,7 @@ namespace Kratos
       {
         KRATOS_TRY
 
-	  //defintions for spatial search
+	  //definitions for spatial search
 	  typedef Node PointType;
         typedef Node ::Pointer PointTypePointer;
         typedef std::vector<PointType::Pointer> PointVector;
@@ -278,7 +280,7 @@ namespace Kratos
         typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
 
         //starting calculating time of construction of the kdtree
-        boost::timer kdtree_construction;
+		const auto start{std::chrono::steady_clock::now()};
 
         for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
 	     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
@@ -289,7 +291,9 @@ namespace Kratos
             list_of_nodes.push_back(pnode);
 	  }
 
-        std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
+        const auto finish{std::chrono::steady_clock::now()};
+        const std::chrono::duration<double> kdtree_construction{finish - start};
+        std::cout << "kdt constructin time " << kdtree_construction.count() << std::endl;
 
         //create a spatial database with the list of new nodes
         unsigned int bucket_size = 20;
@@ -914,7 +918,7 @@ namespace Kratos
       {
         KRATOS_TRY
 
-	  //defintions for spatial search
+	  //definitions for spatial search
 	  //typedef Node PointType;
 	  //typedef Node ::Pointer PointTypePointer;
 
@@ -968,7 +972,7 @@ namespace Kratos
       {
         KRATOS_TRY
 
-	  //defintions for spatial search
+	  //definitions for spatial search
 	  //typedef Node PointType;
 	  //typedef Node ::Pointer PointTypePointer;
 
@@ -1291,7 +1295,7 @@ namespace Kratos
       {
 	KRATOS_TRY
 
-	  //defintions for spatial search
+	  //definitions for spatial search
 	  typedef Node PointType;
 	typedef Node ::Pointer PointTypePointer;
 	typedef std::vector<PointType::Pointer> PointVector;
@@ -1310,7 +1314,7 @@ namespace Kratos
 
 
 	//starting calculating time of construction of the kdtree
-	boost::timer kdtree_construction;
+	const auto start{std::chrono::steady_clock::now()};
 
 	for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
 	     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
@@ -1321,7 +1325,9 @@ namespace Kratos
 	    list_of_nodes.push_back(pnode);
 	  }
 
-	std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
+	const auto finish{std::chrono::steady_clock::now()};
+    const std::chrono::duration<double> kdtree_construction{finish - start};
+    std::cout << "kdt constructin time " << kdtree_construction.count() << std::endl;
 
 	//create a spatial database with the list of new nodes
 	unsigned int bucket_size = 20;

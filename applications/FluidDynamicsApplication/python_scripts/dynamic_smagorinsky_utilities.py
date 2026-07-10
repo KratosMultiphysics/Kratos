@@ -18,7 +18,7 @@ class DynamicSmagorinsky:
         else:
             self.refinement_tool = LocalRefineTetrahedraMesh(model_part)
 
-        # Neigbour search tool instance
+        # Neighbour search tool instance
         AvgElemNum = 10
         AvgNodeNum = 10
         self.nodal_neighbour_search = FindNodalNeighboursProcess(model_part,

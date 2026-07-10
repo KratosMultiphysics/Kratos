@@ -451,7 +451,7 @@ namespace Kratos {
                 rWeightsRefined[cp_index_refined] = weights_old[cp_index_old];
             }
 
-            // Initilaize first Bézier segment
+            // Initialize first Bézier segment
             for (IndexType i = 0; i < degree_u_old + 1; ++i) {
                 for (IndexType m = 0; m < nb_cp_v; ++m) {
                     IndexType cp_index_bpts = NurbsUtilities::GetVectorIndexFromMatrixIndices(
@@ -833,7 +833,7 @@ namespace Kratos {
                 rWeightsRefined[cp_index_refined] = weights_old[cp_index_old];
             }
 
-            // Initilaize first Bézier segment
+            // Initialize first Bézier segment
             for (IndexType i = 0; i < degree_v_old + 1; ++i) {
                 for (IndexType m = 0; m < nb_cp_u; ++m) {
                     IndexType cp_index_bpts = NurbsUtilities::GetVectorIndexFromMatrixIndices(

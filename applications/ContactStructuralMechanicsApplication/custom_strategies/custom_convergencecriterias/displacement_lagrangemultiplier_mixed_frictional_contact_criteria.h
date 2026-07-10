@@ -333,9 +333,9 @@ public:
             const double tangent_lm_slip_ratio = tangent_lm_slip_solution_norm > Tolerance ? std::sqrt(tangent_lm_slip_increase_norm/tangent_lm_slip_solution_norm) : 0.0;
             const double tangent_lm_stick_ratio = tangent_lm_stick_solution_norm > Tolerance ? std::sqrt(tangent_lm_stick_increase_norm/tangent_lm_stick_solution_norm) : 0.0;
 
-            const double normal_lm_abs = std::sqrt(normal_lm_increase_norm)/static_cast<double>(lm_dof_num);
-            const double tangent_lm_stick_abs = lm_stick_dof_num > 0 ?  std::sqrt(tangent_lm_stick_increase_norm)/ static_cast<double>(lm_stick_dof_num) : 0.0;
-            const double tangent_lm_slip_abs = lm_slip_dof_num > 0 ? std::sqrt(tangent_lm_slip_increase_norm)/ static_cast<double>(lm_slip_dof_num) : 0.0;
+            const double normal_lm_abs = (lm_dof_num > 0) ? std::sqrt(normal_lm_increase_norm)/static_cast<double>(lm_dof_num) : 0.0;
+            const double tangent_lm_stick_abs = (lm_stick_dof_num > 0) ? std::sqrt(tangent_lm_stick_increase_norm)/ static_cast<double>(lm_stick_dof_num) : 0.0;
+            const double tangent_lm_slip_abs = (lm_slip_dof_num > 0) ? std::sqrt(tangent_lm_slip_increase_norm)/ static_cast<double>(lm_slip_dof_num) : 0.0;
 
             const double normal_tangent_stick_ratio = tangent_lm_stick_abs/normal_lm_abs;
             const double normal_tangent_slip_ratio = tangent_lm_slip_abs/normal_lm_abs;
@@ -360,8 +360,8 @@ public:
             residual_rot_ratio = mRotCurrentResidualNorm/mRotInitialResidualNorm;
 
             // We calculate the absolute norms
-            double residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
-            double residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
+            const double residual_disp_abs = (disp_dof_num > 0) ? mDispCurrentResidualNorm/static_cast<double>(disp_dof_num) : 0.0;
+            const double residual_rot_abs = (rot_dof_num > 0) ? mRotCurrentResidualNorm/static_cast<double>(rot_dof_num) : 0.0;
 
             // We print the results // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
@@ -450,8 +450,9 @@ public:
                 }
                 return false;
             }
-        } else // In this case all the displacements are imposed!
+        } else { // In this case all the displacements are imposed!
             return true;
+        }
     }
 
     /**
@@ -588,7 +589,7 @@ public:
     }
 
     ///@}
-    ///@name Acces
+    ///@name Access
     ///@{
 
     ///@}

@@ -14,7 +14,7 @@
 #include "indirect_conduction_surround_layer.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   IndirectConductionSurroundLayer::IndirectConductionSurroundLayer() {}
   IndirectConductionSurroundLayer::~IndirectConductionSurroundLayer() {}
 
@@ -74,7 +74,7 @@ namespace Kratos {
     c = sqrt(1.0 - r_in  * r_in);
 
     // Heat transfer coefficient from analytical solution of the integral expression
-    return 2.0 * Globals::Pi * fluid_conductivity * particle_radius * ((a + 1.0) * log(fabs(b - a - 1.0) / fabs(a - c + 1.0)) + b - c);
+    return 2.0 * Globals::Pi * fluid_conductivity * particle_radius * ((a + 1.0) * log(std::abs(b - a - 1.0) / std::abs(a - c + 1.0)) + b - c);
 
     KRATOS_CATCH("")
   }

@@ -94,7 +94,7 @@ public:
         GeometryType::Pointer pGeometry,
         Properties::Pointer pProperties);
 
-    /// Default constuctor.
+    /// Default constructor.
 
     /// Destructor.
     virtual ~QSConvectionDiffusionExplicit();

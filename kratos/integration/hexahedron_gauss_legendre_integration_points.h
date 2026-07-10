@@ -12,8 +12,7 @@
 //
 
 
-#if !defined(KRATOS_HEXAHEDRON_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED )
-#define  KRATOS_HEXAHEDRON_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -48,7 +47,7 @@ public:
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( 0.00 , 0.00, 0.00 , 8.00 )
+            IntegrationPointType( 0.0 , 0.0, 0.0 , 8.0 )
         }};
         return s_integration_points;
     }
@@ -84,18 +83,26 @@ public:
 
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
+        static const double inv_sqrt_3 = 1.0 / std::sqrt(3.0);
+        static const double weight = 1.0;
+
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( -1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), -1.00/std::sqrt(3.0), 1.00 ),
-            IntegrationPointType(  1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), -1.00/std::sqrt(3.0), 1.00 ),
-            IntegrationPointType(  1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0), -1.00/std::sqrt(3.0), 1.00 ),
-            IntegrationPointType( -1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0), -1.00/std::sqrt(3.0), 1.00 ),
-            IntegrationPointType( -1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0),  1.00/std::sqrt(3.0), 1.00 ),
-            IntegrationPointType(  1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0),  1.00/std::sqrt(3.0), 1.00 ),
-            IntegrationPointType(  1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0),  1.00/std::sqrt(3.0), 1.00 ),
-            IntegrationPointType( -1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0),  1.00/std::sqrt(3.0), 1.00 )
+            // z = -inv_sqrt_3
+            IntegrationPointType(-inv_sqrt_3, -inv_sqrt_3, -inv_sqrt_3, weight),
+            IntegrationPointType( inv_sqrt_3, -inv_sqrt_3, -inv_sqrt_3, weight),
+            IntegrationPointType( inv_sqrt_3,  inv_sqrt_3, -inv_sqrt_3, weight),
+            IntegrationPointType(-inv_sqrt_3,  inv_sqrt_3, -inv_sqrt_3, weight),
+
+            // z =  inv_sqrt_3
+            IntegrationPointType(-inv_sqrt_3, -inv_sqrt_3,  inv_sqrt_3, weight),
+            IntegrationPointType( inv_sqrt_3, -inv_sqrt_3,  inv_sqrt_3, weight),
+            IntegrationPointType( inv_sqrt_3,  inv_sqrt_3,  inv_sqrt_3, weight),
+            IntegrationPointType(-inv_sqrt_3,  inv_sqrt_3,  inv_sqrt_3, weight)
         }};
+
         return s_integration_points;
     }
+
 
     std::string Info() const
     {
@@ -128,45 +135,50 @@ public:
 
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
+        static const double sqrt_3_5 = std::sqrt(3.00 / 5.00);
+        static const double weight1 = 125.00 / 729.00;
+        static const double weight2 = 200.00 / 729.00;
+        static const double weight3 = 320.00 / 729.00;
+        static const double weight4 = 512.00 / 729.00;
+
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( -std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00), -std::sqrt(3.00/5.00), 125.00/729.00 ),
-            IntegrationPointType(                   0.0 , -std::sqrt(3.00/5.00), -std::sqrt(3.00/5.00), 200.00/729.00 ),
-            IntegrationPointType(  std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00), -std::sqrt(3.00/5.00), 125.00/729.00 ),
+            // z = -sqrt(3/5)
+            IntegrationPointType(-sqrt_3_5, -sqrt_3_5, -sqrt_3_5, weight1),
+            IntegrationPointType(0.0,       -sqrt_3_5, -sqrt_3_5, weight2),
+            IntegrationPointType(sqrt_3_5, -sqrt_3_5, -sqrt_3_5, weight1),
+            IntegrationPointType(-sqrt_3_5,  0.0,     -sqrt_3_5, weight2),
+            IntegrationPointType(0.0,        0.0,     -sqrt_3_5, weight3),
+            IntegrationPointType(sqrt_3_5,  0.0,     -sqrt_3_5, weight2),
+            IntegrationPointType(-sqrt_3_5,  sqrt_3_5, -sqrt_3_5, weight1),
+            IntegrationPointType(0.0,        sqrt_3_5, -sqrt_3_5, weight2),
+            IntegrationPointType(sqrt_3_5,  sqrt_3_5, -sqrt_3_5, weight1),
 
-            IntegrationPointType( -std::sqrt(3.00/5.00) ,                   0.0, -std::sqrt(3.00/5.00), 200.00/729.00 ),
-            IntegrationPointType(                   0.0 ,                   0.0, -std::sqrt(3.00/5.00), 320.00/729.00 ),
-            IntegrationPointType(  std::sqrt(3.00/5.00) ,                   0.0, -std::sqrt(3.00/5.00), 200.00/729.00 ),
+            // z = 0.0
+            IntegrationPointType(-sqrt_3_5, -sqrt_3_5,  0.0, weight2),
+            IntegrationPointType(0.0,       -sqrt_3_5,  0.0, weight3),
+            IntegrationPointType(sqrt_3_5, -sqrt_3_5,  0.0, weight2),
+            IntegrationPointType(-sqrt_3_5,  0.0,      0.0, weight3),
+            IntegrationPointType(0.0,        0.0,      0.0, weight4),
+            IntegrationPointType(sqrt_3_5,  0.0,      0.0, weight3),
+            IntegrationPointType(-sqrt_3_5,  sqrt_3_5,  0.0, weight2),
+            IntegrationPointType(0.0,        sqrt_3_5,  0.0, weight3),
+            IntegrationPointType(sqrt_3_5,  sqrt_3_5,  0.0, weight2),
 
-            IntegrationPointType( -std::sqrt(3.00/5.00) ,  std::sqrt(3.00/5.00), -std::sqrt(3.00/5.00), 125.00/729.00 ),
-            IntegrationPointType(                   0.0 ,  std::sqrt(3.00/5.00), -std::sqrt(3.00/5.00), 200.00/729.00 ),
-            IntegrationPointType(  std::sqrt(3.00/5.00) ,  std::sqrt(3.00/5.00), -std::sqrt(3.00/5.00), 125.00/729.00 ),
-
-            IntegrationPointType( -std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00),                   0.0, 200.00/729.00 ),
-            IntegrationPointType(                   0.0 , -std::sqrt(3.00/5.00),                   0.0, 320.00/729.00 ),
-            IntegrationPointType(  std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00),                   0.0, 200.00/729.00 ),
-
-            IntegrationPointType( -std::sqrt(3.00/5.00) ,                   0.0,                   0.0, 320.00/729.00 ),
-            IntegrationPointType(                   0.0 ,                   0.0,                   0.0, 512.00/729.00 ),
-            IntegrationPointType(  std::sqrt(3.00/5.00) ,                   0.0,                   0.0, 320.00/729.00 ),
-
-            IntegrationPointType( -std::sqrt(3.00/5.00) ,  std::sqrt(3.00/5.00),                   0.0, 200.00/729.00 ),
-            IntegrationPointType(                   0.0 ,  std::sqrt(3.00/5.00),                   0.0, 320.00/729.00 ),
-            IntegrationPointType(  std::sqrt(3.00/5.00) ,  std::sqrt(3.00/5.00),                   0.0, 200.00/729.00 ),
-
-            IntegrationPointType( -std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00),  std::sqrt(3.00/5.00), 125.00/729.00 ),
-            IntegrationPointType(                   0.0 , -std::sqrt(3.00/5.00),  std::sqrt(3.00/5.00), 200.00/729.00 ),
-            IntegrationPointType(  std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00),  std::sqrt(3.00/5.00), 125.00/729.00 ),
-
-            IntegrationPointType( -std::sqrt(3.00/5.00) ,                   0.0,  std::sqrt(3.00/5.00), 200.00/729.00 ),
-            IntegrationPointType(                   0.0 ,                   0.0,  std::sqrt(3.00/5.00), 320.00/729.00 ),
-            IntegrationPointType(  std::sqrt(3.00/5.00) ,                   0.0,  std::sqrt(3.00/5.00), 200.00/729.00 ),
-
-            IntegrationPointType( -std::sqrt(3.00/5.00) ,  std::sqrt(3.00/5.00),  std::sqrt(3.00/5.00), 125.00/729.00 ),
-            IntegrationPointType(                   0.0 ,  std::sqrt(3.00/5.00),  std::sqrt(3.00/5.00), 200.00/729.00 ),
-            IntegrationPointType(  std::sqrt(3.00/5.00) ,  std::sqrt(3.00/5.00),  std::sqrt(3.00/5.00), 125.00/729.00 )
+            // z = sqrt(3/5)
+            IntegrationPointType(-sqrt_3_5, -sqrt_3_5,  sqrt_3_5, weight1),
+            IntegrationPointType(0.0,       -sqrt_3_5,  sqrt_3_5, weight2),
+            IntegrationPointType(sqrt_3_5, -sqrt_3_5,  sqrt_3_5, weight1),
+            IntegrationPointType(-sqrt_3_5,  0.0,      sqrt_3_5, weight2),
+            IntegrationPointType(0.0,        0.0,      sqrt_3_5, weight3),
+            IntegrationPointType(sqrt_3_5,  0.0,      sqrt_3_5, weight2),
+            IntegrationPointType(-sqrt_3_5,  sqrt_3_5,  sqrt_3_5, weight1),
+            IntegrationPointType(0.0,        sqrt_3_5,  sqrt_3_5, weight2),
+            IntegrationPointType(sqrt_3_5,  sqrt_3_5,  sqrt_3_5, weight1)
         }};
+
         return s_integration_points;
     }
+
 
     std::string Info() const
     {
@@ -452,7 +464,5 @@ public:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_HEXAHEDRON_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined
 
 

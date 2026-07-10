@@ -14,7 +14,7 @@
 #include "radiation_continuum_krause.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   RadiationContinuumKrause::RadiationContinuumKrause() {}
   RadiationContinuumKrause::~RadiationContinuumKrause() {}
 

@@ -228,7 +228,7 @@ public:
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Called at the end of eahc solution step
+     * @brief Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -640,14 +640,26 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Base Solid Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        buffer << "Base Solid Element #" << Id();
+        if (!mConstitutiveLawVector.empty()
+            && mConstitutiveLawVector[0] != nullptr) {
+          buffer << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        } else {
+          buffer << " (no constitutive law)";
+        }
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Base Solid Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Base Solid Element #" << Id();
+        if (!mConstitutiveLawVector.empty()
+            && mConstitutiveLawVector[0] != nullptr) {
+          rOStream << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        } else {
+          rOStream << " (no constitutive law)";
+        }
     }
 
     /// Print object's data.

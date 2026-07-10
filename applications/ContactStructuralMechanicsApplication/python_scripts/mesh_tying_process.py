@@ -107,7 +107,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         self.consider_static_condensation = self.mesh_tying_settings["consider_static_condensation"].GetBool()
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -221,7 +221,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         zero_vector[1] = 0.0
         zero_vector[2] = 0.0
 
-        # Initilialize weighted variables and LM
+        # Initialize weighted variables and LM
         if self.type_variable == "Scalar":
             KM.VariableUtils().SetVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL, 0.0, self._get_process_model_part().Nodes)
         else:

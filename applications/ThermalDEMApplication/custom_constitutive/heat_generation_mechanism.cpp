@@ -14,7 +14,7 @@
 #include "heat_generation_mechanism.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   HeatGenerationMechanism::HeatGenerationMechanism() {}
   HeatGenerationMechanism::~HeatGenerationMechanism() {}
 

@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(NUSSELT_NUMBER_WHITAKER_H_INCLUDED)
-#define NUSSELT_NUMBER_WHITAKER_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -78,5 +77,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // NUSSELT_NUMBER_WHITAKER_H_INCLUDED

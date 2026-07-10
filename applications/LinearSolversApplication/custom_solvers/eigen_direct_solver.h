@@ -7,15 +7,13 @@
 //  Author: Thomas Oberbichler
 */
 
-#if !defined(KRATOS_EIGEN_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 
 // Project includes
-#include "includes/define.h"
 #include "custom_utilities/ublas_wrapper.h"
 #include "factories/standard_linear_solver_factory.h"
 #include "includes/ublas_complex_interface.h"
@@ -110,7 +108,7 @@ public:
      * @param rX Solution vector
      * @param rB Right hand side vector
      */
-    void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    bool PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         Eigen::Map<Kratos::EigenDynamicVector<DataType>> x(rX.data().begin(), rX.size());
         Eigen::Map<Kratos::EigenDynamicVector<DataType>> b(rB.data().begin(), rB.size());
@@ -118,6 +116,7 @@ public:
         const bool success = m_solver.Solve(b, x);
 
         KRATOS_ERROR_IF(!success) << "Solving failed!\n" << m_solver.GetSolverErrorMessages() << std::endl;
+        return success;
     }
 
     /**
@@ -130,9 +129,7 @@ public:
     bool Solve(SparseMatrixType &rA, VectorType &rX, VectorType &rB) override
     {
         InitializeSolutionStep(rA, rX, rB);
-        PerformSolutionStep(rA, rX, rB);
-
-        return true;
+        return PerformSolutionStep(rA, rX, rB);
     }
 
     /**
@@ -142,9 +139,47 @@ public:
      * @param rB Right hand side matrix
      * @return true if solution found, otherwise false
      */
-    bool Solve(SparseMatrixType &rA, DenseMatrixType &rX, DenseMatrixType &rB) override
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
-        return false;
+        KRATOS_TRY
+
+        const std::size_t system_size = TSparseSpaceType::Size1(rA);
+        const std::size_t n_rhs = TDenseSpaceType::Size2(rB);
+    
+        typename TSparseSpaceType::VectorType solution, rhs;
+        TSparseSpaceType::Resize(solution, TSparseSpaceType::Size1(rA));
+        TSparseSpaceType::Resize(rhs, TSparseSpaceType::Size1(rA));
+    
+        KRATOS_ERROR_IF(TDenseSpaceType::Size1(rB) != system_size)
+            << "Expecting the right hand side matrix to have "
+            << system_size
+            << " rows, but it has "
+            << TDenseSpaceType::Size1(rB) << ".";
+    
+        TDenseSpaceType::Resize(rX, system_size, n_rhs);
+
+        rhs = column(rB, 0);
+        this->InitializeSolutionStep(rA, solution, rhs);
+    
+        bool success = true;
+    
+        for (std::size_t i_column = 0ul; i_column < n_rhs; ++i_column)
+        {
+            rhs = column(rB, i_column);
+
+            TSparseSpaceType::SetToZero(solution);
+
+            const bool col_success = this->PerformSolutionStep(rA, solution, rhs);
+            success = success && col_success;
+
+            column(rX, i_column) = solution;
+        }
+    
+        this->FinalizeSolutionStep(rA, solution, rhs);
+    
+        return success;
+    
+        KRATOS_CATCH("")
     }
 
     /**
@@ -204,5 +239,3 @@ inline std::ostream &operator<<(
 }
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_EIGEN_SOLVER_H_INCLUDED)

@@ -16,12 +16,18 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyPhreaticMultiLinePressureTableProcess::ApplyPhreaticMultiLinePressureTableProcess(ModelPart& model_part,
                                                                                        Parameters rParameters)
     : ApplyConstantPhreaticMultiLinePressureProcess(model_part, rParameters)
 {
     KRATOS_TRY
+
+    KRATOS_ERROR_IF(HorizontalDirectionCoordinates().size() != rParameters["table"].GetVector().size())
+        << "Got " << HorizontalDirectionCoordinates().size() << " coordinates and "
+        << rParameters["table"].GetVector().size() << " table references. The number of coordinates "
+        << "and table references should be equal." << std::endl;
 
     for (auto value : rParameters["table"].GetVector()) {
         const auto TableId = static_cast<unsigned int>(value);
@@ -50,8 +56,9 @@ void ApplyPhreaticMultiLinePressureTableProcess::ExecuteInitializeSolutionStep()
 
     const double        Time = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
     std::vector<double> deltaH;
+    deltaH.reserve(mpTable.size());
     std::transform(mpTable.begin(), mpTable.end(), std::back_inserter(deltaH),
-                   [Time](auto element) { return element ? element->GetValue(Time) : 0.0; });
+                   [Time](const auto& element) { return element ? element->GetValue(Time) : 0.0; });
 
     block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
         const double pressure = CalculatePressure(rNode, deltaH);
@@ -75,12 +82,12 @@ void ApplyPhreaticMultiLinePressureTableProcess::ExecuteInitializeSolutionStep()
 
 std::string ApplyPhreaticMultiLinePressureTableProcess::Info() const
 {
-    return "ApplyPhreaticMultiLinePressureTableProcess";
+    return "ApplyPhreaticMultiLinePressureTableProcess"s;
 }
 
 void ApplyPhreaticMultiLinePressureTableProcess::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "ApplyPhreaticMultiLinePressureTableProcess";
+    rOStream << Info();
 }
 
 } // namespace Kratos

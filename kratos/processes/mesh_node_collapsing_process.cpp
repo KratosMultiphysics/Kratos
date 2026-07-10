@@ -69,7 +69,7 @@ namespace Kratos
 		//TetrahedraBall node_ball(rThisNode);
 		//double current_quality = node_ball.CalculateMinQuality(Geometry<Node >::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO);
 
-		// initializing the min quality of the current mesh as the treshold and also check if there is an
+		// initializing the min quality of the current mesh as the threshold and also check if there is an
 		// element in the ball which is already set to be erased
 		double current_quality = std::numeric_limits<double>::max();
 		auto& neighbour_elements = rThisNode.GetValue(NEIGHBOUR_ELEMENTS);

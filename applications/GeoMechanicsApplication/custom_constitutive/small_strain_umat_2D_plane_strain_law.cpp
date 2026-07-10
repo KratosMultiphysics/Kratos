@@ -10,10 +10,17 @@
 //  Main authors:    Vahid Galavi
 //
 
-#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
+#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.h"
+#include "constitutive_law_dimension.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
+
+SmallStrainUMAT2DPlaneStrainLaw::SmallStrainUMAT2DPlaneStrainLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+    : SmallStrainUMATLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
+{
+}
 
 ConstitutiveLaw::Pointer SmallStrainUMAT2DPlaneStrainLaw::Clone() const
 {
@@ -77,10 +84,18 @@ void SmallStrainUMAT2DPlaneStrainLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Pa
     KRATOS_CATCH("")
 }
 
+void SmallStrainUMAT2DPlaneStrainLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUMATLaw)
+}
+
+void SmallStrainUMAT2DPlaneStrainLaw::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUMATLaw)}
+
 Vector& SmallStrainUMAT2DPlaneStrainLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::GetValue(rThisVariable, rValue);
+        SmallStrainUMATLaw::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
         for (unsigned int i = 0; i < VoigtSize; ++i) {
@@ -90,15 +105,43 @@ Vector& SmallStrainUMAT2DPlaneStrainLaw::GetValue(const Variable<Vector>& rThisV
     return rValue;
 }
 
-void SmallStrainUMAT2DPlaneStrainLaw::SetValue(const Variable<Vector>& rThisVariable,
+void SmallStrainUMAT2DPlaneStrainLaw::SetValue(const Variable<Vector>& rVariable,
                                                const Vector&           rValue,
                                                const ProcessInfo&      rCurrentProcessInfo)
 {
-    if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
+    if (rVariable == STATE_VARIABLES) {
+        SmallStrainUMATLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
         this->SetInternalStressVector(rValue);
     }
 }
 
+SizeType SmallStrainUMAT2DPlaneStrainLaw::WorkingSpaceDimension() { return Dimension; }
+
+SizeType SmallStrainUMAT2DPlaneStrainLaw::GetStrainSize() const { return VoigtSize; }
+
+ConstitutiveLaw::StrainMeasure SmallStrainUMAT2DPlaneStrainLaw::GetStrainMeasure()
+{
+    return StrainMeasure_Infinitesimal;
+}
+
+ConstitutiveLaw::StressMeasure SmallStrainUMAT2DPlaneStrainLaw::GetStressMeasure()
+{
+    return StressMeasure_Cauchy;
+}
+
+std::string SmallStrainUMAT2DPlaneStrainLaw::Info() const
+{
+    return "SmallStrainUMAT2DPlaneStrainLaw"s;
+}
+
+void SmallStrainUMAT2DPlaneStrainLaw::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+void SmallStrainUMAT2DPlaneStrainLaw::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUMAT2DPlaneStrainLaw Data";
+}
 } // namespace Kratos

@@ -76,7 +76,7 @@ public:
     virtual ~Cutting_Isosurface_Application() = default;
 
 
-    ///This function Creates cutting isosurfaces by creating nodes and conditions (to define the conectivities) in a different model part. (new_model_part)
+    ///This function Creates cutting isosurfaces by creating nodes and conditions (to define the connectivities) in a different model part. (new_model_part)
     /** each time it is called a new cutting isosurface is created and therefore new nodes and conditions are added to the new model part
         WARNING: the cutting isosurface MUST cut the domain in at least one triangle, otherwise a segmentiation fault might appear
     * @param mr_model_part . original model part
@@ -172,7 +172,7 @@ public:
             Node ::Pointer pnode = new_model_part.CreateNewNode(number_of_nodes+number_of_previous_nodes, it_node->X(), it_node->Y(), it_node->Z());  //recordar que es el nueevo model part!!
             pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
             pnode->GetValue(FATHER_NODES).resize(0);
-            pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
+            pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everything with the same size
             pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );
             pnode-> GetValue(WEIGHT_FATHER_NODES) = 1.0;  //lo anterior no anduvo... creo q es así entonces. o hace falta el GetValue?
 
@@ -287,7 +287,7 @@ public:
                 Node ::Pointer pnode = new_model_part.CreateNewNode(number_of_nodes+number_of_previous_nodes, it_node->X(), it_node->Y(), it_node->Z());  //recordar que es el nueevo model part!!
                 pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
                 pnode->GetValue(FATHER_NODES).resize(0);
-                pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
+                pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everything with the same size
                 pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );
                 pnode-> GetValue(WEIGHT_FATHER_NODES) = 1.0;  //lo anterior no anduvo... creo q es así entonces. o hace falta el GetValue?
 
@@ -366,7 +366,7 @@ public:
 
     void FirstLoop(ModelPart& this_model_part, compressed_matrix<int>& Coord, Variable<double>& variable, double isovalue, int number_of_triangles, vector<int>&  Elems_In_Isosurface, float tolerance)//
     {
-        //varible is the variable that defines the isosurface
+        //variable is the variable that defines the isosurface
         //isovalue is the value of the variable that defines the isosurface
 
         ElementsArrayType& rElements = this_model_part.Elements();
@@ -394,7 +394,7 @@ public:
             exact_nodes = 0 ;
             Geometry<Node >&geom = it->GetGeometry(); //geometry of the element
             for(unsigned int i = 0; i < it->GetGeometry().size() ; i++)          //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
-                //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetrahedras are cutted 8 times then we have 2 triangles (or a cuatrilateral, the same)
+                //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetrahedras are cut 8 times then we have 2 triangles (or a cuatrilateral, the same)
             {
                 node_value[i] = geom[i].FastGetSolutionStepValue(variable);
 
@@ -420,7 +420,7 @@ public:
                             list_matching_nodes[i]= geom[i].Id();
                             break;
                         }
-                        //check this last condition, used to avoid talking points that belong to other node. might cause some problems when the plane is almost paralel to an edge. to be improved! (it seems to be working correcly even when the edge is part of the plane.)
+                        //check this last condition, used to avoid talking points that belong to other node. might cause some problems when the plane is almost parallel to an edge. to be improved! (it seems to be working correctly even when the edge is part of the plane.)
                         if ((diff_node_value[i]*diff_neigh_value[j]) < 0.0 && isovernode==false && fabs(diff_neigh_value[j]) > tolerance) // this means one has a bigger value than the imposed values and the other smaller, no need to do more checks, between there is a point that should match the value!
                         {
                             int index_i = geom[i].Id() - 1;     //i node id
@@ -440,7 +440,7 @@ public:
                     --exact_nodes;
                 }
             }
-            //now we have to save the data. we should get a list with the elements that will genereate triangles and the total number of triangles
+            //now we have to save the data. we should get a list with the elements that will generate triangles and the total number of triangles
             Elems_In_Isosurface[current_element-1] = 0 ; //we initialize as 0
 
             if (number_of_cuts == 6)     //it can be 8, in that case we have 2 triangles (the cut generates a square)
@@ -460,7 +460,7 @@ public:
 
     void FirstLoop(ModelPart& this_model_part, compressed_matrix<int>& Coord, Variable < array_1d<double,3> >& variable, double isovalue, int number_of_triangles, vector<int>&  Elems_In_Isosurface, float tolerance)//
     {
-        //varible is the variable that defines the isosurface
+        //variable is the variable that defines the isosurface
         //isovalue is the value of the variable that defines the isosurface
 
         ElementsArrayType& rElements = this_model_part.Elements();
@@ -499,7 +499,7 @@ public:
             exact_nodes = 0 ;
             Geometry<Node >&geom = it->GetGeometry(); //geometry of the element
             for(unsigned int i = 0; i < it->GetGeometry().size() ; i++)          //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
-                //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetrahedras are cutted 8 times then we have 2 triangles (or a cuatrilateral, the same)
+                //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetrahedras are cut 8 times then we have 2 triangles (or a cuatrilateral, the same)
             {
                 vector_node_value[i] = geom[i].FastGetSolutionStepValue(variable);
 
@@ -558,7 +558,7 @@ public:
                             list_matching_nodes[i]= geom[i].Id();
                             break;
                         }
-                        //check this last condition, used to avoid talking points that belong to other node. might cause some problems when the plane is almost paralel to an edge. to be improved! (it seems to be working correcly even when the edge is part of the plane.)
+                        //check this last condition, used to avoid talking points that belong to other node. might cause some problems when the plane is almost parallel to an edge. to be improved! (it seems to be working correctly even when the edge is part of the plane.)
                         if (weight1 > 0.0 && weight1 < 1.0 && fabs(diff_neigh_value[j]) > tolerance  && isovernode==false) // this means one has a bigger value than the imposed values and the other smaller, no need to do more checks, between there is a point that should match the value!
                         {
                             int index_i = geom[i].Id() - 1;     //i node id
@@ -588,7 +588,7 @@ public:
                     --exact_nodes;
                 }
             }
-            //now we have to save the data. we should get a list with the elements that will genereate triangles and the total number of triangles
+            //now we have to save the data. we should get a list with the elements that will generate triangles and the total number of triangles
             Elems_In_Isosurface[current_element-1] = 0 ; //we initialize as 0
 
             if (number_of_cuts == 6)     //it can be 8, in that case we have 2 triangles (the cut generates a square)
@@ -926,7 +926,7 @@ public:
             ///we enter in the if for only one triangle in the tetrahedra
             if (Elems_In_Isosurface[current_element-1] == 1 ) //do not forget than can be both 1 or 2 triangles per tetrahedra. this is the simplest case. no need to check anything, we just create an element with the 3 nodes
             {
-                //checking element conectivities
+                //checking element connectivities
                 for(unsigned int i = 0; i < it->GetGeometry().size() ; i++)
                 {
                     Geometry<Node >&geom = it->GetGeometry(); //i node of the element
@@ -937,7 +937,7 @@ public:
                         int index_j = geom[j].Id() - 1;
                         for (unsigned int l=0; l!=3; ++l)
                         {
-                            if(TriangleNodesArray[l]==Coord(index_i, index_j) || Coord(index_i, index_j) <1 ) new_node=false; //if we have already saved this node or it has not been cutted, then we have no new node to add (coord(i,j)=-1)
+                            if(TriangleNodesArray[l]==Coord(index_i, index_j) || Coord(index_i, index_j) <1 ) new_node=false; //if we have already saved this node or it has not been cut, then we have no new node to add (coord(i,j)=-1)
                         }
                         //if it's a new node and the indexes are correct:
                         if (new_node && index_i<=index_j)
@@ -1038,7 +1038,7 @@ public:
             if (Elems_In_Isosurface[current_element-1] == 2)  //now we have 2 elements. we cant just create 2 elements with a random node order because they might overlap and not cover the whole area defined by the trapezoid
             {
                 //to fix this we'll first create a plane. see below
-                //checking conectivities to find nodes
+                //checking connectivities to find nodes
                 for(unsigned int i = 0; i < it->GetGeometry().size() ; i++) //node i
                 {
                     Geometry<Node >&geom = it->GetGeometry();
@@ -1110,7 +1110,7 @@ public:
                     //now i have to create the new plane
                     MathUtils<double>::CrossProduct(temp_vector4, vector_normal , temp_vector3); //done. now temp_vector4 is the (normal to the) new plane, perpendicular to the one containing the triangles
                     //the origin of the plane is temp_vector1 (temp_vector2 could also be used)
-                    //now we need to check distances to the other nodes (i+2 (let's call them jjj and i+3=kkk since we can't go futher than i=3)
+                    //now we need to check distances to the other nodes (i+2 (let's call them jjj and i+3=kkk since we can't go further than i=3)
 
                     if (iii==1)
                     {
@@ -1268,7 +1268,7 @@ public:
             ///we enter in the if for only one triangle in the tetrahedra
             if (Elems_In_Isosurface[current_element-1] == 1 ) //do not forget than can be both 1 or 2 triangles per tetrahedra. this is the simplest case. no need to check anything, we just create an element with the 3 nodes
             {
-                //checking element conectivities
+                //checking element connectivities
                 for(unsigned int i = 0; i < it->GetGeometry().size() ; i++)
                 {
                     Geometry<Node >&geom = it->GetGeometry(); //i node of the element
@@ -1279,7 +1279,7 @@ public:
                         int index_j = geom[j].Id() - 1;
                         for (unsigned int l=0; l!=3; ++l)
                         {
-                            if(TriangleNodesArray[l]==Coord(index_i, index_j) || Coord(index_i, index_j) <1 ) new_node=false; //if we have already saved this node or it has not been cutted, then we have no new node to add (coord(i,j)=-1)
+                            if(TriangleNodesArray[l]==Coord(index_i, index_j) || Coord(index_i, index_j) <1 ) new_node=false; //if we have already saved this node or it has not been cut, then we have no new node to add (coord(i,j)=-1)
                         }
                         if (new_node && index_i<=index_j)  //if it's a new node and the indexes are correct:
                         {
@@ -1381,7 +1381,7 @@ public:
             if (Elems_In_Isosurface[current_element-1] == 2)  //now we have 2 elements. we cant just create 2 elements with a random node order because they might overlap and not cover the whole area defined by the trapezoid
             {
                 //to fix this we'll first create a plane. see below
-                //checking conectivities to find nodes
+                //checking connectivities to find nodes
                 for(unsigned int i = 0; i < it->GetGeometry().size() ; i++) //node i
                 {
                     Geometry<Node >&geom = it->GetGeometry();

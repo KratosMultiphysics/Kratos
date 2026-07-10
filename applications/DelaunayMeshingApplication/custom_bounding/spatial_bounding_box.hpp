@@ -331,7 +331,7 @@ public:
 
       if(CustomParameters["parameters_list"].IsArray() == true && CustomParameters["parameters_list"].size() != 1)
         {
-	  KRATOS_THROW_ERROR(std::runtime_error,"paramters_list for the Spatial BBX must contain only one term",CustomParameters.PrettyPrintJsonString());
+	  KRATOS_THROW_ERROR(std::runtime_error,"parameters_list for the Spatial BBX must contain only one term",CustomParameters.PrettyPrintJsonString());
         }
 
       mBox.Initialize();

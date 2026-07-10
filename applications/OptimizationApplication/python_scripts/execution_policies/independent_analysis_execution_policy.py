@@ -54,10 +54,10 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
     def Execute(self):
         analysis_type = getattr(import_module(self.analysis_full_module), self.analysis_type)
         if AnalysisStage in analysis_type.mro():
-            # the analysis type is derrived from AnalysisStage
+            # the analysis type is derived from AnalysisStage
             self.current_analysis: AnalysisStage = getattr(import_module(self.analysis_full_module), self.analysis_type)(self.model, self.analysis_settings.Clone())
         elif Orchestrator in analysis_type.mro():
-            # the analysis type is derrive from the Orchestrator
+            # the analysis type is derive from the Orchestrator
             project = Project(self.analysis_settings.Clone())
             self.current_analysis: Orchestrator = getattr(import_module(self.analysis_full_module), self.analysis_type)(project)
 

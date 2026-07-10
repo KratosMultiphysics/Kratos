@@ -43,14 +43,12 @@ addons:
     packages:
     - opencl-headers
     - lcov
-    - clinfo
   homebrew:
     packages:
     - boost
     - libomp
     - cmake
     - lcov
-    - clinfo
 
 cache:
   directories:
@@ -58,7 +56,6 @@ cache:
 
 script:
     - cmake --version
-    - clinfo
     - mkdir -p build && cd build
     - cmake -DVEXCL_TEST_COVERAGE=ON -DVEXCL_BUILD_TESTS=ON -DVEXCL_BUILD_EXAMPLES=ON -DVEXCL_BACKEND=${VEXCL_BACKEND} -DVEXCL_JIT_COMPILER_FLAGS=${VEXCL_JIT_COMPILER_FLAGS} ..
     - make -j2
@@ -69,5 +66,5 @@ script:
 
 after_success:
     - lcov --directory tests --base-directory ../vexcl --capture --output-file coverage.info
-    - lcov --remove coverage.info '/usr*' '*/cl.hpp' -o coverage.info
+    - lcov --remove coverage.info '/usr*' '*/cl.hpp' '*/boost/*' -o coverage.info
     - bash <(curl -s https://codecov.io/bash)
