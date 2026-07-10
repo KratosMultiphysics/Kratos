@@ -17,7 +17,23 @@ class FirstOrderStokesVariableViscosityFormulation(StabilizedFormulation):
     element_integrates_in_time -- States if the time integration is whether done by the element or not
     element_has_nodal_properties -- States if the material properties are whether stored in the nodes or not
     process_data -- Auxiliary container to temporary store the elemental ProcessInfo data
+    get_conition_neighbours -- Flag to indicate if knowing the conditions neighbouring each node is necessary 
     """
+
+    BVS_GL_ELEMENT = "first_order_stokes_variable_viscosity_bvs_gl"
+    PSPG_SD_ELEMENT = "first_order_stokes_variable_viscosity_pspg_sd"
+
+    ELEMENTS_DICT = {
+        BVS_GL_ELEMENT: {
+            "element_name": "FirstOrderStokesVariableViscosityBvsGl",
+            "get_condition_neighbours": True
+        },
+        PSPG_SD_ELEMENT: {
+            "element_name": "FirstOrderStokesVariableViscosityPspgSd",
+            "get_condition_neighbours": False
+        }
+    }
+    
 
     def __init__(self,settings):
         """
@@ -36,15 +52,19 @@ class FirstOrderStokesVariableViscosityFormulation(StabilizedFormulation):
         self.element_integrates_in_time = False
         self.element_has_nodal_properties = True
         self.process_data = {}
+        self.get_neighbour_conditions = False
+
+        allowed_element_types = self.ELEMENTS_DICT.keys()
 
         if settings.Has("element_type"):
             element_type = settings["element_type"].GetString()
-            if element_type == "first_order_stokes_variable_viscosity_bvs_gl":
+            if element_type in allowed_element_types:
                 self._SetUpCustomStokesVariableViscosityElement(settings)
             else:
                 err_msg = "Found \'element_type\' is \'" + element_type + "\'.\n"
-                err_msg += "Available options are:\n"
-                err_msg += "\t- \'first_order_stokes_variable_viscosity\'"
+                err_msg += "Available options are:\n\t - \'"
+                err_msg += "\'\n\t- \'".join(allowed_element_types)
+                err_msg += "\'"
                 raise RuntimeError(err_msg)
         else:
             print(settings)
@@ -58,9 +78,12 @@ class FirstOrderStokesVariableViscosityFormulation(StabilizedFormulation):
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "FirstOrderStokesVariableViscosityBvsGl"
+        element_type = settings["element_type"].GetString()
         self.delta_parameter = settings["delta_parameter"].GetDouble()
         self.sigma_parameter = settings["sigma_parameter"].GetDouble()
+
+        self.element_name = self.ELEMENTS_DICT[element_type]["element_name"]
+        self.get_neighbour_conditions = self.ELEMENTS_DICT[element_type].get("get_condition_neighbours",False)
 
 def CreateSolver(main_model_part, custom_settings):
     return FirstOrderStokesVariableViscositySolver(main_model_part, custom_settings)
@@ -156,10 +179,12 @@ class FirstOrderStokesVariableViscositySolver(NavierStokesMonolithicSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def Initialize(self):
-        # Call the FindConditionsNeighours so that, within C++, we might get the conditions associated to each node.
-        domain_size = self.settings["domain_size"].GetInt()
-        proc = KratosMultiphysics.FindConditionsNeighboursProcess(self.main_model_part, domain_size, 10)
-        proc.Execute()
+
+        if self.get_neighbour_conditions:
+            # Call the FindConditionsNeighours so that, within C++, we might get the conditions associated to each node.
+            domain_size = self.settings["domain_size"].GetInt()
+            proc = KratosMultiphysics.FindConditionsNeighboursProcess(self.main_model_part, domain_size, 10)
+            proc.Execute()
 
         super().Initialize()
 
@@ -187,6 +212,7 @@ class FirstOrderStokesVariableViscositySolver(NavierStokesMonolithicSolver):
         self.sigma_parameter = self.formulation.sigma_parameter
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
+        self.get_neighbour_conditions = self.formulation.get_neighbour_conditions
 
     def _SetNodalProperties(self):
         # Get density and dynamic viscosity from the properties of the first element

@@ -190,6 +190,8 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     // KratosFECompiler-based elements
     mFirstOrderStokesVariableViscosityBvsGl2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mFirstOrderStokesVariableViscosityBvsGl3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mFirstOrderStokesVariableViscosityPspgSd2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mFirstOrderStokesVariableViscosityPspgSd3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     // Fluid adjoint elements
     mVMSAdjointElement2D(0,Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -449,6 +451,8 @@ void KratosFluidDynamicsApplication::Register() {
     // KratosFECompiler-based elements
     KRATOS_REGISTER_ELEMENT("FirstOrderStokesVariableViscosityBvsGl2D3N", mFirstOrderStokesVariableViscosityBvsGl2D3N);
     KRATOS_REGISTER_ELEMENT("FirstOrderStokesVariableViscosityBvsGl3D4N", mFirstOrderStokesVariableViscosityBvsGl3D4N);
+    KRATOS_REGISTER_ELEMENT("FirstOrderStokesVariableViscosityPspgSd2D3N", mFirstOrderStokesVariableViscosityPspgSd2D3N);
+    KRATOS_REGISTER_ELEMENT("FirstOrderStokesVariableViscosityPspgSd3D4N", mFirstOrderStokesVariableViscosityPspgSd3D4N);
 
     // Adjoint elements
     KRATOS_REGISTER_ELEMENT("VMSAdjointElement2D", mVMSAdjointElement2D);   // old naming convention

@@ -1,0 +1,256 @@
+{
+    "quantities": {
+        "unknown_vars": [
+            {
+                "symbol": "u",
+                "tensor_rank": "1",
+                "test_function_symbol": "v"
+            },
+            {
+                "symbol": "p",
+                "tensor_rank": "0",
+                "test_function_symbol": "q"
+            }
+        ],
+        "nodal_vars": [
+            {
+                "symbol": "nu",
+                "tensor_rank": "0"
+            },
+            {
+                "symbol": "f",
+                "tensor_rank": "1"
+            }
+        ],
+        "undefined_functions": [],
+        "symbolic_vars": [],
+        "constant_vars": [
+            {
+                "symbol": "sigma",
+                "tensor_rank": "0",
+                "positive": true
+            },
+            {
+                "symbol": "delta",
+                "tensor_rank": "0"
+            }
+        ],
+        "numerical_vars": [],
+        "defined_functions": []
+    },
+    "functional_ssa": [
+        {
+            "name": "term1",
+            "AST": {
+                "op": "dot_prod",
+                "args": [
+                    {
+                        "op": "mult",
+                        "args": [
+                            "sigma",
+                            "u"
+                        ]
+                    },
+                    "v"
+                ]
+            }
+        },
+        {
+            "name": "term2",
+            "AST": {
+                "op": "double_contract",
+                "args": [
+                    {
+                        "op": "mult",
+                        "args": [
+                            {
+                                "op": "mult",
+                                "args": [
+                                    2,
+                                    "nu"
+                                ]
+                            },
+                            {
+                                "op": "symgrad",
+                                "args": [
+                                    "u"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "symgrad",
+                        "args": [
+                            "v"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "term3",
+            "AST": {
+                "op": "mult",
+                "args": [
+                    "p",
+                    {
+                        "op": "div",
+                        "args": [
+                            "v"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "term4",
+            "AST": {
+                "op": "dot_prod",
+                "args": [
+                    "v",
+                    "f"
+                ]
+            }
+        },
+        {
+            "name": "term5",
+            "AST": {
+                "op": "mult",
+                "args": [
+                    "q",
+                    {
+                        "op": "div",
+                        "args": [
+                            "u"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "stab_term_aux1",
+            "AST": {
+                "op": "mult",
+                "args": [
+                    "delta",
+                    {
+                        "op": "grad",
+                        "args": [
+                            "q"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "stab_term_aux2",
+            "AST": {
+                "op": "add",
+                "args": [
+                    {
+                        "op": "grad",
+                        "args": [
+                            "p"
+                        ]
+                    },
+                    {
+                        "op": "mult",
+                        "args": [
+                            "sigma",
+                            "u"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "stab_term_aux3",
+            "AST": {
+                "op": "mult",
+                "args": [
+                    2,
+                    {
+                        "op": "matrix_vector_prod",
+                        "args": [
+                            {
+                                "op": "symgrad",
+                                "args": [
+                                    "u"
+                                ]
+                            },
+                            {
+                                "op": "grad",
+                                "args": [
+                                    "nu"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "stab_term",
+            "AST": {
+                "op": "dot_prod",
+                "args": [
+                    "stab_term_aux1",
+                    {
+                        "op": "subtract",
+                        "args": [
+                            {
+                                "op": "subtract",
+                                "args": [
+                                    "stab_term_aux2",
+                                    "stab_term_aux3"
+                                ]
+                            },
+                            "f"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "functional_element_rhs",
+            "AST": {
+                "op": "add",
+                "args": [
+                    {
+                        "op": "add",
+                        "args": [
+                            {
+                                "op": "subtract",
+                                "args": [
+                                    {
+                                        "op": "subtract",
+                                        "args": [
+                                            {
+                                                "op": "add",
+                                                "args": [
+                                                    "term1",
+                                                    "term2"
+                                                ]
+                                            },
+                                            "term3"
+                                        ]
+                                    },
+                                    "term4"
+                                ]
+                            },
+                            "term5"
+                        ]
+                    },
+                    "stab_term"
+                ]
+            }
+        }
+    ],
+    "config_settings": {
+        "transpose_gradients_flag": true
+    },
+    "substitutions": {
+        "pre_lhs": [],
+        "post_lhs": []
+    }
+}

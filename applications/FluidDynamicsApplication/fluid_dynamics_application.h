@@ -59,7 +59,9 @@
 #include "custom_elements/incompressible_navier_stokes_p2_p1_continuous.h"
 
 #include "custom_elements/first_order_stokes_variable_viscosity_bvs_gl.h"
+#include "custom_elements/first_order_stokes_variable_viscosity_pspg_sd.h"
 #include "custom_conditions/first_order_stokes_variable_viscosity_condition.h"
+
 
 #include "custom_conditions/wall_condition.h"
 #include "custom_conditions/fs_werner_wengle_wall_condition.h"
@@ -451,6 +453,8 @@ private:
     // KratosFECompiler-based elements
     const FirstOrderStokesVariableViscosityBvsGl<2> mFirstOrderStokesVariableViscosityBvsGl2D3N;
     const FirstOrderStokesVariableViscosityBvsGl<3> mFirstOrderStokesVariableViscosityBvsGl3D4N;
+    const FirstOrderStokesVariableViscosityPspgSd<2> mFirstOrderStokesVariableViscosityPspgSd2D3N;
+    const FirstOrderStokesVariableViscosityPspgSd<3> mFirstOrderStokesVariableViscosityPspgSd3D4N;
 
     // KratosFECompiler-based conditions
     const FirstOrderStokesVariableViscosityCondition<2> mFirstOrderStokesVariableViscosityCondition2D2N;
