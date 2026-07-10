@@ -59,6 +59,9 @@ class NumpyOutputProcess(KratosMultiphysics.OutputProcess):
         # Initialize output interval data
         self.next_output = 0.0
 
+        # Default_precision for filename formatting
+        self.default_precision = 7
+
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -75,11 +78,12 @@ class NumpyOutputProcess(KratosMultiphysics.OutputProcess):
 
 
     def IsOutputStep(self):
+        tolerance = 1e-6
         if self.output_control_is_time:
-            time = self.__GetPrettyFloat(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-            return time >= self.__GetPrettyFloat(self.next_output)
+            time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            return time >= (self.next_output - tolerance)
         else:
-            step = self.__GetPrettyFloat(self.model_part.ProcessInfo[KratosMultiphysics.STEP])
+            step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
             return step >= self.next_output
 
 
@@ -87,22 +91,24 @@ class NumpyOutputProcess(KratosMultiphysics.OutputProcess):
         if not self.output_path.exists():
             self.output_path.mkdir(parents=True)
 
-        step =  self.model_part.ProcessInfo[KratosMultiphysics.STEP]
-        time =  self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        # format the name of the file
+        if self.output_control_is_time:
+            current = time
+            label = f"{time:.{self.default_precision}f}"
+        else:
+            current = step
+            label = current
 
         aux_data_array = []
         for snapshot_var in self.snapshot_variables_list:
             aux_data_array.append( numpy.array(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self.model_part.Nodes, snapshot_var, 0), copy=False ))
-        # The name of the file refers to the step (as in vtk_output), independently of whether time or step is chosen for 'output_interval'.
-        numpy.save(self.output_path / f"solution_{step}.npy", numpy.stack(aux_data_array, axis=1).reshape(-1,1))
+
+        # Apply the perfectly formatted label to the filename
+        numpy.save(self.output_path / f"solution_{label}.npy", numpy.stack(aux_data_array, axis=1).reshape(-1,1))
 
         # Schedule the next output
-        current = time if self.output_control_is_time else step
-        while self.__GetPrettyFloat(self.next_output) <= self.__GetPrettyFloat(current):
+        while self.next_output <= current:
             self.next_output += self.output_interval
-
-
-    def __GetPrettyFloat(self, number):
-        float_format = "{:.12f}"
-        pretty_number = float(float_format.format(number))
-        return pretty_number
