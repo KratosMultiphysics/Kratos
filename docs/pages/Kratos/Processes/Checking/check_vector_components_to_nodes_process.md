@@ -19,7 +19,6 @@ For every vector component this process will call [`checl_scalar_process`]()
 ```json
 {
     "model_part_name" : "please_specify_model_part_name",
-    "mesh_id"         : 0,
     "variable_name"   : "SPECIFY_VARIABLE_NAME",
     "interval"        : [0.0, 1e30],
     "value"           : [10.0, "3*t", "x+y"],
@@ -29,9 +28,6 @@ For every vector component this process will call [`checl_scalar_process`]()
 
 ##### `model_part_name` 
 Name of the modelpart to check.
-
-##### `mesh_id` 
-Id of the msh to be check.
 
 ##### `variable_name` 
 Name of the variable to check.

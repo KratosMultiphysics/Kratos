@@ -12,10 +12,10 @@
 //
 #include "three_dimensional_stress_state.h"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
-
 Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rDN_DX,
                                                      const Vector&,
                                                      const Geometry<Node>& rGeometry) const
@@ -27,24 +27,18 @@ Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rDN_DX,
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const auto offset = dimension * i;
 
-        result(INDEX_3D_XX, offset + INDEX_X) = rDN_DX(i, INDEX_X);
-        result(INDEX_3D_YY, offset + INDEX_Y) = rDN_DX(i, INDEX_Y);
-        result(INDEX_3D_ZZ, offset + INDEX_Z) = rDN_DX(i, INDEX_Z);
-        result(INDEX_3D_XY, offset + INDEX_X) = rDN_DX(i, INDEX_Y);
-        result(INDEX_3D_XY, offset + INDEX_Y) = rDN_DX(i, INDEX_X);
-        result(INDEX_3D_YZ, offset + INDEX_Y) = rDN_DX(i, INDEX_Z);
-        result(INDEX_3D_YZ, offset + INDEX_Z) = rDN_DX(i, INDEX_Y);
-        result(INDEX_3D_XZ, offset + INDEX_X) = rDN_DX(i, INDEX_Z);
-        result(INDEX_3D_XZ, offset + INDEX_Z) = rDN_DX(i, INDEX_X);
+        result(0, offset + 0) = rDN_DX(i, 0);
+        result(1, offset + 1) = rDN_DX(i, 1);
+        result(2, offset + 2) = rDN_DX(i, 2);
+        result(3, offset + 0) = rDN_DX(i, 1);
+        result(3, offset + 1) = rDN_DX(i, 0);
+        result(4, offset + 1) = rDN_DX(i, 2);
+        result(4, offset + 2) = rDN_DX(i, 1);
+        result(5, offset + 0) = rDN_DX(i, 2);
+        result(5, offset + 2) = rDN_DX(i, 0);
     }
 
     return result;
-}
-
-double ThreeDimensionalStressState::CalculateIntegrationCoefficient(
-    const Geometry<Node>::IntegrationPointType& rIntegrationPoint, double DetJ, const Geometry<Node>&) const
-{
-    return rIntegrationPoint.Weight() * DetJ;
 }
 
 Vector ThreeDimensionalStressState::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
@@ -65,6 +59,16 @@ SizeType ThreeDimensionalStressState::GetVoigtSize() const { return GetVoigtSize
 SizeType ThreeDimensionalStressState::GetStressTensorSize() const
 {
     return GetStressTensorSize3D();
+}
+
+void ThreeDimensionalStressState::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void ThreeDimensionalStressState::load(Serializer&)
+{
+    // No data members to be loaded (yet)
 }
 
 } // namespace Kratos

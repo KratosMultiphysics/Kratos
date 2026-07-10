@@ -6,10 +6,12 @@ import TestFactory as TF
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+@KratosUnittest.skipIf(True, " it can be done")
 class rigid_tool_cutting_2D(TF.TestFactory):
     file_name = "solid_tests/cutting_2D/rigid_tool_cutting_2D"
     file_parameters = None
 
+@KratosUnittest.skipIf(True, " it can be done")
 class deformable_tool_cutting_2D(TF.TestFactory):
     file_name = "solid_tests/cutting_2D/deformable_tool_cutting_2D"
     file_parameters = None

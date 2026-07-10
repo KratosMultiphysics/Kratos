@@ -20,6 +20,7 @@
 #include "geometries/triangle_2d_6.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_10.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/prism_3d_6.h"
@@ -46,12 +47,14 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mQSVMS3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
     mQSVMSDEMCoupled2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mQSVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mQSVMSDEMCoupled3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
     mQSVMSDEMCoupled2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mQSVMSDEMCoupled2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node >(Element::GeometryType::PointsArrayType(9)))),
     mQSVMSDEMCoupled3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
     mAlternativeQSVMSDEMCoupled2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mAlternativeQSVMSDEMCoupled2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
     mAlternativeQSVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mAlternativeQSVMSDEMCoupled3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
     mAlternativeQSVMSDEMCoupled2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mAlternativeQSVMSDEMCoupled2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node >(Element::GeometryType::PointsArrayType(9)))),
     mAlternativeQSVMSDEMCoupled3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
@@ -64,11 +67,13 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mDVMS3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mDVMSDEMCoupled2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mDVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mDVMSDEMCoupled3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
     mDVMSDEMCoupled2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mDVMSDEMCoupled2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node >(Element::GeometryType::PointsArrayType(9)))),
     mDVMSDEMCoupled3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
     mAlternativeDVMSDEMCoupled2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mAlternativeDVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mAlternativeDVMSDEMCoupled3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
     mAlternativeDVMSDEMCoupled2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mAlternativeDVMSDEMCoupled2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node >(Element::GeometryType::PointsArrayType(9)))),
     mAlternativeDVMSDEMCoupled3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
@@ -152,6 +157,15 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mEmbeddedAusasNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
     mEmbeddedAusasNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
     mEmbeddedAusasNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+    // Low Mach Navier-Stokes elements
+    mLowMachNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mLowMachNavierStokes2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mLowMachNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mLowMachNavierStokes3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
+    // Low Mach Navier-Stokes conditions
+    mLowMachNavierStokesWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node >(Element::GeometryType::PointsArrayType(2)))),
+    mLowMachNavierStokesWallCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mLowMachNavierStokesWallCondition3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     // Compressible Navier-Stokes symbolic elements
     mCompressibleNavierStokesExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mCompressibleNavierStokesExplicit2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -163,6 +177,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mTwoFluidNavierStokesAlphaMethod3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mTwoFluidNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
     mTwoFluidNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+    mTwoFluidNavierStokesFractional2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mTwoFluidNavierStokesFractional3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mTwoFluidNavierStokesFractionalConvection2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mTwoFluidNavierStokesFractionalConvection3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     // Incompressbile Navier-Stokes div-stable elements
     mIncompressibleNavierStokesP2P1Continuous2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
     mIncompressibleNavierStokesP2P1Continuous3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
@@ -195,13 +213,20 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(C_DES);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SUBSCALE_VELOCITY);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(COARSE_VELOCITY);
-
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FRACTIONAL_VELOCITY);
     KRATOS_REGISTER_VARIABLE(VOLUME_ERROR);
+    KRATOS_REGISTER_VARIABLE(AIR_VOLUME_ERROR);
+    KRATOS_REGISTER_VARIABLE(WATER_VOLUME_ERROR);
+
     KRATOS_REGISTER_VARIABLE(CONVECTION_SCALAR);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_SCALAR_GRADIENT);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AUXILIAR_VECTOR_VELOCITY);
     KRATOS_REGISTER_VARIABLE(FIC_BETA);
+
+    // Darcy's flow variables
+    KRATOS_REGISTER_VARIABLE(RESISTANCE)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SOLID_FRACTION_VELOCITY)
 
     // Wall modelling
     KRATOS_REGISTER_VARIABLE(SLIP_TANGENTIAL_CORRECTION_SWITCH)
@@ -234,6 +259,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(VORTICITY_MAGNITUDE);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(RECOVERED_PRESSURE_GRADIENT);
     KRATOS_REGISTER_VARIABLE(NODAL_WEIGHTS);
+
+    // Low Mach approximation variables
+    KRATOS_REGISTER_VARIABLE(THERMODYNAMIC_PRESSURE)
+    KRATOS_REGISTER_VARIABLE(THERMODYNAMIC_PRESSURE_DERIVATIVE)
 
     // Compressible fluid variables
     KRATOS_REGISTER_VARIABLE(SHOCK_CAPTURING_SWITCH)
@@ -293,12 +322,14 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("QSVMS3D8N",mQSVMS3D8N);
     KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled2D3N",mQSVMSDEMCoupled2D3N);
     KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled3D4N",mQSVMSDEMCoupled3D4N);
+    KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled3D10N",mQSVMSDEMCoupled3D10N);
     KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled2D4N",mQSVMSDEMCoupled2D4N);
     KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled2D9N",mQSVMSDEMCoupled2D9N);
     KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled3D8N",mQSVMSDEMCoupled3D8N);
     KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled2D3N",mAlternativeQSVMSDEMCoupled2D3N);
     KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled2D6N",mAlternativeQSVMSDEMCoupled2D6N);
     KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled3D4N",mAlternativeQSVMSDEMCoupled3D4N);
+    KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled3D10N",mAlternativeQSVMSDEMCoupled3D10N);
     KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled2D4N",mAlternativeQSVMSDEMCoupled2D4N);
     KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled2D9N",mAlternativeQSVMSDEMCoupled2D9N);
     KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled3D8N",mAlternativeQSVMSDEMCoupled3D8N);
@@ -314,8 +345,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled2D4N",mDVMSDEMCoupled2D4N);
     KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled2D9N",mDVMSDEMCoupled2D9N);
     KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled3D8N",mDVMSDEMCoupled3D8N);
+    KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled3D10N",mDVMSDEMCoupled3D10N);
     KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled2D3N",mAlternativeDVMSDEMCoupled2D3N);
     KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled3D4N",mAlternativeDVMSDEMCoupled3D4N);
+    KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled3D10N",mAlternativeDVMSDEMCoupled3D10N);
     KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled2D4N",mAlternativeDVMSDEMCoupled2D4N);
     KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled2D9N",mAlternativeDVMSDEMCoupled2D9N);
     KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled3D8N",mAlternativeDVMSDEMCoupled3D8N);
@@ -387,6 +420,16 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokes3D4N", mTwoFluidNavierStokes3D4N);
     KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesAlphaMethod2D3N", mTwoFluidNavierStokesAlphaMethod2D3N);
     KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesAlphaMethod3D4N", mTwoFluidNavierStokesAlphaMethod3D4N);
+    KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesFractional2D3N", mTwoFluidNavierStokesFractional2D3N);
+    KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesFractional3D4N", mTwoFluidNavierStokesFractional3D4N);
+    KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesFractionalConvection2D3N", mTwoFluidNavierStokesFractionalConvection2D3N);
+    KRATOS_REGISTER_ELEMENT("TwoFluidNavierStokesFractionalConvection3D4N", mTwoFluidNavierStokesFractionalConvection3D4N);
+
+    // Low Mach Navier-Stokes elements
+    KRATOS_REGISTER_ELEMENT("LowMachNavierStokes2D3N",mLowMachNavierStokes2D3N);
+    KRATOS_REGISTER_ELEMENT("LowMachNavierStokes2D4N",mLowMachNavierStokes2D4N);
+    KRATOS_REGISTER_ELEMENT("LowMachNavierStokes3D4N",mLowMachNavierStokes3D4N);
+    KRATOS_REGISTER_ELEMENT("LowMachNavierStokes3D8N",mLowMachNavierStokes3D8N);
 
     // Compressible Navier-Stokes symbolic elements
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit2D3N",mCompressibleNavierStokesExplicit2D3N);
@@ -441,12 +484,18 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge2D", mFSPeriodicConditionEdge2D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge3D", mFSPeriodicConditionEdge3D);
 
+    // Low Mach Navier-Stokes conditions
+    KRATOS_REGISTER_CONDITION("LowMachNavierStokesWallCondition2D2N",mLowMachNavierStokesWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("LowMachNavierStokesWallCondition3D3N",mLowMachNavierStokesWallCondition3D3N);
+    KRATOS_REGISTER_CONDITION("LowMachNavierStokesWallCondition3D4N",mLowMachNavierStokesWallCondition3D4N);
+
     // Register adjoint conditions
     KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition2D2N", mAdjointMonolithicWallCondition2D2N);
     KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition3D3N", mAdjointMonolithicWallCondition3D3N);
 
     // Register constitutive laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham2DLaw", mBingham2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Euler2DLaw", mEuler2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Euler3DLaw", mEuler3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HerschelBulkley3DLaw", mHerschelBulkley3DLaw);

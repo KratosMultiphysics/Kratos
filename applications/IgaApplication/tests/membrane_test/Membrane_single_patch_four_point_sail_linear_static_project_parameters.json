@@ -65,7 +65,6 @@
             "python_module": "assign_vector_variable_to_conditions_process",
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Load_5",
                 "variable_name": "SURFACE_LOAD",
                 "value": [0, 0, -5],
@@ -76,7 +75,6 @@
             "python_module": "assign_vector_variable_process",
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Support_1",
                 "variable_name": "DISPLACEMENT",
                 "constrained"     : [true,true,true],
@@ -87,7 +85,6 @@
             "python_module": "assign_vector_variable_process",
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Support_2",
                 "variable_name": "DISPLACEMENT",
                 "constrained"     : [true,true,true],
@@ -98,7 +95,6 @@
             "python_module": "assign_vector_variable_process",
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Support_3",
                 "variable_name": "DISPLACEMENT",
                 "constrained"     : [true,true,true],
@@ -109,7 +105,6 @@
             "python_module": "assign_vector_variable_process",
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Support_4",
                 "variable_name": "DISPLACEMENT",
                 "constrained"     : [true,true,true],

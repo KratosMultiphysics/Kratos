@@ -54,6 +54,10 @@ void LinearElastic3DInterfaceLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
+SizeType LinearElastic3DInterfaceLaw::WorkingSpaceDimension() { return N_DIM_3D; }
+
+SizeType LinearElastic3DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_3D_INTERFACE; }
+
 void LinearElastic3DInterfaceLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
@@ -66,9 +70,9 @@ void LinearElastic3DInterfaceLaw::CalculateElasticMatrix(Matrix& C, Constitutive
 
     const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
 
-    C(INDEX_3D_INTERFACE_XZ, INDEX_3D_INTERFACE_XZ) = (0.5 - NU) * c0;
-    C(INDEX_3D_INTERFACE_YZ, INDEX_3D_INTERFACE_YZ) = (0.5 - NU) * c0;
-    C(INDEX_3D_INTERFACE_ZZ, INDEX_3D_INTERFACE_ZZ) = (1.0 - NU) * c0;
+    C(0, 0) = (0.5 - NU) * c0;
+    C(1, 1) = (0.5 - NU) * c0;
+    C(2, 2) = (1.0 - NU) * c0;
 
     KRATOS_CATCH("")
 }
@@ -86,4 +90,13 @@ void LinearElastic3DInterfaceLaw::CalculatePK2Stress(const Vector&              
     KRATOS_CATCH("")
 }
 
+void LinearElastic3DInterfaceLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElastic2DInterfaceLaw)
+}
+
+void LinearElastic3DInterfaceLaw::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearElastic2DInterfaceLaw)
+}
 } // Namespace Kratos

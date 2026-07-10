@@ -50,17 +50,18 @@ if sympy_available:
     from compressible_navier_stokes_symbolic_generator_formulation_test import CompressibleNavierStokesSymbolicGeneratorFormulationTest
 from compressible_slip_wall_process_test import TestCompressibleSlipWallProcess
 from compute_pressure_coefficient_process_test import ComputePressureCoefficientProcessTest
-from compute_drag_process_test import ComputeDragProcessTest
+from applications.FluidDynamicsApplication.tests.compute_flow_forces_and_moments_process_test import ComputeFlowForcesAndMomentsProcessTest
 from test_compute_y_plus_process import ComputeYPlusProcessTest
 from test_fluid_computation_processes import FluidComputationProcessesTest
 from slip_spurious_tangential_correction_test import SlipSpuriousTangentialCorrectionTest
 from apply_wall_law_process_test import ApplyWallLawProcessTest
+from test_navier_stokes_fractional_vectorial_convection import NavierStokesFractionalVectorialConvectionTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:
-    "small", "nighlty" and "all"
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -90,7 +91,7 @@ def AssembleTestSuites():
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressibleSlipWallProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputePressureCoefficientProcessTest]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeDragProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeFlowForcesAndMomentsProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeYPlusProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SlipSpuriousTangentialCorrectionTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyWallLawProcessTest]))
@@ -131,9 +132,12 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessesTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesFractionalVectorialConvectionTest]))
+    nightSuite.addTest(AdjointFluidTest('testCylinder'))
 
-    # For very long tests that should not be in nighly and you can use to validate
+    # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
@@ -143,7 +147,6 @@ def AssembleTestSuites():
     validationSuite.addTest(AdjointQSVMSSensitivity2D('testSteadyCylinder'))
     validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     #FIXME: MOVE BACK THE SOD TO NIGHT ONCE WE FIX THE NIGHTLY BUILD ISSUE
-    validationSuite.addTest(AdjointFluidTest('testCylinder'))
     validationSuite.addTest(AdjointFluidTest('testSlipCylinder'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))

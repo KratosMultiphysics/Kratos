@@ -2067,6 +2067,7 @@ namespace Kratos
             if (res_law == 1)
             {
                 /* if the chosen resistance law is ERGUN calculate Ergun A and B*/
+                unsigned int aux_i = 0;
                 for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
                      inode != mr_model_part.NodesEnd();
                      inode++)
@@ -2078,7 +2079,7 @@ namespace Kratos
                     if (eps < 1.0)
                     {
                         double k_inv = 150.0 * (1.0 - eps) * (1.0 - eps) / (eps * eps * eps * d * d);
-                        a = mViscosity * k_inv;
+                        a = mViscosity[aux_i] * k_inv;
                         b = (1.75 / eps) * sqrt(k_inv / (150.0 * eps));
                     }
                     else
@@ -2086,6 +2087,7 @@ namespace Kratos
                         a = 0;
                         b = 0;
                     }
+                    aux_i++;
                 }
             }
             else

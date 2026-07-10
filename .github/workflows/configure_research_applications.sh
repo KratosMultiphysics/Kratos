@@ -20,7 +20,6 @@ export PYTHON_EXECUTABLE="/usr/bin/python3.10"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
-add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/ChimeraApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
@@ -39,7 +38,8 @@ add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
-add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
+# add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
+add_app ${KRATOS_APP_DIR}/SystemIdentificationApplication;
 
 # Clean
 clear
@@ -53,13 +53,17 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DUSE_MPI=ON                                                        \
+-DBOOST_ROOT="/workspace/boost/boost_1_87_0"                        \
+-DBoost_NO_SYSTEM_PATHS=ON                                          \
 -DEXCLUDE_KRATOS_CORE=ON                                            \
 -DEXCLUDE_AUTOMATIC_DEPENDENCIES=ON                                 \
 -DREMOVE_INSTALL_DIRECTORIES=OFF                                    \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall"             \
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                  \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                      \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"                  \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_"                               \
+-DUSE_EIGEN_SUITESPARSE:BOOL=ON                                     \
 -DCMAKE_UNITY_BUILD=ON
 
 # Build

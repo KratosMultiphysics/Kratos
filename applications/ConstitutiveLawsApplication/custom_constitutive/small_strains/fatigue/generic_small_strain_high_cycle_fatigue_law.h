@@ -66,6 +66,8 @@ public:
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
+
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainHighCycleFatigueLaw);
 
@@ -316,6 +318,21 @@ public:
         ) override;
 
     /**
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input or that no common error is found.
+     * @param rMaterialProperties The properties of the material
+     * @param rElementGeometry The geometry of the element
+     * @param rCurrentProcessInfo The current process info instance
+     * @return 0 if OK, 1 otherwise
+     */
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
+
+    /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
      */
     bool RequiresInitializeMaterialResponse() override
@@ -432,7 +449,10 @@ private:
     double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
-
+    double mReferenceDamage = 0.0; // Damage level to be considered at each load block. This is used to work with stable loads during the fatigue process.
+    double mPreviousCycleDamage = 0.0; // Damage level at the previous cycle.
+    bool mFirstCycleOfANewLoad = false; // Variable used to identify the first cycle after a new load block. This is used in the Nlocal calculation and to compute the C factor.
+    double mCFactor = 1.0;
     ///@}
     ///@name Private Operators
     ///@{
@@ -472,6 +492,10 @@ private:
         rSerializer.save("CyclesToFailure", mCyclesToFailure);
         rSerializer.save("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.save("Period", mPeriod);
+        rSerializer.save("ReferenceDamage", mReferenceDamage);
+        rSerializer.save("PreviousCycleDamage", mPreviousCycleDamage);
+        rSerializer.save("FirstCycleOfANewLoad", mFirstCycleOfANewLoad);
+        rSerializer.save("CFactor", mCFactor);
     }
 
     void load(Serializer &rSerializer) override
@@ -497,6 +521,10 @@ private:
         rSerializer.load("CyclesToFailure", mCyclesToFailure);
         rSerializer.load("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.load("Period", mPeriod);
+        rSerializer.load("ReferenceDamage", mReferenceDamage);
+        rSerializer.load("PreviousCycleDamage", mPreviousCycleDamage);
+        rSerializer.load("FirstCycleOfANewLoad", mFirstCycleOfANewLoad);
+        rSerializer.load("CFactor", mCFactor);
     }
     ///@}
 

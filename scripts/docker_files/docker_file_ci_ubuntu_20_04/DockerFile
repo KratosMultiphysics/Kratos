@@ -76,6 +76,11 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get -y autoremove && \
     apt-get clean
 
+# Install Boost (form zip)
+RUN wget -P /workspace/boost https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz &&\
+    tar -C /workspace/boost -xzf /workspace/boost/boost_1_87_0.tar.gz && \
+    rm /workspace/boost/boost_1_87_0.tar.gz
+
 CMD [ "/bin/bash" ]
 
 WORKDIR $HOME

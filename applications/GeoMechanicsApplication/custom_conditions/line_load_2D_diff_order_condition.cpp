@@ -13,25 +13,24 @@
 //
 
 // Project includes
-#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/line_load_2D_diff_order_condition.h"
+#include "custom_utilities/condition_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 
 namespace Kratos
 {
 
-// Default Constructor
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
 
-// Constructor 1
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : GeneralUPwDiffOrderCondition(NewId, pGeometry)
+    : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType               NewId,
                                                            GeometryType::Pointer   pGeometry,
                                                            PropertiesType::Pointer pProperties)
-    : GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties)
+    : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
@@ -53,55 +52,49 @@ void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    Vector              LineLoad  = ZeroVector(3);
+    const auto line_load_vectors = VariablesUtilities::GetNodalValues(GetGeometry(), LINE_LOAD);
+
     rVariables.ConditionVector.resize(2, false);
     noalias(rVariables.ConditionVector) = ZeroVector(2);
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        LineLoad = rGeom[i].FastGetSolutionStepValue(LINE_LOAD);
-
-        rVariables.ConditionVector[0] += rVariables.Nu[i] * LineLoad[0];
-        rVariables.ConditionVector[1] += rVariables.Nu[i] * LineLoad[1];
+    for (SizeType i = 0; i < line_load_vectors.size(); ++i) {
+        rVariables.ConditionVector[0] += rVariables.Nu[i] * line_load_vectors[i][0];
+        rVariables.ConditionVector[1] += rVariables.Nu[i] * line_load_vectors[i][1];
     }
 
     KRATOS_CATCH("")
 }
 
 double LineLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
-    const IndexType                                 PointNumber,
+    IndexType                                       PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
-
 {
-    KRATOS_TRY
-
-    const double dx_dxi = JContainer[PointNumber](0, 0);
-    const double dy_dxi = JContainer[PointNumber](1, 0);
-
-    const double ds = sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
-
-    return ds * IntegrationPoints[PointNumber].Weight();
-
-    KRATOS_CATCH("")
+    return ConditionUtilities::CalculateIntegrationCoefficient(
+        JContainer[PointNumber], IntegrationPoints[PointNumber].Weight());
 }
 
-void LineLoad2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+void LineLoad2DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                  ConditionVariables& rVariables)
 {
-    const SizeType NumUNodes = GetGeometry().PointsNumber();
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        SizeType Index = i * 2;
-
-        rRightHandSideVector[Index] +=
-            rVariables.Nu[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
-        rRightHandSideVector[Index + 1] +=
-            rVariables.Nu[i] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
+    for (SizeType node = 0; node < this->GetGeometry().PointsNumber(); ++node) {
+        rRightHandSideVector[2 * node] +=
+            rVariables.Nu[node] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
+        rRightHandSideVector[2 * node + 1] +=
+            rVariables.Nu[node] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
     }
 }
 
-std::string LineLoad2DDiffOrderCondition::Info() const { return "LineLoad2DDiffOrderCondition"; }
+void LineLoad2DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)
+}
+
+void LineLoad2DDiffOrderCondition::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)}
+
+std::string LineLoad2DDiffOrderCondition::Info() const
+{
+    return "LineLoad2DDiffOrderCondition";
+}
 
 } // Namespace Kratos.

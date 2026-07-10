@@ -39,7 +39,6 @@
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_dirichletXYZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"	  : [true,true,true],
@@ -51,7 +50,6 @@
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_dirichletYZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"	  : [false,false,false],
@@ -63,7 +61,6 @@
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.ROTATION_dirrot",
             "variable_name"   : "ROTATION",
             "constrained"	  : [true,true,true],
@@ -74,7 +71,6 @@
         "kratos_module" : "KratosMultiphysics",
         "process_name"          : "AssignScalarVariableToEntitiesProcess",
         "Parameters"            : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.Parts_semi_rigid_hinge",
             "variable_name"   : "ROTATIONAL_STIFFNESS_AXIS_2",
             "value"           : 0.0,
@@ -85,7 +81,6 @@
         "kratos_module" : "KratosMultiphysics",
         "process_name"          : "AssignScalarVariableToEntitiesProcess",
         "Parameters"            : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.Parts_semi_rigid_hinge",
             "variable_name"   : "ROTATIONAL_STIFFNESS_AXIS_3",
             "value"           : 1.0e7,

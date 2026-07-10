@@ -4,7 +4,7 @@ import KratosMultiphysics as KM
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.factories.coupling_operation_factory import CreateCouplingOperation
 from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator_factory import CreateDataTransferOperator
-from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
+from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper, BlockConvergenceAcceleratorWrapper
 from KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence_criteria_wrapper import ConvergenceCriteriaWrapper
 from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
 from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
@@ -34,12 +34,22 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list: KM.Para
                                   parent_echo_level: int):
     convergence_accelerators = []
     for conv_acc_settings in convergence_accelerator_settings_list.values():
-        solver = solvers[conv_acc_settings["solver"].GetString()]
-        interface_data_dict = solver.data_dict
         AddEchoLevelToSettings(conv_acc_settings, parent_echo_level)
-        convergence_accelerators.append(ConvergenceAcceleratorWrapper(conv_acc_settings,
-                                                                      interface_data_dict,
-                                                                      parent_data_communicator))
+        if conv_acc_settings["type"].GetString().startswith('block_'):
+            interface_data_dict = {}
+            for sequence_data in conv_acc_settings["solver_sequence"].values():
+                solver = solvers[sequence_data["solver"].GetString()]
+                data_name = sequence_data["data_name"].GetString()
+                interface_data_dict[data_name] = solver.data_dict[data_name]
+            convergence_accelerators.append(BlockConvergenceAcceleratorWrapper(conv_acc_settings,
+                                                                            interface_data_dict,
+                                                                            parent_data_communicator))
+        else:
+            solver = solvers[conv_acc_settings["solver"].GetString()]
+            interface_data_dict = solver.data_dict
+            convergence_accelerators.append(ConvergenceAcceleratorWrapper(conv_acc_settings,
+                                                                        interface_data_dict,
+                                                                        parent_data_communicator))
 
     return convergence_accelerators
 

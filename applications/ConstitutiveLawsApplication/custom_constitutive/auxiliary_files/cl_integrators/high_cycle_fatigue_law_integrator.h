@@ -16,6 +16,8 @@
 // System includes
 
 // Project includes
+#include "includes/define.h"
+#include "includes/checks.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 
@@ -57,6 +59,10 @@ class HighCycleFatigueLawIntegrator
 public:
     ///@name Type Definitions
     ///@{
+
+    /// The machine precision tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    static constexpr double stress_tolerance = 1.0e-3;
 
     /// Counted pointer of HighCycleFatigueLawIntegrator
     KRATOS_CLASS_POINTER_DEFINITION(HighCycleFatigueLawIntegrator);
@@ -115,10 +121,10 @@ public:
         const double stress_2 = PreviousStresses[0];
         const double stress_increment_1 = stress_1 - stress_2;
         const double stress_increment_2 = CurrentStress - stress_1;
-        if (stress_increment_1 > 1.0e-3 && stress_increment_2 < -1.0e-3) {
+        if (stress_increment_1 > stress_tolerance && stress_increment_2 < -stress_tolerance) {
             rMaximumStress = stress_1;
             rMaxIndicator = true;
-        } else if (stress_increment_1 < -1.0e-3 && stress_increment_2 > 1.0e-3) {
+        } else if (stress_increment_1 < -stress_tolerance && stress_increment_2 > stress_tolerance) {
             rMinimumStress = stress_1;
             rMinIndicator = true;
         }
@@ -135,7 +141,7 @@ public:
 
 
         double abs_component = 0.0, average_component = 0.0, sum_abs = 0.0, sum_average = 0.0;
-        for (unsigned int i = 0; i < principal_stresses.size(); ++i) {
+        for (IndexType i = 0; i < principal_stresses.size(); ++i) {
             abs_component = std::abs(principal_stresses[i]);
             average_component = 0.5 * (principal_stresses[i] + abs_component);
             sum_average += average_component;
@@ -167,6 +173,9 @@ public:
      * @param rB0 Internal variable of the fatigue model.
      * @param rSth Endurance limit of the fatigue model.
      * @param rAlphat Internal variable of the fatigue model.
+     * @param rNf Number of cycles that satisfy the condition Smax = Su * fred used for the calculation of B0 and, therefore, fred.
+     * @param UltimateStress Material ultimate strength.
+     * @param FatigueReductionFactorSmoothness Coefficient controlling the smoothness in fred function.
      */
     static void CalculateFatigueParameters(const double MaxStress,
                                             double ReversionFactor,
@@ -174,28 +183,14 @@ public:
                                             double& rB0,
                                             double& rSth,
                                             double& rAlphat,
-                                            double& rN_f)
-	{
+                                            double& rNf,
+                                            const double UltimateStress,
+                                            const double FatigueReductionFactorSmoothness)
+    {
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
-        double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
-        const double yield_stress = ultimate_stress;
-
-        // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
-        // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
-        const int softening_type = rMaterialParameters[SOFTENING_TYPE];
-        const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
-        if (softening_type == curve_by_points) {
-            const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
-            const SizeType curve_points = stress_damage_curve.size() - 1;
-
-            ultimate_stress = 0.0;
-            for (IndexType i = 1; i <= curve_points; ++i) {
-                ultimate_stress = std::max(ultimate_stress, stress_damage_curve[i-1]);
-            }
-        }
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
-        const double Se = r_fatigue_coefficients[0] * ultimate_stress;
+        const double Se = r_fatigue_coefficients[0] * UltimateStress;
         const double STHR1 = r_fatigue_coefficients[1];
         const double STHR2 = r_fatigue_coefficients[2];
         const double ALFAF = r_fatigue_coefficients[3];
@@ -204,22 +199,52 @@ public:
         const double AUXR2 = r_fatigue_coefficients[6];
 
         if (std::abs(ReversionFactor) < 1.0) {
-            rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
+            rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
 			rAlphat = ALFAF + (0.5 + 0.5 * ReversionFactor) * AUXR1;
         } else {
-            rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
+            rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
 			rAlphat = ALFAF - (0.5 + 0.5 / ReversionFactor) * AUXR2;
         }
 
         const double square_betaf = std::pow(BETAF, 2.0);
-        if (MaxStress > rSth && MaxStress <= ultimate_stress) {
-            rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
-            rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
+        if (MaxStress > rSth && MaxStress <= UltimateStress) {
+            rNf = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (UltimateStress - rSth))/rAlphat,(1.0/BETAF)));
+            rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rNf)), FatigueReductionFactorSmoothness * square_betaf));
+        } else {
+            rNf = std::numeric_limits<double>::infinity(); // No fatigue at this IP, i.e., proposing infinite jump.
 
-            if (softening_type == curve_by_points) {
-                rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / ultimate_stress), 1.0 / square_betaf));
+        }
+    }
+
+    /**
+     * @brief This method computes the number of cycles to trigger visible nonlinearities. This will match with the original definition of Nf if
+     * the threshold (K) is equal to the ultimate stress (Sult).
+     * @param Nf Number of cycles to reactivate the non-linear process.
+     * @param MaxStress Signed maximum stress in the current cycle.
+     * @param MaterialParameters Material properties.
+     * @param Threshold Updated stress threshold at the integration point.
+     * @param rSth Endurance limit of the fatigue model.
+     * @param UltimateStress Material ultimate strength.
+     * @param FatigueReductionFactorSmoothness Coefficient controlling the smoothness in fred function.
+     */
+    static double NumberOfCyclesToFailure(double Nf,
+                                        const double MaxStress,
+                                        const Properties& rMaterialParameters,
+                                        double Threshold,
+                                        double Sth,
+                                        const double UltimateStress,
+                                        const double FatigueReductionFactorSmoothness)
+	{
+        const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
+        double number_of_cycles_to_failure = Nf;
+        const double BETAF = r_fatigue_coefficients[4];
+        if (UltimateStress - MaxStress > tolerance) {
+            if (MaxStress > Sth) {
+                const double square_betaf = std::pow(BETAF, 2.0);
+                number_of_cycles_to_failure = std::pow(Nf, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
             }
         }
+        return number_of_cycles_to_failure;
     }
 
     /**
@@ -233,6 +258,8 @@ public:
      * @param Alphat Internal variable of the fatigue model.
      * @param rFatigueReductionFactor Reduction factor from the previous step to be reevaluated.
      * @param rWohlerStress Normalized Wohler stress used to build the life prediction curves (SN curve).
+     * @param UltimateStress Material ultimate strength.
+     * @param FatigueReductionFactorSmoothness Coefficient controlling the smoothness in fred function.
      */
     static void CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters,
                                                                 const double MaxStress,
@@ -242,31 +269,54 @@ public:
                                                                 const double Sth,
                                                                 const double Alphat,
                                                                 double& rFatigueReductionFactor,
-                                                                double& rWohlerStress)
+                                                                double& rWohlerStress,
+                                                                const double UltimateStress,
+                                                                const double FatigueReductionFactorSmoothness)
 	{
         const double BETAF = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
+
         if (GlobalNumberOfCycles > 2){
-            double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+            rWohlerStress = (Sth + (UltimateStress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / UltimateStress;
+        }
+        if (MaxStress > Sth) { //In those cases with no fatigue in course (MaxStress < Sth), tbe fatigue reduction factor does not evolve.
+            rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
+            const double min_fatigue_reduction_factor = rMaterialParameters.Has(MINIMUM_FATIGUE_REDUCTION_FACTOR) ? rMaterialParameters[MINIMUM_FATIGUE_REDUCTION_FACTOR] : rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0];
+            rFatigueReductionFactor = (rFatigueReductionFactor < min_fatigue_reduction_factor) ? min_fatigue_reduction_factor : rFatigueReductionFactor;
+        }
+    }
 
-            // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
-            // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
-            const int softening_type = rMaterialParameters[SOFTENING_TYPE];
-            const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
-            if (softening_type == curve_by_points) {
-                const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
-                const SizeType curve_points = stress_damage_curve.size() - 1;
+    /**
+     * @brief This method computes the ultimate stress of the damage model.
+     * @param MaterialParameters Material properties.
+     */
+    static double UltimateStressDamage(const Properties& rMaterialParameters)
+	{
+        double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
 
-                ultimate_stress = 0.0;
-                for (IndexType i = 1; i <= curve_points; ++i) {
-                    ultimate_stress = std::max(ultimate_stress, stress_damage_curve[i-1]);
-                }
+        const int softening_type = rMaterialParameters[SOFTENING_TYPE];
+        const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+        if (softening_type == curve_by_points) {
+            const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
+            const SizeType curve_points = stress_damage_curve.size() - 1;
+
+            ultimate_stress = 0.0;
+            for (IndexType i = 0; i <= curve_points; ++i) {
+                ultimate_stress = std::max(ultimate_stress, stress_damage_curve[i]);
             }
-            rWohlerStress = (Sth + (ultimate_stress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / ultimate_stress;
         }
-        if (MaxStress > Sth) {
-            rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
-            rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
-        }
+        return ultimate_stress;
+    }
+
+    /**
+     * @brief This method defines in the CL integrator
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        const double min_fatigue_reduction_factor = rMaterialProperties.Has(MINIMUM_FATIGUE_REDUCTION_FACTOR) ? rMaterialProperties[MINIMUM_FATIGUE_REDUCTION_FACTOR] : rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0];
+        KRATOS_ERROR_IF(min_fatigue_reduction_factor <= 0.0 || min_fatigue_reduction_factor >= 1.0) << "Minimum fatigue reduction factor must be in (0,1). Provided: " << min_fatigue_reduction_factor << std::endl;
+
+        return 0;
     }
 
     ///@}

@@ -170,7 +170,7 @@ public:
     void SetValue(const Variable<Matrix>& rVariable, const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Material parameters are inizialized
+     * Material parameters are initialized
      */
     void InitializeMaterial(const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,

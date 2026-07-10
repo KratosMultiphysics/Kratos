@@ -326,7 +326,7 @@ private:
 // -I Suppresses mesh iteration numbers.
 // -O Suppresses holes: ignores the holes in the .poly file.
 // -X Suppresses exact arithmetic.
-// -z Numbers all items starting from zero (rather than one). Note that this switch is normally overrided by the value used to number the first vertex of the input .node or .poly file. However, this switch is useful when calling Triangle from another program.
+// -z Numbers all items starting from zero (rather than one). Note that this switch is normally overridden by the value used to number the first vertex of the input .node or .poly file. However, this switch is useful when calling Triangle from another program.
 // -o2 Generates second-order subparametric elements with six nodes each.
 // -Y Prohibits the insertion of Steiner points on the mesh boundary. If specified twice (-YY), it prohibits the insertion of Steiner points on any segment, including internal segments.
 // -S Specifies the maximum number of added Steiner points.

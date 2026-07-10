@@ -31,7 +31,7 @@ class PrintIterationNumberOperation(CoSimulationCouplingOperation):
             if file_handler_settings.Has("file_name"):
                 warn_msg = 'Unexpected user-specified entry found in "output_file_settings": {"file_name": '
                 warn_msg += '"' + file_handler_settings["file_name"].GetString() + '"}\n'
-                warn_msg += 'Using this specififed file name instead of the default "' + output_file_name + '"'
+                warn_msg += 'Using this specified file name instead of the default "' + output_file_name + '"'
                 cs_tools.cs_print_info(self._ClassName(), warn_msg)
             else:
                 file_handler_settings.AddEmptyValue("file_name")

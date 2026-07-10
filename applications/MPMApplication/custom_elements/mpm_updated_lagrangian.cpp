@@ -12,32 +12,25 @@
 
 
 // System includes
-#include <omp.h>
-#include <sstream>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/mpm_updated_lagrangian.hpp"
 #include "utilities/math_utils.h"
+#include "utilities/atomic_utilities.h"
 #include "includes/constitutive_law.h"
-#include "mpm_application_variables.h"
 #include "includes/checks.h"
+
+// Application includes
+#include "mpm_application_variables.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "custom_utilities/mpm_explicit_utilities.h"
 #include "custom_utilities/mpm_math_utilities.h"
+#include "custom_elements/mpm_updated_lagrangian.hpp"
 
 namespace Kratos
 {
-
-/**
- * Flags related to the element computation
- */
-KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_RHS_VECTOR,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
@@ -64,9 +57,6 @@ MPMUpdatedLagrangian::MPMUpdatedLagrangian( IndexType NewId, GeometryType::Point
     : Element( NewId, pGeometry, pProperties )
     , mMP()
 {
-    mFinalizedStep = true;
-
-
 }
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
@@ -77,11 +67,10 @@ MPMUpdatedLagrangian::MPMUpdatedLagrangian( MPMUpdatedLagrangian const& rOther)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
-    ,mFinalizedStep(rOther.mFinalizedStep)
 {
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 MPMUpdatedLagrangian&  MPMUpdatedLagrangian::operator=(MPMUpdatedLagrangian const& rOther)
@@ -258,7 +247,38 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
     rValues.SetShapeFunctionsValues(rN);
+
 }
+//************************************************************************************
+//************************************************************************************
+array_1d<double, 3> MPMUpdatedLagrangian::ComputeMaterialPointBodyForce()
+{
+    GeometryType& r_geometry = GetGeometry();
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+
+    array_1d<double, 3> body_force = ZeroVector(3);
+
+    for (unsigned int j = 0; j < number_of_nodes; j++)
+    {
+        const auto& r_node = r_geometry[j];
+
+        if (r_node.SolutionStepsDataHas(BODY_FORCE))
+        {
+            const auto& r_nodal_body_force =
+                r_node.FastGetSolutionStepValue(BODY_FORCE);
+
+            for (unsigned int k = 0; k < dimension; k++)
+            {
+                body_force[k] += r_N(0, j) * r_nodal_body_force[k];
+            }
+        }
+    }
+
+    return body_force;
+}
+
 
 //************************************************************************************
 //************************************************************************************
@@ -326,8 +346,12 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
 
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
+        mMP.body_force = this->ComputeMaterialPointBodyForce();
+
         // Contribution to forces (in residual term) are calculated
-        Vector volume_force = mMP.volume_acceleration * mMP.mass;
+        Vector volume_force = mMP.volume_acceleration * mMP.mass
+                            + mMP.body_force * mMP.mass; 
+
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,
@@ -369,14 +393,20 @@ void MPMUpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, con
 
     // Compute cartesian derivatives [dN/dx_n+1]
     const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
-    rVariables.DN_DX = prod(r_DN_De, Invj); //overwrites DX now is the current position dx
+    
+    //DX refers to the current undeformed background grid element. This derivative is needed for the incremental deformation gradient
+    rVariables.DN_DX = prod(r_DN_De, InvJ); 
 
     const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
         ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
         : false;
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+    
+    // calculate incremental deformation gradient
     this->CalculateDeformationGradient(rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, is_axisymmetric);
+
+    rVariables.DN_DX = prod(r_DN_De, Invj); //overwrites DX now is the current position with displacements
 
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
@@ -738,14 +768,14 @@ void MPMUpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Ma
     Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
     The increment of total deformation gradient can be evaluated in 2 ways, which are:
     1. By: noalias( rVariables.F ) = prod( jacobian, InvJ);
-    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
+    2. By means of the gradient of nodal displacement: 
 
     (NOTICE: Here, we are using method no. 2)*/
 
-    // METHOD 1: Update Deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
+    // METHOD 1: Update incremental deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
     // noalias( rVariables.F ) = prod( jacobian, InvJ);
 
-    // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
+    // METHOD 2: Update  incremental deformation gradient: F_ij = δ_ij + u_i,j
 
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         Matrix I = IdentityMatrix(dimension);
@@ -819,18 +849,19 @@ void MPMUpdatedLagrangian::CalculateLocalSystem(
         rCurrentProcessInfo, true, true);
 }
 
-//*******************************************************************************************
-//*******************************************************************************************
-void MPMUpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
+
+void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 {
     /* NOTE:
-    In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
-    This function is called by the base scheme class.*/
+    This is moved from initially InitializeSolutionStep due to #13432 (as per @RiccardoRossi suggestion).
+    This is temporary, and will be moved to an utility in the future, after restructuring of 
+    MPM's internal variables data structure. This function is called during predict in the schemes.
+
+    In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.*/
+
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
-
-    mFinalizedStep = false;
 
     const bool is_explicit_central_difference = (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)
@@ -860,11 +891,9 @@ void MPMUpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentPro
             }
         }
 
-        r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
-        r_geometry[i].UnSetLock();
+        AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0), nodal_momentum);
+        AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0), nodal_inertia);
+        AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0), r_N(0, i)*mMP.mass);
     }
 }
 
@@ -907,8 +936,6 @@ void MPMUpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProce
 
     // Call the element internal variables update
     this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
-
-    mFinalizedStep = true;
 
     KRATOS_CATCH( "" )
 }
@@ -1272,7 +1299,7 @@ void MPMUpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, c
 
     noalias( rDampingMatrix ) = ZeroMatrix(matrix_size, matrix_size);
 
-    //1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    //1.-Get Damping Coefficients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) )
     {
@@ -1559,7 +1586,7 @@ void MPMUpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& 
         rValues[0] = MPMEnergyCalculationUtility::CalculateStrainEnergy(*this);
     }
     else if (rVariable == MP_TOTAL_ENERGY) {
-        rValues[0] = MPMEnergyCalculationUtility::CalculateTotalEnergy(*this);
+        rValues[0] = std::get<3>(MPMEnergyCalculationUtility::CalculateAllEnergies(*this));
     }
     else if (rVariable == MP_HARDENING_RATIO || rVariable == MP_EQUIVALENT_STRESS ||
         rVariable == MP_EQUIVALENT_PLASTIC_STRAIN || rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE ||
@@ -1593,6 +1620,9 @@ void MPMUpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<array_1d<
     }
     else if (rVariable == MP_VOLUME_ACCELERATION) {
         rValues[0] = mMP.volume_acceleration;
+    }
+    else if (rVariable == MP_BODY_FORCE) {
+        rValues[0] = mMP.body_force;    
     }
     else
     {
@@ -1674,6 +1704,9 @@ void MPMUpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<array_1d<
     }
     else if (rVariable == MP_VOLUME_ACCELERATION) {
         mMP.volume_acceleration = rValues[0];
+    }
+    else if (rVariable == MP_BODY_FORCE) {
+        mMP.body_force = rValues[0];
     }
     else
     {
@@ -1799,4 +1832,3 @@ void MPMUpdatedLagrangian::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-

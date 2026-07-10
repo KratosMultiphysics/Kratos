@@ -412,14 +412,14 @@ protected:
     bool IsNotPureSlip();
 
     /**
-     * @brief This returns if we consider multiple searchs
-     * @return True if we consider multiple searchs
+     * @brief This returns if we consider multiple searches
+     * @return True if we consider multiple searches
      */
     bool IsMultipleSearchs();
 
     /**
-     * @brief This returns if we do not consider multiple searchs
-     * @return True if we do not consider multiple searchs
+     * @brief This returns if we do not consider multiple searches
+     * @return True if we do not consider multiple searches
      */
     bool IsNotMultipleSearchs();
 
@@ -462,7 +462,7 @@ private:
     ///@{
 
     /**
-     * @brief This auxiliary method performs the seach using a KDTree
+     * @brief This auxiliary method performs the search using a KDTree
      * @param rSubContactModelPart The submodel part studied
      * @param rSubComputingContactModelPart The computing contact submodel part
      */
@@ -472,7 +472,7 @@ private:
         );
 
     /**
-     * @brief This auxiliary method performs the seach using a Octree
+     * @brief This auxiliary method performs the search using a Octree
      * @param rSubContactModelPart The submodel part studied
      * @param rSubComputingContactModelPart The computing contact submodel part
      */
@@ -624,7 +624,7 @@ private:
     /**
      * @brief This method creates a debug file for normals
      * @param rModelPart The corresponding model part
-     * @param rName The begining of the file name
+     * @param rName The beginning of the file name
      */
     void CreateDebugFile(
         ModelPart& rModelPart,

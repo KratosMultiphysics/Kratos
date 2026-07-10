@@ -136,7 +136,7 @@ public:
         //properties to be used in the generation
         Properties::Pointer properties = rDestination_ModelPart.GetMesh().pGetProperties(1);
 
-        //defintions for spatial search
+        //definitions for spatial search
         typedef Node PointType;
         typedef Node::Pointer PointTypePointer;
         typedef std::vector<PointType::Pointer>           PointVector;
@@ -313,7 +313,7 @@ public:
         //properties to be used in the generation
         Properties::Pointer properties = rDestination_ModelPart.GetMesh().pGetProperties(1);
 
-        //defintions for spatial search
+        //definitions for spatial search
         typedef Node PointType;
         typedef Node::Pointer PointTypePointer;
         typedef std::vector<PointType::Pointer>           PointVector;
@@ -492,7 +492,7 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+    /// Turn back information as a stemplate<class T, std::size_t dim> string.
     virtual std::string Info() const
     {
         return "";
@@ -676,7 +676,7 @@ private:
         {
 
 // 				KRATOS_THROW_ERROR(std::logic_error,"element with zero area found","");
-            //The interpolated node will not be inside an elemente with zero area
+            //The interpolated node will not be inside an element with zero area
             return false;
 
         }
@@ -726,7 +726,7 @@ private:
         {
 
 // 				KRATOS_THROW_ERROR(std::logic_error,"element with zero vol found","");
-            //The interpolated node will not be inside an elemente with zero volume
+            //The interpolated node will not be inside an element with zero volume
             return false;
             KRATOS_WATCH("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         }

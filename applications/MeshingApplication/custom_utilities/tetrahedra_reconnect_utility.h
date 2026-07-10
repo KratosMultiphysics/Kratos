@@ -355,7 +355,7 @@ public:
         //if the refinement was performed, we need to add it to the model part.
         if (m->vertexes->Count()>(int)n_points_before_refinement)
         {
-            //defintions for spatial search
+            //definitions for spatial search
 //             typedef Node PointType;
 //             typedef Node ::Pointer PointTypePointer;
             array_1d<double, 4 > N;

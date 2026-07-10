@@ -392,7 +392,7 @@ void PopulateModelPart(
         << rOutputModelPart.FullName() << " should be empty. It contains "
         << rOutputModelPart.NumberOfElements() << " elements.\n";
 
-    // create the necesary maps.
+    // create the necessary maps.
     std::map<IndexType, ModelPart::NodeType::Pointer> node_id_ptr_map;
     std::map<IndexType, ModelPart::ConditionType::Pointer> condition_id_ptr_map;
     std::map<IndexType, ModelPart::ElementType::Pointer> element_id_ptr_map;

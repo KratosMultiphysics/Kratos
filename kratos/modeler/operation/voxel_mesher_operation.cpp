@@ -54,10 +54,30 @@ ModelPart& VoxelMesherOperation::CreateAndGetModelPart(std::string const& rFullN
     return mrModeler.CreateAndGetModelPart(rFullName);
 }
 
+std::size_t VoxelMesherOperation::GetNodeIndex(
+    std::size_t I, 
+    std::size_t J, 
+    std::size_t K) const
+{
+    return mrModeler.mMeshingData.GetNodeIndex(I,J,K);
+}
 
-const VoxelMesherOperation::CartesianMeshColors& VoxelMesherOperation::GetMeshColors() const
+VoxelMeshGeneratorModeler::CartesianNodalData& VoxelMesherOperation::GetNodalData(
+    std::size_t I, 
+    std::size_t J, 
+    std::size_t K) const
+{
+    return mrModeler.mMeshingData.GetNodalData(I, J, K);
+}
+
+
+VoxelMesherOperation::CartesianMeshColors& VoxelMesherOperation::GetMeshColors() const
 {
     return mrModeler.mColors;
+}
+
+const array_1d<std::size_t, 3>& VoxelMesherOperation::GetNumberOfDivisions() const {
+    return mrModeler.mMeshingData.GetNumberOfDivisions();
 }
 
 

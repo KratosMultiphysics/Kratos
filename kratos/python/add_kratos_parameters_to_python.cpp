@@ -127,7 +127,10 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("__getitem__", GetValue)
     .def("__setitem__", &Parameters::SetArrayItem)
     .def("__getitem__", GetArrayItem)
-    .def("__iter__", [](Parameters& self){ return py::make_iterator(self.begin(), self.end()); } , py::keep_alive<0,1>())
+    .def("__iter__", [](Parameters& self){
+            KRATOS_ERROR << "iterating through Parameters is ambiguous. Use \"keys\", \"values\" or \"items\" instead.";
+            return py::make_iterator(self.begin(), self.end());
+        } , py::keep_alive<0,1>())
     .def("items", &items )
     .def("keys", &keys )
     .def("values", &values )

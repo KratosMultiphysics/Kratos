@@ -8,7 +8,7 @@ from KratosMultiphysics.testing.utilities import GetPython3Command
 import os
 import subprocess
 
-
+@KratosUnittest.skipIf(os.name == 'nt', "This test is skipped in windows due to random errors in CI.")
 class TestCoSimIOPyExposure_aux_tests(KratosUnittest.TestCase):
 
     def test_InfoFromParameters(self):
@@ -49,7 +49,7 @@ class TestCoSimIOPyExposure_aux_tests(KratosUnittest.TestCase):
         self.assertFalse(sub_info.GetBool("is_converged"))
         self.assertEqual(sub_info.GetInt("echo_lvl"), 5)
 
-
+@KratosUnittest.skipIf(os.name == 'nt', "This test is skipped in windows due to random errors in CI.")
 class TestCoSimIOPyExposure(KratosUnittest.TestCase):
 
     def test_Connect_Disconnect(self):

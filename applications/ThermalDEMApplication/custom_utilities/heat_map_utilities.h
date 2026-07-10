@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#ifndef HEAT_MAP_UTILITIES_H_INCLUDED
-#define	HEAT_MAP_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -54,5 +53,3 @@ namespace Kratos
 
   }; // Class HeatMapUtilities
 } // namespace Kratos
-
-#endif // HEAT_MAP_UTILITIES_H_INCLUDED

@@ -39,7 +39,7 @@ class TestVectorizedInterpolation(UnitTest.TestCase):
 
         #obtaining a copy of database onto numpy array, and reshaping it into matrices
         nnodes = len(self.mp.Nodes)
-        vdata = np.array(Kratos.VariableUtils().GetSolutionStepValuesVector(self.mp.Nodes, Kratos.VELOCITY, 0, 3),copy=False).reshape(nnodes,3)
+        vdata = np.asarray(Kratos.VariableUtils().GetSolutionStepValuesVector(self.mp.Nodes, Kratos.VELOCITY, 0, 3)).reshape(nnodes,3)
         coords = np.array(Kratos.VariableUtils().GetCurrentPositionsVector(self.mp.Nodes,3)).reshape(nnodes,3)
 
         ##coordinates to search for

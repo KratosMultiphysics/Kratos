@@ -14,7 +14,7 @@
 #include "indirect_conduction_voronoi_b.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   IndirectConductionVoronoiB::IndirectConductionVoronoiB() {}
   IndirectConductionVoronoiB::~IndirectConductionVoronoiB() {}
 
@@ -145,17 +145,17 @@ namespace Kratos {
     const double delmax = 0.5 * (sqrt((4.0 * An) / (Globals::Pi * distance * distance * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
     const double delmin = 0.5 * (sqrt((4.0 * contact_radius * contact_radius) / (distance * distance * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
 
-    const double Xmax = ((A + B) * delmax + dgamma * B - 1.0) / sqrt(fabs(lambda));
-    const double Xmin = ((A + B) * delmin + dgamma * B - 1.0) / sqrt(fabs(lambda));
+    const double Xmax = ((A + B) * delmax + dgamma * B - 1.0) / sqrt(std::abs(lambda));
+    const double Xmin = ((A + B) * delmin + dgamma * B - 1.0) / sqrt(std::abs(lambda));
 
     const double Y1 = (Xmax - Xmin) / (1.0 - Xmax * Xmin);
     const double Y2 = (Xmax - Xmin) / (1.0 + Xmax * Xmin);
 
     // Heat transfer coefficient
     if (lambda > 0.0)
-      return Globals::Pi * fluid_conductivity * distance * (1.0 - dgamma * dgamma) * log(fabs((1.0 - Y1) / (1.0 + Y1))) / (2.0 * sqrt(fabs(lambda)));
+      return Globals::Pi * fluid_conductivity * distance * (1.0 - dgamma * dgamma) * log(std::abs((1.0 - Y1) / (1.0 + Y1))) / (2.0 * sqrt(std::abs(lambda)));
     else if (lambda < 0.0)
-      return Globals::Pi * fluid_conductivity * distance * (1.0 - dgamma * dgamma) * atan(Y2) / (2.0 * sqrt(fabs(lambda)));
+      return Globals::Pi * fluid_conductivity * distance * (1.0 - dgamma * dgamma) * atan(Y2) / (2.0 * sqrt(std::abs(lambda)));
     else
       return Globals::Pi * fluid_conductivity * distance * (1.0 - dgamma * dgamma) * (1.0 / delmin - 1.0 / delmax) / (A + B);
 

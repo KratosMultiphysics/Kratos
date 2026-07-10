@@ -18,7 +18,7 @@ if have_convection_diffusion:
             ymax = 1.0
 
             ## For Ra~1e6
-            g = 9.81     # accelertion of gravity m/s2
+            g = 9.81     # acceleration of gravity m/s2
             T1 = 293.15  # Cold (reference) temperature K
             T2 = 303.15  # Hot temperature K
             rho = 1.2039 # (reference) density kg/m3
@@ -113,7 +113,7 @@ class BuoyancyTest(UnitTest.TestCase):
             if self.thermal_expansion_coefficient is not None:
                 self.parameters["processes"]["boussinesq_process_list"][0]["Parameters"].AddDouble("thermal_expansion_coefficient", self.thermal_expansion_coefficient)
 
-            # Set up the modified analysis stage with intial and boundary conditions and run
+            # Set up the modified analysis stage with initial and boundary conditions and run
             model = Model()
             self.simulation = BuoyancyTestConvectionDiffusionAnalysis(model, self.parameters)
             self.simulation.Run()

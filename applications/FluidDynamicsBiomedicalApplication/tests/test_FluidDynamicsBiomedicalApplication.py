@@ -11,6 +11,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suites
 from apply_parabolic_inlet_process_test import ApplyParabolicInletProcessTest
+from apply_windkessel_outlet_process_test import ApplyWindkesselOutletProcessTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -29,6 +30,7 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyParabolicInletProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyWindkesselOutletProcessTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

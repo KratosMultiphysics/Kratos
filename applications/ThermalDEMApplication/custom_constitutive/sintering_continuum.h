@@ -12,8 +12,7 @@
 		It is intended to be used with the sintering continuun particle, which also came from the DEMApp.
 */
 
-#if !defined(SINTERING_CONTINUUM_H_INCLUDED)
-#define SINTERING_CONTINUUM_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -159,5 +158,3 @@ namespace Kratos
 
 	}; // class SinteringContinuum
 } // namespace Kratos
-
-#endif // SINTERING_CONTINUUM_H_INCLUDED defined

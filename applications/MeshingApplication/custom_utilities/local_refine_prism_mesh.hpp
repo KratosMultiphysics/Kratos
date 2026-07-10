@@ -136,7 +136,7 @@ public:
                 }
             }
 
-            /* Intepolating the data */
+            /* Interpolating the data */
             unsigned int buffer_size = pnode->GetBufferSize();
             for (unsigned int step = 0; step < buffer_size; step++)
             {
@@ -211,7 +211,7 @@ public:
             Element::GeometryType& geom = it->GetGeometry();
             CalculateEdges(geom, Coord, edge_ids, aux);
 
-            // It creates the new conectivities
+            // It creates the new connectivities
             create_element = Split_Prism(edge_ids, t, &number_elem, &splitted_edges, &nint);
 
             // It creates the new elements
@@ -390,7 +390,7 @@ public:
 
     /**
     * It calculates the new edges of the new prisms,
-    * first it calculates the new edges correspondign to the lower face (as a triangle),
+    * first it calculates the new edges correspondingn to the lower face (as a triangle),
     * later it added to the upper face
     * @param geom: The prism element geometry
     * @param edge_ids: The ids of the edges

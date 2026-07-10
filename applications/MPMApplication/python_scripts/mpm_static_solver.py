@@ -1,6 +1,8 @@
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.MPMApplication as KratosMPM
+
 
 # Importing the base class
 from KratosMultiphysics.MPMApplication.mpm_solver import MPMSolver
@@ -16,4 +18,4 @@ class MPMStaticSolver(MPMSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMStaticSolver]:: ", "Construction is finished.")
 
     def _CreateSolutionScheme(self):
-        return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        return KratosMPM.MPMResidualBasedIncrementalUpdateStaticScheme()

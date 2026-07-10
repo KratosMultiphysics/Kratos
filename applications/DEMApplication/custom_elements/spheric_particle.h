@@ -16,6 +16,7 @@
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
+#include "custom_constitutive/DEM_global_damping.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
@@ -273,6 +274,14 @@ BoundedMatrix<double, 3, 3>* mSymmStressTensor;
 BoundedMatrix<double, 3, 3>* mStrainTensor;
 BoundedMatrix<double, 3, 3>* mDifferentialStrainTensor;
 
+struct StoredContactInfo {
+    double indentation;
+    double local_coord_system[3][3];
+    double global_contact_force[3];
+};
+std::unordered_map<int, StoredContactInfo> mBallToBallStoredInfo;
+std::unordered_map<int, StoredContactInfo> mBallToRigidFaceStoredInfo;
+
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
 <<<<<<< HEAD
@@ -378,7 +387,7 @@ virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_bal
 
 virtual void StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding);
 
-virtual void StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding);
+virtual void StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding, double identation);
 
 virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                             const ProcessInfo& r_process_info,
@@ -456,6 +465,7 @@ virtual void ApplyNegGlobalDampingToContactForcesAndMoments(array_1d<double,3>& 
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> mDiscontinuumConstitutiveLaw;
 std::unique_ptr<DEMRollingFrictionModel> mRollingFrictionModel;
+std::unique_ptr<DEMGlobalDampingModel> mGlobalDampingModel;
 
 double mInitializationTime;
 double mIndentationInitialOption;
@@ -463,14 +473,13 @@ std::map<int, double> mIndentationInitial;
 std::map<int, double> mIndentationInitialWall;
 double mProgrammedDestructionTime=-1.0; // set to a negative value, so that when marked TO_ERASE, elimination is by default.
 double mRadius;
+double mInitialRadius;
 double mSearchRadius;
 double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
 DEMIntegrationScheme* mpTranslationalIntegrationScheme;
 DEMIntegrationScheme* mpRotationalIntegrationScheme;
-double mGlobalDamping;
-double mGlobalViscousDamping;
 double mBondedScalingFactor[3] = {0.0};
 
 private:
@@ -519,8 +528,6 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mSearchRadius", mSearchRadius);
     rSerializer.save("mRealMass", mRealMass);
     rSerializer.save("mClusterId", mClusterId);
-    rSerializer.save("mGlobalDamping",mGlobalDamping);
-    rSerializer.save("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 
 virtual void load(Serializer& rSerializer) override
@@ -574,8 +581,6 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass", mRealMass);
     rSerializer.load("mClusterId", mClusterId);
-    rSerializer.load("mGlobalDamping",mGlobalDamping);
-    rSerializer.load("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 
 }; // Class SphericParticle

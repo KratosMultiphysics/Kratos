@@ -39,28 +39,28 @@ class BaseResponseFunction:
                 raise RuntimeError("BaseResponseFunction:Initialize: controlled_model_part {} of response '{}' does not exist!".format(controlled_model_part,self.name))
 
     def CalculateValue(self):
-        raise RuntimeError("BaseResponseFunction:CalculateValue: Not implemeted ! ")
+        raise RuntimeError("BaseResponseFunction:CalculateValue: Not implemented ! ")
 
     def GetValue(self):
-        raise RuntimeError("BaseResponseFunction:GetValue: Not implemeted ! ")
+        raise RuntimeError("BaseResponseFunction:GetValue: Not implemented ! ")
 
     def CalculateGradients(self):
-        raise RuntimeError("BaseResponseFunction:CalculateGradients: Not implemeted ! ")
+        raise RuntimeError("BaseResponseFunction:CalculateGradients: Not implemented ! ")
 
     def CalculateGradientsForTypeAndObjects(self,control_type,controlled_objects,raise_error=True):
-        raise RuntimeError("BaseResponseFunction:CalculateGradientsForTypeAndObjects: Not implemeted ! ") 
+        raise RuntimeError("BaseResponseFunction:CalculateGradientsForTypeAndObjects: Not implemented ! ") 
 
     def GetGradients(self):
-        raise RuntimeError("BaseResponseFunction:GetGradients: Not implemeted ! ")
+        raise RuntimeError("BaseResponseFunction:GetGradients: Not implemented ! ")
 
     def GetType(self):
-        raise RuntimeError("BaseResponseFunction:GetValue: Not implemeted ! ")        
+        raise RuntimeError("BaseResponseFunction:GetValue: Not implemented ! ")        
 
     def GetVariableName(self):
-        raise RuntimeError("BaseResponseFunction:GetVariableName: Not implemeted ! ") 
+        raise RuntimeError("BaseResponseFunction:GetVariableName: Not implemented ! ") 
 
     def GetGradientsVariablesName(self):
-        raise RuntimeError("BaseResponseFunction:GetGradientsVariablesName: Not implemeted ! ")
+        raise RuntimeError("BaseResponseFunction:GetGradientsVariablesName: Not implemented ! ")
 
     def GetGradientVariableNameForType(self,control_type):
-        raise RuntimeError("BaseResponseFunction:GetGradientVariableNameForType: Not implemeted ! ") 
+        raise RuntimeError("BaseResponseFunction:GetGradientVariableNameForType: Not implemented ! ") 

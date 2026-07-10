@@ -21,6 +21,7 @@
 #include "includes/define_python.h"
 
 #include "custom_python/add_trilinos_space_to_python.h"
+#include "custom_python/add_trilinos_space_experimental_to_python.h"
 #include "custom_python/add_trilinos_convergence_criterias_to_python.h"
 #include "custom_python/add_trilinos_schemes_to_python.h"
 #include "custom_python/add_trilinos_linear_solvers_to_python.h"
@@ -46,6 +47,7 @@ PYBIND11_MODULE(KratosTrilinosApplication,m)
         ;
 
     AddBasicOperations(m);
+    AddBasicOperationsExperimental(m);
     AddConvergenceCriterias(m);
     AddSchemes(m);
     AddLinearSolvers(m);

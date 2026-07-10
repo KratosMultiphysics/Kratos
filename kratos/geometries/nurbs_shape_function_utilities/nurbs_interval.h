@@ -29,7 +29,7 @@ namespace Kratos
 
 /// Class for optimized use of intervals
 /*
-* Provides universal geometrical utiltity functions for the computation of
+* Provides universal geometrical utility functions for the computation of
 * curve and surface NURBS/ B-Spline shape functions.
 */
 class NurbsInterval

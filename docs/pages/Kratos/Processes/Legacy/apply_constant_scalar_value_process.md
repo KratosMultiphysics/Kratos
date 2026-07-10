@@ -24,7 +24,6 @@ This process is executed on the following hooks:
 ```json
 {
     "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-    "mesh_id": 0,
     "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
     "is_fixed": false,
     "value" : 1.0
@@ -32,7 +31,6 @@ This process is executed on the following hooks:
 ```
 
 `model_part_name`: Name of the modelpart in wich the scalar variable will be applied
-`mesh_id`: Id of the internal mesh to which the process will be applied. Default `0`.
 `variable_name`: Name of the variable in which the scalar value will be applied.
 `is_fixed`: Sets the value as fixed (`true`) or not fixed (`false`).
 `value`: Scalar value that will be applied.

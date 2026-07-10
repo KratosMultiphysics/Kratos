@@ -17,10 +17,22 @@ The boundary conditions are shown below:
 
 The picture below illustrates the pressure profile resulting from the simulation (as an example the 2D3N test is shown below).
 
-<img src="documentation_data/test_pressure_line_element_2d3n_result.png" alt="Pressure along depth at the last time step" title="Pressure along the depth at the last time step" width="600">
+<img src="documentation_data/test_pressure_line_element_2d3n_result.png" alt="Pressure along depth at the last time step" title="Pressure along the depth at the last time step" width="900">
 
 These results are associated with the final time step after the solution reaches a steady state. The results for both test configurations are identical. The analytical solution is:
 
 $P = 10000 y$
 
 In this test case, the result at node number 3 at location $y = -2 \mathrm{[m]}$ is compared with the analytical solution. The value of the pressure at node 3 is -20,000 $\mathrm{[Pa]}$
+
+
+# Test Cases for Water Pore Pressure Line Element with Filter as Retention Law
+Two test cases are repeated with modification for retention law in the material parameters. They are test cases on elements of 2D3N and 3D3N (with slope of 45 degrees). Here, the retention law is replaced by "PressureFilterLaw". The results are then compared with analytical results. The analytical solution is:
+
+$P = 10000 y$
+
+The results for both test configurations are identical and they are also identical to the results of the pressure line element.
+
+The picture below illustrates the pressure profile resulting from the simulation (as an example the 2D3N test is shown below).
+
+<img src="documentation_data/test_pressure_filter_element_2d3n_result.png" alt="Pressure along depth at the last time step" title="Pressure along the depth at the last time step" width="900">

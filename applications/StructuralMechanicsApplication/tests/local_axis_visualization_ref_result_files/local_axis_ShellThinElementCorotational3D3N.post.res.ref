@@ -1,4 +1,4 @@
-GiD Post Results File 1.0
+GiD Post Results File 1.2
 GaussPoints "tri3_element_gp" ElemType Triangle
 Number Of Gauss Points: 3
 Natural Coordinates: Given

@@ -94,7 +94,7 @@ public:
     bool Has(const Variable<double>& rThisVariable) override;
 
     /**
-     * Material parameters are inizialized
+     * Material parameters are initialized
      */
     void InitializeMaterial(const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,

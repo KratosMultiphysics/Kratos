@@ -279,7 +279,7 @@ namespace Kratos {
         int dimension = r_process_info[DOMAIN_SIZE];
 
         typedef ElementsArrayType::iterator ElementIterator;
-        // This vector collects the ids of the particles that have been dettached
+        // This vector collects the ids of the particles that have been detached
         // so that their id can be removed from the mOriginInletSubmodelPartIndexes map
         std::vector<int> ids_to_remove;
 
@@ -335,7 +335,7 @@ namespace Kratos {
             }
         }
 
-        // removing dettached particle ids from map
+        // removing detached particle ids from map
         #pragma omp critical
         {
             ids_to_remove.insert(ids_to_remove.end(), ids_to_remove_partial.begin(), ids_to_remove_partial.end());
@@ -346,7 +346,7 @@ namespace Kratos {
         }
     }
 
-    } //Dettach
+    } //Detach
 
     void DEM_Inlet::UpdateInjectedParticleVelocity(Element& particle, Element& injector_element)
     {
@@ -500,7 +500,7 @@ namespace Kratos {
             }
         }
 
-        // removing dettached particle ids from map
+        // removing detached particle ids from map
         #pragma omp critical
         {
             ids_to_remove.insert(ids_to_remove.end(), ids_to_remove_partial.begin(), ids_to_remove_partial.end());
@@ -622,7 +622,7 @@ namespace Kratos {
                     if (all_elements[i]->IsNot(ACTIVE) && !OneNeighbourInjectorIsInjecting(all_elements[i])) {
                         valid_elements[valid_elements_length] = all_elements[i];
                         valid_elements_length++;
-                    } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.
+                    } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reset.
                 }
 
                  if (valid_elements_length < number_of_particles_to_insert) {
@@ -742,7 +742,7 @@ namespace Kratos {
                         }
                     }
 
-                    valid_elements[random_pos]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.
+                    valid_elements[random_pos]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reset.
                     valid_elements[random_pos]->GetGeometry()[0].Set(ACTIVE);
                     valid_elements[random_pos] = valid_elements[valid_elements_length - 1]; //Last position overwrites random_pos
                     valid_elements_length--; //we remove last position and next random_pos has one less option

@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED)
-#define KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -27,5 +26,3 @@ namespace Kratos
 
   } // namespace Python
 } // namespace Kratos
-
-#endif // KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED defined

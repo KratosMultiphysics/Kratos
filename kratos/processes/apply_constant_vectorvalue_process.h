@@ -84,14 +84,12 @@ public:
     * @param rVariable Reference to the variable to which the constant vector value is applied.
     * @param Modulus The modulus of the constant vector value.
     * @param Direction The direction of the constant vector value.
-    * @param MeshId The ID of the mesh to which the process is applied.
     * @param Options Flags specifying additional options for the process.
     */
     ApplyConstantVectorValueProcess(ModelPart& rModelPart,
                               const Variable< array_1d<double, 3 > >& rVariable,
                               const double Modulus,
                               const Vector& rDirection,
-                              std::size_t MeshId,
                               const Flags Options
                               );
 
@@ -111,6 +109,12 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
 
     /**
      * @brief This function is designed for being called at the beginning of the computations
@@ -172,9 +176,6 @@ protected:
 
     /// The direction of the vector
     Vector mDirection;
-
-    /// The mesh id (LEGACY, to be removed in the future)
-    std::size_t mMeshId = 0;
 
     ///@}
 private:

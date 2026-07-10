@@ -964,7 +964,7 @@ namespace Kratos
       /*@} */
       /**@name Private Operators*/
       /*@{ */
-      //this funcion is needed to ensure that all the memory is allocated correctly
+      //this function is needed to ensure that all the memory is allocated correctly
 
 
       /*@} */

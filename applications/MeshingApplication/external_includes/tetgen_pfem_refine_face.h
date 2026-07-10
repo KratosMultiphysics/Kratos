@@ -200,7 +200,7 @@ public:
             //std::cout<<nodes_tree2<<std::endl;
 
             unsigned int n_points_in_radius;
-            //radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
+            //radius means the distance, closer than which no node shall be allowed. if closer -> mark for erasing
             double radius;
 
             for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
@@ -305,7 +305,7 @@ public:
 
         }
 
-        //give the corrdinates to the mesher
+        //give the coordinates to the mesher
         for(unsigned int i = 0; i<ThisModelPart.Nodes().size(); i++)
         {
             int base = i*3;
@@ -772,8 +772,8 @@ public:
         {
             KRATOS_WATCH(list_of_new_nodes.size());
             KRATOS_WATCH(fined_node_counter);
-            // KRATOS_THROW_ERROR(std::logic_error,"Definitly some nodes are not interpolated","");
-            KRATOS_WATCH("Definitly some nodes are not interpolated");
+            // KRATOS_THROW_ERROR(std::logic_error,"Definitely some nodes are not interpolated","");
+            KRATOS_WATCH("Definitely some nodes are not interpolated");
 
         }
 
@@ -862,10 +862,10 @@ public:
         					neighb(i) = Element::WeakPointer();
         			}
         		}
-        		std::cout << "time for adding neigbours" << adding_neighb.elapsed() << std::endl;;
+        		std::cout << "time for adding neighbours" << adding_neighb.elapsed() << std::endl;;
          */
 
-        std::cout << "time for adding neigbours is zero because n neighbor added"<<std::endl;;
+        std::cout << "time for adding neighbours is zero because n neighbor added"<<std::endl;;
 
 
         //***********************************************************************************
@@ -955,7 +955,7 @@ public:
 
 
 
-        //here we remove lonely nodes that are not teh flying nodes, but are the lonely nodes inside water vol
+        //here we remove lonely nodes that are not the flying nodes, but are the lonely nodes inside water vol
         /*
         for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
         {
@@ -1312,7 +1312,7 @@ private:
         const double z3 = c4[2];
 
 // 			KRATOS_WATCH("111111111111111111111");
-        //calculate min side lenght
+        //calculate min side length
         //(use xc as a auxiliary vector) !!!!!!!!!!!!
         double aux;
         noalias(xc) = c4;
@@ -1639,7 +1639,7 @@ private:
 
         tetgenio::facet *f;
         tetgenio::polygon *p;
-        //give the corrdinates to the mesher
+        //give the coordinates to the mesher
         for(unsigned int i = 0; i<shell_nodes.size(); i++)
         {
             int base = i*3;

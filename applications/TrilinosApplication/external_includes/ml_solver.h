@@ -1,23 +1,21 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborator:    Philipp Bucher
 //
 
-#if !defined (KRATOS_MULTILEVEL_SOLVER_H_INCLUDED)
-#define KRATOS_MULTILEVEL_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/trilinos_solver_utilities.h"
@@ -40,7 +38,6 @@ namespace Kratos
  * arising primarily from elliptic PDE discretizations.
  * https://trilinos.org/packages/ml/
 */
-
 template< class TSparseSpaceType, class TDenseSpaceType,
           class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
 class MultiLevelSolver : public LinearSolver< TSparseSpaceType,
@@ -55,17 +52,17 @@ public:
 
     enum ScalingType {NoScaling, LeftScaling};
 
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    using BaseType = LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>;
 
-    typedef typename BaseType::SparseMatrixType SparseMatrixType;
+    using SparseMatrixType = typename BaseType::SparseMatrixType;
 
-    typedef typename BaseType::VectorType VectorType;
+    using VectorType = typename BaseType::VectorType;
 
-    typedef typename BaseType::DenseMatrixType DenseMatrixType;
+    using DenseMatrixType = typename BaseType::DenseMatrixType;
 
-    typedef typename BaseType::SparseMatrixPointerType SparseMatrixPointerType;
+    using SparseMatrixPointerType = typename BaseType::SparseMatrixPointerType;
 
-    typedef typename Kratos::unique_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
+    using MLPreconditionerPointerType = Kratos::unique_ptr< ML_Epetra::MultiLevelPreconditioner >;
 
     ///@}
     ///@name Life Cycle
@@ -343,5 +340,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MULTILEVEL_SOLVER_H_INCLUDED defined
