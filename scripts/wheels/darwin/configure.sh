@@ -25,14 +25,13 @@ add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
-add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
+# add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/MetisApplication;
 add_app ${KRATOS_APP_DIR}/DemStructuresCouplingApplication;
 add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
-add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
 add_app ${KRATOS_APP_DIR}/CableNetApplication;
@@ -64,6 +63,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"    \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
 -DCMAKE_C_FLAGS="-msse3"                                               \
 -DBOOST_ROOT="/workspace/boost/boost_1_87_0"                           \
+-DINSTALL_TPL_LIBRARIES=ON                                             \
 -DINCLUDE_MMG=ON                                                       \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DKRATOS_BUILD_TESTING=OFF                                             \
