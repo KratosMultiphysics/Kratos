@@ -90,7 +90,7 @@ public:
     // compressed_matrix member surface (uBLAS, Eigen, ...) works
 
     /// Definition of the index iterator type
-    using IndexIteratorType = std::decltype(std::declval<SparseMatrixType&>().index1_data().begin());
+    using IndexIteratorType = decltype(std::declval<SparseMatrixType&>().index1_data().begin());
 
     /// Definition of the const index iterator type
     using ConstIndexIteratorType = std::decltype(std::declval<const SparseMatrixType&>().index1_data().begin());
