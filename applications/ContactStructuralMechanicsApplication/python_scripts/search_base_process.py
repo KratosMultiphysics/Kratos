@@ -99,7 +99,7 @@ class SearchBaseProcess(KM.Process):
         self.interval = KM.IntervalUtility(self.settings)
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -330,7 +330,7 @@ class SearchBaseProcess(KM.Process):
         return ""
 
     def _assign_master_flags(self, partial_model_part):
-        """ This method initializes assigment of the master nodes and conditions
+        """ This method initializes assignment of the master nodes and conditions
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -345,7 +345,7 @@ class SearchBaseProcess(KM.Process):
                 KM.VariableUtils().SetFlag(KM.MASTER, True, partial_model_part.Conditions)
 
     def _assign_slave_flags(self, key = "0"):
-        """ This method initializes assigment of the slave nodes and conditions
+        """ This method initializes assignment of the slave nodes and conditions
 
         Keyword arguments:
         self -- It signifies an instance of a class.

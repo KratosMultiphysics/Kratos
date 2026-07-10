@@ -416,13 +416,13 @@ public:
             KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ENSURE_CONTACT) && residual_normal_lm_ratio < ZeroTolerance) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             // We calculate the absolute norms
-            const double residual_disp_abs = mDispCurrentResidualNorm/static_cast<double>(disp_dof_num);
-            const double residual_rot_abs = mRotCurrentResidualNorm/static_cast<double>(rot_dof_num);
-            const double residual_normal_lm_abs = mLMNormalCurrentResidualNorm/static_cast<double>(lm_dof_num);
-            const double residual_tangent_lm_stick_abs = lm_stick_dof_num > 0 ? mLMTangentStickCurrentResidualNorm/static_cast<double>(lm_dof_num) : 0.0;
-//             const double residual_tangent_lm_stick_abs = lm_stick_dof_num > 0 ? mLMTangentStickCurrentResidualNorm/static_cast<double>(lm_stick_dof_num) : 0.0;
-            const double residual_tangent_lm_slip_abs = lm_slip_dof_num > 0 ? mLMTangentSlipCurrentResidualNorm/static_cast<double>(lm_dof_num) : 0.0;
-//             const double residual_tangent_lm_slip_abs = lm_slip_dof_num > 0 ? mLMTangentSlipCurrentResidualNorm/static_cast<double>(lm_slip_dof_num) : 0.0;
+            const double residual_disp_abs = (disp_dof_num > 0) ? mDispCurrentResidualNorm/static_cast<double>(disp_dof_num) : 0.0;
+            const double residual_rot_abs = (rot_dof_num > 0) ? mRotCurrentResidualNorm/static_cast<double>(rot_dof_num) : 0.0;
+            const double residual_normal_lm_abs = (lm_dof_num > 0) ?  mLMNormalCurrentResidualNorm/static_cast<double>(lm_dof_num) : 0.0;
+            const double residual_tangent_lm_stick_abs = (lm_stick_dof_num > 0) ? mLMTangentStickCurrentResidualNorm/static_cast<double>(lm_dof_num) : 0.0;
+            // const double residual_tangent_lm_stick_abs = (lm_stick_dof_num > 0) ? mLMTangentStickCurrentResidualNorm/static_cast<double>(lm_stick_dof_num) : 0.0;
+            const double residual_tangent_lm_slip_abs = (lm_slip_dof_num > 0) ? mLMTangentSlipCurrentResidualNorm/static_cast<double>(lm_dof_num) : 0.0;
+            // const double residual_tangent_lm_slip_abs = (lm_slip_dof_num > 0) ? mLMTangentSlipCurrentResidualNorm/static_cast<double>(lm_slip_dof_num) : 0.0;
             const double normal_tangent_stick_ratio = residual_tangent_lm_stick_abs/residual_normal_lm_abs;
             const double normal_tangent_slip_ratio = residual_tangent_lm_slip_abs/residual_normal_lm_abs;
 
@@ -654,7 +654,7 @@ public:
     }
 
     ///@}
-    ///@name Acces
+    ///@name Access
     ///@{
 
     ///@}

@@ -34,7 +34,7 @@ namespace Kratos
  * @class TableAccessor
  * @ingroup Kratos Core
  * @brief This class defines the way a certain property is accessed according to a table.
- * @brief The tables are supposed to relate double <-> double type entities. 
+ * @brief The tables are supposed to relate double <-> double type entities.
  * @brief The input variable is suposed to be a nodally accesible one (either historical or not)
  * @author Alejandro Cornejo, Riccardo Rossi, Carlos Roig and Ruben Zorrilla
  */
@@ -67,7 +67,7 @@ public:
     {}
 
     /// Custom constructor
-    TableAccessor(VariableType& rInputVariable, const std::string& rInputVariableType = "node_historical") 
+    TableAccessor(const VariableType& rInputVariable, const std::string& rInputVariableType = "node_historical")
         : mpInputVariable(&rInputVariable)
     {
         // We initialize the variable type only once
@@ -77,13 +77,15 @@ public:
             mInputVariableType = Globals::DataLocation::NodeNonHistorical;
         } else if (rInputVariableType == "element") {
             mInputVariableType = Globals::DataLocation::Element;
+        } else if (rInputVariableType == "process_info") {
+            mInputVariableType = Globals::DataLocation::ProcessInfo;
         } else {
             KRATOS_ERROR << "The table_input_variable_type is incorrect or not supported. Types available are : 'node_historical', 'node_non_historical' and 'element'" << std::endl;
         }
     }
 
     /// Copy constructor
-    TableAccessor(const TableAccessor& rOther) 
+    TableAccessor(const TableAccessor& rOther)
     : BaseType(rOther),
         mpInputVariable(rOther.mpInputVariable),
         mInputVariableType(rOther.mInputVariableType)
@@ -126,7 +128,7 @@ public:
     /**
      * @brief Returns the member input variable
      */
-    VariableType& GetInputVariable() const
+    const VariableType& GetInputVariable() const
     {
         return *mpInputVariable;
     }
@@ -160,7 +162,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    VariableType* mpInputVariable;
+    const VariableType* mpInputVariable;
     Globals::DataLocation mInputVariableType = Globals::DataLocation::NodeHistorical; // NodalHistorical by default
 
     friend class Serializer;

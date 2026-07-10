@@ -30,15 +30,19 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
         # Add default values of post options
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostTemperature")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostHeatFlux")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempAll")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempMin")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempMax")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempAvg")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempAvgVol")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempDev")
-        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphModelTempAvg")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphMechanicalEnergy")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphDissipatedEnergy")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphThermalEnergy")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphHeatFluxContributions")
-        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphHeatGenContributions")
-        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphEnergyContributions")
-        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostMapHeatGeneration")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphHeatGenerationValues")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphHeatGenerationContributions")
+        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostHeatMapGeneration")
 
         return dem_parameters
 
@@ -63,6 +67,12 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
                                                     self.dem_fem_search,
                                                     self.DEM_parameters,
                                                     self.procedures)
+
+    def GetRVEUtility(self):
+        if self.DEM_parameters["Dimension"].GetInt() == 2:
+            return RVEWallBoundaryThermal2D(self.rve_evaluation_frequency, self.rve_write_frequency, self.rve_consolidation_velocity, self.rve_consolidation_stop_criterion, self.rve_consolidation_limit_value, self.rve_inner_volume_offset)
+        else:
+            raise Exception('Error: The selected RVE utility is not implemented')
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()

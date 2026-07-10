@@ -1128,7 +1128,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(double xi, double eta,
     row(BN, 1) *= Temp2;
 
     // transform the strain-displacement matrix from natural
-    // to local coordinate system taking into account the element distorsion
+    // to local coordinate system taking into account the element distortion
 
     project(B, slice(7, -1, 2), slice::all()) = prod(mitc_params.Transformation, BN);
 

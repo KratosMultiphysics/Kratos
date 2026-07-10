@@ -7,6 +7,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.HDF5Application import core
 from KratosMultiphysics.HDF5Application.core.utils import ParametersWrapper
+from KratosMultiphysics.HDF5Application.core.utils import EvaluatePattern
 from KratosMultiphysics.HDF5Application.core import controllers
 from KratosMultiphysics.HDF5Application.core import operations
 from KratosMultiphysics.HDF5Application.core import file_io
@@ -293,26 +294,26 @@ class TestOperations(KratosUnittest.TestCase):
     @ensure_no_file(test_file_path)
     def test_Prefix_Literal(self):
         _, model_part = _SurrogateModelPart()
-        prefix = operations.model_part.Prefix('/ModelData', model_part)
+        prefix = EvaluatePattern('/ModelData', model_part)
         self.assertEqual(prefix, '/ModelData')
 
     @ensure_no_file(test_file_path)
     def test_Prefix_NonTerminalTime(self):
         _, model_part = _SurrogateModelPart()
-        prefix = operations.model_part.Prefix('/ModelData-<time>', model_part)
+        prefix = EvaluatePattern('/ModelData-<time>', model_part)
         self.assertEqual(prefix, '/ModelData-1.23456789')
 
     @ensure_no_file(test_file_path)
     def test_Prefix_FormattedNonTerminalTime(self):
         _, model_part = _SurrogateModelPart()
-        prefix = operations.model_part.Prefix(
+        prefix = EvaluatePattern(
             '/ModelData-<time>', model_part, '0.2f')
         self.assertEqual(prefix, '/ModelData-1.23')
 
     @ensure_no_file(test_file_path)
     def test_Prefix_NonTerminalIdentifier(self):
         _, model_part = _SurrogateModelPart()
-        prefix = operations.model_part.Prefix(
+        prefix = EvaluatePattern(
             '/<model_part_name>-<time>', model_part)
         self.assertEqual(prefix, '/model_part-1.23456789')
 
@@ -348,7 +349,13 @@ class TestOperations(KratosUnittest.TestCase):
         with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ModelPartIO', autospec=True) as p:
             model_part_output.Execute()
             args, _ = p.call_args
-            self.assertEqual(args[1], '/ModelData/model_part/1.23')
+            current_settings = KratosMultiphysics.Parameters("""{
+                "operation_type" : "model_part_output",
+                "prefix": "/ModelData/model_part/1.23",
+                "time_format": "0.2f"
+            }""")
+            self.assertTrue(current_settings.IsEquivalentTo(args[0]))
+            self.assertEqual(args[1].GetFileName(), "kratos.h5")
 
     @ensure_no_file(test_file_path)
     def test_NodalSolutionStepDataOutput(self):
@@ -368,7 +375,7 @@ class TestOperations(KratosUnittest.TestCase):
             nodal_solution_step_data_io = p.return_value
             nodal_solution_step_data_output.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(nodal_solution_step_data_io.WriteNodalResults.call_count, 1)
+            self.assertEqual(nodal_solution_step_data_io.Write.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_NodalSolutionStepDataInput(self):
@@ -388,7 +395,7 @@ class TestOperations(KratosUnittest.TestCase):
             nodal_solution_step_data_io = p.return_value
             nodal_solution_step_data_input.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(nodal_solution_step_data_io.ReadNodalResults.call_count, 1)
+            self.assertEqual(nodal_solution_step_data_io.Read.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_NodalDataValueOutput(self):
@@ -408,7 +415,7 @@ class TestOperations(KratosUnittest.TestCase):
             nodal_data_value_io = p.return_value
             nodal_data_value_output.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(nodal_data_value_io.WriteNodalResults.call_count, 1)
+            self.assertEqual(nodal_data_value_io.Write.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_NodalFlagValueOutput(self):
@@ -428,7 +435,7 @@ class TestOperations(KratosUnittest.TestCase):
             nodal_flag_value_io = p.return_value
             nodal_flag_value_output.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(nodal_flag_value_io.WriteNodalFlags.call_count, 1)
+            self.assertEqual(nodal_flag_value_io.Write.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_NodalDataValueInput(self):
@@ -448,7 +455,7 @@ class TestOperations(KratosUnittest.TestCase):
             nodal_data_value_io = p.return_value
             nodal_data_value_input.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(nodal_data_value_io.ReadNodalResults.call_count, 1)
+            self.assertEqual(nodal_data_value_io.Read.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_NodalFlagValueInput(self):
@@ -468,7 +475,7 @@ class TestOperations(KratosUnittest.TestCase):
             nodal_flag_value_io = p.return_value
             nodal_flag_value_input.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(nodal_flag_value_io.ReadNodalFlags.call_count, 1)
+            self.assertEqual(nodal_flag_value_io.Read.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_ElementDataValueOutput(self):
@@ -488,7 +495,7 @@ class TestOperations(KratosUnittest.TestCase):
             element_data_value_io = p.return_value
             element_data_value_output.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(element_data_value_io.WriteElementResults.call_count, 1)
+            self.assertEqual(element_data_value_io.Write.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_ElementFlagValueOutput(self):
@@ -508,7 +515,7 @@ class TestOperations(KratosUnittest.TestCase):
             element_flag_value_io = p.return_value
             element_flag_value_output.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(element_flag_value_io.WriteElementFlags.call_count, 1)
+            self.assertEqual(element_flag_value_io.Write.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_ElementDataValueInput(self):
@@ -528,7 +535,7 @@ class TestOperations(KratosUnittest.TestCase):
             element_data_value_io = p.return_value
             element_data_value_input.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(element_data_value_io.ReadElementResults.call_count, 1)
+            self.assertEqual(element_data_value_io.Read.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_ElementFlagValueInput(self):
@@ -548,7 +555,7 @@ class TestOperations(KratosUnittest.TestCase):
             element_flag_value_io = p.return_value
             element_flag_value_input.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(element_flag_value_io.ReadElementFlags.call_count, 1)
+            self.assertEqual(element_flag_value_io.Read.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_ConditionDataValueOutput(self):
@@ -568,7 +575,7 @@ class TestOperations(KratosUnittest.TestCase):
             condition_data_value_io = p.return_value
             condition_data_value_output.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(condition_data_value_io.WriteConditionResults.call_count, 1)
+            self.assertEqual(condition_data_value_io.Write.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_ConditionFlagValueOutput(self):
@@ -588,7 +595,7 @@ class TestOperations(KratosUnittest.TestCase):
             condition_flag_value_io = p.return_value
             condition_flag_value_output.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(condition_flag_value_io.WriteConditionFlags.call_count, 1)
+            self.assertEqual(condition_flag_value_io.Write.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_ConditionDataValueInput(self):
@@ -608,7 +615,7 @@ class TestOperations(KratosUnittest.TestCase):
             condition_data_value_io = p.return_value
             condition_data_value_input.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(condition_data_value_io.ReadConditionResults.call_count, 1)
+            self.assertEqual(condition_data_value_io.Read.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_ConditionFlagValueInput(self):
@@ -628,7 +635,7 @@ class TestOperations(KratosUnittest.TestCase):
             condition_flag_value_io = p.return_value
             condition_flag_value_input.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(condition_flag_value_io.ReadConditionFlags.call_count, 1)
+            self.assertEqual(condition_flag_value_io.Read.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_PrimalBossakOutput(self):
@@ -648,7 +655,7 @@ class TestOperations(KratosUnittest.TestCase):
             nodal_solution_step_bossak_io = p.return_value
             primal_bossak_output.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(nodal_solution_step_bossak_io.WriteNodalResults.call_count, 1)
+            self.assertEqual(nodal_solution_step_bossak_io.Write.call_count, 1)
 
     @ensure_no_file(test_file_path)
     def test_PrimalBossakInput(self):
@@ -668,7 +675,7 @@ class TestOperations(KratosUnittest.TestCase):
             nodal_solution_step_bossak_io = p.return_value
             primal_bossak_input.Execute()
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(nodal_solution_step_bossak_io.ReadNodalResults.call_count, 1)
+            self.assertEqual(nodal_solution_step_bossak_io.Read.call_count, 1)
 
 
 class TestControllers(KratosUnittest.TestCase):

@@ -167,7 +167,7 @@ class PFEM2Solver:
                 (self.moveparticles).PreReseedUsingTopographicDomain(pre_minimum_number_of_particles)
                 t4 = timer.time()
 
-		#transfering data from the particles to the mesh:
+		#transferring data from the particles to the mesh:
 		transfer_pressure=True
                 (self.moveparticles).TransferLagrangianToEulerian(transfer_pressure);
 
@@ -207,7 +207,7 @@ class PFEM2Solver:
                 (self.moveparticles).ResetBoundaryConditions(full_reset)
 
 
-                #transfering the information to the mesh:
+                #transferring the information to the mesh:
                 modify_particle_pressure=True
                 #delta_velocity= Velocity(final) - MeshVelocity(from the particles), so we add to the particles the correction done in the mesh.
                 (self.moveparticles).CalculateDeltaVelocity();

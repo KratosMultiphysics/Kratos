@@ -100,7 +100,7 @@ void MonolithicAutoSlipInlet3D::GetDofList(DofsVectorType& rElementalDofList,
 }
 
 
-// protected funcions
+// protected functions
 
 void MonolithicAutoSlipInlet3D::CalculateNormal(array_1d<double,3>& An )
 {

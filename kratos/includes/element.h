@@ -10,8 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_ELEMENT_H_INCLUDED )
-#define  KRATOS_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -682,6 +681,11 @@ public:
      * the Output is given on integration points and characterizes the element
      * Calculate(..) methods are: OPTIONAL
      */
+    virtual void Calculate(const Variable<int>& rVariable,
+                           int& Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     virtual void Calculate(const Variable<double>& rVariable,
                            double& Output,
@@ -691,6 +695,12 @@ public:
 
     virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void Calculate(const Variable<array_1d<double, 6 > >& rVariable,
+                           array_1d<double, 6 > & Output,
                            const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -1024,7 +1034,7 @@ public:
     PropertiesType& GetProperties()
     {
         KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
+            << "Trying to get the properties of " << Info()
             << ", which are uninitialized." << std::endl;
         return *mpProperties;
     }
@@ -1032,7 +1042,7 @@ public:
     PropertiesType const& GetProperties() const
     {
         KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
+            << "Trying to get the properties of " << Info()
             << ", which are uninitialized." << std::endl;
         return *mpProperties;
     }
@@ -1254,4 +1264,3 @@ KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Element >, NEIGHBOUR_ELEMENTS)
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 } // namespace Kratos.
-#endif // KRATOS_ELEMENT_H_INCLUDED  defined

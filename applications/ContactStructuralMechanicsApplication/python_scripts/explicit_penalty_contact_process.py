@@ -116,7 +116,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         super().__init__(Model, self.contact_settings)
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.

@@ -280,7 +280,7 @@ protected:
     virtual void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
 
     /**
-     * this assings the components to the tangent tensor
+     * this assigns the components to the tangent tensor
      */
     void AssignComponentsToTangentTensor(Matrix& rTangentTensor, const Vector& rDeltaStress, const double Perturbation, const int Component);
 
@@ -309,7 +309,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues, bool& rIsDamaging);
 
     /**
-     * this performs the smooting and integrates the CL and returns the integrated Stress
+     * this performs the smoothing and integrates the CL and returns the integrated Stress
      */
     virtual Vector IntegrateSmoothedConstitutiveLaw(const std::string &rYieldSurface, ConstitutiveLaw::Parameters &rValues,
                                              const ConstitutiveVariables &rThisConstVars, const KinematicVariables &rKinVariables, 

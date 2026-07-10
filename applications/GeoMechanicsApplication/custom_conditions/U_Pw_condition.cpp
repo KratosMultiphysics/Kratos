@@ -13,11 +13,31 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_condition.hpp"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_conditions/U_Pw_condition.h"
+#include "custom_utilities/dof_utilities.hpp"
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwCondition<TDim, TNumNodes>::UPwCondition() : UPwCondition(0, nullptr, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwCondition<TDim, TNumNodes>::UPwCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : UPwCondition(NewId, pGeometry, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwCondition<TDim, TNumNodes>::UPwCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwCondition<TDim, TNumNodes>::~UPwCondition() = default;
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwCondition<TDim, TNumNodes>::Create(IndexType               NewId,
@@ -42,8 +62,8 @@ void UPwCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                         VectorType&        rRightHandSideVector,
+void UPwCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                                                         Vector&            rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -66,7 +86,7 @@ void UPwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLef
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&        rRightHandSideVector,
+void UPwCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector&            rRightHandSideVector,
                                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -90,15 +110,15 @@ void UPwCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResu
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                                                 VectorType&        rRightHandSideVector,
+void UPwCondition<TDim, TNumNodes>::CalculateAll(Matrix&            rLeftHandSideMatrix,
+                                                 Vector&            rRightHandSideVector,
                                                  const ProcessInfo& CurrentProcessInfo)
 {
     this->CalculateRHS(rRightHandSideVector, CurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
+void UPwCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -116,6 +136,18 @@ Condition::DofsVectorType UPwCondition<TDim, TNumNodes>::GetDofs() const
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void UPwCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 std::string UPwCondition<TDim, TNumNodes>::Info() const
 {
     return "UPwCondition";
@@ -123,12 +155,14 @@ std::string UPwCondition<TDim, TNumNodes>::Info() const
 
 template class UPwCondition<2, 1>;
 template class UPwCondition<2, 2>;
-template class UPwCondition<3, 1>;
-template class UPwCondition<3, 3>;
-template class UPwCondition<3, 4>;
-
 template class UPwCondition<2, 3>;
 template class UPwCondition<2, 4>;
 template class UPwCondition<2, 5>;
 
+template class UPwCondition<3, 1>;
+template class UPwCondition<3, 3>;
+template class UPwCondition<3, 4>;
+
+template class UPwCondition<3, 6>;
+template class UPwCondition<3, 8>;
 } // Namespace Kratos.

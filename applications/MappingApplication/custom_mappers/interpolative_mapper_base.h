@@ -262,7 +262,7 @@ protected:
     void Initialize()
     {
         KRATOS_TRY;
-
+        
         BuildMappingMatrix();
 
         KRATOS_CATCH("");
@@ -276,7 +276,7 @@ protected:
             const double search_radius = mMapperSettings["search_radius"].GetDouble();
 
             if (mMapperSettings.Has("search_settings")) {
-                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("search_radius")) << "\"search_radius\" specified twice, please only speficy it in \"search_settings\"!" << std::endl;
+                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("search_radius")) << "\"search_radius\" specified twice, please only specify it in \"search_settings\"!" << std::endl;
             } else {
                 mMapperSettings.AddValue("search_settings", Parameters());
             }
@@ -290,7 +290,7 @@ protected:
             const int search_iterations = mMapperSettings["search_iterations"].GetInt();
 
             if (mMapperSettings.Has("search_settings")) {
-                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("max_num_search_iterations")) << "\"search_iterations\" specified twice, please only speficy it in \"search_settings\" (as \"max_num_search_iterations\")!" << std::endl;
+                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("max_num_search_iterations")) << "\"search_iterations\" specified twice, please only specify it in \"search_settings\" (as \"max_num_search_iterations\")!" << std::endl;
             } else {
                 mMapperSettings.AddValue("search_settings", Parameters());
             }
@@ -371,7 +371,7 @@ private:
             VariableUtils().UpdateCurrentToInitialConfiguration(mrModelPartOrigin.Nodes());
             VariableUtils().UpdateCurrentToInitialConfiguration(mrModelPartDestination.Nodes());
         }
-
+        
         AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
 
         auto p_interface_comm = Kratos::make_unique<InterfaceCommunicatorType>(
@@ -397,7 +397,7 @@ private:
             mpInterfaceVectorContainerDestination->GetModelPart(),
             mMapperLocalSystems,
             echo_level);
-
+        
         if (use_initial_configuration) {
             MapperUtilities::RestoreCurrentConfiguration(mrModelPartOrigin);
             MapperUtilities::RestoreCurrentConfiguration(mrModelPartDestination);
@@ -414,8 +414,8 @@ private:
 
     void AssignInterfaceEquationIds()
     {
-        MapperUtilities::AssignInterfaceEquationIds(mrModelPartOrigin.GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIds(mrModelPartDestination.GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsToNodes(mrModelPartOrigin.GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsToNodes(mrModelPartDestination.GetCommunicator());
     }
 
     void MapInternal(const Variable<double>& rOriginVariable,

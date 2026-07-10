@@ -97,14 +97,9 @@ public:
 
     /**
      * @brief Default Constructor
-     * @details Initializes the flags
      */
-    explicit Scheme()
-    {
-        mSchemeIsInitialized = false;
-        mElementsAreInitialized = false;
-        mConditionsAreInitialized = false;
-    }
+    Scheme() = default;
+
     /**
      * @brief Constructor with Parameters
      */
@@ -113,26 +108,15 @@ public:
         // Validate default parameters
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
-
-        mSchemeIsInitialized = false;
-        mElementsAreInitialized = false;
-        mConditionsAreInitialized = false;
     }
 
     /** Copy Constructor.
      */
-    explicit Scheme(Scheme& rOther)
-      :mSchemeIsInitialized(rOther.mSchemeIsInitialized)
-      ,mElementsAreInitialized(rOther.mElementsAreInitialized)
-      ,mConditionsAreInitialized(rOther.mConditionsAreInitialized)
-    {
-    }
+    Scheme(Scheme& rOther) = default;
 
     /** Destructor.
      */
-    virtual ~Scheme()
-    {
-    }
+    virtual ~Scheme() = default;
 
     ///@}
     ///@name Operators
@@ -217,6 +201,12 @@ public:
         return mConditionsAreInitialized;
     }
 
+    /// @brief Return true if @ref MasterSlaveConstraint "constraints" have already been initialized.
+    bool ConstraintsAreInitialized() noexcept
+    {
+        return mConstraintsAreInitialized;
+    }
+
     /**
      * @brief This method sets if the conditions have been initialized or not (true by default)
      * @param ConditionsAreInitializedFlag If the flag must be set to true or false
@@ -224,6 +214,12 @@ public:
     void SetConditionsAreInitialized(bool ConditionsAreInitializedFlag = true)
     {
         mConditionsAreInitialized = ConditionsAreInitializedFlag;
+    }
+
+    /// @brief Set flag indicating whether @ref MasterSlaveConstraint "constraints" are initialized.
+    void SetConstraintsAreInitialized(bool Flag = true) noexcept
+    {
+        mConstraintsAreInitialized = Flag;
     }
 
     /**
@@ -257,6 +253,15 @@ public:
 
         SetConditionsAreInitialized();
 
+        KRATOS_CATCH("")
+    }
+
+    /// @brief Initialize all @ref MasterSlaveConstraint "constraints" of the input @ref ModelPart.
+    virtual void InitializeConstraints(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+        EntitiesUtilities::InitializeEntities<MasterSlaveConstraint>(rModelPart);
+        SetConstraintsAreInitialized();
         KRATOS_CATCH("")
     }
 
@@ -752,9 +757,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mSchemeIsInitialized;      /// Flag to be used in controlling if the Scheme has been initialized or not
-    bool mElementsAreInitialized;   /// Flag taking in account if the elements were initialized correctly or not
-    bool mConditionsAreInitialized; /// Flag taking in account if the conditions were initialized correctly or not
+    bool mSchemeIsInitialized = false;      /// Flag to be used in controlling if the Scheme has been initialized or not
+    bool mElementsAreInitialized = false;   /// Flag taking in account if the elements were initialized correctly or not
+    bool mConditionsAreInitialized = false; /// Flag taking in account if the conditions were initialized correctly or not
+    bool mConstraintsAreInitialized = false; /// Flag taking in account if the constraints were initialized correctly or not
 
     ///@}
     ///@name Protected Operators

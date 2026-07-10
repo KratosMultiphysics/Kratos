@@ -303,18 +303,25 @@ void Model::save(Serializer& rSerializer) const
 
 void Model::load(Serializer& rSerializer)
 {
-    //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
+    // We construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
     std::vector<std::string> aux_names;
 
+    // Serialize the model part names and the data value container
     rSerializer.load("ModelPartNames", aux_names);
     rSerializer.load("ModelData", mDataValueContainer);
 
+    // Generate the model parts
     for(IndexType i=0; i<aux_names.size(); ++i) {
         //NOTE: CreateModelPart CANNOT be used here
         auto dummy_list = Kratos::make_intrusive<VariablesList>();
-        ModelPart* pmodel_part = new ModelPart(aux_names[i], 1, dummy_list, *this );
-        rSerializer.load(aux_names[i], pmodel_part);
-        mRootModelPartMap.insert(std::make_pair(aux_names[i],std::unique_ptr<ModelPart>(pmodel_part)));
+        const std::string& r_name = aux_names[i];
+        mRootModelPartMap.insert(std::make_pair(r_name, Kratos::unique_ptr<ModelPart>(new ModelPart(r_name, 1, dummy_list, *this))));
+    }
+
+    // Serialize the model parts (once created, otherwise memory issues may happen)
+    for (auto& r_model_part_pair : mRootModelPartMap) {
+        auto* p_model_part = r_model_part_pair.second.get();
+        rSerializer.load(r_model_part_pair.first, p_model_part);
     }
 }
 

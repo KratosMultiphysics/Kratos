@@ -388,7 +388,7 @@ class MaterialTest():
 
             if self.test_type =="Shear":
                 self.strain += dt
-                self.total_stress_top = total_force_top/1.0 # applied force divided by efective shear cylinder area 2*pi*0.0225*0.08
+                self.total_stress_top = total_force_top/1.0 # applied force divided by effective shear cylinder area 2*pi*0.0225*0.08
                 self.total_stress_mean = self.total_stress_top
 
             if (self.test_type == "Triaxial" or self.test_type == "Hydrostatic") and self.ConfinementPressure:

@@ -4,102 +4,67 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics 
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License 
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                    
 //
 
-#if !defined(KRATOS_DEFLATION_UTILS )
-#define  KRATOS_DEFLATION_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
-#include "includes/define.h"
+// Project includes
 #include "includes/model_part.h"
 #include "includes/global_pointer_variables.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
 
-/**@name Kratos Globals */
-/*@{ */
+///@}
+///@name Type Definitions
+///@{
 
+///@}
+///@name  Enum's
+///@{
 
-/*@} */
-/**@name Type Definitions */
-/*@{ */
+///@}
+///@name  Functions
+///@{
 
+///@}
+///@name Kratos Classes
+///@{
 
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
-
-/** This class defines utility for aggregation of node clusters to be used in deflated solvers.
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-        \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-          \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-                \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-                        \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-                          \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-                                \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-                                  \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
- */
+/** 
+* @brief This class defines utility for aggregation of node clusters to be used in deflated solvers.
+*/
 class DeflationUtils
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
-    typedef boost::numeric::ublas::compressed_matrix<double> SparseMatrixType;
+    ///@name Type Definitions
+    ///@{
 
-    typedef boost::numeric::ublas::vector<double> SparseVectorType;
+    using SparseMatrixType = boost::numeric::ublas::compressed_matrix<double>;
 
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
+    using SparseVectorType = boost::numeric::ublas::vector<double>;
 
-    /** Constructor.
-     */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
+    ///@}
+    ///@name Operators
+    ///@{
 
-    /** Destructor.
-     */
-
-    /*@} */
-    /**@name Operators
-     */
-    /*@{ */
     ///visualize aggregates. This function assumes that neighbours are calculated and builds the connectivity matrix
     ///then writes it to a nodal variable so that it can be used for visualizing it.
     void VisualizeAggregates(ModelPart::NodesContainerType& rNodes, Variable<double>& rVariable, const int max_reduced_size)
@@ -131,7 +96,7 @@ public:
 
             //filling the first neighbours list
             indices.push_back(index_i);
-            for( auto i =	neighb_nodes.begin();
+            for( auto i = neighb_nodes.begin();
                     i != neighb_nodes.end(); i++)
             {
 
@@ -160,12 +125,10 @@ public:
                 A.push_back(i,indices[j] , 0.00);
             }
         }
-//         std::cout << "matrix constructed" << std::endl;
 
         //now call aggregation function to color the nodes
         std::vector<int> w(rNodes.size());
         ConstructW(max_reduced_size, A, w, Adeflated);
-//         std::cout << "aggregates constructed" << std::endl;
 
         //finally write the color to the nodes so that it can be visualized
         int counter = 0;
@@ -173,7 +136,6 @@ public:
         {
             in->FastGetSolutionStepValue(rVariable) = w[counter++];
         }
-//         std::cout << "finished" << std::endl;
     }
 
     ///this function constructs the structure of a smaller matrix using a technique taken from MIS aggregation
@@ -187,8 +149,6 @@ public:
 
         //call aggregation function to fill mw with "colors"
         std::size_t reduced_size = standard_aggregation<int>(rA.size1(),rA.index1_data().begin(), rA.index2_data().begin(), &w[0]);
-// for( int i=0; i<full_size; i++)
-//   std::cout << w[i] << std::endl;
 
         // Non-zero structure of deflatedA
 
@@ -216,15 +176,11 @@ public:
             a_iterator++;
         }
 
-//         std::cout << "********** NZS built!" << std::endl;
-
         // Count the number of non-zeros in deflatedA
         std::size_t NZ = 0;
         for (std::size_t i = 0; i < reduced_size; i++)
             NZ += deflatedANZ[i].size();
 
-//         std::cout << "********** NZ = " << NZ << std::endl;
-//         KRATOS_WATCH(reduced_size);
         deflatedA = SparseMatrixType(reduced_size, reduced_size,NZ);
 
         // Insert the non-zero structure into deflatedA
@@ -235,16 +191,15 @@ public:
                 deflatedA.push_back(i,*j, 0.00);
             }
         }
-//         KRATOS_WATCH(__LINE__)
 
         if(reduced_size > max_reduced_size)
         {
             SparseMatrixType Areduced;
             std::vector<int> wsmaller;
-// KRATOS_WATCH(__LINE__)
+
             //need to reduce further!! - do it recursively
             ConstructW(max_reduced_size, deflatedA, wsmaller, Areduced);
-// KRATOS_WATCH(__LINE__)
+
             //now change deflatedA and w on the coarser size
             for(unsigned int i=0; i<full_size; i++)
             {
@@ -254,20 +209,12 @@ public:
             }
             deflatedA.clear();
             deflatedA = Areduced;
-// KRATOS_WATCH(__LINE__)
+
             reduced_size = wsmaller.size();
         }
 
-//         KRATOS_WATCH(reduced_size);
-//         std::cout << "reduction factor ="<<double(full_size)/double(reduced_size)<<std::endl;
-
-
         KRATOS_CATCH("")
     }
-
-
-
-
 
     ///block version of ConstructW. To be used when multiple DOFS are associated to the same node.
     static void ConstructW(const int max_reduced_size, SparseMatrixType& rA, std::vector<int>& w, SparseMatrixType&  deflatedA, const std::size_t block_size)
@@ -279,13 +226,11 @@ public:
         else
         {
             //simple checks to verify blocks are effectively respected
-            if(rA.size1()%block_size != 0 || rA.size2()%block_size != 0)
-                KRATOS_THROW_ERROR(std::logic_error,"the number of rows is not a multiple of block_size. Can not use the block deflation","")
-                if(rA.nnz()%block_size != 0)
-                    KRATOS_THROW_ERROR(std::logic_error,"the number of non zeros is not a multiple of block_size. Can not use the block deflation","")
+            KRATOS_ERROR_IF(rA.size1()%block_size != 0 || rA.size2()%block_size != 0) << "The number of rows is not a multiple of block_size. Can not use the block deflation" <<  std::endl;
+            KRATOS_ERROR_IF(rA.nnz()%block_size != 0) << "The number of non zeros is not a multiple of block_size. Can not use the block deflation" << std::endl;
 
-                    //construct Ascalar
-                    SparseMatrixType Ascalar;
+            //construct Ascalar
+            SparseMatrixType Ascalar;
             ConstructScalarMatrix(rA.size1(),block_size,rA.index1_data().begin(), rA.index2_data().begin(), Ascalar);
 
             //deflate it using the standard methods
@@ -309,13 +254,8 @@ public:
             //do reserve!!
             deflatedA.reserve(deflatedAscalar.nnz()*block_size*block_size);
             ExpandScalarMatrix(rA.size1(),block_size,rA.index1_data().begin(), rA.index2_data().begin(), deflatedA);
-
-
-
         }
     }
-
-
 
     //W is the deflation matrix, stored as a single vector of indices
     //y is a vector of "full" size
@@ -323,13 +263,10 @@ public:
     //y = W*x;
     static void ApplyW(const std::vector<int>& w, const SparseVectorType& x, SparseVectorType& y)
     {
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(w.size()); i++)
-        {
+        IndexPartition<std::size_t>(w.size()).for_each([&](std::size_t i) {
             y[i] = x[w[i]];
-        }
+        });
     }
-
 
     //W is the deflation matrix, stored as a single vector of indices
     //y is a vector of "reduced" size
@@ -338,23 +275,14 @@ public:
     static void ApplyWtranspose(const std::vector<int>& w, const SparseVectorType& x, SparseVectorType& y)
     {
         //first set to zero the destination vector
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(y.size()); i++)
+        IndexPartition<std::size_t>(y.size()).for_each([&](std::size_t i) {
             y[i] = 0.0;
+        });
 
-        //Pragma atomic does not work with MSVC 19.0.23506 ( aka Visual Studio 2015 Update1 )
-#if(_MSC_FULL_VER == 190023506)
-        for(int i=0; i<static_cast<int>(w.size()); i++)
-        {
-            y[w[i]] += x[i];
-        }
-#else
         //now apply the Wtranspose
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(w.size()); i++) {
+        IndexPartition<std::size_t>(w.size()).for_each([&](std::size_t i) {
             AtomicAdd(y[w[i]], x[i]);
-        }
-#endif
+        });
     }
 
     //*******************************************************************************
@@ -364,13 +292,11 @@ public:
         KRATOS_TRY
 
         double* abegin = Ah.value_data().begin();
-        int size = Ah.value_data().size();
-        #pragma omp parallel for
-        for (int i = 0; i < size; i++)
-        {
+        const int size = Ah.value_data().size();
+        IndexPartition<int>(size).for_each([&](int i) {
             *(abegin+i) = 0.0;
-        }
-//	TSparseSpaceType::SetToZero(Ah);
+        });
+        // TSparseSpaceType::SetToZero(Ah);
 
         // Now building Ah
         SparseMatrixType::const_iterator1 a_iterator = rA.begin1();
@@ -394,49 +320,38 @@ public:
             a_iterator++;
         }
 
-
-
-//         std::cout << "********** W^T * A * W built!" << std::endl;
-
-
         KRATOS_CATCH("");
     }
 
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+    ///@}
+    ///@name Operations
+    ///@{
 
-    /*@} */
-    /**@name Acces */
-    /*@{ */
+    ///@}
+    ///@name Acces
+    ///@{
 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Friends
+    ///@{
 
-
-    /*@} */
-    /**@name Friends */
-    /*@{ */
-
-
-    /*@} */
-
+    ///@}
 private:
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@name Static Member Variables
+    ///@{
 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
+    ///@}
+    ///@name Private Operators
+    ///@{
 
     /*
     * Compute aggregates for a matrix A stored in CSR format
@@ -454,7 +369,6 @@ private:
     *    It is assumed that A is structurally symmetric.
     *    A may contain diagonal entries (self loops)
     *    Unaggregated nodes are marked with a -1
-    *
     */
     template <class I>
     static I standard_aggregation(const I n_row,
@@ -641,40 +555,29 @@ private:
         }
     }
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
+    ///@}
+    ///@name Private Operations
+    ///@{
 
+    ///@}
+    ///@name Private  Acces
+    ///@{
 
-    /*@} */
-    /**@name Private  Acces */
-    /*@{ */
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
+    ///@}
+}; /// class DeflationUtils
 
+///@}
+///@name Type Definitions
+///@{
 
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
+///@}
 
-
-
-
-    /*@} */
-
-}; /* Class ClassName */
-
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-
-/*@} */
-
-} /* namespace Kratos.*/
-
-#endif /* DEFLATION_UTILS  defined */
+} /// namespace Kratos

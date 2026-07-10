@@ -47,6 +47,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         ReadDistributedModelPart(GetFilePath( "auxiliary_files/mdpa_files/levelset_convection_process_mesh"), self.model_part, self.GetPartitioningParameters())

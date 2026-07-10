@@ -28,7 +28,7 @@
             "time_step" : 1.1
         },
         "builder_and_solver_settings" : {
-            "use_block_builder" : false
+            "type" : "elimination"
         },
         "clear_storage"                      : true,
         "compute_reactions"                  : false,

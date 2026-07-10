@@ -56,7 +56,7 @@ public:
     ///@{
 
     /** This constructor gives a complete set of dimensional
-    arguments neede for geometries.
+    arguments needed for geometries.
 
     @param ThisDimension Dimension of this geometry.
 

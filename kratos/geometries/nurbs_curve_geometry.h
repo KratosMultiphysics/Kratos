@@ -60,28 +60,32 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Conctructor for B-Spline curves
-    NurbsCurveGeometry(
-        const PointsArrayType& rThisPoints,
-        const SizeType PolynomialDegree,
-        const Vector& rKnots)
-        : BaseType(rThisPoints, &msGeometryData)
-        , mPolynomialDegree(PolynomialDegree)
-        , mKnots(rKnots)
-    {
-        CheckAndFitKnotVectors();
-    }
-
-    /// Conctructor for NURBS curves
+    /// Constructor for B-Spline curves
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegree,
         const Vector& rKnots,
-        const Vector& rWeights)
+        const ProjectionAlgorithm ProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson)
+        : BaseType(rThisPoints, &msGeometryData)
+        , mPolynomialDegree(PolynomialDegree)
+        , mKnots(rKnots)
+        , mProjectionAlgorithm(ProjectionAlgorithm)
+    {
+        CheckAndFitKnotVectors();
+    }
+
+    /// Constructor for NURBS curves
+    NurbsCurveGeometry(
+        const PointsArrayType& rThisPoints,
+        const SizeType PolynomialDegree,
+        const Vector& rKnots,
+        const Vector& rWeights,
+        const ProjectionAlgorithm ProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson)
         : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
         , mWeights(rWeights)
+        , mProjectionAlgorithm(ProjectionAlgorithm)
     {
         CheckAndFitKnotVectors();
 
@@ -332,7 +336,7 @@ public:
     ///@name ClosestPoint
     ///@{
 
-    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+    /* @brief Makes a check if the provided parameter rPointLocalCoordinates[0]
      *        is inside the curve, or on the boundary or if it lays outside.
      *        If it is outside, it is set to the boundary which is closer to it.
      * @return if rPointLocalCoordinates[0] was before the projection:
@@ -388,12 +392,21 @@ public:
     {
         CoordinatesArrayType point_global_coordinates;
 
-        return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+        if (mProjectionAlgorithm == ProjectionAlgorithm::NewtonRaphson) {
+            return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+                rProjectedPointLocalCoordinates,
+                rPointGlobalCoordinates,
+                point_global_coordinates,
+                *this,
+                20, Tolerance);
+        }
+
+        return ProjectionNurbsGeometryUtilities::LevenbergMarquardtCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
             point_global_coordinates,
             *this,
-            20, Tolerance);
+            50, Tolerance);
     }
 
     ///@}
@@ -449,6 +462,16 @@ public:
             }
         }
         return rResult;
+    }
+
+    void SetProjectionAlgorithm(const ProjectionAlgorithm ProjectionAlgorithm)
+    {
+        mProjectionAlgorithm = ProjectionAlgorithm;
+    }
+
+    ProjectionAlgorithm GetProjectionAlgorithm() const
+    {
+        return mProjectionAlgorithm;
     }
 
     ///@}
@@ -520,6 +543,12 @@ public:
 
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
         {
+            std::vector<CoordinatesArrayType> global_space_derivatives(2);
+            this->GlobalSpaceDerivatives(
+                                        global_space_derivatives,
+                                        rIntegrationPoints[i],
+                                        1);
+
             if (IsRational()) {
                 shape_function_container.ComputeNurbsShapeFunctionValues(
                     mKnots, mWeights, rIntegrationPoints[i][0]);
@@ -553,9 +582,11 @@ public:
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 default_method, rIntegrationPoints[i],
                 N, shape_function_derivatives);
-
-            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 1, data_container, nonzero_control_points);
+            
+            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurve(
+                this->WorkingSpaceDimension(), 1, 
+                data_container, nonzero_control_points,
+                global_space_derivatives[1][0], global_space_derivatives[1][1], this);
         }
     }
 
@@ -699,6 +730,18 @@ public:
         return rResult;
     }
 
+    void SetInternals(
+        const PointsArrayType& rThisPoints,
+        const SizeType PolynomialDegree,
+        const Vector& rKnots,
+        const Vector& rWeights)
+    {
+        this->Points() = rThisPoints;
+        mPolynomialDegree = PolynomialDegree;
+        mKnots = rKnots;
+        mWeights = rWeights;
+    }
+
     ///@}
     ///@name Geometry Family
     ///@{
@@ -760,6 +803,7 @@ private:
     SizeType mPolynomialDegree;
     Vector mKnots;
     Vector mWeights;
+    ProjectionAlgorithm mProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson;
 
     ///@}
     ///@name Private Operations

@@ -52,20 +52,20 @@ namespace Kratos
       virtual ~DemSearchUtilities(){}
 
       //************************************************************************
-      // Elemental Distance Calcualtion
+      // Elemental Distance Calculation
       //************************************************************************
 
 
 
       //************************************************************************
-      // Nodal Distance Calcualtion
+      // Nodal Distance Calculation
       //************************************************************************
 
       /**
-       * Calcualtes the distance between the nodes in "rSearchModelPart" and their neighbous in "rBinsModelPart"
+       * Calculates the distance between the nodes in "rSearchModelPart" and their neighbours in "rBinsModelPart"
        * @param rSearchModelPart:   Modelpart containing all nodes to be searched
        * @param rBinsModelPart:     Modelpart containing all nodes for the search structure
-       * @param SearchRadius:       List contaning the search radius for each node
+       * @param SearchRadius:       List containing the search radius for each node
        * @param ResultDistances:    List of distances for each neighbour of each node in "rSearchModelPart"
        */
       template<class TVariableType>
@@ -82,10 +82,10 @@ namespace Kratos
       }
 
       /**
-       * Calcualtes the distance between the nodes in "rSearchModelPart" and their neighbous in "rBinsNodes"
+       * Calculates the distance between the nodes in "rSearchModelPart" and their neighbours in "rBinsNodes"
        * @param rSearchModelPart:   Modelpart containing all nodes to be searched
        * @param rBinsNodes:         List of nodes containing all nodes for the search structure
-       * @param SearchRadius:       List contaning the search radius for each node
+       * @param SearchRadius:       List containing the search radius for each node
        * @param ResultDistances:    List of distances for each neighbour of each node in "rSearchModelPart"
        */
       template<class TVariableType>
@@ -101,10 +101,10 @@ namespace Kratos
       }
 
       /**
-       * Calcualtes the distance between the nodes in "rSearchNodes" and their neighbous in "rBinsModelPart"
+       * Calculates the distance between the nodes in "rSearchNodes" and their neighbours in "rBinsModelPart"
        * @param rSearchNodes:       List of nodes containing all nodes to be searched
        * @param rBinsModelPart:     Modelpart containing all nodes for the search structure
-       * @param SearchRadius:       List contaning the search radius for each node
+       * @param SearchRadius:       List containing the search radius for each node
        * @param ResultDistances:    List of distances for each neighbour of each node in "rSearchModelPart"
        */
       template<class TVariableType>
@@ -120,11 +120,11 @@ namespace Kratos
       }
 
       /**
-       * Calcualtes the distance between the nodes in "rSearchNodes" and their neighbous in "rBinsNodes"
+       * Calculates the distance between the nodes in "rSearchNodes" and their neighbours in "rBinsNodes"
        * This function contains the implementation.
        * @param rSearchNodes:       List of nodes containing all nodes to be searched
        * @param rBinsNodes:         List of nodes containing all nodes for the search structure
-       * @param SearchRadius:       List contaning the search radius for each node
+       * @param SearchRadius:       List containing the search radius for each node
        * @param ResultDistances:    List of distances for each neighbour of each node in "rSearchModelPart"
        */
       template<class TVariableType>

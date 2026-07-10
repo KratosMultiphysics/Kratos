@@ -195,7 +195,7 @@ void MaxOverhangAngleResponseUtils::CalculateConditionFiniteDifferenceShapeSensi
     const double ref_val = CalculateConditionValue(rCondition,ResponseSettings);
 
     // initialize dummy element for parallelized perturbation based sensitivity calculation
-    // in each thread seperately
+    // in each thread separately
     if (!pThreadLocalCondition) {
 
         std::stringstream name;

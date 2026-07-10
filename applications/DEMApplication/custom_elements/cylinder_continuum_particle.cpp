@@ -29,7 +29,7 @@ namespace Kratos
       /// Destructor.
       CylinderContinuumParticle::~CylinderContinuumParticle(){}
 
-        void CylinderContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
+        void CylinderContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbours of my neighbours.
         {
 
             double alpha = 1.0;

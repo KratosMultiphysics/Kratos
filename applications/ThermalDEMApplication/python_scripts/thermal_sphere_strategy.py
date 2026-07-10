@@ -79,7 +79,7 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def InitializeSolutionStep(self):
-        if (self.compute_motion_option):
+        if (self.compute_forces_option):
             BaseStrategy.InitializeSolutionStep(self)
         else:
             (self.cplusplus_strategy).InitializeSolutionStep()
@@ -90,13 +90,13 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def Predict(self):
-        if (self.compute_motion_option):
+        if (self.compute_forces_option):
             BaseStrategy.Predict(self)
     
     #----------------------------------------------------------------------------------------------
     def SolveSolutionStep(self):
         # Solve step according to motion type
-        if (self.compute_motion_option):
+        if (self.compute_forces_option):
             (self.cplusplus_strategy).SolveSolutionStep()
         else:
             (self.cplusplus_strategy).SolveSolutionStepStatic()
@@ -112,7 +112,7 @@ class ExplicitStrategy(BaseStrategy):
             self.graph_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
 
         # Merge particle heat maps to global heat maps
-        if (self.PostMapHeatGeneration):
+        if (self.PostHeatMapGeneration):
             self.heat_map_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
 
     #----------------------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ class ExplicitStrategy(BaseStrategy):
             self.graph_utils.ExecuteFinalize()
 
         # Write global heat maps
-        if (self.PostMapHeatGeneration):
+        if (self.PostHeatMapGeneration):
             self.heat_map_utils.ExecuteFinalize(self.spheres_model_part)
 
     ####################################### PARTICULAR METHODS #######################################
@@ -141,6 +141,7 @@ class ExplicitStrategy(BaseStrategy):
         self.thermal_settings.ValidateAndAssignDefaults(default_settings)
 
         # General options
+        self.compute_forces_option       = self.thermal_settings["compute_forces"].GetBool()
         self.compute_motion_option       = self.thermal_settings["compute_motion"].GetBool()
         self.auto_solve_frequency_option = self.thermal_settings["automatic_solve_frequency"].GetBool()
 
@@ -163,7 +164,7 @@ class ExplicitStrategy(BaseStrategy):
         self.porosity_method           = self.thermal_settings["porosity_method"].GetString()
 
         self.heat_generation_model = []
-        for model in self.thermal_settings["heat_generation_model"]:
+        for model in self.thermal_settings["heat_generation_model"].values():
             self.heat_generation_model.append(model.GetString())
 
         # Active heat transfer mechanisms
@@ -199,15 +200,19 @@ class ExplicitStrategy(BaseStrategy):
         self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
         
         # Post options
-        self.PostGraphParticleTempMin     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
-        self.PostGraphParticleTempMax     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
-        self.PostGraphParticleTempAvg     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
-        self.PostGraphParticleTempDev     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
-        self.PostGraphModelTempAvg        = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
-        self.PostGraphFluxContributions   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatFluxContributions")
-        self.PostGraphGenContributions    = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenContributions")
-        self.PostGraphEnergyContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphEnergyContributions")
-        self.PostMapHeatGeneration        = GetBoolParameterIfItExists(self.DEM_parameters, "PostMapHeatGeneration")
+        self.PostGraphParticleTempAll             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAll")
+        self.PostGraphParticleTempMin             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
+        self.PostGraphParticleTempMax             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
+        self.PostGraphParticleTempAvg             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
+        self.PostGraphParticleTempAvgVol          = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvgVol")
+        self.PostGraphParticleTempDev             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
+        self.PostGraphMechanicalEnergy            = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphMechanicalEnergy")
+        self.PostGraphDissipatedEnergy            = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphDissipatedEnergy")
+        self.PostGraphThermalEnergy               = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphThermalEnergy")
+        self.PostGraphHeatFluxContributions       = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatFluxContributions")
+        self.PostGraphHeatGenerationValues        = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenerationValues")
+        self.PostGraphHeatGenerationContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenerationContributions")
+        self.PostHeatMapGeneration                = GetBoolParameterIfItExists(self.DEM_parameters, "PostHeatMapGeneration")
 
         self.heat_map_corner1         = Vector(3)
         self.heat_map_corner1[0]      = min(self.thermal_settings["heat_map_corners"][0][0].GetDouble(),self.thermal_settings["heat_map_corners"][1][0].GetDouble())
@@ -224,6 +229,10 @@ class ExplicitStrategy(BaseStrategy):
 
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
+        # Forces and motion calculation
+        if (self.compute_motion_option == True and self.compute_forces_option == False):
+            Logger.PrintWarning('ThermalDEM', '\nActivation of "compute_motion" requires "compute_forces" to be enabled. The simulation will run with "compute_forces" enabled.\n')
+        
         # Time integration scheme
         if (self.thermal_integration_scheme != "forward_euler"):
             raise Exception('ThermalDEM', 'Time integration scheme \'' + self.thermal_integration_scheme + '\' is not implemented.') 
@@ -262,9 +271,12 @@ class ExplicitStrategy(BaseStrategy):
                 model != "contact_damping"):
                 raise Exception('ThermalDEM', 'Heat generation model \'' + model + '\' is not implemented.')
 
-        if (self.adjusted_contact_model != "zhou" and
-            self.adjusted_contact_model != "lu"   and
-            self.adjusted_contact_model != "morris"):
+        if (self.adjusted_contact_model != "zhou"             and
+            self.adjusted_contact_model != "lu"               and
+            self.adjusted_contact_model != "morris_area"      and
+            self.adjusted_contact_model != "morris_area_time" and
+            self.adjusted_contact_model != "rangel_area"      and
+            self.adjusted_contact_model != "rangel_area_time"):
             raise Exception('ThermalDEM', 'Adjusted contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
 
         # Other methods
@@ -355,14 +367,18 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def SetGraphFlags(self):
-        if (self.PostGraphParticleTempMin     or
-            self.PostGraphParticleTempMax     or
-            self.PostGraphParticleTempAvg     or 
-            self.PostGraphParticleTempDev     or
-            self.PostGraphModelTempAvg        or
-            self.PostGraphFluxContributions   or
-            self.PostGraphGenContributions    or
-            self.PostGraphEnergyContributions):
+        if (self.PostGraphParticleTempAll       or
+            self.PostGraphParticleTempMin       or
+            self.PostGraphParticleTempMax       or
+            self.PostGraphParticleTempAvg       or 
+            self.PostGraphParticleTempAvgVol    or
+            self.PostGraphParticleTempDev       or
+            self.PostGraphMechanicalEnergy      or
+            self.PostGraphDissipatedEnergy      or
+            self.PostGraphThermalEnergy         or
+            self.PostGraphHeatFluxContributions or
+            self.PostGraphHeatGenerationValues  or
+            self.PostGraphHeatGenerationContributions):
             self.write_graph = True
         else:
             self.write_graph = False
@@ -380,7 +396,7 @@ class ExplicitStrategy(BaseStrategy):
         if (self.write_graph):
             self.graph_utils = GraphUtilities()
 
-        if (self.PostMapHeatGeneration):
+        if (self.PostHeatMapGeneration):
             self.heat_map_utils = HeatMapUtilities()
     
     #----------------------------------------------------------------------------------------------
@@ -476,8 +492,14 @@ class ExplicitStrategy(BaseStrategy):
             class_name = "RealContactZhou"
         elif self.adjusted_contact_model == "lu":
             class_name = "RealContactLu"
-        elif self.adjusted_contact_model == "morris":
-            class_name = "RealContactMorris"
+        elif self.adjusted_contact_model == "morris_area":
+            class_name = "RealContactMorrisArea"
+        elif self.adjusted_contact_model == "morris_area_time":
+            class_name = "RealContactMorrisAreaTime"
+        elif self.adjusted_contact_model == "rangel_area":
+            class_name = "RealContactRangelArea"
+        elif self.adjusted_contact_model == "rangel_area_time":
+            class_name = "RealContactRangelAreaTime"
         else:
             raise Exception('ThermalDEM', 'Real contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
         try:
@@ -527,7 +549,8 @@ class ExplicitStrategy(BaseStrategy):
     #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION,               self.compute_motion_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, COMPUTE_FORCES_OPTION, self.compute_forces_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, COMPUTE_MOTION_OPTION, self.compute_motion_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, AUTO_SOLVE_FREQUENCY_OPTION, self.auto_solve_frequency_option)
         self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
 
@@ -572,7 +595,7 @@ class ExplicitStrategy(BaseStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_VELOCITY,             self.fluid_velocity)
 
         # Post options
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, HEAT_MAP_GENERATION_OPTION, self.PostMapHeatGeneration)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, HEAT_MAP_GENERATION_OPTION, self.PostHeatMapGeneration)
         self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_COORDINATES_1, self.heat_map_corner1)
         self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_COORDINATES_2, self.heat_map_corner2)
         self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_SUBDIVISIONS,  self.heat_map_subdivisions)
@@ -602,16 +625,20 @@ class ExplicitStrategy(BaseStrategy):
             self.tesselation_utils.ExecuteInitialize(self.spheres_model_part, self.compute_voronoi, self.compute_porosity)
 
         if (self.write_graph):
-            self.graph_utils.ExecuteInitialize(self.PostGraphParticleTempMin,
+            self.graph_utils.ExecuteInitialize(self.PostGraphParticleTempAll,
+                                               self.PostGraphParticleTempMin,
                                                self.PostGraphParticleTempMax,
                                                self.PostGraphParticleTempAvg,
+                                               self.PostGraphParticleTempAvgVol,
                                                self.PostGraphParticleTempDev,
-                                               self.PostGraphModelTempAvg,
-                                               self.PostGraphFluxContributions,
-                                               self.PostGraphGenContributions,
-                                               self.PostGraphEnergyContributions)
+                                               self.PostGraphMechanicalEnergy,
+                                               self.PostGraphDissipatedEnergy,
+                                               self.PostGraphThermalEnergy,
+                                               self.PostGraphHeatFluxContributions,
+                                               self.PostGraphHeatGenerationValues,
+                                               self.PostGraphHeatGenerationContributions)
 
-        if (self.PostMapHeatGeneration):
+        if (self.PostHeatMapGeneration):
             self.heat_map_utils.ExecuteInitialize(self.spheres_model_part)
 
     #----------------------------------------------------------------------------------------------

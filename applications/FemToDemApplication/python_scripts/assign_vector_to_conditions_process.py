@@ -2,7 +2,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-## This proces sets the value of a vector variable
+## This process sets the value of a vector variable
 import sys
 from KratosMultiphysics.SolidMechanicsApplication.assign_modulus_and_direction_to_conditions_process import AssignModulusAndDirectionToConditionsProcess
 
