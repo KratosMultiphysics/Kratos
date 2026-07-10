@@ -22,6 +22,7 @@
 #include "includes/kratos_application.h"
 #include "custom_elements/small_displacement_particle.h"
 #include "custom_elements/total_lagrangian_particle.h"
+#include "custom_elements/total_lagrangian_mixed_vF_particle.h"
 
 // Include constitutive 
 #include "custom_constitutive/volumetric_linear_elastic_2D_law.h"
@@ -188,8 +189,11 @@ private:
 
     const SmallDisplacementParticle<CubicKernel2D> mSmallDisplacementCubicParticle2D;
     const SmallDisplacementParticle<CubicKernel3D> mSmallDisplacementCubicParticle3D;
+
     const TotalLagrangianDisplacementParticle<CubicKernel2D> mTotalLagrangianDisplacementCubicParticle2D;
     const TotalLagrangianDisplacementParticle<CubicKernel3D> mTotalLagrangianDisplacementCubicParticle3D;
+    const TotalLagrangianMixedvFParticle<CubicKernel2D> mTotalLagrangianMixedvFCubicParticle2D;
+    const TotalLagrangianMixedvFParticle<CubicKernel3D> mTotalLagrangianMixedvFCubicParticle3D;
 
     /* CONSTITUTIVE LAWS */ 
     const VolumetricLinearElastic2DLaw mVolumetricLinearElastic2DLaw;
