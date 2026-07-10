@@ -17,7 +17,7 @@ Begin Nodes
   2  1.0000000000 0.0000000000 0.0000000000
 End Nodes
 
-Begin Elements GeoLinearTimoshenkoBeamElement2D2N
+Begin Elements LinearTimoshenkoBeamElement2D2N
   1  1  1 2
 End Elements
 

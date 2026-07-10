@@ -1,7 +1,7 @@
 # Piecewise Linear Moment Capacity
 
 This test setup verifies `PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw` coupled with
-`GeoLinearTimoshenkoBeamElement2D2N`.
+`LinearTimoshenkoBeamElement2D2N`.
 
 ## Setup
 
@@ -9,7 +9,7 @@ The model is a single 1 m, 2-node beam element:
 
 - Node 1 at x=0.0 (fully fixed displacement and rotation)
 - Node 2 at x=1.0 (prescribed vertical displacement from table)
-- Element: one `GeoLinearTimoshenkoBeamElement2D2N`
+- Element: one `LinearTimoshenkoBeamElement2D2N`
 
 ## Material properties
 
