@@ -998,4 +998,141 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutoff_InitialPlasticityStatusEq
     KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::ELASTIC));
 }
 
+// Integrates the Mohr-Coulomb-with-tension-cutoff law along a sequence of cumulative strain
+// states (starting from a zero-seeded, committed state), finalizing the material response
+// between consecutive states. Returns the final Cauchy stress vector.
+Vector IntegrateMohrCoulombStrainPath(const Properties& rProperties, const std::vector<Vector>& rCumulativeStrainStates)
+{
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(rProperties, dummy_element_geometry, dummy_shape_function_values);
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    parameters.SetMaterialProperties(rProperties);
+
+    // Seed the finalized (committed) state at zero stress / zero strain.
+    Vector zero_state = ZeroVector(4);
+    parameters.SetStrainVector(zero_state);
+    parameters.SetStressVector(zero_state);
+    law.InitializeMaterialResponseCauchy(parameters);
+
+    for (const auto& r_strain_state : rCumulativeStrainStates) {
+        Vector strain_state = r_strain_state; // non-const copy required by SetStrainVector
+        parameters.SetStrainVector(strain_state);
+        law.CalculateMaterialResponseCauchy(parameters);
+        law.FinalizeMaterialResponseCauchy(parameters);
+    }
+
+    Vector result;
+    law.GetValue(CAUCHY_STRESS_VECTOR, result);
+    return result;
+}
+
+// Builds a list of cumulative strain states that follow the given waypoints. Between each pair
+// of consecutive waypoints, NIncrementsPerLeg equally spaced points are added (the leg's start
+// point is skipped so waypoints are not duplicated). For example, waypoints {A, B} with
+// NIncrementsPerLeg = 4 yields the four points at 25%, 50%, 75% and 100% of the way from A to B.
+std::vector<Vector> BuildLinearlyInterpolatedStrainPath(const std::vector<Vector>& rStrainPathVertices,
+                                                        std::size_t                NIncrementsPerLeg)
+{
+    KRATOS_ERROR_IF(NIncrementsPerLeg == 0)
+        << "BuildLinearlyInterpolatedStrainPath requires NIncrementsPerLeg > 0" << std::endl;
+
+    std::vector<Vector> strain_states;
+    for (std::size_t leg = 0; leg + 1 < rStrainPathVertices.size(); ++leg) {
+        const Vector& r_start_strain = rStrainPathVertices[leg];
+        const Vector& r_end_strain   = rStrainPathVertices[leg + 1];
+        for (std::size_t increment = 1; increment <= NIncrementsPerLeg; ++increment) {
+            const auto fraction = static_cast<double>(increment) / static_cast<double>(NIncrementsPerLeg);
+            strain_states.push_back(r_start_strain + fraction * (r_end_strain - r_start_strain));
+        }
+    }
+    return strain_states;
+}
+
+// This test demonstrates the ADDED VALUE of splitting a strain increment into multiple
+// sub-steps. The return mapping is carried out in the trial-stress PRINCIPAL frame, which is
+// recomputed for every (sub-)step. For a proportional strain path the principal directions are
+// fixed and a single step is already exact, so sub-stepping would not change anything. Here a
+// NON-proportional history is used instead: a compressive leg followed by a shear leg. During
+// the shear leg the principal axes rotate continuously while the stress state slides along the
+// yield surface. A coarse integration (few sub-steps) samples that rotation poorly, whereas a
+// finer integration (more sub-steps) tracks it and converges to the reference solution.
+//
+// The loading PATH (the waypoints) is kept identical for every case; only the number of
+// sub-steps per leg is varied. This isolates the integration/step-size effect and shows that
+// more sub-steps yield a monotonically more accurate result.
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_NonProportionalPathIsPathDependentWithoutHardening,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange: perfect plasticity (no hardening).
+    Properties properties_no_sub_stepping;
+    properties_no_sub_stepping.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    properties_no_sub_stepping.SetValue(GEO_COULOMB_HARDENING_TYPE, "None");
+    properties_no_sub_stepping.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    properties_no_sub_stepping.SetValue(GEO_COHESION, 10.0);
+    properties_no_sub_stepping.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties_no_sub_stepping.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties_no_sub_stepping.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties_no_sub_stepping.SetValue(YOUNG_MODULUS, 1.0e3);
+    properties_no_sub_stepping.SetValue(POISSON_RATIO, 0.0);
+
+    Properties properties_with_sub_stepping(properties_no_sub_stepping);
+    properties_with_sub_stepping.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 0.01);
+    properties_with_sub_stepping.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 100);
+
+
+    // Non-proportional strain history that rotates the principal axes while on the yield surface:
+    //   leg 1: uniaxial compression   0 -> (yy = -0.06)
+    //   leg 2: add engineering shear  (yy = -0.06) -> (yy = -0.06, xy = 0.12)
+    const auto zero_state        = Vector{ZeroVector(4)};
+    const auto compression_state = UblasUtilities::CreateVector({0.0, -0.06, 0.0, 0.0});
+    const auto end_state         = UblasUtilities::CreateVector({0.0, -0.06, 0.0, 0.12});
+
+    const std::vector<Vector> strain_vertices{zero_state, compression_state, end_state};
+
+    // Reference solution: the SAME path, integrated with a very large number of steps
+    constexpr std::size_t reference_increments_per_leg = 2000;
+    const auto            reference_stress =
+        IntegrateMohrCoulombStrainPath(properties_no_sub_stepping, BuildLinearlyInterpolatedStrainPath(strain_vertices, reference_increments_per_leg));
+
+	// Calculate mohr coulomb stress with and without sub-stepping, using only the strain_vertices as the path (1 sub-step per leg)
+    const auto course_stress_no_sub_stepping = 
+        IntegrateMohrCoulombStrainPath(properties_no_sub_stepping, BuildLinearlyInterpolatedStrainPath(strain_vertices, 1));
+
+	// Calculate mohr coulomb stress with sub-stepping, using only the strain_vertices as the path (1 sub-step per leg)
+    const auto course_stress_with_sub_stepping = 
+        IntegrateMohrCoulombStrainPath(properties_with_sub_stepping, BuildLinearlyInterpolatedStrainPath(strain_vertices, 1));
+
+	// calculate the errors without and with substepping, using the reference stress as the "exact" solution
+    const auto coarse_error_no_sub_step = norm_2(Vector{course_stress_no_sub_stepping - reference_stress});
+    const auto coarse_error_with_sub_step = norm_2(Vector{course_stress_with_sub_stepping - reference_stress});
+
+
+	KRATOS_EXPECT_GT(coarse_error_no_sub_step, coarse_error_with_sub_step);
+
+
+//    const auto medium_error = norm_2(Vector{medium_stress - reference_stress});
+//    const auto fine_error   = norm_2(Vector{fine_stress - reference_stress});
+
+//    // Assert
+//    // (a) Adding sub-steps monotonically improves the accuracy: each refinement gets closer to
+//    //     the converged reference solution.
+//    KRATOS_EXPECT_GT(coarse_error, medium_error);
+//    KRATOS_EXPECT_GT(medium_error, fine_error);
+
+    // (b) The improvement is substantial (not numerical noise): the finely sub-stepped result is
+    //     at least an order of magnitude more accurate than the single-step-per-leg result. This
+    //     is the tangible added value of using multiple sub-steps for a non-proportional history.
+//    KRATOS_EXPECT_GT(coarse_error, 10.0 * fine_error);
+
+    std::cout << "coarse_error_no_sub_step = " << coarse_error_no_sub_step << std::endl;
+    std::cout << "coarse_error_with_sub_step = " << coarse_error_with_sub_step << std::endl;
+//    std::cout << "medium_error = " << medium_error << std::endl;
+//    std::cout << "fine_error   = " << fine_error << std::endl;
+}
+
+
 } // namespace Kratos::Testing

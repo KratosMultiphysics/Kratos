@@ -13,10 +13,9 @@
 //
 
 // Application includes
-#include "custom_constitutive/mohr_coulomb_law.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/coulomb_impl.h"
-#include "custom_constitutive/principal_stresses.hpp"
+#include "custom_constitutive/mohr_coulomb_law.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
@@ -71,6 +70,8 @@ Geo::PrincipalStresses::AveragingType FindAveragingType(const Geo::PrincipalStre
     }
     return NO_AVERAGING;
 }
+
+
 
 } // namespace
 
@@ -167,6 +168,13 @@ bool MohrCoulombLaw::RequiresInitializeMaterialResponse() { return true; }
 void MohrCoulombLaw::InitializeMaterial(const Properties& rMaterialProperties, const Geometry<Node>&, const Vector&)
 {
     mpCoulombImpl = std::make_unique<CoulombImpl>(rMaterialProperties);
+
+    if (rMaterialProperties.Has(GEO_MAX_RELATIVE_OVERSHOOT)) {
+        mMaxRelativeOvershoot = rMaterialProperties[GEO_MAX_RELATIVE_OVERSHOOT];
+    }
+    if (rMaterialProperties.Has(GEO_MAX_NUMBER_OF_SUB_STEPS)) {
+        mMaxNumberOfSubSteps = rMaterialProperties[GEO_MAX_NUMBER_OF_SUB_STEPS];
+    }
 }
 
 void MohrCoulombLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
@@ -203,34 +211,69 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
         return;
     }
 
-    const auto trial_stress_vector = CalculateTrialStressVector(rParameters.GetStrainVector(), r_properties);
-    const auto& [trial_principal_stresses, rotation_matrix] =
-        StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(trial_stress_vector);
+    const auto elastic_matrix = mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties);
 
-    if (mpCoulombImpl->IsAdmissibleStressState(trial_principal_stresses)) {
-        mStressVector = trial_stress_vector;
-    } else {
-        mpCoulombImpl->SaveKappaOfCoulombYieldSurface();
-        auto mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
-            trial_principal_stresses, mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties),
-            Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
+    const Vector total_strain_increment = rParameters.GetStrainVector() - mStrainVectorFinalized;
 
-        // For interchanging principal stresses, retry mapping with averaged principal stresses.
-        if (const auto averaging_type = FindAveragingType(mapped_principal_stresses);
-            averaging_type != Geo::PrincipalStresses::AveragingType::NO_AVERAGING) {
-            const auto averaged_principal_trial_stress_vector =
-                AveragePrincipalStressComponents(trial_principal_stresses, averaging_type);
-            mpCoulombImpl->RestoreKappaOfCoulombYieldSurface();
-            mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
-                averaged_principal_trial_stress_vector,
-                mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties), averaging_type);
-            mapped_principal_stresses.Values()[1] =
-                mapped_principal_stresses.Values()[AveragingTypeToArrayIndex(averaging_type)];
-        }
-        mStressVector = StressStrainUtilities::RotatePrincipalStresses(
-            mapped_principal_stresses.CopyTo<Vector>(), rotation_matrix,
-            mpConstitutiveDimension->GetStrainSize());
+    // Full elastic predictor over the entire strain increment.
+    const Vector full_trial_stress_vector =
+        mStressVectorFinalized + prod(elastic_matrix, total_strain_increment);
+    const auto& [full_trial_principal_stresses, full_rotation_matrix] =
+        StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(full_trial_stress_vector);
+
+    // If the whole step stays elastic, there is nothing to integrate and no need to sub-step.
+    if (mpCoulombImpl->IsAdmissibleStressState(full_trial_principal_stresses)) {
+        mStressVector                 = full_trial_stress_vector;
+        rParameters.GetStressVector() = mStressVector;
+        return;
     }
+
+    const std::size_t     number_of_sub_steps     = CalculateAdaptiveNumberOfSubSteps(
+        mpCoulombImpl, full_trial_principal_stresses, elastic_matrix);
+
+    // Running committed state for the sub-stepping (start from last finalized state)
+    Vector committed_stress = mStressVectorFinalized;
+    Vector committed_strain = mStrainVectorFinalized;
+
+    for (std::size_t sub = 1; sub <= number_of_sub_steps; ++sub) {
+        // strain at the end of this sub-step
+        const Vector sub_strain =
+            mStrainVectorFinalized +
+            (static_cast<double>(sub) / static_cast<double>(number_of_sub_steps)) * total_strain_increment;
+
+        // elastic predictor from the *committed* sub-step state
+        const Vector trial_stress_vector =
+            committed_stress + prod(elastic_matrix, sub_strain - committed_strain);
+
+        const auto& [trial_principal_stresses, rotation_matrix] =
+            StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(trial_stress_vector);
+
+        if (mpCoulombImpl->IsAdmissibleStressState(trial_principal_stresses)) {
+            mStressVector = trial_stress_vector;
+        } else {
+            mpCoulombImpl->SaveKappaOfCoulombYieldSurface();
+            auto mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
+                trial_principal_stresses, elastic_matrix, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
+
+            if (const auto averaging_type = FindAveragingType(mapped_principal_stresses);
+                averaging_type != Geo::PrincipalStresses::AveragingType::NO_AVERAGING) {
+                const auto averaged_principal_trial_stress_vector =
+                    AveragePrincipalStressComponents(trial_principal_stresses, averaging_type);
+                mpCoulombImpl->RestoreKappaOfCoulombYieldSurface();
+                mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
+                    averaged_principal_trial_stress_vector, elastic_matrix, averaging_type);
+                mapped_principal_stresses.Values()[1] =
+                    mapped_principal_stresses.Values()[AveragingTypeToArrayIndex(averaging_type)];
+            }
+            mStressVector = StressStrainUtilities::RotatePrincipalStresses(
+                mapped_principal_stresses.CopyTo<Vector>(), rotation_matrix,
+                mpConstitutiveDimension->GetStrainSize());
+        }
+
+        committed_stress = mStressVector;
+        committed_strain = sub_strain;
+    }
+
     rParameters.GetStressVector() = mStressVector;
 }
 
@@ -239,6 +282,36 @@ Vector MohrCoulombLaw::CalculateTrialStressVector(const Vector& rStrainVector, c
     return mStressVectorFinalized + prod(mpConstitutiveDimension->CalculateElasticConstitutiveTensor(rProperties),
                                          rStrainVector - mStrainVectorFinalized);
 }
+
+// Estimates how many strain sub-steps are needed to integrate the constitutive law
+// accurately. It performs a single "probe" return mapping of the full elastic predictor to
+// measure how far that predictor overshoots the yield surface, and subdivides the strain
+// increment such that each sub-step overshoots by at most a target fraction of the stress
+// magnitude. The kappa (hardening) update caused by the probe is rolled back so it does not
+// pollute the actual sub-stepped integration. The result is clamped to [1, MaxNumberOfSubSteps].
+std::size_t MohrCoulombLaw::CalculateAdaptiveNumberOfSubSteps(std::unique_ptr<CoulombImpl>& rImpl,
+    const Geo::PrincipalStresses& rTrialPrincipalStresses,
+    const Matrix& rElasticMatrix)
+{
+    rImpl->SaveKappaOfCoulombYieldSurface();
+    const auto mapped_principal_stresses = rImpl->DoReturnMapping(
+        rTrialPrincipalStresses, rElasticMatrix, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
+    rImpl->RestoreKappaOfCoulombYieldSurface();
+
+    const Vector trial_values = rTrialPrincipalStresses.CopyTo<Vector>();
+    const Vector mapped_values = mapped_principal_stresses.CopyTo<Vector>();
+
+    const auto overshoot = norm_2(trial_values - mapped_values);
+    const auto stress_scale = std::max(norm_2(trial_values), 1.0e-12);
+    const auto relative_overshoot = overshoot / stress_scale;
+
+
+    const auto number_of_sub_steps =
+        static_cast<std::size_t>(std::ceil(relative_overshoot / mMaxRelativeOvershoot));
+
+    return std::clamp(number_of_sub_steps, std::size_t{ 1 }, mMaxNumberOfSubSteps);
+}
+
 
 void MohrCoulombLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
