@@ -62,6 +62,13 @@ class NumpyOutputProcess(KratosMultiphysics.OutputProcess):
         # Default_precision for filename formatting
         self.default_precision = 7
 
+        controller_settings = KratosMultiphysics.Parameters("""{}""")
+        controller_settings.AddString("model_part_name", self.model_part.FullName())
+        if settings.Has("output_control_type"): controller_settings.AddValue("output_control_type", settings["output_control_type"])
+        if settings.Has("output_interval"): controller_settings.AddValue("output_interval", settings["output_interval"])
+        self.controller = KratosMultiphysics.OutputController(self.model_part.GetModel(), controller_settings)
+
+
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -78,13 +85,7 @@ class NumpyOutputProcess(KratosMultiphysics.OutputProcess):
 
 
     def IsOutputStep(self):
-        tolerance = 1e-6
-        if self.output_control_is_time:
-            time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            return time >= (self.next_output - tolerance)
-        else:
-            step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
-            return step >= self.next_output
+        return self.controller.Evaluate()
 
 
     def PrintOutput(self):
@@ -110,5 +111,4 @@ class NumpyOutputProcess(KratosMultiphysics.OutputProcess):
         numpy.save(self.output_path / f"solution_{label}.npy", numpy.stack(aux_data_array, axis=1).reshape(-1,1))
 
         # Schedule the next output
-        while self.next_output <= current:
-            self.next_output += self.output_interval
+        self.controller.Update()
