@@ -99,7 +99,7 @@ public:
     using ValueIteratorType = decltype(std::declval<SparseMatrixType&>().value_data().begin());
 
     /// Definition of the const value iterator type
-    using ConstValueIteratorType = std::decltype(std::declval<const SparseMatrixType&>().value_data().begin());
+    using ConstValueIteratorType = decltype(std::declval<const SparseMatrixType&>().value_data().begin());
 
     ///@}
     ///@name Life Cycle
