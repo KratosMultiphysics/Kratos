@@ -1,0 +1,17 @@
+@INCLUDE               = ../../../documents/doxyfile
+PROJECT_NAME           = KratosMultiphysics - Poromechanics
+PROJECT_BRIEF          = Developments in coupled solid-pore fluid interaction problems within Kratos Multiphysics.
+PROJECT_LOGO           = ../../../documents/kratos_small.png
+LAYOUT_FILE            = ../../../html_layout.xml
+INPUT                  = ..                             \
+                         ../README.md
+EXCLUDE_PATTERNS       = */external_libraries/*         \
+                         */custom_external_libraries/*  \
+                         */tests/* *_test* *test_*
+HTML_EXTRA_STYLESHEET  = ../../../documents/doxygen-awesome.css
+TAGFILES               = ../../../documents/KratosCore.tag=../../../../documents/html \
+                         ../../StructuralMechanicsApplication/documents/StructuralMechanicsApplication.tag=../../../StructuralMechanicsApplication/documents/html \
+                         ../../LinearSolversApplication/documents/LinearSolversApplication.tag=../../../LinearSolversApplication/documents/html \
+                         ../../FluidDynamicsApplication/documents/FluidDynamicsApplication.tag=../../../FluidDynamicsApplication/documents/html
+GENERATE_TAGFILE       = PoromechanicsApplication.tag
+

@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(CONVECTION_MODEL_H_INCLUDED)
-#define CONVECTION_MODEL_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -81,5 +80,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // CONVECTION_MODEL_H_INCLUDED

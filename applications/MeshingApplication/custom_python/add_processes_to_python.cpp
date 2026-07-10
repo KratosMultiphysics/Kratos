@@ -4,8 +4,8 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_processes_to_python.h"
@@ -36,10 +35,7 @@
     #include "custom_processes/parmmg/pmmg_process.h"
 #endif
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -173,6 +169,4 @@ void  AddProcessesToPython(pybind11::module& m)
 
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

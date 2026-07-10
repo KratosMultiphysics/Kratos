@@ -70,7 +70,7 @@ This function performs the modeling using prescribed GeoMechanicsNewtonRaphsonSt
 
 ### CalculateEquilibriumPipeHeight function
 
-This is a function from SteadyStatePwPipingElement. It calculates the equilibrium pipe height as
+This is a member function of class `GeoSteadyStatePwPipingElement`. It calculates the equilibrium pipe height as
 
 $$F \frac{\pi }{3} D_p \Big(\frac{\rho_s}{\rho_w} - 1\Big) \eta
 \frac{\sin(\theta + \alpha)}{\cos(\theta)  \frac{dh}{dx}}$$
@@ -98,8 +98,3 @@ function sets grow parameter as false. As well the grow is set to false if all p
 This function sets values of PREV_PIPE_HEIGHT and PIPE_HEIGHT parameters based on 'grow' input value. If grow is equal
 to true which means the piping is growing then PREV_PIPE_HEIGHT value is assigned to PIPE_HEIGHT value. If grow is false
 then PIPE_HEIGHT value is assigned to the PREV_PIPE_HEIGHT value.
-
-### Interaction with Interface classes.
-
-SteadyStatePwPipingElement class sets JointWidth equal to PIPE_HEIGHT to call functions from Interface classes. 
-

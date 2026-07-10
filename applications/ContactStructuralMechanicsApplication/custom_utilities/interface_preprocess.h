@@ -174,7 +174,7 @@ private:
         );
 
     /**
-     * @brief Creates a new properties (contaning just values related with contact)
+     * @brief Creates a new properties (containing just values related with contact)
      * @details These values are removed from the original property (in order to reduce overload of properties on the original elements)
      * @return A map containing new properties
      */

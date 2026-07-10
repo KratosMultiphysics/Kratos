@@ -20,6 +20,8 @@
 // Project includes
 #include "projection_utilities.h"
 #include "mapping_application_variables.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
+#include "geometries/nurbs_surface_geometry.h"
 
 namespace Kratos
 {
@@ -30,6 +32,9 @@ typedef std::size_t SizeType;
 typedef std::size_t IndexType;
 
 typedef Geometry<Node> GeometryType;
+typedef typename GeometryType::PointsArrayType PointsArrayType;
+typedef PointerVector<Node> ContainerNodeType;
+typedef NurbsSurfaceGeometry<3, ContainerNodeType> NurbsSurfaceGeometryType;
 
 namespace {
 
@@ -48,6 +53,54 @@ void FillEquationIdVector(const GeometryType& rGeometry,
     for (const auto& r_node : rGeometry.Points()) {
         KRATOS_DEBUG_ERROR_IF_NOT(r_node.Has(INTERFACE_EQUATION_ID)) << r_node << " does not have an \"INTERFACE_EQUATION_ID\"" << std::endl;
         rEquationIds[point_index++] = r_node.GetValue(INTERFACE_EQUATION_ID);
+    }
+
+    KRATOS_CATCH("")
+}
+
+void FillEquationIdVectorIBRA(const GeometryType::Pointer pGeometry,
+                          std::vector<int>& rEquationIds, CoordinatesArrayType rCoordinates)
+{
+    KRATOS_TRY;
+    // Get the polynomial degree of the nurbs surface
+    const IndexType polynomial_degree_u = pGeometry->PolynomialDegree(0);
+    const IndexType polynomial_degree_v = pGeometry->PolynomialDegree(1);
+
+    // Downcast the geometry to a nurbs surface
+    auto p_nurbs_surface = dynamic_cast<NurbsSurfaceGeometryType*>(pGeometry.get());
+
+    KRATOS_ERROR_IF_NOT(p_nurbs_surface) << "Geometry is not a NurbsSurfaceGeometryType!" << std::endl;
+
+    // Number of CPs in the u and v directions
+    const SizeType num_cp_u = pGeometry->PointsNumberInDirection(0);
+    const SizeType num_cp_v = pGeometry->PointsNumberInDirection(1);
+
+    // Knot vectors in the u and v directions with multiplicity of p at the beginning and end
+    const Vector knots_u = p_nurbs_surface->KnotsU();
+    const Vector knots_v = p_nurbs_surface->KnotsV();
+
+    NurbsSurfaceShapeFunction shape_function_container(polynomial_degree_u, polynomial_degree_v, 0);
+
+    shape_function_container.ComputeBSplineShapeFunctionValues(knots_u, knots_v, rCoordinates[0], rCoordinates[1]);
+
+    // Get the indices of the non-zero shape functions (i.e. the control points influencing the point defined by rCoordinates)
+    const IndexType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+    const std::vector<int> cp_indices = shape_function_container.ControlPointIndices(num_cp_u, num_cp_v);
+
+    rEquationIds.clear();
+    rEquationIds.resize(num_nonzero_cps);
+
+    for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+        const int cp_index = cp_indices[j];
+
+        KRATOS_ERROR_IF(cp_index < 0 || cp_index >= static_cast<int>(pGeometry->PointsNumber()))
+            << "Invalid control point index " << cp_index
+            << " for geometry with " << pGeometry->PointsNumber()
+            << " control points." << std::endl;
+
+        auto p_point = pGeometry->pGetPoint(cp_index);
+
+        rEquationIds[j] = p_point->GetValue(INTERFACE_EQUATION_ID);
     }
 
     KRATOS_CATCH("")
@@ -97,7 +150,7 @@ PairingIndex ProjectOnLine(const GeometryType& rGeometry,
         FillEquationIdVector(rGeometry, rEquationIds);
 
     } else {
-        // projection is ouside the line, searching the closest point
+        // projection is outside the line, searching the closest point
         pairing_index = PairingIndex::Closest_Point;
         const double dist_1 = rPointToProject.Distance(rGeometry[0]);
         const double dist_2 = rPointToProject.Distance(rGeometry[1]);
@@ -234,6 +287,104 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
     KRATOS_CATCH("")
 }
 
+PairingIndex ProjectToIBRA(const GeometryType& rGeometry,
+                               const Point& rPointToProject,
+                               const double LocalCoordTol,
+                               Vector& rShapeFunctionValues,
+                               std::vector<int>& rEquationIds,
+                               double& rProjectionDistance,
+                               const bool ComputeApproximation)
+{
+    KRATOS_TRY
+
+    // Get the parent geometry of the quadrature point and the geometry type
+    const GeometryType& geom_parent = rGeometry.GetGeometryParent(0);
+    const auto geom_type = geom_parent.GetGeometryType();
+
+    // Declare and initialize the variables needed for the projection
+    CoordinatesArrayType local_curve_coords = ZeroVector(3);
+    CoordinatesArrayType local_surface_coords = ZeroVector(3);
+    CoordinatesArrayType projected_point_global_coords = ZeroVector(3);
+    PairingIndex pairing_index = PairingIndex::Unspecified;
+
+    if (geom_type == GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface || geom_type == GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface){
+        // Get the nurbs surface geometry
+        const GeometryType::Pointer p_nurbs_surface = geom_parent.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+
+        // Initial value for the non-linear projections step
+        std::vector<double> curve_span;
+        geom_parent.SpansLocalSpace(curve_span, 0);
+        local_curve_coords[0] = (curve_span.front() + curve_span.back()) * 0.5;
+
+        // Try to project the point onto the curve
+        if (geom_parent.ProjectionPointGlobalToLocalSpace(rPointToProject, local_curve_coords, 1e-6)){
+            pairing_index = PairingIndex::Line_Inside;
+
+            // Provide a proper initial guess for the local coordinates to be given as seed for the non-linear projection step 
+            std::vector<double> surface_local_span_u, surface_local_span_v;
+            p_nurbs_surface->SpansLocalSpace(surface_local_span_u, 0);
+            p_nurbs_surface->SpansLocalSpace(surface_local_span_v, 1);
+            local_surface_coords[0] = (surface_local_span_u.front() + surface_local_span_u.back()) * 0.5;
+            local_surface_coords[1] = (surface_local_span_v.front() + surface_local_span_v.back()) * 0.5;      
+
+            // Get the global coordinates of the projected point
+            geom_parent.GlobalCoordinates(projected_point_global_coords, local_curve_coords);
+
+            // Get the local coordinates of the projected point in the parameter space of the surface
+            p_nurbs_surface->ProjectionPointGlobalToLocalSpace(projected_point_global_coords, local_surface_coords, 1e-6);
+
+            // Evaluate the shape functions at the local coordinates and get the equations id vector
+            p_nurbs_surface->ShapeFunctionsValues(rShapeFunctionValues, local_surface_coords);
+            FillEquationIdVectorIBRA(p_nurbs_surface, rEquationIds, local_surface_coords);
+            
+            // Get the distance between the projected point and the point to project
+            rProjectionDistance = norm_2(rPointToProject - projected_point_global_coords);
+        }  else if (!ComputeApproximation) { // If the projection fails and no approximation is allowed, return unspecified
+            return pairing_index;
+        }
+    } else if (geom_type == GeometryData::KratosGeometryType::Kratos_Brep_Surface || geom_type == GeometryData::KratosGeometryType::Kratos_Nurbs_Surface){
+        // Get the nurbs surface geometry
+        const GeometryType::Pointer p_nurbs_surface = geom_parent.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+
+        // Initial value for the non-linear projections step
+        std::vector<double> surface_knot_vector_u, surface_knot_vector_v;
+        p_nurbs_surface->SpansLocalSpace(surface_knot_vector_u, 0);
+        p_nurbs_surface->SpansLocalSpace(surface_knot_vector_v, 1);
+        local_surface_coords[0] = (surface_knot_vector_u.front() + surface_knot_vector_u.back()) * 0.5;
+        local_surface_coords[1] = (surface_knot_vector_v.front() + surface_knot_vector_v.back()) * 0.5;
+
+        // Try to project the point onto the surface
+        if (geom_parent.ProjectionPointGlobalToLocalSpace(rPointToProject, local_surface_coords, 1e-6)){
+            pairing_index = PairingIndex::Surface_Inside;
+
+            // Evaluate the shape functions at the local coordinates and get the equations id vector
+            p_nurbs_surface->ShapeFunctionsValues(rShapeFunctionValues, local_surface_coords);
+            FillEquationIdVectorIBRA(p_nurbs_surface, rEquationIds, local_surface_coords);
+
+            // Get the distance between the projected point and the point to project
+            CoordinatesArrayType projected_point_global_coords = ZeroVector(3);
+            p_nurbs_surface->GlobalCoordinates(projected_point_global_coords, local_surface_coords);
+            rProjectionDistance = norm_2(rPointToProject - projected_point_global_coords);
+        } else if (!ComputeApproximation) { // If the projection fails and no approximation is allowed, return unspecified
+            return PairingIndex::Unspecified;
+        } else if (geom_parent.ProjectionPointGlobalToLocalSpace(rPointToProject, local_surface_coords, LocalCoordTol)) { // If the initial projection fails and an approximation is allowed, try 
+
+            // Evaluate the shape functions at the local coordinates and get the equations id vector
+            p_nurbs_surface->ShapeFunctionsValues(rShapeFunctionValues, local_surface_coords);
+            FillEquationIdVectorIBRA(p_nurbs_surface, rEquationIds, local_surface_coords);
+
+            // Get the distance between the projected point and the point to project
+            CoordinatesArrayType projected_point_global_coords = ZeroVector(3);
+            p_nurbs_surface->GlobalCoordinates(projected_point_global_coords, local_surface_coords);
+            rProjectionDistance = norm_2(rPointToProject - projected_point_global_coords);
+        }  
+    }
+
+    return pairing_index;
+
+    KRATOS_CATCH("")
+}
+
 bool ComputeProjection(const GeometryType& rGeometry,
                        const Point& rPointToProject,
                        const double LocalCoordTol,
@@ -264,7 +415,9 @@ bool ComputeProjection(const GeometryType& rGeometry,
                geom_family == GeometryData::KratosGeometryFamily::Kratos_Hexahedra) { // Volume projection
         rPairingIndex = ProjectIntoVolume(rGeometry, rPointToProject, LocalCoordTol, rShapeFunctionValues, rEquationIds, rProjectionDistance, ComputeApproximation);
         is_full_projection = (rPairingIndex == PairingIndex::Volume_Inside);
-
+    } else if (geom_family == GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry) {
+        rPairingIndex = ProjectToIBRA(rGeometry, rPointToProject, LocalCoordTol, rShapeFunctionValues, rEquationIds, rProjectionDistance, ComputeApproximation);
+        is_full_projection = (rPairingIndex == PairingIndex::Line_Inside  || rPairingIndex == PairingIndex::Surface_Inside);
     } else if (ComputeApproximation) {
         KRATOS_WARNING_ONCE("Mapper") << "Unsupported type of geometry for projection, trying to use an approximation (Nearest Neighbor)" << std::endl;
 

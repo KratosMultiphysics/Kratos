@@ -241,8 +241,8 @@ private:
         unsigned int &rTempNodeId,
         unsigned int &rTempCondId,
         Properties::Pointer pCondProp,
-        ModelPart::NodesContainerType &rNewNodesVect,
-        ModelPart::ConditionsContainerType &rNewCondsVect);
+        std::vector<Node::Pointer> &rNewNodesVect,
+        std::vector<Condition::Pointer> &rNewCondsVect);
 
     /**
      * @brief Checks if an element is split
@@ -329,8 +329,8 @@ private:
      * @param rNewCondsVect vector that stores the new skin conditions
      */
     void RenumberAndAddSkinEntities(
-        const ModelPart::NodesContainerType &rNewNodesVect,
-        const ModelPart::ConditionsContainerType &rNewCondsVect);
+        const std::vector<Node::Pointer> &rNewNodesVect,
+        const std::vector<Condition::Pointer> &rNewCondsVect);
 
     /**
      * @brief Set the Distances Vector object

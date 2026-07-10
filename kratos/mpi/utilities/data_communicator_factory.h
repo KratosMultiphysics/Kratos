@@ -10,11 +10,14 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifndef KRATOS_DATA_COMMUNICATOR_FACTORY_INCLUDED
-#define KRATOS_DATA_COMMUNICATOR_FACTORY_INCLUDED
+#pragma once
 
+// System includes
 #include <string>
 
+// External includes
+
+// Project includes
 #include "includes/data_communicator.h"
 
 namespace Kratos
@@ -146,5 +149,3 @@ const DataCommunicator& CreateIntersectionAndRegister(
 }
 
 }
-
-#endif // KRATOS_DATA_COMMUNICATOR_FACTORY_INCLUDED

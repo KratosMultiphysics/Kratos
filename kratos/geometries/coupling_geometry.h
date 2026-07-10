@@ -309,7 +309,7 @@ public:
     ///@{
 
     /* @brief Provides the combined spans of all geometry parts of this geometry
-     *        in local paramater coordinates of the geometry
+     *        in local parameter coordinates of the geometry
      *        according to its direction from LocalDirectionIndex.
      *
      * @param resulting vector of span intervals.
@@ -519,7 +519,7 @@ public:
         }
 
         KRATOS_ERROR_IF(mpGeometries.size() > 2)
-            << "CreateQuadraturePointGeometries not implemented for coupling of more than 2 geomtries. "
+            << "CreateQuadraturePointGeometries not implemented for coupling of more than 2 geometries. "
             << mpGeometries.size() << " are given." << std::endl;
     }
 

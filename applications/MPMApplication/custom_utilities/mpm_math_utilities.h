@@ -137,7 +137,7 @@ public:
             rRotationMatrix(1,0) = rT1[1];
             rRotationMatrix(1,0) = rT1[2];
 
-            // The third base component is choosen as N x T1, which is normalized by construction
+            // The third base component is chosen as N x T1, which is normalized by construction
             rRotationMatrix(2,0) = rRotationMatrix(0,1)*rT1[2] - rRotationMatrix(0,2)*rT1[1];
             rRotationMatrix(2,1) = rRotationMatrix(0,2)*rT1[0] - rRotationMatrix(0,0)*rT1[2];
             rRotationMatrix(2,2) = rRotationMatrix(0,0)*rT1[1] - rRotationMatrix(0,1)*rT1[0];
@@ -688,7 +688,7 @@ public:
 
 
     /**
-    * @brief Transforms a given fourth order tensor to a corresponing Matrix
+    * @brief Transforms a given fourth order tensor to a corresponding Matrix
     * @param[in] rTensor the given symmetric second order tensor
     * @param[out] rVector the vector
     */
@@ -762,7 +762,7 @@ public:
 
 
     /**
-    * @brief Transforms a given 6*6 Matrix to a corresponing 4th order tensor
+    * @brief Transforms a given 6*6 Matrix to a corresponding 4th order tensor
     * @param[in] rTensor the given Matrix
     * @param[out] rTensor the rTensor
     */
@@ -814,7 +814,7 @@ public:
 
 
     /**
-    * @brief Transforms a given 6*6 Matrix to a corresponing 4th order tensor
+    * @brief Transforms a given 6*6 Matrix to a corresponding 4th order tensor
     * @param[in] rTensor the given Matrix
     * @param[out] rTensor the rTensor
     */
@@ -859,7 +859,7 @@ public:
 
 
     /**
-    * @brief Transforms a given 4th order tensor to a corresponing 6*6 Matrix
+    * @brief Transforms a given 4th order tensor to a corresponding 6*6 Matrix
     * @param[in] rTensor the given Tensor
     * @param[out] rMatrix the Matrix
     */
@@ -934,7 +934,7 @@ public:
 
 
     /**
-     * @brief Transforms a given 4th order Tensor to a corresponing 6*6 Matrix
+     * @brief Transforms a given 4th order Tensor to a corresponding 6*6 Matrix
      * @param[in] rTensor the given Tensor
      * @param[out] Matrix the Matrix
      */

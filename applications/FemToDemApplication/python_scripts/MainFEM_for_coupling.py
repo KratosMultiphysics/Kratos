@@ -150,12 +150,12 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
         if self.domain_size == 3:
             utils.SetNonHistoricalVariable(KratosFemDem.VOLUME_COUNTED, False, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
+            utils.SetNonHistoricalVariable(KratosFemDem.FEMDEM_STRESS_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
+            utils.SetNonHistoricalVariable(KratosFemDem.FEMDEM_STRAIN_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
         else: # 2D
-            utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], elements)
+            utils.SetNonHistoricalVariable(KratosFemDem.FEMDEM_STRESS_VECTOR, [0.0,0.0,0.0], elements)
+            utils.SetNonHistoricalVariable(KratosFemDem.FEMDEM_STRAIN_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0, 0.0, 0.0], elements)
 
         # if self.PressureLoad:

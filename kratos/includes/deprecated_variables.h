@@ -10,8 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_DEPRECATED_VARIABLES_H_INCLUDED )
-#define  KRATOS_DEPRECATED_VARIABLES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -142,5 +141,3 @@ namespace Kratos
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
-
-#endif // KRATOS_DEPRECATED_VARIABLES_H_INCLUDED  defined

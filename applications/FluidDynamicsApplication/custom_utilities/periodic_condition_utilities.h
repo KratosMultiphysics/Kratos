@@ -95,7 +95,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Auxiliary utilitiy to define periodic boundary conditions for flow problems.
+/// Auxiliary utility to define periodic boundary conditions for flow problems.
 /**
  * This utility will try to find node pairs where one of the nodes is on one side
  * of the periodic boundary and the other is its image on the other side. For each
@@ -130,7 +130,7 @@ public:
 
     typedef std::size_t SizeType;
 
-    //defintions for spatial search
+    //definitions for spatial search
     typedef Node                                     PointType;
     typedef Node::Pointer                            PointTypePointer;
     typedef std::vector<PointType::Pointer>             PointVector;
@@ -216,7 +216,7 @@ public:
 
     /// Generate a set of conditions linking each node in the periodic boundary to its image on the other side.
     /**
-      * @param MovementRef If TReference == array_1d<double,3>, MovementRef is assumed to be the transaltion
+      * @param MovementRef If TReference == array_1d<double,3>, MovementRef is assumed to be the translation
       * vector between the two sides of the periodic boundary. If TReference == Node, MovementRef is assumed
       * to be the center of symmetry for node pairs.
       * @param pProperties Pointer to the properties that will be assigned to new conditions. Note that PeriodicConditon
@@ -233,7 +233,7 @@ public:
     {
         KRATOS_TRY
 
-        // check that the spatial seach structure was initialized
+        // check that the spatial search structure was initialized
         if(mpSearchStrategy == 0)
             KRATOS_THROW_ERROR(std::logic_error,"PeriodicConditionUtilities error: GenerateConditions() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
 
@@ -302,7 +302,7 @@ public:
     {
         KRATOS_TRY
 
-        // check that the spatial seach structure was initialized
+        // check that the spatial search structure was initialized
         if(mpSearchStrategy == 0)
             KRATOS_THROW_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefinePeriodicBoundary() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
 

@@ -489,7 +489,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InputMesh(const std::string& rOutputN
      const std::string mesh_name = rOutputName + ".mesh";
      const char* mesh_file = mesh_name.c_str();
 
-    // // a)  Give the ouptut mesh name using PMMG_Set_inputMeshName
+    // // a)  Give the output mesh name using PMMG_Set_inputMeshName
      PMMG_Set_inputMeshName(mParMmgMesh, mesh_file);
 
     // // b) function calling
@@ -505,7 +505,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InputSol(const std::string& rInputNam
      const std::string sol_name = rInputName + ".sol";
      const char* sol_file = sol_name.c_str();
 
-    // // a)  Give the ouptut mesh name using PMMG_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+    // // a)  Give the output mesh name using PMMG_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
      PMMG_Set_inputSolsName(mParMmgMesh,  sol_file);
 
     // // b) function calling
@@ -1050,7 +1050,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::GenerateParallelInterfaces(
                 localId.push_back(mGlobalToLocalNodePreMap[node.Id()]);
             }
             PMMG_Set_ithNodeCommunicatorSize(mParMmgMesh, icomm, rModelPart.GetCommunicator().NeighbourIndices()[i], rModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes() + rModelPart.GetCommunicator().GhostMesh(i).NumberOfNodes());
-            PMMG_Set_ithNodeCommunicator_nodes(mParMmgMesh, icomm++, localId.data(), globalId.data(), 1); // Last parameters shoould be 1
+            PMMG_Set_ithNodeCommunicator_nodes(mParMmgMesh, icomm++, localId.data(), globalId.data(), 1); // Last parameters should be 1
         }
     }
 }
@@ -1097,7 +1097,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateReferenceMaps(
     std::unordered_map<IndexType,Element::Pointer>& rRefElement
     )
 {
-    /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
+    /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite recommended to create more than one sub model part if you have more than one element or condition) */
 
     auto& r_conditions_array = rModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
@@ -1184,9 +1184,9 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
     std::unordered_map<IndexType, IndexVectorType> color_nodes, first_color_cond, second_color_cond, first_color_elem, second_color_elem;
 
     // The tempotal store of
-    ConditionsArrayType created_conditions_vector;
-    ElementsArrayType created_elements_vector;
-    NodesArrayType created_nodes_vector;
+    std::vector<Condition::Pointer> created_conditions_vector;
+    std::vector<Element::Pointer> created_elements_vector;
+    std::vector<Node::Pointer> created_nodes_vector;
 
     // Auxiliar values
     int ref, is_required;

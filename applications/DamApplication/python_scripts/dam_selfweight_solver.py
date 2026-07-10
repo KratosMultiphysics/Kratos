@@ -228,7 +228,7 @@ class DamSelfweightSolver(object):
 
         self.Selfweight_Solver.Solve()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def InitializeStrategy(self):
         if self.settings["mechanical_solver_settings"]["clear_storage"].GetBool():
@@ -248,7 +248,7 @@ class DamSelfweightSolver(object):
     def FinalizeSolutionStep(self):
         self.Selfweight_Solver.FinalizeSolutionStep()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def SetEchoLevel(self, level):
 

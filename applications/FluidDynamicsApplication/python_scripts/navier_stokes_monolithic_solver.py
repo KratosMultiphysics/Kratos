@@ -13,8 +13,8 @@ class StabilizedFormulation:
         self.element_name = None
         self.element_integrates_in_time = False
         self.element_has_nodal_properties = False
-        self.historical_nodal_properties_variables_list = []
-        self.non_historical_nodal_properties_variables_list = []
+        self.historical_nodal_variables_list = []
+        self.non_historical_nodal_variables_list = []
         self.process_data = {}
 
         #TODO: Keep this until the MonolithicWallCondition is removed to ensure backwards compatibility in solvers with no defined condition_name
@@ -83,7 +83,7 @@ class StabilizedFormulation:
 
         # set the nodal material properties flag
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY]
 
         # validate the non-newtonian parameters if necessary
         if self.non_newtonian_option:
@@ -171,8 +171,8 @@ class StabilizedFormulation:
 
         # set the nodal material properties flag
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY]
-        self.non_historical_nodal_properties_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosCFD.SOLID_FRACTION_VELOCITY]
+        self.non_historical_nodal_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         #TODO: Remove SOUND_VELOCITY from ProcessInfo. Should be obtained from the properties.
@@ -227,6 +227,7 @@ class NavierStokesMonolithicSolver(FluidSolver):
                 "input_filename": "unknown_name",
                 "reorder": false
             },
+            "enforce_element_and_conditions_replacement": true,
             "material_import_settings": {
                 "materials_filename": ""
             },
@@ -300,10 +301,9 @@ class NavierStokesMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
 
-        # Adding variables required for the nodal material properties
-        if self.element_has_nodal_properties:
-            for variable in self.historical_nodal_properties_variables_list:
-                self.main_model_part.AddNodalSolutionStepVariable(variable)
+        # Adding variables required by the formulation (this includes the nodal material properties)
+        for variable in self.historical_nodal_variables_list:
+            self.main_model_part.AddNodalSolutionStepVariable(variable)
 
         # Adding variables required for the periodic conditions
         if self.settings["consider_periodic_conditions"].GetBool() == True:
@@ -348,8 +348,8 @@ class NavierStokesMonolithicSolver(FluidSolver):
         self.condition_name = self.formulation.condition_name
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
-        self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list
-        self.non_historical_nodal_properties_variables_list = self.formulation.non_historical_nodal_properties_variables_list
+        self.historical_nodal_variables_list = self.formulation.historical_nodal_variables_list
+        self.non_historical_nodal_variables_list = self.formulation.non_historical_nodal_variables_list
 
     def _SetTimeSchemeBufferSize(self):
         scheme_type = self.settings["time_scheme"].GetString()
@@ -373,9 +373,9 @@ class NavierStokesMonolithicSolver(FluidSolver):
             self.settings["formulation"]["dynamic_tau"].SetDouble(0.0)
 
     def _SetNodalProperties(self):
-        set_density = KratosMultiphysics.DENSITY in self.historical_nodal_properties_variables_list
-        set_viscosity = KratosMultiphysics.VISCOSITY in self.historical_nodal_properties_variables_list
-        set_sound_velocity = KratosMultiphysics.SOUND_VELOCITY in self.non_historical_nodal_properties_variables_list
+        set_density = KratosMultiphysics.DENSITY in self.historical_nodal_variables_list
+        set_viscosity = KratosMultiphysics.VISCOSITY in self.historical_nodal_variables_list
+        set_sound_velocity = KratosMultiphysics.SOUND_VELOCITY in self.non_historical_nodal_variables_list
 
         # Get density and dynamic viscostity from the properties of the first element
         for el in self.main_model_part.Elements:

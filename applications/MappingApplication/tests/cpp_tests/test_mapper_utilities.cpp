@@ -49,9 +49,43 @@ void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
                                              i*0.3*rank*6.13*size);
 }
 
+void CreateConditionsForMapping(ModelPart& rModelPart, const int NumConditions)
+{
+    // For simplicity, create a line condition between consecutive nodes.
+    // Make sure there are at least NumConditions + 1 nodes.
+    auto p_props = rModelPart.CreateNewProperties(1);
+
+    for (int i = 0; i < NumConditions; ++i) {
+        auto p_geom = Kratos::make_shared<Line2D2<Node>>(
+            rModelPart.pGetNode(i + 1),
+            rModelPart.pGetNode(i + 2)
+        );
+
+        auto p_cond = Kratos::make_intrusive<Condition>(i + 1, p_geom, p_props);
+        rModelPart.AddCondition(p_cond);
+    }
+}
+
+void CreateElementsForMapping(ModelPart& rModelPart, const int NumElements)
+{
+    auto p_props = rModelPart.CreateNewProperties(1);
+
+    for (int i = 0; i < NumElements; ++i) {
+        // simple 2-node line element between consecutive nodes
+        auto p_geom = Kratos::make_shared<Line3D2<Node>>(
+            rModelPart.pGetNode(i + 1),
+            rModelPart.pGetNode(i + 2)
+        );
+
+        auto p_elem = Kratos::make_intrusive<Element>(i + 1, p_geom, p_props);
+        rModelPart.AddElement(p_elem);
+    }
+}
 } //empty namespace
 
-KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMappingApplicationSerialTestSuite)
+
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIdsToNodes, KratosMappingApplicationSerialTestSuite)
 {
     const int num_nodes = 11;
 
@@ -60,13 +94,53 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMapp
 
     CreateNodesForMapping(model_part, num_nodes);
 
-    MapperUtilities::AssignInterfaceEquationIds(model_part.GetCommunicator());
+    MapperUtilities::AssignInterfaceEquationIdsToNodes(model_part.GetCommunicator());
 
     int idx = 0;
 
     for (const auto& r_node : model_part/*.GetCommunicator().LocalMesh()*/.Nodes())
     {
         KRATOS_EXPECT_EQ(idx, r_node.GetValue(INTERFACE_EQUATION_ID));
+        idx += 1;
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIdsToConditions, KratosMappingApplicationSerialTestSuite)
+{
+    const int num_conditions = 11;
+
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+
+    // Need at least num_conditions + 1 nodes to build Line2D2 conditions
+    CreateNodesForMapping(model_part, num_conditions + 1);
+    CreateConditionsForMapping(model_part, num_conditions);
+
+    MapperUtilities::AssignInterfaceEquationIdsToConditions(model_part.GetCommunicator());
+
+    int idx = 0;
+    for (const auto& r_cond : model_part.Conditions()) {
+        KRATOS_EXPECT_EQ(idx, r_cond.GetValue(INTERFACE_EQUATION_ID));
+        idx += 1;
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIdsToElements, KratosMappingApplicationSerialTestSuite)
+{
+    const int num_elements = 11;
+
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+
+    // Need at least num_elements + 1 nodes for line elements
+    CreateNodesForMapping(model_part, num_elements + 1);
+    CreateElementsForMapping(model_part, num_elements);
+
+    MapperUtilities::AssignInterfaceEquationIdsToElements(model_part.GetCommunicator());
+
+    int idx = 0;
+    for (const auto& r_elem : model_part.Elements()) {
+        KRATOS_EXPECT_EQ(idx, r_elem.GetValue(INTERFACE_EQUATION_ID));
         idx += 1;
     }
 }
@@ -383,7 +457,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     // serializes/deserializes the MapperInterfaceInfos works correctly
     // => this is needed to transfer the data btw the ranks in MPI
     // The test is rather large, this is needed to cover a complete example
-    // Note that the same checks are performed before and after ther serialization
+    // Note that the same checks are performed before and after the serialization
     // to make sure that the objects are properly initialized
 
     typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
@@ -464,7 +538,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     // Now finally we can construct the container
     MapperInterfaceInfoPointerVectorType interface_info_container(2);
 
-    // Note: the order is choosen intentionally
+    // Note: the order is chosen intentionally
     interface_info_container[0].push_back(p_nearest_neighbor_info_3);
     interface_info_container[1].push_back(p_nearest_neighbor_info_1);
     interface_info_container[1].push_back(p_nearest_neighbor_info_2);

@@ -11,7 +11,7 @@ class DamConstructionUtility:
         self.mechanical_model_part = mechanical_model_part
         self.thermal_model_part = thermal_model_part
 
-        # Getting neccessary files from constructive phase
+        # Getting necessary files from constructive phase
         ambient_input_file_name = parameters["ambient_input_file_name"].GetString()
         self.construction_input_file_name = parameters["construction_input_file_name"].GetString()
 

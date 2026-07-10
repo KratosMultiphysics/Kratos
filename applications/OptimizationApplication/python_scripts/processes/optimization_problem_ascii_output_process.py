@@ -21,16 +21,16 @@ class Header:
         header_length = len(header_name)
 
         if isinstance(value, bool):
-            value_length = max(len(format_info[type(value)][0]), len(format_info[type(value)][1]))
+            value_length = max(len(format_info[bool][0]), len(format_info[bool][1]))
             value_format_post_fix = "s"
-            self.__value_converter = lambda x: format_info[type(value)][1] if x else format_info[type(value)][0]
+            self.__value_converter = lambda x: format_info[bool][1] if x else format_info[bool][0]
         elif isinstance(value, int):
-            value_length = len(("{:" + str(format_info[type(value)]) + "d}").format(value))
+            value_length = len(("{:" + str(format_info[int]) + "d}").format(value))
             value_format_post_fix = "d"
             self.__value_converter = lambda x: int(x)
         elif isinstance(value, float):
-            value_length = len(("{:0." + str(format_info[type(value)]) + "e}").format(value))
-            value_format_post_fix = f".{format_info[type(value)]}e"
+            value_length = len(("{:0." + str(format_info[float]) + "e}").format(value))
+            value_format_post_fix = f".{format_info[float]}e"
             self.__value_converter = lambda x: float(x)
         else:
             value_length = format_info[str]
@@ -91,16 +91,10 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
             str  : parameters["format_info"]["string_length"].GetInt(),
         }
 
+        self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
+
         if len(self.format_info[bool]) != 2:
             raise RuntimeError("The \"bool_values\" should have only two strings corresponding to False and True values in the mentioned order.")
-
-        self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
-        list_of_component_names = parameters["list_of_output_components"].GetStringArray()
-        if len(list_of_component_names) == 1 and list_of_component_names[0] == "all":
-            list_of_component_names = GetAllComponentFullNamesWithData(optimization_problem)
-
-        for component_name in list_of_component_names:
-            self.list_of_components.append(GetComponentHavingDataByFullName(component_name, optimization_problem))
 
         self.list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
         self.initialized_headers = False
@@ -122,7 +116,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                 # write the step
                 file_output.write("{:>7d}".format(self.optimization_problem.GetStep()))
 
-                # wrtie the values
+                # write the values
                 for component, header_info_dict in self.list_of_headers:
                     componend_data_view = ComponentDataView(component, self.optimization_problem)
                     buffered_dict = componend_data_view.GetBufferedData()
@@ -192,6 +186,16 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                 file_output.write(msg_header)
 
     def _GetHeaders(self, dict_getter_method) ->  'list[tuple[Any, dict[str, Header]]]':
+        self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
+
+        if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
+            self.list_of_component_names = GetAllComponentFullNamesWithData(self.optimization_problem)
+
+        for component_name in self.list_of_component_names:
+            component = GetComponentHavingDataByFullName(component_name, self.optimization_problem)
+            if ComponentDataView(component, self.optimization_problem).HasDataBuffer():
+                self.list_of_components.append(component)
+
         list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
         for component in self.list_of_components:
             componend_data_view = ComponentDataView(component, self.optimization_problem)

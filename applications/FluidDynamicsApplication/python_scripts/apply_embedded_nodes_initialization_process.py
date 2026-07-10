@@ -14,7 +14,6 @@ class ApplyEmbeddedNodesInitializationProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
         {
-            "mesh_id"                   : 0,
             "model_part_name"           : "CHOOSE_FLUID_MODELPART_NAME",
             "max_iteration"             : 10
         }  """ )

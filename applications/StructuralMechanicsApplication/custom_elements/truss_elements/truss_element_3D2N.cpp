@@ -802,7 +802,7 @@ void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
     // du... delta displacement in x-direction
     // dv... delta displacement in y-direction
     // dw... delta displacement in z-direction
-    // L... inital member length
+    // L... initial member length
     // l... deformed member length
     // e_gl... green_lagrange strain
 

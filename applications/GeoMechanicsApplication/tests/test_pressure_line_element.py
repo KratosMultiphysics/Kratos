@@ -59,5 +59,11 @@ class KratosGeoMechanicsTransientPressureLineElementTests(KratosUnittest.TestCas
     def test_vertical_line_element3D3N(self):
         self.check_water_pressure("test_vertical_line_element3D3N", self.etalon_value1)
         
+    def test_oblique_filter_element2D3N(self):
+        self.check_water_pressure("test_oblique_filter_element2D3N", self.etalon_value1)
+        
+    def test_oblique_filter_element3D3N(self):
+        self.check_water_pressure("test_oblique_filter_element3D3N", self.etalon_value1)
+        
 if __name__ == '__main__':
     KratosUnittest.main()

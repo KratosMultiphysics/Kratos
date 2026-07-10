@@ -225,7 +225,7 @@ private:
     double    mCFL;                         // User-defined CFL number
     double    mViscousFourier;              // User-defined viscous Fourier number 
     double    mThermalFourier;              // User-defined thermal Fourier number
-    bool      mConsiderArtificialDiffusion; // Speficies if the artificial diffusion values are considered in the Peclet numbers
+    bool      mConsiderArtificialDiffusion; // Specifies if the artificial diffusion values are considered in the Peclet numbers
     bool      mNodalDensityFormulation;     // Specifies if the density is nodally stored (only required for the Peclet number)
     double    mDtMax;                       // User-defined maximum time increment allowed
     double    mDtMin;                       // User-defined minimum time increment allowed
@@ -296,7 +296,7 @@ private:
      * @brief Gets utility to compute the CFL with
      * This method returns a utility according to the compressibility, as expressed by 
      * mConsiderCompressibilityInCFL
-     * @return CFLCalculatorType The utlity to compute the CFL with
+     * @return CFLCalculatorType The utility to compute the CFL with
      */
     const CFLCalculatorType GetCFLCalculatorUtility() const;
 

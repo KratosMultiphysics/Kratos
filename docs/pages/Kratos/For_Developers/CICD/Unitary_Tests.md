@@ -500,7 +500,6 @@ The main is always the same, just the processes from the project parameters insi
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
-            "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "is_fixed_x"      : false,
@@ -561,7 +560,6 @@ The main is always the same, just the processes from the project parameters insi
         "process_name"          : "FromAnalyticCheckResultProcess",
         "Parameters"            : {
             "variable_name"     : "DISPLACEMENT_X",
-            "mesh_id"           : 0,
             "f(x,y,z,t)="       : "cos(10.0*t)",
             "model_part_name"   : "DISPLACEMENT_Displacement_Auto1",
             "time_frequency"    : 0.01

@@ -19,6 +19,7 @@
 
 #include "processes/process.h"
 #include "custom_utilities/solver_settings.h"
+#include "custom_utilities/compute_div_sigma_utility.h"
 
 #include "spaces/ublas_space.h"
 
@@ -32,6 +33,8 @@
 
 //schemes
 #include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
+#include "custom_strategies/schemes/bdf2_higher_order_vms_scheme.h"
+#include "custom_strategies/schemes/incremental_update_rotation_scheme.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta.h"
@@ -120,6 +123,13 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def("ClearExtraIterationSteps", &FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::ClearExtraIterationSteps);
 
     py::class_<
+        IncrementalUpdateRotationScheme<SparseSpaceType, LocalSpaceType>,
+        typename IncrementalUpdateRotationScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        ResidualBasedIncrementalUpdateStaticSchemeSlip<SparseSpaceType, LocalSpaceType>>(m, "IncrementalUpdateRotationScheme")
+    .def(py::init<Parameters>())
+    ;
+
+    py::class_<
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>,
         typename ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>::Pointer,
         BaseSchemeType>(m, "ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
@@ -149,6 +159,32 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<>())                 // default constructor
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
+
+    py::class_<
+        BDF2HigherOrderVMSScheme<SparseSpaceType, LocalSpaceType>,
+        typename BDF2HigherOrderVMSScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        BaseSchemeType>(m, "BDF2HigherOrderVMSScheme")
+    .def(py::init<>())
+    .def(py::init<Process::Pointer>())
+    ;
+
+    py::class_<ComputeDivSigmaUtility>(m, "ComputeDivSigmaUtility")
+    .def(py::init<>())
+    .def(
+        "ComputeDivergence",
+        py::overload_cast<
+            const Matrix&,
+            const Matrix&,
+            const Matrix&,
+            const Matrix&>(&ComputeDivSigmaUtility::ComputeDivergence, py::const_))
+    .def(
+        "ComputeDivergence",
+        py::overload_cast<
+            const Matrix&,
+            const Matrix&,
+            const Matrix&,
+            const Matrix&,
+            const Matrix&>(&ComputeDivSigmaUtility::ComputeDivergence, py::const_));
 
     using  SimpleSteadyAdjointSchemeType = SimpleSteadyAdjointScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<SimpleSteadyAdjointSchemeType, typename SimpleSteadyAdjointSchemeType::Pointer, BaseSchemeType>

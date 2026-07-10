@@ -136,7 +136,7 @@ namespace Kratos
 
     struct triangulateio vorout;
 
-    //initilize all to avoid memory problems
+    //initialize all to avoid memory problems
     ClearTrianglesList(vorout);
 
     //switches: https://www.cs.cmu.edu/~quake/triangle.switch.html

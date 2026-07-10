@@ -41,7 +41,7 @@ class TwoFluidHydrostaticPoolTest(UnitTest.TestCase):
         # switch here for output
         self.print_output = False
 
-    # runs the two dimensinal test case
+    # runs the two dimensional test case
     def runTwoFluidHydrostaticTest2D(self):
         with open("TwoFluidStaticPoolTest/TwoFluidStaticPoolTest2D.json",'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Jordi Cotela
@@ -22,14 +22,12 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name  Enum's
@@ -46,7 +44,6 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-
 class MortonDivideInputToPartitionsProcess
     : public Process
 {
@@ -57,9 +54,9 @@ public:
     /// Pointer definition of MortonDivideInputToPartitionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(MortonDivideInputToPartitionsProcess);
 
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-    typedef GraphColoringProcess::GraphType GraphType;
+    using SizeType = std::size_t;
+    using IndexType = std::size_t;
+    using GraphType = GraphColoringProcess::GraphType;
 
     ///@}
     ///@name Life Cycle
@@ -82,7 +79,6 @@ public:
     {
     }
 
-
     ///@}
     ///@name Operators
     ///@{
@@ -91,7 +87,6 @@ public:
     {
         Execute();
     }
-
 
     ///@}
     ///@name Operations
@@ -135,34 +130,48 @@ public:
 
         GraphColoringProcess(mNumberOfPartitions, domains_graph, domains_colored_graph, colors_number).Execute();
 
-        //KRATOS_WATCH(domains_graph);
-
 // 			std::vector<DomainEntitiesIdContainer> domains_nodes;
         IO::PartitionIndicesContainerType nodes_all_partitions;
         IO::PartitionIndicesContainerType elements_all_partitions;
         IO::PartitionIndicesContainerType conditions_all_partitions;
 
         ConditionsPartitioning(conditions_connectivities, nodes_partitions, conditions_partitions);
-        KRATOS_WATCH("ConditionsPartitioning finished")
+        KRATOS_INFO("MortonDivideInputToPartitionsProcess") << "ConditionsPartitioning finished" << std::endl;
+
         // Dividing nodes
         DividingNodes(nodes_all_partitions, elements_connectivities, conditions_connectivities, nodes_partitions, elements_partitions, conditions_partitions);
-        KRATOS_WATCH("DividingNodes finished")
+        KRATOS_INFO("MortonDivideInputToPartitionsProcess") << "DividingNodes finished" << std::endl;
+
         // Dividing elements
         DividingElements(elements_all_partitions, elements_partitions);
-        KRATOS_WATCH("DividingElements finished")
+        KRATOS_INFO("MortonDivideInputToPartitionsProcess") << "DividingElements finished" << std::endl;
+
         // Dividing conditions
         DividingConditions(conditions_all_partitions, conditions_partitions);
-        KRATOS_WATCH("DividingConditions finished")
+        KRATOS_INFO("MortonDivideInputToPartitionsProcess") << "DividingConditions finished" << std::endl;
+
+        // TODO: To add the geometries and constraints
 
         IO::PartitionIndicesType io_nodes_partitions(nodes_partitions.begin(), nodes_partitions.end());
         IO::PartitionIndicesType io_elements_partitions(elements_partitions.begin(), elements_partitions.end());
         IO::PartitionIndicesType io_conditions_partitions(conditions_partitions.begin(), conditions_partitions.end());
 
+        // Create and populate PartitioningInfo struct
+        IO::PartitioningInfo partitioning_info;
+        partitioning_info.Graph = domains_colored_graph;
+        partitioning_info.NodesPartitions = io_nodes_partitions;
+        partitioning_info.ElementsPartitions = io_elements_partitions;
+        partitioning_info.ConditionsPartitions = io_conditions_partitions;
+        partitioning_info.NodesAllPartitions = nodes_all_partitions;
+        partitioning_info.ElementsAllPartitions = elements_all_partitions;
+        partitioning_info.ConditionsAllPartitions = conditions_all_partitions;
+        // ConstraintsPartitions, GeometriesPartitions, ConstraintsAllPartitions, GeometriesAllPartitions left empty for now. TO BE ADDED
+
         // Now dividing the input file
-        mrIO.DivideInputToPartitions(mNumberOfPartitions, domains_colored_graph,
-                                     io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
-                                     nodes_all_partitions, elements_all_partitions, conditions_all_partitions);
-        KRATOS_WATCH("DivideInputToPartitions finished")
+        mrIO.DivideInputToPartitions(mNumberOfPartitions, partitioning_info);
+
+        KRATOS_INFO("MortonDivideInputToPartitionsProcess") << "DivideInputToPartitions finished" << std::endl;
+
         return;
 
         KRATOS_CATCH("")
@@ -192,11 +201,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -219,14 +226,11 @@ public:
     {
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
 
     class DomainEntitiesIdContainer
@@ -282,11 +286,9 @@ protected:
 
     SizeType mDimension;
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -434,29 +436,22 @@ protected:
         }
     }
 
-
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -470,16 +465,13 @@ private:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -501,11 +493,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,

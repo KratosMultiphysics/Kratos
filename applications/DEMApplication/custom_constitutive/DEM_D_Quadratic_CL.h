@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////
 
 //TODO: // Here this Quadratic model is established for Parallel Bond Model only.
-        // It CAN NOT BE USED AS AN INDEPENDENT CANTACT MODEL UNTIL IT IS COMPLETED.
+        // It CAN NOT BE USED AS AN INDEPENDENT CONTACT MODEL UNTIL IT IS COMPLETED.
 
 #if !defined(DEM_D_QUADRATIC_CL_H_INCLUDED)
 #define DEM_D_QUADRATIC_CL_H_INCLUDED

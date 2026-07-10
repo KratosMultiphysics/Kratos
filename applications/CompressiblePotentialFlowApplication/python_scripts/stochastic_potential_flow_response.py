@@ -341,7 +341,7 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
 
     def ModifyInitialProperties(self):
         """
-        Method introducing the stochasticity in the right hand side. Mach number and angle of attack are random varaibles.
+        Method introducing the stochasticity in the right hand side. Mach number and angle of attack are random variables.
         """
         mach = abs(self.sample[1])
         alpha = self.sample[2]

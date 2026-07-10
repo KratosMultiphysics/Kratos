@@ -22,7 +22,7 @@ def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingImplicitMechanicalSolver(model, custom_settings)
 
 class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
-    """The structural mechanics implicit dynamic solver. (Fot adaptative remeshing)
+    """The structural mechanics implicit dynamic solver. (For adaptative remeshing)
     See structural_mechanics_implicit_dynamic_solver.py for more information.
     """
     def __init__(self, model, custom_settings):
