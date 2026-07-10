@@ -50,9 +50,9 @@ void AddCustomResponsesToPython(pybind11::module& m)
         ;
 
     py::class_<SensorLocalizationResponseUtils, SensorLocalizationResponseUtils::Pointer>(responses_module, "SensorLocalizationResponseUtils")
-        .def(py::init<SensorMaskStatusKDTree::Pointer, const double, const double, const double>(), py::arg("sensor_mask_kd_tree"), py::arg("minimum_cluster_size_ratio"), py::arg("p_coefficient"), py::arg("allowed_dissimilarity"))
-        .def("CalculateValue", &SensorLocalizationResponseUtils::CalculateValue)
-        .def("CalculateGradient", &SensorLocalizationResponseUtils::CalculateGradient)
+        .def(py::init<SensorMaskStatusKDTree::Pointer, const double, const double, const double, const double, const double, const IndexType, const double>(), py::arg("sensor_mask_kd_tree"), py::arg("boltzmann_beta"), py::arg("sigmoidal_beta"), py::arg("penalty_factor"), py::arg("initial_dissimilarity_multiplier"), py::arg("dissimilarity_decaying_factor"), py::arg("dissimilarity_decaying_period"), py::arg("allowed_dissimilarity"))
+        .def("CalculateValue", &SensorLocalizationResponseUtils::CalculateValue, py::arg("optimization_step"))
+        .def("CalculateGradient", &SensorLocalizationResponseUtils::CalculateGradient, py::arg("optimization_step"))
         .def("GetClusterSizes", &SensorLocalizationResponseUtils::GetClusterSizes)
         ;
 

@@ -19,6 +19,7 @@
 #include "includes/define.h"
 
 // Application includes
+#include "custom_utilities/boltzmann_operator.h"
 #include "custom_utilities/sensor_mask_status_kd_tree.h"
 
 namespace Kratos {
@@ -39,17 +40,21 @@ public:
 
     SensorLocalizationResponseUtils(
         SensorMaskStatusKDTree::Pointer pSensorMaskKDTree,
-        const double MinimumClusterSizeRatio,
-        const double P,
+        const double BoltzmannBeta,
+        const double SigmoidalBeta,
+        const double PenaltyFactor,
+        const double InitialDissimilarityMultiplier,
+        const double DissimilarityDecayingFactor,
+        const IndexType DissimilarityDecayingPeriod,
         const double AllowedDissimilarity);
 
     ///@}
     ///@name Public operations
     ///@{
 
-    double CalculateValue();
+    double CalculateValue(const IndexType Step);
 
-    TensorAdaptor<double>::Pointer CalculateGradient() const;
+    TensorAdaptor<double>::Pointer CalculateGradient(const IndexType Step) const;
 
     TensorAdaptor<double>::Pointer GetClusterSizes() const;
 
@@ -61,15 +66,23 @@ private:
 
     SensorMaskStatusKDTree::Pointer mpSensorMaskStatusKDTree;
 
-    const double mMinimumClusterSizeRatio;
+    BoltzmannOperator mBoltzmannOperator;
 
-    const double mP;
+    const double mSigmoidalBeta;
+
+    const double mPenaltyFactor;
+
+    const double mInitialDissimilarityMultiplier;
+
+    const double mDissimilarityDecayingFactor;
+
+    const IndexType mDissimilarityDecayingPeriod;
 
     const double mAllowedDissimilarity;
 
     std::vector<double> mDomainSizeRatio;
 
-    std::vector<double> mClusterSizes;
+    std::vector<double> mClusterSizeRatios;
 
     std::vector<std::vector<SensorMaskStatusKDTree::ResultType>> mNeighbourData;
 
