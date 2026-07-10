@@ -13,6 +13,7 @@
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 namespace
 {
@@ -66,51 +67,46 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_GivesExpectedResult_WithEx
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
-    properties[POROSITY]                = 0.5;
-    properties[BULK_MODULUS_SOLID]      = 1.0e9;
-    const auto biot_coefficient         = std::vector<double>{1.0, 1.0};
-    const auto degree_of_saturation     = std::vector<double>{0.3, 0.3};
-    const auto derivative_of_saturation = std::vector<double>{0.2, 0.2};
+    properties[POROSITY]                 = 0.5;
+    properties[BULK_MODULUS_SOLID]       = 1.0e9;
+    const auto biot_coefficients         = std::vector<double>{1.0, 1.0};
+    const auto degrees_of_saturation     = std::vector<double>{0.3, 0.3};
+    const auto derivatives_of_saturation = std::vector<double>{0.2, 0.2};
 
     constexpr auto bulk_modulus_fluid = 2.0e6;
-    constexpr auto expected_value     = -0.09999992485;
-    const auto     result             = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficient, degree_of_saturation, derivative_of_saturation, bulk_modulus_fluid, properties);
-    ASSERT_EQ(result.size(), 2);
-    for (const auto& r : result) {
-        KRATOS_EXPECT_DOUBLE_EQ(r, expected_value);
-    }
+    const auto     expected_values    = std::vector<double>(2, -0.09999992485);
+    const auto     result_vector      = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, bulk_modulus_fluid, properties);
+    ASSERT_EQ(result_vector.size(), 2);
+    KRATOS_EXPECT_VECTOR_EQ(result_vector, expected_values);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ExplicitBulkModulusFluid_WithImplicitBulkModulusFluid,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
-    properties[GEO_DRAINAGE_TYPE]       = "CONSTANT_PW_FIELD"s;
-    properties[POROSITY]                = 0.5;
-    properties[BULK_MODULUS_SOLID]      = 1.0e9;
-    properties[BULK_MODULUS_FLUID]      = 2.0e6;
-    const auto biot_coefficient         = std::vector<double>{1.0, 1.0};
-    const auto degree_of_saturation     = std::vector<double>{0.3, 0.3};
-    const auto derivative_of_saturation = std::vector<double>{0.2, 0.2};
+    properties[GEO_DRAINAGE_TYPE]        = "CONSTANT_PW_FIELD"s;
+    properties[POROSITY]                 = 0.5;
+    properties[BULK_MODULUS_SOLID]       = 1.0e9;
+    properties[BULK_MODULUS_FLUID]       = 2.0e6;
+    const auto biot_coefficients         = std::vector<double>{1.0, 1.0};
+    const auto degrees_of_saturation     = std::vector<double>{0.3, 0.3};
+    const auto derivatives_of_saturation = std::vector<double>{0.2, 0.2};
 
     const auto result_using_constant_pw = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficient, degree_of_saturation, derivative_of_saturation, properties);
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, properties);
 
     properties[GEO_DRAINAGE_TYPE] = "FULLY_COUPLED"s;
     const auto result_using_fully_coupled = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficient, degree_of_saturation, derivative_of_saturation, properties);
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, properties);
 
-    constexpr auto expected_value_using_constant_pw = 1e10;
+    const auto expected_values_using_constant_pw = std::vector<double>(2, 1.5e+59);
     ASSERT_EQ(result_using_constant_pw.size(), 2);
-    for (const auto& r : result_using_constant_pw) {
-        KRATOS_EXPECT_GT(r, expected_value_using_constant_pw);
-    }
-    constexpr auto expected_value_using_fully_coupled = -0.09999992485;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(result_using_constant_pw, expected_values_using_constant_pw,
+                                       Defaults::relative_tolerance);
+    const auto expected_values_using_fully_coupled = std::vector<double>(2, -0.09999992485);
     ASSERT_EQ(result_using_fully_coupled.size(), 2);
-    for (const auto& r : result_using_fully_coupled) {
-        KRATOS_EXPECT_DOUBLE_EQ(r, expected_value_using_fully_coupled);
-    }
+    KRATOS_EXPECT_VECTOR_EQ(result_using_fully_coupled, expected_values_using_fully_coupled);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_DoesThrow_ForEmptyProperties, KratosGeoMechanicsFastSuiteWithoutKernel)
