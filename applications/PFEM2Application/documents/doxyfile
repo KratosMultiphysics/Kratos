@@ -1,0 +1,14 @@
+@INCLUDE               = ../../../documents/doxyfile
+PROJECT_NAME           = KratosMultiphysics - Particle FEM
+PROJECT_BRIEF          = The PFEM2 Application is an operator-splitting based semi-Lagrangian strategy for the solution of the incompressible, Newtonion fluid flow in the laminar regime.
+PROJECT_LOGO           = ../../../documents/kratos_small.png
+LAYOUT_FILE            = ../../../html_layout.xml
+INPUT                  = ..                             \
+                         ../README.md
+EXCLUDE_PATTERNS       = */external_libraries/*         \
+                         */custom_external_libraries/*  \
+                         */tests/* *_test* *test_*
+HTML_EXTRA_STYLESHEET  = ../../../documents/doxygen-awesome.css
+TAGFILES               = ../../../documents/KratosCore.tag=../../../../documents/html
+GENERATE_TAGFILE       = PFEM2Application.tag
+

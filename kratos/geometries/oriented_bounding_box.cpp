@@ -60,7 +60,7 @@ OrientedBoundingBox<2>::OrientedBoundingBox(
     )
 {
     // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
-    NodeType geometry_low_node, geometry_high_node;
+    Point geometry_low_node, geometry_high_node;
     rGeometry.BoundingBox(geometry_low_node, geometry_high_node);
 
     // Creating OBB
@@ -90,7 +90,7 @@ OrientedBoundingBox<3>::OrientedBoundingBox(
 {
     if (BuildFromBoundingBox || rGeometry.WorkingSpaceDimension() == rGeometry.LocalSpaceDimension()) {
         // Check the intersection of each face of the object bounding box against the intersecting object bounding box
-        NodeType geometry_low_node, geometry_high_node;
+        Point geometry_low_node, geometry_high_node;
         rGeometry.BoundingBox(geometry_low_node, geometry_high_node);
 
         // Creating OBB
@@ -112,7 +112,7 @@ OrientedBoundingBox<3>::OrientedBoundingBox(
         noalias(mOrientationVectors[0]) = rGeometry.UnitNormal(aux_coords);
         MathUtils<double>::OrthonormalBasis(mOrientationVectors[0], mOrientationVectors[1], mOrientationVectors[2]);
 
-        // Getting the farest node
+        // Getting the farthest node
         double distance = 0.0;
         const Point center = rGeometry.Center();
         Point aux_point;
@@ -354,7 +354,7 @@ bool OrientedBoundingBox<TDim>::DirectHasIntersection(const OrientedBoundingBox<
 template<>
 bool OrientedBoundingBox<2>::SeparatingAxisTheoremHasIntersection(const OrientedBoundingBox<2>& rOtherOrientedBoundingBox) const
 {
-    // Auxiliar values
+    // Auxiliary values
     const auto& r_orientation_vectors_2 = rOtherOrientedBoundingBox.GetOrientationVectors();
     const array_1d<double, 3> relative_position = rOtherOrientedBoundingBox.GetCenter() - mPointCenter;
 
@@ -382,7 +382,7 @@ bool OrientedBoundingBox<2>::SeparatingAxisTheoremHasIntersection(const Oriented
 template<>
 bool OrientedBoundingBox<3>::SeparatingAxisTheoremHasIntersection(const OrientedBoundingBox<3>& rOtherOrientedBoundingBox) const
 {
-    // Auxiliar values
+    // Auxiliary values
     const auto& r_orientation_vectors_2 = rOtherOrientedBoundingBox.GetOrientationVectors();
     const array_1d<double, 3> relative_position = rOtherOrientedBoundingBox.GetCenter() - mPointCenter;
 

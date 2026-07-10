@@ -69,7 +69,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
 
 void IntegrationValuesExtrapolationToNodesProcess::Execute()
 {
-    // We execute all the necesary steps
+    // We execute all the necessary steps
     ExecuteBeforeSolutionLoop();
     ExecuteFinalizeSolutionStep();
 //     ExecuteFinalize();
@@ -340,7 +340,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     // The process info
     const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
 
-    // First we check if the model part constains at least one element
+    // First we check if the model part contains at least one element
     if (r_elements_array.size() != 0) {
         // The first iterator of elements
         auto& r_this_geometry_begin = it_elem_begin->GetGeometry();

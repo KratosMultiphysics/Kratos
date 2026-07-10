@@ -680,13 +680,13 @@ namespace Kratos
                   // Global Meshing info
                   MeshingInfoParameters::Pointer Info;
 
-                  // Global Remining parameters
+                  // Global Remaining parameters
                   RefiningParameters::Pointer Refine;
 
                   // some local bbx-based refining parameters
                   // can be defined here: std::vector<RefiningParameters::Pointer> LocalRefineVector;
 
-                  // Global Tranfer parameters
+                  // Global Transfer parameters
                   TransferParametersType::Pointer Transfer;
 
                   PropertiesType::Pointer Properties;

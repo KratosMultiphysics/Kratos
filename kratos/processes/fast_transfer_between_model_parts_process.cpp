@@ -36,7 +36,7 @@ FastTransferBetweenModelPartsProcess::FastTransferBetweenModelPartsProcess(
 {
     KRATOS_TRY
 
-    // If the entities are replicated or transfered
+    // If the entities are replicated or transferred
     if (ReplicateEntities) {
         this->Set(MODIFIED, true);
     } else {
@@ -130,7 +130,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
         ElementsArrayType elements_buffer_vector;
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
-        GeometriesMapType geometries_buffer_vector;
+        GeometriesArrayType geometries_buffer_vector;
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
@@ -182,7 +182,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
             for(int i = 0; i < num_geometries; ++i) {
                 auto it_geom = it_geom_begin;
                 for (int j = 0; j < i; ++j) it_geom++;
-                geometries_buffer_vector.insert(it_geom.operator->());
+                geometries_buffer_vector.insert(*(it_geom.base()));
             }
         }
 
@@ -273,15 +273,14 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
         ElementsArrayType elements_buffer_vector;
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
-        GeometriesMapType geometries_buffer_vector;
+        GeometriesArrayType geometries_buffer_vector;
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
             #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_nodes; ++i) {
                 auto it_node = it_node_begin + i;
-                NodeType::Pointer p_new_node = it_node->Clone();
-                p_new_node->SetId(total_num_nodes + i + 1);
+                NodeType::Pointer p_new_node = it_node->Clone(total_num_nodes + i + 1);
                 nodes_buffer_vector.insert(nodes_buffer_vector.begin(), p_new_node);
             }
         }
@@ -376,7 +375,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
         ElementsArrayType elements_buffer_vector;
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
-        GeometriesMapType geometries_buffer_vector;
+        GeometriesArrayType geometries_buffer_vector;
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
@@ -384,8 +383,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
             for(int i = 0; i < num_nodes; ++i) {
                 auto it_node = it_node_begin + i;
                 if (it_node->Is(mFlag)) {
-                    NodeType::Pointer p_new_node = it_node->Clone();
-                    p_new_node->SetId(total_num_nodes + i + 1);
+                    NodeType::Pointer p_new_node = it_node->Clone(total_num_nodes + i + 1);
                     (nodes_buffer_vector).insert(nodes_buffer_vector.begin(), p_new_node);
                 }
             }

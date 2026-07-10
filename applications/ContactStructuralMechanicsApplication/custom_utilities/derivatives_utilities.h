@@ -90,10 +90,10 @@ public:
     using ConditionArrayListType = typename std::vector<ConditionArrayType>;
 
     /// The line definition
-    using LineType = Line2D2<PointType>;
+    using LineType = Line2D2<Point>;
 
     /// The triangle definition
-    using TriangleType = Triangle3D3<PointType>;
+    using TriangleType = Triangle3D3<Point>;
 
     /// The geometry for decomposition (line in 2D and triangle for 3D)
     using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType >::type;
@@ -240,8 +240,8 @@ public:
         const GeometryType& rMasterGeometry,
         const array_1d<double, 3>& rSlaveNormal,
         const DecompositionType& rDecompGeom,
-        const PointType& rLocalPointDecomp,
-        const PointType& rLocalPointParent,
+        const Point& rLocalPointDecomp,
+        const Point& rLocalPointParent,
         const NormalDerivativesComputation ConsiderNormalVariation = NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION
         );
 
@@ -267,8 +267,8 @@ public:
         const array_1d<double, 3>& rSlaveNormal,
         const array_1d<double, 3>& rMasterNormal,
         const DecompositionType& rDecompGeom,
-        const PointType& rLocalPointDecomp,
-        const PointType& rLocalPointParent,
+        const Point& rLocalPointDecomp,
+        const Point& rLocalPointParent,
         const NormalDerivativesComputation ConsiderNormalVariation = NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION,
         const bool DualLM = false
         );

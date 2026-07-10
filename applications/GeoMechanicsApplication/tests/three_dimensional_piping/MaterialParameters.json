@@ -1,0 +1,94 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.Soil_1",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElastic3DLaw"
+                },
+                "Variables": {
+                    "YOUNG_MODULUS": 100000,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2650.0,
+                    "DENSITY_WATER": 1000.0,
+                    "POROSITY": 0.36,
+                    "BULK_MODULUS_SOLID": 9e+19,
+                    "BULK_MODULUS_FLUID": 1e+20,
+                    "DYNAMIC_VISCOSITY": 0.001,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "PERMEABILITY_XX": 1.02e-11,
+                    "PERMEABILITY_YY": 1.02e-11,
+                    "PERMEABILITY_ZZ": 1.02e-11,
+                    "PERMEABILITY_XY": 0.0,
+                    "PERMEABILITY_YZ": 0.0,
+                    "PERMEABILITY_ZX": 0.0
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Pipe_2",
+            "properties_id": 2,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElastic3DLaw"
+                },
+                "Variables": {
+                    "YOUNG_MODULUS": 100000,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2650.0,
+                    "DENSITY_WATER": 1000.0,
+                    "POROSITY": 0.36,
+                    "BULK_MODULUS_SOLID": 9e+19,
+                    "BULK_MODULUS_FLUID": 1e+20,
+                    "DYNAMIC_VISCOSITY": 0.001,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "PIPE_ETA": 0.25,
+                    "PIPE_THETA": 37,
+                    "PIPE_START_ELEMENT": 24019,
+                    "PIPE_MODIFIED_D": false,
+                    "PIPE_MODEL_FACTOR": 1.0,
+                    "PIPE_WIDTH_FACTOR": 10.0,
+                    "PIPE_HEIGHT": 1e-12,
+                    "PIPE_D_70": 0.0002,
+                    "PERMEABILITY_XX": 1.02e-11
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Pipe_3",
+            "properties_id": 3,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElastic3DLaw"
+                },
+                "Variables": {
+                    "YOUNG_MODULUS": 100000,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2650.0,
+                    "DENSITY_WATER": 1000.0,
+                    "POROSITY": 0.36,
+                    "BULK_MODULUS_SOLID": 9e+19,
+                    "BULK_MODULUS_FLUID": 1e+20,
+                    "DYNAMIC_VISCOSITY": 0.001,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "PIPE_ETA": 0.25,
+                    "PIPE_THETA": 37,
+                    "PIPE_START_ELEMENT": 24019,
+                    "PIPE_MODIFIED_D": true,
+                    "PIPE_MODEL_FACTOR": 1.0,
+                    "PIPE_WIDTH_FACTOR": 10.0,
+                    "PIPE_HEIGHT": 1e-12,
+                    "PIPE_D_70": 0.0002,
+                    "PERMEABILITY_XX": 1.02e-11
+                }
+            }
+        }
+    ]
+}

@@ -87,7 +87,7 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteInitializeSo
             supersonic = std::abs(mach_projection) >= 1.0;
         }
 
-        // Chosing BC set to enforce according to mach
+        // Choosing BC set to enforce according to mach
         const auto& active_bc  = supersonic ? mSupersonicBCs : mSubsonicBCs;
 
         for(const auto& boundary_condition: active_bc)

@@ -19,7 +19,7 @@
 #include "includes/cfd_variables.h"
 
 // Application includes
-#include "custom_utilities/fluid_element_data.h"
+#include "custom_elements/data_containers/fluid_element_data.h"
 #include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {

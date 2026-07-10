@@ -1,0 +1,330 @@
+{
+  "TIME": [
+    0.0
+  ],
+  "NODE_1": {
+    "TEMPERATURE": [
+      0.0
+    ]
+  },
+  "NODE_2": {
+    "TEMPERATURE": [
+      6.626553231625218
+    ]
+  },
+  "NODE_3": {
+    "TEMPERATURE": [
+      8.376553231625218
+    ]
+  },
+  "NODE_4": {
+    "TEMPERATURE": [
+      9.25
+    ]
+  },
+  "NODE_5": {
+    "TEMPERATURE": [
+      12.126553231625218
+    ]
+  },
+  "NODE_6": {
+    "TEMPERATURE": [
+      5.048825908847379
+    ]
+  },
+  "NODE_7": {
+    "TEMPERATURE": [
+      7.5
+    ]
+  },
+  "NODE_8": {
+    "TEMPERATURE": [
+      11.0
+    ]
+  },
+  "NODE_9": {
+    "TEMPERATURE": [
+      13.253106463250436
+    ]
+  },
+  "NODE_10": {
+    "TEMPERATURE": [
+      18.5
+    ]
+  },
+  "NODE_11": {
+    "TEMPERATURE": [
+      16.753106463250436
+    ]
+  },
+  "NODE_12": {
+    "TEMPERATURE": [
+      18.753106463250436
+    ]
+  },
+  "NODE_13": {
+    "TEMPERATURE": [
+      20.503106463250436
+    ]
+  },
+  "NODE_14": {
+    "TEMPERATURE": [
+      21.376553231625216
+    ]
+  },
+  "NODE_15": {
+    "TEMPERATURE": [
+      16.75
+    ]
+  },
+  "NODE_16": {
+    "TEMPERATURE": [
+      11.675379140472597
+    ]
+  },
+  "NODE_17": {
+    "TEMPERATURE": [
+      20.25
+    ]
+  },
+  "NODE_18": {
+    "TEMPERATURE": [
+      13.425379140472597
+    ]
+  },
+  "NODE_19": {
+    "TEMPERATURE": [
+      19.376553231625216
+    ]
+  },
+  "NODE_20": {
+    "TEMPERATURE": [
+      14.126553231625218
+    ]
+  },
+  "NODE_21": {
+    "TEMPERATURE": [
+      17.175379140472597
+    ]
+  },
+  "NODE_22": {
+    "TEMPERATURE": [
+      23.126553231625216
+    ]
+  },
+  "NODE_23": {
+    "TEMPERATURE": [
+      19.626553231625216
+    ]
+  },
+  "NODE_24": {
+    "TEMPERATURE": [
+      24.253106463250436
+    ]
+  },
+  "NODE_25": {
+    "TEMPERATURE": [
+      22.0
+    ]
+  },
+  "NODE_26": {
+    "TEMPERATURE": [
+      15.0
+    ]
+  },
+  "NODE_27": {
+    "TEMPERATURE": [
+      10.097651817694757
+    ]
+  },
+  "NODE_28": {
+    "TEMPERATURE": [
+      28.003106463250436
+    ]
+  },
+  "NODE_29": {
+    "TEMPERATURE": [
+      26.425379140472597
+    ]
+  },
+  "NODE_30": {
+    "TEMPERATURE": [
+      29.753106463250433
+    ]
+  },
+  "NODE_31": {
+    "TEMPERATURE": [
+      24.425379140472593
+    ]
+  },
+  "NODE_32": {
+    "TEMPERATURE": [
+      19.347651817694757
+    ]
+  },
+  "NODE_33": {
+    "TEMPERATURE": [
+      23.376553231625216
+    ]
+  },
+  "NODE_34": {
+    "TEMPERATURE": [
+      19.175379140472597
+    ]
+  },
+  "NODE_35": {
+    "TEMPERATURE": [
+      28.626553231625216
+    ]
+  },
+  "NODE_36": {
+    "TEMPERATURE": [
+      27.75
+    ]
+  },
+  "NODE_37": {
+    "TEMPERATURE": [
+      28.175379140472593
+    ]
+  },
+  "NODE_38": {
+    "TEMPERATURE": [
+      24.675379140472597
+    ]
+  },
+  "NODE_39": {
+    "TEMPERATURE": [
+      30.626553231625216
+    ]
+  },
+  "NODE_40": {
+    "TEMPERATURE": [
+      27.048825908847377
+    ]
+  },
+  "NODE_41": {
+    "TEMPERATURE": [
+      21.097651817694754
+    ]
+  },
+  "NODE_42": {
+    "TEMPERATURE": [
+      20.048825908847377
+    ]
+  },
+  "NODE_43": {
+    "TEMPERATURE": [
+      17.597651817694757
+    ]
+  },
+  "NODE_44": {
+    "TEMPERATURE": [
+      29.5
+    ]
+  },
+  "NODE_45": {
+    "TEMPERATURE": [
+      26.0
+    ]
+  },
+  "NODE_46": {
+    "TEMPERATURE": [
+      28.597651817694757
+    ]
+  },
+  "NODE_47": {
+    "TEMPERATURE": [
+      35.25310646325043
+    ]
+  },
+  "NODE_48": {
+    "TEMPERATURE": [
+      31.753106463250436
+    ]
+  },
+  "NODE_49": {
+    "TEMPERATURE": [
+      30.347651817694754
+    ]
+  },
+  "NODE_50": {
+    "TEMPERATURE": [
+      28.425379140472597
+    ]
+  },
+  "NODE_51": {
+    "TEMPERATURE": [
+      26.847651817694757
+    ]
+  },
+  "NODE_52": {
+    "TEMPERATURE": [
+      33.67537914047259
+    ]
+  },
+  "NODE_53": {
+    "TEMPERATURE": [
+      36.126553231625216
+    ]
+  },
+  "NODE_54": {
+    "TEMPERATURE": [
+      34.376553231625216
+    ]
+  },
+  "NODE_55": {
+    "TEMPERATURE": [
+      35.67537914047259
+    ]
+  },
+  "NODE_56": {
+    "TEMPERATURE": [
+      25.097651817694757
+    ]
+  },
+  "NODE_57": {
+    "TEMPERATURE": [
+      37.0
+    ]
+  },
+  "NODE_58": {
+    "TEMPERATURE": [
+      32.097651817694754
+    ]
+  },
+  "NODE_59": {
+    "TEMPERATURE": [
+      39.42537914047259
+    ]
+  },
+  "NODE_60": {
+    "TEMPERATURE": [
+      37.847651817694754
+    ]
+  },
+  "NODE_61": {
+    "TEMPERATURE": [
+      41.17537914047259
+    ]
+  },
+  "NODE_62": {
+    "TEMPERATURE": [
+      39.597651817694754
+    ]
+  },
+  "NODE_63": {
+    "TEMPERATURE": [
+      36.097651817694754
+    ]
+  },
+  "NODE_64": {
+    "TEMPERATURE": [
+      42.04882590884738
+    ]
+  },
+  "NODE_65": {
+    "TEMPERATURE": [
+      47.097651817694754
+    ]
+  }
+}

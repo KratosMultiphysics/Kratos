@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<VTKFile byte_order="LittleEndian" type="vtkMultiBlockDataSet" version="1.0">
+   <vtkMultiBlockDataSet>
+      <Block index="0" name="test_elements">
+         <DataSet file="Main/test_elements_0.vtu" index="0" name="test_elements_0"/>
+      </Block>
+      <Block index="1" name="test_conditions">
+         <DataSet file="Main/test_conditions_0.vtu" index="0" name="test_conditions_0"/>
+      </Block>
+   </vtkMultiBlockDataSet>
+</VTKFile>

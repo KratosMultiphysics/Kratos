@@ -1959,7 +1959,6 @@ class TestProcesses(KratosUnittest.TestCase):
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "AssignFlagProcess",
                     "Parameters"            : {
-                        "mesh_id"         : 0,
                         "model_part_name" : "Main",
                         "flag_name"       : "ACTIVE",
                         "value"           : true,

@@ -25,7 +25,7 @@
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_utilities/fluid_auxiliary_utilities.h"
-#include "custom_utilities/drag_utilities.h"
+#include "custom_utilities/flow_forces_and_moments_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
 #include "custom_utilities/fluid_characteristic_numbers_utilities.h"
@@ -152,10 +152,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     // Calculate embedded drag utilities
-    py::class_< DragUtilities> (m,"DragUtilities")
+    py::class_< FlowForcesAndMomentsUtilities> (m,"FlowForcesAndMomentsUtilities")
         .def(py::init<>())
-        .def("CalculateBodyFittedDrag", &DragUtilities::CalculateBodyFittedDrag)
-        .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
+        .def("CalculateBodyFittedFlowForcesAndMoments", &FlowForcesAndMomentsUtilities::CalculateBodyFittedFlowForcesAndMoments)
+        .def("CalculateEmbeddedFlowForcesAndMoments", &FlowForcesAndMomentsUtilities::CalculateEmbeddedFlowForcesAndMoments)
         ;
 
     py::class_<
@@ -185,6 +185,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateFluidVolume", &FluidAuxiliaryUtilities::CalculateFluidVolume)
         .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
         .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
+        .def_static("CalculateFluidCutElementsNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidCutElementsNegativeVolume)
+        .def_static("CalculateFluidCutElementsPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidCutElementsPositiveVolume)
         .def_static("MapVelocityFromSkinToVolumeRBF", &FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF)
         .def_static("FindMaximumEdgeLength", [](ModelPart& rModelPart){return FluidAuxiliaryUtilities::FindMaximumEdgeLength(rModelPart);})
         .def_static("FindMaximumEdgeLength", [](ModelPart& rModelPart, const bool CalculateNodalNeighbours){return FluidAuxiliaryUtilities::FindMaximumEdgeLength(rModelPart, CalculateNodalNeighbours);})

@@ -1,5 +1,5 @@
 ---
-title: 
+title: Point Output Process
 keywords: Point output process core
 tags: [point output process]
 sidebar: kratos_core_processes

@@ -156,7 +156,7 @@ class DamAnalysis(AnalysisStage):
 
         # Initialize processes
         for process in self_list_of_processes:
-            process.ExecuteInitialize()
+            process.ExecuteBeforeSolutionLoop()
 
         # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
         self_time = self.time - (self.buffer_size-1) * self.delta_time
@@ -232,7 +232,7 @@ class DamAnalysis(AnalysisStage):
 
         # Initialize processes
         for self.process in self.list_of_processes:
-            self.process.ExecuteInitialize()
+            self.process.ExecuteBeforeSolutionLoop()
 
         for self.output_process in self.list_of_output_processes:
             self.output_process.ExecuteInitialize()

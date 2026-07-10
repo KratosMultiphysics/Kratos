@@ -145,7 +145,7 @@ public:
 
         tetgenio::facet *f;
         tetgenio::polygon *p;
-        //give the corrdinates to the mesher
+        //give the coordinates to the mesher
         for(unsigned int i = 0; i<shell_nodes.size(); i++)
         {
             int base = i*3;
@@ -262,7 +262,7 @@ public:
                     neighb(i) = Element::WeakPointer();//*(iii.base());
             }
         }
-        std::cout << "time for adding neigbours" << adding_neighb.elapsed() << std::endl;;
+        std::cout << "time for adding neighbours" << adding_neighb.elapsed() << std::endl;;
 
         //***********************************************************************************
         //***********************************************************************************

@@ -208,7 +208,7 @@ class Solution():
 
         print(" [STEP:",self.step," TIME:",self.time,"]")
 
-        # processes to be executed at the begining of the solution step
+        # processes to be executed at the beginning of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
 
         self.GraphicalOutputExecuteInitializeSolutionStep()

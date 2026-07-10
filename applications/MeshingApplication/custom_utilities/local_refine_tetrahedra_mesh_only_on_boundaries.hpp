@@ -84,6 +84,21 @@ public:
             }
         }
 
+        // check for conditions with SPLIT_ELEMENT flag to refine the corresponding edges
+        for (auto& r_cond: rThisModelPart.Conditions()) {
+            if (r_cond.GetValue(SPLIT_ELEMENT)) {
+                Condition::GeometryType& r_geom = r_cond.GetGeometry(); // Nodes of the condition
+                for (unsigned int i = 0; i < r_geom.size(); i++) {
+                    int index_i = mMapNodeIdToPos[r_geom[i].Id()];  
+                    for (unsigned int j = 0; j < r_geom.size(); j++) {
+                        int index_j = mMapNodeIdToPos[r_geom[j].Id()];
+                        if (index_j > index_i) {
+                            rCoord(index_i, index_j) = -2;
+                        }
+                    }
+                }
+            }
+        }
 
         KRATOS_CATCH("");
     }

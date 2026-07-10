@@ -105,7 +105,7 @@ public:
             r_stokes_part.Elements().push_back(pElem);
         }
 
-        // pointer types for the solution strategy construcion
+        // pointer types for the solution strategy construction
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
         typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;

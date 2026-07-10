@@ -831,7 +831,7 @@ namespace Kratos
 
 
 
-      double CurrentPermeability = GetProperties()[PERMEABILITY];
+      double CurrentPermeability = GetProperties()[PERMEABILITY_WATER];
 
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {

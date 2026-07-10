@@ -467,8 +467,8 @@ namespace Kratos
          Properties thisProperties = GetProperties();
          // CONSTITUTIVE PARAMETERS
          double Permeability = 0;
-         if( GetProperties().Has(PERMEABILITY) ){
-            Permeability = GetProperties()[PERMEABILITY];
+         if( GetProperties().Has(PERMEABILITY_WATER) ){
+            Permeability = GetProperties()[PERMEABILITY_WATER];
          }
          double WaterDensity = 0;
          if( GetProperties().Has(DENSITY_WATER) ){
@@ -676,14 +676,14 @@ namespace Kratos
          }
 
       }
-      else if ( rVariable == PERMEABILITY)
+      else if ( rVariable == PERMEABILITY_WATER)
       {
          const unsigned int& integration_points_number = mConstitutiveLawVector.size();
 
          if ( rOutput.size() != mConstitutiveLawVector.size() )
             rOutput.resize( mConstitutiveLawVector.size() );
 
-         double Permeability    = GetProperties()[PERMEABILITY];
+         double Permeability    = GetProperties()[PERMEABILITY_WATER];
          bool Kozeny = GetProperties()[KOZENY_CARMAN];
          if ( Kozeny == false)
          {

@@ -278,7 +278,7 @@ protected:
     void ExecuteRemeshing() override;
 
     /**
-     * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
+     * @brief After we have transfer the information from the previous modelpart we initialize the elements and conditions
      */
     void InitializeElementsAndConditions() override;
 

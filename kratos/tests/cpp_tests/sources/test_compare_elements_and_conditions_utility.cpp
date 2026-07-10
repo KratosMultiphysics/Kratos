@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    
-//
+//  Main author:     Carlos Roig
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -18,15 +18,14 @@
 // Project includes
 #include "testing/testing.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
-
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/master_slave_constraint.h"
 #include "includes/kratos_components.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 class CustomElement : public Element
 {
@@ -148,5 +147,19 @@ KRATOS_TEST_CASE_IN_SUITE(GetRegisteredNameCondition, KratosCoreFastSuite)
     KRATOS_EXPECT_NE(component_name, "Condition");
 }
 
-}  // namespace Testing.
-}  // namespace Kratos.
+KRATOS_TEST_CASE_IN_SUITE(GetRegisteredNameMasterSlaveConstraint, KratosCoreFastSuite)
+{
+    // MasterSlaveConstraint name
+    const MasterSlaveConstraint& r_master_slave_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+    std::string component_name;
+    CompareElementsAndConditionsUtility::GetRegisteredName(r_master_slave_constraint, component_name);
+    KRATOS_EXPECT_EQ(component_name, "LinearMasterSlaveConstraint");
+    CompareElementsAndConditionsUtility::GetRegisteredName(&r_master_slave_constraint, component_name);
+    KRATOS_EXPECT_EQ(component_name, "LinearMasterSlaveConstraint");
+    CompareElementsAndConditionsUtility::GetRegisteredName(r_master_slave_constraint, component_name);
+    KRATOS_EXPECT_NE(component_name, "MasterSlaveConstraint");
+    CompareElementsAndConditionsUtility::GetRegisteredName(&r_master_slave_constraint, component_name);
+    KRATOS_EXPECT_NE(component_name, "MasterSlaveConstraint");
+}
+
+}  // namespace Kratos::Testing.

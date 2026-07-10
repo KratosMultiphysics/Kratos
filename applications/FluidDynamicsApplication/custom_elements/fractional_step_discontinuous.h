@@ -111,7 +111,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -140,7 +140,7 @@ public:
         medge_areas(array_1d<double,(TDim-1)*3 >( (TDim-1)*3, 0.0))
     {}
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -295,7 +295,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// Determine integration point weights and shape funcition derivatives from the element's geometry.
+    /// Determine integration point weights and shape function derivatives from the element's geometry.
     void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
                                        Matrix& rNContainer,
                                        Vector& rGaussWeights) override;

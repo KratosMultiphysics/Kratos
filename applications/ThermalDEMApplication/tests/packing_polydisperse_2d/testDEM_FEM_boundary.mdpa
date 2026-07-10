@@ -1,0 +1,156 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+   501   0.0000000000000000e+00  8.7500000000000000e-01  0.0000000000000000e+00
+   502   8.7383155822753906e+00  8.7500000000000000e-01  0.0000000000000000e+00
+   503   7.8633151054382324e+00  0.0000000000000000e+00  0.0000000000000000e+00
+   504   7.8633151054382324e+00  8.7383155822753906e+00  0.0000000000000000e+00
+   505   8.7383155822753906e+00  7.8633151054382324e+00  0.0000000000000000e+00
+   506   0.0000000000000000e+00  7.8633151054382324e+00  0.0000000000000000e+00
+   507   8.7500000000000000e-01  8.7383155822753906e+00  0.0000000000000000e+00
+   508   8.7500000000000000e-01  0.0000000000000000e+00  0.0000000000000000e+00
+End Nodes
+
+Begin NodalData TEMPERATURE
+   501   0   400.0
+   502   0   400.0
+   503   0   400.0
+   504   0   400.0
+   505   0   400.0
+   506   0   400.0
+   507   0   400.0
+   508   0   400.0
+End NodalData
+
+Begin Conditions RigidEdge2D2N // GUI group identifier: WallY-
+    501    0    501  502
+End Conditions
+
+Begin Conditions RigidEdge2D2N // GUI group identifier: WallX+
+    502    0    503  504
+End Conditions
+
+Begin Conditions RigidEdge2D2N // GUI group identifier: WallY+
+    503    0    505  506
+End Conditions
+
+Begin Conditions RigidEdge2D2N // GUI group identifier: WallX-
+    504    0    507  508
+End Conditions
+
+Begin SubModelPart DEM-FEM-Wall2D_WallY- // DEM-FEM-Wall2D - group identifier: WallY-
+   Begin SubModelPartData // DEM-FEM-Wall2D. Group name: WallY-
+		ADIABATIC                   0
+		LINEAR_VELOCITY [3]        (0.0, 0.1, 0.0)
+		VELOCITY_PERIOD             0.0
+		ANGULAR_VELOCITY [3]       (0.0,0.0,0.0)
+		ROTATION_CENTER [3]        (0.0,0.0,0.0)
+		ANGULAR_VELOCITY_PERIOD     0.0
+		VELOCITY_START_TIME         0.0
+		VELOCITY_STOP_TIME          100000.0
+		ANGULAR_VELOCITY_START_TIME 0.0
+		ANGULAR_VELOCITY_STOP_TIME  100.0
+		FIXED_MESH_OPTION           0
+		RIGID_BODY_MOTION           1
+		FREE_BODY_MOTION            0
+		IS_GHOST                    0
+		IDENTIFIER                  WallY-
+		FORCE_INTEGRATION_GROUP     0
+	End SubModelPartData
+	Begin SubModelPartNodes
+		501
+		502
+	End SubModelPartNodes
+	Begin SubModelPartConditions
+		501
+	End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DEM-FEM-Wall2D_WallX+ // DEM-FEM-Wall2D - group identifier: WallX+
+   Begin SubModelPartData // DEM-FEM-Wall2D. Group name: WallX+
+		ADIABATIC                   0
+		LINEAR_VELOCITY [3]        (-0.1, 0.0, 0.0)
+		VELOCITY_PERIOD             0.0
+		ANGULAR_VELOCITY [3]       (0.0,0.0,0.0)
+		ROTATION_CENTER [3]        (0.0,0.0,0.0)
+		ANGULAR_VELOCITY_PERIOD     0.0
+		VELOCITY_START_TIME         0.0
+		VELOCITY_STOP_TIME          100000.0
+		ANGULAR_VELOCITY_START_TIME 0.0
+		ANGULAR_VELOCITY_STOP_TIME  100.0
+		FIXED_MESH_OPTION           0
+		RIGID_BODY_MOTION           1
+		FREE_BODY_MOTION            0
+		IS_GHOST                    0
+		IDENTIFIER                  WallX+
+		FORCE_INTEGRATION_GROUP     0
+	End SubModelPartData
+	Begin SubModelPartNodes
+		503
+		504
+	End SubModelPartNodes
+	Begin SubModelPartConditions
+		502
+	End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DEM-FEM-Wall2D_WallY+ // DEM-FEM-Wall2D - group identifier: WallY+
+   Begin SubModelPartData // DEM-FEM-Wall2D. Group name: WallY+
+		ADIABATIC                   1
+		LINEAR_VELOCITY [3]        (0.0, -0.1, 0.0)
+		VELOCITY_PERIOD             0.0
+		ANGULAR_VELOCITY [3]       (0.0,0.0,0.0)
+		ROTATION_CENTER [3]        (0.0,0.0,0.0)
+		ANGULAR_VELOCITY_PERIOD     0.0
+		VELOCITY_START_TIME         0.0
+		VELOCITY_STOP_TIME          100000.0
+		ANGULAR_VELOCITY_START_TIME 0.0
+		ANGULAR_VELOCITY_STOP_TIME  100.0
+		FIXED_MESH_OPTION           0
+		RIGID_BODY_MOTION           1
+		FREE_BODY_MOTION            0
+		IS_GHOST                    0
+		IDENTIFIER                  WallY+
+		FORCE_INTEGRATION_GROUP     0
+	End SubModelPartData
+	Begin SubModelPartNodes
+		505
+		506
+	End SubModelPartNodes
+	Begin SubModelPartConditions
+		503
+	End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DEM-FEM-Wall2D_WallX- // DEM-FEM-Wall2D - group identifier: WallX-
+   Begin SubModelPartData // DEM-FEM-Wall2D. Group name: WallX-
+		ADIABATIC                   0
+		LINEAR_VELOCITY [3]        (0.1, 0.0, 0.0)
+		VELOCITY_PERIOD             0.0
+		ANGULAR_VELOCITY [3]       (0.0,0.0,0.0)
+		ROTATION_CENTER [3]        (0.0,0.0,0.0)
+		ANGULAR_VELOCITY_PERIOD     0.0
+		VELOCITY_START_TIME         0.0
+		VELOCITY_STOP_TIME          100000.0
+		ANGULAR_VELOCITY_START_TIME 0.0
+		ANGULAR_VELOCITY_STOP_TIME  100.0
+		FIXED_MESH_OPTION           0
+		RIGID_BODY_MOTION           1
+		FREE_BODY_MOTION            0
+		IS_GHOST                    0
+		IDENTIFIER                  WallX-
+		FORCE_INTEGRATION_GROUP     0
+	End SubModelPartData
+	Begin SubModelPartNodes
+		507
+		508
+	End SubModelPartNodes
+	Begin SubModelPartConditions
+		504
+	End SubModelPartConditions
+End SubModelPart

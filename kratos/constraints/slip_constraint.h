@@ -10,8 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(SLIP_CONSTRAINT_H)
-#define SLIP_CONSTRAINT_H
+#pragma once
 
 // System includes
 
@@ -257,5 +256,3 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 
 } // namespace Kratos
-
-#endif // SLIP_CONSTRAINT_H

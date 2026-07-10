@@ -38,7 +38,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_support",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0]
@@ -53,7 +52,7 @@
         "Parameters"    : {
             "model_part_name"  : "Structure",
 	    "variable_name"   : "EIGENVALUE_VECTOR",
-            "reference_values": "[88.96614452368635, 3955.0855388258715, 7796.83946434412]"
+            "reference_values": "[88.96614452368635, 3806.959335300466, 7759.8079134627715]"
         }
     }]}
 }

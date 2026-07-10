@@ -85,7 +85,7 @@ public:
      * @brief Default constructor
      * @param rOriginModelPart The origin model part to compute
      * @param rDestinationModelPart The destination model part to compute
-     * @param rThisVariable The variable to transfer and be transfered
+     * @param rThisVariable The variable to transfer and be transferred
      * @param ThisParameters The configuration parameters
      * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
      */

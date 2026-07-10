@@ -15,7 +15,6 @@
 #pragma once
 
 #include "custom_conditions/T_condition.h"
-#include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "includes/serializer.h"
 
@@ -38,11 +37,9 @@ public:
 
     GeoTNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
-    {
-        return Kratos::make_intrusive<GeoTNormalFluxCondition>(
-            NewId, this->GetGeometry().Create(rThisNodes), pProperties);
-    }
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   rThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
 
     std::string Info() const override;
 
@@ -52,15 +49,9 @@ protected:
 private:
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
+    void load(Serializer& rSerializer) override;
 };
 
 } // namespace Kratos

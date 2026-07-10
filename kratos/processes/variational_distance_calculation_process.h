@@ -59,10 +59,10 @@ namespace Kratos
 
 /// Short class definition.
 /**takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and recomputes a signed distance function
-mantaining as much as possible the position of the zero of the function prior to the call.
+maintaining as much as possible the position of the zero of the function prior to the call.
 
 This is achieved by minimizing the function  ( 1 - norm( gradient( distance ) )**2
-with the restriction that "distance" is a finite elment function
+with the restriction that "distance" is a finite element function
 */
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver >
 class VariationalDistanceCalculationProcess : public Process
@@ -91,7 +91,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /**This process recomputed the distance function mantaining the zero of the existing distance distribution
+    /**This process recomputed the distance function maintaining the zero of the existing distance distribution
      * for this reason the DISTANCE should be initialized to values distinct from zero in at least some portions of the domain
      * alternatively, the DISTANCE shall be fixed to zero at least on some nodes, and the process will compute a positive distance
      * respecting that zero
@@ -680,7 +680,7 @@ private:
         if(r_communicator.TotalProcesses() != 1){
             int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
 
-            // Synchronize the fixity flag variable to minium
+            // Synchronize the fixity flag variable to minimum
             // (true means fixed and false means free)
             r_communicator.SynchronizeOrNodalFlags(BLOCKED);
 
@@ -716,7 +716,7 @@ private:
     ///@}
 }; // Class VariationalDistanceCalculationProcess
 
-//avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
+//avoiding using the macro since this has a template parameter. If there was no template please use the KRATOS_CREATE_LOCAL_FLAG macro
 template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
 const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::PERFORM_STEP1(Kratos::Flags::Create(0));
 

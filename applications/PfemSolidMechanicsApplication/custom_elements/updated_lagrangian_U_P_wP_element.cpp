@@ -1289,7 +1289,7 @@ namespace Kratos
       rScalingConstant = 1.0;
       rDeltaTime  = GetProperties()[DELTA_TIME];
       rDeltaTime = mTimeStep;
-      rPermeability = GetProperties()[PERMEABILITY];
+      rPermeability = GetProperties()[PERMEABILITY_WATER];
       rWaterBulk = GetProperties()[WATER_BULK_MODULUS];
 
    }

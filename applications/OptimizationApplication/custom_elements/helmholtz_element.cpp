@@ -19,7 +19,7 @@
 #include "includes/checks.h"
 #include "includes/variables.h"
 
-// Application incldues
+// Application includes
 #include "custom_elements/data_containers/helmholtz_solid_shape_data_container.h"
 #include "custom_elements/data_containers/helmholtz_surface_data_container.h"
 #include "custom_elements/data_containers/helmholtz_solid_data_container.h"

@@ -56,6 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(HCFDataContainerFatigueTest, KratosConstitutiveLawsFas
     HCFVariables.GlobalNumberOfCycles = 12;
     HCFVariables.LocalNumberOfCycles = 12;
     HCFVariables.ReversionFactor = -1.00005;
+    HCFVariables.UltimateStress = 806.715E+06;
 
     mFatigueData.CalculateFatigueParameters(material_properties, HCFVariables);
 

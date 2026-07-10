@@ -21,7 +21,6 @@
 // Application includes
 #include "boost/range/adaptor/filtered.hpp"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
-#include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
@@ -61,10 +60,37 @@ public:
                                                     bool        ReformDofSetAtEachStep = false,
                                                     bool        MoveMeshFlag           = false)
         : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+              model_part,
+              pScheme,
+              pNewConvergenceCriteria,
+              pNewBuilderAndSolver,
+              rParameters,
+              MaxIterations,
+              CalculateReactions,
+              ReformDofSetAtEachStep,
+              MoveMeshFlag),
+          mPipingIterations(rParameters["max_piping_iterations"].GetInt()),
+          rank(model_part.GetCommunicator().MyPID())
     {
-        rank              = model_part.GetCommunicator().MyPID();
-        mPipingIterations = rParameters["max_piping_iterations"].GetInt();
+    }
+
+    template <typename PipingElementType>
+    std::optional<std::vector<PipingElementType*>> TryDownCastToPipingElement(const std::vector<Element*>& rPipeElements)
+    {
+        std::vector<PipingElementType*> result;
+        result.reserve(rPipeElements.size());
+        std::transform(rPipeElements.begin(), rPipeElements.end(), std::back_inserter(result),
+                       [](auto p_element) { return dynamic_cast<PipingElementType*>(p_element); });
+
+        const auto number_of_piping_elements = static_cast<std::size_t>(
+            std::ranges::count_if(result, [](auto p_element) { return p_element != nullptr; }));
+        if (number_of_piping_elements == 0) return std::nullopt;
+
+        KRATOS_ERROR_IF(number_of_piping_elements != rPipeElements.size())
+            << "Unexpected number of piping elements of type " << rPipeElements[0]->Info() << ": expected "
+            << rPipeElements.size() << " but got " << number_of_piping_elements << std::endl;
+
+        return result;
     }
 
     void FinalizeSolutionStep() override
@@ -80,42 +106,21 @@ public:
             return;
         }
 
-        auto piping_interface_elements = std::vector<SteadyStatePwPipingElement<2, 4>*>{};
-        std::transform(piping_elements.begin(), piping_elements.end(),
-                       std::back_inserter(piping_interface_elements), [](auto p_element) {
-            return dynamic_cast<SteadyStatePwPipingElement<2, 4>*>(p_element);
-        });
-
-        const auto number_of_piping_interface_elements = static_cast<std::size_t>(
-            std::count_if(piping_interface_elements.begin(), piping_interface_elements.end(),
-                          [](auto p_element) { return p_element != nullptr; }));
-        KRATOS_ERROR_IF(number_of_piping_interface_elements != 0 &&
-                        number_of_piping_interface_elements != piping_interface_elements.size())
-            << "Unexpected number of piping interface elements: expected either 0 or "
-            << piping_interface_elements.size() << " but got "
-            << number_of_piping_interface_elements << std::endl;
-
-        if (number_of_piping_interface_elements > 0) {
-            this->DetermineOpenPipingElements(piping_interface_elements);
+        if (const auto piping_2D_line_elements =
+                TryDownCastToPipingElement<GeoSteadyStatePwPipingElement<2, 2>>(piping_elements)) {
+            this->DetermineOpenPipingElements(piping_2D_line_elements.value());
             this->BaseClassFinalizeSolutionStep();
             return;
         }
 
-        auto piping_line_elements = std::vector<GeoSteadyStatePwPipingElement<2, 2>*>{};
-        std::transform(piping_elements.begin(), piping_elements.end(),
-                       std::back_inserter(piping_line_elements), [](auto p_element) {
-            return dynamic_cast<GeoSteadyStatePwPipingElement<2, 2>*>(p_element);
-        });
+        if (const auto piping_3D_line_elements =
+                TryDownCastToPipingElement<GeoSteadyStatePwPipingElement<3, 2>>(piping_elements)) {
+            this->DetermineOpenPipingElements(piping_3D_line_elements.value());
+            this->BaseClassFinalizeSolutionStep();
+            return;
+        }
 
-        const auto number_of_piping_line_elements = static_cast<std::size_t>(
-            std::count_if(piping_line_elements.begin(), piping_line_elements.end(),
-                          [](auto p_element) { return p_element != nullptr; }));
-        KRATOS_ERROR_IF(number_of_piping_line_elements != piping_line_elements.size())
-            << "Unexpected number of piping line elements: expected " << piping_line_elements.size()
-            << " but got " << number_of_piping_line_elements << std::endl;
-
-        this->DetermineOpenPipingElements(piping_line_elements);
-        this->BaseClassFinalizeSolutionStep();
+        KRATOS_ERROR << "Unexpected type of piping element\n";
     }
 
     /**
@@ -220,7 +225,7 @@ private:
     SizeType GetNumberOfActivePipeElements(const FilteredElementsType& rPipeElements)
     {
         auto is_pipe_active = [](auto p_element) { return p_element->GetValue(PIPE_ACTIVE); };
-        return std::count_if(std::begin(rPipeElements), std::end(rPipeElements), is_pipe_active);
+        return std::ranges::count_if(rPipeElements, is_pipe_active);
     }
 
     /// <summary>
@@ -259,8 +264,8 @@ private:
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0 && rank == 0)
             << "Recalculating" << std::endl;
 
-        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Predict();
+        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
         return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
     }
 
@@ -323,6 +328,7 @@ private:
             }
             ++piping_iteration;
         }
+
         return equilibrium;
     }
 

@@ -26,7 +26,7 @@ namespace Kratos {
                                        array_1d<double, 3>& drag_force,
                                        const ProcessInfo& r_current_process_info)
     {
-        const int isometric_shape                = 1; // TEMPORARY!! yes (1) or no (0); shold be given as data
+        const int isometric_shape                = 1; // TEMPORARY!! yes (1) or no (0); should be given as data
         const double surface_area                = 4 * Globals::Pi * SWIMMING_POW_2(particle_radius); // TEMPORARY!! corresponding to a sphere; should be generalized b taking it as a parameter
         const double surface_area_circular_diam  = std::sqrt(4.0 * surface_area / Globals::Pi);
         Geometry<Node >& r_geometry = p_particle->GetGeometry();
@@ -34,7 +34,7 @@ namespace Kratos {
         double k_1;
         double k_2;
 
-        // calculating ganser geometric parameters adn equivalent Reynolds number
+        // calculating ganser geometric parameters and equivalent Reynolds number
         if (isometric_shape){
             k_1 = 3 / (1 + 2 / std::sqrt(sphericity));
         }

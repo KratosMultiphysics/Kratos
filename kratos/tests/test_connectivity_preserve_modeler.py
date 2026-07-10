@@ -287,5 +287,54 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(len(model_part1.Conditions) , len(created_model_part.Conditions))
         self.assertEqual(len(model_part1.Elements) , len(created_model_part.Elements))
 
+    def test_setup_with_geometries(self):
+        current_model = KratosMultiphysics.Model()
+        model_part1 = current_model.CreateModelPart("Main")
+        model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        model_part1.CreateNewNode(1,0.0,0.1,0.2)
+        model_part1.CreateNewNode(2,2.0,0.1,0.2)
+        model_part1.CreateNewNode(3,1.0,1.1,0.2)
+        model_part1.CreateNewNode(4,2.0,3.1,10.2)
+
+        sub1 = model_part1.CreateSubModelPart("sub1")
+        sub2 = model_part1.CreateSubModelPart("sub2")
+        subsub1 = sub1.CreateSubModelPart("subsub1")
+        subsub1.AddNodes([1,2])
+        sub2.AddNodes([3])
+
+        model_part1.CreateNewGeometry("Triangle2D3", 1, [1,2,3])
+        model_part1.CreateNewGeometry("Triangle2D3", 2, [1,2,4])
+        model_part1.CreateNewGeometry("Tetrahedra3D4", 3, [1,2,4,3])
+        model_part1.CreateNewGeometry("Quadrilateral3D4", 4, [1,2,4,3])
+
+        model_part1.CreateNewGeometry("Line2D2", 5, [2,4])
+        model_part1.CreateNewGeometry("Line3D2", 6, [3,4])
+        model_part1.CreateNewGeometry("Triangle3D3", 7, [1,2,4])
+
+        sub1.AddGeometries([2])
+        sub2.AddGeometries([3,4])
+
+        new_model_part = current_model.CreateModelPart("Other")
+        new_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        modeler = KratosMultiphysics.ConnectivityPreserveModeler().Create(
+            current_model,
+            KratosMultiphysics.Parameters('''{
+                "origin_model_part_name": "Main",
+                "destination_model_part_name": "Other"
+            }''')
+        )
+        modeler.SetupModelPart()
+
+        self.assertEqual(len(model_part1.Nodes) , len(new_model_part.Nodes))
+        self.assertEqual(len(model_part1.Elements) , len(new_model_part.Elements))
+        self.assertEqual(len(model_part1.Conditions) , len(new_model_part.Conditions))
+        self.assertEqual(len(model_part1.Geometries) , len(new_model_part.Geometries))
+
+        self.assertEqual(model_part1.GetSubModelPart("sub1").NumberOfGeometries(), new_model_part.GetSubModelPart("sub1").NumberOfGeometries())
+        self.assertEqual(model_part1.GetSubModelPart("sub2").NumberOfGeometries(), new_model_part.GetSubModelPart("sub2").NumberOfGeometries())
+        self.assertEqual(model_part1.GetSubModelPart("sub1.subsub1").NumberOfNodes(), new_model_part.GetSubModelPart("sub1.subsub1").NumberOfNodes())
+
 if __name__ == '__main__':
     KratosUnittest.main()

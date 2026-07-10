@@ -1,0 +1,43 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   2.0   0.0   1.0
+    2   0.7928932188   0.0   0.9142135624
+    3   0.0   0.0   0.0
+End Nodes
+
+Begin Elements LinearTimoshenkoCurvedBeamElement3D3N
+        1          0     3   1   2
+End Elements
+
+Begin SubModelPart Parts_Beam_beam
+    Begin SubModelPartNodes
+            1
+            2
+            3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_fix_displ
+    Begin SubModelPartNodes
+            3
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart ROTATION_fix_rot
+    Begin SubModelPartNodes
+            3
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart SelfWeight2D_weight
+    Begin SubModelPartNodes
+            1
+            2
+            3
+    End SubModelPartNodes
+End SubModelPart

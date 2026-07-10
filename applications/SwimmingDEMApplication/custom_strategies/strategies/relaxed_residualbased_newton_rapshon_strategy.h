@@ -282,7 +282,7 @@ class RelaxedResidualBasedNewtonRaphsonStrategy
     ~RelaxedResidualBasedNewtonRaphsonStrategy() override
     {
         // If the linear solver has not been deallocated, clean it before
-        // deallocating mpA. This prevents a memory error with the the ML
+        // deallocating mpA. This prevents a memory error with the ML
         // solver (which holds a reference to it).
         // NOTE: The linear solver is hold by the B&S
         auto p_builder_and_solver = this->GetBuilderAndSolver();
