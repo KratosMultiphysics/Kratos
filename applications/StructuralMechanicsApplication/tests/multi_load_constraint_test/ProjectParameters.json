@@ -39,7 +39,9 @@
                     "materials_filename": "/home/tobias/repos/barcelona_debug/truss/Materials.json"
                 },
                 "rotation_dofs": false,
-                "volumetric_strain_dofs": false
+                "strain_dofs": false,
+                "volumetric_strain_dofs": false,
+                "displacement_control": false
                 },
             "future_scheme_settings" : {
                 "name" : "static_scheme",

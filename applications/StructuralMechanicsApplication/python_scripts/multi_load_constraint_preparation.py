@@ -29,6 +29,7 @@ class MultiLoadConstraintPreparation(AnalysisStage):
         if self.project_parameters.Has("process_combinations"):
             if self.project_parameters["process_combinations"].Has("load_processes"):
                 self.load_processes = self.project_parameters["process_combinations"]["load_processes"]
+                self.load_variables = self.__GetLoadVariables()
             if self.project_parameters["process_combinations"].Has("fixity_processes"):
                 self.__PrepareFixityDB()
 
@@ -42,12 +43,6 @@ class MultiLoadConstraintPreparation(AnalysisStage):
 
     def Initialize(self):
         super().Initialize() # this calls some functions of the base class and also initializes the strategy data and the scheme
-        if self.lumped_mass_matrix:
-            self.__BuildLumpedMassMatrix()
-        if self.consistens_mass_matrix:
-            self.__BuildConsistentMassMatrix()
-        self.__BuildLHS()
-        self.__BuildRHSs()
         
 
     def __PrepareFixityDB(self):
@@ -56,13 +51,14 @@ class MultiLoadConstraintPreparation(AnalysisStage):
             process_id = fixity_definition["process_id"].GetString()
             self.fixities[process_id] = fixity_definition
         
-    def __BuildRHSs(self):
+    def __BuildRHSsFromModelPart(self):
 
         #stores right hand sides
         self.rhss = {}
 
         for load_definition in self.load_processes.values():
-            self.__ResetRHS()
+            self.__ResetLoadVariables()
+            #self.__ResetRHS()
             process_id = load_definition["process_id"].GetString() #get the loadcase id
             process = self.__CreateProcess(load_definition) 
             process.ExecuteInitialize()
@@ -72,6 +68,12 @@ class MultiLoadConstraintPreparation(AnalysisStage):
             rhs = self.__BuildRHS()
             self.rhss[process_id] = rhs.copy()
         KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "RHSs built")
+
+    def __ResetLoadVariables(self):
+        variable_utils = KratosMultiphysics.VariableUtils()
+
+        for variable in self.load_variables:
+            variable_utils.SetNonHistoricalVariableToZero(variable, self.main_model_part.Conditions)
 
     def __ResetRHS(self):
         """Bug was: 
@@ -133,13 +135,15 @@ class MultiLoadConstraintPreparation(AnalysisStage):
     def RunSolutionLoop(self):
         """Changed it because only matrix generation is done"""
         self.InitializeSolutionStep()
-        self.SolveSolutionStep()
+        if self.lumped_mass_matrix:
+            self.__BuildLumpedMassMatrix()
+        if self.consistens_mass_matrix:
+            self.__BuildConsistentMassMatrix()
+        self.__BuildLHS()
+        self.__BuildRHSsFromModelPart()
     
     def Check(self):
         pass
-    
-    def BaseInitialize(self):
-        super().Initialize()
     
     def __BuildConsistentMassMatrix(self):
         linear_system = self.strategy_data.GetLinearSystem()
@@ -197,6 +201,8 @@ class MultiLoadConstraintPreparation(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "DOF's ADDED")
 
     def _AddVariables(self):
+        #copied from structural_mechanics_solver.py
+        #TODO: Implement a reusable version of this function and use it here and in structural_mechanics_solver.py
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
@@ -206,6 +212,40 @@ class MultiLoadConstraintPreparation(AnalysisStage):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
+        if self.settings["volumetric_strain_dofs"].GetBool():
+            # Add specific variables for the problem (volumetric strain dofs).
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
+            #TODO: These are not required in the standard ASGS case
+            #TODO: We can get rid of this overhead once we move to the specification-based variables and DOFs addition
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION_REACTION)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION_REACTION)
+        if self.settings["strain_dofs"].GetBool():
+            # Add specific variables for the problem (strain Voigt notation components dofs).
+            dim = self.settings["domain_size"].GetInt()
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XX)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XX)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_YY)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_YY)
+            if dim == 3:
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_ZZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_ZZ)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XY)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XY)
+            if dim == 3:
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_YZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_YZ)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XZ)
+        if self.settings["displacement_control"].GetBool():
+            # Add displacement-control variables
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOAD_FACTOR)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESCRIBED_DISPLACEMENT)
+        # Add variables that the user defined in the ProjectParameters
+        #auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
+        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "Variables ADDED")
 
     def _PrepareModelPart(self):
         self.__ReadMaterials()
@@ -220,6 +260,29 @@ class MultiLoadConstraintPreparation(AnalysisStage):
             KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "Materials successfully imported")
         else:
             raise Exception("Please specify a 'materials_filename'!")
+        
+    def __GetLoadVariables(self):
+        load_variables = {}
+
+        for load_definition in self.load_processes.values():
+            process_id = load_definition["process_id"].GetString()
+            parameters = load_definition["Parameters"]
+
+            if not parameters.Has("variable_name"):
+                raise RuntimeError(
+                    f"Load process '{process_id}' does not define 'Parameters.variable_name'"
+                )
+            
+            variable_name = parameters["variable_name"].GetString()
+
+            if not KratosMultiphysics.KratosGlobals.HasVariable(variable_name):
+                raise RuntimeError(
+                    f"Load process '{process_id}' uses the unregistered variable {variable_name}"
+                )
+            
+            load_variables[variable_name] = (KratosMultiphysics.KratosGlobals.GetVariable(variable_name))
+
+        return list(load_variables.values())
         
     def GetFinalData(self):
         """Returns the final data dictionary.
