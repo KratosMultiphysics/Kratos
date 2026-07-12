@@ -2,7 +2,6 @@ import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.process_factory import KratosProcessFactory
 #-------------------------------------------------------------------
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 
 class MultiLoadConstraintAnalysis(AnalysisStage):
@@ -14,7 +13,6 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         self.combination_list = project_parameters["process_combinations"]["combinations"]
         self.fixity_ids = project_parameters["process_combinations"]["fixity_ids"]
         self.model_part_name = self.solver_settings["model_part_name"].GetString()
-        #self.combination_by_constraint = self.__GroupCombinationsByConstraints()
         self.combination_solutions = {}
         self.primitive_solutions = {}
 
@@ -52,6 +50,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         self.__OutputSolutionStep()
         for comb, dx in self.combination_solutions.items():
             print(f"Combination {comb} solution vector dx: {dx}")
+        self.__ReleaseFixities()
 
     def __SolveConstraintState(self):
 
@@ -66,7 +65,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         for combination_id, solution in self.combination_solutions.items():
             self.dofset.SetValues(solution)
             self.__PrintCombinationOutput(combination_id)
-            self.__RestoreReferenceState()
+            self.__RestoreReferenceValues()
 
     def __PrintCombinationOutput(self, combination_id):
 
@@ -107,7 +106,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
                 load_factor = load["load_factor"].GetDouble()
                 load_id = load["load_process_id"].GetString()
                 dx = self.primitive_solutions[load_id]
-                if combination_Dx == None:
+                if combination_Dx is None:
                     combination_Dx = dx.copy()
                     combination_Dx.SetValue(0.0)
                 combination_Dx += load_factor * dx
@@ -118,7 +117,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
     def __SolvePrimaryLoads(self, load_ids):
         KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", f"Primitive loads to solve: {load_ids}")
         for id in load_ids:
-            self.__RestoreReferenceState()
+            self.__RestoreReferenceValues()
             rhs = self.__GetRHS(id)
             lhs = self.__GetRawLHS()
             dx = KratosMultiphysics.SystemVector(rhs.Size())
@@ -137,10 +136,6 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
 
     def GetFinalData(self):
         return self.combination_solutions
-
-    def __StoreCombinationSolution(self, combination_id, strategy_data):
-        dx = strategy_data.GetLinearSystem().GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx)
-        self.combination_solutions[combination_id] = dx.copy()
 
     def __SolveLinearSystem(self, strategy_data):
         effective_system = strategy_data.GetEffectiveLinearSystem()
@@ -245,7 +240,11 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
     
     def __StoreReferenceState(self):
         self.dofset = self.init_strategy_data.GetDofSet()
-        self.reference_state = self.dofset.GetValues()
+        self.reference_values = self.dofset.GetValues()
 
-    def __RestoreReferenceState(self):
-        self.dofset.SetValues(self.reference_state)
+    def __RestoreReferenceValues(self):
+        self.dofset.SetValues(self.reference_values)
+        
+    def __ReleaseFixities(self):
+        for dof in self.dofset:
+            dof.Free()
