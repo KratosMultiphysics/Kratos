@@ -41,9 +41,8 @@ namespace Kratos::MaterialPointGeneratorUtility
         std::vector<array_1d<double, 3>> mp_velocity = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mp_acceleration = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mp_body_force = { ZeroVector(3) };
 
-        std::vector<Vector> mp_cauchy_stress_vector = { ZeroVector(6) };
-        std::vector<Vector> mp_almansi_strain_vector = { ZeroVector(6) };
         std::vector<double> mp_pressure = { 0.0 };
 
         std::vector<double> mp_mass(1);
@@ -106,8 +105,12 @@ namespace Kratos::MaterialPointGeneratorUtility
                     // Set element type
                     std::string element_type_name = "MPMUpdatedLagrangian";
                     if (IsMixedFormulation) {
-                        if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "MPMUpdatedLagrangianUP";
-                        else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
+                        if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 ||
+                            background_geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) {
+                            element_type_name = "MPMUpdatedLagrangianUP";
+                        } else {
+                            KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle and Quadrilateral Elements." << std::endl;
+                        }
                     }
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
                     else if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM)) {
@@ -166,6 +169,9 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                         const ProcessInfo process_info = ProcessInfo();
 
+                        const SizeType strain_size = i->GetProperties().Has(CONSTITUTIVE_LAW) ?
+                            i->GetProperties()[CONSTITUTIVE_LAW]->GetStrainSize() : 6;
+
                         // Setting material point element initial condition
                         p_element->SetValuesOnIntegrationPoints(MP_DENSITY, MP_density, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_MASS, mp_mass, process_info);
@@ -175,8 +181,9 @@ namespace Kratos::MaterialPointGeneratorUtility
                         p_element->SetValuesOnIntegrationPoints(MP_VELOCITY, mp_velocity, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, process_info);
-                        p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, process_info);
-                        p_element->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, process_info);
+                        p_element->SetValuesOnIntegrationPoints(MP_BODY_FORCE, mp_body_force, process_info);
+                        p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, { ZeroVector(strain_size) }, process_info);
+                        p_element->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, { ZeroVector(strain_size) }, process_info);
 
                         if (IsMixedFormulation)
                         {

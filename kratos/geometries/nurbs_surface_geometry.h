@@ -70,12 +70,14 @@ public:
         const SizeType PolynomialDegreeU,
         const SizeType PolynomialDegreeV,
         const Vector& rKnotsU,
-        const Vector& rKnotsV)
+        const Vector& rKnotsV,
+        const ProjectionAlgorithm ProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson)
         : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegreeU(PolynomialDegreeU)
         , mPolynomialDegreeV(PolynomialDegreeV)
         , mKnotsU(rKnotsU)
         , mKnotsV(rKnotsV)
+        , mProjectionAlgorithm(ProjectionAlgorithm)
     {
         CheckAndFitKnotVectors();
         CheckIsRationalOnlyOnce();
@@ -88,13 +90,15 @@ public:
         const SizeType PolynomialDegreeV,
         const Vector& rKnotsU,
         const Vector& rKnotsV,
-        const Vector& rWeights)
+        const Vector& rWeights,
+        const ProjectionAlgorithm ProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson)
         : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegreeU(PolynomialDegreeU)
         , mPolynomialDegreeV(PolynomialDegreeV)
         , mKnotsU(rKnotsU)
         , mKnotsV(rKnotsV)
         , mWeights(rWeights)
+        , mProjectionAlgorithm(ProjectionAlgorithm)
     {
         CheckAndFitKnotVectors();
 
@@ -521,6 +525,16 @@ public:
         rKnotLengthness[2] = 0;
     }
 
+    void SetProjectionAlgorithm(const ProjectionAlgorithm ProjectionAlgorithm)
+    {
+        mProjectionAlgorithm = ProjectionAlgorithm;
+    }
+
+    ProjectionAlgorithm GetProjectionAlgorithm() const
+    {
+        return mProjectionAlgorithm;
+    }
+
     ///@}
     ///@name Integration Info
     ///@{
@@ -793,13 +807,24 @@ public:
     {
         CoordinatesArrayType point_global_coordinates;
 
-        return ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface(
+        if (mProjectionAlgorithm == ProjectionAlgorithm::NewtonRaphson) {
+            return ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface(
+                rProjectedPointLocalCoordinates,
+                rPointGlobalCoordinates,
+                point_global_coordinates,
+                *this,
+                20,
+                Tolerance);
+        }
+
+        return ProjectionNurbsGeometryUtilities::LevenbergMarquardtSurface(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
             point_global_coordinates,
             *this,
-            20, Tolerance);
-    }
+            50,
+            Tolerance);
+    }   
 
     /** This method maps from dimension space to working space.
     * @param rResult array_1d<double, 3> with the coordinates in working space
@@ -1001,6 +1026,7 @@ private:
     Vector mKnotsV;
     Vector mWeights;
     bool mIsRational;
+    ProjectionAlgorithm mProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson;
 
     /// A NurbsSurface may refer to the BrepSurface as geometry parent.
     BaseType* mpGeometryParent = nullptr;

@@ -1,7 +1,5 @@
-# import Kratos
-
-from KratosMultiphysics import *
-from KratosMultiphysics.GeoMechanicsApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.GeoMechanicsApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -9,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests of test_classes to create the suits
 from test_excavation import KratosGeoMechanicsExcavationTests
 from test_interface import KratosGeoMechanicsInterfaceTests
-from test_reset_displacement import KratosGeoMechanicsResetDisplacementTests
+from test_reset_totals import KratosGeoMechanicsResetTotalsTests
 from test_benchmark_set_1 import KratosGeoMechanicsBenchmarkSet1
 from test_benchmark_set_2 import KratosGeoMechanicsBenchmarkSet2
 from test_soil_structure_interactions import KratosGeoMechanicsSoilStructureInteractionTests
@@ -73,6 +71,8 @@ from test_dirichlet_u_constant import KratosGeoMechanicsDirichletUConstantTests
 from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
 from test_upw_interface import KratosGeoMechanicsUPwInterfaceTests
 from test_building_pit import KratosGeoMechanicsBuildingPit
+from test_CROW_case import KratosGeoMechanicsCrowValidation
+from test_udsm_serialization import KratosGeoMechanicsUDSMSerializationTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -90,7 +90,7 @@ def AssembleTestSuites():
     # Create an array with the selected tests (Small tests):
     small_test_cases = [
                         KratosGeoMechanicsExcavationTests,
-                        KratosGeoMechanicsResetDisplacementTests,
+                        KratosGeoMechanicsResetTotalsTests,
                         KratosGeoMechanicsSoilStructureInteractionTests,
                         KratosGeoMechanicsWaterPressureTests,
                         KratosGeoMechanicsElementTypeTests,
@@ -131,6 +131,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDirichletUConstantTests,
                         KratosGeoMechanicsInterfacePreStressTests,
                         KratosGeoMechanicsUPwInterfaceTests,
+                        KratosGeoMechanicsUDSMSerializationTest,
                         ]
 
     night_test_cases = [
@@ -165,6 +166,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientThermalValidationTests,
                         KratosGeoMechanicsDSettlementValidationTests,
                         KratosGeoMechanicsBuildingPit,
+                        KratosGeoMechanicsCrowValidation,
                         ]
 
     # Create an array that contains all the tests from every testCase
