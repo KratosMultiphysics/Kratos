@@ -1,0 +1,253 @@
+{
+"orchestrator" : {
+    "name" : "Orchestrators.KratosMultiphysics.custom_sequential_orchestrator",
+    "settings" : {
+        "echo_level" : 0,
+        "execution_list" : ["prepare_lhs_and_rhss","solve_fixity_set_1", "solve_fixity_set_2"],
+        "load_from_checkpoint" : null,
+        "stage_checkpoints" : false
+    }
+},
+"stages" : {
+    "prepare_lhs_and_rhss" : {
+        "stage_preprocess" : {
+            "modelers" : [{
+                "name" : "KratosMultiphysics.modelers.import_mdpa_modeler.ImportMDPAModeler",
+                "Parameters" : {
+                    "input_filename" : "/home/tobias/repos/barcelona_debug/truss/truss",
+                    "model_part_name" : "Structure"
+                }
+            }]
+        },
+        "stage_settings" : {
+            "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_preparation",
+            "problem_data"     : {
+                "echo_level" : 0,
+                "parallel_type" : "OpenMP",
+                "start_time" : 0.0,
+                "end_time" : 0.0
+            },
+            "solver_settings"  : {
+                "solver_type" : "Static",
+                "model_part_name" : "Structure",
+                "domain_size" : 3,
+                "echo_level": 0,
+                "model_import_settings": {
+                    "input_type": "use_input_model_part"
+                },
+                "material_import_settings" :{
+                    "materials_filename": "/home/tobias/repos/barcelona_debug/truss/Materials.json"
+                },
+                "rotation_dofs": false,
+                "volumetric_strain_dofs": false
+                },
+            "future_scheme_settings" : {
+                "name" : "static_scheme",
+                "echo_level" : 0,
+                "build_settings": {
+                "name": "elimination_builder"
+                }
+            },
+            "process_combinations": {
+                "load_processes": [
+                    {
+                        "process_id": "lc1",
+                        "python_module" : "assign_vector_by_direction_to_condition_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "check"         : "DirectorVectorNonZero direction",
+                        "process_name"  : "ApplyVectorByDirectionToConditionProcess",
+                        "Parameters": {
+                            "model_part_name" : "Structure.xForce_Node1",
+                            "variable_name"   : "POINT_LOAD",
+                            "interval" : [0.0, "End"],
+                            "modulus"         : 1.0,
+                            "direction"       : [1,0.0,0.0]
+                        }
+                        
+                    },
+                    {
+                        "process_id": "lc2",
+                        "python_module" : "assign_vector_by_direction_to_condition_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "check"         : "DirectorVectorNonZero direction",
+                        "process_name"  : "ApplyVectorByDirectionToConditionProcess",
+                        "Parameters": {
+                            "model_part_name" : "Structure.xForce_Node2",
+                            "variable_name"   : "POINT_LOAD",
+                            "interval" : [0.0, "End"],
+                            "modulus"         : 1.0,
+                            "direction"       : [1.0,0.0,0.0]
+                        }
+                        
+                    }],
+                "fixity_processes": [{
+                    "process_id" : "fix1",
+                    "python_module" : "assign_vector_variable_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "help"          : "This process fixes the selected components of a given vector variable",
+                    "process_name"  : "AssignVectorVariableProcess",
+                    "Parameters"    : {
+                        "model_part_name" : "Structure.SPC_Group_Node1",
+                        "variable_name"   : "DISPLACEMENT",
+                        "interval" : [0.0, "End"],
+                        "constrained"	  : [true,true,true],
+                        "value"           : [
+                            0.0,
+                            0.0,
+                            0.0
+                        ]
+                    }
+                    },{
+                    "process_id" : "fix2",
+                    "python_module" : "assign_vector_variable_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "help"          : "This process fixes the selected components of a given vector variable",
+                    "process_name"  : "AssignVectorVariableProcess",
+                    "Parameters"    : {
+                        "model_part_name" : "Structure.SPC_Group_Node2",
+                        "variable_name"   : "DISPLACEMENT",
+                        "interval" : [0.0, "End"],
+                        "constrained"	  : [false,true,true],
+                        "value"           : [0.0,0.0,0.0]
+                    }
+                    },
+                    {
+                    "process_id" : "fix3",
+                    "python_module" : "assign_vector_variable_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "help"          : "This process fixes the selected components of a given vector variable",
+                    "process_name"  : "AssignVectorVariableProcess",
+                    "Parameters"    : {
+                        "model_part_name" : "Structure.SPC_Group_Node1",
+                        "variable_name"   : "DISPLACEMENT",
+                        "interval" : [0.0, "End"],
+                        "constrained"	  : [false,true,true],
+                        "value"           : [
+                            0.0,
+                            0.0,
+                            0.0
+                        ]
+                    }
+                    },
+                    {
+                    "process_id" : "fix4",
+                    "python_module" : "assign_vector_variable_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "help"          : "This process fixes the selected components of a given vector variable",
+                    "process_name"  : "AssignVectorVariableProcess",
+                    "Parameters"    : {
+                        "model_part_name" : "Structure.SPC_Group_Node2",
+                        "variable_name"   : "DISPLACEMENT",
+                        "interval" : [0.0, "End"],
+                        "constrained"	  : [true,true,true],
+                        "value"           : [
+                            0.0,
+                            0.0,
+                            0.0
+                        ]
+                    }
+                    }]},
+                "processes" : {
+                    "constraints_process_list" : [],
+                    "loads_process_list" : [],
+                    "list_other_processes"  :   []
+                },
+                "stage_postprocess" : {}
+            }},
+    "solve_fixity_set_1" : {
+        "stage_preprocess" : {
+            "get_output_data" : "prepare_lhs_and_rhss"
+        },
+        "stage_settings" : {
+            "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_analysis",
+            "problem_data": {
+                "echo_level" : 0,
+                "parallel_type" : "OpenMP",
+                "start_time" : 0.0,
+                "end_time" : 0.0
+            },
+            "process_combinations" : {
+                "fixity_ids" : ["fix1", "fix2"],
+                "combinations" : [
+                {
+                    "combination_id" : 12,
+                    "combination_factor" : 10.0,
+                    "loads" : [
+                        {"load_process_id" : "lc2", "load_factor" : 1.0}
+                    ]
+                }
+            ]},
+            "solver_settings": {
+                "solver_type" : "Static",
+                "model_part_name" : "Structure",
+                "domain_size" : 2,
+                "echo_level": 0,
+                "model_import_settings": {
+                    "input_type": "use_input_model_part"
+                },
+                "material_import_settings" :{
+                    "materials_filename": "/home/tobias/barcelona/debug_model/truss/Materials.json"
+                },
+                "rotation_dofs": false,
+                "volumetric_strain_dofs": false
+                },
+            "future_scheme_settings" : {
+                "name" : "static_scheme",
+                "echo_level" : 0,
+                "build_settings": {
+                "name": "elimination_builder"
+                }
+            },
+            "processes": {},
+            "output_processes": {}
+        }
+    },
+    "solve_fixity_set_2" : {
+        "stage_preprocess" : {
+            "get_output_data" : "prepare_lhs_and_rhss"
+        },
+        "stage_settings" : {
+            "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_analysis",
+            "problem_data": {
+                "echo_level" : 0,
+                "parallel_type" : "OpenMP",
+                "start_time" : 0.0,
+                "end_time" : 0.0
+            },
+            "process_combinations" : {
+                "fixity_ids" : ["fix3", "fix4"],
+                "combinations" : [
+                {
+                    "combination_id" : 4,
+                    "combination_factor" : 10.0,
+                    "loads" : [
+                        {"load_process_id" : "lc1", "load_factor" : 1.0}
+                    ]
+                }
+            ]},
+            "solver_settings": {
+                "solver_type" : "Static",
+                "model_part_name" : "Structure",
+                "domain_size" : 2,
+                "echo_level": 0,
+                "model_import_settings": {
+                    "input_type": "use_input_model_part"
+                },
+                "material_import_settings" :{
+                    "materials_filename": "/home/tobias/barcelona/debug_model/truss/Materials.json"
+                },
+                "rotation_dofs": false,
+                "volumetric_strain_dofs": false
+                },
+            "future_scheme_settings" : {
+                "name" : "static_scheme",
+                "echo_level" : 0,
+                "build_settings": {
+                "name": "elimination_builder"
+                }
+            },
+            "processes": {},
+            "output_processes": {}
+        }
+    }
+}}
