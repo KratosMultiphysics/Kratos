@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "test_Transient_Case_A1_2D3N_stage1",
+        "problem_name":         "test_Transient_Case_A1_2D6N_stage1",
         "start_time":           -1.0,
         "end_time":             0.0,
         "echo_level":           1,
@@ -13,7 +13,7 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_Transient_Case_A1_2D3N_stage1"
+            "input_filename":   "test_Transient_Case_A1_2D6N_stage1"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters_stage1.json"
@@ -75,7 +75,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_Transient_Case_A1_2D3N_stage1",
+                "output_name": "test_Transient_Case_A1_2D6N_stage1",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
