@@ -32,23 +32,6 @@ class UnvOutputProcess(KratosMultiphysics.OutputProcess):
         """
         KratosMultiphysics.OutputProcess.__init__(self)
 
-        # IMPORTANT: when "output_control_type" is "time",
-        # then paraview will not be able to group them
-        default_parameters = KratosMultiphysics.Parameters("""{
-            "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "output_control_type"                         : "step",
-            "output_interval"                             : 1.0,
-            "output_path"                                 : "UNV_Output",
-            "custom_name_prefix"                          : "",
-            "custom_name_postfix"                         : "",                                     
-            "save_output_files_in_folder"                 : true,
-            "entity_type"                                 : "automatic",
-            "write_deformed_configuration"                : false,
-            "nodal_solution_step_data_variables"          : [],
-            "nodal_data_value_variables"                  : []
-        }""")
-
-        # Validate the provided settings against the default parameters, adding any missing parameters from the defaults
         model_part_name = settings["model_part_name"].GetString()
         self.model = model
         self.settings = settings
@@ -56,18 +39,17 @@ class UnvOutputProcess(KratosMultiphysics.OutputProcess):
         # Warning: we may be changing the parameters object here:
         self.TranslateLegacyVariablesAccordingToCurrentStandard(settings)
 
-        # Validate the settings against the default parameters, adding any missing parameters from the defaults
-        self.settings.ValidateAndAssignDefaults(default_parameters)
+        # Initialize the UNV output handler with the model and settings. The default settings can be
+        # found in "unv_output.cpp"; constructing the handler also validates the settings.
+        self.unv_io = KratosMultiphysics.UnvOutput(self.model, self.settings)
 
-        # Ensure the output path exists, creating it if necessary
-        output_path = self.settings["output_path"].GetString()
-        save_output_files_in_folder = self.settings["save_output_files_in_folder"].GetBool()
-        if save_output_files_in_folder:
+        # Ensure the output path exists, creating it if necessary (must happen before writing the mesh)
+        if self.settings["save_output_files_in_folder"].GetBool():
+            output_path = self.settings["output_path"].GetString()
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
 
-        # Initialize the UNV output handler with the model and settings, and prepare the mesh for output
-        self.unv_io = KratosMultiphysics.UnvOutput(self.model, self.settings)
+        # Prepare the mesh for output
         self.unv_io.InitializeMesh()
         self.unv_io.WriteMesh()
 
