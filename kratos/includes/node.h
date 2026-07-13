@@ -72,6 +72,12 @@ public:
     /// Pointer definition of Node
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Node);
 
+    /// Disambiguation: under the Eigen backend the Point base (through
+    /// array_1d -> Eigen::Matrix) also inherits an enum constant named Flags
+    /// from Eigen::DenseBase, so the Kratos flags base must be named
+    /// explicitly inside this class.
+    using Flags = Kratos::Flags;
+
     /// Base type
     using BaseType = Point;
 
@@ -231,6 +237,26 @@ public:
      */
     template<class TVectorType>
     Node(IndexType NewId, vector_expression<TVectorType> const& rOtherCoordinates)
+        : BaseType(rOtherCoordinates)
+        , Flags()
+        , mNodalData(NewId)
+        , mDofs()
+        , mData()
+        , mInitialPosition(rOtherCoordinates)
+        , mNodeLock()
+    {
+        CreateSolutionStepData();
+    }
+
+    /**
+     * @brief Constructor using the coordinates stored in an array_1d.
+     * @details Kept as a dedicated overload because under the Eigen backend
+     * array_1d is not a uBLAS vector expression, so it would not bind to the
+     * templated vector-expression constructor above.
+     * @param NewId The unique index identifier of the node.
+     * @param rOtherCoordinates The array containing the node coordinates.
+     */
+    Node(IndexType NewId, const array_1d<double, 3>& rOtherCoordinates)
         : BaseType(rOtherCoordinates)
         , Flags()
         , mNodalData(NewId)
