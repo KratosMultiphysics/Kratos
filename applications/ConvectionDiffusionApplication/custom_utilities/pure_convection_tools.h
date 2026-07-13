@@ -86,14 +86,10 @@ public:
         std::vector< int > work_array;
         work_array.reserve(1000);
 
-        //guessing the total size of the matrix
-        mA.resize(mEquationSystemSize, mEquationSystemSize, tot_nnz);
-
-        //getting the dof position
-        //unsigned int dof_position = (model_part.NodesBegin())->GetDofPosition(rScalarVar);
-
-        //building up the matrix graph row by row
-        //int total_size = 0;
+        //building up the matrix graph row by row (collected first, then the
+        //compressed CSR arrays are written directly: push_back is a
+        //uBLAS-only idiom and the rows are not visited in row order anyway)
+        std::vector< std::vector<int> > matrix_graph(mEquationSystemSize);
         for (auto it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
         {
             unsigned int index_i = it->GetDof(rScalarVar).EquationId();
@@ -114,13 +110,8 @@ public:
                 //sorting the indices and eliminating the duplicates
                 std::sort(work_array.begin(),work_array.end());
                 typename std::vector<int>::iterator new_end = std::unique(work_array.begin(),work_array.end());
-                unsigned int number_of_entries = new_end - work_array.begin();
 
-                //filling up the matrix
-                for(unsigned int j=0; j<number_of_entries; j++)
-                {
-                    mA.push_back(index_i,work_array[j] , 0.00);
-                }
+                matrix_graph[index_i].assign(work_array.begin(), new_end);
 
                 //clearing the array for the next step
                 work_array.erase(work_array.begin(),work_array.end());
@@ -130,6 +121,29 @@ public:
 
 
 
+        }
+
+        // write the compressed CSR arrays from the collected graph
+        std::size_t total_entries = 0;
+        for (const auto& r_row : matrix_graph)
+            total_entries += r_row.size();
+
+        mA = TSystemMatrixType(mEquationSystemSize, mEquationSystemSize, total_entries);
+        {
+            auto row_indices = mA.index1_data();
+            auto col_indices = mA.index2_data();
+            auto values = mA.value_data();
+            row_indices[0] = 0;
+            std::size_t counter = 0;
+            for (std::size_t i = 0; i < mEquationSystemSize; ++i) {
+                for (const int col : matrix_graph[i]) {
+                    col_indices[counter] = col;
+                    values[counter] = 0.0;
+                    ++counter;
+                }
+                row_indices[i + 1] = counter;
+            }
+            mA.set_filled(mEquationSystemSize + 1, counter);
         }
 
         mDx.resize(mA.size1(),false);

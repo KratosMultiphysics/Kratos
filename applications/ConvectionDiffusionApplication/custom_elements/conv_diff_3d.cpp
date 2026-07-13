@@ -180,7 +180,7 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
       tau1 = (h * h) / (density * specific_heat * BDFcoeffs[0] * h * h + c1 * conductivity + c2 * density * specific_heat * (norm_u + 1e-6) * h);
     }
 
-    noalias(First) = outer_prod(ms_vel_gauss, trans(ms_vel_gauss));
+    noalias(First) = outer_prod(ms_vel_gauss, ms_vel_gauss);
     First /= ((norm_u + 1e-6)*(norm_u + 1e-6));
     noalias(Second) = Identity - First;
     noalias(Third) = prod(Second, trans(msDN_DX));
