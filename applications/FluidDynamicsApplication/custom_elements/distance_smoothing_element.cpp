@@ -335,14 +335,14 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
                         if (geometry[i].Is(CONTACT) )
                         {
                             solid_normal = geometry[i].FastGetSolutionStepValue(NORMAL);
-                            const double norm = Kratos::norm_2(solid_normal);
+                            const double norm = norm_2(solid_normal);
 #ifdef KRATOS_DEBUG
                             KRATOS_WARNING_IF("DistanceSmoothingElement", norm < 1.0e-12) << "WARNING: Normal close to zero" <<std::endl;
 #endif
                             solid_normal = (1.0/norm)*solid_normal;
                         }
 
-                        temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, grad_phi_old[i]);
+                        temp_value += face_shape_func(i)*inner_prod(solid_normal, grad_phi_old[i]);
                     }
 
                     for (unsigned int i = 0; i < num_nodes; i++){
@@ -483,14 +483,14 @@ void DistanceSmoothingElement<3>::CalculateLocalSystem(
                         if (geometry[i].Is(CONTACT) )
                         {
                             solid_normal = geometry[i].FastGetSolutionStepValue(NORMAL);
-                            const double norm = Kratos::norm_2(solid_normal);
+                            const double norm = norm_2(solid_normal);
 #ifdef KRATOS_DEBUG
                             KRATOS_WARNING_IF("DistanceSmoothingElement", norm < 1.0e-12) << "WARNING: Normal close to zero" <<std::endl;
 #endif
                             solid_normal = (1.0/norm)*solid_normal;
                         }
 
-                        temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, grad_phi_old[i]);
+                        temp_value += face_shape_func(i)*inner_prod(solid_normal, grad_phi_old[i]);
                     }
 
                     for (unsigned int i = 0; i < num_nodes; i++){

@@ -730,7 +730,7 @@ void DVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     Vector sigma_U, grad_div_u, div_sym_grad_u;
 
     for (unsigned int i = 0; i < NumNodes; i++) {
-        const array_1d<double,Dim>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
+        const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
         array_1d<double,Dim> sigma_U = ZeroVector(Dim);
         grad_div_u = ZeroVector(Dim);
         div_sym_grad_u = ZeroVector(Dim);
@@ -1452,7 +1452,11 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
     array_1d<double,3> predicted_subscale_velocity = ZeroVector(3);
 
     const array_1d<double,3>& r_old_subscale_velocity = mOldSubscaleVelocity[rData.IntegrationPointIndex];
-    array_1d<double, 3> previous_velocity = mPreviousVelocity[rData.IntegrationPointIndex];
+    // the previous-velocity history is stored with Dim components
+    array_1d<double, 3> previous_velocity = ZeroVector(3);
+    const auto& r_previous_velocity = mPreviousVelocity[rData.IntegrationPointIndex];
+    for (unsigned int d = 0; d < Dim; ++d)
+        previous_velocity[d] = r_previous_velocity[d];
     array_1d<double, 3> subscale_velocity_on_previous_iteration = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
     array_1d<double,3> v_d = ZeroVector(Dim);
 
@@ -1533,7 +1537,12 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
 
     BoundedMatrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
     array_1d<double,Dim> rhs = ZeroVector(Dim);
-    array_1d<double,Dim> u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
+    // Use last result as initial guess (the subscale history is stored as
+    // 3-component arrays; only the first Dim components are meaningful)
+    array_1d<double,Dim> u;
+    const array_1d<double,3>& r_predicted_subscale = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
+    for (unsigned int d = 0; d < Dim; ++d)
+        u[d] = r_predicted_subscale[d];
     array_1d<double,Dim> du = ZeroVector(Dim);
 
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
