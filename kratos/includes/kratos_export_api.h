@@ -21,9 +21,15 @@
 #undef KRATOS_API_EXPORT
 #undef KRATOS_API_IMPORT
 #if defined(_WIN32) || defined(_WIN64)
-    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER) || defined(__clang__)
+    #if defined(__MINGW32__) || defined(__MINGW64__)
         #define KRATOS_API_EXPORT __attribute__((visibility("default")))
         #define KRATOS_API_IMPORT __attribute__((visibility("default")))
+    #elif defined(__INTEL_LLVM_COMPILER) || defined(__clang__)
+        // clang-cl/icx target the MSVC ABI: real dllexport/dllimport are required (visibility
+        // attributes are no-ops in PE/COFF). In particular, imported static data members and
+        // inline members of imported classes only resolve through __imp_-prefixed symbols.
+        #define KRATOS_API_EXPORT __declspec(dllexport)
+        #define KRATOS_API_IMPORT __declspec(dllimport)
     #else
         #define KRATOS_API_EXPORT __declspec(dllexport)
         #define KRATOS_API_IMPORT __declspec(dllimport)
