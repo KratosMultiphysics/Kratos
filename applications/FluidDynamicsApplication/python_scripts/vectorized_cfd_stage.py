@@ -1505,7 +1505,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             sol, info = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration, xp=xp, return_info_dict=True)
 
             if info["converged"] == False:
-                KM.Logger.PrintWarning(self.__class__.__name__, "CG failed to converge.")
+                KM.Logger.PrintWarning(self.__class__.__name__, f"CG failed to converge in {info["iterations"]}. Residual norm: {info["residual_norm"]}.")
             else:
                 if (self.echo_level > 0):
                     KM.Logger.PrintInfo(self.__class__.__name__, f"CG converged in {info["iterations"]} iterations.")
