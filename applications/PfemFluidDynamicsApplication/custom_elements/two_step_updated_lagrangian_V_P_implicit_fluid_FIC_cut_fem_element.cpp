@@ -173,7 +173,7 @@ namespace Kratos
                 BoundedMatrix<double, TDim, StrainSize> voigt_normal;
                 CalculateBMatrix(g_DN_DX, B);
                 VoigtTransformForProduct(r_g_unit_normal, voigt_normal);
-                BoundedMatrix<double, StrainSize, TDim *NumNodes> aux_BC = prod(trans(B), trans(r_constitutive_matrix));
+                BoundedMatrix<double, TDim * NumNodes, StrainSize> aux_BC = prod(trans(B), trans(r_constitutive_matrix));
                 BoundedMatrix<double, TDim * NumNodes, TDim> aux_BC_proj = prod(aux_BC, trans(voigt_normal));
 
                 // Cut-FEM boundary condition Nitsche imposition
