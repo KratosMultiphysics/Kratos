@@ -177,7 +177,17 @@ public:
             if (k != j)
                 ia2(j_sub++) = k;
 
-        boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+        // The minor extraction relies on the ublas matrix_indirect proxy, so
+        // it works on a local ublas dynamic copy independently of the
+        // (possibly fixed-size, possibly non-ublas) input matrix type
+        Matrix mat_copy(rMat.size1(), rMat.size2());
+        for (IndexType k = 0; k < rMat.size1(); ++k) {
+            for (IndexType l = 0; l < rMat.size2(); ++l) {
+                mat_copy(k, l) = rMat(k, l);
+            }
+        }
+
+        boost::numeric::ublas::matrix_indirect<const Matrix, IndirectArrayType> sub_mat(mat_copy, ia1, ia2);
         const double first_minor = Det(sub_mat);
         return ((i + j) % 2) ? -first_minor : first_minor;
     }
@@ -364,39 +374,27 @@ public:
             InvertMatrix3(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
         } else if (size == 4) {
             InvertMatrix4(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
-        } else if (std::is_same<TMatrix1, Matrix>::value) {
-
+        } else {
             const SizeType size1 = rInputMatrix.size1();
             const SizeType size2 = rInputMatrix.size2();
             if(rInvertedMatrix.size1() != size1 || rInvertedMatrix.size2() != size2) {
                 rInvertedMatrix.resize(size1, size2,false);
             }
 
-            Matrix A(rInputMatrix);
-            typedef permutation_matrix<SizeType> pmatrix;
-            pmatrix pm(A.size1());
-            const int singular = lu_factorize(A,pm);
-            rInvertedMatrix.assign( IdentityMatrix(A.size1()));
-            KRATOS_ERROR_IF(singular == 1) << "Matrix is singular: " << rInputMatrix << std::endl;
-            lu_substitute(A, pm, rInvertedMatrix);
-
-            // Calculating determinant
-            rInputMatrixDet = 1.0;
-
-            for (IndexType i = 0; i < size1;++i) {
-                IndexType ki = pm[i] == i ? 0 : 1;
-                rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
+            // The LU factorization works on local ublas dynamic copies so the
+            // same code serves any (possibly fixed-size, possibly non-ublas)
+            // input/output matrix types
+            Matrix A(size1, size2);
+            for (IndexType i = 0; i < size1; ++i) {
+                for (IndexType j = 0; j < size2; ++j) {
+                    A(i,j) = rInputMatrix(i,j);
+                }
             }
-       } else { // Bounded-matrix case
-            const SizeType size1 = rInputMatrix.size1();
-            const SizeType size2 = rInputMatrix.size2();
-
-            Matrix A(rInputMatrix);
-            Matrix invA(rInvertedMatrix);
 
             typedef permutation_matrix<SizeType> pmatrix;
             pmatrix pm(size1);
             const int singular = lu_factorize(A,pm);
+            Matrix invA(size1, size2);
             invA.assign( IdentityMatrix(size1));
             KRATOS_ERROR_IF(singular == 1) << "Matrix is singular: " << rInputMatrix << std::endl;
             lu_substitute(A, pm, invA);
@@ -1089,8 +1087,19 @@ public:
     {
         KRATOS_TRY
 
-        for(IndexType i = 0; i < rInputMatrix.size1(); ++i) {
-            for(IndexType j = 0; j < rInputMatrix.size2(); ++j) {
+        // the sizes are queried through whichever interface the (possibly
+        // lazy expression) argument provides: size1/size2 for the uBLAS
+        // family, rows/cols for the Eigen one
+        const auto size_1 = [&rInputMatrix]() {
+            if constexpr (requires { rInputMatrix.size1(); }) return static_cast<IndexType>(rInputMatrix.size1());
+            else return static_cast<IndexType>(rInputMatrix.rows());
+        }();
+        const auto size_2 = [&rInputMatrix]() {
+            if constexpr (requires { rInputMatrix.size2(); }) return static_cast<IndexType>(rInputMatrix.size2());
+            else return static_cast<IndexType>(rInputMatrix.cols());
+        }();
+        for(IndexType i = 0; i < size_1; ++i) {
+            for(IndexType j = 0; j < size_2; ++j) {
                 rDestination(InitialRow+i, InitialCol+j) += rInputMatrix(i,j);
             }
         }
