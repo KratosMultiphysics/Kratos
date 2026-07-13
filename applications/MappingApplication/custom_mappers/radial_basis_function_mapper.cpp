@@ -19,6 +19,7 @@
 #include "mapping_application_variables.h"
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 
 // External includes
 
@@ -518,13 +519,13 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternal(
         const IndexType n_origin_dof = r_origin_vec.size();
         const IndexType n_poly       = system_size - n_origin_dof;
 
-        Vector rhs(system_size);
+        typename TSparseSpace::VectorType rhs(system_size);
         for (IndexType i = 0; i < n_origin_dof; ++i)
             rhs[i] = r_origin_vec[i];
         for (IndexType i = 0; i < n_poly; ++i)
             rhs[n_origin_dof + i] = 0.0;
 
-        Vector solution(system_size);
+        typename TSparseSpace::VectorType solution(system_size);
         mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, rhs);
 
         TSparseSpace::Mult(
@@ -563,14 +564,14 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
         // solve RBF system on the fly 
         const IndexType system_size = mpOriginInterpolationMatrix->size1();
 
-        Vector temp_vector_1(system_size);
+        typename TSparseSpace::VectorType temp_vector_1(system_size);
         TSparseSpace::TransposeMult(
             *mpDestinationEvaluationMatrix,
             r_dest_vec,
             temp_vector_1
         );
 
-        Vector temp_vector_2(system_size);
+        typename TSparseSpace::VectorType temp_vector_2(system_size);
         mpLinearSolver->Solve(*mpOriginInterpolationMatrix, temp_vector_2, temp_vector_1);
 
         const IndexType n_origin_dof = r_origin_vec.size();
@@ -744,7 +745,27 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIgaOnC
         n_cp                       // number of control points on origin interface
     );
 
-    noalias(*pMappingMatrix) = prod(rMappingMatrixGP, N_reduced);
+    // the dense shape-function factor is packed into compressed storage so
+    // the backend-generic sparse multiplication utility can be used
+    const IndexType n_gp_rows = N_reduced.size1();
+    MappingMatrixType n_reduced_sparse(n_gp_rows, n_cp, n_gp_rows * n_cp);
+    {
+        auto row_indices = n_reduced_sparse.index1_data();
+        auto col_indices = n_reduced_sparse.index2_data();
+        auto values = n_reduced_sparse.value_data();
+        row_indices[0] = 0;
+        IndexType counter = 0;
+        for (IndexType i = 0; i < n_gp_rows; ++i) {
+            for (IndexType j = 0; j < n_cp; ++j) {
+                col_indices[counter] = j;
+                values[counter] = N_reduced(i, j);
+                ++counter;
+            }
+            row_indices[i + 1] = counter;
+        }
+        n_reduced_sparse.set_filled(n_gp_rows + 1, counter);
+    }
+    SparseMatrixMultiplicationUtility::MatrixMultiplication(rMappingMatrixGP, n_reduced_sparse, *pMappingMatrix);
 
     return pMappingMatrix;
 }

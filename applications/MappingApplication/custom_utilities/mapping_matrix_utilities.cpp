@@ -87,8 +87,8 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         NumNodesOrigin,
         num_non_zero_entries);
 
-    IndexType* p_matrix_row_indices = p_Mdo->index1_data().begin();
-    IndexType* p_matrix_col_indices = p_Mdo->index2_data().begin();
+    auto* p_matrix_row_indices = p_Mdo->index1_data().begin();
+    auto* p_matrix_col_indices = p_Mdo->index2_data().begin();
     double*    p_matrix_values       = p_Mdo->value_data().begin();
 
     IndexPartition<IndexType>(NumNodesDestination + 1).for_each([&](IndexType i) {
@@ -125,7 +125,11 @@ void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>
 
         for (IndexType i = 0; i < rTls.destination_ids.size(); ++i) {
             for (IndexType j = 0; j < rTls.origin_ids.size(); ++j) {
-                AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]).ref(), rTls.local_mapping_matrix(i,j));
+                if constexpr (requires { (*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]).ref(); }) {
+                    AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]).ref(), rTls.local_mapping_matrix(i,j)); // ublas sparse element proxy
+                } else {
+                    AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]), rTls.local_mapping_matrix(i,j)); // direct reference (Eigen)
+                }
             }
         }
 
