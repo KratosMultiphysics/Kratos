@@ -110,14 +110,21 @@ std::vector<UnvElementRecord> ParseElements(const UnvBlock& rBlock)
     return records;
 }
 
-/// Writes the mesh of the given model part to a UNV file and returns the parsed blocks.
-std::vector<UnvBlock> WriteAndParse(ModelPart& rModelPart, const std::string& rName)
+/// Writes the mesh of the "Main" model part to a UNV file and returns the parsed blocks.
+std::vector<UnvBlock> WriteAndParse(Model& rModel, const bool Decompose)
 {
-    const std::string file_name = rName + ".unv";
+    Parameters parameters(R"({
+        "model_part_name"                 : "Main",
+        "save_output_files_in_folder"     : false,
+        "decompose_quadratic_into_linear" : false
+    })");
+    parameters["decompose_quadratic_into_linear"].SetBool(Decompose);
+
+    const std::string file_name = "Main.unv";
     if (std::filesystem::exists(file_name)) {
         std::filesystem::remove(file_name);
     }
-    UnvOutput unv_output(rModelPart, rName);
+    UnvOutput unv_output(rModel, parameters);
     unv_output.InitializeOutputFile();
     unv_output.WriteMesh();
     return ParseUnvBlocks(file_name);
@@ -135,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputLinearTriangle, KratosCoreFastSuite)
     r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
     r_model_part.CreateNewElement("Element2D3N", 1, std::vector<ModelPart::IndexType>{1, 2, 3}, p_prop);
 
-    const auto blocks = WriteAndParse(r_model_part, "test_unv_tri3");
+    const auto blocks = WriteAndParse(current_model, false);
 
     const UnvBlock* p_nodes = GetBlock(blocks, 2411);
     KRATOS_EXPECT_NE(p_nodes, nullptr);
@@ -160,7 +167,7 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputQuadraticTetrahedra, KratosCoreFastSuite)
     }
     r_model_part.CreateNewElement("Element3D10N", 1, std::vector<ModelPart::IndexType>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, p_prop);
 
-    const auto blocks = WriteAndParse(r_model_part, "test_unv_tet10");
+    const auto blocks = WriteAndParse(current_model, false);
     const UnvBlock* p_elements = GetBlock(blocks, 2412);
     KRATOS_EXPECT_NE(p_elements, nullptr);
     const auto elements = ParseElements(*p_elements);
@@ -183,7 +190,7 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputQuadraticHexahedra, KratosCoreFastSuite)
     }
     r_model_part.CreateNewElement("Element3D20N", 1, connectivity, p_prop);
 
-    const auto blocks = WriteAndParse(r_model_part, "test_unv_hex20");
+    const auto blocks = WriteAndParse(current_model, false);
     const UnvBlock* p_elements = GetBlock(blocks, 2412);
     KRATOS_EXPECT_NE(p_elements, nullptr);
     const auto elements = ParseElements(*p_elements);
@@ -203,7 +210,7 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputBeamRecord, KratosCoreFastSuite)
     r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
     r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_prop); // Line2D2
 
-    const auto blocks = WriteAndParse(r_model_part, "test_unv_beam");
+    const auto blocks = WriteAndParse(current_model, false);
     const UnvBlock* p_elements = GetBlock(blocks, 2412);
     KRATOS_EXPECT_NE(p_elements, nullptr);
     // The parser skips the orientation record for beams; connectivity must be the two nodes.
@@ -226,7 +233,7 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputDegradeQuadratic9Quad, KratosCoreFastSuite)
     }
     r_model_part.CreateNewElement("Element2D9N", 1, std::vector<ModelPart::IndexType>{1, 2, 3, 4, 5, 6, 7, 8, 9}, p_prop);
 
-    const auto blocks = WriteAndParse(r_model_part, "test_unv_quad9");
+    const auto blocks = WriteAndParse(current_model, false);
     const auto elements = ParseElements(*GetBlock(blocks, 2412));
     KRATOS_EXPECT_EQ(elements.size(), 1u);
     KRATOS_EXPECT_EQ(elements[0].fe_id, 45); // Plane Stress Parabolic Quadrilateral (degraded)
@@ -247,7 +254,7 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputDegradeHexahedra27, KratosCoreFastSuite)
     }
     r_model_part.CreateNewElement("Element3D27N", 1, connectivity, p_prop);
 
-    const auto blocks = WriteAndParse(r_model_part, "test_unv_hex27");
+    const auto blocks = WriteAndParse(current_model, false);
     const auto elements = ParseElements(*GetBlock(blocks, 2412));
     KRATOS_EXPECT_EQ(elements.size(), 1u);
     KRATOS_EXPECT_EQ(elements[0].fe_id, 116); // degraded to 20-node parabolic brick
@@ -337,9 +344,10 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputSubModelPartGroups, KratosCoreFastSuite)
         std::filesystem::remove(name + ".unv");
     }
     Parameters parameters(R"({
-        "model_part_name"             : "Main",
-        "save_output_files_in_folder" : false,
-        "output_sub_model_parts"      : true
+        "model_part_name"                 : "Main",
+        "save_output_files_in_folder"     : false,
+        "output_sub_model_parts"          : true,
+        "decompose_quadratic_into_linear" : false
     })");
     UnvOutput unv_output(current_model, parameters);
     unv_output.InitializeOutputFile();
@@ -394,6 +402,77 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputFlagsIdsAndGaussPoints, KratosCoreFastSuite)
     }
     // 1 nodal flag + 1 gauss-in-elements + 3 id datasets (node/element/condition)
     KRATOS_EXPECT_EQ(result_datasets, 5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UnvOutputDecomposeQuadraticTetrahedra, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    auto p_prop = r_model_part.CreateNewProperties(1);
+    for (std::size_t i = 1; i <= 10; ++i) {
+        r_model_part.CreateNewNode(i, static_cast<double>(i), 0.0, 0.0);
+    }
+    r_model_part.CreateNewElement("Element3D10N", 1, std::vector<ModelPart::IndexType>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, p_prop);
+
+    const auto blocks = WriteAndParse(current_model, true);
+    const auto elements = ParseElements(*GetBlock(blocks, 2412));
+    // Tet10 decomposes into 8 linear tetrahedra (FE 111)
+    KRATOS_EXPECT_EQ(elements.size(), 8u);
+    for (const auto& r_element : elements) {
+        KRATOS_EXPECT_EQ(r_element.fe_id, 111);
+        KRATOS_EXPECT_EQ(r_element.connectivity.size(), 4u);
+    }
+    // First sub-tet uses Kratos indices [0,4,6,7] -> node ids 1,5,7,8
+    const std::vector<int> expected_first{1, 5, 7, 8};
+    KRATOS_EXPECT_EQ(elements[0].connectivity, expected_first);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UnvOutputDecomposeQuadraticTriangle, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    auto p_prop = r_model_part.CreateNewProperties(1);
+    for (std::size_t i = 1; i <= 6; ++i) {
+        r_model_part.CreateNewNode(i, static_cast<double>(i), 0.0, 0.0);
+    }
+    r_model_part.CreateNewElement("Element2D6N", 1, std::vector<ModelPart::IndexType>{1, 2, 3, 4, 5, 6}, p_prop);
+
+    const auto blocks = WriteAndParse(current_model, true);
+    const auto elements = ParseElements(*GetBlock(blocks, 2412));
+    // Tri6 decomposes into 4 linear triangles (FE 41)
+    KRATOS_EXPECT_EQ(elements.size(), 4u);
+    for (const auto& r_element : elements) {
+        KRATOS_EXPECT_EQ(r_element.fe_id, 41);
+        KRATOS_EXPECT_EQ(r_element.connectivity.size(), 3u);
+    }
+    // First sub-triangle uses Kratos indices [0,3,5] -> node ids 1,4,6
+    const std::vector<int> expected_first{1, 4, 6};
+    KRATOS_EXPECT_EQ(elements[0].connectivity, expected_first);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UnvOutputDecomposeIsDefaultOn, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    auto p_prop = r_model_part.CreateNewProperties(1);
+    for (std::size_t i = 1; i <= 10; ++i) {
+        r_model_part.CreateNewNode(i, static_cast<double>(i), 0.0, 0.0);
+    }
+    r_model_part.CreateNewElement("Element3D10N", 1, std::vector<ModelPart::IndexType>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, p_prop);
+
+    // The lightweight (ModelPart, name) constructor uses the default, which decomposes into linear.
+    const std::string file_name = "test_unv_default.unv";
+    if (std::filesystem::exists(file_name)) {
+        std::filesystem::remove(file_name);
+    }
+    UnvOutput unv_output(r_model_part, "test_unv_default");
+    unv_output.InitializeOutputFile();
+    unv_output.WriteMesh();
+
+    const auto blocks = ParseUnvBlocks(file_name);
+    const auto elements = ParseElements(*GetBlock(blocks, 2412));
+    KRATOS_EXPECT_EQ(elements.size(), 8u); // decomposed by default
+    KRATOS_EXPECT_EQ(elements[0].fe_id, 111);
 }
 
 } // namespace Kratos::Testing

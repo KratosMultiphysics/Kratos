@@ -132,6 +132,7 @@ UnvOutput::UnvOutput(
 
     // General output settings
     mDefaultPrecision = Settings["output_precision"].GetInt();
+    mDecomposeQuadraticIntoLinear = Settings["decompose_quadratic_into_linear"].GetBool();
     mWriteDeformedConfiguration = Settings["write_deformed_configuration"].GetBool();
     mWriteIds = Settings["write_ids"].GetBool();
     mOutputSubModelParts = Settings["output_sub_model_parts"].GetBool();
@@ -466,6 +467,94 @@ bool UnvOutput::TryGetUnvDescriptor(
     }
 }
 
+bool UnvOutput::TryGetLinearDecomposition(
+    const GeometryData::KratosGeometryType Type,
+    UnvLinearDecomposition& rOut
+    )
+{
+    using GeometryType = GeometryData::KratosGeometryType;
+    switch (Type) {
+        // Lines / beams
+        case GeometryType::Kratos_Line2D2:
+        case GeometryType::Kratos_Line3D2:
+            rOut = {21, 21, 2, true, false, {{0, 1}}};
+            return true;
+        case GeometryType::Kratos_Line2D3:
+        case GeometryType::Kratos_Line3D3:
+            // Split the 3-node line into two linear segments.
+            rOut = {21, 21, 2, true, false, {{0, 2}, {2, 1}}};
+            return true;
+        // Triangles
+        case GeometryType::Kratos_Triangle2D3:
+        case GeometryType::Kratos_Triangle3D3:
+            rOut = {41, 91, 3, false, false, {{0, 1, 2}}};
+            return true;
+        case GeometryType::Kratos_Triangle2D6:
+        case GeometryType::Kratos_Triangle3D6:
+            // Split the 6-node triangle into four linear triangles.
+            rOut = {41, 91, 3, false, false, {{0, 3, 5}, {3, 1, 4}, {5, 4, 2}, {3, 4, 5}}};
+            return true;
+        // Quadrilaterals
+        case GeometryType::Kratos_Quadrilateral2D4:
+        case GeometryType::Kratos_Quadrilateral3D4:
+            rOut = {44, 94, 4, false, false, {{0, 1, 2, 3}}};
+            return true;
+        case GeometryType::Kratos_Quadrilateral2D8:
+        case GeometryType::Kratos_Quadrilateral3D8:
+            // Serendipity quad (no center node): split into six linear triangles.
+            rOut = {41, 91, 3, false, false, {{0, 4, 7}, {4, 1, 5}, {5, 2, 6}, {6, 3, 7}, {4, 5, 6}, {4, 6, 7}}};
+            return true;
+        case GeometryType::Kratos_Quadrilateral2D9:
+        case GeometryType::Kratos_Quadrilateral3D9:
+            // Has a center node: split into four linear quadrilaterals.
+            rOut = {44, 94, 4, false, false, {{0, 4, 8, 7}, {4, 1, 5, 8}, {8, 5, 2, 6}, {7, 8, 6, 3}}};
+            return true;
+        // Tetrahedra
+        case GeometryType::Kratos_Tetrahedra3D4:
+            rOut = {-1, 111, 4, false, false, {{0, 1, 2, 3}}};
+            return true;
+        case GeometryType::Kratos_Tetrahedra3D10:
+            // Standard subdivision into eight linear tetrahedra (four corner tets plus the inner
+            // octahedron split along the 4-9 edge).
+            rOut = {-1, 111, 4, false, false, {
+                {0, 4, 6, 7}, {4, 1, 5, 8}, {6, 5, 2, 9}, {7, 8, 9, 3},
+                {4, 9, 6, 7}, {4, 9, 7, 8}, {4, 9, 8, 5}, {4, 9, 5, 6}}};
+            return true;
+        // Hexahedra
+        case GeometryType::Kratos_Hexahedra3D8:
+            rOut = {-1, 115, 8, false, false, {{0, 1, 2, 3, 4, 5, 6, 7}}};
+            return true;
+        case GeometryType::Kratos_Hexahedra3D20:
+        case GeometryType::Kratos_Hexahedra3D27:
+            // No conforming linear refinement without interior nodes: reduce to the linear corner brick.
+            rOut = {-1, 115, 8, false, true, {{0, 1, 2, 3, 4, 5, 6, 7}}};
+            return true;
+        // Prisms / wedges
+        case GeometryType::Kratos_Prism3D6:
+            rOut = {-1, 112, 6, false, false, {{0, 1, 2, 3, 4, 5}}};
+            return true;
+        case GeometryType::Kratos_Prism3D15:
+            // Reduce to the linear corner wedge (mid-side nodes dropped).
+            rOut = {-1, 112, 6, false, true, {{0, 1, 2, 3, 4, 5}}};
+            return true;
+        default:
+            // Pyramids and any other geometry have no UNV representation.
+            return false;
+    }
+}
+
+int UnvOutput::GetSubElementCount(const GeometryData::KratosGeometryType Type) const
+{
+    if (!mDecomposeQuadraticIntoLinear) {
+        return 1;
+    }
+    UnvLinearDecomposition decomposition;
+    if (TryGetLinearDecomposition(Type, decomposition)) {
+        return static_cast<int>(decomposition.sub_elements.size());
+    }
+    return 1;
+}
+
 template<typename TContainerType>
 void UnvOutput::WriteEntities(const TContainerType& rContainer) {
     std::ofstream rOutputFile;
@@ -478,52 +567,79 @@ void UnvOutput::WriteEntities(const TContainerType& rContainer) {
     rOutputFile << std::setw(6) << "-1" << "\n";
     rOutputFile << std::setw(6) << as_integer(DatasetID::ELEMENTS_DATASET) << "\n";
 
-    std::set<int> warned_geometries;
-    for (auto& r_entity : rContainer) {
-        const int entity_label = static_cast<int>(r_entity.Id());
-        const auto& r_geometry = r_entity.GetGeometry();
-        const auto geometry_type = r_geometry.GetGeometryType();
-
-        UnvElementDescriptor descriptor;
-        KRATOS_ERROR_IF_NOT(TryGetUnvDescriptor(geometry_type, descriptor))
-            << "Entity with ID " << entity_label << " has a geometry that cannot be represented in UNV "
-            << "(e.g. pyramids, which have no UNV element type)." << std::endl;
-
-        // Select the descriptor id based on the working space dimension of the geometry.
-        const bool is_3d = r_geometry.WorkingSpaceDimension() == 3;
-        const int fe_descriptor_id = (is_3d && descriptor.fe_descriptor_3d != -1) ? descriptor.fe_descriptor_3d
-            : (descriptor.fe_descriptor_2d != -1 ? descriptor.fe_descriptor_2d : descriptor.fe_descriptor_3d);
-
-        // Warn once per geometry type when a geometry is degraded (interior nodes dropped).
-        if (descriptor.degrade && warned_geometries.insert(static_cast<int>(geometry_type)).second) {
-            KRATOS_WARNING("UnvOutput") << "Geometry of entity " << entity_label
-                << " has no exact UNV representation; writing a degraded element with "
-                << descriptor.num_nodes << " nodes (interior nodes are dropped)." << std::endl;
-        }
-
-        // Record 1: element header
-        rOutputFile << std::setw(10) << entity_label;
-        rOutputFile << std::setw(10) << fe_descriptor_id;
+    // Helper writing a single 2412 element record (header, optional beam record and connectivity).
+    auto write_record = [&](const long long Label, const int FeDescriptorId, const int NumberOfNodes,
+                            const bool IsBeam, const std::vector<int>& rConnectivity, const auto& rGeometry) {
+        rOutputFile << std::setw(10) << Label;
+        rOutputFile << std::setw(10) << FeDescriptorId;
         rOutputFile << std::setw(10) << physical_property_table_number;
         rOutputFile << std::setw(10) << material_property_table_number;
         rOutputFile << std::setw(10) << color;
-        rOutputFile << std::setw(10) << descriptor.num_nodes << "\n";
+        rOutputFile << std::setw(10) << NumberOfNodes << "\n";
 
         // Beam entities require the extra orientation record between the header and the connectivity.
-        if (descriptor.is_beam) {
+        if (IsBeam) {
             rOutputFile << std::setw(10) << 0 << std::setw(10) << 0 << std::setw(10) << 0 << "\n";
         }
 
-        // Connectivity record: reordered node ids wrapped at 8 per line.
+        // Connectivity record: node ids wrapped at 8 per line.
         int count = 0;
-        for (const int local_index : descriptor.reorder) {
-            rOutputFile << std::setw(10) << static_cast<int>(r_geometry[local_index].Id());
+        for (const int local_index : rConnectivity) {
+            rOutputFile << std::setw(10) << static_cast<int>(rGeometry[local_index].Id());
             if (++count % 8 == 0) {
                 rOutputFile << "\n";
             }
         }
         if (count % 8 != 0) {
             rOutputFile << "\n";
+        }
+    };
+
+    std::set<int> warned_geometries;
+    for (auto& r_entity : rContainer) {
+        const int entity_label = static_cast<int>(r_entity.Id());
+        const auto& r_geometry = r_entity.GetGeometry();
+        const auto geometry_type = r_geometry.GetGeometryType();
+        const bool is_3d = r_geometry.WorkingSpaceDimension() == 3;
+
+        if (mDecomposeQuadraticIntoLinear) {
+            // Decompose each geometry into one or more linear sub-elements (stricter reader support).
+            UnvLinearDecomposition decomposition;
+            KRATOS_ERROR_IF_NOT(TryGetLinearDecomposition(geometry_type, decomposition))
+                << "Entity with ID " << entity_label << " has a geometry that cannot be represented in UNV "
+                << "(e.g. pyramids, which have no UNV element type)." << std::endl;
+
+            const int fe_descriptor_id = (is_3d && decomposition.fe_descriptor_3d != -1) ? decomposition.fe_descriptor_3d
+                : (decomposition.fe_descriptor_2d != -1 ? decomposition.fe_descriptor_2d : decomposition.fe_descriptor_3d);
+
+            if (decomposition.drops_nodes && warned_geometries.insert(static_cast<int>(geometry_type)).second) {
+                KRATOS_WARNING("UnvOutput") << "Geometry of entity " << entity_label
+                    << " has no linear refinement; writing the linear corner element (mid-side nodes are dropped)." << std::endl;
+            }
+
+            const auto labels = GetEntityLabels(r_entity);
+            for (std::size_t k = 0; k < decomposition.sub_elements.size(); ++k) {
+                write_record(labels[k], fe_descriptor_id, decomposition.num_nodes,
+                    decomposition.is_beam, decomposition.sub_elements[k], r_geometry);
+            }
+        } else {
+            // Write the geometry as-is (quadratic descriptors preserved).
+            UnvElementDescriptor descriptor;
+            KRATOS_ERROR_IF_NOT(TryGetUnvDescriptor(geometry_type, descriptor))
+                << "Entity with ID " << entity_label << " has a geometry that cannot be represented in UNV "
+                << "(e.g. pyramids, which have no UNV element type)." << std::endl;
+
+            const int fe_descriptor_id = (is_3d && descriptor.fe_descriptor_3d != -1) ? descriptor.fe_descriptor_3d
+                : (descriptor.fe_descriptor_2d != -1 ? descriptor.fe_descriptor_2d : descriptor.fe_descriptor_3d);
+
+            if (descriptor.degrade && warned_geometries.insert(static_cast<int>(geometry_type)).second) {
+                KRATOS_WARNING("UnvOutput") << "Geometry of entity " << entity_label
+                    << " has no exact UNV representation; writing a degraded element with "
+                    << descriptor.num_nodes << " nodes (interior nodes are dropped)." << std::endl;
+            }
+
+            write_record(static_cast<long long>(entity_label), fe_descriptor_id, descriptor.num_nodes,
+                descriptor.is_beam, descriptor.reorder, r_geometry);
         }
     }
     rOutputFile << std::setw(6) << "-1" << "\n";
@@ -558,7 +674,15 @@ void UnvOutput::WriteGroups() {
     int group_number = 1;
     for (const ModelPart* p_sub_model_part : sub_model_parts) {
         const auto& r_sub_model_part = *p_sub_model_part;
-        const std::size_t number_of_entities = r_sub_model_part.NumberOfElements() + r_sub_model_part.NumberOfConditions();
+
+        // Count the total number of UNV entities (accounting for the decomposition into sub-elements).
+        std::size_t number_of_entities = 0;
+        for (const auto& r_element : r_sub_model_part.Elements()) {
+            number_of_entities += GetEntityLabels(r_element).size();
+        }
+        for (const auto& r_condition : r_sub_model_part.Conditions()) {
+            number_of_entities += GetEntityLabels(r_condition).size();
+        }
 
         // Record 1: group header (group number, 6 active-set ids = 0, number of entities)
         rOutputFile << std::setw(10) << group_number;
@@ -574,17 +698,21 @@ void UnvOutput::WriteGroups() {
         // Kratos elements and conditions have independent id spaces, so a group referencing both may be
         // ambiguous if an element and a condition share the same id.
         int tuple_count = 0;
-        auto write_tuple = [&](const int TypeCode, const int Tag) {
+        auto write_tuple = [&](const int TypeCode, const long long Tag) {
             rOutputFile << std::setw(10) << TypeCode << std::setw(10) << Tag << std::setw(10) << 0 << std::setw(10) << 0;
             if (++tuple_count % 2 == 0) {
                 rOutputFile << "\n";
             }
         };
         for (const auto& r_element : r_sub_model_part.Elements()) {
-            write_tuple(8, static_cast<int>(r_element.Id()));
+            for (const long long label : GetEntityLabels(r_element)) {
+                write_tuple(8, label);
+            }
         }
         for (const auto& r_condition : r_sub_model_part.Conditions()) {
-            write_tuple(8, static_cast<int>(r_condition.Id()));
+            for (const long long label : GetEntityLabels(r_condition)) {
+                write_tuple(8, label);
+            }
         }
         if (tuple_count % 2 != 0) {
             rOutputFile << "\n";
@@ -757,6 +885,7 @@ const Parameters UnvOutput::GetDefaultParameters() const
         "custom_name_postfix"                         : "",
         "save_output_files_in_folder"                 : true,
         "entity_type"                                 : "automatic",
+        "decompose_quadratic_into_linear"             : true,
         "write_deformed_configuration"                : false,
         "write_ids"                                   : false,
         "nodal_solution_step_data_variables"          : [],

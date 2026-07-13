@@ -425,6 +425,9 @@ private:
     ///@name Member Variables
     ///@{
 
+    /// Multiplier used to derive unique UNV labels for the sub-elements of a decomposed entity.
+    static constexpr long long SubElementLabelFactor = 16;
+
     Kratos::ModelPart& mrOutputModelPart;                  /// Reference to the model part to be printed
     std::string mOutputFileName;                           /// Name of the output file
 
@@ -442,6 +445,7 @@ private:
 
     EntityType mEntityType = EntityType::AUTOMATIC;        /// Type of entity to be printed (automatic, elements, or conditions)
     unsigned int mDefaultPrecision = 7;                    /// Precision used when writing floating point result values
+    bool mDecomposeQuadraticIntoLinear = true;             /// Flag to decompose quadratic geometries into linear sub-elements (for stricter readers, e.g. Simcenter 3D)
     bool mWriteDeformedConfiguration = false;              /// Flag to indicate if the deformed configuration should be written
     bool mWriteIds = false;                                /// Flag to indicate if the entity ids should be written as result datasets
     bool mOutputSubModelParts = false;                     /// Flag to indicate if the sub model parts should be written as UNV groups
@@ -484,6 +488,66 @@ private:
         const GeometryData::KratosGeometryType Type,
         UnvElementDescriptor& rOut
         );
+
+    /**
+     * @brief Describes how a Kratos geometry is decomposed into linear UNV sub-elements.
+     * @details Some readers (e.g. Simcenter 3D) do not robustly support quadratic UNV element
+     * descriptors. When decomposition is enabled each geometry is written as one or more linear
+     * sub-elements. The @a sub_elements list holds, for each sub-element, the Kratos local node
+     * indices to emit. Linear geometries decompose into a single identity sub-element. Serendipity
+     * solids without interior nodes (Hexahedra20/27, Prism15) reduce to their linear corner element,
+     * dropping the mid-side nodes.
+     */
+    struct UnvLinearDecomposition {
+        int fe_descriptor_2d = -1;                 /// Linear descriptor in a 2D working space (-1 = N/A)
+        int fe_descriptor_3d = -1;                 /// Linear descriptor in a 3D working space (-1 = N/A)
+        int num_nodes = 0;                         /// Number of nodes per sub-element
+        bool is_beam = false;                      /// Whether the sub-elements need the beam orientation record
+        bool drops_nodes = false;                  /// Whether mid-side nodes are dropped (serendipity solids)
+        std::vector<std::vector<int>> sub_elements; /// Kratos local indices of each linear sub-element
+    };
+
+    /**
+     * @brief Returns the linear decomposition of a Kratos geometry type.
+     * @param Type The Kratos geometry type to decompose.
+     * @param rOut The decomposition filled on success.
+     * @return true if the geometry can be represented in UNV, false otherwise (e.g. pyramids).
+     */
+    static bool TryGetLinearDecomposition(
+        const GeometryData::KratosGeometryType Type,
+        UnvLinearDecomposition& rOut
+        );
+
+    /**
+     * @brief Returns the number of UNV sub-elements a geometry maps to.
+     * @details Returns 1 when decomposition is disabled or the geometry is linear; otherwise the
+     * number of linear sub-elements from the decomposition table.
+     * @param Type The Kratos geometry type.
+     */
+    int GetSubElementCount(const GeometryData::KratosGeometryType Type) const;
+
+    /**
+     * @brief Returns the UNV element label(s) an entity maps to.
+     * @details With decomposition disabled the original id is used. With decomposition enabled the
+     * labels are @a id * SubElementLabelFactor + k so that each entity owns a unique, contiguous block
+     * of labels shared consistently between the mesh, results and group datasets.
+     * @param rEntity The element or condition.
+     */
+    template<class TEntity>
+    std::vector<long long> GetEntityLabels(const TEntity& rEntity) const
+    {
+        std::vector<long long> labels;
+        const long long id = static_cast<long long>(rEntity.Id());
+        if (!mDecomposeQuadraticIntoLinear) {
+            labels.push_back(id);
+        } else {
+            const int sub_count = GetSubElementCount(rEntity.GetGeometry().GetGeometryType());
+            for (int k = 0; k < sub_count; ++k) {
+                labels.push_back(id * SubElementLabelFactor + k);
+            }
+        }
+        return labels;
+    }
 
     /**
      * @brief Writes 'mrOutputModelPart' associated nodes.
@@ -660,13 +724,17 @@ private:
             }
         } else if constexpr (TLoc == ResultLocation::ELEMENTS) {
             for (auto& r_element : mrOutputModelPart.Elements()) {
-                rOutputFile << std::setw(10) << static_cast<int>(r_element.Id()) << std::setw(10) << NumberOfComponents << "\n";
-                WriteEntityResultValues(rOutputFile, r_element, rVariable, false);
+                for (const long long label : GetEntityLabels(r_element)) {
+                    rOutputFile << std::setw(10) << label << std::setw(10) << NumberOfComponents << "\n";
+                    WriteEntityResultValues(rOutputFile, r_element, rVariable, false);
+                }
             }
         } else {
             for (auto& r_condition : mrOutputModelPart.Conditions()) {
-                rOutputFile << std::setw(10) << static_cast<int>(r_condition.Id()) << std::setw(10) << NumberOfComponents << "\n";
-                WriteEntityResultValues(rOutputFile, r_condition, rVariable, false);
+                for (const long long label : GetEntityLabels(r_condition)) {
+                    rOutputFile << std::setw(10) << label << std::setw(10) << NumberOfComponents << "\n";
+                    WriteEntityResultValues(rOutputFile, r_condition, rVariable, false);
+                }
             }
         }
 
@@ -698,10 +766,13 @@ private:
             const double value = r_entity.IsDefined(rFlag) ? (r_entity.Is(rFlag) ? 1.0 : 0.0) : -1.0;
             if constexpr (TLoc == ResultLocation::NODES) {
                 rOutputFile << std::setw(10) << static_cast<int>(r_entity.Id()) << "\n";
+                rOutputFile << std::setw(width) << value << "\n";
             } else {
-                rOutputFile << std::setw(10) << static_cast<int>(r_entity.Id()) << std::setw(10) << 1 << "\n";
+                for (const long long label : GetEntityLabels(r_entity)) {
+                    rOutputFile << std::setw(10) << label << std::setw(10) << 1 << "\n";
+                    rOutputFile << std::setw(width) << value << "\n";
+                }
             }
-            rOutputFile << std::setw(width) << value << "\n";
         }
 
         rOutputFile << std::setw(6) << "-1" << "\n";
@@ -731,10 +802,13 @@ private:
             const int id = static_cast<int>(r_entity.Id());
             if constexpr (TLoc == ResultLocation::NODES) {
                 rOutputFile << std::setw(10) << id << "\n";
+                rOutputFile << std::setw(width) << static_cast<double>(id) << "\n";
             } else {
-                rOutputFile << std::setw(10) << id << std::setw(10) << 1 << "\n";
+                for (const long long label : GetEntityLabels(r_entity)) {
+                    rOutputFile << std::setw(10) << label << std::setw(10) << 1 << "\n";
+                    rOutputFile << std::setw(width) << static_cast<double>(id) << "\n";
+                }
             }
-            rOutputFile << std::setw(width) << static_cast<double>(id) << "\n";
         }
 
         rOutputFile << std::setw(6) << "-1" << "\n";
@@ -772,13 +846,15 @@ private:
                 }
                 average /= static_cast<double>(number_of_gauss_points);
             }
-            rOutputFile << std::setw(10) << static_cast<int>(r_element.Id()) << std::setw(10) << NumberOfComponents << "\n";
-            if constexpr (std::is_same_v<TVarType, array_1d<double, 3>>) {
-                rOutputFile << std::setw(width) << average[0];
-                rOutputFile << std::setw(width) << average[1];
-                rOutputFile << std::setw(width) << average[2] << "\n";
-            } else {
-                rOutputFile << std::setw(width) << average << "\n";
+            for (const long long label : GetEntityLabels(r_element)) {
+                rOutputFile << std::setw(10) << label << std::setw(10) << NumberOfComponents << "\n";
+                if constexpr (std::is_same_v<TVarType, array_1d<double, 3>>) {
+                    rOutputFile << std::setw(width) << average[0];
+                    rOutputFile << std::setw(width) << average[1];
+                    rOutputFile << std::setw(width) << average[2] << "\n";
+                } else {
+                    rOutputFile << std::setw(width) << average << "\n";
+                }
             }
         }
 
