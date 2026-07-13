@@ -106,7 +106,7 @@ namespace Kratos
             {
                 const double penalty_rotation = GetProperties().Has(PENALTY_ROTATION_FACTOR)
                     ? GetProperties()[PENALTY_ROTATION_FACTOR]
-                    : penalty_rotation;
+                    : penalty;
                 const double penalty_rotation_integration = penalty_rotation * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
                 Vector phi_r = ZeroVector(mat_size);
