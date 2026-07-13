@@ -1027,7 +1027,7 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
     BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
 
     BoundedMatrix<double, NumNodes, NumNodes> lhs_kutta = ZeroMatrix(NumNodes, NumNodes);
-    BoundedMatrix<double, NumNodes, NumNodes> n_matrix = outer_prod(n_angle, n_angle);
+    BoundedMatrix<double, Dim, Dim> n_matrix = outer_prod(n_angle, n_angle);
     BoundedMatrix<double, NumNodes, Dim> aux = prod(data.DN_DX, n_matrix);
     const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
     noalias(lhs_kutta) = penalty*data.vol*free_stream_density * prod(aux, trans(data.DN_DX));
@@ -1075,7 +1075,7 @@ void AddKuttaConditionPenaltyPerturbationLHS(const Element& rElement,
     BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
 
     BoundedMatrix<double, NumNodes, NumNodes> lhs_kutta = ZeroMatrix(NumNodes, NumNodes);
-    BoundedMatrix<double, NumNodes, NumNodes> n_matrix = outer_prod(n_angle, n_angle);
+    BoundedMatrix<double, Dim, Dim> n_matrix = outer_prod(n_angle, n_angle);
     BoundedMatrix<double, NumNodes, Dim> aux = prod(data.DN_DX, n_matrix);
     const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
     noalias(lhs_kutta) = penalty*data.vol*free_stream_density * prod(aux, trans(data.DN_DX));
@@ -1118,11 +1118,11 @@ void AddKuttaConditionPenaltyPerturbationRHS(const Element& rElement,
     const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
 
     BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
-    BoundedMatrix<double, NumNodes, NumNodes>  n_matrix = outer_prod(n_angle, n_angle);
+    BoundedMatrix<double, Dim, Dim> n_matrix = outer_prod(n_angle, n_angle);
 
     if (wake == 0) {
         array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(rElement, rCurrentProcessInfo);
-        BoundedVector<double, NumNodes> velvector = prod(n_matrix,  velocity);
+        BoundedVector<double, Dim> velvector = prod(n_matrix,  velocity);
         BoundedVector<double, NumNodes> rhs_penalty = -penalty*data.vol*free_stream_density*prod(data.DN_DX,  velvector);
         for (unsigned int i = 0; i < NumNodes; ++i) {
             if (rElement.GetGeometry()[i].GetValue(KUTTA)) {
@@ -1138,8 +1138,8 @@ void AddKuttaConditionPenaltyPerturbationRHS(const Element& rElement,
             upper_velocity[i] += free_stream_velocity[i];
             lower_velocity[i] += free_stream_velocity[i];
         }
-        const BoundedVector<double, NumNodes> upper_velocity_vector = prod(n_matrix,  upper_velocity);
-        const BoundedVector<double, NumNodes> lower_velocity_vector = prod(n_matrix,  lower_velocity);
+        const BoundedVector<double, Dim> upper_velocity_vector = prod(n_matrix,  upper_velocity);
+        const BoundedVector<double, Dim> lower_velocity_vector = prod(n_matrix,  lower_velocity);
 
         const BoundedVector<double, NumNodes> upper_rhs = -penalty*data.vol*free_stream_density*prod(data.DN_DX, upper_velocity_vector);
         const BoundedVector<double, NumNodes> lower_rhs = -penalty*data.vol*free_stream_density*prod(data.DN_DX, lower_velocity_vector);
