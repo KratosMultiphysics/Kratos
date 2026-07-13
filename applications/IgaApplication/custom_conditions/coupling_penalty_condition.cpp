@@ -104,7 +104,9 @@ namespace Kratos
             // Rotation coupling
             if (Is(IgaFlags::FIX_ROTATION_X) || Is(IgaFlags::FIX_ROTATION_Y) || Is(IgaFlags::FIX_ROTATION_Z))
             {
-                const double penalty_rotation = GetProperties()[PENALTY_ROTATION_FACTOR];
+                const double penalty_rotation = GetProperties().Has(PENALTY_ROTATION_FACTOR)
+                    ? GetProperties()[PENALTY_ROTATION_FACTOR]
+                    : penalty_rotation;
                 const double penalty_rotation_integration = penalty_rotation * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
                 Vector phi_r = ZeroVector(mat_size);
