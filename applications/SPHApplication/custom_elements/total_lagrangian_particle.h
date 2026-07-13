@@ -175,6 +175,11 @@ public:
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
+    
+    /**
+     * @brief Sets on rValues the nodal displacements
+     */
+    void GetValuesVector(VectorType& rValues, int step ) const override;
 
     /**
      * @brief Sets on rValues the nodal velocities
@@ -185,11 +190,6 @@ public:
      * @brief Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(VectorType& rValues, int step = 0) const override;
-
-    /**
-     * @brief
-     */
-    virtual void GetNodalValuesVector(VectorType& rNodalValue) const;
 
     /**
      * @brief This is called during the assembling process in order to calculate the local system

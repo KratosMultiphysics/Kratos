@@ -139,6 +139,31 @@ void SmallDisplacementParticle<TKernelType>::GetDofList(
 }
 
 template<class TKernelType>
+void SmallDisplacementParticle<TKernelType>::GetValuesVector(VectorType& rValues, int step) const
+{
+    KRATOS_TRY
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType number_of_neighbours = r_neighbours.size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType mat_size = dimension * number_of_neighbours;
+
+    if (rValues.size() != mat_size) rValues.resize(mat_size, false);
+
+    for (IndexType i = 0; i < number_of_neighbours; ++i){
+        
+        const auto& r_geom = r_neighbours[i]->GetGeometry();
+
+        const array_1d<double, 3>& displacement = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT, step);
+        const SizeType index = i * dimension;
+        for (unsigned int k = 0; k < dimension; ++k){
+            rValues[index + k] = displacement[k];
+        }
+    }
+    KRATOS_CATCH("")
+}
+    
+
+template<class TKernelType>
 void SmallDisplacementParticle<TKernelType>::GetFirstDerivativesVector(VectorType& rValues, int step) const
 {
     KRATOS_TRY
