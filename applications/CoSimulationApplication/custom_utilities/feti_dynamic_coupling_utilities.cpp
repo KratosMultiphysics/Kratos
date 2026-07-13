@@ -182,7 +182,7 @@ namespace Kratos
         KRATOS_TRY
 
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        Variable< array_1d<double, 3> >& equilibrium_variable = GetEquilibriumVariable();
+        const Variable< array_1d<double, 3> >& equilibrium_variable = GetEquilibriumVariable();
 
         SparseMatrixType expanded_mapper;
         GetExpandedMappingMatrix(expanded_mapper, dim);
@@ -819,7 +819,7 @@ namespace Kratos
     };
 
     template<class TSparseSpace, class TDenseSpace>
-    Variable< array_1d<double, 3> >& FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::GetEquilibriumVariable()
+    const Variable< array_1d<double, 3> >& FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::GetEquilibriumVariable()
     {
         if (mEquilibriumVariable == EquilibriumVariable::Velocity) return VELOCITY;
         else if (mEquilibriumVariable == EquilibriumVariable::Displacement) return DISPLACEMENT;
