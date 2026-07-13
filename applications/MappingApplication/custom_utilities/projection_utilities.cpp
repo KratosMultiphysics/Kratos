@@ -346,38 +346,69 @@ PairingIndex ProjectToIBRA(const GeometryType& rGeometry,
         // Get the nurbs surface geometry
         const GeometryType::Pointer p_nurbs_surface = geom_parent.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
-        // Initial value for the non-linear projections step
+        // Sampling-based initial guess
         std::vector<double> surface_knot_vector_u, surface_knot_vector_v;
         p_nurbs_surface->SpansLocalSpace(surface_knot_vector_u, 0);
         p_nurbs_surface->SpansLocalSpace(surface_knot_vector_v, 1);
-        local_surface_coords[0] = (surface_knot_vector_u.front() + surface_knot_vector_u.back()) * 0.5;
-        local_surface_coords[1] = (surface_knot_vector_v.front() + surface_knot_vector_v.back()) * 0.5;
 
-        // Try to project the point onto the surface
-        if (geom_parent.ProjectionPointGlobalToLocalSpace(rPointToProject, local_surface_coords, 1e-6)){
+        double best_dist = std::numeric_limits<double>::max();
+        CoordinatesArrayType best_local_coords = ZeroVector(2);
+        CoordinatesArrayType sample_point = ZeroVector(3);
+
+        const std::size_t n_samples_u = 200;
+        const std::size_t n_samples_v = 200;
+
+        for (std::size_t i = 0; i < n_samples_u; ++i) {
+            const double t_u = static_cast<double>(i) / static_cast<double>(n_samples_u - 1);
+            const double u = surface_knot_vector_u.front()
+                        + t_u * (surface_knot_vector_u.back() - surface_knot_vector_u.front());
+
+            for (std::size_t j = 0; j < n_samples_v; ++j) {
+                const double t_v = static_cast<double>(j) / static_cast<double>(n_samples_v - 1);
+                const double v = surface_knot_vector_v.front()
+                            + t_v * (surface_knot_vector_v.back() - surface_knot_vector_v.front());
+
+                CoordinatesArrayType local_coords = ZeroVector(2);
+                local_coords[0] = u;
+                local_coords[1] = v;
+
+                p_nurbs_surface->GlobalCoordinates(sample_point, local_coords);
+
+                const double dist = norm_2(rPointToProject - sample_point);
+
+                if (dist < best_dist) {
+                    best_dist = dist;
+                    best_local_coords = local_coords;
+                }
+            }
+        }
+
+        local_surface_coords = best_local_coords;
+
+        // First try exact/nonlinear projection from sampled initial guess
+        if (p_nurbs_surface->ProjectionPointGlobalToLocalSpace(
+                rPointToProject, local_surface_coords, 1e-5)) {
+
             pairing_index = PairingIndex::Surface_Inside;
+        }
+        else if (ComputeApproximation) {
+            // Projection failed, but approximation is allowed:
+            // use closest sampled parametric coordinate directly
+            local_surface_coords = best_local_coords;
+            pairing_index = PairingIndex::Closest_Point;
+        }
+        // else {
+        //     KRATOS_ERROR << "Not even an approximation is found";
+        // }
 
-            // Evaluate the shape functions at the local coordinates and get the equations id vector
-            p_nurbs_surface->ShapeFunctionsValues(rShapeFunctionValues, local_surface_coords);
-            FillEquationIdVectorIBRA(p_nurbs_surface, rEquationIds, local_surface_coords);
+        // Evaluate using either projected coordinates or sampled approximation
+        p_nurbs_surface->ShapeFunctionsValues(rShapeFunctionValues, local_surface_coords);
+        FillEquationIdVectorIBRA(p_nurbs_surface, rEquationIds, local_surface_coords);
 
-            // Get the distance between the projected point and the point to project
-            CoordinatesArrayType projected_point_global_coords = ZeroVector(3);
-            p_nurbs_surface->GlobalCoordinates(projected_point_global_coords, local_surface_coords);
-            rProjectionDistance = norm_2(rPointToProject - projected_point_global_coords);
-        } else if (!ComputeApproximation) { // If the projection fails and no approximation is allowed, return unspecified
-            return PairingIndex::Unspecified;
-        } else if (geom_parent.ProjectionPointGlobalToLocalSpace(rPointToProject, local_surface_coords, LocalCoordTol)) { // If the initial projection fails and an approximation is allowed, try 
+        CoordinatesArrayType projected_point_global_coords = ZeroVector(3);
+        p_nurbs_surface->GlobalCoordinates(projected_point_global_coords, local_surface_coords);
 
-            // Evaluate the shape functions at the local coordinates and get the equations id vector
-            p_nurbs_surface->ShapeFunctionsValues(rShapeFunctionValues, local_surface_coords);
-            FillEquationIdVectorIBRA(p_nurbs_surface, rEquationIds, local_surface_coords);
-
-            // Get the distance between the projected point and the point to project
-            CoordinatesArrayType projected_point_global_coords = ZeroVector(3);
-            p_nurbs_surface->GlobalCoordinates(projected_point_global_coords, local_surface_coords);
-            rProjectionDistance = norm_2(rPointToProject - projected_point_global_coords);
-        }  
+        rProjectionDistance = norm_2(rPointToProject - projected_point_global_coords);
     }
 
     return pairing_index;
