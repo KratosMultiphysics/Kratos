@@ -36,6 +36,14 @@ namespace Kratos::MaterialPointGeneratorUtility
 
     using IntegrationMethod =  GeometryData::IntegrationMethod;
 
+    /// @brief Get the element type based on the formulation and geometry
+    const Element& GetElementType(
+            bool rIsMixedFormulation,
+            bool rIsAxisSymmetry,
+            const std::size_t& rDomainSize,
+            const GeometryData::KratosGeometryType& rBackgroundGeometryType,
+            ModelPart& rBackgroundGridModelPart);
+
     /// Get integration weights of the geometry for the given integration method
     void GetIntegrationPointVolumes(
             const GeometryType& rGeom,
