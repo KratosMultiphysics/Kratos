@@ -894,7 +894,7 @@ const Parameters UnvOutput::GetDefaultParameters() const
         "entity_type"                                 : "automatic",
         "decompose_quadratic_into_linear"             : false,
         "write_deformed_configuration"                : false,
-        "deformation_factor"                          : 0.001,
+        "deformation_factor"                          : 1.0,
         "write_ids"                                   : false,
         "nodal_solution_step_data_variables"          : [],
         "nodal_data_value_variables"                  : [],

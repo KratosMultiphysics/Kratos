@@ -445,7 +445,7 @@ private:
 
     EntityType mEntityType = EntityType::AUTOMATIC;        /// Type of entity to be printed (automatic, elements, or conditions)
     unsigned int mDefaultPrecision = 7;                    /// Precision used when writing floating point result values
-    double mDeformationFactor = 0.001;                     /// Scale applied to the deformed configuration and to the DISPLACEMENT result values (unit conversion, e.g. m -> mm readers)
+    double mDeformationFactor = 1.0;                       /// Scale applied to the deformed configuration and to the DISPLACEMENT result values (unit conversion, e.g. m -> mm readers)
     bool mDecomposeQuadraticIntoLinear = false;            /// Flag to decompose quadratic geometries into linear sub-elements (for stricter readers, e.g. Simcenter 3D)
     bool mWriteDeformedConfiguration = false;              /// Flag to indicate if the deformed configuration should be written
     bool mWriteIds = false;                                /// Flag to indicate if the entity ids should be written as result datasets
