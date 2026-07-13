@@ -19,7 +19,9 @@
 
 // Project includes
 #include "containers/model.h"
+#include "geometries/geometry_data.h"
 #include "utilities/string_utilities.h"
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 
 namespace Kratos 
 {
@@ -291,6 +293,21 @@ public:
         NON_HISTORICAL = 1
     };
 
+    /**
+     * @brief Enum class representing the container a result dataset refers to.
+     * @details This enum class selects whether a result dataset (2414) stores data at nodes,
+     * elements or conditions. It drives the dataset location record and the entity iteration.
+     * - NODES: The result is written for each node (DATA_AT_NODES).
+     * - ELEMENTS: The result is written for each element (DATA_AT_ELEMENTS).
+     * - CONDITIONS: The result is written for each condition (DATA_AT_ELEMENTS).
+     */
+    enum class ResultLocation
+    {
+        NODES = 0,
+        ELEMENTS = 1,
+        CONDITIONS = 2
+    };
+
     /// Pointer definition of UnvOutput
     KRATOS_CLASS_POINTER_DEFINITION(UnvOutput);
 
@@ -410,20 +427,63 @@ private:
 
     Kratos::ModelPart& mrOutputModelPart;                  /// Reference to the model part to be printed
     std::string mOutputFileName;                           /// Name of the output file
-    
-    VariablesLists mHistoricalVariables;                   /// List of historical variables to be printed
-    VariablesLists mNonHistoricalVariables;                /// List of non-historical variables to be printed
+
+    VariablesLists mHistoricalVariables;                   /// List of nodal historical variables to be printed
+    VariablesLists mNonHistoricalVariables;                /// List of nodal non-historical variables to be printed
+    VariablesLists mElementVariables;                      /// List of element (non-historical) variables to be printed
+    VariablesLists mConditionVariables;                    /// List of condition (non-historical) variables to be printed
+    VariablesLists mGaussPointVariables;                   /// List of variables to be averaged over the integration points and printed on elements
+
+    std::vector<std::pair<const Flags*, std::string>> mNodalFlags;     /// Nodal flags to be printed
+    std::vector<std::pair<const Flags*, std::string>> mElementFlags;   /// Element flags to be printed
+    std::vector<std::pair<const Flags*, std::string>> mConditionFlags; /// Condition flags to be printed
 
     std::unordered_map<std::size_t, int> mUnvVariableKeys; /// Map to store the keys of the UNV variables for quick access
 
     EntityType mEntityType = EntityType::AUTOMATIC;        /// Type of entity to be printed (automatic, elements, or conditions)
+    unsigned int mDefaultPrecision = 7;                    /// Precision used when writing floating point result values
     bool mWriteDeformedConfiguration = false;              /// Flag to indicate if the deformed configuration should be written
+    bool mWriteIds = false;                                /// Flag to indicate if the entity ids should be written as result datasets
+    bool mOutputSubModelParts = false;                     /// Flag to indicate if the sub model parts should be written as UNV groups
     bool mInitializedOutputFile = false;                   /// Flag to indicate if the output file has been initialized
     bool mMeshWritten = false;                             /// Flag to indicate if the mesh has been written to the output file
+
+    /// Process used to extrapolate the integration point values to the nodes (optional)
+    IntegrationValuesExtrapolationToNodesProcess::UniquePointer mpGaussToNodesProcess = nullptr;
 
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Describes how a Kratos geometry maps onto a UNV finite-element descriptor.
+     * @details Holds the UNV FE descriptor id (dataset 2412), the number of nodes actually written,
+     * whether the entity is a beam (requiring the extra orientation record), and the reorder array
+     * that converts the Kratos local node ordering into the UNV convention. Surface geometries carry
+     * two descriptor ids: one used when the geometry lives in a 2D working space (plane element) and
+     * one for a 3D working space (shell). A value of -1 means the geometry has no descriptor for that
+     * working space. When @a Degrade is true, the geometry has no exact UNV representation and the
+     * reorder array already drops the surplus (interior) Kratos nodes.
+     */
+    struct UnvElementDescriptor {
+        int fe_descriptor_2d = -1;   /// Descriptor when written in a 2D working space (-1 = N/A)
+        int fe_descriptor_3d = -1;   /// Descriptor when written in a 3D working space (-1 = N/A)
+        int num_nodes = 0;           /// Number of nodes written to the UNV connectivity record
+        bool is_beam = false;        /// Whether the extra beam orientation record must be written
+        std::vector<int> reorder;    /// Kratos local indices to emit, in order (empty => identity)
+        bool degrade = false;        /// Whether the geometry is represented with a loss of interior nodes
+    };
+
+    /**
+     * @brief Returns the UNV descriptor associated to a Kratos geometry type.
+     * @param Type The Kratos geometry type to look up.
+     * @param rOut The descriptor filled on success.
+     * @return true if the geometry can be represented in UNV, false otherwise (e.g. pyramids).
+     */
+    static bool TryGetUnvDescriptor(
+        const GeometryData::KratosGeometryType Type,
+        UnvElementDescriptor& rOut
+        );
 
     /**
      * @brief Writes 'mrOutputModelPart' associated nodes.
@@ -432,16 +492,42 @@ private:
     void WriteNodes();
 
     /**
-     * @brief Writes 'mrOutputModelPart' associated conditions.
-     * @details This function writes the conditions of the 'mrOutputModelPart' to the output file. It iterates through each condition in the model part, retrieves its geometry, and writes the appropriate data based on the geometry type (e.g., triangles, quadrilaterals, tetrahedra, hexahedra). The function also handles unsupported geometries by throwing an error. 
+     * @brief Writes the elements or conditions of 'mrOutputModelPart' as a UNV 2412 dataset.
+     * @details This unified writer iterates over the provided container (elements or conditions),
+     * resolves each geometry to its UNV descriptor, and writes the 2412 records: the element header,
+     * the optional beam orientation record and the (reordered) connectivity wrapped at 8 ids per line.
+     * Geometries without an exact UNV representation are degraded (with a one-time warning) or, if they
+     * cannot be represented at all (e.g. pyramids), an error is thrown.
+     * @param rContainer The elements or conditions container to be written.
+     * @tparam TContainerType The type of the entity container.
      */
-    void WriteElements();
+    template<typename TContainerType>
+    void WriteEntities(const TContainerType& rContainer);
 
     /**
-     * @brief Writes 'mrOutputModelPart' associated conditions.
-     * @details This function writes the conditions of the 'mrOutputModelPart' to the output file. It iterates through each condition in the model part, retrieves its geometry, and writes the appropriate data based on the geometry type (e.g., triangles, quadrilaterals). The function also handles unsupported geometries by throwing an error. 
+     * @brief Writes the sub model parts of 'mrOutputModelPart' as UNV groups (dataset 2467).
+     * @details Each sub model part is written as a permanent group referencing its elements and
+     * conditions (entity type code 8) and, optionally, its nodes (entity type code 7).
      */
-    void WriteConditions();
+    void WriteGroups();
+
+    /**
+     * @brief Runs the integration point extrapolation to nodes process, if configured.
+     * @details Mirrors VtkOutput: when 'gauss_point_variables_extrapolated_to_nodes' are requested,
+     * the associated process is executed so that the extrapolated values are available as
+     * non-historical nodal data at print time.
+     */
+    void PrepareGaussPointResults();
+
+    /**
+     * @brief Resolves a list of flag names into the provided flag list.
+     * @param rFlagNames The names of the flags to resolve.
+     * @param rFlagList The list to populate with the resolved (flag pointer, name) pairs.
+     */
+    void InitializeFlags(
+        const std::vector<std::string>& rFlagNames,
+        std::vector<std::pair<const Flags*, std::string>>& rFlagList
+        );
 
     /**
      * @brief Returns the type of unv data associated to a Kratos Variable
@@ -456,32 +542,76 @@ private:
     UnvOutput::DataCharacteristics GetDataType(const Variable<Matrix>&);
 
     /**
-     * @brief Writes the variable value for a node.
-     * @details Vectors and Matrices are not supported at this time.
-     * @param rOutputFile Output file 
-     * @param rNode       Input node
-     * @param rVariable   Variable to print
+     * @brief Retrieves the value of a variable stored in an entity (node, element or condition).
+     * @details For nodes the value can be read from the historical database (FastGetSolutionStepValue)
+     * or the non-historical one (GetValue); elements and conditions only expose non-historical data.
+     * @param rEntity The entity to read from.
+     * @param rVariable The variable to read.
+     * @param IsHistorical Whether to read the historical value (nodes only).
+     * @return A const reference to the stored value.
      */
-    void WriteNodalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<bool>& rVariable);
-    void WriteNodalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<int>& rVariable);
-    void WriteNodalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<double>& rVariable);
-    void WriteNodalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<array_1d<double,3>>& rVariable);
-    void WriteNodalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<Vector>& rVariable);
-    void WriteNodalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<Matrix>& rVariable);
+    template<class TEntity, class TVarType>
+    static const TVarType& GetEntityValue(
+        const TEntity& rEntity,
+        const Variable<TVarType>& rVariable,
+        const bool IsHistorical
+        )
+    {
+        if constexpr (std::is_same_v<TEntity, Node>) {
+            return IsHistorical ? rEntity.FastGetSolutionStepValue(rVariable) : rEntity.GetValue(rVariable);
+        } else {
+            return rEntity.GetValue(rVariable);
+        }
+    }
 
     /**
-     * @brief Writes the variable value for a node (non-historical).
-     * @details Vectors and Matrices are not supported at this time.
-     * @param rOutputFile Output file 
-     * @param rNode       Input node
-     * @param rVariable   Variable to print
+     * @brief Writes the result value record (Record 15) of a single entity.
+     * @details Handles scalar (bool/int/double) and 3-component (array_1d<double,3>) variables.
+     * @param rOutputFile Output file.
+     * @param rEntity Entity to read from (node, element or condition).
+     * @param rVariable Variable to print.
+     * @param IsHistorical Whether to read the historical value (nodes only).
      */
-    void WriteNodalNonHistoricalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<bool>& rVariable);
-    void WriteNodalNonHistoricalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<int>& rVariable);
-    void WriteNodalNonHistoricalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<double>& rVariable);
-    void WriteNodalNonHistoricalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<array_1d<double,3>>& rVariable);
-    void WriteNodalNonHistoricalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<Vector>& rVariable);
-    void WriteNodalNonHistoricalResultValues(std::ofstream& rOutputFile, const Node& rNode, const Variable<Matrix>& rVariable);
+    template<class TEntity, class TVarType>
+    void WriteEntityResultValues(
+        std::ofstream& rOutputFile,
+        const TEntity& rEntity,
+        const Variable<TVarType>& rVariable,
+        const bool IsHistorical
+        )
+    {
+        const int width = static_cast<int>(mDefaultPrecision) + 9;
+        if constexpr (std::is_same_v<TVarType, array_1d<double, 3>>) {
+            const auto& r_value = GetEntityValue(rEntity, rVariable, IsHistorical);
+            rOutputFile << std::setw(width) << r_value[0];
+            rOutputFile << std::setw(width) << r_value[1];
+            rOutputFile << std::setw(width) << r_value[2] << "\n";
+        } else {
+            rOutputFile << std::setw(width) << GetEntityValue(rEntity, rVariable, IsHistorical) << "\n";
+        }
+    }
+
+    /**
+     * @brief Writes the common header records (1-13) of a results dataset (2414).
+     * @param rOutputFile Output file.
+     * @param rLabel Dataset label (Record 1), typically the variable/flag name.
+     * @param rName Dataset name (Record 2).
+     * @param Location Dataset location code (Record 3).
+     * @param DataCharacteristic Data characteristic code (Record 9).
+     * @param UnvVariableId UNV result type id (Record 9).
+     * @param NumberOfComponents Number of data values per entity (Record 9).
+     * @param TimeStep Current time step.
+     */
+    void WriteResultDatasetHeader(
+        std::ofstream& rOutputFile,
+        const std::string& rLabel,
+        const std::string& rName,
+        const int Location,
+        const int DataCharacteristic,
+        const int UnvVariableId,
+        const int NumberOfComponents,
+        const double TimeStep
+        );
 
     /**
      * @brief Get the id of the UNV variable name corresponding to rVariable. 1000+ if none found.
@@ -491,109 +621,167 @@ private:
     int GetUnvVariableName(const VariableData& rVariable);
 
     /**
-     * @brief Writes a result dataset using the results in node mode
-     * @details This function writes a result dataset using the results in node mode. The format is partially extracted from: http://users.ices.utexas.edu
+     * @brief Writes a result dataset (2414) for nodes, elements or conditions.
+     * @details This function writes a result dataset. The format is partially extracted from: http://users.ices.utexas.edu
      * R.  1: unique number of dataset (dataset_label)
      * R.  2: text describing content (dataset_name)
-     * R.  3: data belongs to: nodes, elements,...
-     *        (dataset_location)
-     * R.  4: user-specified text (id_lines_1_to_5[0])
-     * R.  5: user-specified text (id_lines_1_to_5[1])
-     * R.  6: user-specified text (id_lines_1_to_5[2])
-     * R.  7: user-specified text (id_lines_1_to_5[3])
-     * R.  8: user-specified text (id_lines_1_to_5[4])
+     * R.  3: data belongs to: nodes, elements,... (dataset_location)
+     * R.  4-8: user-specified text
      * R.  9: (model_type) (analysis_type) (data_characteristic) (result_type) (data_type) (nvaldc)
-     * R. 10: (design_set_id) (iteration_number) (solution_set_id) (boundary_condition) (load_set) (mode_number) (time_stamp_number) (frequency_number)
-     * R. 11: (creation_option) (Unknown)*7
-     * R. 12: (time) (frequency) (eigenvalue) (nodal_mass) (viscous_damping_ratio) (hysteretic_damping_ratio)
-     * R. 13: (eigenvalue_re) (eigenvalue_im) (modalA_re) (modalA_im) (modalB_re) (modalB_im)
-     * 
-     * For nodes (Repeat for every node):
-     * 
-     * R. 14: (node_id)
+     * R. 10-13: analysis specific records (load/mode/time/eigenvalue)
+     *
+     * For every entity (node / element / condition):
+     * R. 14: (entity_id) [nvaldc for elements/conditions]
      * R. 15: (result)*nvaldc
-     * 
-     * @param rVariable          Variable to be printed 
-     * @param NumberOfComponents Number of components of the variable 
+     *
+     * @param rVariable          Variable to be printed
+     * @param NumberOfComponents Number of components of the variable
      * @param TimeStep           Current TimeStep
-     * @tparam TVariablebleType  Type of the variable to be printed
+     * @tparam TVariableType     Type of the variable to be printed
      * @tparam TWriteType        Type of the write operation (historical or non-historical)
+     * @tparam TLoc              Location the results refer to (nodes, elements, conditions)
      */
-    template<class TVariablebleType, WriteType TWriteType = WriteType::HISTORICAL>
-    void WriteNodalResultRecords(const TVariablebleType& rVariable, const int NumberOfComponents, const double TimeStep) {
+    template<class TVariableType, WriteType TWriteType, ResultLocation TLoc>
+    void WriteResultRecords(const TVariableType& rVariable, const int NumberOfComponents, const double TimeStep) {
         std::ofstream rOutputFile;
         rOutputFile.open(mOutputFileName, std::ios::out | std::ios::app);
+        rOutputFile << std::scientific << std::setprecision(mDefaultPrecision);
 
-        std::string data_set_name = "NodalResults";
-        const std::string& r_data_set_label = rVariable.Name();
+        constexpr DatasetLocation location = (TLoc == ResultLocation::NODES) ? DatasetLocation::DATA_AT_NODES : DatasetLocation::DATA_AT_ELEMENTS;
+        const std::string data_set_name = (TLoc == ResultLocation::NODES) ? "NodalResults" : "ElementResults";
 
-        rOutputFile << std::setw(6)  << "-1" << "\n";                                                // Begin block
-        rOutputFile << std::setw(6)  << as_integer(DatasetID::RESULTS_DATASET) << "\n";              // DatasetID
+        WriteResultDatasetHeader(rOutputFile, rVariable.Name(), data_set_name, as_integer(location),
+            as_integer(GetDataType(rVariable)), GetUnvVariableName(rVariable), NumberOfComponents, TimeStep);
 
-        rOutputFile << std::setw(10) << r_data_set_label << "\n";                                        // Record 1 - Label
-        rOutputFile << std::setw(6)  << data_set_name << "\n";                                         // Record 2 - Name
-        rOutputFile << std::setw(10) << as_integer(DatasetLocation::DATA_AT_NODES) << "\n";          // Record 3
-
-        // String records, seems like you can put anything you want.
-        rOutputFile << "\n" << "\n" << "\n" << "\n" << "\n";                                         // Records 4-8
-        
-        // ModelType, AnalysisType, DataCharacteristic, ResultType, DataType, NumberOfDataValues    // Record 9
-        rOutputFile << std::setw(10) << as_integer(ModelType::STRUCTURAL); 
-        rOutputFile << std::setw(10) << as_integer(AnalysisType::TRANSIENT);
-        rOutputFile << std::setw(10) << as_integer(GetDataType(rVariable));
-        rOutputFile << std::setw(10) << GetUnvVariableName(rVariable);
-        rOutputFile << std::setw(10) << as_integer(DataType::SINGLE_PRECISION_FLOATING_POINT);
-        rOutputFile << std::setw(10) << NumberOfComponents; 
-        rOutputFile << "\n";
-
-        // DesignSetId, IterationNumber, SolutionSetId, BoundaryCondition, LoadSet, ModeNumber, TimeStampNumber, FrequencyNumber
-        rOutputFile << std::setw(10) << 0;                                                           // Record 10
-        rOutputFile << std::setw(10) << TimeStep;
-        rOutputFile << std::setw(10) << 0;
-        rOutputFile << std::setw(10) << 0;
-        rOutputFile << std::setw(10) << 0;
-        rOutputFile << std::setw(10) << 1;
-        rOutputFile << std::setw(10) << TimeStep;
-        rOutputFile << std::setw(10) << 0;
-        rOutputFile << "\n";
-
-        // CreationOption, (Unknown)*7
-        rOutputFile << std::setw(10) << 0;                                                           // Record 11
-        rOutputFile << std::setw(10) << 0;
-        rOutputFile << "\n";
-
-        // Time, Frequency Eigenvalue NodalMass ViscousDampingRatio, HystereticDampingRatio
-        rOutputFile << std::setw(13) << TimeStep * 0.1;                                              // Record 12
-        rOutputFile << std::setw(13) << "0.00000E+00";
-        rOutputFile << std::setw(13) << "0.00000E+00";
-        rOutputFile << std::setw(13) << "0.00000E+00";
-        rOutputFile << std::setw(13) << "0.00000E+00";
-        rOutputFile << std::setw(13) << "0.00000E+00";
-        rOutputFile << "\n";
-
-        // Eigenvalue_re, Eigenvalue_im, ModalA_re, ModalA_im, ModalB_re, ModalB_im
-        rOutputFile << std::setw(13) << "0.00000E+00";                                               // Record 13
-        rOutputFile << std::setw(13) << "0.00000E+00";
-        rOutputFile << std::setw(13) << "0.00000E+00";
-        rOutputFile << std::setw(13) << "0.00000E+00";
-        rOutputFile << std::setw(13) << "0.00000E+00";
-        rOutputFile << std::setw(13) << "0.00000E+00";
-        rOutputFile << "\n";
-
-        // Data at nodes
-        int node_label;
-        for (auto& r_node : mrOutputModelPart.Nodes()) {
-            node_label = r_node.Id();
-            rOutputFile << std::setw(6) << node_label << "\n";
-            if constexpr (TWriteType == WriteType::HISTORICAL) {                                    // Record 14 - Node Number
-                WriteNodalResultValues(rOutputFile, r_node, rVariable);                                  // Record 15 - NumberOfDataValues' data of the node
-            } else if constexpr (TWriteType == WriteType::NON_HISTORICAL) {
-                WriteNodalNonHistoricalResultValues(rOutputFile, r_node, rVariable);
-            } else {
-                KRATOS_ERROR << "Unknown WriteType" << std::endl;
+        if constexpr (TLoc == ResultLocation::NODES) {
+            for (auto& r_node : mrOutputModelPart.Nodes()) {
+                rOutputFile << std::setw(10) << static_cast<int>(r_node.Id()) << "\n";                // Record 14 - Node Number
+                WriteEntityResultValues(rOutputFile, r_node, rVariable, TWriteType == WriteType::HISTORICAL); // Record 15 - Data values
+            }
+        } else if constexpr (TLoc == ResultLocation::ELEMENTS) {
+            for (auto& r_element : mrOutputModelPart.Elements()) {
+                rOutputFile << std::setw(10) << static_cast<int>(r_element.Id()) << std::setw(10) << NumberOfComponents << "\n";
+                WriteEntityResultValues(rOutputFile, r_element, rVariable, false);
+            }
+        } else {
+            for (auto& r_condition : mrOutputModelPart.Conditions()) {
+                rOutputFile << std::setw(10) << static_cast<int>(r_condition.Id()) << std::setw(10) << NumberOfComponents << "\n";
+                WriteEntityResultValues(rOutputFile, r_condition, rVariable, false);
             }
         }
-        
+
+        rOutputFile << std::setw(6) << "-1" << "\n";
+        rOutputFile.close();
+    }
+
+    /**
+     * @brief Writes a scalar result dataset (2414) holding a flag value (0/1, or -1 if undefined).
+     * @param rFlag The flag to be printed.
+     * @param rName The name of the flag (used as the dataset label).
+     * @param rContainer The container of entities (nodes, elements or conditions) to iterate.
+     * @param TimeStep Current TimeStep.
+     * @tparam TLoc Location the flags refer to (nodes, elements, conditions).
+     * @tparam TContainerType The type of the entity container.
+     */
+    template<ResultLocation TLoc, class TContainerType>
+    void WriteFlagRecords(const Flags& rFlag, const std::string& rName, TContainerType& rContainer, const double TimeStep) {
+        std::ofstream rOutputFile;
+        rOutputFile.open(mOutputFileName, std::ios::out | std::ios::app);
+        rOutputFile << std::scientific << std::setprecision(mDefaultPrecision);
+
+        constexpr DatasetLocation location = (TLoc == ResultLocation::NODES) ? DatasetLocation::DATA_AT_NODES : DatasetLocation::DATA_AT_ELEMENTS;
+        WriteResultDatasetHeader(rOutputFile, rName, "Flags", as_integer(location),
+            as_integer(DataCharacteristics::SCALAR), 2000, 1, TimeStep);
+
+        const int width = static_cast<int>(mDefaultPrecision) + 9;
+        for (auto& r_entity : rContainer) {
+            const double value = r_entity.IsDefined(rFlag) ? (r_entity.Is(rFlag) ? 1.0 : 0.0) : -1.0;
+            if constexpr (TLoc == ResultLocation::NODES) {
+                rOutputFile << std::setw(10) << static_cast<int>(r_entity.Id()) << "\n";
+            } else {
+                rOutputFile << std::setw(10) << static_cast<int>(r_entity.Id()) << std::setw(10) << 1 << "\n";
+            }
+            rOutputFile << std::setw(width) << value << "\n";
+        }
+
+        rOutputFile << std::setw(6) << "-1" << "\n";
+        rOutputFile.close();
+    }
+
+    /**
+     * @brief Writes a scalar result dataset (2414) holding the entity id.
+     * @param rName The name of the dataset label.
+     * @param rContainer The container of entities to iterate.
+     * @param TimeStep Current TimeStep.
+     * @tparam TLoc Location the ids refer to (nodes, elements, conditions).
+     * @tparam TContainerType The type of the entity container.
+     */
+    template<ResultLocation TLoc, class TContainerType>
+    void WriteIdRecords(const std::string& rName, TContainerType& rContainer, const double TimeStep) {
+        std::ofstream rOutputFile;
+        rOutputFile.open(mOutputFileName, std::ios::out | std::ios::app);
+        rOutputFile << std::scientific << std::setprecision(mDefaultPrecision);
+
+        constexpr DatasetLocation location = (TLoc == ResultLocation::NODES) ? DatasetLocation::DATA_AT_NODES : DatasetLocation::DATA_AT_ELEMENTS;
+        WriteResultDatasetHeader(rOutputFile, rName, "Ids", as_integer(location),
+            as_integer(DataCharacteristics::SCALAR), 2001, 1, TimeStep);
+
+        const int width = static_cast<int>(mDefaultPrecision) + 9;
+        for (auto& r_entity : rContainer) {
+            const int id = static_cast<int>(r_entity.Id());
+            if constexpr (TLoc == ResultLocation::NODES) {
+                rOutputFile << std::setw(10) << id << "\n";
+            } else {
+                rOutputFile << std::setw(10) << id << std::setw(10) << 1 << "\n";
+            }
+            rOutputFile << std::setw(width) << static_cast<double>(id) << "\n";
+        }
+
+        rOutputFile << std::setw(6) << "-1" << "\n";
+        rOutputFile.close();
+    }
+
+    /**
+     * @brief Writes an element result dataset (2414) whose value is averaged over the integration points.
+     * @details For each element, CalculateOnIntegrationPoints is evaluated and the mean over the
+     * integration points is written as the element value (DATA_AT_ELEMENTS).
+     * @param rVariable Variable to be averaged and printed.
+     * @param NumberOfComponents Number of components of the variable.
+     * @param TimeStep Current TimeStep.
+     * @tparam TVarType The value type of the variable (double or array_1d<double,3>).
+     */
+    template<class TVarType>
+    void WriteGaussPointElementResults(const Variable<TVarType>& rVariable, const int NumberOfComponents, const double TimeStep) {
+        std::ofstream rOutputFile;
+        rOutputFile.open(mOutputFileName, std::ios::out | std::ios::app);
+        rOutputFile << std::scientific << std::setprecision(mDefaultPrecision);
+
+        WriteResultDatasetHeader(rOutputFile, rVariable.Name(), "GaussPointResults", as_integer(DatasetLocation::DATA_AT_ELEMENTS),
+            as_integer(GetDataType(rVariable)), GetUnvVariableName(rVariable), NumberOfComponents, TimeStep);
+
+        const int width = static_cast<int>(mDefaultPrecision) + 9;
+        const auto& r_process_info = mrOutputModelPart.GetProcessInfo();
+        std::vector<TVarType> gauss_values;
+        for (auto& r_element : mrOutputModelPart.Elements()) {
+            r_element.CalculateOnIntegrationPoints(rVariable, gauss_values, r_process_info);
+            TVarType average = rVariable.Zero();
+            const std::size_t number_of_gauss_points = gauss_values.size();
+            if (number_of_gauss_points > 0) {
+                for (const auto& r_value : gauss_values) {
+                    average += r_value;
+                }
+                average /= static_cast<double>(number_of_gauss_points);
+            }
+            rOutputFile << std::setw(10) << static_cast<int>(r_element.Id()) << std::setw(10) << NumberOfComponents << "\n";
+            if constexpr (std::is_same_v<TVarType, array_1d<double, 3>>) {
+                rOutputFile << std::setw(width) << average[0];
+                rOutputFile << std::setw(width) << average[1];
+                rOutputFile << std::setw(width) << average[2] << "\n";
+            } else {
+                rOutputFile << std::setw(width) << average << "\n";
+            }
+        }
+
         rOutputFile << std::setw(6) << "-1" << "\n";
         rOutputFile.close();
     }
