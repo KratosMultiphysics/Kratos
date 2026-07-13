@@ -520,6 +520,12 @@ if (KRATOS_LINEAR_ALGEBRA_BACKEND STREQUAL "ublas")
 elseif (KRATOS_LINEAR_ALGEBRA_BACKEND STREQUAL "eigen")
   message(STATUS "Using Eigen as sparse linear algebra backend")
   add_definitions( -DKRATOS_USE_EIGEN_BACKEND )
+  # Inject the Kratos conversions (Eigen expression -> uBLAS dense containers)
+  # into Eigen::MatrixBase in every translation unit; this keeps the uBLAS
+  # idioms (Vector v = prod(...), Matrix m = trans(...), ...) compiling when
+  # the fixed-size dense types are Eigen-backed. Set globally for the same
+  # reason as the backend define itself: every Eigen inclusion must see it.
+  add_compile_definitions("EIGEN_MATRIXBASE_PLUGIN=\"${CMAKE_CURRENT_SOURCE_DIR}/kratos/includes/kratos_eigen_matrixbase_plugin.h\"")
 else()
   message(FATAL_ERROR "Invalid option chosen for \"KRATOS_LINEAR_ALGEBRA_BACKEND\"! Available options are: \"ublas\", \"eigen\"")
 endif ()
