@@ -36,6 +36,9 @@
 
 // Project includes
 #include "includes/define.h"
+#ifdef KRATOS_USE_EIGEN_BACKEND
+#include "includes/eigen_bounded_types.h"
+#endif
 
 namespace Kratos
 {
@@ -51,8 +54,17 @@ namespace Kratos
     template <typename TDataType> using DenseMatrix = boost::numeric::ublas::matrix<TDataType>;
     template <typename TDataType> using DenseVector = boost::numeric::ublas::vector<TDataType>;
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    // Under the Eigen backend the fixed-size dense types are Eigen-backed
+    // (see eigen_bounded_types.h); the dynamic dense types above remain uBLAS
+    // and the mixed idioms are provided by eigen_ublas_compat_operations.h,
+    // included at the end of this header.
+    template <typename TDataType, std::size_t TSize1, std::size_t TSize2> using BoundedMatrix = EigenBoundedMatrix<TDataType, TSize1, TSize2>;
+    template <typename TDataType, std::size_t TSize> using BoundedVector = EigenBoundedVector<TDataType, TSize>;
+#else
     template <typename TDataType, std::size_t TSize1, std::size_t TSize2> using BoundedMatrix = boost::numeric::ublas::bounded_matrix<TDataType, TSize1, TSize2>;
     template <typename TDataType, std::size_t TSize> using BoundedVector = boost::numeric::ublas::bounded_vector<TDataType, TSize>;
+#endif
 
 
     typedef boost::numeric::ublas::vector<double> Vector;
@@ -112,3 +124,10 @@ namespace Kratos
 
 ///@}
 }  // namespace Kratos.
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+// Mixed uBLAS/Eigen idioms (noalias, prod, inner_prod, ... across the two
+// worlds). Included after the namespace so the header sees the type aliases
+// defined above.
+#include "includes/eigen_ublas_compat_operations.h"
+#endif
