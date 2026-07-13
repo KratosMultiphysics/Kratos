@@ -445,7 +445,8 @@ private:
 
     EntityType mEntityType = EntityType::AUTOMATIC;        /// Type of entity to be printed (automatic, elements, or conditions)
     unsigned int mDefaultPrecision = 7;                    /// Precision used when writing floating point result values
-    bool mDecomposeQuadraticIntoLinear = true;             /// Flag to decompose quadratic geometries into linear sub-elements (for stricter readers, e.g. Simcenter 3D)
+    double mDeformationFactor = 0.001;                     /// Scale applied to the deformed configuration and to the DISPLACEMENT result values (unit conversion, e.g. m -> mm readers)
+    bool mDecomposeQuadraticIntoLinear = false;            /// Flag to decompose quadratic geometries into linear sub-elements (for stricter readers, e.g. Simcenter 3D)
     bool mWriteDeformedConfiguration = false;              /// Flag to indicate if the deformed configuration should be written
     bool mWriteIds = false;                                /// Flag to indicate if the entity ids should be written as result datasets
     bool mOutputSubModelParts = false;                     /// Flag to indicate if the sub model parts should be written as UNV groups
@@ -635,25 +636,34 @@ private:
      * @param rEntity Entity to read from (node, element or condition).
      * @param rVariable Variable to print.
      * @param IsHistorical Whether to read the historical value (nodes only).
+     * @param Scale Multiplicative factor applied to the written values (e.g. deformation factor for DISPLACEMENT).
      */
     template<class TEntity, class TVarType>
     void WriteEntityResultValues(
         std::ofstream& rOutputFile,
         const TEntity& rEntity,
         const Variable<TVarType>& rVariable,
-        const bool IsHistorical
+        const bool IsHistorical,
+        const double Scale = 1.0
         )
     {
         const int width = static_cast<int>(mDefaultPrecision) + 9;
         if constexpr (std::is_same_v<TVarType, array_1d<double, 3>>) {
             const auto& r_value = GetEntityValue(rEntity, rVariable, IsHistorical);
-            rOutputFile << std::setw(width) << r_value[0];
-            rOutputFile << std::setw(width) << r_value[1];
-            rOutputFile << std::setw(width) << r_value[2] << "\n";
+            rOutputFile << std::setw(width) << Scale * r_value[0];
+            rOutputFile << std::setw(width) << Scale * r_value[1];
+            rOutputFile << std::setw(width) << Scale * r_value[2] << "\n";
         } else {
             rOutputFile << std::setw(width) << GetEntityValue(rEntity, rVariable, IsHistorical) << "\n";
         }
     }
+
+    /**
+     * @brief Returns the scale factor to apply to a variable's output values.
+     * @details Returns the deformation factor for the DISPLACEMENT variable and 1.0 otherwise.
+     * @param rVariable The variable being written.
+     */
+    double GetVariableScale(const VariableData& rVariable) const;
 
     /**
      * @brief Writes the common header records (1-13) of a results dataset (2414).
@@ -717,23 +727,26 @@ private:
         WriteResultDatasetHeader(rOutputFile, rVariable.Name(), data_set_name, as_integer(location),
             as_integer(GetDataType(rVariable)), GetUnvVariableName(rVariable), NumberOfComponents, TimeStep);
 
+        // The DISPLACEMENT values are scaled by the deformation factor (unit conversion for readers).
+        const double scale = GetVariableScale(rVariable);
+
         if constexpr (TLoc == ResultLocation::NODES) {
             for (auto& r_node : mrOutputModelPart.Nodes()) {
                 rOutputFile << std::setw(10) << static_cast<int>(r_node.Id()) << "\n";                // Record 14 - Node Number
-                WriteEntityResultValues(rOutputFile, r_node, rVariable, TWriteType == WriteType::HISTORICAL); // Record 15 - Data values
+                WriteEntityResultValues(rOutputFile, r_node, rVariable, TWriteType == WriteType::HISTORICAL, scale); // Record 15 - Data values
             }
         } else if constexpr (TLoc == ResultLocation::ELEMENTS) {
             for (auto& r_element : mrOutputModelPart.Elements()) {
                 for (const long long label : GetEntityLabels(r_element)) {
                     rOutputFile << std::setw(10) << label << std::setw(10) << NumberOfComponents << "\n";
-                    WriteEntityResultValues(rOutputFile, r_element, rVariable, false);
+                    WriteEntityResultValues(rOutputFile, r_element, rVariable, false, scale);
                 }
             }
         } else {
             for (auto& r_condition : mrOutputModelPart.Conditions()) {
                 for (const long long label : GetEntityLabels(r_condition)) {
                     rOutputFile << std::setw(10) << label << std::setw(10) << NumberOfComponents << "\n";
-                    WriteEntityResultValues(rOutputFile, r_condition, rVariable, false);
+                    WriteEntityResultValues(rOutputFile, r_condition, rVariable, false, scale);
                 }
             }
         }

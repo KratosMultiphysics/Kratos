@@ -132,6 +132,7 @@ UnvOutput::UnvOutput(
 
     // General output settings
     mDefaultPrecision = Settings["output_precision"].GetInt();
+    mDeformationFactor = Settings["deformation_factor"].GetDouble();
     mDecomposeQuadraticIntoLinear = Settings["decompose_quadratic_into_linear"].GetBool();
     mWriteDeformedConfiguration = Settings["write_deformed_configuration"].GetBool();
     mWriteIds = Settings["write_ids"].GetBool();
@@ -376,9 +377,9 @@ void UnvOutput::WriteNodes() {
     array_1d<double, 3> node_displacement = ZeroVector(3);
     for (auto& r_node : mrOutputModelPart.Nodes()) {
         node_label = r_node.Id();
-        // Get the node displacement if the deformed configuration is to be written
+        // Get the node displacement if the deformed configuration is to be written (scaled by the deformation factor)
         if (write_deformed) {
-            noalias(node_displacement) = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+            noalias(node_displacement) = mDeformationFactor * r_node.FastGetSolutionStepValue(DISPLACEMENT);
         }
         x_coordinate = r_node.X() + node_displacement[0];
         y_coordinate = r_node.Y() + node_displacement[1];
@@ -870,6 +871,12 @@ int UnvOutput::GetUnvVariableName(const VariableData& rVariable) {
     return variable_key + 1000; // If not found, return a value greater than or equal to 1000
 }
 
+double UnvOutput::GetVariableScale(const VariableData& rVariable) const {
+    // The DISPLACEMENT values (and the deformed configuration) are scaled by the deformation factor
+    // to match the unit convention of the reader (e.g. Simcenter 3D interpreting the model in mm).
+    return (rVariable.Key() == DISPLACEMENT.Key()) ? mDeformationFactor : 1.0;
+}
+
 const Parameters UnvOutput::GetDefaultParameters() const
 {
     Parameters default_parameters(R"(
@@ -885,8 +892,9 @@ const Parameters UnvOutput::GetDefaultParameters() const
         "custom_name_postfix"                         : "",
         "save_output_files_in_folder"                 : true,
         "entity_type"                                 : "automatic",
-        "decompose_quadratic_into_linear"             : true,
+        "decompose_quadratic_into_linear"             : false,
         "write_deformed_configuration"                : false,
+        "deformation_factor"                          : 0.001,
         "write_ids"                                   : false,
         "nodal_solution_step_data_variables"          : [],
         "nodal_data_value_variables"                  : [],

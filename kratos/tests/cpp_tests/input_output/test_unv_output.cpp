@@ -450,7 +450,7 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputDecomposeQuadraticTriangle, KratosCoreFastSui
     KRATOS_EXPECT_EQ(elements[0].connectivity, expected_first);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UnvOutputDecomposeIsDefaultOn, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(UnvOutputDecomposeIsDefaultOff, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
@@ -460,7 +460,7 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputDecomposeIsDefaultOn, KratosCoreFastSuite)
     }
     r_model_part.CreateNewElement("Element3D10N", 1, std::vector<ModelPart::IndexType>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, p_prop);
 
-    // The lightweight (ModelPart, name) constructor uses the default, which decomposes into linear.
+    // The lightweight (ModelPart, name) constructor uses the default, which keeps the quadratic element.
     const std::string file_name = "test_unv_default.unv";
     if (std::filesystem::exists(file_name)) {
         std::filesystem::remove(file_name);
@@ -471,8 +471,61 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputDecomposeIsDefaultOn, KratosCoreFastSuite)
 
     const auto blocks = ParseUnvBlocks(file_name);
     const auto elements = ParseElements(*GetBlock(blocks, 2412));
-    KRATOS_EXPECT_EQ(elements.size(), 8u); // decomposed by default
-    KRATOS_EXPECT_EQ(elements[0].fe_id, 111);
+    KRATOS_EXPECT_EQ(elements.size(), 1u); // not decomposed by default
+    KRATOS_EXPECT_EQ(elements[0].fe_id, 118); // Solid Parabolic Tetrahedron
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UnvOutputDeformationFactorScalesDisplacement, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.SetBufferSize(1);
+    auto p_prop = r_model_part.CreateNewProperties(1);
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    r_model_part.CreateNewElement("Element2D3N", 1, std::vector<ModelPart::IndexType>{1, 2, 3}, p_prop);
+    array_1d<double, 3> displacement;
+    displacement[0] = 1000.0;
+    displacement[1] = 1000.0;
+    displacement[2] = 1000.0;
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.FastGetSolutionStepValue(DISPLACEMENT) = displacement;
+    }
+    r_model_part.GetProcessInfo()[TIME] = 1.0;
+
+    const std::string name = "Main";
+    if (std::filesystem::exists(name + ".unv")) {
+        std::filesystem::remove(name + ".unv");
+    }
+    Parameters parameters(R"({
+        "model_part_name"                    : "Main",
+        "save_output_files_in_folder"        : false,
+        "deformation_factor"                 : 0.001,
+        "nodal_solution_step_data_variables" : ["DISPLACEMENT"]
+    })");
+    UnvOutput unv_output(current_model, parameters);
+    unv_output.InitializeOutputFile();
+    unv_output.WriteMesh();
+    unv_output.PrintOutput();
+
+    const auto blocks = ParseUnvBlocks(name + ".unv");
+    // Find the DISPLACEMENT results dataset (2414, location "1") and read the first node's values.
+    const UnvBlock* p_displacement = nullptr;
+    for (const auto& r_block : blocks) {
+        if (r_block.id == 2414 && !r_block.tokens.empty() && r_block.tokens[0] == "DISPLACEMENT") {
+            p_displacement = &r_block;
+            break;
+        }
+    }
+    KRATOS_EXPECT_NE(p_displacement, nullptr);
+    // The dataset header occupies tokens [0..30]; token 31 is node 1's id and tokens 32-34 its values.
+    // 1000.0 * 0.001 (deformation_factor) = 1.0 for each component.
+    const std::size_t first_value_index = 32;
+    KRATOS_EXPECT_NEAR(std::stod(p_displacement->tokens[first_value_index]), 1.0, 1e-9);
+    KRATOS_EXPECT_NEAR(std::stod(p_displacement->tokens[first_value_index + 1]), 1.0, 1e-9);
+    KRATOS_EXPECT_NEAR(std::stod(p_displacement->tokens[first_value_index + 2]), 1.0, 1e-9);
 }
 
 } // namespace Kratos::Testing
