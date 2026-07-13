@@ -114,6 +114,18 @@ target_compile_definitions(KratosVersion PRIVATE
     KRATOS_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
 )
 
+# Intel LLVM (icx) on Windows crashes (ICE 0xC0000005 during "Per-file LLVM IR generation",
+# observed with oneAPI 2025.2 and 2026.1) when compiling these OpenMP-heavy TUs at /O2 with the
+# Intel proprietary loop optimizer enabled; disable it for the affected files only.
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+    set_source_files_properties(
+        ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/builder_and_solvers/p_multigrid/augmented_lagrange_constraint_assembler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/builder_and_solvers/p_multigrid/p_grid.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_builder_and_solver.cpp
+        PROPERTIES COMPILE_OPTIONS "-mllvm;-loopopt=0")
+endif()
+
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TENSOR_ADAPTOR_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 
