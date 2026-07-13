@@ -111,9 +111,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         else:
             self.compressibility = None
 
-        # Other parameters
-        self.echo_level = settings["echo_level"].GetInt()
-
         # Call base analysis stage constructor
         # Note that this must be done at the end (indeed, after creating the model part)
         # Otherwise the model part is not created when calling the _AddVariables()
@@ -598,15 +595,24 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         aux = self.max_fourier * self.rho / self.dyn_visc
         self.dt_fourier = np.min(aux * self.h**2)
 
-        # Assemble Laplacian matrix (w/o stabilization) to get the graph for AMG
-        L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
-        L_el *= self.elemental_volumes[:, None, None] # scale Laplaciant elemental contributions
-        self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
-        #print(f"Setting graph for AMG with {self.L.nnz} nonzeros and {self.L.shape[0]} rows")
-        t0 = time.perf_counter()
-        self.preconditioner = self.cfd_utils.ConstructPreconditioner(self.L)
-        if self.echo_level > 0:
-            KM.Logger.PrintInfo(self.__class__.__name__, f"AMG graph setup time: {time.perf_counter()-t0}.")
+        # # Assemble Laplacian matrix (w/o stabilization) to get the graph for AMG
+        # L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
+        # L_el *= self.elemental_volumes[:, None, None] # scale Laplaciant elemental contributions
+        # self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
+        # #print(f"Setting graph for AMG with {self.L.nnz} nonzeros and {self.L.shape[0]} rows")
+        # t0 = time.perf_counter()
+        # self.preconditioner = self.cfd_utils.ConstructPreconditioner(self.L)
+        # if self.echo_level > 0:
+        #     KM.Logger.PrintInfo(self.__class__.__name__, f"AMG graph setup time: {time.perf_counter()-t0}.")
+
+        # Declare auxiliary flags for solution loop handling
+        self.is_startup = None # Indicates if current substep is startup
+        self.is_startup_old = True # Indicates if previous substep was startup (assume previous step is always startup for the restart case)
+
+        # Pressure preconditioner variables
+        self.preconditioner = None # Pressure problem preconditioner
+        self.update_precond = None # Flag to indicate if the preconditioner needs to be updated
+        self.construct_precond = None # Flag to indicate if the preconditioner needs to be constructed
 
         #FIXME: remove after developing
         self.step_1_total_time = 0.0
@@ -1025,11 +1031,19 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_pres_indices, self.csr_data_indices, self.csr_diag_indices, self.L, rhs_p, diag_value=fix_diag_values)
         #print(f"Time to apply pressure BCs: {time.perf_counter()-t0}")
 
+        # Check if preconditioner has to be constructed (or reset)
+        if self.preconditioner == None: # Preconditioner is not constructed yet
+            self.construct_precond = True
+        else: # Preconditioner already exists
+            first_non_startup_substep = bool(self.is_startup_old) and not self.is_startup # Check if we are in the first non startup step
+            self.construct_precond = True if first_non_startup_substep else False # Delete existing preconditioner and construct a new one
+
+        # Preconditioner flags
+        self.update_precond = True # Always update the preconditioner
+
         t0 = time.perf_counter()
-        # Solve the system
+        # Construct the preconditioner (if needed) and solve the system
         p, is_converged = self._SolvePressure(rhs_p,p)
-        if not is_converged:
-            KM.Logger.PrintWarning(self.__class__.__name__, "CG failed to converge.")
         #print(f"Time to solve pressure: {time.perf_counter()-t0}")
         self.pool.Release(rhs_p)
 
@@ -1117,7 +1131,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         vnew = xp.empty_like(vold)
 
         # Perform substepping
-        self.update_precond = True # Update preconditioner at the first substep
         current_time = self.time - self.dt
         while (self.time - current_time > 1.0e-12):
             # Check if current step is within the startup phase
@@ -1187,14 +1200,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 # Perform fractional step
                 vfrac = self.SolveStep1(vold, v_dirichlet, pold, b, substep_dt, gamma=gamma)
 
-                # Check fractional velocity             
-                vmax_after_step1 = xp.max(xp.linalg.norm(vfrac, axis=1))
+                # Check fractional velocity
+                vfrac_norm = xp.linalg.norm(vfrac, axis=1)
+                vfrac_max_idx = xp.argmax(vfrac_norm)
+                vmax_after_step1 = vfrac_norm[vfrac_max_idx]
                 if not xp.isfinite(vmax_after_step1): # Guard against NaN: NaN comparisons silently return False, bypassing the retry logic
                     KM.Logger.PrintWarning(self.__class__.__name__,f"NaN detected in velocity after step 1.")
                     repeat_step1 = True
                 elif check_vmax_step_1: # Skip the check during startup as velocity is expected to suddenly increase
                     if vmax_after_step1 > self.velocity_safety_factor * vmax: # Check maximum fractional velocity against velocity safety factor
-                        KM.Logger.PrintWarning(self.__class__.__name__,f"Local max velocity increased significantly after step 1: {vmax_after_step1:.3e} vs {vmax:.3e}.")
+                        KM.Logger.PrintWarning(self.__class__.__name__,f"Local max velocity increased significantly after step 1: {vmax_after_step1:.3e} (node {vfrac_max_idx+1}) vs {vmax:.3e}.")
                         repeat_step1 = True
                     else: # Maximum velocity is valid, move to step 2
                         repeat_step1 = False
@@ -1232,7 +1247,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             # STEP 3: Calculate the new velocity
             t3 = time.perf_counter()
             vnew = self.SolveStep3(vfrac, v_dirichlet, delta_p, substep_dt, out=vnew)
-            vmax_after_step3 = xp.max(xp.linalg.norm(vnew, axis=1))
+            vnew_norm = xp.linalg.norm(vnew, axis=1)
+            vnew_max_idx = xp.argmax(vnew_norm)
+            vmax_after_step3 = vnew_norm[vnew_max_idx]
             self.step_3_total_time += time.perf_counter() - t3
 
             # Check substep velocity solution
@@ -1242,7 +1259,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 repeat = True
             elif check_vmax_step_3: # Skip the check during startup as velocity is expected to suddenly increase
                 if vmax_after_step3 > self.velocity_safety_factor * vmax: # Check if we need to redo the substep due to velocity explosion
-                    KM.Logger.PrintWarning(self.__class__.__name__,f"Local max velocity increased significantly after step 3: {vmax_after_step3:.3e} vs {vmax:.3e}.")
+                    KM.Logger.PrintWarning(self.__class__.__name__,f"Local max velocity increased significantly after step 3: {vmax_after_step3:.3e} (node {vnew_max_idx+1}) vs {vmax:.3e}.")
                     repeat = True
                 else: # Solution is valid, update the state for the next substep
                     repeat = False
@@ -1255,6 +1272,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             else: # Solution is valid, update the state for the next substep
                 pold[:] = p
                 vold[:] = vnew
+                self.is_startup_old = self.is_startup
                 self.cfl = min(self.cfl*self.cfl_number_increase_factor, self.max_cfl) # Increase CFL for next step if we are well below the limit
 
         # Update Kratos database once the substep loop is finished
@@ -1388,7 +1406,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             "material_import_settings": {
                 "materials_filename": ""
             },
-            "echo_level": 0,
             "compute_reactions": false,
             "linear_solver_settings": {
                 "max_iteration" : 200,
@@ -1463,22 +1480,38 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def _SolvePressure(self, rhs, previous_p):
         if USE_CUPY:
 
+            # Check if preconditioner needs to be constructed again
+            # Note that this is relevant when the matrix contributions change (e.g., after startup, compressibility switch on, etc.) 
+            if self.construct_precond:
+                if self.echo_level > 0:
+                    KM.Logger.PrintInfo(self.__class__.__name__, f"Setting graph for AMG with {self.L.nnz} nonzeros and {self.L.shape[0]} rows")
+                t0 = time.perf_counter()
+                self.preconditioner = self.cfd_utils.ConstructPreconditioner(self.L)
+                if self.echo_level > 0:
+                    KM.Logger.PrintInfo(self.__class__.__name__, f"AMG graph setup time: {time.perf_counter()-t0}.")
+
+            # Update preconditioner matrix values (note that this must be always done)
+            if self.update_precond:
+                if self.echo_level > 0:
+                    KM.Logger.PrintInfo(self.__class__.__name__, f"Updating graph for AMG with {self.L.nnz} nonzeros and {self.L.shape[0]} rows")
+                t0 = time.perf_counter()
+                self.preconditioner.update_matrix_values(self.L)
+                if self.echo_level > 0:
+                    KM.Logger.PrintInfo(self.__class__.__name__, f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
+
             t0 = time.perf_counter()
-            self.preconditioner.update_matrix_values(self.L)
-            if self.echo_level > 0:
-                KM.Logger.PrintInfo(self.__class__.__name__, f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
             precond = self.preconditioner.aspreconditioner()
-
-            t0 = time.perf_counter()
             #sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, M=precond,maxiter=self.pressure_max_iteration)
-            sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration,xp=xp)
+            sol, info = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration, xp=xp, return_info_dict=True)
 
-            if (self.echo_level > 0):
-                KM.Logger.PrintInfo(self.__class__.__name__, f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
+            if info["converged"] == False:
+                KM.Logger.PrintWarning(self.__class__.__name__, "CG failed to converge.")
+            else:
+                if (self.echo_level > 0):
+                    KM.Logger.PrintInfo(self.__class__.__name__, f"CG converged in {info["iterations"]} iterations.")
+                    KM.Logger.PrintInfo(self.__class__.__name__, f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
 
-            is_converged = status == 0 # Note that the status is 0 if the solver converged
-
-            return sol, is_converged
+            return sol, info["converged"]
         else:
             #FIXME: USE AMGCL FROM FUTURE NAMESPACE HERE!
             A_np = cfd_utils.sparse.csr_matrix((
