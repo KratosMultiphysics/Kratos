@@ -1,0 +1,366 @@
+{
+    "analysis_stage": "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis",
+    "problem_data": {
+        "problem_name": "buoyancy2D_triangles",
+        "domain_size": 2,
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0,
+        "end_time": 0.2
+    },
+    "output_processes": {
+        "gid_output": [
+            {
+                "python_module": "gid_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "GiDOutputProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.fluid_computational_model_part",
+                    "postprocess_parameters": {
+                        "result_file_configuration": {
+                            "gidpost_flags": {
+                                "GiDPostMode": "GiD_PostBinary",
+                                "WriteDeformedMeshFlag": "WriteDeformed",
+                                "WriteConditionsFlag": "WriteConditions",
+                                "MultiFileFlag": "SingleFile"
+                            },
+                            "file_label": "time",
+                            "output_control_type": "step",
+                            "output_interval": 1,
+                            "body_output": true,
+                            "node_output": false,
+                            "skin_output": false,
+                            "plane_output": [],
+                            "nodal_results": [
+                                "VELOCITY",
+                                "PRESSURE",
+                                "TEMPERATURE"
+                            ],
+                            "nodal_nonhistorical_results": [],
+                            "gauss_point_results": []
+                        },
+                        "point_data_configuration": []
+                    },
+                    "output_name": "gid_output/buoyancy2D_triangles"
+                }
+            }
+        ],
+        "vtk_output": [
+            {
+                "python_module": "vtk_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "VtkOutputProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.fluid_computational_model_part",
+                    "output_control_type": "step",
+                    "output_interval": 1,
+                    "file_format": "ascii",
+                    "output_precision": 7,
+                    "output_sub_model_parts": false,
+                    "output_path": "vtk_output",
+                    "save_output_files_in_folder": true,
+                    "nodal_solution_step_data_variables": [
+                        "VELOCITY",
+                        "PRESSURE",
+                        "TEMPERATURE"
+                    ],
+                    "nodal_data_value_variables": [],
+                    "element_data_value_variables": [],
+                    "condition_data_value_variables": [],
+                    "gauss_point_variables_extrapolated_to_nodes": []
+                }
+            }
+        ]
+    },
+    "restart_options": {
+        "SaveRestart": false,
+        "RestartFrequency": 0,
+        "LoadRestart": false,
+        "Restart_Step": 0
+    },
+    "solver_settings": {
+        "solver_type": "ThermallyCoupled",
+        "domain_size": 2,
+        "echo_level": 0,
+        "fluid_solver_settings": {
+            "model_part_name": "FluidModelPart",
+            "domain_size": 2,
+            "solver_type": "Monolithic",
+            "material_import_settings": {
+                "materials_filename": "../FluidMaterials.json"
+            },
+            "assembling_strategy": "elemental",
+            "projection_strategy": "galerkin",
+            "rom_settings": {
+                "nodal_unknowns": [
+                    "PRESSURE",
+                    "TEMPERATURE",
+                    "VELOCITY_X",
+                    "VELOCITY_Y"
+                ],
+                "number_of_rom_dofs": 17,
+                "rom_bns_settings": {
+                    "monotonicity_preserving": false
+                }
+            },
+            "echo_level": 0,
+            "compute_reactions": true,
+            "maximum_iterations": 50,
+            "relative_velocity_tolerance": 0.001,
+            "absolute_velocity_tolerance": 1e-05,
+            "relative_pressure_tolerance": 0.001,
+            "absolute_pressure_tolerance": 1e-05,
+            "volume_model_part_name": "Fluid",
+            "skin_parts": [
+                "Pressure",
+                "Left_Wall",
+                "Top_Wall",
+                "Right_Wall",
+                "Bottom_Wall"
+            ],
+            "no_skin_parts": [],
+            "time_scheme": "bossak",
+            "time_stepping": {
+                "automatic_time_step": false,
+                "time_step": 0.01
+            },
+            "formulation": {
+                "element_type": "qsvms",
+                "use_orthogonal_subscales": false,
+                "dynamic_tau": 1.0
+            },
+            "reform_dofs_at_each_step": false,
+            "model_import_settings": {
+                "input_type": "use_input_model_part"
+            }
+        },
+        "thermal_solver_settings": {
+            "solver_type": "transient",
+            "analysis_type": "non_linear",
+            "model_part_name": "ThermalModelPart",
+            "domain_size": 2,
+            "material_import_settings": {
+                "materials_filename": "../BuoyancyMaterials.json"
+            },
+            "assembling_strategy": "elemental",
+            "projection_strategy": "galerkin",
+            "rom_settings": {
+                "nodal_unknowns": [
+                    "PRESSURE",
+                    "TEMPERATURE",
+                    "VELOCITY_X",
+                    "VELOCITY_Y"
+                ],
+                "number_of_rom_dofs": 17,
+                "rom_bns_settings": {
+                    "monotonicity_preserving": false
+                }
+            },
+            "line_search": false,
+            "echo_level": 0,
+            "compute_reactions": false,
+            "max_iteration": 50,
+            "convergence_criterion": "residual_criterion",
+            "solution_relative_tolerance": 1e-05,
+            "solution_absolute_tolerance": 1e-07,
+            "residual_relative_tolerance": 1e-05,
+            "residual_absolute_tolerance": 1e-07,
+            "problem_domain_sub_model_part_list": [
+                "Fluid"
+            ],
+            "processes_sub_model_part_list": [
+                "Fluid",
+                "Left_Wall",
+                "Right_Wall"
+            ],
+            "time_stepping": {
+                "time_step": 0.01
+            },
+            "model_import_settings": {
+                "input_type": "use_input_model_part"
+            }
+        },
+        "model_import_settings": {
+            "input_type": "use_input_model_part"
+        }
+    },
+    "processes": {
+        "initial_conditions_process_list": [],
+        "constraints_process_list": [
+            {
+                "python_module": "apply_outlet_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "process_name": "ApplyOutletProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Pressure",
+                    "variable_name": "PRESSURE",
+                    "constrained": true,
+                    "value": 0.0,
+                    "hydrostatic_outlet": false,
+                    "h_top": 0.0
+                }
+            },
+            {
+                "python_module": "apply_noslip_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "process_name": "ApplyNoSlipProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Left_Wall"
+                }
+            },
+            {
+                "python_module": "apply_noslip_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "process_name": "ApplyNoSlipProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Top_Wall"
+                }
+            },
+            {
+                "python_module": "apply_noslip_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "process_name": "ApplyNoSlipProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Right_Wall"
+                }
+            },
+            {
+                "python_module": "apply_noslip_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "process_name": "ApplyNoSlipProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Bottom_Wall"
+                }
+            },
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Fluid",
+                    "variable_name": "VELOCITY",
+                    "interval": [
+                        0.0,
+                        0.0
+                    ],
+                    "constrained": false,
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Fluid",
+                    "variable_name": "TEMPERATURE",
+                    "interval": [
+                        0.0,
+                        0.0
+                    ],
+                    "constrained": false,
+                    "value": "272.65+x"
+                }
+            },
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Left_Wall",
+                    "variable_name": "TEMPERATURE",
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "constrained": true,
+                    "value": 272.65
+                }
+            },
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Right_Wall",
+                    "variable_name": "TEMPERATURE",
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "constrained": true,
+                    "value": 273.65
+                }
+            },
+            {
+                "python_module": "apply_boussinesq_force_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "process_name": "ApplyBoussinesqForceProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Fluid",
+                    "gravity": [
+                        0.0,
+                        -9.81,
+                        0.0
+                    ],
+                    "ambient_temperature": 273.15,
+                    "thermal_expansion_coefficient": 1.019367991845056
+                }
+            }
+        ]
+    },
+    "modelers": [
+        {
+            "name": "Modelers.KratosMultiphysics.ImportMDPAModeler",
+            "parameters": {
+                "input_filename": "../buoyancy2D_triangles",
+                "model_part_name": "FluidModelPart"
+            }
+        },
+        {
+            "name": "Modelers.KratosMultiphysics.CreateEntitiesFromGeometriesModeler",
+            "parameters": {
+                "elements_list": [
+                    {
+                        "model_part_name": "FluidModelPart.Fluid",
+                        "element_name": "Element2D3N"
+                    }
+                ],
+                "conditions_list": [
+                    {
+                        "model_part_name": "FluidModelPart.Pressure",
+                        "condition_name": "WallCondition2D2N"
+                    },
+                    {
+                        "model_part_name": "FluidModelPart.Left_Wall",
+                        "condition_name": "WallCondition2D2N"
+                    },
+                    {
+                        "model_part_name": "FluidModelPart.Top_Wall",
+                        "condition_name": "WallCondition2D2N"
+                    },
+                    {
+                        "model_part_name": "FluidModelPart.Right_Wall",
+                        "condition_name": "WallCondition2D2N"
+                    },
+                    {
+                        "model_part_name": "FluidModelPart.Bottom_Wall",
+                        "condition_name": "WallCondition2D2N"
+                    },
+                    {
+                        "model_part_name": "FluidModelPart.Left_Wall",
+                        "condition_name": "LineCondition2D2N"
+                    },
+                    {
+                        "model_part_name": "FluidModelPart.Right_Wall",
+                        "condition_name": "LineCondition2D2N"
+                    }
+                ]
+            }
+        }
+    ]
+}
