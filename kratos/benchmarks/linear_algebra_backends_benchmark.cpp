@@ -440,6 +440,165 @@ KRATOS_REGISTER_EXPR_MATRIX_BENCHMARK(BM_ExprAxpy, Arg(1<<12)->Arg(1<<20))
 BENCHMARK_TEMPLATE(BM_ExprSparseProdMV, UblasSparse)->Name("BM_ExprSparseProdMV/ublas")->Arg(1<<14)->Arg(1<<17);
 BENCHMARK_TEMPLATE(BM_ExprSparseProdMV, EigenSparse)->Name("BM_ExprSparseProdMV/eigen")->Arg(1<<14)->Arg(1<<17);
 
+// --- Fixed-size (element-local) dense operations ------------------------------
+// Side-by-side comparison of the backend-selected fixed-size types (array_1d,
+// BoundedMatrix, BoundedVector — Eigen-backed when KRATOS_LINEAR_ALGEBRA_BACKEND
+// is "eigen") against the boost::numeric::ublas bounded types named explicitly.
+// Under the uBLAS backend both families resolve to the same implementations, so
+// equal timings there are the expected sanity baseline; under the Eigen backend
+// the "/backend" numbers measure the Eigen-backed types.
+// The kernels are the idioms element CalculateLocalSystem code is made of.
+
+template <std::size_t TSize>
+struct BackendFixedFamily
+{
+    using VectorType = array_1d<double, TSize>;
+    using MatrixType = BoundedMatrix<double, TSize, TSize>;
+};
+
+template <std::size_t TSize>
+struct UblasFixedFamily
+{
+    using VectorType = boost::numeric::ublas::bounded_vector<double, TSize>;
+    using MatrixType = boost::numeric::ublas::bounded_matrix<double, TSize, TSize>;
+};
+
+namespace
+{
+
+template <class TFamily>
+typename TFamily::MatrixType MakeFixedMatrix()
+{
+    typename TFamily::MatrixType matrix;
+    for (std::size_t i = 0; i < matrix.size1(); ++i)
+        for (std::size_t j = 0; j < matrix.size2(); ++j)
+            matrix(i, j) = (i == j) ? 2.0 + static_cast<double>(i) : 1.0 / (1.0 + static_cast<double>(i + j));
+    return matrix;
+}
+
+template <class TFamily>
+typename TFamily::VectorType MakeFixedVector()
+{
+    typename TFamily::VectorType vector;
+    for (std::size_t i = 0; i < vector.size(); ++i)
+        vector[i] = 1.0 + 0.001 * static_cast<double>(i % 17);
+    return vector;
+}
+
+} // namespace
+
+template <class TFamily>
+static void BM_FixedProdMV(benchmark::State& rState)
+{
+    const auto R = MakeFixedMatrix<TFamily>();
+    const auto x = MakeFixedVector<TFamily>();
+    typename TFamily::VectorType y;
+    for (auto _ : rState) {
+        noalias(y) = prod(R, x);
+        benchmark::DoNotOptimize(y[0]);
+    }
+}
+
+template <class TFamily>
+static void BM_FixedProdMM(benchmark::State& rState)
+{
+    const auto A = MakeFixedMatrix<TFamily>();
+    const auto B = MakeFixedMatrix<TFamily>();
+    typename TFamily::MatrixType C;
+    for (auto _ : rState) {
+        noalias(C) = prod(A, B);
+        benchmark::DoNotOptimize(C(0, 0));
+    }
+}
+
+template <class TFamily>
+static void BM_FixedTransProdMM(benchmark::State& rState)
+{
+    const auto A = MakeFixedMatrix<TFamily>();
+    const auto B = MakeFixedMatrix<TFamily>();
+    typename TFamily::MatrixType C;
+    for (auto _ : rState) {
+        noalias(C) = prod(trans(A), B);
+        benchmark::DoNotOptimize(C(0, 0));
+    }
+}
+
+/// The local-axes rotation kernel of the coordinate transformation utilities:
+/// two rotations plus an accumulation, chained through a temporary.
+template <class TFamily>
+static void BM_FixedRotationKernel(benchmark::State& rState)
+{
+    const auto R = MakeFixedMatrix<TFamily>();
+    const auto x = MakeFixedVector<TFamily>();
+    typename TFamily::VectorType tmp;
+    typename TFamily::VectorType result = MakeFixedVector<TFamily>();
+    for (auto _ : rState) {
+        noalias(tmp) = prod(R, x);
+        noalias(result) = prod(trans(R), tmp);
+        benchmark::DoNotOptimize(result[0]);
+    }
+}
+
+template <class TFamily>
+static void BM_FixedAxpy(benchmark::State& rState)
+{
+    const auto x = MakeFixedVector<TFamily>();
+    const auto y = MakeFixedVector<TFamily>();
+    typename TFamily::VectorType z;
+    for (auto _ : rState) {
+        noalias(z) = 2.0 * x + y;
+        benchmark::DoNotOptimize(z[0]);
+    }
+}
+
+template <class TFamily>
+static void BM_FixedInnerProd(benchmark::State& rState)
+{
+    const auto x = MakeFixedVector<TFamily>();
+    const auto y = MakeFixedVector<TFamily>();
+    for (auto _ : rState) {
+        benchmark::DoNotOptimize(inner_prod(x, y));
+    }
+}
+
+template <class TFamily>
+static void BM_FixedNorm2(benchmark::State& rState)
+{
+    const auto x = MakeFixedVector<TFamily>();
+    for (auto _ : rState) {
+        benchmark::DoNotOptimize(norm_2(x));
+    }
+}
+
+template <class TFamily>
+static void BM_FixedOuterProd(benchmark::State& rState)
+{
+    const auto x = MakeFixedVector<TFamily>();
+    const auto y = MakeFixedVector<TFamily>();
+    typename TFamily::MatrixType C;
+    for (auto _ : rState) {
+        noalias(C) = outer_prod(x, y);
+        benchmark::DoNotOptimize(C(0, 0));
+    }
+}
+
+#define KRATOS_REGISTER_FIXED_BENCHMARK(name)                                                     \
+    BENCHMARK_TEMPLATE(name, BackendFixedFamily<3>)->Name(#name "/backend/3");                    \
+    BENCHMARK_TEMPLATE(name, UblasFixedFamily<3>)->Name(#name "/ublas/3");                        \
+    BENCHMARK_TEMPLATE(name, BackendFixedFamily<9>)->Name(#name "/backend/9");                    \
+    BENCHMARK_TEMPLATE(name, UblasFixedFamily<9>)->Name(#name "/ublas/9");
+
+KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedProdMV)
+KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedProdMM)
+KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedTransProdMM)
+KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedRotationKernel)
+KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedAxpy)
+KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedInnerProd)
+KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedNorm2)
+KRATOS_REGISTER_FIXED_BENCHMARK(BM_FixedOuterProd)
+
+#undef KRATOS_REGISTER_FIXED_BENCHMARK
+
 } // namespace Kratos
 
 BENCHMARK_MAIN();
