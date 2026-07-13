@@ -226,8 +226,11 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
         return;
     }
 
-    const std::size_t number_of_sub_steps =
-        CalculateAdaptiveNumberOfSubSteps(mpCoulombImpl, full_trial_principal_stresses, elastic_matrix);
+    std::size_t number_of_sub_steps = 1;
+    if (mMaxNumberOfSubSteps > 1) {
+        number_of_sub_steps = CalculateAdaptiveNumberOfSubSteps(
+            mpCoulombImpl, full_trial_principal_stresses, elastic_matrix);
+    }
 
     // Running committed state for the sub-stepping (start from last finalized state)
     Vector committed_stress = mStressVectorFinalized;
@@ -281,7 +284,6 @@ Vector MohrCoulombLaw::CalculateTrialStressVector(const Vector& rStrainVector, c
                                          rStrainVector - mStrainVectorFinalized);
 }
 
-
 std::size_t MohrCoulombLaw::CalculateAdaptiveNumberOfSubSteps(std::unique_ptr<CoulombImpl>& rImpl,
                                                               const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                               const Matrix& rElasticMatrix)
@@ -320,6 +322,8 @@ void MohrCoulombLaw::save(Serializer& rSerializer) const
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.save("mpCoulombImpl", mpCoulombImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
+	rSerializer.save("MaxRelativeOvershoot", mMaxRelativeOvershoot);
+	rSerializer.save("MaxNumberOfSubSteps", mMaxNumberOfSubSteps);
 }
 
 void MohrCoulombLaw::load(Serializer& rSerializer)
@@ -331,6 +335,8 @@ void MohrCoulombLaw::load(Serializer& rSerializer)
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.load("mpCoulombImpl", mpCoulombImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
+	rSerializer.load("MaxRelativeOvershoot", mMaxRelativeOvershoot);
+	rSerializer.load("MaxNumberOfSubSteps", mMaxNumberOfSubSteps);
 }
 
 } // Namespace Kratos
