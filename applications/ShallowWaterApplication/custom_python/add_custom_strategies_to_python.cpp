@@ -19,6 +19,7 @@
 // Project includes
 #include "add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // Schemes
 #include "custom_strategies/shallow_water_residual_based_bdf_scheme.h"
@@ -35,8 +36,8 @@ namespace Python
   {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
 
     // Schemes
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
