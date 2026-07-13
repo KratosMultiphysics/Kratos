@@ -71,8 +71,6 @@ Geo::PrincipalStresses::AveragingType FindAveragingType(const Geo::PrincipalStre
     return NO_AVERAGING;
 }
 
-
-
 } // namespace
 
 namespace Kratos
@@ -221,15 +219,15 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
     const auto& [full_trial_principal_stresses, full_rotation_matrix] =
         StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(full_trial_stress_vector);
 
-    // If the whole step stays elastic, there is nothing to integrate and no need to sub-step.
+    // If the whole step stays elastic, there is no need to sub-step.
     if (mpCoulombImpl->IsAdmissibleStressState(full_trial_principal_stresses)) {
         mStressVector                 = full_trial_stress_vector;
         rParameters.GetStressVector() = mStressVector;
         return;
     }
 
-    const std::size_t     number_of_sub_steps     = CalculateAdaptiveNumberOfSubSteps(
-        mpCoulombImpl, full_trial_principal_stresses, elastic_matrix);
+    const std::size_t number_of_sub_steps =
+        CalculateAdaptiveNumberOfSubSteps(mpCoulombImpl, full_trial_principal_stresses, elastic_matrix);
 
     // Running committed state for the sub-stepping (start from last finalized state)
     Vector committed_stress = mStressVectorFinalized;
@@ -241,7 +239,7 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
             mStrainVectorFinalized +
             (static_cast<double>(sub) / static_cast<double>(number_of_sub_steps)) * total_strain_increment;
 
-        // elastic predictor from the *committed* sub-step state
+        // elastic predictor from the committed sub-step state
         const Vector trial_stress_vector =
             committed_stress + prod(elastic_matrix, sub_strain - committed_strain);
 
@@ -283,35 +281,29 @@ Vector MohrCoulombLaw::CalculateTrialStressVector(const Vector& rStrainVector, c
                                          rStrainVector - mStrainVectorFinalized);
 }
 
-// Estimates how many strain sub-steps are needed to integrate the constitutive law
-// accurately. It performs a single "probe" return mapping of the full elastic predictor to
-// measure how far that predictor overshoots the yield surface, and subdivides the strain
-// increment such that each sub-step overshoots by at most a target fraction of the stress
-// magnitude. The kappa (hardening) update caused by the probe is rolled back so it does not
-// pollute the actual sub-stepped integration. The result is clamped to [1, MaxNumberOfSubSteps].
+
 std::size_t MohrCoulombLaw::CalculateAdaptiveNumberOfSubSteps(std::unique_ptr<CoulombImpl>& rImpl,
-    const Geo::PrincipalStresses& rTrialPrincipalStresses,
-    const Matrix& rElasticMatrix)
+                                                              const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                              const Matrix& rElasticMatrix)
 {
+    // make sure that kappa is not updated while calculating the number of required sub steps
     rImpl->SaveKappaOfCoulombYieldSurface();
     const auto mapped_principal_stresses = rImpl->DoReturnMapping(
         rTrialPrincipalStresses, rElasticMatrix, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
     rImpl->RestoreKappaOfCoulombYieldSurface();
 
-    const Vector trial_values = rTrialPrincipalStresses.CopyTo<Vector>();
+    const Vector trial_values  = rTrialPrincipalStresses.CopyTo<Vector>();
     const Vector mapped_values = mapped_principal_stresses.CopyTo<Vector>();
 
-    const auto overshoot = norm_2(trial_values - mapped_values);
-    const auto stress_scale = std::max(norm_2(trial_values), 1.0e-12);
+    const auto overshoot          = norm_2(trial_values - mapped_values);
+    const auto stress_scale       = std::max(norm_2(trial_values), 1.0e-12);
     const auto relative_overshoot = overshoot / stress_scale;
-
 
     const auto number_of_sub_steps =
         static_cast<std::size_t>(std::ceil(relative_overshoot / mMaxRelativeOvershoot));
 
-    return std::clamp(number_of_sub_steps, std::size_t{ 1 }, mMaxNumberOfSubSteps);
+    return std::clamp(number_of_sub_steps, std::size_t{1}, mMaxNumberOfSubSteps);
 }
-
 
 void MohrCoulombLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
