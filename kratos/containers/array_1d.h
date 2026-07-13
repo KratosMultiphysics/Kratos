@@ -9,10 +9,404 @@
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//
+//                   Vicente Mataix Ferrandiz
 //
 
 #pragma once
+
+// The fixed-size dense vector of Kratos. The implementation follows the
+// linear-algebra backend selected at configure time
+// (KRATOS_LINEAR_ALGEBRA_BACKEND): an Eigen fixed-size vector under the Eigen
+// backend, the historical boost::numeric::ublas vector_expression otherwise.
+// Both implementations honour the same contract (see
+// tests/cpp_tests/containers/test_dense_backend_contract.cpp): plain T[N]
+// layout starting at the object address, the uBLAS-style member surface
+// (operator()/operator[], size, resize, iterators, ...) and the uBLAS text
+// format for streaming.
+
+#ifdef KRATOS_USE_EIGEN_BACKEND
+
+// The Kratos CMake defines EIGEN_MATRIXBASE_PLUGIN globally when the Eigen
+// backend is selected; the injected conversions (Eigen expression -> uBLAS
+// dense containers) are part of the array_1d contract, so refuse to build
+// without them (e.g. a hand-rolled build defining only the backend macro).
+#ifndef EIGEN_MATRIXBASE_PLUGIN
+#error "KRATOS_USE_EIGEN_BACKEND requires EIGEN_MATRIXBASE_PLUGIN=\"<kratos>/kratos/includes/kratos_eigen_matrixbase_plugin.h\" to be defined globally; configure with KRATOS_LINEAR_ALGEBRA_BACKEND=eigen through the Kratos CMake."
+#endif
+
+// System includes
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <initializer_list>
+#include <iterator>
+#include <ostream>
+#include <type_traits>
+
+// External includes
+#include <Eigen/Core>
+#include <boost/numeric/ublas/expression_types.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+
+// Project includes
+#include "includes/define.h"
+#include "includes/ublas_interface.h" // also pulls in the Eigen compatibility operations under this backend
+
+namespace Kratos
+{
+
+///@name Kratos Classes
+///@{
+
+/**
+ * @class array_1d
+ * @brief Eigen-backed implementation of the Kratos fixed-size dense vector.
+ * @details Selected by the Eigen linear-algebra backend
+ * (KRATOS_USE_EIGEN_BACKEND); the uBLAS backend uses the historical
+ * boost::numeric::ublas vector_expression implementation instead (below).
+ * Both implementations honour the same contract:
+ * - Plain T[N] memory layout starting at the object address (no vtable, no
+ *   padding, no over-alignment). Variable component access, DataTypeTraits
+ *   contiguity and the MPI buffers rely on it, hence Eigen::DontAlign and the
+ *   static_asserts at the end of this block.
+ * - The uBLAS-style member surface: operator() and operator[], size(),
+ *   near-no-op resize(), clear(), raw-pointer iterators, swap, the
+ *   assign/plus_assign/minus_assign protocol and construction/assignment from
+ *   uBLAS vector expressions (the dynamic Vector/Matrix types remain uBLAS
+ *   under both backends).
+ * - The uBLAS text format for streaming: [N](v0,v1,...).
+ * Deriving from Eigen::Matrix makes every Eigen expression (a+b, prod, ...)
+ * available on the type; the mixed uBLAS/Eigen idiom layer lives in
+ * includes/eigen_ublas_compat_operations.h.
+ */
+template<class T, std::size_t N>
+class array_1d : public Eigen::Matrix<T, static_cast<int>(N), 1, Eigen::ColMajor | Eigen::DontAlign>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of array_1d
+    KRATOS_CLASS_POINTER_DEFINITION(array_1d);
+
+    using BaseType = Eigen::Matrix<T, static_cast<int>(N), 1, Eigen::ColMajor | Eigen::DontAlign>;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using value_type = T;
+    using const_reference = const T&;
+    using reference = T&;
+    using array_type = std::array<T, N>;
+    using pointer = T*;
+    using self_type = array_1d<T, N>;
+    using iterator = T*;
+    using const_iterator = const T*;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor: as in the uBLAS implementation the values are NOT initialized.
+    array_1d() : BaseType() {}
+
+    /// The size argument is only there for interface compatibility: the size is fixed to N.
+    explicit array_1d(size_type Size) : BaseType() {}
+
+    /// Fills the first Size entries with the given value.
+    explicit array_1d(size_type Size, const value_type& rValue) : BaseType()
+    {
+        KRATOS_DEBUG_ERROR_IF(Size > N) << "Given size is greater than the size of the array!" << std::endl;
+        std::fill(begin(), begin() + Size, rValue);
+    }
+
+    explicit array_1d(const std::initializer_list<value_type>& rInitList) : BaseType()
+    {
+        KRATOS_DEBUG_ERROR_IF(rInitList.size() > N) << "Size of list greater than the size of the array!" << std::endl;
+        std::copy(rInitList.begin(), rInitList.end(), begin());
+    }
+
+    array_1d(size_type Size, const array_type& rData) : BaseType()
+    {
+        std::copy(rData.begin(), rData.end(), begin());
+    }
+
+    array_1d(const array_1d& rOther) : BaseType(rOther) {}
+
+    /// Construction from any Eigen expression of compatible static size (the
+    /// constraint keeps incompatible constructions out of overload sets and
+    /// turns size bugs into clear no-viable-overload errors). The cast
+    /// mirrors the uBLAS element-wise conversion semantics for expressions of
+    /// a different scalar type (e.g. array_1d<int, 3> from an
+    /// array_1d<std::size_t, 3>).
+    template<class TDerived>
+    requires ((TDerived::RowsAtCompileTime == Eigen::Dynamic || TDerived::RowsAtCompileTime == static_cast<int>(N)) &&
+              (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == 1))
+    array_1d(const Eigen::MatrixBase<TDerived>& rExpression) : BaseType(rExpression.template cast<T>()) {}
+
+    /// Construction from any uBLAS vector expression (interoperability with
+    /// the dynamic uBLAS Vector and the uBLAS proxies/expressions).
+    template<class TExpression>
+    array_1d(const boost::numeric::ublas::vector_expression<TExpression>& rExpression) : BaseType()
+    {
+        const auto& r_expression = rExpression();
+        KRATOS_DEBUG_ERROR_IF(r_expression.size() != N) << "Wrong size in the construction from a vector expression [ expression size = " << r_expression.size() << ", array size = " << N << " ]." << std::endl;
+        for (size_type i = 0; i < N; ++i) {
+            (*this)[i] = r_expression(i);
+        }
+    }
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    // Element access (both operators, as in the uBLAS implementation)
+    const_reference operator()(size_type i) const
+    {
+        KRATOS_DEBUG_ERROR_IF(i >= N) << "Index greater than the size of the array - index is i = " << i << std::endl;
+        return BaseType::data()[i];
+    }
+    reference operator()(size_type i)
+    {
+        KRATOS_DEBUG_ERROR_IF(i >= N) << "Index greater than the size of the array - index is i = " << i << std::endl;
+        return BaseType::data()[i];
+    }
+    const_reference operator[](size_type i) const
+    {
+        KRATOS_DEBUG_ERROR_IF(i >= N) << "Index greater than the size of the array - index is i = " << i << std::endl;
+        return BaseType::data()[i];
+    }
+    reference operator[](size_type i)
+    {
+        KRATOS_DEBUG_ERROR_IF(i >= N) << "Index greater than the size of the array - index is i = " << i << std::endl;
+        return BaseType::data()[i];
+    }
+
+    // Assignment
+    array_1d& operator=(const array_1d& rOther)
+    {
+        BaseType::operator=(rOther);
+        return *this;
+    }
+
+    /// The assignment evaluates through a temporary (.eval()), reproducing
+    /// the alias-safe uBLAS operator= semantics (e.g. x = trans-like
+    /// expressions of x itself); the temporary-free fast path remains
+    /// noalias(x) = expr, exactly as in uBLAS.
+    template<class TDerived>
+    requires ((TDerived::RowsAtCompileTime == Eigen::Dynamic || TDerived::RowsAtCompileTime == static_cast<int>(N)) &&
+              (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == 1))
+    array_1d& operator=(const Eigen::MatrixBase<TDerived>& rExpression)
+    {
+        BaseType::operator=(rExpression.template cast<T>().eval());
+        return *this;
+    }
+
+    template<class TDerived>
+    requires ((TDerived::RowsAtCompileTime == Eigen::Dynamic || TDerived::RowsAtCompileTime == static_cast<int>(N)) &&
+              (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == 1))
+    array_1d& operator+=(const Eigen::MatrixBase<TDerived>& rExpression)
+    {
+        BaseType::operator+=(rExpression.template cast<T>().eval());
+        return *this;
+    }
+
+    template<class TDerived>
+    requires ((TDerived::RowsAtCompileTime == Eigen::Dynamic || TDerived::RowsAtCompileTime == static_cast<int>(N)) &&
+              (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == 1))
+    array_1d& operator-=(const Eigen::MatrixBase<TDerived>& rExpression)
+    {
+        BaseType::operator-=(rExpression.template cast<T>().eval());
+        return *this;
+    }
+
+    template<class TExpression>
+    array_1d& operator=(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    {
+        // a uBLAS expression cannot reference this (Eigen) object, so no
+        // protective temporary is needed
+        const auto& r_expression = rExpression();
+        KRATOS_DEBUG_ERROR_IF(r_expression.size() != N) << "Wrong size in the assignment from a vector expression [ expression size = " << r_expression.size() << ", array size = " << N << " ]." << std::endl;
+        for (size_type i = 0; i < N; ++i) {
+            (*this)[i] = r_expression(i);
+        }
+        return *this;
+    }
+
+    template<class TExpression>
+    array_1d& operator+=(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    {
+        const auto& r_expression = rExpression();
+        KRATOS_DEBUG_ERROR_IF(r_expression.size() != N) << "Wrong size in the addition of a vector expression [ expression size = " << r_expression.size() << ", array size = " << N << " ]." << std::endl;
+        for (size_type i = 0; i < N; ++i) {
+            (*this)[i] += r_expression(i);
+        }
+        return *this;
+    }
+
+    template<class TExpression>
+    array_1d& operator-=(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    {
+        const auto& r_expression = rExpression();
+        KRATOS_DEBUG_ERROR_IF(r_expression.size() != N) << "Wrong size in the subtraction of a vector expression [ expression size = " << r_expression.size() << ", array size = " << N << " ]." << std::endl;
+        for (size_type i = 0; i < N; ++i) {
+            (*this)[i] -= r_expression(i);
+        }
+        return *this;
+    }
+
+    // Scalar operators keep the base class implementations (no aliasing there)
+    using BaseType::operator*=;
+    using BaseType::operator/=;
+
+    /// Implicit conversion to the dynamic uBLAS vector, mirroring the
+    /// implicit vector_expression conversion the uBLAS implementation offers
+    /// (e.g. Vector v = some_array; or passing an array_1d to a Vector
+    /// parameter).
+    operator boost::numeric::ublas::vector<T>() const
+    {
+        boost::numeric::ublas::vector<T> result(N);
+        for (size_type i = 0; i < N; ++i) {
+            result[i] = (*this)[i];
+        }
+        return result;
+    }
+
+    /**
+     * @brief Compares whether this array_1d is equal to the given array_1d.
+     * @param rOther the array_1d to compare to
+     * @return true if the two arrays are equal, false otherwise
+     */
+    bool operator==(const array_1d& rOther) const
+    {
+        return std::equal(begin(), end(), rOther.begin());
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// Interface-compatibility resize: the size is fixed, but !Preserve value-initializes.
+    void resize(size_type Size, bool Preserve = true)
+    {
+        if (!Preserve) {
+            std::fill(begin(), end(), value_type());
+        }
+    }
+
+    array_1d& assign_temporary(array_1d& rOther)
+    {
+        swap(rOther);
+        return *this;
+    }
+
+    // uBLAS assignment protocol (kept for generic code written against it)
+    template<class TExpression>
+    array_1d& assign(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    {
+        return (*this = rExpression);
+    }
+    template<class TExpression>
+    array_1d& plus_assign(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    {
+        return (*this += rExpression);
+    }
+    template<class TExpression>
+    array_1d& minus_assign(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    {
+        return (*this -= rExpression);
+    }
+
+    void swap(array_1d& rOther)
+    {
+        if (this != &rOther) {
+            std::swap_ranges(begin(), end(), rOther.begin());
+        }
+    }
+    friend void swap(array_1d& rFirst, array_1d& rSecond)
+    {
+        rFirst.swap(rSecond);
+    }
+
+    reference insert_element(size_type i, const_reference rValue)
+    {
+        KRATOS_DEBUG_ERROR_IF(i >= N) << "Index greater than the size of the array - index is i = " << i << std::endl;
+        return ((*this)[i] = rValue);
+    }
+    void erase_element(size_type i)
+    {
+        KRATOS_DEBUG_ERROR_IF(i >= N) << "Index greater than the size of the array - index is i = " << i << std::endl;
+        (*this)[i] = value_type();
+    }
+    void clear()
+    {
+        std::fill(begin(), end(), value_type());
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    constexpr size_type size() const
+    {
+        return N;
+    }
+
+    /// Raw contiguous storage pointer (Eigen semantics: T* rather than the
+    /// std::array& of the uBLAS implementation).
+    using BaseType::data;
+
+    iterator begin() { return BaseType::data(); }
+    const_iterator begin() const { return BaseType::data(); }
+    const_iterator cbegin() const { return BaseType::data(); }
+    iterator end() { return BaseType::data() + N; }
+    const_iterator end() const { return BaseType::data() + N; }
+    const_iterator cend() const { return BaseType::data() + N; }
+
+    reverse_iterator rbegin() { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+    reverse_iterator rend() { return reverse_iterator(begin()); }
+    const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
+
+    ///@}
+}; // Class array_1d
+
+///@}
+///@name Input and output
+///@{
+
+/// output stream function: reproduces the uBLAS text format [N](v0,v1,...)
+template<class T, std::size_t N>
+inline std::ostream& operator<<(std::ostream& rOStream, const array_1d<T, N>& rArray)
+{
+    rOStream << '[' << N << "](";
+    for (std::size_t i = 0; i < N; ++i) {
+        if (i > 0) {
+            rOStream << ',';
+        }
+        rOStream << rArray[i];
+    }
+    rOStream << ')';
+    return rOStream;
+}
+
+///@}
+
+// The layout contract: Variable component access (variable.h), the
+// DataTypeTraits contiguity used by the MPI buffers and the Point/Node
+// coordinates all treat an array_1d<double, N> as a plain double[N] starting
+// at the object address. Eigen::DontAlign in the base type is what disables
+// the over-alignment Eigen would otherwise apply to the 4- and 6-sized
+// arrays.
+static_assert(sizeof(array_1d<double, 3>) == 3 * sizeof(double), "array_1d<double, 3> must be layout-compatible with double[3]");
+static_assert(sizeof(array_1d<double, 4>) == 4 * sizeof(double), "array_1d<double, 4> must be layout-compatible with double[4]");
+static_assert(sizeof(array_1d<double, 6>) == 6 * sizeof(double), "array_1d<double, 6> must be layout-compatible with double[6]");
+static_assert(sizeof(array_1d<double, 9>) == 9 * sizeof(double), "array_1d<double, 9> must be layout-compatible with double[9]");
+static_assert(alignof(array_1d<double, 4>) == alignof(double), "array_1d must not be over-aligned");
+
+}  // namespace Kratos.
+
+#else // uBLAS backend
 
 // System includes
 #include <string>
@@ -251,7 +645,7 @@ public:
     BOOST_UBLAS_INLINE
     void swap (array_1d &v)
     {
-        if (this !=	&v) 
+        if (this !=	&v)
         {
             data ().swap (v.data ());
         }
@@ -689,6 +1083,8 @@ private:
 
 ///@}
 }  // namespace	Kratos.
+
+#endif // KRATOS_USE_EIGEN_BACKEND
 
 namespace AuxiliaryHashCombine
 {
