@@ -48,11 +48,19 @@ template<class TDataType> class EigenVector;
 //   EigenMatrix<T>/EigenVector<T> wins by partial ordering.
 ///@}
 
-/// Matrix/matrix and matrix/vector product (lazy Eigen expression).
+/// Matrix/matrix and matrix/vector product (lazy Eigen expression). A vector
+/// first operand keeps the ublas prod(v, M) semantics (v^T M), returned
+/// column-shaped so it assigns to the vector types.
 template<class TDerived1, class TDerived2>
 inline auto prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::MatrixBase<TDerived2>& rB)
 {
-    return rA * rB;
+    if constexpr (TDerived1::ColsAtCompileTime == 1 &&
+                  TDerived2::ColsAtCompileTime != 1 &&
+                  TDerived2::RowsAtCompileTime != 1) { // a row-shaped rB is a plain (outer) product
+        return (rA.transpose() * rB).transpose();
+    } else {
+        return rA * rB;
+    }
 }
 
 /// Sparse-matrix/vector (or sparse/dense) product.
@@ -126,6 +134,27 @@ template<class TDerived>
 inline auto sum(const Eigen::MatrixBase<TDerived>& rX)
 {
     return rX.sum();
+}
+
+/// Frobenius norm (same as norm_2 for vectors, as in ublas).
+template<class TDerived>
+inline auto norm_frobenius(const Eigen::MatrixBase<TDerived>& rM)
+{
+    return rM.norm();
+}
+
+/// Element-wise product (lazy Eigen expression).
+template<class TDerived1, class TDerived2>
+inline auto element_prod(const Eigen::MatrixBase<TDerived1>& rX, const Eigen::MatrixBase<TDerived2>& rY)
+{
+    return rX.cwiseProduct(rY.derived());
+}
+
+/// Element-wise division (lazy Eigen expression).
+template<class TDerived1, class TDerived2>
+inline auto element_div(const Eigen::MatrixBase<TDerived1>& rX, const Eigen::MatrixBase<TDerived2>& rY)
+{
+    return rX.cwiseQuotient(rY.derived());
 }
 
 /// noalias proxy: Eigen's own NoAlias supports =, += and -=, which is exactly

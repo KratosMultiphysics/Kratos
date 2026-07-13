@@ -158,6 +158,12 @@ public:
         if (Preserve) this->conservativeResize(NewSize);
         else BaseType::resize(NewSize);
     }
+
+    /// uBLAS-style clear: zero all entries (the size is kept).
+    void clear()
+    {
+        this->setZero();
+    }
 };
 
 /**
@@ -246,6 +252,20 @@ public:
     {
         if (Preserve) this->conservativeResize(NewSize1, NewSize2);
         else BaseType::resize(NewSize1, NewSize2);
+    }
+
+    /// uBLAS-style clear: removes all stored entries (the dimensions are kept).
+    void clear()
+    {
+        this->setZero();
+    }
+
+    /// uBLAS-style element insertion. As for operator() on a missing entry
+    /// this is an O(nnz-in-row) slow path meant for tests and small setup
+    /// code, not for assembly (write the CSR arrays directly instead).
+    void push_back(const std::size_t I, const std::size_t J, const TDataType Value)
+    {
+        this->coeffRef(I, J) = Value;
     }
 
     /// uBLAS-style element access. Inserting a new entry through the non-const
