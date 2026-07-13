@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 
 #if defined(KRATOS_PYTHON)
@@ -20,6 +21,9 @@
 #include "includes/define_python.h"
 #include "custom_python/add_trilinos_schemes_to_python.h"
 #include "trilinos_space.h"
+#ifdef HAVE_TPETRA
+#include "trilinos_space_experimental.h"
+#endif
 #include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
@@ -40,107 +44,110 @@ namespace Kratos::Python
 {
 namespace py = pybind11;
 
-typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
+using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-void MoveMesh( Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType >& dummy, ModelPart::NodesContainerType& rNodes )
-{
-    for ( ModelPart::NodeIterator i = rNodes.begin(); i != rNodes.end(); ++i )
+namespace {
+    template<class TSparseSpace, class TLocalSpace>
+    void RegisterSchemes(pybind11::module& m, const std::string& Prefix)
     {
-        const array_1d<double, 3 > & disp = i->FastGetSolutionStepValue( DISPLACEMENT );
-        ( i )->X() = ( i )->X0() + disp[0];
-        ( i )->Y() = ( i )->Y0() + disp[1];
-        ( i )->Z() = ( i )->Z0() + disp[2];
+        using BaseSchemeType = Scheme<TSparseSpace, TLocalSpace>;
+
+        py::class_<BaseSchemeType, typename BaseSchemeType::Pointer>(m, (Prefix + "Scheme").c_str())
+            .def(py::init<>())
+            .def("Initialize",                  &BaseSchemeType::Initialize)
+            .def("SchemeIsInitialized",          &BaseSchemeType::SchemeIsInitialized)
+            .def("ElementsAreInitialized",       &BaseSchemeType::ElementsAreInitialized)
+            .def("ConditionsAreInitialized",     &BaseSchemeType::ConditionsAreInitialized)
+            .def("InitializeElements",           &BaseSchemeType::InitializeElements)
+            .def("InitializeConditions",         &BaseSchemeType::InitializeConditions)
+            .def("InitializeSolutionStep",       &BaseSchemeType::InitializeSolutionStep)
+            .def("FinalizeSolutionStep",         &BaseSchemeType::FinalizeSolutionStep)
+            .def("InitializeNonLinIteration",    &BaseSchemeType::InitializeNonLinIteration)
+            .def("FinalizeNonLinIteration",      &BaseSchemeType::FinalizeNonLinIteration)
+            .def("Predict",                      &BaseSchemeType::Predict)
+            .def("Update",                       &BaseSchemeType::Update)
+            .def("CalculateOutputData",          &BaseSchemeType::CalculateOutputData)
+            .def("Clean",                        &BaseSchemeType::Clean)
+            .def("Clear",                        &BaseSchemeType::Clear)
+            .def("MoveMesh", [](BaseSchemeType& self, ModelPart::NodesContainerType& rNodes) {
+                for (auto it = rNodes.begin(); it != rNodes.end(); ++it) {
+                    const array_1d<double, 3>& disp = it->FastGetSolutionStepValue(DISPLACEMENT);
+                    it->X() = it->X0() + disp[0];
+                    it->Y() = it->Y0() + disp[1];
+                    it->Z() = it->Z0() + disp[2];
+                }
+            })
+            .def("Check", [](const BaseSchemeType& self, const ModelPart& rModelPart) { return self.Check(rModelPart); })
+            ;
+
+        py::class_<
+            ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TLocalSpace>,
+            typename ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TLocalSpace>::Pointer,
+            BaseSchemeType>(m, (Prefix + "ResidualBasedIncrementalUpdateStaticScheme").c_str())
+            .def(py::init<>())
+            ;
+
+        py::class_<
+            ResidualBasedIncrementalUpdateStaticSchemeSlip<TSparseSpace, TLocalSpace>,
+            typename ResidualBasedIncrementalUpdateStaticSchemeSlip<TSparseSpace, TLocalSpace>::Pointer,
+            ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TLocalSpace>>(m, (Prefix + "ResidualBasedIncrementalUpdateStaticSchemeSlip").c_str())
+            .def(py::init<unsigned int, unsigned int>())
+            ;
+
+        py::class_<
+            ResidualBasedBossakDisplacementScheme<TSparseSpace, TLocalSpace>,
+            typename ResidualBasedBossakDisplacementScheme<TSparseSpace, TLocalSpace>::Pointer,
+            BaseSchemeType>(m, (Prefix + "ResidualBasedBossakDisplacementScheme").c_str())
+            .def(py::init<double>())
+            ;
+
+        py::class_<
+            ResidualBasedBDFDisplacementScheme<TSparseSpace, TLocalSpace>,
+            typename ResidualBasedBDFDisplacementScheme<TSparseSpace, TLocalSpace>::Pointer,
+            BaseSchemeType>(m, (Prefix + "ResidualBasedBDFDisplacementScheme").c_str())
+            .def(py::init<>())
+            .def(py::init<const std::size_t>())
+            ;
+
+        py::class_<
+            ResidualBasedBDFCustomScheme<TSparseSpace, TLocalSpace>,
+            typename ResidualBasedBDFCustomScheme<TSparseSpace, TLocalSpace>::Pointer,
+            BaseSchemeType>(m, (Prefix + "ResidualBasedBDFCustomScheme").c_str())
+            .def(py::init<>())
+            .def(py::init<const std::size_t>())
+            .def(py::init<const std::size_t, Parameters>())
+            ;
+
+        using AdjointStaticSchemeType = ResidualBasedAdjointStaticScheme<TSparseSpace, TLocalSpace>;
+        py::class_<AdjointStaticSchemeType, typename AdjointStaticSchemeType::Pointer, BaseSchemeType>
+            (m, (Prefix + "ResidualBasedAdjointStaticScheme").c_str())
+            .def(py::init<AdjointResponseFunction::Pointer>())
+            .def("SetResponseFunction", &AdjointStaticSchemeType::SetResponseFunction, py::arg("new_response_function"))
+            ;
+
+        using AdjointSteadySchemeType = ResidualBasedAdjointSteadyScheme<TSparseSpace, TLocalSpace>;
+        py::class_<AdjointSteadySchemeType, typename AdjointSteadySchemeType::Pointer, AdjointStaticSchemeType>
+            (m, (Prefix + "ResidualBasedAdjointSteadyScheme").c_str())
+            .def(py::init<AdjointResponseFunction::Pointer>())
+            ;
+
+        using AdjointBossakSchemeType = ResidualBasedAdjointBossakScheme<TSparseSpace, TLocalSpace>;
+        py::class_<AdjointBossakSchemeType, typename AdjointBossakSchemeType::Pointer, BaseSchemeType>
+            (m, (Prefix + "ResidualBasedAdjointBossakScheme").c_str())
+            .def(py::init<Kratos::Parameters, AdjointResponseFunction::Pointer>())
+            ;
     }
 }
 
 void  AddSchemes(pybind11::module& m)
 {
-    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
-    typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
+    RegisterSchemes<TrilinosSparseSpaceType, TrilinosLocalSpaceType>(m, "Trilinos");
 
-//********************************************************************
-    //********************************************************************
-    py::class_< TrilinosBaseSchemeType, typename TrilinosBaseSchemeType::Pointer >
-        (m, "TrilinosScheme").def(py::init< >() )
-        .def( "Initialize", &TrilinosBaseSchemeType::Initialize )
-        .def( "SchemeIsInitialized", &TrilinosBaseSchemeType::SchemeIsInitialized )
-        .def( "ElementsAreInitialized", &TrilinosBaseSchemeType::ElementsAreInitialized )
-        .def( "ConditionsAreInitialized", &TrilinosBaseSchemeType::ConditionsAreInitialized )
-        .def( "InitializeElements", &TrilinosBaseSchemeType::InitializeElements )
-        .def( "InitializeConditions", &TrilinosBaseSchemeType::InitializeConditions )
-        .def( "InitializeSolutionStep", &TrilinosBaseSchemeType::InitializeSolutionStep )
-        .def( "FinalizeSolutionStep", &TrilinosBaseSchemeType::FinalizeSolutionStep )
-        .def( "InitializeNonLinIteration", &TrilinosBaseSchemeType::InitializeNonLinIteration )
-        .def( "FinalizeNonLinIteration", &TrilinosBaseSchemeType::FinalizeNonLinIteration )
-        .def( "Predict", &TrilinosBaseSchemeType::Predict )
-        .def( "Update", &TrilinosBaseSchemeType::Update )
-        .def( "CalculateOutputData", &TrilinosBaseSchemeType::CalculateOutputData )
-        .def( "Clean", &TrilinosBaseSchemeType::Clean )
-        .def( "Clear", &TrilinosBaseSchemeType::Clear )
-        .def( "MoveMesh", MoveMesh )
-        .def( "Check", [](const TrilinosBaseSchemeType& self, const ModelPart& rModelPart){ return self.Check(rModelPart); })
-    ;
-
-    py::class_ <
-        ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >
-           (m,"TrilinosResidualBasedIncrementalUpdateStaticScheme")
-           .def(py::init< >() );
-
-    py::class_ <
-        ResidualBasedIncrementalUpdateStaticSchemeSlip< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename ResidualBasedIncrementalUpdateStaticSchemeSlip< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>  >
-           (
-               m,"TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip").def(py::init< unsigned int, unsigned int >()
-           );
-
-    py::class_ <
-        ResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename ResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType > (m,"TrilinosResidualBasedBossakDisplacementScheme")
-        .def(py::init<double >())
-        ;
-
-    py::class_ <
-        ResidualBasedBDFDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename ResidualBasedBDFDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType > (m,"TrilinosResidualBasedBDFDisplacementScheme")
-        .def(py::init<  >())
-        .def(py::init <const std::size_t>())
-        ;
-
-    py::class_ <
-        ResidualBasedBDFCustomScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename ResidualBasedBDFCustomScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType > (m,"TrilinosResidualBasedBDFCustomScheme")
-        .def(py::init<  >())
-        .def(py::init <const std::size_t>())
-        .def(py::init <const std::size_t, Parameters>())
-        ;
-
-    typedef ResidualBasedAdjointStaticScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedAdjointStaticSchemeType;
-    py::class_<TrilinosResidualBasedAdjointStaticSchemeType, typename TrilinosResidualBasedAdjointStaticSchemeType::Pointer, TrilinosBaseSchemeType>
-        (m, "TrilinosResidualBasedAdjointStaticScheme")
-        .def(py::init<AdjointResponseFunction::Pointer>())
-        .def("SetResponseFunction", &TrilinosResidualBasedAdjointStaticSchemeType::SetResponseFunction, py::arg("new_response_function"))
-    ;
-
-    typedef ResidualBasedAdjointSteadyScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedAdjointSteadySchemeType;
-    py::class_<TrilinosResidualBasedAdjointSteadySchemeType, typename TrilinosResidualBasedAdjointSteadySchemeType::Pointer, TrilinosResidualBasedAdjointStaticSchemeType>
-        (m, "TrilinosResidualBasedAdjointSteadyScheme")
-        .def(py::init<AdjointResponseFunction::Pointer>())
-    ;
-
-    typedef ResidualBasedAdjointBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedAdjointBossakSchemeType;
-    py::class_<TrilinosResidualBasedAdjointBossakSchemeType, typename TrilinosResidualBasedAdjointBossakSchemeType::Pointer, TrilinosBaseSchemeType>
-        (m, "TrilinosResidualBasedAdjointBossakScheme")
-        .def(py::init<Kratos::Parameters, AdjointResponseFunction::Pointer>())
-    ;
-
+#ifdef HAVE_TPETRA
+    using TrilinosExperimentalSparseSpaceType = TrilinosSpaceExperimental<Tpetra::FECrsMatrix<>, Tpetra::FEMultiVector<>>;
+    RegisterSchemes<TrilinosExperimentalSparseSpaceType, TrilinosLocalSpaceType>(m, "TrilinosExperimental");
+#endif
 }
 
 } // namespace Kratos::Python.
