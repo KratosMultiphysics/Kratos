@@ -1,0 +1,394 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>regularMesh</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="regularMesh.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>regularMesh</h1><!--introduction--><p>Generate a 2D structured mesh on a rectangle with controllable nonuniform spacing and configurable element type.</p><p>Features - ISOQ4 (4-noded quads) or CST (3-noded triangles; two per quad cell). - Optional fixed grid lines in x and y. - Monotone node redistribution in each direction via an inverted-Gaussian PDF, integrated to a CDF (&#8220;CIDF warp&#8221;) for smooth clustering. - Node numbering chooses the shorter side first to reduce bandwidth.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Inputs</a></li><li><a href="#2">Outputs</a></li><li><a href="#3">Node numbering and connectivity</a></li><li><a href="#4">Fixed lines handling</a></li><li><a href="#5">Defaults</a></li><li><a href="#6">Notes</a></li><li><a href="#7">Author</a></li><li><a href="#8">Version History</a></li><li><a href="#9">Function definition</a></li></ul></div><h2 id="1">Inputs</h2><div><ul><li>Lx : Domain length in x (scalar &gt; 0).</li><li>Ly : Domain length in y (scalar &gt; 0).</li><li>Nx : Target number of cells in x (integer &gt;= 1). Used to build the initial uniform parameterization and to set the warp width.</li><li>Ny : Target number of cells in y (integer &gt;= 1). Same role as Nx.</li><li>xo : Vector of fixed x coordinates to force into the mesh (optional, default = []). Must lie in [0, Lx].</li><li>yo : Vector of fixed y coordinates to force into the mesh (optional, default = []). Must lie in [0, Ly].</li><li>type: Element type (char, optional, default = 'ISOQ4'). Accepted: 'ISOQ4' or 'CST'.</li><li>cx : X-warp center in parametric space s&#8712;[0,1] (optional, default = 0).</li><li>Ax : X-warp amplitude in [0,1] (optional, default = 0). Ax=0 &#8658; uniform.</li><li>cy : Y-warp center in s&#8712;[0,1] (optional, default = 0).</li><li>Ay : Y-warp amplitude in [0,1] (optional, default = 0). Ay=0 &#8658; uniform.</li></ul></div><p>Warp model (per direction) - Start with uniform s=linspace(0,1,N+1). - PDF(s) = 1 &#8722; A * exp(&#8722;(s&#8722;c)^2 / (2 &#963;^2)), then normalize &#8747;PDF=1. - CDF(s) = &#8747; PDF ds; physical coords = L * CDF(s). - Width &#963; is set from N: &#963; = clamp(k/N, 0, 1) with k&#8776;8&#8211;10 in code. Larger A increases clustering away from c (inverted Gaussian &#8220;dip&#8221;).</p><h2 id="2">Outputs</h2><div><ul><li>Node: (Nn &times; 2) array of coordinates with Nn = (Nx_eff+1)(Ny_eff+1). Nx_eff and Ny_eff are the post-merge counts after inserting fixed lines (may exceed input Nx, Ny). Columns are [x y].</li><li>ELEM: Cell array of element connectivities. - If 'ISOQ4': length(ELEM) = Nx_eff * Ny_eff, each cell has 4 node ids. - If 'CST' : length(ELEM) = 2 * Nx_eff * Ny_eff, each cell has 3 node ids.</li></ul></div><h2 id="3">Node numbering and connectivity</h2><div><ul><li>If Nx_eff &lt; Ny_eff, nodes are numbered first along x then y; otherwise first along y then x. This choice targets lower matrix bandwidth.</li><li>Quad local ordering is consistent with the chosen numbering branch.</li><li>Triangulation splits each quad into two CSTs; the diagonal orientation follows the numbering branch used in the code.</li></ul></div><h2 id="4">Fixed lines handling</h2><div><ul><li>Fixed coords in xo or yo are merged with generated grids and sorted.</li><li>Duplicates within a tolerance tol = 0.2*L/N (per direction) are removed.</li><li>Inserting fixed lines increases Nx_eff or Ny_eff accordingly.</li></ul></div><h2 id="5">Defaults</h2><p>xo = [], yo = [], type = 'ISOQ4', cx = 0, Ax = 0, cy = 0, Ay = 0.</p><h2 id="6">Notes</h2><p>- Inputs Nx, Ny drive the initial spacing and &#963; only; effective counts may grow after merging fixed lines. - All indices are 1-based (MATLAB). Coordinates are in the given units.</p><h2 id="7">Author</h2><p>Danilo Cavalcanti</p><h2 id="8">Version History</h2><p>v1.1 Updated docs for nonuniform warping, fixed-line merge, adaptive numbering. v1.0 Initial version (uniform spacing, ISOQ4/CST).</p><pre class="codeinput"><span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% getUniquePoints</span>
+<span class="comment">% Merge generated coordinates with user-fixed coordinates, drop near-duplicates,</span>
+<span class="comment">% and return a sorted vector.</span>
+<span class="comment">%</span>
+<span class="comment">% Inputs</span>
+<span class="comment">% * x0 : Candidate coordinates (row or column vector).</span>
+<span class="comment">% * xfix: Fixed coordinates to enforce (vector; [] allowed).</span>
+<span class="comment">% * tol : Minimum separation; points within tol of any xfix are skipped.</span>
+<span class="comment">%</span>
+<span class="comment">% Output</span>
+<span class="comment">% * x : Sorted unique coordinates containing all xfix and the subset of</span>
+<span class="comment">% x0 that are at least tol away from every xfix.</span>
+</pre><h2 id="9">Function definition</h2><pre class="codeinput"><span class="keyword">function</span> [Node,ELEM] = regularMesh(Lx,Ly,Nx,Ny,xo,yo,type,cx,Ax,cy,Ay)
+
+<span class="keyword">if</span> nargin &lt; 5, xo = []; yo = []; <span class="keyword">end</span>
+<span class="keyword">if</span> nargin &lt; 7, type = <span class="string">'ISOQ4'</span>; <span class="keyword">end</span>
+<span class="keyword">if</span> nargin &lt; 9, cx = 0; Ax = 0; <span class="keyword">end</span>
+<span class="keyword">if</span> nargin &lt; 11, cy = 0; Ay = 0; <span class="keyword">end</span>
+
+<span class="comment">% Uniform parameter in [0,1]</span>
+s = linspace(0,1,Nx+1);
+
+<span class="comment">% width of the dip</span>
+sigma = max(min(8/Nx,1.0),0.0);
+
+<span class="comment">% 2) inverted&#8208;Gaussian &#8220;dip&#8221; PDF</span>
+pdf = 1 - Ax*exp( -((s - cx).^2) ./ (2*sigma^2) );
+
+<span class="comment">% 3) normalize PDF so area=1 (optional but cleaner)</span>
+pdf = pdf / trapz(s,pdf);
+
+<span class="comment">% 4) CIDF warp</span>
+ux = cumtrapz(s, pdf);
+ux = ux / ux(end);     <span class="comment">% ensure u(1)=1 exactly</span>
+xcoord = getUniquePoints(Lx*ux, xo, 0.2*Lx/Nx);
+
+<span class="comment">% Uniform parameter in [0,1]</span>
+s = linspace(0,1,Ny+1);
+
+<span class="comment">% width of the dip</span>
+sigma = max(min(10/Ny,1.0),0.0);
+
+<span class="comment">% 2) inverted&#8208;Gaussian &#8220;dip&#8221; PDF</span>
+pdf = 1 - Ay*exp( -((s - cy).^2) ./ (2*sigma^2) );
+
+<span class="comment">% 3) normalize PDF so area=1 (optional but cleaner)</span>
+pdf = pdf / trapz(s,pdf);
+
+<span class="comment">% 4) CIDF warp</span>
+uy = cumtrapz(s, pdf);
+uy = uy / uy(end);     <span class="comment">% ensure u(1)=1 exactly</span>
+ycoord = getUniquePoints(Ly*uy, yo, 0.2*Ly/Ny);
+
+<span class="comment">% Number of nodes in each direction</span>
+Nx = length(xcoord) - 1;
+Ny = length(ycoord) - 1;
+
+<span class="comment">% Coordinates of the nodes</span>
+<span class="keyword">if</span> Nx &lt; Ny
+    <span class="comment">% Number the nodes first along x and then along y</span>
+    [Y,X]= meshgrid(ycoord,xcoord);
+<span class="keyword">else</span>
+    <span class="comment">% Number the nodes first along y and then along x</span>
+    [X,Y]= meshgrid(xcoord,ycoord);
+<span class="keyword">end</span>
+Node= [reshape(X,numel(X),1) reshape(Y,numel(Y),1)];
+
+<span class="comment">% Initialize the element matrix</span>
+<span class="keyword">if</span> strcmp(type,<span class="string">'CST'</span>)
+    ELEM= cell(2*Nx*Ny,1);
+<span class="keyword">else</span>
+    ELEM= cell(Nx*Ny,1);
+<span class="keyword">end</span>
+
+<span class="comment">% Numbering elements first along x and then along y</span>
+k= 1;
+<span class="keyword">if</span> Nx &lt; Ny
+    <span class="keyword">for</span> j=1:Ny
+        <span class="keyword">for</span> i=1:Nx
+            n1 = (j-1)*(Nx+1)+i; n2 = j*(Nx+1)+i;
+            <span class="keyword">if</span> strcmp(type,<span class="string">'CST'</span>)
+                ELEM{k}   = [n1, n2+1, n2];
+                ELEM{k+1} = [n1, n1+1, n2+1];
+                k = k+2;
+            <span class="keyword">else</span>
+                ELEM{k} = [n1, n1+1, n2+1, n2];
+                k = k+1;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">else</span>
+    <span class="keyword">for</span> j=1:Ny
+        <span class="keyword">for</span> i=1:Nx
+            n1 = (i-1)*(Ny+1)+j; n2 = i*(Ny+1)+j;
+            <span class="keyword">if</span> strcmp(type,<span class="string">'CST'</span>)
+                ELEM{k}   = [n1 n2 n2+1];
+                ELEM{k+1} = [n2+1 n1+1 n1];
+                k = k+2;
+            <span class="keyword">else</span>
+                ELEM{k} = [n1 n2 n2+1 n1+1];
+                k = k+1;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="keyword">end</span>
+
+<span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% Filters and combines unique points from two sets of points</span>
+<span class="keyword">function</span> x = getUniquePoints(x0,xfix,tol)
+<span class="keyword">if</span> isempty(xfix) == true
+    x = x0;
+    <span class="keyword">return</span>
+<span class="keyword">end</span>
+x = xfix;
+<span class="keyword">for</span> i = 1:length(x0)
+    dx = abs(x0(i) - xfix);
+    <span class="keyword">if</span> any(dx &lt; tol) == false
+        x = [x, x0(i)];
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+x = sort(x);
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% regularMesh
+% Generate a 2D structured mesh on a rectangle with controllable nonuniform
+% spacing and configurable element type.
+%
+% Features
+% - ISOQ4 (4-noded quads) or CST (3-noded triangles; two per quad cell).
+% - Optional fixed grid lines in x and y.
+% - Monotone node redistribution in each direction via an inverted-Gaussian
+% PDF, integrated to a CDF (“CIDF warp”) for smooth clustering.
+% - Node numbering chooses the shorter side first to reduce bandwidth.
+%
+%% Inputs
+% * Lx : Domain length in x (scalar > 0).
+% * Ly : Domain length in y (scalar > 0).
+% * Nx : Target number of cells in x (integer >= 1). Used to build the
+% initial uniform parameterization and to set the warp width.
+% * Ny : Target number of cells in y (integer >= 1). Same role as Nx.
+% * xo : Vector of fixed x coordinates to force into the mesh
+% (optional, default = []). Must lie in [0, Lx].
+% * yo : Vector of fixed y coordinates to force into the mesh
+% (optional, default = []). Must lie in [0, Ly].
+% * type: Element type (char, optional, default = 'ISOQ4').
+% Accepted: 'ISOQ4' or 'CST'.
+% * cx : X-warp center in parametric space s∈[0,1] (optional, default = 0).
+% * Ax : X-warp amplitude in [0,1] (optional, default = 0). Ax=0 ⇒ uniform.
+% * cy : Y-warp center in s∈[0,1] (optional, default = 0).
+% * Ay : Y-warp amplitude in [0,1] (optional, default = 0). Ay=0 ⇒ uniform.
+%
+% Warp model (per direction)
+% - Start with uniform s=linspace(0,1,N+1).
+% - PDF(s) = 1 − A * exp(−(s−c)^2 / (2 σ^2)), then normalize ∫PDF=1.
+% - CDF(s) = ∫ PDF ds; physical coords = L * CDF(s).
+% - Width σ is set from N: σ = clamp(k/N, 0, 1) with k≈8–10 in code.
+% Larger A increases clustering away from c (inverted Gaussian “dip”).
+%
+%% Outputs
+% * Node: (Nn × 2) array of coordinates with Nn = (Nx_eff+1)(Ny_eff+1).
+% Nx_eff and Ny_eff are the post-merge counts after inserting
+% fixed lines (may exceed input Nx, Ny). Columns are [x y].
+% * ELEM: Cell array of element connectivities.
+% - If 'ISOQ4': length(ELEM) = Nx_eff * Ny_eff, each cell has 4 node ids.
+% - If 'CST' : length(ELEM) = 2 * Nx_eff * Ny_eff, each cell has 3 node ids.
+%
+%% Node numbering and connectivity
+% * If Nx_eff < Ny_eff, nodes are numbered first along x then y; otherwise
+% first along y then x. This choice targets lower matrix bandwidth.
+% * Quad local ordering is consistent with the chosen numbering branch.
+% * Triangulation splits each quad into two CSTs; the diagonal orientation
+% follows the numbering branch used in the code.
+%
+%% Fixed lines handling
+% * Fixed coords in xo or yo are merged with generated grids and sorted.
+% * Duplicates within a tolerance tol = 0.2*L/N (per direction) are removed.
+% * Inserting fixed lines increases Nx_eff or Ny_eff accordingly.
+%
+%% Defaults
+% xo = [], yo = [], type = 'ISOQ4', cx = 0, Ax = 0, cy = 0, Ay = 0.
+%
+%% Notes
+% - Inputs Nx, Ny drive the initial spacing and σ only; effective counts
+% may grow after merging fixed lines.
+% - All indices are 1-based (MATLAB). Coordinates are in the given units.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% v1.1 Updated docs for nonuniform warping, fixed-line merge, adaptive numbering.
+% v1.0 Initial version (uniform spacing, ISOQ4/CST).
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% getUniquePoints
+% Merge generated coordinates with user-fixed coordinates, drop near-duplicates,
+% and return a sorted vector.
+%
+% Inputs
+% * x0 : Candidate coordinates (row or column vector).
+% * xfix: Fixed coordinates to enforce (vector; [] allowed).
+% * tol : Minimum separation; points within tol of any xfix are skipped.
+%
+% Output
+% * x : Sorted unique coordinates containing all xfix and the subset of
+% x0 that are at least tol away from every xfix.
+%% Function definition
+function [Node,ELEM] = regularMesh(Lx,Ly,Nx,Ny,xo,yo,type,cx,Ax,cy,Ay)
+
+if nargin < 5, xo = []; yo = []; end
+if nargin < 7, type = 'ISOQ4'; end
+if nargin < 9, cx = 0; Ax = 0; end
+if nargin < 11, cy = 0; Ay = 0; end
+
+% Uniform parameter in [0,1]
+s = linspace(0,1,Nx+1);
+
+% width of the dip
+sigma = max(min(8/Nx,1.0),0.0);
+
+% 2) inverted‐Gaussian “dip” PDF
+pdf = 1 - Ax*exp( -((s - cx).^2) ./ (2*sigma^2) );
+
+% 3) normalize PDF so area=1 (optional but cleaner)
+pdf = pdf / trapz(s,pdf);
+
+% 4) CIDF warp
+ux = cumtrapz(s, pdf);
+ux = ux / ux(end);     % ensure u(1)=1 exactly
+xcoord = getUniquePoints(Lx*ux, xo, 0.2*Lx/Nx);
+
+% Uniform parameter in [0,1]
+s = linspace(0,1,Ny+1);
+
+% width of the dip
+sigma = max(min(10/Ny,1.0),0.0);
+
+% 2) inverted‐Gaussian “dip” PDF
+pdf = 1 - Ay*exp( -((s - cy).^2) ./ (2*sigma^2) );
+
+% 3) normalize PDF so area=1 (optional but cleaner)
+pdf = pdf / trapz(s,pdf);
+
+% 4) CIDF warp
+uy = cumtrapz(s, pdf);
+uy = uy / uy(end);     % ensure u(1)=1 exactly
+ycoord = getUniquePoints(Ly*uy, yo, 0.2*Ly/Ny);
+
+% Number of nodes in each direction
+Nx = length(xcoord) - 1;
+Ny = length(ycoord) - 1;
+
+% Coordinates of the nodes
+if Nx < Ny
+    % Number the nodes first along x and then along y
+    [Y,X]= meshgrid(ycoord,xcoord);
+else
+    % Number the nodes first along y and then along x
+    [X,Y]= meshgrid(xcoord,ycoord);
+end
+Node= [reshape(X,numel(X),1) reshape(Y,numel(Y),1)];
+
+% Initialize the element matrix
+if strcmp(type,'CST')
+    ELEM= cell(2*Nx*Ny,1);
+else
+    ELEM= cell(Nx*Ny,1);
+end
+
+% Numbering elements first along x and then along y
+k= 1;
+if Nx < Ny
+    for j=1:Ny
+        for i=1:Nx
+            n1 = (j-1)*(Nx+1)+i; n2 = j*(Nx+1)+i;
+            if strcmp(type,'CST')
+                ELEM{k}   = [n1, n2+1, n2];
+                ELEM{k+1} = [n1, n1+1, n2+1];
+                k = k+2;
+            else
+                ELEM{k} = [n1, n1+1, n2+1, n2];
+                k = k+1;
+            end
+        end
+    end
+else
+    for j=1:Ny
+        for i=1:Nx
+            n1 = (i-1)*(Ny+1)+j; n2 = i*(Ny+1)+j;
+            if strcmp(type,'CST')
+                ELEM{k}   = [n1 n2 n2+1];
+                ELEM{k+1} = [n2+1 n1+1 n1];
+                k = k+2;
+            else
+                ELEM{k} = [n1 n2 n2+1 n1+1];
+                k = k+1;
+            end
+        end
+    end
+end
+
+end
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% Filters and combines unique points from two sets of points
+function x = getUniquePoints(x0,xfix,tol)
+if isempty(xfix) == true
+    x = x0;
+    return
+end
+x = xfix;
+for i = 1:length(x0)
+    dx = abs(x0(i) - xfix);
+    if any(dx < tol) == false
+        x = [x, x0(i)];
+    end
+end
+x = sort(x);
+end
+##### SOURCE END #####
+--></body></html>

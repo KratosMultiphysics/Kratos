@@ -1,0 +1,298 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>IntPoint Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="IntPoint.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>IntPoint Class</h1><!--introduction--><p>This is an abstract class that defines an integration point object.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Authors</a></li><li><a href="#2">Class definition</a></li><li><a href="#3">Public properties</a></li><li><a href="#4">Constructor method</a></li><li><a href="#5">Public methods</a></li></ul></div><h2 id="1">Authors</h2><div><ul><li>Danilo Cavalcanti (<a href="mailto:dborges@cimne.upc.edu">dborges@cimne.upc.edu</a>)</li></ul></div><h2 id="2">Class definition</h2><pre class="codeinput"><span class="keyword">classdef</span> IntPoint &lt; handle
+</pre><h2 id="3">Public properties</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        X                = [];   <span class="comment">% Coordinates of the integration point in the natural coordinate system</span>
+        w                = 0.0;  <span class="comment">% Weight associated to the integration point</span>
+        strain           = [];   <span class="comment">% Current strain vector</span>
+        stress           = [];   <span class="comment">% Current stress vector</span>
+        plasticstrain    = [];   <span class="comment">% Current plastic strain vector</span>
+        statevar         = [];   <span class="comment">% Current state variables vector</span>
+        strainOld        = [];   <span class="comment">% Previous strain vector</span>
+        stressOld        = [];   <span class="comment">% Previous stress vector</span>
+        plasticstrainOld = [];   <span class="comment">% Current plastic strain vector</span>
+        statevarOld      = [];   <span class="comment">% Previous state variables vector</span>
+        constitutiveMdl  = [];   <span class="comment">% Constitutive model object</span>
+        anm              = <span class="string">''</span>;   <span class="comment">% Analysis model tag</span>
+        nVar             = 4;    <span class="comment">% Dimension of the stress and strain vectors</span>
+    <span class="keyword">end</span>
+</pre><h2 id="4">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = IntPoint(X,w,constitutiveMdl)
+            <span class="keyword">if</span> nargin &gt; 0
+                this.X = X;
+                this.w = w;
+                this.constitutiveMdl = constitutiveMdl;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="5">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initialize analysis model (mechanical part).</span>
+        <span class="keyword">function</span> initializeMechanicalAnalysisModel(this,anm)
+            this.anm = anm;
+
+            <span class="keyword">if</span> strcmp(anm,<span class="string">'PlaneStress'</span>)
+                this.nVar = 4;
+            <span class="keyword">elseif</span> strcmp(anm,<span class="string">'PlaneStrain'</span>)
+                this.nVar = 4;
+            <span class="keyword">elseif</span> strcmp(anm,<span class="string">'AxisSymmetrical'</span>)
+                this.nVar = 4;
+            <span class="keyword">elseif</span> strcmp(anm,<span class="string">'Interface'</span>)
+                this.nVar = 2;
+            <span class="keyword">end</span>
+
+            nStvar = this.constitutiveMdl.getNumberStateVar();
+            this.strain      = zeros(this.nVar, 1);
+            this.stress      = zeros(this.nVar, 1);
+            this.statevar    = zeros(nStvar,    1);
+            this.strainOld   = zeros(this.nVar, 1);
+            this.stressOld   = zeros(this.nVar, 1);
+            this.statevarOld = zeros(nStvar,    1);
+
+            <span class="keyword">if</span> this.constitutiveMdl.hasPlasticStrain()
+                this.plasticstrain    = zeros(this.nVar,1);
+                this.plasticstrainOld = zeros(this.nVar,1);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Update current strain vector.</span>
+        <span class="keyword">function</span> updateStrainVct(this)
+            this.strainOld        = this.strain;
+            this.plasticstrainOld = this.plasticstrain;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Update current state variable vector.</span>
+        <span class="keyword">function</span> updateStateVar(this)
+            this.statevarOld = this.statevar;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Update current stress vector.</span>
+        <span class="keyword">function</span> updateStressVct(this)
+            this.stressOld = this.stress;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Reset the integration point.</span>
+        <span class="keyword">function</span> reset(this)
+            nStvar = this.constitutiveMdl.getNumberStateVar();
+            this.strain      = zeros(this.nVar, 1);
+            this.stress      = zeros(this.nVar, 1);
+            this.statevar    = zeros(nStvar,    1);
+            this.strainOld   = zeros(this.nVar, 1);
+            this.stressOld   = zeros(this.nVar, 1);
+            this.statevarOld = zeros(nStvar,    1);
+            <span class="keyword">if</span> this.constitutiveMdl.hasPlasticStrain()
+                this.plasticstrain    = zeros(this.nVar,1);
+                this.plasticstrainOld = zeros(this.nVar,1);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Get current constitutive matrix.</span>
+        <span class="keyword">function</span> D = getConstitutiveMtrx(this,dStrain)
+            D = this.constitutiveMdl.constitutiveMtrx(dStrain,this);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the stress and constitutive matrix using the constitutive model</span>
+        <span class="comment">% and update the current stress vector.</span>
+        <span class="keyword">function</span> [stress,D] = mechanicalLaw(this)
+            [stress,D] = this.constitutiveMdl.mechanicalLaw(this);
+            this.stress = stress;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% IntPoint Class
+% This is an abstract class that defines an integration point object.
+%
+%% Authors
+% * Danilo Cavalcanti (dborges@cimne.upc.edu)
+%
+%% Class definition
+classdef IntPoint < handle
+    %% Public properties
+    properties (SetAccess = public, GetAccess = public)
+        X                = [];   % Coordinates of the integration point in the natural coordinate system
+        w                = 0.0;  % Weight associated to the integration point
+        strain           = [];   % Current strain vector
+        stress           = [];   % Current stress vector
+        plasticstrain    = [];   % Current plastic strain vector
+        statevar         = [];   % Current state variables vector
+        strainOld        = [];   % Previous strain vector
+        stressOld        = [];   % Previous stress vector
+        plasticstrainOld = [];   % Current plastic strain vector
+        statevarOld      = [];   % Previous state variables vector
+        constitutiveMdl  = [];   % Constitutive model object
+        anm              = '';   % Analysis model tag
+        nVar             = 4;    % Dimension of the stress and strain vectors
+    end
+
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = IntPoint(X,w,constitutiveMdl)
+            if nargin > 0
+                this.X = X;
+                this.w = w;
+                this.constitutiveMdl = constitutiveMdl;
+            end
+        end
+    end
+
+    %% Public methods
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initialize analysis model (mechanical part).
+        function initializeMechanicalAnalysisModel(this,anm)
+            this.anm = anm;
+
+            if strcmp(anm,'PlaneStress')
+                this.nVar = 4;
+            elseif strcmp(anm,'PlaneStrain')
+                this.nVar = 4;
+            elseif strcmp(anm,'AxisSymmetrical')
+                this.nVar = 4;
+            elseif strcmp(anm,'Interface')
+                this.nVar = 2;
+            end
+
+            nStvar = this.constitutiveMdl.getNumberStateVar();
+            this.strain      = zeros(this.nVar, 1);
+            this.stress      = zeros(this.nVar, 1);
+            this.statevar    = zeros(nStvar,    1);
+            this.strainOld   = zeros(this.nVar, 1);
+            this.stressOld   = zeros(this.nVar, 1);
+            this.statevarOld = zeros(nStvar,    1);
+
+            if this.constitutiveMdl.hasPlasticStrain()
+                this.plasticstrain    = zeros(this.nVar,1);
+                this.plasticstrainOld = zeros(this.nVar,1);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Update current strain vector.
+        function updateStrainVct(this)
+            this.strainOld        = this.strain;
+            this.plasticstrainOld = this.plasticstrain;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Update current state variable vector.
+        function updateStateVar(this)
+            this.statevarOld = this.statevar;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Update current stress vector.
+        function updateStressVct(this)
+            this.stressOld = this.stress;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Reset the integration point.
+        function reset(this)
+            nStvar = this.constitutiveMdl.getNumberStateVar();
+            this.strain      = zeros(this.nVar, 1);
+            this.stress      = zeros(this.nVar, 1);
+            this.statevar    = zeros(nStvar,    1);
+            this.strainOld   = zeros(this.nVar, 1);
+            this.stressOld   = zeros(this.nVar, 1);
+            this.statevarOld = zeros(nStvar,    1);
+            if this.constitutiveMdl.hasPlasticStrain()
+                this.plasticstrain    = zeros(this.nVar,1);
+                this.plasticstrainOld = zeros(this.nVar,1);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Get current constitutive matrix.
+        function D = getConstitutiveMtrx(this,dStrain)
+            D = this.constitutiveMdl.constitutiveMtrx(dStrain,this);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the stress and constitutive matrix using the constitutive model
+        % and update the current stress vector.
+        function [stress,D] = mechanicalLaw(this)
+            [stress,D] = this.constitutiveMdl.mechanicalLaw(this);
+            this.stress = stress;
+        end
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

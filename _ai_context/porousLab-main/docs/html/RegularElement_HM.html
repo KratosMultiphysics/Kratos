@@ -1,0 +1,601 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>RegularElement_HM class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="RegularElement_HM.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>RegularElement_HM class</h1><!--introduction--><p>This class defines a single-phase hydromechanical finite element. It extends the <i>RegularElement</i> class and incorporates additional attributes and methods specific to hydromechanical analysis.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class definition</a></li><li><a href="#5">Public attributes</a></li><li><a href="#6">Constructor method</a></li><li><a href="#7">Public methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>initializeIntPoints</b>: Initializes the integration points for the                          element using the shape function and material                          properties.</li><li><b>elementData</b>: Assembles the element stiffness matrix, damping matrix,                  internal force vector, external force vector, and                  derivative of internal force with respect to                  displacement.</li><li><b>lumpedCompressibilityMatrix</b>: Computes the lumped compressibility                                  matrix based on the element volume and                                  compressibility coefficients.</li><li><b>addGravityForces</b>: Adds the contribution of gravity forces to the                       external force vector.</li><li><b>getNodalDisplacement</b>: Retrieves the nodal displacement values.</li><li><b>getNodalPressure</b>: Retrieves the nodal liquid pressure values.</li><li><b>pressureField</b>: Computes the pressure field inside the element at a                    given position in the global Cartesian coordinate                    system.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class definition</h2><pre class="codeinput"><span class="keyword">classdef</span> RegularElement_HM &lt; RegularElement_M
+</pre><h2 id="5">Public attributes</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        glp        = [];            <span class="comment">% Liquid phase pressure dofs</span>
+        nglp       = 0;             <span class="comment">% Number of regular p-dof</span>
+    <span class="keyword">end</span>
+</pre><h2 id="6">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = RegularElement_HM(node, elem, t, <span class="keyword">...</span>
+                mat, intOrder, glu, glp, massLumping, lumpStrategy, <span class="keyword">...</span>
+                isAxisSymmetric,isPlaneStress)
+            this = this@RegularElement_M(node, elem, t, <span class="keyword">...</span>
+                mat, intOrder, glu, massLumping, lumpStrategy, <span class="keyword">...</span>
+                isAxisSymmetric,isPlaneStress);
+            this.glp  = glp;
+            this.gle  = [glu, glp];
+            this.nglp = length(this.glp);
+            this.ngle = length(this.gle);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="7">Public methods</h2><pre class="codeinput">    methods
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initialize the elements integration points</span>
+        <span class="keyword">function</span> initializeIntPoints(this)
+
+            <span class="comment">% Get integration points coordinates and weights</span>
+            [X,w,this.nIntPoints] = this.shape.getIntegrationPoints(this.intOrder);
+
+            <span class="comment">% Initialize the integration points objects</span>
+            intPts(this.nIntPoints,1) = IntPoint();
+            <span class="keyword">for</span> i = 1:this.nIntPoints
+                constModel = Material_HM(this.mat);
+                intPts(i) = IntPoint(X(:,i),w(i), constModel);
+                intPts(i).initializeMechanicalAnalysisModel(this.anm);
+            <span class="keyword">end</span>
+            this.intPoint = intPts;
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% This function assembles the element matrices and vectors</span>
+        <span class="comment">%</span>
+        <span class="comment">% Output:</span>
+        <span class="comment">%    Ke : element "stiffness" matrix</span>
+        <span class="comment">%    Ce : element "damping" matrix</span>
+        <span class="comment">%    fe : element "external force" vector</span>
+        <span class="comment">%    fi : element "internal force" vector</span>
+        <span class="comment">% dfidu : element matrix of derivative of the internal force with</span>
+        <span class="comment">%         respect to displacement</span>
+        <span class="comment">%</span>
+        <span class="keyword">function</span> [Ke, Ce, fi, fe, dfidu] = elementData(this)
+
+            <span class="comment">% Initialize the sub-matrices</span>
+            K   = zeros(this.nglu, this.nglu);
+            H   = zeros(this.nglp, this.nglp);
+            Q   = zeros(this.nglp, this.nglu);
+            S   = zeros(this.nglp, this.nglp);
+
+            <span class="comment">% Auxiliar zero-matrices and vectors</span>
+            Opu = zeros(this.nglp, this.nglu);
+            Ouu = zeros(this.nglu, this.nglu);
+            Opp = zeros(this.nglp, this.nglp);
+
+            <span class="comment">% Initialize external force vector</span>
+            feu = zeros(this.nglu, 1);
+            fep = zeros(this.nglp, 1);
+
+            <span class="comment">% Initialize the internal force vector</span>
+            fiu = zeros(this.nglu, 1);
+            fip = zeros(this.nglp, 1);
+
+            <span class="comment">% Vector of the nodal dofs</span>
+            u  = this.getNodalDisplacement();
+            pl = this.getNodalPressure();
+
+            <span class="comment">% Initialize 2D identity vector</span>
+            m = [1.0 ; 1.0 ; 1.0 ; 0.0];
+
+            <span class="comment">% Initialize the volume of the element</span>
+            vol = 0.0;
+
+            <span class="comment">% Numerical integration of the sub-matrices</span>
+            <span class="keyword">for</span> i = 1:this.nIntPoints
+
+                <span class="comment">% Shape function matrix</span>
+                Np = this.shape.shapeFncMtrx(this.intPoint(i).X);
+
+                <span class="comment">% Compute the B matrix at the int. point and the detJ</span>
+                [Bp, detJ] = this.shape.dNdxMatrix(this.node,this.intPoint(i).X);
+
+                <span class="comment">% Assemble the B-matrix for the mechanical part</span>
+                Bu = this.BMatrix(Bp);
+
+                <span class="comment">% Pressure values at the integration point</span>
+                pIP = Np * pl;
+
+                <span class="comment">% Compute the strain vector</span>
+                this.intPoint(i).strain = Bu * u;
+
+                <span class="comment">% Compute the stress vector and the constitutive matrix</span>
+                [stress,Duu] = this.intPoint(i).mechanicalLaw();
+
+                <span class="comment">% Compute the permeability matrix</span>
+                kh = this.intPoint(i).constitutiveMdl.permeabilityTensor();
+
+                <span class="comment">% Get compressibility coefficient</span>
+                comp = this.intPoint(i).constitutiveMdl.compressibilityCoeff();
+
+                <span class="comment">% Get Biot's coefficient</span>
+                biot = this.intPoint(i).constitutiveMdl.biotCoeff();
+
+                <span class="comment">% Numerical integration coefficient</span>
+                c = this.intPoint(i).w * detJ * this.t;
+                <span class="keyword">if</span> this.isAxisSymmetric
+                    c = c * this.shape.axisSymmetricFactor(Np,this.node);
+                <span class="keyword">end</span>
+
+                <span class="comment">% Compute the stiffness sub-matrix</span>
+                K = K + Bu' * Duu * Bu * c;
+
+                <span class="comment">% Internal force vector</span>
+                fiu = fiu + Bu' * stress * c;
+
+                <span class="comment">% Compute the hydromechanical coupling matrices</span>
+                Q = Q + Np' * biot * m' * Bu * c;
+
+                <span class="comment">% Compute permeability sub-matrices</span>
+                H = H + Bp' * kh * Bp * c;
+
+                <span class="comment">% Compute compressibility matrices</span>
+                <span class="keyword">if</span> ((this.massLumping) &amp;&amp; (this.lumpStrategy == 1))
+                    S = S + diag(comp*Np*c);
+                <span class="keyword">elseif</span> (this.massLumping == false)
+                    S = S + Np' * comp * Np * c;
+                <span class="keyword">end</span>
+
+                <span class="comment">% Compute the gravity forces</span>
+                <span class="keyword">if</span> (this.gravityOn)
+                    [feu,fep] = this.addGravityForces(feu,fep,Np,Bp,kh,pIP,c);
+                <span class="keyword">end</span>
+
+                <span class="comment">% Compute the element volume</span>
+                vol = vol + c;
+            <span class="keyword">end</span>
+
+            <span class="comment">% Compute the lumped mass matrix</span>
+            <span class="keyword">if</span> ((this.massLumping) &amp;&amp; (this.lumpStrategy == 2))
+                S = lumpedCompressibilityMatrix(this, vol);
+            <span class="keyword">end</span>
+
+            <span class="comment">% Assemble the element permeability</span>
+            Ke = [ Ouu , -Q';
+                   Opu,  H ];
+
+            dfidu = [ K , Opu';
+                     Opu, Opp ];
+
+            <span class="comment">% Assemble the element compressibility matrix</span>
+            Ce = [ Ouu , Opu';
+                    Q ,   S ];
+
+            <span class="comment">% Assemble element internal force vector</span>
+            fi = [fiu; fip];
+
+            <span class="comment">% Assemble element external force vector</span>
+            fe = [feu; fep];
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the lumped mass matrices</span>
+        <span class="keyword">function</span> S = lumpedCompressibilityMatrix(this, vol)
+
+            <span class="comment">% Get compressibility coefficients</span>
+            comp = this.intPoint(1).constitutiveMdl.compressibilityCoeff();
+
+            <span class="comment">% Mass distribution factor</span>
+            factor = vol / this.nnd_el;
+
+            <span class="comment">% Compressibility matrices</span>
+            S = comp * factor * eye(this.nglp,this.nglp);
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Add contribution of the gravity forces to the external force vector</span>
+        <span class="keyword">function</span> [feu,fep] = addGravityForces(this,feu,fep,Np,Bp,kh,pl,c)
+
+            <span class="comment">% Get gravity vector</span>
+            grav = this.g * this.mat.porousMedia.b;
+
+            <span class="comment">% Shape function matrix</span>
+            Nu = this.shape.NuMtrx(Np);
+
+            <span class="comment">% Get the porous matrix density</span>
+            rhos = this.mat.porousMedia.getDensity();
+
+            <span class="comment">% Get fluid densities</span>
+            rhol = this.mat.liquidFluid.getDensity(pl);
+
+            <span class="comment">% Compute the contribution of the gravitational forces</span>
+            feu = feu + Nu' * rhos * grav * c;
+            fep = fep + Bp' * kh * rhol * grav * c;
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to get the nodal values of the displacement</span>
+        <span class="keyword">function</span> u = getNodalDisplacement(this)
+            u = this.ue(1:this.nglu);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to get the nodal values of the liquid pressure</span>
+        <span class="keyword">function</span> pl = getNodalPressure(this)
+            a = this.nglu + 1;
+            b = this.nglu + this.nglp;
+            pl = this.ue(a:b);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to compute the pressure field inside a given element</span>
+        <span class="keyword">function</span> p = pressureField(this,X,ue)
+        <span class="comment">%</span>
+        <span class="comment">% Input:</span>
+        <span class="comment">%   X   : position vector in the global cartesian coordinate system</span>
+        <span class="comment">%</span>
+        <span class="comment">% Output:</span>
+        <span class="comment">%   p   : pressure evaluated in "X"</span>
+            <span class="keyword">if</span> nargin &gt; 2, this.ue = ue; <span class="keyword">end</span>
+
+            <span class="comment">% Natural coordinate system</span>
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            <span class="comment">% Vector with the shape functions</span>
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            <span class="comment">% Get nodal pressures</span>
+            pl = this.getNodalPressure();
+
+            <span class="comment">% capillary field</span>
+            p = Nm*pl;
+
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% RegularElement_HM class
+% This class defines a single-phase hydromechanical finite element. It
+% extends the _RegularElement_ class and incorporates additional
+% attributes and methods specific to hydromechanical analysis.
+%
+%% Methods
+% * *initializeIntPoints*: Initializes the integration points for the
+%                          element using the shape function and material
+%                          properties.
+% * *elementData*: Assembles the element stiffness matrix, damping matrix,
+%                  internal force vector, external force vector, and
+%                  derivative of internal force with respect to
+%                  displacement.
+% * *lumpedCompressibilityMatrix*: Computes the lumped compressibility
+%                                  matrix based on the element volume and
+%                                  compressibility coefficients.
+% * *addGravityForces*: Adds the contribution of gravity forces to the
+%                       external force vector.
+% * *getNodalDisplacement*: Retrieves the nodal displacement values.
+% * *getNodalPressure*: Retrieves the nodal liquid pressure values.
+% * *pressureField*: Computes the pressure field inside the element at a
+%                    given position in the global Cartesian coordinate
+%                    system.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class definition
+classdef RegularElement_HM < RegularElement_M
+    %% Public attributes
+    properties (SetAccess = public, GetAccess = public)
+        glp        = [];            % Liquid phase pressure dofs
+        nglp       = 0;             % Number of regular p-dof
+    end
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = RegularElement_HM(node, elem, t, ...
+                mat, intOrder, glu, glp, massLumping, lumpStrategy, ...
+                isAxisSymmetric,isPlaneStress)
+            this = this@RegularElement_M(node, elem, t, ...
+                mat, intOrder, glu, massLumping, lumpStrategy, ...
+                isAxisSymmetric,isPlaneStress);
+            this.glp  = glp;
+            this.gle  = [glu, glp];
+            this.nglp = length(this.glp);
+            this.ngle = length(this.gle);
+        end
+    end
+
+    %% Public methods
+    methods
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initialize the elements integration points
+        function initializeIntPoints(this)
+
+            % Get integration points coordinates and weights
+            [X,w,this.nIntPoints] = this.shape.getIntegrationPoints(this.intOrder);
+
+            % Initialize the integration points objects
+            intPts(this.nIntPoints,1) = IntPoint();
+            for i = 1:this.nIntPoints
+                constModel = Material_HM(this.mat);
+                intPts(i) = IntPoint(X(:,i),w(i), constModel);
+                intPts(i).initializeMechanicalAnalysisModel(this.anm);
+            end
+            this.intPoint = intPts;
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % This function assembles the element matrices and vectors
+        %
+        % Output:
+        %    Ke : element "stiffness" matrix
+        %    Ce : element "damping" matrix
+        %    fe : element "external force" vector
+        %    fi : element "internal force" vector
+        % dfidu : element matrix of derivative of the internal force with
+        %         respect to displacement
+        %
+        function [Ke, Ce, fi, fe, dfidu] = elementData(this)
+
+            % Initialize the sub-matrices
+            K   = zeros(this.nglu, this.nglu);
+            H   = zeros(this.nglp, this.nglp);
+            Q   = zeros(this.nglp, this.nglu);
+            S   = zeros(this.nglp, this.nglp);
+
+            % Auxiliar zero-matrices and vectors
+            Opu = zeros(this.nglp, this.nglu);
+            Ouu = zeros(this.nglu, this.nglu);
+            Opp = zeros(this.nglp, this.nglp);
+
+            % Initialize external force vector
+            feu = zeros(this.nglu, 1);
+            fep = zeros(this.nglp, 1);
+
+            % Initialize the internal force vector
+            fiu = zeros(this.nglu, 1);
+            fip = zeros(this.nglp, 1);
+
+            % Vector of the nodal dofs
+            u  = this.getNodalDisplacement();
+            pl = this.getNodalPressure();
+
+            % Initialize 2D identity vector
+            m = [1.0 ; 1.0 ; 1.0 ; 0.0];
+
+            % Initialize the volume of the element
+            vol = 0.0;
+
+            % Numerical integration of the sub-matrices
+            for i = 1:this.nIntPoints
+
+                % Shape function matrix
+                Np = this.shape.shapeFncMtrx(this.intPoint(i).X);
+
+                % Compute the B matrix at the int. point and the detJ
+                [Bp, detJ] = this.shape.dNdxMatrix(this.node,this.intPoint(i).X);
+
+                % Assemble the B-matrix for the mechanical part
+                Bu = this.BMatrix(Bp);
+
+                % Pressure values at the integration point
+                pIP = Np * pl;
+
+                % Compute the strain vector
+                this.intPoint(i).strain = Bu * u;
+
+                % Compute the stress vector and the constitutive matrix
+                [stress,Duu] = this.intPoint(i).mechanicalLaw();
+
+                % Compute the permeability matrix
+                kh = this.intPoint(i).constitutiveMdl.permeabilityTensor();
+
+                % Get compressibility coefficient
+                comp = this.intPoint(i).constitutiveMdl.compressibilityCoeff();
+
+                % Get Biot's coefficient
+                biot = this.intPoint(i).constitutiveMdl.biotCoeff();
+
+                % Numerical integration coefficient
+                c = this.intPoint(i).w * detJ * this.t;
+                if this.isAxisSymmetric
+                    c = c * this.shape.axisSymmetricFactor(Np,this.node);
+                end
+
+                % Compute the stiffness sub-matrix
+                K = K + Bu' * Duu * Bu * c;
+
+                % Internal force vector
+                fiu = fiu + Bu' * stress * c;
+
+                % Compute the hydromechanical coupling matrices
+                Q = Q + Np' * biot * m' * Bu * c;
+
+                % Compute permeability sub-matrices
+                H = H + Bp' * kh * Bp * c;
+
+                % Compute compressibility matrices
+                if ((this.massLumping) && (this.lumpStrategy == 1))
+                    S = S + diag(comp*Np*c);
+                elseif (this.massLumping == false)
+                    S = S + Np' * comp * Np * c;
+                end
+
+                % Compute the gravity forces
+                if (this.gravityOn)
+                    [feu,fep] = this.addGravityForces(feu,fep,Np,Bp,kh,pIP,c);
+                end
+
+                % Compute the element volume
+                vol = vol + c;
+            end
+
+            % Compute the lumped mass matrix
+            if ((this.massLumping) && (this.lumpStrategy == 2))
+                S = lumpedCompressibilityMatrix(this, vol);
+            end
+
+            % Assemble the element permeability
+            Ke = [ Ouu , -Q';
+                   Opu,  H ];
+
+            dfidu = [ K , Opu';
+                     Opu, Opp ];
+
+            % Assemble the element compressibility matrix
+            Ce = [ Ouu , Opu';
+                    Q ,   S ];
+
+            % Assemble element internal force vector
+            fi = [fiu; fip];
+
+            % Assemble element external force vector
+            fe = [feu; fep];
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the lumped mass matrices
+        function S = lumpedCompressibilityMatrix(this, vol)
+
+            % Get compressibility coefficients
+            comp = this.intPoint(1).constitutiveMdl.compressibilityCoeff();
+
+            % Mass distribution factor
+            factor = vol / this.nnd_el;
+
+            % Compressibility matrices
+            S = comp * factor * eye(this.nglp,this.nglp);
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Add contribution of the gravity forces to the external force vector
+        function [feu,fep] = addGravityForces(this,feu,fep,Np,Bp,kh,pl,c)
+
+            % Get gravity vector
+            grav = this.g * this.mat.porousMedia.b;
+
+            % Shape function matrix
+            Nu = this.shape.NuMtrx(Np);
+
+            % Get the porous matrix density
+            rhos = this.mat.porousMedia.getDensity();
+
+            % Get fluid densities
+            rhol = this.mat.liquidFluid.getDensity(pl);
+
+            % Compute the contribution of the gravitational forces
+            feu = feu + Nu' * rhos * grav * c;
+            fep = fep + Bp' * kh * rhol * grav * c;
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to get the nodal values of the displacement
+        function u = getNodalDisplacement(this)
+            u = this.ue(1:this.nglu);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to get the nodal values of the liquid pressure
+        function pl = getNodalPressure(this)
+            a = this.nglu + 1;
+            b = this.nglu + this.nglp;
+            pl = this.ue(a:b);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to compute the pressure field inside a given element
+        function p = pressureField(this,X,ue)
+        %
+        % Input:
+        %   X   : position vector in the global cartesian coordinate system
+        %
+        % Output:
+        %   p   : pressure evaluated in "X"
+            if nargin > 2, this.ue = ue; end
+
+            % Natural coordinate system
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            % Vector with the shape functions
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            % Get nodal pressures
+            pl = this.getNodalPressure();
+
+            % capillary field
+            p = Nm*pl;
+
+        end
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,532 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>FEMPlot Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="FEMPlot.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>FEMPlot Class</h1><!--introduction--><p>This class provides methods to visualize graphical results from Finite Element Method (FEM) analysis. It includes functionalities to plot meshes, evaluate fields along segments, and compute bounding boxes for models.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Authors</a></li><li><a href="#3">Class Definition</a></li><li><a href="#4">Public properties</a></li><li><a href="#5">Constant properties</a></li><li><a href="#6">Constructor method</a></li><li><a href="#7">Public methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>getBoundingBox</b>: Computes the bounding box of the model with a                     tolerance.</li><li><b>plotMesh</b>: Plots the continuum elements of the mesh. It also               configures the figure wth default font, size and colormap.</li><li><b>plotFieldAlongSegment</b>: Plots the specified field along a segment                            defined by two points. <b>getElementsPatches</b>: It combines faces, vertices and vertex data from                       all the elements in the model, returning combined                       faces connectivity, vertices coordinates and                       combined vertex data.</li></ul></div><h2 id="2">Authors</h2><div><ul><li>Danilo Cavalcanti (<a href="mailto:dborges@cimne.upc.edu">dborges@cimne.upc.edu</a>)</li></ul></div><h2 id="3">Class Definition</h2><pre class="codeinput"><span class="keyword">classdef</span> FEMPlot &lt; handle
+</pre><h2 id="4">Public properties</h2><pre class="codeinput">    properties
+        model = []; <span class="comment">% Handle to an object of the model class</span>
+    <span class="keyword">end</span>
+</pre><h2 id="5">Constant properties</h2><pre class="codeinput">    properties (Constant, Access = private)
+        DEFAULT_FONT_NAME           = <span class="string">'Times'</span>;        <span class="comment">% Default font name for plots</span>
+        DEFAULT_FONT_SIZE           = 16;             <span class="comment">% Default font size for plots</span>
+        DEFAULT_COLOR               = <span class="string">'-b'</span>;           <span class="comment">% Default color and line style for plots</span>
+        DEFAULT_LINE_WIDTH          = 1.5;            <span class="comment">% Default line width for plots</span>
+        DEFAULT_FACE_COLOR          = <span class="string">'interp'</span>;       <span class="comment">% Default face color scheme for plotting</span>
+        DEFAULT_MARKER_TYPE         = <span class="string">'None'</span>;         <span class="comment">% Default type of marker</span>
+        DEFAULT_MARKER_FACE_COLOR   = <span class="string">'k'</span>;            <span class="comment">% Default color of the face of the marker</span>
+        DEFAULT_EDGES_THICKNESS     = 0.7;            <span class="comment">% Default thickness of the lines</span>
+        DEFAULT_COLORMAP_TYPE       = <span class="string">'jet'</span>;          <span class="comment">% Default colormap scheme</span>
+    <span class="keyword">end</span>
+</pre><h2 id="6">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = FEMPlot(model)
+            <span class="keyword">if</span> (nargin &gt; 0)
+                this.model = model;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="7">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Computes the bounding box of the model with a tolerance.</span>
+        <span class="comment">% Note:</span>
+        <span class="comment">%   - The tolerance is calculated as 10% of the absolute difference</span>
+        <span class="comment">%     between the maximum and minimum x-coordinates of the model's nodes.</span>
+        <span class="comment">%</span>
+        <span class="keyword">function</span> bbox = getBoundingBox(this)
+            minX = Inf; minY = Inf; maxX = -Inf; maxY = -Inf;
+            <span class="keyword">for</span> el = 1:this.model.nelem
+                res = this.model.element(el).type.result;
+                minX = min(minX,min(res.vertices(:,1)));
+                minY = min(minY,min(res.vertices(:,2)));
+                maxX = max(maxX,max(res.vertices(:,1)));
+                maxY = max(maxY,max(res.vertices(:,2)));
+            <span class="keyword">end</span>
+            tolx = 0.10*abs(max(this.model.NODE(:,1)) - min(this.model.NODE(:,1)));
+            toly = 0.10*abs(max(this.model.NODE(:,1)) - min(this.model.NODE(:,1)));
+            bbox(1) = minX - tolx;
+            bbox(2) = minY - toly;
+            bbox(3) = maxX + tolx;
+            bbox(4) = maxY + toly;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Plots the continuum elements of the mesh</span>
+        <span class="keyword">function</span> plotMesh(this, ax)
+            <span class="comment">% Verifica se o eixo foi passado</span>
+            <span class="keyword">if</span> nargin &lt; 2 || isempty(ax)
+                figure;         <span class="comment">% Cria nova figura</span>
+                ax = gca;       <span class="comment">% Usa o eixo atual</span>
+            <span class="keyword">else</span>
+                axes(ax);       <span class="comment">% Define o eixo alvo</span>
+                cla(ax);        <span class="comment">% Limpa o conte&uacute;do</span>
+            <span class="keyword">end</span>
+
+            hold(ax, <span class="string">'on'</span>);
+
+            <span class="comment">% Get patches</span>
+            [Faces, Vertices, VertexData] = this.getElementsPatches();
+
+            <span class="comment">% Plot the continuum elements</span>
+            patch(ax, <span class="string">'Faces'</span>, Faces, <span class="keyword">...</span>
+                      <span class="string">'Vertices'</span>, Vertices, <span class="keyword">...</span>
+                      <span class="string">'FaceVertexCData'</span>, VertexData, <span class="keyword">...</span>
+                      <span class="string">'FaceColor'</span>, this.DEFAULT_FACE_COLOR, <span class="keyword">...</span>
+                      <span class="string">'LineWidth'</span>, this.DEFAULT_EDGES_THICKNESS, <span class="keyword">...</span>
+                      <span class="string">'LineStyle'</span>, <span class="string">'-'</span>, <span class="keyword">...</span>
+                      <span class="string">'Marker'</span>, this.DEFAULT_MARKER_TYPE);
+
+            <span class="comment">% Set the colormap</span>
+            colormap(ax, this.DEFAULT_COLORMAP_TYPE);
+
+            <span class="comment">% Get the bounding box</span>
+            bbox = this.getBoundingBox();
+            xlim(ax, [bbox(1) bbox(3)]);
+            ylim(ax, [bbox(2) bbox(4)]);
+
+            <span class="comment">% Formatting the figure</span>
+            box(ax, <span class="string">'on'</span>);
+            grid(ax, <span class="string">'on'</span>);
+            axis(ax, <span class="string">'equal'</span>);
+            set(ax, <span class="string">'FontName'</span>, this.DEFAULT_FONT_NAME);
+            set(ax, <span class="string">'FontSize'</span>, this.DEFAULT_FONT_SIZE);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Plots the field along a segment defined by two points Xi and Xf</span>
+        <span class="keyword">function</span> plotFieldAlongSegment(this, field, Xi, Xf, npts, axisPlot, ax)
+
+            <span class="comment">% Coordinates of the points where the given field is going</span>
+            <span class="comment">% to be evaluated</span>
+            X = [linspace(Xi(1), Xf(1),npts);linspace(Xi(2), Xf(2),npts)]';
+
+            <span class="comment">% Initialize vector at these points</span>
+            F = zeros(size(X,1),1);   <span class="comment">% Field vector</span>
+            S = zeros(size(X,1),1);   <span class="comment">% Longitudinal coordinate vector</span>
+
+            <span class="comment">% Calculate the pressure field in the points of the segment</span>
+            <span class="keyword">for</span> i = 1:npts
+
+                <span class="comment">% Longitudinal coordinate of the point X(i) wrt to Xi</span>
+                S(i) = sqrt((X(i,1) - Xi(1))*(X(i,1) - Xi(1)) + (X(i,2) - Xi(2))*(X(i,2) - Xi(2)));
+
+                <span class="comment">% Find in each element this point is inside</span>
+                elem = findElementInMesh(this.model.NODE, this.model.ELEM, X(i,:));
+
+                <span class="comment">% Calculate the given field in the point X using the</span>
+                <span class="comment">% shape function of the element</span>
+                F(i) = this.model.evaluateField(field, elem, X(i,:));
+
+            <span class="keyword">end</span>
+
+            <span class="comment">% Initialize, plot and configure the figure</span>
+            cla(ax);
+            hold(ax, <span class="string">'on'</span>);
+            box(ax, <span class="string">'on'</span>);
+            grid(ax, <span class="string">'on'</span>);
+
+            <span class="comment">% Plota conforme o eixo escolhido</span>
+            <span class="keyword">if</span> strcmp(axisPlot, <span class="string">'y'</span>)
+                plot(ax, F, S, this.DEFAULT_COLOR, <span class="string">'LineWidth'</span>, this.DEFAULT_LINE_WIDTH);
+                xlabel(ax, field);
+                ylabel(ax, <span class="string">'Longitudinal distance (m)'</span>);
+            <span class="keyword">elseif</span> strcmp(axisPlot, <span class="string">'x'</span>)
+                plot(ax, S, F, this.DEFAULT_COLOR, <span class="string">'LineWidth'</span>, this.DEFAULT_LINE_WIDTH);
+                ylabel(ax, field);
+                xlabel(ax, <span class="string">'Longitudinal distance (m)'</span>);
+            <span class="keyword">end</span>
+
+            <span class="comment">% Aplica formata&ccedil;&atilde;o</span>
+            set(ax, <span class="string">'FontName'</span>, this.DEFAULT_FONT_NAME);
+            set(ax, <span class="string">'FontSize'</span>, this.DEFAULT_FONT_SIZE);
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Plots the field along a discontinuity</span>
+        <span class="keyword">function</span> plotFieldAlongDiscontinuity(this, S, F, field, axisPlot, ax)
+
+            <span class="comment">% Initialize, plot and configure the figure</span>
+            cla(ax);
+            hold(ax, <span class="string">'on'</span>);
+            box(ax, <span class="string">'on'</span>);
+            grid(ax, <span class="string">'on'</span>);
+
+            <span class="comment">% Set the limits</span>
+            fmin = min(F);
+            fmax = max(F);
+            pad = max(0.02*(fmax-fmin),max(0.001*mean(F),0.01));
+
+            <span class="comment">% Plota conforme o eixo escolhido</span>
+            <span class="keyword">if</span> strcmp(axisPlot, <span class="string">'y'</span>)
+                plot(ax, F, S, this.DEFAULT_COLOR, <span class="string">'LineWidth'</span>, this.DEFAULT_LINE_WIDTH);
+                xlabel(ax, field);
+                ylabel(ax, <span class="string">'Longitudinal distance (m)'</span>);
+                xlim(ax, [fmin-pad, fmax+pad]);
+            <span class="keyword">elseif</span> strcmp(axisPlot, <span class="string">'x'</span>)
+                plot(ax, S, F, this.DEFAULT_COLOR, <span class="string">'LineWidth'</span>, this.DEFAULT_LINE_WIDTH);
+                ylabel(ax, field);
+                xlabel(ax, <span class="string">'Longitudinal distance (m)'</span>);
+                ylim(ax, [fmin-pad, fmax+pad]);
+            <span class="keyword">end</span>
+
+            <span class="comment">% Aplica formata&ccedil;&atilde;o</span>
+            set(ax, <span class="string">'FontName'</span>, this.DEFAULT_FONT_NAME);
+            set(ax, <span class="string">'FontSize'</span>, this.DEFAULT_FONT_SIZE);
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Combines faces, vertices, and vertex data from all elements in the model.</span>
+        <span class="keyword">function</span> [allFaces, allVertices, allVertexData] = getElementsPatches(this)
+
+            <span class="comment">% Initialize combined matrices</span>
+            allFaces      = {};      <span class="comment">% Combined faces connectivity</span>
+            allVertices   = [];      <span class="comment">% Combined vertices coordinates</span>
+            allVertexData = [];      <span class="comment">% Combined vertex data</span>
+            vertexOffset  = 0;       <span class="comment">% Offset for face indices due to combined vertices</span>
+
+            <span class="comment">% Loop through all elements to build combined matrices</span>
+            <span class="keyword">for</span> el = 1:this.model.nelem
+                <span class="comment">% Get the current element and its results</span>
+                element = this.model.element(el).type;
+                res = element.result;
+
+                <span class="comment">% Adjust face indices for combined vertices</span>
+                faces = res.faces + vertexOffset;
+
+                <span class="comment">% Store the faces as a cell array to handle different numbers of faces</span>
+                allFaces{end+1} = faces;
+
+                <span class="comment">% Append to combined matrices</span>
+                allVertices   = [allVertices; res.vertices];
+                allVertexData = [allVertexData; res.vertexData];
+
+                <span class="comment">% Update vertex offset for the next element</span>
+                vertexOffset = vertexOffset + size(res.vertices, 1);
+            <span class="keyword">end</span>
+
+            <span class="comment">% After processing, you can convert allFaces into a matrix if needed</span>
+            <span class="comment">% by padding with NaNs or zeros to ensure uniform row sizes</span>
+            maxFaces = max(cellfun(@numel, allFaces));  <span class="comment">% Find the maximum number of faces</span>
+            paddedFaces = NaN(numel(allFaces), maxFaces);  <span class="comment">% Pre-allocate matrix with NaNs</span>
+
+            <span class="keyword">for</span> i = 1:numel(allFaces)
+                paddedFaces(i, 1:numel(allFaces{i})) = allFaces{i};  <span class="comment">% Pad each row</span>
+            <span class="keyword">end</span>
+
+            allFaces = paddedFaces;  <span class="comment">% Use the padded faces matrix</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% FEMPlot Class
+% This class provides methods to visualize graphical results from Finite
+% Element Method (FEM) analysis. It includes functionalities to plot
+% meshes, evaluate fields along segments, and compute bounding boxes for
+% models.
+%
+%% Methods
+% * *getBoundingBox*: Computes the bounding box of the model with a
+%                     tolerance.
+% * *plotMesh*: Plots the continuum elements of the mesh. It also
+%               configures the figure wth default font, size and colormap.
+% * *plotFieldAlongSegment*: Plots the specified field along a segment
+%                            defined by two points.
+% *getElementsPatches*: It combines faces, vertices and vertex data from
+%                       all the elements in the model, returning combined
+%                       faces connectivity, vertices coordinates and
+%                       combined vertex data.
+%
+%% Authors
+% * Danilo Cavalcanti (dborges@cimne.upc.edu)
+%
+%% Class Definition
+classdef FEMPlot < handle
+    %% Public properties
+    properties
+        model = []; % Handle to an object of the model class
+    end
+    %% Constant properties
+    properties (Constant, Access = private)
+        DEFAULT_FONT_NAME           = 'Times';        % Default font name for plots
+        DEFAULT_FONT_SIZE           = 16;             % Default font size for plots
+        DEFAULT_COLOR               = '-b';           % Default color and line style for plots
+        DEFAULT_LINE_WIDTH          = 1.5;            % Default line width for plots
+        DEFAULT_FACE_COLOR          = 'interp';       % Default face color scheme for plotting
+        DEFAULT_MARKER_TYPE         = 'None';         % Default type of marker
+        DEFAULT_MARKER_FACE_COLOR   = 'k';            % Default color of the face of the marker
+        DEFAULT_EDGES_THICKNESS     = 0.7;            % Default thickness of the lines
+        DEFAULT_COLORMAP_TYPE       = 'jet';          % Default colormap scheme
+    end
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = FEMPlot(model)
+            if (nargin > 0)
+                this.model = model;
+            end
+        end
+    end
+
+    %% Public methods
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Computes the bounding box of the model with a tolerance.
+        % Note:
+        %   - The tolerance is calculated as 10% of the absolute difference
+        %     between the maximum and minimum x-coordinates of the model's nodes.
+        %
+        function bbox = getBoundingBox(this)
+            minX = Inf; minY = Inf; maxX = -Inf; maxY = -Inf;
+            for el = 1:this.model.nelem
+                res = this.model.element(el).type.result;
+                minX = min(minX,min(res.vertices(:,1)));
+                minY = min(minY,min(res.vertices(:,2)));
+                maxX = max(maxX,max(res.vertices(:,1)));
+                maxY = max(maxY,max(res.vertices(:,2)));
+            end
+            tolx = 0.10*abs(max(this.model.NODE(:,1)) - min(this.model.NODE(:,1)));
+            toly = 0.10*abs(max(this.model.NODE(:,1)) - min(this.model.NODE(:,1)));
+            bbox(1) = minX - tolx;
+            bbox(2) = minY - toly;
+            bbox(3) = maxX + tolx;
+            bbox(4) = maxY + toly;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Plots the continuum elements of the mesh
+        function plotMesh(this, ax)
+            % Verifica se o eixo foi passado
+            if nargin < 2 || isempty(ax)
+                figure;         % Cria nova figura
+                ax = gca;       % Usa o eixo atual
+            else
+                axes(ax);       % Define o eixo alvo
+                cla(ax);        % Limpa o conteúdo
+            end
+
+            hold(ax, 'on');
+
+            % Get patches
+            [Faces, Vertices, VertexData] = this.getElementsPatches();
+
+            % Plot the continuum elements
+            patch(ax, 'Faces', Faces, ...
+                      'Vertices', Vertices, ...
+                      'FaceVertexCData', VertexData, ...
+                      'FaceColor', this.DEFAULT_FACE_COLOR, ...
+                      'LineWidth', this.DEFAULT_EDGES_THICKNESS, ...
+                      'LineStyle', '-', ...
+                      'Marker', this.DEFAULT_MARKER_TYPE);
+
+            % Set the colormap
+            colormap(ax, this.DEFAULT_COLORMAP_TYPE);
+
+            % Get the bounding box
+            bbox = this.getBoundingBox();
+            xlim(ax, [bbox(1) bbox(3)]);
+            ylim(ax, [bbox(2) bbox(4)]);
+
+            % Formatting the figure
+            box(ax, 'on');
+            grid(ax, 'on');
+            axis(ax, 'equal');
+            set(ax, 'FontName', this.DEFAULT_FONT_NAME);
+            set(ax, 'FontSize', this.DEFAULT_FONT_SIZE);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Plots the field along a segment defined by two points Xi and Xf
+        function plotFieldAlongSegment(this, field, Xi, Xf, npts, axisPlot, ax)
+
+            % Coordinates of the points where the given field is going
+            % to be evaluated
+            X = [linspace(Xi(1), Xf(1),npts);linspace(Xi(2), Xf(2),npts)]';
+
+            % Initialize vector at these points
+            F = zeros(size(X,1),1);   % Field vector
+            S = zeros(size(X,1),1);   % Longitudinal coordinate vector
+
+            % Calculate the pressure field in the points of the segment
+            for i = 1:npts
+
+                % Longitudinal coordinate of the point X(i) wrt to Xi
+                S(i) = sqrt((X(i,1) - Xi(1))*(X(i,1) - Xi(1)) + (X(i,2) - Xi(2))*(X(i,2) - Xi(2)));
+
+                % Find in each element this point is inside
+                elem = findElementInMesh(this.model.NODE, this.model.ELEM, X(i,:));
+
+                % Calculate the given field in the point X using the
+                % shape function of the element
+                F(i) = this.model.evaluateField(field, elem, X(i,:));
+
+            end
+
+            % Initialize, plot and configure the figure
+            cla(ax);
+            hold(ax, 'on');
+            box(ax, 'on');
+            grid(ax, 'on');
+
+            % Plota conforme o eixo escolhido
+            if strcmp(axisPlot, 'y')
+                plot(ax, F, S, this.DEFAULT_COLOR, 'LineWidth', this.DEFAULT_LINE_WIDTH);
+                xlabel(ax, field);
+                ylabel(ax, 'Longitudinal distance (m)');
+            elseif strcmp(axisPlot, 'x')
+                plot(ax, S, F, this.DEFAULT_COLOR, 'LineWidth', this.DEFAULT_LINE_WIDTH);
+                ylabel(ax, field);
+                xlabel(ax, 'Longitudinal distance (m)');
+            end
+
+            % Aplica formatação
+            set(ax, 'FontName', this.DEFAULT_FONT_NAME);
+            set(ax, 'FontSize', this.DEFAULT_FONT_SIZE);
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Plots the field along a discontinuity
+        function plotFieldAlongDiscontinuity(this, S, F, field, axisPlot, ax)
+
+            % Initialize, plot and configure the figure
+            cla(ax);
+            hold(ax, 'on');
+            box(ax, 'on');
+            grid(ax, 'on');
+
+            % Set the limits
+            fmin = min(F);
+            fmax = max(F);
+            pad = max(0.02*(fmax-fmin),max(0.001*mean(F),0.01));
+
+            % Plota conforme o eixo escolhido
+            if strcmp(axisPlot, 'y')
+                plot(ax, F, S, this.DEFAULT_COLOR, 'LineWidth', this.DEFAULT_LINE_WIDTH);
+                xlabel(ax, field);
+                ylabel(ax, 'Longitudinal distance (m)');
+                xlim(ax, [fmin-pad, fmax+pad]);
+            elseif strcmp(axisPlot, 'x')
+                plot(ax, S, F, this.DEFAULT_COLOR, 'LineWidth', this.DEFAULT_LINE_WIDTH);
+                ylabel(ax, field);
+                xlabel(ax, 'Longitudinal distance (m)');
+                ylim(ax, [fmin-pad, fmax+pad]);
+            end
+
+            % Aplica formatação
+            set(ax, 'FontName', this.DEFAULT_FONT_NAME);
+            set(ax, 'FontSize', this.DEFAULT_FONT_SIZE);
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Combines faces, vertices, and vertex data from all elements in the model.
+        function [allFaces, allVertices, allVertexData] = getElementsPatches(this)
+
+            % Initialize combined matrices
+            allFaces      = {};      % Combined faces connectivity
+            allVertices   = [];      % Combined vertices coordinates
+            allVertexData = [];      % Combined vertex data
+            vertexOffset  = 0;       % Offset for face indices due to combined vertices
+
+            % Loop through all elements to build combined matrices
+            for el = 1:this.model.nelem
+                % Get the current element and its results
+                element = this.model.element(el).type;
+                res = element.result;
+
+                % Adjust face indices for combined vertices
+                faces = res.faces + vertexOffset;
+
+                % Store the faces as a cell array to handle different numbers of faces
+                allFaces{end+1} = faces;
+
+                % Append to combined matrices
+                allVertices   = [allVertices; res.vertices];
+                allVertexData = [allVertexData; res.vertexData];
+
+                % Update vertex offset for the next element
+                vertexOffset = vertexOffset + size(res.vertices, 1);
+            end
+
+            % After processing, you can convert allFaces into a matrix if needed
+            % by padding with NaNs or zeros to ensure uniform row sizes
+            maxFaces = max(cellfun(@numel, allFaces));  % Find the maximum number of faces
+            paddedFaces = NaN(numel(allFaces), maxFaces);  % Pre-allocate matrix with NaNs
+
+            for i = 1:numel(allFaces)
+                paddedFaces(i, 1:numel(allFaces{i})) = allFaces{i};  % Pad each row
+            end
+
+            allFaces = paddedFaces;  % Use the padded faces matrix
+        end
+    end
+end
+##### SOURCE END #####
+--></body></html>

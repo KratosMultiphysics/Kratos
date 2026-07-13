@@ -1,0 +1,2107 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Model Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="Model.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Model Class</h1><!--introduction--><p>Abstract class to create and manage a Finite Element model. It provides methods and properties to define the mesh, boundary conditions, material properties, and other essential components of a FEM simulation. The class also includes methods for pre-processing, assembling global matrices, applying boundary conditions, and updating state variables.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class definition</a></li><li><a href="#5">Public attributes</a></li><li><a href="#6">Constructor method</a></li><li><a href="#7">Abstract methods</a></li><li><a href="#8">Public methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>setMaterial</b>: Sets the material object.</li><li><b>initializeElements</b>: Initializes the element objects.</li><li><b>printResultsHeader</b>: Configures the header for printing results.</li><li><b>setMesh</b>: Sets the mesh nodes and connectivity.</li><li><b>initializeBasicVariables</b>: Initializes basic variables like number of                               nodes, elements, and DOFs.</li><li><b>checkMaterialId</b>: Ensures the material ID vector is initialized.</li><li><b>createNodeDofIdMtrx</b>: Creates the ID matrix and determines free and                          fixed DOFs.</li><li><b>setDirichletBCAtNode</b>: Sets Dirichlet boundary conditions at a                           specific node.</li><li><b>setDirichletBCAtPoint</b>: Sets Dirichlet boundary conditions at a                            specific point.</li><li><b>setDirichletBCAtBorder</b>: Sets Dirichlet boundary conditions along a                             border.</li><li><b>setNeumannBCAtNode</b>: Sets Neumann boundary conditions at a specific                         node.</li><li><b>setNeumannBCAtPoint</b>: Sets Neumann boundary conditions at a specific                          point.</li><li><b>setNeumannBCAtBorder</b>: Sets Neumann boundary conditions along a                           border.</li><li><b>setInitialDofAtDomain</b>: Sets initial DOF values for the entire domain.</li><li><b>setInitialDofAtNode</b>: Sets initial DOF values at a specific node.</li><li><b>getNodesAtBorder</b>: Retrieves nodes along a specified border.</li><li><b>closestNodeToPoint</b>: Finds the closest node to a given point.</li><li><b>preComputations</b>: Performs pre-processing tasks like initializing                      elements and assembling matrices.</li><li><b>getElementDofs</b>: Retrieves DOFs for a specific element.</li><li><b>initializeDisplacementVct</b>: Initializes the global displacement                                vector.</li><li><b>assembleDiscontinuitySegments</b>: Assembles discontinuity segments into                                    elements.</li><li><b>addNodalLoad</b>: Adds nodal loads to the reference load vector.</li><li><b>getElementsCharacteristicLength</b>: Obtain the characteristic length of                                      the finite element.</li><li><b>getElementCharacteristicLength</b>: Computes the characteristic length                                     for a specific element.</li><li><b>getNodeCharacteristicLength</b>: Compute the mean characteristic length                                  of the elements associated with each                                  node.</li><li><b>initializeSparseMtrxAssemblageVariables</b>: Initializes variables for                                              sparse matrix assembly.</li><li><b>globalMatrices</b>: Assembles global system matrices and vectors.</li><li><b>getLinearSystem</b>: Assembles the linear system for solving.</li><li><b>applyDirichletBC</b>: Applies Dirichlet boundary conditions to the                       system.</li><li><b>updateStateVar</b>: Updates state variables at integration points.</li><li><b>resequenceNodes</b>: Resequences nodes using the reverse Cuthill-McKee                      algorithm.</li><li><b>rebuildConnectivity</b>: Rebuilds connectivity matrices after                          resequencing.</li><li><b>addPreExistingDiscontinuities</b>: Adds pre-existing discontinuities to                                    the model.</li><li><b>initializeDiscontinuitySegments</b>: Initializes discontinuity segments.</li><li><b>getNumberOfDiscontinuities</b>: Returns the number of discontinuities.</li><li><b>useEnrichedFormulation</b>: Enables or disables enriched formulation.</li><li><b>printResults</b>: Prints nodal results.</li><li><b>evaluateField</b>: Evaluate a field at in a point inside an element. It                    assumes that the point is in the element domain.</li><li><b>updateResultVertexData</b>: Updates result data for each element's                             vertices.</li><li><b>plotField</b>: Plots a specified field over the mesh.</li><li><b>plotFieldAlongSegment</b>: Plot a given field along a given segment.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00: Initial version (April 2023).</p><h2 id="4">Class definition</h2><pre class="codeinput"><span class="keyword">classdef</span> Model &lt; handle
+</pre><h2 id="5">Public attributes</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        name                = <span class="string">'mdl'</span>;         <span class="comment">% Model name</span>
+        physics             = [];            <span class="comment">% Physics of the problem</span>
+        NODE                = [];            <span class="comment">% Nodes of the fem mesh</span>
+        ELEM                = [];            <span class="comment">% Nodes connectivity</span>
+        DIRICHLET_TAG       = [];            <span class="comment">% Matrix with tags indicating the Dirichlet BC</span>
+        DIRICHLET_VAL       = [];            <span class="comment">% Matrix with values of the Dirichlet BC</span>
+        LOAD                = [];            <span class="comment">% Matrix with the nodal Neumann BC</span>
+        INIT                = [];            <span class="comment">% Matrix with the initial values of each dof</span>
+        t                   = 1.0;           <span class="comment">% Thickness</span>
+        mat                 = [];            <span class="comment">% Struct with material properties</span>
+        intOrder            = 2;             <span class="comment">% Order of the numerical integration quadrature</span>
+        nnodes              = 1;             <span class="comment">% Number of nodes</span>
+        nelem               = 1;             <span class="comment">% Number of elements</span>
+        doffree             = [];            <span class="comment">% Vector with the free dofs</span>
+        doffixed            = [];            <span class="comment">% Vector with the fixed dofs</span>
+        ndof_nd             = 2;             <span class="comment">% Number of dof per node</span>
+        ndof                = 1;             <span class="comment">% Number of degrees of freedom</span>
+        ndoffree            = 0;             <span class="comment">% Number of free degrees of freedom</span>
+        ndoffixed           = 0;             <span class="comment">% Number of fixed degrees of freedom</span>
+        Dof                 = [];            <span class="comment">% Vector with all regular dofs</span>
+        ID                  = [];            <span class="comment">% Each line of the ID matrix contains the global numbers for the node DOFs</span>
+        U                   = [];            <span class="comment">% Global displacement vector</span>
+        element             = [];            <span class="comment">% Array with the element's objects</span>
+        nDofElemTot         = 0;             <span class="comment">% Aux value used to sparse matrix assemblage</span>
+        sqrNDofElemTot      = 0;             <span class="comment">% Aux value used to sparse matrix assemblage</span>
+        matID               = [];            <span class="comment">% Vector with the material id of each element</span>
+        gravityOn           = false;         <span class="comment">% Flag to consider the gravity forces</span>
+        massLumping         = false;         <span class="comment">% Tag for applying a mass lumping process</span>
+        lumpStrategy        = 1;             <span class="comment">% Id of the mass lumping strategy</span>
+        isAxisSymmetric     = false;         <span class="comment">% Flag for axissymetric models</span>
+        enriched            = false;         <span class="comment">% Flag to use embedded formulation</span>
+        discontinuitySet    = [];            <span class="comment">% Array with the discontinuity objects</span>
+        condenseEnrDofs     = true;          <span class="comment">% Flag to condense the enrichment dofs</span>
+        dofenr              = [];            <span class="comment">% Vector with the enrichment dofs</span>
+        ndofenr             = 0;             <span class="comment">% Number of enrichment dofs</span>
+        useNodalEnrDofs     = false;         <span class="comment">% Flag to use nodal enrichment dofs</span>
+        nNodalEnrDofs       = 0;             <span class="comment">% Number of nodal enrichment dofs (used if useNodalEnrDofs == true)</span>
+        subDivIntegration   = false;         <span class="comment">% Flag to apply a sub-division of the element to define the integration points</span>
+        initializeMdl       = false;         <span class="comment">% Flag to check if the model has been initialized</span>
+    <span class="keyword">end</span>
+</pre><h2 id="6">Constructor method</h2><pre class="codeinput">    methods
+        <span class="keyword">function</span> this = Model()
+            disp(<span class="string">"*** Initializing model..."</span>)
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="7">Abstract methods</h2><pre class="codeinput">    methods(Abstract)
+
+        <span class="comment">% Set the material object</span>
+        setMaterial(this, varargin)
+
+        <span class="comment">% Initialize the elements objects</span>
+        initializeElements(this);
+
+        <span class="comment">% Initialize additional model data associated with the physics</span>
+        initializePhysicsAdditionalData(this);
+
+        <span class="comment">% Configure the header to printed when printing results</span>
+        printResultsHeader();
+    <span class="keyword">end</span>
+</pre><h2 id="8">Public methods</h2><pre class="codeinput">    methods
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> setMesh(this,node,elem)
+            <span class="comment">% Set the mesh nodes coordinates and connectivity</span>
+            this.NODE = node;
+            this.ELEM = elem;
+
+            <span class="comment">% Initialize basic variables</span>
+            this.initializeBasicVariables();
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initializes the basic variables of the model</span>
+        <span class="keyword">function</span> initializeBasicVariables(this)
+            this.nnodes        = size(this.NODE,1);
+            this.nelem         = size(this.ELEM,1);
+            this.ndof          = this.ndof_nd * this.nnodes;
+            this.DIRICHLET_TAG = zeros(this.nnodes,this.ndof_nd);
+            this.DIRICHLET_VAL = zeros(this.nnodes,this.ndof_nd);
+            this.LOAD          = zeros(this.nnodes,this.ndof_nd);
+            this.INIT          = zeros(this.nnodes,this.ndof_nd);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Check is the material is well defined or not</span>
+        <span class="keyword">function</span> checkMaterialId(this)
+            <span class="keyword">if</span> isempty(this.matID)
+                this.matID  = ones(this.nelem,1);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Creates and assembles the matrix containing all the degrees of</span>
+        <span class="comment">% freedom</span>
+        <span class="keyword">function</span> createNodeDofIdMtrx(this)
+            <span class="comment">% Initialize the ID matrix and the number of fixed dof</span>
+            this.ID = zeros(this.nnodes,this.ndof_nd);
+            this.ndoffixed = 0;
+
+            <span class="comment">% Assemble the ID matrix</span>
+            <span class="keyword">for</span> i = 1:this.nnodes
+                <span class="keyword">for</span> j = 1:this.ndof_nd
+                    this.ID(i,j) = (i - 1) * this.ndof_nd + j;
+                    <span class="keyword">if</span> (this.DIRICHLET_TAG(i,j) == 1)
+                        this.ndoffixed = this.ndoffixed + 1;
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+            <span class="comment">% Vector with all the dofs</span>
+            this.Dof = 1:this.ndof;
+
+            <span class="comment">% Number of free dof</span>
+            this.ndoffree = this.ndof - this.ndoffixed;
+
+            <span class="comment">% Initialize the counters</span>
+            this.doffixed = zeros(this.ndoffixed,1);
+            this.doffree  = zeros(this.ndoffree,1);
+
+            <span class="comment">% Update the ID matrix with the free dof numbered first</span>
+            countFree = 1;
+            countFixed = 1;
+            <span class="keyword">for</span> i = 1:this.nnodes
+                <span class="keyword">for</span> j = 1:this.ndof_nd
+                    <span class="keyword">if</span> this.DIRICHLET_TAG(i,j) == 1
+                        this.doffixed(countFixed) = this.ID(i,j);
+                        countFixed = countFixed + 1;
+                    <span class="keyword">else</span>
+                        this.doffree(countFree) = this.ID(i,j);
+                        countFree = countFree + 1;
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+            <span class="comment">% Add the enrichment dofs to the free dof vector</span>
+            <span class="keyword">for</span> i = 1:this.ndofenr
+                this.doffree(countFree) = this.dofenr(i);
+                countFree = countFree + 1;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a Dirichlet boundary condition at a node</span>
+        <span class="keyword">function</span> resetDirichletBC(this, dofId)
+            <span class="keyword">for</span> i = 1:this.nnodes
+                <span class="keyword">for</span> j = 1:length(dofId)
+                    this.DIRICHLET_TAG(i,dofId(j)) = 0;
+                    this.DIRICHLET_VAL(i,dofId(j)) = NaN;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a Dirichlet boundary condition at a node</span>
+        <span class="keyword">function</span> setDirichletBCAtNode(this, nodeId, dofId, value)
+            <span class="keyword">if</span> (length(dofId) ~= length(value))
+                disp(<span class="string">'Error prescribing Dirichlet BC at a node'</span>);
+                disp(<span class="string">'length(dofId) ~= length(value)'</span>);
+                error(<span class="string">'Error in setDirichletBCAtNode'</span>);
+            <span class="keyword">end</span>
+            <span class="keyword">for</span> i = 1:length(dofId)
+                <span class="keyword">if</span> ( this.DIRICHLET_TAG(nodeId,dofId(i)) == 0)
+                    this.DIRICHLET_TAG(nodeId,dofId(i)) = ~isnan(value(i));
+                    this.DIRICHLET_VAL(nodeId,dofId(i)) = value(i);
+                <span class="keyword">else</span>
+                    <span class="keyword">if</span> ((this.DIRICHLET_VAL(nodeId,dofId(i)) ~= value(i)) &amp;&amp; ~isnan(value(i)))
+                        disp([<span class="string">' ** Warning: this node had a different prescribed value:'</span>,num2str(nodeId)])
+                        this.DIRICHLET_VAL(nodeId,dofId(i)) = value(i);
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a Dirichlet boundary condition at a node</span>
+        <span class="keyword">function</span> setDirichletBCAtDomain(this, dofId, value)
+            <span class="keyword">for</span> i = 1:this.nnodes
+                this.setDirichletBCAtNode(i,dofId,value);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a Dirichlet boundary condition at a node</span>
+        <span class="keyword">function</span> setDirichletBCAtPoint(this, X, dofId, value)
+            nodeId = this.closestNodeToPoint(X);
+            this.setDirichletBCAtNode(nodeId,dofId,value);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a Dirichlet boundary condition at a border</span>
+        <span class="keyword">function</span> setDirichletBCAtBorder(this, border, dofId, value, range)
+            <span class="keyword">if</span> ((nargin &lt; 5) || isempty(range))
+                <span class="keyword">if</span> strcmp(border,<span class="string">'left'</span>) || strcmp(border,<span class="string">'right'</span>)
+                    range = [min(this.NODE(:,2)) , max(this.NODE(:,2))];
+                <span class="keyword">elseif</span> strcmp(border,<span class="string">'top'</span>) || strcmp(border,<span class="string">'bottom'</span>)
+                    range = [min(this.NODE(:,1)) , max(this.NODE(:,1))];
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            nodeIds = this.getNodesAtBorder(border,range);
+            <span class="keyword">for</span> i = 1:length(nodeIds)
+                this.setDirichletBCAtNode(nodeIds(i),dofId,value);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a Neumann boundary condition at a node</span>
+        <span class="keyword">function</span> setNeumannBCAtNode(this, nodeId, dofId, value)
+            this.LOAD(nodeId,dofId) = value;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a Dirichlet boundary condition at a point</span>
+        <span class="keyword">function</span> setNeumannBCAtPoint(this, X, dofId, value)
+            nodeId = this.closestNodeToPoint(X);
+            this.LOAD(nodeId,dofId) = value;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a Neumann boundary condition at a node</span>
+        <span class="keyword">function</span> setNeumannBCAtBorder(this, border, dofId, value, range)
+            <span class="keyword">if</span> ((nargin &lt; 5) || isempty(range))
+                <span class="keyword">if</span> strcmp(border,<span class="string">'left'</span>) || strcmp(border,<span class="string">'right'</span>)
+                    range = [min(this.NODE(:,2)) , max(this.NODE(:,2))];
+                <span class="keyword">elseif</span> strcmp(border,<span class="string">'top'</span>) || strcmp(border,<span class="string">'bottom'</span>)
+                    range = [min(this.NODE(:,1)) , max(this.NODE(:,1))];
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            nodeIds = this.getNodesAtBorder(border, range);
+            <span class="keyword">for</span> i = 1:length(nodeIds)
+                this.setNeumannBCAtNode(nodeIds(i),dofId,value);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Prescribe an initial boundary condition at the whole</span>
+        <span class="comment">% domain</span>
+        <span class="keyword">function</span> setInitialDofAtDomain(this, dofId, value)
+            <span class="keyword">if</span> (length(dofId) ~= length(value))
+                disp(<span class="string">'Error setting initial dof value at the domain'</span>);
+                disp(<span class="string">'length(dofId) ~= length(value)'</span>);
+                error(<span class="string">'Error in setInitialDofAtDomain'</span>);
+            <span class="keyword">end</span>
+            this.INIT(:,dofId) = value;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Prescribe an initial boundary condition at a node</span>
+        <span class="keyword">function</span> setInitialDofAtNode(this, nodeId, dofId, value)
+            <span class="keyword">if</span> (length(dofId) ~= length(value))
+                disp(<span class="string">'Error setting initial dof value at the domain'</span>);
+                disp(<span class="string">'length(dofId) ~= length(value)'</span>);
+                error(<span class="string">'Error in setInitialDofAtNode'</span>);
+            <span class="keyword">end</span>
+            this.INIT(nodeId,dofId) = value;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Identify the nodes contained in any of the borders</span>
+        <span class="keyword">function</span> nodeIds = getNodesAtBorder(this,border,range)
+            <span class="keyword">if</span> ((nargin &lt; 3) || isempty(range))
+                <span class="keyword">if</span> strcmp(border,<span class="string">'left'</span>) || strcmp(border,<span class="string">'right'</span>)
+                    range = [min(this.NODE(:,2)) , max(this.NODE(:,2))];
+                <span class="keyword">elseif</span> strcmp(border,<span class="string">'top'</span>) || strcmp(border,<span class="string">'bottom'</span>)
+                    range = [min(this.NODE(:,1)) , max(this.NODE(:,1))];
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            <span class="comment">% Get the nodes at the given border</span>
+            <span class="keyword">if</span> strcmp(border,<span class="string">'left'</span>)
+                nodeIds = find((abs(this.NODE(:,1)-min(this.NODE(:,1)))&lt;1.0e-12) &amp; ((this.NODE(:,2))&gt;range(1)-1.0e-12) &amp; ((this.NODE(:,2))&lt;range(2)+1.0e-12));
+            <span class="keyword">elseif</span> strcmp(border,<span class="string">'right'</span>)
+                nodeIds = find((abs(this.NODE(:,1)-max(this.NODE(:,1)))&lt;1.0e-12) &amp; ((this.NODE(:,2))&gt;range(1)-1.0e-12) &amp; ((this.NODE(:,2))&lt;range(2)+1.0e-12));
+            <span class="keyword">elseif</span> strcmp(border,<span class="string">'top'</span>)
+                nodeIds = find((abs(this.NODE(:,2)-max(this.NODE(:,2)))&lt;1.0e-12) &amp; ((this.NODE(:,1))&gt;range(1)-1.0e-12) &amp; ((this.NODE(:,1))&lt;range(2)+1.0e-12));
+            <span class="keyword">elseif</span> strcmp(border,<span class="string">'bottom'</span>)
+                nodeIds = find((abs(this.NODE(:,2)-min(this.NODE(:,2)))&lt;1.0e-12) &amp; ((this.NODE(:,1))&gt;range(1)-1.0e-12) &amp; ((this.NODE(:,1))&lt;range(2)+1.0e-12));
+            <span class="keyword">else</span>
+                disp(<span class="string">'Warning: non-supported border.'</span>);
+                disp(<span class="string">'Available borders tag: ''left'',''right'', ''top'',''bottom'''</span>);
+                nodeIds = [];
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Update a prescribed Dirichlet boundary condition value at a node</span>
+        <span class="keyword">function</span> updateValueDirichletBCAtNode(this, nodeId, dofId, value)
+            <span class="keyword">if</span> (length(dofId) ~= length(value))
+                disp(<span class="string">'Error updating prescribed Dirichlet BC at a node'</span>);
+                disp(<span class="string">'length(dofId) ~= length(value)'</span>);
+                error(<span class="string">'Error in updateDirichletBCAtNode'</span>);
+            <span class="keyword">end</span>
+            <span class="keyword">for</span> i = 1:length(dofId)
+                <span class="keyword">if</span> ( this.DIRICHLET_TAG(nodeId,dofId(i)) == 1)
+                    this.DIRICHLET_VAL(nodeId,dofId(i)) = value(i);
+                <span class="keyword">else</span>
+                    disp(<span class="string">'Error updating prescribed Dirichlet BC at a node'</span>);
+                    disp(<span class="string">'This node did not have a prescribed value.'</span>)
+                    error(<span class="string">'Error in updateDirichletBCAtNode'</span>);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Update the DOFs vector to respect the new BC values.</span>
+        <span class="keyword">function</span> updateDirichletBC(this)
+            this.applyDirichletBCtoDOFVct();
+            this.createNodeDofIdMtrx();
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Find the closest node to a given point</span>
+        <span class="keyword">function</span> nd = closestNodeToPoint(this,X)
+            <span class="keyword">if</span> size(X,1) == 2, X = X'; <span class="keyword">end</span>
+            d = vecnorm((this.NODE - X)');
+            [~,id] = sort(d);
+            nd = id(1);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Perform all the necessary pre-computations to initialize the</span>
+        <span class="comment">% model</span>
+        <span class="keyword">function</span> preComputations(this)
+            <span class="keyword">if</span>(this.initializeMdl == false)
+                disp(<span class="string">"*** Pre-processing..."</span>);
+
+                <span class="comment">% Check and initialize the material ID vector</span>
+                this.checkMaterialId();
+
+                <span class="comment">% Create nodes DOF ids matrix</span>
+                this.createNodeDofIdMtrx();
+
+                <span class="comment">% Initialize elements</span>
+                this.initializeElements();
+
+                <span class="comment">% Assemble discontinuity segments to the elements</span>
+                this.assembleDiscontinuitySegments();
+
+                <span class="comment">% Initialize integration points</span>
+                this.initializeIntegrationPoints();
+
+                <span class="comment">% Compute auxiliar variables for assemblage of sparse matrices</span>
+                this.initializeSparseMtrxAssemblageVariables();
+
+                <span class="comment">% Initialize the displacement vector</span>
+                this.initializeDisplacementVct();
+
+                <span class="comment">% Initialize physics additional data</span>
+                this.initializePhysicsAdditionalData();
+
+                <span class="comment">% Update flag to indicate that the model has already been initialized</span>
+                this.initializeMdl = true;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initialize the elements integration points</span>
+        <span class="keyword">function</span> initializeIntegrationPoints(this)
+            <span class="keyword">for</span> el = 1 : this.nelem
+                this.element(el).type.initializeIntPoints();
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Reset the model dof vector and state variables</span>
+        <span class="keyword">function</span> resetModelState(this)
+            <span class="keyword">if</span>(this.initializeMdl == true)
+                <span class="comment">% Reset the displacement vector</span>
+                this.initializeDisplacementVct();
+                <span class="comment">% Reset the state variables</span>
+                <span class="keyword">for</span> el = 1:this.nelem
+                    this.element(el).type.resetIntegrationPts();
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Obtain all the element degrees of freedom</span>
+        <span class="keyword">function</span> dof = getElementDofs(this,el,dofId)
+            nnd_el = length(this.ELEM{el});
+            dof = reshape(this.ID(this.ELEM{el},dofId)', 1, nnd_el*length(dofId));
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initialize the vector containing all the displacement</span>
+        <span class="comment">% values</span>
+        <span class="keyword">function</span> initializeDisplacementVct(this)
+            <span class="comment">% Initialize the displacement vector</span>
+            this.U = zeros(this.ndof,1);
+
+            <span class="comment">% Set the initial values</span>
+            this.applyICtoDOFVct();
+
+            <span class="comment">% Set the prescribed values</span>
+            this.applyDirichletBCtoDOFVct();
+
+            <span class="comment">% Save initial dofs to the elements</span>
+            <span class="keyword">for</span> el = 1 : this.nelem
+                this.element(el).type.ue = this.U(this.element(el).type.gle);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Apply the initial conditions to the DOFs vector</span>
+        <span class="keyword">function</span> applyICtoDOFVct(this)
+            <span class="keyword">for</span> i = 1:this.nnodes
+                <span class="keyword">for</span> j = 1:this.ndof_nd
+                    this.U(this.ID(i,j)) = this.INIT(i,j);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Apply the Dirichlet BC to the DOFs vector</span>
+        <span class="keyword">function</span> applyDirichletBCtoDOFVct(this)
+            <span class="keyword">for</span> i = 1:this.nnodes
+                <span class="keyword">for</span> j = 1:this.ndof_nd
+                    <span class="keyword">if</span> (this.DIRICHLET_TAG(i,j) == 1.0)
+                        this.U(this.ID(i,j)) = this.DIRICHLET_VAL(i,j);
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Assembly discontinuity segments for enriched elements</span>
+        <span class="keyword">function</span> assembleDiscontinuitySegments(this)
+            <span class="keyword">if</span> (this.enriched == false)
+                <span class="keyword">return</span>
+            <span class="keyword">elseif</span> isempty(this.discontinuitySet)
+                <span class="keyword">return</span>
+            <span class="keyword">else</span>
+                nDiscontinuities = length(this.discontinuitySet);
+                <span class="keyword">for</span> i = 1:nDiscontinuities
+                    <span class="comment">% Loop through the segments of this discontinuity</span>
+                    k = 1;
+                    <span class="keyword">for</span> j = 1:size(this.discontinuitySet(i).Xlin,1)-1
+                        el = this.discontinuitySet(i).elemID(j);
+                        <span class="keyword">if</span> (el &gt; 0)
+                            dseg = this.discontinuitySet(i).segment(k);
+                            this.element(el).type.addDiscontinuitySegment(dseg);
+                            k = k + 1;
+                        <span class="keyword">end</span>
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+                this.updateEnrichedElementDofVector();
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Add enrichment dofs to the elements dof vector</span>
+        <span class="keyword">function</span> updateEnrichedElementDofVector(this)
+            <span class="keyword">if</span> (this.condenseEnrDofs)
+                <span class="keyword">return</span>
+            <span class="keyword">else</span>
+                <span class="keyword">for</span> el = 1:this.nelem
+                    this.element(el).type.addEnrichmentToDofVector();
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Add contribution of nodal loads to reference load vector.</span>
+        <span class="keyword">function</span> Fe = addNodalLoad(this,Fe)
+            <span class="keyword">for</span> i = 1:this.nnodes
+                <span class="keyword">for</span> j = 1:this.ndof_nd
+                    Fe(this.ID(i,j)) = Fe(this.ID(i,j)) + this.LOAD(i,j);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Obtain the characteristic length of the finite element</span>
+        <span class="keyword">function</span> Lce = getElementsCharacteristicLength(this)
+            Lce=zeros(this.nelem,1);
+            <span class="keyword">for</span> el = 1:this.nelem
+                Lce(el) = this.getElementCharacteristicLength(el);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Get characteristic length of the elements</span>
+        <span class="keyword">function</span> Lce = getElementCharacteristicLength(this,el)
+            <span class="comment">% Vertices of the element el coordinates</span>
+            vx = this.NODE(this.ELEM{el},1);
+            vy = this.NODE(this.ELEM{el},2);
+
+            <span class="comment">% Number of vertices</span>
+            nv = length(this.ELEM{el});
+
+            <span class="comment">% Shifted vertices</span>
+            vxS = vx([2:nv 1]);
+            vyS = vy([2:nv 1]);
+
+            <span class="comment">% Compute the area of the element (trapezoidal rule)</span>
+            temp = vx.*vyS - vy.*vxS;
+            Ae   = 0.5*sum(temp);
+
+            <span class="comment">% Characteristic lenght (quadrilateral elements)</span>
+            Lce = sqrt(Ae);
+            <span class="keyword">if</span> (nv == 3)||(nv == 6)
+                Lce = Lce * sqrt(2.0);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the mean characteristic length of the elements associated</span>
+        <span class="comment">% with each node</span>
+        <span class="keyword">function</span> Lc = getNodeCharacteristicLength(this)
+            Lce = this.getElementsCharacteristicLength();
+            Lc = zeros(this.nnodes,1);
+            <span class="keyword">for</span> i = 1:this.nnodes
+                <span class="comment">% Get the elements associated with this node</span>
+                idElem = cellfun(@(elem) any(elem == i), this.ELEM);
+                <span class="comment">% Compute the mean characteristic lenght of these nodes</span>
+                Lc(i) = mean(Lce(idElem));
+            <span class="keyword">end</span>
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initializes variables related to the assembly of sparse matrices</span>
+        <span class="comment">% in the model.</span>
+        <span class="keyword">function</span> initializeSparseMtrxAssemblageVariables(this)
+            this.nDofElemTot = 0;
+            this.sqrNDofElemTot = 0;
+            <span class="keyword">for</span> el = 1:this.nelem
+                this.nDofElemTot = this.nDofElemTot + this.element(el).type.ngle;
+                this.sqrNDofElemTot = this.sqrNDofElemTot + this.element(el).type.ngle*this.element(el).type.ngle;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Global system matrices</span>
+        <span class="keyword">function</span> [K, C, Fi, Fe, dfidx] = globalMatrices(this,U)
+            <span class="comment">% Indices for the assembling the matrices and vector</span>
+            iDof = zeros(this.sqrNDofElemTot,1);
+            jDof = zeros(this.sqrNDofElemTot,1);
+            eDof = zeros(this.nDofElemTot,1);
+
+            <span class="comment">% Initialize the components of the matrices and vector</span>
+            K_ij      = zeros(this.sqrNDofElemTot,1);
+            C_ij      = zeros(this.sqrNDofElemTot,1);
+            dfidx_ij  = zeros(this.sqrNDofElemTot,1);
+            fi_i      = zeros(this.nDofElemTot,1);
+            fe_i      = zeros(this.nDofElemTot,1);
+
+            <span class="comment">% Initialize auxiliar variables</span>
+            counterK = 0;
+            counterF = 0;
+
+            <span class="comment">% Compute and assemble element data</span>
+            <span class="keyword">for</span> el = 1:this.nelem
+
+                <span class="comment">% Get the element object</span>
+                elementType = this.element(el).type;
+
+                <span class="comment">% Update the element displacement vector</span>
+                elementType.ue = U(elementType.gle);
+
+                <span class="comment">% Get the vector of the element dof</span>
+                gle_i  = elementType.gle;
+                gle_j  = gle_i;
+                nGlei  = length(gle_i);
+                nGlej  = length(gle_j);
+                nGleij = nGlei*nGlej;
+
+                <span class="comment">% Get the indices for assemblage</span>
+                iDofEl = repmat(gle_i',1,nGlej);
+                jDofEl = repmat(gle_j,nGlei,1);
+                iDof(counterK+1:counterK+nGleij) = iDofEl(:);
+                jDof(counterK+1:counterK+nGleij) = jDofEl(:);
+                eDof(counterF+1:counterF+nGlei)  = gle_i';
+
+                <span class="comment">% Get local matrices and vector</span>
+                [K_e,C_e,fi_e,fe_e,dfidx_e] = elementType.elementData();
+
+                <span class="comment">% Store in the global vectors</span>
+                K_ij(counterK+1:counterK+nGleij)     = K_e(:);
+                C_ij(counterK+1:counterK+nGleij)     = C_e(:);
+                dfidx_ij(counterK+1:counterK+nGleij) = dfidx_e(:);
+                fi_i(counterF+1:counterF+nGlei)      = fi_e(:);
+                fe_i(counterF+1:counterF+nGlei)      = fe_e(:);
+
+                <span class="comment">% Update auxiliar variables</span>
+                counterK = counterK + nGleij;
+                counterF = counterF + nGlei;
+
+            <span class="keyword">end</span>
+
+            <span class="comment">% Assemble the matrices and vector</span>
+            K      = sparse(iDof,jDof,K_ij);
+            C      = sparse(iDof,jDof,C_ij);
+            dfidx  = sparse(iDof,jDof,dfidx_ij);
+            Fi     = sparse(eDof,ones(this.nDofElemTot,1),fi_i);
+            Fe     = sparse(eDof,ones(this.nDofElemTot,1),fe_i);
+
+            <span class="comment">% Add contribution of the nodal forces to the external force</span>
+            <span class="comment">% vector</span>
+            Fe = this.addNodalLoad(Fe);
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Global system matrices</span>
+        <span class="keyword">function</span> [A,b] = getLinearSystem(this,U,UOld,nonlinearScheme,dt)
+
+            <span class="comment">% Indices for the assembling the matrices and vector</span>
+            iDof = zeros(this.sqrNDofElemTot,1);
+            jDof = zeros(this.sqrNDofElemTot,1);
+            eDof = zeros(this.nDofElemTot,1);
+
+            <span class="comment">% Initialize the components of the matrices and vector</span>
+            A_ij  = zeros(this.sqrNDofElemTot,1);
+            b_i  = zeros(this.nDofElemTot,1);
+
+            <span class="comment">% Initialize auxiliar variables</span>
+            counterK = 0;
+            counterF = 0;
+
+            <span class="comment">% Compute and assemble element data</span>
+            <span class="keyword">for</span> el = 1:this.nelem
+                <span class="comment">% Get the element object</span>
+                elementType = this.element(el).type;
+
+                <span class="comment">% Update the element displacement vector of each element (TODO: move it to update state variables)</span>
+                elementType.DTime = dt;
+                elementType.ue    = U(elementType.gle);
+                elementType.ueOld = UOld(elementType.gle);
+
+                <span class="comment">% Get the vector of the element dof</span>
+                gle_i  = elementType.gle;
+                gle_j  = gle_i;
+                nGlei  = length(gle_i);
+                nGlej  = length(gle_j);
+                nGleij = nGlei*nGlej;
+
+                <span class="comment">% Get the indices for assemblage</span>
+                iDofEl = repmat(gle_i',1,nGlej);
+                jDofEl = repmat(gle_j,nGlei,1);
+                iDof(counterK+1:counterK+nGleij) = iDofEl(:);
+                jDof(counterK+1:counterK+nGleij) = jDofEl(:);
+                eDof(counterF+1:counterF+nGlei)  = gle_i';
+
+                <span class="comment">% Get local matrices and vector</span>
+                [A_e,b_e] = elementType.elementLinearSystem(nonlinearScheme);
+
+                <span class="comment">% Store in the global vectors</span>
+                A_ij(counterK+1:counterK+nGleij) = A_e(:);
+                b_i(counterF+1:counterF+nGlei)   = b_e(:);
+
+                <span class="comment">% Update auxiliar variables</span>
+                counterK = counterK + nGleij;
+                counterF = counterF + nGlei;
+
+            <span class="keyword">end</span>
+
+            <span class="comment">% Assemble the matrices and vector</span>
+            A = sparse(iDof,jDof,A_ij);
+            b = sparse(eDof,ones(this.nDofElemTot,1),b_i);
+
+            <span class="comment">% Add contribution of the nodal forces</span>
+            Fe = sparse(this.ndof,1);
+            Fe = this.addNodalLoad(Fe);
+            b = nonlinearScheme.addNodalForces(b,Fe);
+
+            <span class="comment">% Check matrix</span>
+            <span class="keyword">if</span> any(isnan(nonzeros(A)))
+                error(<span class="string">'Linear system matrix has NaN values'</span>);
+            <span class="keyword">end</span>
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Appply the Dirichlet boundary conditions</span>
+        <span class="keyword">function</span> [Aff,bf] = applyDirichletBC(this, A, b, X, nlscheme)
+            Aff = A(this.doffree,this.doffree);
+            bf  = nlscheme.applyBCtoRHS(A, b, X, this.doffree,this.doffixed);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Update the state variables from all integration points</span>
+        <span class="keyword">function</span> updateStateVar(this)
+            <span class="keyword">for</span> el = 1:this.nelem
+                this.element(el).type.updateStateVar();
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Reorder the nodes to improve computational efficiency</span>
+        <span class="keyword">function</span> resequenceNodes(this)
+            <span class="comment">% Get auxiliar variables</span>
+            nNode   = size(this.NODE,1);
+            nElem   = size(this.ELEM,1);
+            nNdElem = cellfun(@length,this.ELEM);
+            <span class="comment">% Size of the connectivity matrix</span>
+            nn = sum(nNdElem.^2);
+            <span class="comment">% Get connectivity matrix</span>
+            i=zeros(nn,1); j=zeros(nn,1); s=zeros(nn,1); index=0;
+            <span class="keyword">for</span> el = 1:nElem
+              eNode=this.ELEM{el};
+              ElemSet=index+1:index+nNdElem(el)^2;
+              i(ElemSet) = kron(eNode,ones(nNdElem(el),1))';
+              j(ElemSet) = kron(eNode,ones(1,nNdElem(el)))';
+              s(ElemSet) = 1;
+              index = index + nNdElem(el)^2;
+            <span class="keyword">end</span>
+            K = sparse(i,j,s,nNode, nNode);
+            <span class="comment">% Apply a Symmetric reverse Cuthill-McKee permutation</span>
+            p = symrcm(K);
+            cNode(p(1:nNode))=1:nNode;
+            <span class="comment">% Rebuild the nodes and elements matrices</span>
+            this.rebuildConnectivity(cNode);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Updates the connectivity of nodes and elements</span>
+        <span class="keyword">function</span> rebuildConnectivity(this,cNode)
+            ELEM_Old = this.ELEM;
+            [~,ix,jx] = unique(cNode);
+            this.NODE = this.NODE(ix,:);
+            <span class="keyword">for</span> el=1:size(this.ELEM,1)
+                <span class="keyword">for</span> i = 1:length(this.ELEM{el})
+                    this.ELEM{el}(i) = jx(ELEM_Old{el}(i));
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Adds pre-existing discontinuities to the model</span>
+        <span class="keyword">function</span> addPreExistingDiscontinuities(this,dSet,additionalData)
+            disp(<span class="string">"*** Creating the discontinuity elements..."</span>);
+            <span class="keyword">if</span> nargin &gt; 2
+                this.addDiscontinuityData(additionalData);
+            <span class="keyword">end</span>
+            <span class="comment">% Check if the mesh is already set</span>
+            <span class="keyword">if</span> (isempty(this.NODE) || isempty(this.ELEM))
+                disp(<span class="string">'Warning: empty mesh.'</span>);
+                disp(<span class="string">'Warning: the discontinuity set cannot be added.'</span>);
+                <span class="keyword">return</span>
+            <span class="keyword">end</span>
+            <span class="comment">% Create the discontinuity elements</span>
+            <span class="keyword">for</span> i = 1:length(dSet)
+                dSet(i).intersectMesh(this) ;
+            <span class="keyword">end</span>
+            this.discontinuitySet = dSet;
+            this.useEnrichedFormulation(true);
+            this.initializeDiscontinuitySegments();
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Adds some additional discontinuity data</span>
+        <span class="comment">% To be implemented in the physics whenever required.</span>
+        <span class="keyword">function</span> addDiscontinuityData(~,~)
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initialize the discontinuity segments</span>
+        <span class="keyword">function</span> initializeDiscontinuitySegments(this)
+            <span class="keyword">if</span> this.useNodalEnrDofs, this.condenseEnrDofs = false; <span class="keyword">end</span>
+            nDiscontinuities = this.getNumberOfDiscontinuities();
+            <span class="keyword">for</span> i = 1:nDiscontinuities
+                <span class="comment">% Initialize vector with the nodal enrichment dofs</span>
+                <span class="keyword">if</span> this.useNodalEnrDofs
+                    nNodesDiscontinuity = size(this.discontinuitySet(i).Xlin,1);
+                    nEnrDofs = nNodesDiscontinuity*this.nNodalEnrDofs;
+                    nodalEnrDofs = this.ndof+1:(this.ndof+nEnrDofs);
+                    this.ndof = this.ndof + nEnrDofs;
+                    this.dofenr = [this.dofenr; nodalEnrDofs'];
+                    nodalEnrDofs = reshape(nodalEnrDofs, this.nNodalEnrDofs, nNodesDiscontinuity).';
+                <span class="keyword">end</span>
+                <span class="comment">% Initialize common properties and dofs</span>
+                nDiscontinuitySeg = this.discontinuitySet(i).getNumberOfDiscontinuitySegments();
+                <span class="keyword">for</span> j = 1:nDiscontinuitySeg
+                    this.discontinuitySet(i).segment(j).t = this.t;
+                    <span class="keyword">if</span> (this.condenseEnrDofs == false) &amp;&amp; (this.useNodalEnrDofs == false)
+                        this.discontinuitySet(i).segment(j).initializeDofs(this.ndof);
+                        this.ndof = this.ndof + this.discontinuitySet(i).segment(j).ndof;
+                        this.dofenr = [this.dofenr; this.discontinuitySet(i).segment(j).dof'];
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> (this.condenseEnrDofs == false) &amp;&amp; (this.useNodalEnrDofs == true)
+                        dEnrDofs = [nodalEnrDofs(j,:), nodalEnrDofs(j+1,:)];
+                        this.discontinuitySet(i).segment(j).setDofs(dEnrDofs);
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            this.ndofenr = length(this.dofenr);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Get the total number of discontinuities</span>
+        <span class="keyword">function</span> n = getNumberOfDiscontinuities(this)
+            n = length(this.discontinuitySet);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Flag to use the enriched formulation</span>
+        <span class="keyword">function</span> useEnrichedFormulation(this,flag)
+            this.enriched = flag;
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Print the nodal displacements</span>
+        <span class="keyword">function</span> printResults(this)
+            fprintf(<span class="string">'\n******** NODAL RESULTS ********\n'</span>);
+            this.printResultsHeader();
+            <span class="keyword">for</span> i = 1:this.nnodes
+                fprintf(<span class="string">"  %4d: \t"</span>,i);
+                <span class="keyword">for</span> j = 1:this.ndof_nd
+                    fprintf(<span class="string">"  %+8.4e "</span>,this.U(this.ID(i,j)))
+                <span class="keyword">end</span>
+                fprintf(<span class="string">"\n"</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Evaluate a field at in a point inside an element</span>
+        <span class="comment">% Assumes that the point is in the element domain</span>
+        <span class="keyword">function</span> fieldValue = evaluateField(this, field, el, X)
+            fieldValue = [];
+            <span class="keyword">if</span> strcmp(field,<span class="string">'Model'</span>)
+                fieldValue = this.matID(el);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'Pressure'</span>)
+                fieldValue = this.element(el).type.pressureField(X);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'Ux'</span>)
+                u = this.element(el).type.displacementField(X);
+                fieldValue = u(1);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'Uy'</span>)
+                u = this.element(el).type.displacementField(X);
+                fieldValue = u(2);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'E1'</span>)
+                s = this.element(el).type.strainField(X);
+                sp = this.element(el).type.principalStrain(s);
+                fieldValue = sp(1);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'PEMAG'</span>)
+                fieldValue = this.element(el).type.plasticstrainMagnitude(X);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'Sx'</span>)
+                s = this.element(el).type.stressField(X);
+                fieldValue = s(1);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'Sy'</span>)
+                s = this.element(el).type.stressField(X);
+                fieldValue = s(2);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'Sxy'</span>)
+                s = this.element(el).type.stressField(X);
+                fieldValue = s(4);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'S1'</span>)
+                s = this.element(el).type.stressField(X);
+                sp = this.element(el).type.principalStress(s);
+                fieldValue = sp(1);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'S2'</span>)
+                s = this.element(el).type.stressField(X);
+                sp = this.element(el).type.principalStress(s);
+                fieldValue = sp(2);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'Sr'</span>)
+                s = this.element(el).type.stressField(X);
+                sp = this.element(el).type.stressCylindrical(s,X);
+                fieldValue = sp(1);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'LiquidPressure'</span>)
+                fieldValue = this.element(el).type.pressureField(X);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'CapillaryPressure'</span>)
+                fieldValue = this.element(el).type.capillaryPressureField(X);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'GasPressure'</span>)
+                fieldValue = this.element(el).type.gasPressureField(X);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'LiquidSaturation'</span>)
+                fieldValue = this.element(el).type.liquidSaturationField(X);
+            <span class="keyword">elseif</span> strcmp(field,<span class="string">'GasSaturation'</span>)
+                fieldValue = this.element(el).type.gasSaturationField(X);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Update the result nodes data of each element</span>
+        <span class="keyword">function</span> updateResultVertexData(this,field)
+            <span class="keyword">for</span> el = 1:this.nelem
+                this.element(el).type.ue = this.U(this.element(el).type.gle);
+                vertexData = zeros(length(this.element(el).type.result.faces),1);
+                <span class="keyword">for</span> i = 1:length(this.element(el).type.result.faces)
+                    X = this.element(el).type.result.vertices(i,:);
+                    vertexData(i) = this.evaluateField(field, el, X);
+                <span class="keyword">end</span>
+                this.element(el).type.result.setVertexData(vertexData);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Plot given field over the mesh</span>
+        <span class="keyword">function</span> plotField(this,field,range,ax)
+            <span class="keyword">if</span> nargin &lt; 3, range = []; <span class="keyword">end</span>
+            <span class="keyword">if</span> nargin &lt; 4 || isempty(ax)
+                figure;
+                ax = gca;
+            <span class="keyword">else</span>
+                axes(ax);
+                cla(ax);
+            <span class="keyword">end</span>
+
+            this.updateResultVertexData(field)
+            FEMPlot(this).plotMesh(ax);
+            <span class="keyword">if</span> strcmp(field,<span class="string">"Model"</span>) == false
+                <span class="keyword">if</span> isempty(range)
+                    colorbar(ax);
+                <span class="keyword">else</span>
+                    clim(ax, range);
+                    c = colorbar(ax);
+                    c.Limits = range;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Plot given field along a given segment</span>
+        <span class="keyword">function</span> plotFieldAlongSegment(this,field, Xi, Xf, npts, axisPlot, ax)
+            <span class="keyword">if</span> nargin &lt; 7 || isempty(ax)
+                figure;         <span class="comment">% Cria nova figura</span>
+                ax = gca;       <span class="comment">% Usa o eixo atual</span>
+            <span class="keyword">else</span>
+                axes(ax);       <span class="comment">% Define o eixo alvo</span>
+                cla(ax);        <span class="comment">% Limpa o conte&uacute;do</span>
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> nargin &lt; 5
+                npts     = 100;
+                axisPlot = <span class="string">'x'</span>;
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> nargin &lt; 6
+                axisPlot = <span class="string">'x'</span>;
+            <span class="keyword">end</span>
+            FEMPlot(this).plotFieldAlongSegment(field, Xi, Xf, npts, axisPlot, ax);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Plot field along a given discontinuity</span>
+        <span class="comment">% Input:</span>
+        <span class="comment">%   - id: id of the discontinuity</span>
+        <span class="keyword">function</span> plotFieldAlongDiscontinuiy(this, field, id, axisPlot, ax)
+            <span class="keyword">if</span> nargin &lt; 5 || isempty(ax)
+                figure;
+                ax = gca;
+            <span class="keyword">else</span>
+                axes(ax);
+                cla(ax);
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> nargin &lt; 4
+                axisPlot = <span class="string">'x'</span>;
+            <span class="keyword">end</span>
+
+            nDiscontinuitySeg = this.discontinuitySet(id).getNumberOfDiscontinuitySegments();
+
+            <span class="comment">% Considering that are two int points per discontinuity segment</span>
+            s = zeros(2*nDiscontinuitySeg, 1);
+            f = zeros(2*nDiscontinuitySeg, 1);
+
+            <span class="comment">% Initial point</span>
+            Xi = this.discontinuitySet(id).X(1,:);
+
+            <span class="comment">% Fill vectors</span>
+            <span class="keyword">for</span> j = 1:nDiscontinuitySeg
+                dof_j = this.discontinuitySet(id).segment(j).dof;
+                cElemID = this.discontinuitySet(id).elemID(j);
+                cElem = this.element(cElemID).type;
+                [Xj, fj] = this.discontinuitySet(id).segment(j).getField(field,this.U(dof_j), cElem);
+                DX = Xj - Xi;
+                sj = sqrt(DX(:,1).^2 + DX(:,2).^2);
+                s(2*j-1:2*j,1) = sj; <span class="comment">%Xj(:,2);</span>
+                f(2*j-1:2*j,1) = fj;
+            <span class="keyword">end</span>
+
+            <span class="comment">% Plot</span>
+            FEMPlot(this).plotFieldAlongDiscontinuity(s, f, field, axisPlot, ax);
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Model Class
+% Abstract class to create and manage a Finite Element model. It provides
+% methods and properties to define the mesh, boundary conditions, material
+% properties, and other essential components of a FEM simulation.
+% The class also includes methods for pre-processing, assembling global
+% matrices, applying boundary conditions, and updating state variables.
+%
+%% Methods
+% * *setMaterial*: Sets the material object.
+% * *initializeElements*: Initializes the element objects.
+% * *printResultsHeader*: Configures the header for printing results.
+% * *setMesh*: Sets the mesh nodes and connectivity.
+% * *initializeBasicVariables*: Initializes basic variables like number of
+%                               nodes, elements, and DOFs.
+% * *checkMaterialId*: Ensures the material ID vector is initialized.
+% * *createNodeDofIdMtrx*: Creates the ID matrix and determines free and
+%                          fixed DOFs.
+% * *setDirichletBCAtNode*: Sets Dirichlet boundary conditions at a
+%                           specific node.
+% * *setDirichletBCAtPoint*: Sets Dirichlet boundary conditions at a
+%                            specific point.
+% * *setDirichletBCAtBorder*: Sets Dirichlet boundary conditions along a
+%                             border.
+% * *setNeumannBCAtNode*: Sets Neumann boundary conditions at a specific
+%                         node.
+% * *setNeumannBCAtPoint*: Sets Neumann boundary conditions at a specific
+%                          point.
+% * *setNeumannBCAtBorder*: Sets Neumann boundary conditions along a
+%                           border.
+% * *setInitialDofAtDomain*: Sets initial DOF values for the entire domain.
+% * *setInitialDofAtNode*: Sets initial DOF values at a specific node.
+% * *getNodesAtBorder*: Retrieves nodes along a specified border.
+% * *closestNodeToPoint*: Finds the closest node to a given point.
+% * *preComputations*: Performs pre-processing tasks like initializing
+%                      elements and assembling matrices.
+% * *getElementDofs*: Retrieves DOFs for a specific element.
+% * *initializeDisplacementVct*: Initializes the global displacement
+%                                vector.
+% * *assembleDiscontinuitySegments*: Assembles discontinuity segments into
+%                                    elements.
+% * *addNodalLoad*: Adds nodal loads to the reference load vector.
+% * *getElementsCharacteristicLength*: Obtain the characteristic length of
+%                                      the finite element.
+% * *getElementCharacteristicLength*: Computes the characteristic length
+%                                     for a specific element.
+% * *getNodeCharacteristicLength*: Compute the mean characteristic length
+%                                  of the elements associated with each
+%                                  node.
+% * *initializeSparseMtrxAssemblageVariables*: Initializes variables for
+%                                              sparse matrix assembly.
+% * *globalMatrices*: Assembles global system matrices and vectors.
+% * *getLinearSystem*: Assembles the linear system for solving.
+% * *applyDirichletBC*: Applies Dirichlet boundary conditions to the
+%                       system.
+% * *updateStateVar*: Updates state variables at integration points.
+% * *resequenceNodes*: Resequences nodes using the reverse Cuthill-McKee
+%                      algorithm.
+% * *rebuildConnectivity*: Rebuilds connectivity matrices after
+%                          resequencing.
+% * *addPreExistingDiscontinuities*: Adds pre-existing discontinuities to
+%                                    the model.
+% * *initializeDiscontinuitySegments*: Initializes discontinuity segments.
+% * *getNumberOfDiscontinuities*: Returns the number of discontinuities.
+% * *useEnrichedFormulation*: Enables or disables enriched formulation.
+% * *printResults*: Prints nodal results.
+% * *evaluateField*: Evaluate a field at in a point inside an element. It
+%                    assumes that the point is in the element domain.
+% * *updateResultVertexData*: Updates result data for each element's
+%                             vertices.
+% * *plotField*: Plots a specified field over the mesh.
+% * *plotFieldAlongSegment*: Plot a given field along a given segment.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00: Initial version (April 2023).
+%
+%% Class definition
+classdef Model < handle
+    %% Public attributes
+    properties (SetAccess = public, GetAccess = public)
+        name                = 'mdl';         % Model name
+        physics             = [];            % Physics of the problem
+        NODE                = [];            % Nodes of the fem mesh
+        ELEM                = [];            % Nodes connectivity
+        DIRICHLET_TAG       = [];            % Matrix with tags indicating the Dirichlet BC
+        DIRICHLET_VAL       = [];            % Matrix with values of the Dirichlet BC
+        LOAD                = [];            % Matrix with the nodal Neumann BC
+        INIT                = [];            % Matrix with the initial values of each dof
+        t                   = 1.0;           % Thickness
+        mat                 = [];            % Struct with material properties
+        intOrder            = 2;             % Order of the numerical integration quadrature
+        nnodes              = 1;             % Number of nodes
+        nelem               = 1;             % Number of elements
+        doffree             = [];            % Vector with the free dofs
+        doffixed            = [];            % Vector with the fixed dofs
+        ndof_nd             = 2;             % Number of dof per node
+        ndof                = 1;             % Number of degrees of freedom
+        ndoffree            = 0;             % Number of free degrees of freedom
+        ndoffixed           = 0;             % Number of fixed degrees of freedom
+        Dof                 = [];            % Vector with all regular dofs
+        ID                  = [];            % Each line of the ID matrix contains the global numbers for the node DOFs
+        U                   = [];            % Global displacement vector
+        element             = [];            % Array with the element's objects
+        nDofElemTot         = 0;             % Aux value used to sparse matrix assemblage
+        sqrNDofElemTot      = 0;             % Aux value used to sparse matrix assemblage
+        matID               = [];            % Vector with the material id of each element
+        gravityOn           = false;         % Flag to consider the gravity forces
+        massLumping         = false;         % Tag for applying a mass lumping process
+        lumpStrategy        = 1;             % Id of the mass lumping strategy
+        isAxisSymmetric     = false;         % Flag for axissymetric models
+        enriched            = false;         % Flag to use embedded formulation
+        discontinuitySet    = [];            % Array with the discontinuity objects
+        condenseEnrDofs     = true;          % Flag to condense the enrichment dofs
+        dofenr              = [];            % Vector with the enrichment dofs
+        ndofenr             = 0;             % Number of enrichment dofs
+        useNodalEnrDofs     = false;         % Flag to use nodal enrichment dofs
+        nNodalEnrDofs       = 0;             % Number of nodal enrichment dofs (used if useNodalEnrDofs == true)
+        subDivIntegration   = false;         % Flag to apply a sub-division of the element to define the integration points
+        initializeMdl       = false;         % Flag to check if the model has been initialized
+    end
+
+    %% Constructor method
+    methods
+        function this = Model()
+            disp("*** Initializing model...")
+        end
+    end
+
+    %% Abstract methods
+    methods(Abstract)
+
+        % Set the material object
+        setMaterial(this, varargin)
+
+        % Initialize the elements objects
+        initializeElements(this);
+
+        % Initialize additional model data associated with the physics
+        initializePhysicsAdditionalData(this);
+
+        % Configure the header to printed when printing results
+        printResultsHeader();
+    end
+
+    %% Public methods
+    methods
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function setMesh(this,node,elem)
+            % Set the mesh nodes coordinates and connectivity
+            this.NODE = node;
+            this.ELEM = elem;
+
+            % Initialize basic variables
+            this.initializeBasicVariables();
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initializes the basic variables of the model
+        function initializeBasicVariables(this)
+            this.nnodes        = size(this.NODE,1);
+            this.nelem         = size(this.ELEM,1);
+            this.ndof          = this.ndof_nd * this.nnodes;
+            this.DIRICHLET_TAG = zeros(this.nnodes,this.ndof_nd);
+            this.DIRICHLET_VAL = zeros(this.nnodes,this.ndof_nd);
+            this.LOAD          = zeros(this.nnodes,this.ndof_nd);
+            this.INIT          = zeros(this.nnodes,this.ndof_nd);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Check is the material is well defined or not
+        function checkMaterialId(this)
+            if isempty(this.matID)
+                this.matID  = ones(this.nelem,1);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Creates and assembles the matrix containing all the degrees of
+        % freedom
+        function createNodeDofIdMtrx(this)
+            % Initialize the ID matrix and the number of fixed dof
+            this.ID = zeros(this.nnodes,this.ndof_nd);
+            this.ndoffixed = 0;
+
+            % Assemble the ID matrix
+            for i = 1:this.nnodes
+                for j = 1:this.ndof_nd
+                    this.ID(i,j) = (i - 1) * this.ndof_nd + j;
+                    if (this.DIRICHLET_TAG(i,j) == 1)
+                        this.ndoffixed = this.ndoffixed + 1;
+                    end
+                end
+            end
+
+            % Vector with all the dofs
+            this.Dof = 1:this.ndof;
+
+            % Number of free dof
+            this.ndoffree = this.ndof - this.ndoffixed;
+
+            % Initialize the counters
+            this.doffixed = zeros(this.ndoffixed,1);
+            this.doffree  = zeros(this.ndoffree,1);
+
+            % Update the ID matrix with the free dof numbered first
+            countFree = 1;
+            countFixed = 1;
+            for i = 1:this.nnodes
+                for j = 1:this.ndof_nd
+                    if this.DIRICHLET_TAG(i,j) == 1
+                        this.doffixed(countFixed) = this.ID(i,j);
+                        countFixed = countFixed + 1;
+                    else
+                        this.doffree(countFree) = this.ID(i,j);
+                        countFree = countFree + 1;
+                    end
+                end
+            end
+
+            % Add the enrichment dofs to the free dof vector
+            for i = 1:this.ndofenr
+                this.doffree(countFree) = this.dofenr(i);
+                countFree = countFree + 1;
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Prescribe a Dirichlet boundary condition at a node
+        function resetDirichletBC(this, dofId)
+            for i = 1:this.nnodes
+                for j = 1:length(dofId)
+                    this.DIRICHLET_TAG(i,dofId(j)) = 0;
+                    this.DIRICHLET_VAL(i,dofId(j)) = NaN;
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Prescribe a Dirichlet boundary condition at a node
+        function setDirichletBCAtNode(this, nodeId, dofId, value)
+            if (length(dofId) ~= length(value))
+                disp('Error prescribing Dirichlet BC at a node');
+                disp('length(dofId) ~= length(value)');
+                error('Error in setDirichletBCAtNode');
+            end
+            for i = 1:length(dofId)
+                if ( this.DIRICHLET_TAG(nodeId,dofId(i)) == 0)
+                    this.DIRICHLET_TAG(nodeId,dofId(i)) = ~isnan(value(i));
+                    this.DIRICHLET_VAL(nodeId,dofId(i)) = value(i);
+                else
+                    if ((this.DIRICHLET_VAL(nodeId,dofId(i)) ~= value(i)) && ~isnan(value(i)))
+                        disp([' ** Warning: this node had a different prescribed value:',num2str(nodeId)])
+                        this.DIRICHLET_VAL(nodeId,dofId(i)) = value(i);
+                    end
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Prescribe a Dirichlet boundary condition at a node
+        function setDirichletBCAtDomain(this, dofId, value)
+            for i = 1:this.nnodes
+                this.setDirichletBCAtNode(i,dofId,value);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Prescribe a Dirichlet boundary condition at a node
+        function setDirichletBCAtPoint(this, X, dofId, value)
+            nodeId = this.closestNodeToPoint(X);
+            this.setDirichletBCAtNode(nodeId,dofId,value);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Prescribe a Dirichlet boundary condition at a border
+        function setDirichletBCAtBorder(this, border, dofId, value, range)
+            if ((nargin < 5) || isempty(range))
+                if strcmp(border,'left') || strcmp(border,'right')
+                    range = [min(this.NODE(:,2)) , max(this.NODE(:,2))];
+                elseif strcmp(border,'top') || strcmp(border,'bottom')
+                    range = [min(this.NODE(:,1)) , max(this.NODE(:,1))];
+                end
+            end
+            nodeIds = this.getNodesAtBorder(border,range);
+            for i = 1:length(nodeIds)
+                this.setDirichletBCAtNode(nodeIds(i),dofId,value);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Prescribe a Neumann boundary condition at a node
+        function setNeumannBCAtNode(this, nodeId, dofId, value)
+            this.LOAD(nodeId,dofId) = value;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Prescribe a Dirichlet boundary condition at a point
+        function setNeumannBCAtPoint(this, X, dofId, value)
+            nodeId = this.closestNodeToPoint(X);
+            this.LOAD(nodeId,dofId) = value;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Prescribe a Neumann boundary condition at a node
+        function setNeumannBCAtBorder(this, border, dofId, value, range)
+            if ((nargin < 5) || isempty(range))
+                if strcmp(border,'left') || strcmp(border,'right')
+                    range = [min(this.NODE(:,2)) , max(this.NODE(:,2))];
+                elseif strcmp(border,'top') || strcmp(border,'bottom')
+                    range = [min(this.NODE(:,1)) , max(this.NODE(:,1))];
+                end
+            end
+            nodeIds = this.getNodesAtBorder(border, range);
+            for i = 1:length(nodeIds)
+                this.setNeumannBCAtNode(nodeIds(i),dofId,value);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Prescribe an initial boundary condition at the whole
+        % domain
+        function setInitialDofAtDomain(this, dofId, value)
+            if (length(dofId) ~= length(value))
+                disp('Error setting initial dof value at the domain');
+                disp('length(dofId) ~= length(value)');
+                error('Error in setInitialDofAtDomain');
+            end
+            this.INIT(:,dofId) = value;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Prescribe an initial boundary condition at a node
+        function setInitialDofAtNode(this, nodeId, dofId, value)
+            if (length(dofId) ~= length(value))
+                disp('Error setting initial dof value at the domain');
+                disp('length(dofId) ~= length(value)');
+                error('Error in setInitialDofAtNode');
+            end
+            this.INIT(nodeId,dofId) = value;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Identify the nodes contained in any of the borders
+        function nodeIds = getNodesAtBorder(this,border,range)
+            if ((nargin < 3) || isempty(range))
+                if strcmp(border,'left') || strcmp(border,'right')
+                    range = [min(this.NODE(:,2)) , max(this.NODE(:,2))];
+                elseif strcmp(border,'top') || strcmp(border,'bottom')
+                    range = [min(this.NODE(:,1)) , max(this.NODE(:,1))];
+                end
+            end
+            % Get the nodes at the given border
+            if strcmp(border,'left')
+                nodeIds = find((abs(this.NODE(:,1)-min(this.NODE(:,1)))<1.0e-12) & ((this.NODE(:,2))>range(1)-1.0e-12) & ((this.NODE(:,2))<range(2)+1.0e-12));
+            elseif strcmp(border,'right')
+                nodeIds = find((abs(this.NODE(:,1)-max(this.NODE(:,1)))<1.0e-12) & ((this.NODE(:,2))>range(1)-1.0e-12) & ((this.NODE(:,2))<range(2)+1.0e-12));
+            elseif strcmp(border,'top')
+                nodeIds = find((abs(this.NODE(:,2)-max(this.NODE(:,2)))<1.0e-12) & ((this.NODE(:,1))>range(1)-1.0e-12) & ((this.NODE(:,1))<range(2)+1.0e-12));
+            elseif strcmp(border,'bottom')
+                nodeIds = find((abs(this.NODE(:,2)-min(this.NODE(:,2)))<1.0e-12) & ((this.NODE(:,1))>range(1)-1.0e-12) & ((this.NODE(:,1))<range(2)+1.0e-12));
+            else
+                disp('Warning: non-supported border.');
+                disp('Available borders tag: ''left'',''right'', ''top'',''bottom''');
+                nodeIds = [];
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Update a prescribed Dirichlet boundary condition value at a node
+        function updateValueDirichletBCAtNode(this, nodeId, dofId, value)
+            if (length(dofId) ~= length(value))
+                disp('Error updating prescribed Dirichlet BC at a node');
+                disp('length(dofId) ~= length(value)');
+                error('Error in updateDirichletBCAtNode');
+            end
+            for i = 1:length(dofId)
+                if ( this.DIRICHLET_TAG(nodeId,dofId(i)) == 1)
+                    this.DIRICHLET_VAL(nodeId,dofId(i)) = value(i);
+                else
+                    disp('Error updating prescribed Dirichlet BC at a node');
+                    disp('This node did not have a prescribed value.')
+                    error('Error in updateDirichletBCAtNode');
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Update the DOFs vector to respect the new BC values.
+        function updateDirichletBC(this)
+            this.applyDirichletBCtoDOFVct();
+            this.createNodeDofIdMtrx();
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Find the closest node to a given point
+        function nd = closestNodeToPoint(this,X)
+            if size(X,1) == 2, X = X'; end
+            d = vecnorm((this.NODE - X)');
+            [~,id] = sort(d);
+            nd = id(1);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Perform all the necessary pre-computations to initialize the
+        % model
+        function preComputations(this)
+            if(this.initializeMdl == false)
+                disp("*** Pre-processing...");
+
+                % Check and initialize the material ID vector
+                this.checkMaterialId();
+
+                % Create nodes DOF ids matrix
+                this.createNodeDofIdMtrx();
+
+                % Initialize elements
+                this.initializeElements();
+
+                % Assemble discontinuity segments to the elements
+                this.assembleDiscontinuitySegments();
+
+                % Initialize integration points
+                this.initializeIntegrationPoints();
+
+                % Compute auxiliar variables for assemblage of sparse matrices
+                this.initializeSparseMtrxAssemblageVariables();
+
+                % Initialize the displacement vector
+                this.initializeDisplacementVct();
+
+                % Initialize physics additional data
+                this.initializePhysicsAdditionalData();
+
+                % Update flag to indicate that the model has already been initialized
+                this.initializeMdl = true;
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initialize the elements integration points
+        function initializeIntegrationPoints(this)
+            for el = 1 : this.nelem
+                this.element(el).type.initializeIntPoints();
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Reset the model dof vector and state variables
+        function resetModelState(this)
+            if(this.initializeMdl == true)
+                % Reset the displacement vector
+                this.initializeDisplacementVct();
+                % Reset the state variables
+                for el = 1:this.nelem
+                    this.element(el).type.resetIntegrationPts();
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Obtain all the element degrees of freedom
+        function dof = getElementDofs(this,el,dofId)
+            nnd_el = length(this.ELEM{el});
+            dof = reshape(this.ID(this.ELEM{el},dofId)', 1, nnd_el*length(dofId));
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initialize the vector containing all the displacement
+        % values
+        function initializeDisplacementVct(this)
+            % Initialize the displacement vector
+            this.U = zeros(this.ndof,1);
+
+            % Set the initial values
+            this.applyICtoDOFVct();
+
+            % Set the prescribed values
+            this.applyDirichletBCtoDOFVct();
+
+            % Save initial dofs to the elements
+            for el = 1 : this.nelem
+                this.element(el).type.ue = this.U(this.element(el).type.gle);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Apply the initial conditions to the DOFs vector
+        function applyICtoDOFVct(this)
+            for i = 1:this.nnodes
+                for j = 1:this.ndof_nd
+                    this.U(this.ID(i,j)) = this.INIT(i,j);
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Apply the Dirichlet BC to the DOFs vector
+        function applyDirichletBCtoDOFVct(this)
+            for i = 1:this.nnodes
+                for j = 1:this.ndof_nd
+                    if (this.DIRICHLET_TAG(i,j) == 1.0)
+                        this.U(this.ID(i,j)) = this.DIRICHLET_VAL(i,j);
+                    end
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Assembly discontinuity segments for enriched elements
+        function assembleDiscontinuitySegments(this)
+            if (this.enriched == false)
+                return
+            elseif isempty(this.discontinuitySet)
+                return
+            else
+                nDiscontinuities = length(this.discontinuitySet);
+                for i = 1:nDiscontinuities
+                    % Loop through the segments of this discontinuity
+                    k = 1;
+                    for j = 1:size(this.discontinuitySet(i).Xlin,1)-1
+                        el = this.discontinuitySet(i).elemID(j);
+                        if (el > 0)
+                            dseg = this.discontinuitySet(i).segment(k);
+                            this.element(el).type.addDiscontinuitySegment(dseg);
+                            k = k + 1;
+                        end
+                    end
+                end
+                this.updateEnrichedElementDofVector();
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Add enrichment dofs to the elements dof vector
+        function updateEnrichedElementDofVector(this)
+            if (this.condenseEnrDofs)
+                return
+            else
+                for el = 1:this.nelem
+                    this.element(el).type.addEnrichmentToDofVector();
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Add contribution of nodal loads to reference load vector.
+        function Fe = addNodalLoad(this,Fe)
+            for i = 1:this.nnodes
+                for j = 1:this.ndof_nd
+                    Fe(this.ID(i,j)) = Fe(this.ID(i,j)) + this.LOAD(i,j);
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Obtain the characteristic length of the finite element
+        function Lce = getElementsCharacteristicLength(this)
+            Lce=zeros(this.nelem,1);
+            for el = 1:this.nelem
+                Lce(el) = this.getElementCharacteristicLength(el);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Get characteristic length of the elements
+        function Lce = getElementCharacteristicLength(this,el)
+            % Vertices of the element el coordinates
+            vx = this.NODE(this.ELEM{el},1);
+            vy = this.NODE(this.ELEM{el},2);
+
+            % Number of vertices
+            nv = length(this.ELEM{el});
+
+            % Shifted vertices
+            vxS = vx([2:nv 1]);
+            vyS = vy([2:nv 1]);
+
+            % Compute the area of the element (trapezoidal rule)
+            temp = vx.*vyS - vy.*vxS;
+            Ae   = 0.5*sum(temp);
+
+            % Characteristic lenght (quadrilateral elements)
+            Lce = sqrt(Ae);
+            if (nv == 3)||(nv == 6)
+                Lce = Lce * sqrt(2.0);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the mean characteristic length of the elements associated
+        % with each node
+        function Lc = getNodeCharacteristicLength(this)
+            Lce = this.getElementsCharacteristicLength();
+            Lc = zeros(this.nnodes,1);
+            for i = 1:this.nnodes
+                % Get the elements associated with this node
+                idElem = cellfun(@(elem) any(elem == i), this.ELEM);
+                % Compute the mean characteristic lenght of these nodes
+                Lc(i) = mean(Lce(idElem));
+            end
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initializes variables related to the assembly of sparse matrices
+        % in the model.
+        function initializeSparseMtrxAssemblageVariables(this)
+            this.nDofElemTot = 0;
+            this.sqrNDofElemTot = 0;
+            for el = 1:this.nelem
+                this.nDofElemTot = this.nDofElemTot + this.element(el).type.ngle;
+                this.sqrNDofElemTot = this.sqrNDofElemTot + this.element(el).type.ngle*this.element(el).type.ngle;
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Global system matrices
+        function [K, C, Fi, Fe, dfidx] = globalMatrices(this,U)
+            % Indices for the assembling the matrices and vector
+            iDof = zeros(this.sqrNDofElemTot,1);
+            jDof = zeros(this.sqrNDofElemTot,1);
+            eDof = zeros(this.nDofElemTot,1);
+
+            % Initialize the components of the matrices and vector
+            K_ij      = zeros(this.sqrNDofElemTot,1);
+            C_ij      = zeros(this.sqrNDofElemTot,1);
+            dfidx_ij  = zeros(this.sqrNDofElemTot,1);
+            fi_i      = zeros(this.nDofElemTot,1);
+            fe_i      = zeros(this.nDofElemTot,1);
+
+            % Initialize auxiliar variables
+            counterK = 0;
+            counterF = 0;
+
+            % Compute and assemble element data
+            for el = 1:this.nelem
+
+                % Get the element object
+                elementType = this.element(el).type;
+
+                % Update the element displacement vector
+                elementType.ue = U(elementType.gle);
+
+                % Get the vector of the element dof
+                gle_i  = elementType.gle;
+                gle_j  = gle_i;
+                nGlei  = length(gle_i);
+                nGlej  = length(gle_j);
+                nGleij = nGlei*nGlej;
+
+                % Get the indices for assemblage
+                iDofEl = repmat(gle_i',1,nGlej);
+                jDofEl = repmat(gle_j,nGlei,1);
+                iDof(counterK+1:counterK+nGleij) = iDofEl(:);
+                jDof(counterK+1:counterK+nGleij) = jDofEl(:);
+                eDof(counterF+1:counterF+nGlei)  = gle_i';
+
+                % Get local matrices and vector
+                [K_e,C_e,fi_e,fe_e,dfidx_e] = elementType.elementData();
+
+                % Store in the global vectors
+                K_ij(counterK+1:counterK+nGleij)     = K_e(:);
+                C_ij(counterK+1:counterK+nGleij)     = C_e(:);
+                dfidx_ij(counterK+1:counterK+nGleij) = dfidx_e(:);
+                fi_i(counterF+1:counterF+nGlei)      = fi_e(:);
+                fe_i(counterF+1:counterF+nGlei)      = fe_e(:);
+
+                % Update auxiliar variables
+                counterK = counterK + nGleij;
+                counterF = counterF + nGlei;
+
+            end
+
+            % Assemble the matrices and vector
+            K      = sparse(iDof,jDof,K_ij);
+            C      = sparse(iDof,jDof,C_ij);
+            dfidx  = sparse(iDof,jDof,dfidx_ij);
+            Fi     = sparse(eDof,ones(this.nDofElemTot,1),fi_i);
+            Fe     = sparse(eDof,ones(this.nDofElemTot,1),fe_i);
+
+            % Add contribution of the nodal forces to the external force
+            % vector
+            Fe = this.addNodalLoad(Fe);
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Global system matrices
+        function [A,b] = getLinearSystem(this,U,UOld,nonlinearScheme,dt)
+
+            % Indices for the assembling the matrices and vector
+            iDof = zeros(this.sqrNDofElemTot,1);
+            jDof = zeros(this.sqrNDofElemTot,1);
+            eDof = zeros(this.nDofElemTot,1);
+
+            % Initialize the components of the matrices and vector
+            A_ij  = zeros(this.sqrNDofElemTot,1);
+            b_i  = zeros(this.nDofElemTot,1);
+
+            % Initialize auxiliar variables
+            counterK = 0;
+            counterF = 0;
+
+            % Compute and assemble element data
+            for el = 1:this.nelem
+                % Get the element object
+                elementType = this.element(el).type;
+
+                % Update the element displacement vector of each element (TODO: move it to update state variables)
+                elementType.DTime = dt;
+                elementType.ue    = U(elementType.gle);
+                elementType.ueOld = UOld(elementType.gle);
+
+                % Get the vector of the element dof
+                gle_i  = elementType.gle;
+                gle_j  = gle_i;
+                nGlei  = length(gle_i);
+                nGlej  = length(gle_j);
+                nGleij = nGlei*nGlej;
+
+                % Get the indices for assemblage
+                iDofEl = repmat(gle_i',1,nGlej);
+                jDofEl = repmat(gle_j,nGlei,1);
+                iDof(counterK+1:counterK+nGleij) = iDofEl(:);
+                jDof(counterK+1:counterK+nGleij) = jDofEl(:);
+                eDof(counterF+1:counterF+nGlei)  = gle_i';
+
+                % Get local matrices and vector
+                [A_e,b_e] = elementType.elementLinearSystem(nonlinearScheme);
+
+                % Store in the global vectors
+                A_ij(counterK+1:counterK+nGleij) = A_e(:);
+                b_i(counterF+1:counterF+nGlei)   = b_e(:);
+
+                % Update auxiliar variables
+                counterK = counterK + nGleij;
+                counterF = counterF + nGlei;
+
+            end
+
+            % Assemble the matrices and vector
+            A = sparse(iDof,jDof,A_ij);
+            b = sparse(eDof,ones(this.nDofElemTot,1),b_i);
+
+            % Add contribution of the nodal forces
+            Fe = sparse(this.ndof,1);
+            Fe = this.addNodalLoad(Fe);
+            b = nonlinearScheme.addNodalForces(b,Fe);
+
+            % Check matrix
+            if any(isnan(nonzeros(A)))
+                error('Linear system matrix has NaN values');
+            end
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Appply the Dirichlet boundary conditions
+        function [Aff,bf] = applyDirichletBC(this, A, b, X, nlscheme)
+            Aff = A(this.doffree,this.doffree);
+            bf  = nlscheme.applyBCtoRHS(A, b, X, this.doffree,this.doffixed);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Update the state variables from all integration points
+        function updateStateVar(this)
+            for el = 1:this.nelem
+                this.element(el).type.updateStateVar();
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Reorder the nodes to improve computational efficiency
+        function resequenceNodes(this)
+            % Get auxiliar variables
+            nNode   = size(this.NODE,1);
+            nElem   = size(this.ELEM,1);
+            nNdElem = cellfun(@length,this.ELEM);
+            % Size of the connectivity matrix
+            nn = sum(nNdElem.^2);
+            % Get connectivity matrix
+            i=zeros(nn,1); j=zeros(nn,1); s=zeros(nn,1); index=0;
+            for el = 1:nElem
+              eNode=this.ELEM{el};
+              ElemSet=index+1:index+nNdElem(el)^2;
+              i(ElemSet) = kron(eNode,ones(nNdElem(el),1))';
+              j(ElemSet) = kron(eNode,ones(1,nNdElem(el)))';
+              s(ElemSet) = 1;
+              index = index + nNdElem(el)^2;
+            end
+            K = sparse(i,j,s,nNode, nNode);
+            % Apply a Symmetric reverse Cuthill-McKee permutation
+            p = symrcm(K);
+            cNode(p(1:nNode))=1:nNode;
+            % Rebuild the nodes and elements matrices
+            this.rebuildConnectivity(cNode);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Updates the connectivity of nodes and elements
+        function rebuildConnectivity(this,cNode)
+            ELEM_Old = this.ELEM;
+            [~,ix,jx] = unique(cNode);
+            this.NODE = this.NODE(ix,:);
+            for el=1:size(this.ELEM,1)
+                for i = 1:length(this.ELEM{el})
+                    this.ELEM{el}(i) = jx(ELEM_Old{el}(i));
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Adds pre-existing discontinuities to the model
+        function addPreExistingDiscontinuities(this,dSet,additionalData)
+            disp("*** Creating the discontinuity elements...");
+            if nargin > 2
+                this.addDiscontinuityData(additionalData);
+            end
+            % Check if the mesh is already set
+            if (isempty(this.NODE) || isempty(this.ELEM))
+                disp('Warning: empty mesh.');
+                disp('Warning: the discontinuity set cannot be added.');
+                return
+            end
+            % Create the discontinuity elements
+            for i = 1:length(dSet)
+                dSet(i).intersectMesh(this) ;
+            end
+            this.discontinuitySet = dSet;
+            this.useEnrichedFormulation(true);
+            this.initializeDiscontinuitySegments();
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Adds some additional discontinuity data
+        % To be implemented in the physics whenever required.
+        function addDiscontinuityData(~,~)
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initialize the discontinuity segments
+        function initializeDiscontinuitySegments(this)
+            if this.useNodalEnrDofs, this.condenseEnrDofs = false; end
+            nDiscontinuities = this.getNumberOfDiscontinuities();
+            for i = 1:nDiscontinuities
+                % Initialize vector with the nodal enrichment dofs
+                if this.useNodalEnrDofs
+                    nNodesDiscontinuity = size(this.discontinuitySet(i).Xlin,1);
+                    nEnrDofs = nNodesDiscontinuity*this.nNodalEnrDofs;
+                    nodalEnrDofs = this.ndof+1:(this.ndof+nEnrDofs);
+                    this.ndof = this.ndof + nEnrDofs;
+                    this.dofenr = [this.dofenr; nodalEnrDofs'];
+                    nodalEnrDofs = reshape(nodalEnrDofs, this.nNodalEnrDofs, nNodesDiscontinuity).';
+                end
+                % Initialize common properties and dofs
+                nDiscontinuitySeg = this.discontinuitySet(i).getNumberOfDiscontinuitySegments();
+                for j = 1:nDiscontinuitySeg
+                    this.discontinuitySet(i).segment(j).t = this.t;
+                    if (this.condenseEnrDofs == false) && (this.useNodalEnrDofs == false)
+                        this.discontinuitySet(i).segment(j).initializeDofs(this.ndof);
+                        this.ndof = this.ndof + this.discontinuitySet(i).segment(j).ndof;
+                        this.dofenr = [this.dofenr; this.discontinuitySet(i).segment(j).dof'];
+                    end
+                    if (this.condenseEnrDofs == false) && (this.useNodalEnrDofs == true)
+                        dEnrDofs = [nodalEnrDofs(j,:), nodalEnrDofs(j+1,:)];
+                        this.discontinuitySet(i).segment(j).setDofs(dEnrDofs);
+                    end
+                end
+            end
+            this.ndofenr = length(this.dofenr);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Get the total number of discontinuities
+        function n = getNumberOfDiscontinuities(this)
+            n = length(this.discontinuitySet);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Flag to use the enriched formulation
+        function useEnrichedFormulation(this,flag)
+            this.enriched = flag;
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Print the nodal displacements
+        function printResults(this)
+            fprintf('\n******** NODAL RESULTS ********\n');
+            this.printResultsHeader();
+            for i = 1:this.nnodes
+                fprintf("  %4d: \t",i);
+                for j = 1:this.ndof_nd
+                    fprintf("  %+8.4e ",this.U(this.ID(i,j)))
+                end
+                fprintf("\n");
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Evaluate a field at in a point inside an element
+        % Assumes that the point is in the element domain
+        function fieldValue = evaluateField(this, field, el, X)
+            fieldValue = [];
+            if strcmp(field,'Model')
+                fieldValue = this.matID(el);
+            elseif strcmp(field,'Pressure')
+                fieldValue = this.element(el).type.pressureField(X);
+            elseif strcmp(field,'Ux')
+                u = this.element(el).type.displacementField(X);
+                fieldValue = u(1);
+            elseif strcmp(field,'Uy')
+                u = this.element(el).type.displacementField(X);
+                fieldValue = u(2);
+            elseif strcmp(field,'E1')
+                s = this.element(el).type.strainField(X);
+                sp = this.element(el).type.principalStrain(s);
+                fieldValue = sp(1);
+            elseif strcmp(field,'PEMAG')
+                fieldValue = this.element(el).type.plasticstrainMagnitude(X);
+            elseif strcmp(field,'Sx')
+                s = this.element(el).type.stressField(X);
+                fieldValue = s(1);
+            elseif strcmp(field,'Sy')
+                s = this.element(el).type.stressField(X);
+                fieldValue = s(2);
+            elseif strcmp(field,'Sxy')
+                s = this.element(el).type.stressField(X);
+                fieldValue = s(4);
+            elseif strcmp(field,'S1')
+                s = this.element(el).type.stressField(X);
+                sp = this.element(el).type.principalStress(s);
+                fieldValue = sp(1);
+            elseif strcmp(field,'S2')
+                s = this.element(el).type.stressField(X);
+                sp = this.element(el).type.principalStress(s);
+                fieldValue = sp(2);
+            elseif strcmp(field,'Sr')
+                s = this.element(el).type.stressField(X);
+                sp = this.element(el).type.stressCylindrical(s,X);
+                fieldValue = sp(1);
+            elseif strcmp(field,'LiquidPressure')
+                fieldValue = this.element(el).type.pressureField(X);
+            elseif strcmp(field,'CapillaryPressure')
+                fieldValue = this.element(el).type.capillaryPressureField(X);
+            elseif strcmp(field,'GasPressure')
+                fieldValue = this.element(el).type.gasPressureField(X);
+            elseif strcmp(field,'LiquidSaturation')
+                fieldValue = this.element(el).type.liquidSaturationField(X);
+            elseif strcmp(field,'GasSaturation')
+                fieldValue = this.element(el).type.gasSaturationField(X);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Update the result nodes data of each element
+        function updateResultVertexData(this,field)
+            for el = 1:this.nelem
+                this.element(el).type.ue = this.U(this.element(el).type.gle);
+                vertexData = zeros(length(this.element(el).type.result.faces),1);
+                for i = 1:length(this.element(el).type.result.faces)
+                    X = this.element(el).type.result.vertices(i,:);
+                    vertexData(i) = this.evaluateField(field, el, X);
+                end
+                this.element(el).type.result.setVertexData(vertexData);
+            end
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Plot given field over the mesh
+        function plotField(this,field,range,ax)
+            if nargin < 3, range = []; end
+            if nargin < 4 || isempty(ax)
+                figure;
+                ax = gca;
+            else
+                axes(ax);
+                cla(ax);
+            end
+
+            this.updateResultVertexData(field)
+            FEMPlot(this).plotMesh(ax);
+            if strcmp(field,"Model") == false
+                if isempty(range)
+                    colorbar(ax);
+                else
+                    clim(ax, range);
+                    c = colorbar(ax);
+                    c.Limits = range;
+                end
+            end
+
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Plot given field along a given segment
+        function plotFieldAlongSegment(this,field, Xi, Xf, npts, axisPlot, ax)
+            if nargin < 7 || isempty(ax)
+                figure;         % Cria nova figura
+                ax = gca;       % Usa o eixo atual
+            else
+                axes(ax);       % Define o eixo alvo
+                cla(ax);        % Limpa o conteúdo
+            end
+            if nargin < 5
+                npts     = 100;
+                axisPlot = 'x';
+            end
+            if nargin < 6
+                axisPlot = 'x';
+            end
+            FEMPlot(this).plotFieldAlongSegment(field, Xi, Xf, npts, axisPlot, ax);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Plot field along a given discontinuity
+        % Input:
+        %   - id: id of the discontinuity
+        function plotFieldAlongDiscontinuiy(this, field, id, axisPlot, ax)
+            if nargin < 5 || isempty(ax)
+                figure;
+                ax = gca;
+            else
+                axes(ax);
+                cla(ax);
+            end
+            if nargin < 4
+                axisPlot = 'x';
+            end
+
+            nDiscontinuitySeg = this.discontinuitySet(id).getNumberOfDiscontinuitySegments();
+
+            % Considering that are two int points per discontinuity segment
+            s = zeros(2*nDiscontinuitySeg, 1);
+            f = zeros(2*nDiscontinuitySeg, 1);
+
+            % Initial point
+            Xi = this.discontinuitySet(id).X(1,:);
+
+            % Fill vectors
+            for j = 1:nDiscontinuitySeg
+                dof_j = this.discontinuitySet(id).segment(j).dof;
+                cElemID = this.discontinuitySet(id).elemID(j);
+                cElem = this.element(cElemID).type;
+                [Xj, fj] = this.discontinuitySet(id).segment(j).getField(field,this.U(dof_j), cElem);
+                DX = Xj - Xi;
+                sj = sqrt(DX(:,1).^2 + DX(:,2).^2);
+                s(2*j-1:2*j,1) = sj; %Xj(:,2);
+                f(2*j-1:2*j,1) = fj;
+            end
+
+            % Plot
+            FEMPlot(this).plotFieldAlongDiscontinuity(s, f, field, axisPlot, ax);
+        end
+
+    end
+end
+##### SOURCE END #####
+--></body></html>

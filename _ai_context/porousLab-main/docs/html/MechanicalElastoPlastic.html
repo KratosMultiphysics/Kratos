@@ -1,0 +1,453 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>MechanicalElastoPlastic Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="MechanicalElastoPlastic.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>MechanicalElastoPlastic Class</h1><!--introduction--><p>This class implements the common interface for elasto-plastic constitutive laws. It inherits from the <i>MechanicalLinearElastic</i> class and defines the stress integration data required by the implicit return-mapping algorithm.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class Definition</a></li><li><a href="#6">Constructor method</a></li><li><a href="#7">Abstract methods</a></li><li><a href="#8">Public methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>eval</b>: Computes the stress vector and the constitutive matrix.</li><li><b>yieldCondition</b>: Computes the yield function value.</li><li><b>yieldStressGradient</b>: Computes the gradient of the yield function                          with respect to the stress vector.</li><li><b>yieldStateGradient</b>: Computes the gradient of the yield function                         with respect to the state variables.</li><li><b>flowVector</b>: Computes the flow direction vector (plastic strain                 direction).</li><li><b>flowStressGradient</b>: Computes the gradient of the flow vector with                         respect to the stress vector.</li><li><b>flowStateGradient</b>: Computes the gradient of the flow vector with                        respect to the state variables.</li><li><b>stateEvolution</b>: Computes the hardening/softening law.</li><li><b>stateStressGradient</b>: Computes the gradient of the hardening/softening                          law with respect to the stress vector.</li><li><b>stateStateGradient</b>: Computes the gradient of the hardening/softening                         law with respect to the state variables.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class Definition</h2><pre class="codeinput"><span class="keyword">classdef</span> MechanicalElastoPlastic &lt; MechanicalLinearElastic
+</pre><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        returnMappingMaxIter = 100;
+        returnYieldConditionTol = 1.0e-8;
+        returnNormResidualFlowRuleTol = 1.0e-8;
+        returnNormResidualHardeningTol = 1.0e-8;
+        nPlasticInternalVars = 0;
+    <span class="keyword">end</span>
+</pre><h2 id="6">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = MechanicalElastoPlastic()
+            this = this@MechanicalLinearElastic();
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="7">Abstract methods</h2><pre class="codeinput">    methods(Abstract)
+
+        <span class="comment">% Yield surface and its gradients ---------------------------------</span>
+        f     = yieldCondition(this, material, ip, stress, state);
+        dfds  = yieldStressGradient(this, material, ip, stress, state);
+        dfda  = yieldStateGradient(this, material, ip, stress, state);
+
+        <span class="comment">% Flow vector and its gradients -----------------------------------</span>
+        n     = flowVector(this, material, ip, stress, state);
+        dnds  = flowStressGradient(this, material, ip, stress, state);
+        dnda  = flowStateGradient(this, material, ip, stress, state);
+
+        <span class="comment">% Internal/state variables evolution and its gradients ------------</span>
+        h     = stateEvolution(this, material, ip, stress, state);
+        dhds  = stateStressGradient(this, material, ip, stress, state);
+        dhda  = stateStateGradient(this, material, ip, stress, state);
+
+    <span class="keyword">end</span>
+</pre><h2 id="8">Public methods</h2><pre class="codeinput">    methods
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the stress vector and the constitutive matrix</span>
+        <span class="keyword">function</span> [stress,Dt] = eval(this,material,ip)
+            [stress,Dt] = this.implicitReturnMapping(material,ip);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the stress vector and the constitutive matrix with the</span>
+        <span class="comment">% fully implicit return mapping algorithm</span>
+        <span class="keyword">function</span> [stress,Dt] = implicitReturnMapping(this,material,ip)
+
+            <span class="comment">% Constitutive matrix</span>
+            De = this.elasticConstitutiveMatrix(material,ip);
+            Ce = this.elasticFlexibilityMatrix(material,ip);
+            Dt = De;
+
+            <span class="comment">% Trial stress vector</span>
+            stress = De * (ip.strain - ip.strainOld) + ip.stressOld;
+
+            <span class="comment">% Previous plastic variables</span>
+            epOld    = ip.plasticstrainOld;
+            stateOld = ip.statevarOld;
+            state    = stateOld;
+            nStress  = length(stress);
+            nState   = length(stateOld);
+
+            <span class="comment">% Evaluate the yield condition at the trial state</span>
+            ip.plasticstrain = epOld;
+            ip.statevar      = stateOld;
+            f = this.yieldCondition(material,ip,stress,state);
+            yieldTol = this.returnYieldConditionTol * max(1.0,norm(stress));
+
+            <span class="comment">% Elastic step</span>
+            <span class="keyword">if</span> f &lt; yieldTol
+                <span class="keyword">return</span>
+            <span class="keyword">end</span>
+
+            <span class="comment">% Initialize variables for the return mapping</span>
+            lambda = 0.0;
+            iter = 1;
+            converged = false;
+
+            <span class="comment">% Return mapping: closest point projection</span>
+            <span class="keyword">while</span> iter &lt;= this.returnMappingMaxIter
+
+                <span class="comment">% Yield function, flow vector and hardening/softening law</span>
+                f = this.yieldCondition(material,ip,stress,state);
+                n = this.flowVector(material,ip,stress,state);
+                h = this.stateEvolution(material,ip,stress,state);
+                yieldTol = this.returnYieldConditionTol * max(1.0,norm(stress));
+
+                <span class="comment">% Residuals of the plastic flow and hardening laws</span>
+                r1 = Ce * stress - ip.strain + epOld + lambda * n;
+                r2 = -state + stateOld + lambda * h;
+
+                <span class="comment">% Check convergence</span>
+                <span class="keyword">if</span> (abs(f) &lt;= yieldTol) &amp;&amp; <span class="keyword">...</span>
+                   (norm(r1) &lt;= this.returnNormResidualFlowRuleTol) &amp;&amp; <span class="keyword">...</span>
+                   (norm(r2) &lt;= this.returnNormResidualHardeningTol)
+                    converged = true;
+                    <span class="keyword">break</span>
+                <span class="keyword">end</span>
+
+                <span class="comment">% Gradients of the yield function</span>
+                dfds = this.yieldStressGradient(material,ip,stress,state);
+                dfda = this.yieldStateGradient(material,ip,stress,state);
+
+                <span class="comment">% Gradients of the flow rule vector</span>
+                dnds = this.flowStressGradient(material,ip,stress,state);
+                dnda = this.flowStateGradient(material,ip,stress,state);
+
+                <span class="comment">% Gradients of the hardening/softening law</span>
+                dhds = this.stateStressGradient(material,ip,stress,state);
+                dhda = this.stateStateGradient(material,ip,stress,state);
+
+                <span class="comment">% Auxiliary system from the first two residual blocks</span>
+                K = [Ce + lambda * dnds, lambda * dnda;
+                     lambda * dhds, -eye(nState) + lambda * dhda];
+                rho = [r1; r2];
+                e = [n; h];
+                g = [dfds; dfda];
+
+                <span class="comment">% Increment of the plastic multiplier</span>
+                dlambda = (f - g' * (K \ rho)) / (g' * (K \ e));
+
+                <span class="comment">% Stress and internal-variable corrections</span>
+                delta = -K \ (rho + dlambda * e);
+                stress = stress + delta(1:nStress);
+                state  = state  + delta(nStress+1:end);
+                lambda = lambda + dlambda;
+
+                <span class="comment">% Update iteration counter</span>
+                iter = iter + 1;
+
+            <span class="keyword">end</span>
+
+            <span class="comment">% Check convergence of the local Newton iteration</span>
+            <span class="keyword">if</span> ~converged
+                error([<span class="string">'Error: implicit return mapping did not converge. '</span>, <span class="keyword">...</span>
+                       <span class="string">'f = %.6e, yieldTol = %.6e, norm(r1) = %.6e, norm(r2) = %.6e, lambda = %.6e, iter = %d'</span>], <span class="keyword">...</span>
+                       f,yieldTol,norm(r1),norm(r2),lambda,iter);
+            <span class="keyword">end</span>
+
+            <span class="comment">% Store the accepted state variables</span>
+            ip.statevar = state;
+            ip.plasticstrain = ip.strain - Ce * stress;
+
+            <span class="comment">% Compute algorithmic tangent constitutive tensor</span>
+            n = this.flowVector(material,ip,stress,state);
+            h = this.stateEvolution(material,ip,stress,state);
+            dfds = this.yieldStressGradient(material,ip,stress,state);
+            dfda = this.yieldStateGradient(material,ip,stress,state);
+            dnds = this.flowStressGradient(material,ip,stress,state);
+            dnda = this.flowStateGradient(material,ip,stress,state);
+            dhds = this.stateStressGradient(material,ip,stress,state);
+            dhda = this.stateStateGradient(material,ip,stress,state);
+
+            K = [Ce + lambda * dnds, lambda * dnda;
+                 lambda * dhds, -eye(nState) + lambda * dhda];
+            e = [n; h];
+            g = [dfds; dfda];
+            rhs = [eye(nStress); zeros(nState,nStress)];
+
+            Krhs = K \ rhs;
+            Ke   = K \ e;
+            dsol = Krhs - Ke * ((g' * Krhs) / (g' * Ke));
+            Dt = dsol(1:nStress,:);
+
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    methods (Static)
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Flag to impose if the material is elasto-plastic or not</span>
+        <span class="keyword">function</span> flag = isElastoPlastic()
+            flag = true;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% MechanicalElastoPlastic Class
+% This class implements the common interface for elasto-plastic
+% constitutive laws. It inherits from the _MechanicalLinearElastic_ class
+% and defines the stress integration data required by the implicit
+% return-mapping algorithm.
+%
+%% Methods
+% * *eval*: Computes the stress vector and the constitutive matrix.
+% * *yieldCondition*: Computes the yield function value.
+% * *yieldStressGradient*: Computes the gradient of the yield function
+%                          with respect to the stress vector.
+% * *yieldStateGradient*: Computes the gradient of the yield function
+%                         with respect to the state variables.
+% * *flowVector*: Computes the flow direction vector (plastic strain
+%                 direction).
+% * *flowStressGradient*: Computes the gradient of the flow vector with
+%                         respect to the stress vector.
+% * *flowStateGradient*: Computes the gradient of the flow vector with
+%                        respect to the state variables.
+% * *stateEvolution*: Computes the hardening/softening law.
+% * *stateStressGradient*: Computes the gradient of the hardening/softening
+%                          law with respect to the stress vector.
+% * *stateStateGradient*: Computes the gradient of the hardening/softening
+%                         law with respect to the state variables.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class Definition
+classdef MechanicalElastoPlastic < MechanicalLinearElastic
+    properties (SetAccess = public, GetAccess = public)
+        returnMappingMaxIter = 100;
+        returnYieldConditionTol = 1.0e-8;
+        returnNormResidualFlowRuleTol = 1.0e-8;
+        returnNormResidualHardeningTol = 1.0e-8;
+        nPlasticInternalVars = 0;
+    end
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = MechanicalElastoPlastic()
+            this = this@MechanicalLinearElastic();
+        end
+    end
+    %% Abstract methods
+    methods(Abstract)
+
+        % Yield surface and its gradients REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        f     = yieldCondition(this, material, ip, stress, state);
+        dfds  = yieldStressGradient(this, material, ip, stress, state);
+        dfda  = yieldStateGradient(this, material, ip, stress, state);
+
+        % Flow vector and its gradients REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        n     = flowVector(this, material, ip, stress, state);
+        dnds  = flowStressGradient(this, material, ip, stress, state);
+        dnda  = flowStateGradient(this, material, ip, stress, state);
+
+        % Internal/state variables evolution and its gradients REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        h     = stateEvolution(this, material, ip, stress, state);
+        dhds  = stateStressGradient(this, material, ip, stress, state);
+        dhda  = stateStateGradient(this, material, ip, stress, state);
+
+    end
+    %% Public methods
+    methods
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the stress vector and the constitutive matrix
+        function [stress,Dt] = eval(this,material,ip)
+            [stress,Dt] = this.implicitReturnMapping(material,ip);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the stress vector and the constitutive matrix with the
+        % fully implicit return mapping algorithm
+        function [stress,Dt] = implicitReturnMapping(this,material,ip)
+
+            % Constitutive matrix
+            De = this.elasticConstitutiveMatrix(material,ip);
+            Ce = this.elasticFlexibilityMatrix(material,ip);
+            Dt = De;
+
+            % Trial stress vector
+            stress = De * (ip.strain - ip.strainOld) + ip.stressOld;
+
+            % Previous plastic variables
+            epOld    = ip.plasticstrainOld;
+            stateOld = ip.statevarOld;
+            state    = stateOld;
+            nStress  = length(stress);
+            nState   = length(stateOld);
+
+            % Evaluate the yield condition at the trial state
+            ip.plasticstrain = epOld;
+            ip.statevar      = stateOld;
+            f = this.yieldCondition(material,ip,stress,state);
+            yieldTol = this.returnYieldConditionTol * max(1.0,norm(stress));
+
+            % Elastic step
+            if f < yieldTol
+                return
+            end
+
+            % Initialize variables for the return mapping
+            lambda = 0.0;
+            iter = 1;
+            converged = false;
+
+            % Return mapping: closest point projection
+            while iter <= this.returnMappingMaxIter
+
+                % Yield function, flow vector and hardening/softening law
+                f = this.yieldCondition(material,ip,stress,state);
+                n = this.flowVector(material,ip,stress,state);
+                h = this.stateEvolution(material,ip,stress,state);
+                yieldTol = this.returnYieldConditionTol * max(1.0,norm(stress));
+
+                % Residuals of the plastic flow and hardening laws
+                r1 = Ce * stress - ip.strain + epOld + lambda * n;
+                r2 = -state + stateOld + lambda * h;
+
+                % Check convergence
+                if (abs(f) <= yieldTol) && ...
+                   (norm(r1) <= this.returnNormResidualFlowRuleTol) && ...
+                   (norm(r2) <= this.returnNormResidualHardeningTol)
+                    converged = true;
+                    break
+                end
+
+                % Gradients of the yield function
+                dfds = this.yieldStressGradient(material,ip,stress,state);
+                dfda = this.yieldStateGradient(material,ip,stress,state);
+
+                % Gradients of the flow rule vector
+                dnds = this.flowStressGradient(material,ip,stress,state);
+                dnda = this.flowStateGradient(material,ip,stress,state);
+
+                % Gradients of the hardening/softening law
+                dhds = this.stateStressGradient(material,ip,stress,state);
+                dhda = this.stateStateGradient(material,ip,stress,state);
+
+                % Auxiliary system from the first two residual blocks
+                K = [Ce + lambda * dnds, lambda * dnda;
+                     lambda * dhds, -eye(nState) + lambda * dhda];
+                rho = [r1; r2];
+                e = [n; h];
+                g = [dfds; dfda];
+
+                % Increment of the plastic multiplier
+                dlambda = (f - g' * (K \ rho)) / (g' * (K \ e));
+
+                % Stress and internal-variable corrections
+                delta = -K \ (rho + dlambda * e);
+                stress = stress + delta(1:nStress);
+                state  = state  + delta(nStress+1:end);
+                lambda = lambda + dlambda;
+
+                % Update iteration counter
+                iter = iter + 1;
+
+            end
+
+            % Check convergence of the local Newton iteration
+            if ~converged
+                error(['Error: implicit return mapping did not converge. ', ...
+                       'f = %.6e, yieldTol = %.6e, norm(r1) = %.6e, norm(r2) = %.6e, lambda = %.6e, iter = %d'], ...
+                       f,yieldTol,norm(r1),norm(r2),lambda,iter);
+            end
+
+            % Store the accepted state variables
+            ip.statevar = state;
+            ip.plasticstrain = ip.strain - Ce * stress;
+
+            % Compute algorithmic tangent constitutive tensor
+            n = this.flowVector(material,ip,stress,state);
+            h = this.stateEvolution(material,ip,stress,state);
+            dfds = this.yieldStressGradient(material,ip,stress,state);
+            dfda = this.yieldStateGradient(material,ip,stress,state);
+            dnds = this.flowStressGradient(material,ip,stress,state);
+            dnda = this.flowStateGradient(material,ip,stress,state);
+            dhds = this.stateStressGradient(material,ip,stress,state);
+            dhda = this.stateStateGradient(material,ip,stress,state);
+
+            K = [Ce + lambda * dnds, lambda * dnda;
+                 lambda * dhds, -eye(nState) + lambda * dhda];
+            e = [n; h];
+            g = [dfds; dfda];
+            rhs = [eye(nStress); zeros(nState,nStress)];
+
+            Krhs = K \ rhs;
+            Ke   = K \ e;
+            dsol = Krhs - Ke * ((g' * Krhs) / (g' * Ke));
+            Dt = dsol(1:nStress,:);
+
+        end
+    end
+    methods (Static)
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Flag to impose if the material is elasto-plastic or not
+        function flag = isElastoPlastic()
+            flag = true;
+        end
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

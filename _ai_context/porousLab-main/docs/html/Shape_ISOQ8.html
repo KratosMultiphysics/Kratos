@@ -1,0 +1,894 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Shape_ISOQ8 Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="Shape_ISOQ8.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Shape_ISOQ8 Class</h1><!--introduction--><p>This class inherits from the base class 'Shape' to implement the behavior of a quadratic quadrilateral isoparametric element (ISOQ8).</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Authors</a></li><li><a href="#2">Class Definition</a></li><li><a href="#3">Constructor method</a></li><li><a href="#4">Public methods</a></li></ul></div><h2 id="1">Authors</h2><div><ul><li>Danilo Cavalcanti (<a href="mailto:dborges@cimne.upc.edu">dborges@cimne.upc.edu</a>)</li></ul></div><h2 id="2">Class Definition</h2><pre class="codeinput"><span class="keyword">classdef</span> Shape_ISOQ8 &lt; Shape
+</pre><h2 id="3">Constructor method</h2><pre class="codeinput">    methods
+        <span class="keyword">function</span> this = Shape_ISOQ8()
+            this = this@Shape(<span class="string">'ISOQ8'</span>);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="4">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Evaluate the shape function at a given point X of a linear</span>
+        <span class="comment">% quadrilateral isoparametric element.</span>
+         <span class="keyword">function</span> N = shapeFnc(~,Xn)
+            <span class="comment">% Natural coordinates of the given point</span>
+            xi = Xn(1); eta = Xn(2);
+
+            <span class="comment">% Shape functions</span>
+            N5 = 0.50*(1.0 - xi*xi)*(1.0 - eta);
+            N6 = 0.50*(1.0 + xi)*(1.0 - eta*eta);
+            N7 = 0.50*(1.0 - xi*xi)*(1.0 + eta);
+            N8 = 0.50*(1.0 - xi)*(1.0 - eta*eta);
+            N1 = 0.25*(1 - xi)*(1 - eta) - 0.50*(N8 + N5);
+            N2 = 0.25*(1 + xi)*(1 - eta) - 0.50*(N5 + N6);
+            N3 = 0.25*(1 + xi)*(1 + eta) - 0.50*(N6 + N7);
+            N4 = 0.25*(1 - xi)*(1 + eta) - 0.50*(N7 + N8);
+            N  = [ N1  N2  N3  N4  N5  N6  N7  N8 ];
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Get the shape function matrix</span>
+         <span class="keyword">function</span> N = shapeFncMtrx(this,Xn)
+             <span class="comment">% Vector with the shape functions</span>
+             N = this.shapeFnc(Xn);
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Get the linear shape function matrix</span>
+         <span class="keyword">function</span> Nm = linearShapeFncMtrx(~,Xn)
+            <span class="comment">% Natural coordinates of the given point</span>
+            xi = Xn(1); eta = Xn(2);
+
+            <span class="comment">% Shape functions</span>
+            N1 = (1.0 - xi)*(1.0 - eta)/4.0;
+            N2 = (1.0 + xi)*(1.0 - eta)/4.0;
+            N3 = (1.0 + xi)*(1.0 + eta)/4.0;
+            N4 = (1.0 - xi)*(1.0 + eta)/4.0;
+            Nm   = [ N1  N2  N3  N4 ];
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Get the shape function matrix</span>
+         <span class="keyword">function</span> Nu = NuMtrx(~,N)
+             <span class="comment">% Shape function matrix</span>
+             Nu = [N(1)  0.0   N(2)  0.0   N(3)  0.0   N(4)  0.0   N(5)  0.0   N(6)  0.0   N(7)  0.0   N(8)  0.0;
+                   0.0   N(1)  0.0   N(2)  0.0   N(3)  0.0   N(4)  0.0   N(5)  0.0   N(6)  0.0   N(7)  0.0   N(8)];
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Compute the derivatives of the shape functions wrt to the</span>
+         <span class="comment">% natural coordinates</span>
+         <span class="keyword">function</span> dNdxn = shapeFncDrv(~,Xn)
+            <span class="comment">% Natural coordinates of the given point</span>
+            xi = Xn(1); eta = Xn(2);
+
+            <span class="comment">% Derivatives of the shape functions</span>
+            dN1_dxi  = eta/4 + xi/2 - (eta*xi)/2 - eta^2/4;
+            dN2_dxi  = xi/2 - eta/4 - (eta*xi)/2 + eta^2/4;
+            dN3_dxi  = eta/4 + xi/2 + (eta*xi)/2 + eta^2/4;
+            dN4_dxi  = xi/2 - eta/4 + (eta*xi)/2 - eta^2/4;
+            dN5_dxi  = eta*xi - xi;
+            dN6_dxi  = 0.5 - eta*eta/2;
+            dN7_dxi  = - xi - eta*xi;
+            dN8_dxi  = eta*eta/2 - 0.5;
+
+            dN1_deta = eta/2 + xi/4 - (eta*xi)/2 - xi^2/4;
+            dN2_deta = eta/2 - xi/4 + (eta*xi)/2 - xi^2/4;
+            dN3_deta = eta/2 + xi/4 + (eta*xi)/2 + xi^2/4;
+            dN4_deta = eta/2 - xi/4 - (eta*xi)/2 + xi^2/4;
+            dN5_deta  = xi*xi/2 - 0.5;
+            dN6_deta  = - eta - eta*xi;
+            dN7_deta  = 0.5 - xi*xi/2;
+            dN8_deta  = eta*xi - eta;
+
+            dNdxn   = [ dN1_dxi   dN2_dxi   dN3_dxi   dN4_dxi   dN5_dxi   dN6_dxi   dN7_dxi   dN8_dxi ;
+                        dN1_deta  dN2_deta  dN3_deta  dN4_deta  dN5_deta  dN6_deta  dN7_deta  dN8_deta ];
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Compute the derivatives of the shape functions wrt to the</span>
+         <span class="comment">% natural coordinate s</span>
+         <span class="keyword">function</span> dNdxn = linearShapeFncDrv(~,Xn)
+            <span class="comment">% Natural coordinates of the given point</span>
+            xi = Xn(1); eta = Xn(2);
+
+            <span class="comment">% Derivatives of the shape functions</span>
+            dN1_dxi = -(1-eta)/4;    dN1_deta = -(1-xi)/4;
+            dN2_dxi =  (1-eta)/4;    dN2_deta = -(1+xi)/4;
+            dN3_dxi =  (1+eta)/4;    dN3_deta =  (1+xi)/4;
+            dN4_dxi = -(1+eta)/4;    dN4_deta =  (1-xi)/4;
+            dNdxn   = [ dN1_dxi   dN2_dxi   dN3_dxi   dN4_dxi ;
+                        dN1_deta  dN2_deta  dN3_deta  dN4_deta ];
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Compute the jacobian matrix</span>
+         <span class="keyword">function</span> J = JacobianMtrx(this,X,Xn)
+            <span class="comment">% Compute the shape function derivatives wrt to the natural</span>
+            <span class="comment">% coordinate system</span>
+            dNdxn = this.shapeFncDrv(Xn);
+
+            <span class="comment">% Jacobian matrix</span>
+            J = dNdxn * X;
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Compute the jacobian matrix</span>
+         <span class="keyword">function</span> J = linearJacobianMtrx(this,X,Xn)
+            <span class="comment">% Compute the shape function derivatives wrt to the natural</span>
+            <span class="comment">% coordinate system</span>
+            dNdxn = this.linearShapeFncDrv(Xn);
+
+            <span class="comment">% Jacobian matrix</span>
+            J = dNdxn * X;
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Compute the determinant of the jacobian</span>
+         <span class="keyword">function</span> detJ = detJacobian(this,X,Xn)
+            <span class="comment">% Jacobian matrix</span>
+            J = this.JacobianMtrx(X,Xn);
+            detJ = det(J);
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Compute the derivatives of the shape functions matrix</span>
+         <span class="keyword">function</span> [dNdx,detJ] = dNdxMatrix(this,X,Xn)
+            <span class="comment">% Jacobian matrix</span>
+            J = this.JacobianMtrx(X,Xn);
+
+            <span class="comment">% Determinant of the Jacobian matrix</span>
+            detJ = det(J);
+
+            <span class="comment">% Compute the derivatives of the shape functions wrt to the</span>
+            <span class="comment">% natural coordinate system</span>
+            dNdxn = this.shapeFncDrv(Xn);
+
+            <span class="comment">% Compute the derivatives of the shape functions wrt to the</span>
+            <span class="comment">% global cartesian coordinate system</span>
+            dNdx = J\dNdxn;
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Compute the derivatives of the shape functions matrix</span>
+         <span class="keyword">function</span> [dNdx] = lineardNdxMatrix(this,X,Xn)
+            <span class="comment">% Jacobian matrix</span>
+            J = this.linearJacobianMtrx(X,Xn);
+
+            <span class="comment">% Compute the derivatives of the shape functions wrt to the</span>
+            <span class="comment">% natural coordinate system</span>
+            dNdxn = this.linearShapeFncDrv(Xn);
+
+            <span class="comment">% Compute the derivatives of the shape functions wrt to the</span>
+            <span class="comment">% global cartesian coordinate system</span>
+            dNdx = J\dNdxn;
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Transform a point from the natural coordinate system to the</span>
+         <span class="comment">% global cartesian coordinate system</span>
+         <span class="comment">% Input:</span>
+         <span class="comment">%   NODE : matrix with the x and y coordinates of the nodes of an</span>
+         <span class="comment">%           ISOQ8 element</span>
+         <span class="comment">%   Xn   : vector with the xi and eta coordinates of a point in</span>
+         <span class="comment">%          the natural coordinate system</span>
+         <span class="comment">%</span>
+         <span class="comment">% Output:</span>
+         <span class="comment">%   X : vector with the x and y coordinates of a point in the</span>
+         <span class="comment">%       global coordinate system</span>
+         <span class="keyword">function</span> X = coordNaturalToCartesian(this,NODE,Xn)
+            <span class="comment">% Extract the nodal coordinates</span>
+            x = NODE(:,1);
+            y = NODE(:,2);
+
+            <span class="comment">% Vector with the shape functions</span>
+            Nv = this.shapeFnc(Xn);
+
+            <span class="comment">% Initialize output</span>
+            X = [0.0, 0.0];
+
+            <span class="comment">% Interpolation the position</span>
+            X(1) = Nv(1)*x(1) +  Nv(2)*x(2) +  Nv(3)*x(3) +  Nv(4)*x(4) + Nv(5)*x(5) +  Nv(6)*x(6) +  Nv(7)*x(7) +  Nv(8)*x(8);
+            X(2) = Nv(1)*y(1) +  Nv(2)*y(2) +  Nv(3)*y(3) +  Nv(4)*y(4) + Nv(5)*y(5) +  Nv(6)*y(6) +  Nv(7)*y(7) +  Nv(8)*y(8);
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Transform a point from the natural coordinate system to the</span>
+         <span class="comment">% global cartesian coordinate system</span>
+         <span class="comment">% Input:</span>
+         <span class="comment">%   NODE : matrix with the x and y coordinates of the nodes of the</span>
+         <span class="comment">%          element</span>
+         <span class="comment">%   X    : vector with the x and y coordinates of a point in the</span>
+         <span class="comment">%          global cartesian coordinate system</span>
+         <span class="comment">%</span>
+         <span class="comment">% Output:</span>
+         <span class="comment">%   xi, eta: coordinates xi and eta of the point X in the natural</span>
+         <span class="comment">%            coordinate system.</span>
+         <span class="comment">%</span>
+         <span class="keyword">function</span> Xn = coordCartesianToNatural(~,NODE,X)
+            <span class="comment">% Extract the nodal coordinates</span>
+            x = NODE(1:4,1);
+            y = NODE(1:4,2);
+
+            <span class="comment">% Felippa's algorithm:</span>
+            xb  = x(1) - x(2) + x(3) - x(4);
+            yb  = y(1) - y(2) + y(3) - y(4);
+            xcx = x(1) + x(2) - x(3) - x(4);
+            ycx = y(1) + y(2) - y(3) - y(4);
+            xce = x(1) - x(2) - x(3) + x(4);
+            yce = y(1) - y(2) - y(3) + y(4);
+            A   = ((x(3) - x(1))*(y(4) - y(2)) - (x(4) - x(2))*(y(3) - y(1))) / 2.0;
+            J1  = (x(3) - x(4))*(y(1) - y(2)) - (x(1) - x(2))*(y(3) - y(4));
+            J2  = (x(2) - x(3))*(y(1) - y(4)) - (x(1) - x(4))*(y(2) - y(3));
+            x0  = (x(1) + x(2) + x(3) + x(4)) / 4.0;
+            y0  = (y(1) + y(2) + y(3) + y(4)) / 4.0;
+            xp0 = X(1) - x0;
+            yp0 = X(2) - y0;
+            bxi =  A - xp0*yb + yp0*xb;
+            bet = -A - xp0*yb + yp0*xb;
+            cxi = xp0*ycx - yp0*xcx;
+            cet = xp0*yce - yp0*xce;
+
+            <span class="comment">% Natural coordinates</span>
+            xi  = 2.0*cxi / (-sqrt(bxi^2 - 2*J1*cxi) - bxi);
+            eta = 2.0*cet / (sqrt(bet^2 + 2*J2*cet) - bet);
+            Xn = [xi, eta];
+         <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to get the matrices with the coordinates and weights of</span>
+        <span class="comment">% integration points in the natural coordinate system.</span>
+        <span class="comment">% The definition of the integration points depends on the choice of</span>
+        <span class="comment">% the order of the quadrature rule and the option for subdividing</span>
+        <span class="comment">% the domain or not.</span>
+        <span class="comment">% Output:</span>
+        <span class="comment">%</span>
+        <span class="comment">%   X : matrix with the coordinates of the integration points in</span>
+        <span class="comment">%       the natural coordinate system. Each column of this matrix</span>
+        <span class="comment">%       gives the coordinates of a point.</span>
+        <span class="comment">%   W : vector with the weights associated with each point</span>
+        <span class="comment">%   n : number of integration points</span>
+        <span class="comment">%</span>
+        <span class="keyword">function</span> [X,W,n] = getIntegrationPoints(this,intOrder,elem)
+            <span class="keyword">if</span> nargin == 2
+                subDivInt = false;
+            <span class="keyword">else</span>
+                subDivInt = elem.subDivInt;
+            <span class="keyword">end</span>
+
+            <span class="keyword">if</span> subDivInt == false
+                <span class="comment">% Compute the integration points</span>
+                [w,x] = this.getlineQuadrature(intOrder);
+
+                <span class="comment">% Assemble the matrix with the integration points</span>
+                [Xip,Yip] = meshgrid(x,x);
+                X = [Xip(:)';Yip(:)'];
+
+                <span class="comment">% Assemble the vector with the weights</span>
+                [Wxip,Wyip] = meshgrid(w,w);
+                W = Wxip(:)' .* Wyip(:)';
+
+                <span class="comment">% Number of integration points</span>
+                n = size(X,2);
+            <span class="keyword">else</span>
+
+                elemNodes = [elem.node]; FractSeg = [];
+                nnodes = size(elem.node,1);
+                k = 1;
+                <span class="keyword">for</span> i = 1:elem.nfrac
+                    <span class="comment">% Number of fracture segments</span>
+                    nfracSeg = length(elem.fracture{i});
+                    <span class="comment">% Get the fracture tip nodes</span>
+                    fractiNodes = zeros(2);
+                    fractiNodes(1,:) = elem.fracture{i}(1).node(1,:);
+                    fractiNodes(2,:) = elem.fracture{i}(nfracSeg).node(2,:);
+                    <span class="comment">% Add to the element nodes</span>
+                    elemNodes = [elemNodes;fractiNodes];
+                    FractSeg  = [FractSeg;nnodes+k,nnodes+k+1];
+                    k = k + 2;
+                <span class="keyword">end</span>
+
+                <span class="comment">% Perform a Delaunay triangulation to create subelements</span>
+                DT = delaunayTriangulation(elemNodes,FractSeg);
+
+                <span class="comment">% Number of subelements</span>
+                nSubElem = size(DT.ConnectivityList,1);
+
+                <span class="comment">% Get the integration points of a triangle</span>
+                shapeCST = Shape_CST();
+                [x,w,nIntPoints] = shapeCST.getIntegrationPointsCST(intOrder);
+
+                <span class="comment">% Total number of integration points</span>
+                n = nIntPoints * nSubElem;
+
+                <span class="comment">% Initialize the matrix of coordinates and the vector of</span>
+                <span class="comment">% weights</span>
+                W = zeros(1,n);
+                X = zeros(2,n);
+
+                <span class="comment">% Fill the matrix X and the vector W</span>
+                count = 1;
+                <span class="keyword">for</span> subelem = 1:nSubElem
+                    <span class="keyword">for</span> ip = 1:length(w)
+                        <span class="comment">% Find the global cartesian coordinates of the integration point</span>
+                        [Xi] = shapeCST.coordNaturalToCartesian(<span class="keyword">...</span>
+                            DT.Points(DT.ConnectivityList(subelem,:),:),x(:,ip));
+
+                        <span class="comment">% Weight</span>
+                        detJel = this.detJacobian(elem.node,x(:,ip));
+                        detJ   = shapeCST.detJacobian(DT.Points(DT.ConnectivityList(subelem,:),:),x(:,ip));
+                        W(count) = w(ip)*detJ/detJel;
+
+                        <span class="comment">% Mapping the integration point to the quadrilateral</span>
+                        <span class="comment">% element natural system</span>
+                        X(:,count) = this.coordCartesianToNatural(elem.node,Xi)';
+
+                        count = count + 1;
+
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Size of the Gram matrix</span>
+        <span class="comment">% The stress field in a Q4 element is assumed to be a linear</span>
+        <span class="comment">% polynomial in terms of the relative coordinates x and y,</span>
+        <span class="comment">% evaluated wrt to the element centroid</span>
+        <span class="keyword">function</span> n = dimPolynomialStressInterp(~)
+            n = 6;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Integrand to compute the Gram Matrix</span>
+        <span class="keyword">function</span> dH = integrandGramMtrx(this, node, X)
+            X    = this.coordNaturalToCartesian(node,X);
+            X0   = this.coordNaturalToCartesian(node,[0.0;0.0]);
+            Xrel = X - X0;
+
+            dH = [  1.0          Xrel(1)           Xrel(2);
+                   Xrel(1)    Xrel(1)*Xrel(1)   Xrel(2)*Xrel(1);
+                   Xrel(2)    Xrel(1)*Xrel(2)   Xrel(2)*Xrel(2)];
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Integrand to compute the stress interpolation vector</span>
+        <span class="keyword">function</span> n = getSizeStressIntVct(~)
+            n = 3;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Integrand to compute the stress interpolation vector</span>
+        <span class="keyword">function</span> dS = integrandStressIntVct(~,s,Xrel,jumpOrder)
+            <span class="keyword">if</span> jumpOrder == 0
+                dS = [  1.0;
+                      Xrel(1);
+                      Xrel(2)];
+            <span class="keyword">elseif</span> jumpOrder == 1
+                dS = [  1.0       s;
+                      Xrel(1)  s*Xrel(1);
+                      Xrel(2)  s*Xrel(2)];
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    methods (Static)
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the Gauss integration points for a given order</span>
+        <span class="keyword">function</span> [w,gp] = getlineQuadrature(order)
+            <span class="comment">% Number of Gauss points</span>
+            intOrder = order;
+
+            <span class="comment">% Define the coefficients of the three-term recurrence</span>
+            <span class="comment">% relationship</span>
+            a = @(intOrder)(2*intOrder+1)./(intOrder+1);
+            b = @(intOrder)0;
+            c = @(intOrder)intOrder./(intOrder+1);
+
+            <span class="comment">% Constructe the symmetric tridiagonal matrix</span>
+            A = -b(0:intOrder-1)./a(0:intOrder-1); B = sqrt(c(1:intOrder-1)./(a(0:intOrder-2).*a(1:intOrder-1)));
+            J = diag(B,1) + diag(A) + diag(B,-1);
+
+            <span class="comment">% Compute the eigenvalues and eigenvectors</span>
+            [V,D] = eig(J,<span class="string">'vector'</span>);
+
+            <span class="comment">% Save (sorted) points and weights</span>
+            [gp,I] = sort(D);
+            w = (2*V(1,I).^2)';
+
+            <span class="comment">% Note: The next three lines insure zero is zero and the points</span>
+            <span class="comment">% and weights are perfectly symmetric</span>
+            gp(abs(gp)&lt;10*eps) = 0;
+            gp(ceil(end/2)+1:end) = -flipud(gp(1:floor(end/2)));
+            w(ceil(end/2)+1:end) = flipud(w(1:floor(end/2)));
+
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Shape_ISOQ8 Class
+% This class inherits from the base class 'Shape' to implement the behavior of a quadratic quadrilateral isoparametric element (ISOQ8).
+%
+%% Authors
+% * Danilo Cavalcanti (dborges@cimne.upc.edu)
+%
+%% Class Definition
+classdef Shape_ISOQ8 < Shape
+    %% Constructor method
+    methods
+        function this = Shape_ISOQ8()
+            this = this@Shape('ISOQ8');
+        end
+    end
+
+    %% Public methods
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Evaluate the shape function at a given point X of a linear
+        % quadrilateral isoparametric element.
+         function N = shapeFnc(~,Xn)
+            % Natural coordinates of the given point
+            xi = Xn(1); eta = Xn(2);
+
+            % Shape functions
+            N5 = 0.50*(1.0 - xi*xi)*(1.0 - eta);
+            N6 = 0.50*(1.0 + xi)*(1.0 - eta*eta);
+            N7 = 0.50*(1.0 - xi*xi)*(1.0 + eta);
+            N8 = 0.50*(1.0 - xi)*(1.0 - eta*eta);
+            N1 = 0.25*(1 - xi)*(1 - eta) - 0.50*(N8 + N5);
+            N2 = 0.25*(1 + xi)*(1 - eta) - 0.50*(N5 + N6);
+            N3 = 0.25*(1 + xi)*(1 + eta) - 0.50*(N6 + N7);
+            N4 = 0.25*(1 - xi)*(1 + eta) - 0.50*(N7 + N8);
+            N  = [ N1  N2  N3  N4  N5  N6  N7  N8 ];
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Get the shape function matrix
+         function N = shapeFncMtrx(this,Xn)
+             % Vector with the shape functions
+             N = this.shapeFnc(Xn);
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Get the linear shape function matrix
+         function Nm = linearShapeFncMtrx(~,Xn)
+            % Natural coordinates of the given point
+            xi = Xn(1); eta = Xn(2);
+
+            % Shape functions
+            N1 = (1.0 - xi)*(1.0 - eta)/4.0;
+            N2 = (1.0 + xi)*(1.0 - eta)/4.0;
+            N3 = (1.0 + xi)*(1.0 + eta)/4.0;
+            N4 = (1.0 - xi)*(1.0 + eta)/4.0;
+            Nm   = [ N1  N2  N3  N4 ];
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Get the shape function matrix
+         function Nu = NuMtrx(~,N)
+             % Shape function matrix
+             Nu = [N(1)  0.0   N(2)  0.0   N(3)  0.0   N(4)  0.0   N(5)  0.0   N(6)  0.0   N(7)  0.0   N(8)  0.0;
+                   0.0   N(1)  0.0   N(2)  0.0   N(3)  0.0   N(4)  0.0   N(5)  0.0   N(6)  0.0   N(7)  0.0   N(8)];
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Compute the derivatives of the shape functions wrt to the
+         % natural coordinates
+         function dNdxn = shapeFncDrv(~,Xn)
+            % Natural coordinates of the given point
+            xi = Xn(1); eta = Xn(2);
+
+            % Derivatives of the shape functions
+            dN1_dxi  = eta/4 + xi/2 - (eta*xi)/2 - eta^2/4;
+            dN2_dxi  = xi/2 - eta/4 - (eta*xi)/2 + eta^2/4;
+            dN3_dxi  = eta/4 + xi/2 + (eta*xi)/2 + eta^2/4;
+            dN4_dxi  = xi/2 - eta/4 + (eta*xi)/2 - eta^2/4;
+            dN5_dxi  = eta*xi - xi;
+            dN6_dxi  = 0.5 - eta*eta/2;
+            dN7_dxi  = - xi - eta*xi;
+            dN8_dxi  = eta*eta/2 - 0.5;
+
+            dN1_deta = eta/2 + xi/4 - (eta*xi)/2 - xi^2/4;
+            dN2_deta = eta/2 - xi/4 + (eta*xi)/2 - xi^2/4;
+            dN3_deta = eta/2 + xi/4 + (eta*xi)/2 + xi^2/4;
+            dN4_deta = eta/2 - xi/4 - (eta*xi)/2 + xi^2/4;
+            dN5_deta  = xi*xi/2 - 0.5;
+            dN6_deta  = - eta - eta*xi;
+            dN7_deta  = 0.5 - xi*xi/2;
+            dN8_deta  = eta*xi - eta;
+
+            dNdxn   = [ dN1_dxi   dN2_dxi   dN3_dxi   dN4_dxi   dN5_dxi   dN6_dxi   dN7_dxi   dN8_dxi ;
+                        dN1_deta  dN2_deta  dN3_deta  dN4_deta  dN5_deta  dN6_deta  dN7_deta  dN8_deta ];
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Compute the derivatives of the shape functions wrt to the
+         % natural coordinate s
+         function dNdxn = linearShapeFncDrv(~,Xn)
+            % Natural coordinates of the given point
+            xi = Xn(1); eta = Xn(2);
+
+            % Derivatives of the shape functions
+            dN1_dxi = -(1-eta)/4;    dN1_deta = -(1-xi)/4;
+            dN2_dxi =  (1-eta)/4;    dN2_deta = -(1+xi)/4;
+            dN3_dxi =  (1+eta)/4;    dN3_deta =  (1+xi)/4;
+            dN4_dxi = -(1+eta)/4;    dN4_deta =  (1-xi)/4;
+            dNdxn   = [ dN1_dxi   dN2_dxi   dN3_dxi   dN4_dxi ;
+                        dN1_deta  dN2_deta  dN3_deta  dN4_deta ];
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Compute the jacobian matrix
+         function J = JacobianMtrx(this,X,Xn)
+            % Compute the shape function derivatives wrt to the natural
+            % coordinate system
+            dNdxn = this.shapeFncDrv(Xn);
+
+            % Jacobian matrix
+            J = dNdxn * X;
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Compute the jacobian matrix
+         function J = linearJacobianMtrx(this,X,Xn)
+            % Compute the shape function derivatives wrt to the natural
+            % coordinate system
+            dNdxn = this.linearShapeFncDrv(Xn);
+
+            % Jacobian matrix
+            J = dNdxn * X;
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Compute the determinant of the jacobian
+         function detJ = detJacobian(this,X,Xn)
+            % Jacobian matrix
+            J = this.JacobianMtrx(X,Xn);
+            detJ = det(J);
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Compute the derivatives of the shape functions matrix
+         function [dNdx,detJ] = dNdxMatrix(this,X,Xn)
+            % Jacobian matrix
+            J = this.JacobianMtrx(X,Xn);
+
+            % Determinant of the Jacobian matrix
+            detJ = det(J);
+
+            % Compute the derivatives of the shape functions wrt to the
+            % natural coordinate system
+            dNdxn = this.shapeFncDrv(Xn);
+
+            % Compute the derivatives of the shape functions wrt to the
+            % global cartesian coordinate system
+            dNdx = J\dNdxn;
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Compute the derivatives of the shape functions matrix
+         function [dNdx] = lineardNdxMatrix(this,X,Xn)
+            % Jacobian matrix
+            J = this.linearJacobianMtrx(X,Xn);
+
+            % Compute the derivatives of the shape functions wrt to the
+            % natural coordinate system
+            dNdxn = this.linearShapeFncDrv(Xn);
+
+            % Compute the derivatives of the shape functions wrt to the
+            % global cartesian coordinate system
+            dNdx = J\dNdxn;
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Transform a point from the natural coordinate system to the
+         % global cartesian coordinate system
+         % Input:
+         %   NODE : matrix with the x and y coordinates of the nodes of an
+         %           ISOQ8 element
+         %   Xn   : vector with the xi and eta coordinates of a point in
+         %          the natural coordinate system
+         %
+         % Output:
+         %   X : vector with the x and y coordinates of a point in the
+         %       global coordinate system
+         function X = coordNaturalToCartesian(this,NODE,Xn)
+            % Extract the nodal coordinates
+            x = NODE(:,1);
+            y = NODE(:,2);
+
+            % Vector with the shape functions
+            Nv = this.shapeFnc(Xn);
+
+            % Initialize output
+            X = [0.0, 0.0];
+
+            % Interpolation the position
+            X(1) = Nv(1)*x(1) +  Nv(2)*x(2) +  Nv(3)*x(3) +  Nv(4)*x(4) + Nv(5)*x(5) +  Nv(6)*x(6) +  Nv(7)*x(7) +  Nv(8)*x(8);
+            X(2) = Nv(1)*y(1) +  Nv(2)*y(2) +  Nv(3)*y(3) +  Nv(4)*y(4) + Nv(5)*y(5) +  Nv(6)*y(6) +  Nv(7)*y(7) +  Nv(8)*y(8);
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Transform a point from the natural coordinate system to the
+         % global cartesian coordinate system
+         % Input:
+         %   NODE : matrix with the x and y coordinates of the nodes of the
+         %          element
+         %   X    : vector with the x and y coordinates of a point in the
+         %          global cartesian coordinate system
+         %
+         % Output:
+         %   xi, eta: coordinates xi and eta of the point X in the natural
+         %            coordinate system.
+         %
+         function Xn = coordCartesianToNatural(~,NODE,X)
+            % Extract the nodal coordinates
+            x = NODE(1:4,1);
+            y = NODE(1:4,2);
+
+            % Felippa's algorithm:
+            xb  = x(1) - x(2) + x(3) - x(4);
+            yb  = y(1) - y(2) + y(3) - y(4);
+            xcx = x(1) + x(2) - x(3) - x(4);
+            ycx = y(1) + y(2) - y(3) - y(4);
+            xce = x(1) - x(2) - x(3) + x(4);
+            yce = y(1) - y(2) - y(3) + y(4);
+            A   = ((x(3) - x(1))*(y(4) - y(2)) - (x(4) - x(2))*(y(3) - y(1))) / 2.0;
+            J1  = (x(3) - x(4))*(y(1) - y(2)) - (x(1) - x(2))*(y(3) - y(4));
+            J2  = (x(2) - x(3))*(y(1) - y(4)) - (x(1) - x(4))*(y(2) - y(3));
+            x0  = (x(1) + x(2) + x(3) + x(4)) / 4.0;
+            y0  = (y(1) + y(2) + y(3) + y(4)) / 4.0;
+            xp0 = X(1) - x0;
+            yp0 = X(2) - y0;
+            bxi =  A - xp0*yb + yp0*xb;
+            bet = -A - xp0*yb + yp0*xb;
+            cxi = xp0*ycx - yp0*xcx;
+            cet = xp0*yce - yp0*xce;
+
+            % Natural coordinates
+            xi  = 2.0*cxi / (-sqrt(bxi^2 - 2*J1*cxi) - bxi);
+            eta = 2.0*cet / (sqrt(bet^2 + 2*J2*cet) - bet);
+            Xn = [xi, eta];
+         end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to get the matrices with the coordinates and weights of
+        % integration points in the natural coordinate system.
+        % The definition of the integration points depends on the choice of
+        % the order of the quadrature rule and the option for subdividing
+        % the domain or not.
+        % Output:
+        %
+        %   X : matrix with the coordinates of the integration points in
+        %       the natural coordinate system. Each column of this matrix
+        %       gives the coordinates of a point.
+        %   W : vector with the weights associated with each point
+        %   n : number of integration points
+        %
+        function [X,W,n] = getIntegrationPoints(this,intOrder,elem)
+            if nargin == 2
+                subDivInt = false;
+            else
+                subDivInt = elem.subDivInt;
+            end
+
+            if subDivInt == false
+                % Compute the integration points
+                [w,x] = this.getlineQuadrature(intOrder);
+
+                % Assemble the matrix with the integration points
+                [Xip,Yip] = meshgrid(x,x);
+                X = [Xip(:)';Yip(:)'];
+
+                % Assemble the vector with the weights
+                [Wxip,Wyip] = meshgrid(w,w);
+                W = Wxip(:)' .* Wyip(:)';
+
+                % Number of integration points
+                n = size(X,2);
+            else
+
+                elemNodes = [elem.node]; FractSeg = [];
+                nnodes = size(elem.node,1);
+                k = 1;
+                for i = 1:elem.nfrac
+                    % Number of fracture segments
+                    nfracSeg = length(elem.fracture{i});
+                    % Get the fracture tip nodes
+                    fractiNodes = zeros(2);
+                    fractiNodes(1,:) = elem.fracture{i}(1).node(1,:);
+                    fractiNodes(2,:) = elem.fracture{i}(nfracSeg).node(2,:);
+                    % Add to the element nodes
+                    elemNodes = [elemNodes;fractiNodes];
+                    FractSeg  = [FractSeg;nnodes+k,nnodes+k+1];
+                    k = k + 2;
+                end
+
+                % Perform a Delaunay triangulation to create subelements
+                DT = delaunayTriangulation(elemNodes,FractSeg);
+
+                % Number of subelements
+                nSubElem = size(DT.ConnectivityList,1);
+
+                % Get the integration points of a triangle
+                shapeCST = Shape_CST();
+                [x,w,nIntPoints] = shapeCST.getIntegrationPointsCST(intOrder);
+
+                % Total number of integration points
+                n = nIntPoints * nSubElem;
+
+                % Initialize the matrix of coordinates and the vector of
+                % weights
+                W = zeros(1,n);
+                X = zeros(2,n);
+
+                % Fill the matrix X and the vector W
+                count = 1;
+                for subelem = 1:nSubElem
+                    for ip = 1:length(w)
+                        % Find the global cartesian coordinates of the integration point
+                        [Xi] = shapeCST.coordNaturalToCartesian(...
+                            DT.Points(DT.ConnectivityList(subelem,:),:),x(:,ip));
+
+                        % Weight
+                        detJel = this.detJacobian(elem.node,x(:,ip));
+                        detJ   = shapeCST.detJacobian(DT.Points(DT.ConnectivityList(subelem,:),:),x(:,ip));
+                        W(count) = w(ip)*detJ/detJel;
+
+                        % Mapping the integration point to the quadrilateral
+                        % element natural system
+                        X(:,count) = this.coordCartesianToNatural(elem.node,Xi)';
+
+                        count = count + 1;
+
+                    end
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Size of the Gram matrix
+        % The stress field in a Q4 element is assumed to be a linear
+        % polynomial in terms of the relative coordinates x and y,
+        % evaluated wrt to the element centroid
+        function n = dimPolynomialStressInterp(~)
+            n = 6;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Integrand to compute the Gram Matrix
+        function dH = integrandGramMtrx(this, node, X)
+            X    = this.coordNaturalToCartesian(node,X);
+            X0   = this.coordNaturalToCartesian(node,[0.0;0.0]);
+            Xrel = X - X0;
+
+            dH = [  1.0          Xrel(1)           Xrel(2);
+                   Xrel(1)    Xrel(1)*Xrel(1)   Xrel(2)*Xrel(1);
+                   Xrel(2)    Xrel(1)*Xrel(2)   Xrel(2)*Xrel(2)];
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Integrand to compute the stress interpolation vector
+        function n = getSizeStressIntVct(~)
+            n = 3;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Integrand to compute the stress interpolation vector
+        function dS = integrandStressIntVct(~,s,Xrel,jumpOrder)
+            if jumpOrder == 0
+                dS = [  1.0;
+                      Xrel(1);
+                      Xrel(2)];
+            elseif jumpOrder == 1
+                dS = [  1.0       s;
+                      Xrel(1)  s*Xrel(1);
+                      Xrel(2)  s*Xrel(2)];
+            end
+        end
+    end
+
+    methods (Static)
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the Gauss integration points for a given order
+        function [w,gp] = getlineQuadrature(order)
+            % Number of Gauss points
+            intOrder = order;
+
+            % Define the coefficients of the three-term recurrence
+            % relationship
+            a = @(intOrder)(2*intOrder+1)./(intOrder+1);
+            b = @(intOrder)0;
+            c = @(intOrder)intOrder./(intOrder+1);
+
+            % Constructe the symmetric tridiagonal matrix
+            A = -b(0:intOrder-1)./a(0:intOrder-1); B = sqrt(c(1:intOrder-1)./(a(0:intOrder-2).*a(1:intOrder-1)));
+            J = diag(B,1) + diag(A) + diag(B,-1);
+
+            % Compute the eigenvalues and eigenvectors
+            [V,D] = eig(J,'vector');
+
+            % Save (sorted) points and weights
+            [gp,I] = sort(D);
+            w = (2*V(1,I).^2)';
+
+            % Note: The next three lines insure zero is zero and the points
+            % and weights are perfectly symmetric
+            gp(abs(gp)<10*eps) = 0;
+            gp(ceil(end/2)+1:end) = -flipud(gp(1:floor(end/2)));
+            w(ceil(end/2)+1:end) = flipud(w(1:floor(end/2)));
+
+        end
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

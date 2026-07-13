@@ -1,0 +1,865 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>MechanicalLaw Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="MechanicalLaw.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>MechanicalLaw Class</h1><!--introduction--><p>This is an abstract class used to implement mechanical constitutive laws. It provides methods for evaluating stress, strain, and their invariants, as well as utilities for handling plane stress conditions and tensor operations.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class Definition</a></li><li><a href="#5">Public attributes</a></li><li><a href="#6">Constructor method</a></li><li><a href="#7">Abstract methods</a></li><li><a href="#8">Public methods</a></li><li><a href="#9">Stress utilities</a></li><li><a href="#10">Strain utilities</a></li><li><a href="#12">Static methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>hydrostaticStress</b>: Computes the hydrostatic stress.</li><li><b>deviatoricStress</b>: Computes the deviatoric stress.</li><li><b>stressInvariantI1</b>: Computes the first stress invariant (I1).</li><li><b>stressInvariantI2</b>: Computes the second stress invariant (I2).</li><li><b>stressInvariantJ2</b>: Computes the second deviatoric stress invariant                       (J2).</li><li><b>gradientI1</b>: Computes the gradient of the first stress invariant (I1).</li><li><b>gradientJ2</b>: Computes the gradient of the second deviatoric stress                invariant (J2).</li><li><b>hessianJ2</b>: Computes the Hessian matrix of the second deviatoric               stress invariant (J2).</li><li><b>vonMisesStress</b>: Computes the von Mises stress.</li><li><b>vonMisesStressGradient</b>: Computes the gradient of the von Mises stress.</li><li><b>vonMisesStressHessian</b>: Computes the Hessian matrix of the von Mises                           stress.</li><li><b>planeStressConstitutiveMatrix</b>: Computes the plane stress constitutive                                   matrix.</li><li><b>elasticOutOfPlaneStrain</b>: Computes the elastic out-of-plane strain for                             plane stress conditions.</li><li><b>normTensor</b>: Computes the norm of a strain tensor.</li><li><b>strainInvariantI1</b>: Computes the first strain invariant (I1).</li><li><b>volumetricStrain</b>: Computes the volumetric strain.</li><li><b>deviatoricStrain</b>: Computes the deviatoric strain.</li><li><b>normDeviatoricStrain</b>: Computes the norm of the deviatoric strain.</li><li><b>strainInvariantI2</b>: Computes the second strain invariant (I2).</li><li><b>strainInvariantJ2</b>: Computes the second deviatoric strain invariant                       (J2).</li><li><b>gradientStrainInvariantI1</b>: Computes the gradient of the first strain                               invariant (I1).</li><li><b>gradientStrainInvariantJ2</b>: Computes the gradient of the second                               deviatoric strain invariant (J2).</li><li><b>fourthOrderSymTensor</b>: Returns the fourth-order symmetric tensor.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class Definition</h2><pre class="codeinput"><span class="keyword">classdef</span> MechanicalLaw &lt; handle
+</pre><h2 id="5">Public attributes</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        nstVar = 0;   <span class="comment">% Number of state variables</span>
+    <span class="keyword">end</span>
+</pre><h2 id="6">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = MechanicalLaw()
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="7">Abstract methods</h2><pre class="codeinput">    methods(Abstract)
+
+        [stress,De] = eval(this,material,ip)
+
+    <span class="keyword">end</span>
+</pre><h2 id="8">Public methods</h2><pre class="codeinput">    methods
+</pre><h2 id="9">Stress utilities</h2><p>Considering a 2D stress tensor: Stress = [sxx, syy, szz, sxy]</p><pre class="codeinput">        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Principal stresses</span>
+        <span class="keyword">function</span> [eigx,EIGPRJ] = principalStresses(~,stress)
+
+            sxx = stress(1);
+            syy = stress(2);
+            sxy = stress(4);
+
+            <span class="comment">% eigenvalues (closed form)</span>
+            trx = sxx + syy;
+            B   = sqrt((sxx - syy)^2 + 4*sxy*sxy);
+            eig1 = 0.5*(trx + B);
+            eig2 = 0.5*(trx - B);
+            eigx = [eig1; eig2];
+
+            <span class="comment">% degeneracy check (same normalization as SPDEC2)</span>
+            SMALL = 1e-5;
+            diffn = abs(eig1 - eig2);
+            amax  = max(abs(eig1), abs(eig2));
+            <span class="keyword">if</span> amax ~= 0, diffn = diffn/amax; <span class="keyword">end</span>
+            repeatFlag = (diffn &lt; SMALL);
+
+            EIGPRJ = zeros(4,3);
+            <span class="keyword">if</span> repeatFlag
+                <span class="comment">% robust fallback: compute eigenvectors numerically (like JACOB)</span>
+                A = [sxx, sxy; sxy, syy];
+                [V, D] = eig((A + A.')/2);
+                <span class="comment">% sort by descending eigenvalue</span>
+                [dvals, idx] = sort(diag(D), <span class="string">'descend'</span>); <span class="comment">%#ok&lt;ASGLU&gt;</span>
+                V = V(:, idx);
+                v1 = V(:,1); v2 = V(:,2);
+
+                <span class="comment">% projectors v v^T in Voigt [xx; yy; zz; xy], with zz row=0</span>
+                EIGPRJ(:,1) = [v1(1)^2; v1(2)^2; 0; v1(1)*v1(2)];
+                EIGPRJ(:,2) = [v2(1)^2; v2(2)^2; 0; v2(1)*v2(2)];
+            <span class="keyword">else</span>
+                <span class="comment">% closed-form projectors (exactly SPDEC2&#8217;s formula)</span>
+                <span class="keyword">for</span> k = 1:2
+                    lam = eigx(k);
+                    b   = lam - trx;                 <span class="comment">% = - other eigenvalue</span>
+                    c   = 1.0 / (lam + b);           <span class="comment">% = 1/(lam - other)</span>
+                    EIGPRJ(1,k) = c*(sxx + b);
+                    EIGPRJ(2,k) = c*(syy + b);
+                    EIGPRJ(4,k) = c*(sxy);
+                    EIGPRJ(3,k) = 0.0;               <span class="comment">% zz component not in 2D projector</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            EIGPRJ(3,3) = 1;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> stress = cartesianStressesFromPrincipal(~, p, Q, szz)
+            n1 = Q(:,1);
+            n2 = Q(:,2);
+            STRESS = p(1)*(n1*n1') + p(2)*(n2*n2');
+            stress = [STRESS(1,1);
+                      STRESS(2,2);
+                      szz;
+                      STRESS(1,2)];
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Hydrostatic stress</span>
+        <span class="keyword">function</span> sh = hydrostaticStress(this,stress)
+            sh = this.stressInvariantI1(stress) / 3.0;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Deviatoric stress</span>
+        <span class="keyword">function</span> sd = deviatoricStress(this,stress)
+            sh = this.hydrostaticStress(stress);
+            Im = [1.0;1.0;1.0;0.0];
+            sd = stress - sh * Im;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% I1 stress invariant</span>
+        <span class="keyword">function</span> I1 = stressInvariantI1(~,stress)
+            I1 = stress(1) + stress(2) + stress(3);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% I2 stress invariant</span>
+        <span class="keyword">function</span> I2 = stressInvariantI2(~,stress)
+            sxx = stress(1);
+            syy = stress(2);
+            szz = stress(3);
+            sxy = stress(4);
+            I2 =  sxx*syy + syy*szz + sxx*szz - sxy*sxy;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% I3 stress invariant</span>
+        <span class="keyword">function</span> I3 = stressInvariantI3(~,stress)
+            sxx = stress(1);
+            syy = stress(2);
+            szz = stress(3);
+            sxy = stress(4);
+            I3 =  sxx * syy * szz - szz * sxy * sxy;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% J2 stress invariant</span>
+        <span class="keyword">function</span> J2 = stressInvariantJ2(this,stress)
+            I1 = this.stressInvariantI1(stress);
+            I2 = this.stressInvariantI2(stress);
+            J2  = I1*I1/3.0 - I2;
+            J2  = max(J2,0.0);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% J3 stress invariant</span>
+        <span class="keyword">function</span> J3 = stressInvariantJ3(this,stress)
+            I1 = this.stressInvariantI1(stress);
+            I2 = this.stressInvariantI2(stress);
+            I3 = this.stressInvariantI3(stress);
+            J3  = 2.0 * I1 * I1 * I1 / 27.0 - I1 * I2 / 3.0 + I3;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Lode angle</span>
+        <span class="keyword">function</span> theta = lodeAngle(this, stress)
+            theta = 0.0;
+            J2 = this.stressInvariantJ2(stress);
+            <span class="keyword">if</span> J2 &lt; 1.0E-8
+                <span class="keyword">return</span>
+            <span class="keyword">end</span>
+            J3 = this.stressInvariantJ3(stress);
+            x = -3.0 * sqrt(3.0) * J3 / (2.0 * J2 * sqrt(J2));
+            x = max(min(x, 1 - 1.0E-10), -1 + 1.0E-10);
+            theta = asin(x) / 3.0;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Gradient of the I1 stress invariant</span>
+        <span class="keyword">function</span> dI1 = gradientI1(~,~)
+            dI1 = [1.0;1.0;1.0;0.0];
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Gradient of the J2 stress invariant</span>
+        <span class="keyword">function</span> dJ2 = gradientJ2(~,stress)
+            sxx = stress(1);
+            syy = stress(2);
+            szz = stress(3);
+            sxy = stress(4);
+            dJ2 = zeros(4,1);
+            dJ2(1) = (2.0 * sxx - syy - szz)/3.0;
+            dJ2(2) = (2.0 * syy - sxx - szz)/3.0;
+            dJ2(3) = (2.0 * szz - syy - sxx)/3.0;
+            dJ2(4) = 2.0 * sxy;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Gradient of the J3 stress invariant</span>
+        <span class="keyword">function</span> dJ3 = gradientJ3(~,stress)
+            sxx = stress(1);
+            syy = stress(2);
+            szz = stress(3);
+            sxy = stress(4);
+            dJ3 = zeros(4,1);
+            dJ3(1) = (2*sxx^2)/9 - (2*sxx*syy)/9 - (2*sxx*szz)/9 + sxy^2/3 - syy^2/9 + (4*syy*szz)/9 - szz^2/9;
+            dJ3(2) =  - sxx^2/9 - (2*sxx*syy)/9 + (4*sxx*szz)/9 + sxy^2/3 + (2*syy^2)/9 - (2*syy*szz)/9 - szz^2/9;
+            dJ3(3) =  - sxx^2/9 + (4*sxx*syy)/9 - (2*sxx*szz)/9 - (2*sxy^2)/3 - syy^2/9 - (2*syy*szz)/9 + (2*szz^2)/9;
+            dJ3(4) = (2*sxy*(sxx + syy - 2*szz))/3;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Hessian of the J2 stress invariant</span>
+        <span class="keyword">function</span> d2J2 = hessianJ2(~)
+            d2J2 = [  2.0 , -1.0 , -1.0 , 0.0;
+                     -1.0 ,  2.0 , -1.0 , 0.0;
+                     -1.0 , -1.0 ,  2.0 , 0.0;
+                      0.0 ,  0.0  , 0.0 , 6.0 ]/3.0;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Hessian of the J3 stress invariant</span>
+        <span class="keyword">function</span> d2J3 = hessianJ3(~,stress)
+            sxx = stress(1);
+            syy = stress(2);
+            szz = stress(3);
+            sxy = stress(4);
+            d2J3 = [(4*sxx)/9 - (2*syy)/9 - (2*szz)/9, (4*szz)/9 - (2*syy)/9 - (2*sxx)/9, (4*syy)/9 - (2*sxx)/9 - (2*szz)/9, (2*sxy)/3;
+                    (4*szz)/9 - (2*syy)/9 - (2*sxx)/9, (4*syy)/9 - (2*sxx)/9 - (2*szz)/9, (4*sxx)/9 - (2*syy)/9 - (2*szz)/9, (2*sxy)/3;
+                    (4*syy)/9 - (2*sxx)/9 - (2*szz)/9, (4*sxx)/9 - (2*syy)/9 - (2*szz)/9, (4*szz)/9 - (2*syy)/9 - (2*sxx)/9, -(4*sxy)/3;
+                    (2*sxy)/3, (2*sxy)/3, -(4*sxy)/3, (2*sxx)/3 + (2*syy)/3 - (4*szz)/3];
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% von Mises stress</span>
+        <span class="keyword">function</span> sVM = vonMisesStress(this,stress)
+            J2 = this.stressInvariantJ2(stress);
+            sVM = sqrt(3.0 * J2);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% von Mises stress gradient</span>
+        <span class="keyword">function</span> dsVM = vonMisesStressGradient(this,stress)
+            J2      = max(this.stressInvariantJ2(stress), 1e-12);
+            dsVMdJ2 = 0.5*sqrt(3.0/J2);
+            dJ2     = this.gradientJ2(stress);
+            dsVM    = dsVMdJ2 * dJ2;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% von Mises stress hessian matrix</span>
+        <span class="keyword">function</span> d2sVM = vonMisesStressHessian(this,stress)
+            J2    = max(this.stressInvariantJ2(stress), 1e-12);
+            dJ2   = this.gradientJ2(stress);
+            d2J2  = this.hessianJ2();
+            dsVMdJ2 = 0.5*sqrt(3.0/J2);
+            d2sVM = dsVMdJ2 * d2J2 - (0.25 * sqrt(3.0/J2/J2/J2))*(dJ2 * dJ2');
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Get plane stress constitutive matrix</span>
+        <span class="keyword">function</span> D = planeStressConstitutiveMatrix(~,D)
+            <span class="comment">% Get the sub-matrices</span>
+            D11 = [ D(1,1) , D(1,2) , D(1,4) ;
+                    D(2,1) , D(2,2) , D(2,4) ;
+                    D(4,1) , D(4,2) , D(4,4) ];
+            D21 = [ D(3,1) ; D(3,2) ; D(3,4)];
+            D12 = [ D(1,3) ; D(2,3) ; D(4,3)];
+            D22 = D(3,3);
+            <span class="comment">% Compute the plane stress matrix</span>
+            Dt  = D11 - D12 * D21' / D22;
+            <span class="comment">% Assemble</span>
+            D = [ Dt(1,1) , Dt(1,2) , 0.0 , Dt(1,3) ;
+                  Dt(2,1) , Dt(2,2) , 0.0 , Dt(2,3) ;
+                   0.0    ,   0.0   , 1.0 ,   0.0   ;
+                  Dt(3,1) , Dt(3,2) , 0.0 , Dt(3,3) ];
+        <span class="keyword">end</span>
+</pre><h2 id="10">Strain utilities</h2><p>Considering a 2D strain tensor: strain = [exx, eyy, ezz, 2exy]</p><pre class="codeinput">        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the elastic out-of-plane strain</span>
+        <span class="keyword">function</span> elasticOutOfPlaneStrain(~,material,ip)
+            <span class="keyword">if</span> strcmp(ip.anm,<span class="string">'PlaneStress'</span>)
+                nu = material.nu;
+                ip.strain(3) = -nu/(1.0-nu)*(ip.strain(1)+ip.strain(2));
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Strain tensor norm</span>
+        <span class="keyword">function</span> normE = normTensor(~,strain)
+            exx = strain(1);
+            eyy = strain(2);
+            ezz = strain(3);
+            exy = strain(4) / 2.0;
+            normE = exx * exx + eyy * eyy + ezz * ezz + 2.0 * exy * exy;
+            normE = sqrt(normE);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% I1 strain invariant</span>
+        <span class="keyword">function</span> I1 = strainInvariantI1(~,strain)
+            I1 = strain(1) + strain(2) + strain(3);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Volumetric strain</span>
+        <span class="keyword">function</span> ev = volumetricStrain(this,strain)
+            ev = this.strainInvariantI1(strain);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Deviatoric strain</span>
+        <span class="keyword">function</span> ed = deviatoricStrain(this,strain)
+            ed = zeros(4,1);
+            ev = this.volumetricStrain(strain);
+            ed(1) = strain(1) - ev / 3.0;
+            ed(2) = strain(2) - ev / 3.0;
+            ed(3) = strain(3) - ev / 3.0;
+            ed(4) = strain(4) / 2.0;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Norm deviatoric strain</span>
+        <span class="keyword">function</span> ned = normDeviatoricStrain(this,strain)
+            ed = this.deviatoricStrain(strain);
+            ned = ed(1)*ed(1) + ed(2)*ed(2) + ed(3)*ed(3) + 2*ed(4)*ed(4);
+            ned = sqrt(ned);
+        <span class="keyword">end</span>
+
+        <span class="comment">% Gradient of the norm of the deviatoric strain</span>
+        <span class="keyword">function</span> gradNormEd = gradientNormDeviatoricStrain(this,strain)
+            ned = this.normDeviatoricStrain(strain);
+            <span class="keyword">if</span> ned &gt; 0.0
+                ed  = this.deviatoricStrain(strain);
+                gradNormEd = ed / ned;
+            <span class="keyword">else</span>
+                gradNormEd = zeros(4,1);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">% I2 strain invariant</span>
+        <span class="keyword">function</span> I2 = strainInvariantI2(~,strain)
+            exx = strain(1);
+            eyy = strain(2);
+            ezz = strain(3);
+            exy = strain(4) / 2.0;
+            I2 =  exx*eyy + eyy*ezz + exx*ezz - exy*exy;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% J2 strain invariant</span>
+        <span class="keyword">function</span> J2 = strainInvariantJ2(this,strain)
+            I1 = this.strainInvariantI1(strain);
+            I2 = this.strainInvariantI2(strain);
+            J2  = I1*I1/3.0 - I2;
+            J2  = max(J2,0.0);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Gradient of the J2 stress invariant</span>
+        <span class="keyword">function</span> dI1 = gradientStrainInvariantI1(~)
+            dI1 = [1.0;1.0;1.0;0.0];
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Gradient of the J2 strain invariant</span>
+        <span class="keyword">function</span> dJ2 = gradientStrainInvariantJ2(~,strain)
+            exx = strain(1);
+            eyy = strain(2);
+            ezz = strain(3);
+            exy = strain(4) / 2.0;
+            dJ2 = zeros(4,1);
+            dJ2(1) = (2.0 * exx - eyy - ezz)/3.0;
+            dJ2(2) = (2.0 * eyy - exx - ezz)/3.0;
+            dJ2(3) = (2.0 * ezz - eyy - exx)/3.0;
+            dJ2(4) = 2.0 * exy;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Fourth order symmetric tensor</span>
+        <span class="keyword">function</span> I4 = fourthOrderSymTensor(~)
+            I4 = [ 1.0 , 0.0 , 0.0 , 0.0;
+                   0.0 , 1.0 , 0.0 , 0.0;
+                   0.0 , 0.0 , 1.0 , 0.0;
+                   0.0 , 0.0 , 0.0 , 0.5 ];
+        <span class="keyword">end</span>
+</pre><pre class="codeinput">    <span class="keyword">end</span>
+</pre><h2 id="12">Static methods</h2><pre class="codeinput">    methods (Static)
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Flag to determine if the material is elasto-plastic or not</span>
+        <span class="keyword">function</span> flag = isElastoPlastic()
+            flag = false;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% MechanicalLaw Class
+% This is an abstract class used to implement mechanical constitutive
+% laws. It provides methods for evaluating stress, strain, and their
+% invariants, as well as utilities for handling plane stress conditions
+% and tensor operations.
+%
+%% Methods
+% * *hydrostaticStress*: Computes the hydrostatic stress.
+% * *deviatoricStress*: Computes the deviatoric stress.
+% * *stressInvariantI1*: Computes the first stress invariant (I1).
+% * *stressInvariantI2*: Computes the second stress invariant (I2).
+% * *stressInvariantJ2*: Computes the second deviatoric stress invariant
+%                       (J2).
+% * *gradientI1*: Computes the gradient of the first stress invariant (I1).
+% * *gradientJ2*: Computes the gradient of the second deviatoric stress
+%                invariant (J2).
+% * *hessianJ2*: Computes the Hessian matrix of the second deviatoric
+%               stress invariant (J2).
+% * *vonMisesStress*: Computes the von Mises stress.
+% * *vonMisesStressGradient*: Computes the gradient of the von Mises stress.
+% * *vonMisesStressHessian*: Computes the Hessian matrix of the von Mises
+%                           stress.
+% * *planeStressConstitutiveMatrix*: Computes the plane stress constitutive
+%                                   matrix.
+% * *elasticOutOfPlaneStrain*: Computes the elastic out-of-plane strain for
+%                             plane stress conditions.
+% * *normTensor*: Computes the norm of a strain tensor.
+% * *strainInvariantI1*: Computes the first strain invariant (I1).
+% * *volumetricStrain*: Computes the volumetric strain.
+% * *deviatoricStrain*: Computes the deviatoric strain.
+% * *normDeviatoricStrain*: Computes the norm of the deviatoric strain.
+% * *strainInvariantI2*: Computes the second strain invariant (I2).
+% * *strainInvariantJ2*: Computes the second deviatoric strain invariant
+%                       (J2).
+% * *gradientStrainInvariantI1*: Computes the gradient of the first strain
+%                               invariant (I1).
+% * *gradientStrainInvariantJ2*: Computes the gradient of the second
+%                               deviatoric strain invariant (J2).
+% * *fourthOrderSymTensor*: Returns the fourth-order symmetric tensor.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class Definition
+classdef MechanicalLaw < handle
+    %% Public attributes
+    properties (SetAccess = public, GetAccess = public)
+        nstVar = 0;   % Number of state variables
+    end
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = MechanicalLaw()
+        end
+    end
+
+    %% Abstract methods
+    methods(Abstract)
+
+        [stress,De] = eval(this,material,ip)
+
+    end
+
+    %% Public methods
+    methods
+        %% Stress utilities
+        % Considering a 2D stress tensor: Stress = [sxx, syy, szz, sxy]
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Principal stresses
+        function [eigx,EIGPRJ] = principalStresses(~,stress)
+
+            sxx = stress(1);
+            syy = stress(2);
+            sxy = stress(4);
+
+            % eigenvalues (closed form)
+            trx = sxx + syy;
+            B   = sqrt((sxx - syy)^2 + 4*sxy*sxy);
+            eig1 = 0.5*(trx + B);
+            eig2 = 0.5*(trx - B);
+            eigx = [eig1; eig2];
+
+            % degeneracy check (same normalization as SPDEC2)
+            SMALL = 1e-5;
+            diffn = abs(eig1 - eig2);
+            amax  = max(abs(eig1), abs(eig2));
+            if amax ~= 0, diffn = diffn/amax; end
+            repeatFlag = (diffn < SMALL);
+
+            EIGPRJ = zeros(4,3);
+            if repeatFlag
+                % robust fallback: compute eigenvectors numerically (like JACOB)
+                A = [sxx, sxy; sxy, syy];
+                [V, D] = eig((A + A.')/2);
+                % sort by descending eigenvalue
+                [dvals, idx] = sort(diag(D), 'descend'); %#ok<ASGLU>
+                V = V(:, idx);
+                v1 = V(:,1); v2 = V(:,2);
+
+                % projectors v v^T in Voigt [xx; yy; zz; xy], with zz row=0
+                EIGPRJ(:,1) = [v1(1)^2; v1(2)^2; 0; v1(1)*v1(2)];
+                EIGPRJ(:,2) = [v2(1)^2; v2(2)^2; 0; v2(1)*v2(2)];
+            else
+                % closed-form projectors (exactly SPDEC2’s formula)
+                for k = 1:2
+                    lam = eigx(k);
+                    b   = lam - trx;                 % = - other eigenvalue
+                    c   = 1.0 / (lam + b);           % = 1/(lam - other)
+                    EIGPRJ(1,k) = c*(sxx + b);
+                    EIGPRJ(2,k) = c*(syy + b);
+                    EIGPRJ(4,k) = c*(sxy);
+                    EIGPRJ(3,k) = 0.0;               % zz component not in 2D projector
+                end
+            end
+            EIGPRJ(3,3) = 1;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function stress = cartesianStressesFromPrincipal(~, p, Q, szz)
+            n1 = Q(:,1);
+            n2 = Q(:,2);
+            STRESS = p(1)*(n1*n1') + p(2)*(n2*n2');
+            stress = [STRESS(1,1);
+                      STRESS(2,2);
+                      szz;
+                      STRESS(1,2)];
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Hydrostatic stress
+        function sh = hydrostaticStress(this,stress)
+            sh = this.stressInvariantI1(stress) / 3.0;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Deviatoric stress
+        function sd = deviatoricStress(this,stress)
+            sh = this.hydrostaticStress(stress);
+            Im = [1.0;1.0;1.0;0.0];
+            sd = stress - sh * Im;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % I1 stress invariant
+        function I1 = stressInvariantI1(~,stress)
+            I1 = stress(1) + stress(2) + stress(3);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % I2 stress invariant
+        function I2 = stressInvariantI2(~,stress)
+            sxx = stress(1);
+            syy = stress(2);
+            szz = stress(3);
+            sxy = stress(4);
+            I2 =  sxx*syy + syy*szz + sxx*szz - sxy*sxy;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % I3 stress invariant
+        function I3 = stressInvariantI3(~,stress)
+            sxx = stress(1);
+            syy = stress(2);
+            szz = stress(3);
+            sxy = stress(4);
+            I3 =  sxx * syy * szz - szz * sxy * sxy;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % J2 stress invariant
+        function J2 = stressInvariantJ2(this,stress)
+            I1 = this.stressInvariantI1(stress);
+            I2 = this.stressInvariantI2(stress);
+            J2  = I1*I1/3.0 - I2;
+            J2  = max(J2,0.0);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % J3 stress invariant
+        function J3 = stressInvariantJ3(this,stress)
+            I1 = this.stressInvariantI1(stress);
+            I2 = this.stressInvariantI2(stress);
+            I3 = this.stressInvariantI3(stress);
+            J3  = 2.0 * I1 * I1 * I1 / 27.0 - I1 * I2 / 3.0 + I3;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Lode angle
+        function theta = lodeAngle(this, stress)
+            theta = 0.0;
+            J2 = this.stressInvariantJ2(stress);
+            if J2 < 1.0E-8
+                return
+            end
+            J3 = this.stressInvariantJ3(stress);
+            x = -3.0 * sqrt(3.0) * J3 / (2.0 * J2 * sqrt(J2));
+            x = max(min(x, 1 - 1.0E-10), -1 + 1.0E-10);
+            theta = asin(x) / 3.0;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Gradient of the I1 stress invariant
+        function dI1 = gradientI1(~,~)
+            dI1 = [1.0;1.0;1.0;0.0];
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Gradient of the J2 stress invariant
+        function dJ2 = gradientJ2(~,stress)
+            sxx = stress(1);
+            syy = stress(2);
+            szz = stress(3);
+            sxy = stress(4);
+            dJ2 = zeros(4,1);
+            dJ2(1) = (2.0 * sxx - syy - szz)/3.0;
+            dJ2(2) = (2.0 * syy - sxx - szz)/3.0;
+            dJ2(3) = (2.0 * szz - syy - sxx)/3.0;
+            dJ2(4) = 2.0 * sxy;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Gradient of the J3 stress invariant
+        function dJ3 = gradientJ3(~,stress)
+            sxx = stress(1);
+            syy = stress(2);
+            szz = stress(3);
+            sxy = stress(4);
+            dJ3 = zeros(4,1);
+            dJ3(1) = (2*sxx^2)/9 - (2*sxx*syy)/9 - (2*sxx*szz)/9 + sxy^2/3 - syy^2/9 + (4*syy*szz)/9 - szz^2/9;
+            dJ3(2) =  - sxx^2/9 - (2*sxx*syy)/9 + (4*sxx*szz)/9 + sxy^2/3 + (2*syy^2)/9 - (2*syy*szz)/9 - szz^2/9;
+            dJ3(3) =  - sxx^2/9 + (4*sxx*syy)/9 - (2*sxx*szz)/9 - (2*sxy^2)/3 - syy^2/9 - (2*syy*szz)/9 + (2*szz^2)/9;
+            dJ3(4) = (2*sxy*(sxx + syy - 2*szz))/3;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Hessian of the J2 stress invariant
+        function d2J2 = hessianJ2(~)
+            d2J2 = [  2.0 , -1.0 , -1.0 , 0.0;
+                     -1.0 ,  2.0 , -1.0 , 0.0;
+                     -1.0 , -1.0 ,  2.0 , 0.0;
+                      0.0 ,  0.0  , 0.0 , 6.0 ]/3.0;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Hessian of the J3 stress invariant
+        function d2J3 = hessianJ3(~,stress)
+            sxx = stress(1);
+            syy = stress(2);
+            szz = stress(3);
+            sxy = stress(4);
+            d2J3 = [(4*sxx)/9 - (2*syy)/9 - (2*szz)/9, (4*szz)/9 - (2*syy)/9 - (2*sxx)/9, (4*syy)/9 - (2*sxx)/9 - (2*szz)/9, (2*sxy)/3;
+                    (4*szz)/9 - (2*syy)/9 - (2*sxx)/9, (4*syy)/9 - (2*sxx)/9 - (2*szz)/9, (4*sxx)/9 - (2*syy)/9 - (2*szz)/9, (2*sxy)/3;
+                    (4*syy)/9 - (2*sxx)/9 - (2*szz)/9, (4*sxx)/9 - (2*syy)/9 - (2*szz)/9, (4*szz)/9 - (2*syy)/9 - (2*sxx)/9, -(4*sxy)/3;
+                    (2*sxy)/3, (2*sxy)/3, -(4*sxy)/3, (2*sxx)/3 + (2*syy)/3 - (4*szz)/3];
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % von Mises stress
+        function sVM = vonMisesStress(this,stress)
+            J2 = this.stressInvariantJ2(stress);
+            sVM = sqrt(3.0 * J2);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % von Mises stress gradient
+        function dsVM = vonMisesStressGradient(this,stress)
+            J2      = max(this.stressInvariantJ2(stress), 1e-12);
+            dsVMdJ2 = 0.5*sqrt(3.0/J2);
+            dJ2     = this.gradientJ2(stress);
+            dsVM    = dsVMdJ2 * dJ2;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % von Mises stress hessian matrix
+        function d2sVM = vonMisesStressHessian(this,stress)
+            J2    = max(this.stressInvariantJ2(stress), 1e-12);
+            dJ2   = this.gradientJ2(stress);
+            d2J2  = this.hessianJ2();
+            dsVMdJ2 = 0.5*sqrt(3.0/J2);
+            d2sVM = dsVMdJ2 * d2J2 - (0.25 * sqrt(3.0/J2/J2/J2))*(dJ2 * dJ2');
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Get plane stress constitutive matrix
+        function D = planeStressConstitutiveMatrix(~,D)
+            % Get the sub-matrices
+            D11 = [ D(1,1) , D(1,2) , D(1,4) ;
+                    D(2,1) , D(2,2) , D(2,4) ;
+                    D(4,1) , D(4,2) , D(4,4) ];
+            D21 = [ D(3,1) ; D(3,2) ; D(3,4)];
+            D12 = [ D(1,3) ; D(2,3) ; D(4,3)];
+            D22 = D(3,3);
+            % Compute the plane stress matrix
+            Dt  = D11 - D12 * D21' / D22;
+            % Assemble
+            D = [ Dt(1,1) , Dt(1,2) , 0.0 , Dt(1,3) ;
+                  Dt(2,1) , Dt(2,2) , 0.0 , Dt(2,3) ;
+                   0.0    ,   0.0   , 1.0 ,   0.0   ;
+                  Dt(3,1) , Dt(3,2) , 0.0 , Dt(3,3) ];
+        end
+
+        %% Strain utilities
+        % Considering a 2D strain tensor: strain = [exx, eyy, ezz, 2exy]
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the elastic out-of-plane strain
+        function elasticOutOfPlaneStrain(~,material,ip)
+            if strcmp(ip.anm,'PlaneStress')
+                nu = material.nu;
+                ip.strain(3) = -nu/(1.0-nu)*(ip.strain(1)+ip.strain(2));
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Strain tensor norm
+        function normE = normTensor(~,strain)
+            exx = strain(1);
+            eyy = strain(2);
+            ezz = strain(3);
+            exy = strain(4) / 2.0;
+            normE = exx * exx + eyy * eyy + ezz * ezz + 2.0 * exy * exy;
+            normE = sqrt(normE);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % I1 strain invariant
+        function I1 = strainInvariantI1(~,strain)
+            I1 = strain(1) + strain(2) + strain(3);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Volumetric strain
+        function ev = volumetricStrain(this,strain)
+            ev = this.strainInvariantI1(strain);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Deviatoric strain
+        function ed = deviatoricStrain(this,strain)
+            ed = zeros(4,1);
+            ev = this.volumetricStrain(strain);
+            ed(1) = strain(1) - ev / 3.0;
+            ed(2) = strain(2) - ev / 3.0;
+            ed(3) = strain(3) - ev / 3.0;
+            ed(4) = strain(4) / 2.0;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Norm deviatoric strain
+        function ned = normDeviatoricStrain(this,strain)
+            ed = this.deviatoricStrain(strain);
+            ned = ed(1)*ed(1) + ed(2)*ed(2) + ed(3)*ed(3) + 2*ed(4)*ed(4);
+            ned = sqrt(ned);
+        end
+
+        % Gradient of the norm of the deviatoric strain
+        function gradNormEd = gradientNormDeviatoricStrain(this,strain)
+            ned = this.normDeviatoricStrain(strain);
+            if ned > 0.0
+                ed  = this.deviatoricStrain(strain);
+                gradNormEd = ed / ned;
+            else
+                gradNormEd = zeros(4,1);
+            end
+        end
+
+        % I2 strain invariant
+        function I2 = strainInvariantI2(~,strain)
+            exx = strain(1);
+            eyy = strain(2);
+            ezz = strain(3);
+            exy = strain(4) / 2.0;
+            I2 =  exx*eyy + eyy*ezz + exx*ezz - exy*exy;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % J2 strain invariant
+        function J2 = strainInvariantJ2(this,strain)
+            I1 = this.strainInvariantI1(strain);
+            I2 = this.strainInvariantI2(strain);
+            J2  = I1*I1/3.0 - I2;
+            J2  = max(J2,0.0);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Gradient of the J2 stress invariant
+        function dI1 = gradientStrainInvariantI1(~)
+            dI1 = [1.0;1.0;1.0;0.0];
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Gradient of the J2 strain invariant
+        function dJ2 = gradientStrainInvariantJ2(~,strain)
+            exx = strain(1);
+            eyy = strain(2);
+            ezz = strain(3);
+            exy = strain(4) / 2.0;
+            dJ2 = zeros(4,1);
+            dJ2(1) = (2.0 * exx - eyy - ezz)/3.0;
+            dJ2(2) = (2.0 * eyy - exx - ezz)/3.0;
+            dJ2(3) = (2.0 * ezz - eyy - exx)/3.0;
+            dJ2(4) = 2.0 * exy;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Fourth order symmetric tensor
+        function I4 = fourthOrderSymTensor(~)
+            I4 = [ 1.0 , 0.0 , 0.0 , 0.0;
+                   0.0 , 1.0 , 0.0 , 0.0;
+                   0.0 , 0.0 , 1.0 , 0.0;
+                   0.0 , 0.0 , 0.0 , 0.5 ];
+        end
+    end
+    %% Static methods
+    methods (Static)
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Flag to determine if the material is elasto-plastic or not
+        function flag = isElastoPlastic()
+            flag = false;
+        end
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

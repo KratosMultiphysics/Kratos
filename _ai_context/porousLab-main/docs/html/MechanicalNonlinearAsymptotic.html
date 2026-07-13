@@ -1,0 +1,246 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>MechanicalNonlinearAsymptotic Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="MechanicalNonlinearAsymptotic.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>MechanicalNonlinearAsymptotic Class</h1><!--introduction--><p>This class implements a nonlinear asymptotic mechanical law for material behavior. It extends the <i>MechanicalLinearElastic</i> class and provides methods to compute the stress vector, constitutive matrix, shear modulus, and its gradient based on the material properties and strain invariants.</p><p>Reference: Pasquali, Paulo Roberto Zanella. "An&aacute;lise limite de estruturas atrav&eacute;s de uma formula&ccedil;&atilde;o em elasticidade n&atilde;o-linear." (2008).</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class Definition</a></li><li><a href="#5">Constructor method</a></li><li><a href="#6">Public methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>eval</b>: Computes the stress vector and the constitutive matrix for the           material based on the material properties and strain           invariants.</li><li><b>getShearModulus</b>: Computes the shear modulus based on the material                      properties, volumetric strain, norm of the                      deviatoric strain, and bulk modulus.</li><li><b>getGradientShearModulus</b>: Computes the gradient of the shear modulus                              with respect to the strain.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class Definition</h2><pre class="codeinput"><span class="keyword">classdef</span> MechanicalNonlinearAsymptotic &lt; MechanicalLinearElastic
+</pre><h2 id="5">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = MechanicalNonlinearAsymptotic()
+            this = this@MechanicalLinearElastic();
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="6">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the stress vector and the constitutive matrix</span>
+        <span class="keyword">function</span> [stress,De] = eval(this,material,ip)
+
+            <span class="comment">% Decompose the strain tensor</span>
+            ev = this.volumetricStrain(ip.strain);
+            ed = this.deviatoricStrain(ip.strain);
+
+            <span class="comment">% Norm deviatoric strain tensor</span>
+            ned = this.normDeviatoricStrain(ip.strain);
+
+            <span class="comment">% Material constants</span>
+            K = this.bulkModulus(material);
+
+            <span class="comment">% Shear modulus</span>
+            mu = this.getShearModulus(material,ev,ned,K);
+
+            <span class="comment">% Identity tensor</span>
+            iv = this.gradientStrainInvariantI1();
+            Id = this.fourthOrderSymTensor();
+
+            <span class="comment">% Stress vector</span>
+            stress = K * ev * iv + 2.0 * mu * ed;
+
+            <span class="comment">% Shear modulus</span>
+            dmude = this.getGradientShearModulus(material,ip.strain,ev,ned,K);
+
+            <span class="comment">% Constitutive matrix</span>
+            De = K * (iv * iv');
+            De = De + 2.0 * mu * (Id - 1.0/3.0 * (iv * iv'));
+            De = De + 2.0 * dmude * (Id * ed)';
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the shear modulus</span>
+        <span class="keyword">function</span> mu = getShearModulus(~,material,ev,ned,K)
+            <span class="keyword">if</span> strcmp(material.asympt,<span class="string">'vonMises'</span>)
+                mu = sqrt(2.0)*material.tauy/2.0;
+            <span class="keyword">elseif</span>  strcmp(material.asympt,<span class="string">'druckerPrager'</span>)
+                mu = material.friction * (material.sy - K * ev) / 2.0;
+            <span class="keyword">end</span>
+            mu = mu / (material.eref + ned);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the gradient of the shear modulus</span>
+        <span class="keyword">function</span> dmude = getGradientShearModulus(this,material,strain,ev,ned,K)
+            <span class="keyword">if</span> strcmp(material.asympt,<span class="string">'vonMises'</span>)
+                dmudev = 0.0;
+                dmudned = -(sqrt(2.0)/2.0)*material.tauy/((material.eref+ned)^2.0);
+            <span class="keyword">elseif</span>  strcmp(material.asympt,<span class="string">'druckerPrager'</span>)
+                dmudev = -K * material.friction / 2.0 / (material.eref + ned);
+                dmudned = -material.friction * (material.sy - K * ev) / 2.0 / (material.eref + ned)^2;
+            <span class="keyword">end</span>
+            <span class="comment">% Get the derivative of the strain invariants wrt the strain</span>
+            devde = this.gradientStrainInvariantI1();
+            dnedde = this.gradientNormDeviatoricStrain(strain);
+            Id = this.fourthOrderSymTensor();
+            <span class="comment">% Gradient of the shear modulus (mu)</span>
+            dmude = dmudev * devde + dmudned * Id * dnedde;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% MechanicalNonlinearAsymptotic Class
+% This class implements a nonlinear asymptotic mechanical law for material
+% behavior. It extends the _MechanicalLinearElastic_ class and provides
+% methods to compute the stress vector, constitutive matrix, shear modulus,
+% and its gradient based on the material properties and strain invariants.
+%
+% Reference:
+% Pasquali, Paulo Roberto Zanella.
+% "Análise limite de estruturas através de uma formulação em elasticidade
+% não-linear." (2008).
+%
+%% Methods
+% * *eval*: Computes the stress vector and the constitutive matrix for the
+%           material based on the material properties and strain
+%           invariants.
+% * *getShearModulus*: Computes the shear modulus based on the material
+%                      properties, volumetric strain, norm of the
+%                      deviatoric strain, and bulk modulus.
+% * *getGradientShearModulus*: Computes the gradient of the shear modulus
+%                              with respect to the strain.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class Definition
+classdef MechanicalNonlinearAsymptotic < MechanicalLinearElastic
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = MechanicalNonlinearAsymptotic()
+            this = this@MechanicalLinearElastic();
+        end
+    end
+
+    %% Public methods
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the stress vector and the constitutive matrix
+        function [stress,De] = eval(this,material,ip)
+
+            % Decompose the strain tensor
+            ev = this.volumetricStrain(ip.strain);
+            ed = this.deviatoricStrain(ip.strain);
+
+            % Norm deviatoric strain tensor
+            ned = this.normDeviatoricStrain(ip.strain);
+
+            % Material constants
+            K = this.bulkModulus(material);
+
+            % Shear modulus
+            mu = this.getShearModulus(material,ev,ned,K);
+
+            % Identity tensor
+            iv = this.gradientStrainInvariantI1();
+            Id = this.fourthOrderSymTensor();
+
+            % Stress vector
+            stress = K * ev * iv + 2.0 * mu * ed;
+
+            % Shear modulus
+            dmude = this.getGradientShearModulus(material,ip.strain,ev,ned,K);
+
+            % Constitutive matrix
+            De = K * (iv * iv');
+            De = De + 2.0 * mu * (Id - 1.0/3.0 * (iv * iv'));
+            De = De + 2.0 * dmude * (Id * ed)';
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the shear modulus
+        function mu = getShearModulus(~,material,ev,ned,K)
+            if strcmp(material.asympt,'vonMises')
+                mu = sqrt(2.0)*material.tauy/2.0;
+            elseif  strcmp(material.asympt,'druckerPrager')
+                mu = material.friction * (material.sy - K * ev) / 2.0;
+            end
+            mu = mu / (material.eref + ned);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the gradient of the shear modulus
+        function dmude = getGradientShearModulus(this,material,strain,ev,ned,K)
+            if strcmp(material.asympt,'vonMises')
+                dmudev = 0.0;
+                dmudned = -(sqrt(2.0)/2.0)*material.tauy/((material.eref+ned)^2.0);
+            elseif  strcmp(material.asympt,'druckerPrager')
+                dmudev = -K * material.friction / 2.0 / (material.eref + ned);
+                dmudned = -material.friction * (material.sy - K * ev) / 2.0 / (material.eref + ned)^2;
+            end
+            % Get the derivative of the strain invariants wrt the strain
+            devde = this.gradientStrainInvariantI1();
+            dnedde = this.gradientNormDeviatoricStrain(strain);
+            Id = this.fourthOrderSymTensor();
+            % Gradient of the shear modulus (mu)
+            dmude = dmudev * devde + dmudned * Id * dnedde;
+        end
+    end
+end
+##### SOURCE END #####
+--></body></html>

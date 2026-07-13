@@ -1,0 +1,445 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>intersectionSegment Function</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="intersectionSegment.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>intersectionSegment Function</h1><!--introduction--><p>This function determines whether two line segments intersect and, if so, computes the intersection point and the parametric coordinates of the intersection along each segment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Inputs</a></li><li><a href="#2">Outputs</a></li><li><a href="#3">Author</a></li><li><a href="#4">Version History</a></li><li><a href="#5">Function definition</a></li></ul></div><h2 id="1">Inputs</h2><div><ul><li><b>segment1</b>: Endpoints of the first segment, specified as 1x2 vectors.</li><li><b>segment2</b>: Endpoints of the second segment, specified as 1x2 vectors.</li></ul></div><h2 id="2">Outputs</h2><div><ul><li><b>flagInt</b>: Flag indicating whether the segments intersect or not.</li><li><b>pint</b>: Intersection point as a 1x2 vector. Empty if no intersection.</li><li><b>t12</b>: Parametric coordinate of the intersection along the first          segment. Empty if no intersection.</li><li><b>t34</b>: Parametric coordinate of the intersection along the second          segment. Empty if no intersection.</li></ul></div><h2 id="3">Author</h2><p>Danilo Cavalcanti</p><h2 id="4">Version History</h2><p>Version 1.00.</p><h2 id="5">Function definition</h2><pre class="codeinput"><span class="keyword">function</span> [flagInt,pint,t12,t34] = intersectionSegment(segment1,segment2)
+
+    <span class="comment">% Extract the points</span>
+    p1 = segment1(1, :);
+    p2 = segment1(2, :);
+    p3 = segment2(1, :);
+    p4 = segment2(2, :);
+
+    <span class="comment">% Coordinates of the fracture segment</span>
+    x12_l = min(p1(1),p2(1));
+    x12_r = max(p1(1),p2(1));
+    y12_b = min(p1(2),p2(2));
+    y12_t = max(p1(2),p2(2));
+
+    <span class="comment">% Coordinates of the element edge</span>
+    x34_l = min(p3(1),p4(1));
+    x34_r = max(p3(1),p4(1));
+    y34_b = min(p3(2),p4(2));
+    y34_t = max(p3(2),p4(2));
+
+    <span class="comment">% Tolerance of the bounding box</span>
+    tol = 1e-9;
+
+    <span class="comment">% Discard intersection if the continuum edge is located to</span>
+    <span class="comment">% the left or right of the horizontal bounding box of the first</span>
+    <span class="comment">% segment</span>
+    <span class="keyword">if</span> ((x12_r + tol) &lt; x34_l) || (x34_r &lt; (x12_l - tol))
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% Discard intersection if the continuum edge is located bellow</span>
+    <span class="comment">% or above of the bounding box of the first</span>
+    <span class="comment">% segment</span>
+    <span class="keyword">if</span> ((y12_t + tol) &lt; y34_b) || (y34_t &lt; (y12_b - tol))
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% Get signs of oriented twice area for points p1-p2-p3 and for</span>
+    <span class="comment">% points p1-p2-p4</span>
+    sign123 = signArea2d(p1, p2, p3);
+    sign124 = signArea2d(p1, p2, p4);
+
+    <span class="comment">% Check if the segments are collinear</span>
+    <span class="keyword">if</span> (sign123 == 0.0) &amp;&amp; (sign124 == 0.0)
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% Check if the second segment is above or on the right side of</span>
+    <span class="comment">% the first segment</span>
+    <span class="keyword">if</span> (sign123 &gt; 0.0) &amp;&amp; (sign124 &gt; 0.0)
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% Check if the second segment is bellow or on the left side of</span>
+    <span class="comment">% the first segment</span>
+    <span class="keyword">if</span> (sign123 &lt; 0.0) &amp;&amp; (sign124 &lt; 0.0)
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% Get signs of oriented twice area for points p1-p2-p3 and for</span>
+    <span class="comment">% points p1-p2-p4</span>
+    sign341 = signArea2d(p3, p4, p1);
+    sign342 = signArea2d(p3, p4, p2);
+
+    <span class="comment">% Check if the second segment is above or on the right side of</span>
+    <span class="comment">% the first segment</span>
+    <span class="keyword">if</span> (sign341 &gt; 0.0) &amp;&amp; (sign342 &gt; 0.0)
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% Check if the second segment is bellow or on the left side of</span>
+    <span class="comment">% the first segment</span>
+    <span class="keyword">if</span> (sign341 &lt; 0.0) &amp;&amp; (sign342 &lt; 0.0)
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% Check for one point of the second segment touching the first segment</span>
+    area341 =  area2d(p3, p4, p1);
+    area342 =  area2d(p3, p4, p2);
+    <span class="keyword">if</span> sign123 == 0.0
+        flagInt = true;
+        t34  = 0.0;
+        t12  = area341 / (area341 - area342);
+        pint = p3;
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> sign124 == 0.0
+        flagInt = true;
+        t34  = 1.0;
+        t12  = area341 / (area341 - area342);
+        pint = p4;
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% Check for one point of the first segment touching the second segment</span>
+    area123 =  area2d(p1, p2, p3);
+    area124 =  area2d(p1, p2, p4);
+    <span class="keyword">if</span> sign341 == 0.0
+        flagInt = true;
+        t12 = 0.0;
+        t34 = area123 / (area123 - area124);
+        pint = p1;
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> sign342 == 0.0
+        flagInt = true;
+        t12 = 1.0;
+        t34 = area123 / (area123 - area124);
+        pint = p2;
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% Compute the intersection</span>
+    flagInt = true;
+    t12  = area341 / (area341 - area342);
+    t34  = area123 / (area123 - area124);
+    v34  = p4 - p3;
+    pint = p3 + v34*t34;
+
+<span class="keyword">end</span>
+
+<span class="comment">% Sign of the oriented area</span>
+<span class="keyword">function</span> signArea = signArea2d(p1,p2,p3)
+    det = area2d(p1,p2,p3);
+    <span class="keyword">if</span> abs(det) &lt; 1e-9
+        signArea = 0.0;
+    <span class="keyword">else</span>
+        <span class="keyword">if</span> det &gt; 0.0
+            signArea = 1.0;
+        <span class="keyword">else</span>
+            signArea = -1.0;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Twice the area defined by three points p1, p2 and p3</span>
+<span class="keyword">function</span> area = area2d(p1, p2, p3)
+    P2P1 = p2 - p1;
+    P3P1 = p3 - p1;
+    area = crossProd2D(P2P1,P3P1);
+<span class="keyword">end</span>
+
+<span class="comment">% Cross-product between two vectors</span>
+<span class="keyword">function</span> cprod = crossProd2D(v1, v2)
+    cprod = v1(1)*v2(2) - v2(1)*v1(2);
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% intersectionSegment Function
+% This function determines whether two line segments intersect and, if so,
+% computes the intersection point and the parametric coordinates of the
+% intersection along each segment.
+
+%% Inputs
+% * *segment1*: Endpoints of the first segment, specified as 1x2 vectors.
+% * *segment2*: Endpoints of the second segment, specified as 1x2 vectors.
+%
+%% Outputs
+% * *flagInt*: Flag indicating whether the segments intersect or not.
+% * *pint*: Intersection point as a 1x2 vector. Empty if no intersection.
+% * *t12*: Parametric coordinate of the intersection along the first
+%          segment. Empty if no intersection.
+% * *t34*: Parametric coordinate of the intersection along the second
+%          segment. Empty if no intersection.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Function definition
+function [flagInt,pint,t12,t34] = intersectionSegment(segment1,segment2)
+
+    % Extract the points
+    p1 = segment1(1, :);
+    p2 = segment1(2, :);
+    p3 = segment2(1, :);
+    p4 = segment2(2, :);
+
+    % Coordinates of the fracture segment
+    x12_l = min(p1(1),p2(1));
+    x12_r = max(p1(1),p2(1));
+    y12_b = min(p1(2),p2(2));
+    y12_t = max(p1(2),p2(2));
+
+    % Coordinates of the element edge
+    x34_l = min(p3(1),p4(1));
+    x34_r = max(p3(1),p4(1));
+    y34_b = min(p3(2),p4(2));
+    y34_t = max(p3(2),p4(2));
+
+    % Tolerance of the bounding box
+    tol = 1e-9;
+
+    % Discard intersection if the continuum edge is located to
+    % the left or right of the horizontal bounding box of the first
+    % segment
+    if ((x12_r + tol) < x34_l) || (x34_r < (x12_l - tol))
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        return
+    end
+
+    % Discard intersection if the continuum edge is located bellow
+    % or above of the bounding box of the first
+    % segment
+    if ((y12_t + tol) < y34_b) || (y34_t < (y12_b - tol))
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        return
+    end
+
+    % Get signs of oriented twice area for points p1-p2-p3 and for
+    % points p1-p2-p4
+    sign123 = signArea2d(p1, p2, p3);
+    sign124 = signArea2d(p1, p2, p4);
+
+    % Check if the segments are collinear
+    if (sign123 == 0.0) && (sign124 == 0.0)
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        return
+    end
+
+    % Check if the second segment is above or on the right side of
+    % the first segment
+    if (sign123 > 0.0) && (sign124 > 0.0)
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        return
+    end
+
+    % Check if the second segment is bellow or on the left side of
+    % the first segment
+    if (sign123 < 0.0) && (sign124 < 0.0)
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        return
+    end
+
+    % Get signs of oriented twice area for points p1-p2-p3 and for
+    % points p1-p2-p4
+    sign341 = signArea2d(p3, p4, p1);
+    sign342 = signArea2d(p3, p4, p2);
+
+    % Check if the second segment is above or on the right side of
+    % the first segment
+    if (sign341 > 0.0) && (sign342 > 0.0)
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        return
+    end
+
+    % Check if the second segment is bellow or on the left side of
+    % the first segment
+    if (sign341 < 0.0) && (sign342 < 0.0)
+        flagInt = false;
+        pint    = [];
+        t12     = [];
+        t34     = [];
+        return
+    end
+
+    % Check for one point of the second segment touching the first segment
+    area341 =  area2d(p3, p4, p1);
+    area342 =  area2d(p3, p4, p2);
+    if sign123 == 0.0
+        flagInt = true;
+        t34  = 0.0;
+        t12  = area341 / (area341 - area342);
+        pint = p3;
+        return
+    end
+    if sign124 == 0.0
+        flagInt = true;
+        t34  = 1.0;
+        t12  = area341 / (area341 - area342);
+        pint = p4;
+        return
+    end
+
+    % Check for one point of the first segment touching the second segment
+    area123 =  area2d(p1, p2, p3);
+    area124 =  area2d(p1, p2, p4);
+    if sign341 == 0.0
+        flagInt = true;
+        t12 = 0.0;
+        t34 = area123 / (area123 - area124);
+        pint = p1;
+        return
+    end
+    if sign342 == 0.0
+        flagInt = true;
+        t12 = 1.0;
+        t34 = area123 / (area123 - area124);
+        pint = p2;
+        return
+    end
+
+    % Compute the intersection
+    flagInt = true;
+    t12  = area341 / (area341 - area342);
+    t34  = area123 / (area123 - area124);
+    v34  = p4 - p3;
+    pint = p3 + v34*t34;
+
+end
+
+% Sign of the oriented area
+function signArea = signArea2d(p1,p2,p3)
+    det = area2d(p1,p2,p3);
+    if abs(det) < 1e-9
+        signArea = 0.0;
+    else
+        if det > 0.0
+            signArea = 1.0;
+        else
+            signArea = -1.0;
+        end
+    end
+end
+
+% Twice the area defined by three points p1, p2 and p3
+function area = area2d(p1, p2, p3)
+    P2P1 = p2 - p1;
+    P3P1 = p3 - p1;
+    area = crossProd2D(P2P1,P3P1);
+end
+
+% Cross-product between two vectors
+function cprod = crossProd2D(v1, v2)
+    cprod = v1(1)*v2(2) - v2(1)*v1(2);
+end
+##### SOURCE END #####
+--></body></html>

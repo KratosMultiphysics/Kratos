@@ -1,0 +1,670 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Anl_NonlinearQuasiStatic Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="Anl_NonlinearQuasiStatic.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Anl_NonlinearQuasiStatic Class</h1><!--introduction--><p>This class inherits from the base class 'Anl' to implement the solution of a quasi-static nonlinear incremental-iterative analysis using different control methods.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Authors</a></li><li><a href="#2">Class definition</a></li><li><a href="#3">Public properties</a></li><li><a href="#4">Constructor method</a></li><li><a href="#5">Public methods</a></li></ul></div><h2 id="1">Authors</h2><div><ul><li>Danilo Cavalcanti (<a href="mailto:dborges@cimne.upc.edu">dborges@cimne.upc.edu</a>)</li><li>Rafael Rangel (<a href="mailto:rrangel@cimne.upc.edu">rrangel@cimne.upc.edu</a>)</li></ul></div><h2 id="2">Class definition</h2><pre class="codeinput"><span class="keyword">classdef</span> Anl_NonlinearQuasiStatic &lt; Anl
+</pre><h2 id="3">Public properties</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        method        = [];      <span class="comment">% Solution method</span>
+        adjustStep    = false;   <span class="comment">% Flag for type of increment size adjustment</span>
+        increment     = 0.1;     <span class="comment">% Initial increment of load ratio</span>
+        max_increment = 0.5;     <span class="comment">% Maximum increment of load ratio</span>
+        max_lratio    = 1.0;     <span class="comment">% Limit value of load ratio</span>
+        max_step      = 10;      <span class="comment">% Maximum number of steps</span>
+        max_iter      = 10;      <span class="comment">% Maximum number of iterations in each step</span>
+        trg_iter      = 3;       <span class="comment">% Desired number of iterations in each step</span>
+        tol           = 1.0e-5;  <span class="comment">% Numerical tolerance for convergence</span>
+        ctrlDof       = 1;       <span class="comment">% Control DOF (for displacement control method)</span>
+        plotNd        = 1;       <span class="comment">% Node whose DOF will be plotted</span>
+        plotDof       = 1;       <span class="comment">% Node's DOF (ux,uy) that will plotted</span>
+        Uplot         = [];      <span class="comment">% Matrix of nodal displacement vectors of all steps/modes</span>
+        lbdplot       = [];      <span class="comment">% Vector of load ratios of all steps</span>
+        echo          = true;    <span class="comment">% Flag to print in the command window</span>
+    <span class="keyword">end</span>
+</pre><h2 id="4">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = Anl_NonlinearQuasiStatic(method)
+            this = this@Anl(<span class="string">'NonlinearQuasiStatic'</span>);
+
+            <span class="keyword">if</span> strcmp(method,<span class="string">'LoadControl'</span>)
+                this.method = ControlMethod_Load();
+            <span class="keyword">elseif</span> strcmp(method,<span class="string">'DisplacementControl'</span>)
+                this.method = ControlMethod_Displ();
+            <span class="keyword">elseif</span> strcmp(method,<span class="string">'WorkControl'</span>)
+                this.method = ControlMethod_Work();
+            <span class="keyword">elseif</span> strcmp(method,<span class="string">'ArcLengthFNPControl'</span>)
+                this.method = ControlMethod_ArcFNP();
+            <span class="keyword">elseif</span> strcmp(method,<span class="string">'ArcLengthUNPControl'</span>)
+                this.method = ControlMethod_ArcUNP();
+            <span class="keyword">elseif</span> strcmp(method,<span class="string">'ArcLengthCylControl'</span>)
+                this.method = ControlMethod_ArcCyl();
+            <span class="keyword">elseif</span> strcmp(method,<span class="string">'ArcLengthSPHControl'</span>)
+                this.method = ControlMethod_ArcSph();
+            <span class="keyword">elseif</span> strcmp(method,<span class="string">'MinimumNorm'</span>)
+                this.method = ControlMethod_MinNorm();
+            <span class="keyword">elseif</span> strcmp(method,<span class="string">'OrthogonalResidual'</span>)
+                this.method = ControlMethod_OrtResidual();
+            <span class="keyword">elseif</span> strcmp(method,<span class="string">'GeneralizedDisplacement'</span>)
+                this.method = ControlMethod_GenDispl();
+            <span class="keyword">else</span>
+                disp(<span class="string">"Error creating the Analysis object."</span>);
+                disp(<span class="string">"Control method was not provided."</span>);
+                disp(<span class="string">"Available options:"</span>);
+                disp(<span class="string">"   LoadControl"</span>);
+                disp(<span class="string">"   ControlMethod_Displ"</span>);
+                disp(<span class="string">"   WorkControl"</span>);
+                disp(<span class="string">"   ArcLengthFNPControl"</span>);
+                disp(<span class="string">"   ArcLengthUNPControl"</span>);
+                disp(<span class="string">"   ArcLengthCylControl"</span>);
+                disp(<span class="string">"   ArcLengthSPHControl"</span>);
+                disp(<span class="string">"   MinimumNorm"</span>);
+                disp(<span class="string">"   OrthogonalResidual"</span>);
+                disp(<span class="string">"   GeneralizedDisplacement"</span>);
+                error(<span class="string">"Error: Control method was not provided"</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="5">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Execute the nonlinear analysis process, handle iterative</span>
+        <span class="comment">% steps, convergence checks, and state variables updates.</span>
+        <span class="keyword">function</span> run(this,mdl)
+            disp(<span class="string">"*** Performing quasi-static nonlinear analysis..."</span>)
+
+            <span class="comment">% Initialize model object</span>
+            mdl.preComputations();
+
+            <span class="comment">% Initialize results</span>
+            this.lbdplot = zeros(this.max_step+1,1);
+            this.Uplot   = zeros(this.max_step+1,1);
+
+            <span class="comment">% Initialize data for first step</span>
+            step = 0;  <span class="comment">% step number</span>
+            lbd  = 0;  <span class="comment">% total load ratio (lambda)</span>
+            sign = 1;  <span class="comment">% sign of predicted increment of load ratio</span>
+
+            <span class="comment">% Initialize vector of total nodal displacements</span>
+            U = mdl.U;
+
+            <span class="comment">% Initialize vector of total increment displacement</span>
+            D_U = zeros(mdl.ndof,1);
+
+            <span class="comment">% Start incremental process</span>
+            <span class="keyword">while</span> (step &lt; this.max_step)
+                step = step + 1;
+                <span class="keyword">if</span> this.echo
+                    fprintf(<span class="string">"\n Step: %-4d \n"</span>, step);
+                <span class="keyword">end</span>
+
+                <span class="comment">% Tangent stiffness matrix</span>
+                [~,~,~,Fref,K] = mdl.globalMatrices(U);
+
+                <span class="comment">% Tangent increment of displacements for predicted solution</span>
+                d_Up0 = this.solveSystem(mdl,K,Fref,U);
+
+                <span class="keyword">if</span> (step == 1)
+                    <span class="comment">% Initial increment of load ratio for predicted solution</span>
+                    d_lbd0 = this.method.predictedIncrementFirst(this,mdl,sign,D_U,d_Up0);
+
+                    <span class="comment">% Set previous tangent increment of displacements as current increment</span>
+                    d_Up0_old = d_Up0;
+
+                    <span class="comment">% Store squared value of the norm of tangent increment of displacements</span>
+                    n2 = d_Up0(mdl.doffree)' * d_Up0(mdl.doffree);
+                <span class="keyword">else</span>
+                    <span class="comment">% Generalized Stiffness Parameter</span>
+                    GSP = n2 / (d_Up0(mdl.doffree)' * d_Up0_old(mdl.doffree));
+
+                    <span class="comment">% Adjust increment sign</span>
+                    <span class="keyword">if</span> (GSP &lt; 0)
+                        sign = -sign;
+                    <span class="keyword">end</span>
+
+                    <span class="comment">% Adjustment factor of increment size</span>
+                    <span class="keyword">if</span> (this.adjustStep == true)
+                        J = sqrt(this.trg_iter/iter);
+                    <span class="keyword">else</span>
+                        J = 1;
+                    <span class="keyword">end</span>
+
+                    <span class="comment">% Predicted increment of load ratio</span>
+                    d_lbd0 = this.method.predictedIncrement(this,mdl,sign,J,GSP,D_lbd,d_lbd0,D_U,d_Up0,Fref);
+                <span class="keyword">end</span>
+
+                <span class="comment">% Check increment of load ratio</span>
+                d_lbd0 = min(d_lbd0,this.max_increment);
+
+                <span class="comment">% Limit increment of load ratio to make total load ratio smaller than maximum value</span>
+                <span class="keyword">if</span> ((this.max_lratio &gt; 0.0 &amp;&amp; lbd + d_lbd0 &gt; this.max_lratio) ||<span class="keyword">...</span>
+                    (this.max_lratio &lt; 0.0 &amp;&amp; lbd + d_lbd0 &lt; this.max_lratio))
+                    d_lbd0 = this.max_lratio - lbd;
+                <span class="keyword">end</span>
+
+                <span class="comment">% Increments of load ratio and displacements for predicted solution</span>
+                d_lbd = d_lbd0;
+                d_U0  = d_lbd0 * d_Up0;
+                d_U   = d_U0;
+
+                <span class="comment">% Initialize incremental values of load ratio and displacements for current step</span>
+                D_lbd = d_lbd;
+                D_U   = d_U;
+
+                <span class="comment">% Update total values of load ratio and displacements</span>
+                lbd = lbd + d_lbd;
+                U   = U   + d_U;
+
+                <span class="comment">% Start iterative process</span>
+                iter = 1;
+                conv = 0;
+
+                <span class="keyword">while</span> (conv == 0 &amp;&amp; iter &lt;= this.max_iter)
+                    <span class="comment">% Vector of external and internal forces</span>
+                    Fext = lbd * Fref;
+                    [~,~,Fint,~,K] = mdl.globalMatrices(U);
+
+                    <span class="comment">% Vector of unbalanced forces</span>
+                    R = Fext - Fint;
+
+                    <span class="comment">% Check convergence</span>
+                    unbNorm = norm(R(mdl.doffree));
+                    forNorm = norm(Fref(mdl.doffree));
+                    conv = (unbNorm == 0 || forNorm == 0 || unbNorm/forNorm &lt; this.tol);
+                    <span class="keyword">if</span> this.echo
+                        fprintf(<span class="string">" iter.: %3d , ||R||/||F|| = %7.3e \n"</span>,iter,unbNorm/forNorm);
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> conv == 1
+                        <span class="keyword">break</span>;
+                    <span class="keyword">end</span>
+
+                    <span class="comment">% Start/keep corrector phase</span>
+                    iter = iter + 1;
+
+                    <span class="comment">% Tangent and residual increments of displacements</span>
+                    d_Up = this.solveSystem(mdl,K,Fref);
+                    d_Ur = this.solveSystem(mdl,K,R);
+
+                    <span class="comment">% Corrected increment of load ratio</span>
+                    d_lbd = this.method.correctedIncrement(this,mdl,d_lbd0,D_lbd,d_Up0_old,d_U0,d_Up,d_Ur,D_U,Fref,R);
+                    <span class="keyword">if</span> (~isreal(d_lbd))
+                        conv = -1;
+                        <span class="keyword">break</span>;
+                    <span class="keyword">end</span>
+
+                    <span class="comment">% Corrected increment of displacements</span>
+                    d_U = d_lbd * d_Up + d_Ur;
+
+                    <span class="comment">% Increments of load ratio and displacements for current step</span>
+                    D_lbd = D_lbd + d_lbd;
+                    D_U   = D_U   + d_U;
+
+                    <span class="comment">% Total values of load ratio and displacements</span>
+                    lbd = lbd + d_lbd;
+                    U   = U   + d_U;
+                <span class="keyword">end</span>
+
+                <span class="comment">% Check for convergence fail or complex value of increment</span>
+                <span class="keyword">if</span> (conv == 0)
+                    <span class="keyword">if</span> this.echo
+                        disp(<span class="string">'Convergence not achieved!'</span>);
+                    <span class="keyword">end</span>
+                    <span class="keyword">return</span>;
+                <span class="keyword">elseif</span> (conv == -1)
+                    <span class="keyword">if</span> this.echo
+                        disp(<span class="string">'Unable to compute load increment!'</span>);
+                    <span class="keyword">end</span>
+                    <span class="keyword">return</span>;
+                <span class="keyword">end</span>
+                <span class="keyword">if</span> this.echo
+                    fprintf(<span class="string">' Step %d converged in iteration %-3d\n'</span>,step,iter);
+                    fprintf(<span class="string">' Load factor: %f\n'</span>,lbd);
+                <span class="keyword">end</span>
+
+                <span class="comment">% Update state variables</span>
+                mdl.updateStateVar();
+
+                <span class="comment">% Store step results</span>
+                this.lbdplot(step+1) = lbd;
+                this.Uplot(step+1) = U(mdl.ID(this.plotNd,this.plotDof));
+
+                <span class="comment">% Store predicted tangent increment of displacements for next step</span>
+                <span class="keyword">if</span> (step ~= 1)
+                    d_Up0_old = d_Up0;
+                <span class="keyword">end</span>
+
+                <span class="comment">% Check if maximum load ratio was reached</span>
+                <span class="keyword">if</span> ((this.max_lratio &gt;= 0 &amp;&amp; lbd &gt;= 0.999*this.max_lratio) ||<span class="keyword">...</span>
+                    (this.max_lratio &lt;= 0 &amp;&amp; lbd &lt;= 0.999*this.max_lratio))
+                    <span class="keyword">break</span>;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+            <span class="comment">% Clean unused steps</span>
+            <span class="keyword">if</span> (step &lt; this.max_step)
+                this.lbdplot = this.lbdplot(1:step+1);
+                this.Uplot = this.Uplot(1:step+1);
+            <span class="keyword">end</span>
+
+            <span class="comment">% Save final result</span>
+            mdl.U = U;
+
+            disp(<span class="string">"*** Analysis completed!"</span>);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Partition and solve a linear system of equations for free DOFs:</span>
+        <span class="comment">%  f --&gt; free DOF (natural B.C. - unknown)</span>
+        <span class="comment">%  c --&gt; constrained DOF (essential B.C. - known)</span>
+        <span class="comment">%</span>
+        <span class="comment">% [ Kff Kfs ] * [ Uf ] = [ Fext ]</span>
+        <span class="comment">% [ Ksf Kss ]   [ Us ] = [   R  ]</span>
+        <span class="comment">%</span>
+        <span class="keyword">function</span> [U,Fext] = solveSystem(~,mdl,K,Fext,U)
+            <span class="keyword">if</span> nargin &lt; 5
+                U = zeros(mdl.ndof,1);
+            <span class="keyword">end</span>
+
+            <span class="comment">% Partition system of equations</span>
+            Kff = K(mdl.doffree,mdl.doffree);
+            Ff  = Fext(mdl.doffree);
+
+            <span class="comment">% Solve system of equilibrium equations</span>
+            Uf = Kff \ Ff;
+
+            <span class="comment">% Displacement vector</span>
+            U(mdl.doffree) = Uf;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Set the node and degree of freedom to be plotted.</span>
+        <span class="keyword">function</span> setPlotDof(this,nd,dof)
+            this.plotNd  = nd;
+            this.plotDof = dof;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Plot the load-displacement curve for the analysis.</span>
+        <span class="keyword">function</span> plotCurves(this)
+            figure;
+            hold <span class="string">on</span>, box <span class="string">on</span>, grid <span class="string">on</span>, axis <span class="string">on</span>;
+            plot(this.Uplot, this.lbdplot, <span class="string">'o-k'</span>);
+            xlabel(<span class="string">'Displacement (m)'</span>);
+            ylabel(<span class="string">'Load factor'</span>);
+            set(gca,<span class="string">'FontSize'</span>,16);
+            set(gca,<span class="string">'FontName'</span>,<span class="string">'Times'</span>);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Anl_NonlinearQuasiStatic Class
+% This class inherits from the base class 'Anl' to implement the solution of
+% a quasi-static nonlinear incremental-iterative analysis using different control methods.
+%
+%% Authors
+% * Danilo Cavalcanti (dborges@cimne.upc.edu)
+% * Rafael Rangel (rrangel@cimne.upc.edu)
+%
+%% Class definition
+classdef Anl_NonlinearQuasiStatic < Anl
+    %% Public properties
+    properties (SetAccess = public, GetAccess = public)
+        method        = [];      % Solution method
+        adjustStep    = false;   % Flag for type of increment size adjustment
+        increment     = 0.1;     % Initial increment of load ratio
+        max_increment = 0.5;     % Maximum increment of load ratio
+        max_lratio    = 1.0;     % Limit value of load ratio
+        max_step      = 10;      % Maximum number of steps
+        max_iter      = 10;      % Maximum number of iterations in each step
+        trg_iter      = 3;       % Desired number of iterations in each step
+        tol           = 1.0e-5;  % Numerical tolerance for convergence
+        ctrlDof       = 1;       % Control DOF (for displacement control method)
+        plotNd        = 1;       % Node whose DOF will be plotted
+        plotDof       = 1;       % Node's DOF (ux,uy) that will plotted
+        Uplot         = [];      % Matrix of nodal displacement vectors of all steps/modes
+        lbdplot       = [];      % Vector of load ratios of all steps
+        echo          = true;    % Flag to print in the command window
+    end
+
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = Anl_NonlinearQuasiStatic(method)
+            this = this@Anl('NonlinearQuasiStatic');
+
+            if strcmp(method,'LoadControl')
+                this.method = ControlMethod_Load();
+            elseif strcmp(method,'DisplacementControl')
+                this.method = ControlMethod_Displ();
+            elseif strcmp(method,'WorkControl')
+                this.method = ControlMethod_Work();
+            elseif strcmp(method,'ArcLengthFNPControl')
+                this.method = ControlMethod_ArcFNP();
+            elseif strcmp(method,'ArcLengthUNPControl')
+                this.method = ControlMethod_ArcUNP();
+            elseif strcmp(method,'ArcLengthCylControl')
+                this.method = ControlMethod_ArcCyl();
+            elseif strcmp(method,'ArcLengthSPHControl')
+                this.method = ControlMethod_ArcSph();
+            elseif strcmp(method,'MinimumNorm')
+                this.method = ControlMethod_MinNorm();
+            elseif strcmp(method,'OrthogonalResidual')
+                this.method = ControlMethod_OrtResidual();
+            elseif strcmp(method,'GeneralizedDisplacement')
+                this.method = ControlMethod_GenDispl();
+            else
+                disp("Error creating the Analysis object.");
+                disp("Control method was not provided.");
+                disp("Available options:");
+                disp("   LoadControl");
+                disp("   ControlMethod_Displ");
+                disp("   WorkControl");
+                disp("   ArcLengthFNPControl");
+                disp("   ArcLengthUNPControl");
+                disp("   ArcLengthCylControl");
+                disp("   ArcLengthSPHControl");
+                disp("   MinimumNorm");
+                disp("   OrthogonalResidual");
+                disp("   GeneralizedDisplacement");
+                error("Error: Control method was not provided");
+            end
+        end
+    end
+
+    %% Public methods
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Execute the nonlinear analysis process, handle iterative
+        % steps, convergence checks, and state variables updates.
+        function run(this,mdl)
+            disp("*** Performing quasi-static nonlinear analysis...")
+
+            % Initialize model object
+            mdl.preComputations();
+
+            % Initialize results
+            this.lbdplot = zeros(this.max_step+1,1);
+            this.Uplot   = zeros(this.max_step+1,1);
+
+            % Initialize data for first step
+            step = 0;  % step number
+            lbd  = 0;  % total load ratio (lambda)
+            sign = 1;  % sign of predicted increment of load ratio
+
+            % Initialize vector of total nodal displacements
+            U = mdl.U;
+
+            % Initialize vector of total increment displacement
+            D_U = zeros(mdl.ndof,1);
+
+            % Start incremental process
+            while (step < this.max_step)
+                step = step + 1;
+                if this.echo
+                    fprintf("\n Step: %-4d \n", step);
+                end
+
+                % Tangent stiffness matrix
+                [~,~,~,Fref,K] = mdl.globalMatrices(U);
+
+                % Tangent increment of displacements for predicted solution
+                d_Up0 = this.solveSystem(mdl,K,Fref,U);
+
+                if (step == 1)
+                    % Initial increment of load ratio for predicted solution
+                    d_lbd0 = this.method.predictedIncrementFirst(this,mdl,sign,D_U,d_Up0);
+
+                    % Set previous tangent increment of displacements as current increment
+                    d_Up0_old = d_Up0;
+
+                    % Store squared value of the norm of tangent increment of displacements
+                    n2 = d_Up0(mdl.doffree)' * d_Up0(mdl.doffree);
+                else
+                    % Generalized Stiffness Parameter
+                    GSP = n2 / (d_Up0(mdl.doffree)' * d_Up0_old(mdl.doffree));
+
+                    % Adjust increment sign
+                    if (GSP < 0)
+                        sign = -sign;
+                    end
+
+                    % Adjustment factor of increment size
+                    if (this.adjustStep == true)
+                        J = sqrt(this.trg_iter/iter);
+                    else
+                        J = 1;
+                    end
+
+                    % Predicted increment of load ratio
+                    d_lbd0 = this.method.predictedIncrement(this,mdl,sign,J,GSP,D_lbd,d_lbd0,D_U,d_Up0,Fref);
+                end
+
+                % Check increment of load ratio
+                d_lbd0 = min(d_lbd0,this.max_increment);
+
+                % Limit increment of load ratio to make total load ratio smaller than maximum value
+                if ((this.max_lratio > 0.0 && lbd + d_lbd0 > this.max_lratio) ||...
+                    (this.max_lratio < 0.0 && lbd + d_lbd0 < this.max_lratio))
+                    d_lbd0 = this.max_lratio - lbd;
+                end
+
+                % Increments of load ratio and displacements for predicted solution
+                d_lbd = d_lbd0;
+                d_U0  = d_lbd0 * d_Up0;
+                d_U   = d_U0;
+
+                % Initialize incremental values of load ratio and displacements for current step
+                D_lbd = d_lbd;
+                D_U   = d_U;
+
+                % Update total values of load ratio and displacements
+                lbd = lbd + d_lbd;
+                U   = U   + d_U;
+
+                % Start iterative process
+                iter = 1;
+                conv = 0;
+
+                while (conv == 0 && iter <= this.max_iter)
+                    % Vector of external and internal forces
+                    Fext = lbd * Fref;
+                    [~,~,Fint,~,K] = mdl.globalMatrices(U);
+
+                    % Vector of unbalanced forces
+                    R = Fext - Fint;
+
+                    % Check convergence
+                    unbNorm = norm(R(mdl.doffree));
+                    forNorm = norm(Fref(mdl.doffree));
+                    conv = (unbNorm == 0 || forNorm == 0 || unbNorm/forNorm < this.tol);
+                    if this.echo
+                        fprintf(" iter.: %3d , ||R||/||F|| = %7.3e \n",iter,unbNorm/forNorm);
+                    end
+                    if conv == 1
+                        break;
+                    end
+
+                    % Start/keep corrector phase
+                    iter = iter + 1;
+
+                    % Tangent and residual increments of displacements
+                    d_Up = this.solveSystem(mdl,K,Fref);
+                    d_Ur = this.solveSystem(mdl,K,R);
+
+                    % Corrected increment of load ratio
+                    d_lbd = this.method.correctedIncrement(this,mdl,d_lbd0,D_lbd,d_Up0_old,d_U0,d_Up,d_Ur,D_U,Fref,R);
+                    if (~isreal(d_lbd))
+                        conv = -1;
+                        break;
+                    end
+
+                    % Corrected increment of displacements
+                    d_U = d_lbd * d_Up + d_Ur;
+
+                    % Increments of load ratio and displacements for current step
+                    D_lbd = D_lbd + d_lbd;
+                    D_U   = D_U   + d_U;
+
+                    % Total values of load ratio and displacements
+                    lbd = lbd + d_lbd;
+                    U   = U   + d_U;
+                end
+
+                % Check for convergence fail or complex value of increment
+                if (conv == 0)
+                    if this.echo
+                        disp('Convergence not achieved!');
+                    end
+                    return;
+                elseif (conv == -1)
+                    if this.echo
+                        disp('Unable to compute load increment!');
+                    end
+                    return;
+                end
+                if this.echo
+                    fprintf(' Step %d converged in iteration %-3d\n',step,iter);
+                    fprintf(' Load factor: %f\n',lbd);
+                end
+
+                % Update state variables
+                mdl.updateStateVar();
+
+                % Store step results
+                this.lbdplot(step+1) = lbd;
+                this.Uplot(step+1) = U(mdl.ID(this.plotNd,this.plotDof));
+
+                % Store predicted tangent increment of displacements for next step
+                if (step ~= 1)
+                    d_Up0_old = d_Up0;
+                end
+
+                % Check if maximum load ratio was reached
+                if ((this.max_lratio >= 0 && lbd >= 0.999*this.max_lratio) ||...
+                    (this.max_lratio <= 0 && lbd <= 0.999*this.max_lratio))
+                    break;
+                end
+            end
+
+            % Clean unused steps
+            if (step < this.max_step)
+                this.lbdplot = this.lbdplot(1:step+1);
+                this.Uplot = this.Uplot(1:step+1);
+            end
+
+            % Save final result
+            mdl.U = U;
+
+            disp("*** Analysis completed!");
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Partition and solve a linear system of equations for free DOFs:
+        %  f REPLACE_WITH_DASH_DASH> free DOF (natural B.C. - unknown)
+        %  c REPLACE_WITH_DASH_DASH> constrained DOF (essential B.C. - known)
+        %
+        % [ Kff Kfs ] * [ Uf ] = [ Fext ]
+        % [ Ksf Kss ]   [ Us ] = [   R  ]
+        %
+        function [U,Fext] = solveSystem(~,mdl,K,Fext,U)
+            if nargin < 5
+                U = zeros(mdl.ndof,1);
+            end
+
+            % Partition system of equations
+            Kff = K(mdl.doffree,mdl.doffree);
+            Ff  = Fext(mdl.doffree);
+
+            % Solve system of equilibrium equations
+            Uf = Kff \ Ff;
+
+            % Displacement vector
+            U(mdl.doffree) = Uf;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Set the node and degree of freedom to be plotted.
+        function setPlotDof(this,nd,dof)
+            this.plotNd  = nd;
+            this.plotDof = dof;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Plot the load-displacement curve for the analysis.
+        function plotCurves(this)
+            figure;
+            hold on, box on, grid on, axis on;
+            plot(this.Uplot, this.lbdplot, 'o-k');
+            xlabel('Displacement (m)');
+            ylabel('Load factor');
+            set(gca,'FontSize',16);
+            set(gca,'FontName','Times');
+        end
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

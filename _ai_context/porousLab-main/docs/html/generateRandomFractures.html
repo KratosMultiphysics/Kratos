@@ -1,0 +1,288 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>generateRandomFractures</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="generateRandomFractures.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> FractureData = generateRandomFractures(Lx, Ly, nfract, Lmin, varargin)
+<span class="comment">%GENERATEFRACTURES Uniformly distributed fractures in [0,Lx]x[0,Ly].</span>
+<span class="comment">%   FractureData = generateFractures(Lx,Ly,nfract,Lmin,Name,Value,...)</span>
+<span class="comment">%   Output: cell(nfract,1), each entry is [x1 y1; x2 y2].</span>
+<span class="comment">%   Centers ~ Uniform box. Orientation theta ~ U[0,pi), measured from y-axis CCW.</span>
+<span class="comment">%   Enforces post-clipping length &gt;= Lmin.</span>
+<span class="comment">%</span>
+<span class="comment">%   Name-Value:</span>
+<span class="comment">%     'Lmax'        double, pre-clip length upper bound. Default 0.5*hypot(Lx,Ly).</span>
+<span class="comment">%     'Seed'        double or []. rng seed. Default [] (leave RNG).</span>
+<span class="comment">%     'MaxAttempts' double. Default 1000*nfract.</span>
+
+    <span class="keyword">if</span> nargin &lt; 4
+        error(<span class="string">'Provide Lx, Ly, nfract, Lmin.'</span>);
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> Lmin &lt;= 0
+        error(<span class="string">'Lmin must be &gt; 0.'</span>);
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> Lmin &gt; hypot(Lx,Ly)
+        error(<span class="string">'Lmin exceeds domain diagonal.'</span>);
+    <span class="keyword">end</span>
+
+    ip = inputParser;
+    addParameter(ip,<span class="string">'Lmax'</span>,0.5*hypot(Lx,Ly), @(x)isnumeric(x)&amp;&amp;isscalar(x)&amp;&amp;x&gt;0);
+    addParameter(ip,<span class="string">'Seed'</span>,[], @(x)isempty(x)||(isnumeric(x)&amp;&amp;isscalar(x)));
+    addParameter(ip,<span class="string">'MaxAttempts'</span>,1000*nfract, @(x)isnumeric(x)&amp;&amp;isscalar(x)&amp;&amp;x&gt;0);
+    parse(ip,varargin{:});
+    Lmax        = ip.Results.Lmax;
+    seed        = ip.Results.Seed;
+    maxAttempts = ip.Results.MaxAttempts;
+
+    <span class="keyword">if</span> Lmax &lt; Lmin
+        error(<span class="string">'Lmax must be &gt;= Lmin.'</span>);
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isempty(seed)
+        rng(seed);
+    <span class="keyword">end</span>
+
+    FractureData = cell(nfract,1);
+    accepted = 0; attempts = 0;
+
+    <span class="keyword">while</span> accepted &lt; nfract &amp;&amp; attempts &lt; maxAttempts
+        attempts = attempts + 1;
+
+        <span class="comment">% Uniform center</span>
+        cx = Lx * rand();
+        cy = Ly * rand();
+
+        <span class="comment">% Orientation from y-axis</span>
+        theta = pi * rand();                 <span class="comment">% U[0,pi)</span>
+        u     = [sin(theta), cos(theta)];    <span class="comment">% unit direction</span>
+
+        <span class="comment">% Pre-clip half-length</span>
+        ell = Lmin + (Lmax - Lmin) * rand();
+        h   = 0.5 * ell;
+
+        <span class="comment">% Endpoints before clipping</span>
+        p1 = [cx, cy] - h * u;
+        p2 = [cx, cy] + h * u;
+
+        <span class="comment">% Clip</span>
+        [q1, q2, ok] = clipSegmentToRect(p1, p2, Lx, Ly);
+        <span class="keyword">if</span> ~ok, <span class="keyword">continue</span>; <span class="keyword">end</span>
+
+        <span class="comment">% Enforce minimum post-clip length</span>
+        <span class="keyword">if</span> norm(q2 - q1) &gt;= Lmin
+            accepted = accepted + 1;
+            FractureData{accepted} = [q1; q2];
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> accepted &lt; nfract
+        warning(<span class="string">'Generated %d of %d fractures. Increase MaxAttempts or reduce Lmin.'</span>, accepted, nfract);
+        FractureData = FractureData(1:accepted);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% ---------- helpers ----------</span>
+<span class="keyword">function</span> [q1, q2, ok] = clipSegmentToRect(p1, p2, Lx, Ly)
+<span class="comment">% Liang&#8211;Barsky clipping to [0,Lx]x[0,Ly]</span>
+    d = p2 - p1;
+    p = [-d(1),  d(1), -d(2),  d(2)];
+    q = [ p1(1), Lx - p1(1),  p1(2), Ly - p1(2)];
+
+    u1 = 0; u2 = 1; ok = true;
+    <span class="keyword">for</span> i = 1:4
+        <span class="keyword">if</span> p(i) == 0
+            <span class="keyword">if</span> q(i) &lt; 0, ok = false; <span class="keyword">return</span>; <span class="keyword">end</span>
+        <span class="keyword">else</span>
+            r = q(i)/p(i);
+            <span class="keyword">if</span> p(i) &lt; 0
+                <span class="keyword">if</span> r &gt; u2, ok = false; <span class="keyword">return</span>; <span class="keyword">end</span>
+                <span class="keyword">if</span> r &gt; u1, u1 = r; <span class="keyword">end</span>
+            <span class="keyword">else</span>
+                <span class="keyword">if</span> r &lt; u1, ok = false; <span class="keyword">return</span>; <span class="keyword">end</span>
+                <span class="keyword">if</span> r &lt; u2, u2 = r; <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    q1 = p1 + u1 * d;
+    q2 = p1 + u2 * d;
+
+    <span class="comment">% Clamp</span>
+    q1 = [min(max(q1(1),0.0),Lx), min(max(q1(2),0.0),Ly)];
+    q2 = [min(max(q2(1),0.0),Lx), min(max(q2(2),0.0),Ly)];
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function FractureData = generateRandomFractures(Lx, Ly, nfract, Lmin, varargin)
+%GENERATEFRACTURES Uniformly distributed fractures in [0,Lx]x[0,Ly].
+%   FractureData = generateFractures(Lx,Ly,nfract,Lmin,Name,Value,...)
+%   Output: cell(nfract,1), each entry is [x1 y1; x2 y2].
+%   Centers ~ Uniform box. Orientation theta ~ U[0,pi), measured from y-axis CCW.
+%   Enforces post-clipping length >= Lmin.
+%
+%   Name-Value:
+%     'Lmax'        double, pre-clip length upper bound. Default 0.5*hypot(Lx,Ly).
+%     'Seed'        double or []. rng seed. Default [] (leave RNG).
+%     'MaxAttempts' double. Default 1000*nfract.
+
+    if nargin < 4
+        error('Provide Lx, Ly, nfract, Lmin.');
+    end
+    if Lmin <= 0
+        error('Lmin must be > 0.');
+    end
+    if Lmin > hypot(Lx,Ly)
+        error('Lmin exceeds domain diagonal.');
+    end
+
+    ip = inputParser;
+    addParameter(ip,'Lmax',0.5*hypot(Lx,Ly), @(x)isnumeric(x)&&isscalar(x)&&x>0);
+    addParameter(ip,'Seed',[], @(x)isempty(x)||(isnumeric(x)&&isscalar(x)));
+    addParameter(ip,'MaxAttempts',1000*nfract, @(x)isnumeric(x)&&isscalar(x)&&x>0);
+    parse(ip,varargin{:});
+    Lmax        = ip.Results.Lmax;
+    seed        = ip.Results.Seed;
+    maxAttempts = ip.Results.MaxAttempts;
+
+    if Lmax < Lmin
+        error('Lmax must be >= Lmin.');
+    end
+    if ~isempty(seed)
+        rng(seed);
+    end
+
+    FractureData = cell(nfract,1);
+    accepted = 0; attempts = 0;
+
+    while accepted < nfract && attempts < maxAttempts
+        attempts = attempts + 1;
+
+        % Uniform center
+        cx = Lx * rand();
+        cy = Ly * rand();
+
+        % Orientation from y-axis
+        theta = pi * rand();                 % U[0,pi)
+        u     = [sin(theta), cos(theta)];    % unit direction
+
+        % Pre-clip half-length
+        ell = Lmin + (Lmax - Lmin) * rand();
+        h   = 0.5 * ell;
+
+        % Endpoints before clipping
+        p1 = [cx, cy] - h * u;
+        p2 = [cx, cy] + h * u;
+
+        % Clip
+        [q1, q2, ok] = clipSegmentToRect(p1, p2, Lx, Ly);
+        if ~ok, continue; end
+
+        % Enforce minimum post-clip length
+        if norm(q2 - q1) >= Lmin
+            accepted = accepted + 1;
+            FractureData{accepted} = [q1; q2];
+        end
+    end
+
+    if accepted < nfract
+        warning('Generated %d of %d fractures. Increase MaxAttempts or reduce Lmin.', accepted, nfract);
+        FractureData = FractureData(1:accepted);
+    end
+end
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH helpers REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+function [q1, q2, ok] = clipSegmentToRect(p1, p2, Lx, Ly)
+% Liang–Barsky clipping to [0,Lx]x[0,Ly]
+    d = p2 - p1;
+    p = [-d(1),  d(1), -d(2),  d(2)];
+    q = [ p1(1), Lx - p1(1),  p1(2), Ly - p1(2)];
+
+    u1 = 0; u2 = 1; ok = true;
+    for i = 1:4
+        if p(i) == 0
+            if q(i) < 0, ok = false; return; end
+        else
+            r = q(i)/p(i);
+            if p(i) < 0
+                if r > u2, ok = false; return; end
+                if r > u1, u1 = r; end
+            else
+                if r < u1, ok = false; return; end
+                if r < u2, u2 = r; end
+            end
+        end
+    end
+
+    q1 = p1 + u1 * d;
+    q2 = p1 + u2 * d;
+
+    % Clamp
+    q1 = [min(max(q1(1),0.0),Lx), min(max(q1(2),0.0),Ly)];
+    q2 = [min(max(q2(1),0.0),Lx), min(max(q2(2),0.0),Ly)];
+end
+
+##### SOURCE END #####
+--></body></html>

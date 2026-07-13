@@ -1,0 +1,328 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Shape_Bar Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="Shape_Bar.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Shape_Bar Class</h1><!--introduction--><p>This class inherits from the base class 'Shape' to implement the behavior of a linear bar isoparametric element.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Authors</a></li><li><a href="#2">Class Definition</a></li><li><a href="#3">Constructor method</a></li><li><a href="#4">Public methods</a></li></ul></div><h2 id="1">Authors</h2><div><ul><li>Danilo Cavalcanti (<a href="mailto:dborges@cimne.upc.edu">dborges@cimne.upc.edu</a>)</li></ul></div><h2 id="2">Class Definition</h2><pre class="codeinput"><span class="keyword">classdef</span> Shape_Bar &lt; Shape
+</pre><h2 id="3">Constructor method</h2><pre class="codeinput">    methods
+        <span class="keyword">function</span> this = Shape_Bar()
+            this = this@Shape(<span class="string">'Bar'</span>);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="4">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Evaluate the shape function at a given point X of a linear quadrilateral isoparametric element.</span>
+         <span class="keyword">function</span> N = shapeFnc(~,Xn)
+            <span class="comment">% Natural coordinates of the given point</span>
+            s = Xn(1);
+
+            <span class="comment">% Shape functions</span>
+            N1 = (1.0 - s)/2.0;
+            N2 = (1.0 + s)/2.0;
+            N  = [ N1  N2 ];
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Get the shape function matrix.</span>
+         <span class="keyword">function</span> Nm = shapeFncMtrx(this,Xn)
+             <span class="comment">% Vector with the shape functions</span>
+             N = this.shapeFnc(Xn);
+
+             <span class="comment">% Shape function matrix</span>
+             Nm = [N(1)  0.0   N(2)  0.0 ;
+                   0.0   N(1)  0.0   N(2)];
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Compute the derivatives of the shape functions wrt to the natural coordinate s.</span>
+         <span class="keyword">function</span> dNdxn = shapeFncDrv(~,~)
+            dNdxn = [ -0.5  0.5];
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Compute the jacobian matrix.</span>
+         <span class="keyword">function</span> J = JacobianMtrx(this,X,Xn)
+            <span class="comment">% Compute the shape function derivatives wrt to the natural</span>
+            <span class="comment">% coordinate system</span>
+            dNdxn = this.shapeFncDrv(Xn);
+
+            <span class="comment">% Jacobian matrix</span>
+            J = dNdxn*X;
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Compute the determinant of the jacobian.</span>
+         <span class="keyword">function</span> detJ = detJacobian(this,X,Xn)
+            <span class="comment">% Jacobian matrix</span>
+            J = this.JacobianMtrx(X,Xn);
+            detJ = norm(J);
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Compute the derivatives of the shape functions matrix.</span>
+         <span class="keyword">function</span> [dNdx,detJ] = dNdxMatrix(this,X,Xn)
+            <span class="comment">% Geometry</span>
+            dNdxn = this.shapeFncDrv(Xn);   <span class="comment">% 1x2</span>
+            detJ = this.detJacobian(X,Xn);
+            <span class="keyword">if</span> detJ &lt;= eps
+                error(<span class="string">'Shape_Bar:dNdxMatrix:DegenerateElement'</span>, <span class="keyword">...</span>
+                      <span class="string">'Degenerate bar element: node coordinates are coincident or very close.'</span>);
+            <span class="keyword">end</span>
+
+            dNdx = (dNdxn / detJ);   <span class="comment">% 1x2</span>
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Get the integration points:</span>
+         <span class="comment">% Output:</span>
+         <span class="comment">%  X: Coordinates of the integration points in the natural system</span>
+         <span class="comment">%  w: Weight associated to each integration point</span>
+         <span class="comment">%  nIntPoints: Total number of integration points</span>
+         <span class="keyword">function</span> [X,w,nIntPoints] = getIntegrationPoints(~,intOrder,~)
+             <span class="keyword">if</span> intOrder == 0
+                 X = 0.0;
+                 w = 2.0;
+                 nIntPoints = 1;
+             <span class="keyword">elseif</span> intOrder == 1
+                 <span class="comment">% X          = [-0.577350269189626 0.577350269189626];</span>
+                 X          = [-1.0, 1.0];
+                 w          = [ 1.0, 1.0];
+                 nIntPoints = 2;
+             <span class="keyword">elseif</span> intOrder == 2
+                 X          = [-1.0 , 0.0, 1.0];
+                 w          = [ 0.5, 1.0, 0.5];
+                 nIntPoints = 3;
+             <span class="keyword">elseif</span> intOrder == 3
+                 X          = [-1.0 , -1/3, 1/3, 1.0];
+                 w          = [ 1/3, 4/3 , 4/3, 1/3];
+                 nIntPoints = 4;
+             <span class="keyword">end</span>
+         <span class="keyword">end</span>
+
+         <span class="comment">%------------------------------------------------------------------</span>
+         <span class="comment">% Transform a point from the natural coordinate system to the</span>
+         <span class="comment">% global cartesian coordinate system</span>
+         <span class="comment">% Input:</span>
+         <span class="comment">%   NODE : matrix with the x and y coordinates of the nodes of a</span>
+         <span class="comment">%          bar element</span>
+         <span class="comment">%   Xn   : vector with the xi and eta coordinates of a point in</span>
+         <span class="comment">%          the natural coordinate system</span>
+         <span class="comment">%</span>
+         <span class="comment">% Output:</span>
+         <span class="comment">%   X : vector with the x and y coordinates of a point in the</span>
+         <span class="comment">%       global coordinate system</span>
+         <span class="keyword">function</span> X = coordNaturalToCartesian(this,NODE,Xn)
+            Nv = this.shapeFnc(Xn);  <span class="comment">% 1x2</span>
+            X = Nv * NODE;           <span class="comment">% 1x2</span>
+         <span class="keyword">end</span>
+
+         <span class="comment">% ----------------------------------------------------------------</span>
+         <span class="comment">% Transform a point from the natural coordinate system to the</span>
+         <span class="comment">% global cartesian coordinate system</span>
+         <span class="comment">% MUST BE IMPLEMENTED.</span>
+         <span class="keyword">function</span> Xn = coordCartesianToNatural(~,~,~)
+            Xn = [];
+         <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Shape_Bar Class
+% This class inherits from the base class 'Shape' to implement the behavior of a linear bar isoparametric element.
+%
+%% Authors
+% * Danilo Cavalcanti (dborges@cimne.upc.edu)
+%
+%% Class Definition
+classdef Shape_Bar < Shape
+    %% Constructor method
+    methods
+        function this = Shape_Bar()
+            this = this@Shape('Bar');
+        end
+    end
+
+    %% Public methods
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Evaluate the shape function at a given point X of a linear quadrilateral isoparametric element.
+         function N = shapeFnc(~,Xn)
+            % Natural coordinates of the given point
+            s = Xn(1);
+
+            % Shape functions
+            N1 = (1.0 - s)/2.0;
+            N2 = (1.0 + s)/2.0;
+            N  = [ N1  N2 ];
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Get the shape function matrix.
+         function Nm = shapeFncMtrx(this,Xn)
+             % Vector with the shape functions
+             N = this.shapeFnc(Xn);
+
+             % Shape function matrix
+             Nm = [N(1)  0.0   N(2)  0.0 ;
+                   0.0   N(1)  0.0   N(2)];
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Compute the derivatives of the shape functions wrt to the natural coordinate s.
+         function dNdxn = shapeFncDrv(~,~)
+            dNdxn = [ -0.5  0.5];
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Compute the jacobian matrix.
+         function J = JacobianMtrx(this,X,Xn)
+            % Compute the shape function derivatives wrt to the natural
+            % coordinate system
+            dNdxn = this.shapeFncDrv(Xn);
+
+            % Jacobian matrix
+            J = dNdxn*X;
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Compute the determinant of the jacobian.
+         function detJ = detJacobian(this,X,Xn)
+            % Jacobian matrix
+            J = this.JacobianMtrx(X,Xn);
+            detJ = norm(J);
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Compute the derivatives of the shape functions matrix.
+         function [dNdx,detJ] = dNdxMatrix(this,X,Xn)
+            % Geometry
+            dNdxn = this.shapeFncDrv(Xn);   % 1x2
+            detJ = this.detJacobian(X,Xn);
+            if detJ <= eps
+                error('Shape_Bar:dNdxMatrix:DegenerateElement', ...
+                      'Degenerate bar element: node coordinates are coincident or very close.');
+            end
+
+            dNdx = (dNdxn / detJ);   % 1x2
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Get the integration points:
+         % Output:
+         %  X: Coordinates of the integration points in the natural system
+         %  w: Weight associated to each integration point
+         %  nIntPoints: Total number of integration points
+         function [X,w,nIntPoints] = getIntegrationPoints(~,intOrder,~)
+             if intOrder == 0
+                 X = 0.0;
+                 w = 2.0;
+                 nIntPoints = 1;
+             elseif intOrder == 1
+                 % X          = [-0.577350269189626 0.577350269189626];
+                 X          = [-1.0, 1.0];
+                 w          = [ 1.0, 1.0];
+                 nIntPoints = 2;
+             elseif intOrder == 2
+                 X          = [-1.0 , 0.0, 1.0];
+                 w          = [ 0.5, 1.0, 0.5];
+                 nIntPoints = 3;
+             elseif intOrder == 3
+                 X          = [-1.0 , -1/3, 1/3, 1.0];
+                 w          = [ 1/3, 4/3 , 4/3, 1/3];
+                 nIntPoints = 4;
+             end
+         end
+
+         %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Transform a point from the natural coordinate system to the
+         % global cartesian coordinate system
+         % Input:
+         %   NODE : matrix with the x and y coordinates of the nodes of a
+         %          bar element
+         %   Xn   : vector with the xi and eta coordinates of a point in
+         %          the natural coordinate system
+         %
+         % Output:
+         %   X : vector with the x and y coordinates of a point in the
+         %       global coordinate system
+         function X = coordNaturalToCartesian(this,NODE,Xn)
+            Nv = this.shapeFnc(Xn);  % 1x2
+            X = Nv * NODE;           % 1x2
+         end
+
+         % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+         % Transform a point from the natural coordinate system to the
+         % global cartesian coordinate system
+         % MUST BE IMPLEMENTED.
+         function Xn = coordCartesianToNatural(~,~,~)
+            Xn = [];
+         end
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

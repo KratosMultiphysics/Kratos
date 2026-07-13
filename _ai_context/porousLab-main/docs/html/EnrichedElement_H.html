@@ -1,0 +1,806 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>EnrichedElement_H class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="EnrichedElement_H.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>EnrichedElement_H class</h1><!--introduction--><p>This class extends the <i>RegularElement_H</i> class to define a finite element for single-phase fluid flow that incorporates enriched elements to handle discontinuities. It provides methods to compute element data, manage discontinuities, and calculate enriched degrees of freedom.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class definition</a></li><li><a href="#5">Public attributes</a></li><li><a href="#6">Constructor method</a></li><li><a href="#7">Public methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>elementData</b>: Computes the element data (stiffness matrix, damping                  matrix, internal force vector, external force vector,                  and derivative of internal force vector) based on                  whether the element has discontinuities.</li><li><b>getDiscontinuitiesData</b>: Computes the stiffness matrix and force                             vector contributions from the                             discontinuities.</li><li><b>getNumberEnrichedDofs</b>: Returns the total number of enriched degrees                            of freedom.</li><li><b>getNumberOfDiscontinuities</b>: Returns the number of discontinuities                                 associated with the element.</li><li><b>getNumberOfDofPerDiscontinuity</b>: Returns the number of degrees of                                     freedom per discontinuity,                                     considering the enabled enrichment                                     modes.</li><li><b>addDiscontinuitySegment</b>: Adds a discontinuity segment to the element.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class definition</h2><pre class="codeinput"><span class="keyword">classdef</span> EnrichedElement_H &lt; RegularElement_H
+</pre><h2 id="5">Public attributes</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        discontinuity = [];
+        condenseInternalPressure = false;
+    <span class="keyword">end</span>
+</pre><h2 id="6">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = EnrichedElement_H(node, elem, t, <span class="keyword">...</span>
+                mat, intOrder, glu, massLumping, lumpStrategy, <span class="keyword">...</span>
+                isAxisSymmetric)
+            this = this@RegularElement_H(node, elem, t, <span class="keyword">...</span>
+                mat, intOrder, glu, massLumping, lumpStrategy, <span class="keyword">...</span>
+                isAxisSymmetric);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="7">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Computes the element data for the current element based on whether</span>
+        <span class="comment">% the element contains a discontinuity or not.</span>
+        <span class="comment">%</span>
+        <span class="comment">% Outputs:</span>
+        <span class="comment">%   Ke    - Element stiffness matrix.</span>
+        <span class="comment">%   Ce    - Element damping matrix.</span>
+        <span class="comment">%   fi    - Internal force vector.</span>
+        <span class="comment">%   fe    - External force vector.</span>
+        <span class="comment">%   dfidu - Derivative of internal force with respect to</span>
+        <span class="comment">%           displacement.</span>
+        <span class="keyword">function</span> [Ke, Ce, fi, fe, dfidu] = elementData(this)
+
+           dfidu = zeros(this.ngle);
+           <span class="keyword">if</span> isempty(this.discontinuity)
+               <span class="comment">% Get the continuum contribution</span>
+               [Ke, Ce, fi, fe] = elementData@RegularElement_H(this);
+           <span class="keyword">else</span>
+               <span class="comment">% Compute contribution of the continuum</span>
+               [Hcc, Hcj, Hjc, Hjj, Scc, Scj, Sjc, Sjj, fic, fij, fec, fej] = this.fillElementSubData();
+
+               <span class="comment">% Compute contribution of the discontinuity</span>
+               [Hdd, Sdd, Lcc, Lcj, Lcd, Ljc, Ljj, Ljd, Ldc, Ldj, Ldd, Tdc, Tdj] = getDiscontinuitiesData(this);
+
+               <span class="comment">% Zero auxiliary matrices</span>
+               Ocd = zeros(this.nglp, size(Hdd,1));
+               Ojd = zeros(size(Hjj,1), size(Hdd,1));
+               od  = zeros(size(Hdd,1),1);
+
+               <span class="comment">% Add contribution of the coupling matrices</span>
+               Hcc = Hcc + Lcc;
+               Hcj = Hcj + Lcj;
+               Hjc = Hjc + Ljc;
+               Hjj = Hjj + Ljj;
+               Hdd = Hdd + Ldd;
+
+               <span class="comment">% Assemble matrices</span>
+               Ke = [  Hcc,  Hcj, -Lcd;
+                       Hjc,  Hjj, -Ljd;
+                      -Ldc, -Ldj,  Hdd];
+
+               Ce = [ Scc,  Scj,  Ocd;
+                      Sjc,  Sjj,  Ojd;
+                      Ocd', Ojd', Sdd];
+
+               fi = [fic; fij; od];
+
+               fe = [fec; fej; od];
+
+               <span class="comment">% Condense the internal pressure dofs</span>
+               <span class="keyword">if</span> this.condenseInternalPressure
+                   T = this.condensationMatrix(Tdc, Tdj);
+                   Ke = T' * Ke * T;
+                   Ce = T' * Ce * T;
+                   fi = T' * fi;
+                   fe = T' * fe;
+               <span class="keyword">end</span>
+
+
+           <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Computes and assembles the sub-matrices and sub-vectors for an</span>
+        <span class="comment">% enriched finite element</span>
+        <span class="keyword">function</span> [Hcc, Hcj, Hjc, Hjj, Scc, Scj, Sjc, Sjj, fic, fij, fec, fej] = fillElementSubData(this)
+
+            <span class="comment">% Each discontinuity has a pressure jump dof</span>
+            nPJumpDofs = this.getNumberOfDiscontinuities();
+
+            <span class="comment">% Initialize fluid-flow sub-matrices</span>
+            Hcc = zeros(this.nglp , this.nglp);
+            Hcj = zeros(this.nglp , nPJumpDofs);
+            Hjc = zeros(nPJumpDofs, this.nglp);
+            Hjj = zeros(nPJumpDofs, nPJumpDofs);
+
+            <span class="comment">% Initialize compressibity sub-matrices</span>
+            Scc = zeros(this.nglp , this.nglp);
+            Scj = zeros(this.nglp , nPJumpDofs);
+            Sjc = zeros(nPJumpDofs, this.nglp);
+            Sjj = zeros(nPJumpDofs, nPJumpDofs);
+
+            <span class="comment">% Initialize external force vector</span>
+            fec = zeros(this.nglp, 1);
+            fej = zeros(nPJumpDofs, 1);
+
+            <span class="comment">% Initialize internal force vector</span>
+            fic = zeros(this.nglp, 1);
+            fij = zeros(nPJumpDofs, 1);
+
+            <span class="comment">% Vector of the nodal dofs</span>
+            pl = this.getNodalPressure();
+
+            <span class="comment">% Numerical integration of the sub-matrices</span>
+            <span class="keyword">for</span> i = 1:this.nIntPoints
+
+                <span class="comment">% Shape function matrix</span>
+                Np = this.shape.shapeFncMtrx(this.intPoint(i).X);
+
+                <span class="comment">% Cartesian coordinates of the integration point</span>
+                Xcar = this.shape.coordNaturalToCartesian(this.node,this.intPoint(i).X);
+
+                <span class="comment">% Enriched shape function matrix</span>
+                Npenr = this.enrichedShapeFncMtrx(Np, Xcar);
+
+                <span class="comment">% Compute the B matrix at the int. point and the detJ</span>
+                [Bp, detJ] = this.shape.dNdxMatrix(this.node,this.intPoint(i).X);
+
+                <span class="comment">% Compute the G matrix</span>
+                G = this.Gmatrix(Bp);
+
+                <span class="comment">% Pressure values at the integration point</span>
+                pIP = Np * pl;
+
+                <span class="comment">% Compute the permeability matrix</span>
+                kh = permeabilityTensor(this, i);
+
+                <span class="comment">% Get compressibility coefficient</span>
+                comp = this.intPoint(i).constitutiveMdl.compressibilityCoeff();
+
+                <span class="comment">% Numerical integration coefficient</span>
+                c = this.intPoint(i).w * detJ * this.t;
+                <span class="keyword">if</span> this.isAxisSymmetric
+                    c = c * this.shape.axisSymmetricFactor(Np,this.node);
+                <span class="keyword">end</span>
+
+                <span class="comment">% Compute permeability sub-matrices</span>
+                Hcc = Hcc + Bp' * kh * Bp * c;
+                Hcj = Hcj + Bp' * kh * G  * c;
+                Hjc = Hjc + G'  * kh * Bp * c;
+                Hjj = Hjj + G'  * kh * G  * c;
+
+                <span class="comment">% Compute compressibility matrices</span>
+                Scc = Scc + Np'    * comp * Np    * c;
+                Scj = Scj + Np'    * comp * Npenr * c;
+                Sjc = Sjc + Npenr' * comp * Np    * c;
+                Sjj = Sjj + Npenr' * comp * Npenr * c;
+
+                <span class="comment">% Compute the gravity forces</span>
+                <span class="keyword">if</span> (this.gravityOn)
+                    fec = this.addGravityForces(fec,Bp,kh,pIP,c);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> Kxy = permeabilityTensor(this, ip_id)
+            Kxy = this.intPoint(ip_id).constitutiveMdl.permeabilityTensor();
+            nDiscontinuities  = this.getNumberOfDiscontinuities();
+            <span class="comment">% Loop through the discontinuities</span>
+            <span class="keyword">for</span> i = 1:nDiscontinuities
+                R = this.discontinuity(i).rotationFromGlobalToLocal();
+                <span class="comment">% Rotate the permeability tensor</span>
+                Kmn = R * Kxy * R';
+                <span class="comment">% Apply transversal permeability coefficient</span>
+                kt = this.discontinuity(i).mat.transversalPermeability;
+                kt = min(max(kt, 0.0), 1.0);
+                Kmn(2,2) = kt * Kmn(2,2);
+                <span class="comment">% Rotate back to the cartesian system</span>
+                Kxy = R' * Kmn * R;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Internal pressure dof condensation matrix</span>
+        <span class="keyword">function</span> T = condensationMatrix(this, Tdc, Tdj)
+            <span class="comment">% Number of dofs of each type</span>
+            ndof_c = this.nglp;
+            ndof_j = size(Tdc, 2);
+            <span class="comment">% Auxiliary matrices</span>
+            Icc = eye(ndof_c);
+            Ijj = eye(ndof_j);
+            Ocj = zeros(ndof_c, ndof_j);
+            <span class="comment">% Condensation matrix</span>
+            T = [ Icc , Ocj;
+                  Ocj', Ijj;
+                  Tdc, Tdj];
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Computes the stiffness matrix and force vector contributions</span>
+        <span class="comment">% from discontinuities in the enriched element</span>
+        <span class="keyword">function</span> [Hdd, Sdd, Lcc, Lcj, Lcd, Ljc, Ljj, Ljd, Ldc, Ldj, Ldd, Tdc, Tdj] = getDiscontinuitiesData(this)
+
+            nDiscontinuities  = this.getNumberOfDiscontinuities();
+            nPJumpDofs        = nDiscontinuities;
+            nPIntDofs         = nDiscontinuities * 2;
+
+            <span class="comment">% Initialize the output data</span>
+            Hdd = zeros(nPIntDofs,nPIntDofs);
+            Sdd = zeros(nPIntDofs,nPIntDofs);
+
+            <span class="comment">% Flow coupling matrices</span>
+            Lcc = zeros(this.nglp  , this.nglp);
+            Lcj = zeros(this.nglp  , nPJumpDofs);
+            Lcd = zeros(this.nglp  , nPIntDofs);
+            Ljc = zeros(nPJumpDofs , this.nglp);
+            Ljj = zeros(nPJumpDofs , nPJumpDofs);
+            Ljd = zeros(nPJumpDofs , nPIntDofs);
+            Ldc = zeros(nPIntDofs  , this.nglp);
+            Ldj = zeros(nPIntDofs  , nPJumpDofs);
+            Ldd = zeros(nPIntDofs  , nPIntDofs);
+
+            <span class="comment">% Condensation matrices</span>
+            Tdc = zeros(nPIntDofs,this.nglp);
+            Tdj = zeros(nPIntDofs,nPJumpDofs);
+
+            <span class="comment">% Loop through the discontinuities</span>
+            <span class="keyword">for</span> i = 1:nDiscontinuities
+
+                <span class="comment">% Internal pressure dofs associated with this discontinuity segment</span>
+                pint_dofs = 2*(i-1)+1 : 2*i;
+
+                <span class="comment">% Get the discontinuity data</span>
+                [Hddi, Sddi, Lcci, Lcji, Lcdi, Ljci, Ljji, Ljdi, Ldci, Ldji, Lddi,~,~,~] = this.discontinuity(i).elementData(this,i);
+
+                <span class="comment">% Assemble the contribution of this discontinuity</span>
+                Hdd(pint_dofs,pint_dofs) = Hdd(pint_dofs,pint_dofs) + Hddi;
+                Sdd(pint_dofs,pint_dofs) = Sdd(pint_dofs,pint_dofs) + Sddi;
+                Lcc = Lcc + Lcci;
+                Lcj(:,i) = Lcj(:,i) + Lcji;
+                Lcd(:,pint_dofs) = Lcd(:,pint_dofs) + Lcdi;
+                Ljc(i,:) = Ljc(i,:) + Ljci;
+                Ljj(i,i) = Ljj(i,i) + Ljji;
+                Ljd(i,pint_dofs) = Ljd(i,pint_dofs) + Ljdi;
+                Ldc(pint_dofs,:) = Ldc(pint_dofs,:) + Ldci;
+                Ldj(pint_dofs,i) = Ldj(pint_dofs,i) + Ldji;
+                Ldd(pint_dofs,pint_dofs) = Ldd(pint_dofs,pint_dofs) + Lddi;
+
+
+                <span class="comment">% Loop through the nodes of the discontinuity to fill the</span>
+                <span class="comment">% condensation matrix</span>
+                <span class="keyword">for</span> j = 1:2
+                    X = this.discontinuity(i).node(j,:);
+                    Xn = this.shape.coordCartesianToNatural(this.node,X);
+                    Np = this.shape.shapeFncMtrx(Xn);
+                    Tdc(pint_dofs(j),:) = Np;
+                    Nenr_i = this.enrichedShapeFncValues(i, Np, X);
+                    Tdj(pint_dofs(j),i) = 0.5 * (Nenr_i(2) + Nenr_i(3));
+                <span class="keyword">end</span>
+
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Gets the number of enriched degrees of freedom</span>
+        <span class="keyword">function</span> nEnrDof = getNumberEnrichedDofs(this)
+            nEnrDof = this.getNumberOfDiscontinuities();
+            nEnrDof = nEnrDof * this.getNumberOfDofPerDiscontinuity();
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Obtain the number of discontinuities</span>
+        <span class="keyword">function</span> n = getNumberOfDiscontinuities(this)
+            n = size(this.discontinuity,1);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Calculates the number of degrees of freedom per discontinuity for</span>
+        <span class="comment">% the enriched element</span>
+        <span class="keyword">function</span> n = getNumberOfDofPerDiscontinuity(this)
+            n = 2;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Adds a discontinuity segment to the element</span>
+        <span class="keyword">function</span> addDiscontinuitySegment(this,dseg)
+            this.discontinuity = [this.discontinuity; dseg];
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Adds the discontinuities dofs to the element dof vector</span>
+        <span class="keyword">function</span> addEnrichmentToDofVector(this)
+            nDiscontinuities = this.getNumberOfDiscontinuities();
+            dof_j = []; dof_d = [];
+            <span class="keyword">for</span> i = 1:nDiscontinuities
+                dof_j = [dof_j, this.discontinuity(i).dof(1)];
+                dof_d = [dof_d, this.discontinuity(i).dof(2:end)];
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> isempty(dof_j)||isempty(dof_d)
+                <span class="keyword">return</span>
+            <span class="keyword">end</span>
+            this.gle = [this.gle, dof_j, dof_d];
+            this.ngle = length(this.gle);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the enrichment shape function matrix</span>
+        <span class="keyword">function</span> Nenr = enrichedShapeFncMtrx(this, N, Xcar)
+            nDiscontinuities  = this.getNumberOfDiscontinuities();
+            Nenr = zeros(1,nDiscontinuities);  <span class="comment">% Each discontinuity has a pressure jump dof</span>
+            <span class="keyword">for</span> i = 1:nDiscontinuities
+                Nenr_i = this.enrichedShapeFncValues(i, N, Xcar);
+                Nenr(i) = Nenr_i(1);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the enrichment shape function values of a discontinuity</span>
+        <span class="keyword">function</span> Nenr_i = enrichedShapeFncValues(this, id, N, Xcar)
+            phi = 0.0;
+            h = this.discontinuity(id).heaviside(Xcar);
+            <span class="keyword">for</span> j = 1:this.nnd_el
+                Xj = this.node(j,:);
+                hj = this.discontinuity(id).heaviside(Xj);
+                <span class="keyword">if</span> (hj &gt; 0.0)
+                    phi = phi + N(:, j);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            Nenr_i = [h-phi;
+                       -phi;        <span class="comment">% Nbot</span>
+                      1.0-phi];     <span class="comment">% Ntop</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the gradient enrichment matrix</span>
+        <span class="keyword">function</span> G = Gmatrix(this, Bu)
+            nDiscontinuities  = this.getNumberOfDiscontinuities();
+            G = zeros(2,nDiscontinuities);  <span class="comment">% Each discontinuity has a pressure jump dof</span>
+            <span class="keyword">for</span> i = 1:nDiscontinuities
+                <span class="keyword">for</span> j = 1:this.nnd_el
+                    Xj = this.node(j,:);
+                    h = this.discontinuity(i).heaviside(Xj);
+                    <span class="keyword">if</span> (h &gt; 0.0)
+                        G(:,i) = G(:,i) - Bu(:, j);
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+        <span class="comment">%------------------------------------------------------------------</span>
+
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% EnrichedElement_H class
+% This class extends the _RegularElement_H_ class to define a finite
+% element for single-phase fluid flow that incorporates enriched elements
+% to handle discontinuities. It provides methods to compute element data,
+% manage discontinuities, and calculate enriched degrees of freedom.
+%
+%% Methods
+% * *elementData*: Computes the element data (stiffness matrix, damping
+%                  matrix, internal force vector, external force vector,
+%                  and derivative of internal force vector) based on
+%                  whether the element has discontinuities.
+% * *getDiscontinuitiesData*: Computes the stiffness matrix and force
+%                             vector contributions from the
+%                             discontinuities.
+% * *getNumberEnrichedDofs*: Returns the total number of enriched degrees
+%                            of freedom.
+% * *getNumberOfDiscontinuities*: Returns the number of discontinuities
+%                                 associated with the element.
+% * *getNumberOfDofPerDiscontinuity*: Returns the number of degrees of
+%                                     freedom per discontinuity,
+%                                     considering the enabled enrichment
+%                                     modes.
+% * *addDiscontinuitySegment*: Adds a discontinuity segment to the element.
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class definition
+classdef EnrichedElement_H < RegularElement_H
+    %% Public attributes
+    properties (SetAccess = public, GetAccess = public)
+        discontinuity = [];
+        condenseInternalPressure = false;
+    end
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = EnrichedElement_H(node, elem, t, ...
+                mat, intOrder, glu, massLumping, lumpStrategy, ...
+                isAxisSymmetric)
+            this = this@RegularElement_H(node, elem, t, ...
+                mat, intOrder, glu, massLumping, lumpStrategy, ...
+                isAxisSymmetric);
+        end
+    end
+
+    %% Public methods
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Computes the element data for the current element based on whether
+        % the element contains a discontinuity or not.
+        %
+        % Outputs:
+        %   Ke    - Element stiffness matrix.
+        %   Ce    - Element damping matrix.
+        %   fi    - Internal force vector.
+        %   fe    - External force vector.
+        %   dfidu - Derivative of internal force with respect to
+        %           displacement.
+        function [Ke, Ce, fi, fe, dfidu] = elementData(this)
+
+           dfidu = zeros(this.ngle);
+           if isempty(this.discontinuity)
+               % Get the continuum contribution
+               [Ke, Ce, fi, fe] = elementData@RegularElement_H(this);
+           else
+               % Compute contribution of the continuum
+               [Hcc, Hcj, Hjc, Hjj, Scc, Scj, Sjc, Sjj, fic, fij, fec, fej] = this.fillElementSubData();
+
+               % Compute contribution of the discontinuity
+               [Hdd, Sdd, Lcc, Lcj, Lcd, Ljc, Ljj, Ljd, Ldc, Ldj, Ldd, Tdc, Tdj] = getDiscontinuitiesData(this);
+
+               % Zero auxiliary matrices
+               Ocd = zeros(this.nglp, size(Hdd,1));
+               Ojd = zeros(size(Hjj,1), size(Hdd,1));
+               od  = zeros(size(Hdd,1),1);
+
+               % Add contribution of the coupling matrices
+               Hcc = Hcc + Lcc;
+               Hcj = Hcj + Lcj;
+               Hjc = Hjc + Ljc;
+               Hjj = Hjj + Ljj;
+               Hdd = Hdd + Ldd;
+
+               % Assemble matrices
+               Ke = [  Hcc,  Hcj, -Lcd;
+                       Hjc,  Hjj, -Ljd;
+                      -Ldc, -Ldj,  Hdd];
+
+               Ce = [ Scc,  Scj,  Ocd;
+                      Sjc,  Sjj,  Ojd;
+                      Ocd', Ojd', Sdd];
+
+               fi = [fic; fij; od];
+
+               fe = [fec; fej; od];
+
+               % Condense the internal pressure dofs
+               if this.condenseInternalPressure
+                   T = this.condensationMatrix(Tdc, Tdj);
+                   Ke = T' * Ke * T;
+                   Ce = T' * Ce * T;
+                   fi = T' * fi;
+                   fe = T' * fe;
+               end
+
+
+           end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Computes and assembles the sub-matrices and sub-vectors for an
+        % enriched finite element
+        function [Hcc, Hcj, Hjc, Hjj, Scc, Scj, Sjc, Sjj, fic, fij, fec, fej] = fillElementSubData(this)
+
+            % Each discontinuity has a pressure jump dof
+            nPJumpDofs = this.getNumberOfDiscontinuities();
+
+            % Initialize fluid-flow sub-matrices
+            Hcc = zeros(this.nglp , this.nglp);
+            Hcj = zeros(this.nglp , nPJumpDofs);
+            Hjc = zeros(nPJumpDofs, this.nglp);
+            Hjj = zeros(nPJumpDofs, nPJumpDofs);
+
+            % Initialize compressibity sub-matrices
+            Scc = zeros(this.nglp , this.nglp);
+            Scj = zeros(this.nglp , nPJumpDofs);
+            Sjc = zeros(nPJumpDofs, this.nglp);
+            Sjj = zeros(nPJumpDofs, nPJumpDofs);
+
+            % Initialize external force vector
+            fec = zeros(this.nglp, 1);
+            fej = zeros(nPJumpDofs, 1);
+
+            % Initialize internal force vector
+            fic = zeros(this.nglp, 1);
+            fij = zeros(nPJumpDofs, 1);
+
+            % Vector of the nodal dofs
+            pl = this.getNodalPressure();
+
+            % Numerical integration of the sub-matrices
+            for i = 1:this.nIntPoints
+
+                % Shape function matrix
+                Np = this.shape.shapeFncMtrx(this.intPoint(i).X);
+
+                % Cartesian coordinates of the integration point
+                Xcar = this.shape.coordNaturalToCartesian(this.node,this.intPoint(i).X);
+
+                % Enriched shape function matrix
+                Npenr = this.enrichedShapeFncMtrx(Np, Xcar);
+
+                % Compute the B matrix at the int. point and the detJ
+                [Bp, detJ] = this.shape.dNdxMatrix(this.node,this.intPoint(i).X);
+
+                % Compute the G matrix
+                G = this.Gmatrix(Bp);
+
+                % Pressure values at the integration point
+                pIP = Np * pl;
+
+                % Compute the permeability matrix
+                kh = permeabilityTensor(this, i);
+
+                % Get compressibility coefficient
+                comp = this.intPoint(i).constitutiveMdl.compressibilityCoeff();
+
+                % Numerical integration coefficient
+                c = this.intPoint(i).w * detJ * this.t;
+                if this.isAxisSymmetric
+                    c = c * this.shape.axisSymmetricFactor(Np,this.node);
+                end
+
+                % Compute permeability sub-matrices
+                Hcc = Hcc + Bp' * kh * Bp * c;
+                Hcj = Hcj + Bp' * kh * G  * c;
+                Hjc = Hjc + G'  * kh * Bp * c;
+                Hjj = Hjj + G'  * kh * G  * c;
+
+                % Compute compressibility matrices
+                Scc = Scc + Np'    * comp * Np    * c;
+                Scj = Scj + Np'    * comp * Npenr * c;
+                Sjc = Sjc + Npenr' * comp * Np    * c;
+                Sjj = Sjj + Npenr' * comp * Npenr * c;
+
+                % Compute the gravity forces
+                if (this.gravityOn)
+                    fec = this.addGravityForces(fec,Bp,kh,pIP,c);
+                end
+            end
+
+        end
+
+        function Kxy = permeabilityTensor(this, ip_id)
+            Kxy = this.intPoint(ip_id).constitutiveMdl.permeabilityTensor();
+            nDiscontinuities  = this.getNumberOfDiscontinuities();
+            % Loop through the discontinuities
+            for i = 1:nDiscontinuities
+                R = this.discontinuity(i).rotationFromGlobalToLocal();
+                % Rotate the permeability tensor
+                Kmn = R * Kxy * R';
+                % Apply transversal permeability coefficient
+                kt = this.discontinuity(i).mat.transversalPermeability;
+                kt = min(max(kt, 0.0), 1.0);
+                Kmn(2,2) = kt * Kmn(2,2);
+                % Rotate back to the cartesian system
+                Kxy = R' * Kmn * R;
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Internal pressure dof condensation matrix
+        function T = condensationMatrix(this, Tdc, Tdj)
+            % Number of dofs of each type
+            ndof_c = this.nglp;
+            ndof_j = size(Tdc, 2);
+            % Auxiliary matrices
+            Icc = eye(ndof_c);
+            Ijj = eye(ndof_j);
+            Ocj = zeros(ndof_c, ndof_j);
+            % Condensation matrix
+            T = [ Icc , Ocj;
+                  Ocj', Ijj;
+                  Tdc, Tdj];
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Computes the stiffness matrix and force vector contributions
+        % from discontinuities in the enriched element
+        function [Hdd, Sdd, Lcc, Lcj, Lcd, Ljc, Ljj, Ljd, Ldc, Ldj, Ldd, Tdc, Tdj] = getDiscontinuitiesData(this)
+
+            nDiscontinuities  = this.getNumberOfDiscontinuities();
+            nPJumpDofs        = nDiscontinuities;
+            nPIntDofs         = nDiscontinuities * 2;
+
+            % Initialize the output data
+            Hdd = zeros(nPIntDofs,nPIntDofs);
+            Sdd = zeros(nPIntDofs,nPIntDofs);
+
+            % Flow coupling matrices
+            Lcc = zeros(this.nglp  , this.nglp);
+            Lcj = zeros(this.nglp  , nPJumpDofs);
+            Lcd = zeros(this.nglp  , nPIntDofs);
+            Ljc = zeros(nPJumpDofs , this.nglp);
+            Ljj = zeros(nPJumpDofs , nPJumpDofs);
+            Ljd = zeros(nPJumpDofs , nPIntDofs);
+            Ldc = zeros(nPIntDofs  , this.nglp);
+            Ldj = zeros(nPIntDofs  , nPJumpDofs);
+            Ldd = zeros(nPIntDofs  , nPIntDofs);
+
+            % Condensation matrices
+            Tdc = zeros(nPIntDofs,this.nglp);
+            Tdj = zeros(nPIntDofs,nPJumpDofs);
+
+            % Loop through the discontinuities
+            for i = 1:nDiscontinuities
+
+                % Internal pressure dofs associated with this discontinuity segment
+                pint_dofs = 2*(i-1)+1 : 2*i;
+
+                % Get the discontinuity data
+                [Hddi, Sddi, Lcci, Lcji, Lcdi, Ljci, Ljji, Ljdi, Ldci, Ldji, Lddi,~,~,~] = this.discontinuity(i).elementData(this,i);
+
+                % Assemble the contribution of this discontinuity
+                Hdd(pint_dofs,pint_dofs) = Hdd(pint_dofs,pint_dofs) + Hddi;
+                Sdd(pint_dofs,pint_dofs) = Sdd(pint_dofs,pint_dofs) + Sddi;
+                Lcc = Lcc + Lcci;
+                Lcj(:,i) = Lcj(:,i) + Lcji;
+                Lcd(:,pint_dofs) = Lcd(:,pint_dofs) + Lcdi;
+                Ljc(i,:) = Ljc(i,:) + Ljci;
+                Ljj(i,i) = Ljj(i,i) + Ljji;
+                Ljd(i,pint_dofs) = Ljd(i,pint_dofs) + Ljdi;
+                Ldc(pint_dofs,:) = Ldc(pint_dofs,:) + Ldci;
+                Ldj(pint_dofs,i) = Ldj(pint_dofs,i) + Ldji;
+                Ldd(pint_dofs,pint_dofs) = Ldd(pint_dofs,pint_dofs) + Lddi;
+
+
+                % Loop through the nodes of the discontinuity to fill the
+                % condensation matrix
+                for j = 1:2
+                    X = this.discontinuity(i).node(j,:);
+                    Xn = this.shape.coordCartesianToNatural(this.node,X);
+                    Np = this.shape.shapeFncMtrx(Xn);
+                    Tdc(pint_dofs(j),:) = Np;
+                    Nenr_i = this.enrichedShapeFncValues(i, Np, X);
+                    Tdj(pint_dofs(j),i) = 0.5 * (Nenr_i(2) + Nenr_i(3));
+                end
+
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Gets the number of enriched degrees of freedom
+        function nEnrDof = getNumberEnrichedDofs(this)
+            nEnrDof = this.getNumberOfDiscontinuities();
+            nEnrDof = nEnrDof * this.getNumberOfDofPerDiscontinuity();
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Obtain the number of discontinuities
+        function n = getNumberOfDiscontinuities(this)
+            n = size(this.discontinuity,1);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Calculates the number of degrees of freedom per discontinuity for
+        % the enriched element
+        function n = getNumberOfDofPerDiscontinuity(this)
+            n = 2;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Adds a discontinuity segment to the element
+        function addDiscontinuitySegment(this,dseg)
+            this.discontinuity = [this.discontinuity; dseg];
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Adds the discontinuities dofs to the element dof vector
+        function addEnrichmentToDofVector(this)
+            nDiscontinuities = this.getNumberOfDiscontinuities();
+            dof_j = []; dof_d = [];
+            for i = 1:nDiscontinuities
+                dof_j = [dof_j, this.discontinuity(i).dof(1)];
+                dof_d = [dof_d, this.discontinuity(i).dof(2:end)];
+            end
+            if isempty(dof_j)||isempty(dof_d)
+                return
+            end
+            this.gle = [this.gle, dof_j, dof_d];
+            this.ngle = length(this.gle);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the enrichment shape function matrix
+        function Nenr = enrichedShapeFncMtrx(this, N, Xcar)
+            nDiscontinuities  = this.getNumberOfDiscontinuities();
+            Nenr = zeros(1,nDiscontinuities);  % Each discontinuity has a pressure jump dof
+            for i = 1:nDiscontinuities
+                Nenr_i = this.enrichedShapeFncValues(i, N, Xcar);
+                Nenr(i) = Nenr_i(1);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the enrichment shape function values of a discontinuity
+        function Nenr_i = enrichedShapeFncValues(this, id, N, Xcar)
+            phi = 0.0;
+            h = this.discontinuity(id).heaviside(Xcar);
+            for j = 1:this.nnd_el
+                Xj = this.node(j,:);
+                hj = this.discontinuity(id).heaviside(Xj);
+                if (hj > 0.0)
+                    phi = phi + N(:, j);
+                end
+            end
+            Nenr_i = [h-phi;
+                       -phi;        % Nbot
+                      1.0-phi];     % Ntop
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the gradient enrichment matrix
+        function G = Gmatrix(this, Bu)
+            nDiscontinuities  = this.getNumberOfDiscontinuities();
+            G = zeros(2,nDiscontinuities);  % Each discontinuity has a pressure jump dof
+            for i = 1:nDiscontinuities
+                for j = 1:this.nnd_el
+                    Xj = this.node(j,:);
+                    h = this.discontinuity(i).heaviside(Xj);
+                    if (h > 0.0)
+                        G(:,i) = G(:,i) - Bu(:, j);
+                    end
+                end
+            end
+        end
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

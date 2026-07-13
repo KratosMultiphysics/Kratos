@@ -1,0 +1,542 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>fractureMesh Function</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="fractureMesh.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>fractureMesh Function</h1><!--introduction--><p>This function creates a fracture mesh by dividing a fracture segment based on the continuum finite element mesh. It does not assume that the continuum mesh is structured. The function also perturbs nodes to avoid coinciding nodes between the fracture and continuum meshes.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Inputs</a></li><li><a href="#2">Outputs</a></li><li><a href="#3">Author</a></li><li><a href="#4">Version History</a></li><li><a href="#5">Function definition</a></li></ul></div><h2 id="1">Inputs</h2><div><ul><li><b>NODE</b>: Nodal coordinates of the continuum mesh (Nx2 array).</li><li><b>ELEM</b>: Element connectivity of the continuum mesh (MxK array).</li><li><b>XD</b>: Coordinates of the fracture segment endpoints (2x2 array).</li><li><b>SEGD</b>: Indices of the fracture segment endpoints in XD (1x2 array).</li><li><b>aperture</b>: Aperture of the fracture.</li><li><b>leakoff</b>: Leakoff coefficient for the fracture.</li><li><b>TIP</b>: Logical flag indicating if the fracture has a tip.</li><li><b>FixedPressureJump</b>: Logical flag to fix pressure jump (default: true).</li><li><b>FixedPf</b>: Logical flag to fix pressure field (default: false).</li><li><b>FixedDisplJump</b>: Logical flag to fix displacement jump (default: true).</li><li><b>ptol</b>: Perturbation tolerance for node adjustments (default: 1.0e-2).</li></ul></div><h2 id="2">Outputs</h2><div><ul><li><b>NODE_D</b>: Nodal coordinates of the fracture mesh.</li><li><b>FRACT</b>: Element connectivity of the fracture mesh.</li><li><b>NODE_D_TIPS</b>: Coordinates of the fracture tip nodes.</li><li><b>NODE</b>: Updated nodal coordinates of the continuum mesh.</li><li><b>W</b>: Fracture aperture values.</li><li><b>LEAKOFF</b>: Leakoff values for the fracture.</li></ul></div><h2 id="3">Author</h2><p>Danilo Cavalcanti</p><h2 id="4">Version History</h2><p>Version 1.00.</p><h2 id="5">Function definition</h2><pre class="codeinput"><span class="keyword">function</span> [NODE_D, FRACT, NODE_D_TIPS, NODE, W, LEAKOFF] = fractureMesh(NODE, ELEM, XD, <span class="keyword">...</span>
+    SEGD,aperture,leakoff, TIP, FixedPressureJump, FixedPf, FixedDisplJump, ptol)
+
+<span class="keyword">if</span> nargin &lt; 10
+    FixedPf           = false;
+    FixedDisplJump    = true;
+    FixedPressureJump = true;
+    ptol              = 1.0e-2;
+<span class="keyword">end</span>
+<span class="keyword">if</span> nargin &lt; 11
+    ptol              = 1.0e-2;
+<span class="keyword">end</span>
+
+<span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% Attract node to the tip</span>
+<span class="comment">% for i = 1:size(XD,1)</span>
+<span class="comment">%     DIST = sqrt((NODE(:,1) - XD(i,1)).*(NODE(:,1) - XD(i,1)) + (NODE(:,2) - XD(i,2)).*(NODE(:,2) - XD(i,2)));</span>
+<span class="comment">%     [minDist,id] = sort(DIST);</span>
+<span class="comment">%     NODE(id(1),:) = XD(i,:);</span>
+<span class="comment">% end</span>
+
+<span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% First trial</span>
+[NODE_D, FRACT, NODE_D_TIPS, W, LEAKOFF] = fractureNodesAndElements(NODE, ELEM, XD, <span class="keyword">...</span>
+    SEGD,aperture,leakoff, TIP, FixedPressureJump, FixedPf, FixedDisplJump);
+
+<span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% Compute the mean characteristic lenght of the mesh</span>
+
+<span class="comment">% Compute the mean characteristic length of each element in the mesh</span>
+Lce=zeros(size(ELEM,1),1);
+<span class="keyword">for</span> el = 1:size(ELEM,1)
+
+    <span class="comment">% Vertices of the element el coordinates</span>
+    vx = NODE(ELEM(el,:),1);
+    vy = NODE(ELEM(el,:),2);
+
+    <span class="comment">% Number of vertices</span>
+    nv = length(ELEM(el,:));
+
+    <span class="comment">% Shifted vertices</span>
+    vxS = vx([2:nv 1]);
+    vyS = vy([2:nv 1]);
+
+    <span class="comment">% Compute the area of the element (trapezoidal rule)</span>
+    temp = vx.*vyS - vy.*vxS;
+    Ae   = 0.5*sum(temp);
+
+    <span class="comment">% Characteristic lenght (quadrilateral elements)</span>
+    Lce(el) = sqrt(Ae);
+<span class="keyword">end</span>
+
+<span class="comment">% Compute the mean characteristic length of the elements associated with</span>
+<span class="comment">% each node</span>
+lcmNode = zeros(size(NODE,1),1);
+
+<span class="keyword">for</span> i = 1:size(NODE,1)
+
+    <span class="comment">% Get the elements associated with this node</span>
+    idElem = any(ELEM == i, 2);
+
+    <span class="comment">% Compute the mean characteristic lenght of these nodes</span>
+    lcmNode(i) = mean(Lce(idElem));
+
+<span class="keyword">end</span>
+
+<span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% Check if there is a node of the fracture mesh that coincides with the</span>
+<span class="comment">% nodes from the continuum mesh</span>
+LCMNode = repmat(lcmNode',size(NODE_D,1),1);
+NDIST = zeros(size(NODE_D,1),size(NODE,1));
+<span class="keyword">for</span> i = 1:size(NODE_D,1)
+    <span class="keyword">for</span> j = 1:size(NODE,1)
+        NDIST(i,j) = norm(NODE_D(i,:) - NODE(j,:));
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Get the from the continuum mesh that are the same from the fracture mesh</span>
+[~,idNode] = find(NDIST &lt; ptol*LCMNode);
+<span class="keyword">if</span> isempty(idNode), <span class="keyword">return</span>, <span class="keyword">end</span>
+
+<span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% Borders and corners id</span>
+<span class="comment">% * Valid only for rectangular domains</span>
+
+<span class="comment">% Get the id of the nodes on each border of the domain</span>
+xmin = min(NODE(:,1)); idLeft   = find(abs(NODE(:,1) - xmin) &lt; 1.0e-10);
+xmax = max(NODE(:,1)); idRight  = find(abs(NODE(:,1) - xmax) &lt; 1.0e-10);
+ymin = min(NODE(:,2)); idBottom = find(abs(NODE(:,2) - ymin) &lt; 1.0e-10);
+ymax = max(NODE(:,2)); idTop    = find(abs(NODE(:,2) - ymax) &lt; 1.0e-10);
+
+<span class="comment">% Get the id of the corner nodes</span>
+idLeftBottom  = intersect(idLeft,  idBottom);
+idLeftTop     = intersect(idLeft,  idTop);
+idRightBottom = intersect(idRight, idBottom);
+idRightTop    = intersect(idRight, idTop);
+
+<span class="comment">% Remove the corner nodes from the borders array</span>
+idLeft   = setdiff(idLeft,   [idLeftBottom,   idLeftTop   ]);
+idRight  = setdiff(idRight,  [idRightBottom, idRightTop   ]);
+idBottom = setdiff(idBottom, [idLeftBottom,  idRightBottom]);
+idTop    = setdiff(idTop,    [idRightTop,    idLeftTop    ]);
+
+<span class="comment">% Store array with the two sets</span>
+idCorners = [idLeftBottom, idLeftTop, idRightBottom, idRightTop];
+idBorders = [idLeft; idRight; idBottom; idTop];
+
+<span class="comment">% Get the normal and tangential vectors of each border (RECTANGULAR DOMAIN)</span>
+nleft   = [-1.0, 0.0]; mleft   = [ 0.0,-1.0];
+nright  = [ 1.0, 0.0]; mright  = [ 0.0, 1.0];
+ntop    = [ 0.0, 1.0]; mtop    = [-1.0, 0.0];
+nbottom = [ 0.0,-1.0]; mbottom = [ 1.0, 0.0];
+
+<span class="comment">% Check if there is a node to the perturbed at on of the corners</span>
+idCorners     = intersect(idCorners,idNode);
+idLeftBottom  = intersect(idLeftBottom,  idNode);
+idLeftTop     = intersect(idLeftTop,  idNode);
+idRightBottom = intersect(idRightBottom, idNode);
+idRightTop    = intersect(idRightTop, idNode);
+
+<span class="comment">% Check if there is a node to the perturbed at on of the borders</span>
+idBorders = intersect(idBorders,idNode);
+idLeft    = intersect(idLeft,idNode);
+idRight   = intersect(idRight,idNode);
+idBottom  = intersect(idBottom,idNode);
+idTop     = intersect(idTop,idNode);
+
+<span class="comment">% Get the id the center nodes</span>
+idCenter = setdiff(idNode,[idCorners,idBorders]);
+
+<span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% Apply a perturbation to the center nodes</span>
+
+<span class="comment">% Compute the normal vector of the discontinuity</span>
+<span class="comment">% Defined considering nf = ez x mf, where ez = [0 0 1]</span>
+mf = (XD(SEGD(2),:) - XD(SEGD(1),:))/ norm(XD(SEGD(2),:) - XD(SEGD(1),:));
+nf = [-mf(2) , mf(1)];
+
+<span class="comment">% Discontinuity center</span>
+xDCenter = (XD(SEGD(2),:) + XD(SEGD(1),:))/2.0;
+
+<span class="keyword">if</span> isempty(idCenter) == false
+    <span class="keyword">for</span> i = 1:length(idCenter)
+
+        <span class="comment">% Heaviside function</span>
+        dX = NODE(idCenter(i),:) - xDCenter;
+
+        <span class="comment">% Perturbation sign</span>
+        pertSign = sign(nf * dX');
+        <span class="keyword">if</span> pertSign &gt;= 0, pertSign = 1; <span class="keyword">end</span>
+
+        NODE(idCenter(i),:) = NODE(idCenter(i),:) + ptol * lcmNode(idCenter(i)) * pertSign * nf;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% Apply a perturbation to the corner nodes</span>
+<span class="comment">% ptol = 0.0;</span>
+<span class="keyword">if</span> isempty(idCorners) == false
+    <span class="keyword">if</span> isempty(idLeftBottom) == false
+        <span class="keyword">if</span> dot(nf,nleft) &gt; dot(nf,nbottom) <span class="comment">% Projects on the left edge</span>
+            mlb = mleft;
+        <span class="keyword">else</span> <span class="comment">% Projects on the bottom edge</span>
+            mlb = mbottom;
+        <span class="keyword">end</span>
+        NODE(idLeftBottom,:) = NODE(idLeftBottom,:) + ptol * lcmNode(idLeftBottom) * mlb;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> isempty(idLeftTop) == false
+        <span class="keyword">if</span> dot(nf,nleft) &gt; dot(nf,ntop) <span class="comment">% Projects on the left edge</span>
+            mlt = mleft;
+        <span class="keyword">else</span> <span class="comment">% Projects on the top edge</span>
+            mlt = mtop;
+        <span class="keyword">end</span>
+        NODE(idLeftTop,:) = NODE(idLeftTop,:) + ptol * lcmNode(idLeftTop) * mlt;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> isempty(idRightBottom) == false
+        <span class="keyword">if</span> dot(nf,nright) &gt; dot(nf,nbottom) <span class="comment">% Projects on the right edge</span>
+            mrb = mright;
+        <span class="keyword">else</span> <span class="comment">% Projects on the bottom edge</span>
+            mrb = mbottom;
+        <span class="keyword">end</span>
+        NODE(idRightBottom,:) = NODE(idRightBottom,:) + ptol * lcmNode(idRightBottom) * mrb;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> isempty(idRightTop) == false
+        <span class="keyword">if</span> dot(nf,nright) &gt; dot(nf,ntop) <span class="comment">% Projects on the right edge</span>
+            mrt = mright;
+        <span class="keyword">else</span> <span class="comment">% Projects on the top edge</span>
+            mrt = mtop;
+        <span class="keyword">end</span>
+        NODE(idRightTop,:) = NODE(idRightTop,:) + ptol * lcmNode(idRightTop) * mrt;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+
+<span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% Apply a perturbation to the border nodes</span>
+
+<span class="keyword">if</span> isempty(idBorders) == false
+    <span class="keyword">if</span> isempty(idLeft) == false
+        NODE(idLeft,:) = NODE(idLeft,:) + ptol * lcmNode(idLeft) * mleft;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> isempty(idRight) == false
+        NODE(idRight,:) = NODE(idRight,:) + ptol * lcmNode(idRight) * mright;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> isempty(idBottom) == false
+        NODE(idBottom,:) = NODE(idBottom,:) + ptol * lcmNode(idBottom) * mbottom;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> isempty(idTop) == false
+        NODE(idTop,:) = NODE(idTop,:) + ptol * lcmNode(idTop) * mtop;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% Regenerate the fracture mesh based on the perturbed mesh</span>
+[NODE_D, FRACT, NODE_D_TIPS, W, LEAKOFF] = fractureNodesAndElements(NODE, ELEM, XD, <span class="keyword">...</span>
+    SEGD,aperture,leakoff, TIP, FixedPressureJump, FixedPf, FixedDisplJump);
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% fractureMesh Function
+% This function creates a fracture mesh by dividing a fracture segment
+% based on the continuum finite element mesh. It does not assume that the
+% continuum mesh is structured. The function also perturbs nodes to avoid
+% coinciding nodes between the fracture and continuum meshes.
+%
+%% Inputs
+% * *NODE*: Nodal coordinates of the continuum mesh (Nx2 array).
+% * *ELEM*: Element connectivity of the continuum mesh (MxK array).
+% * *XD*: Coordinates of the fracture segment endpoints (2x2 array).
+% * *SEGD*: Indices of the fracture segment endpoints in XD (1x2 array).
+% * *aperture*: Aperture of the fracture.
+% * *leakoff*: Leakoff coefficient for the fracture.
+% * *TIP*: Logical flag indicating if the fracture has a tip.
+% * *FixedPressureJump*: Logical flag to fix pressure jump (default: true).
+% * *FixedPf*: Logical flag to fix pressure field (default: false).
+% * *FixedDisplJump*: Logical flag to fix displacement jump (default: true).
+% * *ptol*: Perturbation tolerance for node adjustments (default: 1.0e-2).
+%
+%% Outputs
+% * *NODE_D*: Nodal coordinates of the fracture mesh.
+% * *FRACT*: Element connectivity of the fracture mesh.
+% * *NODE_D_TIPS*: Coordinates of the fracture tip nodes.
+% * *NODE*: Updated nodal coordinates of the continuum mesh.
+% * *W*: Fracture aperture values.
+% * *LEAKOFF*: Leakoff values for the fracture.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Function definition
+function [NODE_D, FRACT, NODE_D_TIPS, NODE, W, LEAKOFF] = fractureMesh(NODE, ELEM, XD, ...
+    SEGD,aperture,leakoff, TIP, FixedPressureJump, FixedPf, FixedDisplJump, ptol)
+
+if nargin < 10
+    FixedPf           = false;
+    FixedDisplJump    = true;
+    FixedPressureJump = true;
+    ptol              = 1.0e-2;
+end
+if nargin < 11
+    ptol              = 1.0e-2;
+end
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% Attract node to the tip
+% for i = 1:size(XD,1)
+%     DIST = sqrt((NODE(:,1) - XD(i,1)).*(NODE(:,1) - XD(i,1)) + (NODE(:,2) - XD(i,2)).*(NODE(:,2) - XD(i,2)));
+%     [minDist,id] = sort(DIST);
+%     NODE(id(1),:) = XD(i,:);
+% end
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% First trial
+[NODE_D, FRACT, NODE_D_TIPS, W, LEAKOFF] = fractureNodesAndElements(NODE, ELEM, XD, ...
+    SEGD,aperture,leakoff, TIP, FixedPressureJump, FixedPf, FixedDisplJump);
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% Compute the mean characteristic lenght of the mesh
+
+% Compute the mean characteristic length of each element in the mesh
+Lce=zeros(size(ELEM,1),1);
+for el = 1:size(ELEM,1)
+
+    % Vertices of the element el coordinates
+    vx = NODE(ELEM(el,:),1);
+    vy = NODE(ELEM(el,:),2);
+
+    % Number of vertices
+    nv = length(ELEM(el,:));
+
+    % Shifted vertices
+    vxS = vx([2:nv 1]);
+    vyS = vy([2:nv 1]);
+
+    % Compute the area of the element (trapezoidal rule)
+    temp = vx.*vyS - vy.*vxS;
+    Ae   = 0.5*sum(temp);
+
+    % Characteristic lenght (quadrilateral elements)
+    Lce(el) = sqrt(Ae);
+end
+
+% Compute the mean characteristic length of the elements associated with
+% each node
+lcmNode = zeros(size(NODE,1),1);
+
+for i = 1:size(NODE,1)
+
+    % Get the elements associated with this node
+    idElem = any(ELEM == i, 2);
+
+    % Compute the mean characteristic lenght of these nodes
+    lcmNode(i) = mean(Lce(idElem));
+
+end
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% Check if there is a node of the fracture mesh that coincides with the
+% nodes from the continuum mesh
+LCMNode = repmat(lcmNode',size(NODE_D,1),1);
+NDIST = zeros(size(NODE_D,1),size(NODE,1));
+for i = 1:size(NODE_D,1)
+    for j = 1:size(NODE,1)
+        NDIST(i,j) = norm(NODE_D(i,:) - NODE(j,:));
+    end
+end
+
+% Get the from the continuum mesh that are the same from the fracture mesh
+[~,idNode] = find(NDIST < ptol*LCMNode);
+if isempty(idNode), return, end
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% Borders and corners id
+% * Valid only for rectangular domains
+
+% Get the id of the nodes on each border of the domain
+xmin = min(NODE(:,1)); idLeft   = find(abs(NODE(:,1) - xmin) < 1.0e-10);
+xmax = max(NODE(:,1)); idRight  = find(abs(NODE(:,1) - xmax) < 1.0e-10);
+ymin = min(NODE(:,2)); idBottom = find(abs(NODE(:,2) - ymin) < 1.0e-10);
+ymax = max(NODE(:,2)); idTop    = find(abs(NODE(:,2) - ymax) < 1.0e-10);
+
+% Get the id of the corner nodes
+idLeftBottom  = intersect(idLeft,  idBottom);
+idLeftTop     = intersect(idLeft,  idTop);
+idRightBottom = intersect(idRight, idBottom);
+idRightTop    = intersect(idRight, idTop);
+
+% Remove the corner nodes from the borders array
+idLeft   = setdiff(idLeft,   [idLeftBottom,   idLeftTop   ]);
+idRight  = setdiff(idRight,  [idRightBottom, idRightTop   ]);
+idBottom = setdiff(idBottom, [idLeftBottom,  idRightBottom]);
+idTop    = setdiff(idTop,    [idRightTop,    idLeftTop    ]);
+
+% Store array with the two sets
+idCorners = [idLeftBottom, idLeftTop, idRightBottom, idRightTop];
+idBorders = [idLeft; idRight; idBottom; idTop];
+
+% Get the normal and tangential vectors of each border (RECTANGULAR DOMAIN)
+nleft   = [-1.0, 0.0]; mleft   = [ 0.0,-1.0];
+nright  = [ 1.0, 0.0]; mright  = [ 0.0, 1.0];
+ntop    = [ 0.0, 1.0]; mtop    = [-1.0, 0.0];
+nbottom = [ 0.0,-1.0]; mbottom = [ 1.0, 0.0];
+
+% Check if there is a node to the perturbed at on of the corners
+idCorners     = intersect(idCorners,idNode);
+idLeftBottom  = intersect(idLeftBottom,  idNode);
+idLeftTop     = intersect(idLeftTop,  idNode);
+idRightBottom = intersect(idRightBottom, idNode);
+idRightTop    = intersect(idRightTop, idNode);
+
+% Check if there is a node to the perturbed at on of the borders
+idBorders = intersect(idBorders,idNode);
+idLeft    = intersect(idLeft,idNode);
+idRight   = intersect(idRight,idNode);
+idBottom  = intersect(idBottom,idNode);
+idTop     = intersect(idTop,idNode);
+
+% Get the id the center nodes
+idCenter = setdiff(idNode,[idCorners,idBorders]);
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% Apply a perturbation to the center nodes
+
+% Compute the normal vector of the discontinuity
+% Defined considering nf = ez x mf, where ez = [0 0 1]
+mf = (XD(SEGD(2),:) - XD(SEGD(1),:))/ norm(XD(SEGD(2),:) - XD(SEGD(1),:));
+nf = [-mf(2) , mf(1)];
+
+% Discontinuity center
+xDCenter = (XD(SEGD(2),:) + XD(SEGD(1),:))/2.0;
+
+if isempty(idCenter) == false
+    for i = 1:length(idCenter)
+
+        % Heaviside function
+        dX = NODE(idCenter(i),:) - xDCenter;
+
+        % Perturbation sign
+        pertSign = sign(nf * dX');
+        if pertSign >= 0, pertSign = 1; end
+
+        NODE(idCenter(i),:) = NODE(idCenter(i),:) + ptol * lcmNode(idCenter(i)) * pertSign * nf;
+    end
+end
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% Apply a perturbation to the corner nodes
+% ptol = 0.0;
+if isempty(idCorners) == false
+    if isempty(idLeftBottom) == false
+        if dot(nf,nleft) > dot(nf,nbottom) % Projects on the left edge
+            mlb = mleft;
+        else % Projects on the bottom edge
+            mlb = mbottom;
+        end
+        NODE(idLeftBottom,:) = NODE(idLeftBottom,:) + ptol * lcmNode(idLeftBottom) * mlb;
+    end
+    if isempty(idLeftTop) == false
+        if dot(nf,nleft) > dot(nf,ntop) % Projects on the left edge
+            mlt = mleft;
+        else % Projects on the top edge
+            mlt = mtop;
+        end
+        NODE(idLeftTop,:) = NODE(idLeftTop,:) + ptol * lcmNode(idLeftTop) * mlt;
+    end
+    if isempty(idRightBottom) == false
+        if dot(nf,nright) > dot(nf,nbottom) % Projects on the right edge
+            mrb = mright;
+        else % Projects on the bottom edge
+            mrb = mbottom;
+        end
+        NODE(idRightBottom,:) = NODE(idRightBottom,:) + ptol * lcmNode(idRightBottom) * mrb;
+    end
+    if isempty(idRightTop) == false
+        if dot(nf,nright) > dot(nf,ntop) % Projects on the right edge
+            mrt = mright;
+        else % Projects on the top edge
+            mrt = mtop;
+        end
+        NODE(idRightTop,:) = NODE(idRightTop,:) + ptol * lcmNode(idRightTop) * mrt;
+    end
+end
+
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% Apply a perturbation to the border nodes
+
+if isempty(idBorders) == false
+    if isempty(idLeft) == false
+        NODE(idLeft,:) = NODE(idLeft,:) + ptol * lcmNode(idLeft) * mleft;
+    end
+    if isempty(idRight) == false
+        NODE(idRight,:) = NODE(idRight,:) + ptol * lcmNode(idRight) * mright;
+    end
+    if isempty(idBottom) == false
+        NODE(idBottom,:) = NODE(idBottom,:) + ptol * lcmNode(idBottom) * mbottom;
+    end
+    if isempty(idTop) == false
+        NODE(idTop,:) = NODE(idTop,:) + ptol * lcmNode(idTop) * mtop;
+    end
+end
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% Regenerate the fracture mesh based on the perturbed mesh
+[NODE_D, FRACT, NODE_D_TIPS, W, LEAKOFF] = fractureNodesAndElements(NODE, ELEM, XD, ...
+    SEGD,aperture,leakoff, TIP, FixedPressureJump, FixedPf, FixedDisplJump);
+end
+
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,469 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>MechanicalNonlinearElasticDruckerPrager class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="MechanicalNonlinearElasticDruckerPrager.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>MechanicalNonlinearElasticDruckerPrager class</h1><!--introduction--><p>This class implements a nonlinear elastic constitutive model based on the Drucker-Prager criterion. The model is a surrogate nonlinear elastic formulation proposed by Zhao et al. (2020) and is implemented following the Abaqus UMAT provided by the authors.</p><p>Reference: Zhao, T., Lages, E.N., Ramos, A.S. et al. Topology optimization considering the Drucker&#8211;Prager criterion with a surrogate nonlinear elastic constitutive model. Struct Multidisc Optim 62, 3205&#8211;3227 (2020).</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class Definition</a></li><li><a href="#5">Constructor method</a></li><li><a href="#6">Public methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>eval</b>: Computes the stress vector and constitutive matrix based on           material properties and integration point data.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class Definition</h2><pre class="codeinput"><span class="keyword">classdef</span> MechanicalNonlinearElasticDruckerPrager &lt; MechanicalLinearElastic
+</pre><h2 id="5">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = MechanicalNonlinearElasticDruckerPrager()
+            this = this@MechanicalLinearElastic();
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="6">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">% Compute the stress vector and the constitutive matrix</span>
+        <span class="keyword">function</span> [stress,De] = eval(this,material,ip)
+
+            <span class="comment">% Elastic constitutive matrix</span>
+            De = this.elasticConstitutiveMatrix(material,ip);
+
+            <span class="comment">% Stress vector</span>
+            stress = De * (ip.strain - ip.strainOld) + ip.stressOld;
+
+            <span class="comment">% Stress invariants</span>
+            Is1 = this.stressInvariantI1(stress);
+            Js2 = this.stressInvariantJ2(stress);
+
+            <span class="comment">% Get material parameters</span>
+            E      = material.Young;
+            nu     = material.nu;
+            tanPhi = tan(material.frictionAngle);
+            coh    = material.cohesion;
+
+            <span class="comment">% Compute DP material parameters</span>
+            nup = (sqrt(3.0)*sqrt(9.0 + 12.0*tanPhi*tanPhi) - 6.0*tanPhi)/(2.0*sqrt(3.0)*sqrt(9.0 + 12.0*tanPhi*tanPhi) + 3.0*tanPhi);
+            sy  = (9.0 * coh)/(sqrt(3.0)*sqrt(9.0 + 12.0*tanPhi*tanPhi) + 3.0*tanPhi);
+            alpha = (1.0 - 2.0 * nup)/2.0/sqrt(3.0)/(1.0 + nup);
+            kappa = (alpha + 1.0/sqrt(3.0))*sy;
+
+            <span class="comment">% Drucker-Prager yield function</span>
+            fYield = alpha * Is1 + sqrt(Js2) - kappa;
+
+            <span class="comment">% Return if it is in a elastic state</span>
+            <span class="keyword">if</span> fYield &lt; 0.0, <span class="keyword">return</span>; <span class="keyword">end</span>
+
+            <span class="comment">% Compute the strain invariants</span>
+            Ie1 = this.strainInvariantI1(ip.strain);
+            Je2 = this.strainInvariantJ2(ip.strain);
+
+            <span class="comment">% Auxiliar scalars</span>
+            a = 3.0 * alpha * (1.0 + nu) * E;
+            b = 3.0 * (1.0 - 2.0 * nu) * E;
+            c = -(3.0 * alpha + sqrt(3.0)) * (1.0 + nu) * (1.0 - 2.0 * nu) * sy;
+            d = - 3.0 * alpha * E * E;
+            e = 18.0 * alpha * alpha * E * E;
+            f = (3.0 * alpha + sqrt(3.0))*(1.0 - 2.0 * nu) * E * sy;
+
+            <span class="comment">% Compute phi2</span>
+            phi2 = (a * Ie1 + b * sqrt(Je2) + c)/(d * Ie1 + e * sqrt(Je2) + f);
+
+            <span class="comment">% Apex zone</span>
+            <span class="keyword">if</span> phi2 &lt; 0.0
+                 stress(1:3) = kappa / (3.0 * alpha);
+                 stress(4) = 0.0;
+                 De = zeros(4,4);
+                 <span class="keyword">return</span>
+            <span class="keyword">end</span>
+
+            <span class="comment">% Get strain components (Plane strain)</span>
+            exx = ip.strain(1);
+            eyy = ip.strain(2);
+            gxy = ip.strain(4);
+
+            <span class="comment">% Cone zone: stress vector</span>
+            stress(1) = -10 * (8 / 5 * (1 + nup) * (E * (-1 / 2 + nup) * exx^2 + (-E * (-1 / 2 + nup) * eyy / 4 - 3 / 2 * sy * (nu - 1 / 2)) * exx + E * (-1 / 2 + nup) * eyy^2 / 4 + 3 / 4 * sy * (nu - 1 / 2) * eyy + 3 / 8 * E * (-1 / 2 + nup) * gxy^2) * sqrt(3) + sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) * (E * (nup^2 - 2 / 5 * nup + 2 / 5) * exx - (nup^2 - 4 * nup - 1 / 2) * E * eyy / 5 - 3 / 5 * sy * (-1 / 2 + nup) * (1 + nu))) * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1 / 2) / (36 * nup * nu - 18 * nup^2 + 9 * nu - 9);
+            stress(2) = -4 * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1 / 2) * ((-E * (exx - 5 * eyy) * nup^2 / 2 + ((2 * exx - eyy) * E - 3 / 2 * sy * (1 + nu)) * nup + (exx / 4 + eyy) * E + 3 / 4 * sy * (1 + nu)) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) + sqrt(3) * (1 + nup) * (E * (exx^2 + 4 * eyy^2 + 3 / 2 * gxy^2 - exx * eyy) * nup + (-exx^2 / 2 + exx * eyy / 2 - 2 * eyy^2 - 3 / 4 * gxy^2) * E + 3 * sy * (nu - 1 / 2) * (exx - 2 * eyy))) / (36 * nup * nu - 18 * nup^2 + 9 * nu - 9);
+            stress(3) = 2 * (-2 * sqrt(3) * (1 + nup) * (E * (exx^2 + eyy^2 + 3 / 2 * gxy^2 - 4 * exx * eyy) * nup + (-exx^2 / 2 + 2 * exx * eyy - eyy^2 / 2 - 3 / 4 * gxy^2) * E + 3 * sy * (exx + eyy) * (nu - 1 / 2)) + sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) * (E * (exx + eyy) * nup^2 + ((-4 * exx - 4 * eyy) * E + 3 * sy * (1 + nu)) * nup + (-exx / 2 - eyy / 2) * E - 3 / 2 * sy * (1 + nu))) * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1 / 2) / (36 * nup * nu - 18 * nup^2 + 9 * nu - 9);
+            stress(4) = -4 * (E * (-1 / 2 + nup)^2 * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) + sqrt(3) * (1 + nup) * (E * (exx + eyy) * nup + (-exx / 2 - eyy / 2) * E - 3 * sy * (nu - 1 / 2))) * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1 / 2) * gxy / (24 * nup * nu - 12 * nup^2 + 6 * nu - 6);
+
+            <span class="comment">% Cone zone: constitutive matrix</span>
+            De(1,1) = -64 / 9 * ((12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2)) * <span class="keyword">...</span>
+                                    (5 / 8 * E * (nup^2 - 2/5 * nup + 2/5) * <span class="keyword">...</span>
+                                    (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) + <span class="keyword">...</span>
+                                    sqrt(3) * (1 + nup) * ((-1/2 + nup) * <span class="keyword">...</span>
+                                    (exx^3 - eyy^3 / 8 - 3/2 * exx^2 * eyy + 15/8 * exx * eyy^2 + 9/8 * exx * gxy^2) * E - <span class="keyword">...</span>
+                                    9/8 * sy * (nu - 1/2) * (eyy^2 + gxy^2))) / <span class="keyword">...</span>
+                                    (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                                    (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+             De(1,2) = -16 / 9 * (-E * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * <span class="keyword">...</span>
+                    (nup^2 - 4 * nup - 1/2) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) / 2 + <span class="keyword">...</span>
+                    sqrt(3) * (1 + nup) * ((-1/2 + nup) * <span class="keyword">...</span>
+                    (exx - eyy / 2) * (exx - 2 * eyy) * (exx + eyy) * E + <span class="keyword">...</span>
+                    9/2 * sy * (nu - 1/2) * (exx * eyy + gxy^2 / 2))) * <span class="keyword">...</span>
+                    (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) / <span class="keyword">...</span>
+                    (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                    (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+             De(1,3) = 0.0;
+
+             De(1,4) = 4 * sqrt(3) * (1 + nup) * <span class="keyword">...</span>
+                    (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) * <span class="keyword">...</span>
+                    (-E * (-1/2 + nup) * eyy^2 + <span class="keyword">...</span>
+                    (exx * E * nup - exx * E / 2 + sy * (nu - 1/2)) * eyy - <span class="keyword">...</span>
+                    gxy^2 * E * nup / 2 + (-2 * sy * nu + sy) * exx + <span class="keyword">...</span>
+                    gxy^2 * E / 4) * gxy / <span class="keyword">...</span>
+                    (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                    (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+             De(2,1) = -16 / 9 * (-E * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * <span class="keyword">...</span>
+                                   (nup^2 - 4 * nup - 1/2) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) / 2 + <span class="keyword">...</span>
+                                   sqrt(3) * (1 + nup) * ((-1/2 + nup) * <span class="keyword">...</span>
+                                   (exx - eyy / 2) * (exx - 2 * eyy) * (exx + eyy) * E + <span class="keyword">...</span>
+                                   9/2 * sy * (nu - 1/2) * (exx * eyy + gxy^2 / 2))) * <span class="keyword">...</span>
+                                   (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) / <span class="keyword">...</span>
+                                   (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                                   (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+              De(2,2) = 8 / 9 * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) * <span class="keyword">...</span>
+                           (-5 * E * (nup^2 - 2/5 * nup + 2/5) * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * <span class="keyword">...</span>
+                           sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) + <span class="keyword">...</span>
+                           sqrt(3) * (1 + nup) * ((exx^3 - 15 * exx^2 * eyy + 12 * exx * eyy^2 - 8 * eyy^3 - 9 * eyy * gxy^2) * <span class="keyword">...</span>
+                           (-1/2 + nup) * E + 9 * (exx^2 + gxy^2) * sy * (nu - 1/2))) / <span class="keyword">...</span>
+                           (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                           (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+              De(2,3) = 0.0;
+
+              De(2,4) = -4 * sqrt(3) * (E * (-1/2 + nup) * exx^2 + <span class="keyword">...</span>
+                           (-E * (-1/2 + nup) * eyy - sy * (nu - 1/2)) * exx + <span class="keyword">...</span>
+                           E * (-1/2 + nup) * gxy^2 / 2 + 2 * sy * (nu - 1/2) * eyy) * <span class="keyword">...</span>
+                           (1 + nup) * gxy * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) / <span class="keyword">...</span>
+                           (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                           (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+              De(3,1) = -16 / 9 * ((12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2)) * <span class="keyword">...</span>
+                                      (-E * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * <span class="keyword">...</span>
+                                      (nup^2 - 4 * nup - 1/2) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) / 2 + <span class="keyword">...</span>
+                                      sqrt(3) * (1 + nup) * (-7/2 * E * (-1/2 + nup) * eyy^3 + <span class="keyword">...</span>
+                                      (3 * (-1/2 + nup) * exx * E + 9/2 * sy * (nu - 1/2)) * eyy^2 + <span class="keyword">...</span>
+                                      (-3/2 * (-1/2 + nup) * (exx^2 + 3/2 * gxy^2) * E - 9/2 * (nu - 1/2) * sy * exx) * eyy + <span class="keyword">...</span>
+                                      exx^3 * (-1/2 + nup) * E + 9/4 * (nu - 1/2) * sy * gxy^2)) / <span class="keyword">...</span>
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+               De(3,2) = 56 / 9 * ((12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2)) * <span class="keyword">...</span>
+                                      (E * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * <span class="keyword">...</span>
+                                      (nup^2 - 4 * nup - 1/2) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) / 7 + <span class="keyword">...</span>
+                                      sqrt(3) * (1 + nup) * (exx^3 * (-1/2 + nup) * E + <span class="keyword">...</span>
+                                      (-6/7 * E * (-1/2 + nup) * eyy - 9/7 * sy * (nu - 1/2)) * exx^2 + <span class="keyword">...</span>
+                                      (3/7 * (eyy^2 + 3/2 * gxy^2) * (-1/2 + nup) * E + 9/7 * sy * (nu - 1/2) * eyy) * exx - <span class="keyword">...</span>
+                                      2/7 * E * (-1/2 + nup) * eyy^3 - 9/14 * (nu - 1/2) * sy * gxy^2)) / <span class="keyword">...</span>
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+               De(3,3) = 0.0;
+
+               De(3,4) = -4 * sqrt(3) * (1 + nup) * ((exx^2 + eyy^2 + gxy^2 / 2) * <span class="keyword">...</span>
+                                      (-1/2 + nup) * E - (nu - 1/2) * sy * (exx + eyy)) * <span class="keyword">...</span>
+                                      gxy * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) / <span class="keyword">...</span>
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+               De(4,1) = 4 * sqrt(3) * (1 + nup) * ((12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2)) * <span class="keyword">...</span>
+                                      (-E * (-1/2 + nup) * eyy^2 + (exx * E * nup - exx * E / 2 + sy * (nu - 1/2)) * eyy - <span class="keyword">...</span>
+                                      gxy^2 * E * nup / 2 + (-2 * sy * nu + sy) * exx + gxy^2 * E / 4) * gxy / <span class="keyword">...</span>
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+               De(4,2) = -4 * sqrt(3) * (E * (-1/2 + nup) * exx^2 + <span class="keyword">...</span>
+                                      (-E * (-1/2 + nup) * eyy - sy * (nu - 1/2)) * exx + <span class="keyword">...</span>
+                                      E * (-1/2 + nup) * gxy^2 / 2 + 2 * sy * (nu - 1/2) * eyy) * <span class="keyword">...</span>
+                                      (1 + nup) * gxy * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) / <span class="keyword">...</span>
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+               De(4,3) = 0.0;
+
+               De(4,4) = -8 / 3 * ((12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2)) * <span class="keyword">...</span>
+                                      ((1 + nup) * (exx^2 - exx * eyy + eyy^2) * <span class="keyword">...</span>
+                                      ((-1/2 + nup) * exx * E + E * (-1/2 + nup) * eyy - <span class="keyword">...</span>
+                                      3 * sy * (nu - 1/2)) * sqrt(3) + <span class="keyword">...</span>
+                                      E * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * <span class="keyword">...</span>
+                                      (-1/2 + nup)^2 * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)) / <span class="keyword">...</span>
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / <span class="keyword">...</span>
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% MechanicalNonlinearElasticDruckerPrager class
+% This class implements a nonlinear elastic constitutive model based on the
+% Drucker-Prager criterion. The model is a surrogate nonlinear elastic
+% formulation proposed by Zhao et al. (2020) and is implemented following
+% the Abaqus UMAT provided by the authors.
+%
+% Reference:
+% Zhao, T., Lages, E.N., Ramos, A.S. et al.
+% Topology optimization considering the Drucker–Prager criterion with
+% a surrogate nonlinear elastic constitutive model.
+% Struct Multidisc Optim 62, 3205–3227 (2020).
+%
+%% Methods
+% * *eval*: Computes the stress vector and constitutive matrix based on
+%           material properties and integration point data.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class Definition
+classdef MechanicalNonlinearElasticDruckerPrager < MechanicalLinearElastic
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = MechanicalNonlinearElasticDruckerPrager()
+            this = this@MechanicalLinearElastic();
+        end
+    end
+
+    %% Public methods
+    methods
+        % Compute the stress vector and the constitutive matrix
+        function [stress,De] = eval(this,material,ip)
+
+            % Elastic constitutive matrix
+            De = this.elasticConstitutiveMatrix(material,ip);
+
+            % Stress vector
+            stress = De * (ip.strain - ip.strainOld) + ip.stressOld;
+
+            % Stress invariants
+            Is1 = this.stressInvariantI1(stress);
+            Js2 = this.stressInvariantJ2(stress);
+
+            % Get material parameters
+            E      = material.Young;
+            nu     = material.nu;
+            tanPhi = tan(material.frictionAngle);
+            coh    = material.cohesion;
+
+            % Compute DP material parameters
+            nup = (sqrt(3.0)*sqrt(9.0 + 12.0*tanPhi*tanPhi) - 6.0*tanPhi)/(2.0*sqrt(3.0)*sqrt(9.0 + 12.0*tanPhi*tanPhi) + 3.0*tanPhi);
+            sy  = (9.0 * coh)/(sqrt(3.0)*sqrt(9.0 + 12.0*tanPhi*tanPhi) + 3.0*tanPhi);
+            alpha = (1.0 - 2.0 * nup)/2.0/sqrt(3.0)/(1.0 + nup);
+            kappa = (alpha + 1.0/sqrt(3.0))*sy;
+
+            % Drucker-Prager yield function
+            fYield = alpha * Is1 + sqrt(Js2) - kappa;
+
+            % Return if it is in a elastic state
+            if fYield < 0.0, return; end
+
+            % Compute the strain invariants
+            Ie1 = this.strainInvariantI1(ip.strain);
+            Je2 = this.strainInvariantJ2(ip.strain);
+
+            % Auxiliar scalars
+            a = 3.0 * alpha * (1.0 + nu) * E;
+            b = 3.0 * (1.0 - 2.0 * nu) * E;
+            c = -(3.0 * alpha + sqrt(3.0)) * (1.0 + nu) * (1.0 - 2.0 * nu) * sy;
+            d = - 3.0 * alpha * E * E;
+            e = 18.0 * alpha * alpha * E * E;
+            f = (3.0 * alpha + sqrt(3.0))*(1.0 - 2.0 * nu) * E * sy;
+
+            % Compute phi2
+            phi2 = (a * Ie1 + b * sqrt(Je2) + c)/(d * Ie1 + e * sqrt(Je2) + f);
+
+            % Apex zone
+            if phi2 < 0.0
+                 stress(1:3) = kappa / (3.0 * alpha);
+                 stress(4) = 0.0;
+                 De = zeros(4,4);
+                 return
+            end
+
+            % Get strain components (Plane strain)
+            exx = ip.strain(1);
+            eyy = ip.strain(2);
+            gxy = ip.strain(4);
+
+            % Cone zone: stress vector
+            stress(1) = -10 * (8 / 5 * (1 + nup) * (E * (-1 / 2 + nup) * exx^2 + (-E * (-1 / 2 + nup) * eyy / 4 - 3 / 2 * sy * (nu - 1 / 2)) * exx + E * (-1 / 2 + nup) * eyy^2 / 4 + 3 / 4 * sy * (nu - 1 / 2) * eyy + 3 / 8 * E * (-1 / 2 + nup) * gxy^2) * sqrt(3) + sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) * (E * (nup^2 - 2 / 5 * nup + 2 / 5) * exx - (nup^2 - 4 * nup - 1 / 2) * E * eyy / 5 - 3 / 5 * sy * (-1 / 2 + nup) * (1 + nu))) * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1 / 2) / (36 * nup * nu - 18 * nup^2 + 9 * nu - 9);
+            stress(2) = -4 * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1 / 2) * ((-E * (exx - 5 * eyy) * nup^2 / 2 + ((2 * exx - eyy) * E - 3 / 2 * sy * (1 + nu)) * nup + (exx / 4 + eyy) * E + 3 / 4 * sy * (1 + nu)) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) + sqrt(3) * (1 + nup) * (E * (exx^2 + 4 * eyy^2 + 3 / 2 * gxy^2 - exx * eyy) * nup + (-exx^2 / 2 + exx * eyy / 2 - 2 * eyy^2 - 3 / 4 * gxy^2) * E + 3 * sy * (nu - 1 / 2) * (exx - 2 * eyy))) / (36 * nup * nu - 18 * nup^2 + 9 * nu - 9);
+            stress(3) = 2 * (-2 * sqrt(3) * (1 + nup) * (E * (exx^2 + eyy^2 + 3 / 2 * gxy^2 - 4 * exx * eyy) * nup + (-exx^2 / 2 + 2 * exx * eyy - eyy^2 / 2 - 3 / 4 * gxy^2) * E + 3 * sy * (exx + eyy) * (nu - 1 / 2)) + sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) * (E * (exx + eyy) * nup^2 + ((-4 * exx - 4 * eyy) * E + 3 * sy * (1 + nu)) * nup + (-exx / 2 - eyy / 2) * E - 3 / 2 * sy * (1 + nu))) * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1 / 2) / (36 * nup * nu - 18 * nup^2 + 9 * nu - 9);
+            stress(4) = -4 * (E * (-1 / 2 + nup)^2 * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) + sqrt(3) * (1 + nup) * (E * (exx + eyy) * nup + (-exx / 2 - eyy / 2) * E - 3 * sy * (nu - 1 / 2))) * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1 / 2) * gxy / (24 * nup * nu - 12 * nup^2 + 6 * nu - 6);
+
+            % Cone zone: constitutive matrix
+            De(1,1) = -64 / 9 * ((12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2)) * ...
+                                    (5 / 8 * E * (nup^2 - 2/5 * nup + 2/5) * ...
+                                    (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) + ...
+                                    sqrt(3) * (1 + nup) * ((-1/2 + nup) * ...
+                                    (exx^3 - eyy^3 / 8 - 3/2 * exx^2 * eyy + 15/8 * exx * eyy^2 + 9/8 * exx * gxy^2) * E - ...
+                                    9/8 * sy * (nu - 1/2) * (eyy^2 + gxy^2))) / ...
+                                    (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                                    (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+             De(1,2) = -16 / 9 * (-E * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * ...
+                    (nup^2 - 4 * nup - 1/2) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) / 2 + ...
+                    sqrt(3) * (1 + nup) * ((-1/2 + nup) * ...
+                    (exx - eyy / 2) * (exx - 2 * eyy) * (exx + eyy) * E + ...
+                    9/2 * sy * (nu - 1/2) * (exx * eyy + gxy^2 / 2))) * ...
+                    (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) / ...
+                    (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                    (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+             De(1,3) = 0.0;
+
+             De(1,4) = 4 * sqrt(3) * (1 + nup) * ...
+                    (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) * ...
+                    (-E * (-1/2 + nup) * eyy^2 + ...
+                    (exx * E * nup - exx * E / 2 + sy * (nu - 1/2)) * eyy - ...
+                    gxy^2 * E * nup / 2 + (-2 * sy * nu + sy) * exx + ...
+                    gxy^2 * E / 4) * gxy / ...
+                    (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                    (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+             De(2,1) = -16 / 9 * (-E * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * ...
+                                   (nup^2 - 4 * nup - 1/2) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) / 2 + ...
+                                   sqrt(3) * (1 + nup) * ((-1/2 + nup) * ...
+                                   (exx - eyy / 2) * (exx - 2 * eyy) * (exx + eyy) * E + ...
+                                   9/2 * sy * (nu - 1/2) * (exx * eyy + gxy^2 / 2))) * ...
+                                   (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) / ...
+                                   (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                                   (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+              De(2,2) = 8 / 9 * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) * ...
+                           (-5 * E * (nup^2 - 2/5 * nup + 2/5) * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * ...
+                           sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) + ...
+                           sqrt(3) * (1 + nup) * ((exx^3 - 15 * exx^2 * eyy + 12 * exx * eyy^2 - 8 * eyy^3 - 9 * eyy * gxy^2) * ...
+                           (-1/2 + nup) * E + 9 * (exx^2 + gxy^2) * sy * (nu - 1/2))) / ...
+                           (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                           (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+              De(2,3) = 0.0;
+
+              De(2,4) = -4 * sqrt(3) * (E * (-1/2 + nup) * exx^2 + ...
+                           (-E * (-1/2 + nup) * eyy - sy * (nu - 1/2)) * exx + ...
+                           E * (-1/2 + nup) * gxy^2 / 2 + 2 * sy * (nu - 1/2) * eyy) * ...
+                           (1 + nup) * gxy * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) / ...
+                           (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                           (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+              De(3,1) = -16 / 9 * ((12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2)) * ...
+                                      (-E * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * ...
+                                      (nup^2 - 4 * nup - 1/2) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) / 2 + ...
+                                      sqrt(3) * (1 + nup) * (-7/2 * E * (-1/2 + nup) * eyy^3 + ...
+                                      (3 * (-1/2 + nup) * exx * E + 9/2 * sy * (nu - 1/2)) * eyy^2 + ...
+                                      (-3/2 * (-1/2 + nup) * (exx^2 + 3/2 * gxy^2) * E - 9/2 * (nu - 1/2) * sy * exx) * eyy + ...
+                                      exx^3 * (-1/2 + nup) * E + 9/4 * (nu - 1/2) * sy * gxy^2)) / ...
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+               De(3,2) = 56 / 9 * ((12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2)) * ...
+                                      (E * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * ...
+                                      (nup^2 - 4 * nup - 1/2) * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2) / 7 + ...
+                                      sqrt(3) * (1 + nup) * (exx^3 * (-1/2 + nup) * E + ...
+                                      (-6/7 * E * (-1/2 + nup) * eyy - 9/7 * sy * (nu - 1/2)) * exx^2 + ...
+                                      (3/7 * (eyy^2 + 3/2 * gxy^2) * (-1/2 + nup) * E + 9/7 * sy * (nu - 1/2) * eyy) * exx - ...
+                                      2/7 * E * (-1/2 + nup) * eyy^3 - 9/14 * (nu - 1/2) * sy * gxy^2)) / ...
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+               De(3,3) = 0.0;
+
+               De(3,4) = -4 * sqrt(3) * (1 + nup) * ((exx^2 + eyy^2 + gxy^2 / 2) * ...
+                                      (-1/2 + nup) * E - (nu - 1/2) * sy * (exx + eyy)) * ...
+                                      gxy * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) / ...
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+               De(4,1) = 4 * sqrt(3) * (1 + nup) * ((12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2)) * ...
+                                      (-E * (-1/2 + nup) * eyy^2 + (exx * E * nup - exx * E / 2 + sy * (nu - 1/2)) * eyy - ...
+                                      gxy^2 * E * nup / 2 + (-2 * sy * nu + sy) * exx + gxy^2 * E / 4) * gxy / ...
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+               De(4,2) = -4 * sqrt(3) * (E * (-1/2 + nup) * exx^2 + ...
+                                      (-E * (-1/2 + nup) * eyy - sy * (nu - 1/2)) * exx + ...
+                                      E * (-1/2 + nup) * gxy^2 / 2 + 2 * sy * (nu - 1/2) * eyy) * ...
+                                      (1 + nup) * gxy * (12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2) / ...
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+               De(4,3) = 0.0;
+
+               De(4,4) = -8 / 3 * ((12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)^(-1/2)) * ...
+                                      ((1 + nup) * (exx^2 - exx * eyy + eyy^2) * ...
+                                      ((-1/2 + nup) * exx * E + E * (-1/2 + nup) * eyy - ...
+                                      3 * sy * (nu - 1/2)) * sqrt(3) + ...
+                                      E * (exx^2 - exx * eyy + eyy^2 + 3/4 * gxy^2) * ...
+                                      (-1/2 + nup)^2 * sqrt(12 * exx^2 - 12 * exx * eyy + 12 * eyy^2 + 9 * gxy^2)) / ...
+                                      (4 * exx^2 - 4 * exx * eyy + 4 * eyy^2 + 3 * gxy^2) / ...
+                                      (4 * nup * nu - 2 * nup^2 + nu - 1);
+
+
+        end
+    end
+end
+##### SOURCE END #####
+--></body></html>

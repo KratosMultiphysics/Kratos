@@ -1,0 +1,948 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Model_M Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="Model_M.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Model_M Class</h1><!--introduction--><p>This class represents a mechanical finite element model. It extends the <i>Model</i> class and is specifically designed for mechanical physics simulations. Each node in the model has 2 degrees of freedom:</p><div><ul><li>2 displacement components (ux, uy)</li></ul></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class definition</a></li><li><a href="#5">Public attributes</a></li><li><a href="#6">Model data</a></li><li><a href="#7">Geostatic</a></li><li><a href="#8">Embedded related data</a></li><li><a href="#10">Constructor method</a></li><li><a href="#11">Public methods</a></li><li><a href="#12">Static methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>setMaterial</b>: Sets the material properties using a <i>PorousMedia</i>                  object.</li><li><b>initializeElements</b>: Initializes the elements of the model with their                         properties.</li><li><b>setDirichletBCAtNode</b>: Sets displacement Dirichlet boundary                           conditions at a specific node.</li><li><b>setDirichletBCAtPoint</b>: Sets displacement Dirichlet boundary                            conditions at a specific point.</li><li><b>setDirichletBCAtBorder</b>: Sets displacement Dirichlet boundary                             conditions along a border.</li><li><b>addLoadAtNode</b>: Adds a load at a specific node.</li><li><b>addLoadAtPoint</b>: Adds a load at a specific point.</li><li><b>addLoadAtBorder</b>: Adds a load along a specified border in a given                      direction.</li><li><b>initializeDiscontinuitySegArray</b>: Initializes an array of                                      discontinuity segments.</li><li><b>initializeDiscontinuitySegment</b>: Initializes a single discontinuity                                     segment.</li><li><b>addDiscontinuityData</b>: Adds additional discontinuity data.</li><li><b>initializeDiscontinuitySegments</b>: Initializes discontinuity segments.</li><li><b>plotDisplacementAlongSegment</b>: Plots displacement along a segment.</li><li><b>plotDeformedMesh</b>: Plots the deformed mesh with a specified                       amplification factor.</li><li><b>updateResultVertices</b>: Updates the result vertices of each element                           based on the specified configuration and                           factor.</li><li><b>printResultsHeader</b>: Prints the header for the results table.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class definition</h2><pre class="codeinput"><span class="keyword">classdef</span> Model_M &lt; Model
+</pre><h2 id="5">Public attributes</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+</pre><h2 id="6">Model data</h2><pre class="codeinput">        isPlaneStress       = false;
+</pre><h2 id="7">Geostatic</h2><pre class="codeinput">        addGeostatic        = false;
+        addPorePressure     = false;
+        stressfnc           = [];
+        FeG                 = [];
+        P                   = [];
+        FeP                 = [];
+</pre><h2 id="8">Embedded related data</h2><pre class="codeinput">        addTangentialStretchingMode = false;
+        addNormalStretchingMode     = false;
+        addRelRotationMode          = false;
+        symmetricSDAEFEM            = true;        <span class="comment">% Flag for the use of a symmetric embedded formulation</span>
+</pre><pre class="codeinput">    <span class="keyword">end</span>
+</pre><h2 id="10">Constructor method</h2><pre class="codeinput">    methods
+        <span class="keyword">function</span> this = Model_M(printFlag)
+            <span class="keyword">if</span> nargin == 0, printFlag = true; <span class="keyword">end</span>
+            this = this@Model();
+            this.ndof_nd = 2;       <span class="comment">% Number of dofs per node</span>
+            this.physics = <span class="string">'M'</span>;     <span class="comment">% Tag with the physics name</span>
+            this.nNodalEnrDofs = 2;
+            <span class="keyword">if</span> (printFlag)
+                disp(<span class="string">"*** Physics: Mechanical"</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="11">Public methods</h2><pre class="codeinput">    methods
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Sets the material properties</span>
+        <span class="keyword">function</span> setMaterial(this,porousMedia)
+            <span class="keyword">if</span> nargin &lt; 2
+                disp(<span class="string">'Error in setMaterial: insufficient number of inputs.'</span>);
+                disp(<span class="string">'Physics M requires 1 attribute(s): porousMedia.'</span>);
+                error(<span class="string">'Error in setMaterial.'</span>);
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> ~isa(porousMedia,<span class="string">'PorousMedia'</span>)
+                disp(<span class="string">'Error in setMaterial: porousMedia is not a PorousMedia object.'</span>);
+                error(<span class="string">'Error in setMaterial.'</span>);
+            <span class="keyword">end</span>
+            this.mat = struct(<span class="string">'porousMedia'</span>,porousMedia);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initializes the elements of the model with the corresponding</span>
+        <span class="comment">% properties</span>
+        <span class="keyword">function</span> initializeElements(this)
+            <span class="comment">% Initialize the vector with the Element's objects</span>
+            elements(this.nelem,1) = Element();
+
+            <span class="comment">% Assemble the properties to the elements' objects</span>
+            <span class="keyword">for</span> el = 1 : this.nelem
+                <span class="comment">% Create the material for the element</span>
+                emat =struct( <span class="keyword">...</span>
+                        <span class="string">'porousMedia'</span>,this.mat.porousMedia(this.matID(el)), <span class="keyword">...</span>
+                        <span class="string">'lc'</span>,this.getElementCharacteristicLength(el));
+                dof_e = this.getElementDofs(el,[1,2]);
+                <span class="keyword">if</span> (this.enriched == false)
+                    elements(el) = RegularElement_M(<span class="keyword">...</span>
+                                this.NODE(this.ELEM{el},:), this.ELEM{el},<span class="keyword">...</span>
+                                this.t, emat, this.intOrder,dof_e, <span class="keyword">...</span>
+                                this.massLumping, this.lumpStrategy, this.isAxisSymmetric, <span class="keyword">...</span>
+                                this.isPlaneStress);
+                <span class="keyword">else</span>
+                    elements(el) = EnrichedElement_M(<span class="keyword">...</span>
+                                this.NODE(this.ELEM{el},:), this.ELEM{el},<span class="keyword">...</span>
+                                this.t, emat, this.intOrder,dof_e, <span class="keyword">...</span>
+                                this.massLumping, this.lumpStrategy, this.isAxisSymmetric, <span class="keyword">...</span>
+                                this.isPlaneStress,this.addRelRotationMode, <span class="keyword">...</span>
+                                this.addTangentialStretchingMode, this.addNormalStretchingMode,<span class="keyword">...</span>
+                                this.condenseEnrDofs,this.subDivIntegration, this.symmetricSDAEFEM, <span class="keyword">...</span>
+                                this.useNodalEnrDofs);
+                <span class="keyword">end</span>
+                <span class="keyword">if</span> this.gravityOn
+                    elements(el).type.gravityOn = true;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            this.element = elements;
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initialize additional model data associated with the physics</span>
+        <span class="keyword">function</span> initializePhysicsAdditionalData(this)
+            <span class="keyword">if</span> this.addGeostatic
+                this.initializeGeostaticStresses();
+                this.initializeGeostaticForceVector();
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initialize the stresses in the elements with the given stress</span>
+        <span class="comment">% state function</span>
+        <span class="keyword">function</span> initializeGeostaticStresses(this)
+            <span class="keyword">for</span> el = 1 : this.nelem
+                this.element(el).type.initialStress(this.stressfnc);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initialize the vector with the geostatic forces</span>
+        <span class="keyword">function</span> initializeGeostaticForceVector(this)
+            [K,~,Fi,~] = this.globalMatrices(this.U);
+            <span class="comment">%this.FeG = sparse(this.ndof,1);</span>
+            this.FeG = Fi + K * this.U;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Add the geostatic forces to the external force vector</span>
+        <span class="keyword">function</span> Fe = addGeostaticForces(this, Fe)
+            <span class="keyword">if</span> ((this.addGeostatic == false) || isempty(this.FeG))
+                <span class="keyword">return</span>
+            <span class="keyword">end</span>
+            Fe = Fe + this.FeG;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Set the nodal pore-pressure values</span>
+        <span class="keyword">function</span> setPorePressureField(this, P)
+            this.P = P;
+            <span class="keyword">if</span> (isempty(this.FeP) == false)
+                this.computePorePressureForceVct();
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Add forces due to external pore-pressure field</span>
+        <span class="keyword">function</span> Fe = addPorePressureForces(this, Fe)
+            <span class="keyword">if</span> ((this.addPorePressure == false) || (isempty(this.P)))
+                <span class="keyword">return</span>
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> (isempty(this.FeP))
+                this.computePorePressureForceVct();
+            <span class="keyword">end</span>
+            Fe = Fe + this.FeP;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the forces due to the pore-pressure field.</span>
+        <span class="keyword">function</span> computePorePressureForceVct(this)
+            <span class="comment">% Initialize</span>
+            this.FeP = zeros(this.ndof,1);
+            <span class="comment">% Compute and assemble element data</span>
+            <span class="keyword">for</span> el = 1:this.nelem
+                <span class="comment">% Pressure "dofs"</span>
+                pdof = this.element(el).type.connect;
+                <span class="comment">% Displacement dofs</span>
+                udof = this.element(el).type.gle;
+                <span class="comment">% Get contribution from element el</span>
+                fep = this.element(el).type.porePressureForce(this.P(pdof));
+                this.FeP(udof) = this.FeP(udof) + fep;
+            <span class="keyword">end</span>
+            <span class="comment">% Convert to sparse</span>
+            this.FeP = sparse(this.FeP);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Add contribution of nodal loads to reference load vector.</span>
+        <span class="keyword">function</span> Fe = addNodalLoad(this,Fe)
+            Fe = addNodalLoad@Model(this,Fe);
+            Fe = this.addGeostaticForces(Fe);
+            Fe = this.addPorePressureForces(Fe);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Reset the displacements and strains of the model</span>
+        <span class="keyword">function</span> resetDisplacements(this)
+            <span class="keyword">for</span> el = 1 : this.nelem
+                udofs = this.element(el).type.resetDisplacements();
+                this.U(udofs) = 0.0;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a displacement Dirichlet boundary condition at a node</span>
+        <span class="keyword">function</span> setDisplacementDirichletBCAtNode(this, nodeId, value)
+            this.setDirichletBCAtNode(nodeId, [1,2], value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a displacement Dirichlet boundary condition at a point</span>
+        <span class="keyword">function</span> setDisplacementDirichletBCAtPoint(this, X, value)
+            this.setDirichletBCAtPoint(X, [1,2], value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a displacement Dirichlet boundary condition at a border</span>
+        <span class="keyword">function</span> setDisplacementDirichletBCAtBorder(this, border, value)
+            this.setDirichletBCAtBorder(border, [1,2], value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Impose a load at a node</span>
+        <span class="keyword">function</span> addLoadAtNode(this, nodeId, value)
+            this.setNeumannBCAtNode(nodeId, [1,2], value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Impose a load at a point</span>
+        <span class="keyword">function</span> addLoadAtPoint(this, X, value)
+            this.setNeumannBCAtPoint(X, [1,2], value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Impose a load at a border</span>
+        <span class="keyword">function</span> addLoadAtBorder(this, border, dir, p, range)
+            <span class="keyword">if</span> nargin &lt; 5
+                <span class="keyword">if</span> (strcmp(border,<span class="string">'left'</span>) || strcmp(border,<span class="string">'right'</span>))
+                    range = [min(this.NODE(:,2)) , max(this.NODE(:,2))];
+                <span class="keyword">elseif</span> (strcmp(border,<span class="string">'top'</span>)||strcmp(border,<span class="string">'bottom'</span>))
+                    range = [min(this.NODE(:,1)) , max(this.NODE(:,1))];
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+            <span class="comment">% Tolerance</span>
+            tol = 1.0e-12;
+
+            <span class="comment">% Get the nodes at the given border</span>
+            <span class="keyword">if</span> strcmp(border,<span class="string">'left'</span>)
+                ref = min(this.NODE(:,1));
+                ndir = 1;
+            <span class="keyword">elseif</span> strcmp(border,<span class="string">'right'</span>)
+                ref = max(this.NODE(:,1));
+                ndir = 1;
+            <span class="keyword">elseif</span> strcmp(border,<span class="string">'top'</span>)
+                ref = max(this.NODE(:,2));
+                ndir = 2;
+            <span class="keyword">elseif</span> strcmp(border,<span class="string">'bottom'</span>)
+                ref = min(this.NODE(:,2));
+                ndir = 2;
+            <span class="keyword">else</span>
+                disp(<span class="string">'Warning: non-supported border.'</span>);
+                disp(<span class="string">'Available borders tag: ''left'',''right'', ''top'',''bottom'''</span>);
+                <span class="keyword">return</span>;
+            <span class="keyword">end</span>
+
+            <span class="keyword">for</span> el = 1:this.nelem
+
+                <span class="comment">% Get number of linear interpolation points</span>
+                nLinNodes = length(this.ELEM{el});
+                quadMesh  = false;
+                <span class="keyword">if</span> (nLinNodes == 6) || (nLinNodes == 8)
+                    nLinNodes = nLinNodes / 2;
+                    quadMesh  = true;
+                <span class="keyword">end</span>
+
+                <span class="comment">% Get the number of edges of the element</span>
+                nEdges = nLinNodes;
+
+                <span class="comment">% Get the coordinates of the element</span>
+                cX = [this.NODE(this.ELEM{el}(1:nLinNodes),1); this.NODE(this.ELEM{el}(1),1)];
+                cY = [this.NODE(this.ELEM{el}(1:nLinNodes),2); this.NODE(this.ELEM{el}(1),2)];
+
+                <span class="comment">% Get the nodes of the borders</span>
+                NdBorders = [this.ELEM{el}(1:nLinNodes), this.ELEM{el}(1)];
+
+                <span class="comment">% Loop through the edges of the element</span>
+                <span class="keyword">for</span> j = 1:nEdges
+
+                    <span class="comment">% coordinates of the edge</span>
+                    edgeX = [cX(j) , cX(j+1)];
+                    edgeY = [cY(j) , cY(j+1)];
+
+                    <span class="comment">% select the edge</span>
+                    <span class="keyword">if</span> ndir == 1
+                        edge   = edgeX;
+                        eRange = edgeY;
+                    <span class="keyword">elseif</span> ndir == 2
+                        edge = edgeY;
+                        eRange = edgeX;
+                    <span class="keyword">end</span>
+
+                    <span class="comment">% check if the edge belong to the boundary</span>
+                    <span class="keyword">if</span> ((norm(edge-ref) &lt; tol) &amp;&amp; (min(eRange)&gt;(range(1)-tol)) &amp;&amp; (max(eRange)&lt;(range(2)+tol)))
+
+                        <span class="comment">% Compute the length of the edge</span>
+                        dx = edgeX(2) - edgeX(1);
+                        dy = edgeY(2) - edgeY(1);
+                        l = sqrt(dx*dx + dy*dy);
+
+                        <span class="comment">% id of the nodes of the edge</span>
+                        idNds = [NdBorders(j); NdBorders(j+1)];
+
+                        <span class="comment">% Equivalent nodal load</span>
+                        <span class="keyword">if</span> quadMesh == false
+                            feq = [0.5*p*l;0.5*p*l];
+                        <span class="keyword">else</span>
+                            feq = [p*l;p*l;4.0*p*l]/6.0;
+                            idNds = [idNds; this.ELEM{el}(j+nLinNodes)];
+                        <span class="keyword">end</span>
+
+                        <span class="comment">% For axisymmetric models</span>
+                        <span class="keyword">if</span> this.isAxisSymmetric
+                            feq = feq * 2 * pi * mean(edgeX);
+                        <span class="keyword">end</span>
+
+                        <span class="comment">% Add contribution to the LOAD matrix</span>
+                        this.LOAD(idNds,dir) = this.LOAD(idNds,dir) + feq;
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Initializes an array of discontinuity segments</span>
+        <span class="keyword">function</span> seg = initializeDiscontinuitySegArray(~,n)
+            seg(n,1) = DiscontinuityElement_M([],[]);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Initializes a single discontinuity segment</span>
+        <span class="keyword">function</span> seg = initializeDiscontinuitySegment(~,nodeD,matD)
+            seg = DiscontinuityElement_M(nodeD,matD);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Adds some additional discontinuity data</span>
+        <span class="keyword">function</span> addDiscontinuityData(this, additionalData)
+            <span class="keyword">if</span> nargin &lt; 2 || ~isstruct(additionalData)
+                <span class="keyword">return</span>
+            <span class="keyword">end</span>
+            fields = {
+                <span class="string">'addRelRotationMode'</span>
+                <span class="string">'addTangentialStretchingMode'</span>
+                <span class="string">'addNormalStretchingMode'</span>
+            };
+            <span class="keyword">for</span> i = 1:numel(fields)
+                f = fields{i};
+                <span class="keyword">if</span> isfield(additionalData, f) &amp;&amp; ~isempty(additionalData.(f))
+                    this.(f) = additionalData.(f);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initializes discontinuity segments</span>
+        <span class="keyword">function</span> initializeDiscontinuitySegments(this)
+
+            <span class="comment">% First set the specific properties</span>
+            nDiscontinuities = this.getNumberOfDiscontinuities();
+            <span class="keyword">for</span> i = 1:nDiscontinuities
+                nDiscontinuitySeg = this.discontinuitySet(i).getNumberOfDiscontinuitySegments();
+                <span class="keyword">for</span> j = 1:nDiscontinuitySeg
+                    this.discontinuitySet(i).segment(j).addStretchingMode(this.addTangentialStretchingMode, this.addNormalStretchingMode);
+                    this.discontinuitySet(i).segment(j).addRelRotationMode(this.addRelRotationMode);
+                    this.discontinuitySet(i).segment(j).useNodalEnrDofs = this.useNodalEnrDofs;
+                    <span class="keyword">if</span> this.addPorePressure
+                        this.discontinuitySet(i).segment(j).DP = 0.0;
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            <span class="comment">% Call the common initialization</span>
+            initializeDiscontinuitySegments@Model(this);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Plot the deformed mesh</span>
+        <span class="keyword">function</span> plotDeformedMesh(this,amplFactor)
+            this.updateResultVertices(<span class="string">'Deformed'</span>,amplFactor);
+            FEMPlot(this).plotMesh();
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Update the result nodes coordinates of each element</span>
+        <span class="keyword">function</span> updateResultVertices(this,configuration,factor)
+            <span class="keyword">for</span> el = 1:this.nelem
+
+                <span class="comment">% Initialize the vertices array</span>
+                vertices = this.element(el).type.result.vertices0;
+
+                <span class="comment">% Get the updated vertices:</span>
+                <span class="keyword">if</span> strcmp(configuration,<span class="string">'Deformed'</span>)
+
+                    <span class="comment">% Update the nodal displacement vector associated to the</span>
+                    <span class="comment">% element. This displacement can contain the enhancement</span>
+                    <span class="comment">% degrees of freedom.</span>
+                    this.element(el).type.ue = this.U(this.element(el).type.gle);
+
+                    <span class="comment">% Update the vertices based on the displacement vector</span>
+                    <span class="comment">% associated to the element</span>
+                    <span class="keyword">for</span> i = 1:length(this.element(el).type.result.faces)
+                        X = vertices(i,:);
+                        u = this.element(el).type.displacementField(X);
+                        vertices(i,:) = X + factor*u';
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+                this.element(el).type.result.setVertices(vertices);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Evaluate a field at in a point inside an element</span>
+        <span class="comment">% Assumes that the point is in the element domain</span>
+        <span class="keyword">function</span> fieldValue = evaluateField(this, field, el, X)
+            fieldValue = evaluateField@Model(this, field, el, X);
+            <span class="keyword">if</span> strcmp(field,<span class="string">'PressureExt'</span>)
+                pdof = this.element(el).type.connect;
+                fieldValue = this.element(el).type.pressureField(X,this.P(pdof));
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="12">Static methods</h2><pre class="codeinput">    methods (Static)
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prints the header for the results table</span>
+        <span class="keyword">function</span> printResultsHeader()
+            fprintf(<span class="string">'\n  Node           ux        uy\n'</span>);
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Model_M Class
+% This class represents a mechanical finite element model. It extends the
+% _Model_ class and is specifically designed for mechanical physics
+% simulations. Each node in the model has 2 degrees of freedom:
+%
+% * 2 displacement components (ux, uy)
+%
+%% Methods
+% * *setMaterial*: Sets the material properties using a _PorousMedia_
+%                  object.
+% * *initializeElements*: Initializes the elements of the model with their
+%                         properties.
+% * *setDirichletBCAtNode*: Sets displacement Dirichlet boundary
+%                           conditions at a specific node.
+% * *setDirichletBCAtPoint*: Sets displacement Dirichlet boundary
+%                            conditions at a specific point.
+% * *setDirichletBCAtBorder*: Sets displacement Dirichlet boundary
+%                             conditions along a border.
+% * *addLoadAtNode*: Adds a load at a specific node.
+% * *addLoadAtPoint*: Adds a load at a specific point.
+% * *addLoadAtBorder*: Adds a load along a specified border in a given
+%                      direction.
+% * *initializeDiscontinuitySegArray*: Initializes an array of
+%                                      discontinuity segments.
+% * *initializeDiscontinuitySegment*: Initializes a single discontinuity
+%                                     segment.
+% * *addDiscontinuityData*: Adds additional discontinuity data.
+% * *initializeDiscontinuitySegments*: Initializes discontinuity segments.
+% * *plotDisplacementAlongSegment*: Plots displacement along a segment.
+% * *plotDeformedMesh*: Plots the deformed mesh with a specified
+%                       amplification factor.
+% * *updateResultVertices*: Updates the result vertices of each element
+%                           based on the specified configuration and
+%                           factor.
+% * *printResultsHeader*: Prints the header for the results table.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class definition
+classdef Model_M < Model
+    %% Public attributes
+    properties (SetAccess = public, GetAccess = public)
+        %% Model data
+        isPlaneStress       = false;
+        %% Geostatic
+        addGeostatic        = false;
+        addPorePressure     = false;
+        stressfnc           = [];
+        FeG                 = [];
+        P                   = [];
+        FeP                 = [];
+        %% Embedded related data
+        addTangentialStretchingMode = false;
+        addNormalStretchingMode     = false;
+        addRelRotationMode          = false;
+        symmetricSDAEFEM            = true;        % Flag for the use of a symmetric embedded formulation
+    end
+
+    %% Constructor method
+    methods
+        function this = Model_M(printFlag)
+            if nargin == 0, printFlag = true; end
+            this = this@Model();
+            this.ndof_nd = 2;       % Number of dofs per node
+            this.physics = 'M';     % Tag with the physics name
+            this.nNodalEnrDofs = 2;
+            if (printFlag)
+                disp("*** Physics: Mechanical");
+            end
+        end
+    end
+
+    %% Public methods
+    methods
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Sets the material properties
+        function setMaterial(this,porousMedia)
+            if nargin < 2
+                disp('Error in setMaterial: insufficient number of inputs.');
+                disp('Physics M requires 1 attribute(s): porousMedia.');
+                error('Error in setMaterial.');
+            end
+            if ~isa(porousMedia,'PorousMedia')
+                disp('Error in setMaterial: porousMedia is not a PorousMedia object.');
+                error('Error in setMaterial.');
+            end
+            this.mat = struct('porousMedia',porousMedia);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initializes the elements of the model with the corresponding
+        % properties
+        function initializeElements(this)
+            % Initialize the vector with the Element's objects
+            elements(this.nelem,1) = Element();
+
+            % Assemble the properties to the elements' objects
+            for el = 1 : this.nelem
+                % Create the material for the element
+                emat =struct( ...
+                        'porousMedia',this.mat.porousMedia(this.matID(el)), ...
+                        'lc',this.getElementCharacteristicLength(el));
+                dof_e = this.getElementDofs(el,[1,2]);
+                if (this.enriched == false)
+                    elements(el) = RegularElement_M(...
+                                this.NODE(this.ELEM{el},:), this.ELEM{el},...
+                                this.t, emat, this.intOrder,dof_e, ...
+                                this.massLumping, this.lumpStrategy, this.isAxisSymmetric, ...
+                                this.isPlaneStress);
+                else
+                    elements(el) = EnrichedElement_M(...
+                                this.NODE(this.ELEM{el},:), this.ELEM{el},...
+                                this.t, emat, this.intOrder,dof_e, ...
+                                this.massLumping, this.lumpStrategy, this.isAxisSymmetric, ...
+                                this.isPlaneStress,this.addRelRotationMode, ...
+                                this.addTangentialStretchingMode, this.addNormalStretchingMode,...
+                                this.condenseEnrDofs,this.subDivIntegration, this.symmetricSDAEFEM, ...
+                                this.useNodalEnrDofs);
+                end
+                if this.gravityOn
+                    elements(el).type.gravityOn = true;
+                end
+            end
+            this.element = elements;
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initialize additional model data associated with the physics
+        function initializePhysicsAdditionalData(this)
+            if this.addGeostatic
+                this.initializeGeostaticStresses();
+                this.initializeGeostaticForceVector();
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initialize the stresses in the elements with the given stress
+        % state function
+        function initializeGeostaticStresses(this)
+            for el = 1 : this.nelem
+                this.element(el).type.initialStress(this.stressfnc);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initialize the vector with the geostatic forces
+        function initializeGeostaticForceVector(this)
+            [K,~,Fi,~] = this.globalMatrices(this.U);
+            %this.FeG = sparse(this.ndof,1);
+            this.FeG = Fi + K * this.U;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Add the geostatic forces to the external force vector
+        function Fe = addGeostaticForces(this, Fe)
+            if ((this.addGeostatic == false) || isempty(this.FeG))
+                return
+            end
+            Fe = Fe + this.FeG;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Set the nodal pore-pressure values
+        function setPorePressureField(this, P)
+            this.P = P;
+            if (isempty(this.FeP) == false)
+                this.computePorePressureForceVct();
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Add forces due to external pore-pressure field
+        function Fe = addPorePressureForces(this, Fe)
+            if ((this.addPorePressure == false) || (isempty(this.P)))
+                return
+            end
+            if (isempty(this.FeP))
+                this.computePorePressureForceVct();
+            end
+            Fe = Fe + this.FeP;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the forces due to the pore-pressure field.
+        function computePorePressureForceVct(this)
+            % Initialize
+            this.FeP = zeros(this.ndof,1);
+            % Compute and assemble element data
+            for el = 1:this.nelem
+                % Pressure "dofs"
+                pdof = this.element(el).type.connect;
+                % Displacement dofs
+                udof = this.element(el).type.gle;
+                % Get contribution from element el
+                fep = this.element(el).type.porePressureForce(this.P(pdof));
+                this.FeP(udof) = this.FeP(udof) + fep;
+            end
+            % Convert to sparse
+            this.FeP = sparse(this.FeP);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Add contribution of nodal loads to reference load vector.
+        function Fe = addNodalLoad(this,Fe)
+            Fe = addNodalLoad@Model(this,Fe);
+            Fe = this.addGeostaticForces(Fe);
+            Fe = this.addPorePressureForces(Fe);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Reset the displacements and strains of the model
+        function resetDisplacements(this)
+            for el = 1 : this.nelem
+                udofs = this.element(el).type.resetDisplacements();
+                this.U(udofs) = 0.0;
+            end
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prescribe a displacement Dirichlet boundary condition at a node
+        function setDisplacementDirichletBCAtNode(this, nodeId, value)
+            this.setDirichletBCAtNode(nodeId, [1,2], value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prescribe a displacement Dirichlet boundary condition at a point
+        function setDisplacementDirichletBCAtPoint(this, X, value)
+            this.setDirichletBCAtPoint(X, [1,2], value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prescribe a displacement Dirichlet boundary condition at a border
+        function setDisplacementDirichletBCAtBorder(this, border, value)
+            this.setDirichletBCAtBorder(border, [1,2], value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Impose a load at a node
+        function addLoadAtNode(this, nodeId, value)
+            this.setNeumannBCAtNode(nodeId, [1,2], value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Impose a load at a point
+        function addLoadAtPoint(this, X, value)
+            this.setNeumannBCAtPoint(X, [1,2], value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Impose a load at a border
+        function addLoadAtBorder(this, border, dir, p, range)
+            if nargin < 5
+                if (strcmp(border,'left') || strcmp(border,'right'))
+                    range = [min(this.NODE(:,2)) , max(this.NODE(:,2))];
+                elseif (strcmp(border,'top')||strcmp(border,'bottom'))
+                    range = [min(this.NODE(:,1)) , max(this.NODE(:,1))];
+                end
+            end
+
+            % Tolerance
+            tol = 1.0e-12;
+
+            % Get the nodes at the given border
+            if strcmp(border,'left')
+                ref = min(this.NODE(:,1));
+                ndir = 1;
+            elseif strcmp(border,'right')
+                ref = max(this.NODE(:,1));
+                ndir = 1;
+            elseif strcmp(border,'top')
+                ref = max(this.NODE(:,2));
+                ndir = 2;
+            elseif strcmp(border,'bottom')
+                ref = min(this.NODE(:,2));
+                ndir = 2;
+            else
+                disp('Warning: non-supported border.');
+                disp('Available borders tag: ''left'',''right'', ''top'',''bottom''');
+                return;
+            end
+
+            for el = 1:this.nelem
+
+                % Get number of linear interpolation points
+                nLinNodes = length(this.ELEM{el});
+                quadMesh  = false;
+                if (nLinNodes == 6) || (nLinNodes == 8)
+                    nLinNodes = nLinNodes / 2;
+                    quadMesh  = true;
+                end
+
+                % Get the number of edges of the element
+                nEdges = nLinNodes;
+
+                % Get the coordinates of the element
+                cX = [this.NODE(this.ELEM{el}(1:nLinNodes),1); this.NODE(this.ELEM{el}(1),1)];
+                cY = [this.NODE(this.ELEM{el}(1:nLinNodes),2); this.NODE(this.ELEM{el}(1),2)];
+
+                % Get the nodes of the borders
+                NdBorders = [this.ELEM{el}(1:nLinNodes), this.ELEM{el}(1)];
+
+                % Loop through the edges of the element
+                for j = 1:nEdges
+
+                    % coordinates of the edge
+                    edgeX = [cX(j) , cX(j+1)];
+                    edgeY = [cY(j) , cY(j+1)];
+
+                    % select the edge
+                    if ndir == 1
+                        edge   = edgeX;
+                        eRange = edgeY;
+                    elseif ndir == 2
+                        edge = edgeY;
+                        eRange = edgeX;
+                    end
+
+                    % check if the edge belong to the boundary
+                    if ((norm(edge-ref) < tol) && (min(eRange)>(range(1)-tol)) && (max(eRange)<(range(2)+tol)))
+
+                        % Compute the length of the edge
+                        dx = edgeX(2) - edgeX(1);
+                        dy = edgeY(2) - edgeY(1);
+                        l = sqrt(dx*dx + dy*dy);
+
+                        % id of the nodes of the edge
+                        idNds = [NdBorders(j); NdBorders(j+1)];
+
+                        % Equivalent nodal load
+                        if quadMesh == false
+                            feq = [0.5*p*l;0.5*p*l];
+                        else
+                            feq = [p*l;p*l;4.0*p*l]/6.0;
+                            idNds = [idNds; this.ELEM{el}(j+nLinNodes)];
+                        end
+
+                        % For axisymmetric models
+                        if this.isAxisSymmetric
+                            feq = feq * 2 * pi * mean(edgeX);
+                        end
+
+                        % Add contribution to the LOAD matrix
+                        this.LOAD(idNds,dir) = this.LOAD(idNds,dir) + feq;
+                    end
+                end
+            end
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Initializes an array of discontinuity segments
+        function seg = initializeDiscontinuitySegArray(~,n)
+            seg(n,1) = DiscontinuityElement_M([],[]);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Initializes a single discontinuity segment
+        function seg = initializeDiscontinuitySegment(~,nodeD,matD)
+            seg = DiscontinuityElement_M(nodeD,matD);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Adds some additional discontinuity data
+        function addDiscontinuityData(this, additionalData)
+            if nargin < 2 || ~isstruct(additionalData)
+                return
+            end
+            fields = {
+                'addRelRotationMode'
+                'addTangentialStretchingMode'
+                'addNormalStretchingMode'
+            };
+            for i = 1:numel(fields)
+                f = fields{i};
+                if isfield(additionalData, f) && ~isempty(additionalData.(f))
+                    this.(f) = additionalData.(f);
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initializes discontinuity segments
+        function initializeDiscontinuitySegments(this)
+
+            % First set the specific properties
+            nDiscontinuities = this.getNumberOfDiscontinuities();
+            for i = 1:nDiscontinuities
+                nDiscontinuitySeg = this.discontinuitySet(i).getNumberOfDiscontinuitySegments();
+                for j = 1:nDiscontinuitySeg
+                    this.discontinuitySet(i).segment(j).addStretchingMode(this.addTangentialStretchingMode, this.addNormalStretchingMode);
+                    this.discontinuitySet(i).segment(j).addRelRotationMode(this.addRelRotationMode);
+                    this.discontinuitySet(i).segment(j).useNodalEnrDofs = this.useNodalEnrDofs;
+                    if this.addPorePressure
+                        this.discontinuitySet(i).segment(j).DP = 0.0;
+                    end
+                end
+            end
+            % Call the common initialization
+            initializeDiscontinuitySegments@Model(this);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Plot the deformed mesh
+        function plotDeformedMesh(this,amplFactor)
+            this.updateResultVertices('Deformed',amplFactor);
+            FEMPlot(this).plotMesh();
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Update the result nodes coordinates of each element
+        function updateResultVertices(this,configuration,factor)
+            for el = 1:this.nelem
+
+                % Initialize the vertices array
+                vertices = this.element(el).type.result.vertices0;
+
+                % Get the updated vertices:
+                if strcmp(configuration,'Deformed')
+
+                    % Update the nodal displacement vector associated to the
+                    % element. This displacement can contain the enhancement
+                    % degrees of freedom.
+                    this.element(el).type.ue = this.U(this.element(el).type.gle);
+
+                    % Update the vertices based on the displacement vector
+                    % associated to the element
+                    for i = 1:length(this.element(el).type.result.faces)
+                        X = vertices(i,:);
+                        u = this.element(el).type.displacementField(X);
+                        vertices(i,:) = X + factor*u';
+                    end
+                end
+                this.element(el).type.result.setVertices(vertices);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Evaluate a field at in a point inside an element
+        % Assumes that the point is in the element domain
+        function fieldValue = evaluateField(this, field, el, X)
+            fieldValue = evaluateField@Model(this, field, el, X);
+            if strcmp(field,'PressureExt')
+                pdof = this.element(el).type.connect;
+                fieldValue = this.element(el).type.pressureField(X,this.P(pdof));
+            end
+        end
+    end
+    %% Static methods
+    methods (Static)
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prints the header for the results table
+        function printResultsHeader()
+            fprintf('\n  Node           ux        uy\n');
+        end
+
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

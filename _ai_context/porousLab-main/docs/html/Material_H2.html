@@ -1,0 +1,321 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Material_H2 class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="Material_H2.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Material_H2 class</h1><!--introduction--><p>This class defines the material properties and behavior for a porous medium involving liquid and gas phases. It includes methods for computing saturation degrees, saturation derivatives, relative permeabilities, relative permeability derivatives, and gas-density derivatives for the liquid and gas phases.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class definition</a></li><li><a href="#5">Public attributes</a></li><li><a href="#6">Constructor method</a></li><li><a href="#7">Public methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>saturationDegree</b>: Computes the liquid saturation degree based on                       the capillary pressure pc.</li><li><b>derivativeSaturationDegree</b>: Computes the derivative of the liquid                                 saturation degree with respect to the                                 capillary pressure pc.</li><li><b>relativePermeabilities</b>: Computes the liquid and gas relative                             permeabilities.</li><li><b>derivativeRelPerm</b>: Computes the derivatives of the liquid and gas                        relative permeabilities with respect to liquid                        saturation.</li><li><b>derivativeGasDensityWrtGasPressure</b>: Computes the derivative of the                                         gas density with respect to the                                         gas pressure Pg.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class definition</h2><pre class="codeinput"><span class="keyword">classdef</span> Material_H2 &lt; handle
+</pre><h2 id="5">Public attributes</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        liqRelativePermeability = [];
+        gasRelativePermeability = [];
+        capillaryPressure       = [];
+        liquidFluid             = Fluid();
+        gasFluid                = Fluid();
+        porousMedia             = PorousMedia();
+    <span class="keyword">end</span>
+</pre><h2 id="6">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = Material_H2(matData)
+            this.liquidFluid = matData.liquidFluid;
+            this.gasFluid    = matData.gasFluid;
+            this.porousMedia = matData.porousMedia;
+            <span class="comment">% Liquid phase relative permeability function</span>
+            <span class="keyword">if</span> strcmp(<span class="string">'BrooksCorey'</span>,matData.porousMedia.liqRelPermeability)
+                this.liqRelativePermeability = RelativePermeabilityBrooksCoreyLiquid();
+            <span class="keyword">elseif</span> strcmp(<span class="string">'Liakopoulos'</span>,matData.porousMedia.liqRelPermeability)
+                this.liqRelativePermeability = RelativePermeabilityLiakopoulosLiquid();
+            <span class="keyword">elseif</span> strcmp(<span class="string">'PolynomialLiquid'</span>,matData.porousMedia.liqRelPermeability)
+                this.liqRelativePermeability = RelativePermeabilityPolynomialLiquid();
+            <span class="keyword">elseif</span> strcmp(<span class="string">'UMAT'</span>,matData.porousMedia.liqRelPermeability)
+                curve = matData.porousMedia.klr_umat;
+                this.liqRelativePermeability = RelativePermeabilityUMAT(curve(:,1),curve(:,2));
+            <span class="keyword">end</span>
+            <span class="comment">% Gas phase relative permeability function</span>
+            <span class="keyword">if</span> strcmp(<span class="string">'BrooksCorey'</span>,matData.porousMedia.gasRelPermeability)
+                this.gasRelativePermeability = RelativePermeabilityBrooksCoreyGas();
+            <span class="keyword">elseif</span> strcmp(<span class="string">'PolynomialGas'</span>,matData.porousMedia.gasRelPermeability)
+                this.gasRelativePermeability = RelativePermeabilityPolynomialGas();
+            <span class="keyword">elseif</span> strcmp(<span class="string">'UMAT'</span>,matData.porousMedia.gasRelPermeability)
+                curve = matData.porousMedia.kgr_umat;
+                this.gasRelativePermeability = RelativePermeabilityUMAT(curve(:,1),curve(:,2));
+            <span class="keyword">end</span>
+            <span class="comment">% Saturation degree function</span>
+            <span class="keyword">if</span> strcmp(<span class="string">'BrooksCorey'</span>,matData.porousMedia.capillaryPressure)
+                this.capillaryPressure = CapillaryPressureBrooksCorey();
+            <span class="keyword">elseif</span> strcmp(<span class="string">'UMAT'</span>,matData.porousMedia.capillaryPressure)
+                curve = matData.porousMedia.SlPc_umat;
+                this.capillaryPressure = CapillaryPressureUMAT(curve(:,1),curve(:,2));
+            <span class="keyword">elseif</span> strcmp(<span class="string">'Liakopoulos'</span>,matData.porousMedia.capillaryPressure)
+                this.capillaryPressure = CapillaryPressureLiakopoulos();
+            <span class="keyword">elseif</span> strcmp(<span class="string">'Log'</span>,matData.porousMedia.capillaryPressure)
+                this.capillaryPressure = CapillaryPressureLog();
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="7">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Get the liquid saturation degree</span>
+        <span class="keyword">function</span> Sl = saturationDegree(this,pc)
+            Sl = this.capillaryPressure.saturationDegree(pc, this.porousMedia);
+            <span class="keyword">if</span> isnan(Sl) || isinf(Sl)
+                error(<span class="string">"Liquid saturation degree is NaN or Inf."</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Get the liquid saturation degree derivative wrt the capillary</span>
+        <span class="comment">% pressure</span>
+        <span class="keyword">function</span> dSldpc = derivativeSaturationDegree(this,pc)
+            dSldpc = this.capillaryPressure.derivativeSaturationDegree(pc, this.porousMedia);
+            <span class="keyword">if</span> isnan(dSldpc) || isinf(dSldpc)
+                error(<span class="string">"Derivative of the liquid saturation degree is NaN or Inf."</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the relative permeabilities</span>
+        <span class="keyword">function</span> [klr, kgr] = relativePermeabilities(this,Sl)
+            klr = this.liqRelativePermeability.calculate(Sl, this.porousMedia);
+            <span class="keyword">if</span> isnan(klr) || isinf(klr)
+                error(<span class="string">"Liquid relative permeability is NaN or Inf."</span>);
+            <span class="keyword">end</span>
+            kgr = this.gasRelativePermeability.calculate(Sl, this.porousMedia);
+            <span class="keyword">if</span> isnan(kgr) || isinf(kgr)
+                error(<span class="string">"Gas relative permeability is NaN or Inf."</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the relative permeabilities</span>
+        <span class="keyword">function</span> [dklrdSl, dkgrdSl] = derivativeRelPerm(this,Sl)
+            dklrdSl = this.liqRelativePermeability.derivative(Sl, this.porousMedia);
+            <span class="keyword">if</span> isnan(dklrdSl) || isinf(dklrdSl)
+                error(<span class="string">"Liquid relative permeability derivative is NaN or Inf."</span>);
+            <span class="keyword">end</span>
+            dkgrdSl = this.gasRelativePermeability.derivative(Sl, this.porousMedia);
+            <span class="keyword">if</span> isnan(dkgrdSl) || isinf(dkgrdSl)
+                error(<span class="string">"Gas relative permeability derivative is NaN or Inf."</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the derivative of the gas density wrt to the gas pressure</span>
+        <span class="keyword">function</span> drhogdpg = derivativeGasDensityWrtGasPressure(this,rhog,pg)
+            <span class="comment">% Perturbation value</span>
+            pert = sqrt(eps);
+            <span class="comment">% Compute the gas density given a perturbation at the gas pressure</span>
+            rhogPert = this.gasFluid.getDensity(pg + pert);
+            <span class="comment">% Compute the derivative</span>
+            drhogdpg = (rhogPert - rhog)/(pert);
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Material_H2 class
+% This class defines the material properties and behavior for a porous
+% medium involving liquid and gas phases. It includes methods for
+% computing saturation degrees, saturation derivatives, relative
+% permeabilities, relative permeability derivatives, and gas-density
+% derivatives for the liquid and gas phases.
+%
+%% Methods
+% * *saturationDegree*: Computes the liquid saturation degree based on
+%                       the capillary pressure pc.
+% * *derivativeSaturationDegree*: Computes the derivative of the liquid
+%                                 saturation degree with respect to the
+%                                 capillary pressure pc.
+% * *relativePermeabilities*: Computes the liquid and gas relative
+%                             permeabilities.
+% * *derivativeRelPerm*: Computes the derivatives of the liquid and gas
+%                        relative permeabilities with respect to liquid
+%                        saturation.
+% * *derivativeGasDensityWrtGasPressure*: Computes the derivative of the
+%                                         gas density with respect to the
+%                                         gas pressure Pg.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class definition
+classdef Material_H2 < handle
+    %% Public attributes
+    properties (SetAccess = public, GetAccess = public)
+        liqRelativePermeability = [];
+        gasRelativePermeability = [];
+        capillaryPressure       = [];
+        liquidFluid             = Fluid();
+        gasFluid                = Fluid();
+        porousMedia             = PorousMedia();
+    end
+
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = Material_H2(matData)
+            this.liquidFluid = matData.liquidFluid;
+            this.gasFluid    = matData.gasFluid;
+            this.porousMedia = matData.porousMedia;
+            % Liquid phase relative permeability function
+            if strcmp('BrooksCorey',matData.porousMedia.liqRelPermeability)
+                this.liqRelativePermeability = RelativePermeabilityBrooksCoreyLiquid();
+            elseif strcmp('Liakopoulos',matData.porousMedia.liqRelPermeability)
+                this.liqRelativePermeability = RelativePermeabilityLiakopoulosLiquid();
+            elseif strcmp('PolynomialLiquid',matData.porousMedia.liqRelPermeability)
+                this.liqRelativePermeability = RelativePermeabilityPolynomialLiquid();
+            elseif strcmp('UMAT',matData.porousMedia.liqRelPermeability)
+                curve = matData.porousMedia.klr_umat;
+                this.liqRelativePermeability = RelativePermeabilityUMAT(curve(:,1),curve(:,2));
+            end
+            % Gas phase relative permeability function
+            if strcmp('BrooksCorey',matData.porousMedia.gasRelPermeability)
+                this.gasRelativePermeability = RelativePermeabilityBrooksCoreyGas();
+            elseif strcmp('PolynomialGas',matData.porousMedia.gasRelPermeability)
+                this.gasRelativePermeability = RelativePermeabilityPolynomialGas();
+            elseif strcmp('UMAT',matData.porousMedia.gasRelPermeability)
+                curve = matData.porousMedia.kgr_umat;
+                this.gasRelativePermeability = RelativePermeabilityUMAT(curve(:,1),curve(:,2));
+            end
+            % Saturation degree function
+            if strcmp('BrooksCorey',matData.porousMedia.capillaryPressure)
+                this.capillaryPressure = CapillaryPressureBrooksCorey();
+            elseif strcmp('UMAT',matData.porousMedia.capillaryPressure)
+                curve = matData.porousMedia.SlPc_umat;
+                this.capillaryPressure = CapillaryPressureUMAT(curve(:,1),curve(:,2));
+            elseif strcmp('Liakopoulos',matData.porousMedia.capillaryPressure)
+                this.capillaryPressure = CapillaryPressureLiakopoulos();
+            elseif strcmp('Log',matData.porousMedia.capillaryPressure)
+                this.capillaryPressure = CapillaryPressureLog();
+            end
+        end
+    end
+    %% Public methods
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Get the liquid saturation degree
+        function Sl = saturationDegree(this,pc)
+            Sl = this.capillaryPressure.saturationDegree(pc, this.porousMedia);
+            if isnan(Sl) || isinf(Sl)
+                error("Liquid saturation degree is NaN or Inf.");
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Get the liquid saturation degree derivative wrt the capillary
+        % pressure
+        function dSldpc = derivativeSaturationDegree(this,pc)
+            dSldpc = this.capillaryPressure.derivativeSaturationDegree(pc, this.porousMedia);
+            if isnan(dSldpc) || isinf(dSldpc)
+                error("Derivative of the liquid saturation degree is NaN or Inf.");
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the relative permeabilities
+        function [klr, kgr] = relativePermeabilities(this,Sl)
+            klr = this.liqRelativePermeability.calculate(Sl, this.porousMedia);
+            if isnan(klr) || isinf(klr)
+                error("Liquid relative permeability is NaN or Inf.");
+            end
+            kgr = this.gasRelativePermeability.calculate(Sl, this.porousMedia);
+            if isnan(kgr) || isinf(kgr)
+                error("Gas relative permeability is NaN or Inf.");
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the relative permeabilities
+        function [dklrdSl, dkgrdSl] = derivativeRelPerm(this,Sl)
+            dklrdSl = this.liqRelativePermeability.derivative(Sl, this.porousMedia);
+            if isnan(dklrdSl) || isinf(dklrdSl)
+                error("Liquid relative permeability derivative is NaN or Inf.");
+            end
+            dkgrdSl = this.gasRelativePermeability.derivative(Sl, this.porousMedia);
+            if isnan(dkgrdSl) || isinf(dkgrdSl)
+                error("Gas relative permeability derivative is NaN or Inf.");
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the derivative of the gas density wrt to the gas pressure
+        function drhogdpg = derivativeGasDensityWrtGasPressure(this,rhog,pg)
+            % Perturbation value
+            pert = sqrt(eps);
+            % Compute the gas density given a perturbation at the gas pressure
+            rhogPert = this.gasFluid.getDensity(pg + pert);
+            % Compute the derivative
+            drhogdpg = (rhogPert - rhog)/(pert);
+        end
+
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

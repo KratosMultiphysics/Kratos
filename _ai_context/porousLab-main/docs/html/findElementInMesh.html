@@ -1,0 +1,295 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>findElementInMesh function</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="findElementInMesh.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>findElementInMesh function</h1><!--introduction--><p>This function determines the element in a 2D mesh that contains a given point P. It supports both triangular and quadrilateral elements. The function calculates the area of the element and compares it with the sum of the areas formed by the point P and the vertices of the element. If the areas match within a tolerance, the point is considered to be inside the element.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Inputs</a></li><li><a href="#2">Outputs</a></li><li><a href="#3">Author</a></li><li><a href="#4">Version History</a></li><li><a href="#5">Function definition</a></li></ul></div><h2 id="1">Inputs</h2><div><ul><li><b>NODE</b>: A matrix containing the coordinates of the nodes. Each row           represents a node, with the first column as the x-coordinate           and the second column as the y-coordinate.</li><li><b>ELEM</b>: A matrix containing the indices of the nodes that form each           element. Each row represents an element, and the number of           columns corresponds to the number of vertices.</li><li><b>P</b>: A vector representing the coordinates of the point to locate        in the mesh.</li></ul></div><h2 id="2">Outputs</h2><div><ul><li><b>elemId</b>: The index of the element in which the point P is located. If             the point is not inside any element, elemId is set to 0.</li></ul></div><h2 id="3">Author</h2><p>Danilo Cavalcanti</p><h2 id="4">Version History</h2><p>Version 1.00.</p><h2 id="5">Function definition</h2><pre class="codeinput"><span class="keyword">function</span> elemId = findElementInMesh(NODE, ELEM, P)
+<span class="comment">% Define in which convex quadrilateral element a point is inside</span>
+    nelem = size(ELEM, 1);
+
+    <span class="keyword">for</span> i = 1:nelem
+
+        <span class="comment">% Number of vertices</span>
+        nv = length(ELEM{i});
+
+        <span class="comment">% Get the corner nodes</span>
+        <span class="keyword">if</span> (nv == 6) || (nv ==8)
+            nv = nv / 2;
+        <span class="keyword">end</span>
+
+        <span class="comment">% Get the coordinates of the corner nodes</span>
+        vertices = NODE(ELEM{i}(1:nv), :);
+
+        <span class="comment">% Define vertices</span>
+        <span class="keyword">if</span> nv == 3
+            pv1 = P - vertices(1, :);
+            pv2 = P - vertices(2, :);
+            pv3 = P - vertices(3, :);
+        <span class="keyword">elseif</span> nv == 4
+            pv1 = P - vertices(1, :);
+            pv2 = P - vertices(2, :);
+            pv3 = P - vertices(3, :);
+            pv4 = P - vertices(4, :);
+        <span class="keyword">end</span>
+
+        <span class="comment">% Calculate the cross product</span>
+        <span class="comment">% Define vertices</span>
+        <span class="keyword">if</span> nv == 3
+            vA1 = cross([pv1, 0], [pv2, 0]);
+            vA2 = cross([pv2, 0], [pv3, 0]);
+            vA3 = cross([pv3, 0], [pv1, 0]);
+        <span class="keyword">elseif</span> nv == 4
+            vA1 = cross([pv1, 0], [pv2, 0]);
+            vA2 = cross([pv2, 0], [pv3, 0]);
+            vA3 = cross([pv3, 0], [pv4, 0]);
+            vA4 = cross([pv4, 0], [pv1, 0]);
+        <span class="keyword">end</span>
+
+
+        <span class="comment">% Calculate the area of each triangle</span>
+        <span class="keyword">if</span> nv == 3
+            A1 = 0.5 * norm(vA1);
+            A2 = 0.5 * norm(vA2);
+            A3 = 0.5 * norm(vA3);
+            Ai = A1 + A2 + A3;
+        <span class="keyword">elseif</span> nv == 4
+            A1 = 0.5 * norm(vA1);
+            A2 = 0.5 * norm(vA2);
+            A3 = 0.5 * norm(vA3);
+            A4 = 0.5 * norm(vA4);
+            Ai = A1 + A2 + A3 + A4;
+        <span class="keyword">end</span>
+
+        <span class="comment">% Area of the element</span>
+        Aelem = calculateQuadrilateralArea(vertices);
+
+        <span class="keyword">if</span> abs(Aelem - Ai ) &lt; 1e-9
+            elemId = i;
+            <span class="keyword">return</span>;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% If P is outside all elements</span>
+    elemId = 0;
+
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> area = calculateQuadrilateralArea(vertices)
+    <span class="comment">% Ensure the vertices are in a counterclockwise order</span>
+    <span class="keyword">if</span> isClockwise(vertices)
+        vertices = flipud(vertices);
+    <span class="keyword">end</span>
+
+    <span class="comment">% Calculate the area using the shoelace formula</span>
+    n = size(vertices, 1);
+    area = 0.5 * abs(sum(vertices(1:end-1, 1) .* vertices(2:end, 2)) <span class="keyword">...</span>
+                   + vertices(end, 1) * vertices(1, 2) <span class="keyword">...</span>
+                   - sum(vertices(1:end-1, 2) .* vertices(2:end, 1)) <span class="keyword">...</span>
+                   - vertices(end, 2) * vertices(1, 1));
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> result = isClockwise(vertices)
+    <span class="comment">% Check if the vertices are listed in clockwise order</span>
+    n = size(vertices, 1);
+    sum_angle = 0;
+    <span class="keyword">for</span> i = 1:n
+        v1 = vertices(i, :);
+        v2 = vertices(mod(i, n) + 1, :);
+        sum_angle = sum_angle + atan2(v2(2) - v1(2), v2(1) - v1(1));
+    <span class="keyword">end</span>
+    result = sum_angle &lt; 0;
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% findElementInMesh function
+% This function determines the element in a 2D mesh that contains a given
+% point P. It supports both triangular and quadrilateral elements. The
+% function calculates the area of the element and compares it with the
+% sum of the areas formed by the point P and the vertices of the element.
+% If the areas match within a tolerance, the point is considered to be
+% inside the element.
+%
+%% Inputs
+% * *NODE*: A matrix containing the coordinates of the nodes. Each row
+%           represents a node, with the first column as the x-coordinate
+%           and the second column as the y-coordinate.
+% * *ELEM*: A matrix containing the indices of the nodes that form each
+%           element. Each row represents an element, and the number of
+%           columns corresponds to the number of vertices.
+% * *P*: A vector representing the coordinates of the point to locate
+%        in the mesh.
+%
+%% Outputs
+% * *elemId*: The index of the element in which the point P is located. If
+%             the point is not inside any element, elemId is set to 0.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Function definition
+function elemId = findElementInMesh(NODE, ELEM, P)
+% Define in which convex quadrilateral element a point is inside
+    nelem = size(ELEM, 1);
+
+    for i = 1:nelem
+
+        % Number of vertices
+        nv = length(ELEM{i});
+
+        % Get the corner nodes
+        if (nv == 6) || (nv ==8)
+            nv = nv / 2;
+        end
+
+        % Get the coordinates of the corner nodes
+        vertices = NODE(ELEM{i}(1:nv), :);
+
+        % Define vertices
+        if nv == 3
+            pv1 = P - vertices(1, :);
+            pv2 = P - vertices(2, :);
+            pv3 = P - vertices(3, :);
+        elseif nv == 4
+            pv1 = P - vertices(1, :);
+            pv2 = P - vertices(2, :);
+            pv3 = P - vertices(3, :);
+            pv4 = P - vertices(4, :);
+        end
+
+        % Calculate the cross product
+        % Define vertices
+        if nv == 3
+            vA1 = cross([pv1, 0], [pv2, 0]);
+            vA2 = cross([pv2, 0], [pv3, 0]);
+            vA3 = cross([pv3, 0], [pv1, 0]);
+        elseif nv == 4
+            vA1 = cross([pv1, 0], [pv2, 0]);
+            vA2 = cross([pv2, 0], [pv3, 0]);
+            vA3 = cross([pv3, 0], [pv4, 0]);
+            vA4 = cross([pv4, 0], [pv1, 0]);
+        end
+
+
+        % Calculate the area of each triangle
+        if nv == 3
+            A1 = 0.5 * norm(vA1);
+            A2 = 0.5 * norm(vA2);
+            A3 = 0.5 * norm(vA3);
+            Ai = A1 + A2 + A3;
+        elseif nv == 4
+            A1 = 0.5 * norm(vA1);
+            A2 = 0.5 * norm(vA2);
+            A3 = 0.5 * norm(vA3);
+            A4 = 0.5 * norm(vA4);
+            Ai = A1 + A2 + A3 + A4;
+        end
+
+        % Area of the element
+        Aelem = calculateQuadrilateralArea(vertices);
+
+        if abs(Aelem - Ai ) < 1e-9
+            elemId = i;
+            return;
+        end
+    end
+
+    % If P is outside all elements
+    elemId = 0;
+
+end
+
+function area = calculateQuadrilateralArea(vertices)
+    % Ensure the vertices are in a counterclockwise order
+    if isClockwise(vertices)
+        vertices = flipud(vertices);
+    end
+
+    % Calculate the area using the shoelace formula
+    n = size(vertices, 1);
+    area = 0.5 * abs(sum(vertices(1:end-1, 1) .* vertices(2:end, 2)) ...
+                   + vertices(end, 1) * vertices(1, 2) ...
+                   - sum(vertices(1:end-1, 2) .* vertices(2:end, 1)) ...
+                   - vertices(end, 2) * vertices(1, 1));
+end
+
+function result = isClockwise(vertices)
+    % Check if the vertices are listed in clockwise order
+    n = size(vertices, 1);
+    sum_angle = 0;
+    for i = 1:n
+        v1 = vertices(i, :);
+        v2 = vertices(mod(i, n) + 1, :);
+        sum_angle = sum_angle + atan2(v2(2) - v1(2), v2(1) - v1(1));
+    end
+    result = sum_angle < 0;
+end
+
+##### SOURCE END #####
+--></body></html>

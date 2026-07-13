@@ -1,0 +1,343 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>MechanicalIsotropicDamage Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="MechanicalIsotropicDamage.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>MechanicalIsotropicDamage Class</h1><!--introduction--><p>This class defines an isotropic damage material model for mechanical analysis. It extends the <i>MechanicalLinearElastic</i> class and incorporates damage mechanics to simulate material degradation.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class Definition</a></li><li><a href="#6">Constructor method</a></li><li><a href="#7">Public methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>eval</b>: Computes the stress vector and the constitutive matrix for the           material at a given integration point.</li><li><b>equivalentStrain</b>: Computes the von Mises equivalent strain and its                       derivative with respect to the strain tensor.</li><li><b>damageCriteria</b>: Evaluates the damage criteria and updates the damage                     threshold based on the equivalent strain.</li><li><b>damageLaw</b>: Implements the exponential damage law and computes the                scalar damage and its derivative with respect to the                damage threshold.</li><li><b>tangentConstitutiveMatrix</b>: Computes the tangent constitutive matrix                                considering the damage effects.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class Definition</h2><pre class="codeinput"><span class="keyword">classdef</span> MechanicalIsotropicDamage &lt; MechanicalLinearElastic
+</pre><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        lc = [];
+    <span class="keyword">end</span>
+</pre><h2 id="6">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = MechanicalIsotropicDamage(lc)
+            this = this@MechanicalLinearElastic();
+            this.nstVar = 2;  <span class="comment">% Scalar damage + Damage threshold</span>
+            this.lc = lc;     <span class="comment">% Element characteristic length</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="7">Public methods</h2><pre class="codeinput">    methods
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute the stress vector and the constitutive matrix</span>
+        <span class="keyword">function</span> [stress,Dt] = eval(this,material,ip)
+
+            <span class="comment">% Constitutive matrix</span>
+            De = this.elasticConstitutiveMatrix(material,ip);
+
+            <span class="comment">% Effective stress vector</span>
+            effstress = De * (ip.strain - ip.strainOld) + ip.stressOld;
+
+            <span class="comment">% Update the damage threshold</span>
+            DrDstrain = this.damageCriteria(material,ip);
+
+            <span class="comment">% Damage law</span>
+            DdDr = this.damageLaw(material,ip);
+
+            <span class="comment">% Tangent constitutive matrix</span>
+            Dt = this.tangentConstitutiveMatrix(ip,effstress,De,DrDstrain,DdDr);
+
+            <span class="comment">% Update the stress vector</span>
+            stress = (1.0 - ip.statevar(1)) * effstress;
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Von Mises equivalent strain and its derivative wrt to the strain</span>
+        <span class="comment">% tensor</span>
+        <span class="keyword">function</span> [eqstrain,Deqstrain] = equivalentStrain(this,material,ip)
+            <span class="comment">% Get the material parameters</span>
+            k = material.kappa;
+            nu = material.nu;
+            <span class="comment">% Compute out-of-plane strain (plane stress problems)</span>
+            this.elasticOutOfPlaneStrain(material,ip)
+            <span class="comment">% Compute the strain invariants</span>
+            I1 = this.strainInvariantI1(ip.strain);
+            J2 = this.strainInvariantJ2(ip.strain);
+            <span class="comment">% Compute the equivalent strain</span>
+            eqstrain = (k - 1.0) / (2.0 * k * (1.0 - 2.0 * nu)) * I1;
+            eqstrain = eqstrain + sqrt(((k - 1.0) / (1.0 - 2.0 * nu) * I1) ^ 2.0 + 12.0 * k * J2 / ((1.0 + nu) * (1.0 + nu))) / (2.0 * k);
+            <span class="comment">% Get the gradient of the invariants</span>
+            dI1 = this.gradientStrainInvariantI1();
+            dJ2 = this.gradientStrainInvariantJ2(ip.strain);
+            I4  = this.fourthOrderSymTensor();
+            <span class="comment">% Derivative of equivalent strain wrt to strain invariants</span>
+            DqstrainDI1 = I1 * (k - 1.0) * (k - 1.0) / (2.0 * k * (2.0 * nu - 1.0) * (2.0 * nu - 1.0) * sqrt(12.0 * J2 * k / ((nu + 1.0) * (nu + 1.0)) + I1 * I1 * (k - 1.0) * (k - 1.0) / ((2.0 * nu - 1) * (2.0 * nu - 1)))) - (k - 1.0) / (2.0 * k * (2.0 * nu - 1.0));
+            DqstrainDJ2 = 3.0 / (sqrt(12.0 * J2*k / ((nu + 1.0) * (nu + 1.0)) + I1 * I1 * (k - 1.0) * (k - 1.0) / ((2.0 * nu - 1.0) * (2.0 * nu - 1.0))) * (nu + 1) * (nu + 1));
+            <span class="comment">% Derivate of the equivalent strain wrt to the strain tensor</span>
+            Deqstrain = I4 * (DqstrainDI1 * dI1 + DqstrainDJ2 * dJ2);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Damage criteria</span>
+        <span class="comment">% The state variable r is the maximum equivalente strain value in</span>
+        <span class="comment">% the entire load history</span>
+        <span class="keyword">function</span> DrDstrain = damageCriteria(this,material,ip)
+            [eqstrain,Deqstrain] = this.equivalentStrain(material,ip);
+            ip.statevarOld(2) = max(ip.statevarOld(2),material.DamageThreshold);
+            <span class="keyword">if</span> eqstrain &gt; ip.statevarOld(2)
+                ip.statevar(2) = eqstrain;
+                DrDstrain = Deqstrain;
+            <span class="keyword">else</span>
+                ip.statevar(2) = ip.statevarOld(2);
+                DrDstrain = zeros(4,1);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Damage exponential law</span>
+        <span class="keyword">function</span> DdDr = damageLaw(this,material,ip)
+            <span class="comment">% Get the material parameters</span>
+            E    = material.Young;
+            r0   = material.DamageThreshold;
+            Gf   = material.FractureEnergyMode1;
+            beta = E * r0 * this.lc / Gf;
+            <span class="comment">% Scalar damage</span>
+            r = ip.statevar(2);
+            d = 1.0 - r0 / r * exp(-beta * (r - r0));
+            <span class="keyword">if</span> d &lt; eps
+                d = eps;
+            <span class="keyword">elseif</span> (d &gt; (1.0 - eps))
+                d = 1.0 - eps;
+            <span class="keyword">end</span>
+            <span class="comment">% Update value at the integration point</span>
+            ip.statevar(1) = d;
+            <span class="comment">% Compute the derivative of the damage wrt damage threshold</span>
+            DdDr = r0 / r * (1.0 / r + beta) * exp(-beta * (r - r0));
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Damage exponential law</span>
+        <span class="keyword">function</span> Dt = tangentConstitutiveMatrix(this,ip,effstress,De,DrDstrain,DdDr)
+            d = ip.statevar(1);
+            Dt = (1.0 - d) * De - DdDr * effstress * DrDstrain';
+            <span class="keyword">if</span> strcmp(ip.anm,<span class="string">'PlaneStress'</span>)
+                Dt = this.planeStressConstitutiveMatrix(Dt);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+</pre><pre class="codeinput">    methods (Static)
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Flag to indicate if the material is elasto-plastic or not</span>
+        <span class="keyword">function</span> flag = isElastoPlastic()
+            flag = false;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% MechanicalIsotropicDamage Class
+% This class defines an isotropic damage material model for mechanical
+% analysis. It extends the _MechanicalLinearElastic_ class and
+% incorporates damage mechanics to simulate material degradation.
+%
+%% Methods
+% * *eval*: Computes the stress vector and the constitutive matrix for the
+%           material at a given integration point.
+% * *equivalentStrain*: Computes the von Mises equivalent strain and its
+%                       derivative with respect to the strain tensor.
+% * *damageCriteria*: Evaluates the damage criteria and updates the damage
+%                     threshold based on the equivalent strain.
+% * *damageLaw*: Implements the exponential damage law and computes the
+%                scalar damage and its derivative with respect to the
+%                damage threshold.
+% * *tangentConstitutiveMatrix*: Computes the tangent constitutive matrix
+%                                considering the damage effects.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class Definition
+classdef MechanicalIsotropicDamage < MechanicalLinearElastic
+    properties (SetAccess = public, GetAccess = public)
+        lc = [];
+    end
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = MechanicalIsotropicDamage(lc)
+            this = this@MechanicalLinearElastic();
+            this.nstVar = 2;  % Scalar damage + Damage threshold
+            this.lc = lc;     % Element characteristic length
+        end
+    end
+    %% Public methods
+    methods
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute the stress vector and the constitutive matrix
+        function [stress,Dt] = eval(this,material,ip)
+
+            % Constitutive matrix
+            De = this.elasticConstitutiveMatrix(material,ip);
+
+            % Effective stress vector
+            effstress = De * (ip.strain - ip.strainOld) + ip.stressOld;
+
+            % Update the damage threshold
+            DrDstrain = this.damageCriteria(material,ip);
+
+            % Damage law
+            DdDr = this.damageLaw(material,ip);
+
+            % Tangent constitutive matrix
+            Dt = this.tangentConstitutiveMatrix(ip,effstress,De,DrDstrain,DdDr);
+
+            % Update the stress vector
+            stress = (1.0 - ip.statevar(1)) * effstress;
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Von Mises equivalent strain and its derivative wrt to the strain
+        % tensor
+        function [eqstrain,Deqstrain] = equivalentStrain(this,material,ip)
+            % Get the material parameters
+            k = material.kappa;
+            nu = material.nu;
+            % Compute out-of-plane strain (plane stress problems)
+            this.elasticOutOfPlaneStrain(material,ip)
+            % Compute the strain invariants
+            I1 = this.strainInvariantI1(ip.strain);
+            J2 = this.strainInvariantJ2(ip.strain);
+            % Compute the equivalent strain
+            eqstrain = (k - 1.0) / (2.0 * k * (1.0 - 2.0 * nu)) * I1;
+            eqstrain = eqstrain + sqrt(((k - 1.0) / (1.0 - 2.0 * nu) * I1) ^ 2.0 + 12.0 * k * J2 / ((1.0 + nu) * (1.0 + nu))) / (2.0 * k);
+            % Get the gradient of the invariants
+            dI1 = this.gradientStrainInvariantI1();
+            dJ2 = this.gradientStrainInvariantJ2(ip.strain);
+            I4  = this.fourthOrderSymTensor();
+            % Derivative of equivalent strain wrt to strain invariants
+            DqstrainDI1 = I1 * (k - 1.0) * (k - 1.0) / (2.0 * k * (2.0 * nu - 1.0) * (2.0 * nu - 1.0) * sqrt(12.0 * J2 * k / ((nu + 1.0) * (nu + 1.0)) + I1 * I1 * (k - 1.0) * (k - 1.0) / ((2.0 * nu - 1) * (2.0 * nu - 1)))) - (k - 1.0) / (2.0 * k * (2.0 * nu - 1.0));
+            DqstrainDJ2 = 3.0 / (sqrt(12.0 * J2*k / ((nu + 1.0) * (nu + 1.0)) + I1 * I1 * (k - 1.0) * (k - 1.0) / ((2.0 * nu - 1.0) * (2.0 * nu - 1.0))) * (nu + 1) * (nu + 1));
+            % Derivate of the equivalent strain wrt to the strain tensor
+            Deqstrain = I4 * (DqstrainDI1 * dI1 + DqstrainDJ2 * dJ2);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Damage criteria
+        % The state variable r is the maximum equivalente strain value in
+        % the entire load history
+        function DrDstrain = damageCriteria(this,material,ip)
+            [eqstrain,Deqstrain] = this.equivalentStrain(material,ip);
+            ip.statevarOld(2) = max(ip.statevarOld(2),material.DamageThreshold);
+            if eqstrain > ip.statevarOld(2)
+                ip.statevar(2) = eqstrain;
+                DrDstrain = Deqstrain;
+            else
+                ip.statevar(2) = ip.statevarOld(2);
+                DrDstrain = zeros(4,1);
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Damage exponential law
+        function DdDr = damageLaw(this,material,ip)
+            % Get the material parameters
+            E    = material.Young;
+            r0   = material.DamageThreshold;
+            Gf   = material.FractureEnergyMode1;
+            beta = E * r0 * this.lc / Gf;
+            % Scalar damage
+            r = ip.statevar(2);
+            d = 1.0 - r0 / r * exp(-beta * (r - r0));
+            if d < eps
+                d = eps;
+            elseif (d > (1.0 - eps))
+                d = 1.0 - eps;
+            end
+            % Update value at the integration point
+            ip.statevar(1) = d;
+            % Compute the derivative of the damage wrt damage threshold
+            DdDr = r0 / r * (1.0 / r + beta) * exp(-beta * (r - r0));
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Damage exponential law
+        function Dt = tangentConstitutiveMatrix(this,ip,effstress,De,DrDstrain,DdDr)
+            d = ip.statevar(1);
+            Dt = (1.0 - d) * De - DdDr * effstress * DrDstrain';
+            if strcmp(ip.anm,'PlaneStress')
+                Dt = this.planeStressConstitutiveMatrix(Dt);
+            end
+        end
+
+    end
+    %%
+    methods (Static)
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Flag to indicate if the material is elasto-plastic or not
+        function flag = isElastoPlastic()
+            flag = false;
+        end
+    end
+end
+##### SOURCE END #####
+--></body></html>

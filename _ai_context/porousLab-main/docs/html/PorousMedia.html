@@ -1,0 +1,407 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>PorousMedia Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="PorousMedia.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>PorousMedia Class</h1><!--introduction--><p>This class defines a porous media object with various physical and mechanical properties. It includes methods for setting and retrieving these properties, as well as performing calculations related to porous media behavior.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class Definition</a></li><li><a href="#5">Public attributes</a></li><li><a href="#6">Constructor method</a></li><li><a href="#7">Public methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>effectiveSaturationDegree</b>: Computes the effective saturation degree.</li><li><b>intrinsicPermeabilityMatrix</b>: Returns the intrinsic permeability                                  matrix.</li><li><b>setMinLiquidRelPermeability</b>: Sets the minimum liquid relative                                  permeability.</li><li><b>setMinGasRelPermeability</b>: Sets the minimum gas relative                               permeability.</li><li><b>setUMATCapillaryPressureCurve</b>: Sets the user-defined capillary                                    pressure curve.</li><li><b>setUMATLiquidRelPermCurve</b>: Sets the user-defined liquid relative                                permeability curve.</li><li><b>setUMATGasRelPermCurve</b>: Sets the user-defined gas relative                             permeability curve.</li><li><b>setMechanicalConstitutiveLaw</b>: Sets the mechanical constitutive law.</li><li><b>setMechanicalProperties</b>: Sets the mechanical properties (Young's                              modulus and Poisson's ratio).</li><li><b>setDensity</b>: Sets the density.</li><li><b>getDensity</b>: Retrieves the density.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class Definition</h2><pre class="codeinput"><span class="keyword">classdef</span> PorousMedia &lt; handle &amp; matlab.mixin.Copyable
+</pre><h2 id="5">Public attributes</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        id                   = <span class="string">''</span>;
+        Young                = [];              <span class="comment">% Young modulus (Pa)</span>
+        nu                   = [];              <span class="comment">% Poisson ratio</span>
+        sy0                  = [];              <span class="comment">% Initial yield stress (Pa)</span>
+        Kp                   = [];              <span class="comment">% Plastic modulus (Pa)</span>
+        cohesion             = [];              <span class="comment">% Cohesion (Pa)</span>
+        frictionAngle        = [];              <span class="comment">% Friction angle (rad)</span>
+        dilationAngle        = [];              <span class="comment">% Dilation angle (rad)</span>
+        stressIntAlgorithm   = <span class="string">'implicit'</span>;      <span class="comment">% Stress integration algorithm</span>
+        MCmatch              = <span class="string">'planestrain'</span>;   <span class="comment">% How the DP surfaces match the MC ones</span>
+        friction             = [];              <span class="comment">% Friction coefficient</span>
+        asympt               = [];              <span class="comment">% Asymptotic model</span>
+        eref                 = [];              <span class="comment">% Reference strain for asymptotic model</span>
+        sy                   = [];              <span class="comment">% Isotropic tensile limit (Pa)</span>
+        tauy                 = [];              <span class="comment">% Shear yield stress (Pa)</span>
+        kappa                = [];              <span class="comment">% Ratio between the uniaxial compressive strength and the uniaxial tensile strength</span>
+        DamageThreshold      = [];              <span class="comment">% Damage threshold</span>
+        FractureEnergyMode1  = [];              <span class="comment">% Fracture energy associated with mode 1 (N/m)</span>
+        rho                  = [];              <span class="comment">% Density (kg/m3)</span>
+        K                    = 0.0;             <span class="comment">% Intrinsic permeability (m2)</span>
+        phi                  = 0.0;             <span class="comment">% Porosity</span>
+        biot                 = 1.0;             <span class="comment">% Biot's coefficient</span>
+        Ks                   = 1.0e25;          <span class="comment">% Solid bulk modulus (Pa)</span>
+        Slr                  = 0.0;             <span class="comment">% Residual liquid saturation</span>
+        Sgr                  = 0.0;             <span class="comment">% Residual gas saturation</span>
+        Pb                   = 0.0;             <span class="comment">% Gas-entry pressure (Pa)</span>
+        lambda               = 0.0;             <span class="comment">% Curve-fitting parameter</span>
+        liqRelPermeability   = <span class="string">'BrooksCorey'</span>;   <span class="comment">% Liquid relative permeability</span>
+        gasRelPermeability   = <span class="string">'BrooksCorey'</span>;   <span class="comment">% Gas relative permeability</span>
+        capillaryPressure    = <span class="string">'BrooksCorey'</span>;   <span class="comment">% Saturation degree function</span>
+        mechanical           = <span class="string">'elastic'</span>;       <span class="comment">% Mechanical constitutive law</span>
+        b                    = [0.0;-1.0];      <span class="comment">% Gravity force direction vector</span>
+        SlPc_umat            = [];              <span class="comment">% User material curve saturation law</span>
+        klr_umat             = [];              <span class="comment">% User material curve liquid relative permeability</span>
+        kgr_umat             = [];              <span class="comment">% User material curve gas relative permeability</span>
+        m                    = 1;               <span class="comment">% Exponent for the polynomial relationships</span>
+    <span class="keyword">end</span>
+    properties (SetAccess = protected, GetAccess = public)
+        klrmin               = 1.0e-9;          <span class="comment">% Minimum liquid relative permeability</span>
+        kgrmin               = 1.0e-9;          <span class="comment">% Minimum gas relative permeability</span>
+    <span class="keyword">end</span>
+</pre><h2 id="6">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = PorousMedia(id, permeability, porosity, <span class="keyword">...</span>
+                biotCoefficient, solidBulkModulus, <span class="keyword">...</span>
+                residualLiquidSaturationDegree, <span class="keyword">...</span>
+                residualGasSaturationDegree,<span class="keyword">...</span>
+                gasEntryPressure,curveFittingParameter, <span class="keyword">...</span>
+                liqRelPermeability, gasRelPermeability, <span class="keyword">...</span>
+                capillaryPressure)
+            <span class="keyword">if</span> nargin == 1, this.id = id; <span class="keyword">end</span>
+            <span class="keyword">if</span> nargin &gt; 1
+                this.id                   = id;
+                this.K                    = permeability;
+                this.phi                  = porosity;
+                this.biot                 = biotCoefficient;
+                this.Ks                   = solidBulkModulus;
+                this.Slr                  = residualLiquidSaturationDegree;
+                this.Sgr                  = residualGasSaturationDegree;
+                this.Pb                   = gasEntryPressure;
+                this.lambda               = curveFittingParameter;
+                this.liqRelPermeability   = liqRelPermeability;
+                this.gasRelPermeability   = gasRelPermeability;
+                this.capillaryPressure    = capillaryPressure;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="7">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Compute the effective saturation degree</span>
+        <span class="keyword">function</span> Se = effectiveSaturationDegree(this,Sl)
+            Se = (Sl - this.Slr)/(1.0 - this.Slr - this.Sgr);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Compute the derivative of the effective saturation degree wrt the</span>
+        <span class="comment">% liquid saturation degree</span>
+        <span class="keyword">function</span> dSedSl = derivativeEffectiveSaturationDegree(this)
+            dSedSl = 1.0/(1.0 - this.Slr - this.Sgr);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Create the intrinsic permeability matrix</span>
+        <span class="keyword">function</span> Km = intrinsicPermeabilityMatrix(this)
+            Km = this.K * eye(2);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Set the minimum liquid relative permeability</span>
+        <span class="keyword">function</span> setMinLiquidRelPermeability(this,klrmin)
+            this.klrmin = klrmin;
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Set the minimum gas relative permeability</span>
+        <span class="keyword">function</span> setMinGasRelPermeability(this,kgrmin)
+            this.kgrmin = kgrmin;
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Set the user defined capillary pressure curve</span>
+        <span class="keyword">function</span> setUMATCapillaryPressureCurve(this,curve)
+            curve = sortrows(curve, 2);
+            this.SlPc_umat = curve;
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Set the user defined liquid relative permeability curve</span>
+        <span class="keyword">function</span> setUMATLiquidRelPermCurve(this,curve)
+            curve = sortrows(curve, 1);
+            this.klr_umat = curve;
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Set the user defined gas relative permeability curve</span>
+        <span class="keyword">function</span> setUMATGasRelPermCurve(this,curve)
+            curve = sortrows(curve, 1);
+            this.kgr_umat = curve;
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Set the mecahnical constitutive law</span>
+        <span class="keyword">function</span> setMechanicalConstitutiveLaw(this,law)
+            this.mechanical = law;
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Set the mechanical properties of the material</span>
+        <span class="keyword">function</span> setMechanicalProperties(this,E,nu)
+            this.Young = E;
+            this.nu = nu;
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Set the density of the material</span>
+        <span class="keyword">function</span> setDensity(this,rho)
+            this.rho = rho;
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Get the density of the material</span>
+        <span class="keyword">function</span> rho = getDensity(this)
+            rho = this.rho;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% PorousMedia Class
+% This class defines a porous media object with various physical and
+% mechanical properties. It includes methods for setting and retrieving
+% these properties, as well as performing calculations related to porous
+% media behavior.
+%
+%% Methods
+% * *effectiveSaturationDegree*: Computes the effective saturation degree.
+% * *intrinsicPermeabilityMatrix*: Returns the intrinsic permeability
+%                                  matrix.
+% * *setMinLiquidRelPermeability*: Sets the minimum liquid relative
+%                                  permeability.
+% * *setMinGasRelPermeability*: Sets the minimum gas relative
+%                               permeability.
+% * *setUMATCapillaryPressureCurve*: Sets the user-defined capillary
+%                                    pressure curve.
+% * *setUMATLiquidRelPermCurve*: Sets the user-defined liquid relative
+%                                permeability curve.
+% * *setUMATGasRelPermCurve*: Sets the user-defined gas relative
+%                             permeability curve.
+% * *setMechanicalConstitutiveLaw*: Sets the mechanical constitutive law.
+% * *setMechanicalProperties*: Sets the mechanical properties (Young's
+%                              modulus and Poisson's ratio).
+% * *setDensity*: Sets the density.
+% * *getDensity*: Retrieves the density.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class Definition
+classdef PorousMedia < handle & matlab.mixin.Copyable
+    %% Public attributes
+    properties (SetAccess = public, GetAccess = public)
+        id                   = '';
+        Young                = [];              % Young modulus (Pa)
+        nu                   = [];              % Poisson ratio
+        sy0                  = [];              % Initial yield stress (Pa)
+        Kp                   = [];              % Plastic modulus (Pa)
+        cohesion             = [];              % Cohesion (Pa)
+        frictionAngle        = [];              % Friction angle (rad)
+        dilationAngle        = [];              % Dilation angle (rad)
+        stressIntAlgorithm   = 'implicit';      % Stress integration algorithm
+        MCmatch              = 'planestrain';   % How the DP surfaces match the MC ones
+        friction             = [];              % Friction coefficient
+        asympt               = [];              % Asymptotic model
+        eref                 = [];              % Reference strain for asymptotic model
+        sy                   = [];              % Isotropic tensile limit (Pa)
+        tauy                 = [];              % Shear yield stress (Pa)
+        kappa                = [];              % Ratio between the uniaxial compressive strength and the uniaxial tensile strength
+        DamageThreshold      = [];              % Damage threshold
+        FractureEnergyMode1  = [];              % Fracture energy associated with mode 1 (N/m)
+        rho                  = [];              % Density (kg/m3)
+        K                    = 0.0;             % Intrinsic permeability (m2)
+        phi                  = 0.0;             % Porosity
+        biot                 = 1.0;             % Biot's coefficient
+        Ks                   = 1.0e25;          % Solid bulk modulus (Pa)
+        Slr                  = 0.0;             % Residual liquid saturation
+        Sgr                  = 0.0;             % Residual gas saturation
+        Pb                   = 0.0;             % Gas-entry pressure (Pa)
+        lambda               = 0.0;             % Curve-fitting parameter
+        liqRelPermeability   = 'BrooksCorey';   % Liquid relative permeability
+        gasRelPermeability   = 'BrooksCorey';   % Gas relative permeability
+        capillaryPressure    = 'BrooksCorey';   % Saturation degree function
+        mechanical           = 'elastic';       % Mechanical constitutive law
+        b                    = [0.0;-1.0];      % Gravity force direction vector
+        SlPc_umat            = [];              % User material curve saturation law
+        klr_umat             = [];              % User material curve liquid relative permeability
+        kgr_umat             = [];              % User material curve gas relative permeability
+        m                    = 1;               % Exponent for the polynomial relationships
+    end
+    properties (SetAccess = protected, GetAccess = public)
+        klrmin               = 1.0e-9;          % Minimum liquid relative permeability
+        kgrmin               = 1.0e-9;          % Minimum gas relative permeability
+    end
+
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = PorousMedia(id, permeability, porosity, ...
+                biotCoefficient, solidBulkModulus, ...
+                residualLiquidSaturationDegree, ...
+                residualGasSaturationDegree,...
+                gasEntryPressure,curveFittingParameter, ...
+                liqRelPermeability, gasRelPermeability, ...
+                capillaryPressure)
+            if nargin == 1, this.id = id; end
+            if nargin > 1
+                this.id                   = id;
+                this.K                    = permeability;
+                this.phi                  = porosity;
+                this.biot                 = biotCoefficient;
+                this.Ks                   = solidBulkModulus;
+                this.Slr                  = residualLiquidSaturationDegree;
+                this.Sgr                  = residualGasSaturationDegree;
+                this.Pb                   = gasEntryPressure;
+                this.lambda               = curveFittingParameter;
+                this.liqRelPermeability   = liqRelPermeability;
+                this.gasRelPermeability   = gasRelPermeability;
+                this.capillaryPressure    = capillaryPressure;
+            end
+        end
+    end
+    %% Public methods
+    methods
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Compute the effective saturation degree
+        function Se = effectiveSaturationDegree(this,Sl)
+            Se = (Sl - this.Slr)/(1.0 - this.Slr - this.Sgr);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Compute the derivative of the effective saturation degree wrt the
+        % liquid saturation degree
+        function dSedSl = derivativeEffectiveSaturationDegree(this)
+            dSedSl = 1.0/(1.0 - this.Slr - this.Sgr);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Create the intrinsic permeability matrix
+        function Km = intrinsicPermeabilityMatrix(this)
+            Km = this.K * eye(2);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Set the minimum liquid relative permeability
+        function setMinLiquidRelPermeability(this,klrmin)
+            this.klrmin = klrmin;
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Set the minimum gas relative permeability
+        function setMinGasRelPermeability(this,kgrmin)
+            this.kgrmin = kgrmin;
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Set the user defined capillary pressure curve
+        function setUMATCapillaryPressureCurve(this,curve)
+            curve = sortrows(curve, 2);
+            this.SlPc_umat = curve;
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Set the user defined liquid relative permeability curve
+        function setUMATLiquidRelPermCurve(this,curve)
+            curve = sortrows(curve, 1);
+            this.klr_umat = curve;
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Set the user defined gas relative permeability curve
+        function setUMATGasRelPermCurve(this,curve)
+            curve = sortrows(curve, 1);
+            this.kgr_umat = curve;
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Set the mecahnical constitutive law
+        function setMechanicalConstitutiveLaw(this,law)
+            this.mechanical = law;
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Set the mechanical properties of the material
+        function setMechanicalProperties(this,E,nu)
+            this.Young = E;
+            this.nu = nu;
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Set the density of the material
+        function setDensity(this,rho)
+            this.rho = rho;
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Get the density of the material
+        function rho = getDensity(this)
+            rho = this.rho;
+        end
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

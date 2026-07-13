@@ -1,0 +1,197 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>convertToQuadraticMesh function</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="convertToQuadraticMesh.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>convertToQuadraticMesh function</h1><!--introduction--><p>This function converts a linear mesh into a quadratic mesh.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Inputs</a></li><li><a href="#2">Outputs</a></li><li><a href="#3">Author</a></li><li><a href="#4">Version History</a></li><li><a href="#5">Function definition</a></li></ul></div><h2 id="1">Inputs</h2><div><ul><li><b>NODE</b>: A matrix of size Nx2 containing the x and y coordinates of           the nodes. Each row represents a node, with the first column           as the x-coordinate and the second column as the y-coordinate.</li><li><b>ELEM</b>: A connectivity matrix of size Mx4 (for Q4 elements) or Mx3           (for T3 elements). Each row represents an element, with           columns specifying the indices of the nodes that form the           element.</li></ul></div><h2 id="2">Outputs</h2><div><ul><li><b>NODE_quad</b>: An updated NODE matrix that includes the original nodes                and the newly created mid-edge nodes.</li><li><b>ELEM_quad</b>: An updated connectivity matrix that includes the                quadratic connectivity for each element.</li></ul></div><h2 id="3">Author</h2><p>Danilo Cavalcanti</p><h2 id="4">Version History</h2><p>Version 1.00.</p><h2 id="5">Function definition</h2><pre class="codeinput"><span class="keyword">function</span> [NODE_quad, ELEM_quad] = convertToQuadraticMesh(NODE, ELEM)
+    <span class="comment">% Initialize</span>
+    num_nodes = size(NODE, 1);
+    edge_map = containers.Map(<span class="string">'KeyType'</span>, <span class="string">'char'</span>, <span class="string">'ValueType'</span>, <span class="string">'double'</span>);
+    new_nodes = [];
+
+    num_elems = numel(ELEM);
+    ELEM_quad = cell(num_elems, 1);  <span class="comment">% Initialize cell for quadratic elements</span>
+
+    <span class="keyword">for</span> elem_idx = 1:num_elems
+        elem = ELEM{elem_idx}(:)';  <span class="comment">% Ensure row vector</span>
+        num_nodes_per_elem = numel(elem);
+
+        <span class="comment">% Determine edge pairs based on element type</span>
+        <span class="keyword">if</span> num_nodes_per_elem == 3
+            <span class="comment">% Triangular element (T3 -&gt; T6)</span>
+            edge_pairs = [1, 2; 2, 3; 3, 1];
+        <span class="keyword">elseif</span> num_nodes_per_elem == 4
+            <span class="comment">% Quadrilateral element (Q4 -&gt; Q8)</span>
+            edge_pairs = [1, 2; 2, 3; 3, 4; 4, 1];
+        <span class="keyword">else</span>
+            error(<span class="string">'Unsupported element type. ELEM should have 3 or 4 nodes.'</span>);
+        <span class="keyword">end</span>
+
+        new_elem = elem;
+
+        <span class="keyword">for</span> edge_idx = 1:size(edge_pairs, 1)
+            n1 = elem(edge_pairs(edge_idx, 1));
+            n2 = elem(edge_pairs(edge_idx, 2));
+
+            edge_key = sprintf(<span class="string">'%d-%d'</span>, min(n1, n2), max(n1, n2));
+
+            <span class="keyword">if</span> isKey(edge_map, edge_key)
+                mid_node = edge_map(edge_key);
+            <span class="keyword">else</span>
+                mid_coord = (NODE(n1, :) + NODE(n2, :)) / 2;
+                new_nodes = [new_nodes; mid_coord];
+                mid_node = num_nodes + size(new_nodes, 1);
+                edge_map(edge_key) = mid_node;
+            <span class="keyword">end</span>
+
+            new_elem(end + 1) = mid_node;
+        <span class="keyword">end</span>
+
+        ELEM_quad{elem_idx} = new_elem;
+    <span class="keyword">end</span>
+
+    NODE_quad = [NODE; new_nodes];
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% convertToQuadraticMesh function
+% This function converts a linear mesh into a quadratic mesh.
+%
+%% Inputs
+% * *NODE*: A matrix of size Nx2 containing the x and y coordinates of
+%           the nodes. Each row represents a node, with the first column
+%           as the x-coordinate and the second column as the y-coordinate.
+% * *ELEM*: A connectivity matrix of size Mx4 (for Q4 elements) or Mx3
+%           (for T3 elements). Each row represents an element, with
+%           columns specifying the indices of the nodes that form the
+%           element.
+%
+%% Outputs
+% * *NODE_quad*: An updated NODE matrix that includes the original nodes
+%                and the newly created mid-edge nodes.
+% * *ELEM_quad*: An updated connectivity matrix that includes the
+%                quadratic connectivity for each element.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Function definition
+function [NODE_quad, ELEM_quad] = convertToQuadraticMesh(NODE, ELEM)
+    % Initialize
+    num_nodes = size(NODE, 1);
+    edge_map = containers.Map('KeyType', 'char', 'ValueType', 'double');
+    new_nodes = [];
+
+    num_elems = numel(ELEM);
+    ELEM_quad = cell(num_elems, 1);  % Initialize cell for quadratic elements
+
+    for elem_idx = 1:num_elems
+        elem = ELEM{elem_idx}(:)';  % Ensure row vector
+        num_nodes_per_elem = numel(elem);
+
+        % Determine edge pairs based on element type
+        if num_nodes_per_elem == 3
+            % Triangular element (T3 -> T6)
+            edge_pairs = [1, 2; 2, 3; 3, 1];
+        elseif num_nodes_per_elem == 4
+            % Quadrilateral element (Q4 -> Q8)
+            edge_pairs = [1, 2; 2, 3; 3, 4; 4, 1];
+        else
+            error('Unsupported element type. ELEM should have 3 or 4 nodes.');
+        end
+
+        new_elem = elem;
+
+        for edge_idx = 1:size(edge_pairs, 1)
+            n1 = elem(edge_pairs(edge_idx, 1));
+            n2 = elem(edge_pairs(edge_idx, 2));
+
+            edge_key = sprintf('%d-%d', min(n1, n2), max(n1, n2));
+
+            if isKey(edge_map, edge_key)
+                mid_node = edge_map(edge_key);
+            else
+                mid_coord = (NODE(n1, :) + NODE(n2, :)) / 2;
+                new_nodes = [new_nodes; mid_coord];
+                mid_node = num_nodes + size(new_nodes, 1);
+                edge_map(edge_key) = mid_node;
+            end
+
+            new_elem(end + 1) = mid_node;
+        end
+
+        ELEM_quad{elem_idx} = new_elem;
+    end
+
+    NODE_quad = [NODE; new_nodes];
+end
+
+##### SOURCE END #####
+--></body></html>

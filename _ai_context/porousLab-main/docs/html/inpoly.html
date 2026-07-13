@@ -1,0 +1,498 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>inpoly</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="inpoly.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">ERROR CHECKING</a></li><li><a href="#4">PRE-PROCESSING</a></li><li><a href="#5">MAIN LOOP</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [cn, on] = inpoly ( p, node, edge, reltol )
+</pre><pre class="codeinput"><span class="comment">%*****************************************************************************80</span>
+<span class="comment">%</span>
+<span class="comment">%  INPOLY: Point-in-polygon testing.</span>
+<span class="comment">%</span>
+<span class="comment">% Determine whether a series of points lie within the bounds of a polygon</span>
+<span class="comment">% in the 2D plane. General non-convex, multiply-connected polygonal</span>
+<span class="comment">% regions can be handled.</span>
+<span class="comment">%</span>
+<span class="comment">% SHORT SYNTAX:</span>
+<span class="comment">%</span>
+<span class="comment">%   in = inpoly(p, node);</span>
+<span class="comment">%</span>
+<span class="comment">%   p   : The points to be tested as an Nx2 array [x1 y1; x2 y2; etc].</span>
+<span class="comment">%   node: The vertices of the polygon as an Mx2 array [X1 Y1; X2 Y2; etc].</span>
+<span class="comment">%         The standard syntax assumes that the vertices are specified in</span>
+<span class="comment">%         consecutive order.</span>
+<span class="comment">%</span>
+<span class="comment">%   in  : An Nx1 logical array with IN(i) = TRUE if P(i,:) lies within the</span>
+<span class="comment">%         region.</span>
+<span class="comment">%</span>
+<span class="comment">% LONG SYNTAX:</span>
+<span class="comment">%</span>
+<span class="comment">%  [in, on] = inpoly(p, node, edge, tol);</span>
+<span class="comment">%</span>
+<span class="comment">%  edge: An Mx2 array of polygon edges, specified as connections between</span>
+<span class="comment">%        the vertices in NODE: [n1 n2; n3 n4; etc]. The vertices in NODE</span>
+<span class="comment">%        do not need to be specified in connsecutive order when using the</span>
+<span class="comment">%        extended syntax.</span>
+<span class="comment">%</span>
+<span class="comment">%  on  : An Nx1 logical array with ON(i) = TRUE if P(i,:) lies on a</span>
+<span class="comment">%        polygon edge. (A tolerance is used to deal with numerical</span>
+<span class="comment">%        precision, so that points within a distance of</span>
+<span class="comment">%        reltol*min(bbox(node)) from a polygon edge are considered "on" the</span>
+<span class="comment">%        edge.</span>
+<span class="comment">%</span>
+<span class="comment">% EXAMPLE:</span>
+<span class="comment">%</span>
+<span class="comment">%   polydemo;       % Will run a few examples</span>
+<span class="comment">%</span>
+<span class="comment">% See also INPOLYGON</span>
+
+<span class="comment">% The algorithm is based on the crossing number test, which counts the</span>
+<span class="comment">% number of times a line that extends from each point past the right-most</span>
+<span class="comment">% region of the polygon intersects with a polygon edge. Points with odd</span>
+<span class="comment">% counts are inside. A simple implementation of this method requires each</span>
+<span class="comment">% wall intersection be checked for each point, resulting in an O(N*M)</span>
+<span class="comment">% operation count.</span>
+<span class="comment">%</span>
+<span class="comment">% This implementation does better in 2 ways:</span>
+<span class="comment">%</span>
+<span class="comment">%   1. The test points are sorted by y-value and a binary search is used to</span>
+<span class="comment">%      find the first point in the list that has a chance of intersecting</span>
+<span class="comment">%      with a given wall. The sorted list is also used to determine when we</span>
+<span class="comment">%      have reached the last point in the list that has a chance of</span>
+<span class="comment">%      intersection. This means that in general only a small portion of</span>
+<span class="comment">%      points are checked for each wall, rather than the whole set.</span>
+<span class="comment">%</span>
+<span class="comment">%   2. The intersection test is simplified by first checking against the</span>
+<span class="comment">%      bounding box for a given wall segment. Checking against the bbox is</span>
+<span class="comment">%      an inexpensive alternative to the full intersection test and allows</span>
+<span class="comment">%      us to take a number of shortcuts, minimising the number of times the</span>
+<span class="comment">%      full test needs to be done.</span>
+<span class="comment">%</span>
+<span class="comment">%  Author:</span>
+<span class="comment">%</span>
+<span class="comment">%    Darren Engwirda</span>
+<span class="comment">%</span>
+</pre><h2 id="3">ERROR CHECKING</h2><pre class="codeinput"><span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="keyword">if</span> nargin&lt;4
+   reltol = 1.0e-12;
+   <span class="keyword">if</span> nargin&lt;3
+      edge = [];
+      <span class="keyword">if</span> nargin&lt;2
+         error(<span class="string">'Insufficient inputs'</span>);
+      <span class="keyword">end</span>
+   <span class="keyword">end</span>
+<span class="keyword">end</span>
+nnode = size(node,1);
+<span class="keyword">if</span> isempty(edge)                                                           <span class="comment">% Build edge if not passed</span>
+   edge = [(1:nnode-1)' (2:nnode)'; nnode 1];
+<span class="keyword">end</span>
+<span class="keyword">if</span> size(p,2)~=2
+   error(<span class="string">'P must be an Nx2 array.'</span>);
+<span class="keyword">end</span>
+<span class="keyword">if</span> size(node,2)~=2
+   error(<span class="string">'NODE must be an Mx2 array.'</span>);
+<span class="keyword">end</span>
+<span class="keyword">if</span> size(edge,2)~=2
+   error(<span class="string">'EDGE must be an Mx2 array.'</span>);
+<span class="keyword">end</span>
+<span class="keyword">if</span> max(edge(:))&gt;nnode || any(edge(:)&lt;1)
+   error(<span class="string">'Invalid EDGE.'</span>);
+<span class="keyword">end</span>
+</pre><h2 id="4">PRE-PROCESSING</h2><pre class="codeinput"><span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+n  = size(p,1);
+nc = size(edge,1);
+
+<span class="comment">% Choose the direction with the biggest range as the "y-coordinate" for the</span>
+<span class="comment">% test. This should ensure that the sorting is done along the best</span>
+<span class="comment">% direction for long and skinny problems wrt either the x or y axes.</span>
+dxy = max(p,[],1)-min(p,[],1);
+<span class="keyword">if</span> dxy(1)&gt;dxy(2)
+   <span class="comment">% Flip co-ords if x range is bigger</span>
+   p = p(:,[2,1]);
+   node = node(:,[2,1]);
+<span class="keyword">end</span>
+
+<span class="comment">% Polygon bounding-box</span>
+dxy = max(node,[],1)-min(node,[],1);
+tol = reltol*min(dxy);
+<span class="keyword">if</span> tol==0.0
+   tol = reltol;
+<span class="keyword">end</span>
+
+<span class="comment">% Sort test points by y-value</span>
+[y,i] = sort(p(:,2));
+x = p(i,1);
+</pre><h2 id="5">MAIN LOOP</h2><pre class="codeinput"><span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+cn = false(n,1);     <span class="comment">% Because we're dealing with mod(cn,2) we don't have</span>
+                     <span class="comment">% to actually increment the crossing number, we can</span>
+                     <span class="comment">% just flip a logical at each intersection (faster!)</span>
+on = cn;
+<span class="keyword">for</span> k = 1:nc         <span class="comment">% Loop through edges</span>
+
+   <span class="comment">% Nodes in current edge</span>
+   n1 = edge(k,1);
+   n2 = edge(k,2);
+
+   <span class="comment">% Endpoints - sorted so that [x1,y1] and [x2,y2] has y1&lt;=y2</span>
+   <span class="comment">%           - also get xmin = min(x1,x2), xmax = max(x1,x2)</span>
+   y1 = node(n1,2);
+   y2 = node(n2,2);
+   <span class="keyword">if</span> y1&lt;y2
+      x1 = node(n1,1);
+      x2 = node(n2,1);
+   <span class="keyword">else</span>
+      yt = y1;
+      y1 = y2;
+      y2 = yt;
+      x1 = node(n2,1);
+      x2 = node(n1,1);
+   <span class="keyword">end</span>
+   <span class="keyword">if</span> x1&gt;x2
+      xmin = x2;
+      xmax = x1;
+   <span class="keyword">else</span>
+      xmin = x1;
+      xmax = x2;
+   <span class="keyword">end</span>
+
+   <span class="comment">% Binary search to find first point with y&lt;=y1 for current edge</span>
+   <span class="keyword">if</span> y(1)&gt;=y1
+      start = 1;
+   <span class="keyword">elseif</span> y(n)&lt;y1
+      start = n+1;
+   <span class="keyword">else</span>
+      lower = 1;
+      upper = n;
+      <span class="keyword">for</span> j = 1:n
+         start = round(0.5*(lower+upper));
+         <span class="keyword">if</span> y(start)&lt;y1
+            lower = start+1;
+         <span class="keyword">elseif</span> y(start-1)&lt;y1
+            <span class="keyword">break</span>;
+         <span class="keyword">else</span>
+            upper = start-1;
+         <span class="keyword">end</span>
+      <span class="keyword">end</span>
+   <span class="keyword">end</span>
+
+   <span class="comment">% Loop through points</span>
+   <span class="keyword">for</span> j = start:n
+      <span class="comment">% Check the bounding-box for the edge before doing the intersection</span>
+      <span class="comment">% test. Take shortcuts wherever possible!</span>
+
+      Y = y(j);   <span class="comment">% Do the array look-up once and make a temp scalar</span>
+      <span class="keyword">if</span> Y&lt;=y2
+         X = x(j);   <span class="comment">% Do the array look-up once and make a temp scalar</span>
+         <span class="keyword">if</span> X&gt;=xmin
+            <span class="keyword">if</span> X&lt;=xmax
+
+               <span class="comment">% Check if we're "on" the edge</span>
+               on(j) = on(j) || (abs((y2-Y)*(x1-X)-(y1-Y)*(x2-X))&lt;=tol);
+
+               <span class="comment">% Do the actual intersection test</span>
+               <span class="keyword">if</span> (Y&lt;y2) &amp;&amp; ((y2-y1)*(X-x1)&lt;(Y-y1)*(x2-x1))
+                  cn(j) = ~cn(j);
+               <span class="keyword">end</span>
+
+            <span class="keyword">end</span>
+         <span class="keyword">elseif</span> Y&lt;y2   <span class="comment">% Deal with points exactly at vertices</span>
+            <span class="comment">% Has to cross edge</span>
+            cn(j) = ~cn(j);
+         <span class="keyword">end</span>
+      <span class="keyword">else</span>
+         <span class="comment">% Due to the sorting, no points with &gt;y</span>
+         <span class="comment">% value need to be checked</span>
+         <span class="keyword">break</span>
+      <span class="keyword">end</span>
+   <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+
+<span class="comment">% Re-index to undo the sorting</span>
+cn(i) = cn|on;
+on(i) = on;
+</pre><pre class="codeinput"><span class="keyword">end</span>      <span class="comment">% inpoly()</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [cn, on] = inpoly ( p, node, edge, reltol )
+
+%*****************************************************************************80
+%
+%  INPOLY: Point-in-polygon testing.
+%
+% Determine whether a series of points lie within the bounds of a polygon
+% in the 2D plane. General non-convex, multiply-connected polygonal
+% regions can be handled.
+%
+% SHORT SYNTAX:
+%
+%   in = inpoly(p, node);
+%
+%   p   : The points to be tested as an Nx2 array [x1 y1; x2 y2; etc].
+%   node: The vertices of the polygon as an Mx2 array [X1 Y1; X2 Y2; etc].
+%         The standard syntax assumes that the vertices are specified in
+%         consecutive order.
+%
+%   in  : An Nx1 logical array with IN(i) = TRUE if P(i,:) lies within the
+%         region.
+%
+% LONG SYNTAX:
+%
+%  [in, on] = inpoly(p, node, edge, tol);
+%
+%  edge: An Mx2 array of polygon edges, specified as connections between
+%        the vertices in NODE: [n1 n2; n3 n4; etc]. The vertices in NODE
+%        do not need to be specified in connsecutive order when using the
+%        extended syntax.
+%
+%  on  : An Nx1 logical array with ON(i) = TRUE if P(i,:) lies on a
+%        polygon edge. (A tolerance is used to deal with numerical
+%        precision, so that points within a distance of
+%        reltol*min(bbox(node)) from a polygon edge are considered "on" the
+%        edge.
+%
+% EXAMPLE:
+%
+%   polydemo;       % Will run a few examples
+%
+% See also INPOLYGON
+
+% The algorithm is based on the crossing number test, which counts the
+% number of times a line that extends from each point past the right-most
+% region of the polygon intersects with a polygon edge. Points with odd
+% counts are inside. A simple implementation of this method requires each
+% wall intersection be checked for each point, resulting in an O(N*M)
+% operation count.
+%
+% This implementation does better in 2 ways:
+%
+%   1. The test points are sorted by y-value and a binary search is used to
+%      find the first point in the list that has a chance of intersecting
+%      with a given wall. The sorted list is also used to determine when we
+%      have reached the last point in the list that has a chance of
+%      intersection. This means that in general only a small portion of
+%      points are checked for each wall, rather than the whole set.
+%
+%   2. The intersection test is simplified by first checking against the
+%      bounding box for a given wall segment. Checking against the bbox is
+%      an inexpensive alternative to the full intersection test and allows
+%      us to take a number of shortcuts, minimising the number of times the
+%      full test needs to be done.
+%
+%  Author:
+%
+%    Darren Engwirda
+%
+
+%% ERROR CHECKING
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin<4
+   reltol = 1.0e-12;
+   if nargin<3
+      edge = [];
+      if nargin<2
+         error('Insufficient inputs');
+      end
+   end
+end
+nnode = size(node,1);
+if isempty(edge)                                                           % Build edge if not passed
+   edge = [(1:nnode-1)' (2:nnode)'; nnode 1];
+end
+if size(p,2)~=2
+   error('P must be an Nx2 array.');
+end
+if size(node,2)~=2
+   error('NODE must be an Mx2 array.');
+end
+if size(edge,2)~=2
+   error('EDGE must be an Mx2 array.');
+end
+if max(edge(:))>nnode || any(edge(:)<1)
+   error('Invalid EDGE.');
+end
+
+%% PRE-PROCESSING
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+n  = size(p,1);
+nc = size(edge,1);
+
+% Choose the direction with the biggest range as the "y-coordinate" for the
+% test. This should ensure that the sorting is done along the best
+% direction for long and skinny problems wrt either the x or y axes.
+dxy = max(p,[],1)-min(p,[],1);
+if dxy(1)>dxy(2)
+   % Flip co-ords if x range is bigger
+   p = p(:,[2,1]);
+   node = node(:,[2,1]);
+end
+
+% Polygon bounding-box
+dxy = max(node,[],1)-min(node,[],1);
+tol = reltol*min(dxy);
+if tol==0.0
+   tol = reltol;
+end
+
+% Sort test points by y-value
+[y,i] = sort(p(:,2));
+x = p(i,1);
+
+%% MAIN LOOP
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+cn = false(n,1);     % Because we're dealing with mod(cn,2) we don't have
+                     % to actually increment the crossing number, we can
+                     % just flip a logical at each intersection (faster!)
+on = cn;
+for k = 1:nc         % Loop through edges
+
+   % Nodes in current edge
+   n1 = edge(k,1);
+   n2 = edge(k,2);
+
+   % Endpoints - sorted so that [x1,y1] and [x2,y2] has y1<=y2
+   %           - also get xmin = min(x1,x2), xmax = max(x1,x2)
+   y1 = node(n1,2);
+   y2 = node(n2,2);
+   if y1<y2
+      x1 = node(n1,1);
+      x2 = node(n2,1);
+   else
+      yt = y1;
+      y1 = y2;
+      y2 = yt;
+      x1 = node(n2,1);
+      x2 = node(n1,1);
+   end
+   if x1>x2
+      xmin = x2;
+      xmax = x1;
+   else
+      xmin = x1;
+      xmax = x2;
+   end
+
+   % Binary search to find first point with y<=y1 for current edge
+   if y(1)>=y1
+      start = 1;
+   elseif y(n)<y1
+      start = n+1;
+   else
+      lower = 1;
+      upper = n;
+      for j = 1:n
+         start = round(0.5*(lower+upper));
+         if y(start)<y1
+            lower = start+1;
+         elseif y(start-1)<y1
+            break;
+         else
+            upper = start-1;
+         end
+      end
+   end
+
+   % Loop through points
+   for j = start:n
+      % Check the bounding-box for the edge before doing the intersection
+      % test. Take shortcuts wherever possible!
+
+      Y = y(j);   % Do the array look-up once and make a temp scalar
+      if Y<=y2
+         X = x(j);   % Do the array look-up once and make a temp scalar
+         if X>=xmin
+            if X<=xmax
+
+               % Check if we're "on" the edge
+               on(j) = on(j) || (abs((y2-Y)*(x1-X)-(y1-Y)*(x2-X))<=tol);
+
+               % Do the actual intersection test
+               if (Y<y2) && ((y2-y1)*(X-x1)<(Y-y1)*(x2-x1))
+                  cn(j) = ~cn(j);
+               end
+
+            end
+         elseif Y<y2   % Deal with points exactly at vertices
+            % Has to cross edge
+            cn(j) = ~cn(j);
+         end
+      else
+         % Due to the sorting, no points with >y
+         % value need to be checked
+         break
+      end
+   end
+
+end
+
+% Re-index to undo the sorting
+cn(i) = cn|on;
+on(i) = on;
+
+end      % inpoly()
+
+##### SOURCE END #####
+--></body></html>

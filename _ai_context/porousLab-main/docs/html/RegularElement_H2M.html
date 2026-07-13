@@ -1,0 +1,1017 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>RegularElement_H2M Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="RegularElement_H2M.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>RegularElement_H2M Class</h1><!--introduction--><p>This class defines a finite element for a two-phase flow formulation using displacements (ux, uy), liquid pressure (Pl) and gas pressure (Pg) as primary variables. It extends the <i>RegularElement</i> class and incorporates additional attributes and methods specific to hydromechanical coupling in porous media.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class definition</a></li><li><a href="#5">Public attributes</a></li><li><a href="#6">Constructor method</a></li><li><a href="#7">Public methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>initializeIntPoints</b>: Initializes the integration points for the                          element using the shape function and material                          properties.</li><li><b>elementData</b>: Assembles the coupled mechanical, liquid-pressure, and                  gas-pressure residual and tangent terms, including                  deformation, advective flow, gravity, storage,                  saturation, density, and relative permeability                  contributions.</li><li><b>getNodalDisplacement</b>: Retrieves the nodal displacement values.</li><li><b>getNodalLiquidPressure</b>: Retrieves the nodal liquid pressure values.</li><li><b>getNodalGasPressure</b>: Retrieves the nodal gas pressure values.</li><li><b>getNodalCapillaryPressure</b>: Retrieves the nodal capillary pressure                                values.</li><li><b>pressureField</b>: Computes the pressure field at a given position                    inside the element.</li><li><b>gasPressureField</b>: Computes the gas pressure field at a given                       position inside the element.</li><li><b>capillaryPressureField</b>: Computes the capillary pressure field at a                             given position inside the element.</li><li><b>liquidSaturationField</b>: Computes the liquid saturation field at a                            given position inside the element.</li><li><b>gasSaturationField</b>: Computes the gas saturation field at a given                         position inside the element.</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class definition</h2><pre class="codeinput"><span class="keyword">classdef</span> RegularElement_H2M &lt; RegularElement_M
+</pre><h2 id="5">Public attributes</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        glp        = [];            <span class="comment">% Liquid phase pressure dofs</span>
+        glpg       = [];            <span class="comment">% Gas phase pressure dofs</span>
+        nglp       = 0;             <span class="comment">% Number of regular p-dof</span>
+    <span class="keyword">end</span>
+</pre><h2 id="6">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = RegularElement_H2M(node, elem, t, <span class="keyword">...</span>
+                mat, intOrder, glu, glp, glpg, massLumping, lumpStrategy, <span class="keyword">...</span>
+                isAxisSymmetric,isPlaneStress)
+            this = this@RegularElement_M(node, elem, t, <span class="keyword">...</span>
+                mat, intOrder, glu, massLumping, lumpStrategy, <span class="keyword">...</span>
+                isAxisSymmetric,isPlaneStress);
+            this.glp      = glp;
+            this.glpg     = glpg;
+            this.gle      = [glu, glp, glpg];
+            <span class="keyword">if</span> (length(this.glp) ~= length(this.glpg))
+                error(<span class="string">'Wrong number of pressure dofs'</span>);
+            <span class="keyword">end</span>
+            this.nglp     = length(this.glp);
+            this.ngle     = length(this.gle);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="7">Public methods</h2><pre class="codeinput">    methods
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initialize the elements integration points</span>
+        <span class="keyword">function</span> initializeIntPoints(this)
+
+            <span class="comment">% Get integration points coordinates and weights</span>
+            [X,w,this.nIntPoints] = this.shape.getIntegrationPoints(this.intOrder);
+
+            <span class="comment">% Initialize the integration points objects</span>
+            intPts(this.nIntPoints,1) = IntPoint();
+            <span class="keyword">for</span> i = 1:this.nIntPoints
+                constModel = Material_H2M(this.mat);
+                intPts(i) = IntPoint(X(:,i),w(i), constModel);
+                intPts(i).initializeMechanicalAnalysisModel(this.anm);
+            <span class="keyword">end</span>
+            this.intPoint = intPts;
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% This function assembles the element matrices and vectors</span>
+        <span class="comment">%</span>
+        <span class="comment">% Output:</span>
+        <span class="comment">%    Ke : element "stiffness" matrix</span>
+        <span class="comment">%    Ce : element "damping" matrix</span>
+        <span class="comment">%    fe : element "external force" vector</span>
+        <span class="comment">%    fi : element "internal force" vector</span>
+        <span class="comment">% dfidu : element matrix of derivative of the internal force with</span>
+        <span class="comment">%         respect to displacement</span>
+        <span class="comment">%</span>
+        <span class="keyword">function</span> [Ke, Ce, fi, fe, dfidu] = elementData(this)
+
+            <span class="comment">% Get constitutive model</span>
+            constModel = this.intPoint(1).constitutiveMdl;
+
+            <span class="comment">% Get gravity vector</span>
+            grav = this.g * this.mat.porousMedia.b;
+
+            <span class="comment">% Get the porous matrix density</span>
+            rhos = this.mat.porousMedia.getDensity();
+
+            <span class="comment">% Get the fluid viscosity</span>
+            mul = this.mat.liquidFluid.mu;
+            mug = this.mat.gasFluid.mu;
+
+            <span class="comment">% Get porosity</span>
+            phi = constModel.porousMedia.phi;
+
+            <span class="comment">% Get the fluids bulk modulus</span>
+            Klb  = constModel.liquidFluid.getBulkModulus();
+            Kgb  = 1e25; <span class="comment">%constModel.gasFluid.getBulkModulus();</span>
+
+            <span class="comment">% Vector of the nodal dofs</span>
+            u  = this.getNodalDisplacement();
+            pl = this.getNodalLiquidPressure();
+            pg = this.getNodalGasPressure();
+            pc = pg - pl;
+
+            <span class="comment">% Vector with the old nodal dofs</span>
+            plOld = this.getOldNodalLiquidPressure();
+            pgOld = this.getOldNodalGasPressure();
+            pcOld = pgOld - plOld;
+
+            <span class="comment">% Fill nodal state variables</span>
+            Sl      = zeros(this.nnd_el,1);
+            SlOld   = zeros(this.nnd_el,1);
+            dSldpc  = zeros(this.nnd_el,1);
+            rhol    = zeros(this.nnd_el,1);
+            rhog    = zeros(this.nnd_el,1);
+            rholOld = zeros(this.nnd_el,1);
+            rhogOld = zeros(this.nnd_el,1);
+            <span class="keyword">for</span> i = 1:this.nnd_el
+                <span class="comment">% Liquid saturation degree</span>
+                Sl(i)      = constModel.saturationDegree(pc(i));
+                SlOld(i)   = constModel.saturationDegree(pcOld(i));
+                <span class="comment">% Liquid saturation derivative wrt pc</span>
+                dSldpc(i)  = constModel.derivativeSaturationDegree(pc(i));
+                <span class="comment">% Get fluid densities</span>
+                rhol(i)    = this.mat.liquidFluid.getDensity(pl(i));
+                rholOld(i) = this.mat.liquidFluid.getDensity(plOld(i));
+                rhog(i)    = this.mat.gasFluid.getDensity(pg(i));
+                rhogOld(i) = this.mat.gasFluid.getDensity(pgOld(i));
+            <span class="keyword">end</span>
+
+            <span class="comment">% Auxiliary derivatives</span>
+            dpcdpg = 1.0;
+            dpcdpl = -1.0;
+
+            <span class="comment">% Derivative of the mean saturation wrt the nodal saturation</span>
+            dSlmSli = 1.0/this.nnd_el;
+
+            <span class="comment">% Gas saturation</span>
+            Sg = 1.0 - Sl;
+            SgOld = 1.0 - SlOld;
+
+            <span class="comment">% Derivative of the mean liquid saturation wrt the pressure</span>
+            dSlmdpl = dSlmSli * dSldpc * dpcdpl;
+            dSlmdpg = dSlmSli * dSldpc * dpcdpg;
+
+            <span class="comment">% Nodal mass increment</span>
+            Dml = Sl .* rhol - SlOld .* rholOld;
+            Dmg = Sg .* rhog - SgOld .* rhogOld;
+
+            <span class="comment">% Compute the relative permeability</span>
+            [klr, kgr] = constModel.relativePermeabilities(mean(Sl));
+
+            <span class="comment">% Derivative of the relative permeability wrt the saturation</span>
+            [dklrdSlm, dkgrdSlm] = constModel.derivativeRelPerm(mean(Sl));
+
+            <span class="comment">% Derivative of the relative permeability wrt the pressure</span>
+            dklrdPl = dklrdSlm * dSlmdpl;
+            dklrdPg = dklrdSlm * dSlmdpg;
+            dkgrdPl = dkgrdSlm * dSlmdpl;
+            dkgrdPg = dkgrdSlm * dSlmdpg;
+
+            <span class="comment">% Average bulk density</span>
+            rhoavg = (1.0 - phi) * rhos + phi * (mean(Sl) * mean(rhol) + mean(Sg) * mean(rhog));
+
+            <span class="comment">% Initialize 2D identity vector</span>
+            m = [1.0 ; 1.0 ; 1.0 ; 0.0];
+
+            <span class="comment">% Initialize the volume of the element</span>
+            vol = 0.0;
+
+            <span class="comment">% Numerical integration terms</span>
+            fiu = zeros(this.nglu,1);
+            dfiudu = zeros(this.nglu,this.nglu);
+            H = zeros(this.nglp, this.nglp);
+            Q = zeros(this.nglu, this.nglp);
+            fgravu = zeros(this.nglu, 1);
+            fgravp = zeros(this.nglp, 1);
+            fv = zeros(this.nglp, 1);
+            <span class="keyword">for</span> i = 1:this.nIntPoints
+
+                <span class="comment">% Shape function matrix</span>
+                Np = this.shape.shapeFncMtrx(this.intPoint(i).X);
+
+                <span class="comment">% Shape function matrix to interpolate the displacements</span>
+                Nu = this.shape.NuMtrx(Np);
+
+                <span class="comment">% Compute the B matrix at the int. point and the detJ</span>
+                [Bp, detJ] = this.shape.dNdxMatrix(this.node,this.intPoint(i).X);
+
+                <span class="comment">% Assemble the B-matrix for the mechanical part</span>
+                Bu = this.BMatrix(Bp);
+
+                <span class="comment">% Compute the strain vector</span>
+                this.intPoint(i).strain = Bu * u;
+
+                <span class="comment">% Compute the stress vector and the constitutive matrix</span>
+                [stress,Duu] = this.intPoint(i).mechanicalLaw();
+
+                <span class="comment">% Numerical integration coefficient</span>
+                c = this.intPoint(i).w * detJ * this.t;
+                <span class="keyword">if</span> this.isAxisSymmetric
+                    c = c * this.shape.axisSymmetricFactor(Np,this.node);
+                <span class="keyword">end</span>
+
+                <span class="comment">% Compute the stiffness sub-matrix</span>
+                dfiudu = dfiudu + Bu' * Duu * Bu * c;
+
+                <span class="comment">% Internal force vector</span>
+                fiu = fiu + Bu' * stress * c;
+
+                <span class="comment">% Get porous media and fluid parameters</span>
+                K = this.mat.porousMedia.intrinsicPermeabilityMatrix();
+
+                <span class="comment">% Compute permeability matrix</span>
+                H = H + Bp' * K * Bp * c;
+
+                <span class="comment">% Gravity force</span>
+                fgravu = fgravu + Nu' * rhoavg * grav * c;
+                fgravp = fgravp + Bp' * K * grav * c;
+
+                <span class="comment">% Compute the hydromechanical coupling matrix</span>
+                Q = Q + Bu' * m * Np * c;
+
+                <span class="comment">% Volumetric strain rate</span>
+                devdt = m' * (this.intPoint(i).strain - this.intPoint(i).strainOld) / this.DTime;
+
+                <span class="comment">% Volumetric strain forces</span>
+                fv = fv + Np' * devdt * c;
+
+                <span class="comment">% Compute the element volume</span>
+                vol = vol + c;
+            <span class="keyword">end</span>
+
+            <span class="comment">% Mechanical internal force: add contribution of the</span>
+            <span class="comment">% pore-pressures</span>
+            fiu = fiu - mean(Sl) * Q * pl - mean(Sg) * Q * pg;
+
+            <span class="comment">% Derivatives of the mechanical internal force wrt to the</span>
+            <span class="comment">% pressures</span>
+            dfiudpl = Q * pc * dSlmdpl' - mean(Sl) * Q;
+            dfiudpg = Q * pc * dSlmdpg' - mean(Sg) * Q;
+
+            <span class="comment">% Advective forces</span>
+            fil = (klr / mul) * H * pl;
+            fig = (kgr / mug) * H * pg;
+
+            <span class="comment">% Derivatives of the advective forces</span>
+            Hll = (klr / mul) * H;
+            Hgg = (kgr / mug) * H;
+            Hll = Hll + (H * pl) * dklrdPl' /mul;
+            Hlg = (H * pl) * dklrdPg' /mul;
+            Hgl = (H * pg) * dkgrdPl' /mug;
+            Hgg = Hgg + (H * pg) * dkgrdPg' /mug;
+
+            <span class="comment">% Volumetric strain forces</span>
+            fil = fil + mean(Sl) * fv;
+            fig = fig + mean(Sg) * fv;
+
+            <span class="comment">% Derivatives of the volumetric strain forces</span>
+            dfildu = mean(Sl) * Q' / this.DTime;
+            dfigdu = mean(Sg) * Q' / this.DTime;
+            Hll = Hll + fv * dSlmdpl';
+            Hlg = Hlg + fv * dSlmdpg';
+            Hgl = Hgl - fv * dSlmdpl';
+            Hgg = Hgg - fv * dSlmdpg';
+
+            <span class="comment">% Storage terms</span>
+            masscoeff = phi * (vol / this.nnd_el) / this.DTime;
+            fil = fil + (Dml ./ rhol) * masscoeff;
+            fig = fig + (Dmg ./ rhog) * masscoeff;
+            Cll = ((SlOld .* rholOld ./ rhol) / Klb - dSldpc) * masscoeff;
+            Clg = (dSldpc) * masscoeff;
+            Cgg = ((SgOld .* rhogOld ./ rhog) / Kgb - dSldpc) * masscoeff;
+
+            <span class="comment">% Derivatives of the residual of the fluid flow equations</span>
+            dfildpl = Hll + diag(Cll);
+            dfildpg = Hlg + diag(Clg);
+            dfigdpl = Hgl + diag(Clg);
+            dfigdpg = Hgg + diag(Cgg);
+
+            <span class="comment">% Compute the gravity forces</span>
+            <span class="keyword">if</span> (this.gravityOn)
+                fiu = fiu - fgravu;
+                fil = fil - (klr / mul) * mean(rhol) * fgravp;
+                fig = fig - (kgr / mug) * mean(rhog) * fgravp;
+                dfildpl = dfildpl - (1.0/mul) * fgravp * (mean(rhol) * dklrdPl + (klr * dSlmSli / Klb) * rhol)';
+                dfildpg = dfildpg - (1.0/mul) * fgravp * (mean(rhol) * dklrdPg)';
+                dfigdpl = dfigdpl - (1.0/mug) * fgravp * (mean(rhog) * dkgrdPl)';
+                dfigdpg = dfigdpg - (1.0/mug) * fgravp * (mean(rhog) * dkgrdPg + (kgr * dSlmSli / Kgb) * rhog)';
+            <span class="keyword">end</span>
+
+            <span class="comment">% Assemble the element matrices</span>
+            dfidu = [ dfiudu, dfiudpl , dfiudpg;
+                      dfildu, dfildpl , dfildpg;
+                      dfigdu, dfigdpl , dfigdpg ];
+
+            <span class="comment">% Assemble element internal force vector</span>
+            fi = [fiu; fil; fig];
+
+            <span class="comment">% Initialize matrices that are not being used</span>
+            fe = zeros(this.ngle, 1);
+            Ce = zeros(this.ngle, this.ngle);
+            Ke = zeros(this.ngle, this.ngle);
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to get the nodal values of the liquid pressure</span>
+        <span class="keyword">function</span> pl = getNodalLiquidPressure(this)
+            a = this.nglu + 1;
+            b = this.nglu + this.nglp;
+            pl = this.ue(a:b);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to get the old nodal values of the liquid pressure</span>
+        <span class="keyword">function</span> plOld = getOldNodalLiquidPressure(this)
+            a = this.nglu + 1;
+            b = this.nglu + this.nglp;
+            plOld = this.ueOld(a:b);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to get the nodal values of the gas pressure</span>
+        <span class="keyword">function</span> pg = getNodalGasPressure(this)
+            a = this.nglu + this.nglp + 1;
+            pg = this.ue(a:end);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to get the old nodal values of the gas pressure</span>
+        <span class="keyword">function</span> pgOld = getOldNodalGasPressure(this)
+            a = this.nglu + this.nglp + 1;
+            pgOld = this.ueOld(a:end);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to get the nodal values of the capillary pressure</span>
+        <span class="keyword">function</span> pc = getNodalCapillaryPressure(this)
+            pl = this.getNodalLiquidPressure();
+            pg = this.getNodalGasPressure();
+            pc = pg - pl;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to get the old nodal values of the capillary pressure</span>
+        <span class="keyword">function</span> pcOld = getOldNodalCapillaryPressure(this)
+            plOld = this.getOldNodalLiquidPressure();
+            pgOld = this.getOldNodalGasPressure();
+            pcOld = pgOld - plOld;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to compute the pressure field inside a given element</span>
+        <span class="keyword">function</span> p = pressureField(this,X,ue)
+        <span class="comment">%</span>
+        <span class="comment">% Input:</span>
+        <span class="comment">%   X   : position vector in the global cartesian coordinate system</span>
+        <span class="comment">%</span>
+        <span class="comment">% Output:</span>
+        <span class="comment">%   p   : pressure evaluated in "X"</span>
+            <span class="keyword">if</span> nargin &gt; 2, this.ue = ue; <span class="keyword">end</span>
+
+            <span class="comment">% Natural coordinate system</span>
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            <span class="comment">% Vector with the shape functions</span>
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            <span class="comment">% Get nodal pressures</span>
+            pl = this.getNodalLiquidPressure();
+
+            <span class="comment">% capillary field</span>
+            p = Nm*pl;
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to compute the pressure field inside a given element</span>
+        <span class="keyword">function</span> p = gasPressureField(this,X,ue)
+        <span class="comment">%</span>
+        <span class="comment">% Input:</span>
+        <span class="comment">%   X   : position vector in the global cartesian coordinate system</span>
+        <span class="comment">%</span>
+        <span class="comment">% Output:</span>
+        <span class="comment">%   p   : pressure evaluated in "X"</span>
+            <span class="keyword">if</span> nargin &gt; 2, this.ue = ue; <span class="keyword">end</span>
+
+            <span class="comment">% Natural coordinate system</span>
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            <span class="comment">% Vector with the shape functions</span>
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            <span class="comment">% Get nodal pressures</span>
+            pg = this.getNodalGasPressure();
+
+            <span class="comment">% capillary field</span>
+            p = Nm*pg;
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to compute the pressure field inside a given element</span>
+        <span class="keyword">function</span> p = capillaryPressureField(this,X,ue)
+        <span class="comment">%</span>
+        <span class="comment">% Input:</span>
+        <span class="comment">%   X   : position vector in the global cartesian coordinate system</span>
+        <span class="comment">%</span>
+        <span class="comment">% Output:</span>
+        <span class="comment">%   p   : pressure evaluated in "X"</span>
+            <span class="keyword">if</span> nargin &gt; 2, this.ue = ue; <span class="keyword">end</span>
+
+            <span class="comment">% Natural coordinate system</span>
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            <span class="comment">% Vector with the shape functions</span>
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            <span class="comment">% Get nodal pressures</span>
+            pc = this.getNodalCapillaryPressure();
+
+            <span class="comment">% capillary field</span>
+            p = Nm*pc;
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to compute the liquid saturation field inside a given element</span>
+        <span class="keyword">function</span> Sl = liquidSaturationField(this,X,ue)
+
+            <span class="keyword">if</span> nargin &gt; 2, this.ue = ue; <span class="keyword">end</span>
+
+            <span class="comment">% Natural coordinate system</span>
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            <span class="comment">% Vector with the shape functions</span>
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            <span class="comment">% Capillary pressure at the given point</span>
+            pc = Nm*this.getNodalCapillaryPressure();
+
+            <span class="comment">% Compute the liquid saturation degree</span>
+            Sl = this.intPoint(1).constitutiveMdl.saturationDegree(pc);
+
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Function to compute the gas saturation field inside a given element</span>
+        <span class="keyword">function</span> Sg = gasSaturationField(this,X,ue)
+
+            <span class="keyword">if</span> nargin &gt; 2, this.ue = ue; <span class="keyword">end</span>
+
+            <span class="comment">% Natural coordinate system</span>
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            <span class="comment">% Vector with the shape functions</span>
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            <span class="comment">% Capillary pressure at the given point</span>
+            pc = Nm*this.getNodalCapillaryPressure();
+
+            <span class="comment">% Compute the liquid saturation degree</span>
+            Sl = this.intPoint(1).constitutiveMdl.saturationDegree(pc);
+
+            <span class="comment">% Gas saturation degree</span>
+            Sg = 1.0 - Sl;
+
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% RegularElement_H2M Class
+% This class defines a finite element for a two-phase flow formulation
+% using displacements (ux, uy), liquid pressure (Pl) and gas pressure (Pg)
+% as primary variables. It extends the _RegularElement_ class and
+% incorporates additional attributes and methods specific to
+% hydromechanical coupling in porous media.
+%
+%% Methods
+% * *initializeIntPoints*: Initializes the integration points for the
+%                          element using the shape function and material
+%                          properties.
+% * *elementData*: Assembles the coupled mechanical, liquid-pressure, and
+%                  gas-pressure residual and tangent terms, including
+%                  deformation, advective flow, gravity, storage,
+%                  saturation, density, and relative permeability
+%                  contributions.
+% * *getNodalDisplacement*: Retrieves the nodal displacement values.
+% * *getNodalLiquidPressure*: Retrieves the nodal liquid pressure values.
+% * *getNodalGasPressure*: Retrieves the nodal gas pressure values.
+% * *getNodalCapillaryPressure*: Retrieves the nodal capillary pressure
+%                                values.
+% * *pressureField*: Computes the pressure field at a given position
+%                    inside the element.
+% * *gasPressureField*: Computes the gas pressure field at a given
+%                       position inside the element.
+% * *capillaryPressureField*: Computes the capillary pressure field at a
+%                             given position inside the element.
+% * *liquidSaturationField*: Computes the liquid saturation field at a
+%                            given position inside the element.
+% * *gasSaturationField*: Computes the gas saturation field at a given
+%                         position inside the element.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class definition
+classdef RegularElement_H2M < RegularElement_M
+    %% Public attributes
+    properties (SetAccess = public, GetAccess = public)
+        glp        = [];            % Liquid phase pressure dofs
+        glpg       = [];            % Gas phase pressure dofs
+        nglp       = 0;             % Number of regular p-dof
+    end
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = RegularElement_H2M(node, elem, t, ...
+                mat, intOrder, glu, glp, glpg, massLumping, lumpStrategy, ...
+                isAxisSymmetric,isPlaneStress)
+            this = this@RegularElement_M(node, elem, t, ...
+                mat, intOrder, glu, massLumping, lumpStrategy, ...
+                isAxisSymmetric,isPlaneStress);
+            this.glp      = glp;
+            this.glpg     = glpg;
+            this.gle      = [glu, glp, glpg];
+            if (length(this.glp) ~= length(this.glpg))
+                error('Wrong number of pressure dofs');
+            end
+            this.nglp     = length(this.glp);
+            this.ngle     = length(this.gle);
+        end
+    end
+
+    %% Public methods
+    methods
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initialize the elements integration points
+        function initializeIntPoints(this)
+
+            % Get integration points coordinates and weights
+            [X,w,this.nIntPoints] = this.shape.getIntegrationPoints(this.intOrder);
+
+            % Initialize the integration points objects
+            intPts(this.nIntPoints,1) = IntPoint();
+            for i = 1:this.nIntPoints
+                constModel = Material_H2M(this.mat);
+                intPts(i) = IntPoint(X(:,i),w(i), constModel);
+                intPts(i).initializeMechanicalAnalysisModel(this.anm);
+            end
+            this.intPoint = intPts;
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % This function assembles the element matrices and vectors
+        %
+        % Output:
+        %    Ke : element "stiffness" matrix
+        %    Ce : element "damping" matrix
+        %    fe : element "external force" vector
+        %    fi : element "internal force" vector
+        % dfidu : element matrix of derivative of the internal force with
+        %         respect to displacement
+        %
+        function [Ke, Ce, fi, fe, dfidu] = elementData(this)
+
+            % Get constitutive model
+            constModel = this.intPoint(1).constitutiveMdl;
+
+            % Get gravity vector
+            grav = this.g * this.mat.porousMedia.b;
+
+            % Get the porous matrix density
+            rhos = this.mat.porousMedia.getDensity();
+
+            % Get the fluid viscosity
+            mul = this.mat.liquidFluid.mu;
+            mug = this.mat.gasFluid.mu;
+
+            % Get porosity
+            phi = constModel.porousMedia.phi;
+
+            % Get the fluids bulk modulus
+            Klb  = constModel.liquidFluid.getBulkModulus();
+            Kgb  = 1e25; %constModel.gasFluid.getBulkModulus();
+
+            % Vector of the nodal dofs
+            u  = this.getNodalDisplacement();
+            pl = this.getNodalLiquidPressure();
+            pg = this.getNodalGasPressure();
+            pc = pg - pl;
+
+            % Vector with the old nodal dofs
+            plOld = this.getOldNodalLiquidPressure();
+            pgOld = this.getOldNodalGasPressure();
+            pcOld = pgOld - plOld;
+
+            % Fill nodal state variables
+            Sl      = zeros(this.nnd_el,1);
+            SlOld   = zeros(this.nnd_el,1);
+            dSldpc  = zeros(this.nnd_el,1);
+            rhol    = zeros(this.nnd_el,1);
+            rhog    = zeros(this.nnd_el,1);
+            rholOld = zeros(this.nnd_el,1);
+            rhogOld = zeros(this.nnd_el,1);
+            for i = 1:this.nnd_el
+                % Liquid saturation degree
+                Sl(i)      = constModel.saturationDegree(pc(i));
+                SlOld(i)   = constModel.saturationDegree(pcOld(i));
+                % Liquid saturation derivative wrt pc
+                dSldpc(i)  = constModel.derivativeSaturationDegree(pc(i));
+                % Get fluid densities
+                rhol(i)    = this.mat.liquidFluid.getDensity(pl(i));
+                rholOld(i) = this.mat.liquidFluid.getDensity(plOld(i));
+                rhog(i)    = this.mat.gasFluid.getDensity(pg(i));
+                rhogOld(i) = this.mat.gasFluid.getDensity(pgOld(i));
+            end
+
+            % Auxiliary derivatives
+            dpcdpg = 1.0;
+            dpcdpl = -1.0;
+
+            % Derivative of the mean saturation wrt the nodal saturation
+            dSlmSli = 1.0/this.nnd_el;
+
+            % Gas saturation
+            Sg = 1.0 - Sl;
+            SgOld = 1.0 - SlOld;
+
+            % Derivative of the mean liquid saturation wrt the pressure
+            dSlmdpl = dSlmSli * dSldpc * dpcdpl;
+            dSlmdpg = dSlmSli * dSldpc * dpcdpg;
+
+            % Nodal mass increment
+            Dml = Sl .* rhol - SlOld .* rholOld;
+            Dmg = Sg .* rhog - SgOld .* rhogOld;
+
+            % Compute the relative permeability
+            [klr, kgr] = constModel.relativePermeabilities(mean(Sl));
+
+            % Derivative of the relative permeability wrt the saturation
+            [dklrdSlm, dkgrdSlm] = constModel.derivativeRelPerm(mean(Sl));
+
+            % Derivative of the relative permeability wrt the pressure
+            dklrdPl = dklrdSlm * dSlmdpl;
+            dklrdPg = dklrdSlm * dSlmdpg;
+            dkgrdPl = dkgrdSlm * dSlmdpl;
+            dkgrdPg = dkgrdSlm * dSlmdpg;
+
+            % Average bulk density
+            rhoavg = (1.0 - phi) * rhos + phi * (mean(Sl) * mean(rhol) + mean(Sg) * mean(rhog));
+
+            % Initialize 2D identity vector
+            m = [1.0 ; 1.0 ; 1.0 ; 0.0];
+
+            % Initialize the volume of the element
+            vol = 0.0;
+
+            % Numerical integration terms
+            fiu = zeros(this.nglu,1);
+            dfiudu = zeros(this.nglu,this.nglu);
+            H = zeros(this.nglp, this.nglp);
+            Q = zeros(this.nglu, this.nglp);
+            fgravu = zeros(this.nglu, 1);
+            fgravp = zeros(this.nglp, 1);
+            fv = zeros(this.nglp, 1);
+            for i = 1:this.nIntPoints
+
+                % Shape function matrix
+                Np = this.shape.shapeFncMtrx(this.intPoint(i).X);
+
+                % Shape function matrix to interpolate the displacements
+                Nu = this.shape.NuMtrx(Np);
+
+                % Compute the B matrix at the int. point and the detJ
+                [Bp, detJ] = this.shape.dNdxMatrix(this.node,this.intPoint(i).X);
+
+                % Assemble the B-matrix for the mechanical part
+                Bu = this.BMatrix(Bp);
+
+                % Compute the strain vector
+                this.intPoint(i).strain = Bu * u;
+
+                % Compute the stress vector and the constitutive matrix
+                [stress,Duu] = this.intPoint(i).mechanicalLaw();
+
+                % Numerical integration coefficient
+                c = this.intPoint(i).w * detJ * this.t;
+                if this.isAxisSymmetric
+                    c = c * this.shape.axisSymmetricFactor(Np,this.node);
+                end
+
+                % Compute the stiffness sub-matrix
+                dfiudu = dfiudu + Bu' * Duu * Bu * c;
+
+                % Internal force vector
+                fiu = fiu + Bu' * stress * c;
+
+                % Get porous media and fluid parameters
+                K = this.mat.porousMedia.intrinsicPermeabilityMatrix();
+
+                % Compute permeability matrix
+                H = H + Bp' * K * Bp * c;
+
+                % Gravity force
+                fgravu = fgravu + Nu' * rhoavg * grav * c;
+                fgravp = fgravp + Bp' * K * grav * c;
+
+                % Compute the hydromechanical coupling matrix
+                Q = Q + Bu' * m * Np * c;
+
+                % Volumetric strain rate
+                devdt = m' * (this.intPoint(i).strain - this.intPoint(i).strainOld) / this.DTime;
+
+                % Volumetric strain forces
+                fv = fv + Np' * devdt * c;
+
+                % Compute the element volume
+                vol = vol + c;
+            end
+
+            % Mechanical internal force: add contribution of the
+            % pore-pressures
+            fiu = fiu - mean(Sl) * Q * pl - mean(Sg) * Q * pg;
+
+            % Derivatives of the mechanical internal force wrt to the
+            % pressures
+            dfiudpl = Q * pc * dSlmdpl' - mean(Sl) * Q;
+            dfiudpg = Q * pc * dSlmdpg' - mean(Sg) * Q;
+
+            % Advective forces
+            fil = (klr / mul) * H * pl;
+            fig = (kgr / mug) * H * pg;
+
+            % Derivatives of the advective forces
+            Hll = (klr / mul) * H;
+            Hgg = (kgr / mug) * H;
+            Hll = Hll + (H * pl) * dklrdPl' /mul;
+            Hlg = (H * pl) * dklrdPg' /mul;
+            Hgl = (H * pg) * dkgrdPl' /mug;
+            Hgg = Hgg + (H * pg) * dkgrdPg' /mug;
+
+            % Volumetric strain forces
+            fil = fil + mean(Sl) * fv;
+            fig = fig + mean(Sg) * fv;
+
+            % Derivatives of the volumetric strain forces
+            dfildu = mean(Sl) * Q' / this.DTime;
+            dfigdu = mean(Sg) * Q' / this.DTime;
+            Hll = Hll + fv * dSlmdpl';
+            Hlg = Hlg + fv * dSlmdpg';
+            Hgl = Hgl - fv * dSlmdpl';
+            Hgg = Hgg - fv * dSlmdpg';
+
+            % Storage terms
+            masscoeff = phi * (vol / this.nnd_el) / this.DTime;
+            fil = fil + (Dml ./ rhol) * masscoeff;
+            fig = fig + (Dmg ./ rhog) * masscoeff;
+            Cll = ((SlOld .* rholOld ./ rhol) / Klb - dSldpc) * masscoeff;
+            Clg = (dSldpc) * masscoeff;
+            Cgg = ((SgOld .* rhogOld ./ rhog) / Kgb - dSldpc) * masscoeff;
+
+            % Derivatives of the residual of the fluid flow equations
+            dfildpl = Hll + diag(Cll);
+            dfildpg = Hlg + diag(Clg);
+            dfigdpl = Hgl + diag(Clg);
+            dfigdpg = Hgg + diag(Cgg);
+
+            % Compute the gravity forces
+            if (this.gravityOn)
+                fiu = fiu - fgravu;
+                fil = fil - (klr / mul) * mean(rhol) * fgravp;
+                fig = fig - (kgr / mug) * mean(rhog) * fgravp;
+                dfildpl = dfildpl - (1.0/mul) * fgravp * (mean(rhol) * dklrdPl + (klr * dSlmSli / Klb) * rhol)';
+                dfildpg = dfildpg - (1.0/mul) * fgravp * (mean(rhol) * dklrdPg)';
+                dfigdpl = dfigdpl - (1.0/mug) * fgravp * (mean(rhog) * dkgrdPl)';
+                dfigdpg = dfigdpg - (1.0/mug) * fgravp * (mean(rhog) * dkgrdPg + (kgr * dSlmSli / Kgb) * rhog)';
+            end
+
+            % Assemble the element matrices
+            dfidu = [ dfiudu, dfiudpl , dfiudpg;
+                      dfildu, dfildpl , dfildpg;
+                      dfigdu, dfigdpl , dfigdpg ];
+
+            % Assemble element internal force vector
+            fi = [fiu; fil; fig];
+
+            % Initialize matrices that are not being used
+            fe = zeros(this.ngle, 1);
+            Ce = zeros(this.ngle, this.ngle);
+            Ke = zeros(this.ngle, this.ngle);
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to get the nodal values of the liquid pressure
+        function pl = getNodalLiquidPressure(this)
+            a = this.nglu + 1;
+            b = this.nglu + this.nglp;
+            pl = this.ue(a:b);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to get the old nodal values of the liquid pressure
+        function plOld = getOldNodalLiquidPressure(this)
+            a = this.nglu + 1;
+            b = this.nglu + this.nglp;
+            plOld = this.ueOld(a:b);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to get the nodal values of the gas pressure
+        function pg = getNodalGasPressure(this)
+            a = this.nglu + this.nglp + 1;
+            pg = this.ue(a:end);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to get the old nodal values of the gas pressure
+        function pgOld = getOldNodalGasPressure(this)
+            a = this.nglu + this.nglp + 1;
+            pgOld = this.ueOld(a:end);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to get the nodal values of the capillary pressure
+        function pc = getNodalCapillaryPressure(this)
+            pl = this.getNodalLiquidPressure();
+            pg = this.getNodalGasPressure();
+            pc = pg - pl;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to get the old nodal values of the capillary pressure
+        function pcOld = getOldNodalCapillaryPressure(this)
+            plOld = this.getOldNodalLiquidPressure();
+            pgOld = this.getOldNodalGasPressure();
+            pcOld = pgOld - plOld;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to compute the pressure field inside a given element
+        function p = pressureField(this,X,ue)
+        %
+        % Input:
+        %   X   : position vector in the global cartesian coordinate system
+        %
+        % Output:
+        %   p   : pressure evaluated in "X"
+            if nargin > 2, this.ue = ue; end
+
+            % Natural coordinate system
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            % Vector with the shape functions
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            % Get nodal pressures
+            pl = this.getNodalLiquidPressure();
+
+            % capillary field
+            p = Nm*pl;
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to compute the pressure field inside a given element
+        function p = gasPressureField(this,X,ue)
+        %
+        % Input:
+        %   X   : position vector in the global cartesian coordinate system
+        %
+        % Output:
+        %   p   : pressure evaluated in "X"
+            if nargin > 2, this.ue = ue; end
+
+            % Natural coordinate system
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            % Vector with the shape functions
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            % Get nodal pressures
+            pg = this.getNodalGasPressure();
+
+            % capillary field
+            p = Nm*pg;
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to compute the pressure field inside a given element
+        function p = capillaryPressureField(this,X,ue)
+        %
+        % Input:
+        %   X   : position vector in the global cartesian coordinate system
+        %
+        % Output:
+        %   p   : pressure evaluated in "X"
+            if nargin > 2, this.ue = ue; end
+
+            % Natural coordinate system
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            % Vector with the shape functions
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            % Get nodal pressures
+            pc = this.getNodalCapillaryPressure();
+
+            % capillary field
+            p = Nm*pc;
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to compute the liquid saturation field inside a given element
+        function Sl = liquidSaturationField(this,X,ue)
+
+            if nargin > 2, this.ue = ue; end
+
+            % Natural coordinate system
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            % Vector with the shape functions
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            % Capillary pressure at the given point
+            pc = Nm*this.getNodalCapillaryPressure();
+
+            % Compute the liquid saturation degree
+            Sl = this.intPoint(1).constitutiveMdl.saturationDegree(pc);
+
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Function to compute the gas saturation field inside a given element
+        function Sg = gasSaturationField(this,X,ue)
+
+            if nargin > 2, this.ue = ue; end
+
+            % Natural coordinate system
+            Xn = this.shape.coordCartesianToNatural(this.node,X);
+
+            % Vector with the shape functions
+            Nm = this.shape.shapeFncMtrx(Xn);
+
+            % Capillary pressure at the given point
+            pc = Nm*this.getNodalCapillaryPressure();
+
+            % Compute the liquid saturation degree
+            Sl = this.intPoint(1).constitutiveMdl.saturationDegree(pc);
+
+            % Gas saturation degree
+            Sg = 1.0 - Sl;
+
+        end
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

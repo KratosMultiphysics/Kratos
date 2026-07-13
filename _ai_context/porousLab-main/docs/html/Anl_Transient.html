@@ -1,0 +1,485 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Anl_Transient Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="Anl_Transient.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Anl_Transient Class</h1><!--introduction--><p>This class inherits from the base class 'Anl' to implement the solution of a transient nonlinear analysis with implicit time integration schemes.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Authors</a></li><li><a href="#2">Class definition</a></li><li><a href="#3">Public properties</a></li><li><a href="#4">Constructor method</a></li><li><a href="#5">Public methods</a></li></ul></div><h2 id="1">Authors</h2><div><ul><li>Danilo Cavalcanti (<a href="mailto:dborges@cimne.upc.edu">dborges@cimne.upc.edu</a>)</li></ul></div><h2 id="2">Class definition</h2><pre class="codeinput"><span class="keyword">classdef</span> Anl_Transient &lt; Anl
+</pre><h2 id="3">Public properties</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        nlscheme    = [];     <span class="comment">% Nonlinear solution scheme</span>
+        theta       = 1.0;    <span class="comment">% Implicit time integration scheme parameter</span>
+        ti          = 0.01;   <span class="comment">% Initial time</span>
+        tf          = 1.0;    <span class="comment">% Final time</span>
+        dt          = 0.001;  <span class="comment">% Time step</span>
+        dtMax       = 0.001;  <span class="comment">% Maximum time step</span>
+        dtMin       = 0.001;  <span class="comment">% Minimum time step</span>
+        adaptStep   = false;  <span class="comment">% Adaptive step size</span>
+        maxIter     = 250;    <span class="comment">% Maximum number of iterations</span>
+        maxAttempts = 10;     <span class="comment">% Maximum attempts to converge</span>
+        desiredIter = 5;      <span class="comment">% Desired number of iterations</span>
+        echo        = true;   <span class="comment">% Flag to print in the command window</span>
+    <span class="keyword">end</span>
+</pre><h2 id="4">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = Anl_Transient(nlscheme)
+            this = this@Anl(<span class="string">'Transient'</span>);
+
+            <span class="keyword">if</span> strcmp(nlscheme,<span class="string">'Picard'</span>)
+                this.nlscheme = NonlinearScheme_Picard();
+            <span class="keyword">elseif</span> strcmp(nlscheme,<span class="string">'Newton'</span>)
+                this.nlscheme = NonlinearScheme_Newton();
+            <span class="keyword">else</span>
+                disp(<span class="string">"Error creating the Analysis object."</span>);
+                disp(<span class="string">"Nonlinear solution scheme was not provided."</span>);
+                disp(<span class="string">"Available options:"</span>);
+                disp(<span class="string">"   Picard"</span>);
+                disp(<span class="string">"   Newton"</span>);
+                error(<span class="string">"Error: Nonlinear solution scheme was not provided"</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="5">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Execute the transient nonlinear analysis, handle time-stepping,</span>
+        <span class="comment">% convergence checks, and update the model state.</span>
+        <span class="comment">% TODO: Improve it to avoid unnecessary iterations</span>
+        <span class="keyword">function</span> run(this,mdl)
+            disp(<span class="string">"*** Performing transient nonlinear analysis..."</span>)
+
+            <span class="comment">% Initialize model object</span>
+            mdl.preComputations();
+
+            <span class="comment">% Initialize analysis parameters</span>
+            t    = this.ti + this.dt;
+            t0   = this.ti;
+            step = 1;
+
+            <span class="comment">% Initialize solution vector</span>
+            X  = mdl.U;
+            dx = zeros(mdl.ndof);
+
+            <span class="comment">% Start transient process</span>
+            attempt = 1;
+            brokenStep = false;
+            <span class="keyword">while</span> (t0 &lt; this.tf)
+                <span class="keyword">if</span> this.echo
+                    fprintf(<span class="string">"\t Time: %12.5f s \n"</span>, t);
+                <span class="keyword">end</span>
+
+                <span class="comment">% Update transient solution</span>
+                XOld = X;
+
+                <span class="comment">% Start iterative process</span>
+                convFlg = false;
+                attemptOld = attempt;
+                attempt = 1;
+
+                <span class="keyword">while</span> attempt &lt; this.maxAttempts
+                    iter = 1;
+
+                    <span class="keyword">while</span> true
+                        <span class="comment">% Compute model global matrices</span>
+                        [A,b] = mdl.getLinearSystem(X,XOld,this.nlscheme,this.dt);
+
+                        <span class="comment">% Apply Dirichlet boundary conditions</span>
+                        [A,b] = mdl.applyDirichletBC(A,b,X,this.nlscheme);
+
+                        <span class="comment">% Update variables</span>
+                        [X,dx] = this.nlscheme.eval(A,b,X,dx,mdl.doffree,iter);
+
+                        <span class="comment">% Check convergence</span>
+                        convFlg = this.nlscheme.convergence(X,XOld,dx,b,mdl.doffree,iter,this.echo);
+                        <span class="keyword">if</span> convFlg == true
+                            <span class="keyword">break</span>;
+                        <span class="keyword">end</span>
+
+                        <span class="comment">% Check for NaN</span>
+                        <span class="keyword">if</span> (any(isnan(dx)) || any(isnan(X)))
+                            <span class="keyword">break</span>;
+                        <span class="keyword">end</span>
+
+                        <span class="comment">% Check maximum number of iterations</span>
+                        iter = iter + 1;
+                        <span class="keyword">if</span> (iter &gt; this.maxIter)
+                            <span class="keyword">break</span>
+                        <span class="keyword">end</span>
+                    <span class="keyword">end</span>
+
+                    <span class="comment">% Check convergence</span>
+                    <span class="keyword">if</span> convFlg == true
+                        <span class="keyword">break</span>;
+                    <span class="keyword">end</span>
+
+                    <span class="comment">% Reduce time step</span>
+                    this.dt = max(this.dt/4.0, this.dtMin);
+
+                    <span class="comment">% Clean previous attempt</span>
+                    X = XOld;
+
+                    <span class="comment">% Update attempt counter</span>
+                    attempt = attempt + 1;
+                <span class="keyword">end</span>
+
+                <span class="keyword">if</span> convFlg == false
+                    disp(<span class="string">"Solution did not converge!"</span>);
+                    <span class="keyword">break</span>;
+                <span class="keyword">else</span>
+                    mdl.updateStateVar();
+                <span class="keyword">end</span>
+
+                <span class="comment">% Update time step</span>
+                <span class="keyword">if</span> (this.adaptStep == true) &amp;&amp; (attempt == 1) &amp;&amp; (brokenStep == false) &amp;&amp; (attemptOld == 1)
+                    fstep = (this.desiredIter/iter)^(0.25);
+                    this.dt = max(min(fstep * this.dt, this.dtMax),this.dtMin);
+                <span class="keyword">end</span>
+
+                <span class="comment">% Update time</span>
+                t0 = t;
+                <span class="keyword">if</span> (t + this.dt) &gt; this.tf
+                    this.dt = this.tf - t;
+                    <span class="keyword">if</span> (abs(t - this.tf)&lt; 1.0e-15) &amp;&amp; (abs(this.dt) &lt; 1.0e-12), <span class="keyword">break</span>, <span class="keyword">end</span>
+                <span class="keyword">end</span>
+                t = t + this.dt;
+                step = step + 1;
+            <span class="keyword">end</span>
+
+            <span class="comment">% Update state variables</span>
+            mdl.updateStateVar();
+
+            <span class="comment">% Save final result</span>
+            mdl.U = X;
+            <span class="keyword">for</span> i = 1:mdl.nelem
+                gle = mdl.element(i).type.gle;
+                mdl.element(i).type.ue = mdl.U(gle);
+            <span class="keyword">end</span>
+
+            disp(<span class="string">"*** Analysis completed!"</span>);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Configure the transient solver with specified parameters.</span>
+        <span class="keyword">function</span> setUpTransientSolver(this,ti,dt,tf,dtMax,dtMin,adaptStep)
+            <span class="keyword">if</span> nargin == 4
+                dtMax = dt;
+                dtMin = dt;
+                adaptStep = false;
+            <span class="keyword">end</span>
+            this.ti = ti;
+            this.dt = dt;
+            this.tf = tf;
+            this.adaptStep = adaptStep;
+            this.dtMax = dtMax;
+            this.dtMin = dtMin;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Enable or disable scaling of the linear system</span>
+        <span class="keyword">function</span> setScaleLinearSystem(this,flag)
+            this.nlscheme.scaleLinearSystem = flag;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Enable or disable relaxation for the Picard nonlinear solution scheme.</span>
+        <span class="keyword">function</span> setPicardRelaxation(this,flag)
+            this.nlscheme.applyRelaxation = flag;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Enable or disable normalization of the error for relative convergence criteria.</span>
+        <span class="keyword">function</span> setRelativeConvergenceCriteria(this,flag)
+            this.nlscheme.normalizeError = flag;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Prints the solution vector 'X' for each node in the model.</span>
+        <span class="keyword">function</span> printStep(~,X,mdl)
+            <span class="keyword">for</span> i = 1:mdl.nnodes
+                fprintf(<span class="string">"  %4d: \t"</span>, i);
+                <span class="keyword">for</span> j = 1:mdl.ndof_nd
+                    fprintf(<span class="string">"  %8.4f "</span>, X(mdl.ID(i,j)));
+                <span class="keyword">end</span>
+                fprintf(<span class="string">"\n"</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Anl_Transient Class
+% This class inherits from the base class 'Anl' to implement the solution of
+% a transient nonlinear analysis with implicit time integration schemes.
+%
+%% Authors
+% * Danilo Cavalcanti (dborges@cimne.upc.edu)
+%
+%% Class definition
+classdef Anl_Transient < Anl
+    %% Public properties
+    properties (SetAccess = public, GetAccess = public)
+        nlscheme    = [];     % Nonlinear solution scheme
+        theta       = 1.0;    % Implicit time integration scheme parameter
+        ti          = 0.01;   % Initial time
+        tf          = 1.0;    % Final time
+        dt          = 0.001;  % Time step
+        dtMax       = 0.001;  % Maximum time step
+        dtMin       = 0.001;  % Minimum time step
+        adaptStep   = false;  % Adaptive step size
+        maxIter     = 250;    % Maximum number of iterations
+        maxAttempts = 10;     % Maximum attempts to converge
+        desiredIter = 5;      % Desired number of iterations
+        echo        = true;   % Flag to print in the command window
+    end
+
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = Anl_Transient(nlscheme)
+            this = this@Anl('Transient');
+
+            if strcmp(nlscheme,'Picard')
+                this.nlscheme = NonlinearScheme_Picard();
+            elseif strcmp(nlscheme,'Newton')
+                this.nlscheme = NonlinearScheme_Newton();
+            else
+                disp("Error creating the Analysis object.");
+                disp("Nonlinear solution scheme was not provided.");
+                disp("Available options:");
+                disp("   Picard");
+                disp("   Newton");
+                error("Error: Nonlinear solution scheme was not provided");
+            end
+        end
+    end
+
+    %% Public methods
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Execute the transient nonlinear analysis, handle time-stepping,
+        % convergence checks, and update the model state.
+        % TODO: Improve it to avoid unnecessary iterations
+        function run(this,mdl)
+            disp("*** Performing transient nonlinear analysis...")
+
+            % Initialize model object
+            mdl.preComputations();
+
+            % Initialize analysis parameters
+            t    = this.ti + this.dt;
+            t0   = this.ti;
+            step = 1;
+
+            % Initialize solution vector
+            X  = mdl.U;
+            dx = zeros(mdl.ndof);
+
+            % Start transient process
+            attempt = 1;
+            brokenStep = false;
+            while (t0 < this.tf)
+                if this.echo
+                    fprintf("\t Time: %12.5f s \n", t);
+                end
+
+                % Update transient solution
+                XOld = X;
+
+                % Start iterative process
+                convFlg = false;
+                attemptOld = attempt;
+                attempt = 1;
+
+                while attempt < this.maxAttempts
+                    iter = 1;
+
+                    while true
+                        % Compute model global matrices
+                        [A,b] = mdl.getLinearSystem(X,XOld,this.nlscheme,this.dt);
+
+                        % Apply Dirichlet boundary conditions
+                        [A,b] = mdl.applyDirichletBC(A,b,X,this.nlscheme);
+
+                        % Update variables
+                        [X,dx] = this.nlscheme.eval(A,b,X,dx,mdl.doffree,iter);
+
+                        % Check convergence
+                        convFlg = this.nlscheme.convergence(X,XOld,dx,b,mdl.doffree,iter,this.echo);
+                        if convFlg == true
+                            break;
+                        end
+
+                        % Check for NaN
+                        if (any(isnan(dx)) || any(isnan(X)))
+                            break;
+                        end
+
+                        % Check maximum number of iterations
+                        iter = iter + 1;
+                        if (iter > this.maxIter)
+                            break
+                        end
+                    end
+
+                    % Check convergence
+                    if convFlg == true
+                        break;
+                    end
+
+                    % Reduce time step
+                    this.dt = max(this.dt/4.0, this.dtMin);
+
+                    % Clean previous attempt
+                    X = XOld;
+
+                    % Update attempt counter
+                    attempt = attempt + 1;
+                end
+
+                if convFlg == false
+                    disp("Solution did not converge!");
+                    break;
+                else
+                    mdl.updateStateVar();
+                end
+
+                % Update time step
+                if (this.adaptStep == true) && (attempt == 1) && (brokenStep == false) && (attemptOld == 1)
+                    fstep = (this.desiredIter/iter)^(0.25);
+                    this.dt = max(min(fstep * this.dt, this.dtMax),this.dtMin);
+                end
+
+                % Update time
+                t0 = t;
+                if (t + this.dt) > this.tf
+                    this.dt = this.tf - t;
+                    if (abs(t - this.tf)< 1.0e-15) && (abs(this.dt) < 1.0e-12), break, end
+                end
+                t = t + this.dt;
+                step = step + 1;
+            end
+
+            % Update state variables
+            mdl.updateStateVar();
+
+            % Save final result
+            mdl.U = X;
+            for i = 1:mdl.nelem
+                gle = mdl.element(i).type.gle;
+                mdl.element(i).type.ue = mdl.U(gle);
+            end
+
+            disp("*** Analysis completed!");
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Configure the transient solver with specified parameters.
+        function setUpTransientSolver(this,ti,dt,tf,dtMax,dtMin,adaptStep)
+            if nargin == 4
+                dtMax = dt;
+                dtMin = dt;
+                adaptStep = false;
+            end
+            this.ti = ti;
+            this.dt = dt;
+            this.tf = tf;
+            this.adaptStep = adaptStep;
+            this.dtMax = dtMax;
+            this.dtMin = dtMin;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Enable or disable scaling of the linear system
+        function setScaleLinearSystem(this,flag)
+            this.nlscheme.scaleLinearSystem = flag;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Enable or disable relaxation for the Picard nonlinear solution scheme.
+        function setPicardRelaxation(this,flag)
+            this.nlscheme.applyRelaxation = flag;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Enable or disable normalization of the error for relative convergence criteria.
+        function setRelativeConvergenceCriteria(this,flag)
+            this.nlscheme.normalizeError = flag;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Prints the solution vector 'X' for each node in the model.
+        function printStep(~,X,mdl)
+            for i = 1:mdl.nnodes
+                fprintf("  %4d: \t", i);
+                for j = 1:mdl.ndof_nd
+                    fprintf("  %8.4f ", X(mdl.ID(i,j)));
+                end
+                fprintf("\n");
+            end
+        end
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,260 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>generateParallelFractures</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="generateParallelFractures.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> FractureData = generateParallelFractures(Lx, Ly, theta, deltaX, varargin)
+<span class="comment">%GENERATEPARALLELFRACTURES Parallel fractures with HORIZONTAL spacing deltaX.</span>
+<span class="comment">% Inputs:</span>
+<span class="comment">%   Lx, Ly   : domain size</span>
+<span class="comment">%   theta    : angle from y-axis (CCW)</span>
+<span class="comment">%   deltaX   : spacing in x between consecutive lines (constant &#916;x)</span>
+<span class="comment">% Name-Value:</span>
+<span class="comment">%   'OffsetX': horizontal shift of the first line&#8217;s x-intercept at y=0 (default 0)</span>
+<span class="comment">%</span>
+<span class="comment">% Output:</span>
+<span class="comment">%   FractureData : cell(N,1), each entry [x1 y1; x2 y2] clipped to [0,Lx]x[0,Ly]</span>
+
+    <span class="keyword">if</span> any([Lx&lt;=0, Ly&lt;=0, deltaX&lt;=0])
+        error(<span class="string">'Require Lx&gt;0, Ly&gt;0, deltaX&gt;0.'</span>);
+    <span class="keyword">end</span>
+
+    ip = inputParser;
+    addParameter(ip,<span class="string">'OffsetX'</span>,0,@(x)isnumeric(x)&amp;&amp;isscalar(x));
+    parse(ip,varargin{:});
+    x0off = ip.Results.OffsetX;
+
+    <span class="comment">% Direction (along fracture) and normal</span>
+    u = [sin(theta),  cos(theta)];
+    n = [cos(theta), -sin(theta)];
+
+    c = cos(theta);
+    tol = 1e-12 * max(Lx, Ly);
+    <span class="keyword">if</span> abs(c) &lt; 1e-14
+        error(<span class="string">'Horizontal spacing undefined for |cos(theta)|&#8776;0 (nearly horizontal fractures).'</span>);
+    <span class="keyword">end</span>
+
+    <span class="comment">% Signed-distance range over rectangle -&gt; map to x-intercept range at y=0</span>
+    C = [0 0; Lx 0; 0 Ly; Lx Ly];
+    s_vals = C*n.';                     <span class="comment">% distances of corners</span>
+    smin = min(s_vals); smax = max(s_vals);
+    x0min = min(smin/c, smax/c);
+    x0max = max(smin/c, smax/c);
+
+    <span class="comment">% Exclude tangential extremes to avoid zero-length segments</span>
+    kmin = ceil( (x0min - x0off)/deltaX + tol/deltaX );
+    kmax = floor((x0max - x0off)/deltaX - tol/deltaX);
+    <span class="keyword">if</span> kmax &lt; kmin
+        FractureData = cell(0,1); <span class="keyword">return</span>
+    <span class="keyword">end</span>
+
+    T = 2*hypot(Lx,Ly);
+    FractureData = cell(kmax - kmin + 1, 1);
+    idx = 0;
+
+    <span class="keyword">for</span> k = kmin:kmax
+        x0 = x0off + k*deltaX;      <span class="comment">% x-intercept at y=0 kept deltaX apart</span>
+        p0 = [x0, 0];               <span class="comment">% point on the infinite line</span>
+        p1 = p0 - T*u;              <span class="comment">% long segment for clipping</span>
+        p2 = p0 + T*u;
+
+        [q1, q2, ok] = clipSegmentToRect(p1, p2, Lx, Ly);
+        <span class="keyword">if</span> ok
+            <span class="keyword">if</span> hypot(q2(1)-q1(1), q2(2)-q1(2)) &gt; tol
+                idx = idx + 1;
+                FractureData{idx} = [q1; q2];
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    FractureData = FractureData(1:idx);
+<span class="keyword">end</span>
+
+<span class="comment">% --------------- helper ----------------</span>
+<span class="keyword">function</span> [q1, q2, ok] = clipSegmentToRect(p1, p2, Lx, Ly)
+    d = p2 - p1;
+    p = [-d(1),  d(1), -d(2),  d(2)];
+    q = [ p1(1), Lx - p1(1),  p1(2), Ly - p1(2)];
+    u1 = 0; u2 = 1; ok = true;
+
+    <span class="keyword">for</span> i = 1:4
+        <span class="keyword">if</span> p(i) == 0
+            <span class="keyword">if</span> q(i) &lt; 0, ok=false; q1=[NaN,NaN]; q2=[NaN,NaN]; <span class="keyword">return</span>; <span class="keyword">end</span>
+        <span class="keyword">else</span>
+            r = q(i)/p(i);
+            <span class="keyword">if</span> p(i) &lt; 0
+                <span class="keyword">if</span> r &gt; u2, ok=false; q1=[NaN,NaN]; q2=[NaN,NaN]; <span class="keyword">return</span>; <span class="keyword">end</span>
+                <span class="keyword">if</span> r &gt; u1, u1 = r; <span class="keyword">end</span>
+            <span class="keyword">else</span>
+                <span class="keyword">if</span> r &lt; u1, ok=false; q1=[NaN,NaN]; q2=[NaN,NaN]; <span class="keyword">return</span>; <span class="keyword">end</span>
+                <span class="keyword">if</span> r &lt; u2, u2 = r; <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> u2 &lt;= u1 + eps, ok=false; q1=[NaN,NaN]; q2=[NaN,NaN]; <span class="keyword">return</span>; <span class="keyword">end</span>
+    q1 = [min(max(p1(1)+u1*d(1),0.0),Lx), min(max(p1(2)+u1*d(2),0.0),Ly)];
+    q2 = [min(max(p1(1)+u2*d(1),0.0),Lx), min(max(p1(2)+u2*d(2),0.0),Ly)];
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function FractureData = generateParallelFractures(Lx, Ly, theta, deltaX, varargin)
+%GENERATEPARALLELFRACTURES Parallel fractures with HORIZONTAL spacing deltaX.
+% Inputs:
+%   Lx, Ly   : domain size
+%   theta    : angle from y-axis (CCW)
+%   deltaX   : spacing in x between consecutive lines (constant Δx)
+% Name-Value:
+%   'OffsetX': horizontal shift of the first line’s x-intercept at y=0 (default 0)
+%
+% Output:
+%   FractureData : cell(N,1), each entry [x1 y1; x2 y2] clipped to [0,Lx]x[0,Ly]
+
+    if any([Lx<=0, Ly<=0, deltaX<=0])
+        error('Require Lx>0, Ly>0, deltaX>0.');
+    end
+
+    ip = inputParser;
+    addParameter(ip,'OffsetX',0,@(x)isnumeric(x)&&isscalar(x));
+    parse(ip,varargin{:});
+    x0off = ip.Results.OffsetX;
+
+    % Direction (along fracture) and normal
+    u = [sin(theta),  cos(theta)];
+    n = [cos(theta), -sin(theta)];
+
+    c = cos(theta);
+    tol = 1e-12 * max(Lx, Ly);
+    if abs(c) < 1e-14
+        error('Horizontal spacing undefined for |cos(theta)|≈0 (nearly horizontal fractures).');
+    end
+
+    % Signed-distance range over rectangle -> map to x-intercept range at y=0
+    C = [0 0; Lx 0; 0 Ly; Lx Ly];
+    s_vals = C*n.';                     % distances of corners
+    smin = min(s_vals); smax = max(s_vals);
+    x0min = min(smin/c, smax/c);
+    x0max = max(smin/c, smax/c);
+
+    % Exclude tangential extremes to avoid zero-length segments
+    kmin = ceil( (x0min - x0off)/deltaX + tol/deltaX );
+    kmax = floor((x0max - x0off)/deltaX - tol/deltaX);
+    if kmax < kmin
+        FractureData = cell(0,1); return
+    end
+
+    T = 2*hypot(Lx,Ly);
+    FractureData = cell(kmax - kmin + 1, 1);
+    idx = 0;
+
+    for k = kmin:kmax
+        x0 = x0off + k*deltaX;      % x-intercept at y=0 kept deltaX apart
+        p0 = [x0, 0];               % point on the infinite line
+        p1 = p0 - T*u;              % long segment for clipping
+        p2 = p0 + T*u;
+
+        [q1, q2, ok] = clipSegmentToRect(p1, p2, Lx, Ly);
+        if ok
+            if hypot(q2(1)-q1(1), q2(2)-q1(2)) > tol
+                idx = idx + 1;
+                FractureData{idx} = [q1; q2];
+            end
+        end
+    end
+
+    FractureData = FractureData(1:idx);
+end
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- helper REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+function [q1, q2, ok] = clipSegmentToRect(p1, p2, Lx, Ly)
+    d = p2 - p1;
+    p = [-d(1),  d(1), -d(2),  d(2)];
+    q = [ p1(1), Lx - p1(1),  p1(2), Ly - p1(2)];
+    u1 = 0; u2 = 1; ok = true;
+
+    for i = 1:4
+        if p(i) == 0
+            if q(i) < 0, ok=false; q1=[NaN,NaN]; q2=[NaN,NaN]; return; end
+        else
+            r = q(i)/p(i);
+            if p(i) < 0
+                if r > u2, ok=false; q1=[NaN,NaN]; q2=[NaN,NaN]; return; end
+                if r > u1, u1 = r; end
+            else
+                if r < u1, ok=false; q1=[NaN,NaN]; q2=[NaN,NaN]; return; end
+                if r < u2, u2 = r; end
+            end
+        end
+    end
+
+    if u2 <= u1 + eps, ok=false; q1=[NaN,NaN]; q2=[NaN,NaN]; return; end
+    q1 = [min(max(p1(1)+u1*d(1),0.0),Lx), min(max(p1(2)+u1*d(2),0.0),Ly)];
+    q2 = [min(max(p1(1)+u2*d(1),0.0),Lx), min(max(p1(2)+u2*d(2),0.0),Ly)];
+end
+
+##### SOURCE END #####
+--></body></html>

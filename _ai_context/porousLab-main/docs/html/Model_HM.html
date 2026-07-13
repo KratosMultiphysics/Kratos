@@ -1,0 +1,497 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Model_HM Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="Model_HM.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Model_HM Class</h1><!--introduction--><p>This class defines a hydromechanical finite element model with single-phase fluid flow. It extends the <i>Model_M</i> class and incorporates specific functionalities for hydromechanical analysis. Each node in the model has three degrees of freedom:</p><div><ul><li>2 displacement components (ux, uy)</li><li>1 pore pressure (p)</li></ul></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class definition</a></li><li><a href="#5">Public attributes</a></li><li><a href="#6">Embedded related data</a></li><li><a href="#8">Constructor method</a></li><li><a href="#9">Public methods</a></li><li><a href="#10">Static methods</a></li></ul></div><h2 id="1">Methods</h2><div><ul><li><b>setMaterial</b>: Sets the material properties using a <i>PorousMedia</i>                  object.</li><li><b>initializeElements</b>: Initializes the elements of the model with their                         properties..</li><li><b>setPressureDirichletBCAtNode</b>: Sets pressure Dirichlet boundary                                   conditions at a specific node.</li><li><b>setPressureDirichletBCAtPoint</b>: Sets pressure Dirichlet boundary                                    conditions at a specific point.</li><li><b>setPressureDirichletBCAtBorder</b>: Sets pressure Dirichlet boundary                                     conditions at a specific border.</li><li><b>setPressureNeumannBCAtNode</b>: Sets a Neumann boundary condition for                                 pressure at a specific node.</li><li><b>setPressureNeumannBCAtPoint</b>: Sets a Neumann boundary condition for                                  pressure at a specific point.</li><li><b>setPressureNeumannBCAtBorder</b>: Sets a Neumann boundary condition for                                   pressure along a border.</li><li><b>setInitialPressureAtDomain</b>: Sets the initial pressure value for the                                 entire domain.</li><li><b>setInitialPressureAtNode</b>: Sets the initial pressure value at a                               specific node.</li><li><b>initializeDiscontinuitySegArray</b>: Initializes an array of                                      discontinuity segments.</li><li><b>initializeDiscontinuitySegment</b>: Initializes a single discontinuity                                     segment.</li><li><b>printResultsHeader</b>: Prints the header for the results table,                         displaying node ID, displacement components                         (ux, uy), and pore pressure (Pl).</li></ul></div><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class definition</h2><pre class="codeinput"><span class="keyword">classdef</span> Model_HM &lt; Model_M
+</pre><h2 id="5">Public attributes</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+</pre><h2 id="6">Embedded related data</h2><pre class="codeinput">        updateAperture = false;
+        discontinuityTransversalFlow = false;
+</pre><pre class="codeinput">    <span class="keyword">end</span>
+</pre><h2 id="8">Constructor method</h2><pre class="codeinput">    methods
+        <span class="keyword">function</span> this = Model_HM()
+            this = this@Model_M(false);
+            this.ndof_nd = 3;       <span class="comment">% Number of dofs per node</span>
+            this.physics = <span class="string">'HM'</span>;    <span class="comment">% Tag with the physics name</span>
+            this.condenseEnrDofs = false; <span class="comment">% Enrichment dofs are global</span>
+            disp(<span class="string">"*** Physics: Single-phase flow hydro-mechanical (HM)"</span>);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="9">Public methods</h2><pre class="codeinput">    methods
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Sets the material properties</span>
+        <span class="keyword">function</span> setMaterial(this,porousMedia,fluid)
+            <span class="keyword">if</span> nargin &lt; 3
+                disp(<span class="string">'Error in setMaterial: insufficient number of inputs.'</span>);
+                disp(<span class="string">'Physics HM requires 2 attribute(s): porousMedia, fluid.'</span>);
+                error(<span class="string">'Error in setMaterial.'</span>);
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> ~isa(porousMedia,<span class="string">'PorousMedia'</span>)
+                disp(<span class="string">'Error in setMaterial: porousMedia is not a PorousMedia object.'</span>);
+                error(<span class="string">'Error in setMaterial.'</span>);
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> ~isa(fluid,<span class="string">'Fluid'</span>)
+                disp(<span class="string">'Error in setMaterial: fluid is not a Fluid object.'</span>);
+                error(<span class="string">'Error in setMaterial.'</span>);
+            <span class="keyword">end</span>
+            this.mat = struct(<span class="string">'porousMedia'</span>,porousMedia,<span class="string">'fluid'</span>,fluid);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initializes the elements of the model with the corresponding</span>
+        <span class="comment">% properties</span>
+        <span class="keyword">function</span> initializeElements(this)
+            <span class="comment">% Initialize the vector with the Element's objects</span>
+            elements(this.nelem,1) = Element();
+
+            <span class="comment">% Assemble the properties to the elements' objects</span>
+            <span class="keyword">for</span> el = 1 : this.nelem
+                <span class="comment">% Create the material for the element</span>
+                emat =struct( <span class="keyword">...</span>
+                        <span class="string">'porousMedia'</span>,this.mat.porousMedia(this.matID(el)), <span class="keyword">...</span>
+                        <span class="string">'fluid'</span>,this.mat.fluid);
+                udofs = this.getElementDofs(el,[1,2]);
+                pdofs = this.getElementDofs(el,3);
+                <span class="keyword">if</span> (this.enriched == false)
+                    elements(el) = RegularElement_HM(<span class="keyword">...</span>
+                                this.NODE(this.ELEM{el},:), this.ELEM{el},<span class="keyword">...</span>
+                                this.t, emat, this.intOrder,udofs,pdofs, <span class="keyword">...</span>
+                                this.massLumping, this.lumpStrategy, this.isAxisSymmetric, <span class="keyword">...</span>
+                                this.isPlaneStress);
+                <span class="keyword">else</span>
+                    <span class="keyword">if</span> (this.discontinuityTransversalFlow == true)
+                        elements(el) = EnrichedElement_HM(<span class="keyword">...</span>
+                                this.NODE(this.ELEM{el},:), this.ELEM{el},<span class="keyword">...</span>
+                                this.t, emat, this.intOrder,udofs,pdofs, <span class="keyword">...</span>
+                                this.massLumping, this.lumpStrategy, this.isAxisSymmetric, <span class="keyword">...</span>
+                                this.isPlaneStress,this.addRelRotationMode, <span class="keyword">...</span>
+                                this.addTangentialStretchingMode, this.addNormalStretchingMode,<span class="keyword">...</span>
+                                this.subDivIntegration, this.symmetricSDAEFEM);
+                    <span class="keyword">else</span>
+                        elements(el) = EnrichedElementConductive_HM(<span class="keyword">...</span>
+                                this.NODE(this.ELEM{el},:), this.ELEM{el},<span class="keyword">...</span>
+                                this.t, emat, this.intOrder,udofs,pdofs, <span class="keyword">...</span>
+                                this.massLumping, this.lumpStrategy, this.isAxisSymmetric, <span class="keyword">...</span>
+                                this.isPlaneStress,this.addRelRotationMode, <span class="keyword">...</span>
+                                this.addTangentialStretchingMode, this.addNormalStretchingMode,<span class="keyword">...</span>
+                                this.subDivIntegration, this.symmetricSDAEFEM);
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+                <span class="keyword">if</span> this.gravityOn
+                    elements(el).type.gravityOn = true;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            this.element = elements;
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Set the flag to update the aperture of the discontinuities</span>
+        <span class="keyword">function</span> setUpdateAperture(this, flag)
+            nDiscontinuities = this.getNumberOfDiscontinuities();
+            <span class="keyword">for</span> i = 1:nDiscontinuities
+                nDiscontinuitySeg = this.discontinuitySet(i).getNumberOfDiscontinuitySegments();
+                <span class="keyword">for</span> j = 1:nDiscontinuitySeg
+                    this.discontinuitySet(i).segment(j).updateAperture = flag;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a pressure Dirichlet boundary condition at a node</span>
+        <span class="keyword">function</span> resetPressureDirichletBC(this)
+            this.resetDirichletBC(3);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a pressure Dirichlet boundary condition at a node</span>
+        <span class="keyword">function</span> setPressureDirichletBCAtDomain(this, value)
+            this.setDirichletBCAtDomain(3, value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a pressure Dirichlet boundary condition at a node</span>
+        <span class="keyword">function</span> setPressureDirichletBCAtNode(this, nodeId, value)
+            this.setDirichletBCAtNode(nodeId, 3, value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a pressure Dirichlet boundary condition at a point</span>
+        <span class="keyword">function</span> setPressureDirichletBCAtPoint(this, X, value)
+            this.setDirichletBCAtPoint(X, 3, value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a pressure Dirichlet boundary condition at a border</span>
+        <span class="keyword">function</span> setPressureDirichletBCAtBorder(this, border, value)
+            this.setDirichletBCAtBorder(border, 3, value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a pressure Neumann boundary condition at a node</span>
+        <span class="keyword">function</span> setPressureNeumannBCAtNode(this, nodeId, value)
+            this.setNeumannBCAtNode(nodeId, 3, value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a pressure Neumann boundary condition at a point</span>
+        <span class="keyword">function</span> setPressureNeumannBCAtPoint(this, X, value)
+            this.setNeumannBCAtPoint(X, 3, value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Prescribe a pressure Neumann boundary condition at a border</span>
+        <span class="keyword">function</span> setPressureNeumannBCAtBorder(this, border, value)
+            this.setNeumannBCAtBorder(border, 3, value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Sets the initial pressure value for the whole domain</span>
+        <span class="keyword">function</span> setInitialPressureAtDomain(this, value)
+            this.setInitialDofAtDomain(3, value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Sets the initial pressure value at a node</span>
+        <span class="keyword">function</span> setInitialPressureAtNode(this, nodeId, value)
+            this.setInitialDofAtNode(nodeId, 3, value);
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Initializes an array of discontinuity segments</span>
+        <span class="keyword">function</span> seg = initializeDiscontinuitySegArray(this,n)
+            seg = [];
+            <span class="keyword">if</span> (this.discontinuityTransversalFlow == true)
+                seg(n,1) = DiscontinuityElement_HM([],[]);
+            <span class="keyword">else</span>
+                seg(n,1) = DiscontinuityElementConductive_HM([],[]);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Initializes a single discontinuity segment</span>
+        <span class="keyword">function</span> seg = initializeDiscontinuitySegment(this,nodeD,matD)
+            <span class="keyword">if</span> (this.discontinuityTransversalFlow == true)
+                seg = DiscontinuityElement_HM(nodeD,matD);
+            <span class="keyword">else</span>
+                seg = DiscontinuityElementConductive_HM(nodeD,matD);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+</pre><h2 id="10">Static methods</h2><pre class="codeinput">    methods (Static)
+
+        <span class="comment">% -----------------------------------------------------------------</span>
+        <span class="comment">% Print header of the results</span>
+        <span class="keyword">function</span> printResultsHeader()
+            fprintf(<span class="string">'\n  Node           ux        uy        Pl\n'</span>);
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Model_HM Class
+% This class defines a hydromechanical finite element model with
+% single-phase fluid flow. It extends the _Model_M_ class and incorporates
+% specific functionalities for hydromechanical analysis. Each node in the
+% model has three degrees of freedom:
+%
+% * 2 displacement components (ux, uy)
+% * 1 pore pressure (p)
+%
+%% Methods
+% * *setMaterial*: Sets the material properties using a _PorousMedia_
+%                  object.
+% * *initializeElements*: Initializes the elements of the model with their
+%                         properties..
+% * *setPressureDirichletBCAtNode*: Sets pressure Dirichlet boundary
+%                                   conditions at a specific node.
+% * *setPressureDirichletBCAtPoint*: Sets pressure Dirichlet boundary
+%                                    conditions at a specific point.
+% * *setPressureDirichletBCAtBorder*: Sets pressure Dirichlet boundary
+%                                     conditions at a specific border.
+% * *setPressureNeumannBCAtNode*: Sets a Neumann boundary condition for
+%                                 pressure at a specific node.
+% * *setPressureNeumannBCAtPoint*: Sets a Neumann boundary condition for
+%                                  pressure at a specific point.
+% * *setPressureNeumannBCAtBorder*: Sets a Neumann boundary condition for
+%                                   pressure along a border.
+% * *setInitialPressureAtDomain*: Sets the initial pressure value for the
+%                                 entire domain.
+% * *setInitialPressureAtNode*: Sets the initial pressure value at a
+%                               specific node.
+% * *initializeDiscontinuitySegArray*: Initializes an array of
+%                                      discontinuity segments.
+% * *initializeDiscontinuitySegment*: Initializes a single discontinuity
+%                                     segment.
+% * *printResultsHeader*: Prints the header for the results table,
+%                         displaying node ID, displacement components
+%                         (ux, uy), and pore pressure (Pl).
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class definition
+classdef Model_HM < Model_M
+    %% Public attributes
+    properties (SetAccess = public, GetAccess = public)
+        %% Embedded related data
+        updateAperture = false;
+        discontinuityTransversalFlow = false;
+    end
+    %% Constructor method
+    methods
+        function this = Model_HM()
+            this = this@Model_M(false);
+            this.ndof_nd = 3;       % Number of dofs per node
+            this.physics = 'HM';    % Tag with the physics name
+            this.condenseEnrDofs = false; % Enrichment dofs are global
+            disp("*** Physics: Single-phase flow hydro-mechanical (HM)");
+        end
+    end
+
+    %% Public methods
+    methods
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Sets the material properties
+        function setMaterial(this,porousMedia,fluid)
+            if nargin < 3
+                disp('Error in setMaterial: insufficient number of inputs.');
+                disp('Physics HM requires 2 attribute(s): porousMedia, fluid.');
+                error('Error in setMaterial.');
+            end
+            if ~isa(porousMedia,'PorousMedia')
+                disp('Error in setMaterial: porousMedia is not a PorousMedia object.');
+                error('Error in setMaterial.');
+            end
+            if ~isa(fluid,'Fluid')
+                disp('Error in setMaterial: fluid is not a Fluid object.');
+                error('Error in setMaterial.');
+            end
+            this.mat = struct('porousMedia',porousMedia,'fluid',fluid);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initializes the elements of the model with the corresponding
+        % properties
+        function initializeElements(this)
+            % Initialize the vector with the Element's objects
+            elements(this.nelem,1) = Element();
+
+            % Assemble the properties to the elements' objects
+            for el = 1 : this.nelem
+                % Create the material for the element
+                emat =struct( ...
+                        'porousMedia',this.mat.porousMedia(this.matID(el)), ...
+                        'fluid',this.mat.fluid);
+                udofs = this.getElementDofs(el,[1,2]);
+                pdofs = this.getElementDofs(el,3);
+                if (this.enriched == false)
+                    elements(el) = RegularElement_HM(...
+                                this.NODE(this.ELEM{el},:), this.ELEM{el},...
+                                this.t, emat, this.intOrder,udofs,pdofs, ...
+                                this.massLumping, this.lumpStrategy, this.isAxisSymmetric, ...
+                                this.isPlaneStress);
+                else
+                    if (this.discontinuityTransversalFlow == true)
+                        elements(el) = EnrichedElement_HM(...
+                                this.NODE(this.ELEM{el},:), this.ELEM{el},...
+                                this.t, emat, this.intOrder,udofs,pdofs, ...
+                                this.massLumping, this.lumpStrategy, this.isAxisSymmetric, ...
+                                this.isPlaneStress,this.addRelRotationMode, ...
+                                this.addTangentialStretchingMode, this.addNormalStretchingMode,...
+                                this.subDivIntegration, this.symmetricSDAEFEM);
+                    else
+                        elements(el) = EnrichedElementConductive_HM(...
+                                this.NODE(this.ELEM{el},:), this.ELEM{el},...
+                                this.t, emat, this.intOrder,udofs,pdofs, ...
+                                this.massLumping, this.lumpStrategy, this.isAxisSymmetric, ...
+                                this.isPlaneStress,this.addRelRotationMode, ...
+                                this.addTangentialStretchingMode, this.addNormalStretchingMode,...
+                                this.subDivIntegration, this.symmetricSDAEFEM);
+                    end
+                end
+                if this.gravityOn
+                    elements(el).type.gravityOn = true;
+                end
+            end
+            this.element = elements;
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Set the flag to update the aperture of the discontinuities
+        function setUpdateAperture(this, flag)
+            nDiscontinuities = this.getNumberOfDiscontinuities();
+            for i = 1:nDiscontinuities
+                nDiscontinuitySeg = this.discontinuitySet(i).getNumberOfDiscontinuitySegments();
+                for j = 1:nDiscontinuitySeg
+                    this.discontinuitySet(i).segment(j).updateAperture = flag;
+                end
+            end
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prescribe a pressure Dirichlet boundary condition at a node
+        function resetPressureDirichletBC(this)
+            this.resetDirichletBC(3);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prescribe a pressure Dirichlet boundary condition at a node
+        function setPressureDirichletBCAtDomain(this, value)
+            this.setDirichletBCAtDomain(3, value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prescribe a pressure Dirichlet boundary condition at a node
+        function setPressureDirichletBCAtNode(this, nodeId, value)
+            this.setDirichletBCAtNode(nodeId, 3, value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prescribe a pressure Dirichlet boundary condition at a point
+        function setPressureDirichletBCAtPoint(this, X, value)
+            this.setDirichletBCAtPoint(X, 3, value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prescribe a pressure Dirichlet boundary condition at a border
+        function setPressureDirichletBCAtBorder(this, border, value)
+            this.setDirichletBCAtBorder(border, 3, value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prescribe a pressure Neumann boundary condition at a node
+        function setPressureNeumannBCAtNode(this, nodeId, value)
+            this.setNeumannBCAtNode(nodeId, 3, value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prescribe a pressure Neumann boundary condition at a point
+        function setPressureNeumannBCAtPoint(this, X, value)
+            this.setNeumannBCAtPoint(X, 3, value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Prescribe a pressure Neumann boundary condition at a border
+        function setPressureNeumannBCAtBorder(this, border, value)
+            this.setNeumannBCAtBorder(border, 3, value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Sets the initial pressure value for the whole domain
+        function setInitialPressureAtDomain(this, value)
+            this.setInitialDofAtDomain(3, value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Sets the initial pressure value at a node
+        function setInitialPressureAtNode(this, nodeId, value)
+            this.setInitialDofAtNode(nodeId, 3, value);
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Initializes an array of discontinuity segments
+        function seg = initializeDiscontinuitySegArray(this,n)
+            seg = [];
+            if (this.discontinuityTransversalFlow == true)
+                seg(n,1) = DiscontinuityElement_HM([],[]);
+            else
+                seg(n,1) = DiscontinuityElementConductive_HM([],[]);
+            end
+        end
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Initializes a single discontinuity segment
+        function seg = initializeDiscontinuitySegment(this,nodeD,matD)
+            if (this.discontinuityTransversalFlow == true)
+                seg = DiscontinuityElement_HM(nodeD,matD);
+            else
+                seg = DiscontinuityElementConductive_HM(nodeD,matD);
+            end
+        end
+
+    end
+        %% Static methods
+    methods (Static)
+
+        % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        % Print header of the results
+        function printResultsHeader()
+            fprintf('\n  Node           ux        uy        Pl\n');
+        end
+
+    end
+end
+
+##### SOURCE END #####
+--></body></html>

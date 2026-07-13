@@ -1,0 +1,344 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>DiscontinuityElement_HM Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="DiscontinuityElement_HM.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>DiscontinuityElement_HM Class</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Methods</a></li><li><a href="#2">Author</a></li><li><a href="#3">Version History</a></li><li><a href="#4">Class Definition</a></li><li><a href="#5">Public properties</a></li><li><a href="#6">Constructor method</a></li><li><a href="#7">Public methods</a></li></ul></div><h2 id="1">Methods</h2><h2 id="2">Author</h2><p>Danilo Cavalcanti</p><h2 id="3">Version History</h2><p>Version 1.00.</p><h2 id="4">Class Definition</h2><pre class="codeinput"><span class="keyword">classdef</span> DiscontinuityElement_HM &lt; DiscontinuityElementConductive_HM
+</pre><h2 id="5">Public properties</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        ndof_jump = 1;      <span class="comment">% Pressure jump dofs</span>
+    <span class="keyword">end</span>
+</pre><h2 id="6">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = DiscontinuityElement_HM(node, mat)
+            this = this@DiscontinuityElementConductive_HM(node, mat)
+            this.ndof = this.ndof_u + this.ndof_jump + this.ndof_int;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="7">Public methods</h2><pre class="codeinput">    methods
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Computes the element stiffness matrix, internal force vector and</span>
+        <span class="comment">% other optional outputs using numerical integration over the</span>
+        <span class="comment">% element</span>
+        <span class="comment">%</span>
+        <span class="comment">% Outputs:</span>
+        <span class="comment">%   Ke    - Element stiffness matrix.</span>
+        <span class="comment">%   Ce    - Element damping matrix.</span>
+        <span class="comment">%   fi    - Internal force vector.</span>
+        <span class="comment">%   fe    - External force vector.</span>
+        <span class="comment">%   dfidu - Derivative of internal force with respect to</span>
+        <span class="comment">%           displacement.</span>
+        <span class="keyword">function</span> [fidi, Kddi, Qadi, Hddi, Sddi, Lcci, Lcji, Lcdi, Ljci, Ljji, Ljdi, Ldci, Ldji, Lddi, fi, fe, dfidu] = elementData(this, ae, celem, id)
+
+            <span class="comment">% Declare output matrices that won't be used</span>
+            fi = []; fe = []; dfidu = [];
+
+            <span class="comment">% Initialize the matrices for the numerical integration</span>
+            fidi = zeros(this.ndof_u, 1);
+            Kddi = zeros(this.ndof_u, this.ndof_u);
+            Qadi = zeros(this.ndof_u, this.ndof_int);
+            Hddi = zeros(this.ndof_int,this.ndof_int);
+            Sddi = zeros(this.ndof_int,this.ndof_int);
+            Lcci = zeros(celem.nglp,celem.nglp);
+            Lcji = zeros(celem.nglp,this.ndof_jump);
+            Lcdi = zeros(celem.nglp,this.ndof_int);
+            Ljji = zeros(this.ndof_jump,this.ndof_jump);
+            Ljdi = zeros(this.ndof_jump,this.ndof_int);
+            Lddi = zeros(this.ndof_int,this.ndof_int);
+
+            <span class="comment">% Get the discontinuity reference point</span>
+            Xr = this.referencePoint();
+
+            <span class="comment">% Get the discontinuity tangential vector</span>
+            m = this.tangentialVector();
+
+            <span class="comment">% Get the normal vector</span>
+            nd = this.normalVector();
+
+            <span class="comment">% Initialize output matrices</span>
+            <span class="keyword">for</span> i = 1:this.nIntPoints
+
+                <span class="comment">% Get the shape function matrix</span>
+                N  = this.shape.shapeFnc(this.intPoint(i).X);
+
+                <span class="comment">% Cartesian coordinates of the integration point</span>
+                Xcar = this.shape.coordNaturalToCartesian(this.node,this.intPoint(i).X);
+
+                <span class="comment">% Get the shape function matrix</span>
+                Na = this.displacementJumpInterpolation(Xcar,Xr,m);
+
+                <span class="comment">% Compute the strain vector</span>
+                this.intPoint(i).strain = Na * ae;
+
+                <span class="comment">% Compute the stress vector and the constitutive matrix</span>
+                [td,Td] = this.intPoint(i).mechanicalLaw();
+
+                <span class="comment">% Natural coordinates of the integration in the continuum</span>
+                <span class="comment">% element</span>
+                Xn = celem.shape.coordCartesianToNatural(celem.node,Xcar);
+
+                <span class="comment">% Shape function matrix of the continuum</span>
+                Np = celem.shape.shapeFncMtrx(Xn);
+
+                <span class="comment">% Enriched shape function matrix</span>
+                Nenr = celem.enrichedShapeFncValues(id, Np, Xcar);
+                Nb = Nenr(2);
+                Nt = Nenr(3);
+
+                <span class="comment">% Compute the B matrix at the int. point and the detJ</span>
+                [dN, detJ] = this.shape.dNdxMatrix(this.node,this.intPoint(i).X);
+
+                <span class="comment">% Compute the permeability matrix</span>
+                kh = this.intPoint(i).constitutiveMdl.longitudinalPermeability(this.intPoint(i));
+
+                <span class="comment">% Get compressibility coefficient</span>
+                comp = this.intPoint(i).constitutiveMdl.compressibility();
+
+                <span class="comment">% Get leak-offs</span>
+                lt = this.intPoint(i).constitutiveMdl.leakoff;
+                lb = this.intPoint(i).constitutiveMdl.leakoff;
+
+                <span class="comment">% Numerical integration term. The determinant is ld/2.</span>
+                c = detJ * this.intPoint(i).w * this.t;
+
+                <span class="comment">% Compute the stiffness sub-matrix</span>
+                Kddi = Kddi + Na' * Td * Na * c;
+
+                <span class="comment">% Compute the internal force vector</span>
+                fidi = fidi + Na' * td * c;
+
+                <span class="comment">% Compute the hydromechanical coupling</span>
+                Qadi = Qadi + Na' * [0;1] * N * c;
+
+                <span class="comment">% Compute the permeability matrix</span>
+                Hddi = Hddi + dN' * kh * dN * c;
+
+                <span class="comment">% Compute the compressibility matrix</span>
+                Sddi = Sddi + N' * comp * N * c;
+
+                <span class="comment">% Compute the fluid-flow coupling matrices</span>
+                Lcci = Lcci + (lt + lb) * (Np' * Np) * c;
+                Lcji = Lcji + Np' * (lt * Nt + lb * Nb) * c;
+                Lcdi = Lcdi + (lt + lb) * Np' * N * c;
+                Ljji = Ljji + (lt * Nt * Nt + lb * Nb * Nb) * c;
+                Ljdi = Ljdi + (lt * Nt * N + lb * Nb * N) * c;
+                Lddi = Lddi + (lt + lb) * (N' * N) * c;
+            <span class="keyword">end</span>
+            Ljci = Lcji';
+            Ldci = Lcdi';
+            Ldji = Ljdi';
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% DiscontinuityElement_HM Class
+%
+%% Methods
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Class Definition
+classdef DiscontinuityElement_HM < DiscontinuityElementConductive_HM
+    %% Public properties
+    properties (SetAccess = public, GetAccess = public)
+        ndof_jump = 1;      % Pressure jump dofs
+    end
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = DiscontinuityElement_HM(node, mat)
+            this = this@DiscontinuityElementConductive_HM(node, mat)
+            this.ndof = this.ndof_u + this.ndof_jump + this.ndof_int;
+        end
+    end
+
+    %% Public methods
+    methods
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Computes the element stiffness matrix, internal force vector and
+        % other optional outputs using numerical integration over the
+        % element
+        %
+        % Outputs:
+        %   Ke    - Element stiffness matrix.
+        %   Ce    - Element damping matrix.
+        %   fi    - Internal force vector.
+        %   fe    - External force vector.
+        %   dfidu - Derivative of internal force with respect to
+        %           displacement.
+        function [fidi, Kddi, Qadi, Hddi, Sddi, Lcci, Lcji, Lcdi, Ljci, Ljji, Ljdi, Ldci, Ldji, Lddi, fi, fe, dfidu] = elementData(this, ae, celem, id)
+
+            % Declare output matrices that won't be used
+            fi = []; fe = []; dfidu = [];
+
+            % Initialize the matrices for the numerical integration
+            fidi = zeros(this.ndof_u, 1);
+            Kddi = zeros(this.ndof_u, this.ndof_u);
+            Qadi = zeros(this.ndof_u, this.ndof_int);
+            Hddi = zeros(this.ndof_int,this.ndof_int);
+            Sddi = zeros(this.ndof_int,this.ndof_int);
+            Lcci = zeros(celem.nglp,celem.nglp);
+            Lcji = zeros(celem.nglp,this.ndof_jump);
+            Lcdi = zeros(celem.nglp,this.ndof_int);
+            Ljji = zeros(this.ndof_jump,this.ndof_jump);
+            Ljdi = zeros(this.ndof_jump,this.ndof_int);
+            Lddi = zeros(this.ndof_int,this.ndof_int);
+
+            % Get the discontinuity reference point
+            Xr = this.referencePoint();
+
+            % Get the discontinuity tangential vector
+            m = this.tangentialVector();
+
+            % Get the normal vector
+            nd = this.normalVector();
+
+            % Initialize output matrices
+            for i = 1:this.nIntPoints
+
+                % Get the shape function matrix
+                N  = this.shape.shapeFnc(this.intPoint(i).X);
+
+                % Cartesian coordinates of the integration point
+                Xcar = this.shape.coordNaturalToCartesian(this.node,this.intPoint(i).X);
+
+                % Get the shape function matrix
+                Na = this.displacementJumpInterpolation(Xcar,Xr,m);
+
+                % Compute the strain vector
+                this.intPoint(i).strain = Na * ae;
+
+                % Compute the stress vector and the constitutive matrix
+                [td,Td] = this.intPoint(i).mechanicalLaw();
+
+                % Natural coordinates of the integration in the continuum
+                % element
+                Xn = celem.shape.coordCartesianToNatural(celem.node,Xcar);
+
+                % Shape function matrix of the continuum
+                Np = celem.shape.shapeFncMtrx(Xn);
+
+                % Enriched shape function matrix
+                Nenr = celem.enrichedShapeFncValues(id, Np, Xcar);
+                Nb = Nenr(2);
+                Nt = Nenr(3);
+
+                % Compute the B matrix at the int. point and the detJ
+                [dN, detJ] = this.shape.dNdxMatrix(this.node,this.intPoint(i).X);
+
+                % Compute the permeability matrix
+                kh = this.intPoint(i).constitutiveMdl.longitudinalPermeability(this.intPoint(i));
+
+                % Get compressibility coefficient
+                comp = this.intPoint(i).constitutiveMdl.compressibility();
+
+                % Get leak-offs
+                lt = this.intPoint(i).constitutiveMdl.leakoff;
+                lb = this.intPoint(i).constitutiveMdl.leakoff;
+
+                % Numerical integration term. The determinant is ld/2.
+                c = detJ * this.intPoint(i).w * this.t;
+
+                % Compute the stiffness sub-matrix
+                Kddi = Kddi + Na' * Td * Na * c;
+
+                % Compute the internal force vector
+                fidi = fidi + Na' * td * c;
+
+                % Compute the hydromechanical coupling
+                Qadi = Qadi + Na' * [0;1] * N * c;
+
+                % Compute the permeability matrix
+                Hddi = Hddi + dN' * kh * dN * c;
+
+                % Compute the compressibility matrix
+                Sddi = Sddi + N' * comp * N * c;
+
+                % Compute the fluid-flow coupling matrices
+                Lcci = Lcci + (lt + lb) * (Np' * Np) * c;
+                Lcji = Lcji + Np' * (lt * Nt + lb * Nb) * c;
+                Lcdi = Lcdi + (lt + lb) * Np' * N * c;
+                Ljji = Ljji + (lt * Nt * Nt + lb * Nb * Nb) * c;
+                Ljdi = Ljdi + (lt * Nt * N + lb * Nb * N) * c;
+                Lddi = Lddi + (lt + lb) * (N' * N) * c;
+            end
+            Ljci = Lcji';
+            Ldci = Lcdi';
+            Ldji = Ljdi';
+        end
+
+    end
+end
+##### SOURCE END #####
+--></body></html>

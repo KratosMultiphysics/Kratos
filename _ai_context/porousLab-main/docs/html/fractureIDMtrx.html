@@ -1,0 +1,273 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>fractureIDMtrx Function</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="fractureIDMtrx.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>fractureIDMtrx Function</h1><!--introduction--><p>This function identifies the elements in a mesh that are intersected by fractures and computes an enrichment matrix to indicate these intersections. It also computes an adjacency matrix to represent connectivity between elements that share fracture nodes. The function uses geometric intersection tests to determine whether a fracture segment intersects an element edge.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Inputs</a></li><li><a href="#2">Outputs</a></li><li><a href="#3">Author</a></li><li><a href="#4">Version History</a></li><li><a href="#5">Function definition</a></li></ul></div><h2 id="1">Inputs</h2><div><ul><li><b>NODE</b>: Matrix containing the coordinates of the mesh nodes. Each row           represents a node, with columns for x and y coordinates.</li><li><b>ELEM</b>: Matrix defining the connectivity of the mesh elements. Each           row represents an element, with columns indicating the node           indices.</li><li><b>NODE_D</b>: Matrix containing the coordinates of the nodes defining the             fractures. Each row represents a fracture node, with columns             for x and y coordinates.</li><li><b>FRACT</b>: Matrix defining the fractures in the mesh. Each row            represents a fracture segment, with columns indicating the            indices of the nodes that define the segment.</li></ul></div><h2 id="2">Outputs</h2><div><ul><li><b>IDenr</b>: Matrix indicating which elements are enriched by which            fractures. A value of 1 indicates that the corresponding            element is crossed by the corresponding fracture.</li><li><b>IDAdj</b>: Sparse adjacency matrix indicating connectivity between            elements based on shared fracture nodes. A value of 1            indicates adjacency.</li></ul></div><h2 id="3">Author</h2><p>Danilo Cavalcanti</p><h2 id="4">Version History</h2><p>Version 1.00.</p><h2 id="5">Function definition</h2><pre class="codeinput"><span class="keyword">function</span> [IDenr, IDAdj] = fractureIDMtrx(NODE,ELEM,NODE_D,FRACT)
+
+<span class="comment">% Initialize the matrix</span>
+IDenr = zeros(size(ELEM,1),size(FRACT,1));
+
+nFract  = size(FRACT,1);
+nElem   = size(ELEM,1);
+counter = 0;
+
+PINT = [];
+
+IDFracNd = zeros(size(NODE_D,1),size(ELEM,1));
+
+<span class="comment">% Loop through the fracture segments --------------------------------------</span>
+<span class="keyword">for</span> i = 1:nFract
+
+    <span class="comment">% Points that the define the fracture segment</span>
+    ndFrac1 = FRACT(i,1);
+    ndFrac2 = FRACT(i,2);
+    p1 = NODE_D(ndFrac1,:);
+    p2 = NODE_D(ndFrac2,:);
+
+    <span class="comment">% Loop through the continuum elements ---------------------------------</span>
+    <span class="keyword">for</span> el = 1:nElem
+
+        <span class="comment">% Get the number of edges of the element</span>
+        nEdges = size(ELEM,2);
+
+        <span class="comment">% Get the coordinates of the element (repeat the first one to close</span>
+        <span class="comment">% the polygon)</span>
+        cX = [NODE(ELEM(el,:),1); NODE(ELEM(el,1),1)];
+        cY = [NODE(ELEM(el,:),2); NODE(ELEM(el,1),2)];
+
+        <span class="comment">% Loop through the edges of the element ---------------------------</span>
+        <span class="keyword">for</span> j = 1:nEdges
+
+            <span class="comment">% Points that defined the element edge</span>
+            p3 = [cX(j)  , cY(j)];
+            p4 = [cX(j+1), cY(j+1)];
+
+            <span class="comment">% Evaluate if the segments p1-p2 and p3-p4 intersect</span>
+            [flagInt,pint] = intersectionSegment([p1; p2],[p3; p4]);
+
+            <span class="comment">% Update the intersection vector points</span>
+            <span class="keyword">if</span> flagInt == true
+                PINT = [PINT;pint];
+                counter = counter + 1;
+
+                <span class="keyword">if</span> norm(p1-pint)&lt;1.0e-10
+                    IDFracNd(ndFrac1,el) = 1;
+                <span class="keyword">end</span>
+                <span class="keyword">if</span> norm(p2-pint)&lt;1.0e-10
+                    IDFracNd(ndFrac2,el) = 1;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+        <span class="keyword">end</span>
+
+        <span class="comment">% If the fracture is crossing the element domain, it will have two</span>
+        <span class="comment">% intersection points</span>
+        <span class="keyword">if</span> size(unique(PINT,<span class="string">'rows'</span>)) == 2
+            IDenr(el,i) = 1;
+        <span class="keyword">end</span>
+        PINT = [];
+        counter = 0;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Adjacency matrix</span>
+IDAdj = sparse(size(ELEM,1),size(ELEM,1));
+<span class="keyword">for</span> el = 1:nElem
+    fracNds = IDFracNd(:,el);
+    nFracNds = sum(fracNds);
+    <span class="keyword">if</span> nFracNds &gt; 0
+        id = find(fracNds);
+        elAdj = setdiff(find(sum(IDFracNd(id,:),1)),el);
+        IDAdj(el,elAdj) = 1;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% fractureIDMtrx Function
+% This function identifies the elements in a mesh that are intersected by
+% fractures and computes an enrichment matrix to indicate these
+% intersections. It also computes an adjacency matrix to represent
+% connectivity between elements that share fracture nodes. The function
+% uses geometric intersection tests to determine whether a fracture
+% segment intersects an element edge.
+%
+%% Inputs
+% * *NODE*: Matrix containing the coordinates of the mesh nodes. Each row
+%           represents a node, with columns for x and y coordinates.
+% * *ELEM*: Matrix defining the connectivity of the mesh elements. Each
+%           row represents an element, with columns indicating the node
+%           indices.
+% * *NODE_D*: Matrix containing the coordinates of the nodes defining the
+%             fractures. Each row represents a fracture node, with columns
+%             for x and y coordinates.
+% * *FRACT*: Matrix defining the fractures in the mesh. Each row
+%            represents a fracture segment, with columns indicating the
+%            indices of the nodes that define the segment.
+%
+%% Outputs
+% * *IDenr*: Matrix indicating which elements are enriched by which
+%            fractures. A value of 1 indicates that the corresponding
+%            element is crossed by the corresponding fracture.
+% * *IDAdj*: Sparse adjacency matrix indicating connectivity between
+%            elements based on shared fracture nodes. A value of 1
+%            indicates adjacency.
+%
+%% Author
+% Danilo Cavalcanti
+%
+%% Version History
+% Version 1.00.
+%
+%% Function definition
+function [IDenr, IDAdj] = fractureIDMtrx(NODE,ELEM,NODE_D,FRACT)
+
+% Initialize the matrix
+IDenr = zeros(size(ELEM,1),size(FRACT,1));
+
+nFract  = size(FRACT,1);
+nElem   = size(ELEM,1);
+counter = 0;
+
+PINT = [];
+
+IDFracNd = zeros(size(NODE_D,1),size(ELEM,1));
+
+% Loop through the fracture segments REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+for i = 1:nFract
+
+    % Points that the define the fracture segment
+    ndFrac1 = FRACT(i,1);
+    ndFrac2 = FRACT(i,2);
+    p1 = NODE_D(ndFrac1,:);
+    p2 = NODE_D(ndFrac2,:);
+
+    % Loop through the continuum elements REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+    for el = 1:nElem
+
+        % Get the number of edges of the element
+        nEdges = size(ELEM,2);
+
+        % Get the coordinates of the element (repeat the first one to close
+        % the polygon)
+        cX = [NODE(ELEM(el,:),1); NODE(ELEM(el,1),1)];
+        cY = [NODE(ELEM(el,:),2); NODE(ELEM(el,1),2)];
+
+        % Loop through the edges of the element REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+        for j = 1:nEdges
+
+            % Points that defined the element edge
+            p3 = [cX(j)  , cY(j)];
+            p4 = [cX(j+1), cY(j+1)];
+
+            % Evaluate if the segments p1-p2 and p3-p4 intersect
+            [flagInt,pint] = intersectionSegment([p1; p2],[p3; p4]);
+
+            % Update the intersection vector points
+            if flagInt == true
+                PINT = [PINT;pint];
+                counter = counter + 1;
+
+                if norm(p1-pint)<1.0e-10
+                    IDFracNd(ndFrac1,el) = 1;
+                end
+                if norm(p2-pint)<1.0e-10
+                    IDFracNd(ndFrac2,el) = 1;
+                end
+            end
+
+        end
+
+        % If the fracture is crossing the element domain, it will have two
+        % intersection points
+        if size(unique(PINT,'rows')) == 2
+            IDenr(el,i) = 1;
+        end
+        PINT = [];
+        counter = 0;
+    end
+end
+
+% Adjacency matrix
+IDAdj = sparse(size(ELEM,1),size(ELEM,1));
+for el = 1:nElem
+    fracNds = IDFracNd(:,el);
+    nFracNds = sum(fracNds);
+    if nFracNds > 0
+        id = find(fracNds);
+        elAdj = setdiff(find(sum(IDFracNd(id,:),1)),el);
+        IDAdj(el,elAdj) = 1;
+    end
+end
+
+
+end
+##### SOURCE END #####
+--></body></html>

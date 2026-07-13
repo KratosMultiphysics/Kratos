@@ -1,0 +1,942 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Discontinuity Class</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2026-06-09"><meta name="DC.source" content="Discontinuity.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Discontinuity Class</h1><!--introduction--><p>This is an abstract class that defines a discontinuity in a finite element mesh.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Authors</a></li><li><a href="#2">Class definition</a></li><li><a href="#3">Public properties</a></li><li><a href="#4">Constructor method</a></li><li><a href="#5">Public methods</a></li><li><a href="#6">Private methods</a></li></ul></div><h2 id="1">Authors</h2><div><ul><li>Danilo Cavalcanti (<a href="mailto:dborges@cimne.upc.edu">dborges@cimne.upc.edu</a>)</li></ul></div><h2 id="2">Class definition</h2><pre class="codeinput"><span class="keyword">classdef</span> Discontinuity &lt; handle
+</pre><h2 id="3">Public properties</h2><pre class="codeinput">    properties (SetAccess = public, GetAccess = public)
+        <span class="comment">% Geometry</span>
+        X    = [];  <span class="comment">% Nodes defining the polyline</span>
+        Xlin = [];  <span class="comment">% Nodes of the "linearized" polyline</span>
+        PERT = [];  <span class="comment">% Nodes from the mesh that were perturbed</span>
+
+        <span class="comment">% Geometry tools</span>
+        useRepel = false;          <span class="comment">% Flag to enable/disable the repel process</span>
+        repelTol = 1.0e-1;         <span class="comment">% Node repel tolerance</span>
+        savePerturbNodes = false;  <span class="comment">% Flag to save the perturbed nodes</span>
+
+        <span class="comment">% Topology</span>
+        elemID  = [];  <span class="comment">% Identification of the element where which discontinuity segment is located</span>
+        segment = [];  <span class="comment">% Vector with the DiscontinuityElement objects</span>
+
+        <span class="comment">% Properties:</span>
+        <span class="comment">% The properties must be included in the data structure</span>
+        <span class="comment">% constructed in the createMaterialDataStructure method</span>
+        porousMedia         = [];
+        porosity            = [];
+        cohesiveLaw         = [];
+        liquidFluid         = [];
+        gasFluid            = [];
+        initialAperture     = [];
+        normalStiffness     = [];
+        shearStiffness      = [];
+        contactPenalization = [];
+        maximumClosure      = [];
+        frictionAngle       = [];
+        dilationAngle       = [];
+        cohesion            = [];
+        tensionCutOff       = [];
+        conductive          = true;
+        leakoff             = 1.0;
+        transversalPerm     = 1.0;
+    <span class="keyword">end</span>
+</pre><h2 id="4">Constructor method</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> this = Discontinuity(X,useRepel)
+            <span class="keyword">if</span> nargin == 0
+                X = [];
+            <span class="keyword">end</span>
+            this.X = X;
+            <span class="keyword">if</span> nargin &gt; 1
+                this.useRepel = useRepel;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="5">Public methods</h2><pre class="codeinput">    methods
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Set flag to enable/disable the repel process.</span>
+        <span class="keyword">function</span> setNodeRepel(this,flag)
+            this.useRepel = flag;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Set node repel tolerance.</span>
+        <span class="keyword">function</span> setRepelTol(this,tol)
+            this.repelTol = tol;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Set flag to save perturbed nodes.</span>
+        <span class="keyword">function</span> setSavePerturbNodes(this,flag)
+            this.savePerturbNodes = flag;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Perform intersection and optionally apply the repel process.</span>
+        <span class="keyword">function</span> intersectMesh(this,model)
+            <span class="comment">% Compute Xlin using current algorithm</span>
+            this.computeXlin(model);
+
+            <span class="comment">% Check if there is at least one segment</span>
+            <span class="keyword">if</span> (size(this.Xlin,1) == 1)
+                <span class="keyword">return</span>;
+            <span class="keyword">end</span>
+
+            <span class="comment">% Apply the repel process if useRepel is true</span>
+            <span class="keyword">if</span> this.useRepel
+                this.repelNodes(model);
+
+                <span class="comment">% Recompute Xlin based on the updated mesh</span>
+                this.computeXlin(model);
+            <span class="keyword">end</span>
+
+            <span class="comment">% Find element IDs for each segment of Xlin</span>
+            this.findElementIDsForXlinSegments(model);
+
+            <span class="comment">% Check if discontinuity is not fully crossing any element</span>
+            <span class="keyword">if</span> (isempty(this.elemID)) || (sum(this.elemID&gt;0) == 0)
+                <span class="keyword">return</span>;
+            <span class="keyword">end</span>
+
+            <span class="comment">% Create discontinuity segments</span>
+            this.initializeDiscontinuitySegments(model);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Initialize discontinuity segments based on the intersected geometry and material properties.</span>
+        <span class="keyword">function</span> initializeDiscontinuitySegments(this,model)
+            n = this.getNumberOfDiscontinuitySegments();
+
+            <span class="comment">% Create material data structure</span>
+            mat = this.createMaterialDataStructure();
+
+            <span class="comment">% Initialize discontinuity segments according to the physics</span>
+            k = 1;
+            <span class="keyword">for</span> i = 1:size(this.Xlin, 1)-1
+                nodes  = [this.Xlin(i,:); this.Xlin(i+1,:)];
+                <span class="keyword">if</span> (this.elemID(i) &gt; 0)
+                    seg(k) = model.initializeDiscontinuitySegment(nodes,mat);
+                    k = k + 1;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            <span class="keyword">for</span> i=1:n
+                seg(i).initializeIntPoints();
+            <span class="keyword">end</span>
+            this.segment = seg;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Create material data structure.</span>
+        <span class="keyword">function</span> mat = createMaterialDataStructure(this)
+            mat = struct(<span class="string">'porousMedia'</span>,this.porousMedia,<span class="keyword">...</span>
+                         <span class="string">'porosity'</span>, this.porosity,<span class="keyword">...</span>
+                         <span class="string">'liquidFluid'</span>,this.liquidFluid,<span class="keyword">...</span>
+                         <span class="string">'gasFluid'</span>,this.gasFluid,<span class="keyword">...</span>
+                         <span class="string">'cohesiveLaw'</span>,this.cohesiveLaw, <span class="keyword">...</span>
+                         <span class="string">'initialAperture'</span>,this.initialAperture, <span class="keyword">...</span>
+                         <span class="string">'normalStiffness'</span>,this.normalStiffness, <span class="keyword">...</span>
+                         <span class="string">'shearStiffness'</span>,this.shearStiffness,<span class="keyword">...</span>
+                         <span class="string">'contactPenalization'</span>,this.contactPenalization,<span class="keyword">...</span>
+                         <span class="string">'maximumClosure'</span>,this.maximumClosure,<span class="keyword">...</span>
+                         <span class="string">'frictionAngle'</span>,this.frictionAngle,<span class="keyword">...</span>
+                         <span class="string">'dilationAngle'</span>, this.dilationAngle,<span class="keyword">...</span>
+                         <span class="string">'cohesion'</span>, this.cohesion,<span class="keyword">...</span>
+                         <span class="string">'tensionCutOff'</span>,this.tensionCutOff,<span class="keyword">...</span>
+                         <span class="string">'leakoff'</span>,this.leakoff, <span class="keyword">...</span>
+                         <span class="string">'transversalPermeability'</span>, this.transversalPerm);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Get number of discontinuities.</span>
+        <span class="keyword">function</span> n = getNumberOfDiscontinuitySegments(this)
+            n = sum(this.elemID &gt; 0);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Plot original polyline.</span>
+        <span class="keyword">function</span> plotOriginalGeometry(this)
+            plot(this.X(:,1), this.X(:,2), <span class="string">'-.k'</span>);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Plot intersected polyline (Xlin).</span>
+        <span class="keyword">function</span> plotIntersectedGeometry(this)
+            <span class="keyword">for</span> i = 1:size(this.Xlin, 1)-1
+                <span class="keyword">if</span> (this.elemID(i) &gt; 0)
+                    seg = [this.Xlin(i,:); this.Xlin(i+1,:)];
+                    plot(seg(:,1), seg(:,2), <span class="string">'-.k'</span>, <span class="string">'Marker'</span>, <span class="string">'o'</span>, <span class="string">'MarkerSize'</span>, 1.0, <span class="string">'LineWidth'</span>, 1.5);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Plot perturbed nodes.</span>
+        <span class="keyword">function</span> plotPerturbNodes(this)
+            <span class="keyword">if</span> ~isempty(this.PERT)
+                plot(this.PERT(:,1), this.PERT(:,2), <span class="string">'sr'</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2 id="6">Private methods</h2><pre class="codeinput">    methods (Access = private)
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute linearized polyline by intersecting the discontinuity with the mesh.</span>
+        <span class="keyword">function</span> computeXlin(this,model)
+            <span class="comment">% Get mesh from model</span>
+            NODE = model.NODE;
+            ELEM = model.ELEM;
+
+            <span class="comment">% Initialize list of intersection points</span>
+            intersectionPoints = [];
+
+            <span class="comment">% Extract edges from mesh</span>
+            edges = this.extractEdgesMesh(ELEM);
+
+            <span class="comment">% Iterate over each segment of the polyline</span>
+            <span class="keyword">for</span> i = 1:size(this.X, 1)-1
+                <span class="comment">% Define current segment of the polyline</span>
+                polylineSegment = [this.X(i, :); this.X(i+1, :)];
+
+                <span class="comment">% Initialize list of intersection points of this segment</span>
+                intersectionPointsSegment = [];
+                s = [];
+
+                <span class="comment">% Iterate over each edge of the mesh</span>
+                <span class="keyword">for</span> j = 1:size(edges, 1)
+                    <span class="comment">% Define current edge of the mesh</span>
+                    edge = [NODE(edges(j, 1), :); NODE(edges(j, 2), :)];
+
+                    <span class="comment">% Compute intersection point between polyline segment and edge</span>
+                    [intersect,point] = intersectionSegment(polylineSegment,edge);
+
+                    <span class="comment">% If there is an intersection, add the point to list</span>
+                    <span class="keyword">if</span> intersect
+                        intersectionPointsSegment = [intersectionPointsSegment; point];
+                        sp = sqrt((point(1) - this.X(i,1))^2 + (point(2) - this.X(i,2))^2);
+                        s = [s;sp];
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+
+                <span class="comment">% Guarantee that the points are ordered</span>
+                [s,order] = sort(s);
+                intersectionPointsSegment = intersectionPointsSegment(order,:);
+                [~,order] = uniquetol(s,1e-9);
+
+                <span class="comment">% Order the intersection points of the segment</span>
+                intersectionPoints = [intersectionPoints;intersectionPointsSegment(order,:)];
+            <span class="keyword">end</span>
+
+            <span class="comment">% Store intersection points in Xlin</span>
+            this.Xlin = uniquetol(intersectionPoints,1.0e-9,<span class="string">'ByRows'</span>,true);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Find element IDs for each segment of the linearized polyline (Xlin).</span>
+        <span class="keyword">function</span> findElementIDsForXlinSegments(this,model)
+            <span class="comment">% Get mesh from model</span>
+            NODE = model.NODE;
+            ELEM = model.ELEM;
+
+            <span class="comment">% Initialize list of element IDs for each segment</span>
+            elemIDs = [];
+
+            <span class="comment">% Iterate over each segment of Xlin</span>
+            <span class="keyword">for</span> i = 1:size(this.Xlin, 1)-1
+                <span class="comment">% Define current segment of Xlin</span>
+                seg = [this.Xlin(i,:);this.Xlin(i+1,:)];
+
+                <span class="comment">% Find the element that contains this segment</span>
+                eID = this.findElementContainingSegment(NODE,ELEM,seg);
+                <span class="keyword">if</span> eID == 0
+                    error(<span class="string">'Error finding element that contains discontinuity segment'</span>);
+                <span class="keyword">end</span>
+
+                <span class="comment">% Store element ID</span>
+                elemIDs = [elemIDs;eID];
+            <span class="keyword">end</span>
+
+            <span class="comment">% Store element IDs</span>
+            this.elemID = elemIDs;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Find the element ID that contains the given segment.</span>
+        <span class="comment">% Inputs:</span>
+        <span class="comment">%   NODE: nx2 matrix of node coordinates</span>
+        <span class="comment">%   ELEM: mxk matrix of element connectivity</span>
+        <span class="comment">%   segment: 2x2 matrix defining the segment (two consecutive points in Xlin)</span>
+        <span class="comment">% Outputs:</span>
+        <span class="comment">%   elemID: ID of the element containing the segment</span>
+        <span class="keyword">function</span> eID = findElementContainingSegment(this,NODE,ELEM,segment)
+            <span class="comment">% Iterate over each element</span>
+            <span class="keyword">for</span> i = 1:size(ELEM, 1)
+                count = 0;
+                edges = this.extractEdgesElement(ELEM{i});
+
+                <span class="comment">% Iterate over each edge of the mesh</span>
+                <span class="keyword">for</span> j = 1:size(edges, 1)
+                    <span class="comment">% Define current edge of the mesh</span>
+                    edge = [NODE(edges(j,1),:); NODE(edges(j,2),:)];
+
+                    <span class="comment">% Compute intersection point between polyline segment and edge</span>
+                    intersect = intersectionSegment(segment,edge);
+
+                    <span class="comment">% If there is an intersection, add the point to the list</span>
+                    <span class="keyword">if</span> intersect
+                        count = count + 1;
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+                <span class="keyword">if</span> count &gt; 1
+                    eID = i;
+                    <span class="keyword">return</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+            <span class="comment">% If no element is found, return an error</span>
+            eID = 0;
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Extract edges from element connectivity matrix.</span>
+        <span class="keyword">function</span> edges = extractEdgesMesh(this,ELEM)
+            <span class="comment">% Iterate over each element</span>
+            edges = [];
+            <span class="keyword">for</span> i = 1:size(ELEM,1)
+                elemEdges = this.extractEdgesElement(ELEM{i});
+                edges = [edges; elemEdges];
+            <span class="keyword">end</span>
+
+            <span class="comment">% Remove duplicate edges</span>
+            edges = unique(edges,<span class="string">'rows'</span>);
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="keyword">function</span> edges = extractEdgesElement(~,elem)
+            edges = []; <span class="comment">% List of edges</span>
+            numNodes = length(elem); <span class="comment">% Number of nodes in the element</span>
+
+            <span class="keyword">for</span> j = 1:numNodes
+                <span class="comment">% Define edge between node j and node j+1 (wrapping around the first node)</span>
+                node1 = elem(j);
+                node2 = elem(mod(j,numNodes)+1);
+
+                <span class="comment">% Add edge to the list (ensure node1 &lt; node2 to avoid duplicates)</span>
+                edges = [edges; sort([node1,node2])];
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Compute normal vector to the discontinuity at a given point in Xlin.</span>
+        <span class="comment">% Input:</span>
+        <span class="comment">%   index: Index of the point in Xlin.</span>
+        <span class="comment">% Output:</span>
+        <span class="comment">%   normal: Normal vector (unit vector).</span>
+        <span class="keyword">function</span> normal = computeNormal(this,index)
+            <span class="comment">% Handle cases where X has fewer than 3 points</span>
+            <span class="keyword">if</span> size(this.Xlin, 1) == 2
+                <span class="comment">% For a straight line, compute the normal directly</span>
+                tangent = this.Xlin(2,:) - this.Xlin(1,:); <span class="comment">% Tangent vector</span>
+                tangent = tangent/norm(tangent); <span class="comment">% Normalize</span>
+                normal = [-tangent(2),tangent(1)]; <span class="comment">% Rotate by 90 degrees</span>
+                <span class="keyword">return</span>;
+            <span class="keyword">end</span>
+
+            <span class="comment">% For polylines with 3 or more points, compute normal based on segment</span>
+            <span class="keyword">if</span> index == 1
+                seg = this.Xlin(1:2,:); <span class="comment">% First segment</span>
+            <span class="keyword">elseif</span> index == size(this.Xlin,1)
+                seg = this.Xlin(end-1:end,:); <span class="comment">% Last segment</span>
+            <span class="keyword">else</span>
+                seg = this.Xlin(index-1:index+1, :); <span class="comment">% Middle segment</span>
+            <span class="keyword">end</span>
+
+            <span class="comment">% Compute tangent vector of the segment</span>
+            tangent = seg(2,:) - seg(1,:);
+            tangent = tangent/norm(tangent); <span class="comment">% Normalize</span>
+
+            <span class="comment">% Compute normal vector (rotate tangent by 90 degrees)</span>
+            normal = [-tangent(2),tangent(1)];
+        <span class="keyword">end</span>
+
+        <span class="comment">%------------------------------------------------------------------</span>
+        <span class="comment">% Repel nodes in the mesh that are too close to the discontinuity.</span>
+        <span class="comment">% Skip repulsion for nodes close to the corners</span>
+        <span class="comment">% It can be used for non-rectangular domains, but the borders</span>
+        <span class="comment">% identification will not be done properly.</span>
+        <span class="keyword">function</span> repelNodes(this,model)
+            <span class="comment">% Get mesh from model</span>
+            NODE = model.NODE;
+
+            <span class="comment">% Get the mean characteristic lengths of the elements associated with each node</span>
+            Lc = model.getNodeCharacteristicLength();
+
+            <span class="comment">% Bounding box of the domain</span>
+            xmin = min(NODE(:,1));
+            xmax = max(NODE(:,1));
+            ymin = min(NODE(:,2));
+            ymax = max(NODE(:,2));
+
+            <span class="comment">% Corner points</span>
+            corner1 = [xmin , ymin];
+            corner2 = [xmin , ymax];
+            corner3 = [xmax , ymin];
+            corner4 = [xmax , ymax];
+
+            <span class="comment">% Iterate over each node in the mesh</span>
+            <span class="keyword">for</span> i = 1:size(NODE, 1)
+                node = NODE(i,:); <span class="comment">% Current mesh node</span>
+
+                <span class="comment">% Distance to detect and perturb nodes</span>
+                repelDistance = this.repelTol * Lc(i);
+
+                <span class="comment">% Check if this node is close to any node in Xlin</span>
+                <span class="keyword">for</span> j = 1:size(this.Xlin, 1)
+                    xlinNode = this.Xlin(j,:);      <span class="comment">% Current Xlin node</span>
+                    distance = norm(node-xlinNode); <span class="comment">% Euclidean distance</span>
+
+                    <span class="comment">% Skip repulsion if the Xlin node is one of the corners</span>
+                    <span class="keyword">if</span> isequal(xlinNode, corner1) || isequal(xlinNode, corner2) || isequal(xlinNode, corner3) || isequal(xlinNode, corner4)
+                        <span class="keyword">continue</span>;
+                    <span class="keyword">end</span>
+
+                    <span class="comment">% If the node is too close, repel it</span>
+                    <span class="keyword">if</span> distance &lt; repelDistance
+
+                        <span class="comment">% Get the perturbation direction</span>
+                        <span class="keyword">if</span> abs(node(1) - xmin) &lt; 1.0e-12
+                            pert_dir = [0.0 , 1.0];
+                        <span class="keyword">elseif</span> abs(node(1) - xmax) &lt; 1.0e-12
+                            pert_dir = [0.0 , 1.0];
+                        <span class="keyword">elseif</span> abs(node(2) - ymin) &lt; 1.0e-12
+                            pert_dir = [1.0 , 0.0];
+                        <span class="keyword">elseif</span> abs(node(2) - ymax) &lt; 1.0e-12
+                            pert_dir = [1.0 , 0.0];
+                        <span class="keyword">else</span>
+                            <span class="comment">% Compute normal direction to the discontinuity at this point</span>
+                            pert_dir = this.computeNormal(j);
+                        <span class="keyword">end</span>
+
+                        <span class="comment">% Repel node in the normal direction</span>
+                        NODE(i,:) = node + repelDistance * pert_dir;
+                        <span class="keyword">if</span> this.savePerturbNodes
+                            this.PERT = [this.PERT;NODE(i,:)];
+                        <span class="keyword">end</span>
+                        <span class="keyword">break</span>; <span class="comment">% Move to the next mesh node</span>
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+            <span class="comment">% Update data in model object</span>
+            model.NODE = NODE;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Discontinuity Class
+% This is an abstract class that defines a discontinuity in a finite element mesh.
+%
+%% Authors
+% * Danilo Cavalcanti (dborges@cimne.upc.edu)
+%
+%% Class definition
+classdef Discontinuity < handle
+    %% Public properties
+    properties (SetAccess = public, GetAccess = public)
+        % Geometry
+        X    = [];  % Nodes defining the polyline
+        Xlin = [];  % Nodes of the "linearized" polyline
+        PERT = [];  % Nodes from the mesh that were perturbed
+
+        % Geometry tools
+        useRepel = false;          % Flag to enable/disable the repel process
+        repelTol = 1.0e-1;         % Node repel tolerance
+        savePerturbNodes = false;  % Flag to save the perturbed nodes
+
+        % Topology
+        elemID  = [];  % Identification of the element where which discontinuity segment is located
+        segment = [];  % Vector with the DiscontinuityElement objects
+
+        % Properties:
+        % The properties must be included in the data structure
+        % constructed in the createMaterialDataStructure method
+        porousMedia         = [];
+        porosity            = [];
+        cohesiveLaw         = [];
+        liquidFluid         = [];
+        gasFluid            = [];
+        initialAperture     = [];
+        normalStiffness     = [];
+        shearStiffness      = [];
+        contactPenalization = [];
+        maximumClosure      = [];
+        frictionAngle       = [];
+        dilationAngle       = [];
+        cohesion            = [];
+        tensionCutOff       = [];
+        conductive          = true;
+        leakoff             = 1.0;
+        transversalPerm     = 1.0;
+    end
+
+    %% Constructor method
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function this = Discontinuity(X,useRepel)
+            if nargin == 0
+                X = [];
+            end
+            this.X = X;
+            if nargin > 1
+                this.useRepel = useRepel;
+            end
+        end
+    end
+
+    %% Public methods
+    methods
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Set flag to enable/disable the repel process.
+        function setNodeRepel(this,flag)
+            this.useRepel = flag;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Set node repel tolerance.
+        function setRepelTol(this,tol)
+            this.repelTol = tol;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Set flag to save perturbed nodes.
+        function setSavePerturbNodes(this,flag)
+            this.savePerturbNodes = flag;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Perform intersection and optionally apply the repel process.
+        function intersectMesh(this,model)
+            % Compute Xlin using current algorithm
+            this.computeXlin(model);
+
+            % Check if there is at least one segment
+            if (size(this.Xlin,1) == 1)
+                return;
+            end
+
+            % Apply the repel process if useRepel is true
+            if this.useRepel
+                this.repelNodes(model);
+
+                % Recompute Xlin based on the updated mesh
+                this.computeXlin(model);
+            end
+
+            % Find element IDs for each segment of Xlin
+            this.findElementIDsForXlinSegments(model);
+
+            % Check if discontinuity is not fully crossing any element
+            if (isempty(this.elemID)) || (sum(this.elemID>0) == 0)
+                return;
+            end
+
+            % Create discontinuity segments
+            this.initializeDiscontinuitySegments(model);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Initialize discontinuity segments based on the intersected geometry and material properties.
+        function initializeDiscontinuitySegments(this,model)
+            n = this.getNumberOfDiscontinuitySegments();
+
+            % Create material data structure
+            mat = this.createMaterialDataStructure();
+
+            % Initialize discontinuity segments according to the physics
+            k = 1;
+            for i = 1:size(this.Xlin, 1)-1
+                nodes  = [this.Xlin(i,:); this.Xlin(i+1,:)];
+                if (this.elemID(i) > 0)
+                    seg(k) = model.initializeDiscontinuitySegment(nodes,mat);
+                    k = k + 1;
+                end
+            end
+            for i=1:n
+                seg(i).initializeIntPoints();
+            end
+            this.segment = seg;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Create material data structure.
+        function mat = createMaterialDataStructure(this)
+            mat = struct('porousMedia',this.porousMedia,...
+                         'porosity', this.porosity,...
+                         'liquidFluid',this.liquidFluid,...
+                         'gasFluid',this.gasFluid,...
+                         'cohesiveLaw',this.cohesiveLaw, ...
+                         'initialAperture',this.initialAperture, ...
+                         'normalStiffness',this.normalStiffness, ...
+                         'shearStiffness',this.shearStiffness,...
+                         'contactPenalization',this.contactPenalization,...
+                         'maximumClosure',this.maximumClosure,...
+                         'frictionAngle',this.frictionAngle,...
+                         'dilationAngle', this.dilationAngle,...
+                         'cohesion', this.cohesion,...
+                         'tensionCutOff',this.tensionCutOff,...
+                         'leakoff',this.leakoff, ...
+                         'transversalPermeability', this.transversalPerm);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Get number of discontinuities.
+        function n = getNumberOfDiscontinuitySegments(this)
+            n = sum(this.elemID > 0);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Plot original polyline.
+        function plotOriginalGeometry(this)
+            plot(this.X(:,1), this.X(:,2), '-.k');
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Plot intersected polyline (Xlin).
+        function plotIntersectedGeometry(this)
+            for i = 1:size(this.Xlin, 1)-1
+                if (this.elemID(i) > 0)
+                    seg = [this.Xlin(i,:); this.Xlin(i+1,:)];
+                    plot(seg(:,1), seg(:,2), '-.k', 'Marker', 'o', 'MarkerSize', 1.0, 'LineWidth', 1.5);
+                end
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Plot perturbed nodes.
+        function plotPerturbNodes(this)
+            if ~isempty(this.PERT)
+                plot(this.PERT(:,1), this.PERT(:,2), 'sr');
+            end
+        end
+    end
+
+    %% Private methods
+    methods (Access = private)
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute linearized polyline by intersecting the discontinuity with the mesh.
+        function computeXlin(this,model)
+            % Get mesh from model
+            NODE = model.NODE;
+            ELEM = model.ELEM;
+
+            % Initialize list of intersection points
+            intersectionPoints = [];
+
+            % Extract edges from mesh
+            edges = this.extractEdgesMesh(ELEM);
+
+            % Iterate over each segment of the polyline
+            for i = 1:size(this.X, 1)-1
+                % Define current segment of the polyline
+                polylineSegment = [this.X(i, :); this.X(i+1, :)];
+
+                % Initialize list of intersection points of this segment
+                intersectionPointsSegment = [];
+                s = [];
+
+                % Iterate over each edge of the mesh
+                for j = 1:size(edges, 1)
+                    % Define current edge of the mesh
+                    edge = [NODE(edges(j, 1), :); NODE(edges(j, 2), :)];
+
+                    % Compute intersection point between polyline segment and edge
+                    [intersect,point] = intersectionSegment(polylineSegment,edge);
+
+                    % If there is an intersection, add the point to list
+                    if intersect
+                        intersectionPointsSegment = [intersectionPointsSegment; point];
+                        sp = sqrt((point(1) - this.X(i,1))^2 + (point(2) - this.X(i,2))^2);
+                        s = [s;sp];
+                    end
+                end
+
+                % Guarantee that the points are ordered
+                [s,order] = sort(s);
+                intersectionPointsSegment = intersectionPointsSegment(order,:);
+                [~,order] = uniquetol(s,1e-9);
+
+                % Order the intersection points of the segment
+                intersectionPoints = [intersectionPoints;intersectionPointsSegment(order,:)];
+            end
+
+            % Store intersection points in Xlin
+            this.Xlin = uniquetol(intersectionPoints,1.0e-9,'ByRows',true);
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Find element IDs for each segment of the linearized polyline (Xlin).
+        function findElementIDsForXlinSegments(this,model)
+            % Get mesh from model
+            NODE = model.NODE;
+            ELEM = model.ELEM;
+
+            % Initialize list of element IDs for each segment
+            elemIDs = [];
+
+            % Iterate over each segment of Xlin
+            for i = 1:size(this.Xlin, 1)-1
+                % Define current segment of Xlin
+                seg = [this.Xlin(i,:);this.Xlin(i+1,:)];
+
+                % Find the element that contains this segment
+                eID = this.findElementContainingSegment(NODE,ELEM,seg);
+                if eID == 0
+                    error('Error finding element that contains discontinuity segment');
+                end
+
+                % Store element ID
+                elemIDs = [elemIDs;eID];
+            end
+
+            % Store element IDs
+            this.elemID = elemIDs;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Find the element ID that contains the given segment.
+        % Inputs:
+        %   NODE: nx2 matrix of node coordinates
+        %   ELEM: mxk matrix of element connectivity
+        %   segment: 2x2 matrix defining the segment (two consecutive points in Xlin)
+        % Outputs:
+        %   elemID: ID of the element containing the segment
+        function eID = findElementContainingSegment(this,NODE,ELEM,segment)
+            % Iterate over each element
+            for i = 1:size(ELEM, 1)
+                count = 0;
+                edges = this.extractEdgesElement(ELEM{i});
+
+                % Iterate over each edge of the mesh
+                for j = 1:size(edges, 1)
+                    % Define current edge of the mesh
+                    edge = [NODE(edges(j,1),:); NODE(edges(j,2),:)];
+
+                    % Compute intersection point between polyline segment and edge
+                    intersect = intersectionSegment(segment,edge);
+
+                    % If there is an intersection, add the point to the list
+                    if intersect
+                        count = count + 1;
+                    end
+                end
+                if count > 1
+                    eID = i;
+                    return
+                end
+            end
+
+            % If no element is found, return an error
+            eID = 0;
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Extract edges from element connectivity matrix.
+        function edges = extractEdgesMesh(this,ELEM)
+            % Iterate over each element
+            edges = [];
+            for i = 1:size(ELEM,1)
+                elemEdges = this.extractEdgesElement(ELEM{i});
+                edges = [edges; elemEdges];
+            end
+
+            % Remove duplicate edges
+            edges = unique(edges,'rows');
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        function edges = extractEdgesElement(~,elem)
+            edges = []; % List of edges
+            numNodes = length(elem); % Number of nodes in the element
+
+            for j = 1:numNodes
+                % Define edge between node j and node j+1 (wrapping around the first node)
+                node1 = elem(j);
+                node2 = elem(mod(j,numNodes)+1);
+
+                % Add edge to the list (ensure node1 < node2 to avoid duplicates)
+                edges = [edges; sort([node1,node2])];
+            end
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Compute normal vector to the discontinuity at a given point in Xlin.
+        % Input:
+        %   index: Index of the point in Xlin.
+        % Output:
+        %   normal: Normal vector (unit vector).
+        function normal = computeNormal(this,index)
+            % Handle cases where X has fewer than 3 points
+            if size(this.Xlin, 1) == 2
+                % For a straight line, compute the normal directly
+                tangent = this.Xlin(2,:) - this.Xlin(1,:); % Tangent vector
+                tangent = tangent/norm(tangent); % Normalize
+                normal = [-tangent(2),tangent(1)]; % Rotate by 90 degrees
+                return;
+            end
+
+            % For polylines with 3 or more points, compute normal based on segment
+            if index == 1
+                seg = this.Xlin(1:2,:); % First segment
+            elseif index == size(this.Xlin,1)
+                seg = this.Xlin(end-1:end,:); % Last segment
+            else
+                seg = this.Xlin(index-1:index+1, :); % Middle segment
+            end
+
+            % Compute tangent vector of the segment
+            tangent = seg(2,:) - seg(1,:);
+            tangent = tangent/norm(tangent); % Normalize
+
+            % Compute normal vector (rotate tangent by 90 degrees)
+            normal = [-tangent(2),tangent(1)];
+        end
+
+        %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+        % Repel nodes in the mesh that are too close to the discontinuity.
+        % Skip repulsion for nodes close to the corners
+        % It can be used for non-rectangular domains, but the borders
+        % identification will not be done properly.
+        function repelNodes(this,model)
+            % Get mesh from model
+            NODE = model.NODE;
+
+            % Get the mean characteristic lengths of the elements associated with each node
+            Lc = model.getNodeCharacteristicLength();
+
+            % Bounding box of the domain
+            xmin = min(NODE(:,1));
+            xmax = max(NODE(:,1));
+            ymin = min(NODE(:,2));
+            ymax = max(NODE(:,2));
+
+            % Corner points
+            corner1 = [xmin , ymin];
+            corner2 = [xmin , ymax];
+            corner3 = [xmax , ymin];
+            corner4 = [xmax , ymax];
+
+            % Iterate over each node in the mesh
+            for i = 1:size(NODE, 1)
+                node = NODE(i,:); % Current mesh node
+
+                % Distance to detect and perturb nodes
+                repelDistance = this.repelTol * Lc(i);
+
+                % Check if this node is close to any node in Xlin
+                for j = 1:size(this.Xlin, 1)
+                    xlinNode = this.Xlin(j,:);      % Current Xlin node
+                    distance = norm(node-xlinNode); % Euclidean distance
+
+                    % Skip repulsion if the Xlin node is one of the corners
+                    if isequal(xlinNode, corner1) || isequal(xlinNode, corner2) || isequal(xlinNode, corner3) || isequal(xlinNode, corner4)
+                        continue;
+                    end
+
+                    % If the node is too close, repel it
+                    if distance < repelDistance
+
+                        % Get the perturbation direction
+                        if abs(node(1) - xmin) < 1.0e-12
+                            pert_dir = [0.0 , 1.0];
+                        elseif abs(node(1) - xmax) < 1.0e-12
+                            pert_dir = [0.0 , 1.0];
+                        elseif abs(node(2) - ymin) < 1.0e-12
+                            pert_dir = [1.0 , 0.0];
+                        elseif abs(node(2) - ymax) < 1.0e-12
+                            pert_dir = [1.0 , 0.0];
+                        else
+                            % Compute normal direction to the discontinuity at this point
+                            pert_dir = this.computeNormal(j);
+                        end
+
+                        % Repel node in the normal direction
+                        NODE(i,:) = node + repelDistance * pert_dir;
+                        if this.savePerturbNodes
+                            this.PERT = [this.PERT;NODE(i,:)];
+                        end
+                        break; % Move to the next mesh node
+                    end
+                end
+            end
+
+            % Update data in model object
+            model.NODE = NODE;
+        end
+    end
+end
+
+##### SOURCE END #####
+--></body></html>
