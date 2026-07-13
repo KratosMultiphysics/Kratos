@@ -191,6 +191,30 @@ void TotalLagrangianDisplacementParticle<TKernelType>::GetDofList(
 }
 
 template<class TKernelType>
+void TotalLagrangianDisplacementParticle<TKernelType>::GetValuesVector(
+    Vector& rValues,
+    int step
+    ) const
+{
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const SizeType number_of_neighbours = r_neighbours.size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType mat_size = number_of_neighbours * dimension;
+
+    if (rValues.size() != mat_size) rValues.resize(mat_size, false);
+
+    for (IndexType i = 0; i < number_of_neighbours; ++i) {
+        const auto& r_geom = r_neighbours[i]->GetGeometry();
+        
+        const array_1d<double, 3 >& displacement = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT, step);
+        const SizeType index = i * dimension;
+        for(unsigned int k = 0; k < dimension; ++k) {
+            rValues[index + k] = displacement[k];
+        }
+    }
+}
+
+template<class TKernelType>
 void TotalLagrangianDisplacementParticle<TKernelType>::GetFirstDerivativesVector(VectorType& rValues, int step) const
 {
     KRATOS_TRY
@@ -235,31 +259,6 @@ void TotalLagrangianDisplacementParticle<TKernelType>::GetSecondDerivativesVecto
             rValues[index + k] = acceleration[k];
         }
     }
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianDisplacementParticle<TKernelType>::GetNodalValuesVector(VectorType& rNodalValue) const
-{
-    KRATOS_TRY
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
-    const SizeType number_of_neighbours = r_neighbours.size();
-    const SizeType domain_size = GetGeometry().WorkingSpaceDimension();
-
-    if (rNodalValue.size() != domain_size * number_of_neighbours) rNodalValue.resize(domain_size * number_of_neighbours, false);
-
-    for (IndexType i = 0; i < number_of_neighbours; ++i){
-        const auto& r_geom = r_neighbours[i]->GetGeometry();
-
-        const array_1d<double, 3>& vel = r_geom[0].FastGetSolutionStepValue(VELOCITY);
-        
-        rNodalValue[i * domain_size] = vel[0];
-        rNodalValue[i * domain_size + 1] = vel[1];
-        if (domain_size == 3){
-            rNodalValue[i * domain_size + 2] = vel[2];
-        }
-    }
-
     KRATOS_CATCH("")
 }
 

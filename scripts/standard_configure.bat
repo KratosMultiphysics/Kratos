@@ -30,6 +30,7 @@ set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\SPHApplication;
+CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
 
 rem Clean
 rem del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"

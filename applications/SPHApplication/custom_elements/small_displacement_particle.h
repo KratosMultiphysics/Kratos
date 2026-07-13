@@ -148,6 +148,11 @@ public:
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
+    
+    /**
+     * @brief Sets on rValues the nodal displacements
+     */
+    void GetValuesVector(VectorType& rValues, int step ) const override;
 
     /**
      * @brief Sets on rValues the nodal velocities
