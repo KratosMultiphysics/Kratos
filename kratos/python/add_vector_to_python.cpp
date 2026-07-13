@@ -31,7 +31,14 @@ namespace Kratos::Python
 
 namespace py = pybind11;
 
-template< typename TVectorType > 
+// The fixed-size array_1d types get value (copy) semantics for python slice
+// reads: unlike the dynamic uBLAS vectors they are not required to model the
+// uBLAS vector-expression concept (under the Eigen backend they do not), so
+// no live vector_slice view can be built on them.
+template<class T> struct IsArray1d : std::false_type {};
+template<class T, std::size_t N> struct IsArray1d<array_1d<T, N>> : std::true_type {};
+
+template< typename TVectorType >
 py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string Name )
 {
     py::class_< TVectorType, std::shared_ptr<TVectorType> > binder(m,Name.c_str(), py::buffer_protocol());
@@ -152,30 +159,42 @@ py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string
         }
     });
 
-    binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> boost::numeric::ublas::vector_slice<TVectorType>
+    binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice)
     {
         size_t start, stop, step, slicelength;
         if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
             throw pybind11::error_already_set();
-        boost::numeric::ublas::slice ublas_slice(start, step, slicelength);
-        boost::numeric::ublas::vector_slice<TVectorType> sliced_self(self, ublas_slice);
-        return sliced_self;
+        if constexpr (IsArray1d<TVectorType>::value) {
+            // fixed-size arrays: return a dense copy of the slice
+            DenseVector<typename TVectorType::value_type> sliced_copy(slicelength);
+            for (size_t i = 0; i < slicelength; ++i) {
+                sliced_copy[i] = self[start];
+                start += step;
+            }
+            return sliced_copy;
+        } else {
+            boost::numeric::ublas::slice ublas_slice(start, step, slicelength);
+            boost::numeric::ublas::vector_slice<TVectorType> sliced_self(self, ublas_slice);
+            return sliced_self;
+        }
     });
     binder.def("fill", [](TVectorType& self, const typename TVectorType::value_type value)
     {
         noalias(self) = TVectorType(self.size(),value);
     });
+    // unqualified so the calls resolve per vector type: to the uBLAS norms
+    // for the dynamic vectors and to the backend overloads for array_1d
     binder.def("norm_1", [](TVectorType& self)
     {
-        return boost::numeric::ublas::norm_1(self);
+        return norm_1(self);
     });
     binder.def("norm_2", [](TVectorType& self)
     {
-        return boost::numeric::ublas::norm_2(self);
+        return norm_2(self);
     });
     binder.def("norm_inf", [](TVectorType& self)
     {
-        return boost::numeric::ublas::norm_inf(self);
+        return norm_inf(self);
     });
     binder.def("__iter__", [](TVectorType& self)
     {
@@ -371,7 +390,14 @@ void  AddVectorToPython(pybind11::module& m)
     vector_binder.def(py::init<typename Vector::size_type>());
     vector_binder.def(py::init<typename Vector::size_type, double>());
     vector_binder.def(py::init<Vector>());
-    vector_binder.def(py::init<array_1d<double,3>>());
+    vector_binder.def(py::init( [](const array_1d<double,3>& input)
+    {
+        // element-wise so no vector-expression concept is required of array_1d
+        Vector tmp(3);
+        for(std::size_t i=0; i<3; ++i)
+            tmp[i] = input[i];
+        return tmp;
+    }));
     vector_binder.def(py::init( [](const py::list& input)
     {
         Vector tmp(input.size());
