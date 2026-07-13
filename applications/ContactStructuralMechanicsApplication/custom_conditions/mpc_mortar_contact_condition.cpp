@@ -608,7 +608,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     const BoundedMatrix<double, TNumNodes, TDim> u1_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_slave_geometry, DISPLACEMENT, 1);
     const BoundedMatrix<double, TNumNodesMaster, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry);
 //     const BoundedMatrix<double, TNumNodesMaster, TDim> x2_0 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_master_geometry, false);
-    const BoundedMatrix<double, TNumNodesMaster, TDim> u2_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_master_geometry, DISPLACEMENT, 1);
+    const BoundedMatrix<double, TNumNodesMaster, TDim> u2_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(r_master_geometry, DISPLACEMENT, 1);
 
     // Mortar condition matrices - DOperator and MOperator
     const BoundedMatrix<double, TNumNodes, TNumNodes>& r_DOperator = rMortarConditionMatrices.DOperator;
@@ -733,7 +733,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     const BoundedMatrix<double, TNumNodes, TDim> u1_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_slave_geometry, DISPLACEMENT, 1);
     const BoundedMatrix<double, TNumNodesMaster, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry);
 //     const BoundedMatrix<double, TNumNodesMaster, TDim> x2_0 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_master_geometry, false);
-    const BoundedMatrix<double, TNumNodesMaster, TDim> u2_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_master_geometry, DISPLACEMENT, 1);
+    const BoundedMatrix<double, TNumNodesMaster, TDim> u2_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(r_master_geometry, DISPLACEMENT, 1);
 
     // Mortar condition matrices - DOperator and MOperator
     const BoundedMatrix<double, TNumNodes, TNumNodes>& r_DOperator = rMortarConditionMatrices.DOperator;
@@ -851,7 +851,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     const BoundedMatrix<double, TNumNodes, TDim> u1_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_slave_geometry, DISPLACEMENT, 1);
     const BoundedMatrix<double, TNumNodesMaster, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry);
 //     const BoundedMatrix<double, TNumNodesMaster, TDim> x2_0 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_master_geometry, false);
-    const BoundedMatrix<double, TNumNodesMaster, TDim> u2_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_master_geometry, DISPLACEMENT, 1);
+    const BoundedMatrix<double, TNumNodesMaster, TDim> u2_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(r_master_geometry, DISPLACEMENT, 1);
 
     // Mortar condition matrices - DOperator and MOperator
     const BoundedMatrix<double, TNumNodes, TNumNodes>& r_DOperator = rMortarConditionMatrices.DOperator;

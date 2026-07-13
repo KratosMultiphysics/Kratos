@@ -489,10 +489,14 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
                     // Special cases (slave nodes)
                     if (i_belong == 0) { // First node of the slave
                         const double coeff = 1.0 + num/denom;
-                        noalias(row(r_local_delta_vertex, i_triangle)) += LocalDeltaVertex( rNormal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, coeff);
+                        const array_1d<double, 3> local_delta_vertex = LocalDeltaVertex( rNormal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, coeff);
+                        for (IndexType i_dim = 0; i_dim < TDim; ++i_dim)
+                            r_local_delta_vertex(i_triangle, i_dim) += local_delta_vertex[i_dim];
                     } else if (i_belong == 1) { // Second node of the slave
                         const double coeff = - num/denom;
-                        noalias(row(r_local_delta_vertex, i_triangle)) += LocalDeltaVertex( rNormal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, coeff);
+                        const array_1d<double, 3> local_delta_vertex = LocalDeltaVertex( rNormal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, coeff);
+                        for (IndexType i_dim = 0; i_dim < TDim; ++i_dim)
+                            r_local_delta_vertex(i_triangle, i_dim) += local_delta_vertex[i_dim];
                     }
 
                     // We define some auxiliary coefficients
@@ -501,8 +505,10 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
 
                     // We add the part corresponding purely to delta normal
                     if (ConsiderNormalVariation == NormalDerivativesComputation::ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES) {
-                        noalias(row(r_local_delta_vertex, i_triangle)) += diff3 * coeff1 * inner_prod(aux_num,  delta_normal);
-                        noalias(row(r_local_delta_vertex, i_triangle)) += diff3 * coeff2 * inner_prod(aux_denom, delta_normal);
+                        // scalar-loop form: the vertex-derivative storage collapses to a dummy type for the 2-node instantiations
+                        const double delta_normal_contribution = coeff1 * inner_prod(aux_num,  delta_normal) + coeff2 * inner_prod(aux_denom, delta_normal);
+                        for (IndexType i_dim = 0; i_dim < r_local_delta_vertex.size2(); ++i_dim)
+                            r_local_delta_vertex(i_triangle, i_dim) += diff3[i_dim] * delta_normal_contribution;
                     }
 
                     // We compute the delta diffs
@@ -522,8 +528,10 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
                     delta_denom += inner_prod(aux_cross_product, rNormal);
 
                     // Finally we add the contributions of delta num and denom
-                    noalias(row(r_local_delta_vertex, i_triangle)) += coeff1 * diff3 * delta_num;
-                    noalias(row(r_local_delta_vertex, i_triangle)) += coeff2 * diff3 * delta_denom;
+                    // scalar-loop form: the vertex-derivative storage collapses to a dummy type for the 2-node instantiations
+                    const double delta_num_denom_contribution = coeff1 * delta_num + coeff2 * delta_denom;
+                    for (IndexType i_dim = 0; i_dim < r_local_delta_vertex.size2(); ++i_dim)
+                        r_local_delta_vertex(i_triangle, i_dim) += diff3[i_dim] * delta_num_denom_contribution;
                 }
             }
         } else { // It belongs to a master/slave node
@@ -537,7 +545,9 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
                     delta_normal = zero_array;
 
                 auto& r_local_delta_vertex = rDerivativeData.DeltaCellVertex[belong_index * TDim + i_dof];
-                noalias(row(r_local_delta_vertex, i_triangle)) += LocalDeltaVertex( rNormal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry);
+                const array_1d<double, 3> local_delta_vertex = LocalDeltaVertex( rNormal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry);
+                for (IndexType i_dim = 0; i_dim < r_local_delta_vertex.size2(); ++i_dim)
+                    r_local_delta_vertex(i_triangle, i_dim) += local_delta_vertex[i_dim];
             }
         }
     }
