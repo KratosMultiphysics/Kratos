@@ -23,6 +23,7 @@
 #include "containers/model.h"
 #include "includes/variables.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 
@@ -852,6 +853,6 @@ namespace Kratos
     }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class FetiDynamicCouplingUtilities< UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>, UblasSpace<double, Matrix, Vector> >;
+template class FetiDynamicCouplingUtilities< TDefaultSparseSpace<double>, TDefaultDenseSpace<double> >;
 
 } // namespace Kratos.
