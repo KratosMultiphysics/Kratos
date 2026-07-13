@@ -21,6 +21,9 @@
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_DefaultMpiComm.hpp>
 
+// Project includes
+#include "includes/define.h"
+
 /**
  * @file trilinos_matrix_market_io.h
  * @brief Free-function wrappers for Tpetra MatrixMarket I/O.
@@ -44,23 +47,23 @@ using FEVector = Tpetra::FEMultiVector<>;
 using Comm     = Teuchos::MpiComm<int>;
 
 /// @brief Read a sparse FECrsMatrix from a MatrixMarket file.
-Teuchos::RCP<FEMatrix> ReadMatrix(
+Teuchos::RCP<FEMatrix> KRATOS_API(TRILINOS_APPLICATION) ReadMatrix(
     const std::string& rFileName,
     Comm& rComm);
 
 /// @brief Read a dense FEMultiVector from a MatrixMarket file.
-Teuchos::RCP<FEVector> ReadVector(
+Teuchos::RCP<FEVector> KRATOS_API(TRILINOS_APPLICATION) ReadVector(
     const std::string& rFileName,
     Teuchos::RCP<const Comm> pComm,
     int N);
 
 /// @brief Write a sparse matrix to a MatrixMarket file.
-void WriteMatrix(
+void KRATOS_API(TRILINOS_APPLICATION) WriteMatrix(
     const char* pFileName,
     const FEMatrix& rA);
 
 /// @brief Write a dense vector to a MatrixMarket file.
-void WriteVector(
+void KRATOS_API(TRILINOS_APPLICATION) WriteVector(
     const char* pFileName,
     const FEVector& rV);
 
