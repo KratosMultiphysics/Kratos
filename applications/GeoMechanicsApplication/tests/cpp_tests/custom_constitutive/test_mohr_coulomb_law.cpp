@@ -1017,7 +1017,7 @@ Vector IntegrateMohrCoulombStrainPath(const Properties& rProperties, const std::
     law.InitializeMaterialResponseCauchy(parameters);
 
     for (const auto& r_strain_state : rCumulativeStrainStates) {
-        Vector strain_state = r_strain_state; 
+        Vector strain_state = r_strain_state;
         parameters.SetStrainVector(strain_state);
         law.CalculateMaterialResponseCauchy(parameters);
         law.FinalizeMaterialResponseCauchy(parameters);
@@ -1048,20 +1048,13 @@ std::vector<Vector> BuildLinearlyInterpolatedStrainPath(const std::vector<Vector
     return strain_states;
 }
 
-// This test demonstrates the ADDED VALUE of splitting a strain increment into multiple
-// sub-steps. The return mapping is carried out in the trial-stress PRINCIPAL frame, which is
-// recomputed for every (sub-)step. For a proportional strain path the principal directions are
-// fixed and a single step is already exact, so sub-stepping would not change anything. Here a
-// NON-proportional history is used instead: a compressive leg followed by a shear leg. During
-// the shear leg the principal axes rotate continuously while the stress state slides along the
-// yield surface. A coarse integration (few sub-steps) samples that rotation poorly, whereas a
-// finer integration (more sub-steps) tracks it and converges to the reference solution.
-//
-// The loading PATH (the waypoints) is kept identical for every case; only the number of
-// sub-steps per leg is varied. This isolates the integration/step-size effect and shows that
-// more sub-steps yield a monotonically more accurate result.
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_NonProportionalPathIsPathDependentWithoutHardening,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+/// <summary>
+///  This test checks if substepping improves the accuracy of the Mohr-Coulomb integration along a
+///  strain path that rotates the principal axes while on the yield surface.
+/// </summary>
+/// <param name=""></param>
+/// <param name=""></param>
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_SubStepping, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: perfect plasticity (no hardening).
     Properties properties_no_sub_stepping;
@@ -1080,7 +1073,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_NonProportionalPathIsPath
     properties_with_sub_stepping.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 100);
 
     // Strain history that rotates the principal axes while on the yield surface:
-    //   part 1: add uniaxial compression   
+    //   part 1: add uniaxial compression
     //   part 2: add shear
     const auto zero_state        = Vector{ZeroVector(4)};
     const auto compression_state = UblasUtilities::CreateVector({0.0, -0.06, 0.0, 0.0});
@@ -1103,10 +1096,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_NonProportionalPathIsPath
         properties_with_sub_stepping, BuildLinearlyInterpolatedStrainPath(strain_vertices, 1));
 
     // calculate the errors without and with sub-stepping, using the reference stress as the "exact" solution
-    const auto error_no_sub_step = norm_2(Vector{stress_no_sub_stepping - reference_stress});
+    const auto error_no_sub_step   = norm_2(Vector{stress_no_sub_stepping - reference_stress});
     const auto error_with_sub_step = norm_2(Vector{stress_with_sub_stepping - reference_stress});
 
-	// Check that the error without sub-stepping is at least 10x larger than the error with sub-stepping
+    // Check that the error without sub-stepping is at least 10x larger than the error with sub-stepping
     KRATOS_EXPECT_GT(error_no_sub_step, error_with_sub_step * 10);
 }
 
