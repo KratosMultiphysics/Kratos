@@ -1052,8 +1052,6 @@ std::vector<Vector> BuildLinearlyInterpolatedStrainPath(const std::vector<Vector
 ///  This test checks if substepping improves the accuracy of the Mohr-Coulomb integration along a
 ///  strain path that rotates the principal axes while on the yield surface.
 /// </summary>
-/// <param name=""></param>
-/// <param name=""></param>
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_SubStepping, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: perfect plasticity (no hardening).

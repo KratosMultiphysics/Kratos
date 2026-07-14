@@ -35,6 +35,55 @@ void InitializeLawMaterial(ConstitutiveLaw& rLaw, const Properties& rProperties)
     rLaw.InitializeMaterial(rProperties, dummy_element_geometry, dummy_shape_function_values);
 }
 
+// Integrates the interface Coulomb law along a sequence of cumulative relative-displacement
+// states and returns the final traction vector.
+Vector IntegrateInterfaceCoulombDisplacementPath(const Properties& rProperties,
+                                                 const std::vector<Vector>& rCumulativeRelativeDisplacementStates)
+{
+    auto law = InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()};
+    InitializeLawMaterial(law, rProperties);
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    parameters.SetMaterialProperties(rProperties);
+
+    Vector zero_state = ZeroVector(2);
+    parameters.SetStrainVector(zero_state);
+    parameters.SetStressVector(zero_state);
+    law.InitializeMaterialResponseCauchy(parameters);
+
+    for (const auto& r_relative_displacement_state : rCumulativeRelativeDisplacementStates) {
+        Vector relative_displacement = r_relative_displacement_state;
+        parameters.SetStrainVector(relative_displacement);
+        law.CalculateMaterialResponseCauchy(parameters);
+        law.FinalizeMaterialResponseCauchy(parameters);
+    }
+
+    Vector result;
+    law.GetValue(GEO_EFFECTIVE_TRACTION_VECTOR, result);
+    return result;
+}
+
+// Builds a list of cumulative relative-displacement states that follow the given vertices.
+// Between each pair of consecutive vertices, NIncrementsPerLeg equally spaced points are added.
+std::vector<Vector> BuildLinearlyInterpolatedDisplacementPath(const std::vector<Vector>& rPathVertices,
+                                                              std::size_t NIncrementsPerLeg)
+{
+    KRATOS_ERROR_IF(NIncrementsPerLeg == 0)
+        << "BuildLinearlyInterpolatedDisplacementPath requires NIncrementsPerLeg > 0" << std::endl;
+
+    std::vector<Vector> relative_displacement_states;
+    for (std::size_t leg = 0; leg + 1 < rPathVertices.size(); ++leg) {
+        const Vector& r_start = rPathVertices[leg];
+        const Vector& r_end   = rPathVertices[leg + 1];
+        for (std::size_t increment = 1; increment <= NIncrementsPerLeg; ++increment) {
+            const auto fraction = static_cast<double>(increment) / static_cast<double>(NIncrementsPerLeg);
+            relative_displacement_states.push_back(r_start + fraction * (r_end - r_start));
+        }
+    }
+    return relative_displacement_states;
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -504,6 +553,58 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateConstitutiv
     // Assert
     const auto expected_constitutive_matrix = UblasUtilities::CreateMatrix({{1.0E8, 0.0}, {0.0, 5.0E7}});
     KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, Defaults::absolute_tolerance);
+}
+
+/// <summary>
+///  This test checks if substepping improves the accuracy of the Interface coulomb integration
+///  along a strain path that changes yield condition.
+/// </summary>
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulomb_SubStepping, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange: perfect plasticity (no hardening) with non-associated dilatancy.
+    Properties properties_no_sub_stepping;
+    properties_no_sub_stepping.SetValue(GEO_COULOMB_HARDENING_TYPE, "None");
+    properties_no_sub_stepping.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    properties_no_sub_stepping.SetValue(GEO_COHESION, 10.0);
+    properties_no_sub_stepping.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties_no_sub_stepping.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties_no_sub_stepping.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties_no_sub_stepping.SetValue(INTERFACE_NORMAL_STIFFNESS, 25.0);
+    properties_no_sub_stepping.SetValue(INTERFACE_SHEAR_STIFFNESS, 12.5);
+
+    Properties properties_with_sub_stepping(properties_no_sub_stepping);
+    properties_with_sub_stepping.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 0.1);
+    properties_with_sub_stepping.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 100);
+
+    // Non-proportional relative-displacement history (normal, shear):
+    //   part 1: add normal compression
+    //   part 2: add shear and extension
+    const auto zero_state        = Vector{ZeroVector(2)};
+    const auto compression_state = UblasUtilities::CreateVector({-22.0, 0.0});
+    const auto end_state         = UblasUtilities::CreateVector({2.0, 8.0});
+
+    const std::vector<Vector> displacement_vertices{zero_state, compression_state, end_state};
+
+    // Reference solution: the SAME path, integrated with a large number of steps.
+    constexpr std::size_t reference_increments_per_leg = 2000;
+    const auto            reference_traction           = IntegrateInterfaceCoulombDisplacementPath(
+        properties_no_sub_stepping,
+        BuildLinearlyInterpolatedDisplacementPath(displacement_vertices, reference_increments_per_leg));
+
+    // Calculate the traction without sub-stepping, using only the vertices as the path.
+    const auto traction_no_sub_stepping = IntegrateInterfaceCoulombDisplacementPath(
+        properties_no_sub_stepping, BuildLinearlyInterpolatedDisplacementPath(displacement_vertices, 1));
+
+    // Calculate the traction with sub-stepping, using only the vertices as the path.
+    const auto traction_with_sub_stepping = IntegrateInterfaceCoulombDisplacementPath(
+        properties_with_sub_stepping, BuildLinearlyInterpolatedDisplacementPath(displacement_vertices, 1));
+
+    // Calculate the errors without and with sub-stepping, using the reference as the "exact" solution.
+    const auto error_no_sub_step = norm_2(Vector{traction_no_sub_stepping - reference_traction});
+    const auto error_with_sub_step = norm_2(Vector{traction_with_sub_stepping - reference_traction});
+
+    // Check that the error without sub-stepping is at least 10x larger than the error with sub-stepping.
+    KRATOS_EXPECT_GT(error_no_sub_step, error_with_sub_step * 10);
 }
 
 } // namespace Kratos::Testing

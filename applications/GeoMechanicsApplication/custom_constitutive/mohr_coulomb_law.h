@@ -73,8 +73,9 @@ private:
     bool                                      mIsModelInitialized = false;
     // Each sub-step's elastic predictor is allowed to overshoot the yield surface by at most
     // this fraction of the stress magnitude
-    double      mMaxRelativeOvershoot = 1.0;
-    std::size_t mMaxNumberOfSubSteps  = 1;
+    double      mMaxRelativeOvershoot       = 1.0;
+    int         mMaxNumberOfSubSteps        = 1;
+    std::size_t mCalculatedNumberOfSubSteps = 0;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
 

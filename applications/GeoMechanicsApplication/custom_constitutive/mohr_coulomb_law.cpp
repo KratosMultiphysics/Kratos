@@ -96,6 +96,9 @@ ConstitutiveLaw::Pointer MohrCoulombLaw::Clone() const
     p_result->mStressVectorFinalized = mStressVectorFinalized;
     p_result->mStrainVectorFinalized = mStrainVectorFinalized;
     p_result->mpCoulombImpl          = mpCoulombImpl->Clone();
+    p_result->mMaxRelativeOvershoot = mMaxRelativeOvershoot;
+    p_result->mMaxNumberOfSubSteps =  mMaxNumberOfSubSteps;
+    p_result->mCalculatedNumberOfSubSteps = mCalculatedNumberOfSubSteps;
     return p_result;
 }
 
@@ -228,8 +231,15 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
 
     std::size_t number_of_sub_steps = 1;
     if (mMaxNumberOfSubSteps > 1) {
-        number_of_sub_steps = CalculateAdaptiveNumberOfSubSteps(
+        
+        // only calculate the number of sub-steps once per solution step for stability
+        if (mCalculatedNumberOfSubSteps == 0) {
+            mCalculatedNumberOfSubSteps = CalculateAdaptiveNumberOfSubSteps(
             mpCoulombImpl, full_trial_principal_stresses, elastic_matrix);
+        }
+        
+        number_of_sub_steps = mCalculatedNumberOfSubSteps;
+
     }
 
     // Running committed state for the sub-stepping (start from last finalized state)
@@ -302,15 +312,17 @@ std::size_t MohrCoulombLaw::CalculateAdaptiveNumberOfSubSteps(std::unique_ptr<Co
     const auto relative_overshoot = overshoot / stress_scale;
 
     const auto number_of_sub_steps =
-        static_cast<std::size_t>(std::ceil(relative_overshoot / mMaxRelativeOvershoot));
+        static_cast<int>(std::ceil(relative_overshoot / mMaxRelativeOvershoot));
 
-    return std::clamp(number_of_sub_steps, std::size_t{1}, mMaxNumberOfSubSteps);
+    return std::clamp(number_of_sub_steps, 1, mMaxNumberOfSubSteps);
 }
 
 void MohrCoulombLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     mStrainVectorFinalized = rValues.GetStrainVector();
     mStressVectorFinalized = mStressVector;
+
+    mCalculatedNumberOfSubSteps = 0;
 }
 
 void MohrCoulombLaw::save(Serializer& rSerializer) const
