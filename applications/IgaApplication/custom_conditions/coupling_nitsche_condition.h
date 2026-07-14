@@ -64,7 +64,9 @@ protected:
         //the normal to the surface boundary vector
         array_1d<double, 3> n;
         //the normal to the surface boundary vector in contravariant basis
-        array_1d<double, 2> n_contravariant;
+        array_1d<double, 2> n_covariant; //n_alpha
+        array_1d<double, 2> t_covariant; //t_alpha
+        array_1d<double, 2> t_contravariant; //t^alpha
 
         /**
         * The default constructor
@@ -82,7 +84,7 @@ protected:
             noalias(a3_tilde) = ZeroVector(Dimension);
 
             noalias(n) = ZeroVector(Dimension);
-            noalias(n_contravariant) = ZeroVector(2);
+            noalias(n_covariant) = ZeroVector(2);
             noalias(t) = ZeroVector(Dimension);
 
             dA = 1.0;
@@ -371,8 +373,8 @@ private:
     std::vector<array_1d< array_1d<double, 3>,2>> m_reference_contravariant_base_slave;
 
     // The normal to the boundary vector
-    std::vector<array_1d<double, 2>> m_n_contravariant_vector_master;
-    std::vector<array_1d<double, 2>> m_n_contravariant_vector_slave;
+    std::vector<array_1d<double, 2>> m_n_covariant_vector_master;
+    std::vector<array_1d<double, 2>> m_n_covariant_vector_slave;
 
     void CalculateKinematics(
         IndexType IntegrationPointIndex,
