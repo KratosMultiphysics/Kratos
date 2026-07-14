@@ -172,9 +172,6 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
     this->InitializeVMSGeneralVariables(Variables, rCurrentProcessInfo);
 
     const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
-    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
-        : false;
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -182,39 +179,34 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
     // Set constitutive law flags:
     Flags& r_constitutive_law_options = Values.GetOptions();
     r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-    if (!is_explicit)
-    {
-        r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    // Compute element kinematics B, F, DN_DX ...
+    this->CalculateKinematics(Variables, rCurrentProcessInfo);
 
-        // Compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematics(Variables, rCurrentProcessInfo);
+    // Set general variables to constitutivelaw parameters
+    this->SetGeneralVariables(Variables, Values, r_N);
 
-        // Set general variables to constitutivelaw parameters
-        this->SetGeneralVariables(Variables, Values, r_N);
+    // Calculate Material Response
+    /* NOTE:
+    The function below will call CalculateMaterialResponseCauchy() by default and then (may)
+    call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
+    mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
-        // Calculate Material Response
-        /* NOTE:
-        The function below will call CalculateMaterialResponseCauchy() by default and then (may)
-        call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
-        mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-        // The material points have constant mass, while density and volume
-        // are updated every time step.
-        // Update MP_Density
-        mMP.density = GetProperties()[DENSITY] / Variables.detFT;
+    // The material points have constant mass, while density and volume
+    // are updated every time step.
+    // Update MP_Density
+    mMP.density = GetProperties()[DENSITY] / Variables.detFT;
 
 
-        // Compute ASGS stabilization variables
-        CalculateStabilizationVariables(Variables);
-
-    }
+    // Compute ASGS stabilization variables
+    CalculateStabilizationVariables(Variables);
 
     // The MP_Volume (integration weight) is evaluated
     mMP.volume = mMP.mass / mMP.density;
 
-    if (CalculateStiffnessMatrixFlag && !is_explicit) // if calculation of the matrix is required
+    if (CalculateStiffnessMatrixFlag) // if calculation of the matrix is required
     {
         // Contributions to stiffness matrix calculated on the reference configuration
         this->CalculateAndAddLHS(
