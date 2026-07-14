@@ -4,6 +4,7 @@ from pathlib import Path
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Kratos.Process:
     if not parameters.Has("settings"):
@@ -15,20 +16,11 @@ def RestoreBufferedDict(node: BufferedDict, snapshot: dict, shape_owner, echo_le
     live (freshly constructed, still empty) BufferedDict node.
 
     Tensor-valued leaves need a correctly-shaped placeholder Kratos.TensorAdaptors.* object to
-    write the restored numpy array into (they cannot be unpickled directly, see the output
-    process). "shape_owner" is whatever component (Control/MasterControl/ResponseRoutine's
-    master control) this whole subtree's tensors are shaped like -- see
-    OptimizationProblemRestartInputProcess.ExecuteInitialize for how it is resolved. If it is
-    None, tensor-valued leaves under this subtree are skipped (only ever the case for
-    diagnostic/cache subtrees that are unconditionally recomputed before being read again, e.g.
-    "evaluated_responses" or per-control projection helper data -- see ExecuteInitialize).
-
-    GetEmptyField() placeholders are plain, generic Kratos.TensorAdaptors.* objects -- calling
-    StoreData() on them directly always fails ("base class can only be used for data storage,
-    not to collect or store data"), only a concrete adaptor bound to a container/variable (e.g.
-    PropertiesVariableTensorAdaptor) can actually write to the mesh. shape_owner.Update(...) is
-    the established codebase pattern for turning such a generic tensor into a real mesh write
-    (see e.g. Control.Update()), so it is used here too instead of StoreData().
+    write the restored numpy array into (they cannot be unpickled directly). "shape_owner" is
+    the component (Control/MasterControl) this subtree's tensors are shaped like -- see
+    RestoreOptimizationProblemData for how it is resolved. If it is None, tensor-valued leaves
+    are skipped (only scalars restored); this only happens for subtrees that get unconditionally
+    recomputed before being read again, e.g. response value/gradient caches.
     """
     for step_index, slot in enumerate(snapshot["slots"]):
         for key, leaf in slot.items():
@@ -48,10 +40,18 @@ def RestoreBufferedDict(node: BufferedDict, snapshot: dict, shape_owner, echo_le
             elif kind == "combined_tensor":
                 for part_array, part_ta in zip(leaf["parts"], placeholder.GetTensorAdaptors()):
                     part_ta.data[:] = part_array
+                # a combined tensor adaptor's own .data is a separate buffer from its parts';
+                # CollectData() resyncs it from the parts we just wrote.
+                placeholder.CollectData()
             else:
                 raise RuntimeError(f"Unknown restart data kind \"{kind}\" for key \"{key}\".")
 
-            shape_owner.Update(placeholder)
+            if step_index == 0:
+                # shape_owner.Update() writes straight to the shared mesh, so only the current
+                # step's data (step_index 0) may be pushed there. Historical steps are restored
+                # into the BufferedDict below for bookkeeping only (e.g. GetRelativeChange()'s
+                # previous-step value), never onto the mesh.
+                shape_owner.Update(placeholder)
             node.SetValue(key, placeholder, step_index, overwrite=True)
 
     for name, sub_snapshot in snapshot["sub_items"].items():
@@ -65,9 +65,8 @@ def RestoreBufferedDict(node: BufferedDict, snapshot: dict, shape_owner, echo_le
 def RestoreOptimizationProblemData(optimization_problem: OptimizationProblem, data_snapshot: dict, echo_level: int) -> None:
     root = optimization_problem.GetProblemDataContainer()
 
-    # restore root level leaves generically as well (currently just "step", which
-    # OptimizationProblemRestartInputProcess.ExecuteInitialize also sets explicitly via
-    # SetStep -- doing it here too is harmless and keeps this function self-contained).
+    # restore root-level scalar leaves too (currently just "step"; ExecuteInitialize also sets
+    # it explicitly via SetStep, so this is redundant but harmless).
     for step_index, slot in enumerate(data_snapshot["slots"]):
         for key, leaf in slot.items():
             if leaf["kind"] == "scalar":
@@ -93,13 +92,11 @@ def RestoreOptimizationProblemData(optimization_problem: OptimizationProblem, da
 
             shape_owner = None
             if type_name == "object":
-                # "object" is where ComponentDataView(<string>, ...) subtrees live (e.g. the
-                # "algorithm" buffered data every Algorithm implementation uses). Everything
-                # else under "object" today ("evaluated_responses" response-value/gradient
-                # memoization cache, the projection helpers' beta bookkeeping) either stores no
-                # tensors at all, or unconditionally recomputes+overwrites its cached tensors
-                # before ever reading them again, so it is safe to leave unresolved (tensors
-                # skipped, scalars still restored).
+                # "object" holds ComponentDataView(<string>, ...) subtrees, e.g. the "algorithm"
+                # buffered data every Algorithm implementation uses -- that one is mesh-shaped
+                # like the master control. Everything else under "object" (response value/gradient
+                # caches, projection helper bookkeeping) gets recomputed before being read again,
+                # so it's fine to leave those tensors unresolved.
                 if component_name == "algorithm":
                     shape_owner = algorithm_shape_owner
             elif type_name in type_name_to_class:
@@ -153,33 +150,41 @@ class OptimizationProblemRestartInputProcess(Kratos.Process):
         with open(file_path, "rb") as file_input:
             payload = pickle.load(file_input)
 
-        # controls are normally only initialized later on, from within the algorithm's own
-        # Initialize() (this is where model parts get resolved and control-specific mesh setup,
-        # e.g. entity-specific properties, happens). Restoring tensor-valued data needs
-        # GetEmptyField()/StoreData() on already-initialized controls though, so initialize the
-        # master control(s) here first. Control.Initialize() is idempotent (guarded by mesh
-        # status flags / simple attribute assignment), so the algorithm initializing them again
-        # afterwards is harmless -- and it ensures the algorithm's own initial GetControlField()
-        # snapshot picks up the just-restored mesh values instead of stale, pre-restore ones.
+        # Controls are normally initialized later, from the algorithm's own Initialize(). Restoring
+        # tensor data needs GetEmptyField()/Update() on already-initialized controls, so initialize
+        # the master control(s) here first; Control.Initialize() is idempotent, so the algorithm
+        # initializing them again afterwards is harmless.
         for master_control in self.optimization_problem.GetListOfMasterControls():
             master_control.Initialize()
 
         self.optimization_problem.SetStep(payload["step"])
         RestoreOptimizationProblemData(self.optimization_problem, payload["data"], self.echo_level)
 
-        # the checkpoint was taken right after the checkpointed step finished (before that step's
-        # own end-of-iteration AdvanceStep() call, which only runs when the run *doesn't* converge
-        # there -- see AlgorithmSteepestDescent.Solve()). So both restored buffer slots are
-        # "occupied" (current = checkpointed step, previous = the step before it) exactly as they
-        # were at that point. Since this run is going to continue past the checkpointed step
-        # regardless, advance the buffer/step counter once now to free up a fresh current slot for
-        # the next iteration to write into, mirroring what AdvanceStep() would have done had the
-        # checkpointed run not stopped there.
+        # The checkpoint is written by Algorithm.Output(), which always runs before that step's own
+        # UpdateControl() call. So the design just restored is the one that *produced* the
+        # checkpointed step's results, not the design the live run had moved on to by the time it
+        # stopped. Apply the checkpointed step's pending "control_field_update" now to get there.
+        master_controls = list(self.optimization_problem.GetListOfMasterControls())
+        if master_controls:
+            algorithm_data = ComponentDataView("algorithm", self.optimization_problem).GetBufferedData()
+            if algorithm_data.HasValue("control_field_update"):
+                master_control = master_controls[0]
+                resumed_field = master_control.GetControlField()
+                resumed_field.data[:] += algorithm_data.GetValue("control_field_update").data
+                # a combined tensor adaptor's .data is disconnected from its parts; Update() reads
+                # the parts, so the change has to be pushed down via StoreData() first.
+                Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(resumed_field, perform_store_data_recursively=False, copy=False).StoreData()
+                master_control.Update(resumed_field)
+
+        # The checkpoint was taken before the checkpointed step's own AdvanceStep() call (which
+        # only runs when the run doesn't converge there), so both restored buffer slots are still
+        # "occupied" (current = checkpointed step, previous = the step before it). Advance now to
+        # free up a fresh current slot for the next iteration, as AdvanceStep() would have done had
+        # the checkpointed run continued.
         self.optimization_problem.AdvanceStep()
 
-        # push the just-restored design onto the model part(s) through the normal Control.Update
-        # path, so control-specific side effects (mesh update, filtering caches, etc.) run on the
-        # restored design instead of relying solely on the raw StoreData() writes above.
+        # push the restored design through the normal Control.Update path so control-specific side
+        # effects (filtering caches, etc.) run on it too, not just the raw writes above.
         for master_control in self.optimization_problem.GetListOfMasterControls():
             master_control.Update(master_control.GetControlField())
 

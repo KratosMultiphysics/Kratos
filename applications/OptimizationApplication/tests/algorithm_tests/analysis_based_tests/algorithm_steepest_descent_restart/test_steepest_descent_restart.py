@@ -67,7 +67,13 @@ class TestSteepestDescentRestart(kratos_unittest.TestCase):
             resume_control_field = list(resume_algorithm.GetCurrentControlField().data)
 
             self.assertAlmostEqual(reference_obj_value, resume_obj_value, places=9)
-            self.assertVectorAlmostEqual(reference_control_field, resume_control_field, 9)
+            # the control field holds YOUNG_MODULUS-scale values (~1e10), so an absolute
+            # places-based comparison would demand ~19-20 significant digits -- well beyond
+            # double precision. Compare with a delta scaled to the field's own magnitude instead,
+            # loose enough to absorb floating-point noise (e.g. parallel reduction order) while
+            # still catching a materially wrong restart restore.
+            max_abs_reference_value = max(abs(value) for value in reference_control_field)
+            self.assertVectorAlmostEqual(reference_control_field, resume_control_field, places=None, delta=max_abs_reference_value * 1e-9)
 
     @classmethod
     def tearDownClass(cls) -> None:
