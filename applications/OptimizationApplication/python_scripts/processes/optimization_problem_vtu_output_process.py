@@ -44,7 +44,7 @@ class TensorAdaptorVtuOutput(TensorAdaptorOutput):
                                                 not parameters["write_deformed_configuration"].GetBool(),
                                                 self.writer_format,
                                                 parameters["output_precision"].GetInt(),
-                                                output_sub_model_parts=True,
+                                                output_sub_model_parts=False,
                                                 echo_level=parameters["echo_level"].GetInt(),
                                                 write_ids=parameters["write_ids"].GetBool())
 

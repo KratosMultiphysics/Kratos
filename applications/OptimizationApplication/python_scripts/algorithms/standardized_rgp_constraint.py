@@ -90,14 +90,27 @@ class StandardizedRGPConstraint(ResponseRoutine):
             raise RuntimeError(f"Provided \"type\" = {self.__constraint_type} is not supported in constraint response functions. Followings are supported options: \n\t=\n\t<=\n\t<\n\t>=\n\t>")
 
         # buffer coefficients
-        self.BSF = parameters["buffer_factor"].GetDouble()
-        self.BSF_init = self.BSF
-        self.CBV = 0.0
-        self.BS = 1e-6
+        self.BSF_init = parameters["buffer_factor"].GetDouble()
         self.max_w_c = parameters["max_w_c"].GetDouble()
-        self.CF = 1.0
-
         self.tolerance = parameters["tolerance"].GetDouble()
+
+        # these coefficients evolve every iteration (see UpdateBufferSize). On a restart
+        # (step > 0) they are re-hydrated from unbuffered data instead of re-initialized,
+        # so the constraint resumes exactly where it left off.
+        if optimization_problem.GetStep() > 0 and self.__unbuffered_data.HasValue("BSF"):
+            self.BSF = self.__unbuffered_data["BSF"]
+            self.CBV = self.__unbuffered_data["CBV"]
+            self.BS = self.__unbuffered_data["BS"]
+            self.CF = self.__unbuffered_data["CF"]
+        else:
+            self.BSF = self.BSF_init
+            self.CBV = 0.0
+            self.BS = 1e-6
+            self.CF = 1.0
+            self.__unbuffered_data.SetValue("BSF", self.BSF, overwrite=True)
+            self.__unbuffered_data.SetValue("CBV", self.CBV, overwrite=True)
+            self.__unbuffered_data.SetValue("BS", self.BS, overwrite=True)
+            self.__unbuffered_data.SetValue("CF", self.CF, overwrite=True)
 
     def IsEqualityType(self) -> str:
         return self.__constraint_type == ConstraintType.EQUAL
@@ -169,6 +182,12 @@ class StandardizedRGPConstraint(ResponseRoutine):
         if step > 3:
             if delta_values[0] * delta_values[1] < 0.0 and delta_values[1] * delta_values[2] < 0.0:
                 self.BSF += 1
+
+        # write-through so a restart can re-hydrate these evolving coefficients (see __init__)
+        self.__unbuffered_data.SetValue("BSF", self.BSF, overwrite=True)
+        self.__unbuffered_data.SetValue("CBV", self.CBV, overwrite=True)
+        self.__unbuffered_data.SetValue("BS", self.BS, overwrite=True)
+        self.__unbuffered_data.SetValue("CF", self.CF, overwrite=True)
 
         print(f"RGP Constraint {self.GetResponseName()}:: UpdateBufferSize")
         print(f"RGP Constraint {self.GetResponseName()}:: CBV = {self.CBV}")

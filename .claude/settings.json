@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /usr/lib/x86_64-linux-gnu/qt6/plugins/platforms/libqwayland*.so)",
+      "Read(//usr/lib/x86_64-linux-gnu/qt6/plugins/platforms/**)",
+      "Bash(python3 -m py_compile applications/OptimizationApplication/python_scripts/utilities/optimization_problem.py applications/OptimizationApplication/python_scripts/utilities/opt_projection.py applications/OptimizationApplication/python_scripts/algorithms/standardized_rgp_constraint.py applications/OptimizationApplication/python_scripts/controls/material/simp_control.py applications/OptimizationApplication/python_scripts/controls/thickness/shell_thickness_control.py applications/OptimizationApplication/python_scripts/convergence_criteria/magnitude_reduction_conv_criterion.py applications/OptimizationApplication/python_scripts/convergence_criteria/patience_conv_criterion.py applications/OptimizationApplication/python_scripts/convergence_criteria/avg_abs_improvement_conv_criterion.py applications/OptimizationApplication/python_scripts/processes/optimization_problem_restart_output_process.py applications/OptimizationApplication/python_scripts/processes/optimization_problem_restart_input_process.py)",
+      "Bash(python3 -c \"import KratosMultiphysics\")",
+      "Bash(python3 -m py_compile applications/OptimizationApplication/python_scripts/processes/optimization_problem_restart_input_process.py)",
+      "Bash(xargs -0 python3 -m py_compile)",
+      "Bash(python3 -m py_compile applications/OptimizationApplication/tests/algorithm_tests/analysis_based_tests/algorithm_steepest_descent_restart/test_steepest_descent_restart.py applications/OptimizationApplication/tests/test_OptimizationApplication.py)",
+      "Bash(python3 -c \"import json; json.load\\(open\\('applications/OptimizationApplication/tests/algorithm_tests/analysis_based_tests/algorithm_steepest_descent_restart/optimization_parameters.json'\\)\\)\")",
+      "Bash(python3 -c \"import sys; print\\(sys.path\\)\")",
+      "Bash(pip3 show *)",
+      "Read(//home/ihar/**)",
+      "Bash(env)",
+      "Read(//home/ihar/Software/Kratos/**)",
+      "Bash(find / -path \"*/KratosMultiphysics/OptimizationApplication/optimization_analysis.py\")",
+      "Bash(find / -path \"*/KratosMultiphysics/OptimizationApplication/controls/material/material_properties_control.py\")",
+      "Bash(rm -rf __pycache__ ../../../../processes/__pycache__)",
+      "Bash(python3 test_steepest_descent_restart.py)"
+    ]
+  }
+}
