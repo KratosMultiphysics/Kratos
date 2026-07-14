@@ -309,6 +309,49 @@ public:
         CONDITIONS = 2
     };
 
+    /**
+     * @brief Enum class representing the unit system declared in the UNV units dataset (164).
+     * @details The enum values match the UNV units codes:
+     * - SI: Meter (newton)
+     * - BG: Foot (pound f)
+     * - MG: Meter (kilogram f)
+     * - BA: Foot (poundal)
+     * - MM: mm (milli newton)
+     * - CM: cm (centi newton)
+     * - INCH: Inch (pound f)
+     * - GM: mm (kilogram f)
+     * - USER_DEFINED: user supplied conversion factors
+     * - MN: mm (newton)
+     * @note INCH is used instead of "IN" to avoid the Windows SDK "IN" macro.
+     */
+    enum class UnitSystem {
+        SI           = 1,
+        BG           = 2,
+        MG           = 3,
+        BA           = 4,
+        MM           = 5,
+        CM           = 6,
+        INCH         = 7,
+        GM           = 8,
+        USER_DEFINED = 9,
+        MN           = 10
+    };
+
+    /**
+     * @brief Describes a UNV unit system, as written in dataset 164.
+     * @details The conversion factors express the number of these units per SI unit (1.0 for SI),
+     * i.e. a reader divides a model value by the factor to obtain SI.
+     */
+    struct UnitSystemData {
+        int code = 1;                            /// UNV units code (1 = SI: Meter (newton))
+        std::string description;                 /// Units description (Record 1)
+        double length_factor = 1.0;              /// Length units per SI meter
+        double force_factor = 1.0;               /// Force units per SI newton
+        double temperature_factor = 1.0;         /// Temperature units per SI kelvin
+        double temperature_offset = 273.15;      /// Temperature offset
+        int temperature_mode = 2;                /// Temperature mode (1 = absolute, 2 = relative)
+    };
+
     /// Pointer definition of UnvOutput
     KRATOS_CLASS_POINTER_DEFINITION(UnvOutput);
 
@@ -445,7 +488,8 @@ private:
     std::unordered_map<std::size_t, int> mUnvVariableKeys; /// Map to store the keys of the UNV variables for quick access
 
     EntityType mEntityType = EntityType::AUTOMATIC;        /// Type of entity to be printed (automatic, elements, or conditions)
-    std::string mUnitSystem = "SI";                        /// Unit system declared in the UNV units dataset (164)
+    UnitSystem mUnitSystem = UnitSystem::SI;               /// Unit system declared in the UNV units dataset (164)
+    UnitSystemData mUnitSystemData;                        /// Resolved unit system descriptor (factors written to dataset 164)
     unsigned int mDefaultPrecision = 7;                    /// Precision used when writing floating point result values
     double mDeformationFactor = 1.0;                       /// Scale applied ONLY to the deformed configuration coordinates (visualization exaggeration)
     bool mDecomposeQuadraticIntoLinear = false;            /// Flag to decompose quadratic geometries into linear sub-elements (for stricter readers, e.g. Simcenter 3D)
@@ -572,27 +616,25 @@ private:
     void WriteEntities(const TContainerType& rContainer);
 
     /**
-     * @brief Describes a UNV unit system, as written in dataset 164.
-     * @details The conversion factors multiply a model value to obtain its SI counterpart (1.0 for SI).
+     * @brief Parses a unit system name into the corresponding enum value.
+     * @param rName The unit system name (e.g. "SI", "MM", "USER_DEFINED").
+     * @param rOut The parsed unit system on success.
+     * @return true if the name is known, false otherwise.
      */
-    struct UnitSystemData {
-        int code = 1;                            /// UNV units code (1 = SI: Meter (newton))
-        std::string description;                 /// Units description (Record 1, up to 20 chars)
-        double length_factor = 1.0;              /// Length conversion factor to SI
-        double force_factor = 1.0;               /// Force conversion factor to SI
-        double temperature_factor = 1.0;         /// Temperature conversion factor to SI
-        double temperature_offset = 273.15;      /// Temperature offset
-        int temperature_mode = 2;                /// Temperature mode (1 = absolute, 2 = relative)
-    };
+    static bool TryParseUnitSystem(
+        const std::string& rName,
+        UnitSystem& rOut
+        );
 
     /**
-     * @brief Resolves a unit system name into its UNV descriptor.
-     * @param rName The unit system name (e.g. "SI").
+     * @brief Returns the standard UNV descriptor (code, description, factors) for a unit system.
+     * @details Not applicable to USER_DEFINED, whose factors come from the user settings.
+     * @param Type The unit system.
      * @param rOut The descriptor filled on success.
-     * @return true if the unit system is known, false otherwise.
+     * @return true if the unit system has a standard descriptor, false otherwise.
      */
-    static bool TryGetUnitSystem(
-        const std::string& rName,
+    static bool GetUnitSystemData(
+        const UnitSystem Type,
         UnitSystemData& rOut
         );
 

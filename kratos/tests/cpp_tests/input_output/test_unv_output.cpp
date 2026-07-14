@@ -550,4 +550,70 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputWritesUnitsDataset, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(std::stoi(p_units->tokens[0]), 1);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(UnvOutputUnitSystemMillimeter, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    auto p_prop = r_model_part.CreateNewProperties(1);
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    r_model_part.CreateNewElement("Element2D3N", 1, std::vector<ModelPart::IndexType>{1, 2, 3}, p_prop);
+
+    if (std::filesystem::exists("Main.unv")) {
+        std::filesystem::remove("Main.unv");
+    }
+    Parameters parameters(R"({
+        "model_part_name"             : "Main",
+        "save_output_files_in_folder" : false,
+        "unit_system"                 : "MM"
+    })");
+    UnvOutput unv_output(current_model, parameters);
+    unv_output.InitializeOutputFile();
+    unv_output.WriteMesh();
+
+    const auto blocks = ParseUnvBlocks("Main.unv");
+    const UnvBlock* p_units = GetBlock(blocks, 164);
+    KRATOS_EXPECT_NE(p_units, nullptr);
+    KRATOS_EXPECT_EQ(std::stoi(p_units->tokens[0]), 5); // MM: mm (milli newton)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UnvOutputUserDefinedUnits, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    auto p_prop = r_model_part.CreateNewProperties(1);
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    r_model_part.CreateNewElement("Element2D3N", 1, std::vector<ModelPart::IndexType>{1, 2, 3}, p_prop);
+
+    if (std::filesystem::exists("Main.unv")) {
+        std::filesystem::remove("Main.unv");
+    }
+    Parameters parameters(R"({
+        "model_part_name"             : "Main",
+        "save_output_files_in_folder" : false,
+        "unit_system"                 : "USER_DEFINED",
+        "user_defined_units"          : {
+            "description"   : "MYUNITS",
+            "length_factor" : 1000.0,
+            "force_factor"  : 42.0
+        }
+    })");
+    UnvOutput unv_output(current_model, parameters);
+    unv_output.InitializeOutputFile();
+    unv_output.WriteMesh();
+
+    const auto blocks = ParseUnvBlocks("Main.unv");
+    const UnvBlock* p_units = GetBlock(blocks, 164);
+    KRATOS_EXPECT_NE(p_units, nullptr);
+    // Single-word description -> tokens: [0]=code, [1]=description, [2]=temp mode,
+    // [3]=length factor, [4]=force factor.
+    KRATOS_EXPECT_EQ(std::stoi(p_units->tokens[0]), 9); // USER_DEFINED code
+    KRATOS_EXPECT_EQ(p_units->tokens[1], "MYUNITS");
+    KRATOS_EXPECT_NEAR(std::stod(p_units->tokens[3]), 1000.0, 1e-9);
+    KRATOS_EXPECT_NEAR(std::stod(p_units->tokens[4]), 42.0, 1e-9);
+}
+
 } // namespace Kratos::Testing

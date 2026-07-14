@@ -99,7 +99,7 @@ UnvOutput::UnvOutput(
     ) :  mrOutputModelPart(rModel.GetModelPart(Settings["model_part_name"].GetString()))
 {
     // Validate and assign default parameters
-    const Parameters default_parameters = GetDefaultParameters();
+    Parameters default_parameters = GetDefaultParameters();
     Settings.ValidateAndAssignDefaults(default_parameters);
 
     // The file format: UNV is a text (ASCII) format only, so anything else is rejected.
@@ -136,11 +136,26 @@ UnvOutput::UnvOutput(
     mDecomposeQuadraticIntoLinear = Settings["decompose_quadratic_into_linear"].GetBool();
     mWriteDeformedConfiguration = Settings["write_deformed_configuration"].GetBool();
 
-    // Unit system declared in the UNV file (validated against the known systems)
-    mUnitSystem = Settings["unit_system"].GetString();
-    UnitSystemData unit_system_data;
-    KRATOS_ERROR_IF_NOT(TryGetUnitSystem(mUnitSystem, unit_system_data))
-        << "Unknown unit_system: '" << mUnitSystem << "'. Currently supported: 'SI'." << std::endl;
+    // Unit system declared in the UNV file (parsed into the enum and resolved to its descriptor)
+    const std::string unit_system_name = Settings["unit_system"].GetString();
+    KRATOS_ERROR_IF_NOT(TryParseUnitSystem(unit_system_name, mUnitSystem))
+        << "Unknown unit_system: '" << unit_system_name << "'. Valid options: "
+        << "SI, BG, MG, BA, MM, CM, IN, GM, USER_DEFINED, MN." << std::endl;
+
+    if (mUnitSystem == UnitSystem::USER_DEFINED) {
+        // Resolve the user-defined unit system from its own settings block.
+        Parameters user_units = Settings["user_defined_units"];
+        user_units.ValidateAndAssignDefaults(default_parameters["user_defined_units"]);
+        mUnitSystemData.code = as_integer(UnitSystem::USER_DEFINED);
+        mUnitSystemData.description = user_units["description"].GetString();
+        mUnitSystemData.length_factor = user_units["length_factor"].GetDouble();
+        mUnitSystemData.force_factor = user_units["force_factor"].GetDouble();
+        mUnitSystemData.temperature_factor = user_units["temperature_factor"].GetDouble();
+        mUnitSystemData.temperature_offset = user_units["temperature_offset"].GetDouble();
+        mUnitSystemData.temperature_mode = user_units["temperature_mode"].GetInt();
+    } else {
+        GetUnitSystemData(mUnitSystem, mUnitSystemData);
+    }
     mWriteIds = Settings["write_ids"].GetBool();
     mOutputSubModelParts = Settings["output_sub_model_parts"].GetBool();
 
@@ -362,25 +377,48 @@ void UnvOutput::InitializeOutputFile() {
     mInitializedOutputFile = true;
 }
 
-bool UnvOutput::TryGetUnitSystem(
+bool UnvOutput::TryParseUnitSystem(
     const std::string& rName,
-    UnitSystemData& rOut
+    UnitSystem& rOut
     )
 {
-    if (rName == "SI") {
-        // SI: Meter (newton). All conversion factors are 1.0 (values are already in SI).
-        rOut = {1, "SI: Meter (newton)", 1.0, 1.0, 1.0, 273.15, 2};
-        return true;
-    }
-    // Additional systems (e.g. mm) can be added here.
+    if (rName == "SI")                                 { rOut = UnitSystem::SI;           return true; }
+    if (rName == "BG")                                 { rOut = UnitSystem::BG;           return true; }
+    if (rName == "MG")                                 { rOut = UnitSystem::MG;           return true; }
+    if (rName == "BA")                                 { rOut = UnitSystem::BA;           return true; }
+    if (rName == "MM")                                 { rOut = UnitSystem::MM;           return true; }
+    if (rName == "CM")                                 { rOut = UnitSystem::CM;           return true; }
+    if (rName == "IN" || rName == "INCH")              { rOut = UnitSystem::INCH;         return true; }
+    if (rName == "GM")                                 { rOut = UnitSystem::GM;           return true; }
+    if (rName == "US" || rName == "USER_DEFINED")      { rOut = UnitSystem::USER_DEFINED; return true; }
+    if (rName == "MN")                                 { rOut = UnitSystem::MN;           return true; }
     return false;
 }
 
-void UnvOutput::WriteUnitsDataset() {
-    UnitSystemData unit_system_data;
-    KRATOS_ERROR_IF_NOT(TryGetUnitSystem(mUnitSystem, unit_system_data))
-        << "Unknown unit_system: '" << mUnitSystem << "'." << std::endl;
+bool UnvOutput::GetUnitSystemData(
+    const UnitSystem Type,
+    UnitSystemData& rOut
+    )
+{
+    // Conversion factors are "units per SI unit" (divide a model value by the factor to obtain SI).
+    // Temperature offset is 273.15 for the Celsius/Kelvin family and 459.67 for the Fahrenheit/Rankine family.
+    switch (Type) {
+        case UnitSystem::SI:   rOut = {1,  "SI: Meter (newton)",      1.0,        1.0,          1.0, 273.15, 2}; return true;
+        case UnitSystem::BG:   rOut = {2,  "BG: Foot (pound f)",      3.2808399,  0.22480894,   1.8, 459.67, 2}; return true;
+        case UnitSystem::MG:   rOut = {3,  "MG: Meter (kilogram f)",  1.0,        0.10197162,   1.0, 273.15, 2}; return true;
+        case UnitSystem::BA:   rOut = {4,  "BA: Foot (poundal)",      3.2808399,  7.2330139,    1.8, 459.67, 2}; return true;
+        case UnitSystem::MM:   rOut = {5,  "MM: mm (milli newton)",   1000.0,     1000.0,       1.0, 273.15, 2}; return true;
+        case UnitSystem::CM:   rOut = {6,  "CM: cm (centi newton)",   100.0,      100.0,        1.0, 273.15, 2}; return true;
+        case UnitSystem::INCH: rOut = {7,  "IN: Inch (pound f)",      39.370079,  0.22480894,   1.8, 459.67, 2}; return true;
+        case UnitSystem::GM:   rOut = {8,  "GM: mm (kilogram f)",     1000.0,     0.10197162,   1.0, 273.15, 2}; return true;
+        case UnitSystem::MN:   rOut = {10, "MN: mm (newton)",         1000.0,     1.0,          1.0, 273.15, 2}; return true;
+        default:
+            // USER_DEFINED has no standard descriptor; its factors come from the user settings.
+            return false;
+    }
+}
 
+void UnvOutput::WriteUnitsDataset() {
     std::ofstream rOutputFile;
     rOutputFile.open(mOutputFileName, std::ios::out | std::ios::app);
     rOutputFile << std::scientific << std::setprecision(15);
@@ -389,16 +427,16 @@ void UnvOutput::WriteUnitsDataset() {
     rOutputFile << std::setw(6) << as_integer(DatasetID::UNITS_DATASET) << "\n";
 
     // Record 1: units code (I10), units description (20A1, left-justified), temperature mode (I10)
-    rOutputFile << std::setw(10) << unit_system_data.code << "  " << std::left << std::setw(20)
-                << unit_system_data.description << std::right << std::setw(10) << unit_system_data.temperature_mode << "\n";
+    rOutputFile << std::setw(10) << mUnitSystemData.code << "  " << std::left << std::setw(20)
+                << mUnitSystemData.description << std::right << std::setw(10) << mUnitSystemData.temperature_mode << "\n";
 
-    // Record 2: length, force and temperature conversion factors to SI
-    rOutputFile << std::setw(25) << unit_system_data.length_factor;
-    rOutputFile << std::setw(25) << unit_system_data.force_factor;
-    rOutputFile << std::setw(25) << unit_system_data.temperature_factor << "\n";
+    // Record 2: length, force and temperature conversion factors
+    rOutputFile << std::setw(25) << mUnitSystemData.length_factor;
+    rOutputFile << std::setw(25) << mUnitSystemData.force_factor;
+    rOutputFile << std::setw(25) << mUnitSystemData.temperature_factor << "\n";
 
     // Record 3: temperature offset
-    rOutputFile << std::setw(25) << unit_system_data.temperature_offset << "\n";
+    rOutputFile << std::setw(25) << mUnitSystemData.temperature_offset << "\n";
 
     rOutputFile << std::setw(6) << "-1" << "\n";
     rOutputFile.close();
@@ -938,6 +976,14 @@ const Parameters UnvOutput::GetDefaultParameters() const
         "save_output_files_in_folder"                 : true,
         "entity_type"                                 : "automatic",
         "unit_system"                                 : "SI",
+        "user_defined_units"                          : {
+            "description"        : "USER DEFINED",
+            "length_factor"      : 1.0,
+            "force_factor"       : 1.0,
+            "temperature_factor" : 1.0,
+            "temperature_offset" : 273.15,
+            "temperature_mode"   : 2
+        },
         "decompose_quadratic_into_linear"             : false,
         "write_deformed_configuration"                : false,
         "deformation_factor"                          : 1.0,
