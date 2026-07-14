@@ -84,13 +84,8 @@ private:
     /// accurately. It subdivides the strain increment such that each sub-step overshoots by at most a
     /// target fraction of the stress magnitude. The result is clamped to [1, MaxNumberOfSubSteps].
     /// </summary>
-    /// <param name="rImpl"></param>
-    /// <param name="rTrialPrincipalStresses"></param>
-    /// <param name="rElasticMatrix"></param>
-    /// <returns></returns>
-    std::size_t CalculateAdaptiveNumberOfSubSteps(std::unique_ptr<CoulombImpl>& rImpl,
-                                                  const Geo::PrincipalStresses& rTrialPrincipalStresses,
-                                                  const Matrix& rElasticMatrix);
+    std::size_t CalculateAdaptiveNumberOfSubSteps(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                  const Matrix& rElasticMatrix) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

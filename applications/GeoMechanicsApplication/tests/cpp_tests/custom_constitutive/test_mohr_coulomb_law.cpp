@@ -1031,7 +1031,7 @@ Vector IntegrateMohrCoulombStrainPath(const Properties& rProperties, const std::
 // Builds a list of cumulative strain states that follow the given vertices. Between each pair
 // of consecutive vertices, NIncrementsPerLeg equally spaced points are added.
 std::vector<Vector> BuildLinearlyInterpolatedStrainPath(const std::vector<Vector>& rStrainPathVertices,
-                                                        std::size_t NIncrementsPerLeg)
+                                                        const std::size_t NIncrementsPerLeg)
 {
     KRATOS_ERROR_IF(NIncrementsPerLeg == 0)
         << "BuildLinearlyInterpolatedStrainPath requires NIncrementsPerLeg > 0" << std::endl;
@@ -1042,7 +1042,7 @@ std::vector<Vector> BuildLinearlyInterpolatedStrainPath(const std::vector<Vector
         const Vector& r_end_strain   = rStrainPathVertices[leg + 1];
         for (std::size_t increment = 1; increment <= NIncrementsPerLeg; ++increment) {
             const auto fraction = static_cast<double>(increment) / static_cast<double>(NIncrementsPerLeg);
-            strain_states.push_back(r_start_strain + fraction * (r_end_strain - r_start_strain));
+            strain_states.emplace_back(r_start_strain + fraction * (r_end_strain - r_start_strain));
         }
     }
     return strain_states;

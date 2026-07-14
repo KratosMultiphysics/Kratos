@@ -225,7 +225,7 @@ void InterfaceCoulombLaw::CalculateMaterialResponseCauchy(Parameters& rConstitut
 }
 
 std::size_t InterfaceCoulombLaw::CalculateAdaptiveNumberOfSubSteps(const Geo::SigmaTau& rTrialTraction,
-                                                                   const Matrix& rElasticMatrix)
+                                                                   const Matrix& rElasticMatrix) const
 {
     // make sure that kappa is not updated while calculating the number of required sub steps
     mpCoulombImpl->SaveKappaOfCoulombYieldSurface();

@@ -78,7 +78,8 @@ private:
     [[nodiscard]] Geo::SigmaTau CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
                                                              double NormalStiffness,
                                                              double ShearStiffness) const;
-    std::size_t CalculateAdaptiveNumberOfSubSteps(const Geo::SigmaTau& rTrialTraction, const Matrix& rElasticMatrix);
+    std::size_t CalculateAdaptiveNumberOfSubSteps(const Geo::SigmaTau& rTrialTraction,
+                                                  const Matrix&        rElasticMatrix) const;
 
     double      mMaxRelativeOvershoot       = 1.0;
     int         mMaxNumberOfSubSteps        = 1;

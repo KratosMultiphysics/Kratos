@@ -93,11 +93,11 @@ ConstitutiveLaw::Pointer MohrCoulombLaw::Clone() const
 {
     auto p_result           = std::make_shared<MohrCoulombLaw>(mpConstitutiveDimension->Clone());
     p_result->mStressVector = mStressVector;
-    p_result->mStressVectorFinalized = mStressVectorFinalized;
-    p_result->mStrainVectorFinalized = mStrainVectorFinalized;
-    p_result->mpCoulombImpl          = mpCoulombImpl->Clone();
-    p_result->mMaxRelativeOvershoot = mMaxRelativeOvershoot;
-    p_result->mMaxNumberOfSubSteps =  mMaxNumberOfSubSteps;
+    p_result->mStressVectorFinalized      = mStressVectorFinalized;
+    p_result->mStrainVectorFinalized      = mStrainVectorFinalized;
+    p_result->mpCoulombImpl               = mpCoulombImpl->Clone();
+    p_result->mMaxRelativeOvershoot       = mMaxRelativeOvershoot;
+    p_result->mMaxNumberOfSubSteps        = mMaxNumberOfSubSteps;
     p_result->mCalculatedNumberOfSubSteps = mCalculatedNumberOfSubSteps;
     return p_result;
 }
@@ -231,15 +231,13 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
 
     std::size_t number_of_sub_steps = 1;
     if (mMaxNumberOfSubSteps > 1) {
-        
         // only calculate the number of sub-steps once per solution step for stability
         if (mCalculatedNumberOfSubSteps == 0) {
-            mCalculatedNumberOfSubSteps = CalculateAdaptiveNumberOfSubSteps(
-            mpCoulombImpl, full_trial_principal_stresses, elastic_matrix);
+            mCalculatedNumberOfSubSteps =
+                CalculateAdaptiveNumberOfSubSteps(full_trial_principal_stresses, elastic_matrix);
         }
-        
-        number_of_sub_steps = mCalculatedNumberOfSubSteps;
 
+        number_of_sub_steps = mCalculatedNumberOfSubSteps;
     }
 
     // Running committed state for the sub-stepping (start from last finalized state)
@@ -294,15 +292,14 @@ Vector MohrCoulombLaw::CalculateTrialStressVector(const Vector& rStrainVector, c
                                          rStrainVector - mStrainVectorFinalized);
 }
 
-std::size_t MohrCoulombLaw::CalculateAdaptiveNumberOfSubSteps(std::unique_ptr<CoulombImpl>& rImpl,
-                                                              const Geo::PrincipalStresses& rTrialPrincipalStresses,
-                                                              const Matrix& rElasticMatrix)
+std::size_t MohrCoulombLaw::CalculateAdaptiveNumberOfSubSteps(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                              const Matrix& rElasticMatrix) const
 {
     // make sure that kappa is not updated while calculating the number of required sub steps
-    rImpl->SaveKappaOfCoulombYieldSurface();
-    const auto mapped_principal_stresses = rImpl->DoReturnMapping(
+    mpCoulombImpl->SaveKappaOfCoulombYieldSurface();
+    const auto mapped_principal_stresses = mpCoulombImpl->DoReturnMapping(
         rTrialPrincipalStresses, rElasticMatrix, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
-    rImpl->RestoreKappaOfCoulombYieldSurface();
+    mpCoulombImpl->RestoreKappaOfCoulombYieldSurface();
 
     const Vector trial_values  = rTrialPrincipalStresses.CopyTo<Vector>();
     const Vector mapped_values = mapped_principal_stresses.CopyTo<Vector>();
@@ -311,8 +308,7 @@ std::size_t MohrCoulombLaw::CalculateAdaptiveNumberOfSubSteps(std::unique_ptr<Co
     const auto stress_scale       = std::max(norm_2(trial_values), 1.0e-12);
     const auto relative_overshoot = overshoot / stress_scale;
 
-    const auto number_of_sub_steps =
-        static_cast<int>(std::ceil(relative_overshoot / mMaxRelativeOvershoot));
+    const auto number_of_sub_steps = static_cast<int>(std::ceil(relative_overshoot / mMaxRelativeOvershoot));
 
     return std::clamp(number_of_sub_steps, 1, mMaxNumberOfSubSteps);
 }
@@ -334,8 +330,8 @@ void MohrCoulombLaw::save(Serializer& rSerializer) const
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.save("mpCoulombImpl", mpCoulombImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
-	rSerializer.save("MaxRelativeOvershoot", mMaxRelativeOvershoot);
-	rSerializer.save("MaxNumberOfSubSteps", mMaxNumberOfSubSteps);
+    rSerializer.save("MaxRelativeOvershoot", mMaxRelativeOvershoot);
+    rSerializer.save("MaxNumberOfSubSteps", mMaxNumberOfSubSteps);
 }
 
 void MohrCoulombLaw::load(Serializer& rSerializer)
@@ -347,8 +343,8 @@ void MohrCoulombLaw::load(Serializer& rSerializer)
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.load("mpCoulombImpl", mpCoulombImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
-	rSerializer.load("MaxRelativeOvershoot", mMaxRelativeOvershoot);
-	rSerializer.load("MaxNumberOfSubSteps", mMaxNumberOfSubSteps);
+    rSerializer.load("MaxRelativeOvershoot", mMaxRelativeOvershoot);
+    rSerializer.load("MaxNumberOfSubSteps", mMaxNumberOfSubSteps);
 }
 
 } // Namespace Kratos

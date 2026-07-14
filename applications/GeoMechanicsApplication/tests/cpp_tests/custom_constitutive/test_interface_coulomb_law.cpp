@@ -67,7 +67,7 @@ Vector IntegrateInterfaceCoulombDisplacementPath(const Properties& rProperties,
 // Builds a list of cumulative relative-displacement states that follow the given vertices.
 // Between each pair of consecutive vertices, NIncrementsPerLeg equally spaced points are added.
 std::vector<Vector> BuildLinearlyInterpolatedDisplacementPath(const std::vector<Vector>& rPathVertices,
-                                                              std::size_t NIncrementsPerLeg)
+                                                              const std::size_t NIncrementsPerLeg)
 {
     KRATOS_ERROR_IF(NIncrementsPerLeg == 0)
         << "BuildLinearlyInterpolatedDisplacementPath requires NIncrementsPerLeg > 0" << std::endl;
@@ -78,7 +78,7 @@ std::vector<Vector> BuildLinearlyInterpolatedDisplacementPath(const std::vector<
         const Vector& r_end   = rPathVertices[leg + 1];
         for (std::size_t increment = 1; increment <= NIncrementsPerLeg; ++increment) {
             const auto fraction = static_cast<double>(increment) / static_cast<double>(NIncrementsPerLeg);
-            relative_displacement_states.push_back(r_start + fraction * (r_end - r_start));
+            relative_displacement_states.emplace_back(r_start + fraction * (r_end - r_start));
         }
     }
     return relative_displacement_states;
