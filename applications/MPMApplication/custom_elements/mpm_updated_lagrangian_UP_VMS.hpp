@@ -97,6 +97,21 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 protected:
+    struct VMSGeneralVariables
+        : public GeneralVariables
+    {
+        // Stabilization parameters
+        double tau1;
+        double tau2;
+        double BulkModulus;
+
+        // Pressure at gauss points and pressure gradient
+        double PressureGP;
+        Vector PressureGradient;
+        Vector PressureGradientVoigt;
+        Matrix TensorIdentityMatrix;
+    };
+
     ///@name Protected Static Member Variables
     ///@{
 
@@ -122,7 +137,7 @@ protected:
         const bool CalculateResidualVectorFlag) override;
 
     // Calculation of stabilization parameters
-    void CalculateTaus(GeneralVariables& rVariables);
+    void CalculateTaus(VMSGeneralVariables& rVariables);
 
     double CalculateShearModulus() const;
 
@@ -141,9 +156,14 @@ protected:
     void ConvertPressureGradientInVoigt(const Vector& rPressureGradient, Vector& rPressureGradientVoigt);
 
     // Calculation of ASGS stabilization variables
-    void CalculateStabilizationVariables(GeneralVariables& rVariables);
+    void CalculateStabilizationVariables(VMSGeneralVariables& rVariables);
 
-    void CalculatePressureVariables(GeneralVariables& rVariables);
+    void CalculatePressureVariables(VMSGeneralVariables& rVariables);
+
+    /**
+     * Initialize VMS Element General Variables
+     */
+    void InitializeVMSGeneralVariables(VMSGeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation and addition of the matrices of the LHS
@@ -166,21 +186,21 @@ protected:
      * Calculation of the Kuu Stabilization Term matrix
      */
     void CalculateAndAddKuuStab(MatrixType& rK,
-                                GeneralVariables& rVariables,
+                                VMSGeneralVariables& rVariables,
                                 const double& rIntegrationWeight);
 
     /**
      * Calculation of the Kup Stabilization Term matrix
      */
     void CalculateAndAddKupStab(MatrixType& rK,
-                                GeneralVariables& rVariables,
+                                VMSGeneralVariables& rVariables,
                                 const double& rIntegrationWeight);
 
     /**
      * Calculation of the Kpu Stabilization Term matrix
      */
     void CalculateAndAddKpuStab(MatrixType& rK,
-                                GeneralVariables& rVariables,
+                                VMSGeneralVariables& rVariables,
                                 const double& rIntegrationWeight);
 
     /**
@@ -194,7 +214,7 @@ protected:
      * Calculation of stabilization terms for the continuity equation
      */
     void CalculateAndAddStabilizedPressureVMS(VectorType& rRightHandSideVector,
-                                              GeneralVariables& rVariables,
+                                              VMSGeneralVariables& rVariables,
                                               Vector& rVolumeForce,
                                               const double& rIntegrationWeight);
 
@@ -202,7 +222,7 @@ protected:
      * Calculation stabilization terms for the momentum equation
      */
     void CalculateAndAddStabilizedDisplacementVMS(VectorType& rRightHandSideVector,
-                                                  GeneralVariables& rVariables,
+                                                  VMSGeneralVariables& rVariables,
                                                   Vector& rVolumeForce,
                                                   const double& rIntegrationWeight);
 

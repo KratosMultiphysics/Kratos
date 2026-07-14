@@ -120,6 +120,20 @@ void MPMUpdatedLagrangianUPVMS::InitializeGeneralVariables(
     KRATOS_TRY
 
     MPMUpdatedLagrangian::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMUpdatedLagrangianUPVMS::InitializeVMSGeneralVariables(
+    VMSGeneralVariables& rVariables,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    MPMUpdatedLagrangian::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int voigt_dimension = (dimension - 1) * (dimension - 1) + 2;
@@ -154,8 +168,8 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
     KRATOS_TRY
 
     // Create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+    VMSGeneralVariables Variables;
+    this->InitializeVMSGeneralVariables(Variables, rCurrentProcessInfo);
 
     const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
     const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
@@ -229,7 +243,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
 //************************************************************************************
 //************************************************************************************
 
-void MPMUpdatedLagrangianUPVMS::CalculateStabilizationVariables(GeneralVariables& rVariables)
+void MPMUpdatedLagrangianUPVMS::CalculateStabilizationVariables(VMSGeneralVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -244,7 +258,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateStabilizationVariables(GeneralVariables
 //************************************************************************************
 //************************************************************************************
 
-void MPMUpdatedLagrangianUPVMS::CalculatePressureVariables(GeneralVariables& rVariables)
+void MPMUpdatedLagrangianUPVMS::CalculatePressureVariables(VMSGeneralVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -301,7 +315,7 @@ double MPMUpdatedLagrangianUPVMS::CalculateElementSize() const
 
 // Calculate stabilization parameters
 
-void MPMUpdatedLagrangianUPVMS::CalculateTaus(GeneralVariables& rVariables)
+void MPMUpdatedLagrangianUPVMS::CalculateTaus(VMSGeneralVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -465,6 +479,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddRHS(
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    VMSGeneralVariables& r_vms_variables = static_cast<VMSGeneralVariables&>(rVariables);
 
     // Operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
     CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
@@ -476,10 +491,10 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddRHS(
     CalculateAndAddPressureForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized terms of the momentum equation
-    CalculateAndAddStabilizedDisplacementVMS( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
+    CalculateAndAddStabilizedDisplacementVMS( rRightHandSideVector, r_vms_variables, rVolumeForce, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
-    CalculateAndAddStabilizedPressureVMS( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
+    CalculateAndAddStabilizedPressureVMS( rRightHandSideVector, r_vms_variables, rVolumeForce, rIntegrationWeight);
 
 }
 
@@ -490,7 +505,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddRHS(
 
 
 void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacementVMS(VectorType& rRightHandSideVector,
-        GeneralVariables& rVariables,
+        VMSGeneralVariables& rVariables,
         Vector& rVolumeForce,
         const double& rIntegrationWeight)
 {
@@ -543,7 +558,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacementVMS(VectorT
 //************************************************************************************
 
 void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressureVMS(VectorType& rRightHandSideVector,
-        GeneralVariables& rVariables,
+        VMSGeneralVariables& rVariables,
         Vector& rVolumeForce,
         const double& rIntegrationWeight)
 {
@@ -592,6 +607,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddLHS(
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    VMSGeneralVariables& r_vms_variables = static_cast<VMSGeneralVariables&>(rVariables);
 
     // Operation performed: add Km to the rLefsHandSideMatrix
     MPMUpdatedLagrangianUP::CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
@@ -612,13 +628,13 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddLHS(
     MPMUpdatedLagrangianUP::CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kuu stabilization to the rLefsHandSideMatrix
-    CalculateAndAddKuuStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    CalculateAndAddKuuStab( rLeftHandSideMatrix, r_vms_variables, rIntegrationWeight );
 
     // Operation performed: add Kup stabilization to the rLefsHandSideMatrix
-    CalculateAndAddKupStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    CalculateAndAddKupStab( rLeftHandSideMatrix, r_vms_variables, rIntegrationWeight );
 
     // Operations performed: add Kpu stabilization to the rLefsHandSideMatrix
-    CalculateAndAddKpuStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    CalculateAndAddKpuStab( rLeftHandSideMatrix, r_vms_variables, rIntegrationWeight );
 
     // Operation performed: add Kpp stabilization to the rLefsHandSideMatrix
     CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
@@ -629,7 +645,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddLHS(
 //************************************************************************************
 
 void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
+        VMSGeneralVariables& rVariables,
         const double& rIntegrationWeight)
 
 {
@@ -700,7 +716,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
 //***********************************************************************************
 //***********************************************************************************
 void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
+        VMSGeneralVariables& rVariables,
         const double& rIntegrationWeight)
 
 {
@@ -756,7 +772,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
 //***********************************************************************************
 //***********************************************************************************
 void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
+        VMSGeneralVariables& rVariables,
         const double& rIntegrationWeight)
 
 {
@@ -817,25 +833,26 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSid
         const double& rIntegrationWeight)
 {
     KRATOS_TRY
+    VMSGeneralVariables& r_vms_variables = static_cast<VMSGeneralVariables&>(rVariables);
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     unsigned int indexpi = dimension;
     Matrix pressure_gradient_matrix = prod(rVariables.DN_DX, trans(rVariables.DN_DX));
     const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
-    const double inverse_bulk_modulus = 1.0 / rVariables.BulkModulus;
+    const double inverse_bulk_modulus = 1.0 / r_vms_variables.BulkModulus;
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         unsigned int indexpj = dimension;
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.tau1
+            rLeftHandSideMatrix(indexpi, indexpj) -= r_vms_variables.tau1
                 * volumetric_strain_linearization
                 * pressure_gradient_matrix(i, j)
                 * rIntegrationWeight;
 
-            rLeftHandSideMatrix(indexpi, indexpj) += rVariables.tau2
+            rLeftHandSideMatrix(indexpi, indexpj) += r_vms_variables.tau2
                 * inverse_bulk_modulus
                 * inverse_bulk_modulus
                 * r_N(0, i)
