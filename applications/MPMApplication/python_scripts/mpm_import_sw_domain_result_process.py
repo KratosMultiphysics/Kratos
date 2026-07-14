@@ -1,5 +1,6 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
+import KratosMultiphysics.MPMApplication as KratosMPM
 # import KratosMultiphysics.MappingApplication as Mapping
 from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 from KratosMultiphysics.HDF5Application import import_model_part_from_hdf5_process
@@ -46,6 +47,10 @@ class MpmImportSWDomainResultProcess(KM.Process):
         self.hdf5_process = single_mesh_temporal_input_process.Factory(self._CreateHDF5Parameters(), model)
         # self._GetInputTimes(self.settings['file_settings'])
 
+        # temporary hacks to get mpm model parts
+        self.grid_model_part = self.model["Background_Grid"]
+        self.material_point_model_part = self.model["MPM_Material"]
+
 
     def Check(self): #
         '''Check the processes.'''
@@ -65,9 +70,17 @@ class MpmImportSWDomainResultProcess(KM.Process):
     def ExecuteInitialize(self):#
         '''Read the input_model_part and set the variables.'''
         self.hdf5_import.ExecuteInitialize()
+        print("andihehe", self.model)
+
         # self.hdf5_process.ExecuteInitialize()
-        self.model[self.settings["input_model_part_name"].GetString()].ProcessInfo = self.model["Background_Grid"].ProcessInfo
+        self.input_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
+        self.input_model_part.SetProperties(self.model["Initial_MPM_Material"].Properties)
+        print("andihehe", self.input_model_part.GetProperties()[1])
+
+        # for element in self.input_model_part.Elements:
+        #     element.SetProperties(self.model["Initial_MPM_Material"].GetProperties(1))
         self.hdf5_process.ExecuteInitializeSolutionStep()
+        KratosMPM.GenerateMaterialPointElementFromSwModel(self.grid_model_part, self.input_model_part, self.material_point_model_part, False)
 
 
     # def _GetInputTimes(self, file_settings):
@@ -103,7 +116,7 @@ class MpmImportSWDomainResultProcess(KM.Process):
     def _CreateHDF5ParametersImport(self): #
         hdf5_settings = KM.Parameters()
         hdf5_settings.AddValue("model_part_name", self.settings["input_model_part_name"])
-        import_file_settings = KM.Parameters("""{"file_name" : "hdf5_input/<model_part_name>.h5"}""")
+        import_file_settings = KM.Parameters("""{"file_name" : "hdf5_output/<model_part_name>.h5"}""")
         hdf5_settings.AddValue("file_settings", import_file_settings)
         data_settings = KM.Parameters("""{"list_of_variables" : []}""")
         if self.settings["read_historical_database"].GetBool():

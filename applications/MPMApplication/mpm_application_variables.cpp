@@ -65,6 +65,7 @@ namespace Kratos
 
     // Mesh variables
     KRATOS_CREATE_VARIABLE(std::vector<typename Geometry<Node>::Pointer>, GEOMETRY_NEIGHBOURS)
+    KRATOS_CREATE_VARIABLE( double, MP_VERTICAL_DISTANCE)
 
     // Conditions
     // Essential Boundary Conditions

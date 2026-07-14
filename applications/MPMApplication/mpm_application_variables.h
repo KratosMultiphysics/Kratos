@@ -98,6 +98,7 @@ namespace Kratos
 
     // Mesh variables
     KRATOS_DEFINE_APPLICATION_VARIABLE( MPM_APPLICATION, std::vector<typename Geometry<Node>::Pointer>, GEOMETRY_NEIGHBOURS)
+    KRATOS_DEFINE_APPLICATION_VARIABLE( MPM_APPLICATION, double, MP_VERTICAL_DISTANCE )
 
     /* NODAL VARIABLES */
     // Conditions

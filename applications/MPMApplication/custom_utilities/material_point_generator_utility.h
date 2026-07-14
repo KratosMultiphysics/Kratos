@@ -85,6 +85,16 @@ namespace Kratos::MaterialPointGeneratorUtility
             ModelPart& rMPMModelPart);
 
     /**
+     * @brief Construct material points from given initial mesh from SW
+     * @details Generating material points using shallow water modelpart and assign
+     *          it's variables to the generated material points
+     */
+    void GenerateMaterialPointElementFromSwModel(
+        ModelPart& rBackgroundGridModelPart,
+        ModelPart& rSwModelPart,
+        ModelPart& rMPMModelPart,
+        bool IsMixedFormulation);
+    /**
      * @brief Function to add dofs to elements for Lagrange multiplier.
      * @details non-conforming Perturbed Lagrangian or Lagrange multiplier conditions
      */

@@ -141,7 +141,7 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D4N", mMPMGridSurfaceLoadCondition3D4N)
         // MPM Conditions
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition", mMPMParticlePenaltyDirichletCondition)
-        KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition", mMPMParticleLagrangeDirichletCondition) 
+        KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition", mMPMParticleLagrangeDirichletCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition", mMPMParticlePointLoadCondition)
 
         // deprecated conditions
@@ -204,6 +204,7 @@ namespace Kratos
 
         // Mesh variables
         KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS )
+        KRATOS_REGISTER_VARIABLE( MP_VERTICAL_DISTANCE )
 
         // Registering condition variables
         // Essential Boundary Conditions

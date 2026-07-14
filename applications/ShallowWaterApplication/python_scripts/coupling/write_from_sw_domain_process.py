@@ -40,7 +40,7 @@ class WriteFromSwDomainProcess(KM.OutputProcess):
         self.model = model
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
-        self.variables = [KM.VELOCITY, KM.MOMENTUM, SW.HEIGHT, SW.VERTICAL_VELOCITY, SW.TOPOGRAPHY]
+        self.variables = [KM.VELOCITY, KM.ACCELERATION, KM.MOMENTUM, SW.HEIGHT, SW.VERTICAL_VELOCITY, SW.TOPOGRAPHY]
         self.sw_model_part = model[self.settings["sw_model_part_name"].GetString()]
         self.output_model_part = model.CreateModelPart(self.settings["output_model_part_name"].GetString())
 
@@ -104,11 +104,12 @@ class WriteFromSwDomainProcess(KM.OutputProcess):
 
 
         historical_data_settings = KM.Parameters("""
-        {"list_of_variables"       : ["MOMENTUM",
-                                      "VELOCITY",
-                                      "HEIGHT",
-                                      "VERTICAL_VELOCITY",
-                                      "TOPOGRAPHY"]}""")
+        {"list_of_variables": [ "MOMENTUM",
+                                "VELOCITY",
+                                "ACCELERATION",
+                                "HEIGHT",
+                                "VERTICAL_VELOCITY",
+                                "TOPOGRAPHY"]}""")
 
         non_historical_data_settings = KM.Parameters("""{"list_of_variables": ["NODAL_AREA"]}""")
 
@@ -127,6 +128,7 @@ class WriteFromSwDomainProcess(KM.OutputProcess):
             self.output_model_part.AddNodalSolutionStepVariable(SW.HEIGHT)
             self.output_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
             self.output_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+            self.output_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
             self.output_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
             self.output_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY)
 

@@ -22,6 +22,8 @@
 #include "utilities/quadrature_points_utility.h"
 #include "utilities/variable_utils.h"
 
+#include "../ShallowWaterApplication/shallow_water_application_variables.h"
+
 
 namespace Kratos::MaterialPointGeneratorUtility
 {
@@ -578,16 +580,256 @@ namespace Kratos::MaterialPointGeneratorUtility
 
     }
 
-/***********************************************************************************/
-/***********************************************************************************/
+/**
+     * @brief Function to Initiate material point from Shallow water HDF5 mesh file.
+     * @details Generating material point using a designated shape functions
+     */
 
-    void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes)
+    void GenerateMaterialPointElementFromSwModel(ModelPart& rBackgroundGridModelPart,
+                                            ModelPart& rSwModelPart,
+                                            ModelPart& rMPMModelPart,
+                                            bool IsMixedFormulation) {
+        const bool IsAxisSymmetry = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
+            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
+            : false;
+        // Initialize zero the variables needed
+
+        std::vector<array_1d<double, 3>> global_coordinate = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mp_displacement = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mp_velocity = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mp_acceleration = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mp_body_force = { ZeroVector(3) };
+
+        std::vector<double> mp_pressure = { 0.0 };
+
+        std::vector<double> mp_mass(1);
+        std::vector<double> mp_volume(1);
+
+        // Determine element index: This convention is done in order for the purpose of visualization in GiD
+        // Note: This generation assume that there is no other matrial point element in the rMPMModelPart, otherwise the element_id will be duplicated
+        const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rSwModelPart.NumberOfElements();
+        const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
+        unsigned int last_element_id = (number_nodes > number_elements) ? (number_nodes + 1) : (number_elements + 1);
+
+        BinBasedFastPointLocator<3> SearchStructure(rBackgroundGridModelPart);
+        SearchStructure.UpdateSearchDatabase();
+        typename BinBasedFastPointLocator<3>::ResultContainerType results(100);
+        // Get geometry and dimension of the background grid
+        const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
+        const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        if (domain_size != 3)
+            KRATOS_ERROR << "Shallow water material point generation is only implemented for 3D simulation." << std::endl;
+
+        for (auto& submodelpart : rSwModelPart.SubModelParts())
+        {
+            std::string submodelpart_name = submodelpart.Name();
+
+            auto& mpm_sub_modelpart = rMPMModelPart.CreateSubModelPart(submodelpart_name);
+
+            // Loop over the element of shallow watersubmodelpart and generate material points on the surface to be appended to the rMPMModelPart
+            for (ModelPart::ElementIterator sw_element_iterator = submodelpart.ElementsBegin();
+                sw_element_iterator != submodelpart.ElementsEnd(); sw_element_iterator++)
+            {
+                Properties::Pointer pProperties = rMPMModelPart.pGetProperties(1);
+                KRATOS_WATCH("HEHEANDI")
+                KRATOS_WATCH(rMPMModelPart.GetProperties(1)[MATERIAL_POINTS_PER_ELEMENT])
+                const double density = rMPMModelPart.GetProperties(1)[DENSITY];
+
+                // Check number of material point per element to be created
+                unsigned int material_points_per_element;
+                if (rMPMModelPart.GetProperties(1).Has(MATERIAL_POINTS_PER_ELEMENT)) {
+                    material_points_per_element = rMPMModelPart.GetProperties(1)[MATERIAL_POINTS_PER_ELEMENT];
+                }
+                else {
+                    std::string error_msg = "\"MATERIAL_POINTS_PER_ELEMENT\" is not specified in Properties";
+                    KRATOS_ERROR << error_msg << std::endl;
+                }
+
+                // Get the geometry of the current shallow water element
+                const Geometry< Node >& r_shallow_water_geometry = sw_element_iterator->GetGeometry(); // current sw element's geometry
+
+
+                // Get integration method and shape function values
+                IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                Matrix shape_functions_values;
+                DetermineIntegrationMethodAndShapeFunctionValues(
+                    r_shallow_water_geometry,
+                    material_points_per_element,
+                    integration_method,
+                    shape_functions_values);
+
+
+                // Get volumes of the material points
+                const unsigned int integration_point_per_elements = shape_functions_values.size1();
+                Vector int_volumes (integration_point_per_elements);
+                GetIntegrationPointVolumes(r_shallow_water_geometry, integration_method, int_volumes); // get the gp area of current r_shallow_water_geometry
+                KRATOS_WATCH("NICOLOCHECK")
+                KRATOS_WATCH(int_volumes)
+
+                // if (domain_size == 2 && element_iterator->GetProperties().Has(THICKNESS)) {
+                //     for (size_t j = 0; j < integration_point_per_elements; ++j) int_volumes[j] *= element_iterator->GetProperties()[THICKNESS];
+                // } Note: to be removed
+
+                // Get new element
+                const Element& new_element = GetElementType(IsMixedFormulation, IsAxisSymmetry, domain_size, background_geo_type, rBackgroundGridModelPart);
+
+
+                // Loop over gauss points location in each r_shallow_water_geometry
+                Vector mp_height = ZeroVector(integration_point_per_elements);
+                std::vector<double> mp_density = { density };
+
+                for (size_t PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++)
+                {
+                    global_coordinate[0].clear();
+                    mp_height.clear();
+                    mp_velocity[0].clear();
+
+                    // mp_acceleration[0].clear();
+                    mp_volume.clear();
+                    mp_mass.clear();
+
+                    // interpolate sw nodes to the material point
+                    for (size_t node_i = 0; node_i < r_shallow_water_geometry.size(); node_i++)
+                    {
+                        // interpolate sw variables at the nodes
+                        KRATOS_WATCH(r_shallow_water_geometry[node_i].FastGetSolutionStepValue(HEIGHT))
+                        mp_height[PointNumber] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(HEIGHT);
+                        mp_velocity[0] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(VELOCITY);
+                        mp_velocity[0][2] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(VERTICAL_VELOCITY);
+                        for (size_t dimension_j = 0; dimension_j < 2; dimension_j++)
+                        {
+                            // Interpolate the coordinates to the material point
+                            global_coordinate[0][dimension_j] = global_coordinate[0][dimension_j] + shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].Coordinates()[dimension_j];
+
+                        }
+                    }
+                    if (mp_height[PointNumber] < 0.0001) // ToDo: make this a parameter in the input file or better method
+                        continue; // skip the material point generation if the height is too small
+
+                    // get mp vertical distance and number of vertical layers to extrude the material point
+                    const double vertical_distance = rMPMModelPart.GetProperties(1)[MP_VERTICAL_DISTANCE];
+                    // const unsigned int number_of_vertical_layers = static_cast<int>(std::round(mp_height[PointNumber] / vertical_distance));
+                    // KRATOS_WATCH(number_of_vertical_layers)
+                    const unsigned int number_of_vertical_layers = 10;
+                    const double vertical_distance_adjusted = mp_height[PointNumber] / number_of_vertical_layers;
+
+                    // Divide the volume and mass of the material point
+                    KRATOS_WATCH("andiheho")
+                    KRATOS_WATCH(int_volumes[PointNumber])
+                    KRATOS_WATCH(mp_height[PointNumber])
+                    KRATOS_WATCH(mp_height[PointNumber])
+                    mp_volume[0] = int_volumes[PointNumber] * mp_height[PointNumber] / number_of_vertical_layers;
+                    mp_mass[0] = mp_volume[0] * density;
+
+                    // Generate material point in vertical layers for the current gauss point
+                    for (size_t vertical_layer_i = 1; vertical_layer_i < number_of_vertical_layers + 1; vertical_layer_i++)
+                    {
+                        global_coordinate[0][2] += vertical_distance_adjusted;
+
+                        typename BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
+                        Element::Pointer pGridElement;
+                        Vector dummy_shape_function;
+
+
+                        // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
+                        bool is_found = SearchStructure.FindPointOnMesh(global_coordinate[0], dummy_shape_function, pGridElement, result_begin);
+
+                        if (is_found){
+                            pGridElement->Set(ACTIVE);
+                        }
+                        else
+                            KRATOS_ERROR << "Search failed: unable to find a background grid geometry containing the material point element having coordinates "
+                            << global_coordinate[0] << std::endl;
+
+                        auto p_quadrature_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
+                            pGridElement->pGetGeometry(),
+                            global_coordinate[0],
+                            mp_volume[0]);
+
+                        KRATOS_WATCH("HEHEANDI1")
+                        KRATOS_WATCH(p_quadrature_geometry->DomainSize())
+                        KRATOS_WATCH(mp_volume[0])
+                        KRATOS_WARNING_IF("MaterialPointGeneratorUtility", p_quadrature_geometry->DomainSize() < 1e-12) << "Material point volume is too small, check the background grid element size and the number of vertical layers." << std::endl;
+                        // Create new material point element
+                        last_element_id++;
+
+                        Element::Pointer p_element = new_element.Create(last_element_id, p_quadrature_geometry, pProperties);
+
+                        const SizeType strain_size = rMPMModelPart.GetProperties(1).Has(CONSTITUTIVE_LAW) ?
+                            rMPMModelPart.GetProperties(1)[CONSTITUTIVE_LAW]->GetStrainSize() : 6;
+
+                        // Setting material point element initial condition
+                        p_element->SetValuesOnIntegrationPoints(MP_DENSITY, mp_density, rMPMModelPart.GetProcessInfo());
+                        p_element->SetValuesOnIntegrationPoints(MP_MASS, mp_mass, rMPMModelPart.GetProcessInfo());
+                        p_element->SetValuesOnIntegrationPoints(MP_VOLUME, mp_volume, rMPMModelPart.GetProcessInfo());
+                        p_element->SetValuesOnIntegrationPoints(MP_COORD, global_coordinate, rMPMModelPart.GetProcessInfo());
+                        p_element->SetValuesOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement, rMPMModelPart.GetProcessInfo());
+                        p_element->SetValuesOnIntegrationPoints(MP_VELOCITY, mp_velocity, rMPMModelPart.GetProcessInfo());
+                        p_element->SetValuesOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, rMPMModelPart.GetProcessInfo());
+                        p_element->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rMPMModelPart.GetProcessInfo());
+                        p_element->SetValuesOnIntegrationPoints(MP_BODY_FORCE, mp_body_force, rMPMModelPart.GetProcessInfo());
+                        p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, { ZeroVector(strain_size) }, rMPMModelPart.GetProcessInfo());
+                        p_element->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, { ZeroVector(strain_size) }, rMPMModelPart.GetProcessInfo());
+
+                        if (IsMixedFormulation)
+                        {
+                            mp_pressure[0] = ( density * 9.81 * (mp_height[PointNumber] - vertical_layer_i * vertical_distance_adjusted));
+                            p_element->SetValuesOnIntegrationPoints(MP_PRESSURE, mp_pressure, rMPMModelPart.GetProcessInfo());
+
+                        }
+                        // Add the MP Element to the model part
+                        mpm_sub_modelpart.AddElement(p_element);
+                        // Checked ------------------------------------------------------------------------------------------------------------------------------------------
+
+                    }
+
+                }
+            }
+        }
+    }
+/***********************************************************************************/
+/***********************************************************************************/
+    const Element& GetElementType(
+        bool rIsMixedFormulation,
+        bool rIsAxisSymmetry,
+        const std::size_t& rDomainSize,
+        const GeometryData::KratosGeometryType& rBackgroundGeometryType,
+        ModelPart& rBackgroundGridModelPart)
     {
-        auto int_points = rGeom.IntegrationPoints(IntegrationMethod);
+        // Get element type
+        std::string element_type_name = "MPMUpdatedLagrangian";
+        if (rIsMixedFormulation) {
+            if (rBackgroundGeometryType == GeometryData::KratosGeometryType::Kratos_Triangle2D3 ||
+                rBackgroundGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) {
+                element_type_name = "MPMUpdatedLagrangianUP";
+            } else {
+                KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle and Quadrilateral Elements." << std::endl;
+            }
+        }
+        else if (rIsAxisSymmetry && rDomainSize == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
+        else if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM)) {
+            if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM)) {
+                element_type_name = "MPMUpdatedLagrangianPQ";
+                KRATOS_ERROR_IF(rIsAxisSymmetry) << "PQMPM is not implemented for axisymmetric elements yet." << std::endl;
+            }
+        }
+        return KratosComponents<Element>::Get(element_type_name);
+    }
+
+    void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod rIntegrationMethod, Vector& rIntVolumes)
+    {
+        auto int_points = rGeom.IntegrationPoints(rIntegrationMethod);
         if (rIntVolumes.size() != int_points.size()) rIntVolumes.resize(int_points.size(),false);
         DenseVector<Matrix> jac_vec(int_points.size());
-        rGeom.Jacobian(jac_vec, IntegrationMethod);
+        rGeom.Jacobian(jac_vec, rIntegrationMethod);
         for (size_t i = 0; i < int_points.size(); ++i) {
+            KRATOS_WATCH("Integration point volume")
+            KRATOS_WATCH(rIntVolumes[i])
+            KRATOS_WATCH(MathUtils<double>::Det(jac_vec[i]))
+            KRATOS_WATCH(int_points[i].Weight())
+            KRATOS_WATCH(rGeom)
+            // KRATOS_WATCH(rIntegrationMethod)
             rIntVolumes[i] = MathUtils<double>::Det(jac_vec[i]) * int_points[i].Weight();
         }
     }
@@ -598,7 +840,8 @@ namespace Kratos::MaterialPointGeneratorUtility
     {
         const GeometryData::KratosGeometryType geo_type = rGeom.GetGeometryType();
 
-        if (geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
+        if (geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 ||
+            geo_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
         {
             switch (MaterialPointsPerElement)
             {
