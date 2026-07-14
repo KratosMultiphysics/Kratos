@@ -106,6 +106,65 @@ namespace Kratos
         }
     }
 
+    void CouplingNitscheCondition::CalculateDerivativesTangentNormal(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 2>& rDerivativeTangent,
+        array_1d<double, 2> rDerivativeNormal, 
+        const KinematicVariables& rReferenceKinematic,
+        const PatchType& rPatch
+    )
+    {
+        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
+        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
+
+        // pass/call this ShapeFunctionsLocalGradients[pnt]
+        const SizeType dimension = r_geometry.WorkingSpaceDimension();
+        const SizeType number_of_nodes = r_geometry.size();
+
+        // local tangent and the derivatives of local tangent
+        array_1d<double, 3> local_tangent = ZeroVector(3); //s^alpha
+        GetGeometry().GetGeometryPart(GeometryPart).Calculate(LOCAL_TANGENT, local_tangent);
+
+        array_1d<double, 3> derivative_local_tangent = ZeroVector(3); 
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+        derivative_local_tangent[0] = integration_points[IntegrationPointIndex][0];
+        GetGeometry().Calculate(DERIVATIVE_LOCAL_TANGENT, derivative_local_tangent);
+
+        // t,tau: curve tangent derivative, projected orthogonal to t
+        array_1d<double,3> y_tau = local_tangent; // curve first derivative
+        array_1d<double,3> y_tautau = derivative_local_tangent; // curve second derivative
+
+        double y_tau_norm = norm_2(y_tau);
+        array_1d<double,3> t_hat = y_tau / y_tau_norm; // unit tangent s^alpha
+
+        double t_dot_ytt = inner_prod(t_hat, y_tautau);
+        array_1d<double,3> t_tau = (y_tautau - t_dot_ytt * t_hat) / y_tau_norm; //tau is an auxiliary curvlinear direction
+
+        double a3_dot_a3_tilde = inner_prod(rReferenceKinematic.a3, rReferenceKinematic.a3_tilde);
+        array_1d<double,3> a3_tau = (rReferenceKinematic.a3_tilde - a3_dot_a3_tilde * rReferenceKinematic.a3) / norm_2(rReferenceKinematic.a3_tilde);
+
+        // (t),_arclength or (t),t and (n),_arclength or (n),t
+        array_1d<double,3> dt_arclen = t_tau / y_tau_norm;
+        array_1d<double,3> da3_arclen = a3_tau / norm_2(rReferenceKinematic.a3_tilde);
+        array_1d<double,3> dn_arclen = ZeroVector(3);
+        array_1d<double,3> term1, term2;
+        MathUtils<double>::CrossProduct(term1, dt_arclen, rReferenceKinematic.a3);
+        MathUtils<double>::CrossProduct(term2, t_hat, da3_arclen); 
+        dn_arclen = term1 + term2;
+
+        // covariant components: project onto a1, a2
+        rDerivativeTangent[0] = inner_prod(dt_arclen, rReferenceKinematic.a1); // (t_1),t
+        rDerivativeTangent[1] = inner_prod(dt_arclen, rReferenceKinematic.a2); // (t_2),t
+        rDerivativeNormal[0] = inner_prod(dn_arclen, rReferenceKinematic.a1); // (n_1),t
+        rDerivativeNormal[1] = inner_prod(dn_arclen, rReferenceKinematic.a2); // (n_2),t
+
+        // Tangent and Normal at curvilinear coordinate system
+        // array_1d<double, 2> tangent_alpha_contravariant = ZeroVector(2);
+        // tangent_alpha_contravariant[0] = local_tangent[0] / norm_2(local_tangent);
+        // tangent_alpha_contravariant[1] = local_tangent[1] / norm_2(local_tangent);
+        // array_1d<double, 2> n_alpha_covariant = rReferenceKinematic.n_covariant;
+    }
+
     void CouplingNitscheCondition::CalculateFirstVariationT2(
         IndexType IntegrationPointIndex,
         Matrix& rFirstVariationT2,
