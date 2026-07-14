@@ -610,7 +610,8 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputUserDefinedUnits, KratosCoreFastSuite)
     KRATOS_EXPECT_NE(p_units, nullptr);
     // Single-word description -> tokens: [0]=code, [1]=description, [2]=temp mode,
     // [3]=length factor, [4]=force factor.
-    KRATOS_EXPECT_EQ(std::stoi(p_units->tokens[0]), 9); // USER_DEFINED code
+    // USER_DEFINED is written with units code 1 (Simcenter 3D only honors user factors with code 1).
+    KRATOS_EXPECT_EQ(std::stoi(p_units->tokens[0]), 1);
     KRATOS_EXPECT_EQ(p_units->tokens[1], "MYUNITS");
     KRATOS_EXPECT_NEAR(std::stod(p_units->tokens[3]), 1000.0, 1e-9);
     KRATOS_EXPECT_NEAR(std::stod(p_units->tokens[4]), 42.0, 1e-9);

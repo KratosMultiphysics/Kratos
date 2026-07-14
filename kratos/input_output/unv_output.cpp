@@ -146,7 +146,11 @@ UnvOutput::UnvOutput(
         // Resolve the user-defined unit system from its own settings block.
         Parameters user_units = Settings["user_defined_units"];
         user_units.ValidateAndAssignDefaults(default_parameters["user_defined_units"]);
-        mUnitSystemData.code = as_integer(UnitSystem::USER_DEFINED);
+        // A priori the UNV code for a user-defined system is 9:
+        // mUnitSystemData.code = as_integer(UnitSystem::USER_DEFINED); // = 9
+        // In practice Simcenter 3D only honors the user-defined conversion factors when the units
+        // code is written as 1, so we write 1 here.
+        mUnitSystemData.code = 1;
         mUnitSystemData.description = user_units["description"].GetString();
         mUnitSystemData.length_factor = user_units["length_factor"].GetDouble();
         mUnitSystemData.force_factor = user_units["force_factor"].GetDouble();
