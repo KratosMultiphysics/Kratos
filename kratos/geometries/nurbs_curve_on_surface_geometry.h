@@ -201,6 +201,20 @@ public:
             array_1d<double, 3>& local_parameter = rOutput;
             mpNurbsCurve->GlobalCoordinates(rOutput, local_parameter);
         }
+        else if (rVariable == DERIVATIVE_LOCAL_TANGENT)
+        {
+            std::vector<CoordinatesArrayType> global_space_derivatives(2);
+            array_1d<double, 3>& local_parameter = rOutput;
+
+            mpNurbsCurve->GlobalSpaceDerivatives(
+                global_space_derivatives,
+                local_parameter,
+                2);
+            
+            rOutput[0] =  global_space_derivatives[2][0];
+            rOutput[1] =  global_space_derivatives[2][1];
+            rOutput[2] =  0.0;
+        }
     }
 
     ///@}
@@ -602,6 +616,8 @@ public:
             shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
         }
 
+        // KRATOS_WATCH(rIntegrationPoints)
+
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
         {
             std::vector<CoordinatesArrayType> global_space_derivatives(2);
@@ -609,6 +625,10 @@ public:
                 global_space_derivatives,
                 rIntegrationPoints[i],
                 1);
+            
+            // KRATOS_WATCH(rIntegrationPoints[i])
+            // KRATOS_WATCH(global_space_derivatives)
+            // KRATOS_WATCH(mpNurbsSurface->IsRational())
 
             if (mpNurbsSurface->IsRational()) {
                 shape_function_container.ComputeNurbsShapeFunctionValues(

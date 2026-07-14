@@ -3156,6 +3156,205 @@ namespace Kratos
         }
     }
 
+    void CouplingNitscheCondition::CalculateVariationMixedCurvature(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 4>& rMixedCurvature,
+        std::vector<array_1d<double, 4>>& rFirstVariationMixedCurvature,
+        std::vector<std::vector<array_1d<double, 4>>>& rSecondVariationMixedCurvature,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch)
+    {
+        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
+        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
+        
+        const SizeType number_of_control_points = r_geometry.size();
+        const SizeType mat_size = number_of_control_points * 3;
+        
+        const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
+        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
+        
+        // Compute Variation Curvature
+        array_1d<double, 3> curvature_curvilinear = ZeroVector(3);
+        std::vector<array_1d<double, 3>> first_variation_curvature_curvilinear;
+        std::vector<std::vector<array_1d<double, 3>>> second_variation_curvature_curvilinear;
+        first_variation_curvature_curvilinear.resize(mat_size);
+        second_variation_curvature_curvilinear.resize(mat_size);
+        for(IndexType i = 0; i < mat_size; i++)
+        {
+            second_variation_curvature_curvilinear[i].resize(mat_size);
+            first_variation_curvature_curvilinear[i] = ZeroVector(3);
+
+            for(IndexType j = 0; j < mat_size; j++)
+            {
+                second_variation_curvature_curvilinear[i][j] = ZeroVector(3);
+            }
+        }
+
+        CalculateVariationCurvature(IntegrationPointIndex, curvature_curvilinear, first_variation_curvature_curvilinear,
+                                    second_variation_curvature_curvilinear, rActualKinematic, rThisConstitutiveVariablesCurvature, rPatch);
+
+        // 1. Calculate Mixed Curvature (b^a_b)
+        const double a11 = rActualKinematic.a_ab_covariant[0];
+        const double a22 = rActualKinematic.a_ab_covariant[1];
+        const double a12 = rActualKinematic.a_ab_covariant[2];
+
+        const double b11 = rActualKinematic.b_ab_covariant[0];
+        const double b22 = rActualKinematic.b_ab_covariant[1];
+        const double b12 = rActualKinematic.b_ab_covariant[2];
+
+        double det_a_ab = a11 * a22 - a12 * a12;
+
+        array_1d<double, 3> a_ab_contravariant = ZeroVector(3);
+        a_ab_contravariant[0] =  a22 / det_a_ab; // a^11
+        a_ab_contravariant[1] =  a11 / det_a_ab; // a^22
+        a_ab_contravariant[2] = -a12 / det_a_ab; // a^12
+
+        // b_ab_covariant is Voigt: [0]=b11, [1]=b22, [2]=b12(=b21)
+        // a_ab_contravariant is Voigt: [0]=a11, [1]=a22, [2]=a12(=a21)
+        rMixedCurvature = ZeroVector(4);
+        rMixedCurvature[0] = a_ab_contravariant[0] * b11 + a_ab_contravariant[2] * b12;  // a^11 * b11 + a^12 * b21
+        rMixedCurvature[1] = a_ab_contravariant[2] * b12 + a_ab_contravariant[1] * b22;  // a^21 * b12 + a^22 * b22
+        rMixedCurvature[2] = a_ab_contravariant[0] * b12 + a_ab_contravariant[2] * b22;  // a^11 * b12 + a^12 * b22
+        rMixedCurvature[3] = a_ab_contravariant[2] * b11 + a_ab_contravariant[1] * b12;  // a^21 * b11 + a^22 * b21 
+
+        // 2. Calculate First Variation Mixed Curvature
+        for (IndexType i = 0; i < number_of_control_points; i++)
+        {
+            for (IndexType k = 0; k < 3; k++)
+            {
+                IndexType index = 3 * i + k;
+
+                // b_ab,r (covariant curvature variation) 
+                double db11 = -first_variation_curvature_curvilinear[index][0];
+                double db22 = -first_variation_curvature_curvilinear[index][1];
+                double db12 = -first_variation_curvature_curvilinear[index][2];
+
+                // a_ab,r (covariant curvature variation) 
+                double da11 = 2.0 * rActualKinematic.a1[k] * r_DN_De(i, 0);
+                double da22 = 2.0 * rActualKinematic.a2[k] * r_DN_De(i, 1);
+                double da12 = rActualKinematic.a1[k] * r_DN_De(i, 1) + rActualKinematic.a2[k] * r_DN_De(i, 0);
+
+                // a^{alpha lambda},r = -a^{alpha mu} a_{mu nu,r} a^{nu lambda}
+                double da11_contra = -(a11*da11*a11 + a11*da12*a12 + a12*da12*a11 + a12*da22*a12);
+                double da22_contra = -(a12*da11*a12 + a12*da12*a22 + a22*da12*a12 + a22*da22*a22);
+                double da12_contra = -(a11*da11*a12 + a11*da12*a22 + a12*da12*a12 + a12*da22*a22);
+
+                // b^alpha_beta,r = a^{alpha lambda},r * b_{lambda beta} + a^{alpha lambda} * b_{lambda beta,r} 
+                rFirstVariationMixedCurvature[index][0] = da11_contra*b11 + da12_contra*b12 + a11*db11 + a12*db12; // b^1_1,r
+                rFirstVariationMixedCurvature[index][1] = da12_contra*b12 + da22_contra*b22 + a12*db12 + a22*db22; // b^2_2,r
+                rFirstVariationMixedCurvature[index][2] = da11_contra*b12 + da12_contra*b22 + a11*db12 + a12*db22; // b^1_2,r
+                rFirstVariationMixedCurvature[index][3] = da12_contra*b11 + da22_contra*b12 + a12*db11 + a22*db12; // b^2_1,r
+            }
+        }
+
+        // 3. Calculate Second Variation Curvature
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            // local node number kr and dof direction dirr
+            IndexType kr = r / 3;
+            IndexType dirr = r % 3;
+
+            // a_ab,r (covariant metric, first variation) for dof r
+            double a1kr = rActualKinematic.a1[dirr];
+            double a2kr = rActualKinematic.a2[dirr];
+            double da11_r = 2.0 * a1kr * r_DN_De(kr, 0);
+            double da22_r = 2.0 * a2kr * r_DN_De(kr, 1);
+            double da12_r = a1kr * r_DN_De(kr, 1) + a2kr * r_DN_De(kr, 0);
+
+            // a^{alpha lambda},r (contravariant metric, first variation) for dof r
+            double da11c_r = -(a11*da11_r*a11 + a11*da12_r*a12 + a12*da12_r*a11 + a12*da22_r*a12);
+            double da22c_r = -(a12*da11_r*a12 + a12*da12_r*a22 + a22*da12_r*a12 + a22*da22_r*a22);
+            double da12c_r = -(a11*da11_r*a12 + a11*da12_r*a22 + a12*da12_r*a12 + a12*da22_r*a22);
+
+            // b_ab,r (covariant curvature, first variation) for dof r
+            double db11_r = -first_variation_curvature_curvilinear[r][0];
+            double db22_r = -first_variation_curvature_curvilinear[r][1];
+            double db12_r = -first_variation_curvature_curvilinear[r][2];
+
+            for (IndexType s = 0; s <= r; s++)
+            {
+                // local node number ks and dof direction dirs
+                IndexType ks = s / 3;
+                IndexType dirs = s % 3;
+
+                // a_ab,s (covariant metric, first variation) for dof s
+                double a1ks = rActualKinematic.a1[dirs];
+                double a2ks = rActualKinematic.a2[dirs];
+                double da11_s = 2.0 * a1ks * r_DN_De(ks, 0);
+                double da22_s = 2.0 * a2ks * r_DN_De(ks, 1);
+                double da12_s = a1ks * r_DN_De(ks, 1) + a2ks * r_DN_De(ks, 0);
+
+                // a^{alpha lambda},s (contravariant metric, first variation) for dof s
+                double da11c_s = -(a11*da11_s*a11 + a11*da12_s*a12 + a12*da12_s*a11 + a12*da22_s*a12);
+                double da22c_s = -(a12*da11_s*a12 + a12*da12_s*a22 + a22*da12_s*a12 + a22*da22_s*a22);
+                double da12c_s = -(a11*da11_s*a12 + a11*da12_s*a22 + a12*da12_s*a12 + a12*da22_s*a22);
+
+                // b_ab,s (covariant curvature, first variation) for dof s
+                double db11_s = -first_variation_curvature_curvilinear[s][0];
+                double db22_s = -first_variation_curvature_curvilinear[s][1];
+                double db12_s = -first_variation_curvature_curvilinear[s][2];
+
+                // a_ab,rs (covariant metric, second variation)
+                double dot_11 = (dirr == dirs) ? r_DN_De(kr, 0) * r_DN_De(ks, 0) : 0.0; // a1,r . a1,s
+                double dot_22 = (dirr == dirs) ? r_DN_De(kr, 1) * r_DN_De(ks, 1) : 0.0; // a2,r . a2,s
+                double dot_12 = (dirr == dirs) ? r_DN_De(kr, 0) * r_DN_De(ks, 1) : 0.0; // a1,r . a2,s
+                double dot_21 = (dirr == dirs) ? r_DN_De(kr, 1) * r_DN_De(ks, 0) : 0.0; // a2,r . a1,s
+
+                double da11_rs = 2.0 * dot_11;
+                double da22_rs = 2.0 * dot_22;
+                double da12_rs = dot_12 + dot_21;
+
+                // a^{alpha lambda},rs (contravariant metric, second variation)
+                // a^{-1}_{,rs} = -A^{-1} A_{,rs} A^{-1} + A^{-1} A_{,r} A^{-1} A_{,s} A^{-1} + A^{-1} A_{,s} A^{-1} A_{,r} A^{-1}
+                // term 1: -A^{-1} A_{,rs} A^{-1}
+                double T1_11 = -(a11*da11_rs*a11 + a11*da12_rs*a12 + a12*da12_rs*a11 + a12*da22_rs*a12);
+                double T1_22 = -(a12*da11_rs*a12 + a12*da12_rs*a22 + a22*da12_rs*a12 + a22*da22_rs*a22);
+                double T1_12 = -(a11*da11_rs*a12 + a11*da12_rs*a22 + a12*da12_rs*a12 + a12*da22_rs*a22);
+
+                // term 2+3: A^{-1} A_{,r} A^{-1} A_{,s} A^{-1}  +  A^{-1} A_{,s} A^{-1} A_{,r} A^{-1}
+                // build M_r = A^{-1} A_{,r} A^{-1}  (this is exactly -[da_contra,r]),  M_s similarly
+                // so term2 = -M_r * A_{,s} * A^{-1}
+                // A^{-1} A_{,r} A^{-1}  == -[da11c_r, da12c_r; da12c_r, da22c_r]  
+                
+                // term2 = Mr * A_{,s} * A^{-1}
+                double T2_11 = -da11c_r*da11_s*a11 + -da11c_r*da12_s*a12 + -da12c_r*da12_s*a11 + -da12c_r*da22_s*a12;
+                double T2_22 = -da12c_r*da11_s*a12 + -da12c_r*da12_s*a22 + -da22c_r*da12_s*a12 + -da22c_r*da22_s*a22;
+                double T2_12 = -da11c_r*da11_s*a12 + -da11c_r*da12_s*a22 + -da12c_r*da12_s*a12 + -da12c_r*da22_s*a22;
+
+                // term3 = Ms * A_{,r} * A^{-1}
+                double T3_11 = -da11c_s*da11_r*a11 + -da11c_s*da12_r*a12 + -da12c_s*da12_r*a11 + -da12c_s*da22_r*a12;
+                double T3_22 = -da12c_s*da11_r*a12 + -da12c_s*da12_r*a22 + -da22c_s*da12_r*a12 + -da22c_s*da22_r*a22;
+                double T3_12 = -da11c_s*da11_r*a12 + -da11c_s*da12_r*a22 + -da12c_s*da12_r*a12 + -da12c_s*da22_r*a22;
+
+                double da11c_rs = T1_11 + T2_11 + T3_11;
+                double da22c_rs = T1_22 + T2_22 + T3_22;
+                double da12c_rs = T1_12 + T2_12 + T3_12;
+
+                // b_ab,rs (covariant curvature, second variation)
+                double db11_rs = -second_variation_curvature_curvilinear[r][s][0];
+                double db22_rs = -second_variation_curvature_curvilinear[r][s][1];
+                double db12_rs = -second_variation_curvature_curvilinear[r][s][2];
+
+                // b^alpha_beta,rs
+                double b11_rs = da11c_rs*b11 + da12c_rs*b12 + da11c_r*db11_s + da12c_r*db12_s + da11c_s*db11_r + da12c_s*db12_r + a11*db11_rs + a12*db12_rs;
+                double b22_rs = da12c_rs*b12 + da22c_rs*b22 + da12c_r*db12_s + da22c_r*db22_s + da12c_s*db12_r + da22c_s*db22_r + a12*db12_rs + a22*db22_rs; 
+                double b12_rs = da11c_rs*b12 + da12c_rs*b22 + da11c_r*db12_s + da12c_r*db22_s + da11c_s*db12_r + da12c_s*db22_r + a11*db12_rs + a12*db22_rs;
+                double b21_rs = da12c_rs*b11 + da22c_rs*b12 + da12c_r*db11_s + da22c_r*db12_s + da12c_s*db11_r + da22c_s*db12_r + a12*db11_rs + a22*db12_rs;
+
+                rSecondVariationMixedCurvature[r][s][0] = b11_rs;
+                rSecondVariationMixedCurvature[r][s][1] = b22_rs;
+                rSecondVariationMixedCurvature[r][s][2] = b12_rs;
+                rSecondVariationMixedCurvature[r][s][3] = b21_rs;
+
+                rSecondVariationMixedCurvature[s][r][0] = b11_rs;
+                rSecondVariationMixedCurvature[s][r][1] = b22_rs;
+                rSecondVariationMixedCurvature[s][r][2] = b12_rs;
+                rSecondVariationMixedCurvature[s][r][3] = b21_rs;
+            }
+        }
+    }
+
     void CouplingNitscheCondition::CalculateVariationDerivativeMoment(
         IndexType IntegrationPointIndex,
         array_1d<array_1d<double, 3>,2>& rDerivativeMoment,

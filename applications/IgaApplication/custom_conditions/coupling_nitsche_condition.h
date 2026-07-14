@@ -419,6 +419,14 @@ private:
         const KinematicVariables& rKinematicVariables,  
         const PatchType& rPatch);
 
+    // Calculate Derivatives Tangent and Normal Vector
+    void CalculateDerivativesTangentNormal(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 2>& rDerivativeTangent,
+        array_1d<double, 2> rDerivativeNormal, 
+        const KinematicVariables& rReferenceKinematic,
+        const PatchType& rPatch);
+
     // Traction-related functions
     void CalculateTraction(
         IndexType IntegrationPointIndex,
@@ -513,6 +521,15 @@ private:
         array_1d<double, 3>& rCurvatureCurvilinear,
         std::vector<array_1d<double, 3>>& rFirstVariationCurvatureCurvilinear,
         std::vector<std::vector<array_1d<double, 3>>>& rSecondVariationCurvatureCurvilinear,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateVariationMixedCurvature(
+        IndexType IntegrationPointIndex,
+        array_1d<double, 4>& rMixedCurvature,
+        std::vector<array_1d<double, 4>>& rFirstVariationMixedCurvature,
+        std::vector<std::vector<array_1d<double, 4>>>& rSecondVariationMixedCurvature,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
         const PatchType& rPatch);
