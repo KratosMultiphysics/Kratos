@@ -62,7 +62,7 @@ $$S_e = \frac{S - S_r}{S_s - S_r} \in [0,\,1]$$
 #### Derivative of Saturation with Respect to Fluid Pressure
 
 $$\frac{\partial S}{\partial p} = \begin{cases}
-0 & \text{if } p \le 0 \\[6pt]
+0 & \text{if } p \le 0 \\
 (S_s - S_r)\,(-m)\bigl(1+(p/p_b)^n\bigr)^{-m-1} \cdot n\,p_b^{-n}\,p^{n-1} & \text{if } p > 0
 \end{cases}$$
 
@@ -70,8 +70,15 @@ $$\frac{\partial S}{\partial p} = \begin{cases}
 
 #### Relative Permeability (Mualem–Van Genuchten)
 
-$$k_r = \max\!\Bigl(k_{r,min},\;
-  S_e^{\,l} \Bigl[1 - \bigl(1 - S_e^{1/m}\bigr)^m\Bigr]^2\Bigr)$$
+$$
+k_r = \max\left(
+k_{r,\min},
+S_e^{\,l}
+\left[
+1 - \left(1 - S_e^{1/m}\right)^m
+\right]^2
+\right)
+$$
 
 where $1/m = n/(n-1)$.
 
