@@ -342,7 +342,8 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
     const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_properties);
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation,
+        r_properties[BULK_MODULUS_FLUID], r_properties);
 
     // Loop over integration points
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
