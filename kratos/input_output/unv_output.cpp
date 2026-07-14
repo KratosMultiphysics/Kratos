@@ -135,6 +135,12 @@ UnvOutput::UnvOutput(
     mDeformationFactor = Settings["deformation_factor"].GetDouble();
     mDecomposeQuadraticIntoLinear = Settings["decompose_quadratic_into_linear"].GetBool();
     mWriteDeformedConfiguration = Settings["write_deformed_configuration"].GetBool();
+
+    // Unit system declared in the UNV file (validated against the known systems)
+    mUnitSystem = Settings["unit_system"].GetString();
+    UnitSystemData unit_system_data;
+    KRATOS_ERROR_IF_NOT(TryGetUnitSystem(mUnitSystem, unit_system_data))
+        << "Unknown unit_system: '" << mUnitSystem << "'. Currently supported: 'SI'." << std::endl;
     mWriteIds = Settings["write_ids"].GetBool();
     mOutputSubModelParts = Settings["output_sub_model_parts"].GetBool();
 
@@ -198,6 +204,9 @@ void UnvOutput::WriteMesh() {
         KRATOS_WARNING("UnvOutput") << "Output file has not been initialized yet. Initializing output file before writing mesh." << std::endl;
         InitializeOutputFile();
     }
+
+    // Write the units dataset (declares the model unit system, e.g. SI)
+    WriteUnitsDataset();
 
     // Write the nodes
     WriteNodes();
@@ -351,6 +360,48 @@ void UnvOutput::InitializeOutputFile() {
 
     // Set the flag to indicate that the output file has been initialized
     mInitializedOutputFile = true;
+}
+
+bool UnvOutput::TryGetUnitSystem(
+    const std::string& rName,
+    UnitSystemData& rOut
+    )
+{
+    if (rName == "SI") {
+        // SI: Meter (newton). All conversion factors are 1.0 (values are already in SI).
+        rOut = {1, "SI: Meter (newton)", 1.0, 1.0, 1.0, 273.15, 2};
+        return true;
+    }
+    // Additional systems (e.g. mm) can be added here.
+    return false;
+}
+
+void UnvOutput::WriteUnitsDataset() {
+    UnitSystemData unit_system_data;
+    KRATOS_ERROR_IF_NOT(TryGetUnitSystem(mUnitSystem, unit_system_data))
+        << "Unknown unit_system: '" << mUnitSystem << "'." << std::endl;
+
+    std::ofstream rOutputFile;
+    rOutputFile.open(mOutputFileName, std::ios::out | std::ios::app);
+    rOutputFile << std::scientific << std::setprecision(15);
+
+    rOutputFile << std::setw(6) << "-1" << "\n";
+    rOutputFile << std::setw(6) << as_integer(DatasetID::UNITS_DATASET) << "\n";
+
+    // Record 1: units code (I10), units description (20A1, left-justified), temperature mode (I10)
+    rOutputFile << std::setw(10) << unit_system_data.code << "  " << std::left << std::setw(20)
+                << unit_system_data.description << std::right << std::setw(10) << unit_system_data.temperature_mode << "\n";
+
+    // Record 2: length, force and temperature conversion factors to SI
+    rOutputFile << std::setw(25) << unit_system_data.length_factor;
+    rOutputFile << std::setw(25) << unit_system_data.force_factor;
+    rOutputFile << std::setw(25) << unit_system_data.temperature_factor << "\n";
+
+    // Record 3: temperature offset
+    rOutputFile << std::setw(25) << unit_system_data.temperature_offset << "\n";
+
+    rOutputFile << std::setw(6) << "-1" << "\n";
+    rOutputFile.close();
 }
 
 void UnvOutput::WriteNodes() {
@@ -871,12 +922,6 @@ int UnvOutput::GetUnvVariableName(const VariableData& rVariable) {
     return variable_key + 1000; // If not found, return a value greater than or equal to 1000
 }
 
-double UnvOutput::GetVariableScale(const VariableData& rVariable) const {
-    // The DISPLACEMENT values (and the deformed configuration) are scaled by the deformation factor
-    // to match the unit convention of the reader (e.g. Simcenter 3D interpreting the model in mm).
-    return (rVariable.Key() == DISPLACEMENT.Key()) ? mDeformationFactor : 1.0;
-}
-
 const Parameters UnvOutput::GetDefaultParameters() const
 {
     Parameters default_parameters(R"(
@@ -892,6 +937,7 @@ const Parameters UnvOutput::GetDefaultParameters() const
         "custom_name_postfix"                         : "",
         "save_output_files_in_folder"                 : true,
         "entity_type"                                 : "automatic",
+        "unit_system"                                 : "SI",
         "decompose_quadratic_into_linear"             : false,
         "write_deformed_configuration"                : false,
         "deformation_factor"                          : 1.0,

@@ -475,7 +475,7 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputDecomposeIsDefaultOff, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(elements[0].fe_id, 118); // Solid Parabolic Tetrahedron
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UnvOutputDeformationFactorScalesDisplacement, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(UnvOutputDeformedShapeScaledButResultsRaw, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
@@ -488,8 +488,8 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputDeformationFactorScalesDisplacement, KratosCo
     r_model_part.CreateNewElement("Element2D3N", 1, std::vector<ModelPart::IndexType>{1, 2, 3}, p_prop);
     array_1d<double, 3> displacement;
     displacement[0] = 1000.0;
-    displacement[1] = 1000.0;
-    displacement[2] = 1000.0;
+    displacement[1] = 0.0;
+    displacement[2] = 0.0;
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.FastGetSolutionStepValue(DISPLACEMENT) = displacement;
     }
@@ -502,6 +502,7 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputDeformationFactorScalesDisplacement, KratosCo
     Parameters parameters(R"({
         "model_part_name"                    : "Main",
         "save_output_files_in_folder"        : false,
+        "write_deformed_configuration"       : true,
         "deformation_factor"                 : 0.001,
         "nodal_solution_step_data_variables" : ["DISPLACEMENT"]
     })");
@@ -511,7 +512,14 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputDeformationFactorScalesDisplacement, KratosCo
     unv_output.PrintOutput();
 
     const auto blocks = ParseUnvBlocks(name + ".unv");
-    // Find the DISPLACEMENT results dataset (2414, location "1") and read the first node's values.
+
+    // The deformed configuration is scaled by the deformation factor: node 1 X = 0 + 0.001*1000 = 1.0.
+    // Node record = 4 header tokens + 3 coordinate tokens; token[4] is node 1's X coordinate.
+    const UnvBlock* p_nodes = GetBlock(blocks, 2411);
+    KRATOS_EXPECT_NE(p_nodes, nullptr);
+    KRATOS_EXPECT_NEAR(std::stod(p_nodes->tokens[4]), 1.0, 1e-9);
+
+    // The DISPLACEMENT result values are NOT scaled (raw SI): first component = 1000.0.
     const UnvBlock* p_displacement = nullptr;
     for (const auto& r_block : blocks) {
         if (r_block.id == 2414 && !r_block.tokens.empty() && r_block.tokens[0] == "DISPLACEMENT") {
@@ -520,12 +528,26 @@ KRATOS_TEST_CASE_IN_SUITE(UnvOutputDeformationFactorScalesDisplacement, KratosCo
         }
     }
     KRATOS_EXPECT_NE(p_displacement, nullptr);
-    // The dataset header occupies tokens [0..30]; token 31 is node 1's id and tokens 32-34 its values.
-    // 1000.0 * 0.001 (deformation_factor) = 1.0 for each component.
+    // Header occupies tokens [0..30]; token 31 is node 1's id and tokens 32-34 its values.
     const std::size_t first_value_index = 32;
-    KRATOS_EXPECT_NEAR(std::stod(p_displacement->tokens[first_value_index]), 1.0, 1e-9);
-    KRATOS_EXPECT_NEAR(std::stod(p_displacement->tokens[first_value_index + 1]), 1.0, 1e-9);
-    KRATOS_EXPECT_NEAR(std::stod(p_displacement->tokens[first_value_index + 2]), 1.0, 1e-9);
+    KRATOS_EXPECT_NEAR(std::stod(p_displacement->tokens[first_value_index]), 1000.0, 1e-6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UnvOutputWritesUnitsDataset, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    auto p_prop = r_model_part.CreateNewProperties(1);
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    r_model_part.CreateNewElement("Element2D3N", 1, std::vector<ModelPart::IndexType>{1, 2, 3}, p_prop);
+
+    const auto blocks = WriteAndParse(current_model, false);
+    const UnvBlock* p_units = GetBlock(blocks, 164);
+    KRATOS_EXPECT_NE(p_units, nullptr);
+    // Record 1 first token is the units code: 1 = SI.
+    KRATOS_EXPECT_EQ(std::stoi(p_units->tokens[0]), 1);
 }
 
 } // namespace Kratos::Testing
