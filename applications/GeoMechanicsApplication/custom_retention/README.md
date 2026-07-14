@@ -51,7 +51,7 @@ The constraint $m = 1 - 1/n$ (Mualem–Van Genuchten closure) is **hardcoded**; 
 #### Degree of Saturation
 
 $$S = \begin{cases}
-S_s & \text{if } p \le 0 \\[6pt]
+S_s & \text{if } p \le 0 \\
 S_r + (S_s - S_r)\bigl(1 + (p/p_b)^n\bigr)^{-m} & \text{if } p > 0
 \end{cases}$$
 
