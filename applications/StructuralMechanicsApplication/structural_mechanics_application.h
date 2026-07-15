@@ -57,6 +57,7 @@
 #include "custom_elements/membrane_elements/membrane_element.hpp"
 #include "custom_elements/membrane_elements/membrane_element_2D2N.h"
 #include "custom_elements/shell_elements/mitc_thick_shell_element_3D4N.hpp"
+#include "custom_elements/membrane_elements/membrane_cutting_pattern_element.hpp"
 #include "custom_elements/shell_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
@@ -326,6 +327,8 @@ private:
     const MembraneElement mMembraneElement3D4N;
     const MembraneElement mMembraneElement3D3N;
     const MembraneElement2D2N mMembraneElement2D2N;
+    const MembraneCuttingPatternElement mMembraneCuttingPatternElement3D4N;
+    const MembraneCuttingPatternElement mMembraneCuttingPatternElement3D3N;
 
     // Adding the SPRISM element
     const SolidShellElementSprism3D6N mSolidShellElementSprism3D6N;
