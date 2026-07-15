@@ -645,13 +645,19 @@ private:
         for (SizeType i = 0; i < local_ref.size(); ++i) {
             const Parameters entry = local_ref[i];
             const SizeType level  = entry["refinement_level"].GetInt();
-            const Vector& knots_u = p_local_surface->Levels()[level - 1].KnotsU;
-            const Vector& knots_v = p_local_surface->Levels()[level - 1].KnotsV;
-            const double min_u = shift_to_nearest_knot(entry["refined_region"]["u_range"][0].GetDouble(), knots_u);
-            const double max_u = shift_to_nearest_knot(entry["refined_region"]["u_range"][1].GetDouble(), knots_u);
-            const double min_v = shift_to_nearest_knot(entry["refined_region"]["v_range"][0].GetDouble(), knots_v);
-            const double max_v = shift_to_nearest_knot(entry["refined_region"]["v_range"][1].GetDouble(), knots_v);
-            p_local_surface->AddRefinementDomain(level, min_u, max_u, min_v, max_v);
+            const double raw_min_u = entry["refined_region"]["u_range"][0].GetDouble();
+            const double raw_max_u = entry["refined_region"]["u_range"][1].GetDouble();
+            const double raw_min_v = entry["refined_region"]["v_range"][0].GetDouble();
+            const double raw_max_v = entry["refined_region"]["v_range"][1].GetDouble();
+            for (SizeType lv = 1; lv <= level; ++lv) {
+                const Vector& knots_u = p_local_surface->Levels()[lv - 1].KnotsU;
+                const Vector& knots_v = p_local_surface->Levels()[lv - 1].KnotsV;
+                const double min_u = shift_to_nearest_knot(raw_min_u, knots_u);
+                const double max_u = shift_to_nearest_knot(raw_max_u, knots_u);
+                const double min_v = shift_to_nearest_knot(raw_min_v, knots_v);
+                const double max_v = shift_to_nearest_knot(raw_max_v, knots_v);
+                p_local_surface->AddRefinementDomain(lv, min_u, max_u, min_v, max_v);
+            }
         }
 
         p_local_surface->EliminateInactiveFunctions(rModelPart);
