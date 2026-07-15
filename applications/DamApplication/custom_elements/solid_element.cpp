@@ -982,6 +982,10 @@ void SolidElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorT
       noalias(PerturbedLeftHandSideMatrix) = ZeroMatrix( rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2() );
 
       this->CalculatePerturbedLeftHandSide( PerturbedLeftHandSideMatrix, rCurrentProcessInfo );
+      
+      kratos.watch("----------------------------------inside calculate local------------------------------")      
+      kratos.watch(rLeftHandSideMatrix)
+      kratos.watch(PerturbedLeftHandSideMatrix)
 
       //std::cout<<" ["<<this->Id()<<"] PERTURBED MATRIX "<<PerturbedLeftHandSideMatrix<<std::endl;
 
