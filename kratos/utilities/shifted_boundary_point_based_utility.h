@@ -500,6 +500,7 @@ protected:
         const PointerVector<NodeType>& rCloudNodeVector,
         const Vector& rSkinPtShapeFunctionValues,
         const Matrix& rSkinPtShapeFunctionDerivatives,
+        const array_1d<double,3>& rSkinPtVelocity,
         std::size_t& r_ConditionId,
         const bool ConsiderPositiveSide);
 

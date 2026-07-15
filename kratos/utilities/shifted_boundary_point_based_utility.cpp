@@ -694,22 +694,26 @@ namespace Kratos
                 const auto skin_pt_data = skin_points_data_vector[i_skin_pt];
                 const array_1d<double,3> skin_pt_position = std::get<0>(skin_pt_data);
                 const array_1d<double,3> skin_pt_area_normal = std::get<1>(skin_pt_data);
+                const std::size_t skin_pt_id = std::get<2>(skin_pt_data);
 
                 // Get the element's shape function values and derivatives at the skin/ integration point
                 Vector skin_pt_N(n_nodes);
                 Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, n_dim);
                 GetDataForSkinPointInElement(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
 
+                // Get the embedded velocity at the skin point (to be used in the SBM BC imposition)
+                array_1d<double,3> skin_pt_velocity = mpSkinPointsSubModelPart->GetNode(skin_pt_id).GetValue(EMBEDDED_VELOCITY);
+
                 // Add skin pt. condition for positive side of boundary - using support cloud data for negative nodes
                 // NOTE that the boundary normal is negative in order to point outward (from positive to negative side),
                 // because positive side is where dot product of vector to node with average normal is positive
                 n_skin_pt_conditions_added_pos += AddSkinPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
-                mExtensionOperatorMap, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/true);
+                mExtensionOperatorMap, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DN_DX, skin_pt_velocity, max_cond_id, /*ConsiderPositiveSide=*/true);
 
                 // Add skin pt. condition for negative side of boundary - using support cloud data for positive nodes
                 // NOTE that boundary normal is pointing outward (from negative to positive side)
                 n_skin_pt_conditions_added_neg += AddSkinPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal,
-                mExtensionOperatorMap, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/false);
+                mExtensionOperatorMap, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DN_DX, skin_pt_velocity, max_cond_id, /*ConsiderPositiveSide=*/false);
             }
         }
         if (n_skin_pt_conditions_added_pos != n_skin_points) {
@@ -1516,6 +1520,7 @@ namespace Kratos
         const PointerVector<NodeType>& rCloudNodeVector,
         const Vector& rSkinPtShapeFunctionValues,
         const Matrix& rSkinPtShapeFunctionDerivatives,
+        const array_1d<double,3>& rSkinPtVelocity,
         std::size_t& r_ConditionId,
         const bool ConsiderPositiveSide)
     {
@@ -1629,7 +1634,7 @@ namespace Kratos
         p_cond->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
         p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
         p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
-        p_cond->SetValue(EMBEDDED_VELOCITY, ZeroVector(3));
+        p_cond->SetValue(EMBEDDED_VELOCITY, rSkinPtVelocity);
 
         return true;
     }
