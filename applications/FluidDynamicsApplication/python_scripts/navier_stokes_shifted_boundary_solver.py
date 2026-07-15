@@ -1,8 +1,14 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
+# Import Kratos utilities
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KM_CFD
+mesh_moving_available = CheckIfApplicationsAvailable("MeshMovingApplication")
+if mesh_moving_available:
+    import KratosMultiphysics.MeshMovingApplication as KM_MeshMoving
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
@@ -11,6 +17,7 @@ from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_
 import datetime
 import numpy
 
+#from bin.RelWithDebInfo import KratosMultiphysics
 
 
 class ShiftedBoundaryFormulation(object):
@@ -119,7 +126,6 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             },
             "maximum_iterations": 7,
             "echo_level": 0,
-            "time_order": 2,
             "time_scheme": "bdf2",
             "compute_reactions": false,
             "analysis_type": "non_linear",
@@ -146,14 +152,64 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             "move_mesh_flag": false,
             "formulation": {
                 "element_type": "shifted_boundary_weakly_compressible_navier_stokes"
+            },
+            "fm_ale_settings": {
+                "fm_ale_step_frequency": 0,
+                "mesh_movement": "implicit",
+                "embedded_velocity_calculation": "from_fluid_mesh_velocity",
+                "rbf_interpolation_search_radius": 0.0,
+                "rbf_interpolation_edge_factor": 2.0,
+                "fm_ale_solver_settings": {
+                }
             }
         }""")
 
         default_settings.AddMissingParameters(super(NavierStokesShiftedBoundaryMonolithicSolver, cls).GetDefaultParameters())
         return default_settings
 
+    @classmethod
+    def _GetFmAleImplicitDefaultSettings(cls):
+        return KM.Parameters("""
+        {
+            "virtual_model_part_name": "VirtualModelPart",
+            "structure_model_part_name": "",
+            "linear_solver_settings": {
+                "solver_type": "cg",
+                "tolerance": 1.0e-8,
+                "max_iteration": 1000
+            },
+            "embedded_nodal_variable_settings": {
+                "gradient_penalty_coefficient": 1.0e-3,
+                "linear_solver_settings": {
+                    "preconditioner_type": "amg",
+                    "solver_type": "amgcl",
+                    "smoother_type": "ilu0",
+                    "krylov_type": "cg",
+                    "max_iteration": 1000,
+                    "verbosity": 0,
+                    "tolerance": 1e-8,
+                    "scaling": false,
+                    "block_size": 1,
+                    "use_block_matrices_if_possible": true
+                }
+            }
+        }
+        """)
+
+    def ValidateSettings(self):
+        """ Overriding python_solver ValidateSettings to validate the FM-ALE settings
+        """
+        super(NavierStokesShiftedBoundaryMonolithicSolver, self).ValidateSettings()
+
+        self.settings["fm_ale_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["fm_ale_settings"])
+        if self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() > 0:
+            mesh_movement = self.settings["fm_ale_settings"]["mesh_movement"].GetString()
+            if mesh_movement != "implicit":
+                raise Exception("Provided mesh movement \'" + mesh_movement + "\'. Available options are \'implicit\'.")
+            self.settings["fm_ale_settings"]["fm_ale_solver_settings"].ValidateAndAssignDefaults(self._GetFmAleImplicitDefaultSettings())
+
     def __init__(self, model, custom_settings):
-        super(NavierStokesShiftedBoundaryMonolithicSolver,self).__init__(model,custom_settings)
+        super(NavierStokesShiftedBoundaryMonolithicSolver, self).__init__(model, custom_settings)
 
         self.min_buffer_size = 3
         self.shifted_boundary_formulation = ShiftedBoundaryFormulation(self.settings["formulation"])
@@ -179,24 +235,35 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             if not self.model.HasModelPart(skin_mp_name + "Points"):
                 self.model.CreateModelPart(skin_mp_name + "Points")
 
+        # If the FM-ALE is required, do a first call to __GetFmAleVirtualModelPart
+        # NOTE that this will create the virtual model part in the model
+        if self._FmAleIsActive():
+            self.__GetFmAleVirtualModelPart()
+
         KM.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesShiftedBoundaryMonolithicSolver finished.")
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_VELOCITY)  # used?
+        self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KM.BODY_FORCE)  # used?
         self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)  # used?
         self.main_model_part.AddNodalSolutionStepVariable(KM.REACTION)  # used?
         self.main_model_part.AddNodalSolutionStepVariable(KM.REACTION_WATER_PRESSURE)  # used?
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)  # used?
         self.main_model_part.AddNodalSolutionStepVariable(KM.EXTERNAL_PRESSURE)  # used?
-        self.main_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)                      # Use distance variable for node relocation and voting on positive/ negative side
+        self.main_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)                       # Use distance variable for voting on positive/ negative side
         #self.main_model_part.AddNodalSolutionStepVariable(KM_CFD.EMBEDDED_WET_PRESSURE)     # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
         #self.main_model_part.AddNodalSolutionStepVariable(KM_CFD.EMBEDDED_WET_VELOCITY)     # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
+        #self.main_model_part.AddNodalSolutionStepVariable(KM.EMBEDDED_VELOCITY)
 
-        # Adding variables required for the nodal material properties
+        # Add variables required for the FM-ALE algorithm
+        if self._FmAleIsActive():
+            self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_DISPLACEMENT)
+            self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_REACTION)
+
+        # Add variables required for the nodal material properties
         if self.element_has_nodal_properties:
             for variable in self.historical_nodal_properties_variables_list:
                 self.main_model_part.AddNodalSolutionStepVariable(variable)
@@ -222,12 +289,23 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
         KM.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary fluid solver variables added correctly.")
 
-    def ImportModelPart(self):
-        super(NavierStokesShiftedBoundaryMonolithicSolver, self).ImportModelPart()
+    def AddDofs(self):
+        # Add formulation DOFs and reactions
+        super(NavierStokesShiftedBoundaryMonolithicSolver, self).AddDofs()
+
+        # Add mesh motion problem DOFs for the FM-ALE algorithm
+        if self._FmAleIsActive():
+            dofs_and_reactions_to_add = []
+            dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_X", "MESH_REACTION_X"])
+            dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_Y", "MESH_REACTION_Y"])
+            dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_Z", "MESH_REACTION_Z"])
+            KM.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
+
+            KM.Logger.PrintInfo(self.__class__.__name__, "FM-ALE DOFs added correctly.")
 
     def PrepareModelPart(self):
+        # Delete SBM conditions if the simulation is restarted - the shifted-boundary utility and conditions will be recreated
         if self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
-            # Delete SBM conditions related to interface utility - the interface utility and conditions will be recreated
             boundary_sub_model_part = self.GetComputingModelPart().GetSubModelPart(self.boundary_sub_model_part_name)
             for cond in boundary_sub_model_part.Conditions:
                 self.main_model_part.GetCondition(cond.Id).Set(KM.TO_ERASE, True)
@@ -246,8 +324,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             # Set the shifted-boundary formulation configuration
             self.__SetShiftedBoundaryFormulation()
 
-        # Create shifted-boundary utility and flag BOUNDARY elements for calculating metric for initial remeshing (MMG)
-        self.__CreateBoundaryUtility()
+        # Create shifted-boundary utility
+        self.__CreateShiftedBoundaryUtilities()
+        # Flag BOUNDARY elements for calculating the metric for an initial remeshing (MMG)
         #self.__FlagBoundaryElements()
 
         # Clone the solution step data for skin and skin points model parts
@@ -276,8 +355,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         #    self.shifted_boundary_formulation.SetProcessInfo(self.GetComputingModelPart())
 
         # Construct and initialize the solution strategy
-        # NOTE There is an error that "Constitutive Law not initialized for Element .."
-        # if strategy is initialized after set up of interface utility (b/c of deactivation of elements?)
+        # NOTE This needs to be done before immersing the shifted boundary, otherwise there is a constitutive law error b/c of deactivation of elements(?).
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
@@ -287,8 +365,27 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         # for ele in self.GetComputingModelPart().Elements:
         #     ele.SetValue(KM_CFD.RESISTANCE, 0.0)
 
-        # Set up shifted-boundary utility and calculate extension operator requiring nodal and elemental neighbors
-        self.__SetUpBoundaryUtility()
+        # Create skin points in skin points model part from the discretized skin model part if the skin points model part is empty and the skin model part is not empty.
+        for skin_mp_name in self.skin_model_part_names:
+            skin_mp = self.model.GetModelPart(skin_mp_name)
+            skin_mp_points = self.model.GetModelPart(skin_mp_name+"Points")
+            if skin_mp_points.NumberOfNodes() == 0 and skin_mp.NumberOfNodes() != 0:
+                self.__FillSkinPointsFromDiscModelPart(skin_mp_name, skin_mp, skin_mp_points)
+
+        # If required, initialize the FM-ALE utility
+        if self._FmAleIsActive():
+            self.fm_ale_step = 1
+            # Fill the virtual model part geometry. Note that the mesh moving util is created in this first call
+            self.__GetFmAleUtility().Initialize(self.main_model_part)
+
+            #TODO REMOVE
+            self.main_model_part.ProcessInfo.SetValue(KM.SOUND_VELOCITY, 1e12)
+            self.GetComputingModelPart().ProcessInfo.SetValue(KM.SOUND_VELOCITY, 1e12)
+
+        #else:
+            # Call shifted-boundary utility methods to immerse the boundary and calculate extension operators requiring nodal and elemental neighbors
+        #TODO why is this necessary??? otherwise SegFault bc of DOF set??
+        self.__ImmerseShiftedBoundaries()
 
         KM.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
@@ -305,17 +402,62 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             skin_mp_points.CloneTimeStep(new_time)
             skin_mp_points.ProcessInfo[KM.STEP] = step
 
+        # Advance the FM-ALE virtual model part
+        if self._FmAleIsActive():
+            self.__GetFmAleVirtualModelPart().ProcessInfo[KM.STEP] += 1
+            self.__GetFmAleVirtualModelPart().ProcessInfo[KM.TIME] = new_time
+
         return new_time
 
     def InitializeSolutionStep(self):
         # Compute the BDF coefficients
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
-        #TODO deactivate unstable regions here because fixed dofs are only found after applying boundary conditions
-        # separate process for deactivating unstable regions?!
+        if self.__IsFmAleStep():
+            # Set the virtual mesh values (VELOCITY and PRESSURE) from the background fluid mesh
+            self.__GetFmAleUtility().SetVirtualMeshValuesFromOriginMesh()
 
         # Call the base solver InitializeSolutionStep()
+        # NOTE that here the system is resized if demanded
+        # TODO deactivate DOFs before and ReformDofSetAtEachStep or keep all DOFs for moving boundary and add BCs??
+        #super(NavierStokesShiftedBoundaryMonolithicSolver, self).InitializeSolutionStep()
+
+        if self.__IsFmAleStep():
+            # Perform the FM-ALE operations
+            self.__DoFmAleMeshMovementAndProjection()
+
+            # Update the skin points model parts from the skin model parts and set the EMBEDDED_VELOCITY in the skin points
+            self.__UpdateSkinPointsFromDiscModelParts()
+
+            # Call shifted-boundary utility methods to immerse the updated boundary and calculate extension operators
+            self.__ReImmerseShiftedBoundaries()
+
         super(NavierStokesShiftedBoundaryMonolithicSolver, self).InitializeSolutionStep()
+
+    def SolveSolutionStep(self):
+        # TODO boundary movement and shifted-boundaries immersion need to be done here in case of non-linear coupling iterations??
+        # problematic for strategy initialization??
+        # if self.__IsFmAleStep():
+        #     # Perform the FM-ALE operations
+        #     self.__DoFmAleMeshMovementAndProjection()
+
+        #     # Calculate the EMBEDDED_VELOCITY
+        #     self.__CalculateEmbeddedVelocity()
+        #     # TODO Update the skin points model parts from the skin model parts
+
+        #     # Call shifted-boundary utility methods to immerse the updated boundary and calculate extension operators
+        #     self.__ReImmerseShiftedBoundaries()
+
+        #     #super(NavierStokesShiftedBoundaryMonolithicSolver, self).InitializeSolutionStep()
+
+        # Call the base SolveSolutionStep to solve the embedded CFD problem
+        is_converged = super(NavierStokesShiftedBoundaryMonolithicSolver, self).SolveSolutionStep()
+
+        # # Undo the FM-ALE virtual mesh movement
+        # if self._FmAleIsActive():
+        #     self.__GetFmAleUtility().UndoMeshMovement()
+
+        return is_converged
 
     def FinalizeSolutionStep(self):
         # Compute Variables for skin model parts in sbm utilities
@@ -329,6 +471,15 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             for sbm_utility in self.sbm_utilities:
                 sbm_utility.CalculateVariablesAtSkinPoints()
             self.__PrintAndResetTimer(time_prev, "post-process skin variables")
+
+        if self._FmAleIsActive():
+            # Undo the FM-ALE virtual mesh movement
+            self.__GetFmAleUtility().UndoMeshMovement()
+            # Reset or update FM-ALE step counter
+            if (self.__IsFmAleStep()):
+                self.fm_ale_step = 1
+            else:
+                self.fm_ale_step += 1
 
         # Call the base solver FinalizeSolutionStep()
         super(NavierStokesShiftedBoundaryMonolithicSolver, self).FinalizeSolutionStep()
@@ -368,7 +519,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         # Save the formulation settings in the ProcessInfo
         self.shifted_boundary_formulation.SetProcessInfo(self.main_model_part)
 
-    def __CreateBoundaryUtility(self):
+    def __CreateShiftedBoundaryUtilities(self):
         # Create the boundary elements and MLS parameter basis
         settings = KM.Parameters("""{}""")
         settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)  #TODO + "." + self.GetComputingModelPart().Name)
@@ -403,7 +554,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             sbm_utility.FlagBoundaryElements()
         self.__PrintAndResetTimer(time_prev, "flag boundary elements")
 
-    def __SetUpBoundaryUtility(self):
+    def __ImmerseShiftedBoundaries(self):
         if len(self.sbm_utilities) > 0:
             # Calculate the required neighbors
             elemental_neighbors_process = KM.GenericFindElementalNeighboursProcess(self.main_model_part)
@@ -411,21 +562,13 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
             time_prev = datetime.datetime.now().replace(microsecond=0)
 
-            # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) immersed
+            # Boundary and interface flags must be reset for the volume/ computing model part once before skin model parts are immersed
             self.sbm_utilities[0].ResetFlags()
             time_prev = self.__PrintAndResetTimer(time_prev, "reset flags")
-
-            # Create skin points in skin points model part from the discretized skin model part if the skin points model part is empty and the skin model part is not empty.
-            for skin_mp_name in self.skin_model_part_names:
-                skin_mp = self.model.GetModelPart(skin_mp_name)
-                skin_mp_points = self.model.GetModelPart(skin_mp_name+"Points")
-                if skin_mp_points.NumberOfNodes() == 0 and skin_mp.NumberOfNodes() != 0:
-                    self.__FillSkinPointsFromDiscModelPart(skin_mp_name, skin_mp, skin_mp_points)
 
             # Set boundary flags and locate skin model part points in the volume model part elements for all skin model parts.
             # NOTE that boundary elements are flagged after locating the skin points in case skin points are located in elements,
             # which are not touching or intersected by the tessellated boundary
-            #TODO call UpdateBoundaryElements() instead of FindElementsAtTessellatedBoundary() whenever the skin geometry has moved
             for sbm_utility in self.sbm_utilities:
                 sbm_utility.FindElementsAtTessellatedBoundary()
                 time_prev = self.__PrintAndResetTimer(time_prev, "find boundary elements of tessellated skin")
@@ -441,17 +584,48 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements. Also find and deactivate unstable clusters if requested.
             # An unstable cluster is defined as enclosed fluid volume created by deactivated elements, in which no degree of freedom is fixed.
             #NOTE Right now all cluster except for the biggest one will be deactivated.
+            #TODO Separate process for deactivating unstable regions?!
             self.sbm_utilities[0].DeactivateElementsAndNodes(self.deactivate_unstable_clusters)
             time_prev = self.__PrintAndResetTimer(time_prev, "deactivate elements and nodes")
 
-            # Add Kratos conditions for points at the boundary based on extension operators.
+            # Add shifted-boundary conditions for points at the boundary based on extension operators.
             # NOTE that the same boundary sub model part is being used here for all skin model parts and their utilities to add conditions.
             for i_skin, sbm_utility in enumerate(self.sbm_utilities):
                 sbm_utility.CalculateAndAddSkinIntegrationPointConditions()
-                KM.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part '" + self.skin_model_part_names[i_skin] + "'.")
+                KM.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions created for skin model part '" + self.skin_model_part_names[i_skin] + "'.")
             time_prev = self.__PrintAndResetTimer(time_prev, "add conditions for all skin model parts")
 
-            KM.Logger.PrintInfo(self.__class__.__name__, "Extension operators were calculated and interface conditions added.")
+    def __ReImmerseShiftedBoundaries(self):
+        if len(self.sbm_utilities) > 0:
+            # Boundary and interface flags must be reset for the volume/ computing model part once before skin model parts are re-immersed
+            self.sbm_utilities[0].ResetFlags()
+
+            # Remove the previous conditions from the boundary sub model part
+            boundary_sub_model_part = self.GetComputingModelPart().GetSubModelPart(self.boundary_sub_model_part_name)
+            for cond in boundary_sub_model_part.Conditions:
+                self.main_model_part.GetCondition(cond.Id).Set(KM.TO_ERASE, True)
+            self.main_model_part.RemoveConditions(KM.TO_ERASE)
+
+            # Set boundary flags and locate skin model part points in the volume model part elements for all skin model parts.
+            for sbm_utility in self.sbm_utilities:
+                sbm_utility.UpdateBoundaryElements()
+                sbm_utility.MapSkinPointsToElements()
+                sbm_utility.FlagBoundaryElements()
+
+            # Flag interface elements after all boundary elements containing all skin geometries have been found.
+            self.sbm_utilities[0].FlagInterfaceElements()
+
+            # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements. Also find and deactivate unstable clusters if requested.
+            # An unstable cluster is defined as enclosed fluid volume created by deactivated elements, in which no degree of freedom is fixed.
+            #NOTE Right now all cluster except for the biggest one will be deactivated.
+            self.sbm_utilities[0].DeactivateElementsAndNodes(self.deactivate_unstable_clusters)
+
+            # Add shifted-boundary conditions for points at the boundary based on extension operators.
+            # NOTE that the same boundary sub model part is being used here for all skin model parts and their utilities to add conditions.
+            for sbm_utility in self.sbm_utilities:
+                sbm_utility.CalculateAndAddSkinIntegrationPointConditions()
+
+            KM.Logger.PrintInfo(self.__class__.__name__, "Shifted boundaries were re-immersed.")
 
     def __FillSkinPointsFromDiscModelPart(self, skin_model_part_name, skin_model_part, skin_points_model_part):
         # Create skin points in skin points model part from the discretized skin model part if the skin points model part is empty and the skin model part is not empty.
@@ -473,6 +647,95 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 # NOTE that the length of the normal will be used as integration weight for the boundary condition!
                 skin_pt_area_normal = elem_unit_normal * int_pt_w
                 new_node.SetValue(KM.NORMAL, skin_pt_area_normal)
+
+        KM.Logger.PrintInfo(self.__class__.__name__, "Skin points created as nodes in skin points model part for skin model part '" + skin_model_part_name + "'.")
+
+    def __UpdateSkinPointsFromDiscModelParts(self):
+        # Update skin points in skin points model part from the discretized skin model part if the skin points model part is not empty and the skin model part is not empty.
+        # NOTE that this function assumes that the number of skin points in the skin points model part stays equal to the number of integration points in the skin model part.
+        for skin_mp_name in self.skin_model_part_names:
+            skin_mp = self.model.GetModelPart(skin_mp_name)
+            skin_mp_points = self.model.GetModelPart(skin_mp_name+"Points")
+            if skin_mp_points.NumberOfNodes() != 0 and skin_mp.NumberOfNodes() != 0:
+                # Get integration points of each skin element and update the corresponding node in the skin points model part
+                n_skin_points = 0
+
+                for element in skin_mp.Elements:
+                    integration_points = element.GetIntegrationPoints()
+                    integration_points_weights = element.GetIntegrationPointWeights()
+                    elem_normal = element.GetGeometry().Normal()
+                    elem_unit_normal = elem_normal / max(1e-10, numpy.linalg.norm(elem_normal))
+
+                    # Get skin velocity at the skin element integration points
+                    embedded_velocities = element.CalculateOnIntegrationPoints(KM.VELOCITY, skin_mp.ProcessInfo)
+
+                    for int_pt, int_pt_w, int_pt_u in zip(integration_points, integration_points_weights, embedded_velocities):
+                        # Update integration point node coordinates in skin points model part
+                        int_pt_node = skin_mp_points.GetNode(n_skin_points)
+                        int_pt_node.X = int_pt[0]
+                        int_pt_node.Y = int_pt[1]
+                        int_pt_node.Z = int_pt[2]
+
+                        # Set the embedded velocity at the integration point
+                        int_pt_node.SetValue(KM.EMBEDDED_VELOCITY, int_pt_u)
+
+                        # Calculate and set the area normal of the integration point
+                        # NOTE that the length of the normal will be used as integration weight for the boundary condition!
+                        skin_pt_area_normal = elem_unit_normal * int_pt_w
+                        int_pt_node.SetValue(KM.NORMAL, skin_pt_area_normal)
+
+                        n_skin_points += 1
+
+                KM.Logger.PrintInfo(self.__class__.__name__, "Skin points updated as nodes in skin points model part for skin model part '" + skin_mp_name + "'.")
+
+    def _FmAleIsActive(self):
+        return self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() > 0
+
+    def __GetFmAleVirtualModelPart(self):
+        if not hasattr(self, '_virtual_model_part'):
+            self._virtual_model_part = self.__CreateFmAleVirtualModelPart()
+        return self._virtual_model_part
+
+    def __CreateFmAleVirtualModelPart(self):
+        virtual_model_part_name = self.settings["fm_ale_settings"]["fm_ale_solver_settings"]["virtual_model_part_name"].GetString()
+        virtual_model_part = self.model.CreateModelPart(virtual_model_part_name)
+        return virtual_model_part
+
+    def __GetFmAleUtility(self):
+        if not hasattr (self, '_mesh_moving_util'):
+            self._mesh_moving_util = self.__CreateFmAleUtility()
+        return self._mesh_moving_util
+
+    def __CreateFmAleUtility(self):
+        if mesh_moving_available:
+            mesh_movement = self.settings["fm_ale_settings"]["mesh_movement"].GetString()
+            if (mesh_movement == "implicit"):
+                return KM_MeshMoving.FixedMeshALEUtilities(self.model, self.settings["fm_ale_settings"]["fm_ale_solver_settings"])
+            else:
+                raise Exception("FM-ALE mesh_movement set to \'" + mesh_movement + "\'. Available option is \'implicit\'.")
+        else:
+            raise Exception("MeshMovingApplication is required to construct the FM-ALE utility (FixedMeshALEUtilities)")
+
+    def __DoFmAleMeshMovementAndProjection(self):
+        # Solve the mesh problem
+        self.__GetFmAleUtility().ComputeMeshMovement(self.main_model_part.ProcessInfo[KM.DELTA_TIME])
+
+        # Project the obtained MESH_VELOCITY and historical VELOCITY and PRESSURE values to the origin mesh
+        buffer_size = self.main_model_part.GetBufferSize()
+        domain_size = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
+        if (domain_size == 2):
+            self.__GetFmAleUtility().ProjectVirtualValues2D(self.main_model_part, buffer_size)
+        else:
+            self.__GetFmAleUtility().ProjectVirtualValues3D(self.main_model_part, buffer_size)
+
+    def __IsFmAleStep(self):
+        if self._FmAleIsActive():
+            if (self.fm_ale_step == self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt()):
+                return True
+            else:
+                return False
+        else:
+            return False
 
     def __PrintAndResetTimer(self, time_prev, process_description):
         time_curr = datetime.datetime.now().replace(microsecond=0)
