@@ -113,8 +113,6 @@ public:
         double u,
         double v)
     {
-        const SizeType PolynomialDegreeU = rGeometry.PolynomialDegree(0);
-        const SizeType PolynomialDegreeV = rGeometry.PolynomialDegree(1);
         const SizeType ActiveLevel = rGeometry.ActiveLevelAtPoint(u, v);
         const auto& AllLevels = rGeometry.Levels();
         const SizeType number_of_shape_function_rows = NumberOfShapeFunctionRows(mDerivativeOrder);
@@ -132,7 +130,9 @@ public:
 
         for (SizeType l = 0; l <= ActiveLevel; ++l) {
             const auto& CurrentLevel = AllLevels[l];
-            mTensorProductNurbs.ResizeDataContainers(PolynomialDegreeU, PolynomialDegreeV, mDerivativeOrder);
+            const SizeType degree_u = CurrentLevel.DegreeU;
+            const SizeType degree_v = CurrentLevel.DegreeV;
+            mTensorProductNurbs.ResizeDataContainers(degree_u, degree_v, mDerivativeOrder);
             if (!CurrentLevel.Weights.empty())
                 mTensorProductNurbs.ComputeNurbsShapeFunctionValues(
                     CurrentLevel.KnotsU, CurrentLevel.KnotsV, CurrentLevel.Weights, u, v);
@@ -142,8 +142,8 @@ public:
 
             auto& CurrentLevelCache = level_caches[l];
             CurrentLevelCache.number_of_nonzero_control_points = mTensorProductNurbs.NumberOfNonzeroControlPoints();
-            const SizeType NumberOfControlPointsU = CurrentLevel.KnotsU.size() - PolynomialDegreeU + 1;
-            const SizeType NumberOfControlPointsV = CurrentLevel.KnotsV.size() - PolynomialDegreeV + 1;
+            const SizeType NumberOfControlPointsU = CurrentLevel.KnotsU.size() - degree_u + 1;
+            const SizeType NumberOfControlPointsV = CurrentLevel.KnotsV.size() - degree_v + 1;
             CurrentLevelCache.local_flat_indices = mTensorProductNurbs.ControlPointIndices(
                                                         NumberOfControlPointsU, NumberOfControlPointsV);
             CurrentLevelCache.values.resize(

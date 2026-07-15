@@ -21,6 +21,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "geometries/local_refined_curve_geometry.h"
+#include "utilities/math_utils.h"
 #include "geometries/nurbs_shape_function_utilities/thb_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
@@ -32,7 +33,7 @@ namespace Kratos {
 /// Truncated Hierarchical B-spline (THB) curve geometry.
 ///
 /// A single parametric direction t.  Levels are built by uniform knot bisection
-/// (AddLevel) and refined regions are registered with AddRefinementDomain.
+/// (AddLevelByHRefinement) and refined regions are registered with AddRefinementDomain.
 /// After setup, EliminateInactiveFunctions compacts the control-point array and
 /// removes inactive nodes from the ModelPart.
 ///
@@ -120,18 +121,18 @@ public:
 
     /// Adds one level with an explicit knot vector. CPs computed via knot insertion;
     /// new nodes are orphan (not registered in any ModelPart).
-    void AddLevel(const Vector& rKnots, const Vector& rWeights = Vector())
+    void AddLevelByHRefinement(const Vector& rKnots, const Vector& rWeights = Vector())
     {
-        AddLevelImpl(rKnots, rWeights,
+        AddLevelByHRefinementImpl(rKnots, rWeights,
             [](IndexType id, double x, double y, double z) {
                 return Kratos::make_intrusive<NodeType>(id, x, y, z);
             });
     }
 
     /// Adds one level with an explicit knot vector. CPs are registered in rModelPart.
-    void AddLevel(const Vector& rKnots, ModelPart& rModelPart, const Vector& rWeights = Vector())
+    void AddLevelByHRefinement(const Vector& rKnots, ModelPart& rModelPart, const Vector& rWeights = Vector())
     {
-        AddLevelImpl(rKnots, rWeights,
+        AddLevelByHRefinementImpl(rKnots, rWeights,
             [&rModelPart](IndexType id, double x, double y, double z)
                 -> typename NodeType::Pointer {
                 return rModelPart.CreateNewNode(id, x, y, z);
@@ -139,23 +140,62 @@ public:
     }
 
     /// Adds NLevels via uniform bisection; new nodes are orphan.
-    void AddLevel(const SizeType NLevels)
+    void AddLevelByHRefinement(const SizeType NLevels)
     {
         KRATOS_ERROR_IF(mLevels.empty())
-            << "THBCurveGeometry::AddLevel: no base level defined." << std::endl;
+            << "THBCurveGeometry::AddLevelByHRefinement: no base level defined." << std::endl;
         for (SizeType i = 0; i < NLevels; ++i) {
-            AddLevel(BisectKnots(mLevels.back().Knots));
+            AddLevelByHRefinement(BisectKnots(mLevels.back().Knots));
         }
     }
 
     /// Adds NLevels via uniform bisection; new nodes are registered in rModelPart.
-    void AddLevel(const SizeType NLevels, ModelPart& rModelPart)
+    void AddLevelByHRefinement(const SizeType NLevels, ModelPart& rModelPart)
     {
         KRATOS_ERROR_IF(mLevels.empty())
-            << "THBCurveGeometry::AddLevel: no base level defined." << std::endl;
+            << "THBCurveGeometry::AddLevelByHRefinement: no base level defined." << std::endl;
         for (SizeType i = 0; i < NLevels; ++i) {
-            AddLevel(BisectKnots(mLevels.back().Knots), rModelPart);
+            AddLevelByHRefinement(BisectKnots(mLevels.back().Knots), rModelPart);
         }
+    }
+
+    /// Adds one p-refined level (degree elevated by 1); new nodes are orphan.
+    void AddLevelByDegreeElevation()
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBCurveGeometry::AddLevelByDegreeElevation: no base level defined." << std::endl;
+        AddLevelPRefinementImpl(
+            [](IndexType id, double x, double y, double z) {
+                return Kratos::make_intrusive<NodeType>(id, x, y, z);
+            });
+    }
+
+    /// Adds one p-refined level (degree elevated by 1); new nodes are registered in rModelPart.
+    void AddLevelByDegreeElevation(ModelPart& rModelPart)
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBCurveGeometry::AddLevelByDegreeElevation: no base level defined." << std::endl;
+        AddLevelPRefinementImpl(
+            [&rModelPart](IndexType id, double x, double y, double z)
+                -> typename NodeType::Pointer {
+                return rModelPart.CreateNewNode(id, x, y, z);
+            });
+    }
+
+    /// Like AddLevelByDegreeElevation(rModelPart) but the first new node starts at StartingId.
+    void AddLevelByDegreeElevation(ModelPart& rModelPart, IndexType StartingId)
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBCurveGeometry::AddLevelByDegreeElevation: no base level defined." << std::endl;
+        IndexType effective_start = StartingId;
+        for (const auto& node : rModelPart.GetRootModelPart().Nodes())
+            effective_start = std::max(effective_start, node.Id() + IndexType(1));
+        AddLevelPRefinementImpl(
+            [&rModelPart](IndexType id, double x, double y, double z)
+                -> typename NodeType::Pointer {
+                return rModelPart.CreateNewNode(id, x, y, z);
+            },
+            effective_start);
     }
 
     /**
@@ -170,7 +210,7 @@ public:
     {
         KRATOS_ERROR_IF(Level == 0 || Level >= mLevels.size())
             << "THBCurveGeometry::AddRefinementDomain: level " << Level
-            << " does not exist (call AddLevel first)." << std::endl;
+            << " does not exist (call AddLevelByHRefinement first)." << std::endl;
 
         mRefinementDomains.push_back(THBRefinementDomain{Level, MinT, MaxT});
         ComputeActiveFunctions();
@@ -196,7 +236,6 @@ public:
             << "THBCurveGeometry::EliminateInactiveFunctions: no refinement domains defined — "
                "call AddRefinementDomain first." << std::endl;
 
-        const SizeType polynomial_degree = mLevels[0].Degree;
         const SizeType num_levels = mLevels.size();
 
         mActiveOffset.resize(num_levels);
@@ -207,7 +246,7 @@ public:
 
         for (SizeType l = 0; l < num_levels; ++l) {
             const SizeType num_cps_at_level =
-                mLevels[l].Knots.size() - polynomial_degree + 1;
+                mLevels[l].Knots.size() - mLevels[l].Degree + 1;
             const SizeType level_offset = ControlPointOffset(l);
 
             mActiveOffset[l] = running_offset;
@@ -280,7 +319,7 @@ public:
         const SizeType num_active_cps = this->PointsNumber();
         Matrix result(num_eval_pts, num_active_cps, 0.0);
 
-        THBCurveShapeFunction shape_function_container(PolynomialDegree(0), 0);
+        THBCurveShapeFunction shape_function_container(mLevels.back().Degree, 0);
         for (SizeType i = 0; i < num_eval_pts; ++i) {
             shape_function_container.ComputeShapeFunctionValues(*this, rTValues[i]);
             const auto& cp_indices = shape_function_container.ControlPointIndices();
@@ -358,13 +397,11 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = PolynomialDegree(0) + 1;
-
         rIntegrationPoints.clear();
 
-        IntegrationPointsArrayType span_ips(points_per_span);
-
         for (SizeType l = 0; l < mLevels.size(); ++l) {
+            const SizeType points_per_span = mLevels[l].Degree + 1;
+            IntegrationPointsArrayType span_ips(points_per_span);
             const auto span_intervals = KnotSpanIntervals(mLevels[l].Knots);
 
             for (const auto& span : span_intervals) {
@@ -402,7 +439,7 @@ public:
         auto default_method = this->GetDefaultIntegrationMethod();
 
         THBCurveShapeFunction shape_function_container(
-            PolynomialDegree(0), NumberOfShapeFunctionDerivatives);
+            mLevels.back().Degree, NumberOfShapeFunctionDerivatives);
 
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i) {
             const double t = rIntegrationPoints[i][0];
@@ -446,7 +483,7 @@ public:
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rLocalCoordinates) const override
     {
-        THBCurveShapeFunction shape_function_container(PolynomialDegree(0), 0);
+        THBCurveShapeFunction shape_function_container(mLevels.back().Degree, 0);
         shape_function_container.ComputeShapeFunctionValues(*this, rLocalCoordinates[0]);
 
         noalias(rResult) = ZeroVector(3);
@@ -464,7 +501,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates,
         const SizeType DerivativeOrder) const override
     {
-        THBCurveShapeFunction shape_function_container(PolynomialDegree(0), DerivativeOrder);
+        THBCurveShapeFunction shape_function_container(mLevels.back().Degree, DerivativeOrder);
         shape_function_container.ComputeShapeFunctionValues(*this, rLocalCoordinates[0]);
 
         rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
@@ -536,17 +573,17 @@ private:
     ///@name Private Helpers
     ///@{
 
-    /// Shared implementation for all AddLevel overloads.
+    /// Shared implementation for all AddLevelByHRefinement overloads.
     template<typename TNodeFactory>
-    void AddLevelImpl(
+    void AddLevelByHRefinementImpl(
         const Vector& rKnots,
         const Vector& rWeights,
         TNodeFactory CreateNode)
     {
         KRATOS_ERROR_IF(mLevels.empty())
-            << "THBCurveGeometry::AddLevel: no base level defined." << std::endl;
+            << "THBCurveGeometry::AddLevelByHRefinement: no base level defined." << std::endl;
         KRATOS_ERROR_IF(mIsEliminated)
-            << "THBCurveGeometry::AddLevel: cannot add levels after EliminateInactiveFunctions." << std::endl;
+            << "THBCurveGeometry::AddLevelByHRefinement: cannot add levels after EliminateInactiveFunctions." << std::endl;
 
         const SizeType last_level_index = mLevels.size() - 1;
         const THBLevel& previous_level  = mLevels[last_level_index];
@@ -717,8 +754,6 @@ private:
      */
     void ComputeActiveFunctions()
     {
-        const SizeType polynomial_degree = mLevels[0].Degree;
-
         std::fill(mActiveFunctions[0].begin(), mActiveFunctions[0].end(), true);
         for (SizeType l = 1; l < mLevels.size(); ++l)
             std::fill(mActiveFunctions[l].begin(), mActiveFunctions[l].end(), false);
@@ -726,15 +761,15 @@ private:
         for (SizeType l = 0; l + 1 < mLevels.size(); ++l) {
             const THBLevel& coarse_level = mLevels[l];
             const THBLevel& fine_level   = mLevels[l + 1];
-            const SizeType num_cps_coarse = coarse_level.Knots.size() - polynomial_degree + 1;
-            const SizeType num_cps_fine   = fine_level.Knots.size()   - polynomial_degree + 1;
+            const SizeType num_cps_coarse = coarse_level.Knots.size() - coarse_level.Degree + 1;
+            const SizeType num_cps_fine   = fine_level.Knots.size()   - fine_level.Degree + 1;
 
             // Phase 1 (T^B_{l+1}): activate fine children
             for (SizeType j = 0; j < num_cps_fine; ++j) {
                 const double fine_supp_min =
                     (j == 0) ? fine_level.Knots[0] : fine_level.Knots[j - 1];
                 const double fine_supp_max =
-                    fine_level.Knots[std::min(j + polynomial_degree,
+                    fine_level.Knots[std::min(j + fine_level.Degree,
                                               fine_level.Knots.size() - 1)];
 
                 bool support_in_omega = true;
@@ -758,7 +793,7 @@ private:
                 const double support_min =
                     (i == 0) ? coarse_level.Knots[0] : coarse_level.Knots[i - 1];
                 const double support_max =
-                    coarse_level.Knots[std::min(i + polynomial_degree,
+                    coarse_level.Knots[std::min(i + coarse_level.Degree,
                                                 coarse_level.Knots.size() - 1)];
 
                 bool all_cells_covered = true;
@@ -790,17 +825,23 @@ private:
      */
     void ComputeTruncationData()
     {
-        const SizeType polynomial_degree = mLevels[0].Degree;
         const SizeType num_levels = mLevels.size();
 
         // Pre-compute per-level CP counts and consecutive refinement matrices.
+        // For h-refinement (same degree) use ComputeRefinementMatrix1D;
+        // for p-refinement (degree+1) use ComputeDegreeElevationMatrix1D.
         std::vector<SizeType> num_cps(num_levels);
         for (SizeType l = 0; l < num_levels; ++l)
-            num_cps[l] = mLevels[l].Knots.size() - polynomial_degree + 1;
+            num_cps[l] = mLevels[l].Knots.size() - mLevels[l].Degree + 1;
         std::vector<Matrix> ref_mat(num_levels - 1);
-        for (SizeType l = 0; l + 1 < num_levels; ++l)
-            ref_mat[l] = ComputeRefinementMatrix1D(
-                mLevels[l].Knots, mLevels[l + 1].Knots, polynomial_degree);
+        for (SizeType l = 0; l + 1 < num_levels; ++l) {
+            if (mLevels[l + 1].Degree == mLevels[l].Degree)
+                ref_mat[l] = ComputeRefinementMatrix1D(
+                    mLevels[l].Knots, mLevels[l + 1].Knots, mLevels[l].Degree);
+            else
+                ref_mat[l] = ComputeDegreeElevationMatrix1D(
+                    mLevels[l].Knots, mLevels[l].Degree).second;
+        }
 
         mTruncationData.resize(num_levels);
         for (SizeType l = 0; l < num_levels; ++l)
@@ -856,7 +897,7 @@ private:
 
     SizeType NumberOfControlPoints(SizeType Level) const
     {
-        return mLevels[Level].Knots.size() - mLevels[0].Degree + 1;
+        return mLevels[Level].Knots.size() - mLevels[Level].Degree + 1;
     }
 
     SizeType ControlPointOffset(SizeType Level) const
@@ -865,6 +906,134 @@ private:
         for (SizeType l = 0; l < Level; ++l)
             offset += NumberOfControlPoints(l);
         return offset;
+    }
+
+    /// Computes the 1-D degree elevation matrix M (n_fine × n_coarse) and elevated knot vector.
+    /// Elevates from degree p to p+1 using Bézier decomposition + pseudoinverse reconstruction.
+    static std::pair<Vector, Matrix> ComputeDegreeElevationMatrix1D(
+        const Vector& rCoarseKnots,
+        const SizeType p)
+    {
+        const SizeType p1 = p + 1;
+
+        // Extract unique breakpoints and multiplicities from Kratos-format coarse knots.
+        std::vector<double> unique_bp;
+        std::vector<SizeType> mults;
+        for (SizeType k = 0; k < rCoarseKnots.size(); ++k) {
+            if (k == 0 || rCoarseKnots[k] - rCoarseKnots[k - 1] > 1e-10) {
+                unique_bp.push_back(rCoarseKnots[k]);
+                mults.push_back(1);
+            } else {
+                mults.back()++;
+            }
+        }
+        const SizeType n_spans  = unique_bp.size() - 1;
+        const SizeType n_coarse = rCoarseKnots.size() - p + 1;
+
+        // Bézier knot vector (Kratos format, degree p): each breakpoint p times.
+        Vector bezier_knots(unique_bp.size() * p);
+        for (SizeType k = 0, idx = 0; k < unique_bp.size(); ++k)
+            for (SizeType j = 0; j < p; ++j)
+                bezier_knots[idx++] = unique_bp[k];
+        const SizeType n_bezier = bezier_knots.size() - p + 1;  // = n_spans * p + 1
+
+        // Coarse → Bézier insertion matrix (n_bezier × n_coarse).
+        const Matrix M_bezier_decomp = ComputeRefinementMatrix1D(rCoarseKnots, bezier_knots, p);
+
+        // Bézier elevation matrix E (n_elev_bezier × n_bezier).
+        // For each segment s, p+1 input CPs → p+2 output CPs via the elevation formula:
+        //   out[j] = ((p+1-j)/(p+1)) * in[j] + (j/(p+1)) * in[j-1]
+        const SizeType n_elev_bezier = n_spans * p1 + 1;
+        Matrix E(n_elev_bezier, n_bezier, 0.0);
+        for (SizeType s = 0; s < n_spans; ++s) {
+            const SizeType out_base = s * p1;
+            const SizeType in_base  = s * p;
+            for (SizeType j = 0; j <= p1; ++j) {
+                if (j <= p)
+                    E(out_base + j, in_base + j) = double(p1 - j) / double(p1);
+                if (j >= 1)
+                    E(out_base + j, in_base + j - 1) = double(j) / double(p1);
+            }
+        }
+
+        // Elevated Bézier knot vector (Kratos format, degree p+1): each breakpoint p+1 times.
+        Vector elev_bezier_knots(unique_bp.size() * p1);
+        for (SizeType k = 0, idx = 0; k < unique_bp.size(); ++k)
+            for (SizeType j = 0; j < p1; ++j)
+                elev_bezier_knots[idx++] = unique_bp[k];
+
+        // Fine B-spline knot vector (Kratos format, degree p+1): each breakpoint mult+1 times.
+        std::vector<double> fine_vec;
+        for (SizeType k = 0; k < unique_bp.size(); ++k)
+            for (SizeType j = 0; j < mults[k] + 1; ++j)
+                fine_vec.push_back(unique_bp[k]);
+        Vector fine_knots(fine_vec.size());
+        for (SizeType k = 0; k < fine_vec.size(); ++k) fine_knots[k] = fine_vec[k];
+        const SizeType n_fine = fine_knots.size() - p1 + 1;
+
+        // Fine → elevated Bézier insertion matrix M_ins (n_elev_bezier × n_fine).
+        const Matrix M_ins = ComputeRefinementMatrix1D(fine_knots, elev_bezier_knots, p1);
+
+        // Pseudoinverse M_pseudo_inv = (M_ins^T M_ins)^{-1} M_ins^T  (n_fine × n_elev_bezier).
+        Matrix MtM(n_fine, n_fine, 0.0);
+        noalias(MtM) = prod(trans(M_ins), M_ins);
+        Matrix MtM_inv(n_fine, n_fine);
+        double det = 0.0;
+        MathUtils<double>::InvertMatrix(MtM, MtM_inv, det);
+        Matrix M_pseudo_inv(n_fine, n_elev_bezier, 0.0);
+        noalias(M_pseudo_inv) = prod(MtM_inv, trans(M_ins));
+
+        // Full elevation matrix M = M_pseudo_inv * E * M_bezier_decomp  (n_fine × n_coarse).
+        Matrix E_M_bezier_decomp(n_elev_bezier, n_coarse, 0.0);
+        noalias(E_M_bezier_decomp) = prod(E, M_bezier_decomp);
+        Matrix M(n_fine, n_coarse, 0.0);
+        noalias(M) = prod(M_pseudo_inv, E_M_bezier_decomp);
+
+        return {fine_knots, M};
+    }
+
+    /// Private implementation for p-refinement: elevates last level by 1.
+    template<typename TNodeFactory>
+    void AddLevelPRefinementImpl(TNodeFactory CreateNode, IndexType NextNodeId = 0)
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBCurveGeometry::AddLevelByDegreeElevation: no base level defined." << std::endl;
+        KRATOS_ERROR_IF(mIsEliminated)
+            << "THBCurveGeometry::AddLevelByDegreeElevation: cannot add levels after EliminateInactiveFunctions." << std::endl;
+
+        const SizeType last_index      = mLevels.size() - 1;
+        const THBLevel& previous_level = mLevels[last_index];
+        const SizeType p = previous_level.Degree;
+
+        const auto [fine_knots, M] = ComputeDegreeElevationMatrix1D(previous_level.Knots, p);
+
+        const SizeType num_cps_coarse = previous_level.Knots.size() - p + 1;
+        const SizeType num_cps_fine   = M.size1();
+
+        const SizeType coarse_cp_offset = ControlPointOffset(last_index);
+
+        IndexType next_node_id = NextNodeId;
+        if (next_node_id == 0) {
+            next_node_id = 1;
+            for (SizeType i = 0; i < this->PointsNumber(); ++i)
+                next_node_id = std::max(next_node_id, this->GetPoint(i).Id() + IndexType(1));
+        }
+
+        for (SizeType j = 0; j < num_cps_fine; ++j) {
+            double x = 0.0, y = 0.0, z = 0.0;
+            for (SizeType i = 0; i < num_cps_coarse; ++i) {
+                const double coeff = M(j, i);
+                if (std::abs(coeff) < 1e-15) continue;
+                const auto& pt = this->GetPoint(coarse_cp_offset + i);
+                x += coeff * pt.X();
+                y += coeff * pt.Y();
+                z += coeff * pt.Z();
+            }
+            this->Points().push_back(CreateNode(next_node_id++, x, y, z));
+        }
+
+        mLevels.push_back(THBLevel{p + 1, fine_knots, {}});
+        mActiveFunctions.push_back(std::vector<bool>(num_cps_fine, true));
     }
 
     ///@}

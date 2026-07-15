@@ -90,13 +90,11 @@ public:
     template<class TTHBGeometry>
     void ComputeShapeFunctionValues(const TTHBGeometry& rGeometry, double t)
     {
-        const SizeType PolynomialDegreeT = rGeometry.PolynomialDegree(0);
         const SizeType ActiveLevel = rGeometry.ActiveLevelAtPoint(t);
         const auto& AllLevels = rGeometry.Levels();
         const SizeType number_of_shape_function_rows = NumberOfShapeFunctionRows(mDerivativeOrder);
 
         // evaluate B-splines at every level 0..ActiveLevel.
-        // For a curve, the (PolynomialDegreeT+1) nonzero CPs at parameter t start at GetFirstNonzeroControlPoint().
         struct LevelCache {
             SizeType first_nonzero_cp = 0;
             SizeType number_of_nonzero_control_points = 0;
@@ -108,7 +106,8 @@ public:
 
         for (SizeType l = 0; l <= ActiveLevel; ++l) {
             const auto& CurrentLevel = AllLevels[l];
-            mTensorProductNurbs.ResizeDataContainers(PolynomialDegreeT, mDerivativeOrder);
+            const SizeType degree_t = CurrentLevel.Degree;
+            mTensorProductNurbs.ResizeDataContainers(degree_t, mDerivativeOrder);
             if (!CurrentLevel.Weights.empty())
                 mTensorProductNurbs.ComputeNurbsShapeFunctionValues(CurrentLevel.Knots, CurrentLevel.Weights, t);
             else

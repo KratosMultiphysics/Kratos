@@ -601,10 +601,35 @@ private:
                 pNurbsSurface->PolynomialDegree(0), pNurbsSurface->PolynomialDegree(1),
                 pNurbsSurface->KnotsU(), pNurbsSurface->KnotsV());
 
-        if (NextNodeIdHint > 0)
-            p_local_surface->AddLevel(max_level, rModelPart, NextNodeIdHint);
-        else
-            p_local_surface->AddLevel(max_level, rModelPart);
+        // Collect per-level refinement method ("h" = knot insertion, "p" = degree elevation).
+        std::vector<std::string> level_method(max_level + 1, "h");
+        for (SizeType i = 0; i < local_ref.size(); ++i) {
+            const SizeType lv = (SizeType)local_ref[i]["refinement_level"].GetInt();
+            if (local_ref[i].Has("refinement_method"))
+                level_method[lv] = local_ref[i]["refinement_method"].GetString();
+        }
+
+        // Add levels one by one so that p- and h-refinement may be mixed.
+        for (SizeType lv = 1; lv <= max_level; ++lv) {
+            const bool first_addlevel = (lv == 1) && (NextNodeIdHint > 0);
+            if (level_method[lv] == "p")
+                if (first_addlevel)
+                    p_local_surface->AddLevelByPRefinement(rModelPart, NextNodeIdHint);
+                else 
+                    p_local_surface->AddLevelByPRefinement(rModelPart);
+            else if (level_method[lv] == "h")
+                if (first_addlevel) 
+                    p_local_surface->AddLevelByHRefinement(1, rModelPart, NextNodeIdHint);
+                else
+                    p_local_surface->AddLevelByHRefinement(1, rModelPart);
+            else if (level_method[lv] == "k")
+                KRATOS_ERROR << "ReadLocalRefinement: unsupported refinement method \"k\" for brep_id " << brep_id
+                    << ", level " << lv << ". k-refinement is not yet implemented." << std::endl;
+            else
+                KRATOS_ERROR << "ReadLocalRefinement: unsupported refinement method \""
+                    << level_method[lv] << "\" for brep_id " << brep_id
+                    << ", level " << lv << ". Currently supported: \"h\", \"p\"." << std::endl;
+        }
 
         auto shift_to_nearest_knot = [](double value, const Vector& knots) -> double {
             KRATOS_ERROR_IF(knots.empty()) << "Knot vector is empty." << std::endl;

@@ -579,18 +579,26 @@ void  AddGeometriesToPython(pybind11::module& m)
     py::class_<THBSurfaceGeometry3DType, THBSurfaceGeometry3DType::Pointer, GeometryType>(m, "THBSurfaceGeometry3D")
         .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector&, const Vector&>())
         .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector&, const Vector&, const Vector&>())
-        .def("AddLevel",
-             py::overload_cast<const Vector&, const Vector&, const Vector&>(&THBSurfaceGeometry3DType::AddLevel),
+        .def("AddLevelByHRefinement",
+             py::overload_cast<const Vector&, const Vector&, const Vector&>(&THBSurfaceGeometry3DType::AddLevelByHRefinement),
              py::arg("knots_u"), py::arg("knots_v"), py::arg("weights") = Vector())
-        .def("AddLevel",
-             py::overload_cast<const Vector&, const Vector&, ModelPart&, const Vector&>(&THBSurfaceGeometry3DType::AddLevel),
+        .def("AddLevelByHRefinement",
+             py::overload_cast<const Vector&, const Vector&, ModelPart&, const Vector&>(&THBSurfaceGeometry3DType::AddLevelByHRefinement),
              py::arg("knots_u"), py::arg("knots_v"), py::arg("model_part"), py::arg("weights") = Vector())
-        .def("AddLevel",
-             py::overload_cast<const SizeType>(&THBSurfaceGeometry3DType::AddLevel),
+        .def("AddLevelByHRefinement",
+             py::overload_cast<const SizeType>(&THBSurfaceGeometry3DType::AddLevelByHRefinement),
              py::arg("n_levels"))
-        .def("AddLevel",
-             py::overload_cast<const SizeType, ModelPart&>(&THBSurfaceGeometry3DType::AddLevel),
+        .def("AddLevelByHRefinement",
+             py::overload_cast<const SizeType, ModelPart&>(&THBSurfaceGeometry3DType::AddLevelByHRefinement),
              py::arg("n_levels"), py::arg("model_part"))
+        .def("AddLevelByPRefinement",
+             py::overload_cast<>(&THBSurfaceGeometry3DType::AddLevelByPRefinement))
+        .def("AddLevelByPRefinement",
+             py::overload_cast<ModelPart&>(&THBSurfaceGeometry3DType::AddLevelByPRefinement),
+             py::arg("model_part"))
+        .def("AddLevelByPRefinement",
+             py::overload_cast<ModelPart&, IndexType>(&THBSurfaceGeometry3DType::AddLevelByPRefinement),
+             py::arg("model_part"), py::arg("starting_id"))
         .def("AddRefinementDomain", &THBSurfaceGeometry3DType::AddRefinementDomain,
              py::arg("level"),
              py::arg("omega_min_u"), py::arg("omega_max_u"),
@@ -663,18 +671,26 @@ void  AddGeometriesToPython(pybind11::module& m)
     py::class_<THBCurveGeometry3DType, THBCurveGeometry3DType::Pointer, GeometryType>(m, "THBCurveGeometry3D")
         .def(py::init<const PointsArrayType&, const SizeType, const Vector&>())
         .def(py::init<const PointsArrayType&, const SizeType, const Vector&, const Vector&>())
-        .def("AddLevel",
-             py::overload_cast<const Vector&, const Vector&>(&THBCurveGeometry3DType::AddLevel),
+        .def("AddLevelByHRefinement",
+             py::overload_cast<const Vector&, const Vector&>(&THBCurveGeometry3DType::AddLevelByHRefinement),
              py::arg("knots"), py::arg("weights") = Vector())
-        .def("AddLevel",
-             py::overload_cast<const Vector&, ModelPart&, const Vector&>(&THBCurveGeometry3DType::AddLevel),
+        .def("AddLevelByHRefinement",
+             py::overload_cast<const Vector&, ModelPart&, const Vector&>(&THBCurveGeometry3DType::AddLevelByHRefinement),
              py::arg("knots"), py::arg("model_part"), py::arg("weights") = Vector())
-        .def("AddLevel",
-             py::overload_cast<const SizeType>(&THBCurveGeometry3DType::AddLevel),
+        .def("AddLevelByHRefinement",
+             py::overload_cast<const SizeType>(&THBCurveGeometry3DType::AddLevelByHRefinement),
              py::arg("n_levels"))
-        .def("AddLevel",
-             py::overload_cast<const SizeType, ModelPart&>(&THBCurveGeometry3DType::AddLevel),
+        .def("AddLevelByHRefinement",
+             py::overload_cast<const SizeType, ModelPart&>(&THBCurveGeometry3DType::AddLevelByHRefinement),
              py::arg("n_levels"), py::arg("model_part"))
+        .def("AddLevelByDegreeElevation",
+             py::overload_cast<>(&THBCurveGeometry3DType::AddLevelByDegreeElevation))
+        .def("AddLevelByDegreeElevation",
+             py::overload_cast<ModelPart&>(&THBCurveGeometry3DType::AddLevelByDegreeElevation),
+             py::arg("model_part"))
+        .def("AddLevelByDegreeElevation",
+             py::overload_cast<ModelPart&, IndexType>(&THBCurveGeometry3DType::AddLevelByDegreeElevation),
+             py::arg("model_part"), py::arg("starting_id"))
         .def("AddRefinementDomain", &THBCurveGeometry3DType::AddRefinementDomain,
              py::arg("level"), py::arg("min_t"), py::arg("max_t"))
         .def("NumberOfLevels",      &THBCurveGeometry3DType::NumberOfLevels)
