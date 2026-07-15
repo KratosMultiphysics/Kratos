@@ -38,7 +38,13 @@ def RestoreBufferedDict(node: BufferedDict, snapshot: dict, shape_owner, echo_le
             if kind == "tensor":
                 placeholder.data[:] = leaf["array"]
             elif kind == "combined_tensor":
-                for part_array, part_ta in zip(leaf["parts"], placeholder.GetTensorAdaptors()):
+                parts = leaf["parts"]
+                tensor_adaptors = placeholder.GetTensorAdaptors()
+                if len(parts) != len(tensor_adaptors):
+                    raise RuntimeError(
+                        f"Restart data for key \"{key}\" has {len(parts)} parts, but the current placeholder has {len(tensor_adaptors)} parts."
+                    )
+                for part_array, part_ta in zip(parts, tensor_adaptors):
                     part_ta.data[:] = part_array
                 # a combined tensor adaptor's own .data is a separate buffer from its parts';
                 # CollectData() resyncs it from the parts we just wrote.
@@ -192,7 +198,9 @@ class OptimizationProblemRestartInputProcess(Kratos.Process):
 
     def __ResolveCheckpointFile(self) -> 'Path | None':
         if self.restart_load_step is not None:
-            file_path = self.restart_files_path / self.restart_file_name.replace("<step>", str(self.restart_load_step))
+            file_path = (self.restart_files_path / self.restart_file_name.replace("<step>", str(self.restart_load_step))).resolve()
+            if self.restart_files_path.resolve() not in file_path.parents:
+                raise RuntimeError(f"Resolved restart checkpoint path is outside restart_files_path. [ file_path = \"{file_path}\" ].")
             if not file_path.is_file():
                 raise FileNotFoundError(f"Restart checkpoint file not found: \"{file_path}\".")
             return file_path
