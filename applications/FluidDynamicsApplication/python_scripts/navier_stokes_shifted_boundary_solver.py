@@ -379,8 +379,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             self.__GetFmAleUtility().Initialize(self.main_model_part)
 
             #TODO REMOVE
-            self.main_model_part.ProcessInfo.SetValue(KM.SOUND_VELOCITY, 1e12)
-            self.GetComputingModelPart().ProcessInfo.SetValue(KM.SOUND_VELOCITY, 1e12)
+            # self.main_model_part.ProcessInfo.SetValue(KM.SOUND_VELOCITY, 1e12)
+            # self.GetComputingModelPart().ProcessInfo.SetValue(KM.SOUND_VELOCITY, 1e12)
 
         #else:
             # Call shifted-boundary utility methods to immerse the boundary and calculate extension operators requiring nodal and elemental neighbors
@@ -441,9 +441,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         #     # Perform the FM-ALE operations
         #     self.__DoFmAleMeshMovementAndProjection()
 
-        #     # Calculate the EMBEDDED_VELOCITY
-        #     self.__CalculateEmbeddedVelocity()
-        #     # TODO Update the skin points model parts from the skin model parts
+        #     # Update the skin points model parts from the skin model parts and set the EMBEDDED_VELOCITY in the skin points
+        #     self.__UpdateSkinPointsFromDiscModelParts()
 
         #     # Call shifted-boundary utility methods to immerse the updated boundary and calculate extension operators
         #     self.__ReImmerseShiftedBoundaries()
@@ -522,7 +521,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
     def __CreateShiftedBoundaryUtilities(self):
         # Create the boundary elements and MLS parameter basis
         settings = KM.Parameters("""{}""")
-        settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)  #TODO + "." + self.GetComputingModelPart().Name)
+        settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
         settings.AddEmptyValue("boundary_sub_model_part_name").SetString(self.main_model_part.Name + "." + self.GetComputingModelPart().Name + "." + self.boundary_sub_model_part_name)
         settings.AddEmptyValue("boundary_wall_condition_name").SetString(self.sbm_wall_condition_name)
         settings.AddEmptyValue("extension_operator_type").SetString(self.settings["formulation"]["extension_operator_type"].GetString())
