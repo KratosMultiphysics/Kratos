@@ -1146,7 +1146,7 @@ namespace Kratos
             // NOTE that the positive side of the boundary equals a positive inwards skin normal, negative dot product equals a negative inward skin normal
             // NOTE that it is necessary to define the side of points of gamma_tilde here for the search of the support clouds afterwards (SetLateralSupportCloud)
             // NOTE that this will cause troubles if inverted elements exist as opposed to having a local definition of sides
-            // NOTE that it is necessary here to set the other side's flag to false because it might have been set to true by another skin geometry embedded previously.
+            // NOTE that it is necessary here to set the other side's flag to false because it might have been set to true by another skin geometry immersed previously.
             Vector sides_vector(n_nodes);
             for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                 auto& r_node = r_geom[i_node];
@@ -1629,6 +1629,7 @@ namespace Kratos
         p_cond->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
         p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
         p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+        p_cond->SetValue(EMBEDDED_VELOCITY, ZeroVector(3));
 
         return true;
     }

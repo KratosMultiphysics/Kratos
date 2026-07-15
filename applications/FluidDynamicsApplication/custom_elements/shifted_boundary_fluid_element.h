@@ -148,8 +148,8 @@ public:
                             Geometry<NodeType>::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
 
-    /** For discontinuous level set instead of point-based, this needs to initialize the discontinuous
-     * level set distances (ELEMENTAL_DISTANCES) and the nodal imposed velocity (EMBEDDED_VELOCITY)
+    /** TODO For discontinuous level set instead of point-based, this would need to initialize the discontinuous
+     * level set distances (ELEMENTAL_DISTANCES)
      */
     void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
