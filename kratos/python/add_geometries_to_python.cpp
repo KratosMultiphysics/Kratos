@@ -471,6 +471,39 @@ void  AddGeometriesToPython(pybind11::module& m)
             py::arg("local_coordinates"),
             py::arg("derivative_order") = 0
         )
+        .def(
+            "ProjectPointGlobalToLocalSpace",
+            [](const BrepSurfaceType& self,
+            const CoordinatesArrayType& rGlobalCoordinates,
+            CoordinatesArrayType local_coordinates,
+            const double tolerance)
+            {
+                const int projection_status =
+                    self.ProjectionPointGlobalToLocalSpace(
+                        rGlobalCoordinates,
+                        local_coordinates,
+                        tolerance
+                    );
+
+                CoordinatesArrayType projected_point = ZeroVector(3);
+
+                if (projection_status >= 0) {
+                    self.GlobalCoordinates(
+                        projected_point,
+                        local_coordinates
+                    );
+                }
+
+                return py::make_tuple(
+                    projection_status,
+                    local_coordinates,
+                    projected_point
+                );
+            },
+            py::arg("global_coordinates"),
+            py::arg("initial_guess"),
+            py::arg("tolerance") = 1.0e-10
+        )
         .def("KnotsU", [](const BrepSurfaceType& self)
             {
                 return self.KnotsU();
