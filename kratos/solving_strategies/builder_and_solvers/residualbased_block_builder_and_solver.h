@@ -119,7 +119,7 @@ public:
     typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
     typedef Element::EquationIdVectorType EquationIdVectorType;
     typedef Element::DofsVectorType DofsVectorType;
-    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
+    typedef typename TSparseSpace::MatrixType CompressedMatrixType;
 
     /// DoF types definition
     typedef typename Node::DofType DofType;
@@ -882,9 +882,9 @@ public:
         // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
         mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
-        double* Avalues = rA.value_data().begin();
-        std::size_t* Arow_indices = rA.index1_data().begin();
-        std::size_t* Acol_indices = rA.index2_data().begin();
+        auto* Avalues = rA.value_data().begin();
+        auto* Arow_indices = rA.index1_data().begin();
+        auto* Acol_indices = rA.index2_data().begin();
 
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
             const std::size_t col_begin = Arow_indices[Index];
@@ -1311,9 +1311,9 @@ protected:
             mT = TSystemMatrixType(indices.size(), indices.size(), nnz);
             mConstantVector.resize(indices.size(), false);
 
-            double *Tvalues = mT.value_data().begin();
-            IndexType *Trow_indices = mT.index1_data().begin();
-            IndexType *Tcol_indices = mT.index2_data().begin();
+            auto* Tvalues = mT.value_data().begin();
+            auto* Trow_indices = mT.index1_data().begin();
+            auto* Tcol_indices = mT.index2_data().begin();
 
             // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
             Trow_indices[0] = 0;
@@ -1509,9 +1509,9 @@ protected:
 
         A = CompressedMatrixType(indices.size(), indices.size(), nnz);
 
-        double* Avalues = A.value_data().begin();
-        std::size_t* Arow_indices = A.index1_data().begin();
-        std::size_t* Acol_indices = A.index2_data().begin();
+        auto* Avalues = A.value_data().begin();
+        auto* Arow_indices = A.index1_data().begin();
+        auto* Acol_indices = A.index2_data().begin();
 
         //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
@@ -1600,9 +1600,9 @@ protected:
 
     inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const unsigned int i, const unsigned int i_local, Element::EquationIdVectorType& EquationId)
     {
-        double* values_vector = A.value_data().begin();
-        std::size_t* index1_vector = A.index1_data().begin();
-        std::size_t* index2_vector = A.index2_data().begin();
+        auto* values_vector = A.value_data().begin();
+        auto* index1_vector = A.index1_data().begin();
+        auto* index2_vector = A.index2_data().begin();
 
         size_t left_limit = index1_vector[i];
 //    size_t right_limit = index1_vector[i+1];
@@ -1726,21 +1726,25 @@ private:
         }
     }
 
+    // The index pointer type is deduced so that this works with any sparse
+    // space matrix (e.g. uBLAS uses std::size_t indices, Eigen signed ones)
+    template<class TIndexPointerType>
     inline unsigned int ForwardFind(const unsigned int id_to_find,
                                     const unsigned int start,
-                                    const size_t* index_vector)
+                                    const TIndexPointerType index_vector)
     {
         unsigned int pos = start;
-        while(id_to_find != index_vector[pos]) pos++;
+        while(static_cast<std::size_t>(id_to_find) != static_cast<std::size_t>(index_vector[pos])) pos++;
         return pos;
     }
 
+    template<class TIndexPointerType>
     inline unsigned int BackwardFind(const unsigned int id_to_find,
                                      const unsigned int start,
-                                     const size_t* index_vector)
+                                     const TIndexPointerType index_vector)
     {
         unsigned int pos = start;
-        while(id_to_find != index_vector[pos]) pos--;
+        while(static_cast<std::size_t>(id_to_find) != static_cast<std::size_t>(index_vector[pos])) pos--;
         return pos;
     }
 
