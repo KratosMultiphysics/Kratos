@@ -1042,28 +1042,39 @@ private:
         }
 
         // P'_{j_v, j_u} = sum_{i_v, i_u} M_V[j_v, i_v] * M_U[j_u, i_u] * P_{i_v, i_u}
+        const bool is_rational = (previous_level.Weights.size() > 0);
+        Vector new_weights;
+        if (is_rational)
+            new_weights.resize(num_cps_u_fine * num_cps_v_fine, 0.0);
+
         for (SizeType j_v = 0; j_v < num_cps_v_fine; ++j_v) {
             for (SizeType j_u = 0; j_u < num_cps_u_fine; ++j_u) {
-                double x = 0.0, y = 0.0, z = 0.0;
+                double x = 0.0, y = 0.0, z = 0.0, weight_new = 0.0;
                 for (SizeType i_v = 0; i_v < num_cps_v_coarse; ++i_v) {
                     const double coeff_v = M_V(j_v, i_v);
                     if (std::abs(coeff_v) < 1e-15) continue;
                     for (SizeType i_u = 0; i_u < num_cps_u_coarse; ++i_u) {
                         const double coeff = coeff_v * M_U(j_u, i_u);
                         if (std::abs(coeff) < 1e-15) continue;
-                        const auto& pt = this->GetPoint(
-                            coarse_cp_offset + i_v * num_cps_u_coarse + i_u);
-                        x += coeff * pt.X();
-                        y += coeff * pt.Y();
-                        z += coeff * pt.Z();
+                        const SizeType flat = i_v * num_cps_u_coarse + i_u;
+                        const auto& pt = this->GetPoint(coarse_cp_offset + flat);
+                        const double weight = is_rational ? previous_level.Weights[flat] : 1.0;
+                        x += coeff * weight * pt.X();
+                        y += coeff * weight * pt.Y();
+                        z += coeff * weight * pt.Z();
+                        weight_new += coeff * weight;
                     }
                 }
-                this->Points().push_back(CreateNode(next_node_id++, x, y, z));
+                const double inv_w = is_rational ? 1.0 / weight_new : 1.0;
+                this->Points().push_back(CreateNode(next_node_id++, x * inv_w, y * inv_w, z * inv_w));
+                if (is_rational)
+                    new_weights[j_v * num_cps_u_fine + j_u] = weight_new;
             }
         }
 
         mLevels.push_back(THBLevel{
-            previous_level.DegreeU, previous_level.DegreeV, rKnotsU, rKnotsV, rWeights});
+            previous_level.DegreeU, previous_level.DegreeV, rKnotsU, rKnotsV,
+            is_rational ? new_weights : Vector()});
         mActiveFunctions.push_back(
             std::vector<bool>(num_cps_u_fine * num_cps_v_fine, true));
     }
