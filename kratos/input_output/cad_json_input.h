@@ -595,8 +595,13 @@ private:
         for (SizeType i = 0; i < local_ref.size(); ++i)
             max_level = std::max(max_level, (SizeType)local_ref[i]["refinement_level"].GetInt());
 
-        auto p_local_surface = Kratos::make_shared<
-            THBSurfaceGeometry<3, ContainerNodeType>>(
+        const Vector& nurbs_weights = pNurbsSurface->Weights();
+        auto p_local_surface = nurbs_weights.size() > 0
+            ? Kratos::make_shared<THBSurfaceGeometry<3, ContainerNodeType>>(
+                pNurbsSurface->Points(),
+                pNurbsSurface->PolynomialDegree(0), pNurbsSurface->PolynomialDegree(1),
+                pNurbsSurface->KnotsU(), pNurbsSurface->KnotsV(), nurbs_weights)
+            : Kratos::make_shared<THBSurfaceGeometry<3, ContainerNodeType>>(
                 pNurbsSurface->Points(),
                 pNurbsSurface->PolynomialDegree(0), pNurbsSurface->PolynomialDegree(1),
                 pNurbsSurface->KnotsU(), pNurbsSurface->KnotsV());
