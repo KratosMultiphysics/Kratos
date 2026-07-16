@@ -133,7 +133,7 @@ class WriteFromSwDomainProcess(KM.OutputProcess):
             self.output_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY)
 
         # domain_size = self.sw_model_part.ProcessInfo[KM.DOMAIN_SIZE]
-        domain_size = 3
+        domain_size = 2
         element_name = "Element{}D3N".format(domain_size)
         condition_name = "LineCondition{}D2N".format(domain_size)
         KM.DuplicateMeshModeler(self.sw_model_part).GenerateMesh(
