@@ -1178,8 +1178,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 rho_conv = self.ComputeElementalConvectiveOperatorSpectralRadius(vold, out=self.pool.Get(2, (nelem,))) #self.tmp_n_elem)
 
                 # Get maximum allowed time step with previous substep velocity
-                max_dt = self._ComputeDeltaTime(rho_conv)
+                max_cfl_el_id, max_dt = self._ComputeDeltaTime(rho_conv)
                 self.pool.Release(rho_conv)
+                if self.echo_level > 0:
+                    KM.Logger.PrintInfo(self.__class__.__name__, f"\tMaximum CFL found at element: {max_cfl_el_id}. Maximum dt: {max_dt:.3e}.")
 
                 # Compute current substep time step
                 n_substeps = math.ceil((self.time - current_time) / max_dt)
@@ -1446,6 +1448,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         Returns
         -------
+        int
+            The id of the element with maximum CFL
         float
             The most restrictive (minimum) time step from all conditions.
 
@@ -1471,11 +1475,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # dt_cfl = xp.min(self.tmp_n_elem)
 
         #much better version avoiding vector divisions and mostly working with scalars
-        max_rho_conv = xp.max(rho_conv)
-        dt_cfl = self.cfl / (max_rho_conv + eps)
+        max_idx = xp.argmax(rho_conv)
+        dt_cfl = self.cfl / (rho_conv[max_idx] + eps)
 
-        # Return the most restrictive time step from all conditions
-        return float(min(min(dt_cfl, self.dt_fourier), self.dt))
+        # Return the id of the element with maximum CFL and the most restrictive time step from all conditions
+        return max_idx + 1, float(min(min(dt_cfl, self.dt_fourier), self.dt))
 
     def _SolvePressure(self, rhs, previous_p):
         if USE_CUPY:

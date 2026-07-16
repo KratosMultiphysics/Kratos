@@ -1384,7 +1384,6 @@ class CFDUtils:
                 reason = "non-positive or non-finite r^T M r"
                 break
 
-                rk = rhs - matrix @ xk
             if restart_p:
                 p = z.copy() if hasattr(z, "copy") else z
                 restart_p = False
