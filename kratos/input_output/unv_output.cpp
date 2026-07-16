@@ -75,14 +75,14 @@ void UnvOutput::VariablesLists::Initialize(
 
             // Assign UNV variable keys based on known variable names
             const std::size_t variable_key = r_variable.Key();
-            if (r_variable_name == "VELOCITY"){
+            if (r_variable_name == "VELOCITY") {
                 rUnvVariableKeys[variable_key] = 11;
             } else if (r_variable_name == "DISPLACEMENT") {
                 rUnvVariableKeys[variable_key] = 8;
             } else if (r_variable_name == "ACCELERATION") {
                 rUnvVariableKeys[variable_key] = 12;
             } else if (r_variable_name == "REACTION") {
-                rUnvVariableKeys[variable_key] = 8;
+                rUnvVariableKeys[variable_key] = 9;
             } else {
                 const auto& r_pair = unv_vector3_variables.begin() + array_counter;
                 KRATOS_WARNING("UnvOutput") << "Unknown variable: " << r_variable_name << ". Using UNV 3 components vector " << r_pair->second << " variable name id: " << r_pair->first << std::endl;

@@ -32,7 +32,6 @@ class UnvOutputProcess(KratosMultiphysics.OutputProcess):
         """
         KratosMultiphysics.OutputProcess.__init__(self)
 
-        model_part_name = settings["model_part_name"].GetString()
         self.model = model
         self.settings = settings
 
