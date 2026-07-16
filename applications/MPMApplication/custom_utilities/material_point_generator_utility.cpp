@@ -697,27 +697,28 @@ namespace Kratos::MaterialPointGeneratorUtility
                         mp_height[PointNumber] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(HEIGHT);
                         mp_velocity[0] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(VELOCITY);
                         mp_velocity[0][2] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(VERTICAL_VELOCITY);
+                        mp_velocity[0] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(ACCELERATION);
                         for (size_t dimension_j = 0; dimension_j < 2; dimension_j++)
                         {
                             // Interpolate the coordinates to the material point
-                            global_coordinate[0][dimension_j] = global_coordinate[0][dimension_j] + shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].Coordinates()[dimension_j];
-
+                            global_coordinate[0][dimension_j] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].Coordinates()[dimension_j];
                         }
+                        // Interpolate the vertical coordinate (topography) to the material point
+                        global_coordinate[0][2] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(TOPOGRAPHY);
                     }
                     if (mp_height[PointNumber] < 0.0001) // ToDo: make this a parameter in the input file or better method
                         continue; // skip the material point generation if the height is too small
 
                     // get mp vertical distance and number of vertical layers to extrude the material point
                     const double vertical_distance = rMPMModelPart.GetProperties(1)[MP_VERTICAL_DISTANCE];
-                    // const unsigned int number_of_vertical_layers = static_cast<int>(std::round(mp_height[PointNumber] / vertical_distance));
-                    // KRATOS_WATCH(number_of_vertical_layers)
-                    const unsigned int number_of_vertical_layers = 10;
+                    const int number_of_vertical_layers = static_cast<int>(std::round(mp_height[PointNumber] / vertical_distance));
+                    KRATOS_WATCH(number_of_vertical_layers)
+                    // const unsigned int number_of_vertical_layers = 10;
                     const double vertical_distance_adjusted = mp_height[PointNumber] / number_of_vertical_layers;
 
                     // Divide the volume and mass of the material point
                     KRATOS_WATCH("andiheho")
                     KRATOS_WATCH(int_volumes[PointNumber])
-                    KRATOS_WATCH(mp_height[PointNumber])
                     KRATOS_WATCH(mp_height[PointNumber])
                     mp_volume[0] = int_volumes[PointNumber] * mp_height[PointNumber] / number_of_vertical_layers;
                     mp_mass[0] = mp_volume[0] * density;
