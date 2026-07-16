@@ -145,10 +145,11 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteFinalizeSolution
 
     for (const auto& r_model_part : mrModelParts) {
         block_for_each(r_model_part.get().Elements(),
-                       [this, &r_process_info = r_model_part.get().GetProcessInfo()](Element& rElement) {
+                       [this, &r_model_part_ref = r_model_part.get(),
+                        &r_process_info = r_model_part.get().GetProcessInfo()](Element& rElement) {
             if (rElement.IsActive()) {
                 AddIntegrationPointContributionsForAllVariables(
-                    rElement, GetCachedExtrapolationMatrixFor(rElement), r_process_info);
+                    rElement, r_model_part_ref.Name(), GetCachedExtrapolationMatrixFor(rElement), r_process_info);
             }
         });
     }
@@ -186,8 +187,30 @@ const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtra
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
-    Element& rElement, const Matrix& rExtrapolationMatrix, const ProcessInfo& rProcessInfo) const
+    Element& rElement, const std::string& rModelPartName, const Matrix& rExtrapolationMatrix, const ProcessInfo& rProcessInfo) const
 {
+    int check_result = 0;
+    try {
+        check_result = rElement.Check(rProcessInfo);
+    } catch (const std::exception& rException) {
+        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Exception while "
+                        "calling Element::Check "
+                     << "before extrapolation for element id " << rElement.Id() << " in ModelPart='"
+                     << rModelPartName << "'. Original error: " << rException.what()
+                     << " Plausible cause: this modelpart is not activated." << std::endl;
+    } catch (...) {
+        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Unknown exception "
+                        "while calling "
+                     << "Element::Check before extrapolation for element id " << rElement.Id()
+                     << " in ModelPart='" << rModelPartName
+                     << "'.  Plausible cause: this modelpart is not activated." << std::endl;
+    }
+
+    KRATOS_ERROR_IF(check_result != 0) << "GeoExtrapolateIntegrationPointValuesToNodesProcess: "
+                                          "Element Check failed before extrapolation for "
+                                       << "element id " << rElement.Id() << " in ModelPart='" << rModelPartName
+                                       << "'. Check returned " << check_result << "." << std::endl;
+
     const auto integration_points_number = GeoElementUtilities::GetNumberOfIntegrationPointsOf(rElement);
 
     for (const auto p_var : mDoubleVariables) {

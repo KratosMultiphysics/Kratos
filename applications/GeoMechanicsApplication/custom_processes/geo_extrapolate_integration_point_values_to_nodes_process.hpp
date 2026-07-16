@@ -128,6 +128,7 @@ private:
     [[nodiscard]] const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
 
     void AddIntegrationPointContributionsForAllVariables(Element&           rElement,
+                                                         const std::string& rModelPartName,
                                                          const Matrix&      rExtrapolationMatrix,
                                                          const ProcessInfo& rProcessInfo) const;
 };
