@@ -276,7 +276,27 @@ namespace Kratos
                 }
             }
         } else if (rParameters["geometry_type"].GetString() == "LocalRefinedSurface") {
-            KRATOS_ERROR << "RefinementModeler: geometry_type \"LocalRefinedSurface\" is not yet implemented." << std::endl;
+            for (IndexType n = 0; n < geometry_list.size(); ++n) {
+                using THBType = THBSurfaceGeometry<3, PointerVector<NodeType>>;
+                auto p_thb = std::dynamic_pointer_cast<THBType>(
+                    geometry_list(n)->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
+
+                KRATOS_ERROR_IF(p_thb == nullptr)
+                    << "LocalRefinedSurface: background geometry is not a THBSurfaceGeometry." << std::endl;
+
+                const SizeType nb_u = rParameters["parameters"].Has("insert_nb_per_span_u")
+                    ? static_cast<SizeType>(rParameters["parameters"]["insert_nb_per_span_u"].GetInt()) : 0;
+                const SizeType nb_v = rParameters["parameters"].Has("insert_nb_per_span_v")
+                    ? static_cast<SizeType>(rParameters["parameters"]["insert_nb_per_span_v"].GetInt()) : 0;
+
+                if (nb_u > 0 || nb_v > 0) {
+                    KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                        << "Refining local refined surface #" << geometry_list(n)->Id()
+                        << " by inserting " << nb_u << " knot(s) per span in u and "
+                        << nb_v << " knot(s) per span in v across all THB levels." << std::endl;
+                    p_thb->InsertKnotsGlobal(nb_u, nb_v, r_model_part);
+                }
+            }
         } else if (rParameters["geometry_type"].GetString() == "NurbsCurve") {
             for (IndexType n = 0; n < geometry_list.size(); ++n) {
                 auto p_nurbs_curve =

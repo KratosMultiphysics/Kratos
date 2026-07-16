@@ -20,6 +20,8 @@
 // Project includes
 #include "includes/model_part.h"
 #include "geometries/local_refined_surface_geometry.h"
+#include "geometries/nurbs_surface_geometry.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
 #include "utilities/math_utils.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/thb_surface_shape_functions.h"
@@ -828,6 +830,142 @@ public:
     {
         return std::to_string(TWorkingSpaceDimension)
             + "D THBSurfaceGeometry (" + std::to_string(mLevels.size()) + " level(s))";
+    }
+
+    void InsertKnotsGlobal(
+        const SizeType NbPerSpanU,
+        const SizeType NbPerSpanV,
+        ModelPart& rModelPart)
+    {
+        KRATOS_ERROR_IF(!mIsEliminated)
+            << "THBSurfaceGeometry::InsertKnotsGlobal: must be called after EliminateInactiveFunctions."
+            << std::endl;
+
+        using NodeType = Node;
+        using TempSurfType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
+
+        const SizeType n_levels = mLevels.size();
+        std::vector<PointerVector<NodeType>> new_points(n_levels);
+        std::vector<Vector>                  new_weights(n_levels);
+
+        for (SizeType l = 0; l < n_levels; ++l) {
+            const SizeType num_cps_u = NumberOfControlPointsU(l);
+            const SizeType num_cps_v = NumberOfControlPointsV(l);
+            const bool is_rational = (mLevels[l].Weights.size() > 0);
+
+            // Reconstruct full CP grid: active CPs get real coordinates, inactive get (0,0,0).
+            PointerVector<NodeType> full_points;
+            full_points.resize(num_cps_u * num_cps_v);
+            Vector full_weights(num_cps_u * num_cps_v);
+            for (SizeType flat = 0; flat < num_cps_u * num_cps_v; ++flat) {
+                const double weight = is_rational ? mLevels[l].Weights[flat] : 1.0;
+                full_weights[flat] = weight;
+                if (mActiveFunctions[l][flat]) {
+                    const SizeType packed = mActiveOffset[l] + static_cast<SizeType>(mActiveLocalIndex[l][flat]);
+                    const auto& pt = *this->pGetPoint(packed);
+                    full_points(flat) = Kratos::make_intrusive<NodeType>(0, pt.X(), pt.Y(), pt.Z());
+                } else {
+                    full_points(flat) = Kratos::make_intrusive<NodeType>(0, 0.0, 0.0, 0.0);
+                }
+            }
+
+            // Extract unique span boundaries from a knot vector.
+            auto span_boundaries = [](const Vector& knots) {
+                std::vector<double> boundaries;
+                for (SizeType k = 0; k < knots.size(); ++k)
+                    if (boundaries.empty() || knots[k] > boundaries.back() + 1e-12)
+                        boundaries.push_back(knots[k]);
+                return boundaries;
+            };
+
+            // Compute knots to insert uniformly per span.
+            std::vector<double> knots_to_insert_u, knots_to_insert_v;
+            if (NbPerSpanU > 0) {
+                const auto boundaries = span_boundaries(mLevels[l].KnotsU);
+                for (SizeType i = 0; i + 1 < boundaries.size(); ++i) {
+                    const double delta_u = (boundaries[i+1] - boundaries[i]) / (NbPerSpanU + 1);
+                    for (SizeType j = 1; j <= NbPerSpanU; ++j)
+                        knots_to_insert_u.push_back(boundaries[i] + delta_u * j);
+                }
+            }
+            if (NbPerSpanV > 0) {
+                const auto boundaries = span_boundaries(mLevels[l].KnotsV);
+                for (SizeType i = 0; i + 1 < boundaries.size(); ++i) {
+                    const double delta_v = (boundaries[i+1] - boundaries[i]) / (NbPerSpanV + 1);
+                    for (SizeType j = 1; j <= NbPerSpanV; ++j)
+                        knots_to_insert_v.push_back(boundaries[i] + delta_v * j);
+                }
+            }
+
+            // Apply KnotRefinementU, then KnotRefinementV on the intermediate result.
+            PointerVector<NodeType> points_after_u = full_points;
+            Vector knots_u_refined = mLevels[l].KnotsU;
+            Vector weights_after_u = full_weights;
+            if (NbPerSpanU > 0) {
+                auto p_temp = Kratos::make_shared<TempSurfType>(
+                    full_points, mLevels[l].DegreeU, mLevels[l].DegreeV,
+                    mLevels[l].KnotsU, mLevels[l].KnotsV, full_weights);
+                NurbsSurfaceRefinementUtilities::KnotRefinementU(*p_temp, knots_to_insert_u,
+                    points_after_u, knots_u_refined, weights_after_u);
+            }
+
+            PointerVector<NodeType> points_final = points_after_u;
+            Vector knots_v_refined = mLevels[l].KnotsV;
+            Vector weights_final   = weights_after_u;
+            if (NbPerSpanV > 0) {
+                auto p_temp = Kratos::make_shared<TempSurfType>(
+                    points_after_u, mLevels[l].DegreeU, mLevels[l].DegreeV,
+                    knots_u_refined, mLevels[l].KnotsV, weights_after_u);
+                NurbsSurfaceRefinementUtilities::KnotRefinementV(*p_temp, knots_to_insert_v,
+                    points_final, knots_v_refined, weights_final);
+            }
+
+            // Store results and update level knot vectors.
+            new_points[l]  = points_final;
+            new_weights[l] = weights_final;
+            mLevels[l].KnotsU = knots_u_refined;
+            mLevels[l].KnotsV = knots_v_refined;
+            if (is_rational)
+                mLevels[l].Weights = weights_final;
+        }
+
+        // Recompute active functions with the refined knot vectors.
+        for (SizeType l = 0; l < n_levels; ++l)
+            mActiveFunctions[l].assign(NumberOfControlPointsU(l) * NumberOfControlPointsV(l), true);
+        ComputeActiveFunctions();
+
+        // Remove old nodes and rebuild packed Points().
+        for (auto& rPt : this->Points())
+            rPt.Set(TO_ERASE, true);
+        rModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+
+        IndexType next_id = rModelPart.Nodes().empty() ? 1
+                          : (rModelPart.NodesEnd() - 1)->Id() + 1;
+        PointsArrayType packed_points;
+        mActiveOffset.resize(n_levels);
+        mActiveLocalIndex.resize(n_levels);
+        SizeType running_offset = 0;
+
+        for (SizeType l = 0; l < n_levels; ++l) {
+            const SizeType new_num_cps = NumberOfControlPointsU(l) * NumberOfControlPointsV(l);
+            mActiveOffset[l] = running_offset;
+            mActiveLocalIndex[l].assign(new_num_cps, -1);
+            int packed_count = 0;
+            for (SizeType flat = 0; flat < new_num_cps; ++flat) {
+                if (mActiveFunctions[l][flat]) {
+                    auto p_node = rModelPart.CreateNewNode(next_id++,
+                        new_points[l][flat][0],
+                        new_points[l][flat][1],
+                        new_points[l][flat][2]);
+                    packed_points.push_back(p_node);
+                    mActiveLocalIndex[l][flat] = packed_count++;
+                    ++running_offset;
+                }
+            }
+        }
+
+        this->Points() = packed_points;
+        ComputeTruncationData();
     }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
