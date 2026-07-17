@@ -26,6 +26,7 @@
 #include "includes/reorder_consecutive_model_part_io.h"
 #include "input_output/stl_io.h"
 #include "input_output/obj_io.h"
+#include "input_output/meshioplusplus_io.h"
 #include "input_output/vtk_output.h"
 #include "input_output/unv_output.h"
 #include "input_output/cad_json_input.h"
@@ -190,6 +191,77 @@ void  AddIOToPython(pybind11::module& m)
     py::class_<ObjIO, ObjIO::Pointer, IO>(m, "ObjIO")
         .def(py::init<std::filesystem::path const& >())
         .def(py::init<std::filesystem::path const&, Parameters>())
+        ;
+
+    auto meshio_io = py::class_<MeshioPlusPlusIO, MeshioPlusPlusIO::Pointer, IO>(m, "MeshioPlusPlusIO",
+        "Multi-format mesh IO based on the meshio++ library. Reads and writes ~35 mesh formats "
+        "(vtu, vtk, gmsh, med, xdmf, abaqus, ...) converting to/from Kratos model parts. Repeated "
+        "WriteModelPart calls extend the output (XDMF temporal collection or file series).")
+        .def(py::init<std::filesystem::path const&>(), py::arg("file_name"))
+        .def(py::init<std::filesystem::path const&, Parameters>(), py::arg("file_name"), py::arg("parameters"))
+        .def("ReadModelPart", &MeshioPlusPlusIO::ReadModelPart, py::arg("model_part"),
+            "Reads the file into the given (empty) model part. Highest-dimension cells become "
+            "elements, lower-dimension ones conditions, and integer tags become sub model parts.")
+        .def("WriteModelPart", py::overload_cast<const ModelPart&>(&MeshioPlusPlusIO::WriteModelPart), py::arg("model_part"),
+            "Writes the model part. Repeated calls extend the current output: XDMF appends steps "
+            "to the temporal collection of the file, other formats write a file series.")
+        .def_static("GetDefaultParameters", &MeshioPlusPlusIO::GetDefaultParameters,
+            "The default settings of the IO.")
+        .def_static("GetSupportedFormats", &MeshioPlusPlusIO::GetSupportedFormats,
+            "Names of every format this build can read or write.")
+        .def_static("GetSupportedReadFormats", &MeshioPlusPlusIO::GetSupportedReadFormats,
+            "Names of every format this build can read.")
+        .def_static("GetSupportedWriteFormats", &MeshioPlusPlusIO::GetSupportedWriteFormats,
+            "Names of every format this build can write.")
+        .def_static("FormatFromString", &MeshioPlusPlusIO::FormatFromString, py::arg("format_name"),
+            "Converts a format name to the Format enum ('gmsh' -> Format.GMSH). Throws on unknown names.")
+        .def_static("FormatName", &MeshioPlusPlusIO::FormatName, py::arg("format"),
+            "The canonical name of a Format value (Format.GMSH -> 'gmsh').")
+        .def_static("ResolveFormat", &MeshioPlusPlusIO::ResolveFormat, py::arg("path"),
+            "Resolves the format from a file path extension ('foo.vtu' -> Format.VTU).")
+        .def_static("IsFormatAvailable", &MeshioPlusPlusIO::IsFormatAvailable, py::arg("format"),
+            "False when the format was compiled out for lack of an optional dependency (HDF5/netCDF).")
+        ;
+
+    py::enum_<MeshioPlusPlusIO::Format>(meshio_io, "Format")
+        .value("AUTOMATIC", MeshioPlusPlusIO::Format::AUTOMATIC)
+        .value("ABAQUS", MeshioPlusPlusIO::Format::ABAQUS)
+        .value("ANSYS", MeshioPlusPlusIO::Format::ANSYS)
+        .value("ANSYSINP", MeshioPlusPlusIO::Format::ANSYSINP)
+        .value("AVSUCD", MeshioPlusPlusIO::Format::AVSUCD)
+        .value("CGNS", MeshioPlusPlusIO::Format::CGNS)
+        .value("DEX", MeshioPlusPlusIO::Format::DEX)
+        .value("DOLFIN", MeshioPlusPlusIO::Format::DOLFIN)
+        .value("EXODUS", MeshioPlusPlusIO::Format::EXODUS)
+        .value("FLAC3D", MeshioPlusPlusIO::Format::FLAC3D)
+        .value("FLUX", MeshioPlusPlusIO::Format::FLUX)
+        .value("FREEFEM", MeshioPlusPlusIO::Format::FREEFEM)
+        .value("GMSH", MeshioPlusPlusIO::Format::GMSH)
+        .value("H5M", MeshioPlusPlusIO::Format::H5M)
+        .value("HMF", MeshioPlusPlusIO::Format::HMF)
+        .value("IP", MeshioPlusPlusIO::Format::IP)
+        .value("MED", MeshioPlusPlusIO::Format::MED)
+        .value("MEDIT", MeshioPlusPlusIO::Format::MEDIT)
+        .value("MFF", MeshioPlusPlusIO::Format::MFF)
+        .value("MFM", MeshioPlusPlusIO::Format::MFM)
+        .value("MPHTXT", MeshioPlusPlusIO::Format::MPHTXT)
+        .value("NASTRAN", MeshioPlusPlusIO::Format::NASTRAN)
+        .value("NETGEN", MeshioPlusPlusIO::Format::NETGEN)
+        .value("OBJ", MeshioPlusPlusIO::Format::OBJ)
+        .value("OFF", MeshioPlusPlusIO::Format::OFF)
+        .value("OPENFOAM", MeshioPlusPlusIO::Format::OPENFOAM)
+        .value("PERMAS", MeshioPlusPlusIO::Format::PERMAS)
+        .value("PLY", MeshioPlusPlusIO::Format::PLY)
+        .value("STL", MeshioPlusPlusIO::Format::STL)
+        .value("SU2", MeshioPlusPlusIO::Format::SU2)
+        .value("TECPLOT", MeshioPlusPlusIO::Format::TECPLOT)
+        .value("TETGEN", MeshioPlusPlusIO::Format::TETGEN)
+        .value("UGRID", MeshioPlusPlusIO::Format::UGRID)
+        .value("UNV", MeshioPlusPlusIO::Format::UNV)
+        .value("VTK", MeshioPlusPlusIO::Format::VTK)
+        .value("VTU", MeshioPlusPlusIO::Format::VTU)
+        .value("WKT", MeshioPlusPlusIO::Format::WKT)
+        .value("XDMF", MeshioPlusPlusIO::Format::XDMF)
         ;
 
     // Import of CAD models to the model part
