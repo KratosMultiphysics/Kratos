@@ -222,6 +222,13 @@ public:
     void AddToSparseStorage(const DataAccessor<int>& rIndexAccessor, const std::vector<int>& rEntityIndices);
 
     /**
+     * @brief Resize all dense (non-sparse) chunks to the given number of entities per step.
+     * @details Delegates to DataChunkBase::ResizeData, which preserves the first min(old, new) values of every step slot and zero-initializes appended entries with the chunk's policy zero. Chunks already holding NewNumberOfEntities entities are left untouched, so repeated calls with the same size are cheap. Sparse chunks are skipped entirely: their sizing is governed by UpdateSparseStorage / AddToSparseStorage. All previously obtained spans over resized chunks are invalidated. Not thread-safe; external synchronization is required.
+     * @param NewNumberOfEntities The new number of entities per step of the dense chunks.
+     */
+    void Resize(std::size_t NewNumberOfEntities);
+
+    /**
      * @brief Clone the data of the current step onto the next step slot for all chunks of the given category.
      * @details Delegates to DataChunk::CloneStepData: only chunks whose history policy matches the category advance their ring and copy their data; all other chunks are untouched.
      * @param rStepCategory The step category being cloned.

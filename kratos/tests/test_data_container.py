@@ -157,6 +157,24 @@ class TestDataContainer(KratosUnittest.TestCase):
             else:
                 self.assertEqual(index_span[i], -1)  # still inactive
 
+    def test_resize(self):
+        container = KM.DataContainer(4)
+        accessor = container.Add(KM.PRESSURE, KM.DoubleDataValuePolicy())
+
+        span = container.GetDataSpan(accessor)
+        span[:] = [1.0, 2.0, 3.0, 4.0]
+
+        container.Resize(6)
+
+        span = container.GetDataSpan(accessor)  # re-fetch: the old view is invalidated
+        self.assertEqual(len(span), 6)
+        self.assertEqual(list(span[:4]), [1.0, 2.0, 3.0, 4.0])  # values preserved
+        self.assertEqual(list(span[4:]), [0.0, 0.0])            # tail zero-initialized
+
+        container.Resize(2)
+        span = container.GetDataSpan(accessor)
+        self.assertEqual(list(span), [1.0, 2.0])                # shrink keeps leading values
+
     def test_errors(self):
         container = KM.DataContainer()
 
