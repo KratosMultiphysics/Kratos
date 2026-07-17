@@ -149,3 +149,44 @@ vtk_output.PrintOutput()
 vtk_output.ExecuteFinalizeSolutionStep()
 vtk_output.ExecuteFinalize()
 ```
+
+# 6. Importing and exporting other mesh formats (meshio++)
+
+In addition to the native `.mdpa` format, the Kratos core bundles the **meshio++** library, exposed through the `MeshioPlusPlusIO` class, which can read and write ~35 common mesh formats (`vtu`, `vtk`, `gmsh`, `med`, `xdmf`, `abaqus`, `medit`, `stl`, `obj`, `su2`, ...). Query the formats available in your build with:
+
+```python
+import KratosMultiphysics
+print(KratosMultiphysics.MeshioPlusPlusIO.GetSupportedReadFormats())
+```
+
+## 6.1 Read any supported format as a model part
+
+```python
+import KratosMultiphysics
+
+this_model = KratosMultiphysics.Model()
+this_model_part = this_model.CreateModelPart("MyModelPart")
+
+# the format is resolved from the file extension (or set the "format" setting)
+meshio_io = KratosMultiphysics.MeshioPlusPlusIO("geometry.msh")
+meshio_io.ReadModelPart(this_model_part)
+```
+
+The highest-dimension cells become `Elements`, lower-dimension cells become `Conditions`, and integer tag arrays (e.g. gmsh physical groups) become `SubModelParts`.
+
+## 6.2 Use it in the simulation loop
+
+The solver's `model_part_import_settings` accept any meshio++ format name (or `"meshio"`/`"auto"` to resolve it from the file extension) in addition to `"mdpa"`:
+
+```json
+"model_part_import_settings" : {
+    "input_type"     : "gmsh",
+    "input_filename" : "geometry.msh"
+}
+```
+
+Alternatively use the `KratosMultiphysics.MeshioInputModeler` in the `"modelers"` section of the project parameters, which imports the file before the solver runs.
+
+## 6.3 Write results (including transient time series)
+
+For output during a simulation add a `meshio_output_process` to the `"output_processes"` (see the [Meshio Output Process](../../Processes/Output_Process/Meshio_Output_Process.html) page). Repeated writes extend the output: XDMF appends the steps to a single-file temporal collection, every other format produces a file series `name_<label>.<ext>`.
