@@ -39,6 +39,11 @@ The library is built as a STATIC lib `meshioplusplus_core` and linked into
   versions triggers the usual HDF5 runtime version warning.
 - `MESHIOPLUSPLUS_HAS_NETCDF` (CMake option `KRATOS_MESHIOPLUSPLUS_NETCDF`, default `ON`):
   set when netCDF is found; enables the `exodus` format.
+- `MESHIOPLUSPLUS_NO_STD_SPAN` (MSVC only): Boost uBLAS collides with MSVC's own
+  `<span>` implementation over a shared internal macro name
+  (`_BACKUP_ITERATOR_DEBUG_LEVEL`, see [boostorg/ublas#77](https://github.com/boostorg/ublas/issues/77));
+  since Kratos core always includes Boost uBLAS, this opts out of the one
+  `std::span`-returning accessor the vendored copy has (unused by Kratos).
 - Parallel backend: OpenMP when available (matching Kratos), sequential otherwise.
 
 Formats compiled out due to a missing dependency still resolve by extension and
