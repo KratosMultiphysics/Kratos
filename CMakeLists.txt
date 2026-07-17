@@ -754,6 +754,9 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 # Compiling the tinyexpr library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
 
+# Compiling the meshio++ library (multi-format mesh IO, used by MeshioPlusPlusIO)
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/meshioplusplus)
+
 # # Clean the Module and libs install directories
 # if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )
 #     install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
