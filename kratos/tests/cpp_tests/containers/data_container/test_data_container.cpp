@@ -112,8 +112,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataContainerGetData, KratosCoreFastSuite)
     DataContainerGetDataTest<double>(PRESSURE, DataValuePolicy<double>(), 0.0, 1.0);
 
     // Test with array_1d<double, 3> data type
-    DataContainerGetDataTest(VELOCITY, DataValuePolicy<array_1d<double, 3>>(),
-                             array_1d<double, 3>{{0.0, 0.0, 0.0}}, array_1d<double, 3>{{1.0, 1.0, 1.0}});
+    // Note: array_1d's default constructor does not zero-initialize its storage (unlike
+    // std::array), so the policy zero must be passed explicitly here.
+    const array_1d<double, 3> array_zero{{0.0, 0.0, 0.0}};
+    DataContainerGetDataTest(VELOCITY, DataValuePolicy<array_1d<double, 3>>(array_zero),
+                             array_zero, array_1d<double, 3>{{1.0, 1.0, 1.0}});
 
     // Test with a layered policy over a double variable
     const std::size_t number_of_layers = 10;
