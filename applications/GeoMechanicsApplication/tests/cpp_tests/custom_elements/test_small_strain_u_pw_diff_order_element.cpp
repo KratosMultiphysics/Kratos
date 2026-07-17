@@ -370,27 +370,27 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CheckThrowsOnFaultyInpu
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable VELOCITY on nodes 1 2 3 4 5 6");
 
-    solution_step_variables.push_back(std::cref(VELOCITY));
+    solution_step_variables.emplace_back(std::cref(VELOCITY));
     ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable ACCELERATION on nodes 1 2 3 4 5 6");
 
-    solution_step_variables.push_back(std::cref(ACCELERATION));
+    solution_step_variables.emplace_back(std::cref(ACCELERATION));
     ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable WATER_PRESSURE on nodes 1 2 3 4 5 6");
 
-    solution_step_variables.push_back(std::cref(WATER_PRESSURE));
+    solution_step_variables.emplace_back(std::cref(WATER_PRESSURE));
     ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable DT_WATER_PRESSURE on nodes 1 2 3 4 5 6");
 
-    solution_step_variables.push_back(std::cref(DT_WATER_PRESSURE));
+    solution_step_variables.emplace_back(std::cref(DT_WATER_PRESSURE));
     ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable VOLUME_ACCELERATION on nodes 1 2 3 4 5 6");
 
-    solution_step_variables.push_back(std::cref(VOLUME_ACCELERATION));
+    solution_step_variables.emplace_back(std::cref(VOLUME_ACCELERATION));
     ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
