@@ -23,7 +23,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
-#include <format>
 #include <fstream>
 #include <map>
 #include <sstream>
@@ -586,7 +585,7 @@ Mesh read_openfoam(const std::string& rPathIn, OpenFoamInfo& rInfo) {
         }
     }
     if (poly.empty())
-        throw ReadError(std::format(
+        throw ReadError(detail::format_compat(
             "Could not locate polyMesh from '{}'. Expected <case>/constant/polyMesh/.", rPathIn));
     log::info("Reading polyMesh from {}", poly.string());
 

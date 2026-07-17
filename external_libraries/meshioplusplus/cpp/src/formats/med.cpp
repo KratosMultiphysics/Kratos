@@ -21,7 +21,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <format>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -101,7 +100,7 @@ void write_attr_bytes(hid_t loc, const std::string& rName, const std::string& rV
     h5::Hid space(H5Screate(H5S_SCALAR), H5Sclose);
     h5::Hid a(H5Acreate2(loc, rName.c_str(), t, space, H5P_DEFAULT, H5P_DEFAULT), H5Aclose);
     if (!a.Valid())
-        throw WriteError(std::format("MED: could not create attribute {}", rName));
+        throw WriteError(detail::format_compat("MED: could not create attribute {}", rName));
     std::string buf = rValue.empty() ? std::string(1, '\0') : rValue;
     H5Awrite(a, t, buf.data());
 }
@@ -263,7 +262,7 @@ void write_families(hid_t fm_group, const std::map<std::int64_t, std::vector<std
         std::vector<std::int8_t> buf(names.size() * 80, static_cast<std::int8_t>(' '));
         for (std::size_t i = 0; i < names.size(); ++i) {
             if (names[i].size() > 80)
-                throw WriteError(std::format(
+                throw WriteError(detail::format_compat(
                     "Family name '{}' is too long for MED format (max 80 bytes).", names[i]));
             for (std::size_t c = 0; c < names[i].size(); ++c)
                 buf[i * 80 + c] = static_cast<std::int8_t>(names[i][c]);
@@ -281,7 +280,7 @@ Mesh read_med(const std::string& rPath, MedInfo& rInfo) {
     h5::Hid ens = h5::open_group(f, "ENS_MAA");
     std::vector<std::string> meshes = h5::group_links(ens);
     if (meshes.size() != 1)
-        throw ReadError(std::format("Must only contain exactly 1 mesh, found {}.", meshes.size()));
+        throw ReadError(detail::format_compat("Must only contain exactly 1 mesh, found {}.", meshes.size()));
     const std::string mesh_name = meshes[0];
     h5::Hid mesh_grp = h5::open_group(ens, mesh_name);
 
@@ -301,7 +300,7 @@ Mesh read_med(const std::string& rPath, MedInfo& rInfo) {
         std::vector<std::string> steps = h5::group_links(mesh_grp);
         if (steps.size() != 1)
             throw ReadError(
-                std::format("Must only contain exactly 1 time-step, found {}.", steps.size()));
+                detail::format_compat("Must only contain exactly 1 time-step, found {}.", steps.size()));
         data_grp = h5::open_group(mesh_grp, steps[0]);
     }
 
@@ -344,7 +343,7 @@ Mesh read_med(const std::string& rPath, MedInfo& rInfo) {
     for (const std::string& med_type : h5::group_links_crt(mai)) {
         auto it = med_to_meshio().find(med_type);
         if (it == med_to_meshio().end())
-            throw ReadError(std::format("MED: unsupported cell type {}", med_type));
+            throw ReadError(detail::format_compat("MED: unsupported cell type {}", med_type));
         h5::Hid g = h5::open_group(mai, med_type);
 
         if (med_type == "POG" || med_type == "POG2") {
@@ -366,7 +365,7 @@ Mesh read_med(const std::string& rPath, MedInfo& rInfo) {
         } else {
             h5::Hid nod_ds(H5Dopen2(g, "NOD", H5P_DEFAULT), H5Dclose);
             if (!nod_ds.Valid())
-                throw ReadError(std::format("MED: missing NOD for {}", med_type));
+                throw ReadError(detail::format_compat("MED: missing NOD for {}", med_type));
             std::int64_t n_cells = h5::read_attr_int(nod_ds, "NBR");
             NDArray nod = h5::read_dataset(g, "NOD");
             std::size_t k = n_cells > 0 ? nod.Size() / static_cast<std::size_t>(n_cells) : 0;
@@ -521,7 +520,7 @@ void write_med(const std::string& rPath, const Mesh& rMesh, const MedInfo& rInfo
         const auto cb = rMesh.Cells(k);
         auto it = meshio_to_med().find(cb.Type());
         if (it == meshio_to_med().end())
-            throw WriteError(std::format("MED: unsupported cell type {}", cb.Type()));
+            throw WriteError(detail::format_compat("MED: unsupported cell type {}", cb.Type()));
         h5::Hid g = h5::create_group(mai, it->second);
         h5::write_attr_int(g, "CGT", 1);
         h5::write_attr_int(g, "CGS", 1);

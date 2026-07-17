@@ -5,9 +5,22 @@ supporting ~35 mesh file formats. Used by the Kratos core IO class
 `MeshioPlusPlusIO` (`kratos/input_output/meshioplusplus_io.h`).
 
 - **Upstream**: `https://github.com/loumalouomega/meshioplusplus` (local development tree: `/home/vicente/src/meshioplusplus`)
-- **Vendored commit**: `130a71b744d0fa5598e1d0a38c96eaf73c4cf40a`
+- **Vendored commit**: `130a71b744d0fa5598e1d0a38c96eaf73c4cf40a`, plus local patches not yet
+  released upstream (applied both in the local development tree and here — see below).
 - **License**: MIT (see `LICENSE`; © 2015-2021 Nico Schlömer et al., © 2026 Vicente Mataix Ferrándiz).
   The bundled `cpp/third_party/pugixml` is also MIT licensed (© Arseny Kapoulkine).
+
+### Local patches on top of the vendored commit
+
+- **`<format>` portability** (`cpp/include/meshioplusplus/detail/format_compat.hpp`, new file;
+  `log.hpp`, `cpp/src/formats/{med,openfoam}.cpp`): `<format>` does not exist at all in the
+  libstdc++ shipped with GCC < 13 (nor with clang built against such a libstdc++) — `#include
+  <format>` fails with "file not found", not just an incomplete implementation. `format_compat.hpp`
+  detects availability through `<version>`'s `__cpp_lib_format` feature-test macro (safe to query
+  without including `<format>` itself) and falls back to a minimal `{}`-placeholder substitution
+  formatter (no format specs/positional args — the only pattern this codebase's log/error messages
+  use) when the real thing is unavailable. All `std::format(...)` call sites now go through
+  `detail::format_compat(...)`.
 
 ## What is vendored
 
@@ -40,6 +53,14 @@ The library is built as a STATIC lib `meshioplusplus_core` and linked into
 - `MESHIOPLUSPLUS_HAS_NETCDF` (CMake option `KRATOS_MESHIOPLUSPLUS_NETCDF`, default `ON`):
   set when netCDF is found; enables the `exodus` format.
 - Parallel backend: OpenMP when available (matching Kratos), sequential otherwise.
+- `UNITY_BUILD OFF` on the `meshioplusplus_core` target: several format files declare
+  file-local helper functions of the same name in an anonymous namespace (e.g. `upper`/`tokens`
+  in `tecplot.cpp` vs. other formats, `ascii_double`/`to_int64` in `vtu.cpp`/`vtu_read.cpp`).
+  That is valid C++ (internal linkage, one TU each) but breaks when CMake's Unity Build merges
+  many `.cpp` files into a handful of TUs, producing "already has a body"/redefinition errors
+  (observed with both GCC and MSVC). Rather than rename every colliding helper upstream, Unity
+  Build is opted out for this target only — a standard, low-risk accommodation for vendored code
+  that was not written with unity-build hygiene in mind.
 
 Formats compiled out due to a missing dependency still resolve by extension and
 raise a descriptive error naming the missing dependency
