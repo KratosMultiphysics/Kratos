@@ -83,7 +83,7 @@ template<class TContainerType>
 FindGlobalNodalEntityNeighboursProcess<TContainerType>::FindGlobalNodalEntityNeighboursProcess(
     ModelPart& rModelPart)
     : mrModel(rModelPart.GetModel()),
-      mrOutputVariable([&]() -> Variable<typename FindGlobalNodalEntityNeighboursProcess<TContainerType>::GlobalEntityPointersVectorType>& {
+      mrOutputVariable([&]() -> const Variable<typename FindGlobalNodalEntityNeighboursProcess<TContainerType>::GlobalEntityPointersVectorType>& {
         if constexpr (std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
             return NEIGHBOUR_ELEMENTS;
         } else if constexpr (std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
