@@ -94,7 +94,8 @@ Mesh read_dolfin(const std::string& rPath) {
     for (pugi::xml_node c : cells.children()) {
         std::size_t k = c.attribute("index").as_uint();
         for (int j = 0; j < npc; ++j) {
-            char tag[8];
+            char tag[16];  // "v" + up to 11 digits (INT_MIN) + '\0'; GCC's static
+                           // format-truncation analysis cannot prove j is small
             std::snprintf(tag, sizeof(tag), "v%d", j);
             dp[k * npc + j] = c.attribute(tag).as_llong();
         }

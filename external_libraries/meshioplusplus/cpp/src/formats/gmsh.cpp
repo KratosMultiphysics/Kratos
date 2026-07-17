@@ -180,26 +180,6 @@ struct EBlock {
     std::vector<std::int64_t> mTags;  // count*num_tags
 };
 
-void store_value(NDArray& rA, std::size_t i, double d) {
-    switch (rA.Dtype()) {
-        case DType::Float64:
-            rA.As<double>()[i] = d;
-            break;
-        case DType::Float32:
-            rA.As<float>()[i] = static_cast<float>(d);
-            break;
-        case DType::Int64:
-            rA.As<std::int64_t>()[i] = static_cast<std::int64_t>(d);
-            break;
-        case DType::Int32:
-            rA.As<std::int32_t>()[i] = static_cast<std::int32_t>(d);
-            break;
-        default:
-            rA.As<double>()[i] = d;
-            break;
-    }
-}
-
 void read_physical_names(Cursor& rCur, std::unordered_map<std::string, NDArray>& rFieldData) {
     std::int64_t num = std::stoll(trim(rCur.read_line()));
     for (std::int64_t i = 0; i < num; ++i) {

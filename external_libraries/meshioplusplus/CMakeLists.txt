@@ -19,6 +19,12 @@ set_target_properties(meshioplusplus_core PROPERTIES
     POSITION_INDEPENDENT_CODE ON        # linked into the shared KratosCore
     CXX_VISIBILITY_PRESET hidden        # keep meshio++/pugixml symbols out of the DSO surface
     VISIBILITY_INLINES_HIDDEN ON
+    # Several format files declare same-named helpers in a file-local anonymous
+    # namespace (e.g. tecplot.cpp's upper/tokens, vtu.cpp/vtu_read.cpp's
+    # ascii_double/to_int64). That is valid per-TU internal linkage but breaks
+    # once Unity Build merges multiple .cpp files together (redefinition
+    # errors on both GCC and MSVC) - opt this vendored target out of it.
+    UNITY_BUILD OFF
 )
 
 target_compile_features(meshioplusplus_core PUBLIC cxx_std_20)

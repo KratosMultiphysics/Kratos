@@ -52,10 +52,8 @@
 
 // System includes
 #include <cstdlib>
-#include <format>
 #include <iostream>
 #include <mutex>
-#include <source_location>
 #include <string_view>
 #include <type_traits>
 #include <utility>
@@ -64,6 +62,10 @@
 #if __has_include(<syncstream>)
 #include <syncstream>
 #endif
+
+// Project includes
+#include "meshioplusplus/detail/format_compat.hpp"
+#include "meshioplusplus/detail/source_location_compat.hpp"
 
 namespace meshioplusplus {
 namespace log {
@@ -132,13 +134,13 @@ inline bool enabled(Level lvl) {
  * @param loc The call site to report (normally the caller's, captured via
  *            `FormatWithLocation`).
  */
-inline void write(Level lvl, std::string_view msg, const std::source_location& rLoc) {
+inline void write(Level lvl, std::string_view msg, const detail::source_location& rLoc) {
     constexpr std::string_view names[] = {"debug", "info", "warning", "error"};
     std::string_view file = rLoc.file_name();
     if (auto p = file.find_last_of("/\\"); p != std::string_view::npos)
         file.remove_prefix(p + 1);
-    std::string line =
-        std::format("meshio {} [{}:{}] {}\n", names[static_cast<int>(lvl)], file, rLoc.line(), msg);
+    std::string line = detail::format_compat("meshio {} [{}:{}] {}\n", names[static_cast<int>(lvl)],
+                                             file, rLoc.line(), msg);
 #if defined(__cpp_lib_syncbuf)
     std::osyncstream(std::cerr) << line;
 #else
@@ -166,12 +168,16 @@ inline void write(Level lvl, std::string_view msg, const std::source_location& r
  */
 template <class... Args>
 struct FormatWithLocation {
+#ifdef MESHIOPLUSPLUS_HAS_STD_FORMAT
     std::format_string<Args...> mFmt;
-    std::source_location mLoc;
+#else
+    std::string_view mFmt;  // no compile-time placeholder check without <format>
+#endif
+    detail::source_location mLoc;
 
     template <class S>
     consteval FormatWithLocation(  // NOLINT(google-explicit-constructor)
-        const S& rS, std::source_location l = std::source_location::current())
+        const S& rS, detail::source_location l = detail::source_location::current())
         : mFmt(rS), mLoc(l) {}
 };
 
@@ -187,7 +193,7 @@ template <class... Args>
 void debug(FormatWithLocation<std::type_identity_t<Args>...> f, Args&&... args) {
     if (!enabled(Level::Debug))
         return;
-    write(Level::Debug, std::format(f.mFmt, std::forward<Args>(args)...), f.mLoc);
+    write(Level::Debug, detail::format_compat(f.mFmt, std::forward<Args>(args)...), f.mLoc);
 }
 
 /**
@@ -202,7 +208,7 @@ template <class... Args>
 void info(FormatWithLocation<std::type_identity_t<Args>...> f, Args&&... args) {
     if (!enabled(Level::Info))
         return;
-    write(Level::Info, std::format(f.mFmt, std::forward<Args>(args)...), f.mLoc);
+    write(Level::Info, detail::format_compat(f.mFmt, std::forward<Args>(args)...), f.mLoc);
 }
 
 /**
@@ -219,7 +225,7 @@ template <class... Args>
 void warn(FormatWithLocation<std::type_identity_t<Args>...> f, Args&&... args) {
     if (!enabled(Level::Warn))
         return;
-    write(Level::Warn, std::format(f.mFmt, std::forward<Args>(args)...), f.mLoc);
+    write(Level::Warn, detail::format_compat(f.mFmt, std::forward<Args>(args)...), f.mLoc);
 }
 
 /**
@@ -237,7 +243,7 @@ template <class... Args>
 void error(FormatWithLocation<std::type_identity_t<Args>...> f, Args&&... args) {
     if (!enabled(Level::Error))
         return;
-    write(Level::Error, std::format(f.mFmt, std::forward<Args>(args)...), f.mLoc);
+    write(Level::Error, detail::format_compat(f.mFmt, std::forward<Args>(args)...), f.mLoc);
 }
 
 }  // namespace log
