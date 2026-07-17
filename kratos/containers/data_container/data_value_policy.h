@@ -211,6 +211,7 @@ public:
 
     /**
      * @brief Constructor.
+     * @details The default value of rZero relies on TValueType()'s default constructor producing a meaningful zero, which holds for scalar types, std::string and std::vector, but not for lightweight ublas-derived types such as array_1d, Vector or Matrix, whose default constructors deliberately leave their storage uninitialized for performance; callers using such value types must pass an explicit rZero.
      * @param rZero The value used to zero-initialize entries governed by this policy.
      */
     DataValuePolicy(TValueType const& rZero = TValueType())
