@@ -148,6 +148,7 @@ Some users of the technologies developed in Kratos are:
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
 - [JSON](https://github.com/nlohmann/json) JSON for Modern C++
 - [ZLib](https://zlib.net/) The compression library
+- [meshio++](https://github.com/loumalouomega/meshioplusplus) for multi-format mesh input/output (`MeshioPlusPlusIO`)
 - [Google Test](https://github.com/google/googletest) for unit testing C++ code
 - [Google Benchmark](https://github.com/google/benchmark) for microbenchmarking and performance testing
 
