@@ -55,3 +55,4 @@ Only the non-template classes (`DataValuePolicyBase`, `DataHistoryPolicyBase` an
 - `DataChunk` owns its storage manually (`new[]`/`delete[]`) and is non-copyable; chunks with zero entities are valid (that is how sparse chunks start).
 - `HistoricalDataPolicy::Clone()` resets the running step index — freshly created chunks (`CreateNew`, `Initialize`) start their history at slot 0.
 - `Initialize(other, chunk_size)` mirrors another container's chunk *structure* with fresh zero-initialized chunks (dense at `chunk_size`, sparse empty); it does not copy data.
+- `Resize(n)` grows/shrinks all **dense** chunks to `n` entities per step, preserving the first `min(old, new)` values of every step slot and zero-filling the tails (sparse chunks are skipped; previously obtained spans are invalidated).
