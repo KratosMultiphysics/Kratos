@@ -145,14 +145,25 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteFinalizeSolution
 
     for (const auto& r_model_part : mrModelParts) {
         block_for_each(r_model_part.get().Elements(),
-                       [this, &r_model_part_ref = r_model_part.get(),
-                        &r_process_info = r_model_part.get().GetProcessInfo()](Element& rElement) {
+                       [this, &r_process_info = r_model_part.get().GetProcessInfo()](Element& rElement) {
             if (rElement.IsActive()) {
                 AddIntegrationPointContributionsForAllVariables(
-                    rElement, r_model_part_ref.Name(), GetCachedExtrapolationMatrixFor(rElement), r_process_info);
+                    rElement, GetCachedExtrapolationMatrixFor(rElement), r_process_info);
             }
         });
     }
+}
+
+int GeoExtrapolateIntegrationPointValuesToNodesProcess::Check()
+{
+    for (const auto& r_model_part : mrModelParts) {
+        const auto& r_process_info = r_model_part.get().GetProcessInfo();
+        for (auto& r_element : r_model_part.get().Elements()) {
+            CheckElement(r_element, r_model_part.get().Name(), r_process_info);
+        }
+    }
+
+    return 0;
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatricesForElements()
@@ -186,8 +197,9 @@ const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtra
     return mExtrapolationMatrixMap.at(typeid(rElement).hash_code());
 }
 
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
-    Element& rElement, const std::string& rModelPartName, const Matrix& rExtrapolationMatrix, const ProcessInfo& rProcessInfo) const
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::CheckElement(Element& rElement,
+                                                                      const std::string& rModelPartName,
+                                                                      const ProcessInfo& rProcessInfo) const
 {
     int check_result = 0;
     try {
@@ -210,7 +222,11 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointCont
                                           "Element Check failed before extrapolation for "
                                        << "element id " << rElement.Id() << " in ModelPart='" << rModelPartName
                                        << "'. Check returned " << check_result << "." << std::endl;
+}
 
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
+    Element& rElement, const Matrix& rExtrapolationMatrix, const ProcessInfo& rProcessInfo) const
+{
     const auto integration_points_number = GeoElementUtilities::GetNumberOfIntegrationPointsOf(rElement);
 
     for (const auto p_var : mDoubleVariables) {

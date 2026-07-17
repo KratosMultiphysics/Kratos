@@ -55,6 +55,7 @@ public:
 
     void                           ExecuteBeforeSolutionLoop() override;
     void                           ExecuteFinalizeSolutionStep() override;
+    int                            Check() override;
     [[nodiscard]] const Parameters GetDefaultParameters() const override;
     [[nodiscard]] std::string      Info() const override;
     void                           PrintInfo(std::ostream& rOStream) const override;
@@ -128,9 +129,9 @@ private:
     [[nodiscard]] const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
 
     void AddIntegrationPointContributionsForAllVariables(Element&           rElement,
-                                                         const std::string& rModelPartName,
                                                          const Matrix&      rExtrapolationMatrix,
                                                          const ProcessInfo& rProcessInfo) const;
+    void CheckElement(Element& rElement, const std::string& rModelPartName, const ProcessInfo& rProcessInfo) const;
 };
 
 } // namespace Kratos.

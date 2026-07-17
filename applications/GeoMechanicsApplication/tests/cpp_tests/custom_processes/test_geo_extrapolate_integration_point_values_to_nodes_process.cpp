@@ -413,9 +413,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ThrowsWhenElementCheckThrowsS
     const auto& r_model_part =
         CreateModelPartWithSingleStubElement<StubElementWithThrowingCheckForNodalExtrapolationTest>(
             model, r_test_variable);
+    auto process = GeoExtrapolateIntegrationPointValuesToNodesProcess{
+        model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable)};
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable)), "GeoExtrapolateIntegrationPointValuesToNodesProcess: Exception while calling Element::Check")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "GeoExtrapolateIntegrationPointValuesToNodesProcess: "
+                                      "Exception while calling Element::Check")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ThrowsWhenElementCheckThrowsUnknownException,
@@ -426,9 +429,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ThrowsWhenElementCheckThrowsU
     const auto& r_model_part =
         CreateModelPartWithSingleStubElement<StubElementWithUnknownThrowingCheckForNodalExtrapolationTest>(
             model, r_test_variable);
+    auto process = GeoExtrapolateIntegrationPointValuesToNodesProcess{
+        model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable)};
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable)), "GeoExtrapolateIntegrationPointValuesToNodesProcess: Unknown exception while calling Element::Check")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "GeoExtrapolateIntegrationPointValuesToNodesProcess: Unknown "
+                                      "exception while calling Element::Check")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ThrowsWhenElementCheckReturnsNonZero,
@@ -439,9 +445,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ThrowsWhenElementCheckReturns
     const auto& r_model_part =
         CreateModelPartWithSingleStubElement<StubElementWithNonZeroCheckForNodalExtrapolationTest>(
             model, r_test_variable);
+    auto process = GeoExtrapolateIntegrationPointValuesToNodesProcess{
+        model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable)};
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable)), "GeoExtrapolateIntegrationPointValuesToNodesProcess: Element Check failed before extrapolation")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "GeoExtrapolateIntegrationPointValuesToNodesProcess: Element "
+                                      "Check failed before extrapolation")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyForLinearFields,
