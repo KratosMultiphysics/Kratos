@@ -841,7 +841,8 @@ void write_gmsh22(const std::string& rPath, const Mesh& rMesh, bool binary) {
         }
         os << '\n';
     } else {
-        char buf[80];
+        // %zu (up to 20 digits) + 3x %.16e (up to 24 chars each) + separators/'\n'/'\0'
+        char buf[128];
         for (std::size_t i = 0; i < num_points; ++i) {
             double x = (0 < dim) ? detail::read_double(points, i * dim + 0) : 0.0;
             double y = (1 < dim) ? detail::read_double(points, i * dim + 1) : 0.0;
@@ -1013,7 +1014,8 @@ void write_gmsh41(const std::string& rPath, const Mesh& rMesh, bool binary) {
         os << node_dim << " 0 0 " << num_points << "\n";
         for (std::size_t i = 0; i < num_points; ++i)
             os << (i + 1) << "\n";
-        char buf[80];
+        // 3x %.16e (up to 24 chars each) + separators/'\n'/'\0'
+        char buf[128];
         for (std::size_t i = 0; i < num_points; ++i) {
             double x = (0 < dim) ? detail::read_double(points, i * dim + 0) : 0.0;
             double y = (1 < dim) ? detail::read_double(points, i * dim + 1) : 0.0;

@@ -50,7 +50,13 @@ using source_location = std::source_location;
 
 class source_location {
 public:
-    static consteval source_location current(
+    // constexpr, not consteval: the "capture the caller's __builtin_FILE/LINE"
+    // trick only relies on default-argument re-evaluation per call site, which
+    // works identically for constexpr; consteval here trips a clang diagnostic
+    // ("cannot take address of consteval function ... outside of an immediate
+    // invocation") when used as a default argument inside another consteval
+    // function's parameter list (FormatWithLocation's constructor, log.hpp).
+    static constexpr source_location current(
         const char* pFile = __builtin_FILE(), int Line = __builtin_LINE()) noexcept {
         source_location loc;
         loc.mFile = pFile;
