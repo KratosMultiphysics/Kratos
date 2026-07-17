@@ -42,10 +42,24 @@
 // System includes
 #include <cstdint>
 #include <optional>
-#include <span>
 #include <string>
 #include <utility>
 #include <vector>
+
+// `<span>` is only needed for the ConnSpan() convenience accessor below.
+// Define MESHIOPLUSPLUS_NO_STD_SPAN to omit it entirely: Boost's uBLAS
+// (boost/numeric/ublas/vector_sparse.hpp and matrix_sparse.hpp) temporarily
+// redefines MSVC's _ITERATOR_DEBUG_LEVEL via a macro literally named
+// _BACKUP_ITERATOR_DEBUG_LEVEL - the exact same internal macro name MSVC's
+// own <span> uses for the same purpose (see
+// https://github.com/boostorg/ublas/issues/77). Any MSVC translation unit
+// that includes both ends up with "error C2065:
+// '_BACKUP_ITERATOR_DEBUG_LEVEL': undeclared identifier" inside <span>
+// itself. Consumers that also use Boost uBLAS (e.g. Kratos) should define
+// this macro rather than fight the collision.
+#ifndef MESHIOPLUSPLUS_NO_STD_SPAN
+#include <span>
+#endif
 
 // Project includes
 #include "meshioplusplus/cell_type.hpp"
@@ -310,11 +324,13 @@ public:
 
     /** @brief Contiguous `(NumPoints() * PointDim())` Float64 coordinate buffer. */
     const double* PointsData() const { return mPoints.As<double>(); }
+#ifndef MESHIOPLUSPLUS_NO_STD_SPAN
     /** @brief Block @p block's rectangular Int64 connectivity as a span. */
     std::span<const std::int64_t> ConnSpan(std::size_t block) const {
         const NDArray& conn = mBlocks[block].mConn;
         return {conn.As<std::int64_t>(), conn.Size()};
     }
+#endif
     /** @brief Block @p block's cell type as the compact enum. */
     CellType BlockType(std::size_t block) const { return mBlocks[block].mType; }
 

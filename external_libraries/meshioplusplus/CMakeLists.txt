@@ -38,6 +38,21 @@ target_include_directories(meshioplusplus_core PUBLIC
 # The pybind bindings of meshio++ (which would force the MESHIO backend) are not built.
 target_compile_definitions(meshioplusplus_core PUBLIC MESHIOPLUSPLUS_MESH_BACKEND_KRATOS)
 
+# On MSVC, Boost uBLAS (boost/numeric/ublas/vector_sparse.hpp, included by
+# kratos/includes/ublas_interface.h - used throughout Kratos core) temporarily
+# redefines _ITERATOR_DEBUG_LEVEL via a macro literally named
+# _BACKUP_ITERATOR_DEBUG_LEVEL - the same internal macro name MSVC's own
+# <span> implementation uses for the same purpose (see
+# https://github.com/boostorg/ublas/issues/77). Any MSVC translation unit
+# that includes both fails with "error C2065: '_BACKUP_ITERATOR_DEBUG_LEVEL':
+# undeclared identifier" inside <span> itself. Kratos never calls the one
+# std::span-returning accessor this vendored copy has (NativeMesh::ConnSpan,
+# only used by meshio++'s own tests), so opt it out entirely rather than
+# fight the collision.
+if(MSVC)
+    target_compile_definitions(meshioplusplus_core PUBLIC MESHIOPLUSPLUS_NO_STD_SPAN)
+endif()
+
 # --- zlib: the Kratos root CMakeLists guarantees ZLIB_LIBRARIES (system or
 # --- external_libraries/zlib) and its include dirs before this subdirectory is added.
 target_compile_definitions(meshioplusplus_core PUBLIC MESHIOPLUSPLUS_HAS_ZLIB)
