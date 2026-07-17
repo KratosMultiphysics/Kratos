@@ -56,6 +56,7 @@ public:
         Vector   KnotsU;
         Vector   KnotsV;
         Vector   Weights;
+        std::vector<std::array<double, 3>> CoordsSnapshot; // physical CP coords at level-creation time
     };
 
     struct THBRefinementDomain {
@@ -95,6 +96,10 @@ public:
         const SizeType num_cps_u = rKnotsU.size() - PolynomialDegreeU + 1;
         const SizeType num_cps_v = rKnotsV.size() - PolynomialDegreeV + 1;
         mActiveFunctions.push_back(std::vector<bool>(num_cps_u * num_cps_v, true));
+        auto& snap = mLevels[0].CoordsSnapshot;
+        snap.reserve(rThisPoints.size());
+        for (SizeType i = 0; i < static_cast<SizeType>(rThisPoints.size()); ++i)
+            snap.push_back({rThisPoints[i].X(), rThisPoints[i].Y(), rThisPoints[i].Z()});
     }
 
     /// Constructs the initial level-0 NURBS surface (with weights).
@@ -114,6 +119,10 @@ public:
         const SizeType num_cps_u = rKnotsU.size() - PolynomialDegreeU + 1;
         const SizeType num_cps_v = rKnotsV.size() - PolynomialDegreeV + 1;
         mActiveFunctions.push_back(std::vector<bool>(num_cps_u * num_cps_v, true));
+        auto& snap = mLevels[0].CoordsSnapshot;
+        snap.reserve(rThisPoints.size());
+        for (SizeType i = 0; i < static_cast<SizeType>(rThisPoints.size()); ++i)
+            snap.push_back({rThisPoints[i].X(), rThisPoints[i].Y(), rThisPoints[i].Z()});
     }
 
     ~THBSurfaceGeometry() override = default;
@@ -853,7 +862,7 @@ public:
             const SizeType num_cps_v = NumberOfControlPointsV(l);
             const bool is_rational = (mLevels[l].Weights.size() > 0);
 
-            // Reconstruct full CP grid: active CPs get real coordinates, inactive get (0,0,0).
+            // Reconstruct full CP grid: active CPs from packed points, inactive from CoordsSnapshot.
             PointerVector<NodeType> full_points;
             full_points.resize(num_cps_u * num_cps_v);
             Vector full_weights(num_cps_u * num_cps_v);
@@ -865,7 +874,8 @@ public:
                     const auto& pt = *this->pGetPoint(packed);
                     full_points(flat) = Kratos::make_intrusive<NodeType>(0, pt.X(), pt.Y(), pt.Z());
                 } else {
-                    full_points(flat) = Kratos::make_intrusive<NodeType>(0, 0.0, 0.0, 0.0);
+                    const auto& c = mLevels[l].CoordsSnapshot[flat];
+                    full_points(flat) = Kratos::make_intrusive<NodeType>(0, c[0], c[1], c[2]);
                 }
             }
 
@@ -1047,6 +1057,9 @@ private:
         if (is_rational)
             new_weights.resize(num_cps_u_fine * num_cps_v_fine, 0.0);
 
+        std::vector<std::array<double, 3>> fine_coords_snapshot;
+        fine_coords_snapshot.reserve(num_cps_u_fine * num_cps_v_fine);
+
         for (SizeType j_v = 0; j_v < num_cps_v_fine; ++j_v) {
             for (SizeType j_u = 0; j_u < num_cps_u_fine; ++j_u) {
                 double x = 0.0, y = 0.0, z = 0.0, weight_new = 0.0;
@@ -1067,6 +1080,7 @@ private:
                 }
                 const double inv_w = is_rational ? 1.0 / weight_new : 1.0;
                 this->Points().push_back(CreateNode(next_node_id++, x * inv_w, y * inv_w, z * inv_w));
+                fine_coords_snapshot.push_back({x * inv_w, y * inv_w, z * inv_w});
                 if (is_rational)
                     new_weights[j_v * num_cps_u_fine + j_u] = weight_new;
             }
@@ -1075,6 +1089,7 @@ private:
         mLevels.push_back(THBLevel{
             previous_level.DegreeU, previous_level.DegreeV, rKnotsU, rKnotsV,
             is_rational ? new_weights : Vector()});
+        mLevels.back().CoordsSnapshot = std::move(fine_coords_snapshot);
         mActiveFunctions.push_back(
             std::vector<bool>(num_cps_u_fine * num_cps_v_fine, true));
     }
@@ -1552,6 +1567,9 @@ private:
                 next_node_id = std::max(next_node_id, this->GetPoint(i).Id() + IndexType(1));
         }
 
+        std::vector<std::array<double, 3>> fine_coords_snapshot_p;
+        fine_coords_snapshot_p.reserve(num_cps_u_fine * num_cps_v_fine);
+
         for (SizeType j_v = 0; j_v < num_cps_v_fine; ++j_v) {
             for (SizeType j_u = 0; j_u < num_cps_u_fine; ++j_u) {
                 double x = 0.0, y = 0.0, z = 0.0;
@@ -1569,10 +1587,12 @@ private:
                     }
                 }
                 this->Points().push_back(CreateNode(next_node_id++, x, y, z));
+                fine_coords_snapshot_p.push_back({x, y, z});
             }
         }
 
         mLevels.push_back(THBLevel{p_u + 1, p_v + 1, fine_knots_u, fine_knots_v, {}});
+        mLevels.back().CoordsSnapshot = std::move(fine_coords_snapshot_p);
         mActiveFunctions.push_back(
             std::vector<bool>(num_cps_u_fine * num_cps_v_fine, true));
     }
