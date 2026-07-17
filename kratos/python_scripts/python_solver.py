@@ -151,7 +151,7 @@ class PythonSolver:
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
         input_type = model_part_import_settings["input_type"].GetString()
 
-        if input_type == "mdpa": # NOTE: Add more types in the future
+        if input_type == "mdpa":
             KratosMultiphysics.SingleImportModelPart.Import(model_part, model_part_import_settings, input_type)
         elif input_type == "rest":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
@@ -160,8 +160,17 @@ class PythonSolver:
 
         elif input_type == "use_input_model_part":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Using already imported model part - no reading necessary.")
+        elif input_type in ("meshio", "auto") or input_type in KratosMultiphysics.MeshioPlusPlusIO.GetSupportedReadFormats():
+            # Any meshio++-supported format (vtu, gmsh, med, ...); "meshio"/"auto"
+            # resolve the format from the extension of "input_filename"
+            input_filename = model_part_import_settings["input_filename"].GetString()
+            io_settings = KratosMultiphysics.Parameters("""{}""")
+            io_settings.AddString("format", "auto" if input_type in ("meshio", "auto") else input_type)
+            KratosMultiphysics.MeshioPlusPlusIO(input_filename, io_settings).ReadModelPart(model_part)
         else:
-            raise Exception("Other model part input options are not yet implemented.")
+            supported_types = ["mdpa", "rest", "use_input_model_part", "meshio", "auto"]
+            supported_types.extend(KratosMultiphysics.MeshioPlusPlusIO.GetSupportedReadFormats())
+            raise Exception('unsupported "input_type" "{}"! The supported types are: {}'.format(input_type, supported_types))
 
         KratosMultiphysics.Logger.PrintInfo("ModelPart", model_part)
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]:: ", "Finished reading model part.")
