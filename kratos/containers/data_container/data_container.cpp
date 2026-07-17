@@ -151,6 +151,22 @@ void DataContainer::AddToSparseStorage(const DataAccessor<int>& rIndexAccessor, 
 /***********************************************************************************/
 /***********************************************************************************/
 
+void DataContainer::Resize(std::size_t NewNumberOfEntities)
+{
+    KRATOS_TRY
+
+    for (auto& p_chunk : mData) {
+        if (p_chunk->GetValuePolicy().IsSparse()) continue; // sparse sizing is governed by UpdateSparseStorage/AddToSparseStorage
+        if (p_chunk->NumberOfEntitiesPerStep() == NewNumberOfEntities) continue;
+        p_chunk->ResizeData(NewNumberOfEntities);
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void DataContainer::CloneStepData(StepCategory rStepCategory)
 {
     for (auto& p_chunk : mData) {

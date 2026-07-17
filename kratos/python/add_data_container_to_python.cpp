@@ -274,6 +274,8 @@ void AddDataContainerToPython(pybind11::module& m)
     container_binder.def(py::init<std::size_t>(), py::arg("chunk_size"));
     container_binder.def("Initialize", &DataContainer::Initialize, py::arg("other"), py::arg("chunk_size"),
         "Mirror the chunk structure of another container with fresh zero-initialized chunks of the given chunk size.");
+    container_binder.def("Resize", &DataContainer::Resize, py::arg("number_of_entities"),
+        "Resize all dense (non-sparse) chunks to the given number of entities per step, preserving existing per-step values and zero-initializing appended entries. Previously obtained NumPy views over resized chunks are invalidated - re-fetch them.");
     container_binder.def("UpdateSparseStorage", &DataContainer::UpdateSparseStorage, py::arg("index_accessor"),
         "Rebuild all sparse chunks keyed on the given index accessor to the number of active (non-negative) indices. Discards their previous values.");
     container_binder.def("AddToSparseStorage", &DataContainer::AddToSparseStorage, py::arg("index_accessor"), py::arg("entity_indices"),

@@ -378,5 +378,122 @@ KRATOS_TEST_CASE_IN_SUITE(DataContainerInitialize, KratosCoreFastSuite)
         "Chunk size must be greater than zero.");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataContainerResizeGrowPreservesData, KratosCoreFastSuite)
+{
+    DataContainer container(4);
+    auto double_accessor = container.Add(PRESSURE, DataValuePolicy<double>(), NonHistoricalDataPolicy());
+    const array_1d<double, 3> array_zero{{0.0, 0.0, 0.0}};
+    auto array_accessor = container.Add(VELOCITY, DataValuePolicy<array_1d<double, 3>>(array_zero), NonHistoricalDataPolicy());
+
+    auto double_span = container.GetDataSpan(double_accessor);
+    for (std::size_t i = 0; i < 4; ++i) {
+        double_span[i] = 10.0 + i;
+    }
+    auto array_span = container.GetDataSpan(array_accessor);
+    for (std::size_t i = 0; i < 4; ++i) {
+        array_span[i] = array_1d<double, 3>{{1.0 * i, 2.0 * i, 3.0 * i}};
+    }
+
+    container.Resize(7);
+
+    // Existing values preserved, appended entries zero-initialized with the policy zero
+    auto grown_double_span = container.GetDataSpan(double_accessor);
+    KRATOS_EXPECT_EQ(grown_double_span.size(), 7);
+    for (std::size_t i = 0; i < 4; ++i) {
+        KRATOS_EXPECT_EQ(grown_double_span[i], 10.0 + i);
+    }
+    for (std::size_t i = 4; i < 7; ++i) {
+        KRATOS_EXPECT_EQ(grown_double_span[i], 0.0);
+    }
+
+    auto grown_array_span = container.GetDataSpan(array_accessor);
+    KRATOS_EXPECT_EQ(grown_array_span.size(), 7);
+    for (std::size_t i = 0; i < 4; ++i) {
+        KRATOS_EXPECT_EQ(grown_array_span[i], (array_1d<double, 3>{{1.0 * i, 2.0 * i, 3.0 * i}}));
+    }
+    for (std::size_t i = 4; i < 7; ++i) {
+        KRATOS_EXPECT_EQ(grown_array_span[i], array_zero);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataContainerResizeShrinkDropsTail, KratosCoreFastSuite)
+{
+    DataContainer container(6);
+    auto accessor = container.Add(PRESSURE, DataValuePolicy<double>(), NonHistoricalDataPolicy());
+
+    auto span = container.GetDataSpan(accessor);
+    for (std::size_t i = 0; i < 6; ++i) {
+        span[i] = 1.0 + i;
+    }
+
+    container.Resize(3);
+
+    auto shrunk_span = container.GetDataSpan(accessor);
+    KRATOS_EXPECT_EQ(shrunk_span.size(), 3);
+    for (std::size_t i = 0; i < 3; ++i) {
+        KRATOS_EXPECT_EQ(shrunk_span[i], 1.0 + i); // leading values preserved
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataContainerResizeHistoricalChunks, KratosCoreFastSuite)
+{
+    // Every step slot of a historical chunk must be preserved independently on resize
+    DataContainer container(4);
+    DataValuePolicy<double> value_policy;
+    auto accessor = container.Add(PRESSURE, value_policy, HistoricalDataPolicy(StepCategory::TimeStep, 3));
+
+    // Fill the three step slots with distinct values via step accessors
+    for (int step = 0; step < 3; ++step) {
+        auto step_span = container.GetDataSpan(accessor.GetStepAccessor(StepCategory::TimeStep, step));
+        for (std::size_t i = 0; i < 4; ++i) {
+            step_span[i] = 100.0 * step + i;
+        }
+    }
+
+    container.Resize(6);
+
+    for (int step = 0; step < 3; ++step) {
+        auto step_span = container.GetDataSpan(accessor.GetStepAccessor(StepCategory::TimeStep, step));
+        KRATOS_EXPECT_EQ(step_span.size(), 6);
+        for (std::size_t i = 0; i < 4; ++i) {
+            KRATOS_EXPECT_EQ(step_span[i], 100.0 * step + i); // per-step values preserved
+        }
+        for (std::size_t i = 4; i < 6; ++i) {
+            KRATOS_EXPECT_EQ(step_span[i], 0.0); // per-step tails zero-initialized
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataContainerResizeSkipsSparseChunks, KratosCoreFastSuite)
+{
+    DataContainer container(8);
+    auto index_accessor = container.Add(STEP, DataValuePolicy<int>(-1), NonHistoricalDataPolicy());
+    auto sparse_accessor = container.Add(PRESSURE, SparseDataValuePolicy<double>(index_accessor), NonHistoricalDataPolicy());
+
+    // Activate three sparse entries
+    container.AddToSparseStorage(index_accessor, {0, 2, 4});
+    KRATOS_EXPECT_EQ(container.GetDataSpan(sparse_accessor).size(), 3);
+
+    container.Resize(16);
+
+    // The dense index chunk grew, the sparse chunk kept its own size
+    KRATOS_EXPECT_EQ(container.GetDataSpan(index_accessor).size(), 16);
+    KRATOS_EXPECT_EQ(container.GetDataSpan(sparse_accessor).size(), 3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataContainerResizeCustomZeroTail, KratosCoreFastSuite)
+{
+    DataContainer container(3);
+    auto accessor = container.Add(STEP, DataValuePolicy<int>(-1), NonHistoricalDataPolicy());
+
+    container.Resize(5);
+
+    auto span = container.GetDataSpan(accessor);
+    KRATOS_EXPECT_EQ(span.size(), 5);
+    for (std::size_t i = 0; i < 5; ++i) {
+        KRATOS_EXPECT_EQ(span[i], -1); // whole span holds the policy zero
+    }
+}
+
 } // namespace Testing
 } // namespace Kratos
