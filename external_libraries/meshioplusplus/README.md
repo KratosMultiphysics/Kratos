@@ -5,7 +5,7 @@ supporting ~35 mesh file formats. Used by the Kratos core IO class
 `MeshioPlusPlusIO` (`kratos/input_output/meshioplusplus_io.h`).
 
 - **Upstream**: `https://github.com/loumalouomega/meshioplusplus` (local development tree: `/home/vicente/src/meshioplusplus`)
-- **Vendored commit**: `130a71b744d0fa5598e1d0a38c96eaf73c4cf40a`
+- **Vendored version**: `v6.2.1` (`7b77fe3dfeb1b618c0954aa16b10e0c443481651`)
 - **License**: MIT (see `LICENSE`; © 2015-2021 Nico Schlömer et al., © 2026 Vicente Mataix Ferrándiz).
   The bundled `cpp/third_party/pugixml` is also MIT licensed (© Arseny Kapoulkine).
 
@@ -56,7 +56,8 @@ cp -r $UPSTREAM/cpp/src     $DST/cpp/src
 mkdir -p $DST/cpp/third_party/pugixml
 cp $UPSTREAM/cpp/third_party/pugixml/{pugixml.hpp,pugixml.cpp,pugiconfig.hpp} $DST/cpp/third_party/pugixml/
 cp $UPSTREAM/LICENSE $DST/LICENSE
-# then update the "Vendored commit" SHA above:
+# then update the "Vendored version" above (prefer a tagged release when one exists):
+git -C $UPSTREAM describe --tags
 git -C $UPSTREAM rev-parse HEAD
 ```
 
