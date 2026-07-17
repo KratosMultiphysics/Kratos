@@ -7,7 +7,6 @@ from KratosMultiphysics.modelers.meshio_input_modeler import Factory as MeshioIn
 from pathlib import Path
 import tempfile
 
-
 class TestMeshioInputModeler(KratosUnittest.TestCase):
     """Tests for the meshio++ input modeler."""
 
@@ -33,7 +32,7 @@ class TestMeshioInputModeler(KratosUnittest.TestCase):
             settings = KratosMultiphysics.Parameters("""{
                 "input_filename"  : "%s",
                 "model_part_name" : "imported"
-            }""" % file_name.replace("\\\\", "/"))
+            }""" % file_name.replace("\\", "/"))
             modeler = MeshioInputModelerFactory(self.model, settings)
 
             # The destination model part must exist right after construction so
@@ -60,6 +59,6 @@ class TestMeshioInputModeler(KratosUnittest.TestCase):
     def testModelerIsRegistered(self):
         self.assertTrue(KratosMultiphysics.Registry.HasItem("Modelers.KratosMultiphysics.MeshioInputModeler"))
 
-
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

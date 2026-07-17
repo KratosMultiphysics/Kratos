@@ -7,7 +7,6 @@ from KratosMultiphysics.meshio_output_process import Factory as MeshioOutputProc
 from pathlib import Path
 import tempfile
 
-
 def _PopulateModelPart(model_part):
     """Creates 4 nodes and 1 tetrahedron element."""
     props = model_part.CreateNewProperties(1)
@@ -16,7 +15,6 @@ def _PopulateModelPart(model_part):
     model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
     model_part.CreateNewNode(4, 0.0, 0.0, 1.0)
     model_part.CreateNewElement("Element3D4N", 1, [1, 2, 3, 4], props)
-
 
 class TestMeshioOutputProcess(KratosUnittest.TestCase):
     """Tests for the meshio++ output process."""
@@ -54,7 +52,7 @@ class TestMeshioOutputProcess(KratosUnittest.TestCase):
                     "output_name"     : "results.vtu",
                     "output_path"     : "%s"
                 }
-            }""" % str(Path(temp_dir) / "vtu_output").replace("\\\\", "/"))
+            }""" % str(Path(temp_dir) / "vtu_output").replace("\\", "/"))
             process = MeshioOutputProcessFactory(settings, self.model)
             self._RunSolutionLoop(process, 3)
 
@@ -73,7 +71,7 @@ class TestMeshioOutputProcess(KratosUnittest.TestCase):
                     "xdmf_data_format"                   : "XML",
                     "nodal_solution_step_data_variables" : ["TEMPERATURE"]
                 }
-            }""" % str(Path(temp_dir) / "xdmf_output").replace("\\\\", "/"))
+            }""" % str(Path(temp_dir) / "xdmf_output").replace("\\", "/"))
             process = MeshioOutputProcessFactory(settings, self.model)
             self._RunSolutionLoop(process, 3)
 
@@ -105,7 +103,7 @@ class TestMeshioOutputProcess(KratosUnittest.TestCase):
                     "nodal_flags"                  : ["TO_ERASE"],
                     "element_data_value_variables" : ["PRESSURE"]
                 }
-            }""" % str(Path(temp_dir) / "extended").replace("\\\\", "/"))
+            }""" % str(Path(temp_dir) / "extended").replace("\\", "/"))
             process = MeshioOutputProcessFactory(settings, self.model)
             self._RunSolutionLoop(process, 1)
 
@@ -129,6 +127,6 @@ class TestMeshioOutputProcess(KratosUnittest.TestCase):
     def testProcessIsRegistered(self):
         self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.KratosMultiphysics.MeshioOutputProcess"))
 
-
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

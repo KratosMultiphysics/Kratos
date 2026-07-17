@@ -7,7 +7,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 from pathlib import Path
 import tempfile
 
-
 def _PopulateModelPart(model_part):
     """Creates 5 nodes, 2 tetrahedra elements and 1 triangle condition."""
     props = model_part.CreateNewProperties(1)
@@ -19,7 +18,6 @@ def _PopulateModelPart(model_part):
     model_part.CreateNewElement("Element3D4N", 1, [1, 2, 3, 4], props)
     model_part.CreateNewElement("Element3D4N", 2, [2, 3, 4, 5], props)
     model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1, 2, 3], props)
-
 
 class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
     """Tests for the meshio++-based multi-format IO."""
@@ -132,7 +130,7 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
                 import_settings = KratosMultiphysics.Parameters("""{
                     "input_type"     : "%s",
                     "input_filename" : "%s"
-                }""" % (input_type, file_name.replace("\\\\", "/")))
+                }""" % (input_type, file_name.replace("\\", "/")))
                 solver._ImportModelPart(read_model_part, import_settings)
                 self.assertEqual(read_model_part.NumberOfNodes(), write_model_part.NumberOfNodes())
                 self.assertEqual(read_model_part.NumberOfElements(), write_model_part.NumberOfElements())
@@ -201,6 +199,6 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, 'unsupported "input_type"'):
             solver._ImportModelPart(model_part, import_settings)
 
-
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
