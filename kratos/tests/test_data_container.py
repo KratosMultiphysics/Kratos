@@ -50,7 +50,9 @@ class TestDataContainer(KratosUnittest.TestCase):
 
     def test_array3_span_shape(self):
         container = KM.DataContainer(8)
-        accessor = container.Add(KM.VELOCITY, KM.Array1DDataValuePolicy3())
+        # array_1d's default constructor does not zero-initialize its storage (unlike a
+        # plain Python/NumPy sequence), so the policy zero must be passed explicitly here.
+        accessor = container.Add(KM.VELOCITY, KM.Array1DDataValuePolicy3([0.0, 0.0, 0.0]))
 
         span = container.GetDataSpan(accessor)
         self.assertEqual(span.shape, (8, 3))
