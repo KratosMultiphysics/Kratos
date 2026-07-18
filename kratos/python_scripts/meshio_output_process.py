@@ -48,7 +48,7 @@ class MeshioOutputProcess(KratosMultiphysics.OutputProcess):
         # Forward the IO-specific settings; defaults are defined in
         # MeshioPlusPlusIO::GetDefaultParameters (meshioplusplus_io.cpp)
         io_settings = KratosMultiphysics.Parameters("""{}""")
-        for key in ("format", "file_format", "time_series", "output_control_type",
+        for key in ("format", "file_format", "skin", "time_series", "output_control_type",
                     "output_precision", "label_precision",
                     "custom_name_prefix", "custom_name_postfix",
                     "entity_type", "output_sub_model_parts",
@@ -74,6 +74,7 @@ class MeshioOutputProcess(KratosMultiphysics.OutputProcess):
             "save_output_files_in_folder"                 : true,
             "format"                                      : "auto",
             "file_format"                                 : "default",
+            "skin"                                        : true,
             "time_series"                                 : "automatic",
             "output_control_type"                         : "step",
             "output_interval"                             : 1.0,
