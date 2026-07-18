@@ -152,7 +152,7 @@ vtk_output.ExecuteFinalize()
 
 # 6. Importing and exporting other mesh formats (meshio++)
 
-In addition to the native `.mdpa` format, the Kratos core bundles the **meshio++** library, exposed through the `MeshioPlusPlusIO` class, which can read and write ~35 common mesh formats (`vtu`, `vtk`, `gmsh`, `med`, `xdmf`, `abaqus`, `medit`, `stl`, `obj`, `su2`, ...). Query the formats available in your build with:
+In addition to the native `.mdpa` format, the Kratos core bundles the **meshio++** library, exposed through the `MeshioPlusPlusIO` class, which can read and write ~40 common mesh formats (`vtu`, `vtp`, `vtk`, `gmsh`, `med`, `xdmf`, `abaqus`, `medit`, `stl`, `obj`, `su2`, `ensight`, ...). Query the formats available in your build with:
 
 ```python
 import KratosMultiphysics
