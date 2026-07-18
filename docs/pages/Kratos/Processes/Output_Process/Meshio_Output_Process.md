@@ -3,14 +3,14 @@ title: Meshio Output Process
 keywords: meshio meshioplusplus output process core xdmf vtu gmsh med transient
 tags: [process meshio output process]
 sidebar: kratos_core_processes
-summary: This document details the Meshio Output Process, which writes simulation results in any of the ~35 mesh formats supported by the bundled meshio++ library, including transient XDMF time series and multi-format file series.
+summary: This document details the Meshio Output Process, which writes simulation results in any of the ~40 mesh formats supported by the bundled meshio++ library, including transient XDMF time series and multi-format file series.
 ---
 
 # Meshio Output Process
 
 ## Overview 📝
 
-The **Meshio Output Process** writes simulation results in any of the mesh file formats supported by the **meshio++** library bundled with the Kratos core (`external_libraries/meshioplusplus`): `vtu`, `vtk`, `gmsh`, `med`, `xdmf`, `abaqus`, `medit`, `stl`, `obj`, `ply`, `su2`, `tecplot`, `unv` and many more.
+The **Meshio Output Process** writes simulation results in any of the mesh file formats supported by the **meshio++** library bundled with the Kratos core (`external_libraries/meshioplusplus`): `vtu`, `vtp`, `vtk`, `gmsh`, `med`, `xdmf`, `abaqus`, `medit`, `stl`, `obj`, `ply`, `ensight`, `su2`, `tecplot`, `unv`, the write-only `svg`/`tikz` and many more.
 
 Behind the scenes this Python process is a thin wrapper for the C++ `MeshioPlusPlusIO` class (`kratos/input_output/meshioplusplus_io.h`), which converts the Kratos `ModelPart` through the meshio++ Kratos bridge (`kratos_bridge.hpp`) in a single O(n) pass and dispatches to the requested format writer.
 
@@ -76,6 +76,7 @@ Or with the registry-based form:
 | `save_output_files_in_folder` | bool | `true` | If `false`, `output_name` is used as-is without `output_path` |
 | `format` | string | `"auto"` | Any meshio++ format name (`"vtu"`, `"gmsh"`, `"med"`, `"xdmf"`, ...) or `"auto"` (resolve from the extension) |
 | `file_format` | string | `"default"` | `"ascii"` or `"binary"` for the formats that support the choice (see below); `"default"` keeps the meshio++ registry default |
+| `skin` | bool | `true` | For the surface-only formats (`stl`, `ply`): write the extracted boundary skin of a volume mesh. `false` keeps the legacy behavior (volume cells dropped, only existing surface cells written) |
 | `time_series` | string | `"automatic"` | `"automatic"` (XDMF: in-file append; others: file series), `"file_series"`, `"single_file"` |
 | `output_control_type` | string | `"step"` | `"step"` or `"time"`: drives when output happens **and** the file-series label / XDMF time value |
 | `output_interval` | double | `1.0` | Output frequency (in steps or in time, according to `output_control_type`) |
@@ -100,7 +101,9 @@ Or with the registry-based form:
 
 **Supported variable types** (mirroring the VTK output): `double`, `int`, `bool`, `array_1d<double, 3/4/6/9>` and `Vector` (size taken from the first entity). Variables of other types (e.g. `Matrix`) are skipped with a warning. For the gauss point lists the supported set is `double`, `int`, `bool`, `array_1d<double, 3/6>` and `Vector`.
 
-**`file_format` support matrix**: the ascii/binary choice is honored for `vtu`, `vtk`, `gmsh`, `stl`, `ply`, `ansys` and `flac3d` (the formats whose meshio++ writers expose a binary flag). For every other format the setting is ignored with a warning and the registry default is used. For `xdmf` use `xdmf_data_format` instead.
+**`file_format` support matrix**: the ascii/binary choice is honored for `vtu`, `vtp`, `vtk`, `gmsh`, `stl`, `ply`, `ansys`, `flac3d` and `ensight` (the formats whose meshio++ writers expose a binary flag). For every other format the setting is ignored with a warning and the registry default is used. For `xdmf` use `xdmf_data_format` instead.
+
+**Skin extraction**: when a model part containing volume cells (tetrahedra, hexahedra, wedges, pyramids and their higher-order variants) is written to a surface-only format (`stl`, `ply`), the boundary skin is extracted (the `SkinDetectionProcess` face-hashing algorithm, reimplemented in meshio++) and written instead of silently dropping the volume cells; pre-existing surface cells are dropped with a warning in that mode. Set `"skin": false` for the legacy behavior.
 
 **Cell data and mixed meshes**: when both elements and conditions are written (`entity_type: "automatic"`), cell arrays cover all cells - element rows first, then condition rows - and the rows of the entity kind a variable does not apply to are zero-filled.
 
