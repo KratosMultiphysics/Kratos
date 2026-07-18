@@ -55,3 +55,37 @@ Only the non-template classes (`DataValuePolicyBase`, `DataHistoryPolicyBase` an
 - `DataChunk` owns its storage manually (`new[]`/`delete[]`) and is non-copyable; chunks with zero entities are valid (that is how sparse chunks start).
 - `HistoricalDataPolicy::Clone()` resets the running step index — freshly created chunks (`CreateNew`, `Initialize`) start their history at slot 0.
 - `Initialize(other, chunk_size)` mirrors another container's chunk *structure* with fresh zero-initialized chunks (dense at `chunk_size`, sparse empty); it does not copy data.
+- `Resize(n)` grows/shrinks all **dense** chunks to `n` entities per step, preserving the first `min(old, new)` values of every step slot and zero-filling the tails (sparse chunks are skipped; previously obtained spans are invalidated).
+
+# Entity data managers (`Kratos::Future`)
+
+Phase II makes `Node`, `Element`, `Condition`, `Geometry` and `MasterSlaveConstraint` usable with the `DataContainer` as a **parallel** storage path. The entity classes are **not modified**: the integration is a *side-car* living in `kratos/future/containers/` (namespace `Kratos::Future`, compiled only with `-DKRATOS_USE_FUTURE=ON`, exposed in Python as `KratosMultiphysics.Future`). The entities' existing storage (`NodalData` solution-step data, per-entity `DataValueContainer`) remains the source of truth and is completely independent from the data stored here — nothing is redirected, deprecated or serialized differently.
+
+## Architecture
+
+Kratos entities are addressed by sparse `Id` inside Id-keyed sorted sets, while a `DataContainer` addresses a dense slot per entity. The bridge is `Future::EntityDataContainer`: it owns one `DataContainer` plus an `Id → slot` map. Entities are *registered* (assigning slots in registration order), variables are *added* per container, and a value is addressed as (variable chunk, entity slot). `Future::ModelPartDataContainer` aggregates one `EntityDataContainer` per entity kind of a `ModelPart`, snapshotting the entities present at construction (each kind sized to its entity count, historical variables using the ModelPart's buffer size) and registering later additions via `Update()`.
+
+## Mapping from the legacy API
+
+| Legacy (unchanged) | Future path |
+|---|---|
+| `model_part.AddNodalSolutionStepVariable(VAR)` + buffer | `manager.Nodes().AddHistoricalVariable(VAR)` (→ `HistoricalDataPolicy(TimeStep, buffer_size)`) |
+| `node.SetValue(VAR, v)` / `node.GetValue(VAR)` | `manager.Nodes().SetValue(node, VAR, v)` / `GetValue(node, VAR)` (→ `NonHistoricalDataPolicy`) |
+| `node.FastGetSolutionStepValue(VAR, step)` | `manager.Nodes().GetValue(node, VAR, step)` |
+| `model_part.CloneTimeStep(t)` | `model_part.CloneTimeStep(t)` **plus** `manager.CloneStepData(StepCategory::TimeStep)` |
+| `element.GetValue(VAR)` (reaches the **shared** `Geometry::mData`) | `manager.Elements().GetValue(element, VAR)` — keyed by element Id, so elements sharing a geometry get **independent** values (intentional) |
+| hot loops over `FastGetSolutionStepValue` | `span = edc.GetDataSpan(accessor)` once, then `span[edc.Index(entity)]` per entity (or vectorized NumPy access in Python) |
+
+Sparse per-entity data uses the raw `Add` passthrough with `SparseDataValuePolicy` exactly as in Phase I; there is no legacy equivalent.
+
+## What is and is not supported (Phase II)
+
+- **Registration/growth**: dense chunks grow automatically as entities register (via `DataContainer::Resize`), preserving existing values; growth invalidates previously obtained spans/NumPy views.
+- **Removal**: unregistering an entity only removes its Id from the map — the slot becomes a *hole* (not reclaimed, values remain until rebuild) and re-registering the same Id assigns a fresh slot. `ModelPartDataContainer::Update()` tracks additions only, not removals.
+- **Buffer size** is snapshotted at construction; a later `SetBufferSize` on the ModelPart is not reflected.
+- Only **Registry-registered** variables can be added (all `KRATOS_REGISTER_VARIABLE`'d variables are).
+- **No serialization, no MPI synchronization** of the Future-path data yet.
+- The manager holds a `ModelPart&`: it must not outlive the owning `Model`.
+- Thread-safety: registration and variable addition need external synchronization; afterwards concurrent access to distinct entity slots is safe.
+- The old storage path remains authoritative; the Future path is opt-in and additive.
+- Inherent `DataContainer` limitations carry over: component variables (e.g. `DISPLACEMENT_X`) and ublas `Vector`/`Matrix` cannot be stored (the value policy needs a bool `operator==`, and a component's source type cannot be recovered from `Variable<double>`); scalars, `array_1d` and `std::string` work.
