@@ -27,11 +27,13 @@
 #include "meshioplusplus/kratos_bridge.hpp"
 #include "meshioplusplus/detail/xdmf_common.hpp"
 #include "meshioplusplus/formats/ansys.hpp"
+#include "meshioplusplus/formats/ensight.hpp"
 #include "meshioplusplus/formats/flac3d.hpp"
 #include "meshioplusplus/formats/gmsh.hpp"
 #include "meshioplusplus/formats/ply.hpp"
 #include "meshioplusplus/formats/stl.hpp"
 #include "meshioplusplus/formats/vtk.hpp"
+#include "meshioplusplus/formats/vtp.hpp"
 #include "meshioplusplus/formats/vtu.hpp"
 #ifdef MESHIOPLUSPLUS_HAS_HDF5
 #include "meshioplusplus/detail/hdf5_util.hpp"
@@ -543,6 +545,7 @@ mio::NDArray ToNDArray(const DataArray& rData)
     X(CGNS, "cgns")                      \
     X(DEX, "dex")                        \
     X(DOLFIN, "dolfin")                  \
+    X(ENSIGHT, "ensight")                \
     X(EXODUS, "exodus")                  \
     X(FLAC3D, "flac3d")                  \
     X(FLUX, "flux")                      \
@@ -565,11 +568,15 @@ mio::NDArray ToNDArray(const DataArray& rData)
     X(PLY, "ply")                        \
     X(STL, "stl")                        \
     X(SU2, "su2")                        \
+    X(SVG, "svg")                        \
     X(TECPLOT, "tecplot")                \
     X(TETGEN, "tetgen")                  \
+    X(TIKZ, "tikz")                      \
+    X(TRIANGLE, "triangle")              \
     X(UGRID, "ugrid")                    \
     X(UNV, "unv")                        \
     X(VTK, "vtk")                        \
+    X(VTP, "vtp")                        \
     X(VTU, "vtu")                        \
     X(WKT, "wkt")                        \
     X(XDMF, "xdmf")
@@ -587,12 +594,15 @@ const std::unordered_map<std::string, MeshioPlusPlusIO::Format>& GetFormatNameMa
 /**
  * @brief Writes rMesh honoring an ascii/binary "file_format" override for the
  * formats exposing such a flag, bypassing the meshio++ registry defaults.
+ * @param Skin Whether stl/ply extract and write the boundary skin of volume
+ *        meshes (the "skin" setting); ignored by the other formats.
  * @return false when the format has no ascii/binary variant (caller falls
  *         back to the registry writer).
  */
 bool WriteWithFileFormatOverride(
     const std::string& rFormatName,
     const bool Binary,
+    const bool Skin,
     const std::filesystem::path& rPath,
     const mio::Mesh& rMesh
     )
@@ -600,6 +610,10 @@ bool WriteWithFileFormatOverride(
     const std::string path = rPath.string();
     if (rFormatName == "vtu") {
         mio::write_vtu(path, rMesh, Binary, /*zlib=*/Binary);
+        return true;
+    }
+    if (rFormatName == "vtp") {
+        mio::write_vtp(path, rMesh, Binary, /*zlib=*/Binary);
         return true;
     }
     if (rFormatName == "vtk") {
@@ -611,11 +625,11 @@ bool WriteWithFileFormatOverride(
         return true;
     }
     if (rFormatName == "stl") {
-        mio::write_stl(path, rMesh, Binary);
+        mio::write_stl(path, rMesh, Binary, Skin);
         return true;
     }
     if (rFormatName == "ply") {
-        mio::write_ply(path, rMesh, Binary);
+        mio::write_ply(path, rMesh, Binary, Skin);
         return true;
     }
     if (rFormatName == "ansys") {
@@ -624,6 +638,10 @@ bool WriteWithFileFormatOverride(
     }
     if (rFormatName == "flac3d") {
         mio::write_flac3d(path, rMesh, ".16e", Binary);
+        return true;
+    }
+    if (rFormatName == "ensight") {
+        mio::write_ensight(path, rMesh, Binary);
         return true;
     }
     return false;
@@ -1096,6 +1114,7 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
     return Parameters(R"({
         "format"                                      : "auto",
         "file_format"                                 : "default",
+        "skin"                                        : true,
         "time_series"                                 : "automatic",
         "output_control_type"                         : "step",
         "output_precision"                            : 7,
@@ -1614,12 +1633,27 @@ void MeshioPlusPlusIO::WriteStatic(
 
     // Honor an ascii/binary override where the format supports it
     const std::string file_format = mParameters["file_format"].GetString();
+    const bool skin = mParameters["skin"].GetBool();
     if (file_format != "default") {
-        if (WriteWithFileFormatOverride(rFormatName, file_format == "binary", rPath, mesh)) {
+        if (WriteWithFileFormatOverride(rFormatName, file_format == "binary", skin, rPath, mesh)) {
             return;
         }
         KRATOS_WARNING_ONCE("MeshioPlusPlusIO") << "The \"file_format\" setting is not supported for format \""
             << rFormatName << "\" - using its default" << std::endl;
+    }
+
+    // The registry writers extract the boundary skin of volume meshes for the
+    // surface-only formats; honor a "skin" opt-out by calling those writers
+    // directly with their registry ascii/binary defaults.
+    if (!skin) {
+        if (rFormatName == "stl") {
+            mio::write_stl(rPath.string(), mesh, /*binary=*/false, /*skin=*/false);
+            return;
+        }
+        if (rFormatName == "ply") {
+            mio::write_ply(rPath.string(), mesh, /*binary=*/true, /*skin=*/false);
+            return;
+        }
     }
 
     mio::registry_writers().at(rFormatName)(rPath.string(), mesh);
