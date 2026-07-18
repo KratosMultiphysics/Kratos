@@ -55,6 +55,18 @@ void PopulateTetrahedraModelPart(ModelPart& rModelPart)
     rModelPart.CreateNewCondition("SurfaceCondition3D3N", 1, {1, 2, 3}, p_properties);
 }
 
+/// Creates 4 nodes and 2 triangle elements (a planar surface mesh)
+void PopulateTriangleModelPart(ModelPart& rModelPart)
+{
+    auto p_properties = rModelPart.CreateNewProperties(1);
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
+    rModelPart.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties);
+    rModelPart.CreateNewElement("Element2D3N", 2, {1, 3, 4}, p_properties);
+}
+
 void ExpectSameMesh(const ModelPart& rExpected, const ModelPart& rActual)
 {
     KRATOS_EXPECT_EQ(rExpected.NumberOfNodes(), rActual.NumberOfNodes());
@@ -128,7 +140,8 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospection, KratosCoreFastSui
 {
     // The self-contained formats must always be present
     const auto supported_formats = MeshioPlusPlusIO::GetSupportedFormats();
-    for (const std::string name : {"vtu", "vtk", "gmsh", "stl", "obj", "xdmf", "abaqus", "medit"}) {
+    for (const std::string name : {"vtu", "vtk", "gmsh", "stl", "obj", "xdmf", "abaqus", "medit",
+                                   "ensight", "vtp", "triangle", "svg", "tikz"}) {
         KRATOS_EXPECT_TRUE(std::find(supported_formats.begin(), supported_formats.end(), name) != supported_formats.end());
     }
 
@@ -138,6 +151,12 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospection, KratosCoreFastSui
     KRATOS_EXPECT_TRUE(std::find(read_formats.begin(), read_formats.end(), "openfoam") != read_formats.end());
     KRATOS_EXPECT_TRUE(std::find(write_formats.begin(), write_formats.end(), "openfoam") == write_formats.end());
 
+    // svg and tikz are write-only
+    for (const std::string name : {"svg", "tikz"}) {
+        KRATOS_EXPECT_TRUE(std::find(write_formats.begin(), write_formats.end(), name) != write_formats.end());
+        KRATOS_EXPECT_TRUE(std::find(read_formats.begin(), read_formats.end(), name) == read_formats.end());
+    }
+
     // Name <-> enum round trips
     KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("gmsh")),
                      static_cast<int>(MeshioPlusPlusIO::Format::GMSH));
@@ -145,11 +164,26 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospection, KratosCoreFastSui
     KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("auto")),
                      static_cast<int>(MeshioPlusPlusIO::Format::AUTOMATIC));
 
+    // Name <-> enum round trips of the newer formats
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("ensight")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::ENSIGHT));
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::ENSIGHT), "ensight");
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::FormatFromString("vtp")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::VTP));
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::TIKZ), "tikz");
+
     // Extension resolution
     KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat("mesh.vtu")),
                      static_cast<int>(MeshioPlusPlusIO::Format::VTU));
     KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat("mesh.msh")),
                      static_cast<int>(MeshioPlusPlusIO::Format::GMSH));
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat("mesh.case")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::ENSIGHT));
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat("mesh.vtp")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::VTP));
+    // .node/.ele keep resolving to tetgen; triangle needs the "format" setting
+    KRATOS_EXPECT_EQ(static_cast<int>(MeshioPlusPlusIO::ResolveFormat("mesh.node")),
+                     static_cast<int>(MeshioPlusPlusIO::Format::TETGEN));
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(MeshioPlusPlusIO::ResolveFormat("mesh.unknown_extension"),
                                       "Cannot resolve a format");
 
@@ -178,6 +212,160 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadMed, KratosCoreFastSuite)
         GTEST_SKIP() << "med requires an HDF5-enabled build";
     }
     WriteReadRoundTrip(".med");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadEnsight, KratosCoreFastSuite)
+{
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    auto& r_read_model_part = model.CreateModelPart("read");
+    PopulateTetrahedraModelPart(r_write_model_part);
+
+    // EnSight writes a .case file plus a sibling .geo file
+    const auto file_path = TestFilePath(".case");
+    auto geo_path = file_path;
+    geo_path.replace_extension(".geo");
+    {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(geo_path));
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIfExists(file_path);
+    RemoveIfExists(geo_path);
+
+    ExpectSameMesh(r_write_model_part, r_read_model_part);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteReadVtp, KratosCoreFastSuite)
+{
+    // vtp is a surface (PolyData) format: round trip a triangle mesh
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    auto& r_read_model_part = model.CreateModelPart("read");
+    PopulateTriangleModelPart(r_write_model_part);
+
+    const auto file_path = TestFilePath(".vtp");
+    {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read_model_part);
+    }
+    RemoveIfExists(file_path);
+
+    ExpectSameMesh(r_write_model_part, r_read_model_part);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOTriangleFormat, KratosCoreFastSuite)
+{
+    // Shewchuk Triangle .node/.ele pair: 4 nodes, 2 triangles (1-based indices).
+    // The .node/.ele extensions resolve to tetgen, so the format is explicit.
+    const auto node_path = TestFilePath(".node");
+    auto ele_path = node_path;
+    ele_path.replace_extension(".ele");
+    {
+        std::ofstream node_file(node_path);
+        node_file << R"(4 2 0 0
+1 0.0 0.0
+2 1.0 0.0
+3 1.0 1.0
+4 0.0 1.0
+)";
+        std::ofstream ele_file(ele_path);
+        ele_file << R"(2 3 0
+1 1 2 3
+2 1 3 4
+)";
+    }
+
+    Model model;
+    auto& r_model_part = model.CreateModelPart("read");
+    {
+        Parameters settings(R"({"format" : "triangle"})");
+        MeshioPlusPlusIO io_read(node_path, settings);
+        io_read.ReadModelPart(r_model_part);
+    }
+    RemoveIfExists(node_path);
+    RemoveIfExists(ele_path);
+
+    KRATOS_EXPECT_EQ(r_model_part.NumberOfNodes(), 4);
+    KRATOS_EXPECT_EQ(r_model_part.NumberOfElements(), 2);
+    for (const auto& r_node : r_model_part.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.Z(), 0.0, 1e-12); // 2D points are zero-padded
+    }
+
+    // Writing is not supported from Kratos (nodes are staged as 3D points)
+    auto& r_write_model_part = model.CreateModelPart("write");
+    PopulateTriangleModelPart(r_write_model_part);
+    const auto write_path = TestFilePath("_write.node");
+    Parameters write_settings(R"({"format" : "triangle", "time_series" : "single_file"})");
+    MeshioPlusPlusIO io_write(write_path, write_settings);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(io_write.WriteModelPart(r_write_model_part),
+                                      "can only write 2D points");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteSvgAndTikz, KratosCoreFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    PopulateTriangleModelPart(r_model_part);
+
+    for (const std::string extension : {".svg", ".tikz"}) {
+        const auto file_path = TestFilePath(extension);
+        {
+            Parameters settings(R"({"time_series" : "single_file"})");
+            MeshioPlusPlusIO io_write(file_path, settings);
+            io_write.WriteModelPart(r_model_part);
+        }
+        KRATOS_EXPECT_TRUE(std::filesystem::exists(file_path));
+        KRATOS_EXPECT_TRUE(std::filesystem::file_size(file_path) > 0);
+
+        // svg/tikz are write-only
+        auto& r_read = model.CreateModelPart("read" + extension.substr(1));
+        MeshioPlusPlusIO io_read(file_path);
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(io_read.ReadModelPart(r_read), "write-only");
+        RemoveIfExists(file_path);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOStlSkinOfVolumeMesh, KratosCoreFastSuite)
+{
+    // 2 tetrahedra sharing one face: the boundary skin holds 6 triangles
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    PopulateTetrahedraModelPart(r_model_part);
+
+    const auto file_path = TestFilePath(".stl");
+    auto count_read_triangles = [&model, &file_path](const std::string& rName) {
+        auto& r_read = model.CreateModelPart(rName);
+        MeshioPlusPlusIO(file_path).ReadModelPart(r_read);
+        return r_read.NumberOfElements();
+    };
+
+    { // default: the extracted boundary skin of the volume mesh is written
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO(file_path, settings).WriteModelPart(r_model_part);
+        KRATOS_EXPECT_EQ(count_read_triangles("read_skin"), 6);
+    }
+    { // the skin path is also honored by the ascii/binary override
+        Parameters settings(R"({"time_series" : "single_file", "file_format" : "binary"})");
+        MeshioPlusPlusIO(file_path, settings).WriteModelPart(r_model_part);
+        KRATOS_EXPECT_EQ(count_read_triangles("read_skin_binary"), 6);
+    }
+    { // "skin" off: legacy behavior, only the existing triangle condition is written
+        Parameters settings(R"({"time_series" : "single_file", "skin" : false})");
+        MeshioPlusPlusIO(file_path, settings).WriteModelPart(r_model_part);
+        KRATOS_EXPECT_EQ(count_read_triangles("read_no_skin"), 1);
+    }
+    RemoveIfExists(file_path);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOReadGmshPhysicalTagsAsSubModelParts, KratosCoreFastSuite)
