@@ -108,8 +108,8 @@ const Parameters MmgModeler<TMMGLibrary>::GetDefaultParameters() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class MmgModeler<MMGLibrary::MMG2D>;
-template class MmgModeler<MMGLibrary::MMG3D>;
-template class MmgModeler<MMGLibrary::MMGS>;
+template class KRATOS_API(MESHING_APPLICATION) MmgModeler<MMGLibrary::MMG2D>;
+template class KRATOS_API(MESHING_APPLICATION) MmgModeler<MMGLibrary::MMG3D>;
+template class KRATOS_API(MESHING_APPLICATION) MmgModeler<MMGLibrary::MMGS>;
 
 } // namespace Kratos
