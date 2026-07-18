@@ -144,12 +144,17 @@ private:
 
 /**
  * @brief Multi-format mesh input/output based on the meshio++ library.
- * @details Reads and writes ~35 mesh file formats (vtu, vtk, gmsh, med, xdmf,
+ * @details Reads and writes ~40 mesh file formats (vtu, vtk, gmsh, med, xdmf,
  * abaqus, ...; see @ref Format) converting to/from Kratos model parts through
  * the meshio++ Kratos bridge. Availability of the HDF5-backed formats (med,
  * cgns, h5m, hmf, the HDF data path of xdmf) and the netCDF-backed ones
  * (exodus) depends on the build; query @ref GetSupportedFormats /
  * @ref IsFormatAvailable.
+ *
+ * When writing a volume mesh to a surface-only format (stl, ply) the boundary
+ * skin is extracted and written by default; set the "skin" setting to false
+ * for the legacy behavior (volume cells dropped, only existing surface cells
+ * written).
  *
  * Reading: elements are created from the highest-dimension cell blocks and
  * conditions from the lower-dimension ones; integer tag arrays (gmsh physical
@@ -183,7 +188,8 @@ public:
      * @details AUTOMATIC resolves the format from the file extension. Formats
      * backed by an optional dependency (HDF5: CGNS, H5M, HMF, MED and the HDF
      * data path of XDMF; netCDF: EXODUS) are only available when the build
-     * enables them - check with @ref IsFormatAvailable.
+     * enables them - check with @ref IsFormatAvailable. OPENFOAM is read only;
+     * SVG and TIKZ are write only.
      */
     enum class Format
     {
@@ -195,6 +201,7 @@ public:
         CGNS,      /// CGNS .cgns (requires HDF5)
         DEX,       /// Dexelas .dex
         DOLFIN,    /// DOLFIN XML .xml
+        ENSIGHT,   /// EnSight Gold .case/.geo
         EXODUS,    /// Exodus II .e/.exo (requires netCDF)
         FLAC3D,    /// FLAC3D .f3grid
         FLUX,      /// Flux .pf3
@@ -217,11 +224,15 @@ public:
         PLY,       /// Polygon File Format .ply
         STL,       /// Stereolithography .stl
         SU2,       /// SU2 .su2
+        SVG,       /// Scalable Vector Graphics .svg (write only)
         TECPLOT,   /// Tecplot .dat
         TETGEN,    /// TetGen .node/.ele
+        TIKZ,      /// LaTeX TikZ/PGF .tikz (write only)
+        TRIANGLE,  /// Shewchuk Triangle .node/.ele/.poly (.node/.ele resolve to TETGEN by extension - select via the "format" setting)
         UGRID,     /// AFLR3 .ugrid
         UNV,       /// I-deas universal .unv
         VTK,       /// VTK legacy .vtk
+        VTP,       /// VTK PolyData XML .vtp
         VTU,       /// VTK unstructured XML .vtu
         WKT,       /// Well-known text .wkt
         XDMF       /// XDMF v3 .xdmf/.xmf (HDF data path requires HDF5)
