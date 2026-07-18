@@ -38,19 +38,19 @@ namespace meshioplusplus {
 
 namespace {
 
-std::string upper(std::string s) {
+std::string tecplot_upper(std::string s) {
     for (auto& c : s)
         c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
     return s;
 }
-std::string strip(const std::string& rS) {
+std::string tecplot_strip(const std::string& rS) {
     std::size_t b = rS.find_first_not_of(" \t\r\n");
     if (b == std::string::npos)
         return "";
     std::size_t e = rS.find_last_not_of(" \t\r\n");
     return rS.substr(b, e - b + 1);
 }
-std::vector<std::string> tokens(const std::string& rS) {
+std::vector<std::string> tecplot_tokens(const std::string& rS) {
     std::vector<std::string> out;
     std::istringstream iss(rS);
     std::string t;
@@ -67,7 +67,7 @@ bool is_float_token(const std::string& rS) {
 }
 
 std::string tecplot_to_meshio(const std::string& rZ) {
-    std::string u = upper(rZ);
+    std::string u = tecplot_upper(rZ);
     if (u == "LINESEG" || u == "FELINESEG")
         return "line";
     if (u == "TRIANGLE" || u == "FETRIANGLE")
@@ -117,7 +117,7 @@ Mesh read_tecplot(const std::string& rPath) {
     std::vector<std::string> lines;
     std::string l;
     while (std::getline(in, l)) {
-        std::string s = strip(l);
+        std::string s = tecplot_strip(l);
         if (s.empty() || s[0] == '#')
             continue;
         lines.push_back(s);
@@ -128,10 +128,10 @@ Mesh read_tecplot(const std::string& rPath) {
     std::string varloc;
     std::size_t i = 0, data_start = lines.size();
     for (; i < lines.size(); ++i) {
-        std::string u = upper(lines[i]);
+        std::string u = tecplot_upper(lines[i]);
         if (u.rfind("VARIABLES", 0) == 0) {
             std::string joined = lines[i];
-            while (i + 1 < lines.size() && strip(lines[i + 1])[0] == '"')
+            while (i + 1 < lines.size() && tecplot_strip(lines[i + 1])[0] == '"')
                 joined += " " + lines[++i];
             std::string rhs = joined.substr(joined.find('=') + 1);
             // collect quoted names (or bare tokens)
@@ -153,12 +153,12 @@ Mesh read_tecplot(const std::string& rPath) {
             }
         } else if (u.rfind("ZONE", 0) == 0) {
             std::string joined = lines[i];
-            while (i + 1 < lines.size() && !is_float_token(tokens(lines[i + 1])[0]))
+            while (i + 1 < lines.size() && !is_float_token(tecplot_tokens(lines[i + 1])[0]))
                 joined += " " + lines[++i];
             data_start = i + 1;
             // Extract VARLOCATION(...)
             std::string ju = joined;
-            std::size_t vp = upper(ju).find("VARLOCATION");
+            std::size_t vp = tecplot_upper(ju).find("VARLOCATION");
             if (vp != std::string::npos) {
                 std::size_t p1 = ju.find('(', vp), p2 = ju.find(')', p1);
                 varloc = ju.substr(p1, p2 - p1 + 1);
@@ -170,9 +170,9 @@ Mesh read_tecplot(const std::string& rPath) {
             for (auto& c : body)
                 if (c == ',' || c == '=')
                     c = ' ';
-            auto tk = tokens(body);
+            auto tk = tecplot_tokens(body);
             for (std::size_t k = 0; k + 1 < tk.size(); ++k) {
-                std::string key = upper(tk[k]);
+                std::string key = tecplot_upper(tk[k]);
                 if (key == "NODES" || key == "N" || key == "ELEMENTS" || key == "E" ||
                     key == "DATAPACKING" || key == "ZONETYPE" || key == "F" || key == "ET" ||
                     key == "NV")
@@ -195,10 +195,10 @@ Mesh read_tecplot(const std::string& rPath) {
     std::size_t num_cells = std::stoull(getz("ELEMENTS", "E"));
     std::string fmt, ztype;
     if (zone.count("F")) {
-        fmt = upper(zone["F"]);
+        fmt = tecplot_upper(zone["F"]);
         ztype = zone.count("ET") ? zone["ET"] : "";
     } else {
-        fmt = "FE" + upper(getz("DATAPACKING", ""));
+        fmt = "FE" + tecplot_upper(getz("DATAPACKING", ""));
         ztype = getz("ZONETYPE", "");
     }
     bool feblock = (fmt == "FEBLOCK");
@@ -228,7 +228,7 @@ Mesh read_tecplot(const std::string& rPath) {
                 std::size_t eq = entry.find('=');
                 if (eq == std::string::npos)
                     continue;
-                std::string rng = entry.substr(0, eq), loc = upper(entry.substr(eq + 1));
+                std::string rng = entry.substr(0, eq), loc = tecplot_upper(entry.substr(eq + 1));
                 if (loc != "CELLCENTERED")
                     continue;
                 rng = rng.substr(1, rng.size() - 2);  // strip []
@@ -257,7 +257,7 @@ Mesh read_tecplot(const std::string& rPath) {
     flat.reserve(want);
     std::size_t li = data_start;
     while (flat.size() < want && li < lines.size()) {
-        for (const auto& t : tokens(lines[li]))
+        for (const auto& t : tecplot_tokens(lines[li]))
             flat.push_back(std::strtod(t.c_str(), nullptr));
         ++li;
     }
@@ -295,7 +295,7 @@ Mesh read_tecplot(const std::string& rPath) {
     NDArray celldata(DType::Int64, {num_cells, nn});
     std::int64_t* cp = celldata.As<std::int64_t>();
     for (std::size_t c = 0; c < num_cells; ++c) {
-        auto t = tokens(lines.at(li++));
+        auto t = tecplot_tokens(lines.at(li++));
         for (std::size_t j = 0; j < nn; ++j)
             cp[c * nn + j] = std::strtoll(t[j].c_str(), nullptr, 10) - 1;
     }
@@ -304,7 +304,7 @@ Mesh read_tecplot(const std::string& rPath) {
     Mesh mesh;
     int xi = -1, yi = -1, zi = -1;
     for (std::size_t k = 0; k < variables.size(); ++k) {
-        std::string v = upper(variables[k]);
+        std::string v = tecplot_upper(variables[k]);
         if (v == "X")
             xi = (int)k;
         else if (v == "Y")
@@ -386,7 +386,7 @@ void write_tecplot(const std::string& rPath, const Mesh& rMesh) {
     }
 
     for (const auto& k : rMesh.PointDataNames()) {
-        std::string ku = upper(k);
+        std::string ku = tecplot_upper(k);
         if (ku == "X" || ku == "Y" || ku == "Z")
             continue;
         const NDArray& v = rMesh.PointData(k);
@@ -403,7 +403,7 @@ void write_tecplot(const std::string& rPath, const Mesh& rMesh) {
     bool have_cell_data = false;
     varrange1 = varrange0 - 1;
     for (const auto& k : rMesh.CellDataNames()) {
-        std::string ku = upper(k);
+        std::string ku = tecplot_upper(k);
         if (ku == "X" || ku == "Y" || ku == "Z")
             continue;
         if (rMesh.CellDataNumBlocks(k) == 0)

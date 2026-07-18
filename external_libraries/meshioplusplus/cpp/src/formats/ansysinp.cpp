@@ -82,12 +82,12 @@ int from_meshio(const std::string& rT) {
     return it == m.end() ? -1 : it->second;
 }
 
-std::string upper(std::string s) {
+std::string ansysinp_upper(std::string s) {
     for (char& c : s)
         c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
     return s;
 }
-std::string strip(const std::string& rS) {
+std::string ansysinp_strip(const std::string& rS) {
     std::size_t a = rS.find_first_not_of(" \t\r\n");
     if (a == std::string::npos)
         return "";
@@ -136,7 +136,7 @@ std::vector<std::int64_t> slice_ints(const std::string& rLineIn, int width) {
     while (!line.empty() && (line.back() == '\n' || line.back() == '\r'))
         line.pop_back();
     for (std::size_t i = 0; i < line.size(); i += static_cast<std::size_t>(width)) {
-        std::string chunk = strip(line.substr(i, static_cast<std::size_t>(width)));
+        std::string chunk = ansysinp_strip(line.substr(i, static_cast<std::size_t>(width)));
         if (chunk.empty())
             continue;
         try {
@@ -155,7 +155,7 @@ std::vector<std::int64_t> slice_ints(const std::string& rLineIn, int width) {
 std::vector<double> slice_reals(const std::string& rS, int width) {
     std::vector<double> out;
     for (std::size_t i = 0; i < rS.size(); i += static_cast<std::size_t>(width)) {
-        std::string chunk = strip(rS.substr(i, static_cast<std::size_t>(width)));
+        std::string chunk = ansysinp_strip(rS.substr(i, static_cast<std::size_t>(width)));
         if (chunk.empty())
             continue;
         try {
@@ -167,10 +167,10 @@ std::vector<double> slice_reals(const std::string& rS, int width) {
 }
 
 bool is_data_line(const std::string& rLine) {
-    std::string s = strip(rLine);
+    std::string s = ansysinp_strip(rLine);
     if (s.empty())
         return false;
-    std::string up = upper(s);
+    std::string up = ansysinp_upper(s);
     static const char* kws[] = {"FINISH", "NBLOCK",   "EBLOCK",  "CMBLOCK", "ETBLOCK", "/PREP7",
                                 "/SOLU",  "/POST1",   "/EOF",    "KEYOPT",  "MPDATA",  "MPTEMP",
                                 "LOCAL",  "SECBLOCK", "RLBLOCK", "DBLOCK",  "FBLOCK",  "SFEBLOCK"};
@@ -229,8 +229,8 @@ Mesh read_ansysinp(const std::string& rPath, AnsysInfo& rInfo) {
 
     std::size_t i = 0, n = lines.size();
     while (i < n) {
-        std::string line = strip(lines[i]);
-        std::string up = upper(line);
+        std::string line = ansysinp_strip(lines[i]);
+        std::string up = ansysinp_upper(line);
 
         if (up.rfind("ET,", 0) == 0) {
             std::stringstream ss(line);
@@ -240,7 +240,7 @@ Mesh read_ansysinp(const std::string& rPath, AnsysInfo& rInfo) {
                 p.push_back(tok);
             if (p.size() >= 3) {
                 try {
-                    etype_lib[std::stoi(strip(p[1]))] = static_cast<int>(std::stod(strip(p[2])));
+                    etype_lib[std::stoi(ansysinp_strip(p[1]))] = static_cast<int>(std::stod(ansysinp_strip(p[2])));
                 } catch (...) {
                 }
             }
@@ -249,7 +249,7 @@ Mesh read_ansysinp(const std::string& rPath, AnsysInfo& rInfo) {
             saw_block = true;
             std::string count_field = line.substr(line.find(',') + 1);
             count_field = count_field.substr(0, count_field.find('!'));
-            int ntypes = std::stoi(strip(count_field));
+            int ntypes = std::stoi(ansysinp_strip(count_field));
             int iw = (i + 1 < n) ? int_width(lines[i + 1]) : 0;
             if (iw == 0)
                 iw = 9;
@@ -280,7 +280,7 @@ Mesh read_ansysinp(const std::string& rPath, AnsysInfo& rInfo) {
             i += 2;
             while (i < n) {
                 const std::string& l = lines[i];
-                std::string s = upper(strip(l));
+                std::string s = ansysinp_upper(ansysinp_strip(l));
                 if (s.rfind("N,", 0) == 0 || s.rfind("-1", 0) == 0 || s.empty()) {
                     ++i;
                     break;
@@ -289,7 +289,7 @@ Mesh read_ansysinp(const std::string& rPath, AnsysInfo& rInfo) {
                     break;
                 std::int64_t nid;
                 try {
-                    nid = std::stoll(strip(l.substr(0, static_cast<std::size_t>(iw))));
+                    nid = std::stoll(ansysinp_strip(l.substr(0, static_cast<std::size_t>(iw))));
                 } catch (...) {
                     ++i;
                     continue;
@@ -315,7 +315,7 @@ Mesh read_ansysinp(const std::string& rPath, AnsysInfo& rInfo) {
             i += 2;
             while (i < n) {
                 const std::string& l = lines[i];
-                if (strip(l).rfind("-1", 0) == 0) {
+                if (ansysinp_strip(l).rfind("-1", 0) == 0) {
                     ++i;
                     break;
                 }
@@ -334,7 +334,7 @@ Mesh read_ansysinp(const std::string& rPath, AnsysInfo& rInfo) {
                 while (nodes.size() < nnodes && i < n) {
                     if (!is_data_line(lines[i]))
                         break;
-                    if (strip(lines[i]).rfind("-1", 0) == 0)
+                    if (ansysinp_strip(lines[i]).rfind("-1", 0) == 0)
                         break;
                     auto more = slice_ints(lines[i], iw);
                     nodes.insert(nodes.end(), more.begin(), more.end());
@@ -350,11 +350,11 @@ Mesh read_ansysinp(const std::string& rPath, AnsysInfo& rInfo) {
             std::vector<std::string> p;
             while (std::getline(ss, tok, ','))
                 p.push_back(tok);
-            std::string cname = strip(p.at(1));
-            std::string entity = upper(strip(p.at(2)));
+            std::string cname = ansysinp_strip(p.at(1));
+            std::string entity = ansysinp_upper(ansysinp_strip(p.at(2)));
             std::string cnt = p.at(3);
             cnt = cnt.substr(0, cnt.find('!'));
-            std::size_t numitems = static_cast<std::size_t>(std::stoll(strip(cnt)));
+            std::size_t numitems = static_cast<std::size_t>(std::stoll(ansysinp_strip(cnt)));
             int iw = (i + 1 < n) ? int_width(lines[i + 1]) : 0;
             if (iw == 0)
                 iw = 10;

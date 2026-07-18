@@ -29,9 +29,12 @@
 
 // Project includes
 #include "meshioplusplus/formats/ply.hpp"
+#include "meshioplusplus/cell_type.hpp"
 #include "meshioplusplus/detail/value_io.hpp"
 #include "meshioplusplus/exceptions.hpp"
+#include "meshioplusplus/log.hpp"
 #include "meshioplusplus/parallel.hpp"
+#include "meshioplusplus/skin.hpp"
 
 namespace meshioplusplus {
 
@@ -102,7 +105,7 @@ std::string cell_type_from_count(std::size_t n) {
     }
 }
 
-std::string trim(const std::string& rS) {
+std::string ply_trim(const std::string& rS) {
     std::size_t b = 0, e = rS.size();
     while (b < e && std::isspace(static_cast<unsigned char>(rS[b])))
         ++b;
@@ -195,13 +198,13 @@ Mesh read_ply(const std::string& rPath) {
     };
     auto next_sig = [&]() -> std::string {
         while (true) {
-            std::string l = trim(read_line());
+            std::string l = ply_trim(read_line());
             if (!l.empty() && l.rfind("comment", 0) != 0)
                 return l;
         }
     };
 
-    if (trim(read_line()) != "ply")
+    if (ply_trim(read_line()) != "ply")
         throw ReadError("Expected 'ply'");
     std::string fmt = next_sig();
     bool is_binary, big = false;
@@ -391,7 +394,21 @@ Mesh read_ply(const std::string& rPath) {
     return mesh;
 }
 
-void write_ply(const std::string& rPath, const Mesh& rMesh, bool binary) {
+void write_ply(const std::string& rPath, const Mesh& rMesh, bool binary, bool skin) {
+    if (skin && has_skinnable_cells(rMesh)) {
+        std::size_t dropped = 0;
+        for (const auto cb : rMesh.CellRange())
+            if (cell_type_dimension(cell_type_from_name(cb.Type())) != 3)
+                ++dropped;
+        if (dropped > 0)
+            log::warn(
+                "PLY: writing the extracted skin of the volume cells; {} pre-existing "
+                "non-volume cell block(s) dropped (pass skin=false for the legacy behavior).",
+                dropped);
+        write_ply(rPath, extract_skin(rMesh, /*linearize=*/true), binary, /*skin=*/false);
+        return;
+    }
+
     std::ofstream os(rPath, std::ios::binary);
     if (!os)
         throw WriteError("Could not open file for writing: " + rPath);

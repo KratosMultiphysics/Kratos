@@ -139,7 +139,7 @@ double parse_nastran_float(std::string s) {
     return std::strtod(t.c_str(), nullptr);
 }
 
-std::string strip(const std::string& rS) {
+std::string nastran_strip(const std::string& rS) {
     std::size_t b = rS.find_first_not_of(" \t");
     if (b == std::string::npos)
         return "";
@@ -150,7 +150,7 @@ std::string strip(const std::string& rS) {
 std::string field(const std::string& rLine, std::size_t start, std::size_t width) {
     if (start >= rLine.size())
         return "";
-    return strip(rLine.substr(start, width));
+    return nastran_strip(rLine.substr(start, width));
 }
 
 }  // namespace
@@ -256,7 +256,7 @@ Mesh read_nastran(const std::string& rPath) {
     for (; start < lines.size(); ++start) {
         if (lines[start].find(kSentinel) != std::string::npos)
             ok = true;
-        if (strip(lines[start]).rfind("BEGIN BULK", 0) == 0) {
+        if (nastran_strip(lines[start]).rfind("BEGIN BULK", 0) == 0) {
             ++start;
             break;
         }
@@ -280,7 +280,7 @@ Mesh read_nastran(const std::string& rPath) {
     std::size_t i = start;
     while (i < lines.size()) {
         const std::string& line = lines[i];
-        std::string s = strip(line);
+        std::string s = nastran_strip(line);
         if (s.empty() || s[0] == '$' || s.rfind("//", 0) == 0 || s[0] == '#') {
             ++i;
             continue;

@@ -67,7 +67,7 @@ const char* vtk_dtype_str(DType dt) {
     return "double";
 }
 
-void ascii_double(std::ostream& rOs, double v) {
+void vtk_ascii_double(std::ostream& rOs, double v) {
     char buf[32];
     std::snprintf(buf, sizeof(buf), "%.17g", v);
     rOs << buf;
@@ -148,7 +148,7 @@ void write_field_block(std::ostream& rOs, const std::string& rName, DType dt,
             const std::size_t n = blk->Size();
             for (std::size_t i = 0; i < n; ++i) {
                 if (flt)
-                    ascii_double(rOs, read_double(*blk, i));
+                    vtk_ascii_double(rOs, read_double(*blk, i));
                 else
                     rOs << read_int(*blk, i);
                 rOs << ' ';
@@ -203,7 +203,7 @@ void write_vtk(const std::string& rPath, const Mesh& rMesh, bool binary, bool v5
     } else {
         for (std::size_t r = 0; r < num_points; ++r)
             for (std::size_t c = 0; c < 3; ++c) {
-                ascii_double(os, (c < dim) ? read_double(points, r * dim + c) : 0.0);
+                vtk_ascii_double(os, (c < dim) ? read_double(points, r * dim + c) : 0.0);
                 os << ((r + 1 == num_points && c == 2) ? '\n' : ' ');
             }
         if (num_points == 0)

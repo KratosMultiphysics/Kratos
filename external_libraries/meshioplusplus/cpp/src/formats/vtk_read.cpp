@@ -100,11 +100,11 @@ void store(NDArray& rA, std::size_t i, double d, std::int64_t v) {
     }
 }
 
-struct Cursor {
+struct VtkCursor {
     const std::string& mBuf;
     std::size_t mPos = 0;
 
-    explicit Cursor(const std::string& rB) : mBuf(rB) {}
+    explicit VtkCursor(const std::string& rB) : mBuf(rB) {}
 
     bool Eof() const { return mPos >= mBuf.size(); }
 
@@ -175,13 +175,13 @@ std::vector<std::string> split(const std::string& rS) {
     return out;
 }
 
-std::string upper(std::string s) {
+std::string vtk_upper(std::string s) {
     for (auto& c : s)
         c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
     return s;
 }
 
-std::vector<std::int64_t> to_int64(const NDArray& rA) {
+std::vector<std::int64_t> vtk_to_int64(const NDArray& rA) {
     std::vector<std::int64_t> v(rA.Size());
     std::int64_t* dst = v.data();
     // Hoist the per-element dtype switch out of the loop, then bulk-convert.
@@ -208,12 +208,12 @@ Mesh read_vtk(const std::string& rPath) {
         buf.resize(static_cast<std::size_t>(len));
         in.read(buf.data(), len);
     }
-    Cursor cur(buf);
+    VtkCursor cur(buf);
 
     std::string header = cur.ReadLine();
     const bool is_v5 = header.find("Version 5") != std::string::npos;
     cur.ReadLine();  // title
-    std::string dtype_line = upper(cur.ReadLine());
+    std::string dtype_line = vtk_upper(cur.ReadLine());
     bool is_ascii;
     if (dtype_line.find("ASCII") != std::string::npos)
         is_ascii = true;
@@ -239,10 +239,10 @@ Mesh read_vtk(const std::string& rPath) {
         std::vector<std::string> tok = split(line);
         if (tok.empty())
             continue;
-        std::string section = upper(tok[0]);
+        std::string section = vtk_upper(tok[0]);
 
         if (section == "DATASET") {
-            if (tok.size() < 2 || upper(tok[1]) != "UNSTRUCTURED_GRID")
+            if (tok.size() < 2 || vtk_upper(tok[1]) != "UNSTRUCTURED_GRID")
                 throw ReadError("C++ VTK reader only handles UNSTRUCTURED_GRID");
         } else if (section == "POINTS") {
             std::size_t n = std::stoull(tok[1]);
@@ -255,13 +255,13 @@ Mesh read_vtk(const std::string& rPath) {
                 std::size_t num_off = std::stoull(tok[1]);
                 std::size_t num_idx = std::stoull(tok[2]);
                 std::string l = cur.ReadLine();
-                if (upper(l).rfind("OFFSETS", 0) != 0)
+                if (vtk_upper(l).rfind("OFFSETS", 0) != 0)
                     throw ReadError("Expected OFFSETS (VTK 5.1 layout)");
                 DType odt = dtype_from_vtk_token(split(l)[1]);
                 std::vector<std::int64_t> off_all =
-                    to_int64(cur.ReadValues(odt, num_off, is_ascii));
+                    vtk_to_int64(cur.ReadValues(odt, num_off, is_ascii));
                 l = cur.ReadLine();
-                if (upper(l).rfind("CONNECTIVITY", 0) != 0)
+                if (vtk_upper(l).rfind("CONNECTIVITY", 0) != 0)
                     throw ReadError("Expected CONNECTIVITY");
                 DType cdt = dtype_from_vtk_token(split(l)[1]);
                 conn_nd = cur.ReadValues(cdt, num_idx, is_ascii);
@@ -270,7 +270,7 @@ Mesh read_vtk(const std::string& rPath) {
                     conn_ptr = conn_nd.As<std::int64_t>();
                     conn_owned = true;
                 } else {
-                    conn = to_int64(conn_nd);
+                    conn = vtk_to_int64(conn_nd);
                     conn_ptr = conn.data();
                 }
                 // off_all has a leading 0; end-offsets are the remainder.
@@ -280,7 +280,7 @@ Mesh read_vtk(const std::string& rPath) {
                 std::size_t num_cells = std::stoull(tok[1]);
                 std::size_t total = std::stoull(tok[2]);
                 DType dt = is_ascii ? DType::Int64 : DType::Int32;
-                std::vector<std::int64_t> raw = to_int64(cur.ReadValues(dt, total, is_ascii));
+                std::vector<std::int64_t> raw = vtk_to_int64(cur.ReadValues(dt, total, is_ascii));
                 conn.reserve(total - num_cells);
                 offsets.reserve(num_cells);
                 std::size_t p = 0;
@@ -297,7 +297,7 @@ Mesh read_vtk(const std::string& rPath) {
         } else if (section == "CELL_TYPES") {
             std::size_t n = std::stoull(tok[1]);
             DType dt = is_ascii ? DType::Int64 : DType::Int32;
-            types = to_int64(cur.ReadValues(dt, n, is_ascii));
+            types = vtk_to_int64(cur.ReadValues(dt, n, is_ascii));
         } else if (section == "POINT_DATA") {
             active = "POINT_DATA";
         } else if (section == "CELL_DATA") {
@@ -306,7 +306,7 @@ Mesh read_vtk(const std::string& rPath) {
             std::size_t k = std::stoull(tok[2]);
             for (std::size_t fi = 0; fi < k; ++fi) {
                 std::vector<std::string> ft = split(cur.ReadLine());
-                if (!ft.empty() && upper(ft[0]) == "METADATA") {
+                if (!ft.empty() && vtk_upper(ft[0]) == "METADATA") {
                     while (true) {
                         std::string ml = cur.ReadLine();
                         bool blank = true;

@@ -58,21 +58,30 @@ namespace meshioplusplus {
 /**
  * @brief Write a mesh to a PLY file, ascii or binary.
  *
- * Writes `element vertex`/`element face` sections; point_data columns beyond
- * x/y/z become extra vertex properties, cell blocks are grouped by type into
- * one `property list` face element. Requires all cell blocks to share one
- * dtype; 64-bit integer cell_data is downcast to int32 with a warning (PLY
- * has no 64-bit int property type). Only vertex/line/triangle/quad/polygon
- * cell types are written; other types are skipped with a warning.
- * Multi-dimensional point_data is silently filtered.
+ * When `skin` is true (the default) and the mesh contains supported 3D
+ * volume cells (tetra/hexahedron/wedge/pyramid and their common
+ * higher-order variants), the boundary skin is extracted first
+ * (`extract_skin`, linearized to corner triangles/quads, points compacted)
+ * and only that skin is written; any pre-existing surface blocks are
+ * dropped with a warning. With `skin=false` (or no volume cells) the legacy
+ * behavior applies. Writes `element vertex`/`element face` sections;
+ * point_data columns beyond x/y/z become extra vertex properties, cell
+ * blocks are grouped by type into one `property list` face element.
+ * Requires all cell blocks to share one dtype; 64-bit integer cell_data is
+ * downcast to int32 with a warning (PLY has no 64-bit int property type).
+ * Only vertex/line/triangle/quad/polygon cell types are written; other
+ * types are skipped with a warning. Multi-dimensional point_data is
+ * silently filtered.
  *
  * @param rPath filesystem path to write
  * @param rMesh the mesh to write
  * @param binary true for `binary_little_endian`/`binary_big_endian`
  *        (host-endian) output, false for `format ascii 1.0`
+ * @param skin extract and write the boundary skin when volume cells are
+ *        present (default true); false keeps the legacy behavior
  * @throws WriteError on an unopenable output path
  */
-void write_ply(const std::string& rPath, const Mesh& rMesh, bool binary);
+void write_ply(const std::string& rPath, const Mesh& rMesh, bool binary, bool skin = true);
 
 /**
  * @brief Read a PLY file (ascii or binary, either endianness).

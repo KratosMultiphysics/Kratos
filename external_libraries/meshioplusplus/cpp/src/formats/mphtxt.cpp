@@ -60,7 +60,7 @@ const std::vector<int>* perm_of(const std::string& rT) {
     return it == m.end() ? nullptr : &it->second;
 }
 
-struct Cursor {
+struct MphtxtCursor {
     std::vector<std::string> mT;
     std::size_t mI = 0;
     const std::string& Tok() {
@@ -82,7 +82,7 @@ Mesh read_mphtxt(const std::string& rPath) {
     std::ifstream in(rPath, std::ios::binary);
     if (!in)
         throw ReadError("Could not open file: " + rPath);
-    Cursor c;
+    MphtxtCursor c;
     std::string line;
     while (std::getline(in, line)) {
         std::size_t h = line.find('#');

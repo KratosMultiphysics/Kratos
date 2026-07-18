@@ -23,7 +23,6 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
-#include <limits>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -98,7 +97,7 @@ const std::vector<int>& meshio_to_gmsh_perm(const std::string& rT) {
     return it == m.end() ? empty : it->second;
 }
 
-std::string trim(const std::string& rS) {
+std::string gmsh_trim(const std::string& rS) {
     std::size_t b = 0, e = rS.size();
     while (b < e && std::isspace(static_cast<unsigned char>(rS[b])))
         ++b;
@@ -107,10 +106,10 @@ std::string trim(const std::string& rS) {
     return rS.substr(b, e - b);
 }
 
-struct Cursor {
+struct GmshCursor {
     const std::string& mBuf;
     std::size_t mPos = 0;
-    explicit Cursor(const std::string& rB) : mBuf(rB) {}
+    explicit GmshCursor(const std::string& rB) : mBuf(rB) {}
     bool eof() const { return mPos >= mBuf.size(); }
 
     std::string read_line() {
@@ -127,7 +126,7 @@ struct Cursor {
     std::string next_nonblank() {
         while (!eof()) {
             std::string l = read_line();
-            if (!trim(l).empty())
+            if (!gmsh_trim(l).empty())
                 return l;
         }
         return "";
@@ -135,7 +134,7 @@ struct Cursor {
     void skip_to_end(const std::string& rEnv) {
         std::string target = "$End" + rEnv;
         while (!eof()) {
-            if (trim(read_line()) == target)
+            if (gmsh_trim(read_line()) == target)
                 return;
         }
     }
@@ -180,8 +179,8 @@ struct EBlock {
     std::vector<std::int64_t> mTags;  // count*num_tags
 };
 
-void read_physical_names(Cursor& rCur, std::unordered_map<std::string, NDArray>& rFieldData) {
-    std::int64_t num = std::stoll(trim(rCur.read_line()));
+void read_physical_names(GmshCursor& rCur, std::unordered_map<std::string, NDArray>& rFieldData) {
+    std::int64_t num = std::stoll(gmsh_trim(rCur.read_line()));
     for (std::int64_t i = 0; i < num; ++i) {
         std::string line = rCur.read_line();
         std::istringstream iss(line);
@@ -199,9 +198,9 @@ void read_physical_names(Cursor& rCur, std::unordered_map<std::string, NDArray>&
     rCur.skip_to_end("PhysicalNames");
 }
 
-void read_nodes(Cursor& rCur, bool is_ascii, NDArray& rPoints,
+void read_nodes(GmshCursor& rCur, bool is_ascii, NDArray& rPoints,
                 std::vector<std::int64_t>& rPointTags) {
-    std::int64_t num = std::stoll(trim(rCur.read_line()));
+    std::int64_t num = std::stoll(gmsh_trim(rCur.read_line()));
     rPoints = NDArray(DType::Float64, {static_cast<std::size_t>(num), 3});
     rPointTags.resize(num);
     double* pp = rPoints.As<double>();
@@ -240,8 +239,8 @@ void append_element(std::vector<EBlock>& rBlocks, const std::string& rType, std:
     ++cur.mCount;
 }
 
-void read_elements(Cursor& rCur, bool is_ascii, std::vector<EBlock>& rBlocks) {
-    std::int64_t total = std::stoll(trim(rCur.read_line()));
+void read_elements(GmshCursor& rCur, bool is_ascii, std::vector<EBlock>& rBlocks) {
+    std::int64_t total = std::stoll(gmsh_trim(rCur.read_line()));
     const auto& g2m = gmsh_to_meshio_type();
     const auto& nnpc = num_nodes_per_cell();
 
@@ -289,25 +288,25 @@ void read_elements(Cursor& rCur, bool is_ascii, std::vector<EBlock>& rBlocks) {
 }
 
 // NodeData / ElementData
-void read_data(Cursor& rCur, const std::string& rTag, bool is_ascii,
+void read_data(GmshCursor& rCur, const std::string& rTag, bool is_ascii,
                std::unordered_map<std::string, NDArray>& rOut) {
-    std::int64_t num_str = std::stoll(trim(rCur.read_line()));
+    std::int64_t num_str = std::stoll(gmsh_trim(rCur.read_line()));
     std::string name;
     for (std::int64_t i = 0; i < num_str; ++i) {
-        std::string s = trim(rCur.read_line());
+        std::string s = gmsh_trim(rCur.read_line());
         if (i == 0) {
             // strip quotes
             std::size_t q1 = s.find('"'), q2 = s.rfind('"');
             name = (q1 != std::string::npos && q2 > q1) ? s.substr(q1 + 1, q2 - q1 - 1) : s;
         }
     }
-    std::int64_t num_real = std::stoll(trim(rCur.read_line()));
+    std::int64_t num_real = std::stoll(gmsh_trim(rCur.read_line()));
     for (std::int64_t i = 0; i < num_real; ++i)
         rCur.read_line();
-    std::int64_t num_int = std::stoll(trim(rCur.read_line()));
+    std::int64_t num_int = std::stoll(gmsh_trim(rCur.read_line()));
     std::vector<std::int64_t> itags(num_int);
     for (std::int64_t i = 0; i < num_int; ++i)
-        itags[i] = std::stoll(trim(rCur.read_line()));
+        itags[i] = std::stoll(gmsh_trim(rCur.read_line()));
     std::size_t ncomp = static_cast<std::size_t>(itags[1]);
     std::size_t nitems = static_cast<std::size_t>(itags[2]);
 
@@ -354,7 +353,7 @@ struct E41 {
                     // cell block directly when the tag remap is the identity.
 };
 
-void read_nodes_41(Cursor& rCur, bool is_ascii, int data_size, NDArray& rPoints,
+void read_nodes_41(GmshCursor& rCur, bool is_ascii, int data_size, NDArray& rPoints,
                    std::vector<std::int64_t>& rTags,
                    std::vector<std::array<std::int64_t, 2>>& rDimTags) {
     auto rd_size = [&]() -> std::int64_t {
@@ -407,7 +406,7 @@ void read_nodes_41(Cursor& rCur, bool is_ascii, int data_size, NDArray& rPoints,
     rCur.skip_to_end("Nodes");
 }
 
-void read_elements_41(Cursor& rCur, bool is_ascii, int data_size, std::vector<E41>& rBlocks) {
+void read_elements_41(GmshCursor& rCur, bool is_ascii, int data_size, std::vector<E41>& rBlocks) {
     auto rd_size = [&]() -> std::int64_t {
         return is_ascii ? rCur.next_int() : static_cast<std::int64_t>(rCur.read_uint(data_size));
     };
@@ -468,7 +467,7 @@ void read_elements_41(Cursor& rCur, bool is_ascii, int data_size, std::vector<E4
     rCur.skip_to_end("Elements");
 }
 
-Mesh read_gmsh41_body(Cursor& rCur, bool is_ascii, int data_size) {
+Mesh read_gmsh41_body(GmshCursor& rCur, bool is_ascii, int data_size) {
     NDArray points(DType::Float64, {0, 3});
     std::vector<std::int64_t> point_tags;
     std::vector<std::array<std::int64_t, 2>> dim_tags;
@@ -481,7 +480,7 @@ Mesh read_gmsh41_body(Cursor& rCur, bool is_ascii, int data_size) {
             break;
         if (line[0] != '$')
             throw ReadError("Gmsh: unexpected line " + line);
-        std::string env = trim(line.substr(1));
+        std::string env = gmsh_trim(line.substr(1));
         if (env == "PhysicalNames")
             read_physical_names(rCur, field_data);
         else if (env == "Entities")
@@ -602,9 +601,9 @@ Mesh read_gmsh(const std::string& rPath) {
         buf.resize(static_cast<std::size_t>(flen));
         in.read(buf.data(), flen);
     }
-    Cursor cur(buf);
+    GmshCursor cur(buf);
 
-    if (trim(cur.read_line()) != "$MeshFormat")
+    if (gmsh_trim(cur.read_line()) != "$MeshFormat")
         throw ReadError("Expected $MeshFormat");
     std::string fmt = cur.read_line();
     std::istringstream fss(fmt);
@@ -636,7 +635,7 @@ Mesh read_gmsh(const std::string& rPath) {
             break;
         if (line[0] != '$')
             throw ReadError("Gmsh: unexpected line " + line);
-        std::string env = trim(line.substr(1));
+        std::string env = gmsh_trim(line.substr(1));
         if (env == "PhysicalNames")
             read_physical_names(cur, field_data);
         else if (env == "Nodes")

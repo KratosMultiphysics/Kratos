@@ -30,8 +30,11 @@
 
 // Project includes
 #include "meshioplusplus/formats/stl.hpp"
+#include "meshioplusplus/cell_type.hpp"
 #include "meshioplusplus/detail/value_io.hpp"
 #include "meshioplusplus/exceptions.hpp"
+#include "meshioplusplus/log.hpp"
+#include "meshioplusplus/skin.hpp"
 
 namespace meshioplusplus {
 
@@ -243,9 +246,59 @@ void gather_triangles(const Mesh& rMesh, std::vector<std::array<double, 9>>& rTr
     }
 }
 
+// Extract the linearized boundary skin of the volume cells and triangulate
+// its quads (quad -> (0,1,2), (0,2,3)) into a single triangle block.
+Mesh stl_skin_triangles(const Mesh& rMesh) {
+    const Mesh skin = extract_skin(rMesh, /*linearize=*/true);
+    std::vector<std::int64_t> tri;
+    for (const auto cb : skin.CellRange()) {
+        const NDArray& conn = cb.Conn();
+        const std::size_t nc = cb.NumCells();
+        if (cb.Type() == "triangle") {
+            for (std::size_t r = 0; r < nc * 3; ++r)
+                tri.push_back(detail::read_int(conn, r));
+        } else {  // quad
+            for (std::size_t r = 0; r < nc; ++r) {
+                const std::int64_t a = detail::read_int(conn, r * 4 + 0);
+                const std::int64_t b = detail::read_int(conn, r * 4 + 1);
+                const std::int64_t c = detail::read_int(conn, r * 4 + 2);
+                const std::int64_t d = detail::read_int(conn, r * 4 + 3);
+                tri.insert(tri.end(), {a, b, c, a, c, d});
+            }
+        }
+    }
+    Mesh out;
+    NDArray pts = skin.Points();
+    out.AssignPoints(std::move(pts));
+    NDArray block = NDArray::Uninit(DType::Int64, {tri.size() / 3, 3});
+    std::memcpy(block.Data(), tri.data(), tri.size() * sizeof(std::int64_t));
+    out.AddCellBlock("triangle", std::move(block));
+    return out;
+}
+
+// Number of non-volume cell blocks (the ones the skin path drops).
+std::size_t stl_num_surface_blocks(const Mesh& rMesh) {
+    std::size_t n = 0;
+    for (const auto cb : rMesh.CellRange())
+        if (cell_type_dimension(cell_type_from_name(cb.Type())) != 3)
+            ++n;
+    return n;
+}
+
 }  // namespace
 
-void write_stl(const std::string& rPath, const Mesh& rMesh, bool binary) {
+void write_stl(const std::string& rPath, const Mesh& rMesh, bool binary, bool skin) {
+    if (skin && has_skinnable_cells(rMesh)) {
+        const std::size_t dropped = stl_num_surface_blocks(rMesh);
+        if (dropped > 0)
+            log::warn(
+                "STL: writing the extracted skin of the volume cells; {} pre-existing "
+                "non-volume cell block(s) dropped (pass skin=false for the legacy behavior).",
+                dropped);
+        write_stl(rPath, stl_skin_triangles(rMesh), binary, /*skin=*/false);
+        return;
+    }
+
     std::vector<std::array<double, 9>> tris;
     std::vector<std::array<double, 3>> normals;
     gather_triangles(rMesh, tris, normals);

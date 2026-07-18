@@ -81,7 +81,7 @@ bool is_int_dtype(DType t) {
            t == DType::UInt8 || t == DType::UInt16 || t == DType::UInt32 || t == DType::UInt64;
 }
 
-std::vector<std::string> tokens(const std::string& rS) {
+std::vector<std::string> avsucd_tokens(const std::string& rS) {
     std::vector<std::string> out;
     std::istringstream iss(rS);
     std::string t;
@@ -111,7 +111,7 @@ Mesh read_avsucd(const std::string& rPath) {
     }
     std::size_t li = 0;
 
-    auto hdr = tokens(lines.at(li++));
+    auto hdr = avsucd_tokens(lines.at(li++));
     long long num_nodes = std::stoll(hdr[0]);
     long long num_cells = std::stoll(hdr[1]);
     long long num_node_data = std::stoll(hdr[2]);
@@ -122,7 +122,7 @@ Mesh read_avsucd(const std::string& rPath) {
     NDArray pts(DType::Float64, {static_cast<std::size_t>(num_nodes), 3});
     double* pp = pts.As<double>();
     for (long long i = 0; i < num_nodes; ++i) {
-        auto t = tokens(lines.at(li++));
+        auto t = avsucd_tokens(lines.at(li++));
         point_ids[std::strtoll(t[0].c_str(), nullptr, 10)] = i;
         for (int c = 0; c < 3; ++c)
             pp[i * 3 + c] = std::strtod(t[1 + c].c_str(), nullptr);
@@ -140,7 +140,7 @@ Mesh read_avsucd(const std::string& rPath) {
     };
     std::vector<Blk> blocks;
     for (long long c = 0; c < num_cells; ++c) {
-        auto t = tokens(lines.at(li++));
+        auto t = avsucd_tokens(lines.at(li++));
         std::int64_t cid = std::strtoll(t[0].c_str(), nullptr, 10);
         std::int64_t mat = std::strtoll(t[1].c_str(), nullptr, 10);
         auto it = avsucd_to_meshio_type().find(t[2]);
@@ -184,7 +184,7 @@ Mesh read_avsucd(const std::string& rPath) {
     auto read_data = [&](long long num_entities,
                          const std::unordered_map<std::int64_t, std::int64_t>& ids,
                          std::vector<std::string>& names, std::vector<NDArray>& arrays) {
-        auto h = tokens(lines.at(li++));
+        auto h = avsucd_tokens(lines.at(li++));
         int narr = std::stoi(h[0]);
         std::vector<int> sizes(narr);
         for (int i = 0; i < narr; ++i)
@@ -208,7 +208,7 @@ Mesh read_avsucd(const std::string& rPath) {
                                                                          (std::size_t)sizes[i]});
         }
         for (long long e = 0; e < num_entities; ++e) {
-            auto t = tokens(lines.at(li++));
+            auto t = avsucd_tokens(lines.at(li++));
             std::int64_t eid = ids.at(std::strtoll(t[0].c_str(), nullptr, 10));
             std::size_t j = 1;
             for (int i = 0; i < narr; ++i) {
