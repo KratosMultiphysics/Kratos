@@ -1,11 +1,11 @@
 # meshio++ (vendored)
 
 C++ core of **meshio++**, a C++20 port of [meshio](https://github.com/nschloe/meshio)
-supporting ~35 mesh file formats. Used by the Kratos core IO class
+supporting ~40 mesh file formats. Used by the Kratos core IO class
 `MeshioPlusPlusIO` (`kratos/input_output/meshioplusplus_io.h`).
 
 - **Upstream**: `https://github.com/loumalouomega/meshioplusplus` (local development tree: `/home/vicente/src/meshioplusplus`)
-- **Vendored version**: `v6.2.1` (`7b77fe3dfeb1b618c0954aa16b10e0c443481651`)
+- **Vendored version**: `v6.6.1` (`9d978f43dbb84cb35d793aa8d93d6fc718a6541f`)
 - **License**: MIT (see `LICENSE`; © 2015-2021 Nico Schlömer et al., © 2026 Vicente Mataix Ferrándiz).
   The bundled `cpp/third_party/pugixml` is also MIT licensed (© Arseny Kapoulkine).
 
@@ -49,6 +49,13 @@ The library is built as a STATIC lib `meshioplusplus_core` and linked into
 Formats compiled out due to a missing dependency still resolve by extension and
 raise a descriptive error naming the missing dependency
 (`meshioplusplus::registry_compiled_out`).
+
+Notable additions since v6.2.1: the dependency-free `ensight` (EnSight Gold
+`.case`/`.geo`, read+write), `vtp` (VTK XML PolyData, read+write) and
+`triangle` (Shewchuk Triangle `.node`/`.ele`/`.poly`) formats, the write-only
+`svg`/`tikz` visualization formats, and boundary-skin extraction
+(`meshioplusplus::extract_skin`) — the STL/PLY writers now write the extracted
+skin of volume meshes by default (`skin` flag to opt out).
 
 ## How to resync with upstream
 

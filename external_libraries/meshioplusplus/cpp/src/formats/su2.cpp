@@ -97,14 +97,14 @@ int meshio_to_su2(const std::string& rT) {
     return -1;
 }
 
-std::string strip(const std::string& rS) {
+std::string su2_strip(const std::string& rS) {
     std::size_t b = rS.find_first_not_of(" \t\r\n");
     if (b == std::string::npos)
         return "";
     std::size_t e = rS.find_last_not_of(" \t\r\n");
     return rS.substr(b, e - b + 1);
 }
-std::vector<std::string> tokens(const std::string& rS) {
+std::vector<std::string> su2_tokens(const std::string& rS) {
     std::vector<std::string> out;
     std::istringstream iss(rS);
     std::string t;
@@ -129,7 +129,7 @@ void read_elem_block(const std::vector<std::string>& rLines, std::size_t& rLi, s
     std::vector<std::pair<int, std::vector<std::int64_t>>> elems;
     std::set<int> types;
     for (std::size_t e = 0; e < count; ++e) {
-        auto t = tokens(rLines.at(rLi++));
+        auto t = su2_tokens(rLines.at(rLi++));
         int vt = std::stoi(t[0]);
         int nn = su2_numnodes(vt);
         if (nn == 0)
@@ -173,7 +173,7 @@ Mesh read_su2(const std::string& rPath) {
 
     std::size_t li = 0;
     while (li < lines.size()) {
-        std::string line = strip(lines[li]);
+        std::string line = su2_strip(lines[li]);
         if (line.empty() || line[0] == '%') {
             ++li;
             continue;
@@ -183,8 +183,8 @@ Mesh read_su2(const std::string& rPath) {
             ++li;
             continue;
         }
-        std::string name = strip(line.substr(0, eq));
-        std::string rest = strip(line.substr(eq + 1));
+        std::string name = su2_strip(line.substr(0, eq));
+        std::string rest = su2_strip(line.substr(eq + 1));
         ++li;
 
         if (name == "NDIME") {
@@ -192,11 +192,11 @@ Mesh read_su2(const std::string& rPath) {
             if (dim != 2 && dim != 3)
                 throw ReadError("SU2: invalid NDIME");
         } else if (name == "NPOIN") {
-            std::size_t npoin = static_cast<std::size_t>(std::stoll(tokens(rest)[0]));
+            std::size_t npoin = static_cast<std::size_t>(std::stoll(su2_tokens(rest)[0]));
             NDArray pts(DType::Float64, {npoin, static_cast<std::size_t>(dim)});
             double* pp = pts.As<double>();
             for (std::size_t i = 0; i < npoin; ++i) {
-                auto t = tokens(lines.at(li++));
+                auto t = su2_tokens(lines.at(li++));
                 for (int c = 0; c < dim; ++c)
                     pp[i * dim + c] = std::strtod(t[c].c_str(), nullptr);
             }

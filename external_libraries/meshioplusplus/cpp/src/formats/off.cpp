@@ -33,7 +33,7 @@ namespace meshioplusplus {
 
 namespace {
 
-std::string strip(const std::string& rS) {
+std::string off_strip(const std::string& rS) {
     std::size_t b = 0, e = rS.size();
     while (b < e && std::isspace(static_cast<unsigned char>(rS[b])))
         ++b;
@@ -50,13 +50,13 @@ Mesh read_off(const std::string& rPath) {
         throw ReadError("Could not open file: " + rPath);
 
     std::string line;
-    if (!std::getline(in, line) || strip(line) != "OFF")
+    if (!std::getline(in, line) || off_strip(line) != "OFF")
         throw ReadError("Expected the first line to be 'OFF'");
 
     // Skip comments / blank lines to the counts line.
     std::string counts;
     while (std::getline(in, line)) {
-        std::string s = strip(line);
+        std::string s = off_strip(line);
         if (!s.empty() && s[0] != '#') {
             counts = s;
             break;

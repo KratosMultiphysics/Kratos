@@ -121,12 +121,12 @@ const std::unordered_map<std::string, std::string>& meshio_to_abaqus() {
     return m;
 }
 
-std::string upper(std::string s) {
+std::string abaqus_upper(std::string s) {
     for (auto& c : s)
         c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
     return s;
 }
-std::string trim(const std::string& rS) {
+std::string abaqus_trim(const std::string& rS) {
     std::size_t b = 0, e = rS.size();
     while (b < e && std::isspace(static_cast<unsigned char>(rS[b])))
         ++b;
@@ -139,7 +139,7 @@ std::vector<std::string> split(const std::string& rS, char sep) {
     std::string cur;
     std::istringstream iss(rS);
     while (std::getline(iss, cur, sep))
-        out.push_back(trim(cur));
+        out.push_back(abaqus_trim(cur));
     return out;
 }
 
@@ -170,14 +170,14 @@ Mesh read_abaqus(const std::string& rPath) {
             ++i;
             continue;
         }
-        std::string kw = upper(trim(split(line, ',')[0]));
+        std::string kw = abaqus_upper(abaqus_trim(split(line, ',')[0]));
         if (!kw.empty() && kw[0] == '*')
             kw = kw.substr(1);
 
         if (kw == "NODE") {
             ++i;
             while (i < lines.size() && (lines[i].empty() || lines[i][0] != '*')) {
-                std::string row = trim(lines[i]);
+                std::string row = abaqus_trim(lines[i]);
                 ++i;
                 if (row.empty())
                     continue;
@@ -195,12 +195,12 @@ Mesh read_abaqus(const std::string& rPath) {
             std::string etype;
             for (const auto& p : split(line, ',')) {
                 std::vector<std::string> kv = split(p, '=');
-                if (kv.size() == 2 && upper(kv[0]) == "TYPE")
+                if (kv.size() == 2 && abaqus_upper(kv[0]) == "TYPE")
                     etype = kv[1];
             }
             if (etype.empty())
                 throw ReadError("Abaqus ELEMENT without TYPE");
-            auto it = a2m.find(upper(etype));
+            auto it = a2m.find(abaqus_upper(etype));
             // abaqus types are case-sensitive in file; try as-is too
             if (it == a2m.end())
                 it = a2m.find(etype);
@@ -213,7 +213,7 @@ Mesh read_abaqus(const std::string& rPath) {
             ++i;
             std::vector<std::int64_t> vals;
             while (i < lines.size() && (lines[i].empty() || lines[i][0] != '*')) {
-                std::string row = trim(lines[i]);
+                std::string row = abaqus_trim(lines[i]);
                 ++i;
                 if (row.empty())
                     continue;

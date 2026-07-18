@@ -20,8 +20,6 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
-#include <iterator>
-#include <numeric>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -130,19 +128,19 @@ void wf64(std::ostream& rOs, double v) {
 }
 
 // Accumulating raw cell block: meshio node order will be applied later.
-struct RawBlock {
+struct Flac3dRawBlock {
     std::string mType;                             // meshio type
     std::vector<std::vector<std::int64_t>> mRows;  // 0-based point indices
 };
 
-void add_cell(std::vector<RawBlock>& rBlocks, const std::string& rType,
+void add_cell(std::vector<Flac3dRawBlock>& rBlocks, const std::string& rType,
               std::vector<std::int64_t>&& cell) {
     if (rBlocks.empty() || rBlocks.back().mType != rType)
-        rBlocks.push_back(RawBlock{rType, {}});
+        rBlocks.push_back(Flac3dRawBlock{rType, {}});
     rBlocks.back().mRows.push_back(std::move(cell));
 }
 
-std::vector<std::string> split_ws(const std::string& rS) {
+std::vector<std::string> flac3d_split_ws(const std::string& rS) {
     std::vector<std::string> out;
     std::istringstream iss(rS);
     std::string t;
@@ -172,7 +170,7 @@ Mesh read_flac3d(const std::string& rPath) {
 
     std::vector<double> points;                                // flat xyz
     std::unordered_map<std::int64_t, std::int64_t> point_ids;  // file id -> index
-    std::vector<RawBlock> z_blocks, f_blocks;
+    std::vector<Flac3dRawBlock> z_blocks, f_blocks;
     std::vector<std::int64_t> z_ids, f_ids;
 
     if (binary) {
@@ -191,7 +189,7 @@ Mesh read_flac3d(const std::string& rPath) {
         }
         for (int fi = 0; fi < 2; ++fi) {
             int dim = (fi == 0) ? 3 : 2;
-            std::vector<RawBlock>& blocks = (fi == 0) ? z_blocks : f_blocks;
+            std::vector<Flac3dRawBlock>& blocks = (fi == 0) ? z_blocks : f_blocks;
             std::vector<std::int64_t>& ids = (fi == 0) ? z_ids : f_ids;
             std::uint32_t num_cells = ru32(in);
             const auto& tmap = numnodes_type(dim);
@@ -217,7 +215,7 @@ Mesh read_flac3d(const std::string& rPath) {
         std::ifstream in(rPath, std::ios::binary);
         std::string line;
         while (std::getline(in, line)) {
-            std::vector<std::string> s = split_ws(line);
+            std::vector<std::string> s = flac3d_split_ws(line);
             if (s.empty())
                 continue;
             if (s[0] == "G") {
@@ -260,7 +258,7 @@ Mesh read_flac3d(const std::string& rPath) {
     mesh.AssignPoints(std::move(pts));
 
     std::vector<std::size_t> block_sizes;
-    auto emit = [&](std::vector<RawBlock>& blocks) {
+    auto emit = [&](std::vector<Flac3dRawBlock>& blocks) {
         for (auto& b : blocks) {
             const std::vector<int>& ord =
                 f2m_order(zone_key(b.mType).empty() ? face_key(b.mType) : zone_key(b.mType));

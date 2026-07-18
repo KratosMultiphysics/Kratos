@@ -54,19 +54,29 @@ namespace meshioplusplus {
 /**
  * @brief Write a mesh's triangle facets to an STL file, ascii or binary.
  *
- * Non-triangle cell blocks are dropped with a warning naming the discarded
- * types. If `cell_data["facet_normals"]` is present it is written verbatim;
- * otherwise normals are computed per-facet from the cross product of two
- * edge vectors.
+ * When `skin` is true (the default) and the mesh contains supported 3D
+ * volume cells (tetra/hexahedron/wedge/pyramid and their common
+ * higher-order variants), the boundary skin is extracted first
+ * (`extract_skin`, linearized to corner nodes) with quads triangulated as
+ * `(0,1,2)`/`(0,2,3)`, and only that skin is written; any pre-existing
+ * surface blocks are dropped with a warning (a volume mesh's surface blocks
+ * are usually its boundary — writing both would duplicate every facet).
+ * With `skin=false` (or no volume cells) the legacy behavior applies:
+ * non-triangle cell blocks are dropped and only existing `triangle` blocks
+ * are written. If `cell_data["facet_normals"]` is present it is written
+ * verbatim; otherwise normals are computed per-facet from the cross product
+ * of two edge vectors.
  *
  * @param rPath filesystem path to write
- * @param rMesh the mesh to write (only triangle cells are emitted)
+ * @param rMesh the mesh to write
  * @param binary true for the 80-byte-header + 50-byte-record binary layout,
  *        false for the `solid`/`facet`/`endfacet` ascii layout
+ * @param skin extract and write the boundary skin when volume cells are
+ *        present (default true); false keeps the legacy triangles-only path
  * @throws WriteError on an unopenable output path
  * @note cell_data key produced/consumed: `"facet_normals"`.
  */
-void write_stl(const std::string& rPath, const Mesh& rMesh, bool binary);
+void write_stl(const std::string& rPath, const Mesh& rMesh, bool binary, bool skin = true);
 
 /**
  * @brief Read an STL file, auto-detecting ascii vs. binary.

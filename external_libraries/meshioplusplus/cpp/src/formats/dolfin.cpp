@@ -16,7 +16,6 @@
 //
 
 // System includes
-#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <filesystem>

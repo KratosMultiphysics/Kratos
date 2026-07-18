@@ -16,7 +16,6 @@
 //
 
 // System includes
-#include <cstdint>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -31,7 +30,7 @@ namespace meshioplusplus {
 
 namespace {
 
-std::string strip(const std::string& s) {
+std::string ip_strip(const std::string& s) {
     std::size_t a = s.find_first_not_of(" \t\r");
     std::size_t b = s.find_last_not_of(" \t\r");
     return a == std::string::npos ? std::string() : s.substr(a, b - a + 1);
@@ -52,7 +51,7 @@ Mesh read_ip(const std::string& rPath) {
     std::vector<int> ints;
     std::size_t idx = 0;
     while (ints.size() < 4 && idx < lines.size()) {
-        std::string s = strip(lines[idx++]);
+        std::string s = ip_strip(lines[idx++]);
         if (!s.empty()) {
             std::istringstream iss(s);
             int v;
@@ -68,7 +67,7 @@ Mesh read_ip(const std::string& rPath) {
 
     std::vector<std::string> names;
     while (static_cast<int>(names.size()) < ncomp && idx < lines.size()) {
-        std::string s = strip(lines[idx++]);
+        std::string s = ip_strip(lines[idx++]);
         if (!s.empty())
             names.push_back(s);
     }

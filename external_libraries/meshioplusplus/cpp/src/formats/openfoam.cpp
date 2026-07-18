@@ -61,7 +61,7 @@ std::string read_whole(const std::string& rPath) {
     return ss.str();
 }
 
-std::string strip(const std::string& rS) {
+std::string openfoam_strip(const std::string& rS) {
     std::size_t a = rS.find_first_not_of(" \t\r\n");
     if (a == std::string::npos)
         return "";
@@ -77,14 +77,14 @@ FoamFormat detect_format(const std::string& rPath) {
         return fmt;
     std::string line;
     while (std::getline(f, line)) {
-        std::string s = strip(line);
+        std::string s = openfoam_strip(line);
         // format <word>;
         std::size_t p = s.find("format");
         if (p == 0) {
-            std::string rest = strip(s.substr(6));
+            std::string rest = openfoam_strip(s.substr(6));
             if (!rest.empty() && rest.back() == ';')
                 rest.pop_back();
-            rest = strip(rest);
+            rest = openfoam_strip(rest);
             if (rest == "binary")
                 fmt.mBinary = true;
             else if (rest == "ascii")
@@ -132,7 +132,7 @@ std::string strip_comments_and_header(const std::string& rText) {
     bool in_header = false;
     int depth = 0;
     while (std::getline(ss, line)) {
-        std::string s = strip(line);
+        std::string s = openfoam_strip(line);
         if (s.find("FoamFile") != std::string::npos)
             in_header = true;
         if (in_header) {
@@ -161,7 +161,7 @@ std::vector<std::array<double, 3>> parse_points_ascii(const std::string& rBody) 
     bool in_block = false;
     bool have_n = false;
     while (std::getline(ss, line)) {
-        std::string s = strip(line);
+        std::string s = openfoam_strip(line);
         if (s.empty())
             continue;
         if (!have_n && s.find_first_not_of("0123456789") == std::string::npos) {
@@ -195,7 +195,7 @@ std::vector<Face> parse_faces_ascii(const std::string& rBody) {
     std::string line;
     bool in_block = false, have_n = false;
     while (std::getline(ss, line)) {
-        std::string s = strip(line);
+        std::string s = openfoam_strip(line);
         if (s.empty())
             continue;
         if (!have_n && s.find_first_not_of("0123456789") == std::string::npos) {
@@ -232,7 +232,7 @@ std::vector<std::int64_t> parse_int_list_ascii(const std::string& rBody) {
     std::string line;
     bool in_block = false, have_n = false;
     while (std::getline(ss, line)) {
-        std::string s = strip(line);
+        std::string s = openfoam_strip(line);
         if (s.empty())
             continue;
         if (!have_n && s.find_first_not_of("0123456789") == std::string::npos) {

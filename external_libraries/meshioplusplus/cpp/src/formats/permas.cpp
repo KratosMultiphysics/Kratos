@@ -20,7 +20,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <fstream>
-#include <iterator>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -83,7 +82,7 @@ const std::vector<int>* write_reorder(const std::string& rType) {
     return nullptr;
 }
 
-std::vector<std::string> split_ws(const std::string& rS) {
+std::vector<std::string> permas_split_ws(const std::string& rS) {
     std::vector<std::string> out;
     std::istringstream iss(rS);
     std::string t;
@@ -92,7 +91,7 @@ std::vector<std::string> split_ws(const std::string& rS) {
     return out;
 }
 
-std::string upper(std::string s) {
+std::string permas_upper(std::string s) {
     for (char& c : s)
         c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
     return s;
@@ -105,7 +104,7 @@ std::string keyword_of(const std::string& rLine) {
         ++a;
     while (b > a && (rLine[b - 1] == '$' || std::isspace(static_cast<unsigned char>(rLine[b - 1]))))
         --b;
-    return upper(rLine.substr(a, b - a));
+    return permas_upper(rLine.substr(a, b - a));
 }
 
 }  // namespace
@@ -140,7 +139,7 @@ Mesh read_permas(const std::string& rPath) {
                 const std::string& l = lines[pos];
                 if (!l.empty() && (l[0] == '!' || l[0] == '$'))
                     break;
-                std::vector<std::string> e = split_ws(l);
+                std::vector<std::string> e = permas_split_ws(l);
                 if (e.empty()) {
                     ++pos;
                     continue;
@@ -159,8 +158,8 @@ Mesh read_permas(const std::string& rPath) {
             if (eq == std::string::npos)
                 throw ReadError("PERMAS: $ELEMENT without TYPE=");
             std::string etype =
-                upper(split_ws(kw.substr(eq + 1)).empty() ? std::string()
-                                                          : split_ws(kw.substr(eq + 1))[0]);
+                permas_upper(permas_split_ws(kw.substr(eq + 1)).empty() ? std::string()
+                                                          : permas_split_ws(kw.substr(eq + 1))[0]);
             auto tit = permas_to_meshio().find(etype);
             if (tit == permas_to_meshio().end())
                 throw ReadError("PERMAS: element type not available: " + etype);
@@ -172,7 +171,7 @@ Mesh read_permas(const std::string& rPath) {
                 const std::string& l = lines[pos];
                 if (!l.empty() && l[0] == '$')
                     break;
-                std::vector<std::string> e = split_ws(l);
+                std::vector<std::string> e = permas_split_ws(l);
                 if (e.empty()) {
                     ++pos;
                     continue;

@@ -20,7 +20,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <fstream>
-#include <iterator>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -100,7 +99,7 @@ int topo_dim(const std::string& rType) {
     return it == topological_dimension().end() ? -1 : it->second;
 }
 
-std::vector<std::string> split_ws(const std::string& rS) {
+std::vector<std::string> netgen_split_ws(const std::string& rS) {
     std::vector<std::string> out;
     std::istringstream iss(rS);
     std::string tok;
@@ -109,7 +108,7 @@ std::vector<std::string> split_ws(const std::string& rS) {
     return out;
 }
 
-std::string strip(const std::string& rS) {
+std::string netgen_strip(const std::string& rS) {
     std::size_t a = 0, b = rS.size();
     while (a < b && std::isspace(static_cast<unsigned char>(rS[a])))
         ++a;
@@ -135,7 +134,7 @@ struct LineCursor {
     // Next non-blank, non-comment line (stripped). Sets is_eof when exhausted.
     std::string NextReal(bool& rIsEof) {
         while (mPos < mLines.size()) {
-            std::string s = strip(mLines[mPos++]);
+            std::string s = netgen_strip(mLines[mPos++]);
             if (!s.empty() && s[0] != '#') {
                 rIsEof = false;
                 return s;
@@ -153,13 +152,13 @@ struct LineCursor {
     }
 };
 
-struct RawBlock {
+struct NetgenRawBlock {
     std::string mType;
     std::vector<std::vector<std::int64_t>> mRows;  // meshio node order, 0-based
     std::vector<std::int64_t> mIndex;
 };
 
-void read_cells(LineCursor& rC, const std::string& rSection, std::vector<RawBlock>& rBlocks) {
+void read_cells(LineCursor& rC, const std::string& rSection, std::vector<NetgenRawBlock>& rBlocks) {
     int dim, pi0, i_index, fixed_nump = -1;
     if (rSection == "pointelements") {
         dim = 0;
@@ -191,7 +190,7 @@ void read_cells(LineCursor& rC, const std::string& rSection, std::vector<RawBloc
         std::string line = rC.NextReal(eof);
         if (eof)
             throw ReadError("Netgen: unexpected end of file in " + rSection);
-        std::vector<std::string> data = split_ws(line);
+        std::vector<std::string> data = netgen_split_ws(line);
 
         int nump = fixed_nump;
         if (dim == 2)
@@ -210,7 +209,7 @@ void read_cells(LineCursor& rC, const std::string& rSection, std::vector<RawBloc
             pi[j] = std::strtoll(data[pi0 + j].c_str(), nullptr, 10);
 
         if (rBlocks.empty() || rBlocks.back().mType != type) {
-            rBlocks.push_back(RawBlock{type, {}, {}});
+            rBlocks.push_back(NetgenRawBlock{type, {}, {}});
         }
         rBlocks.back().mRows.push_back(std::move(pi));
         rBlocks.back().mIndex.push_back(index);
@@ -236,7 +235,7 @@ Mesh read_netgen(const std::string& rPath) {
     int dimension = 3;
     std::vector<double> raw_points;  // flat, 3 per point
     std::int64_t num_points = 0;
-    std::vector<RawBlock> blocks;
+    std::vector<NetgenRawBlock> blocks;
 
     while (true) {
         line = c.NextReal(eof);
@@ -253,7 +252,7 @@ Mesh read_netgen(const std::string& rPath) {
                 std::string pl = c.NextReal(eof);
                 if (eof)
                     throw ReadError("Netgen: unexpected EOF in points");
-                std::vector<std::string> toks = split_ws(pl);
+                std::vector<std::string> toks = netgen_split_ws(pl);
                 for (int j = 0; j < 3 && j < static_cast<int>(toks.size()); ++j)
                     raw_points[i * 3 + j] = std::strtod(toks[j].c_str(), nullptr);
             }

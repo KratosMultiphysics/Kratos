@@ -81,7 +81,7 @@ bool is_beam(int fedesc) {
     return fedesc == 11 || fedesc == 21 || fedesc == 22 || fedesc == 24;
 }
 
-std::vector<std::string> tokens(const std::string& rS) {
+std::vector<std::string> unv_tokens(const std::string& rS) {
     std::vector<std::string> out;
     std::istringstream iss(rS);
     std::string t;
@@ -127,7 +127,7 @@ struct Field {
 bool parse_field(int ds, const std::vector<std::string>& lines, std::size_t start, std::size_t end,
                  Field& rField) {
     auto row = [&](std::size_t i) {
-        return i < end ? tokens(lines[i]) : std::vector<std::string>{};
+        return i < end ? unv_tokens(lines[i]) : std::vector<std::string>{};
     };
     std::size_t header;  // first index of the per-entity data
     int data_type, ndv;
@@ -170,7 +170,7 @@ bool parse_field(int ds, const std::vector<std::string>& lines, std::size_t star
 
     std::size_t k = header;
     while (k < end) {
-        auto rec = tokens(lines[k]);
+        auto rec = unv_tokens(lines[k]);
         if (rec.empty()) {
             ++k;
             continue;
@@ -179,7 +179,7 @@ bool parse_field(int ds, const std::vector<std::string>& lines, std::size_t star
         ++k;
         std::vector<double> vals;
         while (static_cast<int>(vals.size()) < ndv && k < end) {
-            for (const auto& v : tokens(lines[k]))
+            for (const auto& v : unv_tokens(lines[k]))
                 vals.push_back(parse_coord(v));
             ++k;
         }
@@ -245,13 +245,13 @@ Mesh read_unv(const std::string& rPath, UnvInfo& rInfo) {
         if (ds == 2411 || ds == 781) {
             std::size_t k = start;
             while (k + 1 < end) {
-                auto r1 = tokens(lines[k]);
+                auto r1 = unv_tokens(lines[k]);
                 if (r1.empty()) {
                     ++k;
                     continue;
                 }
                 std::int64_t label = std::strtoll(r1[0].c_str(), nullptr, 10);
-                auto co = tokens(lines[k + 1]);
+                auto co = unv_tokens(lines[k + 1]);
                 std::vector<double> p;
                 for (const auto& c : co)
                     p.push_back(parse_coord(c));
@@ -264,7 +264,7 @@ Mesh read_unv(const std::string& rPath, UnvInfo& rInfo) {
         } else if (ds == 2412) {
             std::size_t k = start;
             while (k < end) {
-                auto r1 = tokens(lines[k]);
+                auto r1 = unv_tokens(lines[k]);
                 if (r1.size() < 6)
                     break;
                 std::int64_t elabel = std::strtoll(r1[0].c_str(), nullptr, 10);
@@ -276,7 +276,7 @@ Mesh read_unv(const std::string& rPath, UnvInfo& rInfo) {
                     ++k;  // skip orientation
                 std::vector<std::int64_t> nl;
                 while (static_cast<int>(nl.size()) < num_nodes && k < end) {
-                    for (const auto& v : tokens(lines[k]))
+                    for (const auto& v : unv_tokens(lines[k]))
                         nl.push_back(std::strtoll(v.c_str(), nullptr, 10));
                     ++k;
                 }
@@ -315,7 +315,7 @@ Mesh read_unv(const std::string& rPath, UnvInfo& rInfo) {
             // record2 (name), then 4*n ints laid out (entity_type, tag, 0, 0).
             std::size_t k = start;
             while (k < end) {
-                auto r1 = tokens(lines[k]);
+                auto r1 = unv_tokens(lines[k]);
                 if (r1.size() < 8)
                     break;
                 int n_ent = std::atoi(r1[7].c_str());
@@ -327,7 +327,7 @@ Mesh read_unv(const std::string& rPath, UnvInfo& rInfo) {
                 ++k;
                 std::vector<std::int64_t> vals;
                 while (static_cast<int>(vals.size()) < 4 * n_ent && k < end) {
-                    for (const auto& v : tokens(lines[k]))
+                    for (const auto& v : unv_tokens(lines[k]))
                         vals.push_back(std::strtoll(v.c_str(), nullptr, 10));
                     ++k;
                 }

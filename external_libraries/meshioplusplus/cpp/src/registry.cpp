@@ -32,6 +32,7 @@
 #include "meshioplusplus/formats/cgns.hpp"
 #include "meshioplusplus/formats/dex.hpp"
 #include "meshioplusplus/formats/dolfin.hpp"
+#include "meshioplusplus/formats/ensight.hpp"
 #include "meshioplusplus/formats/exodus.hpp"
 #include "meshioplusplus/formats/flac3d.hpp"
 #include "meshioplusplus/formats/flux.hpp"
@@ -53,11 +54,15 @@
 #include "meshioplusplus/formats/ply.hpp"
 #include "meshioplusplus/formats/stl.hpp"
 #include "meshioplusplus/formats/su2.hpp"
+#include "meshioplusplus/formats/svg.hpp"
 #include "meshioplusplus/formats/tecplot.hpp"
 #include "meshioplusplus/formats/tetgen.hpp"
+#include "meshioplusplus/formats/tikz.hpp"
+#include "meshioplusplus/formats/triangle.hpp"
 #include "meshioplusplus/formats/ugrid.hpp"
 #include "meshioplusplus/formats/unv.hpp"
 #include "meshioplusplus/formats/vtk.hpp"
+#include "meshioplusplus/formats/vtp.hpp"
 #include "meshioplusplus/formats/vtu.hpp"
 #include "meshioplusplus/formats/wkt.hpp"
 #include "meshioplusplus/formats/xdmf.hpp"
@@ -70,6 +75,7 @@ const std::map<std::string, ReadFn>& registry_readers() {
         {"ansys", meshioplusplus::read_ansys},
         {"avsucd", meshioplusplus::read_avsucd},
         {"dolfin", meshioplusplus::read_dolfin},
+        {"ensight", meshioplusplus::read_ensight},
         {"flac3d", meshioplusplus::read_flac3d},
         {"dex", meshioplusplus::read_dex},
         {"flux", meshioplusplus::read_flux},
@@ -90,9 +96,11 @@ const std::map<std::string, ReadFn>& registry_readers() {
         {"su2", meshioplusplus::read_su2},
         {"tecplot", meshioplusplus::read_tecplot},
         {"tetgen", meshioplusplus::read_tetgen},
+        {"triangle", meshioplusplus::read_triangle},
         {"ugrid", meshioplusplus::read_ugrid},
         {"unv", [](const std::string& path) { return meshioplusplus::read_unv(path); }},
         {"vtk", meshioplusplus::read_vtk},
+        {"vtp", meshioplusplus::read_vtp},
         {"vtu", meshioplusplus::read_vtu},
         {"wkt", meshioplusplus::read_wkt},
         {"xdmf", meshioplusplus::read_xdmf},
@@ -133,6 +141,8 @@ const std::map<std::string, WriteFn>& registry_writers() {
                      const Mesh& mm) { meshioplusplus::write_ansys(p, mm, /*binary=*/true); }},
         {"avsucd", meshioplusplus::write_avsucd},
         {"dolfin", meshioplusplus::write_dolfin},
+        {"ensight", [](const std::string& p,
+                       const Mesh& mm) { meshioplusplus::write_ensight(p, mm, /*binary=*/true); }},
         {"flac3d",
          [](const std::string& p, const Mesh& mm) {
              meshioplusplus::write_flac3d(p, mm, ".16e", /*binary=*/false);
@@ -154,18 +164,35 @@ const std::map<std::string, WriteFn>& registry_writers() {
         {"obj", meshioplusplus::write_obj},
         {"off", meshioplusplus::write_off},
         {"permas", meshioplusplus::write_permas},
-        {"ply", [](const std::string& p,
-                   const Mesh& mm) { meshioplusplus::write_ply(p, mm, /*binary=*/true); }},
-        {"stl", [](const std::string& p,
-                   const Mesh& mm) { meshioplusplus::write_stl(p, mm, /*binary=*/false); }},
+        // ply/stl default to skin=true (matching the Python shims): a volume
+        // mesh writes its extracted boundary skin instead of dropping the
+        // volume cells.
+        {"ply",
+         [](const std::string& p, const Mesh& mm) {
+             meshioplusplus::write_ply(p, mm, /*binary=*/true, /*skin=*/true);
+         }},
+        {"stl",
+         [](const std::string& p, const Mesh& mm) {
+             meshioplusplus::write_stl(p, mm, /*binary=*/false, /*skin=*/true);
+         }},
         {"su2", meshioplusplus::write_su2},
+        // svg/tikz are write-only 2D-visualization formats; the flat bindings
+        // emit them with the fixed default styling (per-call overrides are out
+        // of scope for v1, per registry.hpp).
+        {"svg", [](const std::string& p, const Mesh& mm) { meshioplusplus::write_svg(p, mm); }},
+        {"tikz", [](const std::string& p, const Mesh& mm) { meshioplusplus::write_tikz(p, mm); }},
         {"tecplot", meshioplusplus::write_tecplot},
         {"tetgen", meshioplusplus::write_tetgen},
+        {"triangle", meshioplusplus::write_triangle},
         {"ugrid", meshioplusplus::write_ugrid},
         {"unv", [](const std::string& p, const Mesh& mm) { meshioplusplus::write_unv(p, mm); }},
         {"vtk",
          [](const std::string& p, const Mesh& mm) {
              meshioplusplus::write_vtk(p, mm, /*binary=*/true, /*v51=*/true);
+         }},
+        {"vtp",
+         [](const std::string& p, const Mesh& mm) {
+             meshioplusplus::write_vtp(p, mm, /*binary=*/true, /*zlib=*/true);
          }},
         {"vtu",
          [](const std::string& p, const Mesh& mm) {
@@ -220,16 +247,56 @@ const std::map<std::string, WriteFn>& registry_writers() {
 // rather than claiming the extension is unknown.
 const std::map<std::string, std::string>& registry_extension_defaults() {
     static const std::map<std::string, std::string> m = {
-        {".inp", "abaqus"},  {".avs", "avsucd"},  {".xml", "dolfin"},    {".f3grid", "flac3d"},
-        {".dex", "dex"},     {".ip", "ip"},       {".mff", "mff"},       {".pf3", "flux"},
-        {".mesh", "medit"},  {".mfm", "mfm"},     {".mphtxt", "mphtxt"}, {".bdf", "nastran"},
-        {".nas", "nastran"}, {".fem", "nastran"}, {".vol", "netgen"},    {".obj", "obj"},
-        {".off", "off"},     {".post", "permas"}, {".dato", "permas"},   {".ply", "ply"},
-        {".stl", "stl"},     {".su2", "su2"},     {".dat", "tecplot"},   {".tec", "tecplot"},
-        {".ele", "tetgen"},  {".node", "tetgen"}, {".ugrid", "ugrid"},   {".unv", "unv"},
-        {".vtk", "vtk"},     {".vtu", "vtu"},     {".wkt", "wkt"},       {".xdmf", "xdmf"},
-        {".xmf", "xdmf"},    {".msh", "gmsh"},    {".cgns", "cgns"},     {".h5m", "h5m"},
-        {".hmf", "hmf"},     {".med", "med"},     {".e", "exodus"},      {".exo", "exodus"},
+        {".inp", "abaqus"},
+        {".avs", "avsucd"},
+        {".xml", "dolfin"},
+        {".f3grid", "flac3d"},
+        {".case", "ensight"},
+        {".geo", "ensight"},
+        {".dex", "dex"},
+        {".ip", "ip"},
+        {".mff", "mff"},
+        {".pf3", "flux"},
+        {".mesh", "medit"},
+        {".mfm", "mfm"},
+        {".mphtxt", "mphtxt"},
+        {".bdf", "nastran"},
+        {".nas", "nastran"},
+        {".fem", "nastran"},
+        {".vol", "netgen"},
+        {".obj", "obj"},
+        {".off", "off"},
+        {".post", "permas"},
+        {".dato", "permas"},
+        {".ply", "ply"},
+        {".stl", "stl"},
+        {".su2", "su2"},
+        {".svg", "svg"},
+        {".tikz", "tikz"},
+        // .node/.ele stay with tetgen for backward compatibility (3D pairs
+        // are the common case for the flat bindings); reading Triangle 2D
+        // .node/.ele files there needs an explicit format="triangle". Only
+        // .poly defaults to triangle.
+        {".dat", "tecplot"},
+        {".tec", "tecplot"},
+        {".ele", "tetgen"},
+        {".node", "tetgen"},
+        {".poly", "triangle"},
+        {".ugrid", "ugrid"},
+        {".unv", "unv"},
+        {".vtk", "vtk"},
+        {".vtp", "vtp"},
+        {".vtu", "vtu"},
+        {".wkt", "wkt"},
+        {".xdmf", "xdmf"},
+        {".xmf", "xdmf"},
+        {".msh", "gmsh"},
+        {".cgns", "cgns"},
+        {".h5m", "h5m"},
+        {".hmf", "hmf"},
+        {".med", "med"},
+        {".e", "exodus"},
+        {".exo", "exodus"},
         {".ex2", "exodus"},
     };
     return m;
