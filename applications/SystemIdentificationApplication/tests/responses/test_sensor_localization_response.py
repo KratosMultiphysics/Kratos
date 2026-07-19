@@ -132,92 +132,98 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         AddMaskStatusController(cls.sensor_group_data, "mask_exp", cls.sensor_mask_status)
         AddMaskStatusController(cls.sensor_group_data, "mask_exp", cls.sensor_mask_status_kd_tree)
 
-    # def test_CalculateValue1(self):
-    #     self.sensor_model_part.GetNode(1).SetValue(KratosSI.SENSOR_STATUS, 1)
-    #     self.sensor_model_part.GetNode(2).SetValue(KratosSI.SENSOR_STATUS, 0)
-    #     self.sensor_model_part.GetNode(3).SetValue(KratosSI.SENSOR_STATUS, 1)
-    #     self.sensor_model_part.GetNode(4).SetValue(KratosSI.SENSOR_STATUS, 0)
+    def test_CalculateValue1(self):
+        self.sensor_model_part.GetNode(1).SetValue(KratosSI.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(2).SetValue(KratosSI.SENSOR_STATUS, 0)
+        self.sensor_model_part.GetNode(3).SetValue(KratosSI.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(4).SetValue(KratosSI.SENSOR_STATUS, 0)
 
-    #     """
-    #     status  1   0   1   0
-    #     mask    m1  m2  m3  m4
-    #     e1      1   1   0   0
-    #     e2      1   1   0   0
-    #     e3      0   0   0   1
-    #     e4      1   1   1   0
-    #     e5      1   0   0   1
-    #     e6      0   1   0   1
+        """
+        status  1   0   1   0
+        mask    m1  m2  m3  m4
+        e1      1   1   0   0
+        e2      1   1   0   0
+        e3      0   0   0   1
+        e4      1   1   1   0
+        e5      1   0   0   1
+        e6      0   1   0   1
 
-    #     So the clustering will be based on m1 and m3
+        So the clustering will be based on m1 and m3
 
-    #     c_1 = e1, e2, e5
-    #     c_2 = e1, e2, e5
-    #     c_3 = e3, e6
-    #     c_4 = e4
-    #     c_5 = e1, e2, e5
-    #     c_6 = e3, e6
-    #     """
-    #     self.__UpdateStatusDependents()
+        c_1 = e1, e2, e5
+        c_2 = e1, e2, e5
+        c_3 = e3, e6
+        c_4 = e4
+        c_5 = e1, e2, e5
+        c_6 = e3, e6
+        """
+        self.__UpdateStatusDependents()
 
-    #     params = Kratos.Parameters("""{
-    #         "sensor_group_name"         : "sensors",
-    #         "sensor_mask_name"          : "mask_exp",
-    #         "boltzmann_beta"            : 5
-    #     }""")
-    #     response = SensorLocalizationResponse("test1", self.model, params, self.optimization_problem)
-    #     response.Initialize()
+        params = Kratos.Parameters("""{
+            "sensor_group_name"         : "sensors",
+            "sensor_mask_name"          : "mask_exp",
+            "boltzmann_beta"            : 5,
+            "dissimilarity_settings": {
+                "dissimilarity_type": "constant",
+                "dissimilarity_value": 1e-4
+            }
+        }""")
+        response = SensorLocalizationResponse("test1", self.model, params, self.optimization_problem)
+        response.Initialize()
 
-    #     cluster_size_ratio_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.domain_model_part.Elements, Kratos.PRESSURE)
-    #     cluster_size_ratio_ta.data[:] = np.array([3, 3, 2, 1, 3, 2]) / 6.0
-    #     boltzmann_operator = KratosOA.BoltzmannOperator(5.0)
-    #     boltzmann_operator.Update(cluster_size_ratio_ta)
+        cluster_size_ratio_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.domain_model_part.Elements, Kratos.PRESSURE)
+        cluster_size_ratio_ta.data[:] = np.array([3, 3, 2, 1, 3, 2]) / 6.0
+        boltzmann_operator = KratosOA.BoltzmannOperator(5.0)
+        boltzmann_operator.Update(cluster_size_ratio_ta)
 
-    #     self.assertAlmostEqual(boltzmann_operator.CalculateValue(), response.CalculateValue())
+        self.assertAlmostEqual(boltzmann_operator.CalculateValue(), response.CalculateValue())
 
-    #     self.sensor_model_part.GetNode(1).SetValue(KratosSI.SENSOR_STATUS, 1)
-    #     self.sensor_model_part.GetNode(2).SetValue(KratosSI.SENSOR_STATUS, 1)
-    #     self.sensor_model_part.GetNode(3).SetValue(KratosSI.SENSOR_STATUS, 1)
-    #     self.sensor_model_part.GetNode(4).SetValue(KratosSI.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(1).SetValue(KratosSI.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(2).SetValue(KratosSI.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(3).SetValue(KratosSI.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(4).SetValue(KratosSI.SENSOR_STATUS, 1)
 
-    #     """
-    #     status  1   1   1   1
-    #     mask    m1  m2  m3  m4
-    #     e1      1   1   0   0
-    #     e2      1   1   0   0
-    #     e3      0   0   0   1
-    #     e4      1   1   1   0
-    #     e5      1   0   0   1
-    #     e6      0   1   0   1
+        """
+        status  1   1   1   1
+        mask    m1  m2  m3  m4
+        e1      1   1   0   0
+        e2      1   1   0   0
+        e3      0   0   0   1
+        e4      1   1   1   0
+        e5      1   0   0   1
+        e6      0   1   0   1
 
-    #     So the clustering will be based on m1, m2, m3, m4
+        So the clustering will be based on m1, m2, m3, m4
 
-    #     c_1 = e1, e2
-    #     c_2 = e1, e2
-    #     c_3 = e3
-    #     c_4 = e4
-    #     c_5 = e5
-    #     c_6 = e6
-    #     """
+        c_1 = e1, e2
+        c_2 = e1, e2
+        c_3 = e3
+        c_4 = e4
+        c_5 = e5
+        c_6 = e6
+        """
 
-    #     self.__UpdateStatusDependents()
-    #     cluster_size_ratio_ta.data[:] = np.array([2, 2, 1, 1, 1, 1]) / 6.0
-    #     boltzmann_operator.Update(cluster_size_ratio_ta)
-    #     self.assertAlmostEqual(boltzmann_operator.CalculateValue(), response.CalculateValue())
+        self.__UpdateStatusDependents()
+        cluster_size_ratio_ta.data[:] = np.array([2, 2, 1, 1, 1, 1]) / 6.0
+        boltzmann_operator.Update(cluster_size_ratio_ta)
+        self.assertAlmostEqual(boltzmann_operator.CalculateValue(), response.CalculateValue())
 
-    # def test_CalculateValue2(self):
-    #     params = Kratos.Parameters("""{
-    #         "sensor_group_name"         : "sensors",
-    #         "sensor_mask_name"          : "mask_exp",
-    #         "boltzmann_beta"            : 2,
-    #         "dissimilarity_settings": {
-    #         }
-    #     }""")
-    #     response = SensorLocalizationResponse("test2", self.model, params, self.optimization_problem)
-    #     response.Initialize()
-    #     for node in self.sensor_model_part.Nodes:
-    #         node.SetValue(KratosSI.SENSOR_STATUS, (node.Id % 3) / 2)
-    #     self.__UpdateStatusDependents()
-    #     # self.assertAlmostEqual(response.CalculateValue(), 0.39962836481517205)
+    def test_CalculateValue2(self):
+        params = Kratos.Parameters("""{
+            "sensor_group_name"         : "sensors",
+            "sensor_mask_name"          : "mask_exp",
+            "boltzmann_beta"            : 2,
+            "dissimilarity_settings": {
+                "dissimilarity_type": "constant",
+                "dissimilarity_value": 2.0
+            }
+        }""")
+        response = SensorLocalizationResponse("test2", self.model, params, self.optimization_problem)
+        response.Initialize()
+        for node in self.sensor_model_part.Nodes:
+            node.SetValue(KratosSI.SENSOR_STATUS, (node.Id % 3) / 2)
+        self.__UpdateStatusDependents()
+        self.assertAlmostEqual(response.CalculateValue(), 0.686315873871613)
 
     def test_CalculateGradient1(self):
         params = Kratos.Parameters("""{
