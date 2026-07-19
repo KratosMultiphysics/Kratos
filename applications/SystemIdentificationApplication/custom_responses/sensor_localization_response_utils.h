@@ -69,6 +69,8 @@ private:
 
     std::vector<double> mClusterSizeRatios;
 
+    TensorAdaptor<double>::Pointer mpSensitivities;
+
     ///@}
 };
 

@@ -67,6 +67,9 @@ SensorLocalizationResponseUtils::SensorLocalizationResponseUtils(
 
     }, mpSensorMaskStatusKDTree->GetSensorMaskStatus()->pGetMaskContainer());
 
+    auto p_sensor_container = mpSensorMaskStatusKDTree->GetSensorMaskStatus()->pGetSensorModelPart()->pNodes();
+    mpSensitivities = Kratos::make_shared<TensorAdaptor<double>>(p_sensor_container, Kratos::make_shared<NDData<double>>(DenseVector<unsigned int>(1, p_sensor_container->size())), false);
+
     KRATOS_CATCH("");
 }
 
@@ -88,6 +91,12 @@ double SensorLocalizationResponseUtils::CalculateValue(const double AllowedDissi
     // get the sensor mask statuses
     const auto& r_sensor_mask_statuses = mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskStatuses();
 
+    const auto& r_mask_statuses_gradient = mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMasks();
+
+    const IndexType number_of_sensors = r_sensor_mask_statuses.size2();
+
+    Matrix cluster_size_derivatives(number_of_elements, number_of_sensors, 0.0);
+
     // TODO: this will calculate some repeated cluster sizes. Try to avoid them in future.
     return std::visit([&](const auto& pContainer) {
         const auto& r_container = *pContainer;
@@ -106,7 +115,14 @@ double SensorLocalizationResponseUtils::CalculateValue(const double AllowedDissi
             for (const auto& r_neighbour_data : rResult) {
                 const auto r_neighbour_index = r_neighbour_data.first;
                 const auto r_neighbour_squared_distance = r_neighbour_data.second;
-                cluster_size_ratio += mDomainSizeRatio[r_neighbour_index] * std::exp(-r_neighbour_squared_distance / AllowedDissimilarity);
+                const double coeff = std::exp(-r_neighbour_squared_distance / AllowedDissimilarity);
+                cluster_size_ratio += mDomainSizeRatio[r_neighbour_index] * coeff;
+
+                for (IndexType i_sensor = 0; i_sensor < number_of_sensors; ++i_sensor) {
+                    const auto i_mask_value = r_mask_statuses_gradient(iElement, i_sensor);
+                    const auto j_mask_value = r_mask_statuses_gradient(r_neighbour_index, i_sensor);
+                    cluster_size_derivatives(iElement, i_sensor) -= mDomainSizeRatio[r_neighbour_index] * coeff * std::abs(i_mask_value - j_mask_value) / AllowedDissimilarity;
+                }
             }
 
             if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
@@ -117,7 +133,23 @@ double SensorLocalizationResponseUtils::CalculateValue(const double AllowedDissi
         auto p_nd_data = Kratos::make_shared<NDData<double>>(&mClusterSizeRatios[0], DenseVector<unsigned int>(1, mClusterSizeRatios.size()), false);
 
         mBoltzmannOperator.Update(p_nd_data);
-        return mBoltzmannOperator.CalculateValue();
+        const double value = mBoltzmannOperator.CalculateValue();
+
+        // now compute the actual gradients
+        auto sensitivity_data = mpSensitivities->ViewData();
+
+        auto p_boltzmann_operator_gradient = mBoltzmannOperator.CalculateGradient();
+        auto boltzmann_operator_gradient_view = p_boltzmann_operator_gradient->ViewData();
+
+        IndexPartition<IndexType>(sensitivity_data.size()).for_each([&](const auto iSensor) {
+            double& sensitivity = sensitivity_data[iSensor];
+            sensitivity = 0.0;
+            for (IndexType i_element = 0; i_element < number_of_elements; ++i_element) {
+                sensitivity += cluster_size_derivatives(i_element, iSensor) * boltzmann_operator_gradient_view[i_element];
+            }
+        });
+
+        return value;
 
     }, mpSensorMaskStatusKDTree->GetSensorMaskStatus()->pGetMaskContainer());
 
@@ -128,47 +160,7 @@ TensorAdaptor<double>::Pointer SensorLocalizationResponseUtils::CalculateGradien
 {
     KRATOS_TRY
 
-    using tls_type = std::vector<SensorMaskStatusKDTree::ResultType>;
-
-    const auto& r_mask_status = *mpSensorMaskStatusKDTree->GetSensorMaskStatus();
-    const auto& r_mask_statuses = r_mask_status.GetMaskStatuses();
-    const auto& r_mask_statuses_gradient = r_mask_status.GetMasks();
-    const auto number_of_elements = r_mask_statuses.size1();
-
-    const double search_radius = -AllowedDissimilarity * std::log(mEpsilon);
-
-    auto p_result = Kratos::make_shared<TensorAdaptor<double>>(r_mask_status.pGetSensorModelPart()->pNodes(), Kratos::make_shared<NDData<double>>(DenseVector<unsigned int>(1, r_mask_status.GetSensorModelPart().NumberOfNodes())));
-    auto result_data_view = p_result->ViewData();
-
-    IndexPartition<IndexType>(result_data_view.size()).for_each([&result_data_view](const auto Index) {
-        result_data_view[Index] = 0.0;
-    });
-
-    // get the sensor mask statuses
-    const auto& r_sensor_mask_statuses = mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskStatuses();
-
-    auto p_boltzmann_operator_gradient = mBoltzmannOperator.CalculateGradient();
-    auto boltzmann_operator_gradient_view = p_boltzmann_operator_gradient->ViewData();
-
-    IndexPartition<IndexType>(number_of_elements).for_each(tls_type{}, [&](const auto iElement, auto& rResult){
-
-        mpSensorMaskStatusKDTree->RadiusSearch(row(r_sensor_mask_statuses, iElement), search_radius, rResult);
-
-        for (IndexType i_sensor = 0; i_sensor < r_mask_statuses.size2(); ++i_sensor) {
-            const auto i_mask_value = r_mask_statuses_gradient(iElement, i_sensor);
-
-            double cluster_size_derivative = 0.0;
-
-            for (const auto& r_neighbour_data : rResult) {
-                const auto j_mask_value = r_mask_statuses_gradient(r_neighbour_data.first, i_sensor);
-                cluster_size_derivative -= mDomainSizeRatio[r_neighbour_data.first] * std::exp(-r_neighbour_data.second / AllowedDissimilarity) * std::abs(i_mask_value - j_mask_value) / AllowedDissimilarity;
-            }
-
-            result_data_view[i_sensor] += cluster_size_derivative * boltzmann_operator_gradient_view[iElement];
-        }
-    });
-
-    return p_result;
+    return mpSensitivities->Clone();
 
     KRATOS_CATCH("");
 }
