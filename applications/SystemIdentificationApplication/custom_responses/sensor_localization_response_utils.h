@@ -69,8 +69,6 @@ private:
 
     std::vector<double> mClusterSizeRatios;
 
-    std::vector<std::vector<SensorMaskStatusKDTree::ResultType>> mNeighbourData;
-
     ///@}
 };
 
