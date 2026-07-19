@@ -41,20 +41,15 @@ public:
     SensorLocalizationResponseUtils(
         SensorMaskStatusKDTree::Pointer pSensorMaskKDTree,
         const double BoltzmannBeta,
-        const double SigmoidalBeta,
-        const double PenaltyFactor,
-        const double InitialDissimilarityMultiplier,
-        const double DissimilarityDecayingFactor,
-        const IndexType DissimilarityDecayingPeriod,
-        const double AllowedDissimilarity);
+        const double Epsilon);
 
     ///@}
     ///@name Public operations
     ///@{
 
-    double CalculateValue(const IndexType Step);
+    double CalculateValue(const double AllowedDissimilarity);
 
-    TensorAdaptor<double>::Pointer CalculateGradient(const IndexType Step) const;
+    TensorAdaptor<double>::Pointer CalculateGradient(const double AllowedDissimilarity) const;
 
     TensorAdaptor<double>::Pointer GetClusterSizes() const;
 
@@ -68,17 +63,7 @@ private:
 
     BoltzmannOperator mBoltzmannOperator;
 
-    const double mSigmoidalBeta;
-
-    const double mPenaltyFactor;
-
-    const double mInitialDissimilarityMultiplier;
-
-    const double mDissimilarityDecayingFactor;
-
-    const IndexType mDissimilarityDecayingPeriod;
-
-    const double mAllowedDissimilarity;
+    const double mEpsilon;
 
     std::vector<double> mDomainSizeRatio;
 

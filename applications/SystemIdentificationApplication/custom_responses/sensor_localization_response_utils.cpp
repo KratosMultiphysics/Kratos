@@ -33,20 +33,10 @@ namespace Kratos {
 SensorLocalizationResponseUtils::SensorLocalizationResponseUtils(
     SensorMaskStatusKDTree::Pointer pSensorMaskKDTree,
     const double BoltzmannBeta,
-    const double mSigmoidalBeta,
-    const double PenaltyFactor,
-    const double InitialDissimilarityMultiplier,
-    const double DissimilarityDecayingFactor,
-    const IndexType DissimilarityDecayingPeriod,
-    const double AllowedDissimilarity)
+    const double Epsilon)
     : mpSensorMaskStatusKDTree(pSensorMaskKDTree),
       mBoltzmannOperator(BoltzmannBeta),
-      mSigmoidalBeta(mSigmoidalBeta),
-      mPenaltyFactor(PenaltyFactor),
-      mInitialDissimilarityMultiplier(InitialDissimilarityMultiplier),
-      mDissimilarityDecayingFactor(DissimilarityDecayingFactor),
-      mDissimilarityDecayingPeriod(DissimilarityDecayingPeriod),
-      mAllowedDissimilarity(AllowedDissimilarity)
+      mEpsilon(Epsilon)
 {
     KRATOS_TRY
 
@@ -72,8 +62,8 @@ SensorLocalizationResponseUtils::SensorLocalizationResponseUtils(
 
         const double total_domain_size = pSensorMaskKDTree->GetSensorMaskStatus()->pGetSensorModelPart()->GetCommunicator().GetDataCommunicator().SumAll(local_domain_size);
 
-        block_for_each(mDomainSizeRatio, [total_domain_size, AllowedDissimilarity](auto& rValue) {
-            rValue /= (total_domain_size * AllowedDissimilarity);
+        block_for_each(mDomainSizeRatio, [total_domain_size](auto& rValue) {
+            rValue /= total_domain_size;
         });
 
     }, mpSensorMaskStatusKDTree->GetSensorMaskStatus()->pGetMaskContainer());
@@ -81,20 +71,15 @@ SensorLocalizationResponseUtils::SensorLocalizationResponseUtils(
     KRATOS_CATCH("");
 }
 
-double SensorLocalizationResponseUtils::CalculateValue(const IndexType Step)
+double SensorLocalizationResponseUtils::CalculateValue(const double AllowedDissimilarity)
 {
     KRATOS_TRY
 
-    const IndexType period_count = Step / mDissimilarityDecayingPeriod;
+    const double search_radius = -AllowedDissimilarity * std::log(mEpsilon);
 
-    const double current_dissimilarity = std::max(mAllowedDissimilarity, mAllowedDissimilarity * mInitialDissimilarityMultiplier / std::pow(mDissimilarityDecayingFactor, period_count));
-
-    KRATOS_INFO("SensorLocalizationResponseUtils") << "Current dissimilarity = " << current_dissimilarity << std::endl;
-
-    const std::vector<double> value_limits{0.0, current_dissimilarity};
-
-    const double sigmoidal_min = SigmoidalProjectionUtils::ProjectForward(0, value_limits, value_limits, mSigmoidalBeta, mPenaltyFactor);
-    const double sigmoidal_max = SigmoidalProjectionUtils::ProjectForward(current_dissimilarity, value_limits, value_limits, mSigmoidalBeta, mPenaltyFactor);
+    KRATOS_INFO("SensorLocalizationResponseUtils")
+        << "The search radius is " << search_radius << " for allowed dissimilarity of "
+        << AllowedDissimilarity << std::endl;
 
     // possible number of maximum clusters is the number of elements.
     const IndexType number_of_elements = mDomainSizeRatio.size();
@@ -117,12 +102,12 @@ double SensorLocalizationResponseUtils::CalculateValue(const IndexType Step)
             // getting neighbours for all the elements which are within the radius current_dissimilarity ("0.99999999999999999" is used to make sure that
             // we have all the neighbours within the radius = current_dissimilarity, but not the neighbours with current_dissimilarity). All other elements which has distance >= current_dissimilarity
             // are not relevant since the similarity_clamper will anyways make those contribution to zero.
-            mpSensorMaskStatusKDTree->RadiusSearch(row(r_sensor_mask_statuses, iElement), current_dissimilarity - std::numeric_limits<double>::epsilon(), r_result);
+            mpSensorMaskStatusKDTree->RadiusSearch(row(r_sensor_mask_statuses, iElement), search_radius, r_result);
 
             for (const auto& r_neighbour_data : r_result) {
                 const auto r_neighbour_index = r_neighbour_data.first;
                 const auto r_neighbour_squared_distance = r_neighbour_data.second;
-                cluster_size_ratio += mDomainSizeRatio[r_neighbour_index] * (current_dissimilarity - (SigmoidalProjectionUtils::ProjectForward(r_neighbour_squared_distance, value_limits, value_limits, mSigmoidalBeta, mPenaltyFactor) - sigmoidal_min) / (sigmoidal_max - sigmoidal_min));
+                cluster_size_ratio += mDomainSizeRatio[r_neighbour_index] * std::exp(-r_neighbour_squared_distance / AllowedDissimilarity);
             }
 
             if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
@@ -140,18 +125,9 @@ double SensorLocalizationResponseUtils::CalculateValue(const IndexType Step)
     KRATOS_CATCH("");
 }
 
-TensorAdaptor<double>::Pointer SensorLocalizationResponseUtils::CalculateGradient(const IndexType Step) const
+TensorAdaptor<double>::Pointer SensorLocalizationResponseUtils::CalculateGradient(const double AllowedDissimilarity) const
 {
     KRATOS_TRY
-
-    const IndexType period_count = Step / mDissimilarityDecayingPeriod;
-
-    const double current_dissimilarity = std::max(mAllowedDissimilarity, mAllowedDissimilarity * mInitialDissimilarityMultiplier / std::pow(mDissimilarityDecayingFactor, period_count));
-
-    const std::vector<double> value_limits{0.0, current_dissimilarity};
-
-    const double sigmoidal_min = SigmoidalProjectionUtils::ProjectForward(0, value_limits, value_limits, mSigmoidalBeta, mPenaltyFactor);
-    const double sigmoidal_max = SigmoidalProjectionUtils::ProjectForward(current_dissimilarity, value_limits, value_limits, mSigmoidalBeta, mPenaltyFactor);
 
     const auto& r_mask_status = *mpSensorMaskStatusKDTree->GetSensorMaskStatus();
     const auto& r_mask_statuses = r_mask_status.GetMaskStatuses();
@@ -174,14 +150,7 @@ TensorAdaptor<double>::Pointer SensorLocalizationResponseUtils::CalculateGradien
 
             for (const auto& r_neighbour_data : r_neighbour_data_list) {
                 const auto j_mask_value = r_mask_statuses_gradient(r_neighbour_data.first, iSensor);
-                cluster_size_derivative -=
-                    mDomainSizeRatio[r_neighbour_data.first] *
-                    ((SigmoidalProjectionUtils::CalculateForwardProjectionGradient(
-                          r_neighbour_data.second, value_limits, value_limits,
-                          mSigmoidalBeta, mPenaltyFactor) -
-                      sigmoidal_min) /
-                     (sigmoidal_max - sigmoidal_min)) *
-                    std::abs(i_mask_value - j_mask_value);
+                cluster_size_derivative -= mDomainSizeRatio[r_neighbour_data.first] * std::exp(-r_neighbour_data.second / AllowedDissimilarity) * std::abs(i_mask_value - j_mask_value) / AllowedDissimilarity;
             }
 
             derivative += cluster_size_derivative * boltzmann_operator_gradient_view[i_element];
