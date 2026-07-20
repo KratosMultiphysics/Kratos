@@ -970,7 +970,7 @@ const Parameters UnvOutput::GetDefaultParameters() const
     {
         "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
         "file_format"                                 : "ascii",
-        "output_precision"                            : 7,
+        "output_precision"                            : 6,
         "output_control_type"                         : "step",
         "output_interval"                             : 1.0,
         "output_sub_model_parts"                      : false,
