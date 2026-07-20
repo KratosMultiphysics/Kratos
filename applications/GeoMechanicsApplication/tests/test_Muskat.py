@@ -1,12 +1,7 @@
 import os
 
-import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import test_helper
-import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
-from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
-from helper_utilities import _compare_case_outputs, run_orchestrator
 
 class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
     """
