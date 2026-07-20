@@ -34,8 +34,6 @@
         "convergence_criterion": "residual_criterion",
         "residual_relative_tolerance": 1.0e-04,
         "residual_absolute_tolerance": 1.0e-09,
-        "water_pressure_relative_tolerance": 1.0e-04,
-        "water_pressure_absolute_tolerance": 1.0e-09,
         "min_iterations": 6,
         "max_iterations": 100,
         "number_cycles": 1,
