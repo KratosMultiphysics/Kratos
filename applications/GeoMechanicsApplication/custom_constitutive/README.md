@@ -714,3 +714,14 @@ $$
 $$
 
 and the signed moment is recovered from the backbone: $M(\kappa)=\operatorname{sign}(\kappa-\kappa_c)\,M_b(\kappa_{eff})$. 
+
+The following picture shows a moment-curvature behaviour for piecewise_linear_moment_capacity test.
+<img src="documentation_data/test_piecewise_linear_moment.svg">
+Circles represent values at each time steps. The red line shows the backbone curve and the green line shows the mirrored backbone curve.
+
+If the unloading process is not enabled then the moment follows the backbone curve. If the curvature goes to negative values, then the backbone is mirrored against the coordinate origin. 
+
+When the unloading process is enabled, a curvature decrease leads to moment values along line B-C. This line depicts the unloading window [$\kappa_c$-$A$;$\kappa_c$+$A$]. If a curvature does not reach point C, returns back to point B and increases further, then the moment returns to the backbone curve.
+If the curvature decreases below point C, then the moment follows the backbone branch, which is mirrored against $\kappa_c$.
+
+The picture shows that there are unloading windows for the negative curvature values but they do not lead to switch to the positive moment curves.
