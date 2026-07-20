@@ -457,6 +457,46 @@ public:
             rShapeFunctionsValues[j] = shape_function_container(j, 0);
     }
 
+    void ShapeFunctionsValuesAndCPNodes(
+        const CoordinatesArrayType& rCoordinates,
+        PointsArrayType& rNonzeroControlPoints,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr) const override
+    {
+        const double u = rCoordinates[0];
+        const double v = rCoordinates[1];
+
+        THBSurfaceShapeFunction shape_function_container(
+            mLevels.back().DegreeU, mLevels.back().DegreeV, DerivativeOrder);
+        shape_function_container.ComputeShapeFunctionValues(*this, u, v);
+
+        const SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+        const auto& cp_indices = shape_function_container.ControlPointIndices();
+
+        rNonzeroControlPoints.resize(num_nonzero_cps);
+        for (SizeType j = 0; j < num_nonzero_cps; ++j)
+            rNonzeroControlPoints(j) = this->pGetPoint(cp_indices[j]);
+
+        rShapeFunctionsValues.resize(num_nonzero_cps, false);
+        for (SizeType j = 0; j < num_nonzero_cps; ++j)
+            rShapeFunctionsValues[j] = shape_function_container(j, 0);
+
+        if (pShapeFunctionDerivatives != nullptr && DerivativeOrder > 0) {
+            const SizeType n_deriv_matrices = DerivativeOrder - 1;
+            pShapeFunctionDerivatives->resize(n_deriv_matrices);
+            IndexType deriv_flat_index = 1;
+            for (IndexType nd = 0; nd < n_deriv_matrices; ++nd) {
+                (*pShapeFunctionDerivatives)[nd].resize(num_nonzero_cps, nd + 2);
+                for (IndexType k = 0; k < nd + 2; ++k)
+                    for (IndexType j = 0; j < num_nonzero_cps; ++j)
+                        (*pShapeFunctionDerivatives)[nd](j, k) =
+                            shape_function_container(j, deriv_flat_index + k);
+                deriv_flat_index += nd + 2;
+            }
+        }
+    }
+
     /// Returns the finest level whose refinement domain contains (u, v), or 0 if none.
     SizeType ActiveLevelAtPoint(double u, double v, double eps = 1e-10) const
     {

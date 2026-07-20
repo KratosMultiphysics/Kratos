@@ -3493,6 +3493,35 @@ public:
         return rResult;
     }
 
+    /**
+     * @brief Evaluates shape functions and returns the active (nonzero) control point nodes.
+     *
+     * For locally-refined geometries (THB, LR, HB, ...) the number and identity of
+     * active basis functions varies per point.  This virtual method provides a
+     * uniform interface so that callers holding only a base GeometryPointer can
+     * evaluate locally-refined shape functions without knowing the concrete type.
+     *
+     * @param rCoordinates      Local coordinates (u, v[, w]) of the evaluation point.
+     * @param rNonzeroControlPoints  Output: pointers to the nodes whose basis functions
+     *                               are nonzero at rCoordinates.
+     * @param rShapeFunctionsValues  Output: shape function values, length == rNonzeroControlPoints.size().
+     * @param DerivativeOrder        Number of derivative orders to compute (0 = values only).
+     * @param pShapeFunctionDerivatives  Output (optional): derivatives.
+     *        pShapeFunctionDerivatives[nd] is a Matrix of size
+     *        (num_nonzero_cps, nd+2) containing the (nd+1)-th order derivatives.
+     *        Pass nullptr when DerivativeOrder == 0.
+     */
+    virtual void ShapeFunctionsValuesAndCPNodes(
+        const CoordinatesArrayType& rCoordinates,
+        PointsArrayType& rNonzeroControlPoints,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr) const
+    {
+        KRATOS_ERROR << "Calling base class ShapeFunctionsValuesAndCPNodes method instead of derived class one. "
+                     << "Please check the definition of derived class. " << *this << std::endl;
+    }
+
     /** This method gives all shape functions values evaluated in all
     integration points of given integration method. There is no
     calculation and it just give it from shape functions values

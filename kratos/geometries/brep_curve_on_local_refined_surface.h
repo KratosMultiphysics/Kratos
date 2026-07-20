@@ -21,8 +21,6 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
 #include "geometries/nurbs_curve_on_surface_geometry.h"
-#include "geometries/thb_surface_geometry.h"
-#include "geometries/nurbs_shape_function_utilities/thb_surface_shape_functions.h"
 
 #include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 #include "utilities/curve_axis_intersection.h"
@@ -328,7 +326,7 @@ public:
         return mpCurveOnSurface;
     }
 
-    /// Sets the locally refined surface so CreateQuadraturePointGeometries uses THB shape functions.
+    /// Sets the locally refined surface so CreateQuadraturePointGeometries uses spesific shape functions.
     void SetLocalRefinedSurface(GeometryPointer pLocalRefinedSurface)
     {
         mpLocalRefinedSurface = pLocalRefinedSurface;
@@ -619,57 +617,35 @@ public:
         IntegrationInfo& rIntegrationInfo) override
     {
         if (mpLocalRefinedSurface != nullptr) {
-            // Evaluates THB shape functions at each (u,v) point and creates
-            // QuadraturePointCurveOnSurface geometries referencing only active nodes.
-            using THBType = THBSurfaceGeometry<3, TContainerPointType>;
-            auto p_thb = dynamic_pointer_cast<THBType>(
-                mpLocalRefinedSurface->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
-            KRATOS_ERROR_IF(p_thb == nullptr)
-                << "BrepCurveOnLocalRefinedSurface: background geometry is not THBSurfaceGeometry<3>." << std::endl;
-
             const SizeType num_of_integration_points = rIntegrationPoints.size();
             if (rResultGeometries.size() != num_of_integration_points)
                 rResultGeometries.resize(num_of_integration_points);
 
             auto default_method = this->GetDefaultIntegrationMethod();
-            THBSurfaceShapeFunction shape_function_container(
-                p_thb->PolynomialDegree(0), p_thb->PolynomialDegree(1), NumberOfShapeFunctionDerivatives);
-
             auto p_2d_curve = mpCurveOnSurface->pGetCurve();
 
             for (IndexType i = 0; i < num_of_integration_points; ++i) {
                 std::vector<CoordinatesArrayType> space_derivatives(2);
                 p_2d_curve->GlobalSpaceDerivatives(space_derivatives, rIntegrationPoints[i], 1);
-                const double u = space_derivatives[0][0];
-                const double v = space_derivatives[0][1];
                 const double du_dt = space_derivatives[1][0];
                 const double dv_dt = space_derivatives[1][1];
 
-                shape_function_container.ComputeShapeFunctionValues(*p_thb, u, v);
-                const SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
-                const auto& cp_indices = shape_function_container.ControlPointIndices();
+                CoordinatesArrayType uv_coords = ZeroVector(3);
+                uv_coords[0] = space_derivatives[0][0];
+                uv_coords[1] = space_derivatives[0][1];
 
-                PointsArrayType nonzero_control_points(num_nonzero_cps);
-                for (IndexType j = 0; j < num_nonzero_cps; ++j)
-                    nonzero_control_points(j) = p_thb->pGetPoint(cp_indices[j]);
+                PointsArrayType nonzero_control_points;
+                Vector N_values;
+                DenseVector<Matrix> shape_function_derivatives;
+                mpLocalRefinedSurface->ShapeFunctionsValuesAndCPNodes(
+                    uv_coords, nonzero_control_points, N_values,
+                    NumberOfShapeFunctionDerivatives,
+                    NumberOfShapeFunctionDerivatives > 0 ? &shape_function_derivatives : nullptr);
 
+                const SizeType num_nonzero_cps = nonzero_control_points.size();
                 Matrix N(1, num_nonzero_cps);
-                for (IndexType j = 0; j < num_nonzero_cps; ++j)
-                    N(0, j) = shape_function_container(j, 0);
-
-                DenseVector<Matrix> shape_function_derivatives(
-                    NumberOfShapeFunctionDerivatives > 0 ? NumberOfShapeFunctionDerivatives - 1 : 0);
-                if (NumberOfShapeFunctionDerivatives > 0) {
-                    IndexType shape_derivative_index = 1;
-                    for (IndexType nd = 0; nd < NumberOfShapeFunctionDerivatives - 1; ++nd) {
-                        shape_function_derivatives[nd].resize(num_nonzero_cps, nd + 2);
-                        for (IndexType k = 0; k < nd + 2; ++k)
-                            for (IndexType j = 0; j < num_nonzero_cps; ++j)
-                                shape_function_derivatives[nd](j, k) =
-                                    shape_function_container(j, shape_derivative_index + k);
-                        shape_derivative_index += nd + 2;
-                    }
-                }
+                for (SizeType j = 0; j < num_nonzero_cps; ++j)
+                    N(0, j) = N_values[j];
 
                 GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                     default_method, rIntegrationPoints[i], N, shape_function_derivatives);
@@ -782,7 +758,7 @@ private:
     *  false-> brep curve and nurbs curve point in opposite directions. */
     bool mSameCurveDirection;
 
-    /// Optional pointer to the locally refined surface for THB-aware span computation.
+    /// Optional pointer to the locally refined surface (THB, LR, HB, ...) for span computation and shape function evaluation.
     GeometryPointer mpLocalRefinedSurface = nullptr;
 
     ///@}

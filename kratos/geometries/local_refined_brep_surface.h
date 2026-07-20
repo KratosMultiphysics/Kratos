@@ -332,6 +332,18 @@ public:
             DerivativeOrder, pShapeFunctionDerivatives);
     }
 
+    void ShapeFunctionsValuesAndCPNodes(
+        const CoordinatesArrayType& rCoordinates,
+        PointsArrayType& rNonzeroControlPoints,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr) const override
+    {
+        mpLocalRefinedSurface->ShapeFunctionsValuesAndCPNodes(
+            rCoordinates, rNonzeroControlPoints, rShapeFunctionsValues,
+            DerivativeOrder, pShapeFunctionDerivatives);
+    }
+
     Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override

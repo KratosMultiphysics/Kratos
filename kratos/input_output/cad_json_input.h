@@ -74,7 +74,7 @@ class CadJsonInput : public IO
     typedef typename NurbsTrimmingCurveType::Pointer NurbsTrimmingCurvePointerType;
 
     typedef BrepSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepSurfaceType;
-    typedef LocalRefinedBrepSurface<ContainerNodeType, THBSurfaceGeometry<3, ContainerNodeType>, false, ContainerEmbeddedNodeType> LocalRefinedBrepSurfaceType;
+    typedef LocalRefinedBrepSurface<ContainerNodeType, THBSurfaceGeometry<3, ContainerNodeType>, false, ContainerEmbeddedNodeType> THBLocalRefinedBrepSurfaceType;
     typedef BrepCurveOnSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
     typedef BrepCurveOnLocalRefinedSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepCurveOnLocalRefinedSurfaceType;
     typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
@@ -282,16 +282,13 @@ private:
                     ReadLocalRefinedBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
                 p_brep_surface = ReadLocalRefinement(p_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel, outer_loops, inner_loops, NextNodeIdHint);
 
-                // Propagate LocalRefinedSurface to all boundary trimming curves
-                auto p_lrs = dynamic_pointer_cast<LocalRefinedBrepSurfaceType>(p_brep_surface);
-                if (p_lrs) {
-                    for (const auto& loop : outer_loops)
-                        for (const auto& curve : loop)
-                            curve->SetLocalRefinedSurface(p_lrs);
-                    for (const auto& loop : inner_loops)
-                        for (const auto& curve : loop)
-                            curve->SetLocalRefinedSurface(p_lrs);
-                }
+                // Propagate LocalRefinedSurface to all boundary trimming curves.
+                for (const auto& loop : outer_loops)
+                    for (const auto& curve : loop)
+                        curve->SetLocalRefinedSurface(p_brep_surface);
+                for (const auto& loop : inner_loops)
+                    for (const auto& curve : loop)
+                        curve->SetLocalRefinedSurface(p_brep_surface);
             }
             else
             {
@@ -554,7 +551,7 @@ private:
      * "brep_id", that a matching entry exists in rLocalRefParameters["breps"],
      * and that entry has "locally_refined": true.
      */
-    static typename LocalRefinedBrepSurfaceType::Pointer ReadLocalRefinement(
+    static GeometryPointerType ReadLocalRefinement(
         typename NurbsSurfaceType::Pointer pNurbsSurface,
         const Parameters rFaceParameters,
         const Parameters rLocalRefParameters,
@@ -573,9 +570,6 @@ private:
                 (IndexType)breps[match_index]["brep_id"].GetInt() == brep_id) break;
         const Parameters brep_entry = breps[match_index];
 
-        KRATOS_INFO_IF("ReadLocalRefinement", EchoLevel > 2)
-            << "Applying THB local refinement to brep_id " << brep_id << std::endl;
-
         KRATOS_ERROR_IF_NOT(brep_entry.Has("local_refinement"))
             << "ReadLocalRefinement: brep_id " << brep_id
             << " is marked locally_refined but has no \"local_refinement\" array." << std::endl;
@@ -586,100 +580,114 @@ private:
             << " has an empty \"local_refinement\" array." << std::endl;
 
         const std::string refinement_type = local_ref[0]["type"].GetString();
-        KRATOS_ERROR_IF(refinement_type != "THB")
-            << "ReadLocalRefinement: unsupported refinement type \""
-            << refinement_type << "\" for brep_id " << brep_id
-            << ". Currently supported: \"THB\"." << std::endl;
 
-        SizeType max_level = 0;
-        for (SizeType i = 0; i < local_ref.size(); ++i)
-            max_level = std::max(max_level, (SizeType)local_ref[i]["refinement_level"].GetInt());
+        if (refinement_type == "THB") {
+            KRATOS_INFO_IF("ReadLocalRefinement", EchoLevel > 2)
+                << "Applying THB local refinement to brep_id " << brep_id << std::endl;
 
-        const Vector& nurbs_weights = pNurbsSurface->Weights();
-        auto p_local_surface = nurbs_weights.size() > 0
-            ? Kratos::make_shared<THBSurfaceGeometry<3, ContainerNodeType>>(
-                pNurbsSurface->Points(),
-                pNurbsSurface->PolynomialDegree(0), pNurbsSurface->PolynomialDegree(1),
-                pNurbsSurface->KnotsU(), pNurbsSurface->KnotsV(), nurbs_weights)
-            : Kratos::make_shared<THBSurfaceGeometry<3, ContainerNodeType>>(
-                pNurbsSurface->Points(),
-                pNurbsSurface->PolynomialDegree(0), pNurbsSurface->PolynomialDegree(1),
-                pNurbsSurface->KnotsU(), pNurbsSurface->KnotsV());
+            SizeType max_level = 0;
+            for (SizeType i = 0; i < local_ref.size(); ++i)
+                max_level = std::max(max_level, (SizeType)local_ref[i]["refinement_level"].GetInt());
 
-        // Collect per-level refinement method ("h" = knot insertion, "p" = degree elevation).
-        std::vector<std::string> level_method(max_level + 1, "h");
-        for (SizeType i = 0; i < local_ref.size(); ++i) {
-            const SizeType lv = (SizeType)local_ref[i]["refinement_level"].GetInt();
-            if (local_ref[i].Has("refinement_method"))
-                level_method[lv] = local_ref[i]["refinement_method"].GetString();
-        }
+            const Vector& nurbs_weights = pNurbsSurface->Weights();
+            auto p_local_surface = nurbs_weights.size() > 0
+                ? Kratos::make_shared<THBSurfaceGeometry<3, ContainerNodeType>>(
+                    pNurbsSurface->Points(),
+                    pNurbsSurface->PolynomialDegree(0), pNurbsSurface->PolynomialDegree(1),
+                    pNurbsSurface->KnotsU(), pNurbsSurface->KnotsV(), nurbs_weights)
+                : Kratos::make_shared<THBSurfaceGeometry<3, ContainerNodeType>>(
+                    pNurbsSurface->Points(),
+                    pNurbsSurface->PolynomialDegree(0), pNurbsSurface->PolynomialDegree(1),
+                    pNurbsSurface->KnotsU(), pNurbsSurface->KnotsV());
 
-        // Add levels one by one so that p- and h-refinement may be mixed.
-        for (SizeType lv = 1; lv <= max_level; ++lv) {
-            const bool first_addlevel = (lv == 1) && (NextNodeIdHint > 0);
-            if (level_method[lv] == "p")
-                if (first_addlevel)
-                    p_local_surface->AddLevelByPRefinement(rModelPart, NextNodeIdHint);
-                else 
-                    p_local_surface->AddLevelByPRefinement(rModelPart);
-            else if (level_method[lv] == "h")
-                if (first_addlevel) 
-                    p_local_surface->AddLevelByHRefinement(1, rModelPart, NextNodeIdHint);
+            // Collect per-level refinement method ("h" = knot insertion, "p" = degree elevation).
+            std::vector<std::string> level_method(max_level + 1, "h");
+            for (SizeType i = 0; i < local_ref.size(); ++i) {
+                const SizeType lv = (SizeType)local_ref[i]["refinement_level"].GetInt();
+                if (local_ref[i].Has("refinement_method"))
+                    level_method[lv] = local_ref[i]["refinement_method"].GetString();
+            }
+
+            // Add levels one by one so that p- and h-refinement may be mixed.
+            for (SizeType lv = 1; lv <= max_level; ++lv) {
+                const bool first_addlevel = (lv == 1) && (NextNodeIdHint > 0);
+                if (level_method[lv] == "p")
+                    if (first_addlevel)
+                        p_local_surface->AddLevelByPRefinement(rModelPart, NextNodeIdHint);
+                    else
+                        p_local_surface->AddLevelByPRefinement(rModelPart);
+                else if (level_method[lv] == "h")
+                    if (first_addlevel)
+                        p_local_surface->AddLevelByHRefinement(1, rModelPart, NextNodeIdHint);
+                    else
+                        p_local_surface->AddLevelByHRefinement(1, rModelPart);
+                else if (level_method[lv] == "k")
+                    KRATOS_ERROR << "ReadLocalRefinement: unsupported refinement method \"k\" for brep_id " << brep_id
+                        << ", level " << lv << ". k-refinement is not yet implemented." << std::endl;
                 else
-                    p_local_surface->AddLevelByHRefinement(1, rModelPart);
-            else if (level_method[lv] == "k")
-                KRATOS_ERROR << "ReadLocalRefinement: unsupported refinement method \"k\" for brep_id " << brep_id
-                    << ", level " << lv << ". k-refinement is not yet implemented." << std::endl;
-            else
-                KRATOS_ERROR << "ReadLocalRefinement: unsupported refinement method \""
-                    << level_method[lv] << "\" for brep_id " << brep_id
-                    << ", level " << lv << ". Currently supported: \"h\", \"p\"." << std::endl;
+                    KRATOS_ERROR << "ReadLocalRefinement: unsupported refinement method \""
+                        << level_method[lv] << "\" for brep_id " << brep_id
+                        << ", level " << lv << ". Currently supported: \"h\", \"p\"." << std::endl;
+            }
+
+            auto shift_to_nearest_knot = [](double value, const Vector& knots) -> double {
+                KRATOS_ERROR_IF(knots.empty()) << "Knot vector is empty." << std::endl;
+                double nearest = knots[0];
+                double min_dist = std::abs(value - knots[0]);
+                for (SizeType k = 1; k < knots.size(); ++k) {
+                    const double dist = std::abs(value - knots[k]);
+                    if (dist < min_dist) { min_dist = dist; nearest = knots[k]; }
+                }
+                return nearest;
+            };
+
+            for (SizeType i = 0; i < local_ref.size(); ++i) {
+                const Parameters entry = local_ref[i];
+                const SizeType level  = entry["refinement_level"].GetInt();
+                const double raw_min_u = entry["refined_region"]["u_range"][0].GetDouble();
+                const double raw_max_u = entry["refined_region"]["u_range"][1].GetDouble();
+                const double raw_min_v = entry["refined_region"]["v_range"][0].GetDouble();
+                const double raw_max_v = entry["refined_region"]["v_range"][1].GetDouble();
+                for (SizeType lv = 1; lv <= level; ++lv) {
+                    const Vector& knots_u = p_local_surface->Levels()[lv - 1].KnotsU;
+                    const Vector& knots_v = p_local_surface->Levels()[lv - 1].KnotsV;
+                    const double min_u = shift_to_nearest_knot(raw_min_u, knots_u);
+                    const double max_u = shift_to_nearest_knot(raw_max_u, knots_u);
+                    const double min_v = shift_to_nearest_knot(raw_min_v, knots_v);
+                    const double max_v = shift_to_nearest_knot(raw_max_v, knots_v);
+                    p_local_surface->AddRefinementDomain(lv, min_u, max_u, min_v, max_v);
+                }
+            }
+
+            p_local_surface->EliminateInactiveFunctions(rModelPart);
+
+            KRATOS_INFO_IF("ReadLocalRefinement", EchoLevel > 2)
+                << "THB surface for brep_id " << brep_id
+                << " has " << p_local_surface->NumberOfLevels() << " levels and "
+                << p_local_surface->Points().size() << " active control points." << std::endl;
+
+            auto p_local_refined_brep_surface = Kratos::make_shared<THBLocalRefinedBrepSurfaceType>(
+                p_local_surface,
+                OuterLoops,
+                InnerLoops,
+                false);
+            p_local_refined_brep_surface->SetId(brep_id);
+
+            return p_local_refined_brep_surface;
+        } else if (refinement_type == "LR") {
+            KRATOS_ERROR << "ReadLocalRefinement: LR (Locally Refined B-spline) refinement is not "
+                         << "yet implemented (brep_id=" << brep_id << ")." << std::endl;
+        } else if (refinement_type == "HB") {
+            KRATOS_ERROR << "ReadLocalRefinement: HB (Hierarchical B-spline) refinement is not "
+                         << "yet implemented (brep_id=" << brep_id << ")." << std::endl;
+        } else {
+            KRATOS_ERROR << "ReadLocalRefinement: unknown refinement type \""
+                         << refinement_type << "\" for brep_id " << brep_id
+                         << ". Supported: \"THB\". Planned (not yet implemented): \"LR\", \"HB\"."
+                         << std::endl;
         }
 
-        auto shift_to_nearest_knot = [](double value, const Vector& knots) -> double {
-            KRATOS_ERROR_IF(knots.empty()) << "Knot vector is empty." << std::endl;
-            double nearest = knots[0];
-            double min_dist = std::abs(value - knots[0]);
-            for (SizeType k = 1; k < knots.size(); ++k) {
-                const double dist = std::abs(value - knots[k]);
-                if (dist < min_dist) { min_dist = dist; nearest = knots[k]; }
-            }
-            return nearest;
-        };
-
-        for (SizeType i = 0; i < local_ref.size(); ++i) {
-            const Parameters entry = local_ref[i];
-            const SizeType level  = entry["refinement_level"].GetInt();
-            const double raw_min_u = entry["refined_region"]["u_range"][0].GetDouble();
-            const double raw_max_u = entry["refined_region"]["u_range"][1].GetDouble();
-            const double raw_min_v = entry["refined_region"]["v_range"][0].GetDouble();
-            const double raw_max_v = entry["refined_region"]["v_range"][1].GetDouble();
-            for (SizeType lv = 1; lv <= level; ++lv) {
-                const Vector& knots_u = p_local_surface->Levels()[lv - 1].KnotsU;
-                const Vector& knots_v = p_local_surface->Levels()[lv - 1].KnotsV;
-                const double min_u = shift_to_nearest_knot(raw_min_u, knots_u);
-                const double max_u = shift_to_nearest_knot(raw_max_u, knots_u);
-                const double min_v = shift_to_nearest_knot(raw_min_v, knots_v);
-                const double max_v = shift_to_nearest_knot(raw_max_v, knots_v);
-                p_local_surface->AddRefinementDomain(lv, min_u, max_u, min_v, max_v);
-            }
-        }
-
-        p_local_surface->EliminateInactiveFunctions(rModelPart);
-
-        KRATOS_INFO_IF("ReadLocalRefinement", EchoLevel > 2)
-            << "THB surface for brep_id " << brep_id
-            << " has " << p_local_surface->NumberOfLevels() << " levels and "
-            << p_local_surface->Points().size() << " active control points." << std::endl;
-
-        auto p_local_refined_brep_surface = Kratos::make_shared<LocalRefinedBrepSurfaceType>(
-            p_local_surface,
-            OuterLoops,
-            InnerLoops,
-            false);
-        p_local_refined_brep_surface->SetId(brep_id);
-
-        return p_local_refined_brep_surface;
+        return nullptr; // unreachable: all non-THB branches throw
     }
 
     ///@}
