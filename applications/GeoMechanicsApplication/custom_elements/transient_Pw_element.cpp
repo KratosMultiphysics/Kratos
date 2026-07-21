@@ -19,6 +19,7 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -153,6 +154,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(this->GetProperties());
 
     const auto&        r_geom = this->GetGeometry();
     const unsigned int number_of_integration_points =
