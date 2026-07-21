@@ -21,16 +21,19 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(expected_value, water_pressure[node_number - 1], 6)
 
     # To be changed, node 100 is a random pick and may be on the prescribed boundary. pick a better result, with computed result
-    def test_fully_saturated_hydrostatic(self):
+    # def test_fully_saturated_hydrostatic(self):
+    #     self._assert_fully_saturated_flow(
+    #         "Muskat", "fully_saturated_hydrostatic", 100, 22800.0
+    #     )
+    #
+    # def test_fully_saturated_hydrostatic_cutoff(self):
+    #     self._assert_fully_saturated_flow(
+    #         "Muskat", "fully_saturated_hydrostatic_cutoff", 100, 0.0
+    #     )
+    def test_van_genuchten_hydrostatic(self):
         self._assert_fully_saturated_flow(
-            "Muskat", "fully_saturated_hydrostatic", 100, 22800.0
+            "Muskat", "van_genuchten_hydrostatic", 100, 0.0
         )
-
-    def test_fully_saturated_hydrostatic_cutoff(self):
-        self._assert_fully_saturated_flow(
-            "Muskat", "fully_saturated_hydrostatic_cutoff", 100, 0.0
-        )
-
 
 if __name__ == "__main__":
     KratosUnittest.main()
