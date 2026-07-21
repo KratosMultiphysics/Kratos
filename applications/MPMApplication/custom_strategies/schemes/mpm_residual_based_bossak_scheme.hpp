@@ -337,22 +337,22 @@ public:
             array_1d<double, 3 > & r_current_displacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
             // Displacement prediction for implicit MPM
-            if (!(rNode.pGetDof(DISPLACEMENT_X)->IsFixed()))
-                r_current_displacement[0] = 0.0;
-            else
+            if ((rNode.pGetDof(DISPLACEMENT_X)->IsFixed()))
                 r_current_displacement[0]  = r_previous_displacement[0];
-
-            if (!(rNode.pGetDof(DISPLACEMENT_Y)->IsFixed()))
-                r_current_displacement[1] = 0.0;
             else
+                r_current_displacement[0] = 0.0;
+
+            if ((rNode.pGetDof(DISPLACEMENT_Y)->IsFixed()))
                 r_current_displacement[1]  = r_previous_displacement[1];
+            else
+                r_current_displacement[1] = 0.0;
 
             if (rNode.HasDofFor(DISPLACEMENT_Z))
             {
-                if (!(rNode.pGetDof(DISPLACEMENT_Z)->IsFixed()))
-                    r_current_displacement[2] = 0.0;
-                else
+                if ((rNode.pGetDof(DISPLACEMENT_Z)->IsFixed()))
                     r_current_displacement[2]  = r_previous_displacement[2];
+                else
+                    r_current_displacement[2] = 0.0;
             }
 
             // Pressure prediction for implicit MPM
