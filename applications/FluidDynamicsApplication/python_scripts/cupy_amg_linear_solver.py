@@ -55,6 +55,68 @@ class GraphBasedSA_AMG:
 
         self.levels = []
 
+
+    def estimate_lambda_max_gpu(self,A, invD, n_iter=5):
+        """
+        Estimates lambda_max(D^-1 A) on GPU using Lanczos iteration on 
+        the symmetric operator S = D^-1/2 * A * D^-1/2.
+        """
+        dtype = A.dtype
+        n = A.shape[0]
+        
+        # 1. Symmetric scaling factor D^-1/2
+        invD_sqrt = xp.sqrt(invD)
+        
+        # 2. Seed initial normalized random vector on GPU
+        rng = xp.random.default_rng(seed=42)
+        v = rng.standard_normal(n, dtype=dtype)
+        v /= xp.linalg.norm(v)
+        
+        v_prev = xp.zeros_like(v)
+        beta = 0.0
+        
+        alphas = []
+        betas = []
+        
+        # 3. Lanczos Iteration Loop
+        for _ in range(n_iter):
+            # Apply S * v = D^-1/2 * (A * (D^-1/2 * v))
+            w = invD_sqrt * (A @ (invD_sqrt * v))
+            
+            # Compute Ritz coefficient alpha = v^T * S * v
+            alpha = float(xp.dot(v, w))
+            alphas.append(alpha)
+            
+            # Orthogonalize against previous vectors
+            w -= alpha * v + beta * v_prev
+            beta = float(xp.linalg.norm(w))
+            
+            if beta < 1e-12:
+                break
+                
+            betas.append(beta)
+            v_prev = v
+            v = w / beta
+            
+        # 4. Construct small tridiagonal matrix T on CPU (size k x k)
+        k = len(alphas)
+        T = np.zeros((k, k), dtype=np.float64)
+        
+        # Fill main diagonal
+        np.fill_diagonal(T, alphas)
+        
+        # Fill off-diagonals safely (a k x k matrix has at most k-1 off-diagonals)
+        num_off_diags = min(k - 1, len(betas))
+        for i in range(num_off_diags):
+            T[i, i + 1] = betas[i]
+            T[i + 1, i] = betas[i]
+                
+        # Compute maximum eigenvalue of the tiny k x k matrix
+        eigvals = np.linalg.eigvalsh(T)
+        lambda_max = float(np.max(eigvals))
+        
+        return max(lambda_max, 1.0)
+
     def update_matrix_values(self, A_new):
         """
         Phase 2: GPU only - Fast rebuild of P, R, and A_coarse.
@@ -88,6 +150,18 @@ class GraphBasedSA_AMG:
                 P = T 
             lvl_dict['P'] = P
             R = P.T
+
+            # ------------------------------------------------------------------
+            # Compute LEVEL-SPECIFIC optimal Jacobi weight on GPU
+            # ------------------------------------------------------------------
+            # 5 steps of Power Iteration / Lanczos on current level's (invD * A_current)
+            lambda_max_lvl = self.estimate_lambda_max_gpu(A_current, invD, n_iter=5)
+            
+            # Apply safety margin (1.05) and compute optimal damping: (4/3) / lambda_max
+            safe_lambda = max(lambda_max_lvl, 1.0) * 1.05
+            lvl_dict['omega_jacobi'] = omega_prolong / safe_lambda
+            #print("omega level = ", lvl_dict['omega_jacobi'])
+
             self.levels.append(lvl_dict)
 
             # Generate the new structure natively on GPU using @
@@ -98,10 +172,19 @@ class GraphBasedSA_AMG:
 
         if A_current.shape[0] <= self.max_coarse:
             base_dict['is_dense_solve'] = True
-            A_dense_64 = A_current.todense().astype(xp.float64)
+            
+            # A_dense_64 = A_current.todense().astype(xp.float64)
+            # # Use pseudo-inverse to survive singular coarse grids
+            # A_inv_64 = xp.linalg.pinv(A_dense_64)
+            # base_dict['A_dense_inv'] = A_inv_64.astype(self.dtype)
+
+            A_dense = A_current.todense()
             # Use pseudo-inverse to survive singular coarse grids
-            A_inv_64 = xp.linalg.pinv(A_dense_64)
-            base_dict['A_dense_inv'] = A_inv_64.astype(self.dtype)
+            #Safe threshold: machine epsilon * max dimension * 100
+            A_inv = xp.linalg.pinv(A_dense, rcond=A_dense.shape[0] * xp.finfo(self.dtype).eps * 10)
+            #enforce symmetry
+            A_inv = (A_inv + A_inv.T) / 2.
+            base_dict['A_dense_inv'] = A_inv
 
         else:
             base_dict['is_dense_solve'] = False
@@ -123,7 +206,7 @@ class GraphBasedSA_AMG:
                 return lvl['A_dense_inv'] @ b
             else:
                 x = xp.zeros_like(b)
-                omega_jacobi = self.dtype(0.67)
+                omega_jacobi = lvl["omega_jacobi"] #  self.dtype(0.67)
                 for _ in range(20):
                     r = b - (A @ x)
                     r *= lvl['invD']
@@ -133,7 +216,7 @@ class GraphBasedSA_AMG:
 
         P = lvl['P']
         invD = lvl['invD']
-        omega = self.dtype.type(0.67)
+        omega = lvl["omega_jacobi"] # self.dtype.type(0.6) #self.dtype.type(0.67)
         sweeps = 2
 
         x = xp.zeros_like(b)

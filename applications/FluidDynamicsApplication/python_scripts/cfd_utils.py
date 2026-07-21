@@ -1141,11 +1141,7 @@ class CFDUtils:
             return KM.FluidDynamicsApplication.cupy_amg_linear_solver.GraphBasedSA_AMG(A, max_coarse=300)
         else:
             return None
-
-
-
-
-
+    
     def robust_cg(
         self,
         A,
@@ -1351,7 +1347,7 @@ class CFDUtils:
         residual_gap_ratios = []
         replacement_iterations = []
 
-        if resid_host <= stop_atol:
+        if resid_host <= atol:  #stop_atol:
             if return_info_dict:
                 return x, {
                     "converged": True,
@@ -1380,9 +1376,37 @@ class CFDUtils:
             rho = dot(xp, r, z)
 
             rho_host = float(rho)
-            if not bool(xp.isfinite(rho)) or rho_host <= 0.0:
-                reason = "non-positive or non-finite r^T M r"
+            # if not bool(xp.isfinite(rho)) or rho_host <= 0.0:
+            #     print("norm of r = ",norm(xp,r))
+            #     print("norm of z=M@r= ",norm(xp,z))
+            #     print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
+            #     print("rho_host= ",rho_host)
+            #     reason = "non-positive or non-finite r^T M r"
+            #     break
+
+            if not bool(xp.isfinite(rho)):
+                print("norm of r = ",norm(xp,r))
+                print("norm of z=M@r= ",norm(xp,z))
+                print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
+                print("rho_host= ",rho_host)
+                reason = "non-finite r^T M r"
                 break
+
+
+            if rho_host < 0.0: 
+                print("norm of r = ",norm(xp,r))
+                print("norm of z=M@r= ",norm(xp,z))
+                print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
+                print("rho_host= ",rho_host)
+                print("rho_host < 0 - going on as without preconditioner")
+                reason = " r^T M r < 0"
+                break
+
+            #just proceed as nothing in the case it is exactly 0
+            if rho_host == 0.0:
+                print("rho_host == 0 - simply proceeding even though this should not happen")
+                pass
+            
 
             if restart_p:
                 p = z.copy() if hasattr(z, "copy") else z
@@ -1396,7 +1420,7 @@ class CFDUtils:
             denom_host = float(denom)
 
             if not bool(xp.isfinite(denom)) or denom_host <= 0.0:
-                reason = "non-positive or non-finite p^T A p"
+                reason = "non-positive or nstop_atolon-finite p^T A p"
                 break
 
             alpha = rho / denom
