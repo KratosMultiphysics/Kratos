@@ -72,9 +72,7 @@ class MPMInletProcess(KratosMultiphysics.Process):
 
             if (self._IsInletStep()):
                 # Generate material points at the inlet
-                for nodes in self.model_part.Nodes:
-                    nodes.SetSolutionStepValue(KratosMultiphysics.VELOCITY    , self.assigned_velocity)
-                    nodes.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, self.assigned_velocity * self.delta_time)
+
                 # Assign (previous) velocities at the generated material points
                 # Assign volume and mass to material points
                 mp_volume = self.accumulated_volume / self.number_of_mp_to_be_generated
