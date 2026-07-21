@@ -13,20 +13,20 @@
                     "DENSITY_SOLID": 2.65,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.3,
-                    "BULK_MODULUS_SOLID": 1.0e+09,
-                    "BULK_MODULUS_FLUID": 2.0e+06,
-                    "PERMEABILITY_XX": 2.0e-03,
-                    "PERMEABILITY_YY": 2.0e-03,
+                    "BULK_MODULUS_SOLID": 6.700000e+19,
+                    "BULK_MODULUS_FLUID": 1.000000e+20,
+                    "PERMEABILITY_XX": 1e-5,
+                    "PERMEABILITY_YY": 1e-5,
                     "PERMEABILITY_XY": 0.0,
                     "DYNAMIC_VISCOSITY": 9.81,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "VanGenuchtenLaw",
-                    "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 1.0e-10,
-                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.561,
+                    "SATURATED_SATURATION": 0.403,
+                    "RESIDUAL_SATURATION": 0.025,
+                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 3.83,
                     "VAN_GENUCHTEN_GN": 1.377,
                     "VAN_GENUCHTEN_GL": 1.25,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-05
                 }
             }
         }
