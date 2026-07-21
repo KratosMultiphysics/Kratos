@@ -588,7 +588,8 @@ namespace Kratos::MaterialPointGeneratorUtility
     void GenerateMaterialPointElementFromSwModel(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rSwModelPart,
                                             ModelPart& rMPMModelPart,
-                                            bool IsMixedFormulation) {
+                                            bool IsMixedFormulation,
+                                            double MinimumHeight) {
         const bool IsAxisSymmetry = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
             : false;
@@ -693,7 +694,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                     for (size_t node_i = 0; node_i < r_shallow_water_geometry.size(); node_i++)
                     {
                         // interpolate sw variables at the nodes
-                        KRATOS_WATCH(r_shallow_water_geometry[node_i].FastGetSolutionStepValue(HEIGHT))
+                        // KRATOS_WATCH(r_shallow_water_geometry[node_i].FastGetSolutionStepValue(HEIGHT))
                         mp_height[PointNumber] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(HEIGHT);
                         mp_velocity[0] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(VELOCITY);
                         mp_velocity[0][2] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(VERTICAL_VELOCITY);
@@ -706,7 +707,18 @@ namespace Kratos::MaterialPointGeneratorUtility
                         // Interpolate the vertical coordinate (topography) to the material point
                         global_coordinate[0][2] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(TOPOGRAPHY);
                     }
-                    if (mp_height[PointNumber] < 0.0001) // ToDo: make this a parameter in the input file or better method
+                    // Check if reference gauss point is inside grid
+                    typename BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
+                    Element::Pointer dummy_pGridElement;
+                    Vector dummy_shape_function;
+                    bool initial_is_found = SearchStructure.FindPointOnMesh(global_coordinate[0], dummy_shape_function, dummy_pGridElement, result_begin);
+
+                    if (!initial_is_found){
+                        KRATOS_WARNING("GenerateMaterialPointElementFromSwModel") << "Search failed: skipping mp generation"
+                        << global_coordinate[0] << std::endl;
+                        continue;
+                    }
+                    if (mp_height[PointNumber] < MinimumHeight)
                         continue; // skip the material point generation if the height is too small
 
                     // get mp vertical distance and number of vertical layers to extrude the material point
@@ -716,10 +728,6 @@ namespace Kratos::MaterialPointGeneratorUtility
                     // const unsigned int number_of_vertical_layers = 10;
                     const double vertical_distance_adjusted = mp_height[PointNumber] / number_of_vertical_layers;
 
-                    // Divide the volume and mass of the material point
-                    KRATOS_WATCH("andiheho")
-                    KRATOS_WATCH(int_volumes[PointNumber])
-                    KRATOS_WATCH(mp_height[PointNumber])
                     mp_volume[0] = int_volumes[PointNumber] * mp_height[PointNumber] / number_of_vertical_layers;
                     mp_mass[0] = mp_volume[0] * density;
 
@@ -740,7 +748,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                             pGridElement->Set(ACTIVE);
                         }
                         else
-                            KRATOS_ERROR << "Search failed: unable to find a background grid geometry containing the material point element having coordinates "
+                            KRATOS_ERROR << "GenerateMaterialPointElementFromSwModel: Search failed, unable to find a background grid geometry containing the material point element having coordinates "
                             << global_coordinate[0] << std::endl;
 
                         auto p_quadrature_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
@@ -825,12 +833,6 @@ namespace Kratos::MaterialPointGeneratorUtility
         DenseVector<Matrix> jac_vec(int_points.size());
         rGeom.Jacobian(jac_vec, rIntegrationMethod);
         for (size_t i = 0; i < int_points.size(); ++i) {
-            KRATOS_WATCH("Integration point volume")
-            KRATOS_WATCH(rIntVolumes[i])
-            KRATOS_WATCH(MathUtils<double>::Det(jac_vec[i]))
-            KRATOS_WATCH(int_points[i].Weight())
-            KRATOS_WATCH(rGeom)
-            // KRATOS_WATCH(rIntegrationMethod)
             rIntVolumes[i] = MathUtils<double>::Det(jac_vec[i]) * int_points[i].Weight();
         }
     }

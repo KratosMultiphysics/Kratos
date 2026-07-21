@@ -25,6 +25,7 @@ class MpmImportSWDomainResultProcess(KM.Process):
             "input_model_part_name"       : "sw_input_model_part",
             "read_historical_database"    : true,
             "interval"                    : [0.0,"End"],
+            "minimum_water_depth"         : 0.0,
             "file_settings"               : {}
         }""")
 
@@ -80,7 +81,11 @@ class MpmImportSWDomainResultProcess(KM.Process):
         # for element in self.input_model_part.Elements:
         #     element.SetProperties(self.model["Initial_MPM_Material"].GetProperties(1))
         self.hdf5_process.ExecuteInitializeSolutionStep()
-        KratosMPM.GenerateMaterialPointElementFromSwModel(self.grid_model_part, self.input_model_part, self.material_point_model_part, False)
+        KratosMPM.GenerateMaterialPointElementFromSwModel(self.grid_model_part,
+                                                          self.input_model_part,
+                                                          self.material_point_model_part,
+                                                          False,
+                                                          self.settings["minimum_water_depth"].GetDouble() )
 
 
     # def _GetInputTimes(self, file_settings):
@@ -116,7 +121,7 @@ class MpmImportSWDomainResultProcess(KM.Process):
     def _CreateHDF5ParametersImport(self): #
         hdf5_settings = KM.Parameters()
         hdf5_settings.AddValue("model_part_name", self.settings["input_model_part_name"])
-        import_file_settings = KM.Parameters("""{"file_name" : "hdf5_output/<model_part_name>.h5"}""")
+        import_file_settings = KM.Parameters("""{"file_name" : "hdf5_output/<model_part_name>-0.0000.h5"}""")
         hdf5_settings.AddValue("file_settings", import_file_settings)
         data_settings = KM.Parameters("""{"list_of_variables" : []}""")
         if self.settings["read_historical_database"].GetBool():

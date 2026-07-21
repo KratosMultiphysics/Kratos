@@ -93,7 +93,8 @@ namespace Kratos::MaterialPointGeneratorUtility
         ModelPart& rBackgroundGridModelPart,
         ModelPart& rSwModelPart,
         ModelPart& rMPMModelPart,
-        bool IsMixedFormulation);
+        bool IsMixedFormulation,
+        double MinimumHeight);
     /**
      * @brief Function to add dofs to elements for Lagrange multiplier.
      * @details non-conforming Perturbed Lagrangian or Lagrange multiplier conditions
