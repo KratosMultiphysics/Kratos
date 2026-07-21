@@ -26,6 +26,7 @@ from test_hrom_training_utility_rom import TestHromTrainingUtilityRom
 from test_rom_manager import TestRomManager
 from test_rom_database import TestRomDatabase
 from test_numpy_output_process import TestNumpyOutputProcess
+from test_coupled_fluid_thermal_rom import TestCoupledFluidThermalRom
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -67,6 +68,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRomManager]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRomDatabase]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestNumpyOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledFluidThermalRom]))
+
+
 
     # - testNightly
     nightlySuite = suites['nightly']

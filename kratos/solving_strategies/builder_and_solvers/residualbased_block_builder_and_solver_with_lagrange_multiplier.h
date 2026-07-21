@@ -431,9 +431,9 @@ public:
         });
 
 
-        double* Avalues = rA.value_data().begin();
-        std::size_t* Arow_indices = rA.index1_data().begin();
-        std::size_t* Acol_indices = rA.index2_data().begin();
+        auto* Avalues = rA.value_data().begin();
+        auto* Arow_indices = rA.index1_data().begin();
+        auto* Acol_indices = rA.index2_data().begin();
 
         // Define  zero value tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -901,9 +901,9 @@ protected:
             mLagrangeMultiplierVector.resize(slave_size, false);
             TSparseSpace::SetToZero(mLagrangeMultiplierVector);
 
-            double *Tvalues = BaseType::mT.value_data().begin();
-            IndexType *Trow_indices = BaseType::mT.index1_data().begin();
-            IndexType *Tcol_indices = BaseType::mT.index2_data().begin();
+            auto* Tvalues = BaseType::mT.value_data().begin();
+            auto* Trow_indices = BaseType::mT.index1_data().begin();
+            auto* Tcol_indices = BaseType::mT.index2_data().begin();
 
             // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
             Trow_indices[0] = 0;
