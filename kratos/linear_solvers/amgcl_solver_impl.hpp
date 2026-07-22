@@ -310,6 +310,13 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
         if (preconditioner_type == "relaxation")
             this->SetSmootherType(Settings["smoother_type"].GetString());
 
+        // Termination criteria.
+        mTolerance = Settings["tolerance"].GetDouble();
+        mMaxIterationsNumber = Settings["max_iteration"].GetInt();
+        mAMGCLParameters.put("solver.tol", mTolerance);
+        mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
+        mAMGCLParameters.put("solver.verbose", mVerbosity >= 2);
+
         mGMRESSize = Settings["gmres_krylov_space_dimension"].GetInt();
 
         // Termination criteria.
