@@ -21,6 +21,7 @@
 
 // Future Extensions
 #include "future/python/add_containers_to_python.h"
+#include "future/python/add_entity_data_to_python.h"
 #include "future/python/add_io_to_python.h"
 #include "future/python/add_linear_operators_to_python.h"
 #include "future/python/add_linear_solvers_to_python.h"
@@ -36,6 +37,8 @@ namespace py = pybind11;
 void AddFutureToPython(py::module& m)
 {
     AddContainersToPython(m);
+
+    AddEntityDataToPython(m);
 
     AddIOToPython(m);
 
