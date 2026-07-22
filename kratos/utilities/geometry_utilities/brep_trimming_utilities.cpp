@@ -116,32 +116,332 @@ namespace Kratos
                             rSpansV[j], rSpansV[j + 1]);
                     }
                     else {
-                        std::vector<Matrix> triangles;
-                        for(IndexType i = 0; i < solution_inner.size(); ++i)
+                        for(IndexType inner = 0; inner < solution_inner.size(); ++inner)
                         {
-                            BrepTrimmingUtilities::Triangulate_OPT(solution_inner[i], triangles, factor, span_area);
-                        }
+                            const auto& points_inner = solution_inner[inner];
+                            auto on_border = [&rectangle](const Clipper2Lib::Point64& pt) {
+                                return pt.x == rectangle.left || pt.x == rectangle.right ||
+                                    pt.y == rectangle.top  || pt.y == rectangle.bottom;
+                            };
+                            IndexType excursions = 0;
+                            bool prev_on_border = on_border(points_inner.back());  
+                            for (const auto& pt : points_inner) {
+                                bool cur_on_border = on_border(pt);
+                                if (prev_on_border && !cur_on_border) ++excursions;  
+                                prev_on_border = cur_on_border;
+                            }
+                            
+                            bool is_agip = false;
+                            orientation Replaced_border = od_none;
+                            std::list<c_vector<double,2> > new_points;
+                            c_vector<double,4> borders;
+                            borders[0] = rectangle.bottom * factor;
+                            borders[2] = rectangle.top * factor;
+                            borders[1] = rectangle.right * factor;
+                            borders[3] = rectangle.left * factor;
 
-                        const SizeType number_of_points = std::max(rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1));
+                            if(excursions == 1) //AGIP Candidates
+                            {
+                                //chech for validity of trimming curve if it can be integrated
+                                std::list<c_vector<double,2> >::iterator iter;
+                                std::vector< Clipper2Lib::Point64 > const& points = solution_inner[inner];
+                                std::vector<Clipper2Lib::Point64> corners = {
+                                    {rectangle.left, rectangle.top},{rectangle.left, rectangle.bottom},
+                                    {rectangle.right, rectangle.top},{rectangle.right, rectangle.bottom}
+                                };
 
-                        const IndexType number_of_integration_points = triangles.size() * IntegrationPointUtilities::s_gauss_triangle[number_of_points].size();
+                                std::vector<Clipper2Lib::Point64> filtered_points;
+                                for (const auto& pt : points) {
+                                    bool is_corner = false;
+                                    for (const auto& corner : corners) {
+                                        if (std::sqrt((pt.x - corner.x)*(pt.x - corner.x) + (pt.y - corner.y)*(pt.y - corner.y)) < 100) {
+                                            is_corner = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!is_corner) {
+                                        filtered_points.push_back(pt);
+                                    }
+                                }
 
-                        IndexType initial_integration_size = rIntegrationPoints.size();
+                                if(filtered_points.back() == points.back() && filtered_points.front() == points.front())
+                                {
+                                    Clipper2Lib::Point64 last = filtered_points.back();
+                                    filtered_points.pop_back();
+                                    filtered_points.insert(filtered_points.begin(), last);
+                                }
 
-                        if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
-                            rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
-                        }
+                                for (const auto& pt : filtered_points) {
+                                    c_vector<double, 2> vec;
+                                    vec[0] = BrepTrimmingUtilities::IntPointToDoublePoint(pt, factor)[0];
+                                    vec[1] = BrepTrimmingUtilities::IntPointToDoublePoint(pt, factor)[1];
+                                    new_points.push_back(vec);
+                                }
 
-                        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
-                        advance(integration_point_iterator, initial_integration_size);
+                                is_agip = check_polygon(new_points,borders,Replaced_border,iter);
+                            }
 
-                        for (IndexType i = 0; i < triangles.size(); ++i)
-                        {
-                            IntegrationPointUtilities::IntegrationPointsTriangle2D(
-                                integration_point_iterator,
-                                number_of_points,
-                                triangles[i](0, 0), triangles[i](1, 0), triangles[i](2, 0),
-                                triangles[i](0, 1), triangles[i](1, 1), triangles[i](2, 1));
+                            if(is_agip == true)
+                            {
+                                create_trimmed_domain(new_points, borders, Replaced_border);
+                            
+                                std::vector<std::array<double, 2>> gauss_data_u = IntegrationPointUtilities::s_gauss_legendre[rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) - 1];
+                                std::vector<std::array<double, 2>> gauss_data_v = IntegrationPointUtilities::s_gauss_legendre[rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1) - 1];
+
+                                std::vector<c_vector<double, 2>> gauss_u_w_weights;
+                                gauss_u_w_weights.reserve(gauss_data_u.size());
+                                for (const auto& point : gauss_data_u) {
+                                    c_vector<double, 2> vec;
+                                    vec[0] = point[0]*2-1;
+                                    vec[1] = point[1]*2;
+                                    gauss_u_w_weights.push_back(vec);
+                                }
+                                std::vector<c_vector<double, 2>> gauss_v_w_weights;
+                                gauss_v_w_weights.reserve(gauss_data_v.size());
+                                for (const auto& point : gauss_data_v) {
+                                    c_vector<double, 2> vec;
+                                    vec[0] = point[0]*2-1;
+                                    vec[1] = point[1]*2;
+                                    gauss_v_w_weights.push_back(vec);
+                                }
+
+                                if(Replaced_border==od_west || Replaced_border==od_east)
+                                {
+                                    std::vector<c_vector<double,2> > tmp = gauss_u_w_weights;
+                                    gauss_u_w_weights = gauss_v_w_weights;
+                                    gauss_v_w_weights = tmp;
+                                }
+
+                                c_vector<double,4> bounding_box;
+                                compute_bounding_box(new_points,bounding_box);
+
+                                double u1 = bounding_box(3); //west
+                                double u2 = bounding_box(1); //east
+                                double v1 = bounding_box(2); //north
+                                double v2 = bounding_box(0); //south
+
+                                //change borders
+                                c_vector<double,4> Borders = bounding_box;
+
+                                //mapping to Gauss quadrature space
+                                c_vector<double,2> shifts;
+                                shifts(0) = (u2 + u1)/2.0;
+                                shifts(1) = (v2 + v1)/2.0;
+
+                                c_vector<double,2> scals;
+                                scals(0) = 2.0/(u2 - u1);
+                                scals(1) = 2.0/(v2 - v1);
+
+                                c_matrix<double,2,2> rot_matrix;
+                                rot_matrix.clear();
+                                if(Replaced_border==od_north)
+                                {
+                                    rot_matrix(0,0) = 1.0;
+                                    rot_matrix(1,1) = 1.0;
+                                }
+                                else if(Replaced_border==od_east)
+                                {
+                                    rot_matrix(0,1) = -1.0;
+                                    rot_matrix(1,0) = 1.0;
+                                }
+                                else if(Replaced_border==od_south)
+                                {
+                                    rot_matrix(0,0) = -1.0;
+                                    rot_matrix(1,1) = -1.0;
+                                }
+                                else if(Replaced_border==od_west)
+                                {
+                                    rot_matrix(0,1) = 1.0;
+                                    rot_matrix(1,0) = -1.0;
+                                }
+                                else
+                                    break;
+                                    // TODO
+                                    // return quad_points;
+
+                                //mapping in Gaussian space (shift, rotation, scaling)
+                                map_polygon(new_points,rot_matrix,shifts,scals);
+
+                                std::vector<double> eval_height(gauss_u_w_weights.size());
+                                std::vector<c_vector<double,2> > u_eval_v_hight;
+                                u_eval_v_hight.resize(2*gauss_u_w_weights.size()+1);
+
+                                double tmp_start = 1.0;
+                                u_eval_v_hight[0](0) = tmp_start;
+                                int counter=gauss_u_w_weights.size()-1;
+                                for(size_t i=1;i<u_eval_v_hight.size();i++)
+                                {
+                                    u_eval_v_hight[i](0) = gauss_u_w_weights[counter](0) + 1e-10; //Add 1e-10 to avoid numerical issues
+                                    i++;
+                                    u_eval_v_hight[i](0) = tmp_start - gauss_u_w_weights[counter](1); //Add 1e-10 to avoid numerical issues
+                                    tmp_start = u_eval_v_hight[i](0);
+                                    counter--;
+                                }
+                                u_eval_v_hight[u_eval_v_hight.size()-1](0) = -1.0;
+                                
+                                //Compute heights and correction
+                                comp_heights_and_correction(new_points,u_eval_v_hight,eval_height);
+                                // if(!comp_heights_and_correction(new_points,u_eval_v_hight,eval_height))
+                                //     break;
+                                //     // TODO :return quad_points;
+
+                                std::vector<std::vector<c_vector<double,2> > > quadrature_points;
+                                std::vector<std::vector<double> > int_weights;
+                                quadrature_points.resize(gauss_u_w_weights.size());
+                                int_weights.resize(gauss_u_w_weights.size());
+                                for(size_t i=0;i<quadrature_points.size();i++)
+                                {
+                                    quadrature_points[i].resize(gauss_v_w_weights.size());
+                                    int_weights[i].resize(gauss_v_w_weights.size());
+                                }
+                                //double sum=0.0;
+                                counter = 0;
+                                for(int i=quadrature_points.size()-1;i>=0;i--)
+                                {
+                                    //double sum_seg = 0.0;
+                                    for(size_t j=0;j<quadrature_points[i].size();j++)
+                                    {
+                                    quadrature_points[i][j](0) = gauss_u_w_weights[i](0);
+                                    double factor = eval_height[counter]*0.5; //length of g2 vector
+                                    double tmp_height = (gauss_v_w_weights[j](0)+1.0)*eval_height[counter]*0.5;
+                                    quadrature_points[i][j](1) = tmp_height-1.0;  //position is correct
+                                    int_weights[i][j] = gauss_u_w_weights[i](1)*gauss_v_w_weights[j](1)*factor;
+
+                                    }
+                                    counter++;
+                                }
+
+                                //rotate quadrature points back
+                                rot_matrix.clear();
+                                if(Replaced_border==od_north)
+                                {
+                                    rot_matrix(0,0) = 1.0;
+                                    rot_matrix(1,1) = 1.0;
+                                }
+                                else if(Replaced_border==od_east)
+                                {
+                                    rot_matrix(0,1) = 1.0;
+                                    rot_matrix(1,0) = -1.0;
+                                }
+                                else if(Replaced_border==od_south)
+                                {
+                                    rot_matrix(0,0) = -1.0;
+                                    rot_matrix(1,1) = -1.0;
+                                }
+                                else if(Replaced_border==od_west)
+                                {
+                                    rot_matrix(0,1) = -1.0;
+                                    rot_matrix(1,0) = 1.0;
+                                }
+                                scals(0) = (u2 - u1)/2.0;
+                                scals(1) = (v2 - v1)/2.0;
+
+                                map_quadrature_points(quadrature_points,rot_matrix,shifts,scals);
+
+                                double J3 = (u2-u1)*(v2-v1)*0.25;
+
+                                // Assign the integration points
+                                const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
+
+                                IndexType initial_integration_size = rIntegrationPoints.size();
+
+                                if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+                                    rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+                                }
+
+                                typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+                                advance(integration_point_iterator, initial_integration_size);
+
+                                for(size_t ku=0;ku<quadrature_points.size();ku++)
+                                {
+                                    for(size_t kv=0;kv<quadrature_points[ku].size();kv++)
+                                    {
+                                        (*integration_point_iterator)[0] = quadrature_points[ku][kv](0);
+                                        (*integration_point_iterator)[1] = quadrature_points[ku][kv](1); 
+                                        (*integration_point_iterator).Weight() = J3*int_weights[ku][kv];
+                                        integration_point_iterator++;
+                                    }
+                                }
+                            }
+                            else //triangulation
+                            {
+                                std::vector<Matrix> triangles;
+                                BrepTrimmingUtilities::Triangulate_OPT(solution_inner[inner], triangles, factor, span_area);
+
+                                const SizeType number_of_points = std::max(rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1));
+                                const IndexType number_of_integration_points = triangles.size() * IntegrationPointUtilities::s_gauss_triangle[number_of_points].size();
+
+                                IndexType initial_integration_size = rIntegrationPoints.size();
+
+                                if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+                                    rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+                                }
+
+                                typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+                                advance(integration_point_iterator, initial_integration_size);
+
+                                for (IndexType i = 0; i < triangles.size(); ++i)
+                                {
+                                    
+                                    IntegrationPointUtilities::IntegrationPointsTriangle2D(
+                                        integration_point_iterator,
+                                        number_of_points,
+                                        triangles[i](0, 0), triangles[i](1, 0), triangles[i](2, 0),
+                                        triangles[i](0, 1), triangles[i](1, 1), triangles[i](2, 1));
+                                }
+
+                                // start moment fitting algorithm to reduce the number of integration points (modified from Meßmer et al, 2022)
+                                SizeType point_distribution_factor = 1.5; //1.5; //gamma >= 2, TO DO
+                                const SizeType min_num_points = (rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0))*(rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1))*(point_distribution_factor);
+
+                                bool do_moment_fitting = (rIntegrationPoints.size() - initial_integration_size) >= min_num_points;
+                                if(do_moment_fitting)
+                                {
+                                    // Get integration points on the trimmed element.
+                                    IntegrationPointsArrayType element_integration_points;
+                                    IndexType element_integration_size = rIntegrationPoints.size() - initial_integration_size;
+                                    element_integration_points.resize(element_integration_size);
+
+                                    typename IntegrationPointsArrayType::iterator element_integration_point_iterator = element_integration_points.begin();
+                                    typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+                                    advance(integration_point_iterator, initial_integration_size);
+
+                                    for (IndexType i = 0; i < element_integration_size; ++i)
+                                    {
+                                        (*element_integration_point_iterator) = (*integration_point_iterator);
+
+                                        element_integration_point_iterator++;
+                                        integration_point_iterator++;
+                                    }
+
+                                    // Get boundary integration points.
+                                    Vector constant_terms{};
+                                    ComputeConstantTerms(constant_terms, element_integration_points, rSpansU[i], rSpansU[i + 1], rSpansV[j], rSpansV[j + 1], rIntegrationInfo);
+
+                                    // Start point elimination.
+                                    double residual = std::numeric_limits<double>::max();
+                                    IntegrationPointsArrayType element_new_integration_points;
+
+                                    // If residual can not be statisfied
+                                    if( residual > 1.0e-10){ 
+
+                                        // Run point elimination.
+                                        double clip_area_norm = clip_area * factor * factor;
+                                        residual = PointElimination(constant_terms, element_integration_points, element_new_integration_points,
+                                                                    rSpansU[i], rSpansU[i + 1], rSpansV[j], rSpansV[j + 1], rIntegrationInfo, clip_area_norm);
+
+                                        // Erase the existing element integration points and replace it with the element new integration points
+                                        IndexType element_new_integration_size = element_new_integration_points.size();
+
+                                        rIntegrationPoints.erase(rIntegrationPoints.begin()+initial_integration_size, rIntegrationPoints.end());
+                                        rIntegrationPoints.insert(rIntegrationPoints.end(), element_new_integration_points.begin(), element_new_integration_points.end());
+                                    }
+                                    else
+                                    {
+                                        KRATOS_WATCH("residual is small, no point elimination needed")
+                                    }
+                                }
+                            }
                         }
                     }
                     clipper_operation_outer.Clear();
