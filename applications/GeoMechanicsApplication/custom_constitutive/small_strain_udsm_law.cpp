@@ -100,7 +100,7 @@ using f_UserMod          = void(__stdcall*)(int*,
                                    double*,
                                    double*,
                                    double*,
-                                   double**,
+                                   double*,
                                    double*,
                                    double*,
                                    double*,
@@ -136,7 +136,7 @@ using f_UserMod          = void (*)(int*,
                            double*,
                            double*,
                            double*,
-                           double**,
+                           double*,
                            double*,
                            double*,
                            double*,
@@ -342,15 +342,14 @@ void SmallStrainUDSMLaw::SetAttributes(const Properties& rMaterialProperties)
 
     const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
 
-    mpUserMod(
-        &task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-        &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
-        &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
-        &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]),
-        &excessPorePressureCurrent, StateVariables.data(), &iPlastic, &nStateVariables,
-        &mAttributes[index_of_is_non_symmetric_flag], &mAttributes[index_of_is_stress_dependent_flag],
-        &mAttributes[index_of_is_time_dependent_flag], &mAttributes[index_of_use_tangent_matrix_flag],
-        mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(&task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
+              &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
+              &(mDeltaStrainVector.data()[0]), &mMatrixD[0][0], &bulkWater, &(mStressVector.data()[0]),
+              &excessPorePressureCurrent, StateVariables.data(), &iPlastic, &nStateVariables,
+              &mAttributes[index_of_is_non_symmetric_flag], &mAttributes[index_of_is_stress_dependent_flag],
+              &mAttributes[index_of_is_time_dependent_flag], &mAttributes[index_of_use_tangent_matrix_flag],
+              mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
         << "The specified UDSM returns an error while call UDSM with IDTASK" << task_id_as_int
@@ -395,15 +394,14 @@ int SmallStrainUDSMLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rMat
 
     const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
 
-    mpUserMod(
-        &task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-        &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
-        &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
-        &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]),
-        &excessPorePressureCurrent, StateVariables.data(), &iPlastic, &nStateVariables,
-        &mAttributes[index_of_is_non_symmetric_flag], &mAttributes[index_of_is_stress_dependent_flag],
-        &mAttributes[index_of_is_time_dependent_flag], &mAttributes[index_of_use_tangent_matrix_flag],
-        mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(&task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
+              &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
+              &(mDeltaStrainVector.data()[0]), &mMatrixD[0][0], &bulkWater, &(mStressVector.data()[0]),
+              &excessPorePressureCurrent, StateVariables.data(), &iPlastic, &nStateVariables,
+              &mAttributes[index_of_is_non_symmetric_flag], &mAttributes[index_of_is_stress_dependent_flag],
+              &mAttributes[index_of_is_time_dependent_flag], &mAttributes[index_of_use_tangent_matrix_flag],
+              mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
         << "The specified UDSM returns an error while call UDSM with IDTASK" << task_id_as_int
@@ -705,7 +703,13 @@ array_1d<double, SmallStrainUDSMLaw::Sig0Size>& SmallStrainUDSMLaw::GetSig0() { 
 void SmallStrainUDSMLaw::CallUDSM(UDSMTaskId TaskId, Parameters& rValues)
 {
     KRATOS_TRY
-
+    if (!mIsUDSMLoaded || mpUserMod == nullptr || mpGetParamCount == nullptr || mpGetStateVarCount == nullptr) {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        mIsUDSMLoaded                         = loadUDSM(rMaterialProperties);
+        KRATOS_ERROR_IF_NOT(mIsUDSMLoaded)
+            << "Cannot (re)load UDSM " << rMaterialProperties[UDSM_NAME] << " (material Id of "
+            << rMaterialProperties.Id() << ")." << std::endl;
+    }
     auto task_id_as_int = static_cast<int>(TaskId);
 
     double deltaTime = rValues.GetProcessInfo()[DELTA_TIME];
@@ -738,15 +742,14 @@ void SmallStrainUDSMLaw::CallUDSM(UDSMTaskId TaskId, Parameters& rValues)
 
     const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
 
-    mpUserMod(
-        &task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-        &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
-        &(mSig0.data()[0]), &excessPorePressurePrevious, &(mStateVariablesFinalized.data()[0]),
-        &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]),
-        &excessPorePressureCurrent, &(mStateVariables.data()[0]), &iPlastic, &nStateVariables,
-        &mAttributes[index_of_is_non_symmetric_flag], &mAttributes[index_of_is_stress_dependent_flag],
-        &mAttributes[index_of_is_time_dependent_flag], &mAttributes[index_of_use_tangent_matrix_flag],
-        mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(&task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
+              &(mSig0.data()[0]), &excessPorePressurePrevious, &(mStateVariablesFinalized.data()[0]),
+              &(mDeltaStrainVector.data()[0]), &mMatrixD[0][0], &bulkWater, &(mStressVector.data()[0]),
+              &excessPorePressureCurrent, &(mStateVariables.data()[0]), &iPlastic, &nStateVariables,
+              &mAttributes[index_of_is_non_symmetric_flag], &mAttributes[index_of_is_stress_dependent_flag],
+              &mAttributes[index_of_is_time_dependent_flag], &mAttributes[index_of_use_tangent_matrix_flag],
+              mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     if (iAbort != 0) {
         KRATOS_INFO("CallUDSM, iAbort !=0")
@@ -938,25 +941,20 @@ void SmallStrainUDSMLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
 
+    // Function pointers (mpGetParamCount, mpGetStateVarCount and mpUserMod) point into the shared
+    // library, since it may no longer be loaded when we restore this constitutive law.
+
     rSerializer.save("StressVector", mStressVector);
     rSerializer.save("DeltaStrainVector", mDeltaStrainVector);
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
-    // Saving `mMatrixD` was missing and I wasn't able to find an easy way to add it, since it is a
-    // C-style array. When the type of `mMatrixD` is modified to a proper matrix type, this will
-    // become a no-brainer.
-
-    // Also, it doesn't make sense to save function pointers pointing into the shared library, since
-    // it may no longer be loaded when we restore this constitutive law. Therefore, member `load`
-    // keeps the initial null values. By setting the 'is UDSM loaded' flag to false we enforce the
-    // shared library to be loaded again before using it.
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
-    rSerializer.save("IsUDSMLoaded", false);
     rSerializer.save("Attributes", mAttributes);
     rSerializer.save("ProjectDirectory", mProjectDirectory);
     rSerializer.save("StateVariables", mStateVariables);
     rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
     rSerializer.save("Sig0", mSig0);
     rSerializer.save("Dimension", mpDimension);
+    rSerializer.save("MatrixD", mMatrixD);
 }
 
 void SmallStrainUDSMLaw::load(Serializer& rSerializer)
@@ -966,19 +964,20 @@ void SmallStrainUDSMLaw::load(Serializer& rSerializer)
     rSerializer.load("StressVector", mStressVector);
     rSerializer.load("DeltaStrainVector", mDeltaStrainVector);
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
-    // Loading `mMatrixD` was missing and cannot be added yet, since saving it is rather
-    // complicated (see also the comment in member `save`)
-
-    // Also the function pointers cannot be restored. They will keep their initial null values.
-
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
-    rSerializer.load("IsUDSMLoaded", mIsUDSMLoaded);
     rSerializer.load("Attributes", mAttributes);
     rSerializer.load("ProjectDirectory", mProjectDirectory);
     rSerializer.load("StateVariables", mStateVariables);
     rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
     rSerializer.load("Sig0", mSig0);
     rSerializer.load("Dimension", mpDimension);
+    rSerializer.load("MatrixD", mMatrixD);
+
+    // We set mIsUDSMLoaded false to call loadUDSM(rMaterialProperties) later to re-initialise the functions pointers listed below.
+    mIsUDSMLoaded      = false;
+    mpGetParamCount    = nullptr;
+    mpGetStateVarCount = nullptr;
+    mpUserMod          = nullptr;
 }
 
 // Instances of this class can neither be copied nor moved. Check that at compile time.
