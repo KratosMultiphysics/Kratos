@@ -23,7 +23,7 @@
                     "RETENTION_LAW": "VanGenuchtenLaw",
                     "SATURATED_SATURATION": 0.403,
                     "RESIDUAL_SATURATION": 0.025,
-                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 3.83,
+                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2611,
                     "VAN_GENUCHTEN_GN": 1.377,
                     "VAN_GENUCHTEN_GL": 1.25,
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-05
