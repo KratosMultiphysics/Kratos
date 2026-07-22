@@ -128,13 +128,13 @@ class EdgeCableElementProcess
         if (mParameters["element_type"].GetString() == "cable")
         {
             const Element& rElem = KratosComponents<Element>::Get("SlidingCableElement3D3N");
-            Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
+            Element::Pointer pElem = rElem.Create(new_element_id, line_t.Points(), p_elem_prop);
             mrModelPart.AddElement(pElem);
         }
         else if (mParameters["element_type"].GetString() == "ring")
         {
             const Element& rElem = KratosComponents<Element>::Get("RingElement3D4N");
-            Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
+            Element::Pointer pElem = rElem.Create(new_element_id, line_t.Points(), p_elem_prop);
             mrModelPart.AddElement(pElem);
         }
         else KRATOS_ERROR << "element type :" << mParameters["element_type"].GetString() << " not available for sliding process" << std::endl;

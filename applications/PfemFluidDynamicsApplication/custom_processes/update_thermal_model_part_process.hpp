@@ -129,7 +129,7 @@ class UpdateThermalModelPartProcess : public Process {
                         Properties::Pointer properties = it_elem->pGetProperties();
 
                         Element::Pointer p_element =
-                            mReferenceElement.Create(it_elem->Id(), it_elem->GetGeometry(), properties);
+                            mReferenceElement.Create(it_elem->Id(), it_elem->GetGeometry().Points(), properties);
                         temp_elements.push_back(p_element);
                     }
                     rDestinationModelPart.AddElements(temp_elements.begin(), temp_elements.end());

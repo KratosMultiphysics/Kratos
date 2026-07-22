@@ -1054,7 +1054,7 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
         const GeometryType& r_geometry = r_elem.GetGeometry();
 
         if (r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) {
-            p_reference_element = r_elem.Create(0, r_elem.GetGeometry(), r_elem.pGetProperties());
+            p_reference_element = r_elem.Create(0, r_elem.GetGeometry().Points(), r_elem.pGetProperties());
             break;
         }
     }
