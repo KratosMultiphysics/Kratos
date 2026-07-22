@@ -31,6 +31,7 @@
     - [TPL-Libraries](#tpl-libraries)
       - [Tetgen](#tetgen)
       - [Triangle](#triangle)
+  - [Installing via Spack](#installing-via-spack)
 
 ## Cloning Kratos
 
@@ -874,3 +875,76 @@ Forces to re-download and replace an existing version of *Tetgen* obtained throu
 
 `-DUSE_TRIANGLE_NONFREE_TPL`
 Enables or disables the use of *Triangle* and its related utilities in the code.
+
+## Installing via Spack
+
+Building from source as described above is the recommended and default way to obtain *Kratos*. As an alternative, if you don't need a development checkout, *Kratos* can be built and installed automatically with [*Spack*](https://spack.io/), a package manager for *GNU/Linux* and *MacOS* that resolves and compiles all dependencies for you. The package (`kratos_multiphysics`) is distributed through the [official Spack packages repository](https://github.com/spack/spack-packages).
+
+First, [install Spack](https://spack.readthedocs.io/en/latest/getting_started.html) and load it into your shell:
+
+```Shell
+git clone --depth=1 https://github.com/spack/spack.git
+. spack/share/spack/setup-env.sh
+```
+
+Then install *Kratos* with its default set of applications:
+
+```Shell
+spack install kratos_multiphysics
+```
+
+Once installed, load it (this sets `PYTHONPATH`/`LD_LIBRARY_PATH` for you) so it can be imported from Python:
+
+```Shell
+spack load kratos_multiphysics
+python3 -c "import KratosMultiphysics"
+```
+
+### Selecting a version
+
+```Shell
+spack install kratos_multiphysics@10.4.3   # a tagged release
+spack install kratos_multiphysics@master   # the development branch
+```
+
+Available versions include `9.5`, `10.0`, `10.1`, `10.2.3`, `10.3.0`, `10.4.0`, `10.4.2`, `10.4.3` and `master`.
+
+### Variants
+
+The build can be customized through the following variants (defaults shown):
+
+| Variant | Default | Values | Description |
+|---------|---------|--------|-------------|
+| `applications` | `linear_solvers,structural_mechanics,fluid_dynamics,iga` | any combination of the in-tree applications (snake_case names) | Applications to compile |
+| `build_type` | `Release` | `Release`, `RelWithDebInfo`, `Debug`, `FullDebug`, `Custom` | CMake build type |
+| `shared_memory` | `openmp` | `openmp`, `cxx11`, `none` | Shared-memory parallelization backend |
+| `mpi` | `False` | `True`/`False` | Build with MPI support |
+| `mkl` | `False` | `True`/`False` | Use Intel MKL solvers |
+| `suitesparse` | `False` | `True`/`False` | Use SuiteSparse solvers |
+| `tbb` | `False` | `True`/`False` | Use Intel TBB |
+| `mmg` | `False` | `True`/`False` | Enable MMG remeshing |
+| `parmmg` | `False` | `True`/`False` | Enable ParMMG parallel remeshing |
+| `triangle` | `False` | `True`/`False` | Enable the non-free [Triangle](#triangle) TPL |
+| `tetgen` | `False` | `True`/`False` | Enable the non-free [Tetgen](#tetgen) TPL |
+| `stubs` | `True` | `True`/`False` | Generate Python stub (`.pyi`) files for IDE support |
+| `cpp_tests` | `False` | `True`/`False` | Build the C++ (GTest) unit tests |
+| `benchmark` | `False` | `True`/`False` | Build the C++ (Google Benchmark) benchmarks |
+
+Applications are chosen with the `applications` variant using their snake_case names (e.g. `structural_mechanics`, `fluid_dynamics`, `contact_mechanics`, `trilinos`). Some examples:
+
+```Shell
+# MPI build with a custom set of applications
+spack install kratos_multiphysics +mpi applications=structural_mechanics,fluid_dynamics,trilinos
+
+# Enable MKL, MMG and TBB
+spack install kratos_multiphysics +mkl +mmg +tbb shared_memory=openmp
+
+# Development version with the C++ tests and benchmarks enabled
+spack install kratos_multiphysics@master +cpp_tests +benchmark
+```
+
+You can inspect the full list of variants and applications for the installed package with:
+
+```Shell
+spack info kratos_multiphysics
+```
