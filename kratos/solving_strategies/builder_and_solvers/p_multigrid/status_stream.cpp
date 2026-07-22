@@ -39,42 +39,40 @@ using SingleBnS = PMultigridBuilderAndSolver<TUblasSparseSpace<float>,
                                              TUblasDenseSpace<double>>;
 
 
-std::unique_ptr<VtuOutput> MakeVtuOutput(ModelPart& rModelPart,
-                                         const PointerVectorSet<Dof<double>>& rDofSet)
-{
-    auto p_output = std::make_unique<VtuOutput>(rModelPart);
+std::unique_ptr<VtuOutput> MakeVtuOutput(
+    ModelPart& rModelPart,
+    const PointerVectorSet<Dof<double>>& rDofSet) {
+        auto p_output = std::make_unique<VtuOutput>(rModelPart);
 
-    KRATOS_TRY
+        KRATOS_TRY
+            std::unordered_set<std::string> variable_names;
+            for (const Dof<double>& r_dof : rDofSet) {
+                variable_names.emplace(r_dof.GetVariable().Name());
+                variable_names.emplace(r_dof.GetReaction().Name());
+            }
 
-    std::unordered_set<std::string> variable_names;
-    for (const Dof<double>& r_dof : rDofSet) {
-        variable_names.emplace(r_dof.GetVariable().Name());
-        variable_names.emplace(r_dof.GetReaction().Name());
-    }
+            std::vector<const Variable<double>*> variables(variable_names.size());
+            for (const std::string& r_variable_name : variable_names){
+                KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_variable_name))
+                    << r_variable_name << " is not a registered variable name";
+                p_output->AddVariable(KratosComponents<Variable<double>>::Get(r_variable_name), Globals::DataLocation::NodeHistorical);
+            }
+        KRATOS_CATCH("")
 
-    std::vector<const Variable<double>*> variables(variable_names.size());
-    for (const std::string& r_variable_name : variable_names){
-        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_variable_name))
-            << r_variable_name << " is not a registered variable name";
-        p_output->AddVariable(KratosComponents<Variable<double>>::Get(r_variable_name), Globals::DataLocation::NodeHistorical);
-    }
-
-    KRATOS_CATCH("")
-
-    return p_output;
+        return p_output;
 }
 
 
 struct PMGStatusStream::Impl {
     void PrintHeader() {
         this->PrintHorizontalLine();
-        (*mpStream) << "| Grid | Const It |  Const Res  |  It  |     Res     |\n";
+        (*mpStream) << "| Grid | Const It | Const Abs Res | Const Rel Res |  It  |   Abs Res   |   Rel Res   |\n";
         this->PrintHorizontalLine();
     }
 
     void PrintHorizontalLine() {
-        //             "| Grid | Const It |  Const Res  |  It  |     Res     |\n";
-        (*mpStream) << "+ ---- + -------- + ----------- + ---- + ----------- +\n";
+        //             "| Grid | Const It | Const Abs Res | Const Rel Res |  It  |   Abs Res   |   Rel Res   |\n";
+        (*mpStream) << "+ ---- + -------- + ------------- + ------------- + ---- + ----------- + ----------- +\n";
     }
 
     void PrintReport(const PMGStatusStream::Report& rReport) {
@@ -93,21 +91,38 @@ struct PMGStatusStream::Impl {
         tmp_stream << std::setw(8) << rReport.constraint_iteration;
         r_stream << "| " << tmp_stream.str() << " ";
 
-        // Constraint residual.
-        if (rReport.maybe_constraint_residual.has_value()) {
+        // Constraint absolute residual.
+        if (rReport.maybe_constraint_absolute_residual.has_value()) {
             tmp_stream = std::stringstream();
             if (mUseAnsiColors) {
-                if (rReport.constraints_converged) {
+                if (rReport.constraints_absolute_converged) {
                     tmp_stream << converged_color;
                 }  else {
                     tmp_stream << unconverged_color;
                 }
             }
-            tmp_stream << std::setw(11) << std::setprecision(4) << std::scientific << rReport.maybe_constraint_residual.value();
+            tmp_stream << std::setw(13) << std::setprecision(4) << std::scientific << rReport.maybe_constraint_absolute_residual.value();
             if (mUseAnsiColors) tmp_stream << "\033[0m";
             r_stream << "| " << tmp_stream.str() << " ";
         } else {
-            r_stream << "|             ";
+            r_stream << "|               ";
+        }
+
+        // Constraint relative residual.
+        if (rReport.maybe_constraint_relative_residual.has_value()) {
+            tmp_stream = std::stringstream();
+            if (mUseAnsiColors) {
+                if (rReport.constraints_relative_converged) {
+                    tmp_stream << converged_color;
+                }  else {
+                    tmp_stream << unconverged_color;
+                }
+            }
+            tmp_stream << std::setw(13) << std::setprecision(4) << std::scientific << rReport.maybe_constraint_relative_residual.value();
+            if (mUseAnsiColors) tmp_stream << "\033[0m";
+            r_stream << "| " << tmp_stream.str() << " ";
+        } else {
+            r_stream << "|               ";
         }
 
         // Multigrid iteration.
@@ -115,18 +130,36 @@ struct PMGStatusStream::Impl {
         tmp_stream << std::setw(4) << rReport.multigrid_iteration;
         r_stream << "| " << tmp_stream.str() << " ";
 
-        // Multigrid residual.
+        // Multigrid absolute residual.
         tmp_stream = std::stringstream();
         if (mUseAnsiColors) {
-            if (rReport.multigrid_converged) {
+            if (rReport.multigrid_absolute_converged) {
                 tmp_stream << converged_color;
             }  else {
                 tmp_stream << unconverged_color;
             }
         }
 
-        if (rReport.maybe_multigrid_residual.has_value())
-            tmp_stream << std::setw(11) << std::setprecision(4) << std::scientific << rReport.maybe_multigrid_residual.value();
+        if (rReport.maybe_multigrid_absolute_residual.has_value())
+            tmp_stream << std::setw(11) << std::setprecision(4) << std::scientific << rReport.maybe_multigrid_absolute_residual.value();
+        else
+            tmp_stream << "           ";
+
+        if (mUseAnsiColors) tmp_stream << "\033[0m";
+        r_stream << "| " << tmp_stream.str() << " ";
+
+        // Multigrid relative residual.
+        tmp_stream = std::stringstream();
+        if (mUseAnsiColors) {
+            if (rReport.multigrid_relative_converged) {
+                tmp_stream << converged_color;
+            }  else {
+                tmp_stream << unconverged_color;
+            }
+        }
+
+        if (rReport.maybe_multigrid_relative_residual.has_value())
+            tmp_stream << std::setw(11) << std::setprecision(4) << std::scientific << rReport.maybe_multigrid_relative_residual.value();
         else
             tmp_stream << "           ";
 
@@ -136,28 +169,13 @@ struct PMGStatusStream::Impl {
         r_stream << "|\n";
     }
 
-    ~Impl()
-    {
+    ~Impl() {
         if (mMaybeLastReport.has_value())
             this->PrintHorizontalLine();
-
-        if (!mVtuPaths.empty()) {
-            Parameters contents(R"({"file-series-version" : "1.0", "files" : []})");
-            Parameters files = contents["files"];
-            for (std::size_t i_path=0ul; i_path<mVtuPaths.size(); ++i_path) {
-                Parameters entry;
-                entry.AddString("name", mVtuPaths[i_path].string());
-                entry.AddInt("time", i_path);
-                files.Append(entry);
-            }
-            std::ofstream series_journal(std::filesystem::path("builder_and_solver") / (mpModelPart->Name() + ".vtu.series"));
-            series_journal << contents.PrettyPrintJsonString();
-        }
     }
 
     /// @brief Returns true if the input report is identical to the last one that got issued.
-    bool DuplicateFilter(const PMGStatusStream::Report& rReport)
-    {
+    bool DuplicateFilter(const PMGStatusStream::Report& rReport) {
         if (!mMaybeLastReport.has_value()) {
             this->PrintHeader();
             mMaybeLastReport = rReport;
@@ -166,22 +184,36 @@ struct PMGStatusStream::Impl {
 
         PMGStatusStream::Report& r_last = mMaybeLastReport.value();
         bool is_duplicate =  rReport.constraint_iteration == r_last.constraint_iteration
-                          && rReport.constraints_converged == r_last.constraints_converged
+                          && rReport.constraints_absolute_converged == r_last.constraints_absolute_converged
+                          && rReport.constraints_relative_converged == r_last.constraints_relative_converged
                           && rReport.grid_level == r_last.grid_level
-                          && rReport.multigrid_converged == r_last.multigrid_converged
+                          && rReport.multigrid_absolute_converged == r_last.multigrid_absolute_converged
+                          && rReport.multigrid_relative_converged == r_last.multigrid_relative_converged
                           && rReport.multigrid_iteration == r_last.multigrid_iteration;
 
-        if (rReport.maybe_multigrid_residual.has_value()) {
-            if (r_last.maybe_multigrid_residual.has_value()) {
-                is_duplicate = is_duplicate && rReport.maybe_multigrid_residual.value() == r_last.maybe_multigrid_residual.value();
+        if (rReport.maybe_multigrid_absolute_residual.has_value()) {
+            if (r_last.maybe_multigrid_absolute_residual.has_value()) {
+                is_duplicate = is_duplicate && rReport.maybe_multigrid_absolute_residual.value() == r_last.maybe_multigrid_absolute_residual.value();
             } else is_duplicate = false;
-        } else if (r_last.maybe_multigrid_residual.has_value()) is_duplicate = false;
+        } else if (r_last.maybe_multigrid_absolute_residual.has_value()) is_duplicate = false;
 
-        if (rReport.maybe_constraint_residual.has_value()) {
-            if (r_last.maybe_constraint_residual.has_value()) {
-                is_duplicate = is_duplicate && rReport.maybe_constraint_residual.value() == r_last.maybe_constraint_residual.value();
+        if (rReport.maybe_multigrid_relative_residual.has_value()) {
+            if (r_last.maybe_multigrid_relative_residual.has_value()) {
+                is_duplicate = is_duplicate && rReport.maybe_multigrid_relative_residual.value() == r_last.maybe_multigrid_relative_residual.value();
             } else is_duplicate = false;
-        } else if (r_last.maybe_constraint_residual.has_value()) is_duplicate = false;
+        } else if (r_last.maybe_multigrid_relative_residual.has_value()) is_duplicate = false;
+
+        if (rReport.maybe_constraint_absolute_residual.has_value()) {
+            if (r_last.maybe_constraint_absolute_residual.has_value()) {
+                is_duplicate = is_duplicate && rReport.maybe_constraint_absolute_residual.value() == r_last.maybe_constraint_absolute_residual.value();
+            } else is_duplicate = false;
+        } else if (r_last.maybe_constraint_absolute_residual.has_value()) is_duplicate = false;
+
+        if (rReport.maybe_constraint_relative_residual.has_value()) {
+            if (r_last.maybe_constraint_relative_residual.has_value()) {
+                is_duplicate = is_duplicate && rReport.maybe_constraint_relative_residual.value() == r_last.maybe_constraint_relative_residual.value();
+            } else is_duplicate = false;
+        } else if (r_last.maybe_constraint_relative_residual.has_value()) is_duplicate = false;
 
         if (is_duplicate) return true;
         else {
@@ -194,8 +226,7 @@ struct PMGStatusStream::Impl {
     /// @details Any time a report is submitted (and the verbosity is high enough),
     ///          project the current solution from the submitter's grid onto the
     ///          root grid, and write the state field and residuals to a VTU file.
-    void WriteIntermediateState(const PMGStatusStream::Report& rReport)
-    {
+    void WriteIntermediateState(const PMGStatusStream::Report& rReport) {
         if (!mpMaybeVtuOutput.has_value()) {
             std::visit([this](const auto* p_builder_and_solver) {
                 mpMaybeVtuOutput = MakeVtuOutput(*mpModelPart, p_builder_and_solver->GetDofSet());
@@ -214,31 +245,43 @@ struct PMGStatusStream::Impl {
                 const Dof<double>& r_dof = *(r_dof_set.begin() + i_dof);
                 state[i_dof] = r_dof.GetSolutionStepValue();
                 reaction[i_dof] = r_dof.GetSolutionStepReactionValue();
+                if (r_dof.IsFixed() && r_dof.GetSolutionStepValue())
+                    std::cout
+                        << r_dof.GetVariable().Name() << " "
+                        << r_dof.Id() << " "
+                        << r_dof.GetSolutionStepValue() << "\n";
             }); // for i_dof in range(len(r_dof_set))
         }, mpBuilderAndSolver);
 
         KRATOS_TRY
-        std::visit([this, &rReport](auto* p_builder_and_solver) {
-            std::visit([&rReport, p_builder_and_solver] (const auto tuple) {
-                using BSMatrixType = typename std::pointer_traits<decltype(p_builder_and_solver)>::element_type::TSystemMatrixType;
-                using SystemMatrixPointer = std::tuple_element_t<0,decltype(tuple)>;
-                using SystemMatrix = std::remove_cv_t<typename std::pointer_traits<std::remove_cv_t<SystemMatrixPointer>>::element_type>;
-                if constexpr (std::is_same_v<BSMatrixType,SystemMatrix>)
-                    p_builder_and_solver->ProjectGrid(rReport.grid_level,
-                                                      *std::get<0>(tuple),
-                                                      *std::get<1>(tuple),
-                                                      *std::get<2>(tuple));
-                else (void)(rReport);
-            }, mSystem);
-        }, mpBuilderAndSolver);
+            std::visit([this, &rReport](auto* p_builder_and_solver) {
+                std::visit([&rReport, p_builder_and_solver] (const auto tuple) {
+                    using BSMatrixType = typename std::pointer_traits<decltype(p_builder_and_solver)>::element_type::TSystemMatrixType;
+                    using SystemMatrixPointer = std::tuple_element_t<0,decltype(tuple)>;
+                    using SystemMatrix = std::remove_cv_t<typename std::pointer_traits<std::remove_cv_t<SystemMatrixPointer>>::element_type>;
+                    if constexpr (std::is_same_v<BSMatrixType,SystemMatrix>) {
+                        p_builder_and_solver->ProjectGrid(
+                            rReport.grid_level,
+                            *std::get<0>(tuple),
+                            *std::get<1>(tuple),
+                            *std::get<2>(tuple));
+                    }
+                    else (void)(rReport);
+                }, mSystem);
+            }, mpBuilderAndSolver);
         KRATOS_CATCH("")
 
-        const std::filesystem::path directory("builder_and_solver");
+        const std::filesystem::path directory("polynomial_multigrid");
         if (!std::filesystem::is_directory(directory))
             std::filesystem::create_directories(directory);
 
-        const std::string file_name = mpModelPart->Name() + "_" + std::to_string(mVtuPaths.size());
+        const std::string file_name = mpModelPart->Name();
+        ProcessInfo dummy_process_info = mpModelPart->GetProcessInfo();
+        dummy_process_info.SetValue<int>(STEP, mVtuPaths.size());
+        dummy_process_info.SetValue<double>(TIME, mVtuPaths.size());
+        std::swap(dummy_process_info, mpModelPart->GetProcessInfo());
         mpMaybeVtuOutput.value()->PrintOutput((directory / file_name).string());
+        std::swap(dummy_process_info, mpModelPart->GetProcessInfo());
         mVtuPaths.emplace_back(file_name + ".vtu");
 
         // Restore Dof values and their corresponding reactions.

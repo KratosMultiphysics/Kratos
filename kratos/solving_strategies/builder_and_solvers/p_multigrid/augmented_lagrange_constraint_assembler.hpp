@@ -133,8 +133,7 @@ public:
     }
 
     /// @internal
-    static const Variable<Vector>& GetAlgorithmicParametersVariable() noexcept
-    {
+    static const Variable<Vector>& GetAlgorithmicParametersVariable() noexcept {
         return SHAPE_FUNCTIONS_VECTOR;
     }
 
