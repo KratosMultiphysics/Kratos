@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "input_output/stl_io.h"

@@ -13,19 +13,17 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-#include <filesystem>
+#include <array>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/io.h"
+#include "includes/kratos_filesystem.h"
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -49,7 +47,7 @@ namespace Kratos
 
 /// This class reads from STL file format and creates triangular elements in given model_part
 /** The current version only reads triangles from the STL and not higher order polygons
- * The nodes corresponging to given vertices are not collapsed
+ * The nodes corresponding to given vertices are not collapsed
  * A SubModelPart for each additional solid block will be created
  * For definition STL format please check https://en.wikipedia.org/wiki/STL_(file_format)
  * A sample file format with 3 triangles:
@@ -85,8 +83,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Geometries map type definition
-    using GeometryContainerType = ModelPart::GeometryContainerType;
+    /// Definition of the geometry type
+    using GeometryType = Geometry<Node>;
+
+    /// Nodes container type definition
+    using NodesContainerType = ModelPart::NodesContainerType;
 
     /// The nodes array type definition
     using NodesArrayType = Element::NodesArrayType;
@@ -101,7 +102,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** 
+    /**
      * @brief Constructs a StlIO object using a filename.
      * @details This constructor will create a StlIO object and open a file with the provided filename and open options. The default open option is read mode.
      * @param rFilename The path of the file to open.
@@ -113,7 +114,7 @@ public:
         Parameters ThisParameters = Parameters()
         );
 
-    /** 
+    /**
      * @brief Constructs a StlIO object using an input/output stream.
      * @details This constructor will create a StlIO object using a provided input/output stream.
      * @param pInputStream A shared pointer to the input/output stream to use.
@@ -238,42 +239,38 @@ private:
 
     /**
      * @brief Read a solid object from a model part.
-     * @details This function reads a solid object from the given model part using the provided function to create the entity.
+     * @details This function reads a solid object from the given model part.
      * @param rThisModelPart Reference to the model part to read the solid from.
-     * @param rCreateEntityFunctor A functor to create entities.
      */
-    void ReadSolid(
-        ModelPart& rThisModelPart,
-        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor 
-        );
+    void ReadSolid(ModelPart& rThisModelPart);
 
     /**
      * @brief Read a facet from a model part.
      * @details This function reads a facet from the given model part using the provided function to create the entity.
      * @param rThisModelPart Reference to the model part to read the facet from.
-     * @param rCreateEntityFunctor A functor to create entities.
+     * @param rNewNodes Reference to the container of nodes for the facet.
      */
     void ReadFacet(
         ModelPart& rThisModelPart,
-        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+        std::vector<Node::Pointer>& rNewNodes
         );
 
     /**
      * @brief Read a loop from a model part.
      * @details This function reads a loop from the given model part using the provided function to create the entity.
      * @param rThisModelPart Reference to the model part to read the loop from.
-     * @param rCreateEntityFunctor A functor to create entities.
+     * @param rNewNodes Reference to the container of nodes for the loop.
      */
     void ReadLoop(
         ModelPart& rThisModelPart,
-        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+        std::vector<Node::Pointer>& rNewNodes
         );
 
     /**
      * @brief Reads a point.
-     * @return A point read from the source.
-    */
-    Point ReadPoint();
+     * @param rResult Reference to the point coordinates to fill from the source.
+     */
+    void ReadPoint(std::array<double, 3>& rResult);
 
     /**
      * @brief Reads a keyword.
@@ -394,6 +391,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-///@} addtogroup block
+///@} addtogroup KratosCore
 
 }  // namespace Kratos.

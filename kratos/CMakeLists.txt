@@ -92,6 +92,12 @@ if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
     file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/*.cpp
     )
+    # Detect all files not cpp in the folder (complementary files for the benchmarks) and install them in the benchmark folder
+    file(GLOB_RECURSE KRATOS_BENCHMARK_NON_CPP_FILES
+        LIST_DIRECTORIES false
+        ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/*
+    )
+    list(FILTER KRATOS_BENCHMARK_NON_CPP_FILES EXCLUDE REGEX "\\.cpp$")
 
     foreach(file ${KRATOS_BENCHMARK_SOURCES})
         get_filename_component(filename ${file} NAME_WE)
@@ -100,6 +106,9 @@ if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
         set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
         install(TARGETS ${filename} DESTINATION benchmark)
     endforeach(file ${KRATOS_BENCHMARK_SOURCES})
+    foreach(file ${KRATOS_BENCHMARK_NON_CPP_FILES})
+        install(FILES ${file} DESTINATION benchmark)
+    endforeach(file ${KRATOS_BENCHMARK_NON_CPP_FILES})
 endif(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
 
 ## Define KratosVersion object
