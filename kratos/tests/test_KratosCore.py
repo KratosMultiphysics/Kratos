@@ -100,6 +100,7 @@ import test_obj_io
 import test_import_obj_modeler
 import test_vectorized_interpolation
 import test_clean_up_problematic_triangles_modeler
+import test_cartesian_mesh_generator_modeler
 import test_tetrahedral_mesh_orientation_check
 import test_nd_data
 import test_tensor_adaptors
@@ -108,6 +109,7 @@ import test_connectivity_ids_tensor_adaptor
 import test_constraint_restart
 import test_vtu_output
 import test_ensight_output_process
+import test_vtu_output
 
 # Import modules required for sequential orchestrator test
 from test_sequential_orchestrator import EmptyAnalysisStage
@@ -231,6 +233,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_import_obj_modeler.TestImportOBJModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vectorized_interpolation.TestVectorizedInterpolation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_clean_up_problematic_triangles_modeler.TestCleanUpProblematicTrianglesModeler]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_cartesian_mesh_generator_modeler.TestCartesianMeshGeneratorModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tetrahedral_mesh_orientation_check.TestTetrahedralMeshOrientationCheck]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nd_data.TestNDData]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptors.TestTensorAdaptors]))
@@ -241,6 +244,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput2D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput3D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_ensight_output_process.TestEnsightOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput2D]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput3D]))
 
     if sympy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))
