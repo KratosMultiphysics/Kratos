@@ -69,6 +69,8 @@
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
 #include "utilities/model_part_utils.h"
+#include "utilities/nnls.h"
+#include "utilities/polynomial_fitting_utilities.h"
 
 namespace Kratos::Python {
 
