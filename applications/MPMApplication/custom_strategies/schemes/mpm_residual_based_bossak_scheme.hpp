@@ -220,13 +220,13 @@ public:
         KRATOS_TRY;
 
         // Start of TEMP: These are moved here to comply to pr #13432
-        // Particle to Grid mapping for elements is done here because predict needs the velocity field (PR #13432)        
+        // Particle to Grid mapping for elements is done here because predict needs the velocity field (PR #13432)
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Initializing Bossak constants
         // This is not related to our change, but related to Bossak temporary fix.
-        // Bossak scheme  
+        // Bossak scheme
         mBossak.c0 = ( 1.0 / (mBossak.beta * delta_time * delta_time) );
         mBossak.c1 = ( mBossak.gamma / (mBossak.beta * delta_time) );
         mBossak.c2 = ( 1.0 / (mBossak.beta * delta_time) );
@@ -254,7 +254,15 @@ public:
             r_nodal_momentum.clear();
             r_nodal_inertia.clear();
 
-            r_nodal_displacement.clear();
+            // Reset dof that are NOT fixed
+            if (!rNode.pGetDof(DISPLACEMENT_X)->IsFixed())
+                r_nodal_displacement[0] = 0.0;
+            if (!rNode.pGetDof(DISPLACEMENT_Y)->IsFixed())
+                r_nodal_displacement[1] = 0.0;
+            if (!rNode.pGetDof(DISPLACEMENT_Z)->IsFixed())
+                r_nodal_displacement[2] = 0.0;
+
+            // r_nodal_displacement.clear();
             r_nodal_velocity.clear();
             r_nodal_acceleration.clear();
             r_nodal_old_pressure = 0.0;
@@ -337,23 +345,23 @@ public:
             array_1d<double, 3 > & r_current_displacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
             // Displacement prediction for implicit MPM
-            if ((rNode.pGetDof(DISPLACEMENT_X)->IsFixed()))
-                r_current_displacement[0]  = r_previous_displacement[0];
-            else
-                r_current_displacement[0] = 0.0;
+            // if ((rNode.pGetDof(DISPLACEMENT_X)->IsFixed()))
+            //     r_current_displacement[0]  = r_previous_displacement[0];
+            // else
+            //     r_current_displacement[0] = 0.0;
 
-            if ((rNode.pGetDof(DISPLACEMENT_Y)->IsFixed()))
-                r_current_displacement[1]  = r_previous_displacement[1];
-            else
-                r_current_displacement[1] = 0.0;
+            // if ((rNode.pGetDof(DISPLACEMENT_Y)->IsFixed()))
+            //     r_current_displacement[1]  = r_previous_displacement[1];
+            // else
+            //     r_current_displacement[1] = 0.0;
 
-            if (rNode.HasDofFor(DISPLACEMENT_Z))
-            {
-                if ((rNode.pGetDof(DISPLACEMENT_Z)->IsFixed()))
-                    r_current_displacement[2]  = r_previous_displacement[2];
-                else
-                    r_current_displacement[2] = 0.0;
-            }
+            // if (rNode.HasDofFor(DISPLACEMENT_Z))
+            // {
+            //     if ((rNode.pGetDof(DISPLACEMENT_Z)->IsFixed()))
+            //         r_current_displacement[2]  = r_previous_displacement[2];
+            //     else
+            //         r_current_displacement[2] = 0.0;
+            // }
 
             // Pressure prediction for implicit MPM
             if (rNode.HasDofFor(PRESSURE))
@@ -385,26 +393,26 @@ public:
         // Special treatment of particle based dirichlet conditions to calculate the reaction forces at the boundary particles
         // ***
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        
+
         // clear any nodal reaction values
         ClearReactionVariable();
-        
+
         // Calculating as an intermediate step the nodal reaction forces due to the boundary particles
         block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
-        {  
+        {
             rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_NODAL_REACTIONS, r_dummy, r_current_process_info);
         });
-        
+
         // Calculating the reaction forces at the boundary particles due to the nodal reaction forces
         block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
-        {  
+        {
             rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_CONTACT_FORCE, r_dummy, r_current_process_info);
-        });  
+        });
 
         // clear nodal reaction values again
-        ClearReactionVariable();    
-        
-        // *** 
+        ClearReactionVariable();
+
+        // ***
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
@@ -440,7 +448,7 @@ public:
         TSystemVectorType& rb) override
     {
         KRATOS_TRY
-        
+
         // Particle to Grid mapping for elements is moved to predict because it needs the velocity field (PR #13432)
         ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
 
@@ -472,15 +480,15 @@ public:
         TSystemVectorType& rb) override
     {
         BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-        
+
         if(mFrictionIsActive) {
             block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
             {
                 const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
                 if( mRotationTool.IsConformingSlip(rConstNode) && rConstNode.GetValue(FRICTION_COEFFICIENT) > 0 )
-                    rNode.FastGetSolutionStepValue(REACTION).clear();       
+                    rNode.FastGetSolutionStepValue(REACTION).clear();
             });
-            
+
             mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
         }
 
@@ -492,7 +500,7 @@ public:
                 mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
             }
         });
-        
+
     }
 
     /**
