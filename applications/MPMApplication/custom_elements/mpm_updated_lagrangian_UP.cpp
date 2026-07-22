@@ -61,8 +61,6 @@ MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP( IndexType NewId, GeometryType::P
 MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP( MPMUpdatedLagrangianUP const& rOther)
     :MPMUpdatedLagrangian(rOther)
     , m_mp_pressure(rOther.m_mp_pressure)
-     //,mDeformationGradientF0(rOther.mDeformationGradientF0)
-     //,mDeterminantF0(rOther.mDeterminantF0)
 {
 }
 
@@ -462,7 +460,7 @@ double MPMUpdatedLagrangianUP::CalculateVolumetricStrainFunction(GeneralVariable
 //************************************************************************************
 
 
-double MPMUpdatedLagrangianUP::CalculateFunctionFromLinearizationOfVolumetricStrain(GeneralVariables & rVariables)
+double MPMUpdatedLagrangianUP::CalculateVolumetricStrainLinearization(GeneralVariables & rVariables)
 {
     KRATOS_TRY
 
@@ -734,7 +732,7 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     const double volumetric_strain_linearization_factor =
-        this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
+        this->CalculateVolumetricStrainLinearization(rVariables);
 
     // Assemble components considering added DOF matrix system
     unsigned int index_p = dimension;
