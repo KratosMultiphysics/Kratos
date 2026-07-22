@@ -46,8 +46,8 @@ class OptimizationProblemFieldOutputProcess(Kratos.OutputProcess):
             self.InitializeVtuOutputIO()
             self.initialized_vtu_outputs = True
 
-        for tensor_adaptor_vtu_output in self.list_of_tensor_adaptor_outputs:
-            tensor_adaptor_vtu_output.WriteOutput()
+        for tensor_adaptor_output in self.list_of_tensor_adaptor_outputs:
+            tensor_adaptor_output.WriteOutput()
 
         self.last_step_written = self.optimization_problem.GetStep()
 
@@ -85,33 +85,14 @@ class OptimizationProblemFieldOutputProcess(Kratos.OutputProcess):
                      isinstance(global_v, Kratos.TensorAdaptors.BoolTensorAdaptor):
                     self.__AddTensorAdaptor(TensorAdaptorData(global_k, global_v))
 
-    def _GetModelPart(self, container) -> Kratos.ModelPart:
-        def get_model_part(container, model_part: Kratos.ModelPart):
-            if container in [model_part.Nodes, model_part.Conditions, model_part.Elements]:
-                return model_part
-
-            for sub_model_part_name in model_part.GetSubModelPartNames():
-                root_model_part = get_model_part(container, model_part.GetSubModelPart(sub_model_part_name))
-                if root_model_part is not None:
-                    return root_model_part
-
-            return None
-
-        for model_part_name in self.model.GetModelPartNames():
-            root_model_part = get_model_part(container, self.model[model_part_name])
-            if root_model_part is not None:
-                return root_model_part
-
-        raise RuntimeError(f"No model part contains the provided container.")
-
     def __AddTensorAdaptor(self, tensor_adaptor_data: TensorAdaptorData) -> bool:
-        found_vtu_output = False
-        for tensor_adaptor_vtu_output in self.list_of_tensor_adaptor_outputs:
-            if tensor_adaptor_vtu_output.AddTensorAdaptorData(tensor_adaptor_data):
-                found_vtu_output = True
+        found_output = False
+        for tensor_adaptor_output in self.list_of_tensor_adaptor_outputs:
+            if tensor_adaptor_output.AddTensorAdaptorData(tensor_adaptor_data):
+                found_output = True
                 break
 
-        if not found_vtu_output:
+        if not found_output:
             tensor_adaptor_output = self._CreateTensorAdaptorOutput(tensor_adaptor_data)
             tensor_adaptor_output.AddTensorAdaptorData(tensor_adaptor_data)
             self.list_of_tensor_adaptor_outputs.append(tensor_adaptor_output)

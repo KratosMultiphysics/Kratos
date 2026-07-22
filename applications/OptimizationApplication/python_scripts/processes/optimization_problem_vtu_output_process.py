@@ -38,13 +38,15 @@ class TensorAdaptorVtuOutput(TensorAdaptorOutput):
         else:
             raise RuntimeError(f"Only supports \"ascii\", \"binary\", \"raw\", and \"compressed_raw\" file_format. [ provided file_format = \"{file_format}\" ].")
 
+        self.output_sub_model_parts = parameters["output_sub_model_parts"].GetBool()
+
         self.output_file_name_prefix = parameters["file_name"].GetString()
         self.vtu_output: Kratos.VtuOutput = Kratos.VtuOutput(
-                                                model_part,
+                                                model_part.GetRootModelPart() if self.output_sub_model_parts else model_part,
                                                 not parameters["write_deformed_configuration"].GetBool(),
                                                 self.writer_format,
                                                 parameters["output_precision"].GetInt(),
-                                                output_sub_model_parts=True,
+                                                output_sub_model_parts=self.output_sub_model_parts,
                                                 echo_level=parameters["echo_level"].GetInt(),
                                                 write_ids=parameters["write_ids"].GetBool())
 
@@ -76,6 +78,7 @@ class OptimizationProblemVtuOutputProcess(OptimizationProblemFieldOutputProcess)
                 "file_name"                   : "<model_part_full_name>",
                 "file_format"                 : "binary",
                 "output_path"                 : "Optimization_Results",
+                "output_sub_model_parts"      : true,
                 "save_output_files_in_folder" : true,
                 "write_ids"                   : false,
                 "write_deformed_configuration": false,
@@ -88,4 +91,8 @@ class OptimizationProblemVtuOutputProcess(OptimizationProblemFieldOutputProcess)
         )
 
     def _CreateTensorAdaptorOutput(self, tensor_adaptor_data: TensorAdaptorData) -> TensorAdaptorOutput:
-        return TensorAdaptorVtuOutput(self._GetModelPart(tensor_adaptor_data.GetContainer()), self.parameters.Clone(), self.optimization_problem)
+        model_part = Kratos.ModelPartUtils.GetModelPart(self.model,tensor_adaptor_data.GetContainer())
+        if model_part is not None:
+            return TensorAdaptorVtuOutput(Kratos.ModelPartUtils.GetModelPart(self.model,tensor_adaptor_data.GetContainer()), self.parameters.Clone(), self.optimization_problem)
+        else:
+            raise RuntimeError("A model part is not found for the given tensor adaptor. Either remove the \"optimization_problem_vtu_output_process\" or check the tensor adaptor.")
