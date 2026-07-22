@@ -64,6 +64,9 @@ class HarmonicAnalysisSolver(MechanicalSolver):
             StructuralMechanicsApplication.DISPLACEMENT_IMAGINARY
         )
         self.main_model_part.AddNodalSolutionStepVariable(
+            StructuralMechanicsApplication.ROTATION_IMAGINARY
+        )
+        self.main_model_part.AddNodalSolutionStepVariable(
             StructuralMechanicsApplication.POINT_LOAD_IMAGINARY
         )
 

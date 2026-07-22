@@ -1078,9 +1078,9 @@ protected:
 
         rA = TSystemMatrixType(indices.size(), indices.size(), nnz);
 
-        double* Avalues = rA.value_data().begin();
-        std::size_t* Arow_indices = rA.index1_data().begin();
-        std::size_t* Acol_indices = rA.index2_data().begin();
+        auto* Avalues = rA.value_data().begin();
+        auto* Arow_indices = rA.index1_data().begin();
+        auto* Acol_indices = rA.index2_data().begin();
 
         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
@@ -1144,9 +1144,9 @@ protected:
         const Element::EquationIdVectorType& EquationId
         )
     {
-        double* values_vector = rA.value_data().begin();
-        IndexType* index1_vector = rA.index1_data().begin();
-        IndexType* index2_vector = rA.index2_data().begin();
+        auto* values_vector = rA.value_data().begin();
+        auto* index1_vector = rA.index1_data().begin();
+        auto* index2_vector = rA.index2_data().begin();
 
         const IndexType left_limit = index1_vector[i];
 
@@ -1201,21 +1201,25 @@ protected:
         }
     }
 
+    // The index pointer type is deduced so that this works with any sparse
+    // space matrix (e.g. uBLAS uses std::size_t indices, Eigen signed ones)
+    template<class TIndexPointerType>
     inline IndexType ForwardFind(const IndexType id_to_find,
                                    const IndexType start,
-                                   const IndexType* index_vector)
+                                   const TIndexPointerType index_vector)
     {
         IndexType pos = start;
-        while(id_to_find != index_vector[pos]) pos++;
+        while(id_to_find != static_cast<IndexType>(index_vector[pos])) pos++;
         return pos;
     }
 
+    template<class TIndexPointerType>
     inline IndexType BackwardFind(const IndexType id_to_find,
                                     const IndexType start,
-                                    const IndexType* index_vector)
+                                    const TIndexPointerType index_vector)
     {
         IndexType pos = start;
-        while(id_to_find != index_vector[pos]) pos--;
+        while(id_to_find != static_cast<IndexType>(index_vector[pos])) pos--;
         return pos;
     }
 
