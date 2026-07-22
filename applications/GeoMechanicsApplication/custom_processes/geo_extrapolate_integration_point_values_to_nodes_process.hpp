@@ -126,6 +126,7 @@ private:
     void CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix);
     [[nodiscard]] bool          ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
     [[nodiscard]] const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
+    std::size_t GetCacheKey(const Element& rElement) const;
 
     void AddIntegrationPointContributionsForAllVariables(Element&           rElement,
                                                          const Matrix&      rExtrapolationMatrix,

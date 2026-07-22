@@ -171,18 +171,31 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatri
 
 bool GeoExtrapolateIntegrationPointValuesToNodesProcess::ExtrapolationMatrixIsCachedFor(const Element& rElement) const
 {
-    return mExtrapolationMatrixMap.contains(typeid(rElement).hash_code());
+    const auto key = GetCacheKey(rElement);
+    return mExtrapolationMatrixMap.contains(key);
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatrixFor(const Element& rElement,
                                                                                      const Matrix& rExtrapolationMatrix)
 {
-    mExtrapolationMatrixMap[typeid(rElement).hash_code()] = rExtrapolationMatrix;
+    mExtrapolationMatrixMap[GetCacheKey(rElement)] = rExtrapolationMatrix;
 }
 
 const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtrapolationMatrixFor(const Element& rElement) const
 {
-    return mExtrapolationMatrixMap.at(typeid(rElement).hash_code());
+    return mExtrapolationMatrixMap.at(GetCacheKey(rElement));
+}
+
+std::size_t GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCacheKey(
+    const Element& rElement) const
+{
+    // Combine geometry type and number of integration points for unique key
+    const auto& r_geometry = rElement.GetGeometry();
+    std::size_t key = static_cast<std::size_t>(r_geometry.GetGeometryType());
+    key ^= GeoElementUtilities::GetNumberOfIntegrationPointsOf(rElement) << 16;
+    key ^= r_geometry.size() << 16;
+
+    return key;
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
