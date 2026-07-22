@@ -41,6 +41,22 @@ public:
     * @brief Computes pressure and shear wave speeds from material properties.
     * */
     static void ComputeWaveSpeed(double& PressureWaveSpeed, double& ShearWaveSpeed, const Properties& rProperties); 
+    
+    /**
+     * @brief Calculates the 2D and 3D deformation gradient.
+     * @param rB The deformation gradient matrix.
+     * @param rF The deformation gradient.
+     * @param rDW_DX The kernel gradients.
+     */
+    static void Calculate2DB(MatrixType& rB, const MatrixType& rF, const MatrixType& rDW_DX, const SizeType NumberOfNeighbours);
+
+    static void Calculate3DB(MatrixType& rB, const MatrixType& rF, const MatrixType& rDW_DX, const SizeType NumberOfNeighbours);
+
+    /**
+    * @brief Converts a non symmetric tensor to a vector.
+    * @details This method extends the one in math_utils.h
+    */
+    static VectorType NonSymmetricTensorToVector(const MatrixType& rTensor, SizeType rSize = 0); 
 
 
 };
