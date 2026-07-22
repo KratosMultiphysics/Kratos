@@ -57,8 +57,7 @@ namespace Kratos {
  *                                                  information.
  */
 template <class TSparse, class TDense>
-class PGrid
-{
+class PGrid {
 public:
     using LinearSolverType = LinearSolver<TSparse,TDense,Reorderer<TSparse,TDense>>;
 
@@ -79,42 +78,48 @@ public:
     ~PGrid();
 
     template <class TParentSparse>
-    void MakeLhsTopology(ModelPart& rModelPart,
-                         const typename TParentSparse::MatrixType& rParentLhs,
-                         const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
-                         const IndirectDofSet& rParentDofSet);
+    void MakeLhsTopology(
+        ModelPart& rModelPart,
+        const typename TParentSparse::MatrixType& rParentLhs,
+        const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
+        const IndirectDofSet& rParentDofSet);
 
     template <bool AssembleLHS,
               bool AssembleRHS,
               class TParentSparse>
-    void Assemble(ModelPart& rModelPart,
-                  const typename TParentSparse::MatrixType* pParentLhs,
-                  const typename TParentSparse::VectorType* pParentRhs,
-                  const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
-                  IndirectDofSet& rParentDofSet);
+    void Assemble(
+        ModelPart& rModelPart,
+        const typename TParentSparse::MatrixType* pParentLhs,
+        const typename TParentSparse::VectorType* pParentRhs,
+        const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
+        IndirectDofSet& rParentDofSet);
 
-    void ApplyDirichletConditions(typename IndirectDofSet::const_iterator itParentDofBegin,
-                                  typename IndirectDofSet::const_iterator itParentDofEnd);
+    void ApplyDirichletConditions(
+        typename IndirectDofSet::const_iterator itParentDofBegin,
+        typename IndirectDofSet::const_iterator itParentDofEnd);
 
     void ApplyConstraints();
 
     template <class TParentSparse>
-    void Initialize(ModelPart& rModelPart,
-                    const typename TParentSparse::MatrixType& rParentLhs,
-                    const typename TParentSparse::VectorType& rParentSolution,
-                    const typename TParentSparse::VectorType& rParentRhs);
+    void Initialize(
+        ModelPart& rModelPart,
+        const typename TParentSparse::MatrixType& rParentLhs,
+        const typename TParentSparse::VectorType& rParentSolution,
+        const typename TParentSparse::VectorType& rParentRhs);
 
     template <class TParentSparse>
-    bool ApplyCoarseCorrection(typename TParentSparse::VectorType& rParentSolution,
-                               const typename TParentSparse::VectorType& rParentResidual,
-                               const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
-                               PMGStatusStream& rStream);
+    bool ApplyCoarseCorrection(
+        typename TParentSparse::VectorType& rParentSolution,
+        const typename TParentSparse::VectorType& rParentResidual,
+        const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
+        PMGStatusStream& rStream);
 
     template <class TParentSparse>
-    void Finalize(ModelPart& rModelPart,
-                  const typename TParentSparse::MatrixType& rParentLhs,
-                  const typename TParentSparse::VectorType& rParentSolution,
-                  const typename TParentSparse::VectorType& rParentRhs);
+    void Finalize(
+        ModelPart& rModelPart,
+        const typename TParentSparse::MatrixType& rParentLhs,
+        const typename TParentSparse::VectorType& rParentSolution,
+        const typename TParentSparse::VectorType& rParentRhs);
 
     /// @brief Compute the residual in the coarse grid's independent space.
     /// @tparam TParentSparse Sparse space type of the parent grid.
@@ -122,9 +127,10 @@ public:
     /// @param rFineIndependentRhs Residual vector in the fine grid's independent space.
     /// @param rParentConstraintAssembler Constraint assembler of the fine grid.
     template <class TParentSparse>
-    void Restrict(typename TSparse::VectorType& rCoarseIndependentResidual,
-                  const typename TParentSparse::VectorType& rFineIndependentResidual,
-                  const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler) const;
+    void Restrict(
+        typename TSparse::VectorType& rCoarseIndependentResidual,
+        const typename TParentSparse::VectorType& rFineIndependentResidual,
+        const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler) const;
 
     /// @brief Compute the solution in the fine grid's independent space.
     /// @tparam TParentSparse Space space type of the parent grid.
@@ -132,9 +138,10 @@ public:
     /// @param rCoarseIndependentSolution Solution vector in the coarse grid's independent space.
     /// @param rParentConstraintAssembler Constraint assembler of the fine grid.
     template <class TParentSparse>
-    void Prolong(typename TParentSparse::VectorType& rFineIndependentSolution,
-                 const typename TSparse::VectorType& rCoarseIndependentSolution,
-                 const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler) const;
+    void Prolong(
+        typename TParentSparse::VectorType& rFineIndependentSolution,
+        const typename TSparse::VectorType& rCoarseIndependentSolution,
+        const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler) const;
 
     void Clear();
 
@@ -156,11 +163,13 @@ private:
 
     PGrid& operator=(const PGrid&) = delete;
 
-    void ExecuteMultigridLoop(PMGStatusStream& rStream,
-                              PMGStatusStream::Report& rReport);
+    void ExecuteMultigridLoop(
+        PMGStatusStream& rStream,
+        PMGStatusStream::Report& rReport);
 
-    void ExecuteConstraintLoop(PMGStatusStream& rStream,
-                               PMGStatusStream::Report& rReport);
+    void ExecuteConstraintLoop(
+        PMGStatusStream& rStream,
+        PMGStatusStream::Report& rReport);
 
     struct Impl;
     std::unique_ptr<Impl> mpImpl;

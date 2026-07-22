@@ -72,7 +72,9 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
 
     int mMaxIterations;
 
-    typename TSparse::DataType mTolerance;
+    typename TSparse::DataType mAbsoluteTolerance;
+
+    typename TSparse::DataType mRelativeTolerance;
 
     int mMaxDepth;
 
@@ -90,7 +92,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
           mpRootGridSolver(),
           mpDiagonalScaling(),
           mMaxIterations(0),
-          mTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
+          mAbsoluteTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
+          mRelativeTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
           mMaxDepth(-1),
           mVerbosity(0)
     {}
@@ -100,68 +103,98 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
     // --------------------------------------------------------- //
 
 
-    void ExecuteMultigridLoop(typename Interface::TSystemMatrixType& rLhs,
-                              typename Interface::TSystemVectorType& rSolution,
-                              const typename Interface::TSystemVectorType& rRhs,
-                              typename Interface::TSystemVectorType& rSolutionUpdate,
-                              typename Interface::TSystemVectorType& rResidual,
-                              const typename TSparse::DataType InitialResidualNorm,
-                              PMGStatusStream& rStream,
-                              PMGStatusStream::Report& rReport)
-    {
-        KRATOS_TRY
-        // Inner loop for multigrid.
-        rReport.multigrid_absolute_converged = false;
-        rReport.multigrid_relative_converged = false;
-        rReport.multigrid_iteration = 0ul;
+    void ExecuteMultigridLoop(
+        typename Interface::TSystemMatrixType& rLhs,
+        typename Interface::TSystemVectorType& rSolution,
+        const typename Interface::TSystemVectorType& rRhs,
+        typename Interface::TSystemVectorType& rSolutionUpdate,
+        typename Interface::TSystemVectorType& rResidual,
+        PMGStatusStream& rStream,
+        PMGStatusStream::Report& rReport) {
+            KRATOS_TRY
+                // Inner loop for multigrid.
+                rReport.multigrid_absolute_converged = false;
+                rReport.multigrid_relative_converged = false;
+                rReport.multigrid_iteration = 0ul;
 
-        while (   rReport.multigrid_iteration < static_cast<std::size_t>(mMaxIterations)
-               && !(rReport.multigrid_absolute_converged || rReport.multigrid_relative_converged)) {
-            rReport.maybe_multigrid_absolute_residual.reset();
-            rReport.maybe_multigrid_relative_residual.reset();
+                std::optional<typename TSparse::DataType> maybe_initial_residual_norm;
+                // Compute initial residual norm if it will be used.
+                if (mAbsoluteTolerance || mRelativeTolerance || 3 <= mVerbosity) {
+                    maybe_initial_residual_norm = TSparse::TwoNorm(rRhs);
+                    maybe_initial_residual_norm = maybe_initial_residual_norm.value()
+                        ? maybe_initial_residual_norm.value()
+                        : 1;
+                }
 
-            // Solve the coarse grid and apply its correction.
-            if (mMaybeHierarchy.has_value()) {
-                std::visit(
-                    [&rSolutionUpdate, &rResidual, &rStream, this] (auto& r_hierarchy) {
-                        return r_hierarchy.template ApplyCoarseCorrection<TSparse>(
+                while (   rReport.multigrid_iteration < static_cast<std::size_t>(mMaxIterations)
+                    && !(rReport.multigrid_absolute_converged || rReport.multigrid_relative_converged)) {
+                    rReport.maybe_multigrid_absolute_residual.reset();
+                    rReport.maybe_multigrid_relative_residual.reset();
+
+                    // Solve the coarse grid and apply its correction.
+                    if (mMaybeHierarchy.has_value()) {
+                        std::visit(
+                            [&rSolutionUpdate, &rResidual, &rStream, this] (auto& r_hierarchy) {
+                                return r_hierarchy.template ApplyCoarseCorrection<TSparse>(
+                                    rSolutionUpdate,
+                                    rResidual,
+                                    *mpConstraintAssembler,
+                                    rStream);},
+                            mMaybeHierarchy.value());
+
+                        // Update the fine solution.
+                        TSparse::UnaliasedAdd(
+                            rSolution,
+                            1.0,
+                            rSolutionUpdate);
+
+                        // Update the fine residual.
+                        BalancedProduct<TSparse,TSparse,TSparse>(
+                            rLhs,
                             rSolutionUpdate,
                             rResidual,
-                            *mpConstraintAssembler,
-                            rStream);},
-                    mMaybeHierarchy.value());
+                            static_cast<typename TSparse::DataType>(-1));
+                    } // if mMaybeHierarchy
 
-                // Update the fine solution.
-                TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
+                    // Perform smoothing on the fine grid.
+                    KRATOS_TRY
+                        TSparse::SetToZero(rSolutionUpdate); //< do I need this?
+                        mpInterface->GetLinearSystemSolver()->PerformSolutionStep(
+                            rLhs,
+                            rSolutionUpdate,
+                            rResidual);
+                    KRATOS_CATCH("")
 
-                // Update the fine residual.
-                BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidual, static_cast<typename TSparse::DataType>(-1));
-            } // if mMaybeHierarchy
+                    // Update the fine solution.
+                    TSparse::UnaliasedAdd(
+                        rSolution,
+                        1.0,
+                        rSolutionUpdate);
 
-            // Perform smoothing on the fine grid.
-            TSparse::SetToZero(rSolutionUpdate); //< do I need this?
-            mpInterface->GetLinearSystemSolver()->PerformSolutionStep(rLhs, rSolutionUpdate, rResidual);
+                    // Update the fine residual.
+                    BalancedProduct<TSparse,TSparse,TSparse>(
+                        rLhs,
+                        rSolutionUpdate,
+                        rResidual,
+                        static_cast<typename TSparse::DataType>(-1));
 
-            // Update the fine solution.
-            TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
+                    // Emit status and check for convergence.
+                    if (maybe_initial_residual_norm.has_value()) {
+                        rReport.maybe_multigrid_absolute_residual = TSparse::TwoNorm(rResidual);
+                        rReport.maybe_multigrid_relative_residual = rReport.maybe_multigrid_absolute_residual.value() / maybe_initial_residual_norm.value();
+                        rReport.multigrid_absolute_converged = rReport.maybe_multigrid_absolute_residual.value() <= mAbsoluteTolerance;
+                        rReport.multigrid_relative_converged = rReport.maybe_multigrid_relative_residual.value() <= mRelativeTolerance;
+                    }
 
-            // Update the fine residual.
-            BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidual, static_cast<typename TSparse::DataType>(-1));
+                    if (   rReport.multigrid_iteration + 1 < static_cast<std::size_t>(mMaxIterations)
+                        && !(rReport.multigrid_absolute_converged || rReport.multigrid_relative_converged))
+                            rStream.Submit(rReport.Tag(3), mVerbosity);
 
-            // Emit status and check for convergence.
-            rReport.maybe_multigrid_absolute_residual = TSparse::TwoNorm(rResidual) / InitialResidualNorm;
-            rReport.maybe_multigrid_relative_residual = rReport.maybe_multigrid_absolute_residual.value() / InitialResidualNorm;
-            rReport.multigrid_absolute_converged = rReport.maybe_multigrid_absolute_residual.value() < mTolerance;
-            rReport.multigrid_relative_converged = rReport.maybe_multigrid_relative_residual.value() < mTolerance;
-            if (   rReport.multigrid_iteration + 1 < static_cast<std::size_t>(mMaxIterations)
-                && !(rReport.multigrid_absolute_converged || rReport.multigrid_relative_converged))
-                    rStream.Submit(rReport.Tag(3), mVerbosity);
+                    ++rReport.multigrid_iteration;
+                } // while i_multigrid_iteration <= mMaxIterations
 
-            ++rReport.multigrid_iteration;
-        } // while i_multigrid_iteration <= mMaxIterations
-
-        if (rReport.multigrid_iteration) rReport.multigrid_iteration -= 1;
-        KRATOS_CATCH("")
+                if (rReport.multigrid_iteration) rReport.multigrid_iteration -= 1;
+            KRATOS_CATCH("")
     }
 
 
@@ -186,17 +219,10 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
             .maybe_constraint_absolute_residual = {},
             .maybe_constraint_relative_residual = {}};
 
-        typename TSparse::VectorType residual(rRhs.size()),
-                                     residual_update(rRhs.size()),
-                                     solution_update(rSolution.size());
-
-        // Compute the initial residual norm if it will be used.
-        typename TSparse::DataType initial_residual_norm = 1;
-        if (0 < mTolerance || 3 <= mVerbosity) {
-            initial_residual_norm = TSparse::TwoNorm(rRhs);
-            initial_residual_norm = initial_residual_norm ? initial_residual_norm : 1;
-        }
-
+        typename TSparse::VectorType
+            residual(rRhs.size()),
+            residual_update(rRhs.size()),
+            solution_update(rSolution.size());
         mpInterface->GetLinearSystemSolver()->InitializeSolutionStep(rLhs, rSolution, rRhs);
 
         // Outer loop for constraints.
@@ -221,7 +247,6 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                 rRhs,
                 solution_update,
                 residual,
-                initial_residual_norm,
                 rStream,
                 status_report);
 
@@ -499,7 +524,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                                     dofs,
                                     r_process_info);
                                 KRATOS_ERROR_IF_NOT(dofs[i_local_dof] == p_first_dof)
-                                    << dofs[i_local_dof]->GetVariable() << " "
+                                    << dofs[i_local_dof]->GetVariable().Name() << " "
                                     << "of node " << dofs[i_local_dof]->Id() << " "
                                     << "in element " << (it_element_begin + i_entity)->Id() << " "
                                     << "is used uninitialized";
@@ -525,13 +550,13 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                         for (std::size_t i_local_dof=0; i_local_dof<equation_indices.size(); ++i_local_dof) {
                             if (equation_indices[i_local_dof] == static_cast<Dof<double>::EquationIdType>(0)) {
                                 Element::DofsVectorType dofs;
-                                (it_element_begin + i_entity)->GetDofList(
+                                (it_condition_begin + i_entity)->GetDofList(
                                     dofs,
                                     r_process_info);
                                 KRATOS_ERROR_IF_NOT(dofs[i_local_dof] == p_first_dof)
-                                    << dofs[i_local_dof]->GetVariable() << " "
+                                    << dofs[i_local_dof]->GetVariable().Name() << " "
                                     << "of node " << dofs[i_local_dof]->Id() << " "
-                                    << "in condition " << (it_element_begin + i_entity)->Id() << " "
+                                    << "in condition " << (it_condition_begin + i_entity)->Id() << " "
                                     << "is used uninitialized";
                             }
                         } // for i_local_dof
@@ -837,13 +862,13 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::Build(typename Interface::TSche
         if (4 <= mpImpl->mVerbosity) {
             KRATOS_INFO(this->Info()) << "writing DoF data to dofs.csv\n";
             std::ofstream file("dofs.csv");
-            file << "Equation Id,Variable Name,constrained,Node Id,Initial Value,RHS\n";
+            file << "Equation Id,Variable Name,Node Id,constrained,Initial Value,RHS\n";
             for (const Dof<double>& r_dof : this->GetDofSet())
                 file
                     << r_dof.EquationId() << ','
                     << r_dof.GetVariable().Name() << ','
-                    << (r_dof.IsFixed() ? 1 : 0) << ','
                     << r_dof.Id() << ','
+                    << (r_dof.IsFixed() ? 1 : 0) << ','
                     << r_dof.GetSolutionStepValue() << ','
                     << rRhs[r_dof.EquationId()] << '\n';
         }
@@ -1104,7 +1129,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters
 
     // Set the relative residual tolerance and max W cycles.
     mpImpl->mMaxIterations = settings["max_iterations"].Get<int>();
-    mpImpl->mTolerance = settings["tolerance"].Get<double>();
+    mpImpl->mAbsoluteTolerance = settings["absolute_tolerance"].Get<double>();
+    mpImpl->mRelativeTolerance = settings["relative_tolerance"].Get<double>();
 
     // Set multifreedom constraint imposition strategy.
     mpImpl->mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(settings["constraint_imposition_settings"],
@@ -1209,7 +1235,8 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense>::GetDefaultParameters() co
         "name"              : "p_multigrid",
         "diagonal_scaling"  : "max",
         "max_iterations"    : 1e2,
-        "tolerance"         : 1e-8,
+        "relative_tolerance": 1e-8,
+        "absolute_tolerance": 1e-8,
         "verbosity"         : 1,
         "smoother_settings" : {
             "solver_type" : ""
@@ -1247,96 +1274,99 @@ LinearSolver<TSparse,TDense>& PMultigridBuilderAndSolver<TSparse,TDense>::GetRoo
 
 
 template <class TSparse, class TDense>
-void PMultigridBuilderAndSolver<TSparse,TDense>::ProjectGrid(int GridLevel,
-                                                             const typename TSparse::MatrixType& rRootLhs,
-                                                             const typename TSparse::VectorType& rRootSolution,
-                                                             const typename TSparse::VectorType& rRootRhs)
-{
-    KRATOS_TRY
+void PMultigridBuilderAndSolver<TSparse,TDense>::ProjectGrid(
+    int GridLevel,
+    const typename TSparse::MatrixType& rRootLhs,
+    const typename TSparse::VectorType& rRootSolution,
+    const typename TSparse::VectorType& rRootRhs) {
+        KRATOS_TRY
+            typename TSparse::VectorType projected;
 
-    typename TSparse::VectorType projected;
+            // Project residuals.
+            if (0 < GridLevel) {
+                KRATOS_ERROR_IF_NOT(mpImpl->mMaybeHierarchy.has_value())
+                    << "grid level " << GridLevel << " does not exist";
+                const auto i_grid_level = GridLevel - 1;
 
-    // Project residuals.
-    if (0 < GridLevel) {
-        KRATOS_ERROR_IF_NOT(mpImpl->mMaybeHierarchy.has_value())
-            << "grid level " << GridLevel << " does not exist";
-        const auto i_grid_level = GridLevel - 1;
+                // Construct a flat vector of coarse grids.
+                std::variant<
+                    std::vector<const PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>*>,
+                    std::vector<const PGrid<TUblasSparseSpace<float>,TUblasDenseSpace<double>>*>
+                > coarse_grids;
 
-        // Construct a flat vector of coarse grids.
-        std::variant<
-            std::vector<const PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>*>,
-            std::vector<const PGrid<TUblasSparseSpace<float>,TUblasDenseSpace<double>>*>
-        > coarse_grids;
-
-        std::visit([&coarse_grids](const auto& r_coarse_grid){
-            using GridType = std::remove_cv_t<std::remove_reference_t<decltype(r_coarse_grid)>>;
-            coarse_grids = std::vector<const GridType*>();
-        }, mpImpl->mMaybeHierarchy.value());
-
-        std::visit(
-            [&coarse_grids](const auto& r_coarse_grid) {
-                std::visit([&r_coarse_grid](auto& r_vector){
+                std::visit([&coarse_grids](const auto& r_coarse_grid){
                     using GridType = std::remove_cv_t<std::remove_reference_t<decltype(r_coarse_grid)>>;
-                    using ValueType = typename std::remove_cv_t<std::remove_reference_t<decltype(r_vector)>>::value_type;
-                    if constexpr (std::is_same_v<ValueType,const GridType*>) {
-                        const GridType* p_grid = &r_coarse_grid;
-                        do {
-                            r_vector.push_back(p_grid);
-                            const auto p_maybe_child = p_grid->GetChild();
-                            p_grid = p_maybe_child.has_value() ? p_maybe_child.value() : nullptr;
-                        } while (p_grid);
+                    coarse_grids = std::vector<const GridType*>();
+                }, mpImpl->mMaybeHierarchy.value());
+
+                std::visit(
+                    [&coarse_grids](const auto& r_coarse_grid) {
+                        std::visit([&r_coarse_grid](auto& r_vector){
+                            using GridType = std::remove_cv_t<std::remove_reference_t<decltype(r_coarse_grid)>>;
+                            using ValueType = typename std::remove_cv_t<std::remove_reference_t<decltype(r_vector)>>::value_type;
+                            if constexpr (std::is_same_v<ValueType,const GridType*>) {
+                                const GridType* p_grid = &r_coarse_grid;
+                                do {
+                                    r_vector.push_back(p_grid);
+                                    const auto p_maybe_child = p_grid->GetChild();
+                                    p_grid = p_maybe_child.has_value() ? p_maybe_child.value() : nullptr;
+                                } while (p_grid);
+                            }
+                        }, coarse_grids);
+                    },
+                    mpImpl->mMaybeHierarchy.value());
+
+                // Initialize projected solution vector.
+                std::visit([&projected, i_grid_level](const auto& r_vector){
+                    KRATOS_ERROR_IF_NOT(static_cast<std::size_t>(i_grid_level) < r_vector.size())
+                        << "grid level " << i_grid_level + 1 << " does not exist";
+                    const auto& r_solution = r_vector[i_grid_level]->GetSolution();
+                    projected.resize(r_solution.size(), false);
+                    std::fill(projected.begin(), projected.end(), static_cast<typename TSparse::DataType>(0));
+                }, coarse_grids);
+
+                // Project solution to the root grid.
+                {
+                    typename TSparse::VectorType tmp;
+                    for (int i_grid=i_grid_level; 0<=i_grid; --i_grid) {
+                        std::visit([&projected, &tmp, i_grid, this](const auto& r_vector) {
+                            const auto& r_solution = r_vector[i_grid]->GetSolution();
+                            IndexPartition<std::size_t>(r_solution.size()).for_each([&r_solution, &projected](std::size_t i_component){
+                                projected[i_component] += r_solution[i_component];
+                            });
+                            r_vector[i_grid]->template Prolong<TSparse>(tmp, projected, *mpImpl->mpConstraintAssembler);
+                        }, coarse_grids);
+                        tmp.swap(projected);
                     }
-                }, coarse_grids);
-            },
-            mpImpl->mMaybeHierarchy.value());
+                }
 
-        // Initialize projected solution vector.
-        std::visit([&projected, i_grid_level](const auto& r_vector){
-            KRATOS_ERROR_IF_NOT(static_cast<std::size_t>(i_grid_level) < r_vector.size())
-                << "grid level " << i_grid_level + 1 << " does not exist";
-            const auto& r_solution = r_vector[i_grid_level]->GetSolution();
-            projected.resize(r_solution.size(), false);
-            std::fill(projected.begin(), projected.end(), static_cast<typename TSparse::DataType>(0));
-        }, coarse_grids);
-
-        // Project solution to the root grid.
-        {
-            typename TSparse::VectorType tmp;
-            for (int i_grid=i_grid_level; 0<=i_grid; --i_grid) {
-                std::visit([&projected, &tmp, i_grid, this](const auto& r_vector) {
-                    const auto& r_solution = r_vector[i_grid]->GetSolution();
-                    IndexPartition<std::size_t>(r_solution.size()).for_each([&r_solution, &projected](std::size_t i_component){
-                        projected[i_component] += r_solution[i_component];
-                    });
-                    r_vector[i_grid]->template Prolong<TSparse>(tmp, projected, *mpImpl->mpConstraintAssembler);
-                }, coarse_grids);
-                tmp.swap(projected);
+            } /*if 0 < GridLevel*/ else {
+                projected.resize(rRootRhs.size(), false);
+                TSparse::SetToZero(projected);
             }
-        }
 
-    } /*if 0 < GridLevel*/ else {
-        projected.resize(rRootRhs.size(), false);
-        TSparse::SetToZero(projected);
-    }
+            // Add diff of the root grid.
+            TSparse::UnaliasedAdd(projected, static_cast<typename TSparse::DataType>(1), rRootSolution);
 
-    // Add diff of the root grid.
-    TSparse::UnaliasedAdd(projected, static_cast<typename TSparse::DataType>(1), rRootSolution);
+            // Transform to dependent solution.
+            mpImpl->mpConstraintAssembler->ComputeDependentSolution(projected);
 
-    // Compute residual.
-    auto residual = rRootRhs;
-    BalancedProduct<TSparse,TSparse,TSparse>(rRootLhs,
-                                             projected,
-                                             residual,
-                                             static_cast<typename TSparse::DataType>(-1));
+            // Compute dependent residual.
+            auto residual = rRootRhs;
+            mpImpl->mpConstraintAssembler->ComputeDependentResidual(residual);
 
-    // Update DoFs.
-    IndexPartition<std::size_t>(projected.size()).for_each([this, &projected, &residual](std::size_t i_dof) {
-        auto& r_dof = *(this->GetDofSet().begin() + i_dof);
-        (this->GetDofSet().begin() + i_dof)->GetSolutionStepReactionValue() = residual[i_dof];
-        r_dof.GetSolutionStepValue() += projected[i_dof];
-    });
+            // Collect dependent DoFs.
+            const auto& r_dofs = mpImpl->mpConstraintAssembler->GetDependentDofs(this->GetDofSet());
+            KRATOS_ERROR_IF_NOT(projected.size() == r_dofs.size()) << projected.size() << " != " << r_dofs.size();
+            KRATOS_ERROR_IF_NOT(residual.size() == r_dofs.size()) << residual.size() << " != " << r_dofs.size();
 
-    KRATOS_CATCH("")
+            // Update DoFs.
+            IndexPartition<std::size_t>(projected.size()).for_each([&projected, &residual, &r_dofs](std::size_t i_dof) {
+                auto& r_dof = *(r_dofs.begin() + i_dof);
+                r_dof.GetSolutionStepReactionValue() = residual[i_dof];
+                r_dof.GetSolutionStepValue() += projected[i_dof];
+            });
+        KRATOS_CATCH("")
 }
 
 
