@@ -524,6 +524,16 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_DEPRECATED [[deprecated]]
 #define KRATOS_DEPRECATED_MESSAGE(deprecated_message) [[deprecated(deprecated_message)]]
 
+// Triggers a compile-time error once the given deadline date (year, month, day) is reached.
+// Intended for use inside function/method bodies, at class scope, or at namespace scope to
+// enforce hard removal deadlines on deprecated code.
+// Example: KRATOS_DEPRECATED_ERROR(2026, 12, 31, "Remove OldFunction and update all callers.")
+#define KRATOS_DEPRECATED_ERROR(year, month, day, message)                                         \
+    static_assert(                                                                                  \
+        ::Kratos::Internals::CompileDateAsInt(__DATE__) <                                           \
+        ::Kratos::Internals::DeadlineDateAsInt(year, month, day),                                  \
+        "DEPRECATED [deadline: " #year "-" #month "-" #day "]: " message)
+
 // The following block defines the macro KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
 // If written in a file, for the following lines of code the compiler will not print warnings of type 'deprecated function'.
 // The scope ends where KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING is called.
@@ -592,6 +602,42 @@ namespace Kratos
 #define KRATOS_WATCH(variable) std::cout << #variable << " : " << variable << std::endl;
 #define KRATOS_WATCH_CERR(variable) std::cerr << #variable << " : " << variable << std::endl;
 #define KRATOS_WATCH_MPI(variable, mpi_data_comm) std::cout << "RANK " << mpi_data_comm.Rank() << "/" << mpi_data_comm.Size()  << "    "; KRATOS_WATCH(variable);
+
+namespace Internals {
+
+// Compile-time helpers for KRATOS_DEPRECATED_ERROR.
+constexpr int DeprecationMonthToInt(const char* m) noexcept
+{
+    if (m[0]=='J' && m[1]=='a') return 1;               // Jan
+    if (m[0]=='F') return 2;                             // Feb
+    if (m[0]=='M' && m[1]=='a' && m[2]=='r') return 3;  // Mar
+    if (m[0]=='A' && m[1]=='p') return 4;               // Apr
+    if (m[0]=='M' && m[1]=='a' && m[2]=='y') return 5;  // May
+    if (m[0]=='J' && m[1]=='u' && m[2]=='n') return 6;  // Jun
+    if (m[0]=='J' && m[1]=='u' && m[2]=='l') return 7;  // Jul
+    if (m[0]=='A' && m[1]=='u') return 8;               // Aug
+    if (m[0]=='S') return 9;                            // Sep
+    if (m[0]=='O') return 10;                           // Oct
+    if (m[0]=='N') return 11;                           // Nov
+    if (m[0]=='D') return 12;                           // Dec
+    return 0;
+}
+
+// Converts the __DATE__ predefined macro string ("Mon DD YYYY") to a YYYYMMDD integer.
+constexpr int CompileDateAsInt(const char* date) noexcept
+{
+    const int month = DeprecationMonthToInt(date);
+    const int day   = (date[4] == ' ' ? 0 : (date[4] - '0')) * 10 + (date[5] - '0');
+    const int year  = (date[7]-'0')*1000 + (date[8]-'0')*100 + (date[9]-'0')*10 + (date[10]-'0');
+    return year * 10000 + month * 100 + day;
+}
+
+constexpr int DeadlineDateAsInt(int year, int month, int day) noexcept
+{
+    return year * 10000 + month * 100 + day;
+}
+
+} // namespace Internals
 
 }  /* namespace Kratos.*/
 
