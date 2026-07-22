@@ -24,6 +24,8 @@
 
 #include "utilities/tessellation_utilities/curve_tessellation.h"
 #include "includes/node.h"
+#include "utilities/nnls.h"
+#include "utilities/polynomial_fitting_utilities.h"
 
 namespace Kratos
 {
@@ -349,6 +351,55 @@ namespace Kratos
 
             return point;
         }
+
+        //Computes constant terms of moment fitting equation via area integration points.
+        static void ComputeConstantTerms(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo);
+
+        //Start point elimination algorihtm. Final quadrature rule is stored in rElement.
+        static double PointElimination(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            IntegrationPointsArrayType& rElementNewIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo,
+            const double clip_area);
+
+        //Set-Up and solve moment fitting equation. Solve the moment fitting equation for the weights of the integration points.
+        static double MomentFitting(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo,
+            const double clip_area);
+
+        /////// AGIP
+        enum orientation {od_none,od_north,od_east,od_south,od_west};
+
+        //Computes all trimmed ranges and the max inclianation; evaluation points must have correct order
+        static bool comp_heights_and_correction(std::list<c_vector<double,2> >& _polygon,
+                              std::vector<c_vector<double,2> >& _eval_point_corr_range,
+                              std::vector<double>& _equal_height);
+
+        //check_polygon if it is suited for DIP integration and extend it appropriatly
+        static bool check_polygon(std::list<c_vector<double,2> >& _polygon, c_vector<double,4> Borders, orientation& _replaced_bourder, 
+                            std::list<c_vector<double,2> >::iterator& _iter);
+
+        //create trimmed domains from a trimming polygon if possible
+        static bool create_trimmed_domain(std::list<c_vector<double,2> >& _polygon, c_vector<double,4> Borders, orientation Replaced_border);
+
+        //computes all quadrature points of the subdomain
+        static void compute_bounding_box(std::list<c_vector<double,2> >& _polygon, c_vector<double,4>& _bounding_box);
+
+        //transform polygon to Gaussian Space
+        static void map_polygon(std::list<c_vector<double,2> >& _polygon, c_matrix<double,2,2> _rot, c_vector<double,2> _shifts, c_vector<double,2> _scales);
+
+        //transform quadrature points from Gaussian Space
+        static void map_quadrature_points(std::vector<std::vector<c_vector<double,2> > >& _quadpoints, 
+                             c_matrix<double,2,2> _rot, c_vector<double,2> _shifts, c_vector<double,2> _scales);
+
+        //checks whether point is on the left or right of the line a-b
+        static bool is_on_Left(c_vector<double,2> a, c_vector<double,2> b, c_vector<double,2> c);
 
         ///@}
     };
