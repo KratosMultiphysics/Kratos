@@ -73,7 +73,7 @@
 namespace Kratos::Python {
 
 /**
- * @brief A thin wrapper for GetSortedListOfFileNameData. 
+ * @brief A thin wrapper for GetSortedListOfFileNameData.
  * @note The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
  * @todo Now that Centos support is dropped this cna be removed
  */
@@ -867,7 +867,20 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
             py::arg("nodes"),
             py::arg("conditions"),
             py::arg("properties")
-        );
+        )
+        .def_static("GetModelPart", py::overload_cast<ModelPart&, const ModelPart::NodesContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::NodesContainerType>), py::return_value_policy::reference_internal, py::arg("model_part"), py::arg("container"))
+        .def_static("GetModelPart", py::overload_cast<ModelPart&, const ModelPart::ConditionsContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::ConditionsContainerType>), py::return_value_policy::reference_internal, py::arg("model_part"), py::arg("container"))
+        .def_static("GetModelPart", py::overload_cast<ModelPart&, const ModelPart::ElementsContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::ElementsContainerType>), py::return_value_policy::reference_internal, py::arg("model_part"), py::arg("container"))
+        .def_static("GetModelPart", py::overload_cast<ModelPart&, const ModelPart::PropertiesContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::PropertiesContainerType>), py::return_value_policy::reference_internal, py::arg("model_part"), py::arg("container"))
+        .def_static("GetModelPart", py::overload_cast<ModelPart&, const ModelPart::GeometryContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::GeometryContainerType>), py::return_value_policy::reference_internal, py::arg("model_part"), py::arg("container"))
+        .def_static("GetModelPart", py::overload_cast<ModelPart&, const ModelPart::MasterSlaveConstraintContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::MasterSlaveConstraintContainerType>), py::return_value_policy::reference_internal, py::arg("model_part"), py::arg("container"))
+        .def_static("GetModelPart", py::overload_cast<Model&, const ModelPart::NodesContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::NodesContainerType>), py::return_value_policy::reference_internal, py::arg("model"), py::arg("container"))
+        .def_static("GetModelPart", py::overload_cast<Model&, const ModelPart::ConditionsContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::ConditionsContainerType>), py::return_value_policy::reference_internal, py::arg("model"), py::arg("container"))
+        .def_static("GetModelPart", py::overload_cast<Model&, const ModelPart::ElementsContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::ElementsContainerType>), py::return_value_policy::reference_internal, py::arg("model"), py::arg("container"))
+        .def_static("GetModelPart", py::overload_cast<Model&, const ModelPart::PropertiesContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::PropertiesContainerType>), py::return_value_policy::reference_internal, py::arg("model"), py::arg("container"))
+        .def_static("GetModelPart", py::overload_cast<Model&, const ModelPart::GeometryContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::GeometryContainerType>), py::return_value_policy::reference_internal, py::arg("model"), py::arg("container"))
+        .def_static("GetModelPart", py::overload_cast<Model&, const ModelPart::MasterSlaveConstraintContainerType&>(&ModelPartUtils::GetModelPart<ModelPart::MasterSlaveConstraintContainerType>), py::return_value_policy::reference_internal, py::arg("model"), py::arg("container"))
+        ;
     ;
 }
 
