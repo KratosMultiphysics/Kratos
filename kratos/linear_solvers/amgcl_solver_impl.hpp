@@ -256,21 +256,9 @@ AMGCLSolver<TSparse,TDense>::~AMGCLSolver() = default;
 
 template <class TSparse, class TDense>
 void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
-    // Settings can be defined in two distinct methods:
-    // - using a translation layer through Kratos, or
-    // - configuration directly passed on to AMGCL.
-    // The translation layer is a mess. It can produce incompatible settings,
-    // does not support all options, and sometimes silently manipulates user-
-    // provided settings. However, it is the original implementation and thus
-    // noone will let me remove it.
-    // Configuring AMGCL directly involves converting a Kratos JSON representation
-    // to a boost one, and passing it on to AMGCL.
-    if (!Settings.Has("direct_settings") || Settings["direct_settings"].begin() == Settings["direct_settings"].end()) {
-        // Configuration through a Kratos translation layer.
-        Parameters default_parameters = this->GetDefaultParameters();
-
-        // Optionally set the a user-defined block size.
-        KRATOS_TRY
+    Parameters default_parameters = this->GetDefaultParameters();
+    // Optionally set the a user-defined block size.
+    KRATOS_TRY
         if (Settings.Has("block_size")) {
             Parameters block_size_settings = Settings["block_size"].Clone();
             default_parameters.RemoveValue("block_size");
@@ -287,7 +275,23 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
                 KRATOS_ERROR << "Invalid type for \"block_size\". Expecting a positive integer, or \"auto\".";
             }
         }
-        Settings.ValidateAndAssignDefaults(default_parameters);
+    KRATOS_CATCH("")
+
+    // Settings can be defined in two distinct methods:
+    // - using a translation layer through Kratos, or
+    // - configuration directly passed on to AMGCL.
+    // The translation layer is a mess. It can produce incompatible settings,
+    // does not support all options, and sometimes silently manipulates user-
+    // provided settings. However, it is the original implementation and thus
+    // noone will let me remove it.
+    // Configuring AMGCL directly involves converting a Kratos JSON representation
+    // to a boost one, and passing it on to AMGCL.
+    if (!Settings.Has("direct_settings") || Settings["direct_settings"].begin() == Settings["direct_settings"].end()) {
+        // Configuration through a Kratos translation layer.
+        Parameters default_parameters = this->GetDefaultParameters();
+
+        KRATOS_TRY
+            Settings.ValidateAndAssignDefaults(default_parameters);
         KRATOS_CATCH("")
 
         KRATOS_TRY
@@ -306,22 +310,16 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
         if (preconditioner_type == "relaxation")
             this->SetSmootherType(Settings["smoother_type"].GetString());
 
-        mVerbosity=Settings["verbosity"].GetInt();
         mGMRESSize = Settings["gmres_krylov_space_dimension"].GetInt();
-        mUseBlockMatricesIfPossible = Settings["use_block_matrices_if_possible"].GetBool();
 
         // Termination criteria.
-        mTolerance = Settings["tolerance"].GetDouble();
-        mMaxIterationsNumber = Settings["max_iteration"].GetInt();
-        mAMGCLParameters.put("solver.tol", mTolerance);
-        mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
+        mAMGCLParameters.put("solver.tol", Settings["tolerance"].GetDouble());
+        mAMGCLParameters.put("solver.maxiter", Settings["max_iteration"].GetInt());
 
         mFallbackToGMRES = false;
         this->SetIterativeSolverType(Settings["krylov_type"].GetString());
 
         // Multigrid preconditioner settings.
-        mProvideCoordinates = Settings["provide_coordinates"].GetBool();
-        mCoarseEnough = Settings["coarse_enough"].GetInt();
         mUseAMGPreconditioning = preconditioner_type == "amg";
 
         if(mUseAMGPreconditioning) {
@@ -336,7 +334,6 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
         } // is mUseAMGPreconditioning
 
         // GPU settings.
-        mUseGPGPU = Settings["use_gpgpu"].GetBool();
         if (mUseGPGPU) {
             // ILU0 in a GPU backend has approximate iterative implementation.
             // Increase the default number of iterations to make ILU0 more robust.
@@ -349,6 +346,7 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
         KRATOS_CATCH("")
     } else {
         // Direct configuration => convert Parameters to boost props.
+
         KRATOS_TRY
             mAMGCLParameters.clear();
             std::stringstream buffer;
@@ -360,7 +358,17 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
         KRATOS_CATCH("")
     }
 
-
+    // Apply common settings.
+    KRATOS_TRY
+        Settings.ValidateAndAssignDefaults(default_parameters);
+        mVerbosity=Settings["verbosity"].GetInt();
+        mTolerance = Settings["tolerance"].GetDouble();
+        mMaxIterationsNumber = Settings["max_iteration"].GetInt();
+        mProvideCoordinates = Settings["provide_coordinates"].GetBool();
+        mCoarseEnough = Settings["coarse_enough"].GetInt();
+        mUseGPGPU = Settings["use_gpgpu"].GetBool();
+        mUseBlockMatricesIfPossible = Settings["use_block_matrices_if_possible"].GetBool();
+    KRATOS_CATCH("")
 }
 
 
