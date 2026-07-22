@@ -145,8 +145,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         check.ExecuteFinalizeSolutionStep()
 
         ## The following is used to create the solution database
-        #import json_output_process
-
         #out_parameters = KratosMultiphysics.Parameters("""
         #{
             #"output_variables"     : ["DISTANCE"],
@@ -156,7 +154,7 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         #}
         #""")
 
-        #out = json_output_process.JsonOutputProcess(current_model, out_parameters)
+        #out = KratosMultiphysics.JsonOutputProcess(current_model, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
@@ -277,8 +275,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         check.ExecuteFinalizeSolutionStep()
 
         ## The following is used to create the solution database
-        #import json_output_process
-
         #out_parameters = KratosMultiphysics.Parameters("""
         #{
             #"output_variables"     : ["DISTANCE"],
@@ -288,7 +284,7 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         #}
         #""")
 
-        #out = json_output_process.JsonOutputProcess(current_model, out_parameters)
+        #out = KratosMultiphysics.JsonOutputProcess(current_model, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()

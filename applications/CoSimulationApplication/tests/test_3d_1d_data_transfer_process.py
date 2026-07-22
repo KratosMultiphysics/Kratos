@@ -8,7 +8,6 @@ import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
 
 # Import utilities for processing JSON results.
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
-from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 # Import basic dependencies for math and file path handling.
 import math
@@ -268,7 +267,7 @@ def generate_result(model, output_filename, domain):
     out_parameters["output_file_name"].SetString(f"{output_filename}_data_transfer.json")
 
     # Execute the output generation process.
-    out = JsonOutputProcess(model, out_parameters)
+    out = KratosMultiphysics.JsonOutputProcess(model, out_parameters)
     out.ExecuteInitialize()
     out.ExecuteBeforeSolutionLoop()
     out.ExecuteFinalizeSolutionStep()
