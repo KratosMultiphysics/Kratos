@@ -131,30 +131,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 node_ids_left_boundary.append(node.Id)
                 depth_boundary_nodes.append(-1.0 * node.Y)
 
-        if test_helper.want_test_plots():
-            plot_times = [12000, 24000, 36000, 48000, 72000, 96000, 192000]
-            data_series_collection = []
-            for time in plot_times:
-                water_pressures = reader.nodal_values_at_time(
-                    "WATER_PRESSURE", time, output_data, node_ids_left_boundary
-                )
-                sorted_y, sorted_data = zip(
-                    *sorted(zip(depth_boundary_nodes, water_pressures))
-                )
-                list = zip(sorted_data, sorted_y)
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        list, label=f"time = {time}", line_style="", marker="."
-                    )
-                )
-            plot_utils._make_plot(
-                data_series_collection,
-                os.path.join(file_path, "infiltration_from_top_boundary.png"),
-                xlabel="water pressure [Pa]",
-                ylabel="depth [m]",
-                yaxis_inverted=True,
-            )
-
         @dataclass
         class ExpectedResult:
             node_id: int
@@ -182,6 +158,54 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 ExpectedResult(node_id=3, expected_value=-20000),
             ],
         }
+
+
+        if test_helper.want_test_plots():
+            plot_times = [12000, 24000, 36000, 48000, 72000, 96000, 192000]
+            data_series_collection = []
+            for time in plot_times:
+                water_pressures = reader.nodal_values_at_time(
+                    "WATER_PRESSURE", time, output_data, node_ids_left_boundary
+                )
+                sorted_y, sorted_data = zip(
+                    *sorted(zip(depth_boundary_nodes, water_pressures))
+                )
+                list = zip(sorted_data, sorted_y)
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        list, label=f"Time = {time}", line_style="-", marker=""
+                    )
+                )
+            data = []
+            for time, expected_results in expected_results_at_times.items():
+                for expected_result in expected_results:
+                    water_pressure = reader.nodal_values_at_time(
+                        "WATER_PRESSURE",
+                        time,
+                        output_data,
+                        [expected_result.node_id],
+                    )
+
+                    data.append((
+                        water_pressure[0],
+                        -1.0 * simulation.model.GetModelPart(
+                            "PorousDomain.porous_computational_model_part"
+                        ).GetNode(expected_result.node_id).Y
+                    ))
+            data_series_collection.append(
+                plot_utils.DataSeries(
+                    data, label=f"Asserted points", line_style="", marker="x", color="r"
+                )
+            )
+            plot_utils._make_plot(
+                data_series_collection,
+                os.path.join(file_path, "infiltration_from_top_boundary.png"),
+                xlabel="water pressure [Pa]",
+                ylabel="depth [m]",
+                yaxis_inverted=True,
+            )
+
+
         for time, expected_results in expected_results_at_times.items():
             water_pressures = reader.nodal_values_at_time(
                 "WATER_PRESSURE",
