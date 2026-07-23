@@ -41,42 +41,38 @@ public:
         KRATOS_ERROR_IF_NOT(rSolverSettings.Has("convergence_criterion"s))
             << "No convergence_criterion is defined, aborting.";
 
+        // The following map resembles the switch in method `_ConstructConvergenceCriterion` (see
+        // `geomechanics_U_Pw_solver.py`)
+        using Creator          = std::function<ConvergenceCriterionSharedPtr(const Parameters&)>;
+        const auto creator_map = std::map<std::string, Creator>{
+            {"displacement_criterion"s, CreateDisplacementCriterion},
+            {"residual_criterion"s, CreateResidualCriterion},
+            {"and_criterion"s,
+             [](const Parameters& rSolverSettings) {
+            return CreateAndCriterion(CreateResidualCriterion(rSolverSettings),
+                                      CreateDisplacementCriterion(rSolverSettings));
+        }},
+            {"or_criterion"s,
+             [](const Parameters& rSolverSettings) {
+            return std::make_shared<Or_Criteria<TSparseSpace, TDenseSpace>>(
+                CreateResidualCriterion(rSolverSettings), CreateDisplacementCriterion(rSolverSettings));
+        }},
+            {"water_pressure_criterion"s, CreateWaterPressureCriterion},
+            {"displacement_and_water_pressure_criterion"s, [](const Parameters& rSolverSettings) {
+            return CreateAndCriterion(CreateDisplacementCriterion(rSolverSettings),
+                                      CreateWaterPressureCriterion(rSolverSettings));
+        }}};
+
         const auto convergence_criterion_type =
             GeoStringUtilities::ToLower(rSolverSettings["convergence_criterion"s].GetString());
 
-        // The following switch resembles the one in method `_ConstructConvergenceCriterion` (see
-        // `geomechanics_U_Pw_solver.py`)
-        if (convergence_criterion_type == "displacement_criterion") {
-            return CreateDisplacementCriterion(rSolverSettings);
-        }
+        KRATOS_ERROR_IF_NOT(creator_map.contains(convergence_criterion_type))
+            << "The convergence_criterion (" << convergence_criterion_type << ") is unknown, "
+            << "supported criteria are: 'displacement_criterion', "
+               "'residual_criterion'."
+            << std::endl;
 
-        if (convergence_criterion_type == "residual_criterion") {
-            return CreateResidualCriterion(rSolverSettings);
-        }
-
-        if (convergence_criterion_type == "and_criterion") {
-            return CreateAndCriterion(CreateResidualCriterion(rSolverSettings),
-                                      CreateDisplacementCriterion(rSolverSettings));
-        }
-
-        if (convergence_criterion_type == "or_criterion") {
-            return std::make_shared<Or_Criteria<TSparseSpace, TDenseSpace>>(
-                CreateResidualCriterion(rSolverSettings), CreateDisplacementCriterion(rSolverSettings));
-        }
-
-        if (convergence_criterion_type == "water_pressure_criterion") {
-            return CreateWaterPressureCriterion(rSolverSettings);
-        }
-
-        if (convergence_criterion_type == "displacement_and_water_pressure_criterion") {
-            return CreateAndCriterion(CreateDisplacementCriterion(rSolverSettings),
-                                      CreateWaterPressureCriterion(rSolverSettings));
-        }
-
-        KRATOS_ERROR << "The convergence_criterion (" << convergence_criterion_type << ") is unknown, "
-                     << "supported criteria are: 'displacement_criterion', "
-                        "'residual_criterion'."
-                     << std::endl;
+        return creator_map.at(convergence_criterion_type)(rSolverSettings);
     }
 
 private:
