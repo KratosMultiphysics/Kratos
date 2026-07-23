@@ -21,6 +21,8 @@
 #include "solving_strategies/convergencecriterias/or_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 
+#include <functional>
+#include <map>
 #include <string>
 
 namespace Kratos
