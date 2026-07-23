@@ -5,7 +5,7 @@ import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analy
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
 )
-
+from dataclasses import dataclass
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_helper
@@ -132,17 +132,19 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 depth_boundary_nodes.append(-1.0 * node.Y)
 
         if test_helper.want_test_plots():
-            times = [12000, 24000, 36000, 48000, 72000, 96000, 192000]
+            plot_times = [12000, 24000, 36000, 48000, 72000, 96000, 192000]
             data_series_collection = []
-            for time in times:
+            for time in plot_times:
                 water_pressures = reader.nodal_values_at_time(
                     "WATER_PRESSURE", time, output_data, node_ids_left_boundary
                 )
-                sorted_y, sorted_data = zip(*sorted(zip(depth_boundary_nodes, water_pressures)))
+                sorted_y, sorted_data = zip(
+                    *sorted(zip(depth_boundary_nodes, water_pressures))
+                )
                 list = zip(sorted_data, sorted_y)
                 data_series_collection.append(
                     plot_utils.DataSeries(
-                        list, label=f"time = {time}", line_style="-", marker=""
+                        list, label=f"time = {time}", line_style="", marker="."
                     )
                 )
             plot_utils._make_plot(
@@ -151,6 +153,47 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 xlabel="water pressure [Pa]",
                 ylabel="depth [m]",
                 yaxis_inverted=True,
+            )
+
+        @dataclass
+        class ExpectedResult:
+            node_id: int
+            expected_value: float
+
+        expected_results_at_times = {
+            12000: [
+                ExpectedResult(node_id=1, expected_value=0.0),
+                ExpectedResult(node_id=17, expected_value=6243.59),
+                ExpectedResult(node_id=26, expected_value=16400),
+            ],
+            72000: [
+                ExpectedResult(node_id=55, expected_value=0.0),
+                ExpectedResult(node_id=61, expected_value=5013.57),
+                ExpectedResult(node_id=70, expected_value=7535.47),
+            ],
+            96000: [
+                ExpectedResult(node_id=87, expected_value=-293.249),
+                ExpectedResult(node_id=91, expected_value=970.378),
+                ExpectedResult(node_id=100, expected_value=1672.53),
+            ],
+            192000: [
+                ExpectedResult(node_id=1, expected_value=0.0),
+                ExpectedResult(node_id=58, expected_value=-10000),
+                ExpectedResult(node_id=3, expected_value=-20000),
+            ],
+        }
+        for time, expected_results in expected_results_at_times.items():
+            water_pressures = reader.nodal_values_at_time(
+                "WATER_PRESSURE",
+                time,
+                output_data,
+                [result.node_id for result in expected_results],
+            )
+            expected_water_pressures = [
+                result.expected_value for result in expected_results
+            ]
+            self.assertVectorAlmostEqual(
+                water_pressures, expected_water_pressures, places=None, delta=10.0
             )
 
 
