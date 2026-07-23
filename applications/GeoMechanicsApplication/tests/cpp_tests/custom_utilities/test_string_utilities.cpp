@@ -56,6 +56,7 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                          ParameterizedJoinStringsTest,
                          testing::Values(std::make_tuple(std::vector<std::string>{}, ", "s, ""s),
                                          std::make_tuple(std::vector{"Foo"s}, ", "s, "Foo"s),
-                                         std::make_tuple(std::vector{"Foo"s, "Bar"s, "Baz"s}, ", "s, "Foo, Bar, Baz"s)));
+                                         std::make_tuple(std::vector{"Foo"s, "Bar"s, "Baz"s}, ", "s, "Foo, Bar, Baz"s),
+                                         std::make_tuple(std::vector{"Foo"s, "Bar"s, "Baz"s}, ""s, "FooBarBaz"s)));
 
 } // namespace Kratos::Testing
