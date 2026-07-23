@@ -1540,7 +1540,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
             else:
                 if (self.echo_level > 0):
-                    KM.Logger.PrintInfo(self.__class__.__name__, f"CG converged in {info["iterations"]} iterations.")
+                    KM.Logger.PrintInfo(self.__class__.__name__, f"CG converged in {info['iterations']} iterations.")
                     KM.Logger.PrintInfo(self.__class__.__name__, f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
 
             return sol, info["converged"]
