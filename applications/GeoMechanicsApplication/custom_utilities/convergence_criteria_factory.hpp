@@ -58,8 +58,8 @@ public:
         }},
             {"or_criterion"s,
              [](const Parameters& rSolverSettings) {
-            return std::make_shared<OrCriterionType>(CreateResidualCriterion(rSolverSettings),
-                                                     CreateDisplacementCriterion(rSolverSettings));
+            return CreateOrCriterion(CreateResidualCriterion(rSolverSettings),
+                                     CreateDisplacementCriterion(rSolverSettings));
         }},
             {"water_pressure_criterion"s, CreateWaterPressureCriterion},
             {"displacement_and_water_pressure_criterion"s, [](const Parameters& rSolverSettings) {
@@ -116,6 +116,12 @@ private:
                                                             ConvergenceCriterionSharedPtr SecondCriterion)
     {
         return std::make_shared<AndCriterionType>(std::move(FirstCriterion), std::move(SecondCriterion));
+    }
+
+    static ConvergenceCriterionSharedPtr CreateOrCriterion(ConvergenceCriterionSharedPtr FirstCriterion,
+                                                           ConvergenceCriterionSharedPtr SecondCriterion)
+    {
+        return std::make_shared<OrCriterionType>(std::move(FirstCriterion), std::move(SecondCriterion));
     }
 };
 
