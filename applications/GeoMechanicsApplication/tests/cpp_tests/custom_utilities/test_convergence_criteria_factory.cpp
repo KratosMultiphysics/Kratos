@@ -14,45 +14,60 @@
 #include "spaces/ublas_space.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
+#include <string>
+
 using namespace Kratos;
 using SparseSpaceType                = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType                 = UblasSpace<double, Matrix, Vector>;
 using ConvergenceCriteriaFactoryType = ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType>;
+using DisplacementCriterionType      = DisplacementCriteria<SparseSpaceType, LocalSpaceType>;
+using ResidualCriterionType          = ResidualCriteria<SparseSpaceType, LocalSpaceType>;
+
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplacement, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const std::string valid_parameters = R"(
-    {
-        "convergence_criterion":              "displacement_criterion",
-        "displacement_relative_tolerance":    1.0E-4,
-        "displacement_absolute_tolerance":    1.0E-9
-    }
-    )";
+struct CreateDisplacementCriterionTest {
+    using CriterionType = DisplacementCriterionType;
+    static const std::string CriterionDefinition;
+};
 
-    const auto convergence_criteria = ConvergenceCriteriaFactoryType::Create(Parameters{valid_parameters});
-    const auto displacement_criterion =
-        dynamic_cast<const DisplacementCriteria<SparseSpaceType, LocalSpaceType>*>(
-            convergence_criteria.get());
-    KRATOS_EXPECT_NE(displacement_criterion, nullptr);
+const auto CreateDisplacementCriterionTest::CriterionDefinition = R"(
+{
+    "convergence_criterion": "displacement_criterion",
+    "displacement_relative_tolerance": 1.0E-4,
+    "displacement_absolute_tolerance": 1.0E-9
 }
+)"s;
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForResidual, KratosGeoMechanicsFastSuiteWithoutKernel)
+struct CreateResidualCriterionTest {
+    using CriterionType = ResidualCriterionType;
+    static const std::string CriterionDefinition;
+};
+
+const auto CreateResidualCriterionTest::CriterionDefinition = R"(
 {
-    const std::string valid_parameters = R"(
-    {
-        "convergence_criterion":          "residual_criterion",
-        "residual_relative_tolerance":    1.0E-4,
-        "residual_absolute_tolerance":    1.0E-9
-    }
-    )";
+    "convergence_criterion": "residual_criterion",
+    "residual_relative_tolerance": 1.0E-4,
+    "residual_absolute_tolerance": 1.0E-9
+}
+)"s;
 
-    const auto convergence_criteria = ConvergenceCriteriaFactoryType::Create(Parameters{valid_parameters});
-    const auto residual_criterion =
-        dynamic_cast<const ResidualCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
-    KRATOS_EXPECT_NE(residual_criterion, nullptr);
+template <typename T>
+class CreateConvergenceCriterionTest : public testing::Test
+{
+};
+
+using CreateConvergenceCriterionTestTypes =
+    ::testing::Types<CreateDisplacementCriterionTest, CreateResidualCriterionTest>;
+TYPED_TEST_SUITE(CreateConvergenceCriterionTest, CreateConvergenceCriterionTestTypes);
+
+TYPED_TEST(CreateConvergenceCriterionTest, ConvergenceCriteriaFactoryProducesDefinedCriterionType)
+{
+    const auto p_convergence_criterion =
+        ConvergenceCriteriaFactoryType::Create(Parameters{TypeParam::CriterionDefinition});
+    KRATOS_EXPECT_NE(dynamic_cast<const TypeParam::CriterionType*>(p_convergence_criterion.get()), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist,
