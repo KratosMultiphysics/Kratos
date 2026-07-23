@@ -24,4 +24,9 @@ std::string GeoStringUtilities::ToLower(const std::string& rString)
     return result;
 }
 
+std::string GeoStringUtilities::Join(const std::vector<std::string>& rStrings, const std::string& rSeparator)
+{
+    return rStrings.front();
+}
+
 } // namespace Kratos

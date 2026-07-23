@@ -72,6 +72,7 @@ public:
         const auto convergence_criterion_type =
             GeoStringUtilities::ToLower(rSolverSettings["convergence_criterion"s].GetString());
 
+        // TODO: report all supported convergence criteria by looking up the keys of the `creator_map`
         KRATOS_ERROR_IF_NOT(creator_map.contains(convergence_criterion_type))
             << "The convergence_criterion (" << convergence_criterion_type << ") is unknown, "
             << "supported criteria are: 'displacement_criterion', "
