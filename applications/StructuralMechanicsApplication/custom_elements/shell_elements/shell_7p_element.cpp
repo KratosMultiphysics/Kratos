@@ -154,21 +154,21 @@ void Shell7pElement::CalculateRightHandSide(
     MatrixType LHS;
     CalculateLeftHandSide(LHS, rCurrentProcessInfo);
 
-    Vector current_values = ZeroVector(number_dofs);
+    Vector current_displacement_values = ZeroVector(number_dofs);
     for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
         const SizeType index = 6 * i_node;
         const auto& v_dof = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        const auto& w_dof = r_geom[i_node].FastGetSolutionStepValue(DIFFERENCE_DIRECTOR); // reaction for "ROTATION" variable is a REACTION_MOMENT, and they are computed at the moment not for differential vector, so results for moment are different than should be. vtk output label difference director as "rotation" and plot it as such
+        const auto& w_dof = r_geom[i_node].FastGetSolutionStepValue(DIFFERENCE_DIRECTOR);
 
-        current_values[index] = v_dof[0];
-        current_values[index + 1] = v_dof[1];
-        current_values[index + 2] = v_dof[2];
-        current_values[index + 3] = w_dof[0];
-        current_values[index + 4] = w_dof[1];
-        current_values[index + 5] = w_dof[2];
+        current_displacement_values[index] = v_dof[0];
+        current_displacement_values[index + 1] = v_dof[1];
+        current_displacement_values[index + 2] = v_dof[2];
+        current_displacement_values[index + 3] = w_dof[0];
+        current_displacement_values[index + 4] = w_dof[1];
+        current_displacement_values[index + 5] = w_dof[2];
     }
 
-    noalias(rRightHandSideVector) = -prod(LHS, current_values);
+    noalias(rRightHandSideVector) = -prod(LHS, current_displacement_values);
 }
 
 void Shell7pElement::CalculateLeftHandSide(
@@ -188,19 +188,36 @@ void Shell7pElement::CalculateLeftHandSide(
                                                                                                                                                                                                                                     // node 2 [ dN2/dξ  dN2/dη ]
                                                                                                                                                                                                                                     // node 3 [ dN3/dξ  dN3/dη ]
     const double thickness = GetProperties()[THICKNESS];                // All nodes of the element share the same thickness value, since GetProperties() returns the Properties object assigned to the element, not to individual nodes
+    double A_element = GetGeometry().Area();
+    // Stabilization factor for transverse shear
+    double sqrt_f_s = std::sqrt(thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element)));
 
-    array_1d<Vector,3> current_covariant_base_vectors;
-    array_1d<Vector,3> akovr;    // array_1d<array_1d<double,3>,3> akovr;    // outer and inner sizes are compile-time fixed to 3 for better performance (no dynamic memory allocation). access: reference_covariant_base_vectors[i][j]: i = which base vector (0=g1, 1=g2, 2=g3)
+    array_1d<Vector,3> akovr;
     array_1d<Vector,3> gkovr;
-    array_1d<Vector,3> akonr;                                                                                                                                                         // j = spatial component  (0=x,  1=y,  2=z)
-    array_1d<Vector,2> a3kvp;       
+    array_1d<Vector,3> akonr;
+    array_1d<Vector,2> a3kvpr;    
+    
+    array_1d<Vector,3> akovc;
+    array_1d<Vector,3> gkovc;
+    array_1d<Vector,3> akonc;
+    array_1d<Vector,2> a3kvpc;
 
-    Matrix covariant_metric_current = ZeroMatrix(3);        // BoundedMatrix<double, 3, 3> covariant_metric_current = ZeroMatrix(3, 3); // i cannot resize() it — size is fixed at compile-time
-    Matrix amkovr = ZeroMatrix(3);
-    Matrix amkonr = ZeroMatrix(3);
-    Matrix gmkovr = ZeroMatrix(3);
-    Matrix gmkonr = ZeroMatrix(3);
+    Matrix amkovr;
+    //Matrix amkonr;
+    Matrix gmkovr;
+    Matrix gmkonr;
+
+    Matrix amkovc;
+    //Matrix amkonc;
+    Matrix gmkovc;
+    Matrix gmkonc;
     double detJ_surface = 0.0;
+
+    Matrix Bop;
+    array_1d<double,6> PK2_stress;
+    array_1d<double,6> GL_strain;
+    BoundedMatrix<double, 12, 12> Dmatrix;
+    array_1d<double,12> stress_resultants;
 
     array_1d<double,2> gpcoord_t;
     gpcoord_t[0] =  1.0 / std::sqrt(3.0);
@@ -315,7 +332,6 @@ void Shell7pElement::CalculateLeftHandSide(
     Matrix amkonr0_eas = ZeroMatrix(3);
     double amdet0_body = 0.0;
     double detJ0_surface = 0.0;
-    double A_element = GetGeometry().Area();
 
     array_1d<double,3> local_coords;
     local_coords[0] = 0.0;      // the EAS modes are initially formulated at the element center
@@ -326,7 +342,7 @@ void Shell7pElement::CalculateLeftHandSide(
     r_geom.ShapeFunctionsLocalGradients(DN_eas0, local_coords);
 
     // midsurface midpoint kinematics in reference configuration  
-    CovariantBaseVectorsMidsurface(akovr0_eas, DN_eas0, N_eas0, ConfigurationType::Reference, thickness);
+    CovariantBaseVectorsMidsurface(akovr0_eas,DN_eas0,N_eas0,ConfigurationType::Reference,thickness);
     CovariantMetric(amkovr0_eas,akovr0_eas);
     ContravariantMetric(amkonr0_eas,amkovr0_eas,amdet0_body);
     ContraVariantBaseVectors(akonr0_eas,amkonr0_eas,akovr0_eas);
@@ -340,17 +356,18 @@ void Shell7pElement::CalculateLeftHandSide(
         const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
         const Vector& Nshape = row(Ncontainer,point_number);        // Node shape function values at the current integration point. Nshape[i] = N_i evaluated at the current GP
 
-        // CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current,thickness);
+        // surface kinematics in reference configuration
         CovariantBaseVectorsMidsurface(akovr,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,thickness);
-        DirectorDerivatives(a3kvp,shape_functions_gradients_i,thickness);
-
-        // CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
+        DirectorDerivatives(a3kvpr,shape_functions_gradients_i,ConfigurationType::Reference,thickness);
         CovariantMetric(amkovr,akovr);
-        ContravariantMetric(amkonr,amkovr,amdet_body);
-
-        ContraVariantBaseVectors(akonr,amkonr,akovr);
-
+                //ContravariantMetric(amkonr,amkovr,amdet_body);
+                //ContraVariantBaseVectors(akonr,amkonr,akovr);
         JacobiDeterminante(detJ_surface,akovr);
+        
+        // surface kinematics in current configuration
+        CovariantBaseVectorsMidsurface(akovc,shape_functions_gradients_i,Nshape,ConfigurationType::Current,thickness);
+        DirectorDerivatives(a3kvpc,shape_functions_gradients_i,ConfigurationType::Current,thickness);
+        CovariantMetric(amkovc,akovc);
 
         ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
         const auto& r_gp = r_integration_points[point_number];
@@ -362,34 +379,38 @@ void Shell7pElement::CalculateLeftHandSide(
 
         ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
 
-        BoundedMatrix<double, 12, 12> Dmatrix=ZeroMatrix(12,12);
-        Matrix Bop = ZeroMatrix(12,number_dofs);
-        CalculatelinearBOperator(Bop,akovr,a3kvp,shape_functions_gradients_i,Nshape,number_of_nodes);
+        Bop = ZeroMatrix(12,number_dofs);
+        CalculatelinearBOperator(Bop,akovc,a3kvpc,shape_functions_gradients_i,Nshape,number_of_nodes);
         //-------------------------------------- modifications due to ans 
-        BOperatorANSTransverseShearmodification(Bop,frq,fsq,akovr_ans,a3kvp,DN_ans,N_ans,number_of_nodes);
+        BOperatorANSTransverseShearmodification(Bop,frq,fsq,akovr_ans,a3kvpc,DN_ans,N_ans,number_of_nodes,sqrt_f_s);
         ////////////////////////////////////////////////////////////////BEGIN ANS CURVATURE THICKNESS  ELIMINATION STUFF////////////////////////////////////////////////////////////////
 
         GeometryType::CoordinatesArrayType local_coords_gp;
         local_coords_gp[0] = r;
         local_coords_gp[1] = s;
         local_coords_gp[2] = 0.0;
-        r_geom.ShapeFunctionsValues(Np_ct, local_coords_gp);
-        BOperatorANSCurvatureThicknessModification(Bop, akovr_ct_ans, N_ct_ans, r, s, Np_ct, number_of_nodes);
+        r_geom.ShapeFunctionsValues(Np_ct,local_coords_gp);
+        BOperatorANSCurvatureThicknessModification(Bop,akovr_ct_ans,N_ct_ans,r,s,Np_ct,number_of_nodes);
 
         ////////////////////////////////////////////////////////////////END ANS CURVATURE THICKNESS  ELIMINATION STUFF////////////////////////////////////////////////////////////////
 
+        Dmatrix = ZeroMatrix(12,12);
+        stress_resultants = ZeroVector(12);
         //-------------------------------------- loop over GP in thickness direction for preintegration of constitutive law
         for (SizeType k=0; k<2; ++k){           // separate function PreintegrateThroughThicknessConstitutive() ?
             double Theta3 = gpcoord_t[k];
             double tweight = gpweight_t[k];
             CovariantBaseVectorsShellBody(gkovr,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,Theta3,thickness);
             CovariantMetric(gmkovr,gkovr);
+
+            // change to consistent current metric for stress/strain calculation
+            array_1d<double,6> GL_strain;
+            CalculateGreenLagrangeStrain(GL_strain,gmkovr,gmkovc,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3);
             ContravariantMetric(gmkonr,gmkovr,gmdet_body);
-            //ContraVariantBaseVectors(gkonr,gmkonr,gkovr);
 
             double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
 
-            CalculateMaterialLaw(Dmatrix,gmkonr,thickness,ConstitutiveLawType::gStVenantKirchhoff, Theta3, scalefactor);
+            CalculateMaterialLaw(Dmatrix,gmkonr,thickness,ConstitutiveLawType::gStVenantKirchhoff,Theta3,scalefactor,PK2_stress,GL_strain,stress_resultants);
         }
 
         double f_s = 1.0; // thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element));
@@ -443,10 +464,38 @@ void Shell7pElement::CalculateLeftHandSide(
     rLeftHandSideMatrix -= prod(trans(Lt), temp);       
 }
 
+void Shell7pElement::GetValuesVector(Vector& rValues, int Step) const
+{
+    KRATOS_TRY
+
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType num_dofs = number_of_nodes * 6;
+
+    if (rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
+
+    for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node)
+    {
+        const SizeType index = 6 * i_node;
+        const array_1d<double, 3>& disp = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        const array_1d<double, 3>& diff_dir = r_geom[i_node].FastGetSolutionStepValue(DIFFERENCE_DIRECTOR, Step);
+        rValues[index]     = disp[0];
+        rValues[index + 1] = disp[1];
+        rValues[index + 2] = disp[2];
+        rValues[index + 3] = diff_dir[0];
+        rValues[index + 4] = diff_dir[1];
+        rValues[index + 5] = diff_dir[2];
+    }
+
+    KRATOS_CATCH("");
+}
+
 void Shell7pElement::CovariantBaseVectorsMidsurface(array_1d<Vector,3>& akovr,
      const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, const ConfigurationType& rConfiguration, const double& thickness) const
 {
     // pass/call this ShapeFunctionsLocalGradients[pnt]
+    const double h2 = thickness * 0.5;
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -454,53 +503,59 @@ void Shell7pElement::CovariantBaseVectorsMidsurface(array_1d<Vector,3>& akovr,
     Vector a2 = ZeroVector(dimension);
     Vector a3 = ZeroVector(dimension);
     
-    // Vector current_displacement = ZeroVector(dimension*number_of_nodes);
-    //if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement);
+    Vector current_nodal_dofs = ZeroVector(6*number_of_nodes);
+    if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_nodal_dofs);
 
 
-    for (SizeType i=0;i<number_of_nodes;++i){
+    for (SizeType i_node=0;i_node<number_of_nodes;++i_node){
 
-        const Vector& nodal_normal = r_geom[i].GetValue(NORMAL);        // node.GetValue(NORMAL)
+        const SizeType index = 6 * i_node;
+        const auto& nodal_normal = r_geom[i_node].GetValue(NORMAL);        // node.GetValue(NORMAL)
 
-        a1[0] += r_geom.GetPoint( i ).X0() * rShapeFunctionGradientValues(i, 0);
-        a1[1] += r_geom.GetPoint( i ).Y0() * rShapeFunctionGradientValues(i, 0);
-        a1[2] += r_geom.GetPoint( i ).Z0() * rShapeFunctionGradientValues(i, 0);
+        a1[0] += (r_geom.GetPoint( i_node ).X0() + current_nodal_dofs[index]) * rShapeFunctionGradientValues(i_node, 0);
+        a1[1] += (r_geom.GetPoint( i_node ).Y0() + current_nodal_dofs[index + 1]) * rShapeFunctionGradientValues(i_node, 0);
+        a1[2] += (r_geom.GetPoint( i_node ).Z0() + current_nodal_dofs[index + 2]) * rShapeFunctionGradientValues(i_node, 0);
 
-        a2[0] += r_geom.GetPoint( i ).X0() * rShapeFunctionGradientValues(i, 1);
-        a2[1] += r_geom.GetPoint( i ).Y0() * rShapeFunctionGradientValues(i, 1);
-        a2[2] += r_geom.GetPoint( i ).Z0() * rShapeFunctionGradientValues(i, 1);
+        a2[0] += (r_geom.GetPoint( i_node ).X0() + current_nodal_dofs[index]) * rShapeFunctionGradientValues(i_node, 1);
+        a2[1] += (r_geom.GetPoint( i_node ).Y0() + current_nodal_dofs[index + 1]) * rShapeFunctionGradientValues(i_node, 1);
+        a2[2] += (r_geom.GetPoint( i_node ).Z0() + current_nodal_dofs[index + 2]) * rShapeFunctionGradientValues(i_node, 1);
 
-        a3[0] += nodal_normal[0] * rNshape[i];
-        a3[1] += nodal_normal[1] * rNshape[i];
-        a3[2] += nodal_normal[2] * rNshape[i];
+        a3[0] += (nodal_normal[0] * h2 + current_nodal_dofs[index + 3]) * rNshape[i_node];
+        a3[1] += (nodal_normal[1] * h2 + current_nodal_dofs[index + 4]) * rNshape[i_node];
+        a3[2] += (nodal_normal[2] * h2 + current_nodal_dofs[index + 5]) * rNshape[i_node];
     }
     akovr[0] = a1;
     akovr[1] = a2;
-    akovr[2] = a3*thickness*0.5;
+    akovr[2] = a3;
 }
 
-void Shell7pElement::DirectorDerivatives(array_1d<Vector,2>& a3kvp,const Matrix& rShapeFunctionGradientValues, const double& thickness) const
+void Shell7pElement::DirectorDerivatives(array_1d<Vector,2>& a3kvp,const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration, const double& thickness) const
 
 {
+    const double h2 = thickness * 0.5;
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     Vector a31 = ZeroVector(dimension);
     Vector a32 = ZeroVector(dimension);
 
-    for (SizeType i=0;i<number_of_nodes;++i){
+    Vector current_nodal_dofs = ZeroVector(6*number_of_nodes);
+    if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_nodal_dofs);
 
-        const Vector& nodal_normal = r_geom[i].GetValue(NORMAL);
-        a31[0] += nodal_normal[0]*rShapeFunctionGradientValues(i, 0);
-        a31[1] += nodal_normal[1]*rShapeFunctionGradientValues(i, 0);
-        a31[2] += nodal_normal[2]*rShapeFunctionGradientValues(i, 0);
+    for (SizeType i_node=0;i_node<number_of_nodes;++i_node){
 
-        a32[0] += nodal_normal[0]*rShapeFunctionGradientValues(i, 1);
-        a32[1] += nodal_normal[1]*rShapeFunctionGradientValues(i, 1);
-        a32[2] += nodal_normal[2]*rShapeFunctionGradientValues(i, 1);
+        const SizeType index = 6 * i_node;
+        const auto& nodal_normal = r_geom[i_node].GetValue(NORMAL);
+        a31[0] += (nodal_normal[0] * h2 + current_nodal_dofs[index + 3]) * rShapeFunctionGradientValues(i_node, 0);
+        a31[1] += (nodal_normal[1] * h2 + current_nodal_dofs[index + 4]) * rShapeFunctionGradientValues(i_node, 0);
+        a31[2] += (nodal_normal[2] * h2 + current_nodal_dofs[index + 5]) * rShapeFunctionGradientValues(i_node, 0);
+
+        a32[0] += (nodal_normal[0] * h2 + current_nodal_dofs[index + 3]) * rShapeFunctionGradientValues(i_node, 1);
+        a32[1] += (nodal_normal[1] * h2 + current_nodal_dofs[index + 4]) * rShapeFunctionGradientValues(i_node, 1);
+        a32[2] += (nodal_normal[2] * h2 + current_nodal_dofs[index + 5]) * rShapeFunctionGradientValues(i_node, 1);
     }
-    a3kvp[0] = a31*thickness*0.5;
-    a3kvp[1] = a32*thickness*0.5;
+    a3kvp[0] = a31;
+    a3kvp[1] = a32;
 }
 void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& rBaseVectorCovariant) const
 {
@@ -510,6 +565,43 @@ void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& r
             rMetric(i,j) = inner_prod(rBaseVectorCovariant[i],rBaseVectorCovariant[j]);
         }
     }
+}
+
+void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_vector, const Matrix& gmkovr, Matrix& gmkovc, const Matrix& amkovr, const Matrix& amkovc, const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, const array_1d<Vector,2>& a3kvpc, const double& Theta3) const
+{
+    Matrix GL_strain_tensor = ZeroMatrix(3);
+
+    double b11c = inner_prod(akovc[0],a3kvpc[0]);
+    double b12c = inner_prod(akovc[0],a3kvpc[1]);
+    double b21c = inner_prod(akovc[1],a3kvpc[0]);
+    double b22c = inner_prod(akovc[1],a3kvpc[1]);
+    double b31c = inner_prod(akovc[2],a3kvpc[0]);
+    double b32c = inner_prod(akovc[2],a3kvpc[1]);
+
+    double b11r = inner_prod(akovr[0],a3kvpr[0]);
+    double b12r = inner_prod(akovr[0],a3kvpr[1]);
+    double b21r = inner_prod(akovr[1],a3kvpr[0]);
+    double b22r = inner_prod(akovr[1],a3kvpr[1]);
+    double b31r = inner_prod(akovr[2],a3kvpr[0]);
+    double b32r = inner_prod(akovr[2],a3kvpr[1]);
+
+    GL_strain_tensor(0,0) = 0.5 * ((amkovc(0,0)-amkovr(0,0)) + 2.0*Theta3*(b11c-b11r));
+    GL_strain_tensor(1,1) = 0.5 * ((amkovc(1,1)-amkovr(1,1)) + 2.0*Theta3*(b22c-b22r));
+    GL_strain_tensor(2,2) = 0.5 * (amkovc(2,2)-amkovr(2,2));
+    GL_strain_tensor(0,1) = 0.5 * ((amkovc(0,1)-amkovr(0,1)) + Theta3*(b21c+b12c-b21r-b12r));
+    GL_strain_tensor(0,2) = 0.5 * ((amkovc(0,2)-amkovr(0,2)) + Theta3*(b31c-b31r));
+    GL_strain_tensor(1,2) = 0.5 * ((amkovc(1,2)-amkovr(1,2)) + Theta3*(b32c-b32r));
+    GL_strain_tensor(1,0) = GL_strain_tensor(0,1);
+    GL_strain_tensor(2,0) = GL_strain_tensor(0,2);
+    GL_strain_tensor(2,1) = GL_strain_tensor(1,2);
+
+    // (E11|2E12|2E13|E22|2E23|E33)
+    GL_strain_vector[0] = GL_strain_tensor(0,0);
+    GL_strain_vector[1] = 2.0 * GL_strain_tensor(0,1);
+    GL_strain_vector[2] = 2.0 * GL_strain_tensor(0,2);
+    GL_strain_vector[3] = GL_strain_tensor(1,1);
+    GL_strain_vector[4] = 2.0 * GL_strain_tensor(1,2);
+    GL_strain_vector[5] = GL_strain_tensor(2,2);
 }
  
 void Shell7pElement::ContravariantMetric(Matrix& rMetric, const Matrix& rCovariantMetric, double& detMetric_body) const
@@ -548,6 +640,7 @@ void Shell7pElement::CovariantBaseVectorsShellBody(array_1d<Vector,3>& gkovr,
      const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, const ConfigurationType& rConfiguration, const double& Theta3, const double& thickness) const
 {
     // pass/call this ShapeFunctionsLocalGradients[pnt]
+    const double h2 = thickness * 0.5;
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -555,25 +648,26 @@ void Shell7pElement::CovariantBaseVectorsShellBody(array_1d<Vector,3>& gkovr,
     Vector g2 = ZeroVector(dimension);
     Vector g3 = ZeroVector(dimension);
     
-    // Vector current_displacement = ZeroVector(dimension*number_of_nodes);
-    //if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement);
+    Vector current_nodal_dofs = ZeroVector(6*number_of_nodes);
+    if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_nodal_dofs);
 
 
-    for (SizeType i=0;i<number_of_nodes;++i){
+    for (SizeType i_node=0;i_node<number_of_nodes;++i_node){
 
-        const Vector& nodal_normal = r_geom[i].GetValue(NORMAL) * thickness*0.5;        // node.GetValue(NORMAL)
+        const SizeType index = 6 * i_node;
+        const Vector& nodal_normal = r_geom[i_node].GetValue(NORMAL);        // node.GetValue(NORMAL)
 
-        g1[0] += (r_geom.GetPoint( i ).X0() + Theta3 * nodal_normal[0]) * rShapeFunctionGradientValues(i, 0);
-        g1[1] += (r_geom.GetPoint( i ).Y0() + Theta3 * nodal_normal[1]) * rShapeFunctionGradientValues(i, 0);
-        g1[2] += (r_geom.GetPoint( i ).Z0() + Theta3 * nodal_normal[2]) * rShapeFunctionGradientValues(i, 0);
+        g1[0] += ((r_geom.GetPoint( i_node ).X0() + current_nodal_dofs[index])     + Theta3 * (nodal_normal[0] * h2 + current_nodal_dofs[index + 3])) * rShapeFunctionGradientValues(i_node, 0);
+        g1[1] += ((r_geom.GetPoint( i_node ).Y0() + current_nodal_dofs[index + 1]) + Theta3 * (nodal_normal[1] * h2 + current_nodal_dofs[index + 4])) * rShapeFunctionGradientValues(i_node, 0);
+        g1[2] += ((r_geom.GetPoint( i_node ).Z0() + current_nodal_dofs[index + 2]) + Theta3 * (nodal_normal[2] * h2 + current_nodal_dofs[index + 5])) * rShapeFunctionGradientValues(i_node, 0);
 
-        g2[0] += (r_geom.GetPoint( i ).X0() + Theta3 * nodal_normal[0]) * rShapeFunctionGradientValues(i, 1);
-        g2[1] += (r_geom.GetPoint( i ).Y0() + Theta3 * nodal_normal[1]) * rShapeFunctionGradientValues(i, 1);
-        g2[2] += (r_geom.GetPoint( i ).Z0() + Theta3 * nodal_normal[2]) * rShapeFunctionGradientValues(i, 1);
+        g2[0] += ((r_geom.GetPoint( i_node ).X0() + current_nodal_dofs[index])     + Theta3 * (nodal_normal[0] * h2 + current_nodal_dofs[index + 3])) * rShapeFunctionGradientValues(i_node, 1);
+        g2[1] += ((r_geom.GetPoint( i_node ).Y0() + current_nodal_dofs[index + 1]) + Theta3 * (nodal_normal[1] * h2 + current_nodal_dofs[index + 4])) * rShapeFunctionGradientValues(i_node, 1);
+        g2[2] += ((r_geom.GetPoint( i_node ).Z0() + current_nodal_dofs[index + 2]) + Theta3 * (nodal_normal[2] * h2 + current_nodal_dofs[index + 5])) * rShapeFunctionGradientValues(i_node, 1);
 
-        g3[0] += nodal_normal[0] * rNshape[i];
-        g3[1] += nodal_normal[1] * rNshape[i];
-        g3[2] += nodal_normal[2] * rNshape[i];
+        g3[0] += (nodal_normal[0] * h2 + current_nodal_dofs[index + 3]) * rNshape[i_node];
+        g3[1] += (nodal_normal[1] * h2 + current_nodal_dofs[index + 4]) * rNshape[i_node];
+        g3[2] += (nodal_normal[2] * h2 + current_nodal_dofs[index + 5]) * rNshape[i_node];
     }
     gkovr[0] = g1;
     gkovr[1] = g2;
@@ -581,7 +675,7 @@ void Shell7pElement::CovariantBaseVectorsShellBody(array_1d<Vector,3>& gkovr,
 }
 
 void Shell7pElement::CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& gmkonr, const double& thickness,
-const ConstitutiveLawType& option, const double& Theta3, const double& fact) const
+const ConstitutiveLawType& option, const double& Theta3, const double& fact, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants) const
 {
     const auto& r_properties = GetProperties();
     const double E = r_properties[YOUNG_MODULUS];
@@ -659,8 +753,10 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact) con
              }
         }
 
+       StressPreintegration(CC, PK2_stress, GL_strain, stress_resultants, Theta3, fact);
+
        //CL(2,2) *= 5.0/6.0;    // shear correction factor alpha=5/6 for n13,n23
-       //CL(2,4) *= 5.0/6.0;    // schould i use thickness_q=alpha*thickness instead of just thickness for shear terms?
+       //CL(2,4) *= 5.0/6.0;
        //CL(4,2) *= 5.0/6.0;
        //CL(4,4) *= 5.0/6.0;
        //CL(8,8) *= 0.7;        // shear correction factor betta=0.7 for m13,m23
@@ -702,24 +798,35 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact) con
 
 
 }
+
+void Shell7pElement::StressPreintegration(const BoundedMatrix<double, 6, 6>& C, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants, const double Theta3, const double fact) const
+{
+    noalias(PK2_stress) = prod(C, GL_strain);
+
+    for (SizeType i=0; i<6; ++i){
+        const SizeType i6 = i + 6;
+        stress_resultants[i] += PK2_stress[i]*fact;
+        stress_resultants[i6] += PK2_stress[i]*Theta3*fact;
+    }
+}
                                                                                                                                                                   // [N_node][derivative direction]   // Nshape[i] = N_i evaluated at the current GP
 void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes) const
 {
-const double a1x = CovariantBaseVectors[0][0];
-const double a1y = CovariantBaseVectors[0][1];
-const double a1z = CovariantBaseVectors[0][2];
-const double a2x = CovariantBaseVectors[1][0];
-const double a2y = CovariantBaseVectors[1][1];
-const double a2z = CovariantBaseVectors[1][2];
-const double a3x = CovariantBaseVectors[2][0];
-const double a3y = CovariantBaseVectors[2][1];
-const double a3z = CovariantBaseVectors[2][2];
-const double a31x = DirectorDerivatives[0][0];
-const double a31y = DirectorDerivatives[0][1];
-const double a31z = DirectorDerivatives[0][2];
-const double a32x = DirectorDerivatives[1][0];
-const double a32y = DirectorDerivatives[1][1];
-const double a32z = DirectorDerivatives[1][2];
+    const double a1x = CovariantBaseVectors[0][0];
+    const double a1y = CovariantBaseVectors[0][1];
+    const double a1z = CovariantBaseVectors[0][2];
+    const double a2x = CovariantBaseVectors[1][0];
+    const double a2y = CovariantBaseVectors[1][1];
+    const double a2z = CovariantBaseVectors[1][2];
+    const double a3x = CovariantBaseVectors[2][0];
+    const double a3y = CovariantBaseVectors[2][1];
+    const double a3z = CovariantBaseVectors[2][2];
+    const double a31x = DirectorDerivatives[0][0];
+    const double a31y = DirectorDerivatives[0][1];
+    const double a31z = DirectorDerivatives[0][2];
+    const double a32x = DirectorDerivatives[1][0];
+    const double a32y = DirectorDerivatives[1][1];
+    const double a32z = DirectorDerivatives[1][2];
 
     for (SizeType i=0;i<number_of_nodes;++i){
             const SizeType index = i*6;
@@ -824,11 +931,8 @@ void Shell7pElement::s8_ansqshapefunctions(array_1d<double,2>& frq, array_1d<dou
 
 void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const array_1d<double,2>& frq, const array_1d<double,2>& fsq,
     const array_1d<array_1d<Vector,3>,4>& akovr_ans, const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
-    const Matrix& N_ans, const SizeType& number_of_nodes) const
+    const Matrix& N_ans, const SizeType& number_of_nodes, const double sqrt_f_s) const
 {
-    const double thickness = GetProperties()[THICKNESS];
-    double A_element = GetGeometry().Area();
-    double sqrt_f_s = std::sqrt(thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element)));
     for (SizeType inode = 0; inode < number_of_nodes; ++inode)
   {
     const SizeType node_start = inode*6;
