@@ -32,6 +32,10 @@ class ConvergenceCriteriaFactory
 public:
     using ConvergenceCriterionType      = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
     using ConvergenceCriterionSharedPtr = std::shared_ptr<ConvergenceCriterionType>;
+    using DisplacementCriterionType     = DisplacementCriteria<TSparseSpace, TDenseSpace>;
+    using ResidualCriterionType         = ResidualCriteria<TSparseSpace, TDenseSpace>;
+    using AndCriterionType              = And_Criteria<TSparseSpace, TDenseSpace>;
+    using OrCriterionType               = Or_Criteria<TSparseSpace, TDenseSpace>;
     using MixedGenericCriterionType     = MixedGenericCriteria<TSparseSpace, TDenseSpace>;
 
     static ConvergenceCriterionSharedPtr Create(const Parameters& rSolverSettings)
@@ -54,8 +58,8 @@ public:
         }},
             {"or_criterion"s,
              [](const Parameters& rSolverSettings) {
-            return std::make_shared<Or_Criteria<TSparseSpace, TDenseSpace>>(
-                CreateResidualCriterion(rSolverSettings), CreateDisplacementCriterion(rSolverSettings));
+            return std::make_shared<OrCriterionType>(CreateResidualCriterion(rSolverSettings),
+                                                     CreateDisplacementCriterion(rSolverSettings));
         }},
             {"water_pressure_criterion"s, CreateWaterPressureCriterion},
             {"displacement_and_water_pressure_criterion"s, [](const Parameters& rSolverSettings) {
@@ -84,7 +88,7 @@ private:
             std::vector{"displacement_absolute_tolerance"s, "displacement_relative_tolerance"s};
         const auto convergence_inputs =
             ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
-        return std::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
+        return std::make_shared<DisplacementCriterionType>(convergence_inputs);
     }
 
     static ConvergenceCriterionSharedPtr CreateResidualCriterion(const Parameters& rSolverSettings)
@@ -94,7 +98,7 @@ private:
         const auto entries_to_copy = std::vector{"residual_absolute_tolerance"s, "residual_relative_tolerance"s};
         const auto convergence_inputs =
             ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
-        return std::make_shared<ResidualCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
+        return std::make_shared<ResidualCriterionType>(convergence_inputs);
     }
 
     static ConvergenceCriterionSharedPtr CreateWaterPressureCriterion(const Parameters& rSolverSettings)
@@ -111,8 +115,7 @@ private:
     static ConvergenceCriterionSharedPtr CreateAndCriterion(ConvergenceCriterionSharedPtr FirstCriterion,
                                                             ConvergenceCriterionSharedPtr SecondCriterion)
     {
-        return std::make_shared<And_Criteria<TSparseSpace, TDenseSpace>>(
-            std::move(FirstCriterion), std::move(SecondCriterion));
+        return std::make_shared<AndCriterionType>(std::move(FirstCriterion), std::move(SecondCriterion));
     }
 };
 

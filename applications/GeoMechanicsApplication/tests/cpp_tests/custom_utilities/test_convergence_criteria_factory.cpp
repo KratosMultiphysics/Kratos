@@ -20,11 +20,11 @@ using namespace Kratos;
 using SparseSpaceType                = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType                 = UblasSpace<double, Matrix, Vector>;
 using ConvergenceCriteriaFactoryType = ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType>;
-using DisplacementCriterionType      = DisplacementCriteria<SparseSpaceType, LocalSpaceType>;
-using ResidualCriterionType          = ResidualCriteria<SparseSpaceType, LocalSpaceType>;
-using AndCriterionType               = And_Criteria<SparseSpaceType, LocalSpaceType>;
-using OrCriterionType                = Or_Criteria<SparseSpaceType, LocalSpaceType>;
-using WaterPressureCriterionType     = MixedGenericCriteria<SparseSpaceType, LocalSpaceType>;
+using DisplacementCriterionType      = ConvergenceCriteriaFactoryType::DisplacementCriterionType;
+using ResidualCriterionType          = ConvergenceCriteriaFactoryType::ResidualCriterionType;
+using AndCriterionType               = ConvergenceCriteriaFactoryType::AndCriterionType;
+using OrCriterionType                = ConvergenceCriteriaFactoryType::OrCriterionType;
+using WaterPressureCriterionType     = ConvergenceCriteriaFactoryType::MixedGenericCriterionType;
 using DisplacementAndWaterPressureCriterionType = AndCriterionType;
 
 using namespace std::string_literals;
