@@ -25,6 +25,7 @@ using ResidualCriterionType          = ResidualCriteria<SparseSpaceType, LocalSp
 using AndCriterionType               = And_Criteria<SparseSpaceType, LocalSpaceType>;
 using OrCriterionType                = Or_Criteria<SparseSpaceType, LocalSpaceType>;
 using WaterPressureCriterionType     = MixedGenericCriteria<SparseSpaceType, LocalSpaceType>;
+using DisplacementAndWaterPressureCriterionType = AndCriterionType;
 
 using namespace std::string_literals;
 
@@ -100,13 +101,28 @@ const auto CreateWaterPressureCriterionTest::CriterionDefinition = R"(
 }
 )"s;
 
+struct CreateDisplacementAndWaterPressureCriterionTest {
+    using CriterionType = DisplacementAndWaterPressureCriterionType;
+    static const std::string CriterionDefinition;
+};
+
+const auto CreateDisplacementAndWaterPressureCriterionTest::CriterionDefinition = R"(
+{
+    "convergence_criterion": "displacement_and_water_pressure_criterion",
+    "displacement_relative_tolerance": 1.0E-4,
+    "displacement_absolute_tolerance": 1.0E-9,
+    "water_pressure_relative_tolerance": 1.0E-4,
+    "water_pressure_absolute_tolerance": 1.0E-9
+}
+)"s;
+
 template <typename T>
 class CreateConvergenceCriterionTest : public testing::Test
 {
 };
 
 using CreateConvergenceCriterionTestTypes =
-    ::testing::Types<CreateDisplacementCriterionTest, CreateResidualCriterionTest, CreateAndCriterionTest, CreateOrCriterionTest, CreateWaterPressureCriterionTest>;
+    ::testing::Types<CreateDisplacementCriterionTest, CreateResidualCriterionTest, CreateAndCriterionTest, CreateOrCriterionTest, CreateWaterPressureCriterionTest, CreateDisplacementAndWaterPressureCriterionTest>;
 TYPED_TEST_SUITE(CreateConvergenceCriterionTest, CreateConvergenceCriterionTestTypes);
 
 TYPED_TEST(CreateConvergenceCriterionTest, ConvergenceCriteriaFactoryProducesDefinedCriterionType)
