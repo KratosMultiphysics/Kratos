@@ -60,4 +60,18 @@ KRATOS_TEST_CASE_IN_SUITE(GeoStringUtilities_JoiningASingleStringYieldsItself, K
     EXPECT_EQ(joined_string, expected_string);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoStringUtilities_JoiningMultipleStringsYieldsASingleStringWithEachElementSeparatedByTheGivenSeparator,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto strings = std::vector{"Foo"s, "Bar"s, "Baz"s};
+
+    // Act
+    const auto joined_string = GeoStringUtilities::Join(strings, ", "s);
+
+    // Assert
+    const auto expected_string = "Foo, Bar, Baz"s;
+    EXPECT_EQ(joined_string, expected_string);
+}
+
 } // namespace Kratos::Testing
