@@ -134,30 +134,30 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         @dataclass
         class ExpectedResult:
             node_id: int
-            expected_value: float
+            value: float
 
         expected_results_at_times = {
             12000: [
-                ExpectedResult(node_id=1, expected_value=0.0),
-                ExpectedResult(node_id=17, expected_value=6243.59),
-                ExpectedResult(node_id=26, expected_value=16400),
+                ExpectedResult(node_id=1, value=0.0),
+                ExpectedResult(node_id=17, value=6243.59),
+                ExpectedResult(node_id=26, value=16400),
             ],
             72000: [
-                ExpectedResult(node_id=55, expected_value=0.0),
-                ExpectedResult(node_id=61, expected_value=5013.57),
-                ExpectedResult(node_id=70, expected_value=7535.47),
+                ExpectedResult(node_id=55, value=0.0),
+                ExpectedResult(node_id=61, value=5013.57),
+                ExpectedResult(node_id=70, value=7535.47),
             ],
             96000: [
-                ExpectedResult(node_id=87, expected_value=-293.249),
-                ExpectedResult(node_id=91, expected_value=970.378),
-                ExpectedResult(node_id=100, expected_value=1672.53),
+                ExpectedResult(node_id=87, value=-293.249),
+                ExpectedResult(node_id=91, value=970.378),
+                ExpectedResult(node_id=100, value=1672.53),
             ],
             192000: [
                 # This is the hydrostatic line from p = 0 at depth = 0m
                 # and p = -20000 Pa at depth = 2m
-                ExpectedResult(node_id=1, expected_value=0.0),
-                ExpectedResult(node_id=58, expected_value=-10000),
-                ExpectedResult(node_id=3, expected_value=-20000),
+                ExpectedResult(node_id=1, value=0.0),
+                ExpectedResult(node_id=58, value=-10000),
+                ExpectedResult(node_id=3, value=-20000),
             ],
         }
 
@@ -169,7 +169,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 [result.node_id for result in expected_results],
             )
             expected_water_pressures = [
-                result.expected_value for result in expected_results
+                result.value for result in expected_results
             ]
             self.assertVectorAlmostEqual(
                 water_pressures, expected_water_pressures, places=None, delta=10.0
@@ -194,7 +194,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             asserted_data_points = []
             for time, expected_results in expected_results_at_times.items():
                 for expected_result in expected_results:
-                    water_pressure = expected_result.expected_value
+                    water_pressure = expected_result.value
 
                     asserted_data_points.append((
                         water_pressure,
