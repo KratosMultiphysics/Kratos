@@ -215,6 +215,12 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 yaxis_inverted=True,
             )
 
+    # def test_infiltration_from_top_boundary_upw(self):
+    #     file_path = test_helper.get_file_path(
+    #         os.path.join("test_partially_saturated", "test_infilteration_upw")
+    #     )
+    #     simulation = test_helper.run_kratos(file_path)
+
 
 if __name__ == "__main__":
     KratosUnittest.main()
