@@ -37,6 +37,8 @@
 #include "custom_utilities/output_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
+#include "geo_mechanics_application_constants.h"
 #include "stress_state_policy.h"
 
 #include <numeric>
@@ -96,8 +98,8 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     const auto&           r_prop = this->GetProperties();
     const CheckProperties check_properties(r_prop, "parameter list", element_Id,
                                            CheckProperties::Bounds::AllExclusive);
-    check_properties.CheckAvailability(IGNORE_UNDRAINED);
-    if (!r_prop[IGNORE_UNDRAINED])
+
+    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_prop))
         check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
 
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
@@ -121,8 +123,10 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
         r_geom.IntegrationPoints(integration_method);
     const auto Np_container = mpPressureGeometry->ShapeFunctionsValues(integration_method);
 
-    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-        Np_container, this->GetPressureSolutionVector());
+    Vector corner_pressures(mpPressureGeometry->PointsNumber());
+    VariablesUtilities::GetNodalValues(*mpPressureGeometry, WATER_PRESSURE, corner_pressures.begin());
+    const auto fluid_pressures =
+        GeoTransportEquationUtilities::CalculateFluidPressures(Np_container, corner_pressures);
     const auto degrees_saturation = this->CalculateDegreesOfSaturation(fluid_pressures);
 
     const auto solid_densities =
@@ -182,43 +186,9 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
     }
 
     // Assign pressure values to the intermediate nodes for post-processing
-    if (!GetProperties()[IGNORE_UNDRAINED]) AssignPressureToIntermediateNodes();
+    if (!Variables.IsConstantWaterPressure) AssignPressureToIntermediateNodes();
 
     KRATOS_CATCH("")
-}
-
-Vector SmallStrainUPwDiffOrderElement::GetPressures(const size_t n_nodes) const
-{
-    const auto& r_geom = GetGeometry();
-    Vector      pressure(n_nodes);
-    std::transform(r_geom.begin(), r_geom.begin() + n_nodes, pressure.begin(),
-                   [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
-    return pressure;
-}
-
-void set_arithmetic_average_pressure(Geometry<Node>&                               rGeometry,
-                                     const Vector&                                 rPressure,
-                                     const std::vector<std::pair<size_t, size_t>>& rIndexPpairs,
-                                     size_t DestinationOffset = 0)
-{
-    for (size_t i = 0; const auto& [first_index, second_index] : rIndexPpairs) {
-        NodeUtilities::ThreadSafeNodeWrite(rGeometry[DestinationOffset + i], WATER_PRESSURE,
-                                           0.5 * (rPressure[first_index] + rPressure[second_index]));
-        ++i;
-    }
-}
-
-void set_arithmetic_average_pressure(Geometry<Node>& rGeometry,
-                                     const Vector&   rPressure,
-                                     const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& rIndices,
-                                     size_t DestinationOffset = 0)
-{
-    for (size_t i = 0; const auto& [first_index, second_index, third_index, fourth_index] : rIndices) {
-        NodeUtilities::ThreadSafeNodeWrite(rGeometry[DestinationOffset + i], WATER_PRESSURE,
-                                           0.25 * (rPressure[first_index] + rPressure[second_index] +
-                                                   rPressure[third_index] + rPressure[fourth_index]));
-        ++i;
-    }
 }
 
 void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
@@ -226,153 +196,24 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
     // Assign pressure values to the intermediate nodes for post-processing
     KRATOS_TRY
 
-    GeometryType&  r_geom      = GetGeometry();
-    const SizeType num_u_nodes = r_geom.PointsNumber();
-    const SizeType n_dim       = r_geom.WorkingSpaceDimension();
+    auto&      r_displacement_geometry = GetGeometry();
+    const auto num_u_nodes             = r_displacement_geometry.PointsNumber();
+    const auto num_p_nodes             = mpPressureGeometry->PointsNumber();
 
-    switch (num_u_nodes) {
-    case 6: // 2D T6P3
-    {
-        const Vector                                 pressure = GetPressures(3);
-        const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 0}};
-        set_arithmetic_average_pressure(r_geom, pressure, pairs, 3);
-        break;
-    }
-    case 8: // 2D Q8P4
-    {
-        const Vector                                 pressure = GetPressures(4);
-        const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 3}, {3, 0}};
-        set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
-        break;
-    }
-    case 9: // 2D Q9P4
-    {
-        const Vector                                 pressure = GetPressures(4);
-        const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 3}, {3, 0}};
-        set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
-        const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices = {{0, 1, 2, 3}};
-        set_arithmetic_average_pressure(r_geom, pressure, indices, 8);
-        break;
-    }
-    case 10: // 3D T10P4  //2D T10P6
-    {
-        if (n_dim == 3) {
-            const Vector                                 pressure = GetPressures(4);
-            const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 0},
-                                                                     {0, 3}, {1, 3}, {2, 3}};
-            set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
-        } else if (n_dim == 2) {
-            constexpr double c1 = 1.0 / 9.0;
-            const Vector     p  = GetPressures(6);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE,
-                                               (2.0 * p[0] - p[1] + 8.0 * p[3]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE,
-                                               (2.0 * p[1] - p[0] + 8.0 * p[3]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE,
-                                               (2.0 * p[1] - p[2] + 8.0 * p[4]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE,
-                                               (2.0 * p[2] - p[1] + 8.0 * p[4]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE,
-                                               (2.0 * p[2] - p[0] + 8.0 * p[5]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE,
-                                               (2.0 * p[0] - p[2] + 8.0 * p[5]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(
-                r_geom[9], WATER_PRESSURE, (4.0 * (p[3] + p[4] + p[5]) - (p[0] + p[1] + p[2])) * c1);
-        }
-        break;
-    }
-    case 15: // 2D T15P10
-    {
-        constexpr double c1 = 0.0390625;
-        const Vector     p  = GetPressures(10);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE,
-                                           (3.0 * p[0] + p[1] + 27.0 * p[3] - 5.4 * p[4]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE,
-                                           (14.4 * (p[3] + p[4]) - 1.6 * (p[0] + p[1])) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE,
-                                           (3.0 * p[1] + p[0] + 27.0 * p[4] - 5.4 * p[3]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE,
-                                           (3.0 * p[1] + p[2] + 27.0 * p[5] - 5.4 * p[6]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE,
-                                           (14.4 * (p[5] + p[6]) - 1.6 * (p[1] + p[2])) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE,
-                                           (3.0 * p[2] + p[1] + 27.0 * p[6] - 5.4 * p[5]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE,
-                                           (3.0 * p[2] + p[0] + 27.0 * p[7] - 5.4 * p[8]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[10], WATER_PRESSURE,
-                                           (14.4 * (p[7] + p[8]) - 1.6 * (p[0] + p[2])) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[11], WATER_PRESSURE,
-                                           (3.0 * p[0] + p[2] + 27.0 * p[8] - 5.4 * p[7]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[12], WATER_PRESSURE,
-                                           (p[1] + p[2] + 7.2 * (p[3] + p[8]) - 3.6 * (p[4] + p[7]) -
-                                            1.8 * (p[5] + p[6]) + 21.6 * p[9] - 1.6 * p[0]) *
-                                               c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[13], WATER_PRESSURE,
-                                           (p[0] + p[2] + 7.2 * (p[4] + p[5]) - 3.6 * (p[3] + p[6]) -
-                                            1.8 * (p[7] + p[8]) + 21.6 * p[9] - 1.6 * p[1]) *
-                                               c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[14], WATER_PRESSURE,
-                                           (p[0] + p[1] + 7.2 * (p[6] + p[7]) - 3.6 * (p[5] + p[8]) -
-                                            1.8 * (p[3] + p[4]) + 21.6 * p[9] - 1.6 * p[2]) *
-                                               c1);
-        break;
-    }
-    case 20: // 3D H20P8
-    {
-        const Vector                                 pressure = GetPressures(8);
-        const std::vector<std::pair<size_t, size_t>> pairs =
-            // edges -- bottom
-            {{0, 1},
-             {1, 2},
-             {2, 3},
-             {3, 0},
-             // edges -- middle
-             {4, 0},
-             {5, 1},
-             {6, 2},
-             {7, 3},
-             // edges -- top
-             {4, 5},
-             {5, 6},
-             {6, 7},
-             {7, 4}};
-        set_arithmetic_average_pressure(r_geom, pressure, pairs, 8);
-        break;
-    }
-    case 27: // 3D H27P8
-    {
-        const Vector                                 pressure = GetPressures(8);
-        const std::vector<std::pair<size_t, size_t>> pairs =
-            // edges -- bottom
-            {{0, 1},
-             {1, 2},
-             {2, 3},
-             {3, 0},
-             // edges -- middle
-             {4, 0},
-             {5, 1},
-             {6, 2},
-             {7, 3},
-             // edges -- top
-             {4, 5},
-             {5, 6},
-             {6, 7},
-             {7, 0}};
-        set_arithmetic_average_pressure(r_geom, pressure, pairs, 8);
-        // face centers
-        const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices = {
-            {0, 1, 2, 3}, {0, 1, 4, 5}, {1, 2, 5, 6}, {2, 3, 6, 7}, {3, 0, 7, 4}, {4, 5, 6, 7}};
-        set_arithmetic_average_pressure(r_geom, pressure, indices, 20);
-        // element center
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[26], WATER_PRESSURE,
-                                           0.125 * (pressure[0] + pressure[1] + pressure[2] + pressure[3] +
-                                                    pressure[4] + pressure[5] + pressure[6] + pressure[7]));
-        break;
-    }
-    default:
-        KRATOS_ERROR << "Unexpected geometry type for different order "
-                        "interpolation element"
-                     << this->Id() << std::endl;
+    auto local_coordinates = Matrix{};
+    r_displacement_geometry.PointsLocalCoordinates(local_coordinates);
+    const auto corner_pressures = VariablesUtilities::GetNodalValues(*mpPressureGeometry, WATER_PRESSURE);
+
+    for (auto node = num_p_nodes; node < num_u_nodes; ++node) {
+        auto shape_functions_values = Vector(num_p_nodes);
+        // new object as a 3 long array is expected even for local space dimensions 1 and 2
+        auto local_node_coordinate = array_1d<double, 3>{3, 0.0};
+        std::ranges::copy(row(local_coordinates, node), local_node_coordinate.begin());
+        mpPressureGeometry->ShapeFunctionsValues(shape_functions_values, local_node_coordinate);
+
+        const auto mid_node_pressure = std::inner_product(
+            shape_functions_values.begin(), shape_functions_values.end(), corner_pressures.begin(), 0.0);
+        NodeUtilities::ThreadSafeNodeWrite(r_displacement_geometry[node], WATER_PRESSURE, mid_node_pressure);
     }
 
     KRATOS_CATCH("")
@@ -390,7 +231,7 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable
                "SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints"
             << std::endl;
         mStressVector.resize(rValues.size());
-        std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
+        std::ranges::copy(rValues, mStressVector.begin());
     } else {
         KRATOS_ERROR_IF(rValues.size() < mConstitutiveLawVector.size())
             << "Insufficient number of values for "
@@ -536,13 +377,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         KRATOS_ERROR_IF(r_geom.WorkingSpaceDimension() != 2 && r_geom.WorkingSpaceDimension() != 3)
             << rVariable.Name() << " can not be retrieved for dim "
             << r_geom.WorkingSpaceDimension() << " in element: " << this->Id() << std::endl;
-        size_t variable_index = 0;
-        if (rVariable == CONFINED_STIFFNESS) {
-            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XX)
-                                                                 : static_cast<size_t>(INDEX_3D_XX);
-        } else {
-            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XY)
-                                                                 : static_cast<size_t>(INDEX_3D_XZ);
+        auto variable_index = std::size_t{0};
+        if (rVariable != CONFINED_STIFFNESS) {
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? std::size_t{3} : std::size_t{5};
         }
 
         ElementVariables Variables;
@@ -563,8 +400,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                                              Variables.NuContainer, Variables.DNu_DXContainer,
                                              strain_vectors, mStressVector, constitutive_matrices);
 
-        std::transform(constitutive_matrices.begin(), constitutive_matrices.end(), rOutput.begin(),
-                       [variable_index](const Matrix& constitutive_matrix) {
+        std::ranges::transform(constitutive_matrices, rOutput.begin(),
+                               [variable_index](const Matrix& constitutive_matrix) {
             return constitutive_matrix(variable_index, variable_index);
         });
     } else if (r_properties.Has(rVariable)) {
@@ -636,9 +473,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
             // Compute fluid flux vector q [L/T]
             rOutput[g_point].clear();
-            const auto fluid_flux = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                                    relative_permeability *
-                                    prod(Variables.IntrinsicPermeability, grad_pressure_term);
+            const Vector fluid_flux = PORE_PRESSURE_SIGN_FACTOR *
+                                      Variables.DynamicViscosityInverse * relative_permeability *
+                                      prod(Variables.IntrinsicPermeability, grad_pressure_term);
             std::copy_n(fluid_flux.begin(), dimension, rOutput[g_point].begin());
         }
     }
@@ -874,7 +711,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables&
 
         this->CalculateAndAddCouplingTerms(result, rVariables);
     }
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         for (unsigned int integration_point = 0;
              integration_point < rIntegrationCoefficients.size(); ++integration_point) {
             noalias(rVariables.Np)            = row(rVariables.NpContainer, integration_point);
@@ -912,7 +749,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateExternalForces(
             rIntegrationCoefficientsOnInitialConfiguration[integration_point];
         this->CalculateAndAddMixBodyForce(result, rVariables);
     }
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         for (unsigned int integration_point = 0;
              integration_point < rIntegrationCoefficients.size(); ++integration_point) {
             noalias(rVariables.Nu)            = row(rVariables.NuContainer, integration_point);
@@ -1248,7 +1085,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 
     const auto& r_properties = this->GetProperties();
 
-    rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
+    rVariables.IsConstantWaterPressure = ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties);
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
 
     rVariables.ConsiderGeometricStiffness =
@@ -1304,7 +1141,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&             
 
     this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
             rVariables.DNp_DX, rVariables.DynamicViscosityInverse, rVariables.IntrinsicPermeability,
             rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
@@ -1344,7 +1181,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
             coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
@@ -1427,7 +1264,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
     const Vector coupling_force = prod(coupling_matrix, rVariables.PressureVector);
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_force);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
             coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
@@ -1629,14 +1466,6 @@ void SmallStrainUPwDiffOrderElement::load(Serializer& rSerializer)
     rSerializer.load("PressureGeometry", mpPressureGeometry);
 }
 
-Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector() const
-{
-    Vector result(mpPressureGeometry->PointsNumber());
-    std::transform(mpPressureGeometry->begin(), mpPressureGeometry->end(), result.begin(),
-                   [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
-    return result;
-}
-
 void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
     const std::vector<Matrix>&                       rDeformationGradients,
     ConstitutiveLaw::Parameters&                     rConstitutiveParameters,
@@ -1651,15 +1480,15 @@ void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
 
     if (rStrainVectors.size() != rDeformationGradients.size()) {
         rStrainVectors.resize(rDeformationGradients.size());
-        std::fill(rStrainVectors.begin(), rStrainVectors.end(), ZeroVector(voigt_size));
+        std::ranges::fill(rStrainVectors, ZeroVector(voigt_size));
     }
     if (rStressVectors.size() != rDeformationGradients.size()) {
         rStressVectors.resize(rDeformationGradients.size());
-        std::fill(rStressVectors.begin(), rStressVectors.end(), ZeroVector(voigt_size));
+        std::ranges::fill(rStressVectors, ZeroVector(voigt_size));
     }
     if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
         rConstitutiveMatrices.resize(rDeformationGradients.size());
-        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(), ZeroMatrix(voigt_size, voigt_size));
+        std::ranges::fill(rConstitutiveMatrices, ZeroMatrix(voigt_size, voigt_size));
     }
 
     const auto determinants_of_deformation_gradients =

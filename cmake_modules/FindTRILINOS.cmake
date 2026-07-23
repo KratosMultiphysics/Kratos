@@ -61,6 +61,7 @@ ELSE (TRILINOS_LIBRARY_DIR)
         /usr/local/lib64/
         /usr/local/lib/
         /usr/lib/x86_64-linux-gnu/
+        /usr/lib/aarch64-linux-gnu/
     )
 ENDIF (TRILINOS_LIBRARY_DIR)
 # Include directory
@@ -317,6 +318,7 @@ IF(TPETRA_INCLUDE_PATH AND TPETRA_LIBRARY)
             /usr/lib
             /usr/local/lib/
             /usr/lib/x86_64-linux-gnu/
+            /usr/lib/aarch64-linux-gnu/
         )
     ENDIF (KOKKOS_LIBRARY_DIR)
 
@@ -373,6 +375,7 @@ IF(TPETRA_INCLUDE_PATH AND TPETRA_LIBRARY)
             /usr/lib
             /usr/local/lib/
             /usr/lib/x86_64-linux-gnu/
+            /usr/lib/aarch64-linux-gnu/
         )
     ENDIF (TPETRAEXT_LIBRARY_DIR)
 

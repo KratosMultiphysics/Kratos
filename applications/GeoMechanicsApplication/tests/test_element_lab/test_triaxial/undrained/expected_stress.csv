@@ -1,0 +1,3 @@
+element_id,ip_index,stress_xx,stress_yy,stress_zz,stress_xy,stress_yz,stress_xz
+1,0,-100.0,-4740.0,-100.0,0.0,0.0,0.0
+2,0,-100.0,-4740.0,-100.0,0.0,0.0,0.0

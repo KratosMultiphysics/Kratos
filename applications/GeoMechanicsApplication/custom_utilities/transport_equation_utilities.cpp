@@ -11,6 +11,8 @@
 //
 
 #include "transport_equation_utilities.hpp"
+
+#include "constitutive_law_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 
 namespace Kratos
@@ -47,11 +49,26 @@ std::vector<double> GeoTransportEquationUtilities::CalculateInverseBiotModuli(
     const std::vector<double>& DerivativesOfSaturation,
     const Properties&          rProperties)
 {
+    const auto bulk_modulus_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(rProperties)
+                                        ? TINY
+                                        : rProperties[BULK_MODULUS_FLUID];
+
+    return CalculateInverseBiotModuli(rBiotCoefficients, rDegreesOfSaturation,
+                                      DerivativesOfSaturation, bulk_modulus_fluid, rProperties);
+}
+
+std::vector<double> GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+    const std::vector<double>& rBiotCoefficients,
+    const std::vector<double>& rDegreesOfSaturation,
+    const std::vector<double>& DerivativesOfSaturation,
+    double                     BulkModulusFluid,
+    const Properties&          rProperties)
+{
     std::vector<double> result;
     result.reserve(rBiotCoefficients.size());
     for (std::size_t i = 0; i < rBiotCoefficients.size(); ++i) {
         result.push_back(CalculateInverseBiotModulus(rBiotCoefficients[i], rDegreesOfSaturation[i],
-                                                     DerivativesOfSaturation[i], rProperties));
+                                                     DerivativesOfSaturation[i], BulkModulusFluid, rProperties));
     }
     return result;
 }
@@ -100,11 +117,11 @@ double GeoTransportEquationUtilities::CalculateBiotCoefficient(const Matrix& rCo
 double GeoTransportEquationUtilities::CalculateInverseBiotModulus(double BiotCoefficient,
                                                                   double DegreeOfSaturation,
                                                                   double DerivativeOfSaturation,
+                                                                  double BulkModulusFluid,
                                                                   const Properties& rProperties)
 {
-    const auto bulk_modulus_fluid = rProperties[IGNORE_UNDRAINED] ? TINY : rProperties[BULK_MODULUS_FLUID];
-    double result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
-                    rProperties[POROSITY] / bulk_modulus_fluid;
+    auto result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
+                  rProperties[POROSITY] / BulkModulusFluid;
 
     result *= DegreeOfSaturation;
     result -= DerivativeOfSaturation * rProperties[POROSITY];
