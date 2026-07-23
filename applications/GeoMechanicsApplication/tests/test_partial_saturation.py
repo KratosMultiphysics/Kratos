@@ -159,7 +159,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             ],
         }
 
-
         if test_helper.want_test_plots():
             plot_times = [12000, 24000, 36000, 48000, 72000, 96000, 192000]
             data_series_collection = []
@@ -176,25 +175,20 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                         list, label=f"Time = {time}", line_style="-", marker=""
                     )
                 )
-            data = []
+            asserted_data_points = []
             for time, expected_results in expected_results_at_times.items():
                 for expected_result in expected_results:
-                    water_pressure = reader.nodal_values_at_time(
-                        "WATER_PRESSURE",
-                        time,
-                        output_data,
-                        [expected_result.node_id],
-                    )
+                    water_pressure = expected_result.expected_value
 
-                    data.append((
-                        water_pressure[0],
+                    asserted_data_points.append((
+                        water_pressure,
                         -1.0 * simulation.model.GetModelPart(
                             "PorousDomain.porous_computational_model_part"
                         ).GetNode(expected_result.node_id).Y
                     ))
             data_series_collection.append(
                 plot_utils.DataSeries(
-                    data, label=f"Asserted points", line_style="", marker="x", color="r"
+                    asserted_data_points, label=f"Asserted points", line_style="", marker="x", color="r"
                 )
             )
             plot_utils._make_plot(
