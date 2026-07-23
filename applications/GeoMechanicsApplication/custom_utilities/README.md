@@ -158,4 +158,7 @@ $$(q_{mc} - q)\frac{3 \sin{\phi}}{\sqrt{3} \cos{\bar{\theta}_s} - \sin{\bar{\the
 This function calculates an extrapolation matrix that is used to extrapolate data from integration points of an element to its nodes. The matrix is used to perform linear interpolation. 
 
 ### CalculateNodalVectors function
-This function uses the extrapolation matrix to extrapolate vector inputs, for example, stress vectors from the integration points to the element nodes that are provided as input. 
+This function uses the extrapolation matrix to extrapolate vector inputs, for example, stress vectors from the integration points to the element nodes that are provided as input.
+
+## Convergence criterion factory
+Class template `ConvergenceCriteriaFactory` provides a blueprint for factories that produce various kinds of convergence criteria based on the provided convergence criterion type. It allows for the creation of different convergence criteria, such as displacement-based, residual-based, or water pressure-based criteria. The factory pattern makes it relatively easy to add new convergence criterion types.
