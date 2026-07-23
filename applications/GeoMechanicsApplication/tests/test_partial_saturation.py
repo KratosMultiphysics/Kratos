@@ -209,7 +209,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             )
             plot_utils._make_plot(
                 data_series_collection,
-                os.path.join(file_path, "infiltration_from_top_boundary.png"),
+                os.path.join(file_path, "infiltration_from_top_boundary.svg"),
                 xlabel="water pressure [Pa]",
                 ylabel="depth [m]",
                 yaxis_inverted=True,
