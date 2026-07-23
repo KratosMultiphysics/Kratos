@@ -37,7 +37,7 @@ struct CreateDisplacementCriterionTest {
     static const std::string CriterionDefinition;
 };
 
-const auto CreateDisplacementCriterionTest::CriterionDefinition = R"(
+const std::string CreateDisplacementCriterionTest::CriterionDefinition = R"(
 {
     "convergence_criterion": "displacement_criterion",
     "displacement_relative_tolerance": 1.0E-4,
@@ -50,7 +50,7 @@ struct CreateResidualCriterionTest {
     static const std::string CriterionDefinition;
 };
 
-const auto CreateResidualCriterionTest::CriterionDefinition = R"(
+const std::string CreateResidualCriterionTest::CriterionDefinition = R"(
 {
     "convergence_criterion": "residual_criterion",
     "residual_relative_tolerance": 1.0E-4,
@@ -63,7 +63,7 @@ struct CreateAndCriterionTest {
     static const std::string CriterionDefinition;
 };
 
-const auto CreateAndCriterionTest::CriterionDefinition = R"(
+const std::string CreateAndCriterionTest::CriterionDefinition = R"(
 {
     "convergence_criterion": "and_criterion",
     "displacement_relative_tolerance": 1.0E-4,
@@ -78,7 +78,7 @@ struct CreateOrCriterionTest {
     static const std::string CriterionDefinition;
 };
 
-const auto CreateOrCriterionTest::CriterionDefinition = R"(
+const std::string CreateOrCriterionTest::CriterionDefinition = R"(
 {
     "convergence_criterion": "or_criterion",
     "displacement_relative_tolerance": 1.0E-4,
@@ -93,7 +93,7 @@ struct CreateWaterPressureCriterionTest {
     static const std::string CriterionDefinition;
 };
 
-const auto CreateWaterPressureCriterionTest::CriterionDefinition = R"(
+const std::string CreateWaterPressureCriterionTest::CriterionDefinition = R"(
 {
     "convergence_criterion": "water_pressure_criterion",
     "water_pressure_relative_tolerance": 1.0E-4,
@@ -106,7 +106,7 @@ struct CreateDisplacementAndWaterPressureCriterionTest {
     static const std::string CriterionDefinition;
 };
 
-const auto CreateDisplacementAndWaterPressureCriterionTest::CriterionDefinition = R"(
+const std::string CreateDisplacementAndWaterPressureCriterionTest::CriterionDefinition = R"(
 {
     "convergence_criterion": "displacement_and_water_pressure_criterion",
     "displacement_relative_tolerance": 1.0E-4,
