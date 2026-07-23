@@ -26,6 +26,8 @@ std::string GeoStringUtilities::ToLower(const std::string& rString)
 
 std::string GeoStringUtilities::Join(const std::vector<std::string>& rStrings, const std::string& rSeparator)
 {
+    if (rStrings.empty()) return "";
+
     return rStrings.front();
 }
 

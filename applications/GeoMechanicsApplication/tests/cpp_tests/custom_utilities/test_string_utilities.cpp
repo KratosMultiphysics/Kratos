@@ -33,6 +33,20 @@ KRATOS_TEST_CASE_IN_SUITE(GeoStringUtilities_ConvertStringToLower, KratosGeoMech
     EXPECT_EQ(lower_case_string, expected_string);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoStringUtilities_JoiningAnEmptyVectorOfStringsYieldsAnEmptyString,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto no_strings = std::vector<std::string>{};
+
+    // Act
+    const auto joined_string = GeoStringUtilities::Join(no_strings, ", "s);
+
+    // Assert
+    const auto expected_string = ""s;
+    EXPECT_EQ(joined_string, expected_string);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GeoStringUtilities_JoiningASingleStringYieldsItself, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
