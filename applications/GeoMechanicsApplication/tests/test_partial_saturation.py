@@ -74,37 +74,37 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         accuracy = 1.0e-3
         self.assertLess(rmse_stages, accuracy)
 
-    # def test_saturated_below_phreatic_level_pw_triangle3N(self):
-    #     self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_pw_triangle3N')
-    #
-    # def test_saturated_below_phreatic_level_pw_triangle6N(self):
-    #     self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_pw_triangle6N')
-    #
-    # def test_saturated_below_phreatic_level_upw_difforder_triangle6n(self):
-    #     self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_difforder_triangle6n')
-    #
-    # def test_saturated_below_phreatic_level_upw_smallstrain_triangle3n(self):
-    #     self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_smallstrain_triangle3n')
-    #
-    # def test_saturated_below_phreatic_level_upw_smallstrain_triangle6n(self):
-    #     self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_smallstrain_triangle6n')
-    #
-    # def test_climbing_falling_phreatic_level_upw_smallstrain_quad4n(self):
-    #     # only waterpressures below phreatic level are checked with an analytical solution.
-    #     # values above phreatic level give suction of an unchecked amount.
-    #     file_path = test_helper.get_file_path(os.path.join('test_partially_saturated', 'test_rising_falling_phreatic_level_pw_quad4N'))
-    #     simulation = test_helper.run_kratos(file_path)
-    #
-    #     reader = GiDOutputFileReader()
-    #     output_data = reader.read_output_from(os.path.join(file_path, 'rising_falling_phreatic_level_pw_quad4n.post.res'))
-    #     coords = test_helper.get_nodal_coordinates(simulation)
-    #     times = [1.0, 5.0, 9.0, 13.0, 17.0, 21.0, 25.0, 29.0]
-    #     water_levels = [-4.0, -3.0, -2.0, -1.0, -2.0, -3.0, -4.0, -5.0]
-    #     for time, water_level in zip(times, water_levels):
-    #         water_pressures = reader.nodal_values_at_time('WATER_PRESSURE', time, output_data)
-    #         negative_water_pressures = [min([water_pressure, 0.0]) for water_pressure in water_pressures]
-    #         analytical_water_pressures = [self.__compute_hydrostatic_water_pressure(coord[1], water_level) for coord in coords]
-    #         self.assertVectorAlmostEqual(negative_water_pressures, analytical_water_pressures, places=None, msg=f"water pressures at time {time}", delta=10.0)
+    def test_saturated_below_phreatic_level_pw_triangle3N(self):
+        self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_pw_triangle3N')
+
+    def test_saturated_below_phreatic_level_pw_triangle6N(self):
+        self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_pw_triangle6N')
+
+    def test_saturated_below_phreatic_level_upw_difforder_triangle6n(self):
+        self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_difforder_triangle6n')
+
+    def test_saturated_below_phreatic_level_upw_smallstrain_triangle3n(self):
+        self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_smallstrain_triangle3n')
+
+    def test_saturated_below_phreatic_level_upw_smallstrain_triangle6n(self):
+        self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_smallstrain_triangle6n')
+
+    def test_climbing_falling_phreatic_level_upw_smallstrain_quad4n(self):
+        # only waterpressures below phreatic level are checked with an analytical solution.
+        # values above phreatic level give suction of an unchecked amount.
+        file_path = test_helper.get_file_path(os.path.join('test_partially_saturated', 'test_rising_falling_phreatic_level_pw_quad4N'))
+        simulation = test_helper.run_kratos(file_path)
+
+        reader = GiDOutputFileReader()
+        output_data = reader.read_output_from(os.path.join(file_path, 'rising_falling_phreatic_level_pw_quad4n.post.res'))
+        coords = test_helper.get_nodal_coordinates(simulation)
+        times = [1.0, 5.0, 9.0, 13.0, 17.0, 21.0, 25.0, 29.0]
+        water_levels = [-4.0, -3.0, -2.0, -1.0, -2.0, -3.0, -4.0, -5.0]
+        for time, water_level in zip(times, water_levels):
+            water_pressures = reader.nodal_values_at_time('WATER_PRESSURE', time, output_data)
+            negative_water_pressures = [min([water_pressure, 0.0]) for water_pressure in water_pressures]
+            analytical_water_pressures = [self.__compute_hydrostatic_water_pressure(coord[1], water_level) for coord in coords]
+            self.assertVectorAlmostEqual(negative_water_pressures, analytical_water_pressures, places=None, msg=f"water pressures at time {time}", delta=10.0)
 
     def __compute_hydrostatic_water_pressure(self, y_coord, phreatic_level):
         water_weight = -10000.0
