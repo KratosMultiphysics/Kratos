@@ -33,45 +33,29 @@ KRATOS_TEST_CASE_IN_SUITE(GeoStringUtilities_ConvertStringToLower, KratosGeoMech
     EXPECT_EQ(lower_case_string, expected_string);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoStringUtilities_JoiningAnEmptyVectorOfStringsYieldsAnEmptyString,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+class ParameterizedJoinStringsTest
+    : public ::testing::TestWithParam<std::tuple<std::vector<std::string>, std::string, std::string>>
+//                                               ^^^                       ^^^          ^^^
+//                                               Input strings             Separator    Expected result
+{
+};
+
+TEST_P(ParameterizedJoinStringsTest, JoiningMultipleStringsYieldsASingleStringWithEachElementSeparatedByTheGivenSeparator)
 {
     // Arrange
-    const auto no_strings = std::vector<std::string>{};
+    const auto& [input_strings, separator, expected_value] = GetParam();
 
     // Act
-    const auto joined_string = GeoStringUtilities::Join(no_strings, ", "s);
+    const auto joined_string = GeoStringUtilities::Join(input_strings, separator);
 
     // Assert
-    const auto expected_string = ""s;
-    EXPECT_EQ(joined_string, expected_string);
+    EXPECT_EQ(joined_string, expected_value);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoStringUtilities_JoiningASingleStringYieldsItself, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    const auto one_string = std::vector{"Foo"s};
-
-    // Act
-    const auto joined_string = GeoStringUtilities::Join(one_string, ", "s);
-
-    // Assert
-    const auto expected_string = "Foo"s;
-    EXPECT_EQ(joined_string, expected_string);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoStringUtilities_JoiningMultipleStringsYieldsASingleStringWithEachElementSeparatedByTheGivenSeparator,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    const auto strings = std::vector{"Foo"s, "Bar"s, "Baz"s};
-
-    // Act
-    const auto joined_string = GeoStringUtilities::Join(strings, ", "s);
-
-    // Assert
-    const auto expected_string = "Foo, Bar, Baz"s;
-    EXPECT_EQ(joined_string, expected_string);
-}
+INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
+                         ParameterizedJoinStringsTest,
+                         testing::Values(std::make_tuple(std::vector<std::string>{}, ", "s, ""s),
+                                         std::make_tuple(std::vector{"Foo"s}, ", "s, "Foo"s),
+                                         std::make_tuple(std::vector{"Foo"s, "Bar"s, "Baz"s}, ", "s, "Foo, Bar, Baz"s)));
 
 } // namespace Kratos::Testing
