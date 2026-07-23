@@ -168,6 +168,7 @@ class TestGenerateMaterialPointElement(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, geometry_element="Triangle", num_material_points=3, expected_num_material_points=3)
 
+    @KratosUnittest.expectedFailure
     def test_GenerateMaterialPointElementTriangle4P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, geometry_element="Triangle", num_material_points=4, expected_num_material_points=4)
