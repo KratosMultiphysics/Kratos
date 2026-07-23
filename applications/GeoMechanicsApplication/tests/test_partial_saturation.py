@@ -154,7 +154,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             ],
             192000: [
                 # This is the hydrostatic line from p = 0 at depth = 0m
-                # and p = -20000 Pa at depth = 2m
+                # and p = -20000 Pa at depth = 2m, as seen in the plot
                 ExpectedResult(node_id=1, value=0.0),
                 ExpectedResult(node_id=58, value=-10000),
                 ExpectedResult(node_id=3, value=-20000),
