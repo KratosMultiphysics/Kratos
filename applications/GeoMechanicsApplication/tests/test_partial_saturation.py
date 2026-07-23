@@ -161,6 +161,20 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             ],
         }
 
+        for time, expected_results in expected_results_at_times.items():
+            water_pressures = reader.nodal_values_at_time(
+                "WATER_PRESSURE",
+                time,
+                output_data,
+                [result.node_id for result in expected_results],
+            )
+            expected_water_pressures = [
+                result.expected_value for result in expected_results
+            ]
+            self.assertVectorAlmostEqual(
+                water_pressures, expected_water_pressures, places=None, delta=10.0
+            )
+
         if test_helper.want_test_plots():
             plot_times = [12000, 24000, 36000, 48000, 72000, 96000, 192000]
             data_series_collection = []
@@ -199,21 +213,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 xlabel="water pressure [Pa]",
                 ylabel="depth [m]",
                 yaxis_inverted=True,
-            )
-
-
-        for time, expected_results in expected_results_at_times.items():
-            water_pressures = reader.nodal_values_at_time(
-                "WATER_PRESSURE",
-                time,
-                output_data,
-                [result.node_id for result in expected_results],
-            )
-            expected_water_pressures = [
-                result.expected_value for result in expected_results
-            ]
-            self.assertVectorAlmostEqual(
-                water_pressures, expected_water_pressures, places=None, delta=10.0
             )
 
 
