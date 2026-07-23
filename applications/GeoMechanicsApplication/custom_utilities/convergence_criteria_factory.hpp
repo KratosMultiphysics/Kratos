@@ -48,7 +48,7 @@ public:
         // The following map resembles the switch in method `_ConstructConvergenceCriterion` (see
         // `geomechanics_U_Pw_solver.py`)
         using Creator = std::function<ConvergenceCriterionSharedPtr(const Parameters&)>;
-        static const auto creator_map = std::map<std::string, Creator>{
+        static const auto creator_map = std::map<std::string, Creator, std::less<>>{
             {"displacement_criterion"s, CreateDisplacementCriterion},
             {"residual_criterion"s, CreateResidualCriterion},
             {"and_criterion"s,
