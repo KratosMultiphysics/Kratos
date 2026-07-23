@@ -190,7 +190,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                     ))
             data_series_collection.append(
                 plot_utils.DataSeries(
-                    asserted_data_points, label=f"Asserted points", line_style="", marker="x", color="r"
+                    asserted_data_points, label=f"Asserted pressures", line_style="", marker="x", color="r"
                 )
             )
             plot_utils._make_plot(
