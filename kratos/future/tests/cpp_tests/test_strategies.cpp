@@ -28,6 +28,7 @@
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
 #include "future/solving_strategies/strategies/linear_strategy.h"
+#include "future/solving_strategies/strategies/newton_raphson_strategy.h"
 #include "test_utilities/solving_strategies_test_utilities.h"
 #endif
 
@@ -908,6 +909,67 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintBlockBuild,
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 0.125, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 0.125, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), -0.125, 1.0e-12);
+#endif
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonStrategyEliminationBuild, KratosCoreFastSuite)
+{
+#ifdef KRATOS_USE_FUTURE
+    // Set up the test model part
+    Model test_model;
+    auto &r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    const std::size_t num_elems = 2;
+    const double elem_size = 1.0;
+    SolvingStrategiesTestUtilities::SetUpTestModelPart1D(num_elems, elem_size, r_test_model_part);
+
+    // Create the scheme
+    Parameters scheme_settings = Parameters(R"({
+        "build_settings" : {
+            "name" : "elimination_builder"
+        }
+    })");
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
+
+    // Create the linear solver
+    Parameters amgcl_settings = Parameters(R"({
+    })");
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
+    typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
+
+    // Create the strategy
+    Parameters strategy_settings = Parameters(R"({
+    })");
+    auto p_strategy = Kratos::make_unique<Future::NewtonRaphsonStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
+
+    // Apply Dirichlet BCs
+    auto p_node_1 = r_test_model_part.pGetNode(1);
+    p_node_1->FastGetSolutionStepValue(DISTANCE, 0) = 1.0;
+    p_node_1->Fix(DISTANCE);
+
+    // Solve the problem
+    p_strategy->Initialize();
+    p_strategy->Check();
+    p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
+    p_strategy->SolveSolutionStep();
+    p_strategy->FinalizeSolutionStep();
+
+    // Check array sizes
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
+    const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
+    const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 3);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 2);
+
+    // Check results
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.5, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
 #endif
 }
 

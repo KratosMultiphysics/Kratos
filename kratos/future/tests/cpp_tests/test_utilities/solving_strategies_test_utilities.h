@@ -63,10 +63,13 @@ public:
             rLeftHandSideMatrix.resize(n_nodes, n_nodes, false);
         }
         const double aux = 1.0 / r_geom.Length();
-        rLeftHandSideMatrix(0,0) = aux;
+        const double phi_0 = r_geom[0].GetSolutionStepValue(DISTANCE);
+        const double phi_1 = r_geom[1].GetSolutionStepValue(DISTANCE);
+        const double react_flag = rCurrentProcessInfo.Has(FLAG_VARIABLE) ? rCurrentProcessInfo.GetValue(FLAG_VARIABLE) : 0.0;
+        rLeftHandSideMatrix(0,0) = aux + 3.0 * react_flag * std::pow(phi_0, 2);
         rLeftHandSideMatrix(0,1) = -aux;
         rLeftHandSideMatrix(1,0) = -aux;
-        rLeftHandSideMatrix(1,1) = aux;
+        rLeftHandSideMatrix(1,1) = aux + 3.0 * react_flag * std::pow(phi_1, 2);
     }
 
     void CalculateRightHandSide(
@@ -81,9 +84,12 @@ public:
         const double f = 1.0;
         const double h = r_geom.Length();
         const double aux_f = f * h / 2.0;
-        const double aux_phi =  (r_geom[0].GetSolutionStepValue(DISTANCE) - r_geom[1].GetSolutionStepValue(DISTANCE)) / h;
-        rRightHandSideVector(0) = aux_f - aux_phi;
-        rRightHandSideVector(1) = aux_f + aux_phi;
+        const double phi_0 = r_geom[0].GetSolutionStepValue(DISTANCE);
+        const double phi_1 = r_geom[1].GetSolutionStepValue(DISTANCE);
+        const double aux_phi = (phi_0 - phi_1) / h;
+        const double react_flag = rCurrentProcessInfo.Has(FLAG_VARIABLE) ? rCurrentProcessInfo.GetValue(FLAG_VARIABLE) : 0.0;
+        rRightHandSideVector(0) = aux_f - aux_phi - react_flag * std::pow(phi_0, 3);
+        rRightHandSideVector(1) = aux_f + aux_phi - react_flag * std::pow(phi_1, 3);
     }
 
     void EquationIdVector(
