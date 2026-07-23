@@ -113,7 +113,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
 
     def test_infiltration_from_top_boundary(self):
         file_path = test_helper.get_file_path(
-            os.path.join("test_partially_saturated", "test_infilteration_pw")
+            os.path.join("test_partially_saturated", "test_infiltration_pw")
         )
         simulation = test_helper.run_kratos(file_path)
 
