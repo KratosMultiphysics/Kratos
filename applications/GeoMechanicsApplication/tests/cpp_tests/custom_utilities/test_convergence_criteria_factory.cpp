@@ -23,6 +23,7 @@ using ConvergenceCriteriaFactoryType = ConvergenceCriteriaFactory<SparseSpaceTyp
 using DisplacementCriterionType      = DisplacementCriteria<SparseSpaceType, LocalSpaceType>;
 using ResidualCriterionType          = ResidualCriteria<SparseSpaceType, LocalSpaceType>;
 using AndCriterionType               = And_Criteria<SparseSpaceType, LocalSpaceType>;
+using OrCriterionType                = Or_Criteria<SparseSpaceType, LocalSpaceType>;
 
 using namespace std::string_literals;
 
@@ -70,13 +71,28 @@ const auto CreateAndCriterionTest::CriterionDefinition = R"(
 }
 )"s;
 
+struct CreateOrCriterionTest {
+    using CriterionType = OrCriterionType;
+    static const std::string CriterionDefinition;
+};
+
+const auto CreateOrCriterionTest::CriterionDefinition = R"(
+{
+    "convergence_criterion": "or_criterion",
+    "displacement_relative_tolerance": 1.0E-4,
+    "displacement_absolute_tolerance": 1.0E-9,
+    "residual_relative_tolerance": 1.0E-4,
+    "residual_absolute_tolerance": 1.0E-9
+}
+)"s;
+
 template <typename T>
 class CreateConvergenceCriterionTest : public testing::Test
 {
 };
 
 using CreateConvergenceCriterionTestTypes =
-    ::testing::Types<CreateDisplacementCriterionTest, CreateResidualCriterionTest, CreateAndCriterionTest>;
+    ::testing::Types<CreateDisplacementCriterionTest, CreateResidualCriterionTest, CreateAndCriterionTest, CreateOrCriterionTest>;
 TYPED_TEST_SUITE(CreateConvergenceCriterionTest, CreateConvergenceCriterionTestTypes);
 
 TYPED_TEST(CreateConvergenceCriterionTest, ConvergenceCriteriaFactoryProducesDefinedCriterionType)
