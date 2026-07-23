@@ -140,9 +140,7 @@ KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist,
 KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionIsUnknown, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto invalid_parameters = Parameters{R"({"convergence_criterion" : "something_unknown" })"};
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConvergenceCriteriaFactoryType::Create(invalid_parameters),
-                                      "The convergence_criterion (something_unknown) is unknown, "
-                                      "supported criteria are: 'displacement_criterion'")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConvergenceCriteriaFactoryType::Create(invalid_parameters), "The convergence_criterion (something_unknown) is unknown, supported criteria are: and_criterion, displacement_and_water_pressure_criterion, displacement_criterion, or_criterion, residual_criterion, water_pressure_criterion");
 }
 
 } // namespace Kratos::Testing

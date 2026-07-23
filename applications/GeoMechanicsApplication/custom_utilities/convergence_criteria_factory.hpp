@@ -21,6 +21,7 @@
 #include "solving_strategies/convergencecriterias/or_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 
+#include <algorithm>
 #include <functional>
 #include <map>
 #include <string>
@@ -72,12 +73,14 @@ public:
         const auto convergence_criterion_type =
             GeoStringUtilities::ToLower(rSolverSettings["convergence_criterion"s].GetString());
 
-        // TODO: report all supported convergence criteria by looking up the keys of the `creator_map`
-        KRATOS_ERROR_IF_NOT(creator_map.contains(convergence_criterion_type))
-            << "The convergence_criterion (" << convergence_criterion_type << ") is unknown, "
-            << "supported criteria are: 'displacement_criterion', "
-               "'residual_criterion'."
-            << std::endl;
+        if (!creator_map.contains(convergence_criterion_type)) {
+            auto supported_criteria = std::vector<std::string>{};
+            std::ranges::transform(creator_map, std::back_inserter(supported_criteria),
+                                   [](const auto& rKeyValuePair) { return rKeyValuePair.first; });
+            KRATOS_ERROR << "The convergence_criterion (" << convergence_criterion_type << ") is unknown, "
+                         << "supported criteria are: " << GeoStringUtilities::Join(supported_criteria, ", "s)
+                         << std::endl;
+        }
 
         return creator_map.at(convergence_criterion_type)(rSolverSettings);
     }
