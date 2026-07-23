@@ -5,7 +5,7 @@
 
 **Source files:** [Partially saturated flow](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_partially_saturated)
 
-## Case Specification
+### Case Specification
 In this test case, a column of 1 x 5 m soil is considered (set between $`y = -5 \mathrm{m}`$ and $`y = 0 \mathrm{m}`$). A phreatic line is set at the level of $y = -2$ m. The water pore pressure field is then calculated.
 The simulation is done on a double stage process, and steady state Pw and U-Pw elements are considered. This test is conducted for various configurations, including
 
@@ -14,8 +14,29 @@ The simulation is done on a double stage process, and steady state Pw and U-Pw e
 
 The pressure distribution along the column is then compared with its analytical result.
 
-## Results
+### Results
 
 The picture below illustrates the pressure contours resulting from the simulation (as an example the 2D6N for Pw is shown below).
 
 <img src="documentation_data/test_saturated_below_phreatic_level_pw_triangle6n_results.png" alt="Pressure field for case of saturation below phreatic level at stage 2" title="Pressure field at stage 2" width="600">
+
+## Infiltration tests
+
+The geometry and boundary conditions used in `test_infiltration_pw` are shown below. The initial condition is a hydrostatic pressure profile with the reference coordinate at the bottom of the column. This means that at the start, the column contains positive pressures. The boundary condition of $p_w=0$, induces infiltration, which propagates downwards through the column. 
+
+![Geometry and boundary conditions for test_infiltration_pw](test_infiltration_pw/column_partially_saturated.svg)
+
+Characteristics:
+- Zero pressure boundary condition at the top of the model.
+- Zero flux boundary condition at the bottom of the model.
+- Hydrostatic pressure profile as initial condition with the reference coordinate at y = -2 (at the bottom of the column)
+
+This infiltration test has been done in two variants: one using linear Pw elements and one using diff order UPw elements (quadratic in displacement, linear in pressure), which are described in the following sections.
+
+### Variant with Pw elements
+The first variant of this problem uses Pw (water pressure) only elements (TransientPwElement2D3N). The pressure profiles at different time steps can be found in the following image. The red markers depict the asserted pressures, chosen at characteristic positions in the curves.
+
+![Results for Pw elements](test_infiltration_pw/infiltration_from_top_boundary.svg)
+
+### Variant with UPw elements
+The second variant also takes into account displacements and uses elements of the type SmallStrainUPwDiffOrderElement2D6N. 
