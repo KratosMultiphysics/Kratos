@@ -22,7 +22,7 @@ The picture below illustrates the pressure contours resulting from the simulatio
 
 ## Infiltration tests
 
-The geometry and boundary conditions used in `test_infiltration_pw` are shown below. The initial condition is a hydrostatic pressure profile with the reference coordinate at the bottom of the column. This means that at the start, the column contains positive pressures. The boundary condition of $p_w=0$, induces infiltration, which propagates downwards through the column. 
+The geometry and boundary conditions used in the two infiltration tests are shown below. The initial condition is a hydrostatic pressure profile with the reference coordinate at the bottom of the column. This means that at the start, the column contains positive pressures. The boundary condition of $p_w=0$, induces infiltration, which propagates downwards through the column. 
 
 ![Geometry and boundary conditions for test_infiltration_pw](test_infiltration_pw/column_partially_saturated.svg)
 
