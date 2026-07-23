@@ -14,7 +14,6 @@
 #include "custom_elements/transient_Pw_element.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/check_utilities.hpp"
-#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
@@ -154,8 +153,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(this->GetProperties());
 
     const auto&        r_geom = this->GetGeometry();
     const unsigned int number_of_integration_points =
