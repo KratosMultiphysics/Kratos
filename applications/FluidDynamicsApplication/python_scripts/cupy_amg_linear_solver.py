@@ -117,7 +117,7 @@ class GraphBasedSA_AMG:
         
         return max(lambda_max, 1.0)
 
-    def update_matrix_values(self, A_new):
+    def update_matrix_values(self, A_new, lambda_estima_safety_factor=1.1, lambda_estimate_iterations=5):
         """
         Phase 2: GPU only - Fast rebuild of P, R, and A_coarse.
         """
@@ -155,10 +155,10 @@ class GraphBasedSA_AMG:
             # Compute LEVEL-SPECIFIC optimal Jacobi weight on GPU
             # ------------------------------------------------------------------
             # 5 steps of Power Iteration / Lanczos on current level's (invD * A_current)
-            lambda_max_lvl = self.estimate_lambda_max_gpu(A_current, invD, n_iter=5)
+            lambda_max_lvl = self.estimate_lambda_max_gpu(A_current, invD, n_iter=lambda_estimate_iterations)
             
             # Apply safety margin (1.05) and compute optimal damping: (4/3) / lambda_max
-            safe_lambda = max(lambda_max_lvl, 1.0) * 1.05
+            safe_lambda = max(lambda_max_lvl, 1.0) * lambda_estima_safety_factor
             lvl_dict['omega_jacobi'] = omega_prolong / safe_lambda
             #print("omega level = ", lvl_dict['omega_jacobi'])
 
