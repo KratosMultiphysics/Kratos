@@ -1511,21 +1511,21 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             sol, info = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration, xp=xp, return_info_dict=True)
 
             if info["converged"] == False:
-                spio.mmwrite("ProblematicA.mm", self.L.get())
-                err
+                # spio.mmwrite("ProblematicA.mm", self.L.get())
+                # err
                 KM.Logger.PrintWarning("******************************************************")
-                KM.Logger.PrintWarning(self.__class__.__name__, f"CG failed to converge in {info["iterations"]} iterations. Residual norm: {info["residual_norm"]}. Reason: {info["reason"]}.")
+                KM.Logger.PrintWarning(self.__class__.__name__, f"CG failed to converge in {info['iterations']} iterations. Residual norm: {info['residual_norm']}. Reason: {info['reason']}.")
                 KM.Logger.PrintWarning("**** reconstructing graph of preconditioner and solving again with different settings and starting with a value of 0***")
                 KM.Logger.PrintWarning("******************************************************")
                 self.L = (self.L + self.L.T)/2 #enforce the symmetry harder to see if there is anything wrong
-                self.preconditioner = self.cfd_utils.ConstructPreconditioner(self.L)
-                self.preconditioner.update_matrix_values(self.L)
+                #self.preconditioner = self.cfd_utils.ConstructPreconditioner(self.L)
+                self.preconditioner.update_matrix_values(self.L,lambda_estima_safety_factor=1.5, lambda_estimate_iterations=10)
                 precond = self.preconditioner.aspreconditioner()
                 sol, info = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, atol=0.0, M=precond, maxiter=self.pressure_max_iteration, xp=xp, return_info_dict=True, use_mixed_reductions=False)
 
             if info["converged"] == False:
                 KM.Logger.PrintWarning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                KM.Logger.PrintWarning(self.__class__.__name__, f"CG failed AGAIN to converge in {info["iterations"]} iterations. Residual norm: {info["residual_norm"]}. Reason: {info["reason"]}.")
+                KM.Logger.PrintWarning(self.__class__.__name__, f"CG failed AGAIN to converge in {info['iterations']} iterations. Residual norm: {info['residual_norm']}. Reason: {info['reason']}.")
                 KM.Logger.PrintWarning("**** trying again to see if the non-robust version of the cg delivers a solution that is not too bad ***")
                 KM.Logger.PrintWarning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     
@@ -1534,7 +1534,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                     info["converged"] = True #FIXME: all the rest of the content of info is rubbish...
 
             if info["converged"] == False:
-                KM.Logger.PrintWarning(self.__class__.__name__, f"CG failed to converge in {info["iterations"]} iterations. Residual norm: {info["residual_norm"]}. Reason: {info["reason"]}.")
+                KM.Logger.PrintWarning(self.__class__.__name__, f"CG failed to converge in {info['iterations']} iterations. Residual norm: {info['residual_norm']}. Reason: {info['reason']}.")
 
 
 
