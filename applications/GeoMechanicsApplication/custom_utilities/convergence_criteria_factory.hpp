@@ -114,16 +114,16 @@ private:
         return std::make_shared<MixedGenericCriterionType>(convergence_variables);
     }
 
-    static ConvergenceCriterionSharedPtr CreateAndCriterion(ConvergenceCriterionSharedPtr FirstCriterion,
-                                                            ConvergenceCriterionSharedPtr SecondCriterion)
+    static ConvergenceCriterionSharedPtr CreateAndCriterion(ConvergenceCriterionSharedPtr pFirstCriterion,
+                                                            ConvergenceCriterionSharedPtr pSecondCriterion)
     {
-        return std::make_shared<AndCriterionType>(std::move(FirstCriterion), std::move(SecondCriterion));
+        return std::make_shared<AndCriterionType>(std::move(pFirstCriterion), std::move(pSecondCriterion));
     }
 
-    static ConvergenceCriterionSharedPtr CreateOrCriterion(ConvergenceCriterionSharedPtr FirstCriterion,
-                                                           ConvergenceCriterionSharedPtr SecondCriterion)
+    static ConvergenceCriterionSharedPtr CreateOrCriterion(ConvergenceCriterionSharedPtr pFirstCriterion,
+                                                           ConvergenceCriterionSharedPtr pSecondCriterion)
     {
-        return std::make_shared<OrCriterionType>(std::move(FirstCriterion), std::move(SecondCriterion));
+        return std::make_shared<OrCriterionType>(std::move(pFirstCriterion), std::move(pSecondCriterion));
     }
 };
 
