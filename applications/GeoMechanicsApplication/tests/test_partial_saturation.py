@@ -132,16 +132,17 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 depth_boundary_nodes.append(-1.0 * node.Y)
 
         if test_helper.want_test_plots():
-            times = [600, 14400.0, 38400.0, 72600.0, 95400.0, 209400.0]
+            times = [12000, 24000, 36000, 48000, 72000, 96000, 192000]
             data_series_collection = []
             for time in times:
                 water_pressures = reader.nodal_values_at_time(
                     "WATER_PRESSURE", time, output_data, node_ids_left_boundary
                 )
-                list = zip(water_pressures, depth_boundary_nodes)
+                sorted_y, sorted_data = zip(*sorted(zip(depth_boundary_nodes, water_pressures)))
+                list = zip(sorted_data, sorted_y)
                 data_series_collection.append(
                     plot_utils.DataSeries(
-                        list, label=f"time = {time}", line_style="", marker="."
+                        list, label=f"time = {time}", line_style="-", marker=""
                     )
                 )
             plot_utils._make_plot(
