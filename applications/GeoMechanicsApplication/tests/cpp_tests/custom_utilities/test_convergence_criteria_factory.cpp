@@ -22,6 +22,7 @@ using LocalSpaceType                 = UblasSpace<double, Matrix, Vector>;
 using ConvergenceCriteriaFactoryType = ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType>;
 using DisplacementCriterionType      = DisplacementCriteria<SparseSpaceType, LocalSpaceType>;
 using ResidualCriterionType          = ResidualCriteria<SparseSpaceType, LocalSpaceType>;
+using AndCriterionType               = And_Criteria<SparseSpaceType, LocalSpaceType>;
 
 using namespace std::string_literals;
 
@@ -54,13 +55,28 @@ const auto CreateResidualCriterionTest::CriterionDefinition = R"(
 }
 )"s;
 
+struct CreateAndCriterionTest {
+    using CriterionType = AndCriterionType;
+    static const std::string CriterionDefinition;
+};
+
+const auto CreateAndCriterionTest::CriterionDefinition = R"(
+{
+    "convergence_criterion": "and_criterion",
+    "displacement_relative_tolerance": 1.0E-4,
+    "displacement_absolute_tolerance": 1.0E-9,
+    "residual_relative_tolerance": 1.0E-4,
+    "residual_absolute_tolerance": 1.0E-9
+}
+)"s;
+
 template <typename T>
 class CreateConvergenceCriterionTest : public testing::Test
 {
 };
 
 using CreateConvergenceCriterionTestTypes =
-    ::testing::Types<CreateDisplacementCriterionTest, CreateResidualCriterionTest>;
+    ::testing::Types<CreateDisplacementCriterionTest, CreateResidualCriterionTest, CreateAndCriterionTest>;
 TYPED_TEST_SUITE(CreateConvergenceCriterionTest, CreateConvergenceCriterionTestTypes);
 
 TYPED_TEST(CreateConvergenceCriterionTest, ConvergenceCriteriaFactoryProducesDefinedCriterionType)
