@@ -372,8 +372,11 @@ void ApplyConstantInterpolateLinePressureProcess::FindBoundaryNodes()
         const auto Id = static_cast<int>(rNode.Id());
         for (const auto& r_boundary_node : BoundaryNodes) {
             if (Id == r_boundary_node) {
-                mBoundaryNodes[iPosition] = &rNode;
-                iPosition++;
+#pragma omp critical(boundary_node_assignment)
+                {
+                    mBoundaryNodes[iPosition] = &rNode;
+                    iPosition++;
+                }
             }
         }
     });

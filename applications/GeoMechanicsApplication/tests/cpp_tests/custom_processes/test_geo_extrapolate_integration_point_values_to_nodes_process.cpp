@@ -20,6 +20,7 @@
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <numbers>
+#include <stdexcept>
 #include <string>
 
 using namespace std::numbers;
@@ -104,6 +105,54 @@ public:
     std::vector<Vector>              mIntegrationVectorValues = {};
     std::vector<array_1d<double, 3>> mIntegrationArrayValues  = {};
 };
+
+class StubElementWithThrowingCheckForNodalExtrapolationTest : public StubElementForNodalExtrapolationTest
+{
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElementWithThrowingCheckForNodalExtrapolationTest);
+
+    using StubElementForNodalExtrapolationTest::StubElementForNodalExtrapolationTest;
+
+    int Check(const ProcessInfo&) const override
+    {
+        throw std::runtime_error("Synthetic check failure");
+    }
+};
+
+class StubElementWithUnknownThrowingCheckForNodalExtrapolationTest : public StubElementForNodalExtrapolationTest
+{
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElementWithUnknownThrowingCheckForNodalExtrapolationTest);
+
+    using StubElementForNodalExtrapolationTest::StubElementForNodalExtrapolationTest;
+
+    int Check(const ProcessInfo&) const override { throw 42; }
+};
+
+class StubElementWithNonZeroCheckForNodalExtrapolationTest : public StubElementForNodalExtrapolationTest
+{
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElementWithNonZeroCheckForNodalExtrapolationTest);
+
+    using StubElementForNodalExtrapolationTest::StubElementForNodalExtrapolationTest;
+
+    int Check(const ProcessInfo&) const override { return 1; }
+};
+
+template <typename TElementType>
+ModelPart& CreateModelPartWithSingleStubElement(Model& model, const VariableData& rVariable)
+{
+    auto& r_result = model.CreateModelPart("MainModelPart"s);
+    r_result.AddNodalSolutionStepVariable(rVariable);
+
+    Testing::ModelSetupUtilities::CreateNodes(
+        r_result, {{1, {0.0, 0.0, 0.0}}, {2, {1.0, 0.0, 0.0}}, {3, {1.0, 1.0, 0.0}}, {4, {0.0, 1.0, 0.0}}});
+
+    const auto nodes_of_element = Testing::ModelSetupUtilities::GetNodesFromIds(r_result, {1, 2, 3, 4});
+    r_result.AddElement(make_intrusive<TElementType>(1, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element)));
+
+    return r_result;
+}
 
 ModelPart& CreateModelPartWithTwoStubElements(Model& model, const VariableData& rVariable)
 {
@@ -354,6 +403,54 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
                    r_test_variable));
 
     AssertNodalValues(r_main_model_part.Nodes(), r_test_variable, {-1.0, 0.0, 1.0, -1.0, -1.0, 1.0});
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ThrowsWhenElementCheckThrowsStdException,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto        model           = Model{};
+    const auto& r_test_variable = HYDRAULIC_HEAD;
+    const auto& r_model_part =
+        CreateModelPartWithSingleStubElement<StubElementWithThrowingCheckForNodalExtrapolationTest>(
+            model, r_test_variable);
+    auto process = GeoExtrapolateIntegrationPointValuesToNodesProcess{
+        model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable)};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "GeoExtrapolateIntegrationPointValuesToNodesProcess: "
+                                      "Exception while calling Element::Check")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ThrowsWhenElementCheckThrowsUnknownException,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto        model           = Model{};
+    const auto& r_test_variable = HYDRAULIC_HEAD;
+    const auto& r_model_part =
+        CreateModelPartWithSingleStubElement<StubElementWithUnknownThrowingCheckForNodalExtrapolationTest>(
+            model, r_test_variable);
+    auto process = GeoExtrapolateIntegrationPointValuesToNodesProcess{
+        model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable)};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "GeoExtrapolateIntegrationPointValuesToNodesProcess: Unknown "
+                                      "exception while calling Element::Check")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ThrowsWhenElementCheckReturnsNonZero,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto        model           = Model{};
+    const auto& r_test_variable = HYDRAULIC_HEAD;
+    const auto& r_model_part =
+        CreateModelPartWithSingleStubElement<StubElementWithNonZeroCheckForNodalExtrapolationTest>(
+            model, r_test_variable);
+    auto process = GeoExtrapolateIntegrationPointValuesToNodesProcess{
+        model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable)};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "GeoExtrapolateIntegrationPointValuesToNodesProcess: Element "
+                                      "Check failed before extrapolation")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyForLinearFields,

@@ -57,6 +57,7 @@
 #include "custom_elements/membrane_elements/membrane_element.hpp"
 #include "custom_elements/membrane_elements/membrane_element_2D2N.h"
 #include "custom_elements/shell_elements/mitc_thick_shell_element_3D4N.hpp"
+#include "custom_elements/shell_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_elements/shell_thick_element_3D3N.hpp"
@@ -305,9 +306,13 @@ private:
     const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mMITCThickShellElement3D4N;
     const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mMITCThickShellCorotationalElement3D4N;
 
-    // deprecated
+    // Deprecated names, to be removed by Dec 2026
     const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mShellThickElement3D4N;
     const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D4N;
+
+    // Deprecated elements, to be removed by Dec 2026
+    const ShellThickElement3D4N<ShellKinematics::LINEAR> mLegacyThickShellElement3D4N;
+    const ShellThickElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mLegacyThickShellCorotationalElement3D4N;
 
     const ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalElement3D4N;
     const ShellThinElement3D3N<ShellKinematics::LINEAR> mShellThinElement3D3N;

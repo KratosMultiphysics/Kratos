@@ -154,6 +154,18 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteFinalizeSolution
     }
 }
 
+int GeoExtrapolateIntegrationPointValuesToNodesProcess::Check()
+{
+    for (const auto& r_model_part : mrModelParts) {
+        const auto& r_process_info = r_model_part.get().GetProcessInfo();
+        for (auto& r_element : r_model_part.get().Elements()) {
+            CheckElement(r_element, r_model_part.get().Name(), r_process_info);
+        }
+    }
+
+    return 0;
+}
+
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatricesForElements()
 {
     for (const auto& r_model_part : mrModelParts) {
@@ -171,7 +183,7 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatri
 
 bool GeoExtrapolateIntegrationPointValuesToNodesProcess::ExtrapolationMatrixIsCachedFor(const Element& rElement) const
 {
-    return mExtrapolationMatrixMap.count(typeid(rElement).hash_code()) > 0;
+    return mExtrapolationMatrixMap.contains(typeid(rElement).hash_code());
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatrixFor(const Element& rElement,
@@ -183,6 +195,33 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatri
 const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtrapolationMatrixFor(const Element& rElement) const
 {
     return mExtrapolationMatrixMap.at(typeid(rElement).hash_code());
+}
+
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::CheckElement(Element& rElement,
+                                                                      const std::string& rModelPartName,
+                                                                      const ProcessInfo& rProcessInfo) const
+{
+    int check_result = 0;
+    try {
+        check_result = rElement.Check(rProcessInfo);
+    } catch (const std::exception& rException) {
+        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Exception while "
+                        "calling Element::Check "
+                     << "before extrapolation for element id " << rElement.Id() << " in ModelPart='"
+                     << rModelPartName << "'. Original error: " << rException.what()
+                     << " Plausible cause: this modelpart is not activated." << std::endl;
+    } catch (...) {
+        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Unknown exception "
+                        "while calling "
+                     << "Element::Check before extrapolation for element id " << rElement.Id()
+                     << " in ModelPart='" << rModelPartName
+                     << "'.  Plausible cause: this modelpart is not activated." << std::endl;
+    }
+
+    KRATOS_ERROR_IF(check_result != 0) << "GeoExtrapolateIntegrationPointValuesToNodesProcess: "
+                                          "Element Check failed before extrapolation for "
+                                       << "element id " << rElement.Id() << " in ModelPart='" << rModelPartName
+                                       << "'. Check returned " << check_result << "." << std::endl;
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
