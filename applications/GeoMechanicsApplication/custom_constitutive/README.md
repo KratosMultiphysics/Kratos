@@ -692,7 +692,7 @@ $$
 Signed moment: the law stores and uses a signed curvature $\kappa$ (positive/negative). The signed bending moment is obtained by applying the backbone to the absolute curvature and reapplying sign:
 
 $$
-M(\kappa)=\operatorname{sign}(\kappa)\,M_b(|\kappa|).
+M(\kappa)=\mathrm{sign}(\kappa)\,M_b(|\kappa|).
 $$
 
 Optional unload/reload behaviour: if the property `GEO_UNLOADING_RELOADING_MODULUS` is provided (denoted $E_u$) an elastic window of half‑amplitude $A$ is used to model unloading/reloading about a center $\kappa_c$ (internal state). The amplitude is computed from the current accumulated backbone state $\kappa_{acc}$ as:
@@ -713,7 +713,7 @@ $$
 \kappa_{eff}=\kappa_{acc} + (|\kappa-\kappa_c|-A),
 $$
 
-and the signed moment is recovered from the backbone: $M(\kappa)=\operatorname{sign}(\kappa-\kappa_c)\,M_b(\kappa_{eff})$. 
+and the signed moment is recovered from the backbone: $M(\kappa)=\mathrm{sign}(\kappa-\kappa_c)\,M_b(\kappa_{eff})$. 
 
 The following picture shows a moment-curvature behaviour for piecewise_linear_moment_capacity test.
 <img src="documentation_data/test_piecewise_linear_moment.svg">
