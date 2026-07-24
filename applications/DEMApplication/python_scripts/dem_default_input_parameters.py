@@ -30,7 +30,8 @@ def GetDefaultInputParameters():
                 "BoundingBoxServoLoadingVelocityMax": 0.05,
                 "MeanParticleDiameterD50"          : 0.1,
                 "ParticleYoungsModulus"            : 1e9,
-                "TriaxialLoadingVelocity"          : 0.01
+                "TriaxialLoadingVelocity"          : 0.01,
+                "BoundingBoxServoLoadingApplyAffineToParticles" : false
             },                                        
             "dem_inlet_option"                 : true,
             "dem_inlets_settings"              : {},

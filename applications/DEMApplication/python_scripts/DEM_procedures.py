@@ -857,7 +857,11 @@ class Procedures():
         creator_destructor.SetLowNode(b_box_low)
         creator_destructor.SetHighNode(b_box_high)
         creator_destructor.UpdateSurroundingBoundingBox(spheres_model_part)
-    
+
+    def ApplyAffineServoToParticles(self, spheres_model_part, creator_destructor, bounding_box_strain_rate):
+        delta_time = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+        creator_destructor.ApplyAffineServoToParticles(spheres_model_part, bounding_box_strain_rate, delta_time)
+
     def DeleteFiles(self):
         files_to_delete_list = glob('*.time')
         for to_erase_file in files_to_delete_list:

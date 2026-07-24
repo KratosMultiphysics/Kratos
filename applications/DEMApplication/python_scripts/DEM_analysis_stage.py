@@ -319,6 +319,13 @@ class DEMAnalysisStage(AnalysisStage):
                 self.bounding_box_servo_loading_option = True
         
         self.bounding_box_move_velocity = [0.0, 0.0, 0.0]
+        self.bounding_box_strain_rate = [0.0, 0.0, 0.0]
+
+        self.apply_affine_servo_to_particles = False
+        if self.bounding_box_servo_loading_option:
+            if "BoundingBoxServoLoadingApplyAffineToParticles" in self.DEM_parameters["BoundingBoxServoLoadingSettings"].keys():
+                if self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingApplyAffineToParticles"].GetBool():
+                    self.apply_affine_servo_to_particles = True
 
     def SetMaterials(self):
 
@@ -568,6 +575,14 @@ class DEMAnalysisStage(AnalysisStage):
                         self.CalculateBoundingBoxMoveVelocity(measured_global_stress)
                         self.UpdateSearchStartegyAndCPlusPlusStrategy(self.bounding_box_move_velocity)
                         self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor, self.bounding_box_move_velocity)
+                        if self.apply_affine_servo_to_particles:
+                            Lx = self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update
+                            Ly = self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update
+                            Lz = self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update
+                            self.bounding_box_strain_rate[0] = -1.0 * self.bounding_box_move_velocity[0] / Lx
+                            self.bounding_box_strain_rate[1] = -1.0 * self.bounding_box_move_velocity[1] / Ly
+                            self.bounding_box_strain_rate[2] = -1.0 * self.bounding_box_move_velocity[2] / Lz
+                            self.procedures.ApplyAffineServoToParticles(self.spheres_model_part, self.creator_destructor, self.bounding_box_strain_rate)
                 else:
                     NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
                     if (time_step - 1) % NStepSearch == 0 and (time_step > 1):

@@ -1582,6 +1582,26 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         KRATOS_CATCH("")
     }
+
+    void ParticleCreatorDestructor::ApplyAffineServoToParticles(ModelPart& r_model_part, array_1d<double, 3 > bounding_box_strain_rate, double delta_time) {
+        KRATOS_TRY
+
+        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+
+        //the packing center is 0,0,0 by default
+        block_for_each(rNodes, [&](ModelPart::NodeType& rNode) {
+            array_1d<double, 3 >& coor = rNode.Coordinates();
+            array_1d<double, 3 >& displ = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3> affine_displ_increment = ZeroVector(3);
+            for (unsigned int i = 0; i < 3; i++) {
+                affine_displ_increment[i] = bounding_box_strain_rate[i] * coor[i] * delta_time;
+            }
+            displ += affine_displ_increment;
+            coor += affine_displ_increment;
+        });
+        
+        KRATOS_CATCH("")
+    }
     
     //TODO:why we did not call this function anywhere?
     void ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
