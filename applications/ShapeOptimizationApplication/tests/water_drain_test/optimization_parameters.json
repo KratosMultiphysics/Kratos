@@ -1,0 +1,71 @@
+{
+    "optimization_settings": {
+        "model_settings": {
+            "domain_size": 3,
+            "model_part_name": "cosinus_shell",
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "cosinus_shell"
+            },
+            "design_surface_sub_model_part_name": "design_surface",
+            "damping": {
+                "apply_damping": true,
+                "damping_regions": [
+                ]
+            },
+            "mesh_motion": {
+                "apply_mesh_solver": false
+            }
+        },
+        "objectives": [
+            {
+                "identifier": "water_drain",
+                "type": "minimization",
+                "analyzer": "kratos",
+                "response_settings": {
+                    "response_type": "water_drain",
+                    "gravity_direction": [0.0, 0.0, -1.0],
+                    "model_part_name": "cosinus_shell.design_surface",
+                    "max_iterations_volume_search": 1e4,
+                    "continuous_sensitivities": true,
+                    "quadratic_height_penalization": true
+                }
+            }
+        ],
+        "constraints": [
+        ],
+        "design_variables": {
+            "type": "vertex_morphing",
+            "filter": {
+                "filter_function_type": "gaussian",
+                "max_nodes_in_filter_radius": 1000,
+                "filter_radius": 0.000001,
+                "matrix_free_filtering": true
+            }
+        },
+        "optimization_algorithm": {
+            "name": "steepest_descent",
+            "max_iterations": 6,
+            "relative_tolerance": 1e-8,
+            "line_search": {
+                "line_search_type": "manual_stepping",
+                "normalize_search_direction": true,
+                "step_size": 1.0
+            }
+        },
+        "output": {
+            "design_output_mode": "write_design_surface",
+            "nodal_results": [
+                "DF1DX",
+                "DF1DX_MAPPED",
+                "SHAPE_UPDATE",
+                "SHAPE_CHANGE",
+                "WATER_LEVEL",
+                "WATER_VOLUMES"
+            ],
+            "output_format": {
+                "name": "vtk"
+            }
+        }
+    }
+}
