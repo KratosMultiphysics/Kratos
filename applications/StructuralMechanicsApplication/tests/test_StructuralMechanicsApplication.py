@@ -43,6 +43,7 @@ from test_patch_test_cr_beam import StaticPatchTestBeam2D2N as TStaticPatchTestB
 from test_patch_test_shells_stress import TestPatchTestShellsStressRec as TTestPatchTestShellsStressRec
 from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as TTestPatchTestShellsOrthotropic
 from test_patch_test_formfinding_trusses import TestPatchTestFormfinding as TTestPatchTestFormfinding
+from test_patch_test_cutting_pattern import TestPatchTestCuttingPattern as TTestPatchTestCuttingPattern
 
 # Test loading conditions
 from test_loading_conditions_point import TestLoadingConditionsPoint as TTestLoadingConditionsPoint
@@ -312,6 +313,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestMembrane]))
     # Formfinding
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
+    # Cutting pattern
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestCuttingPattern]))
     # Trusses
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     # Beams
