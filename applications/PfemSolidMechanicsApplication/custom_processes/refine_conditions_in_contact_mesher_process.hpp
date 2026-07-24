@@ -43,7 +43,7 @@ namespace Kratos
 
     Determines if new conditions must be inserted in boundary.
     If boundary must to be kept (CONSTRAINED),
-    New conditions will be rebuild (spliting the old ones and inserting new nodes)
+    New conditions will be rebuild (splitting the old ones and inserting new nodes)
     Old conditions will be erased at the end.
 
 */

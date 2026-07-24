@@ -20,7 +20,7 @@
 // ( i.e: it is for the MCC, but works for everything)
 // **
 
-// OBSERVATION: I compute the constitutive equation with the appropiate law ( PlaneStrain, ...) but I get the 3D stress tensor or 3D constitutive matrix.
+// OBSERVATION: I compute the constitutive equation with the appropriate law ( PlaneStrain, ...) but I get the 3D stress tensor or 3D constitutive matrix.
 // This is why I have to "reform" the vector of matrix here.
 
 
@@ -66,7 +66,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    UpdatedLagrangianUPressureElement&  UpdatedLagrangianUPressureElement::operator=(UpdatedLagrangianUPressureElement const& rOther)

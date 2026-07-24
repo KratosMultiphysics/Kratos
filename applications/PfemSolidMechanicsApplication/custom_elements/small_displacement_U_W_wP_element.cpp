@@ -58,7 +58,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    SmallDisplacementUWwPElement&  SmallDisplacementUWwPElement::operator=(SmallDisplacementUWwPElement const& rOther)
@@ -424,7 +424,7 @@ namespace Kratos
    }
 
    //************************************************************************************
-   //         Matrix due to the the water pressure contribution to the internal forces
+   //         Matrix due to the water pressure contribution to the internal forces
    void SmallDisplacementUWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -734,7 +734,7 @@ namespace Kratos
          //compute element kinematics
          this->CalculateKinematics( Variables, PointNumber );
 
-         //getting informations for integration
+         //getting information for integration
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
          IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
@@ -797,7 +797,7 @@ namespace Kratos
 
          //std::cout << "N = " << Variables.N << std::endl;
 
-         //getting informations for integration
+         //getting information for integration
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
          IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
