@@ -256,7 +256,7 @@ AMGCLSolver<TSparse,TDense>::~AMGCLSolver() = default;
 
 template <class TSparse, class TDense>
 void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
-    const bool direct_configuration = !Settings.Has("direct_settings") || Settings["direct_settings"].begin() == Settings["direct_settings"].end();
+    const bool direct_configuration = Settings.Has("direct_settings") && Settings["direct_settings"].begin() != Settings["direct_settings"].end();
 
     Parameters default_parameters = this->GetDefaultParameters();
     // Optionally set the a user-defined block size.
