@@ -4,11 +4,12 @@ import numpy as np
 
 
 class DataSeries:
-    def __init__(self, data_points, label="", line_style="-", marker=None):
+    def __init__(self, data_points, label="", line_style="-", marker=None, color=None):
         self.data_points = data_points
         self.label = label
         self.line_style = line_style
         self.marker = marker
+        self.color = color
 
 
 def _make_plot(
@@ -52,6 +53,7 @@ def _plot_data_series_on_axis(axes, data_series_collection):
             label=series.label,
             linestyle=series.line_style,
             marker=series.marker,
+            color=series.color
         ))
     axes.grid()
     axes.grid(which="minor", color="0.9")

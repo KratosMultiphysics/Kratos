@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="765.85028"
+   height="609.54938"
+   overflow="hidden"
+   version="1.1"
+   id="svg85"
+   sodipodi:docname="column_partially_saturated.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview85"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.1461022"
+     inkscape:cx="242.56126"
+     inkscape:cy="370.3858"
+     inkscape:window-width="3440"
+     inkscape:window-height="1369"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg85" />
+  <defs
+     id="defs1">
+    <image
+       width="64"
+       height="64"
+       xlink:href="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCABAAEADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwCxX6l0UV9Tnmef2z7P93ycl+t73t5LsfA8K8K/6s+3/f8AtPacv2eW3Lzf3pXvzeWwUUUV8sffBRRX5aV9TkeR/wBs+0/ecnJbpe97+a7HwPFXFX+rPsP3HtPac32uW3Ly/wB2V783lsFFFFfvh/Ip+pdFFFfy0f3wFFFflpX1OR5H/bPtP3nJyW6Xve/mux8DxVxV/qz7D9x7T2nN9rlty8v92V783lsFFFFfvh/IoV+pdFFfgeeZ5/bPs/3fJyX63ve3kux/XXCvCv8Aqz7f9/7T2nL9nlty8396V783lsFFFflpRkeR/wBs+0/ecnJbpe97+a7BxVxV/qz7D9x7T2nN9rlty8v92V783lsFFFFfvh/IoV+pdFFfgeeZ5/bPs/3fJyX63ve3kux/XXCvCv8Aqz7f9/7T2nL9nlty8396V783lsFFFFfLH3x+WlFFFf1KfwOFfqXRRX4Hnmef2z7P93ycl+t73t5Lsf11wrwr/qz7f9/7T2nL9nlty8396V783lsFFFFfLH3wUUV+WlfU5Hkf9s+0/ecnJbpe97+a7HwPFXFX+rPsP3HtPac32uW3Ly/3ZXvzeWx//9k="
+       preserveAspectRatio="none"
+       id="img1" />
+    <pattern
+       width="64"
+       height="64"
+       patternUnits="userSpaceOnUse"
+       id="pattern2"
+       overflow="hidden"
+       patternTransform="matrix(0.125 0 0 0.125 520 88)">
+      <use
+         width="100%"
+         height="100%"
+         xlink:href="#img1"
+         id="use1" />
+    </pattern>
+  </defs>
+  <path
+     d="M 158.26963,9.2256126 V 537.22581 h 243 V 9.2256126 Z m 5.157,5.1478004 h 232.687 V 532.07881 h -232.687 z"
+     fill-rule="evenodd"
+     id="path4" />
+  <path
+     d="m 158.79663,534.78781 h 133"
+     stroke="#000000"
+     stroke-width="3.37113"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path11" />
+  <path
+     d="m 285.80963,534.78781 h 116.001"
+     stroke="#000000"
+     stroke-width="3.14625"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path17" />
+  <path
+     d="M 80.269627,205.22581 H 486.26963 v 100 H 80.269627 Z"
+     fill="#ffffff"
+     fill-rule="evenodd"
+     id="path65" />
+  <path
+     d="m 284.27063,221.72481 c 0,3.038 -2.461,5.5 -5.499,5.5 -3.038,0 -5.501,-2.462 -5.501,-5.5 0,-3.037 2.463,-5.5 5.501,-5.5 3.038,0 5.499,2.463 5.499,5.5 z"
+     fill-rule="evenodd"
+     id="path66" />
+  <path
+     d="m 284.27063,246.72481 c 0,3.037 -2.462,5.5 -5.5,5.5 -3.038,0 -5.5,-2.463 -5.5,-5.5 0,-3.038 2.462,-5.5 5.5,-5.5 3.038,0 5.5,2.462 5.5,5.5 z"
+     fill-rule="evenodd"
+     id="path67" />
+  <path
+     d="m 284.27063,274.72481 c 0,3.038 -2.461,5.5 -5.499,5.5 -3.038,0 -5.501,-2.462 -5.501,-5.5 0,-3.037 2.463,-5.5 5.501,-5.5 3.038,0 5.499,2.463 5.499,5.5 z"
+     fill-rule="evenodd"
+     id="path68" />
+  <path
+     d="M 44.483627,23.295813 V 524.15581 h -3.428 V 23.295813 Z m -6.856,1.713 5.142,-10.2831 5.142,10.2831 z m 10.284,497.433997 -5.142,10.283 -5.142,-10.283 z"
+     id="path69" />
+  <text
+     font-family="Arial, Arial_MSFontService, sans-serif"
+     font-weight="400"
+     font-size="25.2px"
+     id="text69"
+     x="-0.73828125"
+     y="269.00668">2m</text>
+  <text
+     font-family="Arial, Arial_MSFontService, sans-serif"
+     font-weight="400"
+     font-size="25.2px"
+     id="text71"
+     x="255.1326"
+     y="609.24176">0.02m</text>
+  <path
+     d="m 164.76963,579.72581 h 231"
+     stroke="#000000"
+     stroke-width="3.42772"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path72" />
+  <path
+     d="m 162.19263,579.16881 15,-9 v 18 z"
+     fill-rule="evenodd"
+     id="path73" />
+  <path
+     d="m 399.32763,579.31481 -15,9 v -18 z"
+     fill-rule="evenodd"
+     id="path74" />
+  <path
+     d="m 132.24863,536.24181 h 311"
+     stroke="#0f9ed5"
+     stroke-width="4"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path76" />
+  <text
+     font-family="Aptos, Aptos_MSFontService, sans-serif"
+     font-weight="700"
+     font-size="24px"
+     id="text78"
+     x="450.91916"
+     y="539.25055"
+     style="fill:#0f9ed5;fill-opacity:1">Zero flux boundary</text>
+  <path
+     d="m 124.26963,9.225613 h 311"
+     stroke="#0f9ed5"
+     stroke-width="4"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path76-4" />
+  <text
+     font-family="Aptos, Aptos_MSFontService, sans-serif"
+     font-weight="700"
+     font-size="24px"
+     id="text78-8"
+     x="442.94016"
+     y="18.234375"
+     style="fill:#0f9ed5;fill-opacity:1">Zero pressure boundary</text>
+  <text
+     xml:space="preserve"
+     style="font-size:21.6344px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';writing-mode:lr-tb;direction:ltr;fill:#0f9ed5;fill-opacity:1;stroke:#000000;stroke-width:3.77953"
+     x="570.3576"
+     y="539.25055"
+     id="text85"><tspan
+       sodipodi:role="line"
+       id="tspan85"
+       x="570.3576"
+       y="539.25055"> </tspan></text>
+</svg>

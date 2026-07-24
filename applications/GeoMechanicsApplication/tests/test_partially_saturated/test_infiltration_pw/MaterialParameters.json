@@ -1,0 +1,39 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.sandfine",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
+                    "YOUNG_MODULUS": 1.0e+07,
+                    "POISSON_RATIO": 0.0,
+                    "DENSITY_SOLID": 2.0e+03,
+                    "DENSITY_WATER": 1.0e+03,
+                    "POROSITY": 0.33,
+                    "BULK_MODULUS_SOLID": 6.7e+19,
+                    "BULK_MODULUS_FLUID": 1.0e+20,
+                    "PERMEABILITY_XX": 1.157e-13,
+                    "PERMEABILITY_YY": 1.157e-13,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
+                    "THICKNESS": 1.0,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "VanGenuchtenLaw",
+                    "SATURATED_SATURATION": 0.95,
+                    "RESIDUAL_SATURATION": 3.0e-02,
+                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 7.352941e+03,
+                    "VAN_GENUCHTEN_GN": 1.342,
+                    "VAN_GENUCHTEN_GL": -0.803,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-05
+                },
+                "Tables": {
+
+                }
+            }
+        }
+    ]
+}
