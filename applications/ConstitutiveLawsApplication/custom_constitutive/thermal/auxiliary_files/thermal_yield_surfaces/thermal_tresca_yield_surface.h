@@ -46,7 +46,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template <class TPlasticPotentialType>
-class ThermalTrescaYieldSurface
+class KRATOS_EXPOSE ThermalTrescaYieldSurface
 {
 public:
     ///@name Type Definitions

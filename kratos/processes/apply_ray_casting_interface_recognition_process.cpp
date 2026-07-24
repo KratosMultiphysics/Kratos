@@ -78,6 +78,6 @@ namespace Kratos
         };
     }
 
-    template class Kratos::ApplyRayCastingInterfaceRecognitionProcess<2>;
-    template class Kratos::ApplyRayCastingInterfaceRecognitionProcess<3>;
+    template class KRATOS_API(KRATOS_CORE) Kratos::ApplyRayCastingInterfaceRecognitionProcess<2>;
+    template class KRATOS_API(KRATOS_CORE) Kratos::ApplyRayCastingInterfaceRecognitionProcess<3>;
 }

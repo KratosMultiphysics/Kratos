@@ -31,7 +31,7 @@ namespace Kratos
  * using InterfaceObject.
  * It is an adapted copy of "kratos/spatial_containers/configures/point_configure.h"
  */
-class InterfaceObjectConfigure
+class KRATOS_EXPOSE InterfaceObjectConfigure
 {
 public:
 

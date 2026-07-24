@@ -34,7 +34,7 @@ namespace HDF5
 ///@{
 
 /// A class for partitioned IO of a model part in HDF5.
-class PartitionedModelPartIO : public ModelPartIO
+class KRATOS_API(HDF5_APPLICATION) PartitionedModelPartIO : public ModelPartIO
 {
 public:
     ///@name Type Definitions

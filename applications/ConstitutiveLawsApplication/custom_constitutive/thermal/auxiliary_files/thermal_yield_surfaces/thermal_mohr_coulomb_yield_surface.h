@@ -52,7 +52,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template <class TPlasticPotentialType>
-class ThermalMohrCoulombYieldSurface
+class KRATOS_EXPOSE ThermalMohrCoulombYieldSurface
 {
 public:
     ///@name Type Definitions

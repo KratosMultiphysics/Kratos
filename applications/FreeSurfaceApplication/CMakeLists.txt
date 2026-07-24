@@ -20,7 +20,7 @@ set( KRATOS_FREE_SURFACE_PYTHON_INTERFACE_SOURCES
 # FreeSurface core library (C++ parts)
 add_library(KratosFreeSurfaceCore SHARED ${KRATOS_FREE_SURFACE_APPLICATION_CORE_SOURCES})
 target_link_libraries(KratosFreeSurfaceCore PUBLIC KratosCore)
-set_target_properties(KratosFreeSurfaceCore PROPERTIES COMPILE_DEFINITIONS "FREE_SURFACE_APPLICATION=EXPORT,API")
+set_target_properties(KratosFreeSurfaceCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "FREE_SURFACE_APPLICATION=EXPORT,API")
 
 # FreeSurface python module
 pybind11_add_module(KratosFreeSurfaceApplication MODULE THIN_LTO ${KRATOS_FREE_SURFACE_PYTHON_INTERFACE_SOURCES})

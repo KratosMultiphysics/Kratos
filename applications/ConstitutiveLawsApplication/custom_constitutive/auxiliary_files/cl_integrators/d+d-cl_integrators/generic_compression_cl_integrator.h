@@ -59,7 +59,7 @@ namespace Kratos
  * @author Alejandro Cornejo 
  */
 template <class TYieldSurfaceType>
-class GenericCompressionConstitutiveLawIntegratorDplusDminusDamage
+class KRATOS_EXPOSE GenericCompressionConstitutiveLawIntegratorDplusDminusDamage
 {
   public:
 

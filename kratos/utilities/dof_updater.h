@@ -36,7 +36,7 @@ namespace Kratos
  *  @see TrilinosDofUpdater for the trilinos version.
  */
 template< class TSparseSpace >
-class DofUpdater
+class KRATOS_EXPOSE DofUpdater
 {
 public:
     ///@name Type Definitions

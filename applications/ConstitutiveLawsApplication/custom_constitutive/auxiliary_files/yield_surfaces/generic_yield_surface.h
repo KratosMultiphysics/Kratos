@@ -56,7 +56,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu & Vicente Mataix
  */
 template <class TPlasticPotentialType>
-class GenericYieldSurface
+class KRATOS_EXPOSE GenericYieldSurface
 {
 public:
     ///@name Type Definitions

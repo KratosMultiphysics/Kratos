@@ -42,7 +42,7 @@ namespace Kratos
  * @details Inherits all method from base element, and overrides the Clone() and Create() methods
  * @author Vicente Mataix Ferrandiz
  */
-class MeshElement
+class KRATOS_API(KRATOS_CORE) MeshElement
     : public Element
 {
 public:

@@ -27,7 +27,7 @@ file(GLOB_RECURSE KRATOS_@{APP_NAME_CAPS}_APPLICATION_PYTHON_INTERFACE ${CMAKE_C
 
 add_library(Kratos@{APP_NAME_CAMEL}Core SHARED ${KRATOS_@{APP_NAME_CAPS}_APPLICATION_CORE} ${KRATOS_@{APP_NAME_CAPS}_APPLICATION_TESTING_SOURCES})
 target_link_libraries(Kratos@{APP_NAME_CAMEL}Core PUBLIC KratosCore)
-set_target_properties(Kratos@{APP_NAME_CAMEL}Core PROPERTIES COMPILE_DEFINITIONS "@{APP_NAME_CAPS}_APPLICATION=EXPORT,API")
+set_target_properties(Kratos@{APP_NAME_CAMEL}Core PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "@{APP_NAME_CAPS}_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

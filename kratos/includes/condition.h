@@ -54,7 +54,7 @@ namespace Kratos
  * not all of them have to be implemented if they are not needed for
  * the actual problem
  */
-class Condition : public GeometricalObject
+class KRATOS_EXPOSE Condition : public GeometricalObject
 {
 public:
     ///@name Type Definitions
@@ -1198,7 +1198,7 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 }
 ///@}
 
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Condition >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Condition>;
 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Condition const& ThisComponent);
 

@@ -499,7 +499,7 @@ void ParallelDistanceCalculationProcess<TDim>::AssignDistanceSign()
     KRATOS_CATCH("")
 }
 
-template class ParallelDistanceCalculationProcess<2>;
-template class ParallelDistanceCalculationProcess<3>;
+template class KRATOS_API(KRATOS_CORE) ParallelDistanceCalculationProcess<2>;
+template class KRATOS_API(KRATOS_CORE) ParallelDistanceCalculationProcess<3>;
 
 }  // namespace Kratos.

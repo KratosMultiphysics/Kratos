@@ -954,6 +954,6 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeOriginForcesAndMoments(con
 }
 
 // template instantiation
-template class BeamMapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>;
+template class KRATOS_API(MAPPING_APPLICATION) BeamMapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>;
 
 }  // namespace Kratos.

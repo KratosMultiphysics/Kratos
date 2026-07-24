@@ -33,7 +33,7 @@ file(GLOB_RECURSE KRATOS_FEM_TO_DEM_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT
 
 add_library(KratosFemToDemApplicationCore SHARED ${KRATOS_FEM_TO_DEM_APPLICATION_CORE})
 target_link_libraries(KratosFemToDemApplicationCore PUBLIC KratosDEMCore KratosCore KratosPfemFluidDynamicsCore KratosConstitutiveLawsCore KratosStructuralMechanicsCore)
-set_target_properties(KratosFemToDemApplicationCore PROPERTIES COMPILE_DEFINITIONS "FEM_TO_DEM_APPLICATION=EXPORT,API")
+set_target_properties(KratosFemToDemApplicationCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "FEM_TO_DEM_APPLICATION=EXPORT,API")
 
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosFemToDemApplication MODULE THIN_LTO ${KRATOS_FEM_TO_DEM_APPLICATION_PYTHON_INTERFACE})

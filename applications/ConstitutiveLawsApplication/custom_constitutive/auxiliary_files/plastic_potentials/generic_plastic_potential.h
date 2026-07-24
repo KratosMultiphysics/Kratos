@@ -56,7 +56,7 @@ different function is used, it is non-associated. For metals associated flow rul
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <SizeType TVoigtSize = 6>
-class GenericPlasticPotential
+class KRATOS_EXPOSE GenericPlasticPotential
 {
   public:
     ///@name Type Definitions

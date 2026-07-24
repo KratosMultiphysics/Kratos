@@ -101,12 +101,18 @@ public:
      */
     void Initialize(
         const DofsArrayType& rDofSet,
-        const SystemVectorType& rDx) override;
+        const SystemVectorType& rDx) override 
+    {
+
+    }
 
     /// Free internal storage to reset the instance and/or optimize memory consumption.
     /** Note that the base RelaxedDofUpdater does not have internal data, so this does nothing.
      */
-    void Clear() override;
+    void Clear() override 
+    {
+
+    }
 
     /// Calculate new values for the problem's degrees of freedom using the update vector rDx.
     /** For each Dof in rDofSet, this function calculates the updated value for the corresponding
@@ -185,6 +191,8 @@ inline std::ostream& operator << (
 
     return rOStream;
 }
+
+KRATOS_API_EXTERN template class KRATOS_API(RANS_APPLICATION) RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>;
 
 ///@}
 

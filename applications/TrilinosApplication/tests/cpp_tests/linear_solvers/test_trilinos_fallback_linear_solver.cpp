@@ -20,6 +20,7 @@
 #include "tests/cpp_tests/trilinos_cpp_test_utilities.h"
 #include "tests/cpp_tests/trilinos_fast_suite.h"
 #include "linear_solvers/fallback_linear_solver.h"
+#include "custom_factories/trilinos_linear_solver_factory.h"
 
 namespace Kratos::Testing
 {

@@ -54,7 +54,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <SizeType TVoigtSize = 6>
-class ModifiedMohrCoulombPlasticPotential
+class KRATOS_EXPOSE ModifiedMohrCoulombPlasticPotential
 {
   public:
     ///@name Type Definitions

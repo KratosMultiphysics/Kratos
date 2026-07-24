@@ -54,7 +54,7 @@ namespace Kratos
  * @author Sergio Jimenez, Alejandro Cornejo & Lucia Barbu
  */
 template <SizeType TVoigtSize = 6>
-class HighCycleFatigueLawIntegrator
+class KRATOS_EXPOSE HighCycleFatigueLawIntegrator
 {
 public:
     ///@name Type Definitions
