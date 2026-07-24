@@ -21,6 +21,7 @@
 #include "custom_utilities/rayleigh_damping_coefficients_utilities.h"
 #include "custom_utilities/explicit_integration_utilities.h"
 #include "custom_utilities/project_vector_on_surface_utility.h"
+#include "custom_utilities/initial_flattening_utility.h"
 #include "custom_utilities/perturb_geometry_sparse_utility.h"
 #include "custom_utilities/perturb_geometry_subgrid_utility.h"
 
@@ -48,6 +49,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<ProjectVectorOnSurfaceUtility>(m,"ProjectVectorOnSurfaceUtility")
         .def_static("Execute",&ProjectVectorOnSurfaceUtility::Execute);
+
+    py::class_<InitialFlatteningUtility>(m,"InitialFlatteningUtility")
+        .def_static("Execute",&InitialFlatteningUtility::Execute);
 
     py::class_<PerturbGeometrySparseUtility, PerturbGeometrySparseUtility::Pointer>(m,"PerturbGeometrySparseUtility")
         .def(py::init<ModelPart&,LinearSolverPointerTypeSparse, Parameters>())
