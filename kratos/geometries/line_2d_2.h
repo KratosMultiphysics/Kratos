@@ -997,8 +997,60 @@ public:
         // parametric coordinate of intersection on current line
         const double numerator   = ( (first_point[0]-first_point_other[0])*(first_point_other[1] - second_point_other[1]) - (first_point[1]-first_point_other[1])*(first_point_other[0]-second_point_other[0]) );
         const double denominator = ( (first_point[0]-second_point[0])*(first_point_other[1] - second_point_other[1]) - (first_point[1]-second_point[1])*(first_point_other[0]-second_point_other[0]) );
-        if (std::abs(denominator) < tolerance) // this means parallel lines.
-            return false;
+        if (std::abs(denominator) < tolerance) {
+            // We have parallel lines. Lines can only intersect if they are co-linear. Check this now.
+            const double lhs = (second_point[1] - first_point[1]) * (first_point_other[0] - second_point[0]);
+            const double rhs = (first_point_other[1] - second_point[1]) * (second_point[0] - first_point[0]);
+            if (std::abs(lhs - rhs) < tolerance) {
+                // Lines are parallel and co-linear, check that at least one point of the other line is within the local line
+                const array_1d<double, 3> AB = second_point - first_point;
+                const array_1d<double, 3> AC = first_point_other - first_point;
+                const array_1d<double, 3> AD = second_point_other - first_point;
+                const array_1d<double, 3> CA = first_point - first_point_other;
+                const array_1d<double, 3> CB = second_point - first_point_other;
+                const array_1d<double, 3> CD = second_point_other - first_point_other;
+                
+                if (inner_prod(AB,AC) >= (0.0 - tolerance) && inner_prod(AB, AC) <= (inner_prod(AB,AB) + tolerance)) { // Check if p3 is within the line
+                    if (std::abs(inner_prod(AB, AC)) <= tolerance) { // p3 coincides with p1. Check if the lines are in the same direction
+                        if (inner_prod(AB,CD) > tolerance) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } else if (std::abs(inner_prod(AB, AC) - inner_prod(AB, AB)) < tolerance) { // p3 coincides with p2. Check if the lines are in the same direction
+                        if (inner_prod(-1.0*AB, CD) > tolerance) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return true; // p3 lies within the line
+                    }
+                } else if (inner_prod(AB, AD) >= (0.0 - tolerance) && inner_prod(AB, AD) <= (inner_prod(AB, AB) + tolerance)) { // Check if p4 is within the line
+                    if (std::abs(inner_prod(AB, AD)) <= tolerance) { // p4 coincides with Point 1. Check if the lines are in the same direction
+                        if (inner_prod(AB, -1.0 * CD) > tolerance) {
+                            return true; // p4 coincides with p2 and lines overlap
+                        } else {
+                            return false;
+                        }
+                    } else if (std::abs(inner_prod(AB, AD) - inner_prod(AB, AB)) < tolerance) { // p4 coincides with p2. Check if the lines are in the same direction
+                        if (inner_prod(-1.0 * AB, -1.0 * CD) > tolerance) {
+                            return true; // p4 coincides with p2 and lines overlap
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return true; // p4 lies within the line
+                    }
+                } else if (inner_prod(CD, CA) > tolerance && inner_prod(-1.0 * CD, (second_point - second_point_other)) > tolerance) { // check if the line lies entirely within the other line
+                    return true; // the line lies entirely within the other line
+                } else {
+                    return false; // Lines are colinear, but do not overlap at all
+                }
+            } else {
+                return false; // Lines are parallel but not colinear
+            }
+        }
         const double t = numerator  /  denominator;
 
         return (0.0-tolerance<=t) && (t<=1.0+tolerance);
