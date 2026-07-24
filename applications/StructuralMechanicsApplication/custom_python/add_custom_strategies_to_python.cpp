@@ -35,6 +35,7 @@
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 #include "custom_strategies/custom_schemes/structural_mechanics_bossak_scheme.h"
 #include "custom_strategies/custom_schemes/structural_mechanics_static_scheme.h"
+#include "custom_strategies/custom_schemes/cutting_pattern_scheme.hpp"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -97,6 +98,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ExplicitMultiStageKimScheme< SparseSpaceType, LocalSpaceType >  ExplicitMultiStageKimSchemeType;
     using StructuralMechanicsBossakSchemeType = StructuralMechanicsBossakScheme<SparseSpaceType, LocalSpaceType>;
     using StructuralMechanicsStaticSchemeType = StructuralMechanicsStaticScheme<SparseSpaceType, LocalSpaceType>;
+    using CuttingPatternSchemeType = CuttingPatternScheme<SparseSpaceType, LocalSpaceType>;
 
     // Custom convergence criterion types
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
@@ -205,6 +207,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Implicit Static Scheme Type
     py::class_<StructuralMechanicsStaticSchemeType, typename StructuralMechanicsStaticSchemeType::Pointer, BaseStaticSchemeType>(m, "StructuralMechanicsStaticScheme")
         .def(py::init<Parameters>())
+        ;
+
+    // Cutting Pattern Scheme Type
+    py::class_<CuttingPatternSchemeType, typename CuttingPatternSchemeType::Pointer, BaseStaticSchemeType>(m, "CuttingPatternScheme")
+        .def(py::init<>())
         ;
 
     //********************************************************************
