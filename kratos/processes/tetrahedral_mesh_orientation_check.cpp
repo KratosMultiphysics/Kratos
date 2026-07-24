@@ -205,7 +205,7 @@ void TetrahedralMeshOrientationCheck::Execute()
 
         GeometryType& r_geometry = it_cond->GetGeometry();
 
-        if (SupportedCondition(r_geometry)) { 
+        if (SupportedCondition(r_geometry)) {
             DenseVector<int> ids(r_geometry.size());
 
             for(IndexType i=0; i<ids.size(); i++) {
@@ -455,7 +455,7 @@ bool TetrahedralMeshOrientationCheck::SupportedCondition(const GeometryType& rGe
 /***********************************************************************************/
 /***********************************************************************************/
 
-TetrahedralMeshOrientationCheck::SizeType TetrahedralMeshOrientationCheck::BoundariesEntitiesNumber(const GeometryType& rGeometry) 
+TetrahedralMeshOrientationCheck::SizeType TetrahedralMeshOrientationCheck::BoundariesEntitiesNumber(const GeometryType& rGeometry)
 {
     const SizeType dimension = rGeometry.LocalSpaceDimension();
     if (dimension == 3) {
@@ -469,7 +469,7 @@ TetrahedralMeshOrientationCheck::SizeType TetrahedralMeshOrientationCheck::Bound
 /***********************************************************************************/
 /***********************************************************************************/
 
-TetrahedralMeshOrientationCheck::SizeType TetrahedralMeshOrientationCheck::NumberOfNodesInEachBoundary(const GeometryType& rGeometry) 
+TetrahedralMeshOrientationCheck::SizeType TetrahedralMeshOrientationCheck::NumberOfNodesInEachBoundary(const GeometryType& rGeometry)
 {
     const GeometryData::KratosGeometryType geometry_type = rGeometry.GetGeometryType();
     if  (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4){
@@ -507,7 +507,7 @@ void TetrahedralMeshOrientationCheck::NodesOfBoundaries(const GeometryType& rGeo
         const auto& faces = rGeometry.GenerateFaces();
         for(IndexType outer_node_index=0; outer_node_index< faces.size(); outer_node_index++) {
             for(IndexType i=0; i<faces[outer_node_index].size(); i++) {
-                rNodesIds(outer_node_index,i) = faces[outer_node_index][i].Id();  
+                rNodesIds(outer_node_index,i) = faces[outer_node_index][i].Id();
             }
         }
     }

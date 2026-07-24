@@ -65,6 +65,7 @@
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/model_part_graph_utilities.h"
 #include "utilities/shifted_boundary_meshless_interface_utility.h"
+#include "utilities/shifted_boundary_point_based_utility.h"
 #include "utilities/particles_utilities.h"
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
@@ -73,7 +74,7 @@
 namespace Kratos::Python {
 
 /**
- * @brief A thin wrapper for GetSortedListOfFileNameData. 
+ * @brief A thin wrapper for GetSortedListOfFileNameData.
  * @note The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
  * @todo Now that Centos support is dropped this cna be removed
  */
@@ -816,6 +817,20 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<ShiftedBoundaryMeshlessInterfaceUtility, ShiftedBoundaryMeshlessInterfaceUtility::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtility")
         .def(py::init<Model&, Parameters>())
         .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator)
+    ;
+
+    py::class_<ShiftedBoundaryPointBasedUtility, ShiftedBoundaryPointBasedUtility::Pointer>(m,"ShiftedBoundaryPointBasedUtility")
+        .def(py::init<Model&, Parameters>())
+        .def("ResetFlags", &ShiftedBoundaryPointBasedUtility::ResetFlags)
+        .def("FindElementsAtTessellatedBoundary", &ShiftedBoundaryPointBasedUtility::FindElementsAtTessellatedBoundary, py::arg("tolerance") = 1e-10)
+        .def("UpdateBoundaryElements", &ShiftedBoundaryPointBasedUtility::UpdateBoundaryElements, py::arg("tolerance") = 1e-10)
+        .def("MapSkinPointsToElements", &ShiftedBoundaryPointBasedUtility::MapSkinPointsToElements)
+        .def("FlagBoundaryElements", &ShiftedBoundaryPointBasedUtility::FlagBoundaryElements)
+        .def("FlagInterfaceElements", &ShiftedBoundaryPointBasedUtility::FlagInterfaceElements)
+        .def("DeactivateElementsAndNodes", &ShiftedBoundaryPointBasedUtility::DeactivateElementsAndNodes, py::arg("deactivate_unstable_clusters"))
+        .def("CalculateAndAddSkinIntegrationPointConditions", &ShiftedBoundaryPointBasedUtility::CalculateAndAddSkinIntegrationPointConditions)
+        .def("CalculateVariablesAtSkinPoints", &ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPoints)
+        .def("CalculateVariablesAtSkinPointsAndNodes", &ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPointsAndNodes)
     ;
 
     m.def_submodule("StringUtilities", "Free-floating utility functions for string manipulation.")
