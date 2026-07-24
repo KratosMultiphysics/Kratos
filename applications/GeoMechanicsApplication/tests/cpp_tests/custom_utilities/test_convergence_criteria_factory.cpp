@@ -129,7 +129,8 @@ TYPED_TEST(CreateConvergenceCriterionTest, ConvergenceCriteriaFactoryProducesDef
 {
     const auto p_convergence_criterion =
         ConvergenceCriteriaFactoryType::Create(Parameters{TypeParam::CriterionDefinition});
-    KRATOS_EXPECT_NE(dynamic_cast<const TypeParam::CriterionType*>(p_convergence_criterion.get()), nullptr);
+    KRATOS_EXPECT_NE(
+        dynamic_cast<const typename TypeParam::CriterionType*>(p_convergence_criterion.get()), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist,
