@@ -147,6 +147,16 @@ int MohrCoulombLaw::Check(const Properties&   rMaterialProperties,
     check_properties.Check(YOUNG_MODULUS);
     constexpr auto max_value_poisson_ratio = 0.5;
     check_properties.Check(POISSON_RATIO, max_value_poisson_ratio);
+
+    if (rMaterialProperties.Has(GEO_MAX_RELATIVE_OVERSHOOT)) {
+        check_properties.SingleUseBounds(CheckProperties::Bounds::ExclusiveLowerAndInclusiveUpper)
+            .Check(GEO_MAX_RELATIVE_OVERSHOOT, 0.0, 1.0);
+    }
+
+    if (rMaterialProperties.Has(GEO_MAX_NUMBER_OF_SUB_STEPS)) {
+        constexpr auto max_value_number_of_substeps = std::numeric_limits<int>::max();
+        check_properties.Check(GEO_MAX_NUMBER_OF_SUB_STEPS, 1, max_value_number_of_substeps);
+    }
     return result;
 }
 
@@ -204,15 +214,14 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
 {
     const auto& r_properties = rParameters.GetMaterialProperties();
 
+    const auto elastic_matrix = mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties);
+
     if (rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        rParameters.GetConstitutiveMatrix() =
-            mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties);
+        rParameters.GetConstitutiveMatrix() = elastic_matrix;
     }
     if (!rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         return;
     }
-
-    const auto elastic_matrix = mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties);
 
     const Vector total_strain_increment = rParameters.GetStrainVector() - mStrainVectorFinalized;
 

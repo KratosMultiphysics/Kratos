@@ -47,21 +47,21 @@ Vector IntegrateInterfaceCoulombDisplacementPath(const Properties& rProperties,
     parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     parameters.SetMaterialProperties(rProperties);
 
-    Vector zero_state = ZeroVector(2);
-    parameters.SetStrainVector(zero_state);
-    parameters.SetStressVector(zero_state);
+    Vector relative_displacement = ZeroVector(2);
+	Vector traction_vector = ZeroVector(2);
+    parameters.SetStrainVector(relative_displacement);
+    parameters.SetStressVector(traction_vector);
     law.InitializeMaterialResponseCauchy(parameters);
 
     for (const auto& r_relative_displacement_state : rCumulativeRelativeDisplacementStates) {
-        Vector relative_displacement = r_relative_displacement_state;
+        relative_displacement = r_relative_displacement_state;
         parameters.SetStrainVector(relative_displacement);
         law.CalculateMaterialResponseCauchy(parameters);
         law.FinalizeMaterialResponseCauchy(parameters);
     }
 
-    Vector result;
-    law.GetValue(GEO_EFFECTIVE_TRACTION_VECTOR, result);
-    return result;
+    law.GetValue(GEO_EFFECTIVE_TRACTION_VECTOR, traction_vector);
+    return traction_vector;
 }
 
 // Builds a list of cumulative relative-displacement states that follow the given vertices.
@@ -526,6 +526,19 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_TENSILE_STRENGTH in the property with Id 3 has an invalid value: 2 is out of the range [0, 1.73205].")
     properties.SetValue(GEO_TENSILE_STRENGTH, 1.0);
 
+    properties.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 0.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAX_RELATIVE_OVERSHOOT in the property with Id 3 has an invalid value: 0 is out of the range (0, 1].")
+    properties.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 2.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAX_RELATIVE_OVERSHOOT in the property with Id 3 has an invalid value: 2 is out of the range (0, 1].")
+    properties.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 0.1);
+
+	properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 0);
+	KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAX_NUMBER_OF_SUB_STEPS in the property with Id 3 has an invalid value: 0 is out of the range [1, 2.14748e+09].")
+    properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS,100);
+
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
@@ -603,8 +616,9 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulomb_SubStepping, KratosGeoMechanicsFastSu
     const auto error_no_sub_step = norm_2(Vector{traction_no_sub_stepping - reference_traction});
     const auto error_with_sub_step = norm_2(Vector{traction_with_sub_stepping - reference_traction});
 
-    // Check that the error without sub-stepping is at least 10x larger than the error with sub-stepping.
-    KRATOS_EXPECT_GT(error_no_sub_step, error_with_sub_step * 10);
+    // Check that the error without sub-stepping is much larger than the error with sub-stepping, both errors are checked to show the added value
+    KRATOS_EXPECT_NEAR(error_no_sub_step, 13.392878207, 1e-8);
+    KRATOS_EXPECT_NEAR(error_with_sub_step, 0.0, 1e-8);
 }
 
 } // namespace Kratos::Testing

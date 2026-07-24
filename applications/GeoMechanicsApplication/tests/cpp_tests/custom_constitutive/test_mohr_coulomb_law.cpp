@@ -104,6 +104,19 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_Check, KratosGeoMechanicsFastSuiteWitho
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_TENSILE_STRENGTH in the property with Id 3 has an invalid value: 2 is out of the range [0, 1.73205].")
     properties.SetValue(GEO_TENSILE_STRENGTH, 1.0);
 
+    properties.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 0.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAX_RELATIVE_OVERSHOOT in the property with Id 3 has an invalid value: 0 is out of the range (0, 1].")
+    properties.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 2.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAX_RELATIVE_OVERSHOOT in the property with Id 3 has an invalid value: 2 is out of the range (0, 1].")
+    properties.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 0.1);
+
+    properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAX_NUMBER_OF_SUB_STEPS in the property with Id 3 has an invalid value: 0 is out of the range [1, 2.14748e+09].")
+    properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 100);
+
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
@@ -1011,21 +1024,21 @@ Vector IntegrateMohrCoulombStrainPath(const Properties& rProperties, const std::
     parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     parameters.SetMaterialProperties(rProperties);
 
-    Vector zero_state = ZeroVector(4);
-    parameters.SetStrainVector(zero_state);
-    parameters.SetStressVector(zero_state);
+    Vector strain_state = ZeroVector(4);
+    Vector stress_state = ZeroVector(4);
+    parameters.SetStrainVector(strain_state);
+    parameters.SetStressVector(stress_state);
     law.InitializeMaterialResponseCauchy(parameters);
 
     for (const auto& r_strain_state : rCumulativeStrainStates) {
-        Vector strain_state = r_strain_state;
+        strain_state = r_strain_state;
         parameters.SetStrainVector(strain_state);
         law.CalculateMaterialResponseCauchy(parameters);
         law.FinalizeMaterialResponseCauchy(parameters);
     }
 
-    Vector result;
-    law.GetValue(CAUCHY_STRESS_VECTOR, result);
-    return result;
+    law.GetValue(CAUCHY_STRESS_VECTOR, stress_state);
+    return stress_state;
 }
 
 // Builds a list of cumulative strain states that follow the given vertices. Between each pair
@@ -1077,7 +1090,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_SubStepping, KratosGeoMec
     const auto compression_state = UblasUtilities::CreateVector({0.0, -0.06, 0.0, 0.0});
     const auto end_state         = UblasUtilities::CreateVector({0.0, -0.06, 0.0, 0.12});
 
-    const std::vector<Vector> strain_vertices{zero_state, compression_state, end_state};
+    std::vector<Vector> strain_vertices{zero_state, compression_state, end_state};
 
     // Reference solution: the SAME path, integrated with a large number of steps
     constexpr std::size_t reference_increments_per_leg = 2000;
@@ -1097,8 +1110,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_SubStepping, KratosGeoMec
     const auto error_no_sub_step   = norm_2(Vector{stress_no_sub_stepping - reference_stress});
     const auto error_with_sub_step = norm_2(Vector{stress_with_sub_stepping - reference_stress});
 
-    // Check that the error without sub-stepping is at least 10x larger than the error with sub-stepping
-    KRATOS_EXPECT_GT(error_no_sub_step, error_with_sub_step * 10);
+    // Check that the error without sub-stepping is much larger than the error with sub-stepping, both errors are checked to show the added value
+    KRATOS_EXPECT_NEAR(error_no_sub_step, 6.848975256, 1e-8);
+    KRATOS_EXPECT_NEAR(error_with_sub_step, 0.18363803, 1e-8);
 }
 
 } // namespace Kratos::Testing

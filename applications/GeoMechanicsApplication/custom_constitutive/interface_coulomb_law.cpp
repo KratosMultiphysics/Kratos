@@ -105,6 +105,16 @@ int InterfaceCoulombLaw::Check(const Properties&   rMaterialProperties,
     }
     check_properties.Check(INTERFACE_NORMAL_STIFFNESS);
     check_properties.Check(INTERFACE_SHEAR_STIFFNESS);
+
+    if (rMaterialProperties.Has(GEO_MAX_RELATIVE_OVERSHOOT)) {
+        check_properties.SingleUseBounds(CheckProperties::Bounds::ExclusiveLowerAndInclusiveUpper)
+            .Check(GEO_MAX_RELATIVE_OVERSHOOT, 0.0, 1.0);
+    }
+
+    if (rMaterialProperties.Has(GEO_MAX_NUMBER_OF_SUB_STEPS)) {
+        constexpr auto max_value_number_of_substeps = std::numeric_limits<int>::max();
+        check_properties.Check(GEO_MAX_NUMBER_OF_SUB_STEPS, 1, max_value_number_of_substeps);
+    }
     return result;
 }
 
@@ -170,7 +180,7 @@ void InterfaceCoulombLaw::CalculateMaterialResponseCauchy(Parameters& rConstitut
         rConstitutiveLawParameters.GetStrainVector(), normal_stiffness, shear_stiffness);
 
     // If the whole step stays elastic, there is no need to sub-step.
-    auto aux_sigma_tau = full_trial_sigma_tau;
+    auto aux_sigma_tau  = full_trial_sigma_tau;
     aux_sigma_tau.Tau() = std::abs(aux_sigma_tau.Tau());
     if (mpCoulombImpl->IsAdmissibleStressState(aux_sigma_tau)) {
         mTractionVector                              = full_trial_sigma_tau.CopyTo<Vector>();
