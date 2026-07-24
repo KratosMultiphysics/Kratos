@@ -104,6 +104,19 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_Check, KratosGeoMechanicsFastSuiteWitho
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_TENSILE_STRENGTH in the property with Id 3 has an invalid value: 2 is out of the range [0, 1.73205].")
     properties.SetValue(GEO_TENSILE_STRENGTH, 1.0);
 
+    properties.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 0.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAX_RELATIVE_OVERSHOOT in the property with Id 3 has an invalid value: 0 is out of the range (0, 1].")
+    properties.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 2.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAX_RELATIVE_OVERSHOOT in the property with Id 3 has an invalid value: 2 is out of the range (0, 1].")
+    properties.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 0.1);
+
+    properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAX_NUMBER_OF_SUB_STEPS in the property with Id 3 has an invalid value: 0 is out of the range [1, 2.14748e+09].")
+    properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 100);
+
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
@@ -996,6 +1009,110 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutoff_InitialPlasticityStatusEq
 
     // Assert, plasticity status elastic after initialization
     KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::ELASTIC));
+}
+
+// Integrates the Mohr-Coulomb law along a sequence of cumulative strain
+// states and returns the final stress state.
+Vector IntegrateMohrCoulombStrainPath(const Properties& rProperties, const std::vector<Vector>& rCumulativeStrainStates)
+{
+    auto       law                         = MohrCoulombLaw(std::make_unique<PlaneStrain>());
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(rProperties, dummy_element_geometry, dummy_shape_function_values);
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    parameters.SetMaterialProperties(rProperties);
+
+    Vector strain_state = ZeroVector(4);
+    Vector stress_state = ZeroVector(4);
+    parameters.SetStrainVector(strain_state);
+    parameters.SetStressVector(stress_state);
+    law.InitializeMaterialResponseCauchy(parameters);
+
+    for (const auto& r_strain_state : rCumulativeStrainStates) {
+        strain_state = r_strain_state;
+        parameters.SetStrainVector(strain_state);
+        law.CalculateMaterialResponseCauchy(parameters);
+        law.FinalizeMaterialResponseCauchy(parameters);
+    }
+
+    law.GetValue(CAUCHY_STRESS_VECTOR, stress_state);
+    return stress_state;
+}
+
+// Builds a list of cumulative strain states that follow the given vertices. Between each pair
+// of consecutive vertices, NIncrementsPerLeg equally spaced points are added.
+std::vector<Vector> BuildLinearlyInterpolatedStrainPath(const std::vector<Vector>& rStrainPathVertices,
+                                                        const std::size_t NIncrementsPerLeg)
+{
+    KRATOS_ERROR_IF(NIncrementsPerLeg == 0)
+        << "BuildLinearlyInterpolatedStrainPath requires NIncrementsPerLeg > 0" << std::endl;
+
+    std::vector<Vector> strain_states;
+    for (std::size_t leg = 0; leg + 1 < rStrainPathVertices.size(); ++leg) {
+        const Vector& r_start_strain = rStrainPathVertices[leg];
+        const Vector& r_end_strain   = rStrainPathVertices[leg + 1];
+        for (std::size_t increment = 1; increment <= NIncrementsPerLeg; ++increment) {
+            const auto fraction = static_cast<double>(increment) / static_cast<double>(NIncrementsPerLeg);
+            strain_states.emplace_back(r_start_strain + fraction * (r_end_strain - r_start_strain));
+        }
+    }
+    return strain_states;
+}
+
+/// <summary>
+///  This test checks if substepping improves the accuracy of the Mohr-Coulomb integration along a
+///  strain path that rotates the principal axes while on the yield surface.
+/// </summary>
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_SubStepping, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange: perfect plasticity (no hardening).
+    Properties properties_no_sub_stepping;
+    properties_no_sub_stepping.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    properties_no_sub_stepping.SetValue(GEO_COULOMB_HARDENING_TYPE, "None");
+    properties_no_sub_stepping.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    properties_no_sub_stepping.SetValue(GEO_COHESION, 10.0);
+    properties_no_sub_stepping.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties_no_sub_stepping.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties_no_sub_stepping.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties_no_sub_stepping.SetValue(YOUNG_MODULUS, 1.0e3);
+    properties_no_sub_stepping.SetValue(POISSON_RATIO, 0.0);
+
+    Properties properties_with_sub_stepping(properties_no_sub_stepping);
+    properties_with_sub_stepping.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 0.01);
+    properties_with_sub_stepping.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 100);
+
+    // Strain history that rotates the principal axes while on the yield surface:
+    //   part 1: add uniaxial compression
+    //   part 2: add shear
+    const auto zero_state        = Vector{ZeroVector(4)};
+    const auto compression_state = UblasUtilities::CreateVector({0.0, -0.06, 0.0, 0.0});
+    const auto end_state         = UblasUtilities::CreateVector({0.0, -0.06, 0.0, 0.12});
+
+    std::vector<Vector> strain_vertices{zero_state, compression_state, end_state};
+
+    // Reference solution: the SAME path, integrated with a large number of steps
+    constexpr std::size_t reference_increments_per_leg = 2000;
+    const auto            reference_stress             = IntegrateMohrCoulombStrainPath(
+        properties_no_sub_stepping,
+        BuildLinearlyInterpolatedStrainPath(strain_vertices, reference_increments_per_leg));
+
+    // Calculate mohr coulomb stress without sub-stepping, using only the strain_vertices as the path
+    const auto stress_no_sub_stepping = IntegrateMohrCoulombStrainPath(
+        properties_no_sub_stepping, BuildLinearlyInterpolatedStrainPath(strain_vertices, 1));
+
+    // Calculate mohr coulomb stress with sub-stepping, using only the strain_vertices as the path
+    const auto stress_with_sub_stepping = IntegrateMohrCoulombStrainPath(
+        properties_with_sub_stepping, BuildLinearlyInterpolatedStrainPath(strain_vertices, 1));
+
+    // calculate the errors without and with sub-stepping, using the reference stress as the "exact" solution
+    const auto error_no_sub_step   = norm_2(Vector{stress_no_sub_stepping - reference_stress});
+    const auto error_with_sub_step = norm_2(Vector{stress_with_sub_stepping - reference_stress});
+
+    // Check that the error without sub-stepping is much larger than the error with sub-stepping, both errors are checked to show the added value
+    KRATOS_EXPECT_NEAR(error_no_sub_step, 6.848975256, 1e-8);
+    KRATOS_EXPECT_NEAR(error_with_sub_step, 0.18363803, 1e-8);
 }
 
 } // namespace Kratos::Testing

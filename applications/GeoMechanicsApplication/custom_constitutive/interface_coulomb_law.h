@@ -48,9 +48,9 @@ public:
     StressMeasure                          GetStressMeasure() override;
     [[nodiscard]] SizeType                 GetStrainSize() const override;
     StrainMeasure                          GetStrainMeasure() override;
-    void                                   InitializeMaterial(const Properties&     rMaterialProperties,
-                                                              const Geometry<Node>& rElementGeometry,
-                                                              const Vector&         rShapeFunctionsValues) override;
+    void    InitializeMaterial(const Properties&     rMaterialProperties,
+                               const Geometry<Node>& rElementGeometry,
+                               const Vector&         rShapeFunctionsValues) override;
     void    InitializeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters) override;
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
     int&    GetValue(const Variable<int>& rVariable, int& rValue) override;
@@ -78,6 +78,12 @@ private:
     [[nodiscard]] Geo::SigmaTau CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
                                                              double NormalStiffness,
                                                              double ShearStiffness) const;
+    std::size_t CalculateAdaptiveNumberOfSubSteps(const Geo::SigmaTau& rTrialTraction,
+                                                  const Matrix&        rElasticMatrix) const;
+
+    double      mMaxRelativeOvershoot       = 1.0;
+    int         mMaxNumberOfSubSteps        = 1;
+    std::size_t mCalculatedNumberOfSubSteps = 0;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

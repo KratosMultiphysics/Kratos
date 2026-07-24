@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "custom_constitutive/principal_stresses.hpp"
 #include "includes/constitutive_law.h"
 #include <memory>
 
@@ -47,9 +48,9 @@ public:
     StressMeasure                          GetStressMeasure() override;
     [[nodiscard]] SizeType                 GetStrainSize() const override;
     StrainMeasure                          GetStrainMeasure() override;
-    void                                   InitializeMaterial(const Properties&     rMaterialProperties,
-                                                              const Geometry<Node>& rElementGeometry,
-                                                              const Vector&         rShapeFunctionsValues) override;
+    void    InitializeMaterial(const Properties&     rMaterialProperties,
+                               const Geometry<Node>& rElementGeometry,
+                               const Vector&         rShapeFunctionsValues) override;
     void    InitializeMaterialResponseCauchy(Parameters& rValues) override;
     void    GetLawFeatures(Features& rFeatures) override;
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
@@ -70,8 +71,21 @@ private:
     Vector                                    mStrainVectorFinalized;
     std::unique_ptr<CoulombImpl>              mpCoulombImpl;
     bool                                      mIsModelInitialized = false;
+    // Each sub-step's elastic predictor is allowed to overshoot the yield surface by at most
+    // this fraction of the stress magnitude
+    double      mMaxRelativeOvershoot       = 1.0;
+    int         mMaxNumberOfSubSteps        = 1;
+    std::size_t mCalculatedNumberOfSubSteps = 0;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
+
+    /// <summary>
+    /// Estimates how many strain sub-steps are needed to integrate the constitutive law
+    /// accurately. It subdivides the strain increment such that each sub-step overshoots by at most a
+    /// target fraction of the stress magnitude. The result is clamped to [1, MaxNumberOfSubSteps].
+    /// </summary>
+    std::size_t CalculateAdaptiveNumberOfSubSteps(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                  const Matrix& rElasticMatrix) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
