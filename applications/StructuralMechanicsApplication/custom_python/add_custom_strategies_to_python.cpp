@@ -139,8 +139,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
     
     py::class_< CuttingPatternStrategyType,typename CuttingPatternStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"CuttingPatternStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, int, bool, bool, bool>())
-        // .def_static("WriteFormFoundMdpa", &CuttingPatternStrategyType::WriteFormFoundMdpa)
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, Parameters, int, bool, bool, bool>())
+        .def_static("WriteCuttingPatternMdpa", &CuttingPatternStrategyType::WriteCuttingPatternMdpa)
         ;
 
 

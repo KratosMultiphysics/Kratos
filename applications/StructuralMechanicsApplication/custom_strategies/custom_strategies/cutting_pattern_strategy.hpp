@@ -6,8 +6,8 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Iñigo López Canalejo
-//                   Klaus B. Sautter
+//  Main authors:    Ricky Aristio
+//                   Eeshrat Tasnia
 //
 
 #pragma once
@@ -19,7 +19,7 @@
 
 // Project includes
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-//#include "custom_utilities/project_vector_on_surface_utility.h"
+#include "custom_utilities/initial_flattening_utility.h"
 #include "includes/model_part_io.h"
 #include "input_output/vtk_output.h"
 #include "includes/gid_io.h"
@@ -69,7 +69,7 @@ public:
         ModelPart& rCuttingPatternModelPart,
         bool WriteCuttingPatternGeometryFile,
         const std::string& rPrintingFormat,
-        //Parameters ProjectionSetting,
+        Parameters InitialFlatteningSettings,
         int MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
@@ -78,7 +78,7 @@ public:
     : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
         pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
         MoveMeshFlag),
-        //mProjectionSettings(ProjectionSetting),
+        mInitialFlatteningSettings(InitialFlatteningSettings),
         mrCuttingPatternModelPart(rCuttingPatternModelPart),
         mPrintingFormat(rPrintingFormat),
         mWriteCuttingPatternGeometryFile(WriteCuttingPatternGeometryFile)
@@ -107,6 +107,16 @@ public:
         // model_part_io.WriteCuttingPatternModelPart(rModelPart);
     }
 
+    void Initialize() override
+    {
+        const bool was_initialized = this->GetInitializePerformedFlag();
+        BaseType::Initialize();
+        if (!was_initialized) {
+            // Compute the initial 2D guess once, before any Newton-Raphson iteration
+            InitialFlatteningUtility::Execute(mrCuttingPatternModelPart, mInitialFlatteningSettings);
+        }
+    }
+
 private:
     void UpdateDatabase(
         TSystemMatrixType& A,
@@ -115,18 +125,6 @@ private:
         const bool MoveMesh) override
     {
         BaseType::UpdateDatabase(A,Dx, b, MoveMesh);
-        for(auto& r_node : mrCuttingPatternModelPart.Nodes()){
-            // Updating reference
-            const array_1d<double, 3>& disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3>& disp_non_historical = r_node.GetValue(DISPLACEMENT);
-
-            disp_non_historical = disp_non_historical + disp;
-            r_node.GetInitialPosition() += disp;
-
-            r_node.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
-        }
-        //ProjectVectorOnSurfaceUtility::Execute(mrCuttingPatternModelPart, mProjectionSettings);
-
         PrintResults();
     }
 
@@ -191,7 +189,7 @@ private:
             if (std::filesystem::exists("cutting_pattern_results_vtk")){
                 std::filesystem::remove_all("cutting_pattern_results_vtk");
             }
-            std::filesystem::create_directory("cuting_pattern_results_vtk");
+            std::filesystem::create_directory("cutting_pattern_results_vtk");
             PrintVtkFiles(mIterationNumber);
         }
 
@@ -213,7 +211,7 @@ private:
 
 
     IterationIOPointerType mpIterationIO;
-    Parameters mProjectionSettings;
+    Parameters mInitialFlatteningSettings;
     ModelPart& mrCuttingPatternModelPart;
     std::string mPrintingFormat;
     int mIterationNumber = 0;
