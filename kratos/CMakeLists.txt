@@ -118,7 +118,9 @@ target_compile_definitions(KratosVersion PRIVATE
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TENSOR_ADAPTOR_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
-set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper)
+# NOTE: meshioplusplus_core carries PUBLIC include dirs and compile definitions
+# (mesh backend + MESHIOPLUSPLUS_HAS_* feature macros) needed by input_output/meshioplusplus_io.cpp
+set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper meshioplusplus_core)
 
 # Set the TPL libraries if enabled (triangle, tetgen, etc...)
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )

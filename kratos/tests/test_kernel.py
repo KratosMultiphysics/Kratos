@@ -16,6 +16,7 @@ class TestKernel(KratosUnittest.TestCase):
       self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("gidpost"))
       self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("intrusive_ptr"))
       self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("json"))
+      self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("meshioplusplus"))
       self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("pybind11"))
       self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("span"))
       self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("tinyexpr"))

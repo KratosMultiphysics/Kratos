@@ -130,6 +130,7 @@ Looking forward to seeing your logo here!
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
 - [JSON](https://github.com/nlohmann/json) JSON for Modern C++
 - [ZLib](https://zlib.net/) The compression library
+- [meshio++](https://github.com/loumalouomega/meshioplusplus) for multi-format mesh input/output (`MeshioPlusPlusIO`)
 
 ## In applications:
 {:.no_toc}
