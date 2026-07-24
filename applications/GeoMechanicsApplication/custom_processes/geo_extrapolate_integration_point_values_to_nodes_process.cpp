@@ -20,6 +20,18 @@
 #include "utilities/atomic_utilities.h"
 #include "utilities/variable_utils.h"
 
+namespace {
+    using namespace Kratos;
+    std::tuple<GeometryData::KratosGeometryType, std::size_t, int> GetCacheKey(
+        const Element& rElement)
+    {
+        // Combine geometry type and number of integration points for unique key
+        const auto& r_geometry = rElement.GetGeometry();
+        auto geoType = r_geometry.GetGeometryType();
+        return {geoType, r_geometry.size(), GeoElementUtilities::GetNumberOfIntegrationPointsOf(rElement)};
+    }
+}
+
 namespace Kratos
 {
 using namespace std::string_literals;
@@ -195,15 +207,6 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatri
 const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtrapolationMatrixFor(const Element& rElement) const
 {
     return mExtrapolationMatrixMap.at(GetCacheKey(rElement));
-}
-
-std::tuple<GeometryData::KratosGeometryType, std::size_t, int> GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCacheKey(
-    const Element& rElement)
-{
-    // Combine geometry type and number of integration points for unique key
-    const auto& r_geometry = rElement.GetGeometry();
-    auto geoType = r_geometry.GetGeometryType();
-    return {geoType, r_geometry.size(), GeoElementUtilities::GetNumberOfIntegrationPointsOf(rElement)};
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::CheckElement(Element& rElement,

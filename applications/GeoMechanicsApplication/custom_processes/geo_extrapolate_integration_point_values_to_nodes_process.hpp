@@ -127,7 +127,6 @@ private:
     void CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix);
     [[nodiscard]] bool          ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
     [[nodiscard]] const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
-    [[nodiscard]] static std::tuple<GeometryData::KratosGeometryType, std::size_t, int> GetCacheKey(const Element& rElement) ;
 
     void AddIntegrationPointContributionsForAllVariables(Element&           rElement,
                                                          const Matrix&      rExtrapolationMatrix,
