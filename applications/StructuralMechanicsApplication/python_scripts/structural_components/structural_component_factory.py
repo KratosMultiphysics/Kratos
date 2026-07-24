@@ -1,5 +1,5 @@
 import KratosMultiphysics
-from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel import Panel
+from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel.panel import Panel
 
 _COMPONENT_TYPES = {
     "panel": Panel

@@ -3,40 +3,11 @@ import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import numpy as np
 from KratosMultiphysics.StructuralMechanicsApplication.structural_components.structural_component import StructuralComponent
 from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods.panel_buckling import PanelUniaxialBuckling, PanelBiaxialBuckling
-from dataclasses import dataclass
-
-@dataclass
-class PanelGeometry:
-    centroid: np.ndarray
-    x_axis: np.ndarray
-    y_axis: np.ndarray
-    z_axis: np.ndarray
-    a: float # Dimension along local panel x coordinate
-    b: float # Dimension along local panel y coordinate
-    aspect_ratio: float
-    thickness: float
-    curvature_type: str = "flat"
-
-@dataclass
-class PanelMaterial:
-    young_modulus: float
-    poisson_ratio: float
-
-@dataclass
-class PanelResponse:
-    sigma_xx: float # stress along local panel x coordinate
-    sigma_yy: float # stress along local panel y coordinate
-    tau_xy: float
-    stress_tensor: np.ndarray
-
-@dataclass
-class PanelLoadState:
-    has_x_compression: bool
-    has_y_compression: bool
-    has_shear: bool
-    is_uniaxial_compression: bool
-    is_biaxial_compression: bool
-    is_shear_dominant: bool
+from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel.panel_data import (PanelGeometry, 
+                                                                                                      PanelMaterial,
+                                                                                                      PanelResponse,
+                                                                                                      PanelLoadState)
+from KratosMultiphysics.StructuralMechanicsApplication.structural_components.panel.panel_geometry_interpreter import PanelGeometryInterpreter
 
 class Panel(StructuralComponent):
 
@@ -94,25 +65,7 @@ class Panel(StructuralComponent):
         f"Material extracted: E={E:.6e}, nu={nu:.6f}")   
     
     def ExtractGeometry(self) -> None:
-
-        points = self._CreateNodeCloud()
-        centroid, ez, fallback_x = self._FitAveragePlane(points)
-        center_element = self._GetCentralElement(centroid)
-        ex, ey = self._GetPanelAxes(center_element, ez, fallback_x)
-        projected_points, _ = self._ProjectPointsToLocalPlane(points, centroid, ex, ey, ez)
-
-        x_coords = projected_points[:, 0]
-        y_coords = projected_points[:, 1]
-
-        a = x_coords.max() - x_coords.min()
-        b = y_coords.max() - y_coords.min()
-
-        KratosMultiphysics.Logger.PrintInfo(
-        "Panel Dimensions",
-        f"a {a}, b {b}")
-        aspect_ratio = a / b
-        thickness = self._ComputeAverageThickness()
-        self.geometry = PanelGeometry(centroid, ex, ey, ez, a, b, aspect_ratio, thickness)
+        self.geometry = PanelGeometryInterpreter().Interpret(self.sub_model_part)
 
     def ExtractResponse(self) -> None:
         self._RequireGeometry()
@@ -221,92 +174,6 @@ class Panel(StructuralComponent):
             is_biaxial_compression,
             is_shear_dominant
         )
-
-
-    def _CreateNodeCloud(self) -> np.ndarray:
-        points = np.empty((self.sub_model_part.NumberOfNodes(), 3))
-        for i, node in enumerate(self.sub_model_part.Nodes):
-            points[i, 0] = node.X
-            points[i, 1] = node.Y
-            points[i, 2] = node.Z
-
-        KratosMultiphysics.Logger.PrintInfo(
-        "Panel",
-        f"Node cloud created with shape {points.shape}")
-        return points
-
-    def _FitAveragePlane(self, points: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        centroid = np.mean(points, axis=0)
-        centered_points = points - centroid
-
-        _, _, vh = np.linalg.svd(centered_points, full_matrices=False)
-        fallback_x = vh[0]
-        ez = vh[-1]/np.linalg.norm(vh[-1])
-        KratosMultiphysics.Logger.PrintInfo(
-        "Panel",
-        f"Average plane fitted: centroid={centroid}, normal={ez}"
-    )
-        return centroid, ez, fallback_x
-
-    def _GetCentralElement(self, panel_centroid: np.ndarray):
-        min_distance = float('inf')
-        center_element = None
-
-        for element in self.sub_model_part.Elements:
-            coords = [np.array([node.X, node.Y, node.Z]) for node in element.GetGeometry()]
-            element_centroid = np.mean(coords, axis=0)
-            distance = np.linalg.norm(element_centroid - panel_centroid)
-
-            if distance < min_distance:
-                min_distance = distance
-                center_element = element
-
-        return center_element
-
-    def _GetPanelAxes(self, center_element, ez: np.ndarray, fallback_x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        local_axis_1 = np.array(center_element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self.sub_model_part.ProcessInfo))[0]
-        ex = local_axis_1 - np.dot(local_axis_1, ez) * ez
-        ex_norm = np.linalg.norm(ex)
-
-        if ex_norm < 1e-12:
-            ex = fallback_x - np.dot(fallback_x, ez) * ez
-            ex_norm = np.linalg.norm(ex)
-
-        ex /= ex_norm
-        ey = np.cross(ez, ex)
-        ey /= np.linalg.norm(ey)
-
-        # Re-orthonormalize ex to avoid drift
-        ex = np.cross(ey, ez)
-        ex /= np.linalg.norm(ex)
-
-        return ex, ey
-
-    def _ProjectPointsToLocalPlane(self, points: np.ndarray, centroid: np.ndarray, ex: np.ndarray, ey: np.ndarray, ez: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        centered_points = points - centroid
-
-        x_local = centered_points @ ex
-        y_local = centered_points @ ey
-        z_local = centered_points @ ez
-
-        projected_points = np.column_stack((x_local, y_local))
-        return projected_points, z_local
-
-    def _ComputeAverageThickness(self) -> float:
-        weighted_thickness_sum = 0.0
-        total_area = 0.0
-
-        for element in self.sub_model_part.Elements:
-            area = element.GetGeometry().Area()
-            thickness = element.Properties.GetValue(KratosMultiphysics.THICKNESS)
-
-            weighted_thickness_sum += area * thickness
-            total_area += area
-
-        if total_area <= 0.0:
-            raise RuntimeError("Panel submodelpart has zero total area")
-
-        return weighted_thickness_sum / total_area
 
     @property
     def a(self):
