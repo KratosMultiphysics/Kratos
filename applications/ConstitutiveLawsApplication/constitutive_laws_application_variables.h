@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-    enum class SofteningType {Linear = 0, Exponential = 1, HardeningDamage = 2, CurveFittingDamage = 3};
+    enum class SofteningType {Linear = 0, Exponential = 1, HardeningDamage = 2, CurveFittingDamage = 3, DoubleExponentialHardeningDamage = 4};
 
     enum class TangentOperatorEstimation {Analytic = 0, FirstOrderPerturbation = 1, SecondOrderPerturbation = 2,
         Secant = 3, SecondOrderPerturbationV2 = 4, InitialStiffness = 5, OrthogonalSecant = 6};
@@ -93,6 +93,7 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, DELAY_TIME)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, MAXIMUM_STRESS)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, MAXIMUM_STRESS_POSITION)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, bool, SATISFY_MAXIMUM_STRESS)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, PLASTIC_DISSIPATION_LIMIT_LINEAR_SOFTENING)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, UNIAXIAL_STRESS)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, FRICTION_ANGLE)
