@@ -10,10 +10,43 @@ class CoSimulationDataTransferOperator(metaclass=ABCMeta):
     """
     def __init__(self, settings, parent_coupled_solver_data_communicator):
         self.settings = settings
-        self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
+        default_parameters = self._GetDefaultParameters()
+        self.settings.ValidateAndAssignDefaults(default_parameters)
+        self.settings["update_interface"].ValidateAndAssignDefaults(default_parameters["update_interface"])
+
         self.echo_level = self.settings["echo_level"].GetInt()
         self.data_communicator = parent_coupled_solver_data_communicator
         self.__checked_combinations = []
+        self.update_interface_execution_points = self.settings["update_interface"]["execution_points"].GetStringArray()
+
+        available_execution_points = [
+            "initialize_solution_step",
+            "finalize_solution_step",
+            "initialize_non_linear_iteration",
+            "finalize_non_linear_iteration"
+        ]
+
+        for execution_point in self.update_interface_execution_points:
+            if execution_point not in available_execution_points:
+                err_msg  = 'Execution point "{}" is not available, only the following options are available:\n    '.format(execution_point)
+                err_msg += "\n    ".join(available_execution_points)
+                raise Exception(err_msg)
+
+    def InitializeSolutionStep(self):
+        if "initialize_solution_step" in self.update_interface_execution_points:
+            self._UpdateInterface(self.settings["update_interface"]["settings"])
+
+    def FinalizeSolutionStep(self):
+        if "finalize_solution_step" in self.update_interface_execution_points:
+            self._UpdateInterface(self.settings["update_interface"]["settings"])
+
+    def InitializeNonLinearIteration(self):
+        if "initialize_non_linear_iteration" in self.update_interface_execution_points:
+            self._UpdateInterface(self.settings["update_interface"]["settings"])
+
+    def FinalizeNonLinearIteration(self):
+        if "finalize_non_linear_iteration" in self.update_interface_execution_points:
+            self._UpdateInterface(self.settings["update_interface"]["settings"])
 
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
         # 1. Check if specified transfer options are available
@@ -34,6 +67,9 @@ class CoSimulationDataTransferOperator(metaclass=ABCMeta):
 
     @abstractmethod
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options): pass
+
+    def _UpdateInterface(self, settings):
+        raise NotImplementedError("This function is not implemented for {}".format(self._ClassName()))
 
     def _Check(self, from_solver_data, to_solver_data):
         # this can be implemented in derived classes if necessary
@@ -63,5 +99,9 @@ class CoSimulationDataTransferOperator(metaclass=ABCMeta):
     def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
-            "echo_level" : 0
+            "echo_level" : 0,
+            "update_interface" : {
+                "execution_points" : [],
+                "settings" : {}
+            }
         }""")
