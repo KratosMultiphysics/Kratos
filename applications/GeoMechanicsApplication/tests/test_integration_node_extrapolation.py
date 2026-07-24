@@ -94,5 +94,30 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
             for fluid_flux_component, expected in zip(fluid_flux_vector, expected_fluid_flux_vector):
                 self.assertAlmostEqual(fluid_flux_component, expected, places=4)
 
+    def test_mixed_elements(self):
+        directory  = 'test_integration_node_extrapolation'
+        test_name = 'mixed_elements'
+        file_path = test_helper.get_file_path(os.path.join(directory, test_name))
+        
+        reader = GiDOutputFileReader()
+        
+        # two quadrilaterals
+        file_path_quads = os.path.join(file_path, "quads")
+        test_helper.run_kratos(file_path_quads)
+        simulation_output = reader.read_output_from(os.path.join(file_path_quads, test_name+'.post.res'))
+        heads_quads = GiDOutputFileReader.nodal_values_at_time(
+            "HYDRAULIC_HEAD", 1, simulation_output, node_ids=range(1,14))
+            
+        # mixed elements
+        file_path_mixed = os.path.join(file_path, "mixed")
+        test_helper.run_kratos(file_path_mixed)
+        simulation_output = reader.read_output_from(os.path.join(file_path_mixed, test_name+'.post.res'))
+        heads_mixed = GiDOutputFileReader.nodal_values_at_time(
+            "HYDRAULIC_HEAD", 1, simulation_output, node_ids=range(1,14))
+            
+        
+        for head_quad, head_mixed  in zip(heads_quads, heads_mixed):
+            self.assertAlmostEqual(head_mixed, head_quad, places=4)
+            
 if __name__=="__main__":
     KratosUnittest.main()
