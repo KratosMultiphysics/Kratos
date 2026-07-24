@@ -146,6 +146,18 @@ public:
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
 
+
+    /**
+     fix
+     */
+    static std::vector<IndexType> GetHRomElementChildrenIds(
+        const ModelPart& rModelPart,
+        const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
+
+
+
+
     /**
      * @brief Finds the parent elements for specified condition IDs and decrements their IDs for zero-based indexing.
      * This version executes a process to compute nodal element neighbours for the entire model part, ensuring
