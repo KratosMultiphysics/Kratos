@@ -20,6 +20,7 @@
 // Project includes
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "custom_utilities/initial_flattening_utility.h"
+#include "custom_strategies/custom_schemes/cutting_pattern_scheme.hpp"
 #include "includes/model_part_io.h"
 #include "input_output/vtk_output.h"
 #include "includes/gid_io.h"
@@ -73,7 +74,8 @@ public:
         int MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false
+        bool MoveMeshFlag = false,
+        bool UseRelaxation = false
     )
     : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
         pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
@@ -81,7 +83,8 @@ public:
         mInitialFlatteningSettings(InitialFlatteningSettings),
         mrCuttingPatternModelPart(rCuttingPatternModelPart),
         mPrintingFormat(rPrintingFormat),
-        mWriteCuttingPatternGeometryFile(WriteCuttingPatternGeometryFile)
+        mWriteCuttingPatternGeometryFile(WriteCuttingPatternGeometryFile),
+        mUseRelaxation(UseRelaxation)
     {
         InitializeIterationIO();
     }
@@ -114,10 +117,30 @@ public:
         if (!was_initialized) {
             // Compute the initial 2D guess once, before any Newton-Raphson iteration
             InitialFlatteningUtility::Execute(mrCuttingPatternModelPart, mInitialFlatteningSettings);
+            if (mUseRelaxation) {
+                PerformRelaxation();
+            }
         }
     }
 
+    void SetUseRelaxation(bool UseRelaxation)
+    {
+        auto* p_cutting_pattern_scheme = dynamic_cast<CuttingPatternScheme<TSparseSpace, TDenseSpace>*>(this->GetScheme().get());
+        KRATOS_ERROR_IF_NOT(p_cutting_pattern_scheme) << "CuttingPatternStrategy requires a CuttingPatternScheme to switch to the relaxation phase!" << std::endl;
+        p_cutting_pattern_scheme->SetUseRelaxation(UseRelaxation);
+    }
+
 private:
+    void PerformRelaxation()
+    {
+        KRATOS_INFO_IF("CuttingPatternStrategy", this->GetEchoLevel() > 0) << "Running relaxation phase..." << std::endl;
+        this->SetUseRelaxation(true);
+        BaseType::InitializeSolutionStep();
+        BaseType::SolveSolutionStep();
+        BaseType::FinalizeSolutionStep();
+        this->SetUseRelaxation(false);
+    }
+
     void UpdateDatabase(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -216,6 +239,7 @@ private:
     std::string mPrintingFormat;
     int mIterationNumber = 0;
     bool mWriteCuttingPatternGeometryFile = true;
+    bool mUseRelaxation = false;
 
 }; /* Class CuttingPatternStrategy */
 } /* namespace Kratos. */

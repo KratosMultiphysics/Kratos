@@ -143,33 +143,27 @@ void MembraneCuttingPatternElement::Initialize(const ProcessInfo& rCurrentProces
 }
 
 
-  /*void MembraneCuttingPatternElement::Relaxation(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) {
+  void MembraneCuttingPatternElement::Relaxation(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) {
 
-  
     KRATOS_TRY;
 
-     const auto& r_geom = GetGeometry();
-     const SizeType dimension = r_geom.WorkingSpaceDimension();
-     const SizeType number_of_nodes = r_geom.size();
-     const SizeType number_dofs = dimension * number_of_nodes;
+    const auto& r_geom = GetGeometry();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType number_dofs = dimension * number_of_nodes;
 
-     const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+    const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
 
+    Vector internal_forces = ZeroVector(number_dofs);
+    this->InternalForces(internal_forces, integration_method, rCurrentProcessInfo);
 
-     Vector rRightHandSideVector = ZeroVector(number_dofs);
+    rRightHandSideVector.resize(number_dofs, false);
+    noalias(rRightHandSideVector) = -internal_forces;
 
-     Vector internal_forces = ZeroVector(3);
-     this->InternalForces(internal_forces, integration_method, rCurrentProcessInfo);
-
-     rRightHandSideVector = -internal_forces;
-
-
-     Matrix rLeftHandSideMatrix = ZeroMatrix(number_dofs);
-     this->TotalStiffnessMatrix(rLeftHandSideMatrix, integration_method, rCurrentProcessInfo);
-
+    this->TotalStiffnessMatrix(rLeftHandSideMatrix, integration_method, rCurrentProcessInfo);
 
     KRATOS_CATCH("");
-  }*/
+  }
 
 
   void MembraneCuttingPatternElement::CalculateLeftHandSide(

@@ -159,10 +159,10 @@ namespace Kratos
     // functions for cutting-pattern generation
     // ---------------------------------------------------------------------
     
-    /*void Relaxation(
-      MatrixType& rLeftHandSideMatrix, 
-      VectorType& rRightHandSideVector, 
-      const ProcessInfo& rCurrentProcessInfo);*/
+    void Relaxation(
+      MatrixType& rLeftHandSideMatrix,
+      VectorType& rRightHandSideVector,
+      const ProcessInfo& rCurrentProcessInfo);
 
     void OptimizationLeastSquare(
       MatrixType& rLeftHandSideMatrix,

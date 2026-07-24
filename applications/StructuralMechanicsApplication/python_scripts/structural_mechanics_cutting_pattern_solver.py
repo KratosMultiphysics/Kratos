@@ -31,6 +31,7 @@ class CuttingPatternMechanicalSolver(MechanicalSolver):
             "printing_format"             : "all",
             "write_cutting_pattern_geometry_file"    : true,
             "cuttingPattern_model_part_name" : "",
+            "use_relaxation" : false,
             "initial_flattening_settings": {
                 "projection_type"  : "planar_mean_normal",
                 "global_direction" : [0.0, 0.0, 1.0],
@@ -46,6 +47,11 @@ class CuttingPatternMechanicalSolver(MechanicalSolver):
         super().Finalize()
         if (self.settings["write_cutting_pattern_geometry_file"].GetBool()):
             StructuralMechanicsApplication.CuttingPatternStrategy.WriteCuttingPatternMdpa(self.GetComputingModelPart())
+
+    def SetUseRelaxation(self, use_relaxation):
+        """Switches cutting-pattern elements between the least-squares stress-flattening
+        system (default) and the standard elastic equilibrium (relaxation) system."""
+        self._GetSolutionStrategy().SetUseRelaxation(use_relaxation)
 
     def _CreateScheme(self):
         return StructuralMechanicsApplication.CuttingPatternScheme()
@@ -73,4 +79,5 @@ class CuttingPatternMechanicalSolver(MechanicalSolver):
                                                                 self.settings["max_iteration"].GetInt(),
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                self.settings["move_mesh_flag"].GetBool())
+                                                                self.settings["move_mesh_flag"].GetBool(),
+                                                                self.settings["use_relaxation"].GetBool())

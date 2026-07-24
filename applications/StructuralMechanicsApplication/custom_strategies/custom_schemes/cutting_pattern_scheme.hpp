@@ -61,6 +61,20 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Switches cutting-pattern elements between the least-squares stress-flattening
+     * system (OptimizationLeastSquare) and the standard elastic equilibrium system (Relaxation).
+     */
+    void SetUseRelaxation(bool UseRelaxation)
+    {
+        mUseRelaxation = UseRelaxation;
+    }
+
+    bool GetUseRelaxation() const
+    {
+        return mUseRelaxation;
+    }
+
     void CalculateSystemContributions(
         Element& rCurrentElement,
         LocalSystemMatrixType& rLHS_Contribution,
@@ -69,8 +83,12 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         if (auto* p_cutting_pattern_element = dynamic_cast<MembraneCuttingPatternElement*>(&rCurrentElement)) {
-            double response = 0.0;
-            p_cutting_pattern_element->OptimizationLeastSquare(rLHS_Contribution, rRHS_Contribution, response, rCurrentProcessInfo);
+            if (mUseRelaxation) {
+                p_cutting_pattern_element->Relaxation(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+            } else {
+                double response = 0.0;
+                p_cutting_pattern_element->OptimizationLeastSquare(rLHS_Contribution, rRHS_Contribution, response, rCurrentProcessInfo);
+            }
             rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
         } else {
             BaseType::CalculateSystemContributions(rCurrentElement, rLHS_Contribution, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
@@ -85,8 +103,12 @@ public:
     {
         if (auto* p_cutting_pattern_element = dynamic_cast<MembraneCuttingPatternElement*>(&rCurrentElement)) {
             LocalSystemVectorType dummy_rhs;
-            double response = 0.0;
-            p_cutting_pattern_element->OptimizationLeastSquare(rLHS_Contribution, dummy_rhs, response, rCurrentProcessInfo);
+            if (mUseRelaxation) {
+                p_cutting_pattern_element->Relaxation(rLHS_Contribution, dummy_rhs, rCurrentProcessInfo);
+            } else {
+                double response = 0.0;
+                p_cutting_pattern_element->OptimizationLeastSquare(rLHS_Contribution, dummy_rhs, response, rCurrentProcessInfo);
+            }
             rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
         } else {
             BaseType::CalculateLHSContribution(rCurrentElement, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
@@ -101,13 +123,25 @@ public:
     {
         if (auto* p_cutting_pattern_element = dynamic_cast<MembraneCuttingPatternElement*>(&rCurrentElement)) {
             LocalSystemMatrixType dummy_lhs;
-            double response = 0.0;
-            p_cutting_pattern_element->OptimizationLeastSquare(dummy_lhs, rRHS_Contribution, response, rCurrentProcessInfo);
+            if (mUseRelaxation) {
+                p_cutting_pattern_element->Relaxation(dummy_lhs, rRHS_Contribution, rCurrentProcessInfo);
+            } else {
+                double response = 0.0;
+                p_cutting_pattern_element->OptimizationLeastSquare(dummy_lhs, rRHS_Contribution, response, rCurrentProcessInfo);
+            }
             rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
         } else {
             BaseType::CalculateRHSContribution(rCurrentElement, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
         }
     }
+
+    ///@}
+
+private:
+    ///@name Member Variables
+    ///@{
+
+    bool mUseRelaxation = false;
 
     ///@}
 

@@ -61,10 +61,11 @@ class TestPatchTestCuttingPattern(KratosUnittest.TestCase):
         compute_reactions = True
         reform_step_dofs = True
         move_mesh_flag = False
+        use_relaxation = False
         strategy = StructuralMechanicsApplication.CuttingPatternStrategy(
             mp, scheme, convergence_criterion, builder_and_solver,
             mp, False, "none", initial_flattening_settings,
-            max_iters, compute_reactions, reform_step_dofs, move_mesh_flag)
+            max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, use_relaxation)
         strategy.SetEchoLevel(0)
         return strategy
 
