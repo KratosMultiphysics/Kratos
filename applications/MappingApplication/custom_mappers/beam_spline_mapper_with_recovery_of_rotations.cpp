@@ -34,6 +34,7 @@ make -f applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/
 
 // External includes
 #include "utilities/math_utils.h"
+#include "utilities/svd_utils.h"
 #include "geometries/line_3d_2.h"
 
 // Project includes
@@ -108,6 +109,106 @@ array_1d<double, 3> NormalizeVector(const array_1d<double, 3>& rVector)
     return normalized_vector;
 }
 
+array_1d<double, 3> MakeArrayFromVector(const Vector& rVector)
+{
+    KRATOS_ERROR_IF(rVector.size() != 3) << "Expected a three-component vector." << std::endl;
+    return array_1d<double, 3>{{rVector(0), rVector(1), rVector(2)}};
+}
+
+struct ReferenceLineProjection
+{
+    Point ProjectionPoint;
+    Vector ShapeValues{2};
+    double Distance = 0.0;
+    bool IsInside = false;
+};
+
+ReferenceLineProjection ProjectOnReferenceLine(
+    const Geometry<Node>& rGeometry,
+    const Point& rPoint,
+    const bool ClampToSegment)
+{
+    KRATOS_ERROR_IF(rGeometry.size() != 2)
+        << "BeamSplineMapperWithRecoveryOfRotations expects a two-node line geometry." << std::endl;
+    array_1d<double, 3> x0{{rGeometry[0].X0(), rGeometry[0].Y0(), rGeometry[0].Z0()}};
+    array_1d<double, 3> x1{{rGeometry[1].X0(), rGeometry[1].Y0(), rGeometry[1].Z0()}};
+    const array_1d<double, 3> direction = x1 - x0;
+    const double length_squared = inner_prod(direction, direction);
+    KRATOS_ERROR_IF(length_squared <= FrameTolerance * FrameTolerance)
+        << "Cannot project on a zero-length reference beam." << std::endl;
+
+    double segment_coordinate = inner_prod(rPoint.Coordinates() - x0, direction) / length_squared;
+    const double unclamped_coordinate = segment_coordinate;
+    if (ClampToSegment) {
+        segment_coordinate = std::clamp(segment_coordinate, 0.0, 1.0);
+    }
+
+    ReferenceLineProjection result;
+    result.ShapeValues(0) = 1.0 - segment_coordinate;
+    result.ShapeValues(1) = segment_coordinate;
+    result.IsInside = unclamped_coordinate >= 0.0 && unclamped_coordinate <= 1.0;
+    noalias(result.ProjectionPoint.Coordinates()) =
+        result.ShapeValues(0) * x0 + result.ShapeValues(1) * x1;
+    result.Distance = norm_2(rPoint.Coordinates() - result.ProjectionPoint.Coordinates());
+    return result;
+}
+
+Matrix BuildReferenceFrame(const Geometry<Node>& rGeometry)
+{
+    array_1d<double, 3> tangent{{
+        rGeometry[1].X0() - rGeometry[0].X0(),
+        rGeometry[1].Y0() - rGeometry[0].Y0(),
+        rGeometry[1].Z0() - rGeometry[0].Z0()}};
+    tangent = NormalizeVector(tangent);
+    IndexType reference_index = 0;
+    if (std::abs(tangent[1]) < std::abs(tangent[reference_index])) {
+        reference_index = 1;
+    }
+    if (std::abs(tangent[2]) < std::abs(tangent[reference_index])) {
+        reference_index = 2;
+    }
+    array_1d<double, 3> normal = ZeroVector(3);
+    normal[reference_index] = 1.0;
+    normal -= DotProduct(normal, tangent) * tangent;
+    normal = NormalizeVector(normal);
+    array_1d<double, 3> binormal = NormalizeVector(CrossProduct(tangent, normal));
+    normal = NormalizeVector(CrossProduct(binormal, tangent));
+
+    Matrix frame(3, 3, 0.0);
+    for (IndexType i = 0; i < 3; ++i) {
+        frame(i, 0) = tangent[i];
+        frame(i, 1) = normal[i];
+        frame(i, 2) = binormal[i];
+    }
+    return frame;
+}
+
+double LegendreValue(const IndexType Degree, const double Xi)
+{
+    switch (Degree) {
+        case 0: return 1.0;
+        case 1: return Xi;
+        case 2: return 0.5 * (3.0 * Xi * Xi - 1.0);
+        case 3: return 0.5 * (5.0 * Xi * Xi * Xi - 3.0 * Xi);
+        case 4: return 0.125 * (35.0 * std::pow(Xi, 4) - 30.0 * Xi * Xi + 3.0);
+        case 5: return 0.125 * (63.0 * std::pow(Xi, 5) - 70.0 * Xi * Xi * Xi + 15.0 * Xi);
+        default: KRATOS_ERROR << "Legendre degree " << Degree << " is not implemented." << std::endl;
+    }
+}
+
+double LegendreDerivative(const IndexType Degree, const double Xi)
+{
+    switch (Degree) {
+        case 0: return 0.0;
+        case 1: return 1.0;
+        case 2: return 3.0 * Xi;
+        case 3: return 0.5 * (15.0 * Xi * Xi - 3.0);
+        case 4: return 0.5 * (35.0 * Xi * Xi * Xi - 15.0 * Xi);
+        case 5: return 0.125 * (315.0 * std::pow(Xi, 4) - 210.0 * Xi * Xi + 15.0);
+        default: KRATOS_ERROR << "Legendre derivative degree " << Degree << " is not implemented." << std::endl;
+    }
+}
+
 const Variable<double>& GetComponentVariable(
     const Variable<array_1d<double, 3>>& rVariable,
     const IndexType ComponentIndex)
@@ -125,81 +226,25 @@ void BeamSplineMapperWithRecoveryOfRotationsInterfaceInfo::ProcessSearchResult(c
 void BeamSplineMapperWithRecoveryOfRotationsInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject)
 {
     const auto p_geom = rInterfaceObject.pGetBaseGeometry();
-
-    double proj_dist;
-
     const Point point_to_proj(this->Coordinates());
-    Point projected_point;
-    Point local_coords;
-
     mCoordinates = point_to_proj;
+    const auto projection = ProjectOnReferenceLine(*p_geom, point_to_proj, true);
 
-    Vector linear_shape_function_values;
-    std::vector<int> eq_ids;
-
-    for (auto& r_node : p_geom->Points()) {
-        r_node.X() = r_node.X0();
-        r_node.Y() = r_node.Y0();
-        r_node.Z() = r_node.Z0();
-    }
-
-    // First project the surface point onto the infinite line of this beam candidate.
-    std::ignore = GeometricalProjectionUtilities::FastProjectOnLine((*p_geom), point_to_proj, projected_point);
-
-    p_geom->IsInside(projected_point, local_coords, 1e-14);
-    p_geom->PointLocalCoordinates(local_coords, projected_point);
-
-    // Approximate projections can fall outside the beam segment; clamp them to the valid line element range.
-    local_coords[0] = std::clamp(local_coords[0], -1.0, 1.0);
-    p_geom->ShapeFunctionsValues(linear_shape_function_values, local_coords);
-
-    Point clamped_projected_point;
-    noalias(clamped_projected_point.Coordinates()) =
-        linear_shape_function_values[0] * (*p_geom)[0].Coordinates() +
-        linear_shape_function_values[1] * (*p_geom)[1].Coordinates();
-
-    const double projection_distance = norm_2(point_to_proj - clamped_projected_point);
-
-    if (projection_distance < mClosestProjectionDistance) {
+    if (projection.Distance < mClosestProjectionDistance) {
         SetIsApproximation();
-
         mPairingIndex = ProjectionUtilities::PairingIndex::Closest_Point;
-
-        const bool compute_approximation = false;
-        std::ignore = ProjectionUtilities::ProjectOnLine(
-            *p_geom,
-            point_to_proj,
-            mLocalCoordTol,
-            linear_shape_function_values,
-            eq_ids,
-            proj_dist,
-            compute_approximation);
-
-        if (eq_ids.size() != p_geom->PointsNumber()) {
-            eq_ids.resize(p_geom->PointsNumber());
-            for (IndexType i = 0; i < p_geom->PointsNumber(); ++i) {
-                KRATOS_DEBUG_ERROR_IF_NOT((*p_geom)[i].Has(INTERFACE_EQUATION_ID))
-                    << (*p_geom)[i] << " does not have an \"INTERFACE_EQUATION_ID\"" << std::endl;
-                eq_ids[i] = (*p_geom)[i].GetValue(INTERFACE_EQUATION_ID);
-            }
+        mClosestProjectionDistance = projection.Distance;
+        mNodeIds.resize(2);
+        mLinearShapeFunctionValues.resize(2);
+        for (IndexType i = 0; i < 2; ++i) {
+            KRATOS_DEBUG_ERROR_IF_NOT((*p_geom)[i].Has(INTERFACE_EQUATION_ID))
+                << (*p_geom)[i] << " does not have an INTERFACE_EQUATION_ID." << std::endl;
+            mNodeIds[i] = (*p_geom)[i].GetValue(INTERFACE_EQUATION_ID);
+            mLinearShapeFunctionValues[i] = projection.ShapeValues(i);
         }
-
-        mClosestProjectionDistance = projection_distance;
-        mNodeIds = eq_ids;
-
-        const IndexType num_values_linear = linear_shape_function_values.size();
-        if (mLinearShapeFunctionValues.size() != num_values_linear) {
-            mLinearShapeFunctionValues.resize(num_values_linear);
-        }
-
-        for (IndexType i = 0; i < num_values_linear; ++i) {
-            mLinearShapeFunctionValues[i] = linear_shape_function_values[i];
-        }
-
-        mProjectionOfPoint = clamped_projected_point;
+        mProjectionOfPoint = projection.ProjectionPoint;
         mpInterfaceObject = make_shared<InterfaceGeometryObject>(rInterfaceObject.pGetBaseGeometry());
     }
-
 }
 
 void BeamSplineMapperWithRecoveryOfRotationsInterfaceInfo::SaveSearchResult(
@@ -208,41 +253,18 @@ void BeamSplineMapperWithRecoveryOfRotationsInterfaceInfo::SaveSearchResult(
 {
     const auto p_geom = rInterfaceObject.pGetBaseGeometry();
 
-    double proj_dist;
-
     const Point point_to_proj(this->Coordinates());
-    Point projected_point;
-
     mCoordinates = point_to_proj;
-
-    Vector linear_shape_function_values;
-    std::vector<int> eq_ids;
-
-    for (auto& r_node : p_geom->Points()) {
-        r_node.X() = r_node.X0();
-        r_node.Y() = r_node.Y0();
-        r_node.Z() = r_node.Z0();
-    }
-
     const auto geom_family = p_geom->GetGeometryFamily();
     KRATOS_ERROR_IF(geom_family != GeometryData::KratosGeometryFamily::Kratos_Linear) << "Invalid geometry of the Origin! The geometry should be a beam!";
-
-    // Compute the line projection weights and classify how good this candidate beam is.
-    const auto pairing_index_linear = ProjectionUtilities::ProjectOnLine(
-        *p_geom,
-        point_to_proj,
-        mLocalCoordTol,
-        linear_shape_function_values,
-        eq_ids,
-        proj_dist,
-        ComputeApproximation);
-
-    std::ignore = GeometricalProjectionUtilities::FastProjectOnLine(
-        *p_geom,
-        point_to_proj,
-        projected_point);
-
-    const bool is_full_projection = (pairing_index_linear == ProjectionUtilities::PairingIndex::Line_Inside);
+    const auto projection = ProjectOnReferenceLine(*p_geom, point_to_proj, ComputeApproximation);
+    const bool is_full_projection = projection.IsInside;
+    if (!is_full_projection && !ComputeApproximation) {
+        return;
+    }
+    const auto pairing_index_linear = is_full_projection
+        ? ProjectionUtilities::PairingIndex::Line_Inside
+        : ProjectionUtilities::PairingIndex::Closest_Point;
     if (is_full_projection) {
         SetLocalSearchWasSuccessful();
     } else {
@@ -254,129 +276,28 @@ void BeamSplineMapperWithRecoveryOfRotationsInterfaceInfo::SaveSearchResult(
 
     // Several beam candidates can be visited; keep the best pairing and, for ties, the nearest projection.
     if (pairing_index_linear > mPairingIndex ||
-        (pairing_index_linear == mPairingIndex && proj_dist < mClosestProjectionDistance)) {
+        (pairing_index_linear == mPairingIndex && projection.Distance < mClosestProjectionDistance)) {
         mPairingIndex = pairing_index_linear;
-        mClosestProjectionDistance = proj_dist;
-        mNodeIds = eq_ids;
-
-        const IndexType num_values_linear = linear_shape_function_values.size();
-        if (mLinearShapeFunctionValues.size() != num_values_linear) {
-            mLinearShapeFunctionValues.resize(num_values_linear);
+        mClosestProjectionDistance = projection.Distance;
+        mNodeIds.resize(2);
+        mLinearShapeFunctionValues.resize(2);
+        for (IndexType i = 0; i < 2; ++i) {
+            KRATOS_DEBUG_ERROR_IF_NOT((*p_geom)[i].Has(INTERFACE_EQUATION_ID))
+                << (*p_geom)[i] << " does not have an INTERFACE_EQUATION_ID." << std::endl;
+            mNodeIds[i] = (*p_geom)[i].GetValue(INTERFACE_EQUATION_ID);
+            mLinearShapeFunctionValues[i] = projection.ShapeValues(i);
         }
-
-        for (IndexType i = 0; i < num_values_linear; ++i) {
-            mLinearShapeFunctionValues[i] = linear_shape_function_values[i];
-        }
-
-        mProjectionOfPoint = projected_point;
+        mProjectionOfPoint = projection.ProjectionPoint;
         mpInterfaceObject = make_shared<InterfaceGeometryObject>(rInterfaceObject.pGetBaseGeometry());
     }
-
 }
 
 void BeamSplineMapperWithRecoveryOfRotationsInterfaceInfo::ComputeRotationMatrix()
 {
-    // Known limitations of this frame construction:
-    // - It compares normalized floating-point axis components with exact 0.0/1.0 values, so nearly axis-aligned
-    //   beams can enter an unintended branch due to round-off.
-    // - Negative axis-aligned beams, e.g. (-1, 0, 0), can fall through to the generic branch and divide by
-    //   axis_X[2] when it is zero.
-    // - The special case axis_X = (0, 0, 1) sets axis_Z = (1, 0, 0), while axis_X x axis_Y = (-1, 0, 0);
-    //   this creates a left-handed local frame.
-    // - A more robust construction would choose a non-parallel reference vector and build the frame with
-    //   normalized cross products.
-    std::vector<double> axis_X;
-    std::vector<double> axis_Y;
-    std::vector<double> axis_Z;
-
-    axis_X.resize(3);
-    axis_Y.resize(3);
-    axis_Z.resize(3);
-    
+    KRATOS_ERROR_IF_NOT(mpInterfaceObject)
+        << "Cannot build a beam frame without an interface object." << std::endl;
     const auto p_geom = mpInterfaceObject->pGetBaseGeometry();
-
-    auto temp_v = (*p_geom)[1].Coordinates() - (*p_geom)[0].Coordinates();
-    double length_X = sqrt(temp_v[0]*temp_v[0] + temp_v[1]*temp_v[1] + temp_v[2]*temp_v[2]);
-    
-    KRATOS_ERROR_IF(length_X < 0.000001) << "Lenght of the beam is 0.0" << std::endl;
-    
-    axis_X[0] = temp_v[0] / length_X;
-    axis_X[1] = temp_v[1] / length_X;
-    axis_X[2] = temp_v[2] / length_X;   
-
-    if (axis_X[0] == 1.0 && axis_X[1] == 0.0 && axis_X[2] == 0.0 ){
-        axis_Y[0] = 0.0;
-        axis_Y[1] = 1.0;
-        axis_Y[2] = 0.0;
-        axis_Z[0] = 0.0;
-        axis_Z[1] = 0.0;
-        axis_Z[2] = 1.0;
-    }
-    else if (axis_X[0] == 0.0 && axis_X[1] == 1.0 && axis_X[2] == 0.0 ){
-        axis_Y[0] = 0.0;
-        axis_Y[1] = 0.0;
-        axis_Y[2] = 1.0;
-        axis_Z[0] = 1.0;
-        axis_Z[1] = 0.0;
-        axis_Z[2] = 0.0;
-    }
-    else if (axis_X[0] == 0.0 && axis_X[1] == 0.0 && axis_X[2] == 1.0 ){
-        axis_Y[0] = 0.0;
-        axis_Y[1] = 1.0;
-        axis_Y[2] = 0.0;
-        axis_Z[0] = 1.0;
-        axis_Z[1] = 0.0;
-        axis_Z[2] = 0.0;
-    }
-    else if (axis_X[0] != 0.0 && axis_X[1] != 0.0 && axis_X[2] == 0.0 ){
-        axis_Y[0] = -axis_X[1];
-        axis_Y[1] =  axis_X[0];
-        axis_Y[2] =  0.0;
-        axis_Z[0] = axis_X[1]*axis_Y[2] - axis_X[2]*axis_Y[1]; 
-        axis_Z[1] = axis_X[2]*axis_Y[0] - axis_X[0]*axis_Y[2];
-        axis_Z[2] = axis_X[0]*axis_Y[1] - axis_X[1]*axis_Y[0];
-    }
-    else if (axis_X[0] != 0.0 && axis_X[1] == 0.0 && axis_X[2] != 0.0 ){
-        axis_Y[0] = -axis_X[2];
-        axis_Y[1] =  0;
-        axis_Y[2] =  axis_X[0];
-        axis_Z[0] = axis_X[1]*axis_Y[2] - axis_X[2]*axis_Y[1]; 
-        axis_Z[1] = axis_X[2]*axis_Y[0] - axis_X[0]*axis_Y[2];
-        axis_Z[2] = axis_X[0]*axis_Y[1] - axis_X[1]*axis_Y[0];
-    }
-    else if (axis_X[0] == 0.0 && axis_X[1] != 0.0 && axis_X[2] != 0.0){
-        axis_Y[0] =  0;
-        axis_Y[1] = -axis_X[2];
-        axis_Y[2] =  axis_X[1];
-        axis_Z[0] = axis_X[1]*axis_Y[2] - axis_X[2]*axis_Y[1]; 
-        axis_Z[1] = axis_X[2]*axis_Y[0] - axis_X[0]*axis_Y[2];
-        axis_Z[2] = axis_X[0]*axis_Y[1] - axis_X[1]*axis_Y[0];
-    }
-    else{
-        axis_Y[0] = 1;
-        axis_Y[1] = 1;
-        axis_Y[2] = (-axis_X[0] - axis_X[1]) / axis_X[2];
-        double length_Y = sqrt(axis_Y[0]*axis_Y[0] + axis_Y[1]*axis_Y[1] + axis_Y[2]*axis_Y[2]);
-        axis_Y[0] = axis_Y[0]/length_Y;
-        axis_Y[1] = axis_Y[1]/length_Y;
-        axis_Y[2] = axis_Y[2]/length_Y;
-        
-        axis_Z[0] = axis_X[1]*axis_Y[2] - axis_X[2]*axis_Y[1]; 
-        axis_Z[1] = axis_X[2]*axis_Y[0] - axis_X[0]*axis_Y[2];
-        axis_Z[2] = axis_X[0]*axis_Y[1] - axis_X[1]*axis_Y[0];
-    }
-
-    MatrixType rotation_matrix(3, 3, 0.0);
-
-    for(IndexType j = 0; j < 3; j++)
-    {
-        rotation_matrix(j, 0) = axis_X[j];
-        rotation_matrix(j, 1) = axis_Y[j];
-        rotation_matrix(j, 2) = axis_Z[j];
-    }
-
-    mRotationMatrix_L_G = rotation_matrix;
-
+    mRotationMatrix_L_G = BuildReferenceFrame(*p_geom);
 }
 
 void BeamSplineMapperWithRecoveryOfRotationsInterfaceInfo::save(Serializer& rSerializer) const
@@ -443,21 +364,42 @@ BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::BeamSplineMa
 {
     KRATOS_TRY
 
+    const bool has_polynomial_level = mMapperSettings.Has("polynomial_level");
+    const bool has_legacy_polynomial_basis = mMapperSettings.Has("polynomial_basis");
+    KRATOS_ERROR_IF(has_polynomial_level && has_legacy_polynomial_basis)
+        << "Specify only 'polynomial_level' (preferred) or legacy 'polynomial_basis', not both." << std::endl;
+
+    if (has_legacy_polynomial_basis) {
+        std::string legacy_basis = mMapperSettings["polynomial_basis"].GetString();
+        std::transform(legacy_basis.begin(), legacy_basis.end(), legacy_basis.begin(), ::tolower);
+        int legacy_level = -1;
+        if (legacy_basis == "auto") legacy_level = 0;
+        else if (legacy_basis == "full_3d") legacy_level = 1;
+        else if (legacy_basis == "line_adapted") legacy_level = 2;
+        else if (legacy_basis == "enriched_line_adapted") legacy_level = 3;
+        else if (legacy_basis == "high_order_line_adapted") legacy_level = 4;
+        KRATOS_ERROR_IF(legacy_level < 0)
+            << "Unsupported legacy polynomial_basis '" << legacy_basis << "'." << std::endl;
+        mMapperSettings.RemoveValue("polynomial_basis");
+        mMapperSettings.AddEmptyValue("polynomial_level").SetInt(legacy_level);
+        KRATOS_WARNING("BeamSplineMapperWithRecoveryOfRotations")
+            << "'polynomial_basis' is deprecated; use numeric 'polynomial_level'="
+            << legacy_level << "." << std::endl;
+    }
+
     mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin);
     mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination);
 
     ValidateInput();
-    mLocalCoordTol = JsonParameters["local_coord_tolerance"].GetDouble();
-    mKernelType = JsonParameters["kernel_type"].GetString();
-    mKernelRadius = JsonParameters["kernel_radius"].GetDouble();
-    mRegularization = JsonParameters["regularization"].GetDouble();
-    mPolynomialBasis = JsonParameters["polynomial_basis"].GetString();
+    mLocalCoordTol = mMapperSettings["local_coord_tolerance"].GetDouble();
+    mKernelType = mMapperSettings["kernel_type"].GetString();
+    mKernelRadius = mMapperSettings["kernel_radius"].GetDouble();
+    mRegularization = mMapperSettings["regularization"].GetDouble();
+    mPolynomialLevel = mMapperSettings["polynomial_level"].GetInt();
+    mRotationRecoveryMode = mMapperSettings["rotation_recovery_mode"].GetString();
 
     std::transform(mKernelType.begin(), mKernelType.end(), mKernelType.begin(), ::tolower);
-    std::transform(mPolynomialBasis.begin(), mPolynomialBasis.end(), mPolynomialBasis.begin(), ::tolower);
-    if (mPolynomialBasis == "auto") {
-        mPolynomialBasis = mKernelType == "cubic" ? "line_adapted" : "full_3d";
-    }
+    std::transform(mRotationRecoveryMode.begin(), mRotationRecoveryMode.end(), mRotationRecoveryMode.begin(), ::tolower);
 
     KRATOS_ERROR_IF(
         mKernelType != "cubic" &&
@@ -473,14 +415,11 @@ BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::BeamSplineMa
         << "The kernel_radius must be positive for kernel_type '" << mKernelType << "'." << std::endl;
     KRATOS_ERROR_IF(mRegularization < 0.0)
         << "The regularization must be non-negative." << std::endl;
-    KRATOS_ERROR_IF(
-        mPolynomialBasis != "full_3d" &&
-        mPolynomialBasis != "line_adapted" &&
-        mPolynomialBasis != "enriched_line_adapted" &&
-        mPolynomialBasis != "high_order_line_adapted")
-        << "BeamSplineMapperWithRecoveryOfRotations supports the following polynomial bases: "
-        << "'full_3d', 'line_adapted', 'enriched_line_adapted', "
-        << "'high_order_line_adapted' and 'auto'." << std::endl;
+    KRATOS_ERROR_IF(mPolynomialLevel < 0 || mPolynomialLevel > 4)
+        << "polynomial_level must be an integer in [0,4], got " << mPolynomialLevel << "." << std::endl;
+    KRATOS_ERROR_IF(mRotationRecoveryMode != "small" && mRotationRecoveryMode != "finite")
+        << "rotation_recovery_mode must be 'small' or 'finite', got '"
+        << mRotationRecoveryMode << "'." << std::endl;
 
     Initialize();
 
@@ -591,6 +530,8 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
 {
     mBeamChainCache.clear();
     mNodeIdToBeamChainKey.clear();
+    mLastFiniteSourceStates.clear();
+    mHasLastFiniteSourceState = false;
     CreateLinearSolver();
     InitializeInterfaceCommunicator();
     InitializeInterface();
@@ -674,6 +615,8 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
 {
     mBeamChainCache.clear();
     mNodeIdToBeamChainKey.clear();
+    mLastFiniteSourceStates.clear();
+    mHasLastFiniteSourceState = false;
     CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(), mMapperLocalSystems);
     BuildProblem(MappingOptions);
 }
@@ -726,6 +669,10 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
     const auto beam_chain_source_states = BuildAllBeamChainSourceStates(
         rOriginVariablesDisplacements,
         rOriginVariablesRotations);
+    if (mRotationRecoveryMode == "finite") {
+        mLastFiniteSourceStates = beam_chain_source_states;
+        mHasLastFiniteSourceState = true;
+    }
 
     for (auto& r_local_sys : mMapperLocalSystems) {
         if (!r_local_sys->HasInterfaceInfo()) {
@@ -745,12 +692,40 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
             << "Missing source-state data for beam chain '" << r_beam_chain_cache_data.Key << "'." << std::endl;
         const auto& r_source_state_data = source_state_iterator->second;
 
-        const MatrixType evaluation_matrix = BuildEvaluationMatrix(
-            r_beam_chain_cache_data,
-            GetReferenceCoordinates(*projection_data.pNode));
-        const VectorType global_displacement = EvaluateDisplacement(
-            evaluation_matrix,
-            r_source_state_data.Coefficients);
+        VectorType global_displacement(3, 0.0);
+        if (mRotationRecoveryMode == "small") {
+            const MatrixType evaluation_matrix = BuildEvaluationMatrix(
+                r_beam_chain_cache_data,
+                GetReferenceCoordinates(*projection_data.pNode));
+            global_displacement = EvaluateDisplacement(
+                evaluation_matrix,
+                r_source_state_data.Coefficients);
+        } else {
+            const array_1d<double, 3> center_coordinates =
+                MakeArrayFromVector(projection_data.ProjectionPoint);
+            const MatrixType center_evaluation_matrix = BuildEvaluationMatrix(
+                r_beam_chain_cache_data,
+                center_coordinates);
+            const MatrixType curl_evaluation_matrix = BuildCurlEvaluationMatrix(
+                r_beam_chain_cache_data,
+                center_coordinates);
+            global_displacement = EvaluateDisplacement(
+                center_evaluation_matrix,
+                r_source_state_data.Coefficients);
+            VectorType rotation_vector(3, 0.0);
+            TDenseSpace::Mult(curl_evaluation_matrix, r_source_state_data.Coefficients, rotation_vector);
+            rotation_vector *= 0.5;
+
+            const array_1d<double, 3> destination_coordinates =
+                GetReferenceCoordinates(*projection_data.pNode);
+            const array_1d<double, 3> reference_offset =
+                destination_coordinates - center_coordinates;
+            VectorType rotated_offset(3, 0.0);
+            TDenseSpace::Mult(BuildRotationMatrix(rotation_vector), reference_offset, rotated_offset);
+            for (IndexType i = 0; i < 3; ++i) {
+                global_displacement(i) += rotated_offset(i) - reference_offset[i];
+            }
+        }
 
         for (IndexType i = 0; i < 3; ++i) {
             projection_data.pNode->FastGetSolutionStepValue(GetComponentVariable(rDestinationVariableDisplacement, i)) =
@@ -768,6 +743,25 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
     const Kratos::Flags& rMappingOptions)
 {
     const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
+    std::unordered_map<std::string, VectorType> chain_adjoint_right_hand_sides;
+    for (const auto& r_pair : mBeamChainCache) {
+        chain_adjoint_right_hand_sides.emplace(
+            r_pair.first,
+            VectorType(r_pair.second.SystemMatrix.size1(), 0.0));
+    }
+    std::unordered_map<std::string, RecoveryOfRotationsSourceStateData> fallback_finite_source_states;
+    const std::unordered_map<std::string, RecoveryOfRotationsSourceStateData>* p_finite_source_states = nullptr;
+    if (mRotationRecoveryMode == "finite") {
+        if (mHasLastFiniteSourceState) {
+            p_finite_source_states = &mLastFiniteSourceStates;
+        } else {
+            KRATOS_WARNING("BeamSplineMapperWithRecoveryOfRotations")
+                << "Finite InverseMap was called before Map; constructing the tangent state from "
+                << "standard DISPLACEMENT and ROTATION variables." << std::endl;
+            fallback_finite_source_states = BuildAllBeamChainSourceStates(DISPLACEMENT, ROTATION);
+            p_finite_source_states = &fallback_finite_source_states;
+        }
+    }
 
     for (auto& r_local_sys : mMapperLocalSystems) {
         if (!r_local_sys->HasInterfaceInfo()) {
@@ -793,24 +787,53 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
                 projection_data.pNode->FastGetSolutionStepValue(GetComponentVariable(rDestinationVariableForces, i));
         }
 
-        const IndexType number_of_support_nodes = r_beam_chain_cache_data.SupportNodeIds.size();
         const IndexType system_size = r_beam_chain_cache_data.SystemMatrix.size1();
-        const MatrixType evaluation_matrix = BuildEvaluationMatrix(
-            r_beam_chain_cache_data,
-            GetReferenceCoordinates(*projection_data.pNode));
-
-        VectorType adjoint_rhs(system_size, 0.0);
-        for (IndexType row = 0; row < 3; ++row) {
-            for (IndexType col = 0; col < system_size; ++col) {
-                adjoint_rhs(col) += evaluation_matrix(row, col) * surface_force_global[row];
-            }
+        MatrixType tangent_operator;
+        if (mRotationRecoveryMode == "small") {
+            tangent_operator = BuildEvaluationMatrix(
+                r_beam_chain_cache_data,
+                GetReferenceCoordinates(*projection_data.pNode));
+        } else {
+            const auto state_iterator = p_finite_source_states->find(r_beam_chain_cache_data.Key);
+            KRATOS_ERROR_IF(state_iterator == p_finite_source_states->end())
+                << "Missing finite recovery state for beam chain '"
+                << r_beam_chain_cache_data.Key << "'." << std::endl;
+            const array_1d<double, 3> center_coordinates =
+                MakeArrayFromVector(projection_data.ProjectionPoint);
+            const MatrixType center_evaluation = BuildEvaluationMatrix(
+                r_beam_chain_cache_data,
+                center_coordinates);
+            const MatrixType curl_evaluation = BuildCurlEvaluationMatrix(
+                r_beam_chain_cache_data,
+                center_coordinates);
+            VectorType rotation_vector(3, 0.0);
+            TDenseSpace::Mult(curl_evaluation, state_iterator->second.Coefficients, rotation_vector);
+            rotation_vector *= 0.5;
+            const array_1d<double, 3> reference_offset =
+                GetReferenceCoordinates(*projection_data.pNode) - center_coordinates;
+            const MatrixType rotation_offset_tangent =
+                BuildRotationOffsetTangent(rotation_vector, reference_offset);
+            tangent_operator = center_evaluation;
+            noalias(tangent_operator) += 0.5 * prod(rotation_offset_tangent, curl_evaluation);
         }
 
+        auto& r_adjoint_rhs = chain_adjoint_right_hand_sides.at(r_beam_chain_cache_data.Key);
+        for (IndexType row = 0; row < 3; ++row) {
+            for (IndexType col = 0; col < system_size; ++col) {
+                r_adjoint_rhs(col) += tangent_operator(row, col) * surface_force_global[row];
+            }
+        }
+    }
+
+    for (auto& r_pair : mBeamChainCache) {
+        const auto& r_beam_chain_cache_data = r_pair.second;
+        const IndexType number_of_support_nodes = r_beam_chain_cache_data.SupportNodeIds.size();
+        const IndexType system_size = r_beam_chain_cache_data.SystemMatrix.size1();
         VectorType generalized_loads(system_size, 0.0);
         mpLinearSolver->Solve(
             r_beam_chain_cache_data.TransposedSparseSystemMatrix,
             generalized_loads,
-            adjoint_rhs);
+            chain_adjoint_right_hand_sides.at(r_pair.first));
 
         for (IndexType i = 0; i < number_of_support_nodes; ++i) {
             auto& r_node = mrModelPartOrigin.GetNode(r_beam_chain_cache_data.SupportNodeIds[i]);
@@ -846,6 +869,8 @@ double BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Kerne
         return std::sqrt(1.0 + q * q);
     }
     if (mKernelType == "gaussian") {
+        // Kratos radius h convention: exp(-0.5 (rho/h)^2).  Ahrem writes
+        // exp(-rho^2/d^2); the equivalent paper radius is d=sqrt(2)h.
         const double q = rho / mKernelRadius;
         return std::exp(-0.5 * q * q);
     }
@@ -921,6 +946,19 @@ BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::KernelHessia
     const double rho = norm_2(rDifference);
     MatrixType hessian(3, 3, 0.0);
     if (rho < std::numeric_limits<double>::epsilon()) {
+        double isotropic_limit = 0.0;
+        if (mKernelType == "inverse_multiquadric") {
+            isotropic_limit = -mKernelRadius * mKernelRadius;
+        } else if (mKernelType == "multiquadric") {
+            isotropic_limit = 1.0 / (mKernelRadius * mKernelRadius);
+        } else if (mKernelType == "gaussian") {
+            isotropic_limit = -1.0 / (mKernelRadius * mKernelRadius);
+        } else if (mKernelType == "wendland_c2") {
+            isotropic_limit = -20.0 / (mKernelRadius * mKernelRadius);
+        }
+        for (IndexType i = 0; i < 3; ++i) {
+            hessian(i, i) = isotropic_limit;
+        }
         return hessian;
     }
 
@@ -1105,12 +1143,19 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::BuildPo
                 }
             }
         } else {
-            const std::array<double, Full3DPolynomialBasisSize> p{{1.0, r_x[0], r_x[1], r_x[2]}};
+            const array_1d<double, 3> normalized_coordinates =
+                (r_x - rCacheData.PolynomialReferencePoint) / rCacheData.PolynomialHalfLength;
+            const std::array<double, Full3DPolynomialBasisSize> p{{
+                1.0,
+                normalized_coordinates[0],
+                normalized_coordinates[1],
+                normalized_coordinates[2]}};
+            const double inverse_half_length = 1.0 / rCacheData.PolynomialHalfLength;
             const std::array<array_1d<double, 3>, Full3DPolynomialBasisSize> grad{{
                 ZeroVector(3),
-                array_1d<double, 3>{1.0, 0.0, 0.0},
-                array_1d<double, 3>{0.0, 1.0, 0.0},
-                array_1d<double, 3>{0.0, 0.0, 1.0}}};
+                array_1d<double, 3>{inverse_half_length, 0.0, 0.0},
+                array_1d<double, 3>{0.0, inverse_half_length, 0.0},
+                array_1d<double, 3>{0.0, 0.0, inverse_half_length}}};
 
             for (IndexType basis_index = 0; basis_index < Full3DPolynomialBasisSize; ++basis_index) {
                 for (IndexType component_index = 0; component_index < 3; ++component_index) {
@@ -1144,10 +1189,11 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Evaluat
     const auto& r_reference = rCacheData.PolynomialReferencePoint;
     const auto& r_tangent = rCacheData.PolynomialTangent;
     const array_1d<double, 3> relative_coordinates = rCoordinates - r_reference;
-    const double s =
+    const double xi = (
         relative_coordinates[0] * r_tangent[0] +
         relative_coordinates[1] * r_tangent[1] +
-        relative_coordinates[2] * r_tangent[2];
+        relative_coordinates[2] * r_tangent[2]) / rCacheData.PolynomialHalfLength;
+    const double inverse_half_length = 1.0 / rCacheData.PolynomialHalfLength;
 
     rValues[0][0] = 1.0;
     rValues[1][1] = 1.0;
@@ -1165,17 +1211,17 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Evaluat
     rValues[5][1] =  relative_coordinates[0];
     rCurls[5][2] = 2.0;
 
-    rValues[6][0] = s;
-    rCurls[6][1] =  r_tangent[2];
-    rCurls[6][2] = -r_tangent[1];
+    rValues[6][0] = xi;
+    rCurls[6][1] =  inverse_half_length * r_tangent[2];
+    rCurls[6][2] = -inverse_half_length * r_tangent[1];
 
-    rValues[7][1] = s;
-    rCurls[7][0] = -r_tangent[2];
-    rCurls[7][2] =  r_tangent[0];
+    rValues[7][1] = xi;
+    rCurls[7][0] = -inverse_half_length * r_tangent[2];
+    rCurls[7][2] =  inverse_half_length * r_tangent[0];
 
-    rValues[8][2] = s;
-    rCurls[8][0] =  r_tangent[1];
-    rCurls[8][1] = -r_tangent[0];
+    rValues[8][2] = xi;
+    rCurls[8][0] =  inverse_half_length * r_tangent[1];
+    rCurls[8][1] = -inverse_half_length * r_tangent[0];
 
     if (rCacheData.PolynomialBasis == "enriched_line_adapted" ||
         rCacheData.PolynomialBasis == "high_order_line_adapted") {
@@ -1189,38 +1235,34 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Evaluat
                 CrossProduct(axes[axis_index], relative_coordinates);
             const IndexType mode_index = 9 + axis_index;
 
-            rValues[mode_index] = s * rigid_rotation;
-            rCurls[mode_index] = CrossProduct(r_tangent, rigid_rotation);
-            rCurls[mode_index] += 2.0 * s * axes[axis_index];
+            rValues[mode_index] = xi * rigid_rotation;
+            rCurls[mode_index] = inverse_half_length * CrossProduct(r_tangent, rigid_rotation);
+            rCurls[mode_index] += 2.0 * xi * axes[axis_index];
         }
 
         if (rCacheData.PolynomialBasis == "high_order_line_adapted") {
             IndexType mode_index = EnrichedLineAdaptedVectorPolynomialSize;
 
-            // Higher-order line modes improve reproduction of smoothly varying
-            // beam rotations and centerline displacements from collinear support.
             for (IndexType degree = 2; degree <= 3; ++degree) {
-                const double s_power = std::pow(s, static_cast<int>(degree));
-                const double curl_factor =
-                    static_cast<double>(degree) * std::pow(s, static_cast<int>(degree - 1));
+                const double polynomial_value = LegendreValue(degree, xi);
+                const double derivative_factor = LegendreDerivative(degree, xi) * inverse_half_length;
                 for (const auto& r_axis : axes) {
-                    rValues[mode_index] = s_power * r_axis;
-                    rCurls[mode_index] = curl_factor * CrossProduct(r_tangent, r_axis);
+                    rValues[mode_index] = polynomial_value * r_axis;
+                    rCurls[mode_index] = derivative_factor * CrossProduct(r_tangent, r_axis);
                     ++mode_index;
                 }
             }
 
             for (IndexType degree = 2; degree <= 5; ++degree) {
-                const double s_power = std::pow(s, static_cast<int>(degree));
-                const double derivative_factor =
-                    static_cast<double>(degree) * std::pow(s, static_cast<int>(degree - 1));
+                const double polynomial_value = LegendreValue(degree, xi);
+                const double derivative_factor = LegendreDerivative(degree, xi) * inverse_half_length;
                 for (const auto& r_axis : axes) {
                     const array_1d<double, 3> rigid_rotation =
                         CrossProduct(r_axis, relative_coordinates);
 
-                    rValues[mode_index] = s_power * rigid_rotation;
+                    rValues[mode_index] = polynomial_value * rigid_rotation;
                     rCurls[mode_index] = derivative_factor * CrossProduct(r_tangent, rigid_rotation);
-                    rCurls[mode_index] += 2.0 * s_power * r_axis;
+                    rCurls[mode_index] += 2.0 * polynomial_value * r_axis;
                     ++mode_index;
                 }
             }
@@ -1229,23 +1271,134 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Evaluat
 }
 
 template<class TSparseSpace, class TDenseSpace>
-std::string BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::GetEffectivePolynomialBasis(
-    const IndexType NumberOfSupportNodes) const
+std::string BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::GetPolynomialBasisName(
+    const int PolynomialLevel) const
 {
-    if (mPolynomialBasis == "high_order_line_adapted") {
-        if (NumberOfSupportNodes < 4) {
-            return "line_adapted";
+    switch (PolynomialLevel) {
+        case 1: return "full_3d";
+        case 2: return "line_adapted";
+        case 3: return "enriched_line_adapted";
+        case 4: return "high_order_line_adapted";
+        default: KRATOS_ERROR << "No concrete polynomial basis exists for level "
+                              << PolynomialLevel << "." << std::endl;
+    }
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::ComputePolynomialDiagnostics(
+    RecoveryOfRotationsCacheData& rCacheData) const
+{
+    MatrixType polynomial_matrix;
+    BuildPolynomialMatrix(rCacheData, polynomial_matrix);
+    MatrixType rank_matrix = polynomial_matrix;
+    const IndexType number_of_rows = rank_matrix.size1();
+    const IndexType number_of_columns = rank_matrix.size2();
+    for (IndexType column = 0; column < number_of_columns; ++column) {
+        double column_norm = 0.0;
+        for (IndexType row = 0; row < number_of_rows; ++row) {
+            column_norm += rank_matrix(row, column) * rank_matrix(row, column);
         }
-        if (NumberOfSupportNodes < 5) {
-            return "enriched_line_adapted";
+        column_norm = std::sqrt(column_norm);
+        if (column_norm > 0.0) {
+            for (IndexType row = 0; row < number_of_rows; ++row) {
+                rank_matrix(row, column) /= column_norm;
+            }
+        }
+    }
+    rCacheData.PolynomialRank = 0;
+    constexpr double rank_tolerance = 1.0e-10;
+    for (IndexType column = 0; column < number_of_columns && rCacheData.PolynomialRank < number_of_rows; ++column) {
+        IndexType pivot_row = rCacheData.PolynomialRank;
+        double pivot_value = 0.0;
+        for (IndexType row = rCacheData.PolynomialRank; row < number_of_rows; ++row) {
+            if (std::abs(rank_matrix(row, column)) > pivot_value) {
+                pivot_value = std::abs(rank_matrix(row, column));
+                pivot_row = row;
+            }
+        }
+        if (pivot_value <= rank_tolerance) {
+            continue;
+        }
+        if (pivot_row != rCacheData.PolynomialRank) {
+            for (IndexType j = column; j < number_of_columns; ++j) {
+                std::swap(rank_matrix(pivot_row, j), rank_matrix(rCacheData.PolynomialRank, j));
+            }
+        }
+        const double pivot = rank_matrix(rCacheData.PolynomialRank, column);
+        for (IndexType row = rCacheData.PolynomialRank + 1; row < number_of_rows; ++row) {
+            const double multiplier = rank_matrix(row, column) / pivot;
+            for (IndexType j = column; j < number_of_columns; ++j) {
+                rank_matrix(row, j) -= multiplier * rank_matrix(rCacheData.PolynomialRank, j);
+            }
+        }
+        ++rCacheData.PolynomialRank;
+    }
+    if (rCacheData.PolynomialRank != number_of_columns) {
+        rCacheData.PolynomialConditionNumber = std::numeric_limits<double>::infinity();
+        return;
+    }
+
+    MatrixType gram_matrix = prod(trans(polynomial_matrix), polynomial_matrix);
+    MatrixType u_matrix;
+    MatrixType singular_values;
+    MatrixType v_matrix;
+    SVDUtils<double>::SingularValueDecomposition(
+        gram_matrix, u_matrix, singular_values, v_matrix, "Jacobi", 1.0e-14, 500);
+
+    const double largest_squared = std::abs(singular_values(0, 0));
+    double smallest_squared = largest_squared;
+    for (IndexType i = 0; i < number_of_columns; ++i) {
+        const double value = std::abs(singular_values(i, i));
+        smallest_squared = std::min(smallest_squared, value);
+    }
+    rCacheData.PolynomialConditionNumber =
+        smallest_squared > 0.0
+            ? std::sqrt(largest_squared / smallest_squared)
+            : std::numeric_limits<double>::infinity();
+}
+
+template<class TSparseSpace, class TDenseSpace>
+int BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::GetEffectivePolynomialLevel(
+    RecoveryOfRotationsCacheData& rCacheData) const
+{
+    const IndexType number_of_support_nodes = rCacheData.SupportNodeIds.size();
+    std::vector<int> candidates;
+    if (mPolynomialLevel == 0) {
+        candidates = {4, 3, 2, 1};
+    } else if (mPolynomialLevel == 4 && number_of_support_nodes < 5) {
+        candidates = number_of_support_nodes >= 3 ? std::vector<int>{3, 2, 1} : std::vector<int>{2, 1};
+    } else if (mPolynomialLevel == 3 && number_of_support_nodes < 3) {
+        candidates = {2, 1};
+    } else {
+        candidates = {mPolynomialLevel};
+    }
+
+    constexpr double automatic_condition_limit = 1.0e8;
+    for (const int candidate : candidates) {
+        if ((candidate == 4 && number_of_support_nodes < 5) ||
+            (candidate == 3 && number_of_support_nodes < 3)) {
+            continue;
+        }
+        rCacheData.PolynomialLevel = candidate;
+        rCacheData.PolynomialBasis = GetPolynomialBasisName(candidate);
+        ComputePolynomialDiagnostics(rCacheData);
+        const IndexType polynomial_size = GetVectorPolynomialSize(rCacheData.PolynomialBasis);
+        const bool full_rank = rCacheData.PolynomialRank == polynomial_size;
+        if (mPolynomialLevel != 0 && !full_rank) {
+            KRATOS_ERROR << "Requested polynomial_level=" << candidate
+                         << " is not unisolvent for this beam support: rank="
+                         << rCacheData.PolynomialRank << "/" << polynomial_size
+                         << ". Use level 0 (auto) or a line-adapted level for collinear support."
+                         << std::endl;
+        }
+        if (mPolynomialLevel != 0 ||
+            (full_rank && rCacheData.PolynomialConditionNumber <= automatic_condition_limit)) {
+            return candidate;
         }
     }
 
-    if (mPolynomialBasis == "enriched_line_adapted" && NumberOfSupportNodes < 3) {
-        return "line_adapted";
-    }
-
-    return mPolynomialBasis;
+    KRATOS_ERROR << "No full-rank, acceptably conditioned polynomial level was found for a beam chain with "
+                 << number_of_support_nodes << " support nodes." << std::endl;
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -1340,11 +1493,14 @@ BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::BuildEvaluat
                     values[mode_index][i];
             }
         } else {
+            const array_1d<double, 3> normalized_coordinates =
+                (rEvaluationCoordinates - rCacheData.PolynomialReferencePoint) /
+                rCacheData.PolynomialHalfLength;
             const std::array<double, Full3DPolynomialBasisSize> p{{
                 1.0,
-                rEvaluationCoordinates[0],
-                rEvaluationCoordinates[1],
-                rEvaluationCoordinates[2]}};
+                normalized_coordinates[0],
+                normalized_coordinates[1],
+                normalized_coordinates[2]}};
             for (IndexType basis_index = 0; basis_index < Full3DPolynomialBasisSize; ++basis_index) {
                 evaluation_matrix(i, 6 * number_of_support_nodes + 3 * basis_index + i) =
                     p[basis_index];
@@ -1353,6 +1509,144 @@ BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::BuildEvaluat
     }
 
     return evaluation_matrix;
+}
+
+template<class TSparseSpace, class TDenseSpace>
+typename BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::MatrixType
+BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::BuildCurlEvaluationMatrix(
+    const RecoveryOfRotationsCacheData& rCacheData,
+    const array_1d<double, 3>& rEvaluationCoordinates) const
+{
+    const IndexType number_of_support_nodes = rCacheData.SupportNodeIds.size();
+    const IndexType polynomial_size = GetVectorPolynomialSize(rCacheData.PolynomialBasis);
+    const IndexType system_size = 6 * number_of_support_nodes + polynomial_size;
+    MatrixType evaluation_matrix(3, system_size, 0.0);
+    const std::array<FunctionalType, 3> row_functionals{{
+        FunctionalType::CurlX,
+        FunctionalType::CurlY,
+        FunctionalType::CurlZ}};
+    const std::array<FunctionalType, 6> column_functionals{{
+        FunctionalType::ValueX,
+        FunctionalType::ValueY,
+        FunctionalType::ValueZ,
+        FunctionalType::CurlX,
+        FunctionalType::CurlY,
+        FunctionalType::CurlZ}};
+    const auto coefficient_index = [number_of_support_nodes](
+        const IndexType NodeIndex,
+        const IndexType FunctionalIndex) {
+        return FunctionalIndex < 3
+            ? 3 * NodeIndex + FunctionalIndex
+            : 3 * number_of_support_nodes + 3 * NodeIndex + FunctionalIndex - 3;
+    };
+
+    for (IndexType i = 0; i < 3; ++i) {
+        for (IndexType j = 0; j < number_of_support_nodes; ++j) {
+            for (IndexType functional_index = 0; functional_index < 6; ++functional_index) {
+                evaluation_matrix(i, coefficient_index(j, functional_index)) = ApplyFunctionalsToKernel(
+                    row_functionals[i],
+                    column_functionals[functional_index],
+                    rEvaluationCoordinates,
+                    rCacheData.SupportReferenceCoordinates[j]);
+            }
+        }
+
+        if (UsesLineAdaptedPolynomialBasis(rCacheData.PolynomialBasis)) {
+            std::vector<array_1d<double, 3>> values;
+            std::vector<array_1d<double, 3>> curls;
+            EvaluateLineAdaptedPolynomialModes(rCacheData, rEvaluationCoordinates, values, curls);
+            for (IndexType mode_index = 0; mode_index < polynomial_size; ++mode_index) {
+                evaluation_matrix(i, 6 * number_of_support_nodes + mode_index) = curls[mode_index][i];
+            }
+        } else {
+            const double inverse_half_length = 1.0 / rCacheData.PolynomialHalfLength;
+            const std::array<array_1d<double, 3>, Full3DPolynomialBasisSize> gradients{{
+                ZeroVector(3),
+                array_1d<double, 3>{inverse_half_length, 0.0, 0.0},
+                array_1d<double, 3>{0.0, inverse_half_length, 0.0},
+                array_1d<double, 3>{0.0, 0.0, inverse_half_length}}};
+            for (IndexType basis_index = 0; basis_index < Full3DPolynomialBasisSize; ++basis_index) {
+                const auto& r_grad = gradients[basis_index];
+                if (i == 0) {
+                    evaluation_matrix(i, 6 * number_of_support_nodes + 3 * basis_index + 1) = -r_grad[2];
+                    evaluation_matrix(i, 6 * number_of_support_nodes + 3 * basis_index + 2) =  r_grad[1];
+                } else if (i == 1) {
+                    evaluation_matrix(i, 6 * number_of_support_nodes + 3 * basis_index) =  r_grad[2];
+                    evaluation_matrix(i, 6 * number_of_support_nodes + 3 * basis_index + 2) = -r_grad[0];
+                } else {
+                    evaluation_matrix(i, 6 * number_of_support_nodes + 3 * basis_index) = -r_grad[1];
+                    evaluation_matrix(i, 6 * number_of_support_nodes + 3 * basis_index + 1) =  r_grad[0];
+                }
+            }
+        }
+    }
+    return evaluation_matrix;
+}
+
+template<class TSparseSpace, class TDenseSpace>
+typename BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::MatrixType
+BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::BuildRotationMatrix(
+    const VectorType& rRotationVector) const
+{
+    KRATOS_ERROR_IF(rRotationVector.size() != 3) << "Expected a three-component rotation vector." << std::endl;
+    MatrixType skew(3, 3, 0.0);
+    skew(0, 1) = -rRotationVector(2); skew(0, 2) =  rRotationVector(1);
+    skew(1, 0) =  rRotationVector(2); skew(1, 2) = -rRotationVector(0);
+    skew(2, 0) = -rRotationVector(1); skew(2, 1) =  rRotationVector(0);
+    const MatrixType skew_squared = prod(skew, skew);
+    const double angle_squared = inner_prod(rRotationVector, rRotationVector);
+    double sinc = 1.0;
+    double one_minus_cos_over_angle_squared = 0.5;
+    if (angle_squared < 1.0e-12) {
+        sinc = 1.0 - angle_squared / 6.0 + angle_squared * angle_squared / 120.0;
+        one_minus_cos_over_angle_squared =
+            0.5 - angle_squared / 24.0 + angle_squared * angle_squared / 720.0;
+    } else {
+        const double angle = std::sqrt(angle_squared);
+        sinc = std::sin(angle) / angle;
+        one_minus_cos_over_angle_squared = (1.0 - std::cos(angle)) / angle_squared;
+    }
+
+    MatrixType rotation = IdentityMatrix(3);
+    noalias(rotation) += sinc * skew + one_minus_cos_over_angle_squared * skew_squared;
+    return rotation;
+}
+
+template<class TSparseSpace, class TDenseSpace>
+typename BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::MatrixType
+BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::BuildRotationOffsetTangent(
+    const VectorType& rRotationVector,
+    const array_1d<double, 3>& rReferenceOffset) const
+{
+    MatrixType rotation_skew(3, 3, 0.0);
+    rotation_skew(0, 1) = -rRotationVector(2); rotation_skew(0, 2) =  rRotationVector(1);
+    rotation_skew(1, 0) =  rRotationVector(2); rotation_skew(1, 2) = -rRotationVector(0);
+    rotation_skew(2, 0) = -rRotationVector(1); rotation_skew(2, 1) =  rRotationVector(0);
+    const MatrixType rotation_skew_squared = prod(rotation_skew, rotation_skew);
+    const double angle_squared = inner_prod(rRotationVector, rRotationVector);
+    double b = 0.5;
+    double c = 1.0 / 6.0;
+    if (angle_squared < 1.0e-12) {
+        b = 0.5 - angle_squared / 24.0 + angle_squared * angle_squared / 720.0;
+        c = 1.0 / 6.0 - angle_squared / 120.0 + angle_squared * angle_squared / 5040.0;
+    } else {
+        const double angle = std::sqrt(angle_squared);
+        b = (1.0 - std::cos(angle)) / angle_squared;
+        c = (angle - std::sin(angle)) / (angle_squared * angle);
+    }
+    MatrixType right_jacobian = IdentityMatrix(3);
+    noalias(right_jacobian) -= b * rotation_skew;
+    noalias(right_jacobian) += c * rotation_skew_squared;
+
+    MatrixType offset_skew(3, 3, 0.0);
+    offset_skew(0, 1) = -rReferenceOffset[2]; offset_skew(0, 2) =  rReferenceOffset[1];
+    offset_skew(1, 0) =  rReferenceOffset[2]; offset_skew(1, 2) = -rReferenceOffset[0];
+    offset_skew(2, 0) = -rReferenceOffset[1]; offset_skew(2, 1) =  rReferenceOffset[0];
+    const MatrixType rotation = BuildRotationMatrix(rRotationVector);
+    const MatrixType rotated_offset_skew = prod(rotation, offset_skew);
+    MatrixType tangent = prod(rotated_offset_skew, right_jacobian);
+    tangent *= -1.0;
+    return tangent;
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -1433,17 +1727,16 @@ BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::GetOrCreateB
     ComputeSupportReferenceData(
         beam_chain_cache_data.SupportNodeIds,
         beam_chain_cache_data.SupportReferenceCoordinates);
-    beam_chain_cache_data.PolynomialBasis = GetEffectivePolynomialBasis(
-        beam_chain_cache_data.SupportNodeIds.size());
-    if (beam_chain_cache_data.PolynomialBasis != mPolynomialBasis) {
-        KRATOS_INFO_IF("BeamSplineMapperWithRecoveryOfRotations", mMapperSettings["echo_level"].GetInt() > 0)
-            << "Using '" << beam_chain_cache_data.PolynomialBasis
-            << "' polynomial basis for a beam chain with "
-            << beam_chain_cache_data.SupportNodeIds.size()
-            << " support nodes instead of requested '" << mPolynomialBasis
-            << "'." << std::endl;
-    }
     ComputeLineAdaptedPolynomialData(beam_chain_cache_data);
+    const int effective_polynomial_level = GetEffectivePolynomialLevel(beam_chain_cache_data);
+    KRATOS_INFO_IF("BeamSplineMapperWithRecoveryOfRotations", mMapperSettings["echo_level"].GetInt() > 0)
+        << "Polynomial level requested=" << mPolynomialLevel
+        << ", effective=" << effective_polynomial_level
+        << " ('" << beam_chain_cache_data.PolynomialBasis << "'), rank="
+        << beam_chain_cache_data.PolynomialRank << "/"
+        << GetVectorPolynomialSize(beam_chain_cache_data.PolynomialBasis)
+        << ", condition_estimate=" << beam_chain_cache_data.PolynomialConditionNumber
+        << "." << std::endl;
     beam_chain_cache_data.Key = CreateBeamChainKey(beam_chain_cache_data.SupportNodeIds);
     beam_chain_cache_data.SystemMatrix = BuildSplineSystemMatrix(beam_chain_cache_data);
     beam_chain_cache_data.SparseSystemMatrix =
@@ -1522,9 +1815,10 @@ BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::BuildSplineS
         }
     }
 
-    const IndexType regularized_size =
-        UsesLineAdaptedPolynomialBasis(rCacheData.PolynomialBasis) ? interpolation_size : system_size;
-    for (IndexType i = 0; i < regularized_size; ++i) {
+    // Ahrem's epsilon is added only to the non-polynomial Hermite block.
+    // Regularizing the zero polynomial block changes the side constraints and
+    // destroys exact polynomial reproduction.
+    for (IndexType i = 0; i < interpolation_size; ++i) {
         spline_system(i, i) += mRegularization;
     }
 
@@ -1598,7 +1892,6 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Compute
     KRATOS_ERROR_IF(r_support_reference_coordinates.size() < 2)
         << "BeamSplineMapperWithRecoveryOfRotations requires at least two support coordinates." << std::endl;
 
-    rCacheData.PolynomialReferencePoint = r_support_reference_coordinates.front();
     array_1d<double, 3> tangent = r_support_reference_coordinates.back() - r_support_reference_coordinates.front();
     const double tangent_norm = std::sqrt(
         tangent[0] * tangent[0] +
@@ -1607,6 +1900,9 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Compute
     KRATOS_ERROR_IF(tangent_norm <= FrameTolerance)
         << "Cannot build a line-adapted polynomial basis from coincident support endpoints." << std::endl;
 
+    rCacheData.PolynomialReferencePoint = 0.5 * (
+        r_support_reference_coordinates.front() + r_support_reference_coordinates.back());
+    rCacheData.PolynomialHalfLength = 0.5 * tangent_norm;
     tangent /= tangent_norm;
     rCacheData.PolynomialTangent = tangent;
 }
@@ -1881,7 +2177,8 @@ Parameters BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::G
         "kernel_type"                  : "cubic",
         "kernel_radius"                : 1.0,
         "regularization"               : 1.0e-8,
-        "polynomial_basis"             : "auto",
+        "polynomial_level"             : 0,
+        "rotation_recovery_mode"       : "small",
         "linear_solver_settings"       : {},
         "echo_level"                   : 0
     })");

@@ -157,7 +157,11 @@ public:
         NodePointerType pNode;
     };
 
-    explicit BeamSplineMapperLocalSystem(NodePointerType pNode) : mpNode(pNode) {}
+    explicit BeamSplineMapperLocalSystem(NodePointerType pNode)
+        : mpNode(pNode),
+          mCachedEvaluationRotationVector(3, 0.0)
+    {
+    }
 
     ~BeamSplineMapperLocalSystem() override = default;
 
@@ -179,6 +183,21 @@ public:
 
     ProjectionData CalculateProjectionData();
 
+    void SaveEvaluationRotationVector(const VectorType& rEvaluationRotationVector)
+    {
+        KRATOS_ERROR_IF(rEvaluationRotationVector.size() != 3)
+            << "Expected a 3D evaluation rotation vector." << std::endl;
+        mCachedEvaluationRotationVector = rEvaluationRotationVector;
+    }
+
+    void GetEvaluationRotationVector(VectorType& rEvaluationRotationVector) const
+    {
+        rEvaluationRotationVector.resize(3, false);
+        for (IndexType i = 0; i < 3; ++i) {
+            rEvaluationRotationVector(i) = mCachedEvaluationRotationVector(i);
+        }
+    }
+
     MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
     {
         return Kratos::make_unique<BeamSplineMapperLocalSystem>(pNode);
@@ -188,6 +207,7 @@ public:
 
 private:
     NodePointerType mpNode;
+    VectorType mCachedEvaluationRotationVector;
 };
 
 template<class TSparseSpace, class TDenseSpace>
@@ -281,9 +301,11 @@ private:
         std::vector<IndexType> SupportNodeIds;
         std::unordered_map<IndexType, IndexType> SupportNodeIdToLocalIndex;
         std::vector<double> LocalXCoordinates;
+        double CoordinateHalfLength = 1.0;
         std::vector<MatrixType> SupportFramesLocalToGlobal;
         std::vector<array_1d<double, 3>> SupportReferenceCoordinates;
         MatrixType SplineSystemMatrix;
+        MatrixType TransposedSplineSystemMatrix;
     };
 
     struct BeamChainSourceStateData
@@ -352,9 +374,15 @@ private:
         const std::vector<double>& rSourceCoordinates,
         const double ProjectionCoordinate) const;
 
+    VectorType BuildEvaluationDerivativeRow(
+        const std::vector<double>& rSourceCoordinates,
+        const double ProjectionCoordinate,
+        const double CoordinateHalfLength) const;
+
     VectorType BuildRightHandSide(
         const std::vector<double>& rDisplacements,
-        const std::vector<double>& rRotations) const;
+        const std::vector<double>& rRotations,
+        const double CoordinateHalfLength) const;
 
     void BuildLocalSourceData(
         const BeamChainCacheData& rBeamChainCacheData,
@@ -378,6 +406,9 @@ private:
     MatrixType BuildSplineSystemMatrix(
         const std::vector<double>& rSourceCoordinates) const;
 
+    MatrixType BuildTransposedMatrix(
+        const MatrixType& rMatrix) const;
+
     void ComputeBeamChainSupport(
         const GeometryType& rBeamGeometry,
         std::vector<IndexType>& rSupportNodeIds,
@@ -386,6 +417,7 @@ private:
     void ComputeSupportReferenceData(
         const std::vector<IndexType>& rSupportNodeIds,
         std::vector<double>& rLocalXCoordinates,
+        double& rCoordinateHalfLength,
         std::vector<MatrixType>& rSupportFramesLocalToGlobal,
         std::vector<array_1d<double, 3>>& rSupportReferenceCoordinates) const;
 
@@ -432,6 +464,7 @@ private:
 
     VectorType EvaluatePointDisplacementLocal(
         const VectorType& rEvaluationRow,
+        const VectorType& rEvaluationDerivativeRow,
         const VectorType& rSplineCoefficientsY,
         const VectorType& rSplineCoefficientsZ,
         const double AxialDisplacement,

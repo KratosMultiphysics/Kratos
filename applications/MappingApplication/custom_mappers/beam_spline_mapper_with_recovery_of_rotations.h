@@ -304,6 +304,32 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
 private:
+    /*
+     * polynomial_level is intentionally numeric in user settings:
+     *
+     * 0 AUTO: select the highest level whose scaled polynomial matrix is
+     *   full-column-rank and has kappa_2 <= 1e8.
+     *
+     * 1 PAPER_FULL_3D_LINEAR (12 modes):
+     *   p_{a,k}(X) = e_a {1, xhat, yhat, zhat}_k,
+     *   xhat = (X-Xc)/a.  This is Ahrem's complete vector-valued affine
+     *   polynomial space.  It reproduces affine displacement fields but can
+     *   be rank-deficient for purely collinear value-only data; the curl rows
+     *   provide the additional functionals used here.
+     *
+     * 2 LINE_BASIC (9 modes):
+     *   {e_a, e_a x r, P1(xi)e_a}, xi=t.(X-Xc)/a.
+     *   This is the robust collinear-beam space: translations, infinitesimal
+     *   rigid rotations, and linear centerline displacements.
+     *
+     * 3 LINE_ENRICHED (12 modes): level 2 plus
+     *   P1(xi)(e_a x r).  It targets linearly varying bending/twist.
+     *
+     * 4 LINE_HIGH_ORDER_ORTHOGONAL (30 modes): level 3 plus
+     *   P2..P3(xi)e_a and P2..P5(xi)(e_a x r), where Pn are
+     *   Legendre polynomials.  It spans the former monomial high-order space
+     *   while avoiding the severe origin/length scaling of s^n.
+     */
     static constexpr IndexType Full3DPolynomialBasisSize = 4;
     static constexpr IndexType Full3DVectorPolynomialSize = 3 * Full3DPolynomialBasisSize;
     static constexpr IndexType LineAdaptedVectorPolynomialSize = 9;
@@ -326,9 +352,13 @@ private:
         std::vector<IndexType> SupportNodeIds;
         std::unordered_map<IndexType, IndexType> SupportNodeIdToLocalIndex;
         std::vector<array_1d<double, 3>> SupportReferenceCoordinates;
+        int PolynomialLevel = 0;
         std::string PolynomialBasis;
         array_1d<double, 3> PolynomialReferencePoint = ZeroVector(3);
         array_1d<double, 3> PolynomialTangent = ZeroVector(3);
+        double PolynomialHalfLength = 1.0;
+        IndexType PolynomialRank = 0;
+        double PolynomialConditionNumber = 0.0;
         MatrixType SystemMatrix;
         mutable SparseMatrixType SparseSystemMatrix;
         mutable SparseMatrixType TransposedSparseSystemMatrix;
@@ -350,10 +380,13 @@ private:
     LinearSolverSharedPointerType mpLinearSolver = nullptr;
     std::unordered_map<std::string, RecoveryOfRotationsCacheData> mBeamChainCache;
     std::unordered_map<IndexType, std::string> mNodeIdToBeamChainKey;
+    std::unordered_map<std::string, RecoveryOfRotationsSourceStateData> mLastFiniteSourceStates;
+    bool mHasLastFiniteSourceState = false;
     double mKernelRadius = 1.0;
     double mRegularization = 1.0e-8;
     std::string mKernelType = "cubic";
-    std::string mPolynomialBasis = "auto";
+    int mPolynomialLevel = 0;
+    std::string mRotationRecoveryMode = "small";
 
     bool UsesLineAdaptedPolynomialBasis(const std::string& rPolynomialBasis) const;
 
@@ -415,7 +448,11 @@ private:
         std::vector<array_1d<double, 3>>& rValues,
         std::vector<array_1d<double, 3>>& rCurls) const;
 
-    std::string GetEffectivePolynomialBasis(const IndexType NumberOfSupportNodes) const;
+    int GetEffectivePolynomialLevel(RecoveryOfRotationsCacheData& rCacheData) const;
+
+    std::string GetPolynomialBasisName(const int PolynomialLevel) const;
+
+    void ComputePolynomialDiagnostics(RecoveryOfRotationsCacheData& rCacheData) const;
 
     IndexType GetVectorPolynomialSize(const std::string& rPolynomialBasis) const;
 
@@ -427,6 +464,16 @@ private:
     MatrixType BuildEvaluationMatrix(
         const RecoveryOfRotationsCacheData& rCacheData,
         const array_1d<double, 3>& rEvaluationCoordinates) const;
+
+    MatrixType BuildCurlEvaluationMatrix(
+        const RecoveryOfRotationsCacheData& rCacheData,
+        const array_1d<double, 3>& rEvaluationCoordinates) const;
+
+    MatrixType BuildRotationMatrix(const VectorType& rRotationVector) const;
+
+    MatrixType BuildRotationOffsetTangent(
+        const VectorType& rRotationVector,
+        const array_1d<double, 3>& rReferenceOffset) const;
 
     VectorType EvaluateDisplacement(
         const MatrixType& rEvaluationMatrix,
