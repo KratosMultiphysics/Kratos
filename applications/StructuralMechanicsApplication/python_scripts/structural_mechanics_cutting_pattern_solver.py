@@ -20,7 +20,7 @@ class CuttingPatternMechanicalSolver(MechanicalSolver):
     def __init__(self, main_model_part, custom_settings):
         # Construct the base solver.
         super().__init__(main_model_part, custom_settings)
-        #custom_settings["projection_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["projection_settings"])
+        self.settings["initial_flattening_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["initial_flattening_settings"])
 
         KratosMultiphysics.Logger.PrintInfo("::[CuttingPatternMechanicalSolver]:: ", "Construction finished")
 
@@ -31,15 +31,10 @@ class CuttingPatternMechanicalSolver(MechanicalSolver):
             "printing_format"             : "all",
             "write_cutting_pattern_geometry_file"    : true,
             "cuttingPattern_model_part_name" : "",
-            "projection_settings": {
-                "model_part_name"  : "Structure",
-                "echo_level"       : 0,
-                "projection_type"  : "planar",
-                "global_direction" : [1,0,0],
-                "variable_name"    : "PLEASE_SPECIFY",
-                "visualize_in_vtk" : false,
-                "method_specific_settings" : { },
-                "check_local_space_dimension" : false
+            "initial_flattening_settings": {
+                "projection_type"  : "planar_mean_normal",
+                "global_direction" : [0.0, 0.0, 1.0],
+                "echo_level"       : 0
             }
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
@@ -49,11 +44,11 @@ class CuttingPatternMechanicalSolver(MechanicalSolver):
 
     def Finalize(self):
         super().Finalize()
-        # if (self.settings["write_cutting_pattern_geometry_file"].GetBool()):
-        #     StructuralMechanicsApplication.CuttingPatternStrategy.WriteCuttingPatternMdpa(self.GetComputingModelPart())
+        if (self.settings["write_cutting_pattern_geometry_file"].GetBool()):
+            StructuralMechanicsApplication.CuttingPatternStrategy.WriteCuttingPatternMdpa(self.GetComputingModelPart())
 
     def _CreateScheme(self):
-        return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        return StructuralMechanicsApplication.CuttingPatternScheme()
 
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
@@ -64,8 +59,8 @@ class CuttingPatternMechanicalSolver(MechanicalSolver):
 
         # in some cases not all elements need to be reset by the cutting pattern strategy
         cuttingpattern_model_part = self.GetComputingModelPart()
-        # if len(self.settings["cuttingpattern_model_part_name"].GetString())>0:
-        #     cuttingpattern_model_part = computing_model_part.GetSubModelPart(self.settings["cuttingpattern_model_part_name"].GetString())
+        if len(self.settings["cuttingPattern_model_part_name"].GetString())>0:
+            cuttingpattern_model_part = computing_model_part.GetSubModelPart(self.settings["cuttingPattern_model_part_name"].GetString())
         return StructuralMechanicsApplication.CuttingPatternStrategy(
                                                                 computing_model_part,
                                                                 mechanical_scheme,
@@ -74,7 +69,7 @@ class CuttingPatternMechanicalSolver(MechanicalSolver):
                                                                 cuttingpattern_model_part,
                                                                 self.settings["write_cutting_pattern_geometry_file"].GetBool(),
                                                                 self.settings["printing_format"].GetString(),
-                                                                #self.settings["projection_settings"],
+                                                                self.settings["initial_flattening_settings"],
                                                                 self.settings["max_iteration"].GetInt(),
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
