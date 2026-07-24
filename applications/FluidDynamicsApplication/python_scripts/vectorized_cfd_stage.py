@@ -1480,6 +1480,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         max_idx = xp.argmax(rho_conv)
         dt_cfl = self.cfl / (rho_conv[max_idx] + eps)
 
+        if self.is_startup:
+            st_cfl *= 0.5 #much larger safety factor during the startup phase
+
         # Return the id of the element with maximum CFL and the most restrictive time step from all conditions
         return max_idx + 1, float(min(min(dt_cfl, self.dt_fourier), self.dt))
 
