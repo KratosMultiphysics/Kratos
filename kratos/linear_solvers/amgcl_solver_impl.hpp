@@ -315,6 +315,7 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings) {
         // Termination criteria.
         mAMGCLParameters.put("solver.tol", Settings["tolerance"].GetDouble());
         mAMGCLParameters.put("solver.maxiter", Settings["max_iteration"].GetInt());
+        mAMGCLParameters.put("solver.verbose", mVerbosity >= 2);
 
         mFallbackToGMRES = false;
         this->SetIterativeSolverType(Settings["krylov_type"].GetString());
