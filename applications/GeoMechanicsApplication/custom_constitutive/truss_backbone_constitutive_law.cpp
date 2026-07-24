@@ -103,7 +103,6 @@ void TrussBackboneConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValu
         mUnReLoadCenter = difference > 0.0 ? axial_strain - CalculateUnReLoadAmplitude(youngs_modulus)
                                            : axial_strain + CalculateUnReLoadAmplitude(youngs_modulus);
     }
-    mPreviousAxialStrain = axial_strain;
 }
 
 int TrussBackboneConstitutiveLaw::Check(const Properties&   rMaterialProperties,
@@ -149,7 +148,6 @@ void TrussBackboneConstitutiveLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     rSerializer.save("AccumulatedStrain", mAccumulatedStrain);
-    rSerializer.save("PreviousAxialStrain", mPreviousAxialStrain);
     rSerializer.save("UnReload", mUnReLoadCenter);
     rSerializer.save("StressStrainTable", mStressStrainTable);
 }
@@ -158,7 +156,6 @@ void TrussBackboneConstitutiveLaw::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     rSerializer.load("AccumulatedStrain", mAccumulatedStrain);
-    rSerializer.load("PreviousAxialStrain", mPreviousAxialStrain);
     rSerializer.load("UnReload", mUnReLoadCenter);
     rSerializer.load("StressStrainTable", mStressStrainTable);
 }

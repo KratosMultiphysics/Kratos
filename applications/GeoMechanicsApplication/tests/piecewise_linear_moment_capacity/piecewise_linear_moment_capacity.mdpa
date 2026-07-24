@@ -31,7 +31,7 @@ Begin SubModelPart Beam
   End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart Fixed_Displacement
+Begin SubModelPart Fully_Supported_End
   Begin SubModelPartNodes
     1
   End SubModelPartNodes

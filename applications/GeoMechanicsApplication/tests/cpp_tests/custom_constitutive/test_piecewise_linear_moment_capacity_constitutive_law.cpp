@@ -192,8 +192,8 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CloneCrea
 
     // Assert
     KRATOS_EXPECT_NE(p_clone.get(), nullptr);
-    KRATOS_EXPECT_TRUE(
-        dynamic_cast<PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw*>(p_clone.get()) != nullptr)
+    KRATOS_EXPECT_NE(
+        dynamic_cast<PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw*>(p_clone.get()), nullptr);
     KRATOS_EXPECT_EQ(p_clone->Info(), law.Info());
 }
 
@@ -220,9 +220,11 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_GetLawFea
     // Act
     law.GetLawFeatures(features);
 
-    // Assert
-    KRATOS_EXPECT_EQ(features.mStrainSize, law.GetStrainSize());
-    KRATOS_EXPECT_EQ(features.mSpaceDimension,
+    // Assert'
+    constexpr auto expected_strain_size = std::size_t{5};
+    KRATOS_EXPECT_EQ(expected_strain_size, law.GetStrainSize());
+    constexpr auto expected_space_dimension = std::size_t{3};
+    KRATOS_EXPECT_EQ(expected_space_dimension,
                      PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::space_dimension);
 }
 

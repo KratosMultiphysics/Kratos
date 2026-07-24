@@ -13,10 +13,6 @@
 
 #pragma once
 
-// System includes
-
-// External includes
-
 #include "includes/constitutive_law.h"
 #include "includes/table.h"
 
@@ -52,15 +48,13 @@ public:
 
     void GetLawFeatures(Features& rFeatures) override;
 
-    double& CalculateValue(ConstitutiveLaw::Parameters& rParameters,
-                           const Variable<double>&      rVariable,
-                           double&                      rValue) override;
+    double& CalculateValue(Parameters& rParameters, const Variable<double>& rVariable, double& rValue) override;
     using BaseType::CalculateValue;
 
     [[nodiscard]] StressMeasure GetStressMeasure() override;
     void                        CalculateMaterialResponsePK2(Parameters& rParameters) override;
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
-    void FinalizeMaterialResponsePK2(Parameters& rParameters) override;
+    void                        CalculateMaterialResponseCauchy(Parameters& rParameters) override;
+    void                        FinalizeMaterialResponsePK2(Parameters& rParameters) override;
 
     void InitializeMaterial(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,
@@ -77,18 +71,18 @@ public:
     [[nodiscard]] std::string Info() const override;
 
 private:
-    Table<double, double> mStressStrainTable;
+    Table<double, double> mBendingMomentCurvatureTable;
     double                mAccumulatedCurvature = 0.0;
     double                mUnReLoadCenter       = 0.0;
     double                mUnReLoadModulus      = 0.0;
 
     [[nodiscard]] double CalculateUnReLoadAmplitude() const;
     [[nodiscard]] bool   IsWithinUnReLoading(double Curvature) const;
-    [[nodiscard]] std::pair<double, double> CalculateMomentAndTangentModulus(double curvature) const;
-    [[nodiscard]] double BackboneTangentModulus(double curvature) const;
-    [[nodiscard]] double BackboneMoment(double curvature) const;
+    [[nodiscard]] std::pair<double, double> CalculateMomentAndTangentModulus(double Curvature) const;
+    [[nodiscard]] double BackboneTangentModulus(double Curvature) const;
+    [[nodiscard]] double BackboneMoment(double Curvature) const;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 };
