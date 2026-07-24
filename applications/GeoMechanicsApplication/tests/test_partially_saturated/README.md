@@ -20,23 +20,19 @@ The picture below illustrates the pressure contours resulting from the simulatio
 
 <img src="documentation_data/test_saturated_below_phreatic_level_pw_triangle6n_results.png" alt="Pressure field for case of saturation below phreatic level at stage 2" title="Pressure field at stage 2" width="600">
 
-## Infiltration tests
+## Infiltration test
 
-The geometry and boundary conditions used in the two infiltration tests are shown below. The initial condition is a hydrostatic pressure profile with the reference coordinate at the bottom of the column. This means that at the start, the column contains positive pressures. The boundary condition of $p_w=0$, induces infiltration, which propagates downwards through the column. 
+The geometry and boundary conditions used the infiltration test are shown below. The initial condition is a hydrostatic pressure profile with the reference coordinate at the bottom of the column. This means that at the start, the column contains positive pressures. The boundary condition of $p_w=0$, induces infiltration, which propagates downwards through the column. 
 
-![Geometry and boundary conditions for test_infiltration_pw](test_infiltration_pw/column_partially_saturated.svg)
+![Geometry and boundary conditions for test_infiltration_pw](test_infiltration_pw/setup_schematic.svg)
 
 Characteristics:
 - Zero pressure boundary condition at the top of the model.
 - Zero flux boundary condition at the bottom of the model.
 - Hydrostatic pressure profile as initial condition with the reference coordinate at y = -2 (at the bottom of the column)
+- The elements used are `TransientPwElement2D3N`
 
-This infiltration test has been done in two variants: one using linear Pw elements and one using diff order UPw elements (quadratic in displacement, linear in pressure), which are described in the following sections.
-
-### Variant with Pw elements
-The first variant of this problem uses Pw (water pressure) only elements (TransientPwElement2D3N). The pressure profiles at different time steps can be found in the following image. The red markers depict the asserted pressures, chosen at characteristic positions in the curves.
+### Results
+For this problem, linear Pw (water pressure) elements (TransientPwElement2D3N) are used (meaning the displacements are not regarded). The pressure profiles at different time steps can be found in the following image. The red markers depict the asserted pressures, chosen at characteristic positions in the curves.
 
 ![Results for Pw elements](test_infiltration_pw/infiltration_from_top_boundary.svg)
-
-### Variant with UPw elements
-The second variant also takes into account displacements and uses elements of the type SmallStrainUPwDiffOrderElement2D6N. 
