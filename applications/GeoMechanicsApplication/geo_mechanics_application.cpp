@@ -355,6 +355,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw", mLinearElastic3DInterfaceLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussBackboneConstitutiveLaw", mTrussBackboneConstitutiveLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw",
+                                     mPiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElasticInterfaceLaw", mIncrementalLinearElasticInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElasticInterface3DSurfaceLaw",
@@ -611,6 +613,9 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_VARIABLE(STRAINS_OF_PIECEWISE_LINEAR_LAW)
     KRATOS_REGISTER_VARIABLE(STRESSES_OF_PIECEWISE_LINEAR_LAW)
+    KRATOS_REGISTER_VARIABLE(GEO_KAPPA_PIECEWISE_LINEAR_LAW)
+    KRATOS_REGISTER_VARIABLE(GEO_MOMENT_PIECEWISE_LINEAR_LAW)
+    KRATOS_REGISTER_VARIABLE(GEO_UNLOADING_RELOADING_MODULUS)
 
     KRATOS_REGISTER_VARIABLE(INTERFACE_NORMAL_STIFFNESS)
     KRATOS_REGISTER_VARIABLE(INTERFACE_SHEAR_STIFFNESS)

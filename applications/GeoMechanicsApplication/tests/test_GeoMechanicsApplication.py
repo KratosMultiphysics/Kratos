@@ -72,6 +72,7 @@ from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
 from test_upw_interface import KratosGeoMechanicsUPwInterfaceTests
 from test_building_pit import KratosGeoMechanicsBuildingPit
 from test_CROW_case import KratosGeoMechanicsCrowValidation
+from test_piecewise_linear_moment_capacity import KratosGeoMechanicsPiecewiseLinearMomentCapacityTests
 from test_udsm_serialization import KratosGeoMechanicsUDSMSerializationTest
 
 def AssembleTestSuites():
@@ -131,6 +132,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDirichletUConstantTests,
                         KratosGeoMechanicsInterfacePreStressTests,
                         KratosGeoMechanicsUPwInterfaceTests,
+                        KratosGeoMechanicsPiecewiseLinearMomentCapacityTests,
                         KratosGeoMechanicsUDSMSerializationTest,
                         ]
 
