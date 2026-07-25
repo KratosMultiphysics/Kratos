@@ -23,9 +23,10 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
-            "sensor_group_name": "sensors",
-            "tolerance"     : 1e-9,
-            "output_to_file" : true,
+            "sensor_group_name"             : "sensors",
+            "tolerance"                     : 1e-9,
+            "output_to_file"                : true,
+            "use_relative_error"            : false,
             "sensor_error_output_file_name" : "max_sensor_error.csv"
         }""")
 
@@ -36,6 +37,7 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
         self.__optimization_problem = optimization_problem
         self.__output_to_file = parameters["output_to_file"].GetBool()
         self.__sensor_error_output_file_name = parameters["sensor_error_output_file_name"].GetString()
+        self.__use_relative_error = parameters["use_relative_error"].GetBool()
         self.__model = model
 
     def Initialize(self):
@@ -62,8 +64,13 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
         sensor_group_data = ComponentDataView(self.__sensor_group_name, self.__optimization_problem)
         self.list_of_sensors = GetSensors(sensor_group_data)
 
-        ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.__model[self.__sensor_group_name].Nodes, KratosSI.SENSOR_ERROR)
+        if self.__use_relative_error:
+            ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.__model[self.__sensor_group_name].Nodes, KratosSI.SENSOR_RELATIVE_ERROR)
+        else:
+            ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.__model[self.__sensor_group_name].Nodes, KratosSI.SENSOR_ERROR)
+
         ta.CollectData()
+        ta.data[:] = numpy.abs(ta.data, dtype=numpy.float64)
         self.__max_sensor_index = numpy.argmax(ta.data)
         self.__max_sensor_error = ta.data[self.__max_sensor_index]
         self.__conv = self.__max_sensor_error <= self.__tolerance
