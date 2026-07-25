@@ -112,6 +112,11 @@ std::tuple<IndexType, IndexType> DistanceMatrix::GetIndexPair(const IndexType En
     return std::make_tuple(i, j);
 }
 
+const std::vector<double>& DistanceMatrix::GetDistances() const
+{
+    return mDistances;
+}
+
 std::string DistanceMatrix::Info() const
 {
     return "DistanceMatrix";

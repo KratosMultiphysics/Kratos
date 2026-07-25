@@ -66,6 +66,8 @@ public:
 
     void Update(const TensorAdaptor<double>& rDistancesTensorAdaptor);
 
+    const std::vector<double>& GetDistances() const;
+
     ///@}
     ///@name Input and output
     ///@{

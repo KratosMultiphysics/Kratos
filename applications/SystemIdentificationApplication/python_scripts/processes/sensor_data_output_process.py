@@ -1,12 +1,12 @@
 import json
 import pathlib
+import numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
 def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Kratos.Process:
     if not parameters.Has("settings"):
@@ -24,7 +24,8 @@ class SensorDataOutputProcess(Kratos.OutputProcess):
             "sensor_activation_threshold": 0.9,
             "output_file_name"           : "",
             "output_interval"            : 1,
-            "compute_clustering"         : true
+            "compute_clustering"         : true,
+            "number_of_largest_clusters" : 10
         }""")
 
         parameters.ValidateAndAssignDefaults(default_parameters)
@@ -34,6 +35,7 @@ class SensorDataOutputProcess(Kratos.OutputProcess):
         self.compute_clustering = parameters["compute_clustering"].GetBool()
         self.sensor_mask_name = parameters["sensor_mask_name"].GetString()
         self.sensor_activation_threshold = parameters["sensor_activation_threshold"].GetDouble()
+        self.number_of_largest_clusters = parameters["number_of_largest_clusters"].GetInt()
 
         self.optimization_problem = optimization_problem
 
@@ -43,7 +45,8 @@ class SensorDataOutputProcess(Kratos.OutputProcess):
         if self.compute_clustering:
             component_data_view = ComponentDataView(self.sensor_group_name, self.optimization_problem)
             list_of_sensors = GetSensors(component_data_view)
-            overall_cluster = list_of_sensors[0].GetContainerExpression(self.sensor_mask_name) * 0.0
+            overall_cluster = list_of_sensors[0].GetTensorAdaptor(self.sensor_mask_name).Clone()
+            overall_cluster.data[:] = 0.0
             component_data_view.GetUnBufferedData().SetValue("clustering", overall_cluster.Clone(), overwrite=True)
 
     def IsOutputStep(self):
@@ -67,16 +70,17 @@ class SensorDataOutputProcess(Kratos.OutputProcess):
             file_output.write(json.dumps(json_sensors, indent=4))
 
         if self.compute_clustering:
-            overall_cluster = list_of_sensors[0].GetContainerExpression(self.sensor_mask_name) * 0.0
+            overall_cluster = list_of_sensors[0].GetTensorAdaptor(self.sensor_mask_name)
+            overall_cluster.data[:] = 0.0
 
-            list_of_masks: 'list[ContainerExpressionTypes]' = []
+            list_of_masks: 'list[Kratos.TensorAdaptors.DoubleTensorAdaptor]' = []
             for sensor in list_of_sensors:
                 if sensor.GetNode().GetValue(KratosSI.SENSOR_STATUS) > self.sensor_activation_threshold:
-                    list_of_masks.append(sensor.GetContainerExpression(self.sensor_mask_name))
+                    list_of_masks.append(sensor.GetTensorAdaptor(self.sensor_mask_name))
 
             cluster_info = KratosSI.MaskUtils.ClusterMasks(list_of_masks)
 
-            cluster_id_exp_list: 'list[tuple[int, ContainerExpressionTypes]]' = []
+            cluster_id_exp_list: 'list[tuple[int, Kratos.TensorAdaptors.DoubleTensorAdaptor]]' = []
             cluster_id = 1
             for cluster_indices_list, cluster_exp in cluster_info:
                 if cluster_indices_list != []:
@@ -85,8 +89,12 @@ class SensorDataOutputProcess(Kratos.OutputProcess):
                 else:
                     cluster_id_exp_list.append((0, cluster_exp.Clone()))
 
-            for cluster_id, cluster_exp in cluster_id_exp_list:
-                overall_cluster += cluster_exp * cluster_id
+            largest_clusters: list[tuple[float, Kratos.TensorAdaptors.DoubleTensorAdaptor]] = []
+            domain_size_ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(overall_cluster.GetContainer(), Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.Metric.DomainSize)
+            domain_size_ta.CollectData()
+            sorted_cluster_id_exp_list = sorted(cluster_id_exp_list, key=lambda x: numpy.sum(x[1].data * domain_size_ta.data), reverse=True)
+            for i, (_, cluster_exp) in enumerate(sorted_cluster_id_exp_list):
+                overall_cluster.data[:] += cluster_exp.data[:] * i
 
             component_data_view.GetUnBufferedData().SetValue("clustering", overall_cluster.Clone(), overwrite=True)
 

@@ -76,6 +76,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetDistance", py::overload_cast<const IndexType, const IndexType>(&DistanceMatrix::GetDistance, py::const_), py::arg("index_i"), py::arg("index_j"))
         .def("GetEntriesSize", &DistanceMatrix::GetEntriesSize)
         .def("GetNumberOfItems", &DistanceMatrix::GetNumberOfItems)
+        .def("GetDistances", &DistanceMatrix::GetDistances)
         .def("__str__", PrintObject<DistanceMatrix>)
         ;
 
@@ -84,13 +85,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetMasks", &SensorMaskStatus::GetMasks)
         .def("GetMaskStatuses", &SensorMaskStatus::GetMaskStatuses)
         .def("GetSensorStatus", &SensorMaskStatus::GetSensorStatus)
-        .def("GetSensorModelPart", &SensorMaskStatus::GetSensorModelPart)
+        .def("GetSensorModelPart", &SensorMaskStatus::GetSensorModelPart, py::return_value_policy::reference_internal)
         .def("GetMaskContainer", &SensorMaskStatus::pGetMaskContainer)
         .def("Update", &SensorMaskStatus::Update)
         ;
 
     py::class_<SensorMaskStatusKDTree, SensorMaskStatusKDTree::Pointer>(m, "SensorMaskStatusKDTree")
-        .def(py::init<SensorMaskStatus::Pointer, const IndexType, const IndexType>(), py::arg("sensor_mask_status"), py::arg("leaf_max_size"), py::arg("echo_level"))
+        .def(py::init<SensorMaskStatus::Pointer, const IndexType, const IndexType, const bool>(), py::arg("sensor_mask_status"), py::arg("leaf_max_size"), py::arg("echo_level"), py::arg("use_kd_tree") = true)
         .def("RadiusSearch", [](const SensorMaskStatusKDTree& rSelf, const Vector& rQueryPoint, const double Radius)
              {
                 std::vector<nanoflann::ResultItem<unsigned int, double>> result;

@@ -79,6 +79,7 @@ double SensorLocalizationResponseUtils::CalculateValue(const double AllowedDissi
 
     using tls_type = std::vector<SensorMaskStatusKDTree::ResultType>;
 
+    const double inverse_allowed_dissimilarity = 1.0 / AllowedDissimilarity;
     const double search_radius = -AllowedDissimilarity * std::log(mEpsilon);
 
     KRATOS_INFO("SensorLocalizationResponseUtils")
@@ -88,10 +89,12 @@ double SensorLocalizationResponseUtils::CalculateValue(const double AllowedDissi
     // possible number of maximum clusters is the number of elements.
     const IndexType number_of_elements = mDomainSizeRatio.size();
 
-    // get the sensor mask statuses
-    const auto& r_sensor_mask_statuses = mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskStatuses();
+    const auto p_sensor_mask_status = mpSensorMaskStatusKDTree->GetSensorMaskStatus();
 
-    const auto& r_mask_statuses_gradient = mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMasks();
+    // get the sensor mask statuses
+    const auto& r_sensor_mask_statuses = p_sensor_mask_status->GetMaskStatuses();
+
+    const auto& r_mask_statuses_gradient = p_sensor_mask_status->GetMasks();
 
     const IndexType number_of_sensors = r_sensor_mask_statuses.size2();
 
@@ -106,6 +109,7 @@ double SensorLocalizationResponseUtils::CalculateValue(const double AllowedDissi
         IndexPartition<IndexType>(number_of_elements).for_each(tls_type{}, [&](const auto iElement, auto& rResult) {
             double& cluster_size_ratio = mClusterSizeRatios[iElement];
             cluster_size_ratio = 0.0;
+            auto i_mask_row = row(r_mask_statuses_gradient, iElement);
 
             // getting neighbours for all the elements which are within the radius current_dissimilarity ("0.99999999999999999" is used to make sure that
             // we have all the neighbours within the radius = current_dissimilarity, but not the neighbours with current_dissimilarity). All other elements which has distance >= current_dissimilarity
@@ -115,13 +119,15 @@ double SensorLocalizationResponseUtils::CalculateValue(const double AllowedDissi
             for (const auto& r_neighbour_data : rResult) {
                 const auto r_neighbour_index = r_neighbour_data.first;
                 const auto r_neighbour_squared_distance = r_neighbour_data.second;
-                const double coeff = std::exp(-r_neighbour_squared_distance / AllowedDissimilarity);
-                cluster_size_ratio += mDomainSizeRatio[r_neighbour_index] * coeff;
+                const double weighted_coeff = mDomainSizeRatio[r_neighbour_index] * std::exp(-r_neighbour_squared_distance * inverse_allowed_dissimilarity);
+
+                cluster_size_ratio += weighted_coeff;
+
+                const double derivative_weight = weighted_coeff * inverse_allowed_dissimilarity;
+                auto j_mask_row = row(r_mask_statuses_gradient, r_neighbour_index);
 
                 for (IndexType i_sensor = 0; i_sensor < number_of_sensors; ++i_sensor) {
-                    const auto i_mask_value = r_mask_statuses_gradient(iElement, i_sensor);
-                    const auto j_mask_value = r_mask_statuses_gradient(r_neighbour_index, i_sensor);
-                    cluster_size_derivatives(iElement, i_sensor) -= mDomainSizeRatio[r_neighbour_index] * coeff * std::abs(i_mask_value - j_mask_value) / AllowedDissimilarity;
+                    cluster_size_derivatives(iElement, i_sensor) -= derivative_weight * std::abs(i_mask_row(i_sensor) - j_mask_row(i_sensor));
                 }
             }
 
@@ -151,7 +157,7 @@ double SensorLocalizationResponseUtils::CalculateValue(const double AllowedDissi
 
         return value;
 
-    }, mpSensorMaskStatusKDTree->GetSensorMaskStatus()->pGetMaskContainer());
+    }, p_sensor_mask_status->pGetMaskContainer());
 
     KRATOS_CATCH("");
 }

@@ -16,14 +16,16 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 class SensorDataInputController(ModelPartController):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
-            "sensor_group_name"     : "",
-            "sensor_mask_name"      : "",
-            "domain_model_part_name": "",
-            "mask_scaling"          : "l2_norm",
-            "h5_file_name"          : "",
-            "data_field_name"       : "",
-            "echo_level"            : 0,
-            "kd_tree_settings"      : {
+            "sensor_group_name"        : "",
+            "sensor_mask_name"         : "",
+            "domain_model_part_name"   : "",
+            "mask_scaling_norm"        : "l2_norm",
+            "mask_scaling_method"      : "all",
+            "domain_size_normalization": true,
+            "h5_file_name"             : "",
+            "data_field_name"          : "",
+            "echo_level"               : 0,
+            "kd_tree_settings"         : {
                 "use_kd_tree"  : true,
                 "leaf_max_size": 100
             }
@@ -39,14 +41,19 @@ class SensorDataInputController(ModelPartController):
         self.h5_file_name = parameters["h5_file_name"].GetString()
         self.data_field_name = parameters["data_field_name"].GetString()
         self.echo_level = parameters["echo_level"].GetInt()
+        self.mask_scaling_method = parameters["mask_scaling_method"].GetString()
+        self.domain_size_normalization = parameters["domain_size_normalization"].GetBool()
 
-        mask_scaling_type = parameters["mask_scaling"].GetString()
-        if mask_scaling_type == "none":
-            self.scale_mask = lambda x: 1
-        elif mask_scaling_type == "inf_norm":
-            self.scale_mask = lambda x: numpy.linalg.norm(x.data, ord=numpy.inf)
-        elif mask_scaling_type == "l2_norm":
-            self.scale_mask = lambda x: numpy.linalg.norm(x.data)
+        if self.mask_scaling_method not in ["all", "sensor_wise"]:
+            raise RuntimeError(f"Unsupported mask scaling method = \"{self.mask_scaling_method}\" provided. Followings are supported:\n\tall\n\tsensor_wise")
+
+        mask_scaling_norm = parameters["mask_scaling_norm"].GetString()
+        if mask_scaling_norm == "none":
+            self.norm_mask = lambda x: 1
+        elif mask_scaling_norm == "inf_norm":
+            self.norm_mask = lambda x: numpy.linalg.norm(x.data, ord=numpy.inf)
+        elif mask_scaling_norm == "l2_norm":
+            self.norm_mask = lambda x: numpy.linalg.norm(x.data)
         else:
             raise RuntimeError(f"Unsupported mask scaling method [ mask_scaling = {self.mask_scaling_type}. Supported methods are:\n\t" + "\n\t".join(["none", "inf_norm", "l2_norm"]))
 
@@ -80,27 +87,39 @@ class SensorDataInputController(ModelPartController):
 
                 if container_type in ["NodalExpression", "NodesArray"]:
                     ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(domain_model_part.Nodes, Kratos.DoubleNDData(dataset[:]), copy=False)
+                    domain_size_ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(domain_model_part.Nodes, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.Metric.DomainSize)
                 elif container_type in ["ConditionExpression", "ConditionsArray"]:
                     ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(domain_model_part.Conditions, Kratos.DoubleNDData(dataset[:]), copy=False)
+                    domain_size_ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(domain_model_part.Conditions, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.Metric.DomainSize)
                 elif container_type in ["ElementExpression", "ElementsArray"]:
                     ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(domain_model_part.Elements, Kratos.DoubleNDData(dataset[:]), copy=False)
+                    domain_size_ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(domain_model_part.Elements, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.Metric.DomainSize)
                 else:
                     raise RuntimeError(f"Unsupported container type = \"{container_type}\" requested for dataset at \"{current_sensor_data_field_name}\".")
 
-                max_norm = max(max_norm, self.scale_mask(ta))
+                if self.domain_size_normalization:
+                    domain_size_ta.CollectData()
+                    ta.data[:] /= domain_size_ta.data[:]
+
+                norm = self.norm_mask(ta)
+                if self.mask_scaling_method == "sensor_wise":
+                    ta.data[:] /= norm
+                else:
+                    max_norm = max(max_norm, norm)
+
                 list_of_masks.append(ta)
 
         for mask, sensor in zip(list_of_masks, list_of_sensors):
-            mask.data[:] /= max_norm
+            if self.mask_scaling_method == "all":
+                mask.data[:] /= max_norm
             sensor.AddTensorAdaptor(self.sensor_mask_name, mask)
 
         # now create the mask
         self.sensor_mask_status = KratosSI.SensorMaskStatus(self.model[self.sensor_group_name], list_of_masks, self.echo_level)
         AddMaskStatusController(sensor_group_data, self.sensor_mask_name, self.sensor_mask_status)
 
-        if self.use_kd_tree:
-            self.sensor_mask_status_kd_tree = KratosSI.SensorMaskStatusKDTree(self.sensor_mask_status, self.leaf_max_size, self.echo_level)
-            AddMaskStatusController(sensor_group_data, self.sensor_mask_name, self.sensor_mask_status_kd_tree)
+        self.sensor_mask_status_kd_tree = KratosSI.SensorMaskStatusKDTree(self.sensor_mask_status, self.leaf_max_size, self.echo_level, self.use_kd_tree)
+        AddMaskStatusController(sensor_group_data, self.sensor_mask_name, self.sensor_mask_status_kd_tree)
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model[self.sensor_group_name]
