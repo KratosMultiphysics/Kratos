@@ -71,14 +71,19 @@ IndexType GetUpperValueRangeIndex(
     return std::clamp<IndexType>(upper_index, 1UL, size - 1);
 }
 
-double ProjectValueForward(
+} // namespace SigmoidalValueProjectionUtils
+
+namespace Kratos
+{
+
+double SigmoidalProjectionUtils::ProjectForward(
     const double xValue,
     const std::vector<double>& rXLimits,
     const std::vector<double>& rYLimits,
     const double Beta,
-    const int PenaltyFactor)
+    const double PenaltyFactor)
 {
-    const IndexType upper_index = GetUpperValueRangeIndex(xValue, rXLimits);
+    const IndexType upper_index = SigmoidalValueProjectionUtils::GetUpperValueRangeIndex(xValue, rXLimits);
 
     const double x1 = rXLimits[upper_index - 1];
     const double x2 = rXLimits[upper_index];
@@ -91,19 +96,19 @@ double ProjectValueForward(
     return (y2 - y1) / std::pow((1.0 + std::exp(pow_val)), PenaltyFactor) + y1;
 }
 
-double ProjectValueBackward(
+double SigmoidalProjectionUtils::ProjectBackward(
     const double yValue,
     const std::vector<double>& rXLimits,
     const std::vector<double>& rYLimits,
     const double Beta,
-    const int PenaltyFactor)
+    const double PenaltyFactor)
 {
     IndexType size = rXLimits.size();
     KRATOS_ERROR_IF(yValue > rYLimits[size - 1] || yValue < rYLimits[0])
-        << "SigmoidalProjectionUtils::ProjectValueBackward: yValue "
+        << "SigmoidalProjectionUtils::ProjectBackward: yValue "
         << yValue << " is out of the given range " << rYLimits << "\n";
 
-    const IndexType upper_index = GetUpperValueRangeIndex(yValue, rYLimits);
+    const IndexType upper_index = SigmoidalValueProjectionUtils::GetUpperValueRangeIndex(yValue, rYLimits);
 
     const double x1 = rXLimits[upper_index - 1];
     const double x2 = rXLimits[upper_index];
@@ -121,14 +126,14 @@ double ProjectValueBackward(
     }
 }
 
-double ComputeFirstDerivativeAtValue(
+double SigmoidalProjectionUtils::CalculateForwardProjectionGradient(
     const double xValue,
     const std::vector<double>& rXLimits,
     const std::vector<double>& rYLimits,
     const double Beta,
-    const int PenaltyFactor)
+    const double PenaltyFactor)
 {
-    const IndexType upper_index = GetUpperValueRangeIndex(xValue, rXLimits);
+    const IndexType upper_index = SigmoidalValueProjectionUtils::GetUpperValueRangeIndex(xValue, rXLimits);
 
     const double x1 = rXLimits[upper_index - 1];
     const double x2 = rXLimits[upper_index];
@@ -141,17 +146,13 @@ double ComputeFirstDerivativeAtValue(
     return (y2 - y1) * (1.0 / std::pow(1 + std::exp(pow_val), PenaltyFactor + 1)) *
            PenaltyFactor * 2.0 * Beta * std::exp(pow_val);
 }
-} // namespace SigmoidalValueProjectionUtils
-
-namespace Kratos
-{
 
 TensorAdaptor<double>::Pointer SigmoidalProjectionUtils::ProjectForward(
     const TensorAdaptor<double>& rInputTensorAdaptor,
     const std::vector<double>& rXValues,
     const std::vector<double>& rYValues,
     const double Beta,
-    const int PenaltyFactor)
+    const double PenaltyFactor)
 {
     KRATOS_TRY
 
@@ -165,7 +166,7 @@ TensorAdaptor<double>::Pointer SigmoidalProjectionUtils::ProjectForward(
     auto result_data_view = p_result_tensor_adaptor->ViewData();
 
     IndexPartition<IndexType>(size).for_each([&input_data_view, &result_data_view, &rXValues, &rYValues, Beta, PenaltyFactor](const IndexType Index) {
-        result_data_view[Index] = SigmoidalValueProjectionUtils::ProjectValueForward(input_data_view[Index], rXValues, rYValues, Beta, PenaltyFactor);
+        result_data_view[Index] = ProjectForward(input_data_view[Index], rXValues, rYValues, Beta, PenaltyFactor);
     });
 
     return p_result_tensor_adaptor;
@@ -178,7 +179,7 @@ TensorAdaptor<double>::Pointer SigmoidalProjectionUtils::ProjectBackward(
     const std::vector<double>& rXValues,
     const std::vector<double>& rYValues,
     const double Beta,
-    const int PenaltyFactor)
+    const double PenaltyFactor)
 {
     KRATOS_TRY
 
@@ -192,7 +193,7 @@ TensorAdaptor<double>::Pointer SigmoidalProjectionUtils::ProjectBackward(
     auto result_data_view = p_result_tensor_adaptor->ViewData();
 
     IndexPartition<IndexType>(size).for_each([&input_data_view, &result_data_view, &rXValues, &rYValues, Beta, PenaltyFactor](const IndexType Index) {
-        result_data_view[Index] = SigmoidalValueProjectionUtils::ProjectValueBackward(input_data_view[Index], rXValues, rYValues, Beta, PenaltyFactor);
+        result_data_view[Index] = ProjectBackward(input_data_view[Index], rXValues, rYValues, Beta, PenaltyFactor);
     });
 
     return p_result_tensor_adaptor;
@@ -205,7 +206,7 @@ TensorAdaptor<double>::Pointer SigmoidalProjectionUtils::CalculateForwardProject
     const std::vector<double>& rXValues,
     const std::vector<double>& rYValues,
     const double Beta,
-    const int PenaltyFactor)
+    const double PenaltyFactor)
 {
     KRATOS_TRY
 
@@ -219,7 +220,7 @@ TensorAdaptor<double>::Pointer SigmoidalProjectionUtils::CalculateForwardProject
     auto result_data_view = p_result_tensor_adaptor->ViewData();
 
     IndexPartition<IndexType>(size).for_each([&input_data_view, &result_data_view, &rXValues, &rYValues, Beta, PenaltyFactor](const IndexType Index) {
-        result_data_view[Index] = SigmoidalValueProjectionUtils::ComputeFirstDerivativeAtValue(input_data_view[Index], rXValues, rYValues, Beta, PenaltyFactor);
+        result_data_view[Index] = CalculateForwardProjectionGradient(input_data_view[Index], rXValues, rYValues, Beta, PenaltyFactor);
     });
 
     return p_result_tensor_adaptor;

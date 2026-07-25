@@ -40,26 +40,47 @@ public:
     ///@name Static operations
     ///@{
 
+    static double ProjectForward(
+        const double Value,
+        const std::vector<double>& rXValues,
+        const std::vector<double>& rYValues,
+        const double Beta,
+        const double PenaltyFactor);
+
+    static double ProjectBackward(
+        const double Value,
+        const std::vector<double>& rXValues,
+        const std::vector<double>& rYValues,
+        const double Beta,
+        const double PenaltyFactor);
+
+    static double CalculateForwardProjectionGradient(
+        const double Value,
+        const std::vector<double>& rXValues,
+        const std::vector<double>& rYValues,
+        const double Beta,
+        const double PenaltyFactor);
+
     static TensorAdaptor<double>::Pointer ProjectForward(
         const TensorAdaptor<double>& rInputTensorAdaptor,
         const std::vector<double>& rXValues,
         const std::vector<double>& rYValues,
         const double Beta,
-        const int PenaltyFactor);
+        const double PenaltyFactor);
 
     static TensorAdaptor<double>::Pointer ProjectBackward(
         const TensorAdaptor<double>& rInputTensorAdaptor,
         const std::vector<double>& rXValues,
         const std::vector<double>& rYValues,
         const double Beta,
-        const int PenaltyFactor);
+        const double PenaltyFactor);
 
     static TensorAdaptor<double>::Pointer CalculateForwardProjectionGradient(
         const TensorAdaptor<double>& rInputTensorAdaptor,
         const std::vector<double>& rXValues,
         const std::vector<double>& rYValues,
         const double Beta,
-        const int PenaltyFactor);
+        const double PenaltyFactor);
 
     ///@}
 };

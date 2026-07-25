@@ -34,9 +34,12 @@ void  AddCustomControlUtilitiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     auto module = m.def_submodule("SigmoidalProjectionUtils");
-    module.def("ProjectForward", &SigmoidalProjectionUtils::ProjectForward, py::arg("input_tensor_adaptor"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
-    module.def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward, py::arg("input_tensor_adaptor"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
-    module.def("CalculateForwardProjectionGradient", &SigmoidalProjectionUtils::CalculateForwardProjectionGradient, py::arg("input_tensor_adaptor"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    module.def("ProjectForward", py::overload_cast<const double, const std::vector<double>&, const std::vector<double>&, const double, const double>(&SigmoidalProjectionUtils::ProjectForward), py::arg("input_value"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    module.def("ProjectBackward", py::overload_cast<const double, const std::vector<double>&, const std::vector<double>&, const double, const double>(&SigmoidalProjectionUtils::ProjectBackward), py::arg("input_value"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    module.def("CalculateForwardProjectionGradient", py::overload_cast<const double, const std::vector<double>&, const std::vector<double>&, const double, const double>(&SigmoidalProjectionUtils::CalculateForwardProjectionGradient), py::arg("input_value"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    module.def("ProjectForward", py::overload_cast<const TensorAdaptor<double>&, const std::vector<double>&, const std::vector<double>&, const double, const double>(&SigmoidalProjectionUtils::ProjectForward), py::arg("input_tensor_adaptor"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    module.def("ProjectBackward", py::overload_cast<const TensorAdaptor<double>&, const std::vector<double>&, const std::vector<double>&, const double, const double>(&SigmoidalProjectionUtils::ProjectBackward), py::arg("input_tensor_adaptor"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    module.def("CalculateForwardProjectionGradient", py::overload_cast<const TensorAdaptor<double>&, const std::vector<double>&, const std::vector<double>&, const double, const double>(&SigmoidalProjectionUtils::CalculateForwardProjectionGradient), py::arg("input_tensor_adaptor"), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
 }
 
 }  // namespace Python.
