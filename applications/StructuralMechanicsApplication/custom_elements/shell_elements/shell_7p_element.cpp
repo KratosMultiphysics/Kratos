@@ -169,7 +169,12 @@ void Shell7pElement::CalculateRightHandSide(
     }
 
     noalias(rRightHandSideVector) = -prod(LHS, current_displacement_values);
+    // VectorType internal_force_vector;
+    // CalculateInternalForces(internal_force_vector, rCurrentProcessInfo);
+// 
+    // noalias(rRightHandSideVector) = -internal_force_vector;
 }
+
 
 void Shell7pElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
@@ -427,6 +432,8 @@ void Shell7pElement::CalculateLeftHandSide(
         Matrix DB = ZeroMatrix(12,number_dofs); 
         noalias(DB) = prod(Dmatrix, Bop);
         rLeftHandSideMatrix += prod(trans(Bop), DB) * weight;
+
+        ComputeGeometricStiffnessMatrix(rLeftHandSideMatrix, stress_resultants,shape_functions_gradients_i,Nshape,weight);
         ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
         
         // shape functions for (incompatible strains) EAS strains formulated at the center of the element
@@ -585,12 +592,12 @@ void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_
     double b31r = inner_prod(akovr[2],a3kvpr[0]);
     double b32r = inner_prod(akovr[2],a3kvpr[1]);
 
-    GL_strain_tensor(0,0) = 0.5 * ((amkovc(0,0)-amkovr(0,0)) + 2.0*Theta3*(b11c-b11r));
-    GL_strain_tensor(1,1) = 0.5 * ((amkovc(1,1)-amkovr(1,1)) + 2.0*Theta3*(b22c-b22r));
+    GL_strain_tensor(0,0) = 0.5 * ((amkovc(0,0)-amkovr(0,0)) + 2.0*Theta3 * (b11c-b11r));
+    GL_strain_tensor(1,1) = 0.5 * ((amkovc(1,1)-amkovr(1,1)) + 2.0*Theta3 * (b22c-b22r));
     GL_strain_tensor(2,2) = 0.5 * (amkovc(2,2)-amkovr(2,2));
-    GL_strain_tensor(0,1) = 0.5 * ((amkovc(0,1)-amkovr(0,1)) + Theta3*(b21c+b12c-b21r-b12r));
-    GL_strain_tensor(0,2) = 0.5 * ((amkovc(0,2)-amkovr(0,2)) + Theta3*(b31c-b31r));
-    GL_strain_tensor(1,2) = 0.5 * ((amkovc(1,2)-amkovr(1,2)) + Theta3*(b32c-b32r));
+    GL_strain_tensor(0,1) = 0.5 * ((amkovc(0,1)-amkovr(0,1)) + Theta3 * (b21c+b12c-b21r-b12r));
+    GL_strain_tensor(0,2) = 0.5 * ((amkovc(0,2)-amkovr(0,2)) + Theta3 * (b31c-b31r));
+    GL_strain_tensor(1,2) = 0.5 * ((amkovc(1,2)-amkovr(1,2)) + Theta3 * (b32c-b32r));
     GL_strain_tensor(1,0) = GL_strain_tensor(0,1);
     GL_strain_tensor(2,0) = GL_strain_tensor(0,2);
     GL_strain_tensor(2,1) = GL_strain_tensor(1,2);
@@ -1282,8 +1289,8 @@ void Shell7pElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
 
     // LUMPED MASS MATRIX
     const SizeType number_of_nodes = r_geom.size();
-    const SizeType nodal_num_dofs = 6;
-    const SizeType number_dofs = number_of_nodes * nodal_num_dofs;
+    const SizeType nodal_ndofs = 6;
+    const SizeType number_dofs = number_of_nodes * nodal_ndofs;
 
     if (rMassMatrix.size1() != number_dofs) {
         rMassMatrix.resize(number_dofs, number_dofs, false);
@@ -1352,22 +1359,22 @@ void Shell7pElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
                 double inertia_v = facv * NiNj;
 
                 for (IndexType k = 0; k < 3; ++k) {
-                    rMassMatrix(j*nodal_num_dofs + k, i*nodal_num_dofs + k) += inertia_v;
+                    rMassMatrix(j*nodal_ndofs + k, i*nodal_ndofs + k) += inertia_v;
                 }
 
                 double inertia_w = facw * NiNj; // * h2h2;
                 for (IndexType k = 3; k < 6; ++k) {
-                    rMassMatrix(j*nodal_num_dofs + k, i*nodal_num_dofs + k) += inertia_w;
+                    rMassMatrix(j*nodal_ndofs + k, i*nodal_ndofs + k) += inertia_w;
                 }
 
                 if (std::abs(facvw)>1.0e-14) {
                     double inertia_vw = facvw * NiNj; // * h2;
-                    rMassMatrix(j*nodal_num_dofs + 3, i*nodal_num_dofs + 0) += inertia_vw;
-                    rMassMatrix(j*nodal_num_dofs + 4, i*nodal_num_dofs + 1) += inertia_vw;
-                    rMassMatrix(j*nodal_num_dofs + 5, i*nodal_num_dofs + 2) += inertia_vw;
-                    rMassMatrix(j*nodal_num_dofs + 0, i*nodal_num_dofs + 3) += inertia_vw;
-                    rMassMatrix(j*nodal_num_dofs + 1, i*nodal_num_dofs + 4) += inertia_vw;
-                    rMassMatrix(j*nodal_num_dofs + 2, i*nodal_num_dofs + 5) += inertia_vw;
+                    rMassMatrix(j*nodal_ndofs + 3, i*nodal_ndofs + 0) += inertia_vw;
+                    rMassMatrix(j*nodal_ndofs + 4, i*nodal_ndofs + 1) += inertia_vw;
+                    rMassMatrix(j*nodal_ndofs + 5, i*nodal_ndofs + 2) += inertia_vw;
+                    rMassMatrix(j*nodal_ndofs + 0, i*nodal_ndofs + 3) += inertia_vw;
+                    rMassMatrix(j*nodal_ndofs + 1, i*nodal_ndofs + 4) += inertia_vw;
+                    rMassMatrix(j*nodal_ndofs + 2, i*nodal_ndofs + 5) += inertia_vw;
                 }
             }
         }
@@ -1376,5 +1383,84 @@ void Shell7pElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
     KRATOS_CATCH("");
 }
 
+void Shell7pElement::ComputeGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const array_1d<double,12>& stress_resultants, const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, const double& weight) const
+{
+    KRATOS_TRY;
+
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType nodal_ndofs = 6;
+    // const SizeType number_dofs = number_of_nodes * nodal_ndofs;
+
+    double n11 = stress_resultants[0];
+    double n12 = stress_resultants[1];
+    double n13 = stress_resultants[2];
+    double n22 = stress_resultants[3];
+    double n23 = stress_resultants[4];
+    double n33 = stress_resultants[5];
+    double m11 = stress_resultants[6];
+    double m12 = stress_resultants[7];
+    double m13 = stress_resultants[8];
+    double m22 = stress_resultants[9];
+    double m23 = stress_resultants[10];
+    double m33 = stress_resultants[11];
+
+    for (SizeType node_K = 0; node_K < number_of_nodes; ++node_K) {
+            const double N_K = rNshape[node_K];
+            const double dNd1_K = rShapeFunctionGradientValues(node_K, 0);
+            const double dNd2_K = rShapeFunctionGradientValues(node_K, 1);
+
+        for (SizeType node_M = 0; node_M <= node_K; ++node_M) {
+            const double N_M = rNshape[node_M];
+            const double dNd1_M = rShapeFunctionGradientValues(node_M, 0);
+            const double dNd2_M = rShapeFunctionGradientValues(node_M, 1);
+
+            const double delt_v_virt_v = (n11 * (dNd1_M*dNd1_K) + n12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + n22 * (dNd2_M*dNd2_K)) * weight;
+            const double delt_w_virt_v = (m11 * (dNd1_M*dNd1_K) + m12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + m22 * (dNd2_M*dNd2_K) + n13 * (N_M*dNd1_K) + n23 * (N_M*dNd2_K)) * weight;
+            const double delt_v_virt_w = (m11 * (dNd1_M*dNd1_K) + m12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + m22 * (dNd2_M*dNd2_K) + n13 * (dNd1_M*N_K) + n23 * (dNd2_M*N_K)) * weight;
+            const double delt_w_virt_w = (m13 * (dNd1_M*N_K + N_M*dNd1_K) + m23 * (dNd2_M*N_K + N_M*dNd2_K) + n33 * (N_M*N_K)) * weight;
+
+            // Compute contributions in the lower triangle of the geometric stiffness matrix
+            rLeftHandSideMatrix(node_K*nodal_ndofs, node_M*nodal_ndofs) += delt_v_virt_v;
+            rLeftHandSideMatrix(node_K*nodal_ndofs + 1, node_M*nodal_ndofs + 1) += delt_v_virt_v;
+            rLeftHandSideMatrix(node_K*nodal_ndofs + 2, node_M*nodal_ndofs + 2) += delt_v_virt_v;
+
+            rLeftHandSideMatrix(node_K*nodal_ndofs, node_M*nodal_ndofs + 3) += delt_w_virt_v;
+            rLeftHandSideMatrix(node_K*nodal_ndofs + 1, node_M*nodal_ndofs + 4) += delt_w_virt_v;
+            rLeftHandSideMatrix(node_K*nodal_ndofs + 2, node_M*nodal_ndofs + 5) += delt_w_virt_v;
+
+            rLeftHandSideMatrix(node_K*nodal_ndofs + 3, node_M*nodal_ndofs) += delt_v_virt_w;
+            rLeftHandSideMatrix(node_K*nodal_ndofs + 4, node_M*nodal_ndofs + 1) += delt_v_virt_w;
+            rLeftHandSideMatrix(node_K*nodal_ndofs + 5, node_M*nodal_ndofs + 2) += delt_v_virt_w;
+
+            rLeftHandSideMatrix(node_K*nodal_ndofs + 3, node_M*nodal_ndofs + 3) += delt_w_virt_w;
+            rLeftHandSideMatrix(node_K*nodal_ndofs + 4, node_M*nodal_ndofs + 4) += delt_w_virt_w;
+            rLeftHandSideMatrix(node_K*nodal_ndofs + 5, node_M*nodal_ndofs + 5) += delt_w_virt_w;
+
+            if (node_K!=node_M) {
+                // Fill the symmetric parts in the upper triangle of the geometric stiffness matrix
+                rLeftHandSideMatrix(node_M*nodal_ndofs, node_K*nodal_ndofs) += delt_v_virt_v;
+                rLeftHandSideMatrix(node_M*nodal_ndofs + 1, node_K*nodal_ndofs + 1) += delt_v_virt_v;
+                rLeftHandSideMatrix(node_M*nodal_ndofs + 2, node_K*nodal_ndofs + 2) += delt_v_virt_v;
+
+                rLeftHandSideMatrix(node_M*nodal_ndofs, node_K*nodal_ndofs + 3) += delt_v_virt_w;
+                rLeftHandSideMatrix(node_M*nodal_ndofs + 1, node_K*nodal_ndofs + 4) += delt_v_virt_w;
+                rLeftHandSideMatrix(node_M*nodal_ndofs + 2, node_K*nodal_ndofs + 5) += delt_v_virt_w;
+
+                rLeftHandSideMatrix(node_M*nodal_ndofs + 3, node_K*nodal_ndofs) += delt_w_virt_v;
+                rLeftHandSideMatrix(node_M*nodal_ndofs + 4, node_K*nodal_ndofs + 1) += delt_w_virt_v;
+                rLeftHandSideMatrix(node_M*nodal_ndofs + 5, node_K*nodal_ndofs + 2) += delt_w_virt_v;
+
+                rLeftHandSideMatrix(node_M*nodal_ndofs + 3, node_K*nodal_ndofs + 3) += delt_w_virt_w;
+                rLeftHandSideMatrix(node_M*nodal_ndofs + 4, node_K*nodal_ndofs + 4) += delt_w_virt_w;
+                rLeftHandSideMatrix(node_M*nodal_ndofs + 5, node_K*nodal_ndofs + 5) += delt_w_virt_w;
+            }
+
+        }
+    }
+
+    KRATOS_CATCH("");
+
+} 
 
 }   // namespace Kratos

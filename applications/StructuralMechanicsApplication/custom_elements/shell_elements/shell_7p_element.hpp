@@ -88,6 +88,8 @@ private:
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
+    void CalculateInternalForces(VectorType& rInternalForceVector, const ProcessInfo& rCurrentProcessInfo) const;
+
     void CovariantBaseVectorsMidsurface(array_1d<Vector,3>& akovr, const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, 
     const ConfigurationType& rConfiguration, const double& thickness) const;
 
@@ -134,7 +136,9 @@ private:
     void BasisTransformationEASShapeFunctions(Matrix& T, const Matrix& M0_eas, Matrix& M_eas,
     const array_1d<Vector,3>& akonr0_eas, const array_1d<Vector,3>& akovr, const double detJ0_surface, const double detJ_surface) const;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void ComputeGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const array_1d<double,12>& stress_resultants, const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, const double& weight) const;
 
     friend class Serializer;
 
