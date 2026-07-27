@@ -253,7 +253,13 @@ public:
      * Exodus and XDMF temporal collections), falling back to a full read and
      * reporting no time values for the rest. Equivalent to
      * `GetTimeValues().size()`.
-     * @return Number of transient steps available in the file, 0 if none.
+     *
+     * Also detects a **file series** - the output of every format but XDMF, one
+     * `<prefix><stem><postfix>_<label><ext>` file per step (see @ref ComposeOutputPath)
+     * - which has no single file for `registry_read_metadata` to summarize: `mFileName`
+     * itself is never written in that case. The series is preferred when both are
+     * present; see @ref DetectFileSeriesTimeValues.
+     * @return Number of transient steps available, 0 if none.
      */
     int GetNumberOfTimeSteps() const;
 
@@ -263,7 +269,7 @@ public:
      * Index `i` of the result is the time value of step `i`, the same indexing
      * meshio++'s `meshioplusplus::ReadOptions::mTimeStep` expects. Empty for a
      * format with no time-series concept, or a single-step file with no
-     * recorded time.
+     * recorded time. See @ref GetNumberOfTimeSteps for the file-series case.
      * @return Vector of simulation times, one per transient step, in file order.
      */
     std::vector<double> GetTimeValues() const;
@@ -272,7 +278,13 @@ public:
      * @brief The 0-based index of the transient step whose time value matches @p TimeValue.
      * @details Linear scan over @ref GetTimeValues, matching the first entry
      * within an absolute tolerance of `1e-9`. The result is directly usable as
-     * `meshioplusplus::ReadOptions::mTimeStep`.
+     * `meshioplusplus::ReadOptions::mTimeStep` for a single transient file; for a file
+     * series it is the file's position among the sorted labels (see
+     * @ref GetNumberOfTimeSteps), and resolving it back to a path is
+     * `ComposeOutputPath("", <label as written by GetOutputLabel>)`.
+     *
+     * A file series only carries as much precision as its "label_precision" setting kept -
+     * a `TimeValue` truer than that will not match within the `1e-9` tolerance.
      * @param TimeValue The simulation time to look up.
      * @return The 0-based step index, or -1 if no matching time value is found.
      */
@@ -354,6 +366,22 @@ private:
         const std::string& rTargetSuffix,
         const std::string& rLabel
         ) const;
+
+    /**
+     * @brief The sorted step labels of the root file series @ref ComposeOutputPath would
+     * address, read back from disk.
+     * @details The read-side counterpart of @ref ComposeOutputPath: scans `mFileName`'s
+     * directory for every entry matching `<prefix><stem><postfix>_<label><ext>` - the
+     * same naming @ref WriteTarget uses for the "file_series" case, with an empty target
+     * suffix (the root model part; sub model part series are not detected) - parses each
+     * `<label>` as a number and returns them sorted ascending. A non-numeric label (an
+     * unrelated file sharing the extension, say) is silently skipped rather than failing
+     * the whole scan. Empty when the directory does not exist or no entry matches.
+     * @return The step labels, ascending. As written by "output_control_type" these are
+     * either integer step numbers or, for "time", the physical time truncated to
+     * "label_precision" digits.
+     */
+    std::vector<double> DetectFileSeriesTimeValues() const;
 
     /**
      * @brief Writes one output target (the root model part or one sub model

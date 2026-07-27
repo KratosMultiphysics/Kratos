@@ -282,6 +282,24 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
             self.assertEqual(read_model_part.NumberOfElements(), 2)   # only the tetrahedra were written
             self.assertEqual(read_model_part.NumberOfConditions(), 0)
 
+    def testFileSeriesTimeValues(self):
+        """GetNumberOfTimeSteps/GetTimeValues/GetTimeStepIndex must also detect a file
+        series (every format but XDMF): mFileName itself is never written in that case."""
+        model_part = self.model.CreateModelPart("series_write")
+        _PopulateModelPart(model_part)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = str(Path(temp_dir) / "series.vtu")
+            for step in (1, 2, 5):
+                model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+                KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name).WriteModelPart(model_part)
+
+            meshio_io = KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name)
+            self.assertEqual(meshio_io.GetNumberOfTimeSteps(), 3)
+            self.assertVectorAlmostEqual(meshio_io.GetTimeValues(), [1.0, 2.0, 5.0])
+            self.assertEqual(meshio_io.GetTimeStepIndex(2.0), 1)
+            self.assertEqual(meshio_io.GetTimeStepIndex(3.0), -1)
+
     def testWriteIdsAndCellData(self):
         model_part = self.model.CreateModelPart("ids_write")
         _PopulateModelPart(model_part)

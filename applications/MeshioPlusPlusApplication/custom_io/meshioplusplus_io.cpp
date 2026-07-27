@@ -15,6 +15,7 @@
 //
 
 // System includes
+#include <algorithm>
 #include <cmath>
 
 // External includes
@@ -796,6 +797,14 @@ std::vector<double> MeshioPlusPlusIO::GetTimeValues() const
 {
     KRATOS_TRY
 
+    // A file series (every format but XDMF, by default): mFileName itself was never
+    // written, so this is checked - and needs no format resolution - before the
+    // existence guard and format-dependent lookup below.
+    std::vector<double> series_time_values = DetectFileSeriesTimeValues();
+    if (!series_time_values.empty()) {
+        return series_time_values;
+    }
+
     KRATOS_ERROR_IF_NOT(std::filesystem::exists(mFileName))
         << "The file " << mFileName << " does not exist" << std::endl;
 
@@ -946,6 +955,60 @@ std::filesystem::path MeshioPlusPlusIO::ComposeOutputPath(
         + (rLabel.empty() ? "" : "_" + rLabel)
         + mFileName.extension().string();
     return directory / name;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<double> MeshioPlusPlusIO::DetectFileSeriesTimeValues() const
+{
+    KRATOS_TRY
+
+    const std::filesystem::path directory = mFileName.parent_path();
+    const std::filesystem::path scan_directory = directory.empty() ? std::filesystem::path(".") : directory;
+
+    std::error_code error_code;
+    if (!std::filesystem::is_directory(scan_directory, error_code)) {
+        return {};
+    }
+
+    // The ComposeOutputPath("", <label>) naming, minus the label itself: every root-target
+    // step this IO (or another instance sharing the same prefix/postfix) wrote matches it.
+    const std::string required_prefix = mParameters["custom_name_prefix"].GetString()
+        + mFileName.stem().string()
+        + mParameters["custom_name_postfix"].GetString()
+        + "_";
+    const std::string required_suffix = mFileName.extension().string();
+
+    std::vector<double> time_values;
+    for (const auto& r_entry : std::filesystem::directory_iterator(scan_directory, error_code)) {
+        if (!r_entry.is_regular_file(error_code)) {
+            continue;
+        }
+        const std::string name = r_entry.path().filename().string();
+        if (name.size() <= required_prefix.size() + required_suffix.size() ||
+            name.compare(0, required_prefix.size(), required_prefix) != 0 ||
+            name.compare(name.size() - required_suffix.size(), required_suffix.size(), required_suffix) != 0) {
+            continue;
+        }
+
+        const std::string label = name.substr(required_prefix.size(),
+            name.size() - required_prefix.size() - required_suffix.size());
+        try {
+            std::size_t number_of_characters_parsed = 0;
+            const double value = std::stod(label, &number_of_characters_parsed);
+            if (number_of_characters_parsed == label.size()) {
+                time_values.push_back(value);
+            }
+        } catch (const std::exception&) {
+            // Not a numeric label (an unrelated file sharing the extension, say) - ignore it.
+        }
+    }
+
+    std::sort(time_values.begin(), time_values.end());
+    return time_values;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

@@ -554,6 +554,49 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFileSeries, KratosMeshioPlusPlusFastSu
     RemoveIfExists(labeled_path("2"));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFileSeriesTimeValues, KratosMeshioPlusPlusFastSuite)
+{
+    // GetNumberOfTimeSteps/GetTimeValues/GetTimeStepIndex must also see a file series: the
+    // common case (every format but XDMF), where mFileName itself is never written and
+    // registry_read_metadata has no single file to summarize.
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    PopulateTetrahedraModelPart(r_model_part);
+    auto& r_process_info = r_model_part.GetProcessInfo();
+
+    const auto file_path = TestFilePath(".vtu");
+    auto labeled_path = [&file_path](const std::string& rLabel) {
+        auto path = file_path;
+        path.replace_extension();
+        path += "_" + rLabel + ".vtu";
+        return path;
+    };
+
+    for (const int step : {1, 2, 5}) {
+        MeshioPlusPlusIO io_write(file_path);
+        r_process_info[STEP] = step;
+        io_write.WriteModelPart(r_model_part);
+    }
+
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        KRATOS_EXPECT_EQ(io_read.GetNumberOfTimeSteps(), 3);
+        const auto time_values = io_read.GetTimeValues();
+        KRATOS_EXPECT_EQ(time_values.size(), 3);
+        // Ascending order, regardless of write order (5 was written after 1 and 2 - the
+        // filesystem does not enumerate entries in creation order).
+        KRATOS_EXPECT_NEAR(time_values[0], 1.0, 1e-9);
+        KRATOS_EXPECT_NEAR(time_values[1], 2.0, 1e-9);
+        KRATOS_EXPECT_NEAR(time_values[2], 5.0, 1e-9);
+        KRATOS_EXPECT_EQ(io_read.GetTimeStepIndex(2.0), 1);
+        KRATOS_EXPECT_EQ(io_read.GetTimeStepIndex(3.0), -1);
+    }
+
+    RemoveIfExists(labeled_path("1"));
+    RemoveIfExists(labeled_path("2"));
+    RemoveIfExists(labeled_path("5"));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOSingleFileOverwrites, KratosMeshioPlusPlusFastSuite)
 {
     Model model;
