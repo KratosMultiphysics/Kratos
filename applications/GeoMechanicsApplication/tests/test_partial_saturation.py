@@ -122,14 +122,12 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             os.path.join(file_path, "run1sim5_map_hydro.post.res")
         )
 
-        node_ids_left_boundary = []
-        depth_boundary_nodes = []
+        depth_by_id_for_left_boundary_nodes = {}
         for node in simulation.model.GetModelPart(
             "PorousDomain.porous_computational_model_part"
         ).Nodes:
             if node.X == 0.0:
-                node_ids_left_boundary.append(node.Id)
-                depth_boundary_nodes.append(-1.0 * node.Y)
+                depth_by_id_for_left_boundary_nodes[node.Id] = -1.0 * node.Y
 
         @dataclass
         class ExpectedResult:
@@ -180,10 +178,10 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             data_series_collection = []
             for time in plot_times:
                 water_pressures = reader.nodal_values_at_time(
-                    "WATER_PRESSURE", time, output_data, node_ids_left_boundary
+                    "WATER_PRESSURE", time, output_data, depth_by_id_for_left_boundary_nodes.keys()
                 )
                 sorted_depth, sorted_data = zip(
-                    *sorted(zip(depth_boundary_nodes, water_pressures))
+                    *sorted(zip(depth_by_id_for_left_boundary_nodes.values(), water_pressures))
                 )
                 list = zip(sorted_data, sorted_depth)
                 data_series_collection.append(
@@ -198,9 +196,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
 
                     asserted_data_points.append((
                         water_pressure,
-                        -1.0 * simulation.model.GetModelPart(
-                            "PorousDomain.porous_computational_model_part"
-                        ).GetNode(expected_result.node_id).Y
+                        depth_by_id_for_left_boundary_nodes[expected_result.node_id]
                     ))
             data_series_collection.append(
                 plot_utils.DataSeries(
