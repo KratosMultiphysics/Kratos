@@ -26,6 +26,7 @@
 #ifdef KRATOS_USE_FUTURE
 #include "future/containers/define_linear_algebra_serial.h"
 #include "future/solving_strategies/convergence_criteria/convergence_criteria.h"
+#include "future/solving_strategies/convergence_criteria/solution_criteria.h"
 #include "test_utilities/solving_strategies_test_utilities.h"
 #endif
 
@@ -35,14 +36,30 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ConvergenceCriteria, KratosCoreFastSuite)
 {
 #ifdef KRATOS_USE_FUTURE
-    // // Set up the test model part
-    // Model test_model;
-    // auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
-    // const std::size_t num_elems = 2;
-    // const double elem_size = 1.0;
-    // SolvingStrategiesTestUtilities::SetUpTestModelPart1D(num_elems, elem_size, r_test_model_part);
+    // Set up the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    const std::size_t num_elems = 2;
+    const double elem_size = 1.0;
+    SolvingStrategiesTestUtilities::SetUpTestModelPart1D(num_elems, elem_size, r_test_model_part);
 
-    // // Create the scheme
+    // Create an implicit strategy data container with a fake effective solution increment vector
+    Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
+    auto p_linear_system = Kratos::make_unique<Future::DenseLinearSystem<Future::SerialLinearAlgebraTraits>>();
+    p_linear_system->Initialize(r_test_model_part);
+    auto& r_dx = *(p_linear_system->pGetVector(Future::LinearSystemTags::DenseVectorTag::Dx));
+    r_dx.resize(r_test_model_part.GetModelPart().Nodes().size() * 3, false);
+    r_dx.assign(10.0);
+    strategy_data_container.pAssignEffectiveLinearSystem(std::move(p_linear_system));
+
+    // Create solution criteria
+    Parameters solution_criteria_parameters = Parameters(R"({
+        "variable_name" : "DISTANCE",
+        "relative_tolerance" : 1.0e-4,
+        "absolute_tolerance" : 1.0e-6
+    })");
+    auto p_convergence_criteria = Kratos::make_unique<Future::SolutionCriteria<Future::SerialLinearAlgebraTraits>>(solution_criteria_parameters);
+
     // Parameters scheme_settings = Parameters(R"({
     //     "build_settings" : {
     //         "name" : "block_builder"

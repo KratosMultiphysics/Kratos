@@ -67,20 +67,6 @@ public:
     /// The definition of the current class
     typedef ConvergenceCriteria< TLinearAlgebra > ClassType;
 
-    /// Data type definition
-    typedef typename TLinearAlgebra::DataType TDataType;
-    /// Matrix type definition
-    typedef typename TLinearAlgebra::MatrixType TSystemMatrixType;
-    /// Vector type definition
-    typedef typename TLinearAlgebra::VectorType TSystemVectorType;
-    /// Local system matrix type definition
-    typedef typename TLinearAlgebra::MatrixType LocalSystemMatrixType;
-    /// Local system vector type definition
-    typedef typename TLinearAlgebra::VectorType LocalSystemVectorType;
-
-    /// DoF array type definition
-    typedef ModelPart::DofsArrayType DofsArrayType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -88,31 +74,22 @@ public:
     /// Default constructor
     explicit ConvergenceCriteria()
     {
-        mActualizeRHSIsNeeded = false;
-        SetEchoLevel(1);
+        SetEchoLevel(0);
     }
 
     /// Constructor with Parameters
     explicit ConvergenceCriteria(Kratos::Parameters ThisParameters)
     {
         // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
-
-        mActualizeRHSIsNeeded = false;
     }
 
     /// Copy constructor
-    explicit ConvergenceCriteria( ConvergenceCriteria const& rOther)
-      :mActualizeRHSIsNeeded(rOther.mActualizeRHSIsNeeded)
-      ,mEchoLevel(rOther.mEchoLevel)
-    {
-    }
+    explicit ConvergenceCriteria( ConvergenceCriteria const& rOther) = delete;
 
     /// Destructor
-    virtual ~ConvergenceCriteria()
-    {
-    }
+    virtual ~ConvergenceCriteria() = default;
 
     ///@}
     ///@name Member Variables
@@ -148,53 +125,42 @@ public:
     }
 
     /**
-     * @brief This method sets the flag mActualizeRHSIsNeeded
-     * @param ActualizeRHSIsNeeded The flag that tells if actualize RHS is needed
-     */
-    void SetActualizeRHSFlag(const bool ActualizeRHSIsNeeded)
-    {
-        mActualizeRHSIsNeeded = ActualizeRHSIsNeeded;
-    }
-
-    /**
      * @brief Criterias that need to be called before getting the solution
-     * @param rModelPart Reference to the ModelPart containing the problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param rA System matrix (unused)
-     * @param rDx Vector of results (variations on nodal variables)
-     * @param rb RHS vector (residual)
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param rImplicitStrategyData Data container of the implicit strategy
      * @return true if convergence is achieved, false otherwise
      */
+    //FIXME: I THINK WE SHOULD REMOVE THIS!
     virtual bool PreCriteria(
         ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& rA,
-        const TSystemVectorType& rDx,
-        const TSystemVectorType& rb
-        )
+        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
         return true;
     }
 
     /**
      * @brief Criterias that need to be called after getting the solution
-     * @param rModelPart Reference to the ModelPart containing the problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param rA System matrix (unused)
-     * @param rDx Vector of results (variations on nodal variables)
-     * @param rb RHS vector (residual + reactions)
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param rImplicitStrategyData Data container of the implicit strategy
      * @return true if convergence is achieved, false otherwise
      */
+    //FIXME: I THINK WE SHOULD REMOVE THIS AND JUST CALL IT IsConverged()!
     virtual bool PostCriteria(
         ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& rA,
-        const TSystemVectorType& rDx,
-        const TSystemVectorType& rb
-        )
+        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
         return true;
     }
+
+    /**
+     * @brief Checks if the solution is converged
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param rImplicitStrategyData Data container of the implicit strategy
+     * @return true if the solution is converged, false otherwise
+     */
+    virtual bool IsConverged(
+        ModelPart& rModelPart,
+        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) = 0;
 
     /**
      * @brief This function initialize the convergence criteria
@@ -207,13 +173,11 @@ public:
     /**
      * @brief This function initializes the solution step
      * @warning Must be defined on the derived classes
-     * @param rModelPart Reference to the ModelPart containing the problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rModelPart Reference to the ModelPart containing the problem
      * @param rImplicitStrategyData Data container of the implicit strategy
      */
     virtual void InitializeSolutionStep(
         ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
         const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
@@ -221,27 +185,11 @@ public:
     /**
      * @brief This function initializes the non-linear iteration
      * @warning Must be defined on the derived classes
-     * @param rModelPart Reference to the ModelPart containing the problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rModelPart Reference to the ModelPart containing the problem
      * @param rImplicitStrategyData Data container of the implicit strategy
      */
     virtual void InitializeNonLinearIteration(
         ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
-    {
-    }
-
-    /**
-     * @brief This function finalizes the solution step
-     * @warning Must be defined on the derived classes
-     * @param rModelPart Reference to the ModelPart containing the problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param rImplicitStrategyData Data container of the implicit strategy
-     */
-    virtual void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
         const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
@@ -249,13 +197,23 @@ public:
     /**
      * @brief This function finalizes the non-linear iteration
      * @warning Must be defined on the derived classes
-     * @param rModelPart Reference to the ModelPart containing the problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rModelPart Reference to the ModelPart containing the problem
      * @param rImplicitStrategyData Data container of the implicit strategy
      */
     virtual void FinalizeNonLinearIteration(
         ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
+        const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+    {
+    }
+
+    /**
+     * @brief This function finalizes the solution step
+     * @warning Must be defined on the derived classes
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param rImplicitStrategyData Data container of the implicit strategy
+     */
+    virtual void FinalizeSolutionStep(
+        ModelPart& rModelPart,
         const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
@@ -318,15 +276,6 @@ public:
         return mEchoLevel;
     }
 
-    /**
-     * @brief This method gets the flag mActualizeRHSIsNeeded
-     * @return mActualizeRHSIsNeeded: The flag that tells if actualize RHS is needed
-     */
-    bool GetActualizeRHSflag() const
-    {
-        return mActualizeRHSIsNeeded;
-    }
-
     ///@}
     ///@name Input and output
     ///@{
@@ -363,8 +312,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mActualizeRHSIsNeeded = false;             /// This "flag" is set in order to know if it is necessary to actualize the RHS
-
     int mEchoLevel; /// The echo level
 
     ///@}
@@ -374,21 +321,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief This method validate and assign default parameters
-     * @param rParameters Parameters to be validated
-     * @param DefaultParameters The default parameters
-     * @return Returns validated Parameters
-     */
-    virtual Parameters ValidateAndAssignParameters(
-        Parameters ThisParameters,
-        const Parameters DefaultParameters
-        ) const
-    {
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-        return ThisParameters;
-    }
 
     /**
      * @brief This method assigns settings to member variables
