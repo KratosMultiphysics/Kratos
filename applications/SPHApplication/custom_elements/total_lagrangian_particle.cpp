@@ -56,10 +56,7 @@ void TotalLagrangianDisplacementParticle<TKernelType>::InitializeSolutionStep(co
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
         Values.SetStrainVector(this_constitutive_variables.StrainVector);
-        Values.SetStressVector(this_constitutive_variables.StressVector);
-        Values.SetConstitutiveMatrix(this_constitutive_variables.C);
 
         CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
 
@@ -91,10 +88,7 @@ void TotalLagrangianDisplacementParticle<TKernelType>::FinalizeSolutionStep(cons
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
         Values.SetStrainVector(this_constitutive_variables.StrainVector);
-        Values.SetStressVector(this_constitutive_variables.StressVector);
-        Values.SetConstitutiveMatrix(this_constitutive_variables.C);
 
         CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
         
@@ -372,7 +366,7 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAll(
     }
 
     if (CalculateResidualVectorFlag){
-        CalculateAndAddResidualVector(rRHS, this_kinematic_variables, rProcessInfo, body_force, this_constitutive_variables.StressVector, this_constitutive_variables.C, gauss_weight);
+        CalculateAndAddResidualVector(rRHS, this_kinematic_variables, rProcessInfo, body_force, this_constitutive_variables.StressVector, gauss_weight);
     }
 
     if (rProcessInfo[PENALIZATION_COEFFICIENT] != 0.0){
@@ -559,8 +553,7 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAndAddResidualVe
     const KinematicVariables& rThisKinematicVariables,
     const ProcessInfo& rProcessInfo,
     const VectorType& rBodyForce,
-    const Vector& rStressVector,
-    const Matrix& rConstitutiveMatrix,
+    const VectorType& rStressVector,
     const double weigth 
     ) const
 {

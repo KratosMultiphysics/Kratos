@@ -24,10 +24,9 @@
 #include "custom_elements/total_lagrangian_particle.h"
 
 // Include constitutive 
-#include "custom_constitutive/volumetric_linear_elastic_2D_law.h"
 
 // Include conditions
-//#include "custom_conditions/fixed_direction_condition.h"
+
 
 
 namespace Kratos {
@@ -192,11 +191,9 @@ private:
     const TotalLagrangianDisplacementParticle<CubicKernel3D> mTotalLagrangianDisplacementCubicParticle3D;
 
     /* CONSTITUTIVE LAWS */ 
-    const VolumetricLinearElastic2DLaw mVolumetricLinearElastic2DLaw;
 
     /* CONDITION */
-    //const FixedDirectionCondition mFixedDirectionCondition;
-
+    
     ///@}
     ///@name Private Operators
     ///@{

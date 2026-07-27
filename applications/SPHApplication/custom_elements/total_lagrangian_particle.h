@@ -328,8 +328,7 @@ public:
         const KinematicVariables& rThisKinematicVariables,
         const ProcessInfo& rCurrentProcessInfo,
         const VectorType& rBodyForce,
-        const Vector& rStressVector,
-        const Matrix& rConstitutiveMatrix,
+        const VectorType& rStressVector,
         const double IntegrationWeight
     ) const; 
 
