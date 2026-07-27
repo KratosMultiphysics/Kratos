@@ -34,9 +34,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<MeshioPlusPlusMeshOperations, MeshioPlusPlusMeshOperations::Pointer>(
         m, "MeshioPlusPlusMeshOperations",
         "The meshio++ mesh and data operations (clean, transform, split, refine, decimate, "
-        "smooth, reorder, partition, crop, slice, isosurface, quality, stats, ...) exposed as "
-        "Kratos utilities. Every operation is driven by Parameters keyed by an \"operation\" "
-        "name mirroring the meshio++ command line verbs.")
+        "smooth, reorder, partition, crop, slice, isosurface, quality, stats, data_calc, "
+        "data_condition, data_manage, data_info, point_data_to_cell_data, "
+        "cell_data_to_point_data, ...) exposed as Kratos utilities. Every operation is "
+        "driven by Parameters keyed by an \"operation\" name mirroring the meshio++ command "
+        "line verbs. Field data (nodal/elemental/conditional variables and flags) can be "
+        "carried through with the same settings MeshioPlusPlusIO uses; see GetDefaultParameters.")
         .def_static("GetSupportedOperations", &MeshioPlusPlusMeshOperations::GetSupportedOperations,
             "The names accepted by the \"operation\" setting of Execute.")
         .def_static("GetDefaultParameters", &MeshioPlusPlusMeshOperations::GetDefaultParameters,
@@ -56,6 +59,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             },
             py::arg("source_model_parts"), py::arg("settings"), py::arg("destination_model_part"),
             "Merges several model parts into one, optionally welding coincident nodes.")
+        .def_static("Interpolate", &MeshioPlusPlusMeshOperations::Interpolate,
+            py::arg("source_model_part"), py::arg("target_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Samples source_model_part's field data onto target_model_part's geometry, "
+            "filling destination_model_part with the target's topology plus the interpolated "
+            "arrays. Not reachable through Execute: unlike every other operation this needs "
+            "two independent meshes.")
         .def_static("Diff", &MeshioPlusPlusMeshOperations::Diff,
             py::arg("first_model_part"), py::arg("second_model_part"),
             py::arg("settings") = Parameters(R"({})"),
