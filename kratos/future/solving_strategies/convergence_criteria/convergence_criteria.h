@@ -20,6 +20,9 @@
 // Project includes
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#ifdef KRATOS_USE_FUTURE
+#include "future/solving_strategies/strategies/implicit_strategy_data.h"
+#endif
 
 namespace Kratos::Future
 {
@@ -82,19 +85,14 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
-     */
+    /// Default constructor
     explicit ConvergenceCriteria()
     {
         mActualizeRHSIsNeeded = false;
-        mConvergenceCriteriaIsInitialized = false;
         SetEchoLevel(1);
     }
 
-    /**
-     * @brief Constructor with Parameters
-     * @param ThisParameters The configuration parameters
-     */
+    /// Constructor with Parameters
     explicit ConvergenceCriteria(Kratos::Parameters ThisParameters)
     {
         // Validate and assign defaults
@@ -102,20 +100,16 @@ public:
         this->AssignSettings(ThisParameters);
 
         mActualizeRHSIsNeeded = false;
-        mConvergenceCriteriaIsInitialized = false;
     }
 
-    /** Copy constructor.
-     */
+    /// Copy constructor
     explicit ConvergenceCriteria( ConvergenceCriteria const& rOther)
       :mActualizeRHSIsNeeded(rOther.mActualizeRHSIsNeeded)
-      ,mConvergenceCriteriaIsInitialized(rOther.mConvergenceCriteriaIsInitialized)
       ,mEchoLevel(rOther.mEchoLevel)
     {
     }
 
-    /** Destructor.
-     */
+    /// Destructor
     virtual ~ConvergenceCriteria()
     {
     }
@@ -132,53 +126,11 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Create method
-     * @param ThisParameters The configuration parameters
-     */
+    /// Create method
+    /// @param ThisParameters The configuration parameters
     virtual typename ClassType::Pointer Create(Parameters ThisParameters) const
     {
         return Kratos::make_shared<ClassType>(ThisParameters);
-    }
-
-    /**
-     * @brief Get component wise element components
-     * @warning Must be defined on the derived classes
-     * @return The RHS element components
-     */
-    virtual std::vector<TSystemVectorType>&  GetRHS_Element_Components()
-    {
-        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
-    }
-
-    /**
-     * @brief Get component wise element variables
-     * @warning Must be defined on the derived classes
-     * @return The RHS element variables
-     */
-    virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Element_Variables()
-    {
-        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
-    }
-
-    /**
-     * @brief Get component wise condition components
-     * @warning Must be defined on the derived classes
-     * @return The RHS condition components
-     */
-    virtual std::vector<TSystemVectorType>&  GetRHS_Condition_Components()
-    {
-        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
-    }
-
-    /**
-     * @brief Get component wise condition variables
-     * @warning Must be defined on the derived classes
-     * @return The RHS condition variables
-     */
-    virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Condition_Variables()
-    {
-        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
     }
 
     /**
@@ -190,41 +142,18 @@ public:
      * - 2: Printing linear solver data
      * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      */
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(const int Level)
     {
         mEchoLevel = Level;
-    }
-
-    /**
-     * @brief This returns the level of echo for the solving strategy
-     * @details The different levels of echo are:
-     * - 0: Mute... no echo at all
-     * - 1: Printing time and basic information
-     * - 2: Printing linear solver data
-     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
-     * @return Level of echo for the solving strategy
-     */
-    int GetEchoLevel()
-    {
-        return mEchoLevel;
     }
 
     /**
      * @brief This method sets the flag mActualizeRHSIsNeeded
      * @param ActualizeRHSIsNeeded The flag that tells if actualize RHS is needed
      */
-    void SetActualizeRHSFlag(bool ActualizeRHSIsNeeded)
+    void SetActualizeRHSFlag(const bool ActualizeRHSIsNeeded)
     {
         mActualizeRHSIsNeeded = ActualizeRHSIsNeeded;
-    }
-
-    /**
-     * @brief This method gets the flag mActualizeRHSIsNeeded
-     * @return mActualizeRHSIsNeeded: The flag that tells if actualize RHS is needed
-     */
-    bool GetActualizeRHSflag()
-    {
-        return mActualizeRHSIsNeeded;
     }
 
     /**
@@ -269,20 +198,10 @@ public:
 
     /**
      * @brief This function initialize the convergence criteria
-     * @param rModelPart Reference to the ModelPart containing the problem. (unused)
+     * @param rImplicitStrategyData Data container of the implicit strategy
      */
-    virtual void Initialize(ModelPart& rModelPart)
+    virtual void Initialize(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
-        mConvergenceCriteriaIsInitialized = true;
-    }
-
-    /**
-     * @brief This function returns if the convergence criteria is initialized
-     * @return mConvergenceCriteriaIsInitialized, true if initialized, false otherwise
-     */
-    virtual bool IsInitialized()
-    {
-        return mConvergenceCriteriaIsInitialized;
     }
 
     /**
@@ -290,17 +209,12 @@ public:
      * @warning Must be defined on the derived classes
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param rA System matrix (unused)
-     * @param rDx Vector of results (variations on nodal variables)
-     * @param rb RHS vector (residual + reactions)
+     * @param rImplicitStrategyData Data container of the implicit strategy
      */
     virtual void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& rA,
-        const TSystemVectorType& rDx,
-        const TSystemVectorType& rb
-        )
+        const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
 
@@ -309,17 +223,12 @@ public:
      * @warning Must be defined on the derived classes
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param rA System matrix (unused)
-     * @param rDx Vector of results (variations on nodal variables)
-     * @param rb RHS vector (residual + reactions)
+     * @param rImplicitStrategyData Data container of the implicit strategy
      */
     virtual void InitializeNonLinearIteration(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& rA,
-        const TSystemVectorType& rDx,
-        const TSystemVectorType& rb
-        )
+        const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
 
@@ -328,17 +237,12 @@ public:
      * @warning Must be defined on the derived classes
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param rA System matrix (unused)
-     * @param rDx Vector of results (variations on nodal variables)
-     * @param rb RHS vector (residual + reactions)
+     * @param rImplicitStrategyData Data container of the implicit strategy
      */
     virtual void FinalizeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& rA,
-        const TSystemVectorType& rDx,
-        const TSystemVectorType& rb
-        )
+        const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
 
@@ -347,17 +251,12 @@ public:
      * @warning Must be defined on the derived classes
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param rA System matrix (unused)
-     * @param rDx Vector of results (variations on nodal variables)
-     * @param rb RHS vector (residual + reactions)
+     * @param rImplicitStrategyData Data container of the implicit strategy
      */
     virtual void FinalizeNonLinearIteration(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& rA,
-        const TSystemVectorType& rDx,
-        const TSystemVectorType& rb
-        )
+        const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
 
@@ -381,8 +280,7 @@ public:
      */
     virtual Parameters GetDefaultParameters() const
     {
-        const Parameters default_parameters = Parameters(R"(
-        {
+        const Parameters default_parameters = Parameters(R"({
             "name"       : "convergence_criteria",
             "echo_level" : 1
         })");
@@ -405,6 +303,29 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief This returns the level of echo for the solving strategy
+     * @details The different levels of echo are:
+     * - 0: Mute... no echo at all
+     * - 1: Printing time and basic information
+     * - 2: Printing linear solver data
+     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
+     * @return Level of echo for the solving strategy
+     */
+    int GetEchoLevel() const
+    {
+        return mEchoLevel;
+    }
+
+    /**
+     * @brief This method gets the flag mActualizeRHSIsNeeded
+     * @return mActualizeRHSIsNeeded: The flag that tells if actualize RHS is needed
+     */
+    bool GetActualizeRHSflag() const
+    {
+        return mActualizeRHSIsNeeded;
+    }
 
     ///@}
     ///@name Input and output
@@ -443,7 +364,6 @@ protected:
     ///@{
 
     bool mActualizeRHSIsNeeded = false;             /// This "flag" is set in order to know if it is necessary to actualize the RHS
-    bool mConvergenceCriteriaIsInitialized = false; /// This "flag" is set in order to know if it is convergence criteria is initialized
 
     int mEchoLevel; /// The echo level
 
