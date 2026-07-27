@@ -102,12 +102,17 @@ public:
             r_element.SetValue(MEMBRANE_PRESTRESS,output_matrix);
         }
 
+        for (auto& r_node : rModelPart.Nodes()) {
+            noalias(r_node.Coordinates()) = r_node.GetInitialPosition().Coordinates();
+            noalias(r_node.Coordinates()) += r_node.FastGetSolutionStepValue(DISPLACEMENT);
+        }
+
         rModelPart.Conditions().clear();
         rModelPart.rProperties().clear();
         rModelPart.GetNodalSolutionStepVariablesList().clear();
 
         ModelPartIO model_part_io("cutting_pattern_result_model", IO::WRITE);
-        // model_part_io.WriteCuttingPatternModelPart(rModelPart);
+        model_part_io.WriteModelPart(rModelPart);
     }
 
     void Initialize() override
