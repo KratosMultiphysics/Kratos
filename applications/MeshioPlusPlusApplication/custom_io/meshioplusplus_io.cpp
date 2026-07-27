@@ -47,290 +47,7 @@ namespace Kratos
 namespace
 {
 
-using DataArray = mio::XdmfTimeSeriesWriter::NamedArray;
-
-template <class TContainer, class TGetter, class TValidator>
-void CollectVariableDataArrays(
-    const std::vector<std::string>& rVariableNames,
-    const TContainer& rEntities,
-    const std::size_t NumberOfEntities,
-    const TGetter& rGetValue,
-    const TValidator& rValidate,
-    std::vector<DataArray>& rOutput
-    )
-{
-    for (const auto& r_variable_name : rVariableNames) {
-        DataArray data;
-        data.mName = r_variable_name;
-
-        auto collect_scalar = [&](const auto& rVariable) {
-            rValidate(rVariable);
-            data.mNumComponents = 1;
-            data.mValues.reserve(NumberOfEntities);
-            for (const auto& r_entity : rEntities) {
-                data.mValues.push_back(static_cast<double>(rGetValue(r_entity, rVariable)));
-            }
-        };
-        auto collect_vector = [&](const auto& rVariable, const std::size_t NumberOfComponents) {
-            rValidate(rVariable);
-            data.mNumComponents = NumberOfComponents;
-            data.mValues.reserve(NumberOfEntities * NumberOfComponents);
-            for (const auto& r_entity : rEntities) {
-                const auto& r_value = rGetValue(r_entity, rVariable);
-                for (std::size_t i = 0; i < NumberOfComponents; ++i) {
-                    data.mValues.push_back(i < r_value.size() ? static_cast<double>(r_value[i]) : 0.0);
-                }
-            }
-        };
-
-        if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
-            collect_scalar(KratosComponents<Variable<double>>::Get(r_variable_name));
-        } else if (KratosComponents<Variable<int>>::Has(r_variable_name)) {
-            collect_scalar(KratosComponents<Variable<int>>::Get(r_variable_name));
-        } else if (KratosComponents<Variable<bool>>::Has(r_variable_name)) {
-            collect_scalar(KratosComponents<Variable<bool>>::Get(r_variable_name));
-        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name)) {
-            collect_vector(KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name), 3);
-        } else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(r_variable_name)) {
-            collect_vector(KratosComponents<Variable<array_1d<double, 4>>>::Get(r_variable_name), 4);
-        } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(r_variable_name)) {
-            collect_vector(KratosComponents<Variable<array_1d<double, 6>>>::Get(r_variable_name), 6);
-        } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(r_variable_name)) {
-            collect_vector(KratosComponents<Variable<array_1d<double, 9>>>::Get(r_variable_name), 9);
-        } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) {
-            const auto& r_variable = KratosComponents<Variable<Vector>>::Get(r_variable_name);
-            const std::size_t number_of_components =
-                NumberOfEntities > 0 ? rGetValue(*rEntities.begin(), r_variable).size() : 0;
-            if (number_of_components == 0) {
-                KRATOS_WARNING_ONCE("MeshioPlusPlusIO") << "Vector variable \"" << r_variable_name
-                    << "\" has no components on the first entity - skipping it" << std::endl;
-                continue;
-            }
-            collect_vector(r_variable, number_of_components);
-        } else {
-            KRATOS_WARNING_ONCE("MeshioPlusPlusIO") << "Variable \"" << r_variable_name
-                << "\" is not registered with a type suitable for MeshioPlusPlusIO - skipping it" << std::endl;
-            continue;
-        }
-
-        rOutput.push_back(std::move(data));
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TContainer>
-void CollectFlagDataArrays(
-    const std::vector<std::string>& rFlagNames,
-    const TContainer& rEntities,
-    const std::size_t NumberOfEntities,
-    std::vector<DataArray>& rOutput
-    )
-{
-    for (const auto& r_flag_name : rFlagNames) {
-        if (!KratosComponents<Flags>::Has(r_flag_name)) {
-            KRATOS_WARNING_ONCE("MeshioPlusPlusIO") << "Flag \"" << r_flag_name
-                << "\" is not registered - skipping it" << std::endl;
-            continue;
-        }
-        const Flags& r_flag = KratosComponents<Flags>::Get(r_flag_name);
-
-        DataArray data;
-        data.mName = r_flag_name;
-        data.mNumComponents = 1;
-        data.mValues.reserve(NumberOfEntities);
-        for (const auto& r_entity : rEntities) {
-            data.mValues.push_back(r_entity.IsDefined(r_flag) ? (r_entity.Is(r_flag) ? 1.0 : 0.0) : -1.0);
-        }
-        rOutput.push_back(std::move(data));
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TContainer>
-DataArray CollectIdsArray(
-    const TContainer& rEntities,
-    const std::size_t NumberOfEntities,
-    const std::string& rName
-    )
-{
-    DataArray data;
-    data.mName = rName;
-    data.mNumComponents = 1;
-    data.mValues.reserve(NumberOfEntities);
-    for (const auto& r_entity : rEntities) {
-        data.mValues.push_back(static_cast<double>(r_entity.Id()));
-    }
-    return data;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TContainer>
-DataArray CollectPropertiesIdsArray(
-    const TContainer& rEntities,
-    const std::size_t NumberOfEntities
-    )
-{
-    DataArray data;
-    data.mName = "PROPERTIES_ID";
-    data.mNumComponents = 1;
-    data.mValues.reserve(NumberOfEntities);
-    for (const auto& r_entity : rEntities) {
-        data.mValues.push_back(static_cast<double>(r_entity.GetProperties().Id()));
-    }
-    return data;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TContainer>
-void CollectGaussPointDataArrays(
-    const std::vector<std::string>& rVariableNames,
-    TContainer& rEntities,
-    const std::size_t NumberOfEntities,
-    const ProcessInfo& rProcessInfo,
-    std::vector<DataArray>& rOutput
-    )
-{
-    for (const auto& r_variable_name : rVariableNames) {
-        DataArray data;
-        data.mName = r_variable_name;
-
-        // Averages the integration point values of one entity into rAppendTo
-        auto collect_scalar = [&]<class TDataType>(const Variable<TDataType>& rVariable) -> bool {
-            std::vector<TDataType> gp_values;
-            if (NumberOfEntities == 0) {
-                return false;
-            }
-            rEntities.begin()->CalculateOnIntegrationPoints(rVariable, gp_values, rProcessInfo);
-            if (gp_values.empty()) {
-                KRATOS_WARNING_ONCE("MeshioPlusPlusIO") << "Gauss point variable \"" << r_variable_name
-                    << "\" returns no integration point values - skipping it" << std::endl;
-                return false;
-            }
-            data.mNumComponents = 1;
-            data.mValues.reserve(NumberOfEntities);
-            for (auto& r_entity : rEntities) {
-                r_entity.CalculateOnIntegrationPoints(rVariable, gp_values, rProcessInfo);
-                double average = 0.0;
-                for (const auto& r_value : gp_values) {
-                    average += static_cast<double>(r_value);
-                }
-                data.mValues.push_back(gp_values.empty() ? 0.0 : average / gp_values.size());
-            }
-            return true;
-        };
-        auto collect_vector = [&]<class TDataType>(const Variable<TDataType>& rVariable) -> bool {
-            std::vector<TDataType> gp_values;
-            if (NumberOfEntities == 0) {
-                return false;
-            }
-            rEntities.begin()->CalculateOnIntegrationPoints(rVariable, gp_values, rProcessInfo);
-            if (gp_values.empty() || gp_values[0].size() == 0) {
-                KRATOS_WARNING_ONCE("MeshioPlusPlusIO") << "Gauss point variable \"" << r_variable_name
-                    << "\" returns no integration point values - skipping it" << std::endl;
-                return false;
-            }
-            const std::size_t number_of_components = gp_values[0].size();
-            data.mNumComponents = number_of_components;
-            data.mValues.reserve(NumberOfEntities * number_of_components);
-            std::vector<double> average(number_of_components);
-            for (auto& r_entity : rEntities) {
-                r_entity.CalculateOnIntegrationPoints(rVariable, gp_values, rProcessInfo);
-                std::fill(average.begin(), average.end(), 0.0);
-                for (const auto& r_value : gp_values) {
-                    for (std::size_t i = 0; i < number_of_components && i < r_value.size(); ++i) {
-                        average[i] += r_value[i];
-                    }
-                }
-                for (std::size_t i = 0; i < number_of_components; ++i) {
-                    data.mValues.push_back(gp_values.empty() ? 0.0 : average[i] / gp_values.size());
-                }
-            }
-            return true;
-        };
-
-        bool collected = false;
-        if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
-            collected = collect_scalar(KratosComponents<Variable<double>>::Get(r_variable_name));
-        } else if (KratosComponents<Variable<int>>::Has(r_variable_name)) {
-            collected = collect_scalar(KratosComponents<Variable<int>>::Get(r_variable_name));
-        } else if (KratosComponents<Variable<bool>>::Has(r_variable_name)) {
-            collected = collect_scalar(KratosComponents<Variable<bool>>::Get(r_variable_name));
-        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name)) {
-            collected = collect_vector(KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name));
-        } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(r_variable_name)) {
-            collected = collect_vector(KratosComponents<Variable<array_1d<double, 6>>>::Get(r_variable_name));
-        } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) {
-            collected = collect_vector(KratosComponents<Variable<Vector>>::Get(r_variable_name));
-        } else {
-            KRATOS_WARNING_ONCE("MeshioPlusPlusIO") << "Gauss point variable \"" << r_variable_name
-                << "\" is not registered with a type suitable for MeshioPlusPlusIO - skipping it" << std::endl;
-        }
-
-        if (collected) {
-            rOutput.push_back(std::move(data));
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-std::vector<DataArray> MergeCellDataParts(
-    std::vector<DataArray>&& rElementPart,
-    const std::size_t NumberOfElementRows,
-    std::vector<DataArray>&& rConditionPart,
-    const std::size_t NumberOfConditionRows
-    )
-{
-    std::vector<DataArray> merged;
-    merged.reserve(rElementPart.size() + rConditionPart.size());
-
-    for (auto& r_element_data : rElementPart) {
-        const auto it_condition = std::find_if(rConditionPart.begin(), rConditionPart.end(),
-            [&r_element_data](const DataArray& rData) { return rData.mName == r_element_data.mName; });
-        if (it_condition != rConditionPart.end() &&
-            it_condition->mNumComponents == r_element_data.mNumComponents) {
-            r_element_data.mValues.insert(r_element_data.mValues.end(),
-                                         it_condition->mValues.begin(), it_condition->mValues.end());
-            rConditionPart.erase(it_condition);
-        } else {
-            r_element_data.mValues.resize(
-                r_element_data.mValues.size() + NumberOfConditionRows * r_element_data.mNumComponents, 0.0);
-        }
-        merged.push_back(std::move(r_element_data));
-    }
-
-    for (auto& r_condition_data : rConditionPart) {
-        r_condition_data.mValues.insert(r_condition_data.mValues.begin(),
-                                       NumberOfElementRows * r_condition_data.mNumComponents, 0.0);
-        merged.push_back(std::move(r_condition_data));
-    }
-
-    return merged;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-mio::NDArray ToNDArray(const DataArray& rData)
-{
-    const std::size_t number_of_rows =
-        rData.mNumComponents > 0 ? rData.mValues.size() / rData.mNumComponents : 0;
-    mio::NDArray array = mio::NDArray::Uninit(
-        mio::DType::Float64,
-        rData.mNumComponents == 1 ? std::vector<std::size_t>{number_of_rows}
-                                      : std::vector<std::size_t>{number_of_rows, rData.mNumComponents});
-    std::copy(rData.mValues.begin(), rData.mValues.end(), array.As<double>());
-    return array;
-}
+using Internals::DataArray;
 
 // Format enum <-> canonical meshio++ format name. Keep in sync with the
 // Format enum in meshioplusplus_io.h and meshio++'s registry.cpp.
@@ -1042,43 +759,27 @@ double MeshioPlusPlusIO::GetOutputTimeValue(const ModelPart& rModelPart) const
 /***********************************************************************************/
 /***********************************************************************************/
 
+Internals::FieldDataSelection MeshioPlusPlusIO::GetFieldDataSelection() const
+{
+    Internals::FieldDataSelection selection;
+    selection.NodalSolutionStepVariables = mParameters["nodal_solution_step_data_variables"].GetStringArray();
+    selection.NodalDataValueVariables = mParameters["nodal_data_value_variables"].GetStringArray();
+    selection.NodalFlags = mParameters["nodal_flags"].GetStringArray();
+    selection.ElementDataValueVariables = mParameters["element_data_value_variables"].GetStringArray();
+    selection.ElementFlags = mParameters["element_flags"].GetStringArray();
+    selection.ConditionDataValueVariables = mParameters["condition_data_value_variables"].GetStringArray();
+    selection.ConditionFlags = mParameters["condition_flags"].GetStringArray();
+    selection.GaussPointVariables = mParameters["gauss_point_variables_in_elements"].GetStringArray();
+    selection.WriteIds = mParameters["write_ids"].GetBool();
+    return selection;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::vector<mio::XdmfTimeSeriesWriter::NamedArray> MeshioPlusPlusIO::CollectPointData(const ModelPart& rThisModelPart) const
 {
-    KRATOS_TRY
-
-    std::vector<DataArray> point_data;
-    const auto& r_nodes = rThisModelPart.Nodes();
-    const std::size_t number_of_nodes = rThisModelPart.NumberOfNodes();
-
-    // Historical nodal variables (validated against the solution step data)
-    CollectVariableDataArrays(
-        mParameters["nodal_solution_step_data_variables"].GetStringArray(), r_nodes, number_of_nodes,
-        [](const auto& rNode, const auto& rVariable) -> decltype(auto) {
-            return rNode.FastGetSolutionStepValue(rVariable);
-        },
-        [&rThisModelPart](const auto& rVariable) {
-            KRATOS_ERROR_IF(!rThisModelPart.HasNodalSolutionStepVariable(rVariable))
-                << "Variable " << rVariable.Name() << " is not a nodal solution step variable of model part \""
-                << rThisModelPart.FullName() << "\"" << std::endl;
-        },
-        point_data);
-
-    // Non-historical nodal variables (includes the extrapolated gauss point results)
-    CollectVariableDataArrays(
-        mParameters["nodal_data_value_variables"].GetStringArray(), r_nodes, number_of_nodes,
-        [](const auto& rNode, const auto& rVariable) -> decltype(auto) { return rNode.GetValue(rVariable); },
-        [](const auto&) {}, point_data);
-
-    // Nodal flags (1/0, -1 when undefined - VtkOutput convention)
-    CollectFlagDataArrays(mParameters["nodal_flags"].GetStringArray(), r_nodes, number_of_nodes, point_data);
-
-    if (mParameters["write_ids"].GetBool()) {
-        point_data.push_back(CollectIdsArray(r_nodes, number_of_nodes, "KRATOS_NODE_ID"));
-    }
-
-    return point_data;
-
-    KRATOS_CATCH("")
+    return Internals::CollectPointData(rThisModelPart, GetFieldDataSelection());
 }
 
 /***********************************************************************************/
@@ -1086,62 +787,7 @@ std::vector<mio::XdmfTimeSeriesWriter::NamedArray> MeshioPlusPlusIO::CollectPoin
 
 std::vector<mio::XdmfTimeSeriesWriter::NamedArray> MeshioPlusPlusIO::CollectCellData(const ModelPart& rThisModelPart) const
 {
-    KRATOS_TRY
-
-    const bool write_elements = WritesElements();
-    const bool write_conditions = WritesConditions();
-    const std::size_t number_of_elements = write_elements ? rThisModelPart.NumberOfElements() : 0;
-    const std::size_t number_of_conditions = write_conditions ? rThisModelPart.NumberOfConditions() : 0;
-    const bool write_ids = mParameters["write_ids"].GetBool();
-    const auto gauss_point_variables = mParameters["gauss_point_variables_in_elements"].GetStringArray();
-
-    auto non_historical_getter = [](const auto& rEntity, const auto& rVariable) -> decltype(auto) {
-        return rEntity.GetValue(rVariable);
-    };
-    auto no_validation = [](const auto&) {};
-
-    std::vector<DataArray> element_part;
-    if (write_elements && number_of_elements > 0) {
-        const auto& r_elements = rThisModelPart.Elements();
-        CollectVariableDataArrays(mParameters["element_data_value_variables"].GetStringArray(), r_elements,
-                                  number_of_elements, non_historical_getter, no_validation, element_part);
-        CollectFlagDataArrays(mParameters["element_flags"].GetStringArray(), r_elements, number_of_elements,
-                              element_part);
-        if (write_ids) {
-            element_part.push_back(CollectIdsArray(r_elements, number_of_elements, "KRATOS_ELEMENT_ID"));
-            element_part.push_back(CollectPropertiesIdsArray(r_elements, number_of_elements));
-        }
-        if (!gauss_point_variables.empty()) {
-            // CalculateOnIntegrationPoints is non-const, hence the contained
-            // const_cast (identical effective behavior to VtkOutput)
-            auto& r_mutable_elements = const_cast<ModelPart&>(rThisModelPart).Elements();
-            CollectGaussPointDataArrays(gauss_point_variables, r_mutable_elements, number_of_elements,
-                                        rThisModelPart.GetProcessInfo(), element_part);
-        }
-    }
-
-    std::vector<DataArray> condition_part;
-    if (write_conditions && number_of_conditions > 0) {
-        const auto& r_conditions = rThisModelPart.Conditions();
-        CollectVariableDataArrays(mParameters["condition_data_value_variables"].GetStringArray(), r_conditions,
-                                  number_of_conditions, non_historical_getter, no_validation, condition_part);
-        CollectFlagDataArrays(mParameters["condition_flags"].GetStringArray(), r_conditions, number_of_conditions,
-                              condition_part);
-        if (write_ids) {
-            condition_part.push_back(CollectIdsArray(r_conditions, number_of_conditions, "KRATOS_CONDITION_ID"));
-            condition_part.push_back(CollectPropertiesIdsArray(r_conditions, number_of_conditions));
-        }
-        if (!gauss_point_variables.empty()) {
-            auto& r_mutable_conditions = const_cast<ModelPart&>(rThisModelPart).Conditions();
-            CollectGaussPointDataArrays(gauss_point_variables, r_mutable_conditions, number_of_conditions,
-                                        rThisModelPart.GetProcessInfo(), condition_part);
-        }
-    }
-
-    return MergeCellDataParts(std::move(element_part), number_of_elements,
-                              std::move(condition_part), number_of_conditions);
-
-    KRATOS_CATCH("")
+    return Internals::CollectCellData(rThisModelPart, WritesElements(), WritesConditions(), GetFieldDataSelection());
 }
 
 /***********************************************************************************/
@@ -1149,50 +795,9 @@ std::vector<mio::XdmfTimeSeriesWriter::NamedArray> MeshioPlusPlusIO::CollectCell
 
 mio::Mesh MeshioPlusPlusIO::BuildMeshWithData(const ModelPart& rThisModelPart) const
 {
-    KRATOS_TRY
-
-    const bool write_elements = WritesElements();
-    const bool write_conditions = WritesConditions();
-
-    mio::Mesh mesh;
-    Internals::FillMeshioModelPart(rThisModelPart, mesh.GetModelPart(), write_elements, write_conditions,
-                        mParameters["write_deformed_configuration"].GetBool());
-
-    // Nodal data set on the meshio++ model part becomes point data when the
-    // staging is rebuilt from the model part view (same node container order).
-    for (const auto& r_data : CollectPointData(rThisModelPart)) {
-        mesh.GetModelPart().SetNodalData(r_data.mName, ToNDArray(r_data));
-    }
-
-    // Cell data: the combined arrays cover element rows first, then condition
-    // rows; split them into the per-kind containers meshio++ restores per block.
-    const std::size_t number_of_elements = write_elements ? rThisModelPart.NumberOfElements() : 0;
-    const std::size_t number_of_conditions = write_conditions ? rThisModelPart.NumberOfConditions() : 0;
-    for (const auto& r_data : CollectCellData(rThisModelPart)) {
-        if (number_of_elements > 0) {
-            DataArray element_slice;
-            element_slice.mName = r_data.mName;
-            element_slice.mNumComponents = r_data.mNumComponents;
-            element_slice.mValues.assign(r_data.mValues.begin(),
-                                        r_data.mValues.begin() + number_of_elements * r_data.mNumComponents);
-            mesh.GetModelPart().SetElementalData(r_data.mName, ToNDArray(element_slice));
-        }
-        if (number_of_conditions > 0) {
-            DataArray condition_slice;
-            condition_slice.mName = r_data.mName;
-            condition_slice.mNumComponents = r_data.mNumComponents;
-            condition_slice.mValues.assign(r_data.mValues.begin() + number_of_elements * r_data.mNumComponents,
-                                          r_data.mValues.end());
-            mesh.GetModelPart().SetConditionalData(r_data.mName, ToNDArray(condition_slice));
-        }
-    }
-
-    // The model part view was mutated directly: rebuild the point/cell staging
-    // the format writers read from.
-    mesh.InvalidateBlocks();
-    return mesh;
-
-    KRATOS_CATCH("")
+    return Internals::ModelPartToMeshWithData(
+        rThisModelPart, WritesElements(), WritesConditions(),
+        mParameters["write_deformed_configuration"].GetBool(), GetFieldDataSelection());
 }
 
 /***********************************************************************************/

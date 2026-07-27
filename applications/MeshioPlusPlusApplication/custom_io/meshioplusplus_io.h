@@ -22,6 +22,7 @@
 #include "meshioplusplus/formats/xdmf_time_series.hpp"
 
 // Project includes
+#include "custom_utilities/meshioplusplus_conversion_utilities.h"
 #include "includes/io.h"
 
 namespace Kratos
@@ -412,18 +413,29 @@ private:
         );
 
     /**
-     * @brief Collects the configured nodal variables, flags, node ids and
-     * extrapolated gauss point results as flat point-data arrays (node
-     * container order).
+     * @brief The @ref Internals::FieldDataSelection this instance's settings describe.
+     * @details The single place mapping the "nodal_solution_step_data_variables" family of
+     * settings onto the vocabulary @ref Internals::CollectPointData / CollectCellData /
+     * ModelPartToMeshWithData share with @ref MeshioPlusPlusMeshOperations.
      */
+    Internals::FieldDataSelection GetFieldDataSelection() const;
+
     /**
      * @brief Builds a meshio++ mesh of the model part carrying the configured nodal and
      * cell data, used by the static writers.
+     * @details A thin wrapper over @ref Internals::ModelPartToMeshWithData with this
+     * instance's own settings.
      * @param rThisModelPart The model part to convert.
      * @return The staged mesh, data included.
      */
     meshioplusplus::Mesh BuildMeshWithData(const ModelPart& rThisModelPart) const;
 
+    /**
+     * @brief Collects the configured nodal variables, flags, node ids and extrapolated
+     * gauss point results as flat point-data arrays (node container order).
+     * @details A thin wrapper over @ref Internals::CollectPointData; kept as a separate
+     * entry point for @ref WriteXdmfStep, which needs the arrays without a full mesh.
+     */
     std::vector<meshioplusplus::XdmfTimeSeriesWriter::NamedArray> CollectPointData(const ModelPart& rThisModelPart) const;
 
     /**
@@ -431,6 +443,7 @@ private:
      * ids and gauss point results as flat cell-data arrays (element rows
      * first, then condition rows, zero-filled for the entity kind a variable
      * does not apply to).
+     * @details A thin wrapper over @ref Internals::CollectCellData.
      */
     std::vector<meshioplusplus::XdmfTimeSeriesWriter::NamedArray> CollectCellData(const ModelPart& rThisModelPart) const;
 
