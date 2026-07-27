@@ -15,8 +15,6 @@
 #include <cctype>
 #include <sstream>
 
-using namespace std::string_literals;
-
 namespace Kratos
 {
 
@@ -29,7 +27,7 @@ std::string GeoStringUtilities::ToLower(const std::string& rString)
 
 std::string GeoStringUtilities::Join(const std::vector<std::string>& rStrings, const std::string& rSeparator)
 {
-    if (rStrings.empty()) return ""s;
+    if (rStrings.empty()) return {};
 
     auto oss = std::ostringstream{};
     auto it  = rStrings.begin();
