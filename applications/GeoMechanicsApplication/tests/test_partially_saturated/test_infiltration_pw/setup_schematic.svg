@@ -5,7 +5,7 @@
    overflow="hidden"
    version="1.1"
    id="svg85"
-   sodipodi:docname="column_partially_saturated.svg"
+   sodipodi:docname="setup_schematic.svg"
    inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -22,8 +22,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="1.1461022"
-     inkscape:cx="242.56126"
-     inkscape:cy="370.3858"
+     inkscape:cx="242.56127"
+     inkscape:cy="370.38582"
      inkscape:window-width="3440"
      inkscape:window-height="1369"
      inkscape:window-x="-8"
@@ -52,6 +52,12 @@
          id="use1" />
     </pattern>
   </defs>
+  <path
+     d="M 0,0 H 765.85028 V 609.54938 H 0 Z"
+     fill="#ffffff"
+     fill-rule="evenodd"
+     id="path65-4"
+     style="stroke-width:3.39089" />
   <path
      d="M 158.26963,9.2256126 V 537.22581 h 243 V 9.2256126 Z m 5.157,5.1478004 h 232.687 V 532.07881 h -232.687 z"
      fill-rule="evenodd"
