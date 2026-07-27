@@ -4,6 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_meshioplusplus_io
 import test_meshio_output_process
 import test_meshio_input_modeler
+import test_meshio_interpolate_modeler
 import test_meshio_mesh_operations
 
 
@@ -26,6 +27,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_meshioplusplus_io.TestMeshioPlusPlusIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_meshio_output_process.TestMeshioOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_meshio_input_modeler.TestMeshioInputModeler]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_meshio_interpolate_modeler.TestMeshioInterpolateModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_meshio_mesh_operations.TestMeshioPlusPlusMeshOperations]))
 
     nightSuite = suites["nightly"]
