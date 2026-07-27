@@ -29,9 +29,6 @@
                     "VAN_GENUCHTEN_GN": 1.342,
                     "VAN_GENUCHTEN_GL": -0.803,
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-05
-                },
-                "Tables": {
-
                 }
             }
         }
