@@ -39,13 +39,6 @@ namespace
 /// Key of the entity-name cache: exactly the pair GeometricalObject::IsSame compares.
 using EntityKindKey = std::pair<std::type_index, GeometryData::KratosGeometryType>;
 
-/**
- * @brief Memoized wrapper around CompareElementsAndConditionsUtility::GetRegisteredName.
- * @details The underlying lookup is a linear scan over every registered component, so it is
- * resolved once per distinct entity kind and reused afterwards. An unregistered entity is
- * cached as the empty string, which meshio++ reads as "derive the name from the cell type";
- * that keeps a mesh of ad-hoc entities writable instead of aborting the whole write.
- */
 template <class TEntity>
 const std::string& CachedRegisteredName(const TEntity& rEntity)
 {
@@ -74,6 +67,9 @@ const std::string& CachedRegisteredName(const TEntity& rEntity)
 
 } // namespace
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 const std::string& RegisteredEntityName(const Element& rElement)
 {
     return CachedRegisteredName(rElement);
@@ -87,9 +83,6 @@ const std::string& RegisteredEntityName(const Condition& rCondition)
 namespace
 {
 
-/**
- * @brief Recursively copies the sub model part structure (names + memberships).
- */
 void CopySubModelParts(
     const ModelPart& rSource,
     mio::ModelPart& rDestination,
@@ -132,13 +125,9 @@ void CopySubModelParts(
 
 } // namespace
 
-/**
- * @brief Populates a meshio++ model part from a Kratos one (one O(n) pass).
- * @note meshio++'s from_model_part() cannot be used here: its sub-model-part
- * copy is gated on methods Kratos::ModelPart spells differently
- * (SubModelPartNames vs GetSubModelPartNames) and would silently drop them.
- * The entity mapping still goes through bridge_traits<Kratos::ModelPart>.
- */
+/***********************************************************************************/
+/***********************************************************************************/
+
 void FillMeshioModelPart(
     const ModelPart& rSource,
     mio::ModelPart& rDestination,
@@ -191,6 +180,9 @@ void FillMeshioModelPart(
     CopySubModelParts(rSource, rDestination, WriteElements, WriteConditions);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 meshioplusplus::Mesh ModelPartToMesh(
     const ModelPart& rSource,
     const bool WriteElements,
@@ -211,6 +203,9 @@ meshioplusplus::Mesh ModelPartToMesh(
     KRATOS_CATCH("")
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void MeshToModelPart(meshioplusplus::Mesh& rSource, ModelPart& rDestination)
 {
     KRATOS_TRY
@@ -228,6 +223,9 @@ void MeshToModelPart(meshioplusplus::Mesh& rSource, ModelPart& rDestination)
 
     KRATOS_CATCH("")
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void ApplyMeshioProperty(Properties::Pointer pProperties, const mio::PropertyValue& rValue)
 {

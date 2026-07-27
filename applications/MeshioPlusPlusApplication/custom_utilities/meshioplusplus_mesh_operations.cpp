@@ -51,7 +51,6 @@ namespace Kratos
 namespace
 {
 
-/// The operations Execute() dispatches on, and whether each produces a mesh.
 const std::vector<std::string>& OperationNames()
 {
     static const std::vector<std::string> names = {
@@ -62,7 +61,9 @@ const std::vector<std::string>& OperationNames()
     return names;
 }
 
-/// Reads a 3-component vector setting, defaulting each missing component to zero.
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::array<double, 3> ReadVector3(Parameters Settings, const std::string& rKey)
 {
     std::array<double, 3> value{{0.0, 0.0, 0.0}};
@@ -74,17 +75,17 @@ std::array<double, 3> ReadVector3(Parameters Settings, const std::string& rKey)
     return value;
 }
 
-/// Writes a mesh-producing operation's result into the destination model part.
+/***********************************************************************************/
+/***********************************************************************************/
+
 void StoreResult(mio::Mesh& rMesh, ModelPart& rDestination)
 {
     Internals::MeshToModelPart(rMesh, rDestination);
 }
 
-/// Writes one model part per piece, for the multi-output operations.
-/// @note The pieces cannot be sub model parts of a shared destination: a Kratos sub model
-/// part is a view into its root's entity containers, and every piece is independently
-/// renumbered from 1, so their nodes would collide on insertion. They are therefore created
-/// as siblings of the destination, named after it, and the destination itself stays empty.
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <class TPieces>
 Parameters StorePieces(TPieces& rPieces, ModelPart& rDestination, const std::string& rPrefix)
 {

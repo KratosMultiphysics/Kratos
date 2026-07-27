@@ -48,14 +48,6 @@ namespace
 
 using DataArray = mio::XdmfTimeSeriesWriter::NamedArray;
 
-/**
- * @brief Collects the listed variables of a container as flat data arrays.
- * @details Supported types (mirroring VtkOutput): double, int, bool (scalar),
- * array_1d<double, 3/4/6/9> and Vector (multi-component, Vector size taken
- * from the first entity). Unknown or unsupported variables are skipped with a
- * warning. rGetValue(entity, variable) provides the value, rValidate(variable)
- * runs an optional per-variable check (e.g. historical availability).
- */
 template <class TContainer, class TGetter, class TValidator>
 void CollectVariableDataArrays(
     const std::vector<std::string>& rVariableNames,
@@ -124,10 +116,9 @@ void CollectVariableDataArrays(
     }
 }
 
-/**
- * @brief Collects the listed flags of a container as 1/0/-1 scalar arrays
- * (VtkOutput convention: -1 when the flag is not defined on the entity).
- */
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <class TContainer>
 void CollectFlagDataArrays(
     const std::vector<std::string>& rFlagNames,
@@ -155,9 +146,9 @@ void CollectFlagDataArrays(
     }
 }
 
-/**
- * @brief Collects entity ids as a scalar array named rName.
- */
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <class TContainer>
 DataArray CollectIdsArray(
     const TContainer& rEntities,
@@ -175,9 +166,9 @@ DataArray CollectIdsArray(
     return data;
 }
 
-/**
- * @brief Collects the entities' properties ids as the PROPERTIES_ID array.
- */
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <class TContainer>
 DataArray CollectPropertiesIdsArray(
     const TContainer& rEntities,
@@ -194,12 +185,9 @@ DataArray CollectPropertiesIdsArray(
     return data;
 }
 
-/**
- * @brief Collects gauss point results averaged over the integration points
- * (VtkOutput convention). Variables whose CalculateOnIntegrationPoints returns
- * nothing (e.g. the generic core entities) are skipped with a warning.
- * @note CalculateOnIntegrationPoints is non-const, hence the non-const container.
- */
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <class TContainer>
 void CollectGaussPointDataArrays(
     const std::vector<std::string>& rVariableNames,
@@ -291,11 +279,9 @@ void CollectGaussPointDataArrays(
     }
 }
 
-/**
- * @brief Merges per-kind cell arrays into combined ones covering the full cell
- * range of the written mesh (element rows first, then condition rows),
- * zero-filling the rows of the entity kind an array does not apply to.
- */
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::vector<DataArray> MergeCellDataParts(
     std::vector<DataArray>&& rElementPart,
     const std::size_t NumberOfElementRows,
@@ -330,9 +316,9 @@ std::vector<DataArray> MergeCellDataParts(
     return merged;
 }
 
-/**
- * @brief Builds a meshio++ NDArray ({n} or {n, components} Float64) from a DataArray.
- */
+/***********************************************************************************/
+/***********************************************************************************/
+
 mio::NDArray ToNDArray(const DataArray& rData)
 {
     const std::size_t number_of_rows =
@@ -403,14 +389,9 @@ const std::unordered_map<std::string, MeshioPlusPlusIO::Format>& GetFormatNameMa
     return format_map;
 }
 
-/**
- * @brief Writes rMesh honoring an ascii/binary "file_format" override for the
- * formats exposing such a flag, bypassing the meshio++ registry defaults.
- * @param Skin Whether stl/ply extract and write the boundary skin of volume
- *        meshes (the "skin" setting); ignored by the other formats.
- * @return false when the format has no ascii/binary variant (caller falls
- *         back to the registry writer).
- */
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool WriteWithFileFormatOverride(
     const std::string& rFormatName,
     const bool Binary,
