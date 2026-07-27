@@ -21,7 +21,9 @@ include(pybind11Tools)
 # EXACT is deliberate, not stylistic: the meshio++ C++ API makes no ABI promise (Mesh,
 # ModelPart and GeometricalEntity are header-defined types whose layout changes with the
 # headers), so the application must be rebuilt whenever meshio++ is. See doc/cpp_api.md.
-find_package(meshioplusplus 9.1.0 EXACT CONFIG REQUIRED COMPONENTS CXX)
+# All three version components are required: under SameMajorVersion, EXACT is a full string
+# comparison, so "9.2" would not match an installed "9.2.0".
+find_package(meshioplusplus 9.2.0 EXACT CONFIG REQUIRED COMPONENTS CXX)
 
 if(NOT TARGET meshioplusplus::core_kratos)
     message(FATAL_ERROR
@@ -105,15 +107,32 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 install(TARGETS KratosMeshioPlusPlusCore DESTINATION libs)
 install(TARGETS KratosMeshioPlusPlusApplication DESTINATION libs)
 
+# Where the meshio++ shared library actually lives, needed both for the RPATH below and for
+# the optional TPL copy further down.
+get_target_property(MESHIOPLUSPLUS_CORE_LOCATION meshioplusplus::core_kratos IMPORTED_LOCATION_RELEASE)
+if(NOT MESHIOPLUSPLUS_CORE_LOCATION)
+    get_target_property(MESHIOPLUSPLUS_CORE_LOCATION meshioplusplus::core_kratos IMPORTED_LOCATION)
+endif()
+if(MESHIOPLUSPLUS_CORE_LOCATION)
+    get_filename_component(MESHIOPLUSPLUS_LIB_DIR "${MESHIOPLUSPLUS_CORE_LOCATION}" DIRECTORY)
+endif()
+
+# Kratos installs with an RPATH of just "$ORIGIN", which is enough for its own libraries but
+# not for meshio++: it is an external dependency that normally lives in its own prefix
+# (~/.local/meshioplusplus, /opt/..., a Conan cache), none of which the dynamic linker
+# searches by default. Without its directory recorded here, importing the Python module
+# fails with "libmeshioplusplus_core_kratos.so.0: cannot open shared object file" unless the
+# user sets LD_LIBRARY_PATH by hand. $ORIGIN is kept first so an INSTALL_TPL_LIBRARIES copy
+# in libs/ still wins.
+if(MESHIOPLUSPLUS_LIB_DIR AND NOT WIN32)
+    set_target_properties(KratosMeshioPlusPlusCore KratosMeshioPlusPlusApplication PROPERTIES
+        INSTALL_RPATH "$ORIGIN;${MESHIOPLUSPLUS_LIB_DIR}")
+endif()
+
 # Install dependent libraries (the meshio++ shared library and, when it was built against
 # them, its own HDF5/netCDF dependencies are resolved by the dynamic linker at load time).
 if(${INSTALL_TPL_LIBRARIES} MATCHES ON)
-    get_target_property(MESHIOPLUSPLUS_CORE_LOCATION meshioplusplus::core_kratos IMPORTED_LOCATION_RELEASE)
-    if(NOT MESHIOPLUSPLUS_CORE_LOCATION)
-        get_target_property(MESHIOPLUSPLUS_CORE_LOCATION meshioplusplus::core_kratos IMPORTED_LOCATION)
-    endif()
     if(MESHIOPLUSPLUS_CORE_LOCATION)
-        get_filename_component(MESHIOPLUSPLUS_LIB_DIR "${MESHIOPLUSPLUS_CORE_LOCATION}" DIRECTORY)
         if(WIN32)
             install(DIRECTORY "${MESHIOPLUSPLUS_LIB_DIR}/" DESTINATION libs FILES_MATCHING PATTERN "*meshioplusplus*.dll")
         elseif(APPLE)
