@@ -14,7 +14,7 @@
             "modelers" : [{
                 "name" : "KratosMultiphysics.modelers.import_mdpa_modeler.ImportMDPAModeler",
                 "Parameters" : {
-                    "input_filename" : "/home/tobias/repos/barcelona_debug/truss/truss",
+                    "input_filename" : "./two_node_truss",
                     "model_part_name" : "Structure"
                 }
             }]
@@ -36,7 +36,7 @@
                     "input_type": "use_input_model_part"
                 },
                 "material_import_settings" :{
-                    "materials_filename": "/home/tobias/repos/barcelona_debug/truss/Materials.json"
+                    "materials_filename": "./Materials.json"
                 },
                 "rotation_dofs": false,
                 "strain_dofs": false,
