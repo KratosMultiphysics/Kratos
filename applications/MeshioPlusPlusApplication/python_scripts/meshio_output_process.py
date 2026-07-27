@@ -112,3 +112,10 @@ class MeshioOutputProcess(KratosMultiphysics.OutputProcess):
         # The IO keeps the transient state: this extends the existing output
         self.meshio_io.WriteModelPart(self.model_part)
         self.__controller.Update()
+
+    def ExecuteFinalize(self) -> None:
+        # Finish the time series here rather than leaving it to whenever the IO is
+        # garbage collected: the writer finalizes on destruction, so an output deleted
+        # while it is still alive would be recreated - and, since the series is opened in
+        # append mode, the next run would continue a series believed deleted.
+        self.meshio_io.CloseOutput()
