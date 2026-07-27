@@ -20,7 +20,11 @@
 
 // Project includes
 #include "geometries/geometry.h"
+#include "geometries/point.h"
 #include "geometries/brep_curve_on_surface.h"
+#include "geometries/nurbs_curve_geometry.h"
+#include "geometries/nurbs_surface_geometry.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_curve_refinement_utilities.h"
 
 #include "utilities/tessellation_utilities/curve_tessellation.h"
 #include "includes/node.h"
@@ -400,6 +404,86 @@ namespace Kratos
 
         //checks whether point is on the left or right of the line a-b
         static bool is_on_Left(c_vector<double,2> a, c_vector<double,2> b, c_vector<double,2> c);
+
+        /////// NURBS trimmed reparametrization
+        enum Element_Face {NORTH,EAST,SOUTH,WEST,NONE};
+
+        struct TrimCurveSegment {
+            BrepCurveOnSurfacePointerType pCurve;
+            double LocalParameterStart;
+            double LocalParameterEnd;
+        };
+
+        static bool CollectTrimCurveSegmentsForSpan(
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
+            const double u0,
+            const double u1,
+            const double v0,
+            const double v1,
+            std::vector<TrimCurveSegment>& rTrimCurves);
+
+        struct RawTrimCurve {
+            SizeType Degree = 0;
+            std::vector<array_1d<double, 2>> Points;
+            Vector Weights;
+            Vector Knots;
+        };
+
+        using ParametrizationPatchType = NurbsSurfaceGeometry<2, PointerVector<Point>>;
+        using ParametrizationPatchPointerType = typename ParametrizationPatchType::Pointer;
+
+        struct RuledSurfacePatch {
+            ParametrizationPatchPointerType Surface;
+            array_1d<double, 2> OppositeStart;
+            array_1d<double, 2> OppositeEnd;
+            RawTrimCurve TrimCurve; // original (unrefined) trim curve, for exact derivatives
+        };
+
+        static RawTrimCurve ExtractRawCurve(const TrimCurveSegment& rSegment);
+
+        static RawTrimCurve RestrictCurveToRange(const RawTrimCurve& rCurve, const double TStart, const double TEnd);
+
+        static RawTrimCurve DegreeElevateCurve(const RawTrimCurve& rCurve, const SizeType DegreeIncrease);
+
+        static RawTrimCurve ReverseCurve(const RawTrimCurve& rCurve);
+
+        static bool MergeCurves(RawTrimCurve& rMasterCurve, RawTrimCurve CurveToAdd, const double Tolerance);
+
+        static RawTrimCurve BuildStraightLineCurve(
+            const array_1d<double, 2>& rPointA, const array_1d<double, 2>& rPointB,
+            const double TStart, const double TEnd);
+
+        static RuledSurfacePatch BuildRuledSurfacePatch(
+            const array_1d<double, 2>& rOppositeStart, const array_1d<double, 2>& rOppositeEnd,
+            const RawTrimCurve& rTrimCurve);
+
+        static void EvaluateRuledSurface(
+            const RuledSurfacePatch& rPatch,
+            const double U, const double V,
+            array_1d<double, 2>& rPosition,
+            double& rDetJacobian);
+
+        static Element_Face ClassifyFace(
+            array_1d<double, 2>& rPoint,
+            const double u0, const double u1, const double v0, const double v1,
+            const double Tolerance);
+
+        static bool calc_nurbs_patch(
+            const std::vector<array_1d<double, 2>>& rCornerPoints, // SW, SE, NW, NE
+            const double u0, const double u1, const double v0, const double v1,
+            RawTrimCurve TrimCurve, Element_Face FaceStart, Element_Face FaceEnd,
+            const double Tolerance,
+            std::vector<RuledSurfacePatch>& rPatches);
+
+        static bool parametrize_local_trimmed_domain(
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
+            const double u0,
+            const double u1,
+            const double v0,
+            const double v1,
+            std::vector<RuledSurfacePatch>& rPatches);
 
         ///@}
     };

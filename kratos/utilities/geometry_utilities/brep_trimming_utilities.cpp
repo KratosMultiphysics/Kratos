@@ -116,6 +116,51 @@ namespace Kratos
                             rSpansV[j], rSpansV[j + 1]);
                     }
                     else {
+                        // Trimmed NURBS reparametrization 
+                        std::vector<RuledSurfacePatch> patches;
+                        const bool patch_ok = parametrize_local_trimmed_domain(
+                            rOuterLoops, rInnerLoops, rSpansU[i], rSpansU[i + 1], rSpansV[j], rSpansV[j + 1], patches);
+
+                        if (patch_ok && !patches.empty()) {
+                            const SizeType npts_u = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0);
+                            const SizeType npts_v = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
+
+                            for (const auto& r_patch : patches) {
+                                std::vector<double> patch_spans_u, patch_spans_v;
+                                r_patch.Surface->SpansLocalSpace(patch_spans_u, 0);
+                                r_patch.Surface->SpansLocalSpace(patch_spans_v, 1);
+
+                                IntegrationPointsArrayType patch_integration_points(
+                                    (patch_spans_u.size() - 1) * (patch_spans_v.size() - 1) * npts_u * npts_v);
+                                auto patch_integration_point_iterator = patch_integration_points.begin();
+                                for (IndexType su = 0; su + 1 < patch_spans_u.size(); ++su) {
+                                    for (IndexType sv = 0; sv + 1 < patch_spans_v.size(); ++sv) {
+                                        IntegrationPointUtilities::IntegrationPoints2D(
+                                            patch_integration_point_iterator,
+                                            npts_u, npts_v,
+                                            patch_spans_u[su], patch_spans_u[su + 1],
+                                            patch_spans_v[sv], patch_spans_v[sv + 1]);
+                                    }
+                                }
+
+                                const IndexType initial_size = rIntegrationPoints.size();
+                                rIntegrationPoints.resize(initial_size + patch_integration_points.size());
+
+                                for (IndexType k = 0; k < patch_integration_points.size(); ++k) {
+                                    const auto& r_local_point = patch_integration_points[k];
+
+                                    array_1d<double, 2> position;
+                                    double detJ;
+                                    EvaluateRuledSurface(r_patch, r_local_point[0], r_local_point[1], position, detJ);
+
+                                    rIntegrationPoints[initial_size + k][0] = position[0];
+                                    rIntegrationPoints[initial_size + k][1] = position[1];
+                                    rIntegrationPoints[initial_size + k].Weight() = r_local_point.Weight() * std::abs(detJ);
+                                }
+                            }
+                        }
+
+                        if (!patch_ok || patches.empty())
                         for(IndexType inner = 0; inner < solution_inner.size(); ++inner)
                         {
                             const auto& points_inner = solution_inner[inner];
@@ -1403,6 +1448,637 @@ namespace Kratos
     bool BrepTrimmingUtilities<TShiftedBoundary>::is_on_Left(c_vector<double,2> a, c_vector<double,2> b, c_vector<double,2> c)
     {
         return ((b(0) - a(0))*(c(1) - a(1)) - (b(1) - a(1))*(c(0) - a(0))) > 0;
+    }
+
+    template<bool TShiftedBoundary>
+    bool BrepTrimmingUtilities<TShiftedBoundary>::CollectTrimCurveSegmentsForSpan(
+        const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
+        const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
+        const double u0,
+        const double u1,
+        const double v0,
+        const double v1,
+        std::vector<TrimCurveSegment>& rTrimCurves)
+    {
+        rTrimCurves.clear();
+
+        const double eps = 1e-9 * std::max(u1 - u0, v1 - v0);
+
+        auto collect_from_loops = [&](const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rLoops)
+        {
+            for (IndexType i_loop = 0; i_loop < rLoops.size(); ++i_loop) {
+                for (IndexType i_curve = 0; i_curve < rLoops[i_loop].size(); ++i_curve) {
+                    const auto p_curve = rLoops[i_loop][i_curve];
+                    const auto p_param_curve = p_curve->pGetCurveOnSurface()->pGetCurve();
+
+                    // Breakpoints where this curve crosses the surface's knot-span grid.
+                    std::vector<double> spans;
+                    p_curve->SpansLocalSpace(spans);
+
+                    for (IndexType k = 0; k + 1 < spans.size(); ++k) {
+                        const double t_start = spans[k];
+                        const double t_end = spans[k + 1];
+
+                        CoordinatesArrayType local_mid = ZeroVector(3);
+                        local_mid[0] = 0.5 * (t_start + t_end);
+                        CoordinatesArrayType global_mid;
+                        p_param_curve->GlobalCoordinates(global_mid, local_mid);
+
+                        const bool inside_u = (global_mid[0] > u0 - eps) && (global_mid[0] < u1 + eps);
+                        const bool inside_v = (global_mid[1] > v0 - eps) && (global_mid[1] < v1 + eps);
+
+                        if (inside_u && inside_v) {
+                            rTrimCurves.push_back({p_curve, t_start, t_end});
+                        }
+                    }
+                }
+            }
+        };
+
+        collect_from_loops(rOuterLoops);
+        collect_from_loops(rInnerLoops);
+
+        return true;
+    }
+
+    template<bool TShiftedBoundary>
+    typename BrepTrimmingUtilities<TShiftedBoundary>::RawTrimCurve
+    BrepTrimmingUtilities<TShiftedBoundary>::ExtractRawCurve(const TrimCurveSegment& rSegment)
+    {
+        const auto p_curve = rSegment.pCurve->pGetCurveOnSurface()->pGetCurve();
+
+        RawTrimCurve raw;
+        raw.Degree = p_curve->PolynomialDegree(0);
+        raw.Knots = p_curve->Knots();
+        raw.Weights = p_curve->Weights();
+        raw.Points.resize(p_curve->size());
+        for (IndexType i = 0; i < p_curve->size(); ++i) {
+            const auto& point = (*p_curve)[i];
+            raw.Points[i][0] = point[0];
+            raw.Points[i][1] = point[1];
+        }
+
+        return RestrictCurveToRange(raw, rSegment.LocalParameterStart, rSegment.LocalParameterEnd);
+    }
+
+    template<bool TShiftedBoundary>
+    typename BrepTrimmingUtilities<TShiftedBoundary>::RawTrimCurve
+    BrepTrimmingUtilities<TShiftedBoundary>::RestrictCurveToRange(const RawTrimCurve& rCurve, const double TStart, const double TEnd)
+    {
+        const SizeType degree = rCurve.Degree;
+        const double tol = 1e-9;
+
+        auto count_multiplicity = [&](const Vector& rKnots, const double t) {
+            SizeType mult = 0;
+            for (IndexType i = 0; i < rKnots.size(); ++i) {
+                if (std::abs(rKnots[i] - t) < tol) ++mult;
+            }
+            return mult;
+        };
+
+        const Vector full_knots = NurbsCurveRefinementUtilities::CreateFullKnotVector(rCurve.Knots, degree);
+
+        std::vector<double> knots_to_insert;
+        for (SizeType i = count_multiplicity(full_knots, TStart); i < degree + 1; ++i) knots_to_insert.push_back(TStart);
+        for (SizeType i = count_multiplicity(full_knots, TEnd); i < degree + 1; ++i) knots_to_insert.push_back(TEnd);
+
+        RawTrimCurve refined = rCurve;
+
+        if (!knots_to_insert.empty()) {
+            typename NurbsCurveGeometry<3, PointerVector<Node>>::PointsArrayType lifted_points;
+            for (const auto& p : rCurve.Points) {
+                lifted_points.push_back(Kratos::make_intrusive<Node>(0, p[0], p[1], 0.0));
+            }
+
+            const auto p_geometry_3d = (rCurve.Weights.size() > 0)
+                ? Kratos::make_shared<NurbsCurveGeometry<3, PointerVector<Node>>>(lifted_points, degree, rCurve.Knots, rCurve.Weights)
+                : Kratos::make_shared<NurbsCurveGeometry<3, PointerVector<Node>>>(lifted_points, degree, rCurve.Knots);
+
+            PointerVector<Node> refined_points_3d;
+            Vector refined_knots, refined_weights;
+            NurbsCurveRefinementUtilities::KnotRefinement(*p_geometry_3d, knots_to_insert, refined_points_3d, refined_knots, refined_weights);
+
+            refined.Knots = refined_knots;
+            refined.Weights = (rCurve.Weights.size() > 0) ? refined_weights : Vector();
+            refined.Points.resize(refined_points_3d.size());
+            for (IndexType i = 0; i < refined_points_3d.size(); ++i) {
+                refined.Points[i][0] = refined_points_3d(i)->X();
+                refined.Points[i][1] = refined_points_3d(i)->Y();
+            }
+        }
+
+        const Vector refined_full_knots = NurbsCurveRefinementUtilities::CreateFullKnotVector(refined.Knots, degree);
+
+        auto first_index_of = [&](const double t) -> SizeType {
+            for (IndexType i = 0; i < refined_full_knots.size(); ++i) {
+                if (std::abs(refined_full_knots[i] - t) < tol) return i;
+            }
+            KRATOS_ERROR << "RestrictCurveToRange: parameter " << t << " not found in refined knot vector." << std::endl;
+        };
+
+        const SizeType cp_start = first_index_of(TStart);
+        const SizeType k1 = first_index_of(TEnd);
+
+        RawTrimCurve result;
+        result.Degree = degree;
+        result.Points.assign(refined.Points.begin() + cp_start, refined.Points.begin() + k1);
+
+        if (refined.Weights.size() > 0) {
+            result.Weights.resize(k1 - cp_start);
+            for (IndexType i = 0; i < k1 - cp_start; ++i) result.Weights[i] = refined.Weights[cp_start + i];
+        }
+
+        Vector result_full_knots(k1 + degree + 1 - cp_start);
+        for (IndexType i = 0; i < result_full_knots.size(); ++i) result_full_knots[i] = refined_full_knots[cp_start + i];
+        result.Knots = NurbsCurveRefinementUtilities::CreateReducedKnotVector(result_full_knots, degree);
+
+        return result;
+    }
+
+    template<bool TShiftedBoundary>
+    typename BrepTrimmingUtilities<TShiftedBoundary>::RawTrimCurve
+    BrepTrimmingUtilities<TShiftedBoundary>::DegreeElevateCurve(const RawTrimCurve& rCurve, const SizeType DegreeIncrease)
+    {
+        if (DegreeIncrease == 0) return rCurve;
+
+        typename NurbsCurveGeometry<3, PointerVector<Node>>::PointsArrayType lifted_points;
+        for (const auto& p : rCurve.Points) {
+            lifted_points.push_back(Kratos::make_intrusive<Node>(0, p[0], p[1], 0.0));
+        }
+
+        const auto p_geometry_3d = (rCurve.Weights.size() > 0)
+            ? Kratos::make_shared<NurbsCurveGeometry<3, PointerVector<Node>>>(lifted_points, rCurve.Degree, rCurve.Knots, rCurve.Weights)
+            : Kratos::make_shared<NurbsCurveGeometry<3, PointerVector<Node>>>(lifted_points, rCurve.Degree, rCurve.Knots);
+
+        PointerVector<Node> refined_points_3d;
+        Vector refined_knots, refined_weights;
+        NurbsCurveRefinementUtilities::DegreeElevation(*p_geometry_3d, DegreeIncrease, refined_points_3d, refined_knots, refined_weights);
+
+        RawTrimCurve result;
+        result.Degree = rCurve.Degree + DegreeIncrease;
+        result.Knots = refined_knots;
+        result.Weights = (rCurve.Weights.size() > 0) ? refined_weights : Vector();
+        result.Points.resize(refined_points_3d.size());
+        for (IndexType i = 0; i < refined_points_3d.size(); ++i) {
+            result.Points[i][0] = refined_points_3d(i)->X();
+            result.Points[i][1] = refined_points_3d(i)->Y();
+        }
+        return result;
+    }
+
+    template<bool TShiftedBoundary>
+    typename BrepTrimmingUtilities<TShiftedBoundary>::RawTrimCurve
+    BrepTrimmingUtilities<TShiftedBoundary>::ReverseCurve(const RawTrimCurve& rCurve)
+    {
+        RawTrimCurve reversed;
+        reversed.Degree = rCurve.Degree;
+
+        const SizeType n = rCurve.Points.size();
+        reversed.Points.resize(n);
+        for (IndexType i = 0; i < n; ++i) reversed.Points[i] = rCurve.Points[n - 1 - i];
+
+        if (rCurve.Weights.size() > 0) {
+            reversed.Weights.resize(n);
+            for (IndexType i = 0; i < n; ++i) reversed.Weights[i] = rCurve.Weights[n - 1 - i];
+        }
+
+        const double t0 = rCurve.Knots[rCurve.Degree - 1];
+        const double t1 = rCurve.Knots[rCurve.Knots.size() - rCurve.Degree];
+        const SizeType m = rCurve.Knots.size();
+        reversed.Knots.resize(m);
+        for (IndexType i = 0; i < m; ++i) reversed.Knots[i] = t0 + t1 - rCurve.Knots[m - 1 - i];
+
+        return reversed;
+    }
+
+    template<bool TShiftedBoundary>
+    bool BrepTrimmingUtilities<TShiftedBoundary>::MergeCurves(RawTrimCurve& rMasterCurve, RawTrimCurve CurveToAdd, const double Tolerance)
+    {
+        if (CurveToAdd.Degree > rMasterCurve.Degree) {
+            rMasterCurve = DegreeElevateCurve(rMasterCurve, CurveToAdd.Degree - rMasterCurve.Degree);
+        } else if (rMasterCurve.Degree > CurveToAdd.Degree) {
+            CurveToAdd = DegreeElevateCurve(CurveToAdd, rMasterCurve.Degree - CurveToAdd.Degree);
+        }
+        const SizeType degree = rMasterCurve.Degree;
+
+        auto close = [&](const array_1d<double, 2>& a, const array_1d<double, 2>& b) {
+            return std::hypot(a[0] - b[0], a[1] - b[1]) < Tolerance;
+        };
+
+        if (close(rMasterCurve.Points.front(), CurveToAdd.Points.front()) ||
+            close(rMasterCurve.Points.back(), CurveToAdd.Points.back())) {
+            CurveToAdd = ReverseCurve(CurveToAdd);
+        }
+
+        const bool append_after = close(rMasterCurve.Points.back(), CurveToAdd.Points.front());
+        const bool prepend_before = close(rMasterCurve.Points.front(), CurveToAdd.Points.back());
+
+        if (!append_after && !prepend_before) return false;
+
+        const Vector full_master = NurbsCurveRefinementUtilities::CreateFullKnotVector(rMasterCurve.Knots, degree);
+        const Vector full_add = NurbsCurveRefinementUtilities::CreateFullKnotVector(CurveToAdd.Knots, degree);
+
+        Vector weights_master;
+        if (rMasterCurve.Weights.size() > 0) {
+            weights_master = rMasterCurve.Weights;
+        } else {
+            weights_master.resize(rMasterCurve.Points.size());
+            std::fill(weights_master.begin(), weights_master.end(), 1.0);
+        }
+        Vector weights_add;
+        if (CurveToAdd.Weights.size() > 0) {
+            weights_add = CurveToAdd.Weights;
+        } else {
+            weights_add.resize(CurveToAdd.Points.size());
+            std::fill(weights_add.begin(), weights_add.end(), 1.0);
+        }
+        const bool is_rational = (rMasterCurve.Weights.size() > 0) || (CurveToAdd.Weights.size() > 0);
+
+        RawTrimCurve merged;
+        merged.Degree = degree;
+
+        if (append_after) {
+            const double last_knot = full_master[full_master.size() - 1];
+            const double first_knot = full_add[0];
+
+            merged.Points = rMasterCurve.Points;
+            for (IndexType i = 1; i < CurveToAdd.Points.size(); ++i) merged.Points.push_back(CurveToAdd.Points[i]);
+
+            std::vector<double> new_full;
+            for (IndexType i = 0; i < full_master.size() - 1; ++i) new_full.push_back(full_master[i]);
+            for (IndexType i = degree + 1; i < full_add.size(); ++i) new_full.push_back(full_add[i] - first_knot + last_knot);
+
+            Vector new_full_v(new_full.size());
+            for (IndexType i = 0; i < new_full.size(); ++i) new_full_v[i] = new_full[i];
+            merged.Knots = NurbsCurveRefinementUtilities::CreateReducedKnotVector(new_full_v, degree);
+
+            if (is_rational) {
+                merged.Weights.resize(merged.Points.size());
+                for (IndexType i = 0; i < weights_master.size(); ++i) merged.Weights[i] = weights_master[i];
+                for (IndexType i = 1; i < weights_add.size(); ++i) merged.Weights[weights_master.size() - 1 + i] = weights_add[i];
+            }
+        } else {
+            const double first_knot = full_master[0];
+            const double last_knot = full_add[full_add.size() - 1];
+
+            merged.Points = CurveToAdd.Points;
+            for (IndexType i = 1; i < rMasterCurve.Points.size(); ++i) merged.Points.push_back(rMasterCurve.Points[i]);
+
+            std::vector<double> new_full;
+            for (IndexType i = 0; i < full_add.size() - 1; ++i) new_full.push_back(full_add[i]);
+            for (IndexType i = degree + 1; i < full_master.size(); ++i) new_full.push_back(full_master[i] - first_knot + last_knot);
+
+            Vector new_full_v(new_full.size());
+            for (IndexType i = 0; i < new_full.size(); ++i) new_full_v[i] = new_full[i];
+            merged.Knots = NurbsCurveRefinementUtilities::CreateReducedKnotVector(new_full_v, degree);
+
+            if (is_rational) {
+                merged.Weights.resize(merged.Points.size());
+                for (IndexType i = 0; i < weights_add.size(); ++i) merged.Weights[i] = weights_add[i];
+                for (IndexType i = 1; i < weights_master.size(); ++i) merged.Weights[weights_add.size() - 1 + i] = weights_master[i];
+            }
+        }
+
+        rMasterCurve = merged;
+        return true;
+    }
+
+    template<bool TShiftedBoundary>
+    typename BrepTrimmingUtilities<TShiftedBoundary>::RawTrimCurve
+    BrepTrimmingUtilities<TShiftedBoundary>::BuildStraightLineCurve(
+        const array_1d<double, 2>& rPointA, const array_1d<double, 2>& rPointB,
+        const double TStart, const double TEnd)
+    {
+        RawTrimCurve line;
+        line.Degree = 1;
+        line.Points = {rPointA, rPointB};
+        line.Knots.resize(2);
+        line.Knots[0] = TStart;
+        line.Knots[1] = TEnd;
+        return line;
+    }
+
+    template<bool TShiftedBoundary>
+    typename BrepTrimmingUtilities<TShiftedBoundary>::RuledSurfacePatch
+    BrepTrimmingUtilities<TShiftedBoundary>::BuildRuledSurfacePatch(
+        const array_1d<double, 2>& rOppositeStart, const array_1d<double, 2>& rOppositeEnd,
+        const RawTrimCurve& rTrimCurve)
+    {
+        const double t0 = rTrimCurve.Knots[rTrimCurve.Degree - 1];
+        const double t1 = rTrimCurve.Knots[rTrimCurve.Knots.size() - rTrimCurve.Degree];
+
+        RawTrimCurve opposite = BuildStraightLineCurve(rOppositeStart, rOppositeEnd, t0, t1);
+        if (rTrimCurve.Degree > 1) {
+            opposite = DegreeElevateCurve(opposite, rTrimCurve.Degree - 1);
+        }
+
+        const Vector full_trim = NurbsCurveRefinementUtilities::CreateFullKnotVector(rTrimCurve.Knots, rTrimCurve.Degree);
+        std::vector<double> interior_knots;
+        for (IndexType i = rTrimCurve.Degree + 1; i + rTrimCurve.Degree + 1 < full_trim.size(); ++i) {
+            interior_knots.push_back(full_trim[i]);
+        }
+
+        if (!interior_knots.empty()) {
+            typename NurbsCurveGeometry<3, PointerVector<Node>>::PointsArrayType lifted_points;
+            for (const auto& p : opposite.Points) {
+                lifted_points.push_back(Kratos::make_intrusive<Node>(0, p[0], p[1], 0.0));
+            }
+            const auto p_geometry_3d = Kratos::make_shared<NurbsCurveGeometry<3, PointerVector<Node>>>(lifted_points, opposite.Degree, opposite.Knots);
+
+            PointerVector<Node> refined_points_3d;
+            Vector refined_knots, refined_weights;
+            NurbsCurveRefinementUtilities::KnotRefinement(*p_geometry_3d, interior_knots, refined_points_3d, refined_knots, refined_weights);
+
+            opposite.Knots = refined_knots;
+            opposite.Points.resize(refined_points_3d.size());
+            for (IndexType i = 0; i < refined_points_3d.size(); ++i) {
+                opposite.Points[i][0] = refined_points_3d(i)->X();
+                opposite.Points[i][1] = refined_points_3d(i)->Y();
+            }
+        }
+
+        KRATOS_ERROR_IF(opposite.Points.size() != rTrimCurve.Points.size())
+            << "BuildRuledSurfacePatch: opposite (" << opposite.Points.size()
+            << ") and trim curve (" << rTrimCurve.Points.size() << ") control point counts do not match." << std::endl;
+
+        const SizeType n = rTrimCurve.Points.size();
+        typename ParametrizationPatchType::PointsArrayType surface_points;
+        surface_points.resize(2 * n);
+        for (IndexType v = 0; v < n; ++v) {
+            surface_points(v * 2 + 0) = Kratos::make_shared<Point>(opposite.Points[v][0], opposite.Points[v][1]);
+            surface_points(v * 2 + 1) = Kratos::make_shared<Point>(rTrimCurve.Points[v][0], rTrimCurve.Points[v][1]);
+        }
+
+        Vector knots_u(2);
+        knots_u[0] = t0;
+        knots_u[1] = t1;
+
+        RuledSurfacePatch result;
+        result.OppositeStart = rOppositeStart;
+        result.OppositeEnd = rOppositeEnd;
+        result.TrimCurve = rTrimCurve;
+
+        if (rTrimCurve.Weights.size() > 0) {
+            Vector weights(2 * n);
+            for (IndexType v = 0; v < n; ++v) {
+                weights[v * 2 + 0] = 1.0;
+                weights[v * 2 + 1] = rTrimCurve.Weights[v];
+            }
+            result.Surface = Kratos::make_shared<ParametrizationPatchType>(surface_points, 1, rTrimCurve.Degree, knots_u, rTrimCurve.Knots, weights);
+        } else {
+            result.Surface = Kratos::make_shared<ParametrizationPatchType>(surface_points, 1, rTrimCurve.Degree, knots_u, rTrimCurve.Knots);
+        }
+
+        return result;
+    }
+
+    template<bool TShiftedBoundary>
+    void BrepTrimmingUtilities<TShiftedBoundary>::EvaluateRuledSurface(
+        const RuledSurfacePatch& rPatch,
+        const double U, const double V,
+        array_1d<double, 2>& rPosition,
+        double& rDetJacobian)
+    {
+        const double t0 = rPatch.TrimCurve.Knots[rPatch.TrimCurve.Degree - 1];
+        const double t1 = rPatch.TrimCurve.Knots[rPatch.TrimCurve.Knots.size() - rPatch.TrimCurve.Degree];
+        const double length = t1 - t0;
+
+        const double alpha = (V - t0) / length;
+        array_1d<double, 2> opposite_pos;
+        opposite_pos[0] = rPatch.OppositeStart[0] + alpha * (rPatch.OppositeEnd[0] - rPatch.OppositeStart[0]);
+        opposite_pos[1] = rPatch.OppositeStart[1] + alpha * (rPatch.OppositeEnd[1] - rPatch.OppositeStart[1]);
+        array_1d<double, 2> opposite_deriv;
+        opposite_deriv[0] = (rPatch.OppositeEnd[0] - rPatch.OppositeStart[0]) / length;
+        opposite_deriv[1] = (rPatch.OppositeEnd[1] - rPatch.OppositeStart[1]) / length;
+
+        typename NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType trim_points;
+        for (const auto& p : rPatch.TrimCurve.Points) {
+            trim_points.push_back(Kratos::make_shared<Point>(p[0], p[1]));
+        }
+        NurbsCurveGeometry<2, PointerVector<Point>> trim_geometry = (rPatch.TrimCurve.Weights.size() > 0)
+            ? NurbsCurveGeometry<2, PointerVector<Point>>(trim_points, rPatch.TrimCurve.Degree, rPatch.TrimCurve.Knots, rPatch.TrimCurve.Weights)
+            : NurbsCurveGeometry<2, PointerVector<Point>>(trim_points, rPatch.TrimCurve.Degree, rPatch.TrimCurve.Knots);
+
+        array_1d<double, 3> local_v; local_v[0] = V; local_v[1] = 0.0; local_v[2] = 0.0;
+        std::vector<array_1d<double, 3>> trim_derivatives;
+        trim_geometry.GlobalSpaceDerivatives(trim_derivatives, local_v, 1);
+
+        const double N0 = (t1 - U) / length;
+        const double N1 = (U - t0) / length;
+
+        rPosition[0] = N0 * opposite_pos[0] + N1 * trim_derivatives[0][0];
+        rPosition[1] = N0 * opposite_pos[1] + N1 * trim_derivatives[0][1];
+
+        const double dXdU_x = (trim_derivatives[0][0] - opposite_pos[0]) / length;
+        const double dXdU_y = (trim_derivatives[0][1] - opposite_pos[1]) / length;
+
+        const double dXdV_x = N0 * opposite_deriv[0] + N1 * trim_derivatives[1][0];
+        const double dXdV_y = N0 * opposite_deriv[1] + N1 * trim_derivatives[1][1];
+
+        rDetJacobian = dXdU_x * dXdV_y - dXdU_y * dXdV_x;
+    }
+
+    template<bool TShiftedBoundary>
+    typename BrepTrimmingUtilities<TShiftedBoundary>::Element_Face
+    BrepTrimmingUtilities<TShiftedBoundary>::ClassifyFace(
+        array_1d<double, 2>& rPoint,
+        const double u0, const double u1, const double v0, const double v1,
+        const double Tolerance)
+    {
+        const double diff_n = std::abs(rPoint[1] - v1);
+        const double diff_e = std::abs(rPoint[0] - u1);
+        const double diff_s = std::abs(rPoint[1] - v0);
+        const double diff_w = std::abs(rPoint[0] - u0);
+
+        Element_Face face = NONE;
+        double best = 1e99;
+
+        if (diff_n < Tolerance) { face = NORTH; rPoint[1] = v1; best = diff_n; }
+        if (diff_e < Tolerance && diff_e < best) { face = EAST; rPoint[0] = u1; best = diff_e; }
+        if (diff_s < Tolerance && diff_s < best) { face = SOUTH; rPoint[1] = v0; best = diff_s; }
+        if (diff_w < Tolerance && diff_w < best) { face = WEST; rPoint[0] = u0; best = diff_w; }
+
+        return face;
+    }
+
+    template<bool TShiftedBoundary>
+    bool BrepTrimmingUtilities<TShiftedBoundary>::calc_nurbs_patch(
+        const std::vector<array_1d<double, 2>>& rCornerPoints,
+        const double u0, const double u1, const double v0, const double v1,
+        RawTrimCurve TrimCurve, Element_Face FaceStart, Element_Face FaceEnd,
+        const double Tolerance,
+        std::vector<RuledSurfacePatch>& rPatches)
+    {
+        const array_1d<double, 2>& SW = rCornerPoints[0];
+        const array_1d<double, 2>& SE = rCornerPoints[1];
+        const array_1d<double, 2>& NW = rCornerPoints[2];
+        const array_1d<double, 2>& NE = rCornerPoints[3];
+
+        const array_1d<double, 2> u_start_pt = TrimCurve.Points.front();
+        const array_1d<double, 2> u_end_pt = TrimCurve.Points.back();
+        const bool right_u_dir = (u_end_pt[0] - u_start_pt[0]) > 0;
+        const bool right_v_dir = (u_end_pt[1] - u_start_pt[1]) > 0;
+
+        array_1d<double, 2> opposite_a, opposite_b;
+
+        // 2.1 curve intersects opposite faces
+        if (FaceStart == SOUTH && FaceEnd == NORTH) { opposite_a = SW; opposite_b = NW; }
+        else if (FaceStart == NORTH && FaceEnd == SOUTH) { opposite_a = NE; opposite_b = SE; }
+        else if (FaceStart == WEST && FaceEnd == EAST) { opposite_a = NW; opposite_b = NE; }
+        else if (FaceStart == EAST && FaceEnd == WEST) { opposite_a = SE; opposite_b = SW; }
+
+        // 2.2 "triangular" patch -- clockwise adjacent
+        else if (FaceStart == NORTH && FaceEnd == EAST) { opposite_a = NE; opposite_b = NE; }
+        else if (FaceStart == EAST && FaceEnd == SOUTH) { opposite_a = SE; opposite_b = SE; }
+        else if (FaceStart == SOUTH && FaceEnd == WEST) { opposite_a = SW; opposite_b = SW; }
+        else if (FaceStart == WEST && FaceEnd == NORTH) { opposite_a = NW; opposite_b = NW; }
+
+        // 2.3 "pentagon" patch -- counterclockwise adjacent, needs one straight extension
+        else if (FaceStart == NORTH && FaceEnd == WEST) {
+            RawTrimCurve extension = BuildStraightLineCurve(u_end_pt, SW, 0.0, 1.0);
+            if (!MergeCurves(TrimCurve, extension, Tolerance)) return false;
+            opposite_a = NE; opposite_b = SE;
+        }
+        else if (FaceStart == WEST && FaceEnd == SOUTH) {
+            RawTrimCurve extension = BuildStraightLineCurve(u_end_pt, SE, 0.0, 1.0);
+            if (!MergeCurves(TrimCurve, extension, Tolerance)) return false;
+            opposite_a = NW; opposite_b = NE;
+        }
+        else if (FaceStart == SOUTH && FaceEnd == EAST) {
+            RawTrimCurve extension = BuildStraightLineCurve(u_end_pt, NE, 0.0, 1.0);
+            if (!MergeCurves(TrimCurve, extension, Tolerance)) return false;
+            opposite_a = SW; opposite_b = NW;
+        }
+        else if (FaceStart == EAST && FaceEnd == NORTH) {
+            RawTrimCurve extension = BuildStraightLineCurve(u_end_pt, NW, 0.0, 1.0);
+            if (!MergeCurves(TrimCurve, extension, Tolerance)) return false;
+            opposite_a = SE; opposite_b = SW;
+        }
+
+        // 2.4 curve intersects same face twice, needs two straight extensions
+        else if (FaceStart == NORTH && FaceEnd == NORTH) {
+            if (!right_u_dir) {
+                RawTrimCurve front_ext = BuildStraightLineCurve(NE, u_start_pt, 0.0, 1.0);
+                if (!MergeCurves(TrimCurve, front_ext, Tolerance)) return false;
+                RawTrimCurve back_ext = BuildStraightLineCurve(u_end_pt, NW, 0.0, 1.0);
+                if (!MergeCurves(TrimCurve, back_ext, Tolerance)) return false;
+                opposite_a = SE; opposite_b = SW;
+            } else {
+                opposite_a = u_start_pt; opposite_b = u_end_pt;
+            }
+        }
+        else if (FaceStart == EAST && FaceEnd == EAST) {
+            if (right_v_dir) {
+                RawTrimCurve front_ext = BuildStraightLineCurve(SE, u_start_pt, 0.0, 1.0);
+                if (!MergeCurves(TrimCurve, front_ext, Tolerance)) return false;
+                RawTrimCurve back_ext = BuildStraightLineCurve(u_end_pt, NE, 0.0, 1.0);
+                if (!MergeCurves(TrimCurve, back_ext, Tolerance)) return false;
+                opposite_a = SW; opposite_b = NW;
+            } else {
+                opposite_a = u_start_pt; opposite_b = u_end_pt;
+            }
+        }
+        else if (FaceStart == SOUTH && FaceEnd == SOUTH) {
+            if (right_u_dir) {
+                RawTrimCurve front_ext = BuildStraightLineCurve(SW, u_start_pt, 0.0, 1.0);
+                if (!MergeCurves(TrimCurve, front_ext, Tolerance)) return false;
+                RawTrimCurve back_ext = BuildStraightLineCurve(u_end_pt, SE, 0.0, 1.0);
+                if (!MergeCurves(TrimCurve, back_ext, Tolerance)) return false;
+                opposite_a = NW; opposite_b = NE;
+            } else {
+                opposite_a = u_start_pt; opposite_b = u_end_pt;
+            }
+        }
+        else if (FaceStart == WEST && FaceEnd == WEST) {
+            if (!right_v_dir) {
+                RawTrimCurve front_ext = BuildStraightLineCurve(NW, u_start_pt, 0.0, 1.0);
+                if (!MergeCurves(TrimCurve, front_ext, Tolerance)) return false;
+                RawTrimCurve back_ext = BuildStraightLineCurve(u_end_pt, SW, 0.0, 1.0);
+                if (!MergeCurves(TrimCurve, back_ext, Tolerance)) return false;
+                opposite_a = NE; opposite_b = SE;
+            } else {
+                opposite_a = u_start_pt; opposite_b = u_end_pt;
+            }
+        }
+        else {
+            return false;
+        }
+
+        rPatches.push_back(BuildRuledSurfacePatch(opposite_a, opposite_b, TrimCurve));
+        return true;
+    }
+
+    template<bool TShiftedBoundary>
+    bool BrepTrimmingUtilities<TShiftedBoundary>::parametrize_local_trimmed_domain(
+        const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
+        const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
+        const double u0,
+        const double u1,
+        const double v0,
+        const double v1,
+        std::vector<RuledSurfacePatch>& rPatches)
+    {
+        rPatches.clear();
+
+        std::vector<TrimCurveSegment> trim_segments;
+        if (!CollectTrimCurveSegmentsForSpan(rOuterLoops, rInnerLoops, u0, u1, v0, v1, trim_segments)) {
+            return false;
+        }
+
+        if (trim_segments.empty()) {
+            return true;
+        }
+
+        const double tol = 1e-9 * std::max(u1 - u0, v1 - v0);
+
+        std::vector<RawTrimCurve> raw_curves;
+        raw_curves.reserve(trim_segments.size());
+        for (const auto& segment : trim_segments) {
+            raw_curves.push_back(ExtractRawCurve(segment));
+        }
+        
+        RawTrimCurve trim_curve = raw_curves[0];
+        std::vector<bool> used(raw_curves.size(), false);
+        used[0] = true;
+        SizeType remaining = raw_curves.size() - 1;
+
+        while (remaining > 0) {
+            bool merged_any = false;
+            for (IndexType k = 0; k < raw_curves.size(); ++k) {
+                if (used[k]) continue;
+                if (MergeCurves(trim_curve, raw_curves[k], tol)) {
+                    used[k] = true;
+                    --remaining;
+                    merged_any = true;
+                    break;
+                }
+            }
+            if (!merged_any) {
+                KRATOS_WATCH("Warning in parametrize_local_trimmed_domain: knot span is cut by more than one non-contiguous boundary arc. Cannot resolve a single trimming curve for this span.");
+                return false;
+            }
+        }
+
+        array_1d<double, 2> start_point = trim_curve.Points.front();
+        array_1d<double, 2> end_point = trim_curve.Points.back();
+
+        const Element_Face face_start = ClassifyFace(start_point, u0, u1, v0, v1, tol);
+        const Element_Face face_end = ClassifyFace(end_point, u0, u1, v0, v1, tol);
+
+        if (face_start == NONE || face_end == NONE) {
+            return false;
+        }
+
+        trim_curve.Points.front() = start_point;
+        trim_curve.Points.back() = end_point;
+
+        std::vector<array_1d<double, 2>> corner_points(4);
+        corner_points[0][0] = u0; corner_points[0][1] = v0; // SW
+        corner_points[1][0] = u1; corner_points[1][1] = v0; // SE
+        corner_points[2][0] = u0; corner_points[2][1] = v1; // NW
+        corner_points[3][0] = u1; corner_points[3][1] = v1; // NE
+
+        return calc_nurbs_patch(corner_points, u0, u1, v0, v1, trim_curve, face_start, face_end, tol, rPatches);
     }
 
     template class KRATOS_API(KRATOS_CORE) BrepTrimmingUtilities<true>;
