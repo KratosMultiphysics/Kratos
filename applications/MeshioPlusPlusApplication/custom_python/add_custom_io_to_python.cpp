@@ -45,6 +45,14 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("WriteModelPart", py::overload_cast<const ModelPart&>(&MeshioPlusPlusIO::WriteModelPart), py::arg("model_part"),
             "Writes the model part. Repeated calls extend the current output: XDMF appends steps "
             "to the temporal collection of the file, other formats write a file series.")
+        .def("GetNumberOfTimeSteps", &MeshioPlusPlusIO::GetNumberOfTimeSteps,
+            "Number of transient steps this file's format reports, without a full read. "
+            "0 for a format with no time-series concept.")
+        .def("GetTimeValues", &MeshioPlusPlusIO::GetTimeValues,
+            "The simulation time of each transient step; size matches GetNumberOfTimeSteps().")
+        .def("GetTimeStepIndex", &MeshioPlusPlusIO::GetTimeStepIndex, py::arg("time_value"),
+            "The 0-based index of the transient step whose time value matches time_value "
+            "(within 1e-9), or -1 if none matches.")
         .def_static("GetDefaultParameters", &MeshioPlusPlusIO::GetDefaultParameters,
             "The default settings of the IO.")
         .def_static("GetSupportedFormats", &MeshioPlusPlusIO::GetSupportedFormats,

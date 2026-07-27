@@ -15,14 +15,7 @@
 //
 
 // System includes
-#include <algorithm>
-#include <cstdint>
-#include <cstdio>
-#include <fstream>
-#include <iomanip>
-#include <set>
-#include <sstream>
-#include <unordered_map>
+#include <cmath>
 
 // External includes
 #include "meshioplusplus/mesh.hpp"
@@ -766,6 +759,57 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
     KRATOS_INFO("MeshioPlusPlusIO") << "Read " << rThisModelPart.NumberOfNodes() << " nodes, "
         << rThisModelPart.NumberOfElements() << " elements and " << rThisModelPart.NumberOfConditions()
         << " conditions from " << mFileName << " (format \"" << format_name << "\")" << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<double> MeshioPlusPlusIO::GetTimeValues() const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(std::filesystem::exists(mFileName))
+        << "The file " << mFileName << " does not exist" << std::endl;
+
+    const std::string format_name = ResolveEffectiveFormat(false);
+
+    // Header-only summary (never the heavy arrays); falls back to a full read for formats
+    // without a native metadata path, and reports no time values either way for a format
+    // with no time-series concept - correct for every format, just not always as cheap.
+    const mio::MeshMetadata metadata = mio::registry_read_metadata(mFileName.string(), format_name, mio::ReadOptions());
+    return metadata.mTimeValues;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int MeshioPlusPlusIO::GetNumberOfTimeSteps() const
+{
+    KRATOS_TRY
+
+    return static_cast<int>(GetTimeValues().size());
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int MeshioPlusPlusIO::GetTimeStepIndex(const double TimeValue) const
+{
+    KRATOS_TRY
+
+    const std::vector<double> time_values = GetTimeValues();
+    for (std::size_t i = 0; i < time_values.size(); ++i) {
+        if (std::abs(time_values[i] - TimeValue) < 1e-9) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
 
     KRATOS_CATCH("")
 }

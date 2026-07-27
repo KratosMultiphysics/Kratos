@@ -17,16 +17,11 @@
 
 // System includes
 #include <filesystem>
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
 
 // External includes
 #include "meshioplusplus/formats/xdmf_time_series.hpp"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/io.h"
 
 namespace Kratos
@@ -59,6 +54,10 @@ class IntegrationValuesExtrapolationToNodesProcess; // forward declaration (gaus
  * XDMF the steps are appended to the temporal collection of a single file
  * (checking whether the file "buffer" already exists); for the other formats a
  * file series <stem>_<label>.<ext> is produced. See the "time_series" setting.
+ *
+ * @ref GetNumberOfTimeSteps / @ref GetTimeValues / @ref GetTimeStepIndex query a
+ * transient input file's step count and time values without a full read, for
+ * every format that carries a time series.
  */
 class KRATOS_API(KRATOS_MESHIOPLUSPLUS_APPLICATION) MeshioPlusPlusIO
     : public IO
@@ -223,6 +222,39 @@ public:
      * @param rThisModelPart Const reference to the model part to write from.
      */
     void WriteModelPart(const ModelPart& rThisModelPart) override;
+
+    /**
+     * @brief The number of transient steps this file's format reports.
+     * @details Format-agnostic: backed by meshio++'s
+     * `meshioplusplus::registry_read_metadata`, which every format goes through -
+     * natively for the formats with their own time-series concept (currently
+     * Exodus and XDMF temporal collections), falling back to a full read and
+     * reporting no time values for the rest. Equivalent to
+     * `GetTimeValues().size()`.
+     * @return Number of transient steps available in the file, 0 if none.
+     */
+    int GetNumberOfTimeSteps() const;
+
+    /**
+     * @brief The simulation time of each transient step this file's format reports.
+     * @details The size of the returned vector matches @ref GetNumberOfTimeSteps.
+     * Index `i` of the result is the time value of step `i`, the same indexing
+     * meshio++'s `meshioplusplus::ReadOptions::mTimeStep` expects. Empty for a
+     * format with no time-series concept, or a single-step file with no
+     * recorded time.
+     * @return Vector of simulation times, one per transient step, in file order.
+     */
+    std::vector<double> GetTimeValues() const;
+
+    /**
+     * @brief The 0-based index of the transient step whose time value matches @p TimeValue.
+     * @details Linear scan over @ref GetTimeValues, matching the first entry
+     * within an absolute tolerance of `1e-9`. The result is directly usable as
+     * `meshioplusplus::ReadOptions::mTimeStep`.
+     * @param TimeValue The simulation time to look up.
+     * @return The 0-based step index, or -1 if no matching time value is found.
+     */
+    int GetTimeStepIndex(double TimeValue) const;
 
     ///@}
     ///@name Input and output
