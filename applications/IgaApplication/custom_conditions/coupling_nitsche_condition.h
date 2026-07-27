@@ -376,6 +376,12 @@ private:
     std::vector<array_1d<double, 2>> m_n_covariant_vector_master;
     std::vector<array_1d<double, 2>> m_n_covariant_vector_slave;
 
+    std::vector<array_1d<double, 2>> m_t_covariant_vector_master;
+    std::vector<array_1d<double, 2>> m_t_covariant_vector_slave;
+
+    std::vector<array_1d<double, 2>> m_t_contravariant_vector_master;
+    std::vector<array_1d<double, 2>> m_t_contravariant_vector_slave;
+
     void CalculateKinematics(
         IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables,
@@ -434,8 +440,10 @@ private:
         IndexType IntegrationPointIndex,
         array_1d<double, 3>& rTraction,
         array_1d<double, 2> rShear, 
+        array_1d<double, 4>& rMixedCurvature,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
         const PatchType& rPatch);
 
     void CalculateFirstVariationStressCovariant(
@@ -450,8 +458,11 @@ private:
         Matrix& rFirstVariationTraction,
         Matrix& rFirstVariationStressCovariant,
         std::vector<array_1d<double, 2>>& rFirstVariationShear,
+        const array_1d<double, 4>& rMixedCurvature,
+        const std::vector<array_1d<double, 4>>& rFirstVariationMixedCurvature,
         const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         const PatchType& rPatch);
 
     void CalculateSecondVariationTractionProduct(
@@ -465,12 +476,23 @@ private:
         IndexType IntegrationPointIndex,
         Matrix& rSecondVariationTraction,
         std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
+        const array_1d<double, 4>& rMixedCurvature,
+        const std::vector<array_1d<double, 4>>& rFirstVariationMixedCurvature,
+        const std::vector<std::vector<array_1d<double, 4>>>& rSecondVariationMixedCurvature,
         const KinematicVariables& rActualKinematic,
-        Matrix& rFirstVariationStressCovariant, 
+        Matrix& rFirstVariationStressCovariant,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         array_1d<double, 3>& rDisplacementMaster,
         array_1d<double, 3>& rDisplacementSlave,
         array_1d<double, 3>& rSecondVariationTractionProduct,
         array_1d<double, 3>& rSecondVariationTractionProductMasterSlave,
+        const PatchType& rPatch);
+
+    void CalculateSecondVariationMomentCovariant(
+        IndexType IntegrationPointIndex,
+        std::vector<std::vector<array_1d<double, 3>>>& rSecondVariationMomentCovariant,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         const PatchType& rPatch);
 
     // Shear-related functions

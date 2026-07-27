@@ -936,6 +936,14 @@ namespace Kratos
             m_n_covariant_vector_master.resize(r_number_of_integration_points_master);
         if (m_n_covariant_vector_slave.size() != r_number_of_integration_points_slave)
             m_n_covariant_vector_slave.resize(r_number_of_integration_points_slave);
+        if (m_t_covariant_vector_master.size() != r_number_of_integration_points_master)
+            m_t_covariant_vector_master.resize(r_number_of_integration_points_master);
+        if (m_t_covariant_vector_slave.size() != r_number_of_integration_points_slave)
+            m_t_covariant_vector_slave.resize(r_number_of_integration_points_slave);
+        if (m_t_contravariant_vector_master.size() != r_number_of_integration_points_master)
+            m_t_contravariant_vector_master.resize(r_number_of_integration_points_master);
+        if (m_t_contravariant_vector_slave.size() != r_number_of_integration_points_slave)
+            m_t_contravariant_vector_slave.resize(r_number_of_integration_points_slave);
         if (Is(IgaFlags::FIX_ROTATION_X))
         {
             if (m_B_ab_covariant_vector_master.size() != r_number_of_integration_points_master)
@@ -978,6 +986,12 @@ namespace Kratos
 
             m_n_covariant_vector_master[point_number] = kinematic_variables_reference_master.n_covariant;
             m_n_covariant_vector_slave[point_number] = kinematic_variables_reference_slave.n_covariant;
+
+            m_t_covariant_vector_master[point_number] = kinematic_variables_reference_master.t_covariant;
+            m_t_covariant_vector_slave[point_number] = kinematic_variables_reference_slave.t_covariant;
+
+            m_t_contravariant_vector_master[point_number] = kinematic_variables_reference_master.t_contravariant;
+            m_t_contravariant_vector_slave[point_number] = kinematic_variables_reference_slave.t_contravariant;
 
             CalculateTransformation(kinematic_variables_reference_master, m_T_vector_master[point_number], m_T_hat_vector_master[point_number], m_reference_contravariant_base_master[point_number]);
             CalculateTransformation(kinematic_variables_reference_slave, m_T_vector_slave[point_number], m_T_hat_vector_slave[point_number], m_reference_contravariant_base_slave[point_number]);
@@ -1129,8 +1143,8 @@ namespace Kratos
             array_1d<double, 3> traction_vector_master;
             array_1d<double, 3> traction_vector_slave;
 
-            CalculateTraction(point_number, traction_vector_master, shear_curvilinear_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
-            CalculateTraction(point_number, traction_vector_slave, shear_curvilinear_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
+            CalculateTraction(point_number, traction_vector_master, shear_curvilinear_master, mixed_curvature_master, kinematic_variables_master, constitutive_variables_membrane_master, constitutive_variables_curvature_master, PatchType::Master);
+            CalculateTraction(point_number, traction_vector_slave, shear_curvilinear_slave, mixed_curvature_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
             // calculate the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
             Matrix first_variations_stress_covariant_master = ZeroMatrix(3, 3 * number_of_nodes_master);
@@ -1143,8 +1157,8 @@ namespace Kratos
             Matrix first_variations_traction_master = ZeroMatrix(3, 3 * number_of_nodes_master);
             Matrix first_variations_traction_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
 
-            CalculateFirstVariationTraction(point_number, first_variations_traction_master, first_variations_stress_covariant_master, first_variation_shear_curvilinear_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
-            CalculateFirstVariationTraction(point_number, first_variations_traction_slave, first_variations_stress_covariant_slave, first_variation_shear_curvilinear_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
+            CalculateFirstVariationTraction(point_number, first_variations_traction_master, first_variations_stress_covariant_master, first_variation_shear_curvilinear_master, mixed_curvature_master, first_variation_mixed_curvature_master, kinematic_variables_master, constitutive_variables_membrane_master, constitutive_variables_curvature_master, PatchType::Master);
+            CalculateFirstVariationTraction(point_number, first_variations_traction_slave, first_variations_stress_covariant_slave, first_variation_shear_curvilinear_slave, mixed_curvature_slave, first_variation_mixed_curvature_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
             Matrix first_variations_traction = ZeroMatrix(3, mat_size);
             for (SizeType i=0;i<3 * number_of_nodes_master;++i){
@@ -1214,9 +1228,9 @@ namespace Kratos
             Matrix second_variations_traction_master = ZeroMatrix(3 * number_of_nodes_master, 3 * number_of_nodes_master);
             Matrix second_variations_traction_slave = ZeroMatrix(3 * number_of_nodes_slave, 3 * number_of_nodes_slave);
 
-            CalculateSecondVariationTraction(point_number, second_variations_traction_master, second_variation_shear_curvilinear_master, kinematic_variables_master, first_variations_stress_covariant_master, displacement_vector_master, displacement_vector_slave, 
+            CalculateSecondVariationTraction(point_number, second_variations_traction_master, second_variation_shear_curvilinear_master, mixed_curvature_master, first_variation_mixed_curvature_master, second_variation_mixed_curvature_master, kinematic_variables_master, first_variations_stress_covariant_master, constitutive_variables_curvature_master, displacement_vector_master, displacement_vector_slave,
                                              second_variations_traction_product_vector_master, second_variations_traction_product_vector_slave_master, PatchType::Master);
-            CalculateSecondVariationTraction(point_number, second_variations_traction_slave, second_variation_shear_curvilinear_slave, kinematic_variables_slave, first_variations_stress_covariant_slave, displacement_vector_master, displacement_vector_slave, 
+            CalculateSecondVariationTraction(point_number, second_variations_traction_slave, second_variation_shear_curvilinear_slave, mixed_curvature_slave, first_variation_mixed_curvature_slave, second_variation_mixed_curvature_slave, kinematic_variables_slave, first_variations_stress_covariant_slave, constitutive_variables_curvature_slave, displacement_vector_master, displacement_vector_slave,
                                              second_variations_traction_product_vector_slave, second_variations_traction_product_vector_master_slave, PatchType::Slave);
 
             //Penalty part & RHS
@@ -1722,6 +1736,14 @@ namespace Kratos
             m_n_covariant_vector_master.resize(r_number_of_integration_points_master);
         if (m_n_covariant_vector_slave.size() != r_number_of_integration_points_slave)
             m_n_covariant_vector_slave.resize(r_number_of_integration_points_slave);
+        if (m_t_covariant_vector_master.size() != r_number_of_integration_points_master)
+            m_t_covariant_vector_master.resize(r_number_of_integration_points_master);
+        if (m_t_covariant_vector_slave.size() != r_number_of_integration_points_slave)
+            m_t_covariant_vector_slave.resize(r_number_of_integration_points_slave);
+        if (m_t_contravariant_vector_master.size() != r_number_of_integration_points_master)
+            m_t_contravariant_vector_master.resize(r_number_of_integration_points_master);
+        if (m_t_contravariant_vector_slave.size() != r_number_of_integration_points_slave)
+            m_t_contravariant_vector_slave.resize(r_number_of_integration_points_slave);
         if (Is(IgaFlags::FIX_ROTATION_X))
         {
             if (m_B_ab_covariant_vector_master.size() != r_number_of_integration_points_master)
@@ -1775,6 +1797,12 @@ namespace Kratos
 
             m_n_covariant_vector_master[point_number] = kinematic_variables_reference_master.n_covariant;
             m_n_covariant_vector_slave[point_number] = kinematic_variables_reference_slave.n_covariant;
+
+            m_t_covariant_vector_master[point_number] = kinematic_variables_reference_master.t_covariant;
+            m_t_covariant_vector_slave[point_number] = kinematic_variables_reference_slave.t_covariant;
+
+            m_t_contravariant_vector_master[point_number] = kinematic_variables_reference_master.t_contravariant;
+            m_t_contravariant_vector_slave[point_number] = kinematic_variables_reference_slave.t_contravariant;
 
             CalculateTransformation(kinematic_variables_reference_master, m_T_vector_master[point_number], m_T_hat_vector_master[point_number], m_reference_contravariant_base_master[point_number]);
             CalculateTransformation(kinematic_variables_reference_slave, m_T_vector_slave[point_number], m_T_hat_vector_slave[point_number], m_reference_contravariant_base_slave[point_number]);
@@ -1915,14 +1943,18 @@ namespace Kratos
                     second_variation_mixed_curvature_slave[i][j] = ZeroVector(4);
                 }
             }
+            CalculateVariationMixedCurvature(point_number, mixed_curvature_master, first_variation_mixed_curvature_master, second_variation_mixed_curvature_master,
+                                            kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
+            CalculateVariationMixedCurvature(point_number, mixed_curvature_slave, first_variation_mixed_curvature_slave, second_variation_mixed_curvature_slave,
+                                            kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
             /////////
 
             // calculate traction vectors
             array_1d<double, 3> traction_vector_master;
             array_1d<double, 3> traction_vector_slave;
 
-            CalculateTraction(point_number, traction_vector_master, shear_curvilinear_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
-            CalculateTraction(point_number, traction_vector_slave, shear_curvilinear_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
+            CalculateTraction(point_number, traction_vector_master, shear_curvilinear_master, mixed_curvature_master, kinematic_variables_master, constitutive_variables_membrane_master, constitutive_variables_curvature_master, PatchType::Master);
+            CalculateTraction(point_number, traction_vector_slave, shear_curvilinear_slave, mixed_curvature_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
             // calculate the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
             Matrix first_variations_stress_covariant_master = ZeroMatrix(3, 3*number_of_nodes_master);
@@ -1935,8 +1967,8 @@ namespace Kratos
             Matrix first_variations_traction_master = ZeroMatrix(3, 3*number_of_nodes_master);
             Matrix first_variations_traction_slave = ZeroMatrix(3, 3*number_of_nodes_slave);
 
-            CalculateFirstVariationTraction(point_number, first_variations_traction_master, first_variations_stress_covariant_master, first_variation_shear_curvilinear_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
-            CalculateFirstVariationTraction(point_number, first_variations_traction_slave, first_variations_stress_covariant_slave, first_variation_shear_curvilinear_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
+            CalculateFirstVariationTraction(point_number, first_variations_traction_master, first_variations_stress_covariant_master, first_variation_shear_curvilinear_master, mixed_curvature_master, first_variation_mixed_curvature_master, kinematic_variables_master, constitutive_variables_membrane_master, constitutive_variables_curvature_master, PatchType::Master);
+            CalculateFirstVariationTraction(point_number, first_variations_traction_slave, first_variations_stress_covariant_slave, first_variation_shear_curvilinear_slave, mixed_curvature_slave, first_variation_mixed_curvature_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
             Matrix first_variations_traction = ZeroMatrix(3, mat_size);
             for (SizeType i=0;i<3 * number_of_nodes_master;++i){
@@ -1989,9 +2021,9 @@ namespace Kratos
 
             if(norm_2(kinematic_variables_reference_master.a3_tilde) > tol_surface_normal && norm_2(kinematic_variables_reference_slave.a3_tilde) > tol_surface_normal)
             {
-                CalculateSecondVariationTraction(point_number, second_variations_traction_master, second_variation_shear_curvilinear_master, kinematic_variables_master, first_variations_stress_covariant_master, traction_vector_master, traction_vector_slave, 
+                CalculateSecondVariationTraction(point_number, second_variations_traction_master, second_variation_shear_curvilinear_master, mixed_curvature_master, first_variation_mixed_curvature_master, second_variation_mixed_curvature_master, kinematic_variables_master, first_variations_stress_covariant_master, constitutive_variables_curvature_master, traction_vector_master, traction_vector_slave,
                                                  second_variations_traction_product_vector_master, second_variations_traction_product_vector_slave_master, PatchType::Master);
-                CalculateSecondVariationTraction(point_number, second_variations_traction_slave, second_variation_shear_curvilinear_slave, kinematic_variables_slave, first_variations_stress_covariant_slave, traction_vector_master, traction_vector_slave, 
+                CalculateSecondVariationTraction(point_number, second_variations_traction_slave, second_variation_shear_curvilinear_slave, mixed_curvature_slave, first_variation_mixed_curvature_slave, second_variation_mixed_curvature_slave, kinematic_variables_slave, first_variations_stress_covariant_slave, constitutive_variables_curvature_slave, traction_vector_master, traction_vector_slave,
                                                  second_variations_traction_product_vector_slave, second_variations_traction_product_vector_master_slave, PatchType::Slave);
             }
             
@@ -2484,23 +2516,34 @@ namespace Kratos
         IndexType IntegrationPointIndex,
         array_1d<double, 3>& rTraction,
         array_1d<double, 2> rShear, 
+        array_1d<double, 4>& rMixedCurvature,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
         const PatchType& rPatch)
     {
-        // Transform the 2nd Piola-kirchhoff stresses in the covariant systems
+        // Transform the 2nd Piola-kirchhoff stresses and moments in the covariant systems
         array_1d<double, 3> stress_vector_covariant;
-        array_1d<double, 2> n_contravariant_vector;
+        array_1d<double, 3> moment_vector_covariant;
+        array_1d<double, 2> n_covariant_vector;
+        array_1d<double, 2> t_covariant_vector;
+        array_1d<double, 2> t_contravariant_vector;
 
         if (rPatch==PatchType::Master)
         {
             stress_vector_covariant = prod(m_T_hat_vector_master[IntegrationPointIndex], rThisConstitutiveVariablesMembrane.StressVector);
-            n_contravariant_vector = m_n_contravariant_vector_master[IntegrationPointIndex];
+            moment_vector_covariant = prod(m_T_hat_vector_master[IntegrationPointIndex], rThisConstitutiveVariablesCurvature.StressVector);
+            n_covariant_vector = m_n_covariant_vector_master[IntegrationPointIndex];
+            t_covariant_vector = m_t_covariant_vector_master[IntegrationPointIndex];
+            t_contravariant_vector = m_t_contravariant_vector_master[IntegrationPointIndex];
         }
         else
         {
             stress_vector_covariant = prod(m_T_hat_vector_slave[IntegrationPointIndex], rThisConstitutiveVariablesMembrane.StressVector);
-            n_contravariant_vector = m_n_contravariant_vector_slave[IntegrationPointIndex];
+            moment_vector_covariant = prod(m_T_hat_vector_slave[IntegrationPointIndex], rThisConstitutiveVariablesCurvature.StressVector);
+            n_covariant_vector = m_n_covariant_vector_slave[IntegrationPointIndex];
+            t_covariant_vector = m_t_covariant_vector_slave[IntegrationPointIndex];
+            t_contravariant_vector = m_t_contravariant_vector_slave[IntegrationPointIndex];
         }
 
         // Compute the stress components
@@ -2513,17 +2556,30 @@ namespace Kratos
         Palphabeta(1,2) = rShear[1];
         Palphabeta(2,0) = rShear[0];
         Palphabeta(2,1) = rShear[1];
-        
+
+        // Compute the moment components
+        Matrix Malphabeta = ZeroMatrix(2, 2);
+        Malphabeta(0,0) = moment_vector_covariant[0];
+        Malphabeta(1,1) = moment_vector_covariant[1];
+        Malphabeta(0,1) = moment_vector_covariant[2];
+        Malphabeta(1,0) = Malphabeta(0,1);
+
+        double traction_0 = Palphabeta(0,0)*n_covariant_vector[0]+Palphabeta(0,1)*n_covariant_vector[1]
+                          - Malphabeta(0,0)*n_covariant_vector[0]*rMixedCurvature[0]
+                          - Malphabeta(0,1)*n_covariant_vector[1]*rMixedCurvature[0]
+                          - Malphabeta(1,0)*n_covariant_vector[0]*rMixedCurvature[2]
+                          - Malphabeta(1,1)*n_covariant_vector[1]*rMixedCurvature[2];
+        double traction_1 = Palphabeta(1,0)*n_covariant_vector[0]+Palphabeta(1,1)*n_covariant_vector[1]
+                          - Malphabeta(0,0)*n_covariant_vector[0]*rMixedCurvature[3]
+                          - Malphabeta(0,1)*n_covariant_vector[1]*rMixedCurvature[3]
+                          - Malphabeta(1,0)*n_covariant_vector[0]*rMixedCurvature[1]
+                          - Malphabeta(1,1)*n_covariant_vector[1]*rMixedCurvature[1];
+        double traction_2 = Palphabeta(2,0)*n_covariant_vector[0]+Palphabeta(2,1)*n_covariant_vector[1];
+
         // Compute the traction vectors
-        rTraction[0] = rActualKinematic.a1[0]*(Palphabeta(0,0)*n_contravariant_vector[0]+Palphabeta(0,1)*n_contravariant_vector[1]) 
-                     + rActualKinematic.a2[0]*(Palphabeta(1,0)*n_contravariant_vector[0]+Palphabeta(1,1)*n_contravariant_vector[1])
-                     + rActualKinematic.a3[0]*(Palphabeta(2,0)*n_contravariant_vector[0]+Palphabeta(2,1)*n_contravariant_vector[1]);
-        rTraction[1] = rActualKinematic.a1[1]*(Palphabeta(0,0)*n_contravariant_vector[0]+Palphabeta(0,1)*n_contravariant_vector[1]) 
-                     + rActualKinematic.a2[1]*(Palphabeta(1,0)*n_contravariant_vector[0]+Palphabeta(1,1)*n_contravariant_vector[1])
-                     + rActualKinematic.a3[1]*(Palphabeta(2,0)*n_contravariant_vector[0]+Palphabeta(2,1)*n_contravariant_vector[1]);
-        rTraction[2] = rActualKinematic.a1[2]*(Palphabeta(0,0)*n_contravariant_vector[0]+Palphabeta(0,1)*n_contravariant_vector[1]) 
-                     + rActualKinematic.a2[2]*(Palphabeta(1,0)*n_contravariant_vector[0]+Palphabeta(1,1)*n_contravariant_vector[1])
-                     + rActualKinematic.a3[2]*(Palphabeta(2,0)*n_contravariant_vector[0]+Palphabeta(2,1)*n_contravariant_vector[1]);
+        rTraction[0] = rActualKinematic.a1[0]*traction_0 + rActualKinematic.a2[0]*traction_1 + rActualKinematic.a3[0]*traction_2;
+        rTraction[1] = rActualKinematic.a1[1]*traction_0 + rActualKinematic.a2[1]*traction_1 + rActualKinematic.a3[1]*traction_2;
+        rTraction[2] = rActualKinematic.a1[2]*traction_0 + rActualKinematic.a2[2]*traction_1 + rActualKinematic.a3[2]*traction_2;
     }
 
     void CouplingNitscheCondition::CalculateVariationShear(
@@ -3867,8 +3923,11 @@ namespace Kratos
         Matrix& rFirstVariationTraction,
         Matrix& rFirstVariationStressCovariant,
         std::vector<array_1d<double, 2>>& rFirstVariationShear,
+        const array_1d<double, 4>& rMixedCurvature,
+        const std::vector<array_1d<double, 4>>& rFirstVariationMixedCurvature,
         const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         const PatchType& rPatch)
     {
         IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
@@ -3923,16 +3982,19 @@ namespace Kratos
         rFirstVariationTraction += prod(n_a_shear, first_variations_shear);
 
         //2. derivative normal vector * stress covariant
-        
-        // Transform the 2nd Piola-kirchhoff stresses in the covariant systems
+
+        // Transform the 2nd Piola-kirchhoff stresses and moments in the covariant systems
         array_1d<double, 3> stress_vector_covariant;
+        array_1d<double, 3> moment_vector_covariant;
         if (rPatch==PatchType::Master)
         {
             stress_vector_covariant = prod(m_T_hat_vector_master[IntegrationPointIndex], rThisConstitutiveVariablesMembrane.StressVector);
+            moment_vector_covariant = prod(m_T_hat_vector_master[IntegrationPointIndex], rThisConstitutiveVariablesCurvature.StressVector);
         }
         else
         {
             stress_vector_covariant = prod(m_T_hat_vector_slave[IntegrationPointIndex], rThisConstitutiveVariablesMembrane.StressVector);
+            moment_vector_covariant = prod(m_T_hat_vector_slave[IntegrationPointIndex], rThisConstitutiveVariablesCurvature.StressVector);
         }
 
         Matrix r_DN_Dxi = ZeroMatrix(3, mat_size);
@@ -3949,8 +4011,49 @@ namespace Kratos
             r_DN_Deta(2, 3 * r + 2) = r_DN_De(r, 1);
         }
 
-        rFirstVariationTraction += r_DN_Dxi*(n_covariant_vector[0]*stress_vector_covariant[0] + n_covariant_vector[1]*stress_vector_covariant[2])+
-                                   r_DN_Deta*(n_covariant_vector[1]*stress_vector_covariant[1] + n_covariant_vector[0]*stress_vector_covariant[2]);
+        // --- bending-curvature contribution 
+        const double M11 = moment_vector_covariant[0];
+        const double M22 = moment_vector_covariant[1];
+        const double M12 = moment_vector_covariant[2]; // = M21
+
+        const double b11 = rMixedCurvature[0];
+        const double b22 = rMixedCurvature[1];
+        const double b12 = rMixedCurvature[2];
+        const double b21 = rMixedCurvature[3];
+
+        const double Mn1 = M11 * n_covariant_vector[0] + M12 * n_covariant_vector[1]; // M^{1b} n_b
+        const double Mn2 = M12 * n_covariant_vector[0] + M22 * n_covariant_vector[1]; // M^{2b} n_b
+
+        const double bending_T1 = -(b11 * Mn1 + b12 * Mn2);
+        const double bending_T2 = -(b21 * Mn1 + b22 * Mn2);
+
+        rFirstVariationTraction += r_DN_Dxi*(n_covariant_vector[0]*stress_vector_covariant[0] + n_covariant_vector[1]*stress_vector_covariant[2] + bending_T1)+
+                                   r_DN_Deta*(n_covariant_vector[1]*stress_vector_covariant[1] + n_covariant_vector[0]*stress_vector_covariant[2] + bending_T2);
+
+        Matrix first_variations_moment_covariant = ZeroMatrix(3, mat_size);
+        CalculateFirstVariationMomentCovariant(IntegrationPointIndex, first_variations_moment_covariant, rActualKinematic, rThisConstitutiveVariablesCurvature, rPatch);
+
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            const double dM11_r = first_variations_moment_covariant(0, r);
+            const double dM22_r = first_variations_moment_covariant(1, r);
+            const double dM12_r = first_variations_moment_covariant(2, r); // = dM21_r
+
+            const double dMn1_r = dM11_r * n_covariant_vector[0] + dM12_r * n_covariant_vector[1]; // M^{1b}_,r n_b
+            const double dMn2_r = dM12_r * n_covariant_vector[0] + dM22_r * n_covariant_vector[1]; // M^{2b}_,r n_b
+
+            const double b11_r = rFirstVariationMixedCurvature[r][0];
+            const double b22_r = rFirstVariationMixedCurvature[r][1];
+            const double b12_r = rFirstVariationMixedCurvature[r][2];
+            const double b21_r = rFirstVariationMixedCurvature[r][3];
+
+            const double T1_r = -(b11_r * Mn1 + b12_r * Mn2) - (b11 * dMn1_r + b12 * dMn2_r);
+            const double T2_r = -(b21_r * Mn1 + b22_r * Mn2) - (b21 * dMn1_r + b22 * dMn2_r);
+
+            rFirstVariationTraction(0, r) += rActualKinematic.a1[0]*T1_r + rActualKinematic.a2[0]*T2_r;
+            rFirstVariationTraction(1, r) += rActualKinematic.a1[1]*T1_r + rActualKinematic.a2[1]*T2_r;
+            rFirstVariationTraction(2, r) += rActualKinematic.a1[2]*T1_r + rActualKinematic.a2[2]*T2_r;
+        }
     }
 
     void CouplingNitscheCondition::CalculateSecondVariationTractionProduct(
@@ -3994,8 +4097,12 @@ namespace Kratos
         IndexType IntegrationPointIndex,
         Matrix& rSecondVariationTraction,
         std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
+        const array_1d<double, 4>& rMixedCurvature,
+        const std::vector<array_1d<double, 4>>& rFirstVariationMixedCurvature,
+        const std::vector<std::vector<array_1d<double, 4>>>& rSecondVariationMixedCurvature,
         const KinematicVariables& rActualKinematic,
-        Matrix& rFirstVariationStressCovariant, 
+        Matrix& rFirstVariationStressCovariant,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         array_1d<double, 3>& rDisplacementMaster,
         array_1d<double, 3>& rDisplacementSlave,
         array_1d<double, 3>& rSecondVariationTractionProduct,
@@ -4134,8 +4241,100 @@ namespace Kratos
             {
                 rSecondVariationTraction(r, s) += (rActualKinematic.a3[0]*(rSecondVariationShear[r][s][0]*n_covariant_vector[0]+rSecondVariationShear[r][s][1]*n_covariant_vector[1]))*delta_displacement[0] +
                                                   (rActualKinematic.a3[1]*(rSecondVariationShear[r][s][0]*n_covariant_vector[0]+rSecondVariationShear[r][s][1]*n_covariant_vector[1]))*delta_displacement[1] +
-                                                  (rActualKinematic.a3[2]*(rSecondVariationShear[r][s][0]*n_covariant_vector[0]+rSecondVariationShear[r][s][1]*n_covariant_vector[1]))*delta_displacement[2]; 
-            }  
+                                                  (rActualKinematic.a3[2]*(rSecondVariationShear[r][s][0]*n_covariant_vector[0]+rSecondVariationShear[r][s][1]*n_covariant_vector[1]))*delta_displacement[2];
+            }
+        }
+
+        //bending-curvature 
+        array_1d<double, 3> moment_vector_covariant;
+        if (rPatch==PatchType::Master)
+        {
+            moment_vector_covariant = prod(m_T_hat_vector_master[IntegrationPointIndex], rThisConstitutiveVariablesCurvature.StressVector);
+        }
+        else
+        {
+            moment_vector_covariant = prod(m_T_hat_vector_slave[IntegrationPointIndex], rThisConstitutiveVariablesCurvature.StressVector);
+        }
+
+        const double M11 = moment_vector_covariant[0];
+        const double M22 = moment_vector_covariant[1];
+        const double M12 = moment_vector_covariant[2]; // = M21
+
+        const double b11 = rMixedCurvature[0];
+        const double b22 = rMixedCurvature[1];
+        const double b12 = rMixedCurvature[2];
+        const double b21 = rMixedCurvature[3];
+
+        const double Mn1 = M11 * n_covariant_vector[0] + M12 * n_covariant_vector[1]; // M^{1b} n_b
+        const double Mn2 = M12 * n_covariant_vector[0] + M22 * n_covariant_vector[1]; // M^{2b} n_b
+
+        Matrix first_variations_moment_covariant = ZeroMatrix(3, mat_size);
+        CalculateFirstVariationMomentCovariant(IntegrationPointIndex, first_variations_moment_covariant, rActualKinematic, rThisConstitutiveVariablesCurvature, rPatch);
+
+        std::vector<std::vector<array_1d<double, 3>>> second_variations_moment_covariant;
+        CalculateSecondVariationMomentCovariant(IntegrationPointIndex, second_variations_moment_covariant, rActualKinematic, rThisConstitutiveVariablesCurvature, rPatch);
+
+        Vector b11_r_arr = ZeroVector(mat_size);
+        Vector b22_r_arr = ZeroVector(mat_size);
+        Vector b12_r_arr = ZeroVector(mat_size);
+        Vector b21_r_arr = ZeroVector(mat_size);
+        Vector dMn1_r_arr = ZeroVector(mat_size);
+        Vector dMn2_r_arr = ZeroVector(mat_size);
+        Vector T1_r_arr = ZeroVector(mat_size);
+        Vector T2_r_arr = ZeroVector(mat_size);
+        Vector a1r_dot_u = ZeroVector(mat_size); // (a1,r) . [[u]]
+        Vector a2r_dot_u = ZeroVector(mat_size); // (a2,r) . [[u]]
+
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            b11_r_arr[r] = rFirstVariationMixedCurvature[r][0];
+            b22_r_arr[r] = rFirstVariationMixedCurvature[r][1];
+            b12_r_arr[r] = rFirstVariationMixedCurvature[r][2];
+            b21_r_arr[r] = rFirstVariationMixedCurvature[r][3];
+
+            const double dM11_r = first_variations_moment_covariant(0, r);
+            const double dM22_r = first_variations_moment_covariant(1, r);
+            const double dM12_r = first_variations_moment_covariant(2, r);
+            dMn1_r_arr[r] = dM11_r * n_covariant_vector[0] + dM12_r * n_covariant_vector[1];
+            dMn2_r_arr[r] = dM12_r * n_covariant_vector[0] + dM22_r * n_covariant_vector[1];
+
+            T1_r_arr[r] = -(b11_r_arr[r] * Mn1 + b12_r_arr[r] * Mn2) - (b11 * dMn1_r_arr[r] + b12 * dMn2_r_arr[r]);
+            T2_r_arr[r] = -(b21_r_arr[r] * Mn1 + b22_r_arr[r] * Mn2) - (b21 * dMn1_r_arr[r] + b22 * dMn2_r_arr[r]);
+
+            a1r_dot_u[r] = r_DN_Dxi(0, r)*delta_displacement[0] + r_DN_Dxi(1, r)*delta_displacement[1] + r_DN_Dxi(2, r)*delta_displacement[2];
+            a2r_dot_u[r] = r_DN_Deta(0, r)*delta_displacement[0] + r_DN_Deta(1, r)*delta_displacement[1] + r_DN_Deta(2, r)*delta_displacement[2];
+        }
+
+        const double a1_dot_u = rActualKinematic.a1[0]*delta_displacement[0] + rActualKinematic.a1[1]*delta_displacement[1] + rActualKinematic.a1[2]*delta_displacement[2];
+        const double a2_dot_u = rActualKinematic.a2[0]*delta_displacement[0] + rActualKinematic.a2[1]*delta_displacement[1] + rActualKinematic.a2[2]*delta_displacement[2];
+
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            for (IndexType s = 0; s < mat_size; s++)
+            {
+                const double b11_rs = rSecondVariationMixedCurvature[r][s][0];
+                const double b22_rs = rSecondVariationMixedCurvature[r][s][1];
+                const double b12_rs = rSecondVariationMixedCurvature[r][s][2];
+                const double b21_rs = rSecondVariationMixedCurvature[r][s][3];
+
+                const double dM11_rs = second_variations_moment_covariant[r][s][0];
+                const double dM22_rs = second_variations_moment_covariant[r][s][1];
+                const double dM12_rs = second_variations_moment_covariant[r][s][2];
+                const double dMn1_rs = dM11_rs * n_covariant_vector[0] + dM12_rs * n_covariant_vector[1];
+                const double dMn2_rs = dM12_rs * n_covariant_vector[0] + dM22_rs * n_covariant_vector[1];
+
+                const double T1_rs = -(b11_rs * Mn1 + b12_rs * Mn2)
+                                    - (b11_r_arr[r] * dMn1_r_arr[s] + b12_r_arr[r] * dMn2_r_arr[s])
+                                    - (b11_r_arr[s] * dMn1_r_arr[r] + b12_r_arr[s] * dMn2_r_arr[r])
+                                    - (b11 * dMn1_rs + b12 * dMn2_rs);
+                const double T2_rs = -(b21_rs * Mn1 + b22_rs * Mn2)
+                                    - (b21_r_arr[r] * dMn1_r_arr[s] + b22_r_arr[r] * dMn2_r_arr[s])
+                                    - (b21_r_arr[s] * dMn1_r_arr[r] + b22_r_arr[s] * dMn2_r_arr[r])
+                                    - (b21 * dMn1_rs + b22 * dMn2_rs);
+
+                rSecondVariationTraction(r, s) += a1r_dot_u[r]*T1_r_arr[s] + a1r_dot_u[s]*T1_r_arr[r] + a1_dot_u*T1_rs
+                                                 + a2r_dot_u[r]*T2_r_arr[s] + a2r_dot_u[s]*T2_r_arr[r] + a2_dot_u*T2_rs;
+            }
         }
     }
     
@@ -4301,6 +4500,72 @@ namespace Kratos
         else
         {
             rFirstVariationMomentCovariant = prod(m_T_hat_vector_slave[IntegrationPointIndex], first_variations_moment_cartesian);
+        }
+    }
+
+    void CouplingNitscheCondition::CalculateSecondVariationMomentCovariant(
+        IndexType IntegrationPointIndex,
+        std::vector<std::vector<array_1d<double, 3>>>& rSecondVariationMomentCovariant,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
+        const PatchType& rPatch)
+    {
+        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
+        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
+
+        const SizeType number_of_control_points = r_geometry.size();
+        const SizeType mat_size = number_of_control_points * 3;
+
+        // Get the first and second variation of the Green-Lagrange curvature (curvilinear).
+        array_1d<double, 3> curvature_curvilinear = ZeroVector(3);
+        std::vector<array_1d<double, 3>> first_variation_curvature_curvilinear;
+        std::vector<std::vector<array_1d<double, 3>>> second_variation_curvature_curvilinear;
+        first_variation_curvature_curvilinear.resize(mat_size);
+        second_variation_curvature_curvilinear.resize(mat_size);
+        for (IndexType i = 0; i < mat_size; i++)
+        {
+            second_variation_curvature_curvilinear[i].resize(mat_size);
+            first_variation_curvature_curvilinear[i] = ZeroVector(3);
+            for (IndexType j = 0; j < mat_size; j++)
+            {
+                second_variation_curvature_curvilinear[i][j] = ZeroVector(3);
+            }
+        }
+
+        CalculateVariationCurvature(IntegrationPointIndex, curvature_curvilinear, first_variation_curvature_curvilinear,
+                                    second_variation_curvature_curvilinear, rActualKinematic, rThisConstitutiveVariablesCurvature, rPatch);
+
+        Matrix T_patch = ZeroMatrix(3, 3);
+        Matrix T_hat_patch = ZeroMatrix(3, 3);
+        if (rPatch==PatchType::Master)
+        {
+            T_patch = m_T_vector_master[IntegrationPointIndex];
+            T_hat_patch = m_T_hat_vector_master[IntegrationPointIndex];
+        }
+        else
+        {
+            T_patch = m_T_vector_slave[IntegrationPointIndex];
+            T_hat_patch = m_T_hat_vector_slave[IntegrationPointIndex];
+        }
+
+        if (rSecondVariationMomentCovariant.size() != mat_size) {
+            rSecondVariationMomentCovariant.resize(mat_size);
+        }
+
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            if (rSecondVariationMomentCovariant[r].size() != mat_size) {
+                rSecondVariationMomentCovariant[r].resize(mat_size);
+            }
+            for (IndexType s = 0; s <= r; s++)
+            {
+                const array_1d<double, 3> dK_cartesian_rs = prod(T_patch, second_variation_curvature_curvilinear[r][s]);
+                const array_1d<double, 3> dM_cartesian_rs = prod(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix, dK_cartesian_rs);
+                const array_1d<double, 3> dM_covariant_rs = prod(T_hat_patch, dM_cartesian_rs);
+
+                rSecondVariationMomentCovariant[r][s] = dM_covariant_rs;
+                rSecondVariationMomentCovariant[s][r] = dM_covariant_rs;
+            }
         }
     }
 
