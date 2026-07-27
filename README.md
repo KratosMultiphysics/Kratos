@@ -148,7 +148,6 @@ Some users of the technologies developed in Kratos are:
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
 - [JSON](https://github.com/nlohmann/json) JSON for Modern C++
 - [ZLib](https://zlib.net/) The compression library
-- [meshio++](https://github.com/loumalouomega/meshioplusplus) for multi-format mesh input/output (`MeshioPlusPlusIO`)
 - [Google Test](https://github.com/google/googletest) for unit testing C++ code
 - [Google Benchmark](https://github.com/google/benchmark) for microbenchmarking and performance testing
 
@@ -160,6 +159,7 @@ Some users of the technologies developed in Kratos are:
   - [Boost](http://www.boost.org/) for the `intrusive_ptr`
   - [filesystem](https://github.com/gulrak/filesystem) Header-only single-file std::filesystem compatible helper library, based on the C++17 specs
   - [asio](https://think-async.com/Asio/) for socket based interprocess communication
+- [meshio++](https://github.com/loumalouomega/meshioplusplus) for multi-format mesh input/output (`MeshioPlusPlusApplication`)
 
 # How to cite Kratos?
 Please, use the following references when citing Kratos in your work.
