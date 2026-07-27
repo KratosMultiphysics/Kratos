@@ -55,6 +55,7 @@ public:
 
     void                           ExecuteBeforeSolutionLoop() override;
     void                           ExecuteFinalizeSolutionStep() override;
+    int                            Check() override;
     [[nodiscard]] const Parameters GetDefaultParameters() const override;
     [[nodiscard]] std::string      Info() const override;
     void                           PrintInfo(std::ostream& rOStream) const override;
