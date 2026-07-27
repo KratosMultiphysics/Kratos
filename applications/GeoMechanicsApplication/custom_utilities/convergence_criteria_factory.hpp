@@ -26,6 +26,8 @@
 #include <map>
 #include <string>
 
+using namespace std::string_literals;
+
 namespace Kratos
 {
 
@@ -43,8 +45,6 @@ public:
 
     static ConvergenceCriterionSharedPtr Create(const Parameters& rSolverSettings)
     {
-        using namespace std::string_literals;
-
         KRATOS_ERROR_IF_NOT(rSolverSettings.Has("convergence_criterion"s))
             << "No convergence_criterion is defined, aborting.";
 
@@ -88,8 +88,6 @@ public:
 private:
     static ConvergenceCriterionSharedPtr CreateDisplacementCriterion(const Parameters& rSolverSettings)
     {
-        using namespace std::string_literals;
-
         const auto entries_to_copy =
             std::vector{"displacement_absolute_tolerance"s, "displacement_relative_tolerance"s};
         const auto convergence_inputs =
@@ -99,8 +97,6 @@ private:
 
     static ConvergenceCriterionSharedPtr CreateResidualCriterion(const Parameters& rSolverSettings)
     {
-        using namespace std::string_literals;
-
         const auto entries_to_copy = std::vector{"residual_absolute_tolerance"s, "residual_relative_tolerance"s};
         const auto convergence_inputs =
             ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
@@ -109,8 +105,6 @@ private:
 
     static ConvergenceCriterionSharedPtr CreateWaterPressureCriterion(const Parameters& rSolverSettings)
     {
-        using namespace std::string_literals;
-
         const auto convergence_variables = std::vector{
             std::make_tuple<const VariableData*, typename MixedGenericCriterionType::TDataType, typename MixedGenericCriterionType::TDataType>(
                 &WATER_PRESSURE, rSolverSettings["water_pressure_relative_tolerance"s].GetDouble(),
