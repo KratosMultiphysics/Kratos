@@ -19,6 +19,7 @@
 #include "spatial_containers/bins_dynamic.h"
 #include "processes/process.h"
 #include "geometries/nurbs_curve_geometry.h"
+#include "geometries/nurbs_surface_geometry.h"
 
 #include <algorithm>
 #include <cmath>
@@ -151,6 +152,7 @@ protected:
     using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
     using DynamicBinsPointerType = DynamicBins::PointerType;
     using NurbsCurveGeometryPointerType = NurbsCurveGeometry<2, PointerVector<Node>>::Pointer;
+    using NurbsSurfaceGeometryPointerType = NurbsSurfaceGeometry<3, PointerVector<Node>>::Pointer;
     using CoordinatesArrayType = Geometry<PointType>::CoordinatesArrayType;
 
     /**
@@ -464,7 +466,8 @@ private:
         const double Lambda,
         IndexType EchoLevel,
         ModelPart& rIgaModelPart,
-        ModelPart& rSkinModelPart 
+        ModelPart& rSkinModelPart,
+        const int NumberInitialPointsIfImportingNurbs
         );
     
     /**
@@ -508,7 +511,9 @@ private:
         const Vector StartingPositionUV,
         ModelPart& rSkinModelPart, 
         std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable,
-        array_1d<IndexType, 3>& ordered_ids
+        array_1d<IndexType, 3>& ordered_ids,
+        const std::string& rLayerName,
+        const std::string& rConditionName
         );
 
     /**

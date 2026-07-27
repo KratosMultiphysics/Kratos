@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/gap_sbm_solid_interface_condition.h"
+#include "geometries/coupling_geometry.h"
 
 namespace Kratos
 {
@@ -24,8 +25,8 @@ namespace Kratos
 void GapSbmSolidInterfaceCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
-    InitializeMemberVariables();
-    InitializeSbmMemberVariables();
+    InitializeMemberVariables(GetGeometry());
+    InitializeSbmMemberVariables(GetGeometry());
 }
 
 
@@ -46,10 +47,11 @@ void GapSbmSolidInterfaceCondition::InitializeMaterial()
 
 }
 
-void GapSbmSolidInterfaceCondition::InitializeMemberVariables()
+void GapSbmSolidInterfaceCondition::InitializeMemberVariables(
+    const GeometryType& rTrueGeometry)
 {
     // // Compute class memeber variables
-    const auto& r_geometry = GetGeometry();
+    const auto& r_geometry = rTrueGeometry;
 
     const auto& r_surrogate_geometry = GetGeometryPlus();
     const auto& r_DN_De = r_surrogate_geometry.ShapeFunctionsLocalGradients(r_surrogate_geometry.GetDefaultIntegrationMethod());
@@ -113,10 +115,11 @@ void GapSbmSolidInterfaceCondition::InitializeMemberVariables()
     }
 }
 
-void GapSbmSolidInterfaceCondition::InitializeSbmMemberVariables()
+void GapSbmSolidInterfaceCondition::InitializeSbmMemberVariables(
+    const GeometryType& rTrueGeometry)
 {
     //TODO:
-    const auto& r_geometry = this->GetGeometry();
+    const auto& r_geometry = rTrueGeometry;
     const auto& r_surrogate_geometry_plus = GetGeometryPlus();
     const auto& r_surrogate_geometry_minus = GetGeometryMinus();
 
@@ -993,7 +996,902 @@ double GapSbmSolidInterfaceCondition::ComputeTaylorTerm3D(
     const double dz, 
     const IndexType k_z)
 {   
-    return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) / (MathUtils<double>::Factorial(k_x) * MathUtils<double>::Factorial(k_y) * MathUtils<double>::Factorial(k_z));    
+    return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) *
+        std::pow(dz, k_z) /
+        (MathUtils<double>::Factorial(k_x) *
+         MathUtils<double>::Factorial(k_y) *
+         MathUtils<double>::Factorial(k_z));
+}
+
+GapSbmSolidInterfaceCondition::TaylorDerivativeData
+GapSbmSolidInterfaceCondition::CalculateTaylorDerivativeData(
+    const GeometryType& rGeometry) const
+{
+    TaylorDerivativeData derivative_data(mBasisFunctionsOrder);
+    for (IndexType order = 1; order <= mBasisFunctionsOrder; ++order) {
+        derivative_data[order - 1] = rGeometry.ShapeFunctionDerivatives(
+            order,
+            0,
+            this->GetIntegrationMethod());
+    }
+    return derivative_data;
+}
+
+void GapSbmSolidInterfaceCondition::EvaluateTaylorExpansion(
+    const GeometryType& rGeometry,
+    const Vector& rDistanceVector,
+    const TaylorDerivativeData& rDerivativeData,
+    Vector* pShapeFunctions,
+    Matrix* pShapeFunctionGradients) const
+{
+    const std::size_t number_of_control_points =
+        rGeometry.PointsNumber();
+    KRATOS_ERROR_IF(rDerivativeData.size() != mBasisFunctionsOrder)
+        << "Invalid Taylor derivative data in interface condition #"
+        << Id() << ".\n";
+
+    if (pShapeFunctions != nullptr) {
+        if (pShapeFunctions->size() != number_of_control_points) {
+            pShapeFunctions->resize(number_of_control_points, false);
+        }
+        noalias(*pShapeFunctions) = row(
+            rGeometry.ShapeFunctionsValues(),
+            0);
+    }
+
+    if (pShapeFunctionGradients != nullptr) {
+        if (pShapeFunctionGradients->size1() != 3 ||
+            pShapeFunctionGradients->size2() !=
+                number_of_control_points) {
+            pShapeFunctionGradients->resize(
+                3,
+                number_of_control_points,
+                false);
+        }
+        noalias(*pShapeFunctionGradients) =
+            ZeroMatrix(3, number_of_control_points);
+        const auto& r_local_gradients =
+            rGeometry.ShapeFunctionsLocalGradients(
+                rGeometry.GetDefaultIntegrationMethod())[0];
+        for (std::size_t i = 0; i < number_of_control_points; ++i) {
+            for (std::size_t component = 0;
+                 component < mDim;
+                 ++component) {
+                (*pShapeFunctionGradients)(component, i) =
+                    r_local_gradients(i, component);
+            }
+        }
+    }
+
+    std::array<std::vector<double>, 3> scaled_powers;
+    for (std::size_t component = 0; component < 3; ++component) {
+        scaled_powers[component].resize(mBasisFunctionsOrder + 1);
+        scaled_powers[component][0] = 1.0;
+        for (IndexType order = 1;
+             order <= mBasisFunctionsOrder;
+             ++order) {
+            scaled_powers[component][order] =
+                scaled_powers[component][order - 1] *
+                rDistanceVector[component] /
+                static_cast<double>(order);
+        }
+    }
+
+    for (IndexType order = 1;
+         order <= mBasisFunctionsOrder;
+         ++order) {
+        const Matrix& r_derivatives = rDerivativeData[order - 1];
+        if (mDim == 2) {
+            for (IndexType y_order = 0;
+                 y_order <= order;
+                 ++y_order) {
+                const IndexType x_order = order - y_order;
+                const double value_coefficient =
+                    scaled_powers[0][x_order] *
+                    scaled_powers[1][y_order];
+                const double gradient_x_coefficient = x_order > 0
+                    ? scaled_powers[0][x_order - 1] *
+                        scaled_powers[1][y_order]
+                    : 0.0;
+                const double gradient_y_coefficient = y_order > 0
+                    ? scaled_powers[0][x_order] *
+                        scaled_powers[1][y_order - 1]
+                    : 0.0;
+                for (std::size_t i = 0;
+                     i < number_of_control_points;
+                     ++i) {
+                    const double derivative =
+                        r_derivatives(i, y_order);
+                    if (pShapeFunctions != nullptr) {
+                        (*pShapeFunctions)[i] +=
+                            derivative * value_coefficient;
+                    }
+                    if (pShapeFunctionGradients != nullptr && order > 1) {
+                        (*pShapeFunctionGradients)(0, i) +=
+                            derivative * gradient_x_coefficient;
+                        (*pShapeFunctionGradients)(1, i) +=
+                            derivative * gradient_y_coefficient;
+                    }
+                }
+            }
+        } else {
+            std::size_t derivative_index = 0;
+            for (int x_order = static_cast<int>(order);
+                 x_order >= 0;
+                 --x_order) {
+                for (int y_order =
+                         static_cast<int>(order) - x_order;
+                     y_order >= 0;
+                     --y_order) {
+                    const IndexType z_order = order -
+                        static_cast<IndexType>(x_order) -
+                        static_cast<IndexType>(y_order);
+                    const double value_coefficient =
+                        scaled_powers[0][x_order] *
+                        scaled_powers[1][y_order] *
+                        scaled_powers[2][z_order];
+                    const double gradient_x_coefficient = x_order > 0
+                        ? scaled_powers[0][x_order - 1] *
+                            scaled_powers[1][y_order] *
+                            scaled_powers[2][z_order]
+                        : 0.0;
+                    const double gradient_y_coefficient = y_order > 0
+                        ? scaled_powers[0][x_order] *
+                            scaled_powers[1][y_order - 1] *
+                            scaled_powers[2][z_order]
+                        : 0.0;
+                    const double gradient_z_coefficient = z_order > 0
+                        ? scaled_powers[0][x_order] *
+                            scaled_powers[1][y_order] *
+                            scaled_powers[2][z_order - 1]
+                        : 0.0;
+                    for (std::size_t i = 0;
+                         i < number_of_control_points;
+                         ++i) {
+                        const double derivative =
+                            r_derivatives(i, derivative_index);
+                        if (pShapeFunctions != nullptr) {
+                            (*pShapeFunctions)[i] +=
+                                derivative * value_coefficient;
+                        }
+                        if (pShapeFunctionGradients != nullptr && order > 1) {
+                            (*pShapeFunctionGradients)(0, i) +=
+                                derivative * gradient_x_coefficient;
+                            (*pShapeFunctionGradients)(1, i) +=
+                                derivative * gradient_y_coefficient;
+                            (*pShapeFunctionGradients)(2, i) +=
+                                derivative * gradient_z_coefficient;
+                        }
+                    }
+                    ++derivative_index;
+                }
+            }
+        }
+    }
+}
+
+GapSbmSolidInterfaceConditionBatched::
+    GapSbmSolidInterfaceConditionBatched(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+    : GapSbmSolidInterfaceCondition(NewId, pGeometry)
+{
+    CompactQuadratureGeometries();
+}
+
+GapSbmSolidInterfaceConditionBatched::
+    GapSbmSolidInterfaceConditionBatched(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+    : GapSbmSolidInterfaceCondition(
+        NewId,
+        pGeometry,
+        pProperties)
+{
+    CompactQuadratureGeometries();
+}
+
+Condition::Pointer GapSbmSolidInterfaceConditionBatched::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive<
+        GapSbmSolidInterfaceConditionBatched>(
+            NewId,
+            pGeom,
+            pProperties);
+}
+
+Condition::Pointer GapSbmSolidInterfaceConditionBatched::Create(
+    IndexType NewId,
+    NodesArrayType const& ThisNodes,
+    PropertiesType::Pointer pProperties) const
+{
+    KRATOS_ERROR_IF(NumberOfQuadraturePoints() == 0)
+        << "GapSbmSolidInterfaceConditionBatched #" << Id()
+        << " has no quadrature-point geometry parts.\n";
+
+    std::vector<GeometryType::Pointer> quadrature_point_geometries;
+    quadrature_point_geometries.reserve(NumberOfQuadraturePoints());
+    for (std::size_t point_index = 0;
+         point_index < NumberOfQuadraturePoints();
+         ++point_index) {
+        quadrature_point_geometries.push_back(
+            GetGeometry().pGetGeometryPart(point_index));
+    }
+
+    auto p_coupling_geometry =
+        Kratos::make_shared<CouplingGeometry<Node>>(
+            std::move(quadrature_point_geometries));
+
+    return Kratos::make_intrusive<
+        GapSbmSolidInterfaceConditionBatched>(
+            NewId,
+            p_coupling_geometry,
+            pProperties);
+}
+
+GeometryData::IntegrationMethod
+GapSbmSolidInterfaceConditionBatched::GetIntegrationMethod() const
+{
+    if (NumberOfQuadraturePoints() > 0) {
+        return GetQuadraturePointGeometry(0)
+            .GetDefaultIntegrationMethod();
+    }
+    return BaseType::GetIntegrationMethod();
+}
+
+void GapSbmSolidInterfaceConditionBatched::Initialize(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(NumberOfQuadraturePoints() == 0)
+        << "GapSbmSolidInterfaceConditionBatched #" << Id()
+        << " has no quadrature points.\n";
+    KRATOS_ERROR_IF_NOT(Has(NEIGHBOUR_GEOMETRIES))
+        << "GapSbmSolidInterfaceConditionBatched #" << Id()
+        << " has no NEIGHBOUR_GEOMETRIES.\n";
+    const auto& r_neighbour_geometries =
+        GetValue(NEIGHBOUR_GEOMETRIES);
+    KRATOS_ERROR_IF(r_neighbour_geometries.size() != 2)
+        << "GapSbmSolidInterfaceConditionBatched #" << Id()
+        << " requires exactly two ordered NEIGHBOUR_GEOMETRIES, got "
+        << r_neighbour_geometries.size() << ".\n";
+    KRATOS_ERROR_IF_NOT(r_neighbour_geometries[0])
+        << "Null plus-side NEIGHBOUR_GEOMETRIES entry in condition #"
+        << Id() << ".\n";
+    KRATOS_ERROR_IF_NOT(r_neighbour_geometries[1])
+        << "Null minus-side NEIGHBOUR_GEOMETRIES entry in condition #"
+        << Id() << ".\n";
+    KRATOS_ERROR_IF_NOT(GetProperties().Has(CONSTITUTIVE_LAW))
+        << "A constitutive law is required by condition #"
+        << Id() << ".\n";
+    KRATOS_ERROR_IF(GetProperties()[CONSTITUTIVE_LAW] == nullptr)
+        << "The constitutive law is null in condition #"
+        << Id() << ".\n";
+
+    InitializeMemberVariables(GetQuadraturePointGeometry(0));
+
+    const std::size_t number_of_points =
+        NumberOfQuadraturePoints();
+
+    KRATOS_ERROR_IF(
+        mQuadraturePointReferenceWeights.size() != number_of_points ||
+        mQuadraturePointCoordinates.size1() != number_of_points ||
+        mQuadraturePointCoordinates.size2() != 3 ||
+        mQuadraturePointNormals.size1() != number_of_points ||
+        mQuadraturePointNormals.size2() != 3)
+        << "Missing compact quadrature data in "
+        << "GapSbmSolidInterfaceConditionBatched #" << Id() << ".\n";
+
+    mConstitutiveLawVector.resize(number_of_points);
+    mQuadraturePointWeights.resize(number_of_points, false);
+
+    double total_integration_weight = 0.0;
+    for (std::size_t point_index = 0;
+         point_index < number_of_points;
+         ++point_index) {
+        const auto& r_quadrature_geometry =
+            GetQuadraturePointGeometry(point_index);
+        double integration_weight =
+            mQuadraturePointReferenceWeights[point_index];
+        if (mDim == 2) {
+            integration_weight *= GetProperties().Has(THICKNESS)
+                ? GetProperties()[THICKNESS]
+                : 1.0;
+        }
+        KRATOS_ERROR_IF(integration_weight < 0.0)
+            << "Negative fitted interface integration weight "
+            << integration_weight << " at point " << point_index
+            << " of condition #" << Id()
+            << ". Negative weights are not corrected.\n";
+        KRATOS_ERROR_IF(
+            !std::isfinite(integration_weight) ||
+            integration_weight <= 0.0)
+            << "Invalid integration weight " << integration_weight
+            << " at point " << point_index << " of condition #"
+            << Id() << ".\n";
+        mQuadraturePointWeights[point_index] = integration_weight;
+        total_integration_weight += integration_weight;
+
+        mConstitutiveLawVector[point_index] =
+            GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        const auto& r_shape_function_values =
+            r_quadrature_geometry.ShapeFunctionsValues(
+                GetIntegrationMethod());
+        mConstitutiveLawVector[point_index]->InitializeMaterial(
+            GetProperties(),
+            r_quadrature_geometry,
+            row(r_shape_function_values, 0));
+    }
+
+    SetValue(INTEGRATION_WEIGHT, total_integration_weight);
+    mpConstitutiveLaw = mConstitutiveLawVector.front();
+
+    KRATOS_CATCH("")
+}
+
+void GapSbmSolidInterfaceConditionBatched::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateAllContributions(
+        &rLeftHandSideMatrix,
+        &rRightHandSideVector,
+        rCurrentProcessInfo);
+}
+
+void GapSbmSolidInterfaceConditionBatched::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateAllContributions(
+        &rLeftHandSideMatrix,
+        nullptr,
+        rCurrentProcessInfo);
+}
+
+void GapSbmSolidInterfaceConditionBatched::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateAllContributions(
+        nullptr,
+        &rRightHandSideVector,
+        rCurrentProcessInfo);
+}
+
+void GapSbmSolidInterfaceConditionBatched::CalculateAllContributions(
+    MatrixType* pLeftHandSideMatrix,
+    VectorType* pRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& r_neighbour_geometries =
+        GetValue(NEIGHBOUR_GEOMETRIES);
+    KRATOS_ERROR_IF(r_neighbour_geometries.size() != 2)
+        << "GapSbmSolidInterfaceConditionBatched #" << Id()
+        << " requires exactly two ordered neighbour geometries.\n";
+    const auto& r_geometry_plus = *r_neighbour_geometries[0];
+    const auto& r_geometry_minus = *r_neighbour_geometries[1];
+    const std::size_t number_of_control_points_plus =
+        r_geometry_plus.PointsNumber();
+    const std::size_t number_of_control_points_minus =
+        r_geometry_minus.PointsNumber();
+    const std::size_t matrix_size_plus =
+        number_of_control_points_plus * mDim;
+    const std::size_t matrix_size_minus =
+        number_of_control_points_minus * mDim;
+    const std::size_t matrix_size =
+        matrix_size_plus + matrix_size_minus;
+
+    if (pLeftHandSideMatrix != nullptr) {
+        if (pLeftHandSideMatrix->size1() != matrix_size ||
+            pLeftHandSideMatrix->size2() != matrix_size) {
+            pLeftHandSideMatrix->resize(
+                matrix_size,
+                matrix_size,
+                false);
+        }
+        noalias(*pLeftHandSideMatrix) =
+            ZeroMatrix(matrix_size, matrix_size);
+    }
+    if (pRightHandSideVector != nullptr) {
+        if (pRightHandSideVector->size() != matrix_size) {
+            pRightHandSideVector->resize(matrix_size, false);
+        }
+        noalias(*pRightHandSideVector) = ZeroVector(matrix_size);
+    }
+
+    KRATOS_ERROR_IF(
+        mConstitutiveLawVector.size() != NumberOfQuadraturePoints() ||
+        mQuadraturePointWeights.size() != NumberOfQuadraturePoints() ||
+        mQuadraturePointNormals.size1() != NumberOfQuadraturePoints() ||
+        mQuadraturePointNormals.size2() != 3)
+        << "Inconsistent quadrature cache in "
+        << "GapSbmSolidInterfaceConditionBatched #" << Id()
+        << ".\n";
+
+    Vector displacement_plus(matrix_size_plus);
+    Vector displacement_minus(matrix_size_minus);
+    GetSolutionCoefficientVectorPlus(displacement_plus);
+    GetSolutionCoefficientVectorMinus(displacement_minus);
+
+    KRATOS_ERROR_IF(mConstitutiveLawVector.empty())
+        << "No constitutive laws in condition #" << Id() << ".\n";
+    const std::size_t strain_size =
+        mConstitutiveLawVector.front()->GetStrainSize();
+    Matrix B_plus(strain_size, matrix_size_plus);
+    Matrix B_minus(strain_size, matrix_size_minus);
+    Matrix traction_tangent(mDim, matrix_size);
+    Vector signed_shape_function(matrix_size);
+    Vector stress_column(strain_size);
+    Vector traction_column(3);
+    Vector traction_plus(3);
+    Vector traction_minus(3);
+    Vector displacement_jump(3);
+    Vector shape_functions_plus(number_of_control_points_plus);
+    Vector shape_functions_minus(number_of_control_points_minus);
+    Matrix shape_function_gradients_plus(
+        3,
+        number_of_control_points_plus);
+    Matrix shape_function_gradients_minus(
+        3,
+        number_of_control_points_minus);
+    const TaylorDerivativeData taylor_derivatives_plus =
+        CalculateTaylorDerivativeData(r_geometry_plus);
+    const TaylorDerivativeData taylor_derivatives_minus =
+        CalculateTaylorDerivativeData(r_geometry_minus);
+
+    ConstitutiveVariables variables_plus(strain_size);
+    ConstitutiveVariables variables_minus(strain_size);
+
+    for (std::size_t point_index = 0;
+         point_index < NumberOfQuadraturePoints();
+         ++point_index) {
+        auto& p_constitutive_law =
+            mConstitutiveLawVector[point_index];
+        KRATOS_ERROR_IF_NOT(p_constitutive_law)
+            << "Null constitutive law at point " << point_index
+            << " of condition #" << Id() << ".\n";
+        KRATOS_ERROR_IF(
+            p_constitutive_law->GetStrainSize() != strain_size)
+            << "Inconsistent strain size at point " << point_index
+            << " of condition #" << Id() << ".\n";
+
+        SetQuadraturePointDistances(point_index);
+
+        EvaluateTaylorExpansion(
+            r_geometry_plus,
+            mDistanceVectorPlus,
+            taylor_derivatives_plus,
+            &shape_functions_plus,
+            &shape_function_gradients_plus);
+        EvaluateTaylorExpansion(
+            r_geometry_minus,
+            mDistanceVectorMinus,
+            taylor_derivatives_minus,
+            &shape_functions_minus,
+            &shape_function_gradients_minus);
+
+        FillB(
+            B_plus,
+            shape_function_gradients_plus,
+            number_of_control_points_plus);
+        FillB(
+            B_minus,
+            shape_function_gradients_minus,
+            number_of_control_points_minus);
+
+        for (std::size_t strain_index = 0;
+             strain_index < strain_size;
+             ++strain_index) {
+            double strain_plus = 0.0;
+            for (std::size_t column = 0;
+                 column < matrix_size_plus;
+                 ++column) {
+                strain_plus +=
+                    B_plus(strain_index, column) *
+                    displacement_plus[column];
+            }
+            variables_plus.StrainVector[strain_index] = strain_plus;
+            variables_plus.StressVector[strain_index] = 0.0;
+
+            double strain_minus = 0.0;
+            for (std::size_t column = 0;
+                 column < matrix_size_minus;
+                 ++column) {
+                strain_minus +=
+                    B_minus(strain_index, column) *
+                    displacement_minus[column];
+            }
+            variables_minus.StrainVector[strain_index] = strain_minus;
+            variables_minus.StressVector[strain_index] = 0.0;
+        }
+        noalias(variables_plus.D) =
+            ZeroMatrix(strain_size, strain_size);
+        noalias(variables_minus.D) =
+            ZeroMatrix(strain_size, strain_size);
+
+        const auto& r_quadrature_geometry =
+            GetQuadraturePointGeometry(point_index);
+        ConstitutiveLaw::Parameters parameters_plus(
+            r_quadrature_geometry,
+            GetProperties(),
+            rCurrentProcessInfo);
+        Flags& r_options_plus = parameters_plus.GetOptions();
+        r_options_plus.Set(
+            ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN,
+            true);
+        r_options_plus.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_options_plus.Set(
+            ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR,
+            true);
+        parameters_plus.SetStrainVector(
+            variables_plus.StrainVector);
+        parameters_plus.SetStressVector(
+            variables_plus.StressVector);
+        parameters_plus.SetConstitutiveMatrix(variables_plus.D);
+        p_constitutive_law->CalculateMaterialResponse(
+            parameters_plus,
+            ConstitutiveLaw::StressMeasure_Cauchy);
+
+        ConstitutiveLaw::Parameters parameters_minus(
+            r_quadrature_geometry,
+            GetProperties(),
+            rCurrentProcessInfo);
+        Flags& r_options_minus = parameters_minus.GetOptions();
+        r_options_minus.Set(
+            ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN,
+            true);
+        r_options_minus.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_options_minus.Set(
+            ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR,
+            true);
+        parameters_minus.SetStrainVector(
+            variables_minus.StrainVector);
+        parameters_minus.SetStressVector(
+            variables_minus.StressVector);
+        parameters_minus.SetConstitutiveMatrix(variables_minus.D);
+        p_constitutive_law->CalculateMaterialResponse(
+            parameters_minus,
+            ConstitutiveLaw::StressMeasure_Cauchy);
+
+        array_1d<double, 3> normal = ZeroVector(3);
+        for (std::size_t component = 0; component < 3; ++component) {
+            normal[component] =
+                mQuadraturePointNormals(point_index, component);
+        }
+        CalculateTraction(
+            variables_plus.StressVector,
+            normal,
+            traction_plus);
+        CalculateTraction(
+            variables_minus.StressVector,
+            normal,
+            traction_minus);
+
+        for (std::size_t column = 0;
+             column < matrix_size_plus;
+             ++column) {
+            for (std::size_t row = 0; row < strain_size; ++row) {
+                double value = 0.0;
+                for (std::size_t inner = 0;
+                     inner < strain_size;
+                     ++inner) {
+                    value += variables_plus.D(row, inner) *
+                        B_plus(inner, column);
+                }
+                stress_column[row] = value;
+            }
+            CalculateTraction(stress_column, normal, traction_column);
+            for (std::size_t component = 0;
+                 component < mDim;
+                 ++component) {
+                traction_tangent(component, column) =
+                    traction_column[component];
+            }
+        }
+        for (std::size_t column = 0;
+             column < matrix_size_minus;
+             ++column) {
+            for (std::size_t row = 0; row < strain_size; ++row) {
+                double value = 0.0;
+                for (std::size_t inner = 0;
+                     inner < strain_size;
+                     ++inner) {
+                    value += variables_minus.D(row, inner) *
+                        B_minus(inner, column);
+                }
+                stress_column[row] = value;
+            }
+            CalculateTraction(stress_column, normal, traction_column);
+            for (std::size_t component = 0;
+                 component < mDim;
+                 ++component) {
+                traction_tangent(
+                    component,
+                    matrix_size_plus + column) =
+                    traction_column[component];
+            }
+        }
+
+        noalias(displacement_jump) = ZeroVector(3);
+        for (std::size_t i = 0;
+            i < number_of_control_points_plus;
+             ++i) {
+            const double shape_function =
+                shape_functions_plus[i];
+            for (std::size_t component = 0;
+                 component < mDim;
+                 ++component) {
+                const std::size_t index = i * mDim + component;
+                signed_shape_function[index] = shape_function;
+                displacement_jump[component] +=
+                    shape_function * displacement_plus[index];
+            }
+        }
+        for (std::size_t i = 0;
+            i < number_of_control_points_minus;
+             ++i) {
+            const double shape_function =
+                shape_functions_minus[i];
+            for (std::size_t component = 0;
+                 component < mDim;
+                 ++component) {
+                const std::size_t local_index =
+                    i * mDim + component;
+                const std::size_t global_index =
+                    matrix_size_plus + local_index;
+                signed_shape_function[global_index] =
+                    -shape_function;
+                displacement_jump[component] -=
+                    shape_function * displacement_minus[local_index];
+            }
+        }
+
+        const double integration_weight =
+            mQuadraturePointWeights[point_index];
+
+        if (pLeftHandSideMatrix != nullptr) {
+            for (std::size_t row = 0; row < matrix_size; ++row) {
+                const std::size_t row_component = row % mDim;
+                const double signed_shape_row =
+                    signed_shape_function[row];
+
+                for (std::size_t column = 0;
+                     column < matrix_size;
+                     ++column) {
+                    const std::size_t column_component =
+                        column % mDim;
+                    double contribution =
+                        -0.5 * signed_shape_row *
+                            traction_tangent(
+                                row_component,
+                                column)
+                        -0.5 * mNitschePenalty *
+                            traction_tangent(
+                                column_component,
+                                row) *
+                            signed_shape_function[column];
+                    if (row_component == column_component) {
+                        contribution +=
+                            mPenalty * signed_shape_row *
+                            signed_shape_function[column];
+                    }
+                    (*pLeftHandSideMatrix)(row, column) +=
+                        integration_weight * contribution;
+                }
+            }
+        }
+
+        if (pRightHandSideVector != nullptr) {
+            for (std::size_t row = 0; row < matrix_size; ++row) {
+                const std::size_t row_component = row % mDim;
+                double contribution =
+                    signed_shape_function[row] *
+                    (0.5 *
+                        (traction_plus[row_component] +
+                         traction_minus[row_component])
+                     - mPenalty *
+                        displacement_jump[row_component]);
+                for (std::size_t component = 0;
+                     component < mDim;
+                     ++component) {
+                    contribution +=
+                        0.5 * mNitschePenalty *
+                        traction_tangent(component, row) *
+                        displacement_jump[component];
+                }
+                (*pRightHandSideVector)[row] +=
+                    integration_weight * contribution;
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+void GapSbmSolidInterfaceConditionBatched::InitializeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    for (std::size_t point_index = 0;
+         point_index < NumberOfQuadraturePoints();
+         ++point_index) {
+        ConstitutiveLaw::Parameters constitutive_parameters(
+            GetQuadraturePointGeometry(point_index),
+            GetProperties(),
+            rCurrentProcessInfo);
+        mConstitutiveLawVector[point_index]
+            ->InitializeMaterialResponse(
+                constitutive_parameters,
+                ConstitutiveLaw::StressMeasure_Cauchy);
+    }
+}
+
+void GapSbmSolidInterfaceConditionBatched::FinalizeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    for (std::size_t point_index = 0;
+         point_index < NumberOfQuadraturePoints();
+         ++point_index) {
+        ConstitutiveLaw::Parameters constitutive_parameters(
+            GetQuadraturePointGeometry(point_index),
+            GetProperties(),
+            rCurrentProcessInfo);
+        mConstitutiveLawVector[point_index]
+            ->FinalizeMaterialResponse(
+                constitutive_parameters,
+                ConstitutiveLaw::StressMeasure_Cauchy);
+    }
+}
+
+std::size_t
+GapSbmSolidInterfaceConditionBatched::NumberOfQuadraturePoints() const
+{
+    return GetGeometry().NumberOfGeometryParts();
+}
+
+const GapSbmSolidInterfaceConditionBatched::GeometryType&
+GapSbmSolidInterfaceConditionBatched::GetQuadraturePointGeometry(
+    const std::size_t PointIndex) const
+{
+    KRATOS_ERROR_IF(PointIndex >= NumberOfQuadraturePoints())
+        << "Quadrature point index " << PointIndex
+        << " is out of range [0, " << NumberOfQuadraturePoints()
+        << ") in GapSbmSolidInterfaceConditionBatched #"
+        << Id() << ".\n";
+    return GetGeometry().GetGeometryPart(PointIndex);
+}
+
+void GapSbmSolidInterfaceConditionBatched::
+    CompactQuadratureGeometries()
+{
+    const std::size_t number_of_points =
+        GetGeometry().NumberOfGeometryParts();
+    if (number_of_points == 0 ||
+        mQuadraturePointCoordinates.size1() == number_of_points) {
+        return;
+    }
+
+    mQuadraturePointReferenceWeights.resize(number_of_points, false);
+    mQuadraturePointCoordinates.resize(number_of_points, 3, false);
+    mQuadraturePointNormals.resize(number_of_points, 3, false);
+    auto p_representative_geometry =
+        GetGeometry().pGetGeometryPart(0);
+
+    for (std::size_t point_index = 0;
+         point_index < number_of_points;
+         ++point_index) {
+        auto p_quadrature_geometry =
+            GetGeometry().pGetGeometryPart(point_index);
+        const auto integration_method =
+            p_quadrature_geometry->GetDefaultIntegrationMethod();
+        const auto& r_integration_points =
+            p_quadrature_geometry->IntegrationPoints(integration_method);
+        KRATOS_ERROR_IF(r_integration_points.size() != 1)
+            << "Each geometry part of "
+            << "GapSbmSolidInterfaceConditionBatched #" << Id()
+            << " must contain exactly one integration point.\n";
+        mQuadraturePointReferenceWeights[point_index] =
+            p_quadrature_geometry->Has(INTEGRATION_WEIGHT)
+                ? p_quadrature_geometry->GetValue(INTEGRATION_WEIGHT)
+                : r_integration_points.front().Weight();
+        const auto center = p_quadrature_geometry->Center();
+        for (std::size_t component = 0; component < 3; ++component) {
+            mQuadraturePointCoordinates(point_index, component) =
+                center[component];
+        }
+        auto normal = p_quadrature_geometry->Normal(
+            0,
+            integration_method);
+        const double normal_norm = MathUtils<double>::Norm(normal);
+        KRATOS_ERROR_IF(normal_norm <= 0.0)
+            << "Zero interface normal at point " << point_index
+            << " of condition #" << Id() << ".\n";
+        normal /= normal_norm;
+        for (std::size_t component = 0; component < 3; ++component) {
+            mQuadraturePointNormals(point_index, component) =
+                normal[component];
+        }
+        if (point_index > 0) {
+            GetGeometry().SetGeometryPart(
+                point_index,
+                p_representative_geometry);
+        }
+    }
+}
+
+void GapSbmSolidInterfaceConditionBatched::
+    SetQuadraturePointDistances(const std::size_t PointIndex)
+{
+    const auto& r_neighbour_geometries =
+        GetValue(NEIGHBOUR_GEOMETRIES);
+    const auto center_plus = r_neighbour_geometries[0]->Center();
+    const auto center_minus = r_neighbour_geometries[1]->Center();
+    if (mDistanceVectorPlus.size() != 3) {
+        mDistanceVectorPlus.resize(3, false);
+        mDistanceVectorMinus.resize(3, false);
+    }
+    for (std::size_t component = 0; component < 3; ++component) {
+        mDistanceVectorPlus[component] =
+            mQuadraturePointCoordinates(PointIndex, component) -
+            center_plus[component];
+        mDistanceVectorMinus[component] =
+            mQuadraturePointCoordinates(PointIndex, component) -
+            center_minus[component];
+    }
+}
+
+void GapSbmSolidInterfaceConditionBatched::FillB(
+    Matrix& rB,
+    const Matrix& rShapeFunctionGradients,
+    const std::size_t NumberOfControlPoints) const
+{
+    const std::size_t matrix_size = NumberOfControlPoints * mDim;
+    const std::size_t strain_size = mDim == 2 ? 3 : 6;
+    KRATOS_ERROR_IF(
+        rShapeFunctionGradients.size1() != 3 ||
+        rShapeFunctionGradients.size2() != NumberOfControlPoints)
+        << "Invalid Taylor gradients in condition #" << Id()
+        << ".\n";
+
+    if (rB.size1() != strain_size ||
+        rB.size2() != matrix_size) {
+        rB.resize(strain_size, matrix_size, false);
+    }
+    noalias(rB) = ZeroMatrix(strain_size, matrix_size);
+
+    for (std::size_t i = 0; i < NumberOfControlPoints; ++i) {
+        const std::size_t index = i * mDim;
+        const double derivative_x =
+            rShapeFunctionGradients(0, i);
+        const double derivative_y =
+            rShapeFunctionGradients(1, i);
+        if (mDim == 2) {
+            rB(0, index) = derivative_x;
+            rB(1, index + 1) = derivative_y;
+            rB(2, index) = derivative_y;
+            rB(2, index + 1) = derivative_x;
+        } else {
+            const double derivative_z =
+                rShapeFunctionGradients(2, i);
+            rB(0, index) = derivative_x;
+            rB(1, index + 1) = derivative_y;
+            rB(2, index + 2) = derivative_z;
+            rB(3, index) = derivative_y;
+            rB(3, index + 1) = derivative_x;
+            rB(4, index + 1) = derivative_z;
+            rB(4, index + 2) = derivative_y;
+            rB(5, index) = derivative_z;
+            rB(5, index + 2) = derivative_x;
+        }
+    }
 }
 
 } // Namespace Kratos

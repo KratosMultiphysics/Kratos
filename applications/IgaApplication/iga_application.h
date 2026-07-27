@@ -162,6 +162,7 @@ private:
     const StokesElement mStokesElement;
     const NavierStokesElement mNavierStokesElement;
     const GapSbmSolidElement mGapSbmSolidElement;
+    const GapSbmSolidElementVolumetric mGapSbmSolidElementVolumetric;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -185,9 +186,17 @@ private:
     const SbmLoadSolidCondition mSbmLoadSolidCondition;
     const GapSbmSolidCondition mGapSbmSolidCondition;
     const GapSbmLoadSolidCondition mGapSbmLoadSolidCondition;
+    const GapSbmLoadSolidConditionBatched
+        mGapSbmLoadSolidConditionBatched;
     const GapSbmEnhancedSolidCondition mGapSbmEnhancedSolidCondition;
     const GapSbmEnhancedLoadSolidCondition mGapSbmEnhancedLoadSolidCondition;
+    const GapSbmEnhancedSolidConditionBatched
+        mGapSbmEnhancedSolidConditionBatched;
+    const GapSbmEnhancedLoadSolidConditionBatched
+        mGapSbmEnhancedLoadSolidConditionBatched;
     const GapSbmSolidInterfaceCondition mGapSbmSolidInterfaceCondition;
+    const GapSbmSolidInterfaceConditionBatched
+        mGapSbmSolidInterfaceConditionBatched;
 
 
     // Modelers

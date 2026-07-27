@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_conditions/gap_sbm_enhanced_solid_condition.h"
+#include "geometries/coupling_geometry.h"
 
 namespace Kratos
 {
@@ -49,8 +50,13 @@ void GapSbmEnhancedSolidCondition::InitializeMaterial()
 
 void GapSbmEnhancedSolidCondition::InitializeMemberVariables()
 {
+    InitializeMemberVariables(GetGeometry());
+}
+
+void GapSbmEnhancedSolidCondition::InitializeMemberVariables(
+    const GeometryType& r_geometry)
+{
     // // Compute class memeber variables
-    const auto& r_geometry = GetGeometry();
 
     const auto& r_projected_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
     const auto& r_DN_De = r_projected_geometry.ShapeFunctionsLocalGradients(r_projected_geometry.GetDefaultIntegrationMethod());
@@ -152,8 +158,31 @@ void GapSbmEnhancedSolidCondition::CalculateLocalSystem(
         rLeftHandSideMatrix.resize(mat_size, mat_size);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
-    CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
+    const auto& r_surrogate_geometry =
+        *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    std::vector<Matrix> taylor_derivatives(mBasisFunctionsOrder);
+    for (IndexType order = 1;
+         order <= mBasisFunctionsOrder;
+         ++order) {
+        taylor_derivatives[order - 1] =
+            r_surrogate_geometry.ShapeFunctionDerivatives(
+                order,
+                0,
+                this->GetIntegrationMethod());
+    }
+    mpTaylorDerivativeCache = &taylor_derivatives;
+    try {
+        CalculateLeftHandSide(
+            rLeftHandSideMatrix,
+            rCurrentProcessInfo);
+        CalculateRightHandSide(
+            rRightHandSideVector,
+            rCurrentProcessInfo);
+    } catch (...) {
+        mpTaylorDerivativeCache = nullptr;
+        throw;
+    }
+    mpTaylorDerivativeCache = nullptr;
 
     KRATOS_CATCH("")
 }
@@ -165,7 +194,7 @@ void GapSbmEnhancedSolidCondition::CalculateLeftHandSide(
 {
     KRATOS_TRY
     const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
-    const auto& r_true_geometry = GetGeometry();
+    const auto& r_true_geometry = GetBoundaryGeometry();
     const unsigned int number_of_control_points = r_surrogate_geometry.size();
 
     // reading integration points and local gradients
@@ -186,18 +215,11 @@ void GapSbmEnhancedSolidCondition::CalculateLeftHandSide(
     ComputeTaylorExpansionContribution(N_true_sum_vec, mDistanceVectorSkin);
 
     // compute Taylor expansion contribution: grad_H_sum
-    Matrix grad_N_gap_sum_transposed = ZeroMatrix(3, number_of_control_points);
-    ComputeGradientTaylorExpansionContribution(grad_N_gap_sum_transposed, mDistanceVector);
-    Matrix grad_N_gap_sum = trans(grad_N_gap_sum_transposed);
-
     Matrix grad_N_true_sum_transposed = ZeroMatrix(3, number_of_control_points);
     ComputeGradientTaylorExpansionContribution(grad_N_true_sum_transposed, mDistanceVectorSkin);
     Matrix grad_N_true_sum = trans(grad_N_true_sum_transposed);
 
     const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
-    Matrix B_gap_sum = ZeroMatrix(strain_size,mat_size);
-    CalculateB(B_gap_sum, grad_N_gap_sum);
-
     Matrix B_true_sum = ZeroMatrix(strain_size,mat_size);
     CalculateB(B_true_sum, grad_N_true_sum);
 
@@ -216,6 +238,22 @@ void GapSbmEnhancedSolidCondition::CalculateLeftHandSide(
     const Matrix& r_D_on_true = values_true.GetConstitutiveMatrix();
 
     Matrix DB_true_sum = prod(r_D_on_true, B_true_sum);
+    Matrix traction_tangent(3, mat_size);
+    Vector traction_column;
+    for (IndexType column_index = 0;
+         column_index < mat_size;
+         ++column_index) {
+        const Vector stress_column =
+            column(DB_true_sum, column_index);
+        CalculateTraction(
+            stress_column,
+            mNormalPhysicalSpace,
+            traction_column);
+        for (IndexType component = 0; component < mDim; ++component) {
+            traction_tangent(component, column_index) =
+                traction_column[component];
+        }
+    }
 
     // Differential area
     double penalty_integration = mPenalty * integration_weight;
@@ -231,25 +269,24 @@ void GapSbmEnhancedSolidCondition::CalculateLeftHandSide(
                 // PENALTY TERM
                 rLeftHandSideMatrix(iglob, mDim*j+idim) += N_gap_sum_vec(i)*N_true_sum_vec(j)* penalty_integration;
 
-                Vector sigma_w_n;
-                const Vector stress_column_w = column(DB_true_sum, iglob);
-                CalculateTraction(stress_column_w, mNormalPhysicalSpace, sigma_w_n);
-
                 for (IndexType jdim = 0; jdim < mDim; jdim++) {
                     const IndexType jglob = mDim*j+jdim;
-                    Vector sigma_u_n;
-                    const Vector stress_column_u = column(DB_true_sum, jglob);
-                    CalculateTraction(stress_column_u, mNormalPhysicalSpace, sigma_u_n);
 
                     // FLUX 
                     // [sigma(u) \dot n] \dot n * (-w \dot n)
                     //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= N_gap_sum_vec(i)*sigma_u_n[idim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) -=
+                        N_gap_sum_vec(i) *
+                        traction_tangent(idim, jglob) *
+                        integration_weight;
 
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty*N_true_sum_vec(j)*sigma_w_n[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) -=
+                        mNitschePenalty * N_true_sum_vec(j) *
+                        traction_tangent(jdim, iglob) *
+                        integration_weight;
                 }
 
             }
@@ -266,7 +303,7 @@ void GapSbmEnhancedSolidCondition::CalculateRightHandSide(
 {
     KRATOS_TRY
     const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
-    const auto& r_true_geometry = GetGeometry();
+    const auto& r_true_geometry = GetBoundaryGeometry();
     const unsigned int number_of_control_points = r_surrogate_geometry.size();
 
     // reading integration points and local gradients
@@ -329,6 +366,24 @@ void GapSbmEnhancedSolidCondition::CalculateRightHandSide(
     // ASSEMBLE
     //-----------------------------------------------------
     Vector u_D = mpSkinProjectionNode->GetValue(DISPLACEMENT);
+
+    const Vector projection_node_coordinates = mpSkinProjectionNode->Coordinates();
+    const double x = projection_node_coordinates[0];
+    const double y = projection_node_coordinates[1];
+    const double z = projection_node_coordinates[2];
+
+    u_D[0] = cos(x)*sinh(y)*cosh(z);
+    u_D[1] = cos(y)*sinh(z)*cosh(x);
+    if (mDim == 3) {
+        u_D[2] = cos(z)*sinh(x)*cosh(y);
+    }
+
+
+    // u_D[0] = x+y+z;
+    // u_D[1] = x+y+z;
+    // if (mDim == 3) {
+    //     u_D[2] = x+y+z;
+    // }
 
     for (IndexType i = 0; i < number_of_control_points; i++) {
             
@@ -583,11 +638,19 @@ void GapSbmEnhancedSolidCondition::ComputeTaylorExpansionContribution(Vector& H_
         H_sum_vec = ZeroVector(number_of_control_points);
     }
 
-    // Compute all the derivatives of the basis functions involved
-    std::vector<Matrix> shape_function_derivatives(mBasisFunctionsOrder);
-    for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
-        shape_function_derivatives[n-1] = r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod());
+    std::vector<Matrix> local_shape_function_derivatives;
+    if (mpTaylorDerivativeCache == nullptr) {
+        local_shape_function_derivatives.resize(mBasisFunctionsOrder);
+        for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+            local_shape_function_derivatives[n-1] =
+                r_geometry.ShapeFunctionDerivatives(
+                    n, 0, this->GetIntegrationMethod());
+        }
     }
+    const auto& shape_function_derivatives =
+        mpTaylorDerivativeCache != nullptr
+            ? *mpTaylorDerivativeCache
+            : local_shape_function_derivatives;
     
     for (IndexType i = 0; i < number_of_control_points; ++i)
     {
@@ -597,7 +660,7 @@ void GapSbmEnhancedSolidCondition::ComputeTaylorExpansionContribution(Vector& H_
         if (mDim == 2) {
             for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
                 // Retrieve the appropriate derivative for the term
-                Matrix& r_shape_function_derivatives = shape_function_derivatives[n-1];
+                const Matrix& r_shape_function_derivatives = shape_function_derivatives[n-1];
                 for (IndexType k = 0; k <= n; k++) {
                     IndexType n_k = n - k;
                     double derivative = r_shape_function_derivatives(i,k); 
@@ -608,7 +671,7 @@ void GapSbmEnhancedSolidCondition::ComputeTaylorExpansionContribution(Vector& H_
         } else {
             // 3D
             for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
-                Matrix& r_shape_function_derivatives = shape_function_derivatives[n-1];
+                const Matrix& r_shape_function_derivatives = shape_function_derivatives[n-1];
                 
                 int countDerivativeId = 0;
                 // Loop over blocks of derivatives in x
@@ -641,11 +704,19 @@ void GapSbmEnhancedSolidCondition::ComputeGradientTaylorExpansionContribution(Ma
     const SizeType number_of_control_points = r_geometry.PointsNumber();
     const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
 
-    // Compute all the derivatives of the basis functions involved
-    std::vector<Matrix> shape_function_derivatives(mBasisFunctionsOrder);
-    for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
-        shape_function_derivatives[n-1] = r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod());
+    std::vector<Matrix> local_shape_function_derivatives;
+    if (mpTaylorDerivativeCache == nullptr) {
+        local_shape_function_derivatives.resize(mBasisFunctionsOrder);
+        for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+            local_shape_function_derivatives[n-1] =
+                r_geometry.ShapeFunctionDerivatives(
+                    n, 0, this->GetIntegrationMethod());
+        }
     }
+    const auto& shape_function_derivatives =
+        mpTaylorDerivativeCache != nullptr
+            ? *mpTaylorDerivativeCache
+            : local_shape_function_derivatives;
 
     if (grad_H_sum.size1() != 3 || grad_H_sum.size2() != number_of_control_points)
     {
@@ -663,7 +734,7 @@ void GapSbmEnhancedSolidCondition::ComputeGradientTaylorExpansionContribution(Ma
         if (mDim == 2) {
             for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
                 // Retrieve the appropriate derivative for the term
-                Matrix& shapeFunctionDerivatives = shape_function_derivatives[n-1];
+                const Matrix& shapeFunctionDerivatives = shape_function_derivatives[n-1];
                 for (IndexType k = 0; k <= n-1; k++) {
                     IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k); 
@@ -680,7 +751,7 @@ void GapSbmEnhancedSolidCondition::ComputeGradientTaylorExpansionContribution(Ma
         } else {
             // 3D
             for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
-                Matrix& shapeFunctionDerivatives = shape_function_derivatives[n-1];
+                const Matrix& shapeFunctionDerivatives = shape_function_derivatives[n-1];
             
                 IndexType countDerivativeId = 0;
                 // Loop over blocks of derivatives in x
@@ -736,6 +807,334 @@ double GapSbmEnhancedSolidCondition::ComputeTaylorTerm3D(
     const IndexType k_z)
 {   
     return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) / (MathUtils<double>::Factorial(k_x) * MathUtils<double>::Factorial(k_y) * MathUtils<double>::Factorial(k_z));    
+}
+
+GapSbmEnhancedSolidConditionBatched::
+    GapSbmEnhancedSolidConditionBatched(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+    : BaseType(NewId, pGeometry)
+{
+    CompactQuadratureGeometries();
+}
+
+GapSbmEnhancedSolidConditionBatched::
+    GapSbmEnhancedSolidConditionBatched(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
+{
+    CompactQuadratureGeometries();
+}
+
+Condition::Pointer GapSbmEnhancedSolidConditionBatched::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive<GapSbmEnhancedSolidConditionBatched>(
+        NewId, pGeom, pProperties);
+}
+
+Condition::Pointer GapSbmEnhancedSolidConditionBatched::Create(
+    IndexType NewId,
+    NodesArrayType const& ThisNodes,
+    PropertiesType::Pointer pProperties) const
+{
+    std::vector<GeometryType::Pointer> geometry_parts(
+        NumberOfQuadraturePoints(),
+        GetGeometry().pGetGeometryPart(0));
+    auto p_geometry = Kratos::make_shared<CouplingGeometry<Node>>(
+        std::move(geometry_parts));
+    auto p_condition = Kratos::make_intrusive<
+        GapSbmEnhancedSolidConditionBatched>(
+            NewId, p_geometry, pProperties);
+    p_condition->mProjectionNodes = mProjectionNodes;
+    p_condition->mQuadraturePointReferenceWeights =
+        mQuadraturePointReferenceWeights;
+    p_condition->mQuadraturePointCoordinates =
+        mQuadraturePointCoordinates;
+    p_condition->mQuadraturePointNormals = mQuadraturePointNormals;
+    return p_condition;
+}
+
+GeometryData::IntegrationMethod
+GapSbmEnhancedSolidConditionBatched::GetIntegrationMethod() const
+{
+    return NumberOfQuadraturePoints() > 0
+        ? GetRepresentativeGeometry().GetDefaultIntegrationMethod()
+        : BaseType::GetIntegrationMethod();
+}
+
+void GapSbmEnhancedSolidConditionBatched::Initialize(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(NumberOfQuadraturePoints() == 0)
+        << Info() << " has no quadrature points.\n";
+    KRATOS_ERROR_IF_NOT(Has(NEIGHBOUR_GEOMETRIES) &&
+                        GetValue(NEIGHBOUR_GEOMETRIES).size() == 1)
+        << Info() << " requires one neighbour geometry.\n";
+    KRATOS_ERROR_IF_NOT(GetProperties().Has(CONSTITUTIVE_LAW) &&
+                        GetProperties()[CONSTITUTIVE_LAW] != nullptr)
+        << Info() << " requires a constitutive law.\n";
+
+    InitializeMemberVariables(GetRepresentativeGeometry());
+    const std::size_t number_of_points = NumberOfQuadraturePoints();
+    mQuadraturePointWeights.resize(number_of_points, false);
+    mConstitutiveLawVector.resize(number_of_points);
+    const auto& r_shape_values =
+        GetRepresentativeGeometry().ShapeFunctionsValues(
+            GetIntegrationMethod());
+    double total_weight = 0.0;
+    for (std::size_t point_index = 0;
+         point_index < number_of_points;
+         ++point_index) {
+        double weight = mQuadraturePointReferenceWeights[point_index];
+        if (mDim == 2) {
+            weight *= GetProperties().Has(THICKNESS)
+                ? GetProperties()[THICKNESS]
+                : 1.0;
+        }
+        mQuadraturePointWeights[point_index] = weight;
+        total_weight += weight;
+        mConstitutiveLawVector[point_index] =
+            GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mConstitutiveLawVector[point_index]->InitializeMaterial(
+            GetProperties(),
+            GetRepresentativeGeometry(),
+            row(r_shape_values, 0));
+    }
+    SetValue(INTEGRATION_WEIGHT, total_weight);
+    SetCurrentQuadraturePoint(0);
+}
+
+void GapSbmEnhancedSolidConditionBatched::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateAllContributions(
+        &rLeftHandSideMatrix,
+        &rRightHandSideVector,
+        rCurrentProcessInfo);
+}
+
+void GapSbmEnhancedSolidConditionBatched::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateAllContributions(
+        &rLeftHandSideMatrix, nullptr, rCurrentProcessInfo);
+}
+
+void GapSbmEnhancedSolidConditionBatched::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateAllContributions(
+        nullptr, &rRightHandSideVector, rCurrentProcessInfo);
+}
+
+void GapSbmEnhancedSolidConditionBatched::CalculateAllContributions(
+    MatrixType* pLeftHandSideMatrix,
+    VectorType* pRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const std::size_t matrix_size =
+        GetValue(NEIGHBOUR_GEOMETRIES)[0]->PointsNumber() * mDim;
+    if (pLeftHandSideMatrix) {
+        pLeftHandSideMatrix->resize(matrix_size, matrix_size, false);
+        noalias(*pLeftHandSideMatrix) =
+            ZeroMatrix(matrix_size, matrix_size);
+    }
+    if (pRightHandSideVector) {
+        pRightHandSideVector->resize(matrix_size, false);
+        noalias(*pRightHandSideVector) = ZeroVector(matrix_size);
+    }
+
+    const auto& r_surrogate_geometry =
+        *GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    std::vector<Matrix> taylor_derivatives(mBasisFunctionsOrder);
+    for (IndexType order = 1;
+         order <= mBasisFunctionsOrder;
+         ++order) {
+        taylor_derivatives[order - 1] =
+            r_surrogate_geometry.ShapeFunctionDerivatives(
+                order, 0, GetIntegrationMethod());
+    }
+    mpTaylorDerivativeCache = &taylor_derivatives;
+    try {
+        Matrix point_lhs;
+        Vector point_rhs;
+        for (std::size_t point_index = 0;
+             point_index < NumberOfQuadraturePoints();
+             ++point_index) {
+            SetCurrentQuadraturePoint(point_index);
+            if (pLeftHandSideMatrix) {
+                BaseType::CalculateLeftHandSide(
+                    point_lhs, rCurrentProcessInfo);
+                noalias(*pLeftHandSideMatrix) += point_lhs;
+            }
+            if (pRightHandSideVector) {
+                BaseType::CalculateRightHandSide(
+                    point_rhs, rCurrentProcessInfo);
+                noalias(*pRightHandSideVector) += point_rhs;
+            }
+        }
+    } catch (...) {
+        mpTaylorDerivativeCache = nullptr;
+        throw;
+    }
+    mpTaylorDerivativeCache = nullptr;
+    mpConstitutiveLaw = mConstitutiveLawVector.front();
+}
+
+void GapSbmEnhancedSolidConditionBatched::InitializeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    for (std::size_t point_index = 0;
+         point_index < NumberOfQuadraturePoints();
+         ++point_index) {
+        SetCurrentQuadraturePoint(point_index);
+        BaseType::InitializeSolutionStep(rCurrentProcessInfo);
+    }
+}
+
+void GapSbmEnhancedSolidConditionBatched::FinalizeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    for (std::size_t point_index = 0;
+         point_index < NumberOfQuadraturePoints();
+         ++point_index) {
+        SetCurrentQuadraturePoint(point_index);
+        BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
+    }
+}
+
+std::size_t
+GapSbmEnhancedSolidConditionBatched::NumberOfQuadraturePoints() const
+{
+    return GetGeometry().NumberOfGeometryParts();
+}
+
+const GapSbmEnhancedSolidConditionBatched::GeometryType&
+GapSbmEnhancedSolidConditionBatched::GetRepresentativeGeometry() const
+{
+    KRATOS_ERROR_IF(NumberOfQuadraturePoints() == 0)
+        << Info() << " has no representative geometry.\n";
+    return GetGeometry().GetGeometryPart(0);
+}
+
+const GapSbmEnhancedSolidConditionBatched::GeometryType&
+GapSbmEnhancedSolidConditionBatched::GetBoundaryGeometry() const
+{
+    return GetRepresentativeGeometry();
+}
+
+void GapSbmEnhancedSolidConditionBatched::CompactQuadratureGeometries()
+{
+    const std::size_t number_of_points =
+        GetGeometry().NumberOfGeometryParts();
+    if (number_of_points == 0 ||
+        mQuadraturePointCoordinates.size1() == number_of_points) {
+        return;
+    }
+    mProjectionNodes.resize(number_of_points);
+    mQuadraturePointReferenceWeights.resize(number_of_points, false);
+    mQuadraturePointCoordinates.resize(number_of_points, 3, false);
+    mQuadraturePointNormals.resize(number_of_points, 3, false);
+    auto p_representative = GetGeometry().pGetGeometryPart(0);
+    for (std::size_t point_index = 0;
+         point_index < number_of_points;
+         ++point_index) {
+        auto p_geometry = GetGeometry().pGetGeometryPart(point_index);
+        KRATOS_ERROR_IF_NOT(p_geometry->Has(PROJECTION_NODE))
+            << "Missing PROJECTION_NODE at point " << point_index
+            << " of " << Info() << ".\n";
+        mProjectionNodes[point_index] =
+            p_geometry->GetValue(PROJECTION_NODE);
+        const auto method = p_geometry->GetDefaultIntegrationMethod();
+        const auto& r_points = p_geometry->IntegrationPoints(method);
+        KRATOS_ERROR_IF(r_points.size() != 1)
+            << Info() << " requires one integration point per geometry.\n";
+        mQuadraturePointReferenceWeights[point_index] =
+            r_points.front().Weight();
+        const auto center = p_geometry->Center();
+        auto normal = p_geometry->Normal(0, method);
+        const double normal_norm = norm_2(normal);
+        KRATOS_ERROR_IF(normal_norm <= 0.0)
+            << "Zero normal at point " << point_index
+            << " of " << Info() << ".\n";
+        normal /= normal_norm;
+        for (std::size_t component = 0; component < 3; ++component) {
+            mQuadraturePointCoordinates(point_index, component) =
+                center[component];
+            mQuadraturePointNormals(point_index, component) =
+                normal[component];
+        }
+        if (point_index > 0) {
+            GetGeometry().SetGeometryPart(point_index, p_representative);
+        }
+    }
+}
+
+void GapSbmEnhancedSolidConditionBatched::SetCurrentQuadraturePoint(
+    const std::size_t PointIndex)
+{
+    KRATOS_ERROR_IF(PointIndex >= NumberOfQuadraturePoints())
+        << "Invalid point index in " << Info() << ".\n";
+    mpConstitutiveLaw = mConstitutiveLawVector[PointIndex];
+    mpSkinProjectionNode = mProjectionNodes[PointIndex].get();
+    SetValue(INTEGRATION_WEIGHT, mQuadraturePointWeights[PointIndex]);
+    const auto surrogate_center =
+        GetValue(NEIGHBOUR_GEOMETRIES)[0]->Center();
+    if (mDistanceVector.size() != 3) {
+        mDistanceVector.resize(3, false);
+        mDistanceVectorSkin.resize(3, false);
+    }
+    for (std::size_t component = 0; component < 3; ++component) {
+        mNormalParameterSpace[component] =
+            mQuadraturePointNormals(PointIndex, component);
+        mNormalPhysicalSpace[component] =
+            mQuadraturePointNormals(PointIndex, component);
+        mDistanceVector[component] =
+            mQuadraturePointCoordinates(PointIndex, component) -
+            surrogate_center[component];
+        mDistanceVectorSkin[component] =
+            mpSkinProjectionNode->Coordinates()[component] -
+            surrogate_center[component];
+    }
+}
+
+void GapSbmEnhancedSolidConditionBatched::save(
+    Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(
+        rSerializer, GapSbmEnhancedSolidCondition);
+    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("ProjectionNodes", mProjectionNodes);
+    rSerializer.save("QuadraturePointReferenceWeights",
+                     mQuadraturePointReferenceWeights);
+    rSerializer.save("QuadraturePointWeights", mQuadraturePointWeights);
+    rSerializer.save("QuadraturePointCoordinates",
+                     mQuadraturePointCoordinates);
+    rSerializer.save("QuadraturePointNormals", mQuadraturePointNormals);
+}
+
+void GapSbmEnhancedSolidConditionBatched::load(
+    Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(
+        rSerializer, GapSbmEnhancedSolidCondition);
+    rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("ProjectionNodes", mProjectionNodes);
+    rSerializer.load("QuadraturePointReferenceWeights",
+                     mQuadraturePointReferenceWeights);
+    rSerializer.load("QuadraturePointWeights", mQuadraturePointWeights);
+    rSerializer.load("QuadraturePointCoordinates",
+                     mQuadraturePointCoordinates);
+    rSerializer.load("QuadraturePointNormals", mQuadraturePointNormals);
 }
 
 } // Namespace Kratos

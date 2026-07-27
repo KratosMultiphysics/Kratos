@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 #include "modeler/modeler.h"
 #include "geometries/nurbs_curve_geometry.h"
+#include "geometries/nurbs_surface_geometry.h"
 
 namespace Kratos {
 
@@ -36,6 +37,7 @@ public:
     using NodeType = Node;
 
     using NurbsCurveGeometryPointerType = NurbsCurveGeometry<2, PointerVector<Node>>::Pointer;
+    using NurbsSurfaceGeometryPointerType = NurbsSurfaceGeometry<3, PointerVector<Node>>::Pointer;
 
     using CoordinatesArrayType = Geometry<NodeType>::CoordinatesArrayType;
 
@@ -91,9 +93,18 @@ private:
      * 
      * @param NurbsCurveParameters 
      */
-    void CheckNurbsFeatures(
+    void CheckNurbsCurveFeatures(
         const Parameters& rNurbsCurveParameters
         );
+
+    void CheckNurbsSurfaceFeatures(
+        const Parameters& rNurbsSurfaceParameters
+        );
+
+    std::string GetConditionName(
+        const std::string& rLayerName,
+        const Parameters& rLayerConditionNames
+        ) const;
     
     /**
      * @brief Read json parameter file 

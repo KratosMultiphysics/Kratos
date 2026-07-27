@@ -691,10 +691,10 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
             // store id closest condition
             list_id_closest_condition[j] = results[nearest_node_id]->Id();
 
-            // if (skin_sub_model_part_out.GetCondition(list_id_closest_condition[j]).GetGeometry()[0].Z() > 0.25) //FIXME:
-            // {
-            //     ConditionName = "SbmLoadSolidCondition"; //FIXME:
-            // }
+            if (skin_sub_model_part_out.GetCondition(list_id_closest_condition[j]).GetGeometry()[0].Z() > 1.0) //FIXME:
+            {
+                ConditionName = "SbmLoadSolidCondition"; //FIXME:
+            }
         }
 
         if (is_inner) {
@@ -930,9 +930,9 @@ void IgaModelerSbm::CreateConditions(
         auto gp_coord = (*it)->Center();
         int best_cond_id = -1;
         if (condition_layer_name != max_layer_condition_name) 
-        {
+        { 
             bool use_projections_of_the_others_quadrature_points = false;
-            // search for the second closest condition
+            // search for the second closesmax_layer_condition_namet condition
             if (rListIdSecondClosestCondition[count_list_closest_condition] != -1)
             {
                 // if there is a second closest condition, we need to check if it is of the correct layer
@@ -994,10 +994,32 @@ void IgaModelerSbm::CreateConditions(
 
             // Add closest projection node
             NodePointerVector empty_vector;
-            PointTypePointer projection_node = cond1->GetGeometry()(0);
+            PointTypePointer projection_node; 
+
+            bool found_projection_node = false;
+            for (int i = 0; i < cond1->GetGeometry().size(); i++) {
+                projection_node = cond1->GetGeometry()(i);
+                auto projection_node_connected_layers = projection_node->GetValue(CONNECTED_LAYERS);
+                if (projection_node_connected_layers.size() == 1 && projection_node_connected_layers[0] == layer_name) {
+                    found_projection_node = true;
+                    break;
+                }
+            }
+            if (!found_projection_node) {
+                for (int i = 0; i < cond2->GetGeometry().size(); i++) {
+                    projection_node = cond2->GetGeometry()(i);
+                    auto projection_node_connected_layers = projection_node->GetValue(CONNECTED_LAYERS);
+                    if (projection_node_connected_layers.size() == 1 && projection_node_connected_layers[0] == layer_name) {
+                        found_projection_node = true;
+                        break;
+                    }
+                }            
+            }
+            KRATOS_ERROR_IF(!found_projection_node) << "No projection node found for condition " << cond1->Id() << " or " << cond2->Id() << std::endl;
+
             if (norm_2(projection_node->GetValue(NORMAL)) > 1e-13)
             {
-                empty_vector.push_back(cond1->GetGeometry()(0)); // Just it_node-plane neighbours
+                empty_vector.push_back(projection_node); // Just it_node-plane neighbours
                 (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
             }
             

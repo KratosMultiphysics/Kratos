@@ -242,6 +242,12 @@ void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
  * 
  */
 void InitializeMemberVariables();
+void InitializeMemberVariables(const GeometryType& rGeometry);
+
+virtual const GeometryType& GetBoundaryGeometry() const
+{
+    return GetGeometry();
+}
 
 /**
  * @brief 
@@ -340,6 +346,7 @@ double ComputeTaylorTerm3D(
     double mPenalty;
     double mNitschePenalty;
     IndexType mBasisFunctionsOrder;
+    const std::vector<Matrix>* mpTaylorDerivativeCache = nullptr;
 
 ///@}
 
@@ -362,5 +369,95 @@ private:
     ///@}
 
 }; // Class SupportPenaltyLaplacianCondition
+
+class KRATOS_API(IGA_APPLICATION) GapSbmEnhancedSolidConditionBatched
+    : public GapSbmEnhancedSolidCondition
+{
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(
+        GapSbmEnhancedSolidConditionBatched);
+
+    using BaseType = GapSbmEnhancedSolidCondition;
+    using GeometryType = BaseType::GeometryType;
+    using NodesArrayType = BaseType::NodesArrayType;
+    using PropertiesType = BaseType::PropertiesType;
+    using MatrixType = BaseType::MatrixType;
+    using VectorType = BaseType::VectorType;
+
+    GapSbmEnhancedSolidConditionBatched(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
+
+    GapSbmEnhancedSolidConditionBatched(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties);
+
+    ~GapSbmEnhancedSolidConditionBatched() override = default;
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override;
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override;
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    std::string Info() const override
+    {
+        return "GapSbmEnhancedSolidConditionBatched #" +
+            std::to_string(Id());
+    }
+
+protected:
+    GapSbmEnhancedSolidConditionBatched() = default;
+
+private:
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    std::vector<NodeType::Pointer> mProjectionNodes;
+    Vector mQuadraturePointReferenceWeights;
+    Vector mQuadraturePointWeights;
+    Matrix mQuadraturePointCoordinates;
+    Matrix mQuadraturePointNormals;
+
+    std::size_t NumberOfQuadraturePoints() const;
+    const GeometryType& GetRepresentativeGeometry() const;
+    void CompactQuadratureGeometries();
+    void SetCurrentQuadraturePoint(const std::size_t PointIndex);
+    const GeometryType& GetBoundaryGeometry() const override;
+    void CalculateAllContributions(
+        MatrixType* pLeftHandSideMatrix,
+        VectorType* pRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
+};
 
 }  // namespace Kratos.

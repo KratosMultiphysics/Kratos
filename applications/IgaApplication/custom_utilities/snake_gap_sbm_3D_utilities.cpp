@@ -10,6 +10,7 @@
 
 // System includes
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <functional>
 #include <iomanip>
@@ -24,9 +25,12 @@
 #include "custom_utilities/snake_gap_sbm_3D_utilities.h"
 #include "custom_processes/snake_gap_sbm_process.h"
 #include "custom_utilities/snake_gap_sbm_3D_utilities.h"
+#include "geometries/coupling_geometry.h"
 #include "geometries/pyramid_3d_5.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_6.h"
+#include "spaces/ublas_space.h"
+#include "utilities/dense_householder_qr_decomposition.h"
 #include "utilities/quadrature_points_utility.h"
 
 namespace Kratos
@@ -36,6 +40,962 @@ namespace
 {
 //FIXME: Verify if this tolerance is appropriate for all gap volume scales.
 constexpr double MinimumGapVolumeForQuadrature = 1.0e-18;
+
+array_1d<double, 3> EvaluateQuadraticBezierPoint(
+    const array_1d<double, 3>& rPoint0,
+    const array_1d<double, 3>& rControlPoint,
+    const array_1d<double, 3>& rPoint1,
+    const double T)
+{
+    const double one_minus_t = 1.0 - T;
+    array_1d<double, 3> point =
+        one_minus_t * one_minus_t * rPoint0;
+    noalias(point) += 2.0 * one_minus_t * T * rControlPoint;
+    noalias(point) += T * T * rPoint1;
+    return point;
+}
+
+array_1d<double, 3> EvaluateQuadraticBezierDerivative(
+    const array_1d<double, 3>& rPoint0,
+    const array_1d<double, 3>& rControlPoint,
+    const array_1d<double, 3>& rPoint1,
+    const double T)
+{
+    const double one_minus_t = 1.0 - T;
+    array_1d<double, 3> derivative =
+        2.0 * one_minus_t * (rControlPoint - rPoint0);
+    noalias(derivative) += 2.0 * T * (rPoint1 - rControlPoint);
+    return derivative;
+}
+
+array_1d<double, 3> EvaluateQuadraticBezierSecondDerivative(
+    const array_1d<double, 3>& rPoint0,
+    const array_1d<double, 3>& rControlPoint,
+    const array_1d<double, 3>& rPoint1)
+{
+    array_1d<double, 3> second_derivative =
+        2.0 * (rPoint1 - rControlPoint);
+    noalias(second_derivative) -= 2.0 * (rControlPoint - rPoint0);
+    return second_derivative;
+}
+
+double SquaredDistanceToQuadraticBezierPoint(
+    const array_1d<double, 3>& rPoint0,
+    const array_1d<double, 3>& rControlPoint,
+    const array_1d<double, 3>& rPoint1,
+    const array_1d<double, 3>& rTargetPoint,
+    const double T)
+{
+    const array_1d<double, 3> curve_point =
+        EvaluateQuadraticBezierPoint(rPoint0, rControlPoint, rPoint1, T);
+    return inner_prod(curve_point - rTargetPoint, curve_point - rTargetPoint);
+}
+
+double ProjectPointToQuadraticBezierParameter(
+    const array_1d<double, 3>& rPoint0,
+    const array_1d<double, 3>& rControlPoint,
+    const array_1d<double, 3>& rPoint1,
+    const array_1d<double, 3>& rTargetPoint,
+    const double InitialT)
+{
+    const auto clamp_to_curve_interval = [](const double Value) {
+        return std::min(1.0, std::max(0.0, Value));
+    };
+
+    const array_1d<double, 3> second_derivative =
+        EvaluateQuadraticBezierSecondDerivative(
+            rPoint0,
+            rControlPoint,
+            rPoint1);
+
+    auto run_newton_projection = [&](const double StartT) {
+        double t = clamp_to_curve_interval(StartT);
+        for (std::size_t iteration = 0; iteration < 12; ++iteration) {
+            const array_1d<double, 3> curve_point =
+                EvaluateQuadraticBezierPoint(
+                    rPoint0,
+                    rControlPoint,
+                    rPoint1,
+                    t);
+            const array_1d<double, 3> derivative =
+                EvaluateQuadraticBezierDerivative(
+                    rPoint0,
+                    rControlPoint,
+                    rPoint1,
+                    t);
+            const array_1d<double, 3> residual =
+                curve_point - rTargetPoint;
+
+            const double gradient =
+                inner_prod(residual, derivative);
+            const double curvature =
+                inner_prod(derivative, derivative) +
+                inner_prod(residual, second_derivative);
+
+            if (std::abs(curvature) <=
+                std::numeric_limits<double>::epsilon()) {
+                break;
+            }
+
+            const double increment = gradient / curvature;
+            t = clamp_to_curve_interval(t - increment);
+            if (std::abs(increment) <= 1.0e-12) {
+                break;
+            }
+        }
+        return t;
+    };
+
+    double best_t = 0.0;
+    double best_distance = SquaredDistanceToQuadraticBezierPoint(
+        rPoint0,
+        rControlPoint,
+        rPoint1,
+        rTargetPoint,
+        best_t);
+
+    constexpr std::array<double, 7> candidate_start_parameters = {{
+        0.0,
+        1.0 / 6.0,
+        1.0 / 3.0,
+        0.5,
+        2.0 / 3.0,
+        5.0 / 6.0,
+        1.0
+    }};
+
+    for (const double start_t : candidate_start_parameters) {
+        const double projected_t = run_newton_projection(start_t);
+        const double projected_distance =
+            SquaredDistanceToQuadraticBezierPoint(
+                rPoint0,
+                rControlPoint,
+                rPoint1,
+                rTargetPoint,
+                projected_t);
+        if (projected_distance < best_distance) {
+            best_distance = projected_distance;
+            best_t = projected_t;
+        }
+    }
+
+    const double projected_initial_t =
+        run_newton_projection(clamp_to_curve_interval(InitialT));
+    const double projected_initial_distance =
+        SquaredDistanceToQuadraticBezierPoint(
+            rPoint0,
+            rControlPoint,
+            rPoint1,
+            rTargetPoint,
+            projected_initial_t);
+    if (projected_initial_distance < best_distance) {
+        best_t = projected_initial_t;
+    }
+
+    return best_t;
+}
+
+struct ScaledMonomialExponent
+{
+    std::size_t X = 0;
+    std::size_t Y = 0;
+    std::size_t Z = 0;
+};
+
+std::vector<ScaledMonomialExponent> CreateScaledMonomialExponents(
+    const std::size_t MaximumDegree)
+{
+    std::vector<ScaledMonomialExponent> exponents;
+    exponents.reserve(
+        (MaximumDegree + 1) *
+        (MaximumDegree + 2) *
+        (MaximumDegree + 3) / 6);
+
+    for (std::size_t total_degree = 0;
+         total_degree <= MaximumDegree;
+         ++total_degree) {
+        for (std::size_t x_degree = 0;
+             x_degree <= total_degree;
+             ++x_degree) {
+            for (std::size_t y_degree = 0;
+                 y_degree <= total_degree - x_degree;
+                 ++y_degree) {
+                ScaledMonomialExponent exponent;
+                exponent.X = x_degree;
+                exponent.Y = y_degree;
+                exponent.Z = total_degree - x_degree - y_degree;
+                exponents.push_back(exponent);
+            }
+        }
+    }
+
+    return exponents;
+}
+
+std::vector<ScaledMonomialExponent>
+CreateScaledTensorProductMonomialExponents(
+    const std::size_t MaximumCoordinateDegree)
+{
+    std::vector<ScaledMonomialExponent> exponents;
+    const std::size_t number_of_coordinate_terms =
+        MaximumCoordinateDegree + 1;
+    exponents.reserve(
+        number_of_coordinate_terms *
+        number_of_coordinate_terms *
+        number_of_coordinate_terms);
+
+    for (std::size_t x_degree = 0;
+         x_degree <= MaximumCoordinateDegree;
+         ++x_degree) {
+        for (std::size_t y_degree = 0;
+             y_degree <= MaximumCoordinateDegree;
+             ++y_degree) {
+            for (std::size_t z_degree = 0;
+                 z_degree <= MaximumCoordinateDegree;
+                 ++z_degree) {
+                ScaledMonomialExponent exponent;
+                exponent.X = x_degree;
+                exponent.Y = y_degree;
+                exponent.Z = z_degree;
+                exponents.push_back(exponent);
+            }
+        }
+    }
+
+    return exponents;
+}
+
+double IntegerPower(const double Value, const std::size_t Exponent)
+{
+    double result = 1.0;
+    for (std::size_t i = 0; i < Exponent; ++i) {
+        result *= Value;
+    }
+    return result;
+}
+
+double EvaluateScaledMonomial(
+    const array_1d<double, 3>& rPoint,
+    const array_1d<double, 3>& rCenter,
+    const double CharacteristicLength,
+    const ScaledMonomialExponent& rExponent)
+{
+    const double scaled_x =
+        (rPoint[0] - rCenter[0]) / CharacteristicLength;
+    const double scaled_y =
+        (rPoint[1] - rCenter[1]) / CharacteristicLength;
+    const double scaled_z =
+        (rPoint[2] - rCenter[2]) / CharacteristicLength;
+
+    return IntegerPower(scaled_x, rExponent.X) *
+           IntegerPower(scaled_y, rExponent.Y) *
+           IntegerPower(scaled_z, rExponent.Z);
+}
+
+double ReadSinglePointQuadratureWeight(
+    const Geometry<Node>& rQuadratureGeometry)
+{
+    const auto& r_integration_points =
+        rQuadratureGeometry.IntegrationPoints(
+            rQuadratureGeometry.GetDefaultIntegrationMethod());
+    KRATOS_ERROR_IF(r_integration_points.size() != 1)
+        << "Moment fitting requires one integration point per temporary "
+        << "quadrature geometry, got " << r_integration_points.size()
+        << ".\n";
+    return r_integration_points.front().Weight();
+}
+
+Matrix BuildScaledMonomialMatrix(
+    const std::vector<array_1d<double, 3>>& rPoints,
+    const std::vector<ScaledMonomialExponent>& rExponents,
+    const array_1d<double, 3>& rCenter,
+    const double CharacteristicLength)
+{
+    Matrix matrix(rExponents.size(), rPoints.size());
+    for (std::size_t point_index = 0;
+         point_index < rPoints.size();
+         ++point_index) {
+        for (std::size_t moment_index = 0;
+             moment_index < rExponents.size();
+             ++moment_index) {
+            matrix(moment_index, point_index) = EvaluateScaledMonomial(
+                rPoints[point_index],
+                rCenter,
+                CharacteristicLength,
+                rExponents[moment_index]);
+        }
+    }
+    return matrix;
+}
+
+std::vector<std::size_t> SelectMomentMatrixColumns(
+    const Matrix& rCandidateMatrix,
+    const double RelativeTolerance,
+    std::size_t& rEstimatedRank)
+{
+    const std::size_t number_of_rows = rCandidateMatrix.size1();
+    const std::size_t number_of_columns = rCandidateMatrix.size2();
+
+    Matrix residual_matrix = rCandidateMatrix;
+    std::vector<double> residual_norm_squared(number_of_columns, 0.0);
+    std::vector<bool> is_selected(number_of_columns, false);
+    double maximum_initial_norm_squared = 0.0;
+
+    for (std::size_t column = 0; column < number_of_columns; ++column) {
+        for (std::size_t row = 0; row < number_of_rows; ++row) {
+            residual_norm_squared[column] +=
+                residual_matrix(row, column) *
+                residual_matrix(row, column);
+        }
+        maximum_initial_norm_squared = std::max(
+            maximum_initial_norm_squared,
+            residual_norm_squared[column]);
+    }
+
+    const double rank_threshold_squared =
+        RelativeTolerance * RelativeTolerance *
+        maximum_initial_norm_squared;
+
+    std::vector<std::size_t> selected_columns;
+    selected_columns.reserve(number_of_columns);
+    rEstimatedRank = 0;
+
+    for (std::size_t selection_index = 0;
+         selection_index < std::min(number_of_rows, number_of_columns);
+         ++selection_index) {
+        std::size_t pivot_column = number_of_columns;
+        double pivot_norm_squared = -1.0;
+        for (std::size_t column = 0; column < number_of_columns; ++column) {
+            if (!is_selected[column] &&
+                residual_norm_squared[column] > pivot_norm_squared) {
+                pivot_norm_squared = residual_norm_squared[column];
+                pivot_column = column;
+            }
+        }
+
+        if (pivot_column == number_of_columns ||
+            pivot_norm_squared <= rank_threshold_squared) {
+            break;
+        }
+
+        is_selected[pivot_column] = true;
+        selected_columns.push_back(pivot_column);
+        ++rEstimatedRank;
+
+        const double inverse_pivot_norm =
+            1.0 / std::sqrt(pivot_norm_squared);
+        Vector orthonormal_column(number_of_rows);
+        for (std::size_t row = 0; row < number_of_rows; ++row) {
+            orthonormal_column[row] =
+                residual_matrix(row, pivot_column) *
+                inverse_pivot_norm;
+        }
+
+        for (std::size_t column = 0; column < number_of_columns; ++column) {
+            if (is_selected[column]) {
+                continue;
+            }
+
+            double projection = 0.0;
+            for (std::size_t row = 0; row < number_of_rows; ++row) {
+                projection += orthonormal_column[row] *
+                    residual_matrix(row, column);
+            }
+            for (std::size_t row = 0; row < number_of_rows; ++row) {
+                residual_matrix(row, column) -=
+                    projection * orthonormal_column[row];
+            }
+
+            residual_norm_squared[column] = 0.0;
+            for (std::size_t row = 0; row < number_of_rows; ++row) {
+                residual_norm_squared[column] +=
+                    residual_matrix(row, column) *
+                    residual_matrix(row, column);
+            }
+        }
+    }
+
+    for (std::size_t column = 0; column < number_of_columns; ++column) {
+        if (!is_selected[column]) {
+            selected_columns.push_back(column);
+        }
+    }
+
+    return selected_columns;
+}
+
+bool SolveMinimumNormMomentSystemWithQr(
+    const Matrix& rMomentMatrix,
+    const Vector& rMoments,
+    const double RelativeRankTolerance,
+    Vector& rWeights,
+    std::size_t& rEstimatedRank)
+{
+    using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
+
+    const std::size_t number_of_moments = rMomentMatrix.size1();
+    const std::size_t number_of_points = rMomentMatrix.size2();
+    KRATOS_ERROR_IF(number_of_points < number_of_moments)
+        << "The moment system needs at least as many points as moments.\n";
+
+    Matrix transposed_matrix(number_of_points, number_of_moments);
+    for (std::size_t point = 0; point < number_of_points; ++point) {
+        for (std::size_t moment = 0; moment < number_of_moments; ++moment) {
+            transposed_matrix(point, moment) =
+                rMomentMatrix(moment, point);
+        }
+    }
+
+    DenseHouseholderQRDecomposition<DenseSpaceType> qr_decomposition;
+    Matrix matrix_q;
+    Matrix matrix_r;
+    qr_decomposition.Compute(
+        transposed_matrix,
+        matrix_q,
+        matrix_r);
+
+    double maximum_diagonal = 0.0;
+    for (std::size_t i = 0; i < number_of_moments; ++i) {
+        maximum_diagonal = std::max(
+            maximum_diagonal,
+            std::abs(matrix_r(i, i)));
+    }
+
+    const double rank_threshold =
+        RelativeRankTolerance * maximum_diagonal;
+    rEstimatedRank = 0;
+    for (std::size_t i = 0; i < number_of_moments; ++i) {
+        if (std::abs(matrix_r(i, i)) > rank_threshold) {
+            ++rEstimatedRank;
+        }
+    }
+    if (rEstimatedRank != number_of_moments) {
+        return false;
+    }
+
+    Vector auxiliary(number_of_moments);
+    for (std::size_t row = 0; row < number_of_moments; ++row) {
+        double value = rMoments[row];
+        for (std::size_t column = 0; column < row; ++column) {
+            value -= matrix_r(column, row) * auxiliary[column];
+        }
+        auxiliary[row] = value / matrix_r(row, row);
+    }
+
+    rWeights.resize(number_of_points, false);
+    for (std::size_t point = 0; point < number_of_points; ++point) {
+        rWeights[point] = 0.0;
+        for (std::size_t moment = 0; moment < number_of_moments; ++moment) {
+            rWeights[point] += matrix_q(point, moment) * auxiliary[moment];
+        }
+    }
+
+    return true;
+}
+
+double CalculateRelativeMomentResidual(
+    const Matrix& rMomentMatrix,
+    const Vector& rWeights,
+    const Vector& rMoments)
+{
+    double residual_norm_squared = 0.0;
+    double moment_norm_squared = 0.0;
+    for (std::size_t moment = 0;
+         moment < rMomentMatrix.size1();
+         ++moment) {
+        double fitted_moment = 0.0;
+        for (std::size_t point = 0;
+             point < rMomentMatrix.size2();
+             ++point) {
+            fitted_moment +=
+                rMomentMatrix(moment, point) * rWeights[point];
+        }
+        const double difference = fitted_moment - rMoments[moment];
+        residual_norm_squared += difference * difference;
+        moment_norm_squared += rMoments[moment] * rMoments[moment];
+    }
+
+    return std::sqrt(residual_norm_squared) /
+        std::max(std::sqrt(moment_norm_squared),
+                 std::numeric_limits<double>::epsilon());
+}
+
+bool SolveNonNegativeLeastSquares(
+    const Matrix& rInputMatrix,
+    const Vector& rInputRhs,
+    const double RelativeTolerance,
+    Vector& rWeights,
+    double& rRelativeResidual)
+{
+    using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
+
+    const std::size_t number_of_rows = rInputMatrix.size1();
+    const std::size_t number_of_columns = rInputMatrix.size2();
+    Matrix matrix = rInputMatrix;
+    Vector rhs = rInputRhs;
+
+    for (std::size_t row_index = 0;
+         row_index < number_of_rows;
+         ++row_index) {
+        double row_norm_squared = 0.0;
+        for (std::size_t column_index = 0;
+             column_index < number_of_columns;
+             ++column_index) {
+            row_norm_squared +=
+                matrix(row_index, column_index) *
+                matrix(row_index, column_index);
+        }
+        const double row_scale = 1.0 /
+            std::max(
+                std::sqrt(row_norm_squared),
+                std::numeric_limits<double>::epsilon());
+        for (std::size_t column_index = 0;
+             column_index < number_of_columns;
+             ++column_index) {
+            matrix(row_index, column_index) *= row_scale;
+        }
+        rhs[row_index] *= row_scale;
+    }
+
+    rWeights.resize(number_of_columns, false);
+    noalias(rWeights) = ZeroVector(number_of_columns);
+    std::vector<bool> passive_set(number_of_columns, false);
+    Vector residual = rhs;
+    Vector dual(number_of_columns);
+    const double rhs_norm = std::max(
+        norm_2(rhs),
+        std::numeric_limits<double>::epsilon());
+    const double dual_tolerance = RelativeTolerance * rhs_norm;
+    const std::size_t maximum_iterations =
+        10 * std::max<std::size_t>(number_of_columns, 1);
+
+    for (std::size_t outer_iteration = 0;
+         outer_iteration < maximum_iterations;
+         ++outer_iteration) {
+        noalias(residual) = rhs - prod(matrix, rWeights);
+        noalias(dual) = prod(trans(matrix), residual);
+
+        std::size_t entering_index = number_of_columns;
+        double maximum_dual = dual_tolerance;
+        for (std::size_t column_index = 0;
+             column_index < number_of_columns;
+             ++column_index) {
+            if (!passive_set[column_index] &&
+                dual[column_index] > maximum_dual) {
+                maximum_dual = dual[column_index];
+                entering_index = column_index;
+            }
+        }
+        if (entering_index == number_of_columns) {
+            break;
+        }
+        passive_set[entering_index] = true;
+
+        for (std::size_t inner_iteration = 0;
+             inner_iteration < maximum_iterations;
+             ++inner_iteration) {
+            std::vector<std::size_t> passive_indices;
+            for (std::size_t column_index = 0;
+                 column_index < number_of_columns;
+                 ++column_index) {
+                if (passive_set[column_index]) {
+                    passive_indices.push_back(column_index);
+                }
+            }
+
+            if (passive_indices.size() > number_of_rows) {
+                return false;
+            }
+
+            Matrix passive_matrix(
+                number_of_rows,
+                passive_indices.size());
+            for (std::size_t passive_index = 0;
+                 passive_index < passive_indices.size();
+                 ++passive_index) {
+                for (std::size_t row_index = 0;
+                     row_index < number_of_rows;
+                     ++row_index) {
+                    passive_matrix(row_index, passive_index) =
+                        matrix(
+                            row_index,
+                            passive_indices[passive_index]);
+                }
+            }
+
+            DenseHouseholderQRDecomposition<DenseSpaceType>
+                qr_decomposition;
+            qr_decomposition.Compute(passive_matrix);
+            Vector passive_solution(passive_indices.size());
+            qr_decomposition.Solve(rhs, passive_solution);
+
+            bool all_positive = true;
+            for (std::size_t i = 0;
+                 i < passive_solution.size();
+                 ++i) {
+                if (passive_solution[i] <= 0.0) {
+                    all_positive = false;
+                    break;
+                }
+            }
+            if (all_positive) {
+                noalias(rWeights) = ZeroVector(number_of_columns);
+                for (std::size_t i = 0;
+                     i < passive_indices.size();
+                     ++i) {
+                    rWeights[passive_indices[i]] =
+                        passive_solution[i];
+                }
+                break;
+            }
+
+            double step = 1.0;
+            for (std::size_t i = 0;
+                 i < passive_indices.size();
+                 ++i) {
+                const std::size_t column_index = passive_indices[i];
+                if (passive_solution[i] <= 0.0) {
+                    const double denominator =
+                        rWeights[column_index] - passive_solution[i];
+                    if (denominator > 0.0) {
+                        step = std::min(
+                            step,
+                            rWeights[column_index] / denominator);
+                    }
+                }
+            }
+
+            for (std::size_t i = 0;
+                 i < passive_indices.size();
+                 ++i) {
+                const std::size_t column_index = passive_indices[i];
+                rWeights[column_index] += step *
+                    (passive_solution[i] - rWeights[column_index]);
+                if (rWeights[column_index] <= dual_tolerance) {
+                    rWeights[column_index] = 0.0;
+                    passive_set[column_index] = false;
+                }
+            }
+        }
+    }
+
+    for (std::size_t point_index = 0;
+         point_index < number_of_columns;
+         ++point_index) {
+        KRATOS_ERROR_IF(rWeights[point_index] < 0.0)
+            << "Negative weight " << rWeights[point_index]
+            << " produced by interface moment fitting at candidate point "
+            << point_index << ". Negative weights are not corrected.\n";
+    }
+
+    const Vector original_residual =
+        prod(rInputMatrix, rWeights) - rInputRhs;
+    rRelativeResidual = norm_2(original_residual) /
+        std::max(
+            norm_2(rInputRhs),
+            std::numeric_limits<double>::epsilon());
+    return std::isfinite(rRelativeResidual) &&
+        rRelativeResidual <= RelativeTolerance;
+}
+
+struct InterfaceMomentFittingResult
+{
+    std::vector<Geometry<Node>::Pointer> QuadraturePointGeometries;
+    std::size_t NumberOfCandidatePoints = 0;
+    std::size_t NumberOfReferencePoints = 0;
+    std::size_t NumberOfSelectedPoints = 0;
+    std::size_t NumberOfMoments = 0;
+    std::size_t EstimatedRank = 0;
+    double RelativeResidual = std::numeric_limits<double>::infinity();
+    double MinimumWeight = 0.0;
+    double MaximumWeight = 0.0;
+    bool UsedFallback = false;
+};
+
+array_1d<double, 3> GetQuadratureGeometryPhysicalPoint(
+    const Geometry<Node>& rQuadratureGeometry)
+{
+    const auto integration_method =
+        rQuadratureGeometry.GetDefaultIntegrationMethod();
+    const auto& r_integration_points =
+        rQuadratureGeometry.IntegrationPoints(integration_method);
+    KRATOS_ERROR_IF(r_integration_points.size() != 1)
+        << "Interface moment fitting requires one integration point per "
+        << "quadrature geometry, got " << r_integration_points.size()
+        << ".\n";
+
+    Geometry<Node>::CoordinatesArrayType local_coordinates =
+        ZeroVector(3);
+    local_coordinates[0] = r_integration_points.front()[0];
+    local_coordinates[1] = r_integration_points.front()[1];
+    local_coordinates[2] = r_integration_points.front()[2];
+    array_1d<double, 3> physical_point = ZeroVector(3);
+    rQuadratureGeometry.GlobalCoordinates(
+        physical_point,
+        local_coordinates);
+    return physical_point;
+}
+
+InterfaceMomentFittingResult CreateMomentFittedInterfaceQuadrature(
+    const std::vector<Geometry<Node>::Pointer>& rCandidateGeometries,
+    const std::vector<Geometry<Node>::Pointer>& rReferenceGeometries,
+    const std::size_t PolynomialDegree,
+    const double RankTolerance,
+    const double ResidualTolerance)
+{
+    InterfaceMomentFittingResult result;
+    result.NumberOfCandidatePoints = rCandidateGeometries.size();
+    result.NumberOfReferencePoints = rReferenceGeometries.size();
+    KRATOS_ERROR_IF(rCandidateGeometries.empty())
+        << "Cannot moment-fit an interface group without candidate points.\n";
+    KRATOS_ERROR_IF(rReferenceGeometries.empty())
+        << "Cannot moment-fit an interface group without reference points.\n";
+
+    const std::size_t number_of_points = rCandidateGeometries.size();
+    const std::size_t number_of_terms_per_direction =
+        PolynomialDegree + 1;
+    const std::size_t number_of_moments =
+        number_of_terms_per_direction * number_of_terms_per_direction;
+    KRATOS_ERROR_IF(number_of_points != number_of_moments)
+        << "Local interface moment fitting requires exactly "
+        << number_of_moments << " candidate points for polynomial degree "
+        << PolynomialDegree << ", got " << number_of_points << ".\n";
+
+    Matrix moment_matrix(number_of_moments, number_of_points);
+    Vector moments(number_of_moments);
+    noalias(moments) = ZeroVector(number_of_moments);
+
+    for (std::size_t point_index = 0;
+         point_index < number_of_points;
+         ++point_index) {
+        KRATOS_ERROR_IF_NOT(rCandidateGeometries[point_index])
+            << "Null candidate interface quadrature geometry at point "
+            << point_index << ".\n";
+        const auto& r_integration_points =
+            rCandidateGeometries[point_index]->IntegrationPoints(
+                rCandidateGeometries[point_index]
+                    ->GetDefaultIntegrationMethod());
+        KRATOS_ERROR_IF(r_integration_points.size() != 1)
+            << "A candidate interface quadrature geometry must contain "
+            << "exactly one integration point.\n";
+        const double xi = r_integration_points.front()[0];
+        const double eta = r_integration_points.front()[1];
+        std::size_t moment_index = 0;
+        for (std::size_t xi_degree = 0;
+             xi_degree <= PolynomialDegree;
+             ++xi_degree) {
+            for (std::size_t eta_degree = 0;
+                 eta_degree <= PolynomialDegree;
+                 ++eta_degree) {
+                moment_matrix(moment_index++, point_index) =
+                    IntegerPower(xi, xi_degree) *
+                    IntegerPower(eta, eta_degree);
+            }
+        }
+    }
+
+    for (std::size_t point_index = 0;
+         point_index < rReferenceGeometries.size();
+         ++point_index) {
+        const auto& r_geometry = *rReferenceGeometries[point_index];
+        const double weight = ReadSinglePointQuadratureWeight(r_geometry);
+        KRATOS_ERROR_IF(!std::isfinite(weight) || weight <= 0.0)
+            << "Invalid reference interface quadrature weight " << weight
+            << " at point " << point_index << ".\n";
+        const auto& r_integration_points = r_geometry.IntegrationPoints(
+            r_geometry.GetDefaultIntegrationMethod());
+        KRATOS_ERROR_IF(r_integration_points.size() != 1)
+            << "A reference interface quadrature geometry must contain "
+            << "exactly one integration point.\n";
+        const double xi = r_integration_points.front()[0];
+        const double eta = r_integration_points.front()[1];
+        std::size_t moment_index = 0;
+        for (std::size_t xi_degree = 0;
+             xi_degree <= PolynomialDegree;
+             ++xi_degree) {
+            for (std::size_t eta_degree = 0;
+                 eta_degree <= PolynomialDegree;
+                 ++eta_degree) {
+                moments[moment_index++] += weight *
+                    IntegerPower(xi, xi_degree) *
+                    IntegerPower(eta, eta_degree);
+            }
+        }
+    }
+
+    Vector fitted_weights;
+    std::size_t estimated_rank = 0;
+    const bool solved = SolveMinimumNormMomentSystemWithQr(
+        moment_matrix,
+        moments,
+        RankTolerance,
+        fitted_weights,
+        estimated_rank);
+    result.EstimatedRank = estimated_rank;
+    result.NumberOfMoments = number_of_moments;
+    KRATOS_ERROR_IF_NOT(solved)
+        << "Local interface moment matrix is rank deficient: rank "
+        << estimated_rank << " of " << number_of_moments << ".\n";
+    result.RelativeResidual = CalculateRelativeMomentResidual(
+        moment_matrix,
+        fitted_weights,
+        moments);
+    KRATOS_ERROR_IF(!std::isfinite(result.RelativeResidual) ||
+                    result.RelativeResidual > ResidualTolerance)
+        << "Local interface moment-fitting residual "
+        << result.RelativeResidual << " exceeds tolerance "
+        << ResidualTolerance << ".\n";
+
+    result.MinimumWeight = std::numeric_limits<double>::max();
+    result.MaximumWeight = 0.0;
+    result.QuadraturePointGeometries.reserve(number_of_points);
+    for (std::size_t point_index = 0;
+         point_index < number_of_points;
+         ++point_index) {
+        const double fitted_weight = fitted_weights[point_index];
+        KRATOS_ERROR_IF(fitted_weight < 0.0)
+            << "Negative fitted interface weight " << fitted_weight
+            << " at candidate point " << point_index
+            << ". Negative weights are not corrected.\n";
+        KRATOS_ERROR_IF(fitted_weight == 0.0)
+            << "Zero fitted interface weight at candidate point "
+            << point_index << ".\n";
+        rCandidateGeometries[point_index]->SetValue(
+            INTEGRATION_WEIGHT,
+            fitted_weight);
+        result.QuadraturePointGeometries.push_back(
+            rCandidateGeometries[point_index]);
+        result.MinimumWeight = std::min(
+            result.MinimumWeight,
+            fitted_weight);
+        result.MaximumWeight = std::max(
+            result.MaximumWeight,
+            fitted_weight);
+    }
+    result.NumberOfSelectedPoints =
+        result.QuadraturePointGeometries.size();
+    return result;
+}
+
+double CalculateInterfaceGeometricValidationResidual(
+    const std::vector<Geometry<Node>::Pointer>& rCandidateGeometries,
+    const std::vector<Geometry<Node>::Pointer>& rReferenceGeometries,
+    const std::size_t PolynomialDegree)
+{
+    KRATOS_ERROR_IF(rCandidateGeometries.empty() ||
+                    rReferenceGeometries.empty())
+        << "Interface quadrature validation requires non-empty candidate "
+        << "and reference rules.\n";
+
+    array_1d<double, 3> center = ZeroVector(3);
+    double total_weight = 0.0;
+    for (const auto& p_geometry : rReferenceGeometries) {
+        KRATOS_ERROR_IF_NOT(p_geometry)
+            << "Null reference geometry in interface validation.\n";
+        const double weight =
+            ReadSinglePointQuadratureWeight(*p_geometry);
+        noalias(center) += weight *
+            GetQuadratureGeometryPhysicalPoint(*p_geometry);
+        total_weight += weight;
+    }
+    KRATOS_ERROR_IF(total_weight <= 0.0)
+        << "Non-positive reference area in interface validation.\n";
+    center /= total_weight;
+
+    double characteristic_length = std::sqrt(total_weight);
+    for (const auto& p_geometry : rReferenceGeometries) {
+        characteristic_length = std::max(
+            characteristic_length,
+            MathUtils<double>::Norm(
+                GetQuadratureGeometryPhysicalPoint(*p_geometry) - center));
+    }
+    KRATOS_ERROR_IF(characteristic_length <= 0.0)
+        << "Zero characteristic length in interface validation.\n";
+
+    const auto exponents =
+        CreateScaledTensorProductMonomialExponents(PolynomialDegree);
+    constexpr std::size_t number_of_channels = 4;
+    const std::size_t number_of_features =
+        number_of_channels * exponents.size();
+    Matrix candidate_matrix(
+        number_of_features,
+        rCandidateGeometries.size());
+    Vector candidate_weights(rCandidateGeometries.size());
+    Vector reference_moments(number_of_features);
+    noalias(reference_moments) = ZeroVector(number_of_features);
+
+    for (std::size_t point_index = 0;
+         point_index < rCandidateGeometries.size();
+         ++point_index) {
+        const auto& r_geometry = *rCandidateGeometries[point_index];
+        const auto point = GetQuadratureGeometryPhysicalPoint(r_geometry);
+        auto normal = r_geometry.Normal(
+            0,
+            r_geometry.GetDefaultIntegrationMethod());
+        const double normal_norm = MathUtils<double>::Norm(normal);
+        KRATOS_ERROR_IF(normal_norm <= 0.0)
+            << "Zero candidate normal in interface validation.\n";
+        normal /= normal_norm;
+        candidate_weights[point_index] =
+            r_geometry.Has(INTEGRATION_WEIGHT)
+                ? r_geometry.GetValue(INTEGRATION_WEIGHT)
+                : ReadSinglePointQuadratureWeight(r_geometry);
+        for (std::size_t monomial_index = 0;
+             monomial_index < exponents.size();
+             ++monomial_index) {
+            const double monomial = EvaluateScaledMonomial(
+                point,
+                center,
+                characteristic_length,
+                exponents[monomial_index]);
+            candidate_matrix(monomial_index, point_index) = monomial;
+            for (std::size_t component = 0;
+                 component < 3;
+                 ++component) {
+                candidate_matrix(
+                    (component + 1) * exponents.size() +
+                        monomial_index,
+                    point_index) = monomial * normal[component];
+            }
+        }
+    }
+
+    for (const auto& p_geometry : rReferenceGeometries) {
+        const auto& r_geometry = *p_geometry;
+        const double weight = ReadSinglePointQuadratureWeight(r_geometry);
+        const auto point = GetQuadratureGeometryPhysicalPoint(r_geometry);
+        auto normal = r_geometry.Normal(
+            0,
+            r_geometry.GetDefaultIntegrationMethod());
+        const double normal_norm = MathUtils<double>::Norm(normal);
+        KRATOS_ERROR_IF(normal_norm <= 0.0)
+            << "Zero reference normal in interface validation.\n";
+        normal /= normal_norm;
+        for (std::size_t monomial_index = 0;
+             monomial_index < exponents.size();
+             ++monomial_index) {
+            const double monomial = EvaluateScaledMonomial(
+                point,
+                center,
+                characteristic_length,
+                exponents[monomial_index]);
+            reference_moments[monomial_index] += weight * monomial;
+            for (std::size_t component = 0;
+                 component < 3;
+                 ++component) {
+                reference_moments[
+                    (component + 1) * exponents.size() +
+                        monomial_index] +=
+                    weight * monomial * normal[component];
+            }
+        }
+    }
+
+    return CalculateRelativeMomentResidual(
+        candidate_matrix,
+        candidate_weights,
+        reference_moments);
+}
 
 std::size_t CappedGaussOrder(const std::size_t IntegrationOrder)
 {
@@ -272,9 +1232,9 @@ void SnakeGapSbm3DUtilities::SetGapApproximationOrder(
 {
     mGapApproximationOrder = GapApproximationOrder == 0 ? 1 : GapApproximationOrder;
 
-    KRATOS_ERROR_IF(mGapApproximationOrder > 2)
+    KRATOS_ERROR_IF(mGapApproximationOrder > 3)
         << "[SnakeGapSbm3DUtilities::SetGapApproximationOrder] "
-        << "Only gap_approximation_order <= 2 is currently implemented "
+        << "Only gap_approximation_order <= 3 is currently implemented "
         << "for 3D curved gap geometries. Requested order: "
         << mGapApproximationOrder << ".\n";
 }
@@ -283,6 +1243,50 @@ void SnakeGapSbm3DUtilities::SetStoreGapDebugGeometries(
     const bool StoreGapDebugGeometries)
 {
     mStoreGapDebugGeometries = StoreGapDebugGeometries;
+}
+
+void SnakeGapSbm3DUtilities::SetInitialNurbsSkinModelPart(
+    const ModelPart& rInitialSkinModelPart)
+{
+    mInitialNurbsSkinSurfaces.clear();
+    mInitialNurbsSkinSurfaces.reserve(rInitialSkinModelPart.NumberOfGeometries());
+
+    for (const auto& r_geometry : rInitialSkinModelPart.Geometries()) {
+        auto p_surface = std::dynamic_pointer_cast<NurbsSurfaceType>(
+            rInitialSkinModelPart.pGetGeometry(r_geometry.Id()));
+        if (p_surface) {
+            mInitialNurbsSkinSurfaces.push_back(std::move(p_surface));
+        }
+    }
+
+    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 0 && !mInitialNurbsSkinSurfaces.empty())
+        << "Using " << mInitialNurbsSkinSurfaces.size()
+        << " initial NURBS skin surfaces for exact closest-point projections.\n";
+}
+
+void SnakeGapSbm3DUtilities::SetMaximumNurbsProjectionDistance(
+    const double MaximumProjectionDistance)
+{
+    mMaximumNurbsProjectionDistance = MaximumProjectionDistance;
+}
+
+bool SnakeGapSbm3DUtilities::TryProjectPointToInitialNurbsSkin(
+    const array_1d<double, 3>& rPoint,
+    array_1d<double, 3>& rProjectionPoint,
+    double& rProjectionDistance,
+    array_1d<double, 3>* pProjectionNormal) const
+{
+    if (mInitialNurbsSkinSurfaces.empty()) {
+        return false;
+    }
+
+    return ProjectPointToClosestNurbsSurface(
+        rPoint,
+        rProjectionPoint,
+        rProjectionDistance,
+        true,
+        std::numeric_limits<double>::max(),
+        pProjectionNormal);
 }
 
 void SnakeGapSbm3DUtilities::SetUsePyramidQuadratureForType1(
@@ -1318,6 +2322,53 @@ SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan(
     const KnotSpanSkinBinsCSR& rSkinBins,
     const KnotSpanGridInfo& rGridInfo) const
 {
+    if (!mInitialNurbsSkinSurfaces.empty()) {
+        array_1d<double, 3> nurbs_projection = ZeroVector(3);
+        double nurbs_projection_distance = std::numeric_limits<double>::max();
+        if (ProjectPointToClosestNurbsSurface(
+                rReferencePoint,
+                nurbs_projection,
+                nurbs_projection_distance,
+                false,
+                MaximumSkinProjectionDistance(rGridInfo))) {
+            array_1d<double, 3> span_min = ZeroVector(3);
+            span_min[0] = rGridInfo.MinU + rSpan.I * rGridInfo.SpanSizeX;
+            span_min[1] = rGridInfo.MinV + rSpan.J * rGridInfo.SpanSizeY;
+            span_min[2] = rGridInfo.MinW + rSpan.K * rGridInfo.SpanSizeZ;
+            array_1d<double, 3> span_max = span_min;
+            span_max[0] += rGridInfo.SpanSizeX;
+            span_max[1] += rGridInfo.SpanSizeY;
+            span_max[2] += rGridInfo.SpanSizeZ;
+            const double tolerance = 1.0e-10 * std::max({
+                rGridInfo.SpanSizeX,
+                rGridInfo.SpanSizeY,
+                rGridInfo.SpanSizeZ});
+            // A point on a shared span face must not be assigned independently
+            // to both neighbouring spans: that produces coincident projection
+            // nodes and collapsed type-3 volumes. In that case retain the
+            // condition/box-intersection fallback below, which preserves the
+            // topological ownership of the projection node.
+            const bool projection_is_in_span =
+                nurbs_projection[0] > span_min[0] + tolerance &&
+                nurbs_projection[0] < span_max[0] - tolerance &&
+                nurbs_projection[1] > span_min[1] + tolerance &&
+                nurbs_projection[1] < span_max[1] - tolerance &&
+                nurbs_projection[2] > span_min[2] + tolerance &&
+                nurbs_projection[2] < span_max[2] - tolerance;
+            if (projection_is_in_span) {
+                IndexType new_node_id = GetNextAuxiliarySkinNodeId(rSkinSubModelPart);
+                while (rSkinSubModelPart.GetRootModelPart().HasNode(new_node_id)) {
+                    ++new_node_id;
+                }
+                return rSkinSubModelPart.CreateNewNode(
+                    new_node_id,
+                    nurbs_projection[0],
+                    nurbs_projection[1],
+                    nurbs_projection[2]);
+            }
+        }
+    }
+
     const std::size_t nnz_index = FindSpanNnzIndex(rSkinBins, rSpan);
 
     if (nnz_index != static_cast<std::size_t>(-1)) {
@@ -2099,6 +3150,7 @@ ModelPart& SnakeGapSbm3DUtilities::GetOrCreateSubModelPart(
 void SnakeGapSbm3DUtilities::ClearLateralFaceRegistry()
 {
     mLateralFaceRegistry.clear();
+    mSkinEdgeAverageNormals.clear();
 }
 
 const SnakeGapSbm3DUtilities::LateralFaceRegistry&
@@ -2962,9 +4014,21 @@ SnakeGapSbm3DUtilities::CreateType3CollapsedCornerVolumeFromTopControlNodes(
     KRATOS_ERROR_IF_NOT(pSurrogateNode)
         << "[CreateType3CollapsedCornerVolumeFromTopControlNodes] "
         << "pSurrogateNode is null.\n";
-    KRATOS_ERROR_IF(rTopControlNodes.size() != 9)
+    KRATOS_ERROR_IF(
+        mGapApproximationOrder != 2 && mGapApproximationOrder != 3)
         << "[CreateType3CollapsedCornerVolumeFromTopControlNodes] "
-        << "Quadratic type3 top face requires nine control nodes. Got "
+        << "Curved type3 top faces require approximation order 2 or 3. Got "
+        << mGapApproximationOrder << ".\n";
+    const std::size_t number_of_control_points_per_direction =
+        mGapApproximationOrder + 1;
+    const std::size_t expected_number_of_top_control_nodes =
+        number_of_control_points_per_direction *
+        number_of_control_points_per_direction;
+    KRATOS_ERROR_IF(
+        rTopControlNodes.size() != expected_number_of_top_control_nodes)
+        << "[CreateType3CollapsedCornerVolumeFromTopControlNodes] Order "
+        << mGapApproximationOrder << " type3 top face requires "
+        << expected_number_of_top_control_nodes << " control nodes. Got "
         << rTopControlNodes.size() << ".\n";
 
     Type3CollapsedCornerData result;
@@ -2988,20 +4052,20 @@ SnakeGapSbm3DUtilities::CreateType3CollapsedCornerVolumeFromTopControlNodes(
     if (CreateTopSurface) {
         result.pTopSurface = Kratos::make_shared<NurbsSurfaceType>(
             surface_control_points,
-            std::size_t(2),
-            std::size_t(2),
-            CreateOpenUnitKnotVector(2),
-            CreateOpenUnitKnotVector(2));
+            mGapApproximationOrder,
+            mGapApproximationOrder,
+            CreateOpenUnitKnotVector(mGapApproximationOrder),
+            CreateOpenUnitKnotVector(mGapApproximationOrder));
     }
 
     result.pVolume = Kratos::make_shared<NurbsVolumeType>(
         volume_control_points,
         std::size_t(1),
-        std::size_t(2),
-        std::size_t(2),
+        mGapApproximationOrder,
+        mGapApproximationOrder,
         CreateOpenUnitKnotVectorDegree1(),
-        CreateOpenUnitKnotVector(2),
-        CreateOpenUnitKnotVector(2));
+        CreateOpenUnitKnotVector(mGapApproximationOrder),
+        CreateOpenUnitKnotVector(mGapApproximationOrder));
 
     return result;
 }
@@ -3195,7 +4259,7 @@ bool SnakeGapSbm3DUtilities::AreFaceAdjacentSpans(
 double SnakeGapSbm3DUtilities::MaximumSkinProjectionDistance(
     const KnotSpanGridInfo& rGridInfo) const
 {
-    return 3.5 * std::max({
+    return 3.0 * std::max({
         rGridInfo.SpanSizeX,
         rGridInfo.SpanSizeY,
         rGridInfo.SpanSizeZ});
@@ -3208,6 +4272,26 @@ bool SnakeGapSbm3DUtilities::ProjectPointToSkinBoundaryAlongDirection(
     const double MaximumDistance,
     array_1d<double, 3>& rProjectionPoint) const
 {
+    if (!mInitialNurbsSkinSurfaces.empty()) {
+        if (ProjectPointToInitialNurbsSkinAlongDirection(
+                rPoint,
+                rDirection,
+                MaximumDistance,
+                rProjectionPoint)) {
+            return true;
+        }
+
+        double projection_distance = std::numeric_limits<double>::max();
+        if (ProjectPointToClosestNurbsSurface(
+                rPoint,
+                rProjectionPoint,
+                projection_distance,
+                false,
+                MaximumDistance)) {
+            return projection_distance <= MaximumDistance;
+        }
+    }
+
     const double direction_norm = norm_2(rDirection);
     KRATOS_ERROR_IF(direction_norm <= std::numeric_limits<double>::epsilon())
         << "[SnakeGapSbm3DUtilities::ProjectPointToSkinBoundaryAlongDirection] "
@@ -3356,6 +4440,11 @@ bool SnakeGapSbm3DUtilities::ProjectPointToClosestSkinBoundary(
     array_1d<double, 3>& rProjectionPoint,
     double& rProjectionDistance) const
 {
+    if (!mInitialNurbsSkinSurfaces.empty()) {
+        return ProjectPointToClosestNurbsSurface(
+            rPoint, rProjectionPoint, rProjectionDistance);
+    }
+
     bool found_projection = false;
     rProjectionDistance = std::numeric_limits<double>::max();
     rProjectionPoint = ZeroVector(3);
@@ -3410,6 +4499,534 @@ bool SnakeGapSbm3DUtilities::ProjectPointToClosestSkinBoundary(
     }
 
     return found_projection;
+}
+
+bool SnakeGapSbm3DUtilities::ProjectPointToClosestNurbsSurface(
+    const array_1d<double, 3>& rPoint,
+    array_1d<double, 3>& rProjectionPoint,
+    double& rProjectionDistance,
+    const bool IncludeKnotSpanBoundaryLines,
+    const double MaximumProjectionDistance,
+    array_1d<double, 3>* pProjectionNormal) const
+{
+    bool found_projection = false;
+    rProjectionDistance = std::numeric_limits<double>::max();
+    rProjectionPoint = ZeroVector(3);
+    if (pProjectionNormal != nullptr) {
+        *pProjectionNormal = ZeroVector(3);
+    }
+
+    const double active_maximum_projection_distance = std::min(
+        MaximumProjectionDistance,
+        mMaximumNurbsProjectionDistance);
+    const bool has_projection_cutoff =
+        active_maximum_projection_distance <
+        0.25 * std::numeric_limits<double>::max();
+    const double cutoff_tolerance =
+        has_projection_cutoff
+            ? 1.0e-12 * std::max(1.0, active_maximum_projection_distance)
+            : 0.0;
+
+    for (const auto& p_surface : mInitialNurbsSkinSurfaces) {
+        const double best_distance_before_surface = rProjectionDistance;
+        const auto u_spans = p_surface->KnotSpanIntervalsU();
+        const auto v_spans = p_surface->KnotSpanIntervalsV();
+        const auto domain_u = p_surface->DomainIntervalU();
+        const auto domain_v = p_surface->DomainIntervalV();
+        constexpr int parameter_minimization_iterations = 24;
+        constexpr int span_rectangle_minimization_sweeps = 4;
+        constexpr double surface_projection_tolerance = 1.0e-12;
+        constexpr double parameter_tolerance = 1.0e-10;
+
+        auto consider_local_point = [&](const double U, const double V) {
+            CoordinatesArrayType local_coordinates = ZeroVector(3);
+            local_coordinates[0] = U;
+            local_coordinates[1] = V;
+            CoordinatesArrayType projected_point;
+            p_surface->GlobalCoordinates(projected_point, local_coordinates);
+            const double distance = norm_2(projected_point - rPoint);
+            if (distance < rProjectionDistance) {
+                rProjectionDistance = distance;
+                rProjectionPoint = projected_point;
+                if (pProjectionNormal != nullptr) {
+                    auto normal = p_surface->Normal(local_coordinates);
+                    const double normal_norm = norm_2(normal);
+                    if (normal_norm >
+                        std::numeric_limits<double>::epsilon()) {
+                        *pProjectionNormal = normal / normal_norm;
+                    }
+                }
+                found_projection = true;
+            }
+            return distance * distance;
+        };
+
+        auto minimize_parameter_interval = [&](const bool VariesU,
+                                               const double FixedParameter,
+                                               const double MinParameter,
+                                               const double MaxParameter) {
+            constexpr double golden_ratio_conjugate = 0.6180339887498948482;
+            double left = MinParameter;
+            double right = MaxParameter;
+            double x_left = right - golden_ratio_conjugate * (right - left);
+            double x_right = left + golden_ratio_conjugate * (right - left);
+            auto evaluate = [&](const double Parameter) {
+                return VariesU
+                    ? consider_local_point(Parameter, FixedParameter)
+                    : consider_local_point(FixedParameter, Parameter);
+            };
+            double value_left = evaluate(x_left);
+            double value_right = evaluate(x_right);
+            for (int iteration = 0;
+                 iteration < parameter_minimization_iterations;
+                 ++iteration) {
+                if (value_left < value_right) {
+                    right = x_right;
+                    x_right = x_left;
+                    value_right = value_left;
+                    x_left = right - golden_ratio_conjugate * (right - left);
+                    value_left = evaluate(x_left);
+                } else {
+                    left = x_left;
+                    x_left = x_right;
+                    value_left = value_right;
+                    x_right = left + golden_ratio_conjugate * (right - left);
+                    value_right = evaluate(x_right);
+                }
+            }
+            const double minimizing_parameter = 0.5 * (left + right);
+            evaluate(minimizing_parameter);
+            return minimizing_parameter;
+        };
+
+        auto minimize_boundary_interval = [&](
+            const bool VariesU,
+            const double FixedParameter,
+            const double MinParameter,
+            const double MaxParameter)
+        {
+            minimize_parameter_interval(
+                VariesU,
+                FixedParameter,
+                MinParameter,
+                MaxParameter);
+        };
+
+        auto minimize_span_rectangle = [&](
+            const double MinU,
+            const double MaxU,
+            const double MinV,
+            const double MaxV)
+        {
+            double u = 0.5 * (MinU + MaxU);
+            double v = 0.5 * (MinV + MaxV);
+            consider_local_point(u, v);
+
+            for (int iteration = 0;
+                 iteration < span_rectangle_minimization_sweeps;
+                 ++iteration) {
+                u = minimize_parameter_interval(
+                    true,
+                    v,
+                    MinU,
+                    MaxU);
+                v = minimize_parameter_interval(
+                    false,
+                    u,
+                    MinV,
+                    MaxV);
+            }
+            consider_local_point(u, v);
+        };
+
+        auto collect_unique_span_boundaries = [](
+            const auto& rSpans,
+            const double DomainMin,
+            const double DomainMax)
+        {
+            std::vector<double> boundaries;
+            boundaries.reserve(2 * rSpans.size() + 2);
+            boundaries.push_back(DomainMin);
+            boundaries.push_back(DomainMax);
+            for (const auto& r_span : rSpans) {
+                boundaries.push_back(r_span.MinParameter());
+                boundaries.push_back(r_span.MaxParameter());
+            }
+
+            std::sort(boundaries.begin(), boundaries.end());
+            const double tolerance =
+                1.0e-12 * std::max(1.0, std::abs(DomainMax - DomainMin));
+            boundaries.erase(
+                std::unique(
+                    boundaries.begin(),
+                    boundaries.end(),
+                    [tolerance](const double A, const double B) {
+                        return std::abs(A - B) <= tolerance;
+                    }),
+                boundaries.end());
+
+            return boundaries;
+        };
+
+        for (const auto& r_u_span : u_spans) {
+            for (const auto& r_v_span : v_spans) {
+                CoordinatesArrayType local_coordinates = ZeroVector(3);
+                local_coordinates[0] = 0.5 * (
+                    r_u_span.MinParameter() + r_u_span.MaxParameter());
+                local_coordinates[1] = 0.5 * (
+                    r_v_span.MinParameter() + r_v_span.MaxParameter());
+
+                const int projection_result =
+                    p_surface->ProjectionPointGlobalToLocalSpace(
+                        rPoint,
+                        local_coordinates,
+                        surface_projection_tolerance);
+                if (projection_result == 0 &&
+                    !IncludeKnotSpanBoundaryLines) {
+                    continue;
+                }
+
+                if (!std::isfinite(local_coordinates[0]) ||
+                    !std::isfinite(local_coordinates[1]) ||
+                    local_coordinates[0] <
+                        domain_u.MinParameter() - parameter_tolerance ||
+                    local_coordinates[0] >
+                        domain_u.MaxParameter() + parameter_tolerance ||
+                    local_coordinates[1] <
+                        domain_v.MinParameter() - parameter_tolerance ||
+                    local_coordinates[1] >
+                        domain_v.MaxParameter() + parameter_tolerance) {
+                    continue;
+                }
+                local_coordinates[0] = std::clamp(
+                    local_coordinates[0],
+                    domain_u.MinParameter(),
+                    domain_u.MaxParameter());
+                local_coordinates[1] = std::clamp(
+                    local_coordinates[1],
+                    domain_v.MinParameter(),
+                    domain_v.MaxParameter());
+
+                consider_local_point(
+                    local_coordinates[0],
+                    local_coordinates[1]);
+            }
+        }
+
+        bool skip_boundary_minimization = false;
+        if (IncludeKnotSpanBoundaryLines &&
+            rProjectionDistance < best_distance_before_surface) {
+            skip_boundary_minimization =
+                !has_projection_cutoff ||
+                rProjectionDistance <=
+                    active_maximum_projection_distance + cutoff_tolerance;
+        }
+
+        if (IncludeKnotSpanBoundaryLines && !skip_boundary_minimization) {
+            for (const auto& r_u_span : u_spans) {
+                for (const auto& r_v_span : v_spans) {
+                    minimize_span_rectangle(
+                        r_u_span.MinParameter(),
+                        r_u_span.MaxParameter(),
+                        r_v_span.MinParameter(),
+                        r_v_span.MaxParameter());
+                }
+            }
+
+            const std::vector<double> u_boundaries =
+                collect_unique_span_boundaries(
+                    u_spans,
+                    domain_u.MinParameter(),
+                    domain_u.MaxParameter());
+            const std::vector<double> v_boundaries =
+                collect_unique_span_boundaries(
+                    v_spans,
+                    domain_v.MinParameter(),
+                    domain_v.MaxParameter());
+
+            for (const double v_boundary : v_boundaries) {
+                for (const auto& r_u_span : u_spans) {
+                    minimize_boundary_interval(
+                        true,
+                        v_boundary,
+                        r_u_span.MinParameter(),
+                        r_u_span.MaxParameter());
+                }
+            }
+            for (const double u_boundary : u_boundaries) {
+                for (const auto& r_v_span : v_spans) {
+                    minimize_boundary_interval(
+                        false,
+                        u_boundary,
+                        r_v_span.MinParameter(),
+                        r_v_span.MaxParameter());
+                }
+            }
+        } else if (!IncludeKnotSpanBoundaryLines) {
+            for (const auto& r_u_span : u_spans) {
+                minimize_boundary_interval(
+                    true,
+                    domain_v.MinParameter(),
+                    r_u_span.MinParameter(),
+                    r_u_span.MaxParameter());
+                minimize_boundary_interval(
+                    true,
+                    domain_v.MaxParameter(),
+                    r_u_span.MinParameter(),
+                    r_u_span.MaxParameter());
+            }
+            for (const auto& r_v_span : v_spans) {
+                minimize_boundary_interval(
+                    false,
+                    domain_u.MinParameter(),
+                    r_v_span.MinParameter(),
+                    r_v_span.MaxParameter());
+                minimize_boundary_interval(
+                    false,
+                    domain_u.MaxParameter(),
+                    r_v_span.MinParameter(),
+                    r_v_span.MaxParameter());
+            }
+        }
+    }
+
+    if (!found_projection) {
+        return false;
+    }
+
+    if (has_projection_cutoff) {
+        const double tolerance =
+            1.0e-12 * std::max(1.0, active_maximum_projection_distance);
+        return rProjectionDistance <=
+            active_maximum_projection_distance + tolerance;
+    }
+
+    return true;
+}
+
+bool SnakeGapSbm3DUtilities::ProjectPointToInitialNurbsSkinAlongDirection(
+    const array_1d<double, 3>& rPoint,
+    const array_1d<double, 3>& rDirection,
+    const double MaximumDistance,
+    array_1d<double, 3>& rProjectionPoint) const
+{
+    if (mInitialNurbsSkinSurfaces.empty()) {
+        return false;
+    }
+
+    const double direction_norm = norm_2(rDirection);
+    if (direction_norm <= std::numeric_limits<double>::epsilon()) {
+        return false;
+    }
+
+    const array_1d<double, 3> direction = rDirection / direction_norm;
+
+    bool found_projection = false;
+    double best_line_distance_squared =
+        std::numeric_limits<double>::max();
+    double best_absolute_ray_distance =
+        std::numeric_limits<double>::max();
+    rProjectionPoint = ZeroVector(3);
+
+    for (const auto& p_surface : mInitialNurbsSkinSurfaces) {
+        const auto u_spans = p_surface->KnotSpanIntervalsU();
+        const auto v_spans = p_surface->KnotSpanIntervalsV();
+        const auto domain_u = p_surface->DomainIntervalU();
+        const auto domain_v = p_surface->DomainIntervalV();
+        constexpr int parameter_minimization_iterations = 24;
+        constexpr int span_rectangle_minimization_sweeps = 4;
+
+        auto consider_local_point = [&](const double U, const double V) {
+            CoordinatesArrayType local_coordinates = ZeroVector(3);
+            local_coordinates[0] = U;
+            local_coordinates[1] = V;
+
+            CoordinatesArrayType surface_point;
+            p_surface->GlobalCoordinates(surface_point, local_coordinates);
+
+            const array_1d<double, 3> point_delta =
+                surface_point - rPoint;
+            const double ray_distance =
+                inner_prod(point_delta, direction);
+            const double absolute_ray_distance =
+                std::abs(ray_distance);
+
+            array_1d<double, 3> line_residual =
+                point_delta - ray_distance * direction;
+            const double line_distance_squared =
+                inner_prod(line_residual, line_residual);
+
+            if (absolute_ray_distance <= MaximumDistance &&
+                (line_distance_squared < best_line_distance_squared ||
+                 (std::abs(line_distance_squared -
+                           best_line_distance_squared) <=
+                      1.0e-24 &&
+                  absolute_ray_distance < best_absolute_ray_distance))) {
+                best_line_distance_squared = line_distance_squared;
+                best_absolute_ray_distance = absolute_ray_distance;
+                rProjectionPoint = surface_point;
+                found_projection = true;
+            }
+
+            return line_distance_squared;
+        };
+
+        auto minimize_parameter_interval = [&](
+            const bool VariesU,
+            const double FixedParameter,
+            const double MinParameter,
+            const double MaxParameter)
+        {
+            constexpr double golden_ratio_conjugate =
+                0.6180339887498948482;
+            double left = MinParameter;
+            double right = MaxParameter;
+            double x_left =
+                right - golden_ratio_conjugate * (right - left);
+            double x_right =
+                left + golden_ratio_conjugate * (right - left);
+
+            auto evaluate = [&](const double Parameter) {
+                return VariesU
+                    ? consider_local_point(Parameter, FixedParameter)
+                    : consider_local_point(FixedParameter, Parameter);
+            };
+
+            double value_left = evaluate(x_left);
+            double value_right = evaluate(x_right);
+            for (int iteration = 0;
+                 iteration < parameter_minimization_iterations;
+                 ++iteration) {
+                if (value_left < value_right) {
+                    right = x_right;
+                    x_right = x_left;
+                    value_right = value_left;
+                    x_left =
+                        right - golden_ratio_conjugate * (right - left);
+                    value_left = evaluate(x_left);
+                } else {
+                    left = x_left;
+                    x_left = x_right;
+                    value_left = value_right;
+                    x_right =
+                        left + golden_ratio_conjugate * (right - left);
+                    value_right = evaluate(x_right);
+                }
+            }
+
+            const double minimizing_parameter = 0.5 * (left + right);
+            evaluate(minimizing_parameter);
+            return minimizing_parameter;
+        };
+
+        auto minimize_span_rectangle = [&](
+            const double MinU,
+            const double MaxU,
+            const double MinV,
+            const double MaxV)
+        {
+            double u = 0.5 * (MinU + MaxU);
+            double v = 0.5 * (MinV + MaxV);
+            consider_local_point(u, v);
+
+            for (int iteration = 0;
+                 iteration < span_rectangle_minimization_sweeps;
+                 ++iteration) {
+                u = minimize_parameter_interval(
+                    true,
+                    v,
+                    MinU,
+                    MaxU);
+                v = minimize_parameter_interval(
+                    false,
+                    u,
+                    MinV,
+                    MaxV);
+            }
+            consider_local_point(u, v);
+        };
+
+        for (const auto& r_u_span : u_spans) {
+            for (const auto& r_v_span : v_spans) {
+                minimize_span_rectangle(
+                    r_u_span.MinParameter(),
+                    r_u_span.MaxParameter(),
+                    r_v_span.MinParameter(),
+                    r_v_span.MaxParameter());
+
+                minimize_parameter_interval(
+                    true,
+                    r_v_span.MinParameter(),
+                    r_u_span.MinParameter(),
+                    r_u_span.MaxParameter());
+                minimize_parameter_interval(
+                    true,
+                    r_v_span.MaxParameter(),
+                    r_u_span.MinParameter(),
+                    r_u_span.MaxParameter());
+                minimize_parameter_interval(
+                    false,
+                    r_u_span.MinParameter(),
+                    r_v_span.MinParameter(),
+                    r_v_span.MaxParameter());
+                minimize_parameter_interval(
+                    false,
+                    r_u_span.MaxParameter(),
+                    r_v_span.MinParameter(),
+                    r_v_span.MaxParameter());
+            }
+        }
+
+        consider_local_point(
+            domain_u.MinParameter(),
+            domain_v.MinParameter());
+        consider_local_point(
+            domain_u.MinParameter(),
+            domain_v.MaxParameter());
+        consider_local_point(
+            domain_u.MaxParameter(),
+            domain_v.MinParameter());
+        consider_local_point(
+            domain_u.MaxParameter(),
+            domain_v.MaxParameter());
+    }
+
+    if (!found_projection) {
+        return false;
+    }
+
+    const double line_distance = std::sqrt(best_line_distance_squared);
+    const double line_distance_tolerance =
+        1.0e-5 * std::max(1.0, MaximumDistance);
+
+    return line_distance <= line_distance_tolerance;
+}
+
+SnakeGapSbm3DUtilities::NodePointerType
+SnakeGapSbm3DUtilities::FindClosestSkinMeshNode(
+    const ModelPart& rSkinSubModelPart,
+    const array_1d<double, 3>& rPoint,
+    double& rDistance) const
+{
+    NodePointerType p_closest_node;
+    rDistance = std::numeric_limits<double>::max();
+
+    // Only inspect nodes belonging to the original skin conditions. Auxiliary
+    // Bezier control nodes may live in the root model part, but they are not
+    // part of these condition geometries and must not be selected here.
+    for (const auto& r_condition : rSkinSubModelPart.Conditions()) {
+        const auto& r_geometry = r_condition.GetGeometry();
+        for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+            const double distance =
+                norm_2(r_geometry[i].Coordinates() - rPoint);
+            if (distance < rDistance) {
+                rDistance = distance;
+                p_closest_node = r_condition.pGetGeometry()->pGetPoint(i);
+            }
+        }
+    }
+
+    return p_closest_node;
 }
 
 SnakeGapSbm3DUtilities::NodePointerType
@@ -3520,10 +5137,13 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
     edge_data.CurvedControlNodes = edge_data.LinearControlNodes;
     edge_data.CurrentControlNodes = edge_data.LinearControlNodes;
 
-    if (mGapApproximationOrder > 1) {
+    if (mGapApproximationOrder > 1 && !mInitialNurbsSkinSurfaces.empty()) {
         bool created_curved_edge = true;
         std::vector<NodePointerType> curved_control_nodes;
+        std::vector<array_1d<double, 3>> cubic_interpolation_points;
+        NodePointerType p_quadratic_interpolation_skin_node;
         curved_control_nodes.reserve(mGapApproximationOrder + 1);
+        cubic_interpolation_points.reserve(2);
         curved_control_nodes.push_back(p_canonical_node_0);
 
         const array_1d<double, 3> edge_vector =
@@ -3534,7 +5154,16 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
         bool has_projection_direction = false;
         array_1d<double, 3> unused_closest_point = ZeroVector(3);
         double unused_projection_distance = 0.0;
-        if (ProjectPointToClosestSkinBoundary(
+
+        const auto edge_normal_it = mSkinEdgeAverageNormals.find(key);
+        if (edge_normal_it != mSkinEdgeAverageNormals.end() &&
+            norm_2(edge_normal_it->second) >
+                std::numeric_limits<double>::epsilon()) {
+            projection_direction = edge_normal_it->second;
+            has_projection_direction = true;
+        }
+
+        if (!has_projection_direction && ProjectPointToClosestSkinBoundary(
                 rSkinSubModelPart,
                 0.5 * (p_canonical_node_0->Coordinates() +
                        p_canonical_node_1->Coordinates()),
@@ -3564,7 +5193,158 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
                 std::numeric_limits<double>::epsilon();
         }
 
-        if (has_projection_direction) {
+        auto is_valid_projected_point = [&](
+            const array_1d<double, 3>& rProjectedPoint,
+            const array_1d<double, 3>& rReferencePoint)
+        {
+            return std::isfinite(rProjectedPoint[0]) &&
+                   std::isfinite(rProjectedPoint[1]) &&
+                   std::isfinite(rProjectedPoint[2]) &&
+                   norm_2(rProjectedPoint - rReferencePoint) <=
+                       MaximumProjectionDistance;
+        };
+
+        if (has_projection_direction && mGapApproximationOrder == 2) {
+            constexpr std::array<double, 3> sample_parameters = {{
+                0.25,
+                0.50,
+                0.75
+            }};
+            std::array<array_1d<double, 3>, 3> projected_sample_points;
+
+            for (std::size_t sample_index = 0;
+                 sample_index < sample_parameters.size();
+                 ++sample_index) {
+                const double t = sample_parameters[sample_index];
+                const array_1d<double, 3> linear_point =
+                    (1.0 - t) * p_canonical_node_0->Coordinates() +
+                    t * p_canonical_node_1->Coordinates();
+
+                array_1d<double, 3> projected_point = ZeroVector(3);
+                if (!ProjectPointToSkinBoundaryAlongDirection(
+                        rSkinSubModelPart,
+                        linear_point,
+                        projection_direction,
+                        MaximumProjectionDistance,
+                        projected_point)) {
+                    created_curved_edge = false;
+                    break;
+                }
+
+                if (!is_valid_projected_point(
+                        projected_point,
+                        linear_point)) {
+                    created_curved_edge = false;
+                    break;
+                }
+
+                projected_sample_points[sample_index] = projected_point;
+            }
+
+            if (created_curved_edge) {
+                std::array<double, 3> fitted_curve_parameters =
+                    sample_parameters;
+                array_1d<double, 3> bezier_control_point =
+                    0.5 * (p_canonical_node_0->Coordinates() +
+                           p_canonical_node_1->Coordinates());
+
+                constexpr std::size_t maximum_free_parameter_iterations = 6;
+                for (std::size_t iteration = 0;
+                     iteration < maximum_free_parameter_iterations;
+                     ++iteration) {
+                    array_1d<double, 3> least_squares_numerator =
+                        ZeroVector(3);
+                    double least_squares_denominator = 0.0;
+
+                    for (std::size_t sample_index = 0;
+                         sample_index < sample_parameters.size();
+                         ++sample_index) {
+                        const double t =
+                            fitted_curve_parameters[sample_index];
+                        const double one_minus_t = 1.0 - t;
+                        const double shape_0 =
+                            one_minus_t * one_minus_t;
+                        const double shape_1 =
+                            2.0 * one_minus_t * t;
+                        const double shape_2 = t * t;
+
+                        array_1d<double, 3> residual_target =
+                            projected_sample_points[sample_index];
+                        noalias(residual_target) -=
+                            shape_0 * p_canonical_node_0->Coordinates();
+                        noalias(residual_target) -=
+                            shape_2 * p_canonical_node_1->Coordinates();
+
+                        noalias(least_squares_numerator) +=
+                            shape_1 * residual_target;
+                        least_squares_denominator += shape_1 * shape_1;
+                    }
+
+                    if (least_squares_denominator <=
+                        std::numeric_limits<double>::epsilon()) {
+                        created_curved_edge = false;
+                        break;
+                    }
+
+                    bezier_control_point =
+                        least_squares_numerator /
+                        least_squares_denominator;
+
+                    if (!std::isfinite(bezier_control_point[0]) ||
+                        !std::isfinite(bezier_control_point[1]) ||
+                        !std::isfinite(bezier_control_point[2])) {
+                        created_curved_edge = false;
+                        break;
+                    }
+
+                    double maximum_parameter_update = 0.0;
+                    for (std::size_t sample_index = 0;
+                         sample_index < sample_parameters.size();
+                         ++sample_index) {
+                        const double old_t =
+                            fitted_curve_parameters[sample_index];
+                        const double projected_t =
+                            ProjectPointToQuadraticBezierParameter(
+                                p_canonical_node_0->Coordinates(),
+                                bezier_control_point,
+                                p_canonical_node_1->Coordinates(),
+                                projected_sample_points[sample_index],
+                                old_t);
+                        maximum_parameter_update = std::max(
+                            maximum_parameter_update,
+                            std::abs(projected_t - old_t));
+                        fitted_curve_parameters[sample_index] = projected_t;
+                    }
+
+                    if (maximum_parameter_update <= 1.0e-10) {
+                        break;
+                    }
+                }
+
+                if (created_curved_edge) {
+                    curved_control_nodes.push_back(
+                        NodePointerType(
+                            new Node(0, bezier_control_point)));
+
+                    const double midpoint_parameter =
+                        ProjectPointToQuadraticBezierParameter(
+                            p_canonical_node_0->Coordinates(),
+                            bezier_control_point,
+                            p_canonical_node_1->Coordinates(),
+                            projected_sample_points[1],
+                            fitted_curve_parameters[1]);
+                    const array_1d<double, 3> midpoint_on_fitted_curve =
+                        EvaluateQuadraticBezierPoint(
+                            p_canonical_node_0->Coordinates(),
+                            bezier_control_point,
+                            p_canonical_node_1->Coordinates(),
+                            midpoint_parameter);
+                    p_quadratic_interpolation_skin_node =
+                        NodePointerType(
+                            new Node(0, midpoint_on_fitted_curve));
+                }
+            }
+        } else if (has_projection_direction) {
             for (std::size_t i = 1; i < mGapApproximationOrder; ++i) {
                 const double t =
                     static_cast<double>(i) /
@@ -3584,13 +5364,15 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
                     break;
                 }
 
-                if (mGapApproximationOrder == 2) {
-                    const array_1d<double, 3> bezier_control_point =
-                        2.0 * projected_point -
-                        0.5 * (p_canonical_node_0->Coordinates() +
-                               p_canonical_node_1->Coordinates());
-                    curved_control_nodes.push_back(
-                        NodePointerType(new Node(0, bezier_control_point)));
+                if (!is_valid_projected_point(
+                        projected_point,
+                        linear_point)) {
+                    created_curved_edge = false;
+                    break;
+                }
+
+                if (mGapApproximationOrder == 3) {
+                    cubic_interpolation_points.push_back(projected_point);
                 } else {
                     curved_control_nodes.push_back(
                         NodePointerType(new Node(0, projected_point)));
@@ -3600,12 +5382,41 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
             created_curved_edge = false;
         }
 
+        if (created_curved_edge && mGapApproximationOrder == 3) {
+            KRATOS_ERROR_IF(cubic_interpolation_points.size() != 2)
+                << "[GetOrCreateFinalSkinEdgeControlNodes] A cubic edge "
+                << "requires projected interpolation points at 1/3 and 2/3.\n";
+
+            const array_1d<double, 3> right_hand_side_1 =
+                27.0 * cubic_interpolation_points[0] -
+                8.0 * p_canonical_node_0->Coordinates() -
+                p_canonical_node_1->Coordinates();
+            const array_1d<double, 3> right_hand_side_2 =
+                27.0 * cubic_interpolation_points[1] -
+                p_canonical_node_0->Coordinates() -
+                8.0 * p_canonical_node_1->Coordinates();
+
+            const array_1d<double, 3> bezier_control_point_1 =
+                right_hand_side_1 / 9.0 - right_hand_side_2 / 18.0;
+            const array_1d<double, 3> bezier_control_point_2 =
+                right_hand_side_2 / 9.0 - right_hand_side_1 / 18.0;
+
+            curved_control_nodes.push_back(
+                NodePointerType(new Node(0, bezier_control_point_1)));
+            curved_control_nodes.push_back(
+                NodePointerType(new Node(0, bezier_control_point_2)));
+        }
+
         if (created_curved_edge) {
             curved_control_nodes.push_back(p_canonical_node_1);
             edge_data.CurvedControlNodes = curved_control_nodes;
             edge_data.CurrentControlNodes = curved_control_nodes;
             edge_data.Alpha = 1.0;
             edge_data.IsCurved = true;
+            if (mGapApproximationOrder == 2) {
+                edge_data.pQuadraticInterpolationNode =
+                    p_quadratic_interpolation_skin_node;
+            }
         } else {
             mLinearSkinEdges.insert(key);
             KRATOS_WARNING("SnakeGapSbm3DUtilities")
@@ -3614,6 +5425,8 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
                 << "  context: " << rContext << "\n"
                 << "  edge ids: " << key.first << " - " << key.second << "\n";
         }
+    } else if (mGapApproximationOrder > 1) {
+        mLinearSkinEdges.insert(key);
     }
 
     if (mGapApproximationOrder == 2) {
@@ -3621,14 +5434,16 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
             << "[SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes] "
             << "A quadratic edge requires three Bezier control nodes.\n";
 
-        array_1d<double, 3> interpolation_point =
-            0.25 * edge_data.CurrentControlNodes[0]->Coordinates();
-        noalias(interpolation_point) +=
-            0.50 * edge_data.CurrentControlNodes[1]->Coordinates();
-        noalias(interpolation_point) +=
-            0.25 * edge_data.CurrentControlNodes[2]->Coordinates();
-        edge_data.pQuadraticInterpolationNode =
-            NodePointerType(new Node(0, interpolation_point));
+        if (!edge_data.pQuadraticInterpolationNode) {
+            array_1d<double, 3> interpolation_point =
+                0.25 * edge_data.CurrentControlNodes[0]->Coordinates();
+            noalias(interpolation_point) +=
+                0.50 * edge_data.CurrentControlNodes[1]->Coordinates();
+            noalias(interpolation_point) +=
+                0.25 * edge_data.CurrentControlNodes[2]->Coordinates();
+            edge_data.pQuadraticInterpolationNode =
+                NodePointerType(new Node(0, interpolation_point));
+        }
     }
 
     mCurvedEdgeRegistry.emplace(key, edge_data);
@@ -3639,6 +5454,90 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
         std::reverse(control_nodes.begin(), control_nodes.end());
     }
     return control_nodes;
+}
+
+void SnakeGapSbm3DUtilities::RebuildSkinEdgeAverageNormalMap(
+    const ModelPart& rSkinSubModelPart)
+{
+    mSkinEdgeAverageNormals.clear();
+
+    auto make_edge_key = [](
+        const NodePointerType& pNode0,
+        const NodePointerType& pNode1)
+    {
+        KRATOS_ERROR_IF_NOT(pNode0)
+            << "[RebuildSkinEdgeAverageNormalMap] First edge node is null.\n";
+        KRATOS_ERROR_IF_NOT(pNode1)
+            << "[RebuildSkinEdgeAverageNormalMap] Second edge node is null.\n";
+
+        return SkinEdgeKey(
+            std::min(pNode0->Id(), pNode1->Id()),
+            std::max(pNode0->Id(), pNode1->Id()));
+    };
+
+    auto add_normal_to_edge = [&](
+        const NodePointerType& pNode0,
+        const NodePointerType& pNode1,
+        array_1d<double, 3> Normal)
+    {
+        const double normal_norm = norm_2(Normal);
+        if (normal_norm <= std::numeric_limits<double>::epsilon()) {
+            return;
+        }
+        Normal /= normal_norm;
+
+        auto& r_accumulated_normal =
+            mSkinEdgeAverageNormals[make_edge_key(pNode0, pNode1)];
+        if (norm_2(r_accumulated_normal) >
+                std::numeric_limits<double>::epsilon() &&
+            inner_prod(r_accumulated_normal, Normal) < 0.0) {
+            Normal *= -1.0;
+        }
+        noalias(r_accumulated_normal) += Normal;
+    };
+
+    for (const auto& r_condition : rSkinSubModelPart.Conditions()) {
+        const auto& r_geometry = r_condition.GetGeometry();
+        const std::size_t number_of_points = r_geometry.PointsNumber();
+        if (number_of_points < 3) {
+            continue;
+        }
+
+        array_1d<double, 3> face_normal = ZeroVector(3);
+        for (std::size_t i = 1; i + 1 < number_of_points; ++i) {
+            const array_1d<double, 3> edge_0i =
+                r_geometry[i].Coordinates() -
+                r_geometry[0].Coordinates();
+            const array_1d<double, 3> edge_0j =
+                r_geometry[i + 1].Coordinates() -
+                r_geometry[0].Coordinates();
+            noalias(face_normal) +=
+                MathUtils<double>::CrossProduct(edge_0i, edge_0j);
+        }
+
+        if (norm_2(face_normal) <= std::numeric_limits<double>::epsilon()) {
+            continue;
+        }
+
+        for (std::size_t i = 0; i < number_of_points; ++i) {
+            const std::size_t j = (i + 1) % number_of_points;
+            add_normal_to_edge(
+                r_geometry.pGetPoint(i),
+                r_geometry.pGetPoint(j),
+                face_normal);
+        }
+    }
+
+    for (auto edge_normal_it = mSkinEdgeAverageNormals.begin();
+         edge_normal_it != mSkinEdgeAverageNormals.end();) {
+        const double normal_norm = norm_2(edge_normal_it->second);
+        if (normal_norm <= std::numeric_limits<double>::epsilon()) {
+            edge_normal_it = mSkinEdgeAverageNormals.erase(edge_normal_it);
+        } else {
+            edge_normal_it->second /= normal_norm;
+            ++edge_normal_it;
+        }
+    }
 }
 
 std::vector<SnakeGapSbm3DUtilities::NodePointerType>
@@ -3684,12 +5583,16 @@ SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes(
 
     array_1d<double, 3> projected_midpoint = ZeroVector(3);
     double projection_distance = std::numeric_limits<double>::max();
-    const bool closest_projection_succeeded =
-        ProjectPointToClosestSkinBoundary(
+    const NodePointerType p_closest_skin_node =
+        FindClosestSkinMeshNode(
             rSkinSubModelPart,
             midpoint,
-            projected_midpoint,
             projection_distance);
+    const bool closest_projection_succeeded =
+        static_cast<bool>(p_closest_skin_node);
+    if (p_closest_skin_node) {
+        projected_midpoint = p_closest_skin_node->Coordinates();
+    }
 
     // KRATOS_INFO("SnakeGapSbm3DUtilities")
     //     << "[GetOrCreateQuadraticSkinEdgeControlNodes] "
@@ -3964,8 +5867,6 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
     std::size_t number_pairs_with_unbacked_type1_candidate = 0;
     std::size_t number_skipped_unbacked_type1_candidate_pairs = 0;
     double total_type2_tetra_volume = 0.0;
-    double total_type2_quadrature_weight = 0.0;
-    double max_type2_relative_weight_error = 0.0;
     std::size_t number_pairs_with_common_active_span = 0;
     std::size_t number_pairs_without_common_active_span = 0;
     std::size_t number_type1_type1_pairs_without_common_active_span = 0;
@@ -4373,21 +6274,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                 type2_volume >= MinimumGapVolumeForQuadrature;
 
             if (create_type2_quadrature) {
-                const IntegrationPointsArrayType type2_integration_points =
-                    CreateCoonsVolumeGaussPoints(
-                        IntegrationOrder,
-                        *p_type2_volume);
-                double type2_weight_sum = 0.0;
-                for (const auto& r_integration_point : type2_integration_points) {
-                    type2_weight_sum += r_integration_point.Weight();
-                }
-
                 total_type2_tetra_volume += type2_volume;
-                total_type2_quadrature_weight += type2_weight_sum;
-                max_type2_relative_weight_error = std::max(
-                    max_type2_relative_weight_error,
-                    std::abs(type2_weight_sum - type2_volume) /
-                    std::max(type2_volume, MinimumGapVolumeForQuadrature));
             } else {
                 ++result.Summary.NumberOfSkippedEdges;
             }
@@ -4781,8 +6668,6 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
         << "  skipped pairs with type1 candidate without lateral face on edge: "
         << number_skipped_unbacked_type1_candidate_pairs << "\n"
         << "  total type2 tetra volume: " << total_type2_tetra_volume << "\n"
-        << "  total type2 quadrature weight: " << total_type2_quadrature_weight << "\n"
-        << "  max type2 relative weight error: " << max_type2_relative_weight_error << "\n"
         << "  pairs with common active span: "
         << number_pairs_with_common_active_span << "\n"
         << "  pairs without common active span: "
@@ -7015,42 +8900,34 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
             pNode2->Id());
     };
 
-    auto create_quadratic_triangle_surface = [this, &make_edge_key](
-        const std::array<NodePointerType, 3>& rCornerNodes)
+    auto create_curved_top_surface = [this](
+        const CurvedTopFaceData& rTopData)
     {
-        auto get_midpoint_node = [this, &make_edge_key](
-            const NodePointerType& pNode0,
-            const NodePointerType& pNode1)
-        {
-            const auto edge_it = mCurvedEdgeRegistry.find(
-                make_edge_key(pNode0, pNode1));
-            if (edge_it != mCurvedEdgeRegistry.end() &&
-                edge_it->second.IsCurved) {
-                KRATOS_ERROR_IF_NOT(
-                    edge_it->second.pQuadraticInterpolationNode)
-                    << "[UpdateLateralFaceRegistryGeometries] A curved "
-                    << "quadratic edge has no shared interpolation node.\n";
-                return edge_it->second.pQuadraticInterpolationNode;
-            }
+        const std::size_t number_of_control_points =
+            mGapApproximationOrder + 1;
+        KRATOS_ERROR_IF(
+            rTopData.CurrentControlNodes.size() !=
+            number_of_control_points * number_of_control_points)
+            << "[UpdateLateralFaceRegistryGeometries] A curved type3 top "
+            << "face of order " << mGapApproximationOrder << " requires "
+            << number_of_control_points * number_of_control_points
+            << " control nodes. Got "
+            << rTopData.CurrentControlNodes.size() << ".\n";
 
-            const array_1d<double, 3> midpoint =
-                0.5 * (pNode0->Coordinates() + pNode1->Coordinates());
-            return NodePointerType(new Node(0, midpoint));
-        };
-
-        for (const auto& p_corner_node : rCornerNodes) {
-            KRATOS_ERROR_IF_NOT(p_corner_node)
-                << "[UpdateLateralFaceRegistryGeometries] Null quadratic "
-                << "triangle corner node.\n";
+        PointerVector<NodeType> control_points;
+        for (const auto& p_control_node : rTopData.CurrentControlNodes) {
+            KRATOS_ERROR_IF_NOT(p_control_node)
+                << "[UpdateLateralFaceRegistryGeometries] Curved type3 top "
+                << "face contains a null control node.\n";
+            control_points.push_back(p_control_node);
         }
 
-        return Kratos::make_shared<Triangle3D6<NodeType>>(
-            rCornerNodes[0],
-            rCornerNodes[1],
-            rCornerNodes[2],
-            get_midpoint_node(rCornerNodes[0], rCornerNodes[1]),
-            get_midpoint_node(rCornerNodes[1], rCornerNodes[2]),
-            get_midpoint_node(rCornerNodes[2], rCornerNodes[0]));
+        return Kratos::make_shared<NurbsSurfaceType>(
+            control_points,
+            mGapApproximationOrder,
+            mGapApproximationOrder,
+            CreateOpenUnitKnotVector(mGapApproximationOrder),
+            CreateOpenUnitKnotVector(mGapApproximationOrder));
     };
 
     auto check_surface_orientation = [](
@@ -7140,15 +9017,10 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
                     1.0e-12 * norm_2(normal) *
                     std::max(1.0, norm_2(outward_direction));
 
-                KRATOS_ERROR_IF(
-                    !std::isfinite(orientation_measure) ||
-                    std::abs(orientation_measure) <= orientation_tolerance)
-                    << "[UpdateLateralFaceRegistryGeometries] Degenerate or "
-                    << "indeterminate face orientation.\n"
-                    << "  face node ids: "
-                    << rOccurrence.FaceNodes[0]->Id() << ", "
-                    << rOccurrence.FaceNodes[1]->Id() << ", "
-                    << rOccurrence.FaceNodes[2]->Id() << "\n";
+                if (!std::isfinite(orientation_measure) ||
+                    std::abs(orientation_measure) <= orientation_tolerance) {
+                    return 0;
+                }
 
                 if (orientation_measure > 0.0) {
                     ++number_of_positive_samples;
@@ -7249,6 +9121,172 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
             p_triangle->pGetPoint(3));
     };
 
+    auto print_surface_orientation_diagnostic = [
+        this,
+        &make_edge_key](
+        const CurvedTopFaceData& rTopData,
+        const GeometryType& rSurface,
+        const LateralFaceOccurrence& rOccurrence)
+    {
+        std::ostringstream buffer;
+        buffer << "[UpdateLateralFaceRegistryGeometries] Mixed type3 "
+            << "top-face orientation diagnostic:\n";
+        buffer << "  top key node ids: "
+            << rTopData.Key.NodeIds[0] << ", "
+            << rTopData.Key.NodeIds[1] << ", "
+            << rTopData.Key.NodeIds[2] << "\n";
+        buffer << "  top alpha: " << rTopData.Alpha
+            << "  is curved: " << rTopData.IsCurved << "\n";
+
+        array_1d<double, 3> volume_center =
+            rOccurrence.pOppositeNode->Coordinates();
+        for (const auto& p_face_node : rOccurrence.FaceNodes) {
+            noalias(volume_center) += p_face_node->Coordinates();
+        }
+        volume_center /= 4.0;
+
+        buffer << "  opposite node id: " << rOccurrence.pOppositeNode->Id()
+            << " coords: " << rOccurrence.pOppositeNode->Coordinates() << "\n";
+        buffer << "  volume center: " << volume_center << "\n";
+        buffer << "  surrogate condition id: "
+            << rOccurrence.SurrogateConditionId << "\n";
+        buffer << "  external span: ("
+            << rOccurrence.ExternalSpan.I << ", "
+            << rOccurrence.ExternalSpan.J << ", "
+            << rOccurrence.ExternalSpan.K << ")\n";
+
+        for (std::size_t i = 0; i < rTopData.CornerNodes.size(); ++i) {
+            const auto& p_corner_node = rTopData.CornerNodes[i];
+            buffer << "  corner[" << i << "] id: " << p_corner_node->Id()
+                << " coords: " << p_corner_node->Coordinates() << "\n";
+        }
+
+        buffer << "  current control nodes: "
+            << rTopData.CurrentControlNodes.size() << "\n";
+        for (std::size_t i = 0; i < rTopData.CurrentControlNodes.size(); ++i) {
+            const auto& p_control_node = rTopData.CurrentControlNodes[i];
+            buffer << "    control[" << i << "]";
+            if (p_control_node) {
+                buffer << " id: " << p_control_node->Id()
+                    << " coords: " << p_control_node->Coordinates();
+            } else {
+                buffer << " null";
+            }
+            buffer << "\n";
+        }
+
+        const std::array<std::array<std::size_t, 2>, 3> edge_indices = {{
+            {{0, 1}},
+            {{1, 2}},
+            {{0, 2}}
+        }};
+        for (const auto& r_edge_indices : edge_indices) {
+            const auto& p_node_0 = rTopData.CornerNodes[r_edge_indices[0]];
+            const auto& p_node_1 = rTopData.CornerNodes[r_edge_indices[1]];
+            const auto edge_it = mCurvedEdgeRegistry.find(
+                make_edge_key(p_node_0, p_node_1));
+            buffer << "  edge " << r_edge_indices[0] << "-"
+                << r_edge_indices[1] << " ids: "
+                << p_node_0->Id() << ", " << p_node_1->Id();
+            if (edge_it == mCurvedEdgeRegistry.end()) {
+                buffer << " not registered\n";
+                continue;
+            }
+            buffer << " is curved: " << edge_it->second.IsCurved
+                << " alpha: " << edge_it->second.Alpha
+                << " controls: "
+                << edge_it->second.CurrentControlNodes.size();
+            if (edge_it->second.pQuadraticInterpolationNode) {
+                buffer << " interpolation point: "
+                    << edge_it->second.pQuadraticInterpolationNode->Coordinates();
+            }
+            buffer << "\n";
+        }
+
+        std::vector<CoordinatesArrayType> local_sample_points;
+        if (dynamic_cast<const Triangle3D6<NodeType>*>(&rSurface)) {
+            local_sample_points.resize(4, ZeroVector(3));
+            local_sample_points[0][0] = 1.0 / 6.0;
+            local_sample_points[0][1] = 1.0 / 6.0;
+            local_sample_points[1][0] = 2.0 / 3.0;
+            local_sample_points[1][1] = 1.0 / 6.0;
+            local_sample_points[2][0] = 1.0 / 6.0;
+            local_sample_points[2][1] = 2.0 / 3.0;
+            local_sample_points[3][0] = 1.0 / 3.0;
+            local_sample_points[3][1] = 1.0 / 3.0;
+        } else if (const auto* p_nurbs_surface =
+            dynamic_cast<const NurbsSurfaceType*>(&rSurface)) {
+            constexpr std::array<double, 3> samples = {{
+                0.1127016653792583, 0.5, 0.8872983346207417}};
+            const auto interval_u = p_nurbs_surface->DomainIntervalU();
+            const auto interval_v = p_nurbs_surface->DomainIntervalV();
+            for (const double normalized_u : samples) {
+                for (const double normalized_v : samples) {
+                    CoordinatesArrayType local_coordinates = ZeroVector(3);
+                    local_coordinates[0] = interval_u.GetT0() + normalized_u *
+                        (interval_u.GetT1() - interval_u.GetT0());
+                    local_coordinates[1] = interval_v.GetT0() + normalized_v *
+                        (interval_v.GetT1() - interval_v.GetT0());
+                    local_sample_points.push_back(local_coordinates);
+                }
+            }
+        }
+
+        std::size_t positive_samples = 0;
+        std::size_t negative_samples = 0;
+        std::size_t indeterminate_samples = 0;
+        buffer << "  orientation samples:\n";
+        for (const auto& r_local_coordinates : local_sample_points) {
+            array_1d<double, 3> surface_point = ZeroVector(3);
+            rSurface.GlobalCoordinates(surface_point, r_local_coordinates);
+
+            Matrix jacobian;
+            rSurface.Jacobian(jacobian, r_local_coordinates);
+            array_1d<double, 3> tangent_u = ZeroVector(3);
+            array_1d<double, 3> tangent_v = ZeroVector(3);
+            for (std::size_t component = 0; component < 3; ++component) {
+                tangent_u[component] = jacobian(component, 0);
+                tangent_v[component] = jacobian(component, 1);
+            }
+            const array_1d<double, 3> normal =
+                MathUtils<double>::CrossProduct(tangent_u, tangent_v);
+            const array_1d<double, 3> outward_direction =
+                surface_point - volume_center;
+            const double normal_norm = norm_2(normal);
+            const double outward_norm = norm_2(outward_direction);
+            const double orientation_measure =
+                inner_prod(normal, outward_direction);
+            const double orientation_tolerance =
+                1.0e-12 * normal_norm * std::max(1.0, outward_norm);
+
+            int sign = 0;
+            if (std::isfinite(orientation_measure) &&
+                std::abs(orientation_measure) > orientation_tolerance) {
+                if (orientation_measure > 0.0) {
+                    sign = 1;
+                    ++positive_samples;
+                } else {
+                    sign = -1;
+                    ++negative_samples;
+                }
+            } else {
+                ++indeterminate_samples;
+            }
+
+            buffer << "    local: " << r_local_coordinates
+                << " sign: " << sign
+                << " measure: " << orientation_measure
+                << " normal norm: " << normal_norm
+                << " outward norm: " << outward_norm
+                << " point: " << surface_point << "\n";
+        }
+        buffer << "  sample signs: + " << positive_samples
+            << "  - " << negative_samples
+            << "  0 " << indeterminate_samples << "\n";
+
+        KRATOS_WARNING("SnakeGapSbm3DUtilities") << buffer.str();
+    };
+
     for (auto& r_top_entry : mCurvedTopFaceRegistry) {
         auto& r_top_data = r_top_entry.second;
         if (!r_top_data.IsCurved) {
@@ -7271,24 +9309,40 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
             << "no type3 occurrence.\n";
 
         GeometryType::Pointer p_surface =
-            create_quadratic_triangle_surface(r_top_data.CornerNodes);
+            create_curved_top_surface(r_top_data);
 
         const int initial_orientation = check_surface_orientation(
             *p_surface,
             *p_reference_occurrence);
-        KRATOS_ERROR_IF(initial_orientation == 0)
-            << "[UpdateLateralFaceRegistryGeometries] Type3 top-face normals "
-            << "change orientation across the surface.\n";
+        if (initial_orientation == 0) {
+            KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 1)
+                << "[UpdateLateralFaceRegistryGeometries] Accepting a "
+                << "type3 top face with locally mixed normal orientation.\n"
+                << "  face node ids: "
+                << face_key.NodeIds[0] << ", "
+                << face_key.NodeIds[1] << ", "
+                << face_key.NodeIds[2] << "\n";
+            if (mEchoLevel > 3) {
+                print_surface_orientation_diagnostic(
+                    r_top_data,
+                    *p_surface,
+                    *p_reference_occurrence);
+            }
+        } else {
+            if (initial_orientation < 0) {
+                p_surface = reverse_surface_parameterization(*p_surface);
+            }
 
-        if (initial_orientation < 0) {
-            p_surface = reverse_surface_parameterization(*p_surface);
+            KRATOS_ERROR_IF(check_surface_orientation(
+                *p_surface,
+                *p_reference_occurrence) != 1)
+                << "[UpdateLateralFaceRegistryGeometries] Failed to orient the "
+                << "type3 top-face normal away from its volume center.\n"
+                << "  face node ids: "
+                << face_key.NodeIds[0] << ", "
+                << face_key.NodeIds[1] << ", "
+                << face_key.NodeIds[2] << "\n";
         }
-
-        KRATOS_ERROR_IF(check_surface_orientation(
-            *p_surface,
-            *p_reference_occurrence) != 1)
-            << "[UpdateLateralFaceRegistryGeometries] Failed to orient the "
-            << "type3 top-face normal away from its volume center.\n";
 
         r_top_data.pSurfaceGeometry = p_surface;
         r_top_data.pSurfaceGeometry->SetId(next_geometry_id++);
@@ -7296,7 +9350,10 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
 
     std::size_t number_of_checked_curved_faces = 0;
     std::size_t number_of_reoriented_curved_faces = 0;
+    std::size_t number_of_linearized_invalid_curved_faces = 0;
+    std::size_t number_of_accepted_indeterminate_open_curved_faces = 0;
     std::size_t number_of_checked_curved_interfaces = 0;
+    std::size_t number_of_linearized_invalid_curved_interfaces = 0;
     std::size_t number_of_faces_with_registered_curved_edge = 0;
     std::size_t number_of_faces_with_registered_curved_top = 0;
 
@@ -7347,13 +9404,8 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
         }
 
         if (!p_final_surface && has_registered_curved_edge) {
-            if (mGapApproximationOrder == 2) {
-                p_final_surface =
-                    create_quadratic_triangle_surface(face_nodes);
-            } else {
-                p_final_surface = CreateCollapsedTriangleSurface(
-                    face_nodes[0], face_nodes[1], face_nodes[2]);
-            }
+            p_final_surface = CreateCollapsedTriangleSurface(
+                face_nodes[0], face_nodes[1], face_nodes[2]);
             p_final_surface->SetId(next_geometry_id++);
         }
 
@@ -7365,13 +9417,16 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
         const int reference_orientation = check_surface_orientation(
             *p_final_surface,
             r_reference_occurrence);
-        KRATOS_ERROR_IF(reference_orientation == 0)
-            << "[UpdateLateralFaceRegistryGeometries] Curved face normal "
-            << "changes orientation across the surface.\n"
-            << "  face node ids: "
-            << r_registry_entry.first.NodeIds[0] << ", "
-            << r_registry_entry.first.NodeIds[1] << ", "
-            << r_registry_entry.first.NodeIds[2] << "\n";
+        bool accepted_indeterminate_open_face = false;
+        if (reference_orientation == 0) {
+            if (r_occurrences.size() == 1) {
+                ++number_of_accepted_indeterminate_open_curved_faces;
+                accepted_indeterminate_open_face = true;
+            } else {
+                ++number_of_linearized_invalid_curved_faces;
+                continue;
+            }
+        }
 
         if (reference_orientation < 0) {
             const IndexType geometry_id = p_final_surface->Id();
@@ -7381,28 +9436,29 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
             ++number_of_reoriented_curved_faces;
         }
 
-        KRATOS_ERROR_IF(check_surface_orientation(
+        const int final_reference_orientation = check_surface_orientation(
             *p_final_surface,
-            r_reference_occurrence) != 1)
-            << "[UpdateLateralFaceRegistryGeometries] Failed to orient a "
-            << "curved face away from its reference volume center.\n"
-            << "  face node ids: "
-            << r_registry_entry.first.NodeIds[0] << ", "
-            << r_registry_entry.first.NodeIds[1] << ", "
-            << r_registry_entry.first.NodeIds[2] << "\n";
+            r_reference_occurrence);
+        if (final_reference_orientation != 1) {
+            if (r_occurrences.size() == 1 &&
+                final_reference_orientation == 0) {
+                if (!accepted_indeterminate_open_face) {
+                    ++number_of_accepted_indeterminate_open_curved_faces;
+                }
+            } else {
+                ++number_of_linearized_invalid_curved_faces;
+                continue;
+            }
+        }
 
         if (r_occurrences.size() == 2) {
             const int opposite_orientation = check_surface_orientation(
                 *p_final_surface,
                 r_occurrences[1]);
-            KRATOS_ERROR_IF(opposite_orientation != -1)
-                << "[UpdateLateralFaceRegistryGeometries] Curved interface "
-                << "normal is not outward from the first volume and inward "
-                << "to the second volume.\n"
-                << "  face node ids: "
-                << r_registry_entry.first.NodeIds[0] << ", "
-                << r_registry_entry.first.NodeIds[1] << ", "
-                << r_registry_entry.first.NodeIds[2] << "\n";
+            if (opposite_orientation != -1) {
+                ++number_of_linearized_invalid_curved_interfaces;
+                continue;
+            }
             ++number_of_checked_curved_interfaces;
         }
 
@@ -7440,8 +9496,14 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
         << number_of_checked_curved_faces << "\n"
         << "  reoriented curved faces: "
         << number_of_reoriented_curved_faces << "\n"
+        << "  linearized invalid curved faces: "
+        << number_of_linearized_invalid_curved_faces << "\n"
+        << "  accepted indeterminate open curved faces: "
+        << number_of_accepted_indeterminate_open_curved_faces << "\n"
         << "  checked curved interfaces: "
         << number_of_checked_curved_interfaces << "\n"
+        << "  linearized invalid curved interfaces: "
+        << number_of_linearized_invalid_curved_interfaces << "\n"
         << "  faces containing a registered curved edge: "
         << number_of_faces_with_registered_curved_edge << "\n"
         << "  faces matching a registered curved top: "
@@ -7455,8 +9517,7 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
     Type3CreationResult& rType3CreationResult,
     const KnotSpanGridInfo& rGridInfo,
     const std::size_t IntegrationOrder,
-    const std::size_t NumberOfShapeFunctionsDerivatives,
-    const VolumeQuadratureConsumerType& rVolumeQuadratureConsumer)
+    const std::size_t NumberOfShapeFunctionsDerivatives)
 {
     mCurvedEdgeRegistry.clear();
     mCurvedTopFaceRegistry.clear();
@@ -7517,6 +9578,8 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
             rGridInfo.SpanSizeX,
             rGridInfo.SpanSizeY,
             rGridInfo.SpanSizeZ});
+
+    RebuildSkinEdgeAverageNormalMap(rSkinSubModelPart);
 
     auto make_edge_key = [](
         const NodePointerType& pNode0,
@@ -7606,44 +9669,20 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
         const auto edge_12 = get_oriented_edge_controls(pNode1, pNode2);
         const auto edge_02 = get_oriented_edge_controls(pNode0, pNode2);
 
-        array_1d<double, 3> coons_middle = ZeroVector(3);
-        noalias(coons_middle) += 0.25 * edge_01[1]->Coordinates();
-        noalias(coons_middle) += 0.25 * edge_02[1]->Coordinates();
-        noalias(coons_middle) += 0.25 * edge_12[1]->Coordinates();
-        noalias(coons_middle) += 0.25 * pNode2->Coordinates();
-
-        array_1d<double, 3> interpolation_point = coons_middle;
-
-        if (TopAlpha > 0.0) {
-            const array_1d<double, 3> edge_a =
-                pNode1->Coordinates() - pNode0->Coordinates();
-            const array_1d<double, 3> edge_b =
-                pNode2->Coordinates() - pNode0->Coordinates();
-            const array_1d<double, 3> face_normal =
-                MathUtils<double>::CrossProduct(edge_a, edge_b);
-
-            array_1d<double, 3> projected_point = ZeroVector(3);
-            if (norm_2(face_normal) >
-                std::numeric_limits<double>::epsilon() &&
-                ProjectPointToSkinBoundaryAlongDirection(
-                    rSkinSubModelPart,
-                    coons_middle,
-                    face_normal,
-                    maximum_projection_distance,
-                    projected_point)) {
-                interpolation_point += TopAlpha * (
-                    projected_point - coons_middle);
-            }
-        }
+        static_cast<void>(TopAlpha);
+        static_cast<void>(rSkinSubModelPart);
+        static_cast<void>(maximum_projection_distance);
 
         array_1d<double, 3> middle_control_point =
-            4.0 * interpolation_point;
-        noalias(middle_control_point) -= 0.25 * edge_01[0]->Coordinates();
-        noalias(middle_control_point) -= 0.50 * edge_01[1]->Coordinates();
-        noalias(middle_control_point) -= 0.25 * edge_01[2]->Coordinates();
-        noalias(middle_control_point) -= 0.50 * edge_02[1]->Coordinates();
-        noalias(middle_control_point) -= 0.50 * edge_12[1]->Coordinates();
-        noalias(middle_control_point) -= pNode2->Coordinates();
+            0.5 * edge_01[1]->Coordinates();
+        noalias(middle_control_point) +=
+            0.5 * edge_02[1]->Coordinates();
+        noalias(middle_control_point) +=
+            0.5 * edge_12[1]->Coordinates();
+        noalias(middle_control_point) -=
+            0.25 * pNode0->Coordinates();
+        noalias(middle_control_point) -=
+            0.25 * pNode1->Coordinates();
 
         NodePointerType p_middle_node(new Node(0, middle_control_point));
 
@@ -7658,6 +9697,64 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
         top_control_nodes.push_back(pNode2);
         top_control_nodes.push_back(pNode2);
         top_control_nodes.push_back(pNode2);
+
+        return top_control_nodes;
+    };
+
+    auto create_cubic_top_controls = [&](
+        const NodePointerType& pNode0,
+        const NodePointerType& pNode1,
+        const NodePointerType& pNode2)
+    {
+        KRATOS_ERROR_IF(mGapApproximationOrder != 3)
+            << "[FinalizeType2AndType3GapGeometries] Cubic top-face "
+            << "construction requires gap approximation order 3.\n";
+
+        const auto edge_01 = get_oriented_edge_controls(pNode0, pNode1);
+        const auto edge_12 = get_oriented_edge_controls(pNode1, pNode2);
+        const auto edge_02 = get_oriented_edge_controls(pNode0, pNode2);
+
+        std::vector<NodePointerType> top_control_nodes;
+        top_control_nodes.reserve(16);
+
+        for (std::size_t j = 0; j < 4; ++j) {
+            const double v = static_cast<double>(j) / 3.0;
+            for (std::size_t i = 0; i < 4; ++i) {
+                const double u = static_cast<double>(i) / 3.0;
+
+                array_1d<double, 3> control_point =
+                    (1.0 - v) * edge_01[i]->Coordinates() +
+                    v * pNode2->Coordinates();
+                noalias(control_point) +=
+                    (1.0 - u) * edge_02[j]->Coordinates() +
+                    u * edge_12[j]->Coordinates();
+                noalias(control_point) -=
+                    (1.0 - u) * (1.0 - v) * pNode0->Coordinates() +
+                    u * (1.0 - v) * pNode1->Coordinates() +
+                    v * pNode2->Coordinates();
+
+                if ((j == 0 && i == 0) ||
+                    (j == 0 && i == 3) ||
+                    j == 3) {
+                    if (j == 0 && i == 0) {
+                        top_control_nodes.push_back(pNode0);
+                    } else if (j == 0 && i == 3) {
+                        top_control_nodes.push_back(pNode1);
+                    } else {
+                        top_control_nodes.push_back(pNode2);
+                    }
+                } else if (j == 0) {
+                    top_control_nodes.push_back(edge_01[i]);
+                } else if (i == 0) {
+                    top_control_nodes.push_back(edge_02[j]);
+                } else if (i == 3) {
+                    top_control_nodes.push_back(edge_12[j]);
+                } else {
+                    top_control_nodes.push_back(
+                        NodePointerType(new Node(0, control_point)));
+                }
+            }
+        }
 
         return top_control_nodes;
     };
@@ -7680,11 +9777,18 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
     auto refresh_top_face = [&](
         CurvedTopFaceData& rTopData)
     {
-        rTopData.CurrentControlNodes = create_quadratic_top_controls(
-            rTopData.CornerNodes[0],
-            rTopData.CornerNodes[1],
-            rTopData.CornerNodes[2],
-            rTopData.Alpha);
+        if (mGapApproximationOrder == 2) {
+            rTopData.CurrentControlNodes = create_quadratic_top_controls(
+                rTopData.CornerNodes[0],
+                rTopData.CornerNodes[1],
+                rTopData.CornerNodes[2],
+                rTopData.Alpha);
+        } else {
+            rTopData.CurrentControlNodes = create_cubic_top_controls(
+                rTopData.CornerNodes[0],
+                rTopData.CornerNodes[1],
+                rTopData.CornerNodes[2]);
+        }
         rTopData.IsCurved = top_has_curvature(rTopData);
         rTopData.pSurfaceGeometry = GeometryType::Pointer();
     };
@@ -7734,7 +9838,8 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
             r_type3_data.pProjectionNode0,
             r_type3_data.pProjectionNode2);
 
-        if (mGapApproximationOrder == 2) {
+        if (mGapApproximationOrder == 2 ||
+            mGapApproximationOrder == 3) {
             const SkinTopFaceKey top_key = make_top_key(
                 r_type3_data.pProjectionNode0,
                 r_type3_data.pProjectionNode1,
@@ -7748,9 +9853,9 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
                     r_type3_data.pProjectionNode0,
                     r_type3_data.pProjectionNode1,
                     r_type3_data.pProjectionNode2}};
-                // A quadratic triangular patch has no interior interpolation
-                // node. Its curvature is completely defined by its three
-                // shared edge curves.
+                // The top patch is initialized from its three shared edge
+                // curves. Quadratic patches use the existing middle-control
+                // construction; cubic patches use a bicubic Coons net.
                 top_data.Alpha = 0.0;
                 refresh_top_face(top_data);
                 register_top_face_incidence(top_data);
@@ -8009,6 +10114,115 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
         return true;
     };
 
+    auto cubic_face_orientation = [this](
+        const std::array<NodePointerType, 3>& rFaceNodes,
+        const LateralFaceOccurrence& rOccurrence)
+    {
+        if (!rOccurrence.pOppositeNode) {
+            return 0;
+        }
+
+        const auto p_surface = CreateCollapsedTriangleSurface(
+            rFaceNodes[0], rFaceNodes[1], rFaceNodes[2]);
+        if (!p_surface) {
+            return 0;
+        }
+
+        array_1d<double, 3> volume_center =
+            rOccurrence.pOppositeNode->Coordinates();
+        for (const auto& p_face_node : rFaceNodes) {
+            if (!p_face_node) {
+                return 0;
+            }
+            noalias(volume_center) += p_face_node->Coordinates();
+        }
+        volume_center /= 4.0;
+
+        constexpr std::array<double, 3> samples = {{
+            0.1127016653792583, 0.5, 0.8872983346207417}};
+        std::size_t number_of_positive_samples = 0;
+        std::size_t number_of_negative_samples = 0;
+
+        for (const double u : samples) {
+            for (const double v : samples) {
+                CoordinatesArrayType local_coordinates = ZeroVector(3);
+                local_coordinates[0] = u;
+                local_coordinates[1] = v;
+
+                array_1d<double, 3> surface_point = ZeroVector(3);
+                p_surface->GlobalCoordinates(
+                    surface_point, local_coordinates);
+
+                Matrix jacobian;
+                p_surface->Jacobian(jacobian, local_coordinates);
+                if (jacobian.size1() < 3 || jacobian.size2() < 2) {
+                    return 0;
+                }
+
+                array_1d<double, 3> tangent_u = ZeroVector(3);
+                array_1d<double, 3> tangent_v = ZeroVector(3);
+                for (std::size_t component = 0; component < 3; ++component) {
+                    tangent_u[component] = jacobian(component, 0);
+                    tangent_v[component] = jacobian(component, 1);
+                }
+
+                const array_1d<double, 3> normal =
+                    MathUtils<double>::CrossProduct(tangent_u, tangent_v);
+                const array_1d<double, 3> outward_direction =
+                    surface_point - volume_center;
+                const double orientation_measure =
+                    inner_prod(normal, outward_direction);
+                const double orientation_tolerance =
+                    1.0e-12 * norm_2(normal) *
+                    std::max(1.0, norm_2(outward_direction));
+
+                if (!std::isfinite(orientation_measure) ||
+                    std::abs(orientation_measure) <= orientation_tolerance) {
+                    return 0;
+                }
+                if (orientation_measure > 0.0) {
+                    ++number_of_positive_samples;
+                } else {
+                    ++number_of_negative_samples;
+                }
+            }
+        }
+
+        if (number_of_negative_samples == 0) {
+            return 1;
+        }
+        if (number_of_positive_samples == 0) {
+            return -1;
+        }
+        return 0;
+    };
+
+    auto is_cubic_face_valid = [&cubic_face_orientation](
+        const std::array<NodePointerType, 3>& rFaceNodes,
+        const std::vector<LateralFaceOccurrence>& rOccurrences)
+    {
+        if (rOccurrences.empty()) {
+            return true;
+        }
+
+        const int reference_orientation = cubic_face_orientation(
+            rFaceNodes, rOccurrences.front());
+        if (reference_orientation == 0) {
+            return false;
+        }
+
+        if (rOccurrences.size() == 2) {
+            const int opposite_orientation = cubic_face_orientation(
+                rFaceNodes, rOccurrences[1]);
+            if (opposite_orientation == 0 ||
+                opposite_orientation == reference_orientation) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
     const std::size_t mapping_sampling_order =
         std::max<std::size_t>(3, mGapApproximationOrder + 2);
     IntegrationPointsArrayType mapping_sampling_points(
@@ -8138,6 +10352,12 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
 
     bool all_mappings_valid_after_damping = false;
     std::set<std::array<IndexType, 3>> face_keys_requiring_damping;
+    // Do not reduce shared skin-edge curvature only because one lateral face
+    // has an indeterminate orientation check. That global damping propagates
+    // to open type3 faces and dominates the geometric convergence. Invalid
+    // faces and interfaces are handled locally in
+    // UpdateLateralFaceRegistryGeometries instead.
+    constexpr bool use_global_shared_edge_damping_for_face_orientation = false;
     for (std::size_t pass = 0; pass < 24; ++pass) {
         bool all_valid = true;
         std::unordered_set<SkinEdgeKey, SkinEdgeKeyHash> edge_keys_to_reduce;
@@ -8188,7 +10408,8 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
                 r_type3_data.pProjectionNode2));
         }
 
-        if (mGapApproximationOrder == 2) {
+        if (use_global_shared_edge_damping_for_face_orientation &&
+            mGapApproximationOrder == 2) {
             for (const auto& r_registry_entry : mLateralFaceRegistry) {
                 const auto& r_occurrences = r_registry_entry.second;
                 if (r_occurrences.empty()) {
@@ -8208,6 +10429,41 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
                         has_curved_edge || is_edge_curved(r_edge_key);
                 }
                 if (!has_curved_edge || is_quadratic_face_valid(
+                        r_face_nodes, r_occurrences)) {
+                    continue;
+                }
+
+                all_valid = false;
+                face_keys_requiring_damping.insert(
+                    r_registry_entry.first.NodeIds);
+                for (const auto& r_edge_key : face_edge_keys) {
+                    if (is_edge_curved(r_edge_key)) {
+                        edge_keys_to_reduce.insert(r_edge_key);
+                    }
+                }
+            }
+        }
+
+        if (mGapApproximationOrder == 3) {
+            for (const auto& r_registry_entry : mLateralFaceRegistry) {
+                const auto& r_occurrences = r_registry_entry.second;
+                if (r_occurrences.empty()) {
+                    continue;
+                }
+
+                const auto& r_face_nodes =
+                    r_occurrences.front().FaceNodes;
+                const std::array<SkinEdgeKey, 3> face_edge_keys = {{
+                    make_edge_key(r_face_nodes[0], r_face_nodes[1]),
+                    make_edge_key(r_face_nodes[1], r_face_nodes[2]),
+                    make_edge_key(r_face_nodes[2], r_face_nodes[0])}};
+
+                bool has_curved_edge = false;
+                for (const auto& r_edge_key : face_edge_keys) {
+                    has_curved_edge =
+                        has_curved_edge || is_edge_curved(r_edge_key);
+                }
+                if (!has_curved_edge || is_cubic_face_valid(
                         r_face_nodes, r_occurrences)) {
                     continue;
                 }
@@ -8276,7 +10532,13 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
                 << "  skin projection nodes: "
                 << r_type3_data.pProjectionNode0->Id() << ", "
                 << r_type3_data.pProjectionNode1->Id() << ", "
-                << r_type3_data.pProjectionNode2->Id() << "\n";
+                << r_type3_data.pProjectionNode2->Id() << "\n"
+                << "  surrogate coordinates: "
+                << r_type3_data.pSurrogateNode->Coordinates() << "\n"
+                << "  projection coordinates: "
+                << r_type3_data.pProjectionNode0->Coordinates() << ", "
+                << r_type3_data.pProjectionNode1->Coordinates() << ", "
+                << r_type3_data.pProjectionNode2->Coordinates() << "\n";
         }
     }
 
@@ -8323,40 +10585,6 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
         "GapType3Debug");
     IndexType next_geometry_id = GetNextGeometryId(rRootModelPart);
 
-    auto consume_or_store_type2_quadrature = [&](
-        Type2VolumeQuadratureData& rType2Data,
-        GeometriesArrayType& rVolumeQuadraturePointGeometries)
-    {
-        if (rVolumeQuadratureConsumer) {
-            if (rVolumeQuadraturePointGeometries.size() > 0) {
-                rVolumeQuadratureConsumer(
-                    rVolumeQuadraturePointGeometries,
-                    rType2Data.NeighbourGeometries,
-                    rType2Data.CharacteristicLength);
-            }
-        } else {
-            rType2Data.VolumeQuadraturePointGeometries =
-                std::move(rVolumeQuadraturePointGeometries);
-        }
-    };
-
-    auto consume_or_store_type3_quadrature = [&](
-        Type3VolumeQuadratureData& rType3Data,
-        GeometriesArrayType& rVolumeQuadraturePointGeometries)
-    {
-        if (rVolumeQuadratureConsumer) {
-            if (rVolumeQuadraturePointGeometries.size() > 0) {
-                rVolumeQuadratureConsumer(
-                    rVolumeQuadraturePointGeometries,
-                    rType3Data.NeighbourGeometries,
-                    rType3Data.CharacteristicLength);
-            }
-        } else {
-            rType3Data.VolumeQuadraturePointGeometries =
-                std::move(rVolumeQuadraturePointGeometries);
-        }
-    };
-
     for (auto& r_type2_data : rType2CreationResult.VolumeQuadratureDataList) {
         if (!r_type2_data.RequiresQuadrature) {
             continue;
@@ -8368,52 +10596,38 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
         const bool is_curved_type2 =
             mGapApproximationOrder > 1 && is_edge_curved(edge_key);
 
-        GeometriesArrayType volume_quadrature_point_geometries;
-        if (!is_curved_type2 && mUseTetraQuadratureForLinearType2Type3) {
-            volume_quadrature_point_geometries =
-                CreateAndTagLinearTetraVolumeQuadraturePointGeometries(
-                    r_type2_data.pEdgeNode0,
-                    r_type2_data.pEdgeNode1,
-                    r_type2_data.pProjectionNode0,
-                    r_type2_data.pProjectionNode1,
-                    IntegrationOrder);
-        } else {
-            auto p_volume = create_final_type2_volume(r_type2_data);
-            if (mStoreGapDebugGeometries) {
-                p_volume->SetId(next_geometry_id++);
-                for (const auto& p_neighbour_geometry : r_type2_data.NeighbourGeometries) {
-                    AddUniqueNeighbourGeometry(*p_volume, p_neighbour_geometry);
-                }
-                r_gap_type2_debug.AddGeometry(p_volume);
-            }
+        r_type2_data.pVolumeGeometry =
+            create_final_type2_volume(r_type2_data);
+        r_type2_data.IntegrationOrder = IntegrationOrder;
+        r_type2_data.NumberOfShapeFunctionsDerivatives =
+            NumberOfShapeFunctionsDerivatives;
+        r_type2_data.GapType = 2;
+        r_type2_data.RuleNodes = {
+            r_type2_data.pEdgeNode0,
+            r_type2_data.pEdgeNode1,
+            r_type2_data.pProjectionNode0,
+            r_type2_data.pProjectionNode1};
 
-            if (mUseAnisotropicQuadratureForCurvedType2) {
-                volume_quadrature_point_geometries =
-                    CreateAndTagCurvedType2QuadraturePointGeometries(
-                        p_volume,
-                        IntegrationOrder);
-            } else {
-                volume_quadrature_point_geometries =
-                    CreateAndTagVolumeQuadraturePointGeometries(
-                        p_volume,
-                        r_type2_data.NeighbourGeometries.front(),
-                        IntegrationOrder,
-                        NumberOfShapeFunctionsDerivatives);
-            }
+        if (!is_curved_type2 && mUseTetraQuadratureForLinearType2Type3) {
+            r_type2_data.QuadratureRule =
+                VolumeQuadratureRule::LinearTetrahedron;
+        } else if (is_curved_type2 &&
+                   mUseAnisotropicQuadratureForCurvedType2) {
+            r_type2_data.QuadratureRule =
+                VolumeQuadratureRule::CurvedType2;
+        } else {
+            r_type2_data.QuadratureRule =
+                VolumeQuadratureRule::NurbsVolume;
         }
 
-        if (mStoreGapDebugGeometries && !is_curved_type2) {
-            auto p_debug_volume = create_final_type2_volume(r_type2_data);
+        if (mStoreGapDebugGeometries) {
+            auto p_debug_volume = r_type2_data.pVolumeGeometry;
             p_debug_volume->SetId(next_geometry_id++);
             for (const auto& p_neighbour_geometry : r_type2_data.NeighbourGeometries) {
                 AddUniqueNeighbourGeometry(*p_debug_volume, p_neighbour_geometry);
             }
             r_gap_type2_debug.AddGeometry(p_debug_volume);
         }
-
-        consume_or_store_type2_quadrature(
-            r_type2_data,
-            volume_quadrature_point_geometries);
     }
 
     for (auto& r_type3_data : rType3CreationResult.VolumeQuadratureDataList) {
@@ -8435,57 +10649,45 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
             }
         }
 
-        GeometriesArrayType volume_quadrature_point_geometries;
-        if (!is_curved_type3 && mUseTetraQuadratureForLinearType2Type3) {
-            volume_quadrature_point_geometries =
-                CreateAndTagLinearTetraVolumeQuadraturePointGeometries(
-                    r_type3_data.pSurrogateNode,
-                    r_type3_data.pProjectionNode0,
-                    r_type3_data.pProjectionNode1,
-                    r_type3_data.pProjectionNode2,
-                    IntegrationOrder);
-        } else {
-            if (mUseTriangleRadialQuadratureForCurvedType3 &&
-                p_final_top_surface) {
-                volume_quadrature_point_geometries =
-                    CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries(
-                        r_type3_data.pSurrogateNode,
-                        p_final_top_surface,
-                        IntegrationOrder);
-            } else {
-                auto type3_volume_data = create_final_type3_volume_data(r_type3_data);
-                auto p_volume = type3_volume_data.pVolume;
+        auto type3_volume_data =
+            create_final_type3_volume_data(r_type3_data);
+        r_type3_data.pVolumeGeometry = type3_volume_data.pVolume;
+        r_type3_data.pTopSurfaceGeometry = p_final_top_surface
+            ? p_final_top_surface
+            : type3_volume_data.pTopSurface;
+        r_type3_data.IntegrationOrder = is_curved_type3
+            ? IntegrationOrder + 3
+            : IntegrationOrder;
+        r_type3_data.NumberOfShapeFunctionsDerivatives =
+            NumberOfShapeFunctionsDerivatives;
+        r_type3_data.GapType = 3;
+        r_type3_data.RuleNodes = {
+            r_type3_data.pSurrogateNode,
+            r_type3_data.pProjectionNode0,
+            r_type3_data.pProjectionNode1,
+            r_type3_data.pProjectionNode2};
 
-                volume_quadrature_point_geometries =
-                    CreateAndTagVolumeQuadraturePointGeometries(
-                        p_volume,
-                        r_type3_data.NeighbourGeometries.front(),
-                        IntegrationOrder,
-                NumberOfShapeFunctionsDerivatives);
-            }
+        if (!is_curved_type3 && mUseTetraQuadratureForLinearType2Type3) {
+            r_type3_data.QuadratureRule =
+                VolumeQuadratureRule::LinearTetrahedron;
+        } else if (is_curved_type3 &&
+                   mUseTriangleRadialQuadratureForCurvedType3 &&
+                   r_type3_data.pTopSurfaceGeometry) {
+            r_type3_data.QuadratureRule =
+                VolumeQuadratureRule::CurvedType3TriangleRadial;
+        } else {
+            r_type3_data.QuadratureRule =
+                VolumeQuadratureRule::NurbsVolume;
         }
 
         if (mStoreGapDebugGeometries) {
-            auto type3_debug_volume_data =
-                create_final_type3_volume_data(r_type3_data);
-            auto p_debug_volume = type3_debug_volume_data.pVolume;
+            auto p_debug_volume = r_type3_data.pVolumeGeometry;
             p_debug_volume->SetId(next_geometry_id++);
             for (const auto& p_neighbour_geometry : r_type3_data.NeighbourGeometries) {
                 AddUniqueNeighbourGeometry(*p_debug_volume, p_neighbour_geometry);
             }
             r_gap_type3_debug.AddGeometry(p_debug_volume);
         }
-
-        CheckType3QuadraturePointGeometries(
-            volume_quadrature_point_geometries,
-            r_type3_data.pSurrogateNode,
-            r_type3_data.pProjectionNode0,
-            r_type3_data.pProjectionNode1,
-            r_type3_data.pProjectionNode2);
-
-        consume_or_store_type3_quadrature(
-            r_type3_data,
-            volume_quadrature_point_geometries);
     }
 
     mSkinProjectionTriangleData.clear();
@@ -11014,8 +13216,7 @@ SnakeGapSbm3DUtilities::CreateDirectMappedVolumeQuadraturePointGeometries(
             orientation_sign *
             r_mapped_point.Determinant;
 
-        if (!std::isfinite(physical_weight) ||
-            physical_weight <= 0.0) {
+        if (!std::isfinite(physical_weight) || physical_weight <= 0.0) {
             continue;
         }
 
@@ -11155,7 +13356,7 @@ SnakeGapSbm3DUtilities::CreateAndTagCurvedType2QuadraturePointGeometries(
         << "Volume geometry is null.\n";
 
     const std::size_t curved_order = CappedGaussOrder(IntegrationOrder);
-    const std::size_t linear_order = std::min<std::size_t>(3, curved_order);
+    const std::size_t linear_order = curved_order;
 
     IntegrationPointsArrayType integration_points(
         linear_order * curved_order * linear_order);
@@ -11200,8 +13401,7 @@ SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeom
         << "[SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries] "
         << "Unsupported top surface geometry type.\n";
 
-    const std::size_t order =
-        std::min<std::size_t>(4, CappedGaussOrder(IntegrationOrder));
+    const std::size_t order = CappedGaussOrder(IntegrationOrder);
 
     IntegrationPointsArrayType radial_integration_points(order);
     auto radial_integration_point_it = radial_integration_points.begin();
@@ -11329,8 +13529,7 @@ SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeom
             orientation_sign *
             r_mapped_point.Determinant;
 
-        if (!std::isfinite(physical_weight) ||
-            physical_weight <= 0.0) {
+        if (!std::isfinite(physical_weight) || physical_weight <= 0.0) {
             continue;
         }
 
@@ -11346,6 +13545,617 @@ SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeom
     }
 
     return quadrature_point_geometries;
+}
+
+SnakeGapSbm3DUtilities::GeometriesArrayType
+SnakeGapSbm3DUtilities::MaterializePhysicalVolumeQuadrature(
+    const std::vector<PhysicalQuadraturePoint>& rPhysicalPoints) const
+{
+    GeometriesArrayType quadrature_point_geometries;
+    quadrature_point_geometries.reserve(rPhysicalPoints.size());
+    for (const auto& r_point : rPhysicalPoints) {
+        quadrature_point_geometries.push_back(
+            CreateSinglePointVolumeQuadraturePointGeometry(
+                r_point.Coordinates,
+                r_point.Weight));
+    }
+    return quadrature_point_geometries;
+}
+
+std::vector<SnakeGapSbm3DUtilities::PhysicalQuadraturePoint>
+SnakeGapSbm3DUtilities::CreateMappedPhysicalVolumeQuadrature(
+    const Geometry<Node>::Pointer& pVolumeGeometry,
+    const IntegrationPointsArrayType& rReferenceIntegrationPoints) const
+{
+    KRATOS_ERROR_IF_NOT(pVolumeGeometry)
+        << "Cannot map quadrature points on a null volume geometry.\n";
+
+    struct MappedPointData
+    {
+        array_1d<double, 3> Coordinates = ZeroVector(3);
+        double ReferenceWeight = 0.0;
+        double Determinant = 0.0;
+    };
+
+    std::vector<MappedPointData> mapped_data;
+    mapped_data.reserve(rReferenceIntegrationPoints.size());
+    constexpr double determinant_tolerance = 1.0e-14;
+    std::size_t number_of_positive_determinants = 0;
+    std::size_t number_of_negative_determinants = 0;
+
+    Matrix jacobian;
+    for (const auto& r_integration_point : rReferenceIntegrationPoints) {
+        CoordinatesArrayType local_coordinates = ZeroVector(3);
+        local_coordinates[0] = r_integration_point[0];
+        local_coordinates[1] = r_integration_point[1];
+        local_coordinates[2] = r_integration_point[2];
+
+        MappedPointData data;
+        pVolumeGeometry->GlobalCoordinates(
+            data.Coordinates,
+            local_coordinates);
+        pVolumeGeometry->Jacobian(jacobian, local_coordinates);
+        data.Determinant = MathUtils<double>::Det(jacobian);
+        data.ReferenceWeight = r_integration_point.Weight();
+
+        if (data.Determinant > determinant_tolerance) {
+            ++number_of_positive_determinants;
+        } else if (data.Determinant < -determinant_tolerance) {
+            ++number_of_negative_determinants;
+        }
+        mapped_data.push_back(data);
+    }
+
+    double orientation_sign = 1.0;
+    if (number_of_negative_determinants > 0 &&
+        number_of_positive_determinants == 0) {
+        orientation_sign = -1.0;
+    }
+
+    std::vector<PhysicalQuadraturePoint> physical_points;
+    physical_points.reserve(mapped_data.size());
+    double weight_sum = 0.0;
+    for (const auto& r_data : mapped_data) {
+        const double physical_weight =
+            r_data.ReferenceWeight * orientation_sign *
+            r_data.Determinant;
+        if (!std::isfinite(physical_weight) ||
+            physical_weight <= MinimumGapVolumeForQuadrature) {
+            continue;
+        }
+
+        PhysicalQuadraturePoint point;
+        point.Coordinates = r_data.Coordinates;
+        point.Weight = physical_weight;
+        physical_points.push_back(point);
+        weight_sum += physical_weight;
+    }
+
+    if (weight_sum <= MinimumGapVolumeForQuadrature) {
+        physical_points.clear();
+    }
+    return physical_points;
+}
+
+std::vector<SnakeGapSbm3DUtilities::PhysicalQuadraturePoint>
+SnakeGapSbm3DUtilities::CreateNativePhysicalVolumeQuadrature(
+    const Geometry<Node>::Pointer& pVolumeGeometry,
+    const std::size_t IntegrationOrder) const
+{
+    KRATOS_ERROR_IF_NOT(pVolumeGeometry)
+        << "Cannot create native quadrature on a null volume geometry.\n";
+
+    const auto integration_method =
+        SelectGaussIntegrationMethod(IntegrationOrder);
+    const auto& r_integration_points =
+        pVolumeGeometry->IntegrationPoints(integration_method);
+
+    std::vector<PhysicalQuadraturePoint> physical_points;
+    physical_points.reserve(r_integration_points.size());
+    Matrix jacobian;
+    for (const auto& r_integration_point : r_integration_points) {
+        CoordinatesArrayType local_coordinates = ZeroVector(3);
+        local_coordinates[0] = r_integration_point[0];
+        local_coordinates[1] = r_integration_point[1];
+        local_coordinates[2] = r_integration_point[2];
+
+        PhysicalQuadraturePoint point;
+        pVolumeGeometry->GlobalCoordinates(
+            point.Coordinates,
+            local_coordinates);
+        pVolumeGeometry->Jacobian(jacobian, local_coordinates);
+        point.Weight = r_integration_point.Weight() *
+            std::abs(MathUtils<double>::Det(jacobian));
+        if (std::isfinite(point.Weight) &&
+            point.Weight > MinimumGapVolumeForQuadrature) {
+            physical_points.push_back(point);
+        }
+    }
+    return physical_points;
+}
+
+std::vector<SnakeGapSbm3DUtilities::PhysicalQuadraturePoint>
+SnakeGapSbm3DUtilities::CreateCurvedType3TriangleRadialPhysicalQuadrature(
+    const NodePointerType& pSurrogateNode,
+    const GeometryType::Pointer& pTopSurfaceGeometry,
+    const std::size_t IntegrationOrder) const
+{
+    const auto quadrature_geometries =
+        CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries(
+            pSurrogateNode,
+            pTopSurfaceGeometry,
+            IntegrationOrder);
+    std::vector<PhysicalQuadraturePoint> physical_points;
+    physical_points.reserve(quadrature_geometries.size());
+    for (const auto& r_geometry : quadrature_geometries) {
+        PhysicalQuadraturePoint point;
+        point.Coordinates = r_geometry.Center().Coordinates();
+        point.Weight = ReadSinglePointQuadratureWeight(r_geometry);
+        physical_points.push_back(point);
+    }
+    return physical_points;
+}
+
+std::vector<SnakeGapSbm3DUtilities::PhysicalQuadraturePoint>
+SnakeGapSbm3DUtilities::CreateOriginalPhysicalVolumeQuadrature(
+    const VolumeGeometryData& rVolumeGeometry) const
+{
+    KRATOS_ERROR_IF_NOT(rVolumeGeometry.pVolumeGeometry)
+        << "Deferred Gap-SBM volume geometry is null.\n";
+
+    switch (rVolumeGeometry.QuadratureRule) {
+        case VolumeQuadratureRule::Pyramid: {
+            KRATOS_ERROR_IF(rVolumeGeometry.RuleNodes.size() != 5)
+                << "Pyramid quadrature requires five rule nodes.\n";
+            auto p_pyramid = Kratos::make_shared<Pyramid3D5<NodeType>>(
+                rVolumeGeometry.RuleNodes[0],
+                rVolumeGeometry.RuleNodes[1],
+                rVolumeGeometry.RuleNodes[2],
+                rVolumeGeometry.RuleNodes[3],
+                rVolumeGeometry.RuleNodes[4]);
+            return CreateNativePhysicalVolumeQuadrature(
+                p_pyramid,
+                rVolumeGeometry.IntegrationOrder);
+        }
+        case VolumeQuadratureRule::LinearTetrahedron: {
+            KRATOS_ERROR_IF(rVolumeGeometry.RuleNodes.size() != 4)
+                << "Tetrahedron quadrature requires four rule nodes.\n";
+            auto p_tetrahedron =
+                Kratos::make_shared<Tetrahedra3D4<NodeType>>(
+                    rVolumeGeometry.RuleNodes[0],
+                    rVolumeGeometry.RuleNodes[1],
+                    rVolumeGeometry.RuleNodes[2],
+                    rVolumeGeometry.RuleNodes[3]);
+            return CreateNativePhysicalVolumeQuadrature(
+                p_tetrahedron,
+                rVolumeGeometry.IntegrationOrder);
+        }
+        case VolumeQuadratureRule::CurvedType2: {
+            const std::size_t order =
+                CappedGaussOrder(rVolumeGeometry.IntegrationOrder);
+            IntegrationPointsArrayType integration_points(
+                order * order * order);
+            auto integration_point_it = integration_points.begin();
+            IntegrationPointUtilities::IntegrationPoints3D(
+                integration_point_it,
+                order,
+                order,
+                order,
+                0.0,
+                1.0,
+                0.0,
+                1.0,
+                0.0,
+                1.0);
+            return CreateMappedPhysicalVolumeQuadrature(
+                rVolumeGeometry.pVolumeGeometry,
+                integration_points);
+        }
+        case VolumeQuadratureRule::CurvedType3TriangleRadial:
+            return CreateCurvedType3TriangleRadialPhysicalQuadrature(
+                rVolumeGeometry.RuleNodes.front(),
+                rVolumeGeometry.pTopSurfaceGeometry,
+                rVolumeGeometry.IntegrationOrder);
+        case VolumeQuadratureRule::NurbsVolume: {
+            const std::size_t order = rVolumeGeometry.IntegrationOrder;
+            IntegrationPointsArrayType integration_points(
+                order * order * order);
+            auto integration_point_it = integration_points.begin();
+            IntegrationPointUtilities::IntegrationPoints3D(
+                integration_point_it,
+                order,
+                order,
+                order,
+                0.0,
+                1.0,
+                0.0,
+                1.0,
+                0.0,
+                1.0);
+            return CreateMappedPhysicalVolumeQuadrature(
+                rVolumeGeometry.pVolumeGeometry,
+                integration_points);
+        }
+        default:
+            KRATOS_ERROR
+                << "Unsupported deferred Gap-SBM volume quadrature rule.\n";
+    }
+}
+
+SnakeGapSbm3DUtilities::GeometriesArrayType
+SnakeGapSbm3DUtilities::CreateOriginalVolumeQuadrature(
+    const VolumeGeometryData& rVolumeGeometry) const
+{
+    KRATOS_ERROR_IF_NOT(rVolumeGeometry.pVolumeGeometry)
+        << "Deferred Gap-SBM volume geometry is null.\n";
+    KRATOS_ERROR_IF(rVolumeGeometry.NeighbourGeometries.size() != 1)
+        << "Deferred Gap-SBM volume requires exactly one neighbour geometry, got "
+        << rVolumeGeometry.NeighbourGeometries.size() << ".\n";
+
+    return MaterializePhysicalVolumeQuadrature(
+        CreateOriginalPhysicalVolumeQuadrature(rVolumeGeometry));
+}
+
+SnakeGapSbm3DUtilities::GeometriesArrayType
+SnakeGapSbm3DUtilities::CreateOriginalVolumeQuadrature(
+    const std::vector<const VolumeGeometryData*>& rVolumeGeometries) const
+{
+    GeometriesArrayType quadrature_point_geometries;
+    for (const auto p_volume_data : rVolumeGeometries) {
+        KRATOS_ERROR_IF_NOT(p_volume_data)
+            << "Null deferred Gap-SBM volume data.\n";
+        auto volume_quadrature =
+            CreateOriginalVolumeQuadrature(*p_volume_data);
+        for (auto geometry_it = volume_quadrature.ptr_begin();
+             geometry_it != volume_quadrature.ptr_end();
+             ++geometry_it) {
+            quadrature_point_geometries.push_back(*geometry_it);
+        }
+    }
+    return quadrature_point_geometries;
+}
+
+SnakeGapSbm3DUtilities::MomentFittedVolumeQuadratureResult
+SnakeGapSbm3DUtilities::CreateMomentFittedVolumeQuadrature(
+    const std::vector<const VolumeGeometryData*>& rVolumeGeometries,
+    const MomentFittingSettings& rSettings) const
+{
+    MomentFittedVolumeQuadratureResult result;
+    result.NumberOfVolumeGeometries = rVolumeGeometries.size();
+
+    KRATOS_ERROR_IF(rVolumeGeometries.empty())
+        << "Cannot moment-fit an empty Gap-SBM volume group.\n";
+    KRATOS_ERROR_IF(rSettings.PolynomialDegree == 0)
+        << "Moment fitting requires a positive spline degree.\n";
+    KRATOS_ERROR_IF(rSettings.CandidateIntegrationOrder == 0)
+        << "Moment fitting candidate integration order must be positive.\n";
+    KRATOS_ERROR_IF(
+        rSettings.MaximumCandidateIntegrationOrder <
+        rSettings.CandidateIntegrationOrder)
+        << "Maximum candidate integration order must not be smaller than "
+        << "the initial candidate order.\n";
+
+    for (const auto p_volume_data : rVolumeGeometries) {
+        KRATOS_ERROR_IF_NOT(p_volume_data)
+            << "Null deferred Gap-SBM volume data.\n";
+        KRATOS_ERROR_IF_NOT(p_volume_data->pVolumeGeometry)
+            << "Null deferred Gap-SBM volume geometry.\n";
+        KRATOS_ERROR_IF(p_volume_data->NeighbourGeometries.size() != 1)
+            << "Moment fitting groups require exactly one neighbour geometry.\n";
+    }
+
+    std::vector<ScaledMonomialExponent> monomial_exponents;
+    if (rSettings.UseTensorProductBasis) {
+        const std::size_t tensor_product_degree =
+            rSettings.TensorProductDegree >= 0
+                ? static_cast<std::size_t>(rSettings.TensorProductDegree)
+                : 2 * rSettings.PolynomialDegree;
+        monomial_exponents =
+            CreateScaledTensorProductMonomialExponents(
+                tensor_product_degree);
+    } else {
+        const std::size_t fitted_degree = rSettings.TotalDegree >= 0
+            ? static_cast<std::size_t>(rSettings.TotalDegree)
+            : 2 * rSettings.PolynomialDegree - 2;
+        monomial_exponents =
+            CreateScaledMonomialExponents(fitted_degree);
+    }
+    result.NumberOfMoments = monomial_exponents.size();
+
+    std::vector<PhysicalQuadraturePoint> reference_quadrature_points;
+    array_1d<double, 3> centroid_numerator = ZeroVector(3);
+    double reference_volume = 0.0;
+    for (const auto p_volume_data : rVolumeGeometries) {
+        const auto reference_points =
+            CreateOriginalPhysicalVolumeQuadrature(*p_volume_data);
+        result.NumberOfReferencePoints += reference_points.size();
+        reference_quadrature_points.reserve(
+            reference_quadrature_points.size() + reference_points.size());
+        for (const auto& r_reference_point : reference_points) {
+            const double weight = r_reference_point.Weight;
+            const auto& r_point = r_reference_point.Coordinates;
+            reference_volume += weight;
+            noalias(centroid_numerator) += weight * r_point;
+            result.ReferenceLinearMoments[0] += weight;
+            result.ReferenceLinearMoments[1] += weight * r_point[0];
+            result.ReferenceLinearMoments[2] += weight * r_point[1];
+            result.ReferenceLinearMoments[3] += weight * r_point[2];
+            reference_quadrature_points.push_back(r_reference_point);
+        }
+    }
+
+    if (!std::isfinite(reference_volume) ||
+        reference_volume <= MinimumGapVolumeForQuadrature) {
+        result.UsedFallback = true;
+        result.QuadraturePointGeometries =
+            CreateOriginalVolumeQuadrature(rVolumeGeometries);
+        result.ReferenceVolume = reference_volume;
+        result.FittedVolume = reference_volume;
+        return result;
+    }
+
+    const array_1d<double, 3> centroid =
+        centroid_numerator / reference_volume;
+    result.ReferenceVolume = reference_volume;
+
+    // A moment fit needs at least one selected point per independent
+    // moment.  If the original rule is already no larger than that lower
+    // bound, fitting cannot compress the group and only adds a costly rank
+    // selection/QR solve.  Keep the already materialized reference rule.
+    if (reference_quadrature_points.size() <= result.NumberOfMoments) {
+        result.UsedFallback = true;
+        result.NumberOfCandidatePoints = 0;
+        result.NumberOfSelectedPoints = 0;
+        result.EstimatedRank = 0;
+        result.RelativeMomentResidual = 0.0;
+        result.QuadraturePointGeometries =
+            MaterializePhysicalVolumeQuadrature(
+                reference_quadrature_points);
+        result.FittedVolume = reference_volume;
+        result.FittedLinearMoments = result.ReferenceLinearMoments;
+        result.MinimumWeight = std::numeric_limits<double>::max();
+        result.MaximumWeight = -std::numeric_limits<double>::max();
+        double absolute_weight_sum = 0.0;
+        for (const auto& r_point : reference_quadrature_points) {
+            result.MinimumWeight = std::min(
+                result.MinimumWeight,
+                r_point.Weight);
+            result.MaximumWeight = std::max(
+                result.MaximumWeight,
+                r_point.Weight);
+            absolute_weight_sum += std::abs(r_point.Weight);
+        }
+        result.AbsoluteWeightRatio = absolute_weight_sum /
+            std::max(
+                std::abs(reference_volume),
+                std::numeric_limits<double>::epsilon());
+        result.LastAttemptAbsoluteWeightRatio =
+            result.AbsoluteWeightRatio;
+        return result;
+    }
+
+    std::vector<array_1d<double, 3>> candidate_points;
+    Matrix candidate_matrix;
+    std::vector<std::size_t> selected_column_order;
+    double characteristic_length = 0.0;
+    std::size_t candidate_rank = 0;
+
+    for (std::size_t candidate_order =
+             rSettings.CandidateIntegrationOrder;
+         candidate_order <=
+             rSettings.MaximumCandidateIntegrationOrder;
+         ++candidate_order) {
+        candidate_points.clear();
+        for (const auto p_volume_data : rVolumeGeometries) {
+            IntegrationPointsArrayType candidate_integration_points(
+                candidate_order * candidate_order * candidate_order);
+            auto integration_point_it =
+                candidate_integration_points.begin();
+            IntegrationPointUtilities::IntegrationPoints3D(
+                integration_point_it,
+                candidate_order,
+                candidate_order,
+                candidate_order,
+                0.0,
+                1.0,
+                0.0,
+                1.0,
+                0.0,
+                1.0);
+            const auto candidate_quadrature =
+                CreateMappedPhysicalVolumeQuadrature(
+                    p_volume_data->pVolumeGeometry,
+                    candidate_integration_points);
+            candidate_points.reserve(
+                candidate_points.size() +
+                candidate_quadrature.size());
+            for (const auto& r_candidate_point : candidate_quadrature) {
+                candidate_points.push_back(r_candidate_point.Coordinates);
+            }
+        }
+
+        characteristic_length = 0.0;
+        for (const auto& r_candidate_point : candidate_points) {
+            characteristic_length = std::max(
+                characteristic_length,
+                norm_2(r_candidate_point - centroid));
+        }
+        characteristic_length = std::max(
+            characteristic_length,
+            std::numeric_limits<double>::epsilon());
+
+        candidate_matrix = BuildScaledMonomialMatrix(
+            candidate_points,
+            monomial_exponents,
+            centroid,
+            characteristic_length);
+        selected_column_order = SelectMomentMatrixColumns(
+            candidate_matrix,
+            rSettings.RankTolerance,
+            candidate_rank);
+
+        if (candidate_points.size() >= result.NumberOfMoments &&
+            candidate_rank == result.NumberOfMoments) {
+            break;
+        }
+    }
+
+    result.NumberOfCandidatePoints = candidate_points.size();
+    result.EstimatedRank = candidate_rank;
+
+    if (candidate_points.size() < result.NumberOfMoments ||
+        candidate_rank != result.NumberOfMoments) {
+        result.UsedFallback = true;
+        result.RelativeMomentResidual =
+            std::numeric_limits<double>::infinity();
+        result.QuadraturePointGeometries =
+            CreateOriginalVolumeQuadrature(rVolumeGeometries);
+    } else {
+        Vector moments(result.NumberOfMoments);
+        noalias(moments) = ZeroVector(result.NumberOfMoments);
+        for (const auto& r_reference_point : reference_quadrature_points) {
+            for (std::size_t moment_index = 0;
+                 moment_index < result.NumberOfMoments;
+                 ++moment_index) {
+                moments[moment_index] += r_reference_point.Weight *
+                    EvaluateScaledMonomial(
+                        r_reference_point.Coordinates,
+                        centroid,
+                        characteristic_length,
+                        monomial_exponents[moment_index]);
+            }
+        }
+
+        const std::size_t maximum_selected_points = std::min(
+            candidate_points.size(),
+            std::max(
+                result.NumberOfMoments,
+                rSettings.MaximumSelectedPointMultiplier *
+                    result.NumberOfMoments));
+        std::size_t selected_point_count = result.NumberOfMoments;
+        bool fitting_succeeded = false;
+        Vector fitted_weights;
+        Matrix selected_matrix;
+        std::vector<array_1d<double, 3>> selected_points;
+
+        while (selected_point_count <= maximum_selected_points) {
+            selected_matrix.resize(
+                result.NumberOfMoments,
+                selected_point_count,
+                false);
+            selected_points.resize(selected_point_count);
+            for (std::size_t selected_index = 0;
+                 selected_index < selected_point_count;
+                 ++selected_index) {
+                const std::size_t candidate_index =
+                    selected_column_order[selected_index];
+                selected_points[selected_index] =
+                    candidate_points[candidate_index];
+                for (std::size_t moment_index = 0;
+                     moment_index < result.NumberOfMoments;
+                     ++moment_index) {
+                    selected_matrix(moment_index, selected_index) =
+                        candidate_matrix(moment_index, candidate_index);
+                }
+            }
+
+            std::size_t qr_rank = 0;
+            const bool solve_succeeded =
+                SolveMinimumNormMomentSystemWithQr(
+                    selected_matrix,
+                    moments,
+                    rSettings.RankTolerance,
+                    fitted_weights,
+                    qr_rank);
+            result.EstimatedRank = qr_rank;
+            if (solve_succeeded) {
+                result.RelativeMomentResidual =
+                    CalculateRelativeMomentResidual(
+                        selected_matrix,
+                        fitted_weights,
+                        moments);
+                double fitted_weight_sum = 0.0;
+                double fitted_absolute_weight_sum = 0.0;
+                for (std::size_t point_index = 0;
+                     point_index < fitted_weights.size();
+                     ++point_index) {
+                    fitted_weight_sum += fitted_weights[point_index];
+                    fitted_absolute_weight_sum +=
+                        std::abs(fitted_weights[point_index]);
+                }
+                const double fitted_absolute_weight_ratio =
+                    fitted_absolute_weight_sum /
+                    std::max(
+                        std::abs(fitted_weight_sum),
+                        std::numeric_limits<double>::epsilon());
+                result.LastAttemptAbsoluteWeightRatio =
+                    fitted_absolute_weight_ratio;
+                fitting_succeeded =
+                    std::isfinite(result.RelativeMomentResidual) &&
+                    result.RelativeMomentResidual <=
+                        rSettings.ResidualTolerance &&
+                    std::isfinite(fitted_absolute_weight_ratio) &&
+                    fitted_absolute_weight_ratio <=
+                        rSettings.MaximumAbsoluteWeightRatio;
+            }
+
+            if (fitting_succeeded ||
+                selected_point_count == maximum_selected_points) {
+                break;
+            }
+
+            const std::size_t increased_point_count = std::max(
+                selected_point_count + 1,
+                selected_point_count +
+                    std::max<std::size_t>(2, result.NumberOfMoments / 2));
+            selected_point_count = std::min(
+                maximum_selected_points,
+                increased_point_count);
+        }
+
+        if (fitting_succeeded) {
+            result.NumberOfSelectedPoints = selected_points.size();
+            result.QuadraturePointGeometries.reserve(
+                selected_points.size());
+            for (std::size_t point_index = 0;
+                 point_index < selected_points.size();
+                 ++point_index) {
+                result.QuadraturePointGeometries.push_back(
+                    CreateSinglePointVolumeQuadraturePointGeometry(
+                        selected_points[point_index],
+                        fitted_weights[point_index]));
+            }
+        } else {
+            result.UsedFallback = true;
+            result.NumberOfSelectedPoints = 0;
+            result.QuadraturePointGeometries =
+                CreateOriginalVolumeQuadrature(rVolumeGeometries);
+        }
+    }
+
+    result.MinimumWeight = std::numeric_limits<double>::max();
+    result.MaximumWeight = -std::numeric_limits<double>::max();
+    double absolute_weight_sum = 0.0;
+    for (const auto& r_quadrature_geometry :
+         result.QuadraturePointGeometries) {
+        const double weight = ReadSinglePointQuadratureWeight(
+            r_quadrature_geometry);
+        const auto point =
+            r_quadrature_geometry.Center().Coordinates();
+        result.FittedVolume += weight;
+        absolute_weight_sum += std::abs(weight);
+        result.MinimumWeight = std::min(result.MinimumWeight, weight);
+        result.MaximumWeight = std::max(result.MaximumWeight, weight);
+        result.FittedLinearMoments[0] += weight;
+        result.FittedLinearMoments[1] += weight * point[0];
+        result.FittedLinearMoments[2] += weight * point[1];
+        result.FittedLinearMoments[3] += weight * point[2];
+    }
+    result.AbsoluteWeightRatio = absolute_weight_sum /
+        std::max(std::abs(result.FittedVolume),
+                 std::numeric_limits<double>::epsilon());
+
+    return result;
 }
 
 void SnakeGapSbm3DUtilities::RegisterType1LateralFace(
@@ -11559,6 +14369,77 @@ SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedTop(
     const NodePointerType& pNode1,
     const NodePointerType& pNode2) const
 {
+    if (mGapApproximationOrder == 3) {
+        auto get_oriented_cubic_edge = [this](
+            const NodePointerType& pFirst,
+            const NodePointerType& pSecond)
+        {
+            const auto p_cached_control_nodes =
+                FindCachedSkinEdgeControlNodes(pFirst, pSecond);
+            KRATOS_ERROR_IF_NOT(p_cached_control_nodes)
+                << "[SnakeGapSbm3DUtilities::"
+                << "CreateCollapsedTriangleSurfaceWithCurvedTop] Missing "
+                << "cubic edge controls.\n";
+            auto control_nodes = *p_cached_control_nodes;
+            KRATOS_ERROR_IF(control_nodes.size() != 4)
+                << "[SnakeGapSbm3DUtilities::"
+                << "CreateCollapsedTriangleSurfaceWithCurvedTop] A cubic "
+                << "edge requires four control nodes.\n";
+            if (control_nodes.front()->Id() != pFirst->Id()) {
+                std::reverse(control_nodes.begin(), control_nodes.end());
+            }
+            return control_nodes;
+        };
+
+        const auto edge_01 = get_oriented_cubic_edge(pNode0, pNode1);
+        const auto edge_12 = get_oriented_cubic_edge(pNode1, pNode2);
+        const auto edge_02 = get_oriented_cubic_edge(pNode0, pNode2);
+
+        PointerVector<NodeType> control_points;
+        for (std::size_t j = 0; j < 4; ++j) {
+            const double v = static_cast<double>(j) / 3.0;
+            for (std::size_t i = 0; i < 4; ++i) {
+                const double u = static_cast<double>(i) / 3.0;
+                if (j == 0) {
+                    control_points.push_back(edge_01[i]);
+                    continue;
+                }
+                if (j == 3) {
+                    control_points.push_back(pNode2);
+                    continue;
+                }
+                if (i == 0) {
+                    control_points.push_back(edge_02[j]);
+                    continue;
+                }
+                if (i == 3) {
+                    control_points.push_back(edge_12[j]);
+                    continue;
+                }
+
+                array_1d<double, 3> control_point =
+                    (1.0 - v) * edge_01[i]->Coordinates() +
+                    v * pNode2->Coordinates();
+                noalias(control_point) +=
+                    (1.0 - u) * edge_02[j]->Coordinates() +
+                    u * edge_12[j]->Coordinates();
+                noalias(control_point) -=
+                    (1.0 - u) * (1.0 - v) * pNode0->Coordinates() +
+                    u * (1.0 - v) * pNode1->Coordinates() +
+                    v * pNode2->Coordinates();
+                control_points.push_back(
+                    NodePointerType(new Node(0, control_point)));
+            }
+        }
+
+        return Kratos::make_shared<NurbsSurfaceType>(
+            control_points,
+            std::size_t(3),
+            std::size_t(3),
+            CreateOpenUnitKnotVector(3),
+            CreateOpenUnitKnotVector(3));
+    }
+
     KRATOS_ERROR_IF(mGapApproximationOrder != 2)
         << "[SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedTop] "
         << "Only quadratic collapsed top faces are implemented. Requested order: "
@@ -11708,43 +14589,33 @@ SnakeGapSbm3DUtilities::CreateType1GapGeometries(
             r_gap_type1_debug.AddGeometry(p_volume_geometry);
         }
 
-        GeometriesArrayType volume_quadrature_point_geometries;
-        if (mUsePyramidQuadratureForType1) {
-            volume_quadrature_point_geometries =
-                CreateAndTagPyramidVolumeQuadraturePointGeometries(
-                    r_face_data.Nodes,
-                    p_apex_node,
-                    GapVolumeIntegrationOrder);
-        } else {
-            volume_quadrature_point_geometries =
-                CreateAndTagVolumeQuadraturePointGeometries(
-                    p_volume_geometry,
-                    p_neighbour_geometry,
-                    GapVolumeIntegrationOrder,
-                    number_of_shape_functions_derivatives);
-        }
+        Type1VolumeQuadratureData type1_volume_data;
+        type1_volume_data.pVolumeGeometry = p_volume_geometry;
+        type1_volume_data.NeighbourGeometries.push_back(p_neighbour_geometry);
+        type1_volume_data.CharacteristicLength =
+            CalculateType1CharacteristicLength(
+                r_face_data,
+                p_apex_node);
+        type1_volume_data.IntegrationOrder = GapVolumeIntegrationOrder;
+        type1_volume_data.NumberOfShapeFunctionsDerivatives =
+            number_of_shape_functions_derivatives;
+        type1_volume_data.GapType = 1;
+        type1_volume_data.QuadratureRule = mUsePyramidQuadratureForType1
+            ? VolumeQuadratureRule::Pyramid
+            : VolumeQuadratureRule::NurbsVolume;
+        type1_volume_data.RuleNodes.assign(
+            r_face_data.Nodes.begin(),
+            r_face_data.Nodes.end());
+        type1_volume_data.RuleNodes.push_back(p_apex_node);
 
-        if (volume_quadrature_point_geometries.size() > 0) {
-            Type1VolumeQuadratureData type1_volume_data;
+        type1_volume_data.BaseNodes = r_face_data.Nodes;
+        type1_volume_data.pProjectionNode = p_apex_node;
+        type1_volume_data.ProjectionNodeId = projection_node_id;
+        type1_volume_data.SurrogateConditionId = r_face_data.pCondition->Id();
+        type1_volume_data.ExternalSpan = r_face_data.ExternalSpan;
 
-            type1_volume_data.VolumeQuadraturePointGeometries = std::move(volume_quadrature_point_geometries);
-
-            type1_volume_data.NeighbourGeometries.push_back(p_neighbour_geometry);
-
-            type1_volume_data.CharacteristicLength =
-                CalculateType1CharacteristicLength(
-                    r_face_data,
-                    p_apex_node);
-
-            type1_volume_data.BaseNodes = r_face_data.Nodes;
-            type1_volume_data.pProjectionNode = p_apex_node;
-
-            type1_volume_data.ProjectionNodeId = projection_node_id;
-            type1_volume_data.SurrogateConditionId = r_face_data.pCondition->Id();
-            type1_volume_data.ExternalSpan = r_face_data.ExternalSpan;
-
-            result.VolumeQuadratureDataList.emplace_back(std::move(type1_volume_data));
-        }
+        result.VolumeQuadratureDataList.emplace_back(
+            std::move(type1_volume_data));
 
         const std::array<std::array<IndexType, 2>, 4> edge_node_indices = {{
             {{0, 1}},
@@ -11914,8 +14785,6 @@ SnakeGapSbm3DUtilities::CreateCoonsSurfaceGaussPoints(
         raw_weight_sum += r_integration_point.Weight();
     }
 
-    const double exact_area = rGapSurface.Area();
-
     return integration_points;
 }
 
@@ -12044,6 +14913,18 @@ SnakeGapSbm3DUtilities::CreateSurfaceQuadraturePointGeometries(
     return surface_quadrature_point_geometries;
 }
 
+SnakeGapSbm3DUtilities::GeometriesArrayType
+SnakeGapSbm3DUtilities::CreateAdaptiveInterfaceSurfaceQuadrature(
+    const GeometryType::Pointer& pSurfaceGeometry,
+    const std::size_t IntegrationOrder,
+    const std::size_t NumberOfShapeFunctionsDerivatives) const
+{
+    return CreateSurfaceQuadraturePointGeometries(
+        pSurfaceGeometry,
+        IntegrationOrder,
+        NumberOfShapeFunctionsDerivatives);
+}
+
 bool SnakeGapSbm3DUtilities::ContainsNeighbourGeometry(
     const std::vector<Geometry<Node>::Pointer>& rNeighbourGeometries,
     const Geometry<Node>::Pointer& pCandidateNeighbourGeometry) const
@@ -12132,6 +15013,7 @@ SnakeGapSbm3DUtilities::CreateOpenLateralSurfaceQuadratureData(
             << "Null lateral surface geometry.\n";
 
         LateralSurfaceQuadratureData data;
+        data.pSurfaceGeometry = r_occurrence.pGeometry;
 
         data.SurfaceQuadraturePointGeometries =
             CreateSurfaceQuadraturePointGeometries(
@@ -12151,6 +15033,17 @@ SnakeGapSbm3DUtilities::CreateOpenLateralSurfaceQuadratureData(
             CalculateSurfaceCharacteristicLength(*r_occurrence.pGeometry);
 
         data.GapType = r_occurrence.GapType;
+        if (r_occurrence.GapType == 3 &&
+            r_occurrence.FaceNodes[0] &&
+            r_occurrence.FaceNodes[1] &&
+            r_occurrence.FaceNodes[2]) {
+            data.IsType3TopFace =
+                mCurvedTopFaceRegistry.find(SkinTopFaceKey(
+                    r_occurrence.FaceNodes[0]->Id(),
+                    r_occurrence.FaceNodes[1]->Id(),
+                    r_occurrence.FaceNodes[2]->Id())) !=
+                mCurvedTopFaceRegistry.end();
+        }
         data.SurrogateConditionId = r_occurrence.SurrogateConditionId;
         data.ExternalSpan = r_occurrence.ExternalSpan;
 
@@ -12213,6 +15106,7 @@ SnakeGapSbm3DUtilities::CreateInterfaceLateralSurfaceQuadratureData(
             << "Null lateral surface geometry.\n";
 
         LateralSurfaceQuadratureData data;
+        data.pSurfaceGeometry = r_reference_occurrence.pGeometry;
 
         data.SurfaceQuadraturePointGeometries =
             CreateSurfaceQuadraturePointGeometries(
@@ -12247,6 +15141,10 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 {
     SnakeGapSbm3DUtilities utilities(mEchoLevel);
     utilities.SetGapApproximationOrder(mGapApproximationOrder);
+    const ModelPart& r_initial_skin_model_part = TIsInnerLoop
+        ? *mpSkinModelPartInnerInitial
+        : *mpSkinModelPartOuterInitial;
+    utilities.SetInitialNurbsSkinModelPart(r_initial_skin_model_part);
     const Vector& knot_span_sizes = rSurrogateSubModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
     KRATOS_ERROR_IF(knot_span_sizes.size() < 3)
         << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: KNOT_SPAN_SIZES must contain at least three entries." << std::endl;
@@ -12255,13 +15153,14 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     const double max_knot_span_size = std::max(knot_span_sizes[0], std::max(knot_span_sizes[1], knot_span_sizes[2]));
     KRATOS_ERROR_IF(min_knot_span_size <= 0.0)
         << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: knot span sizes must be positive." << std::endl;
+    utilities.SetMaximumNurbsProjectionDistance(3.0 * max_knot_span_size);
 
     const double area_tol = 1.0e-12 * min_knot_span_size * min_knot_span_size;
     const double volume_tol = 1.0e-12 * min_knot_span_size * min_knot_span_size * min_knot_span_size;
     const double distance_tol = 1.0e-12 * min_knot_span_size;
     const double determinant_tol = 1.0e-14 * std::max(1.0, max_knot_span_size * max_knot_span_size * max_knot_span_size);
 
-    const std::size_t gap_volume_integration_order = mGapInterpolationOrder+1; //TODO: make this an input parameter
+    const std::size_t gap_volume_integration_order = mGapInterpolationOrder*2+1; //TODO: make this an input parameter
 
 
     ModelPart& r_root_model_part = mpIgaModelPart->GetRootModelPart();
@@ -12282,7 +15181,66 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     const bool use_triangle_radial_quadrature_for_curved_type3 =
         mThisParameters.Has("use_triangle_radial_quadrature_for_curved_type3")
             ? mThisParameters["use_triangle_radial_quadrature_for_curved_type3"].GetBool()
-            : true;
+            : false;
+    const bool use_moment_fitted_volume_quadrature =
+        mThisParameters["use_moment_fitted_volume_quadrature"].GetBool();
+    // Interface moment fitting is intentionally disabled: retain the
+    // original high-order surface quadrature and only batch conditions.
+    const bool use_moment_fitted_interface_quadrature = false;
+    const double interface_moment_fitting_rank_tolerance =
+        mThisParameters[
+            "interface_moment_fitting_rank_tolerance"].GetDouble();
+    const double interface_moment_fitting_residual_tolerance =
+        mThisParameters[
+            "interface_moment_fitting_residual_tolerance"].GetDouble();
+    KRATOS_ERROR_IF(
+        interface_moment_fitting_rank_tolerance <= 0.0 ||
+        interface_moment_fitting_residual_tolerance <= 0.0)
+        << "Interface moment-fitting tolerances must be positive.\n";
+
+    SnakeGapSbm3DUtilities::MomentFittingSettings moment_fitting_settings;
+    moment_fitting_settings.PolynomialDegree = mGapInterpolationOrder;
+    moment_fitting_settings.TotalDegree =
+        mThisParameters["moment_fitting_total_degree"].GetInt();
+    moment_fitting_settings.UseTensorProductBasis =
+        mThisParameters["moment_fitting_use_tensor_product_basis"].GetBool();
+    moment_fitting_settings.TensorProductDegree =
+        mThisParameters["moment_fitting_tensor_product_degree"].GetInt();
+    KRATOS_ERROR_IF(moment_fitting_settings.TotalDegree < -1 ||
+                    moment_fitting_settings.TensorProductDegree < -1)
+        << "Moment-fitting degree overrides must be -1 (automatic) or "
+        << "non-negative.\n";
+    const int candidate_integration_order =
+        mThisParameters["moment_fitting_candidate_integration_order"].GetInt();
+    const int maximum_candidate_integration_order =
+        mThisParameters["moment_fitting_maximum_candidate_integration_order"].GetInt();
+    const int maximum_selected_point_multiplier =
+        mThisParameters["moment_fitting_maximum_selected_point_multiplier"].GetInt();
+    KRATOS_ERROR_IF(candidate_integration_order < 1)
+        << "moment_fitting_candidate_integration_order must be positive.\n";
+    KRATOS_ERROR_IF(
+        maximum_candidate_integration_order < candidate_integration_order)
+        << "moment_fitting_maximum_candidate_integration_order must be at "
+        << "least moment_fitting_candidate_integration_order.\n";
+    KRATOS_ERROR_IF(maximum_selected_point_multiplier < 1)
+        << "moment_fitting_maximum_selected_point_multiplier must be positive.\n";
+    moment_fitting_settings.CandidateIntegrationOrder =
+        static_cast<std::size_t>(candidate_integration_order);
+    moment_fitting_settings.MaximumCandidateIntegrationOrder =
+        static_cast<std::size_t>(maximum_candidate_integration_order);
+    moment_fitting_settings.RankTolerance =
+        mThisParameters["moment_fitting_rank_tolerance"].GetDouble();
+    moment_fitting_settings.ResidualTolerance =
+        mThisParameters["moment_fitting_residual_tolerance"].GetDouble();
+    moment_fitting_settings.MaximumAbsoluteWeightRatio =
+        mThisParameters["moment_fitting_maximum_absolute_weight_ratio"].GetDouble();
+    moment_fitting_settings.MaximumSelectedPointMultiplier =
+        static_cast<std::size_t>(maximum_selected_point_multiplier);
+    KRATOS_ERROR_IF(moment_fitting_settings.RankTolerance <= 0.0 ||
+                    moment_fitting_settings.ResidualTolerance <= 0.0 ||
+                    moment_fitting_settings.MaximumAbsoluteWeightRatio < 1.0)
+        << "Moment-fitting tolerances must be positive and the maximum "
+        << "absolute weight ratio must be at least one.\n";
 
     utilities.SetStoreGapDebugGeometries(store_gap_debug_geometries);
     utilities.SetUsePyramidQuadratureForType1(
@@ -12305,7 +15263,9 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         << "  direct-mapped rule for curved type2: "
         << use_anisotropic_quadrature_for_curved_type2 << "\n"
         << "  triangle-radial rule for curved type3: "
-        << use_triangle_radial_quadrature_for_curved_type3 << "\n";
+        << use_triangle_radial_quadrature_for_curved_type3 << "\n"
+        << "  moment-fitted volume quadrature: "
+        << use_moment_fitted_volume_quadrature << "\n";
 
     ModelPart* p_gap_type1_debug = nullptr;
     ModelPart* p_gap_type2_debug = nullptr;
@@ -12412,6 +15372,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 
     const std::size_t brep_degree = p_nurbs_volume->PolynomialDegree(0);
     const std::size_t number_of_shape_functions_derivatives = 6 * brep_degree + 1;
+
     // if (mGapApproximationOrder == 0) {
     //     mGapApproximationOrder = brep_degree;
     // }
@@ -12553,22 +15514,6 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 
     auto p_properties = mpIgaModelPart->pGetProperties(1);
 
-    for (auto& r_type1_data : type1_creation_result.VolumeQuadratureDataList) {
-        this->CreateElements(
-            r_type1_data.VolumeQuadraturePointGeometries.ptr_begin(),
-            r_type1_data.VolumeQuadraturePointGeometries.ptr_end(),
-            *mpGapElementsSubModelPart,
-            std::string("GapSbmSolidElement"),
-            id_element,
-            p_properties,
-            r_type1_data.NeighbourGeometries,
-            r_type1_data.CharacteristicLength);
-        r_type1_data.VolumeQuadraturePointGeometries =
-            SnakeGapSbm3DUtilities::GeometriesArrayType();
-    }
-    std::vector<SnakeGapSbm3DUtilities::Type1VolumeQuadratureData>()
-        .swap(type1_creation_result.VolumeQuadratureDataList);
-
     std::map<SnakeGapSbm3DUtilities::SpanKey3D, std::size_t> type1_lateral_faces_per_span;
     for (const auto& r_type1_lateral_face : type1_creation_result.Type1LateralFaces) {
         ++type1_lateral_faces_per_span[r_type1_lateral_face.ExternalSpan];
@@ -12629,39 +15574,209 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     SnakeGapSbm3DUtilities::ExternalSpanDataMap()
         .swap(external_spans);
 
-    auto create_gap_elements_from_volume_quadrature = [&](
-        SnakeGapSbm3DUtilities::GeometriesArrayType& rVolumeQuadraturePointGeometries,
-        const std::vector<Geometry<Node>::Pointer>& rNeighbourGeometries,
-        const double CharacteristicLength)
-    {
-        if (rVolumeQuadraturePointGeometries.size() == 0) {
-            return;
-        }
-
-        this->CreateElements(
-            rVolumeQuadraturePointGeometries.ptr_begin(),
-            rVolumeQuadraturePointGeometries.ptr_end(),
-            *mpGapElementsSubModelPart,
-            std::string("GapSbmSolidElement"),
-            id_element,
-            p_properties,
-            rNeighbourGeometries,
-            CharacteristicLength);
-    };
-
-    KRATOS_WATCH("PRE ELEMENTS TYPE 2 & 3")
+    KRATOS_WATCH("PRE VOLUME MOMENT FITTING")
     utilities.FinalizeType2AndType3GapGeometries(
         r_root_model_part,
         rSkinSubModelPart,
         type2_creation_result,
         type3_creation_result,
         grid_info,
-        gap_volume_integration_order+2,
-        number_of_shape_functions_derivatives,
-        create_gap_elements_from_volume_quadrature);
+        gap_volume_integration_order,
+        number_of_shape_functions_derivatives);
 
-    KRATOS_WATCH("POST ELEMENTS TYPE 2 & 3")
+    struct VolumetricGeometryBatch
+    {
+        std::vector<const SnakeGapSbm3DUtilities::VolumeGeometryData*>
+            VolumeGeometries;
+        std::vector<Geometry<Node>::Pointer> NeighbourGeometries;
+        double CharacteristicLength = 0.0;
+    };
 
+    std::vector<const SnakeGapSbm3DUtilities::VolumeGeometryData*>
+        all_volume_geometries;
+    all_volume_geometries.reserve(
+        type1_creation_result.VolumeQuadratureDataList.size() +
+        type2_creation_result.VolumeQuadratureDataList.size() +
+        type3_creation_result.VolumeQuadratureDataList.size());
+    for (const auto& r_volume_data :
+         type1_creation_result.VolumeQuadratureDataList) {
+        all_volume_geometries.push_back(&r_volume_data);
+    }
+    for (const auto& r_volume_data :
+         type2_creation_result.VolumeQuadratureDataList) {
+        if (r_volume_data.RequiresQuadrature) {
+            all_volume_geometries.push_back(&r_volume_data);
+        }
+    }
+    for (const auto& r_volume_data :
+         type3_creation_result.VolumeQuadratureDataList) {
+        if (r_volume_data.RequiresQuadrature) {
+            all_volume_geometries.push_back(&r_volume_data);
+        }
+    }
+
+    std::vector<VolumetricGeometryBatch> volumetric_geometry_batches;
+    std::unordered_map<const Geometry<Node>*, std::size_t>
+        batch_index_by_neighbour;
+    for (const auto p_volume_data : all_volume_geometries) {
+        KRATOS_ERROR_IF_NOT(p_volume_data)
+            << "Null deferred Gap-SBM volume data.\n";
+        KRATOS_ERROR_IF(p_volume_data->NeighbourGeometries.size() != 1)
+            << "Gap-SBM volume grouping requires exactly one "
+            << "NEIGHBOUR_GEOMETRIES[0], got "
+            << p_volume_data->NeighbourGeometries.size() << ".\n";
+        KRATOS_ERROR_IF_NOT(p_volume_data->NeighbourGeometries.front())
+            << "Cannot group a Gap-SBM volume with a null neighbour geometry.\n";
+
+        const Geometry<Node>* p_neighbour_key =
+            p_volume_data->NeighbourGeometries.front().get();
+        const auto insertion = batch_index_by_neighbour.emplace(
+            p_neighbour_key,
+            volumetric_geometry_batches.size());
+        if (insertion.second) {
+            VolumetricGeometryBatch batch;
+            batch.NeighbourGeometries =
+                p_volume_data->NeighbourGeometries;
+            volumetric_geometry_batches.push_back(std::move(batch));
+        }
+
+        auto& r_batch =
+            volumetric_geometry_batches[insertion.first->second];
+        r_batch.VolumeGeometries.push_back(p_volume_data);
+        r_batch.CharacteristicLength = std::max(
+            r_batch.CharacteristicLength,
+            p_volume_data->CharacteristicLength);
+    }
+
+    std::size_t total_final_quadrature_points = 0;
+    std::size_t total_reference_quadrature_points = 0;
+    std::size_t number_of_fallback_groups = 0;
+    double total_moment_fitting_time = 0.0;
+
+    for (std::size_t group_index = 0;
+         group_index < volumetric_geometry_batches.size();
+         ++group_index) {
+        auto& r_batch = volumetric_geometry_batches[group_index];
+        SnakeGapSbm3DUtilities::MomentFittedVolumeQuadratureResult
+            fitting_result;
+
+        if (use_moment_fitted_volume_quadrature) {
+            const auto fitting_start_time =
+                std::chrono::steady_clock::now();
+            fitting_result = utilities.CreateMomentFittedVolumeQuadrature(
+                r_batch.VolumeGeometries,
+                moment_fitting_settings);
+            const auto fitting_end_time =
+                std::chrono::steady_clock::now();
+            total_moment_fitting_time +=
+                std::chrono::duration<double>(
+                    fitting_end_time - fitting_start_time).count();
+            total_reference_quadrature_points +=
+                fitting_result.NumberOfReferencePoints;
+            if (fitting_result.UsedFallback) {
+                ++number_of_fallback_groups;
+            }
+
+            KRATOS_INFO_IF("GapSbmVolumeMomentFitting", mEchoLevel > 2)
+                << "Group " << group_index << ":\n"
+                << "  volume geometries: "
+                << fitting_result.NumberOfVolumeGeometries << "\n"
+                << "  candidate points: "
+                << fitting_result.NumberOfCandidatePoints << "\n"
+                << "  selected fitted points: "
+                << fitting_result.NumberOfSelectedPoints << "\n"
+                << "  moments: " << fitting_result.NumberOfMoments << "\n"
+                << "  estimated rank: "
+                << fitting_result.EstimatedRank << "\n"
+                << "  relative moment residual: "
+                << fitting_result.RelativeMomentResidual << "\n"
+                << "  fitted/reference volume: "
+                << fitting_result.FittedVolume << " / "
+                << fitting_result.ReferenceVolume << "\n"
+                << "  absolute weight ratio: "
+                << fitting_result.AbsoluteWeightRatio << "\n"
+                << "  last attempted absolute weight ratio: "
+                << fitting_result.LastAttemptAbsoluteWeightRatio << "\n"
+                << "  min/max weight: "
+                << fitting_result.MinimumWeight << " / "
+                << fitting_result.MaximumWeight << "\n"
+                << "  reference [1,x,y,z]: "
+                << fitting_result.ReferenceLinearMoments << "\n"
+                << "  fitted [1,x,y,z]: "
+                << fitting_result.FittedLinearMoments << "\n"
+                << "  fallback: " << fitting_result.UsedFallback << "\n";
+        } else {
+            fitting_result.QuadraturePointGeometries =
+                utilities.CreateOriginalVolumeQuadrature(
+                    r_batch.VolumeGeometries);
+        }
+
+        KRATOS_ERROR_IF(
+            fitting_result.QuadraturePointGeometries.empty())
+            << "Gap-SBM volume group " << group_index
+            << " produced no quadrature points.\n";
+
+        total_final_quadrature_points +=
+            fitting_result.QuadraturePointGeometries.size();
+
+        std::vector<Geometry<Node>::Pointer> final_quadrature_geometries;
+        final_quadrature_geometries.reserve(
+            fitting_result.QuadraturePointGeometries.size());
+        for (auto geometry_it =
+                 fitting_result.QuadraturePointGeometries.ptr_begin();
+             geometry_it !=
+                 fitting_result.QuadraturePointGeometries.ptr_end();
+             ++geometry_it) {
+            final_quadrature_geometries.push_back(*geometry_it);
+        }
+        fitting_result.QuadraturePointGeometries =
+            SnakeGapSbm3DUtilities::GeometriesArrayType();
+
+        auto p_batched_geometry =
+            Kratos::make_shared<CouplingGeometry<Node>>(
+                std::move(final_quadrature_geometries));
+
+        SnakeGapSbm3DUtilities::GeometriesArrayType batched_geometries;
+        batched_geometries.push_back(p_batched_geometry);
+
+        this->CreateElements(
+            batched_geometries.ptr_begin(),
+            batched_geometries.ptr_end(),
+            *mpGapElementsSubModelPart,
+            std::string("GapSbmSolidElementVolumetric"),
+            id_element,
+            p_properties,
+            r_batch.NeighbourGeometries,
+            r_batch.CharacteristicLength);
+    }
+
+    if (mEchoLevel > 0) {
+        std::ostringstream volume_summary;
+        volume_summary
+            << "Gap-SBM deferred volume batching: "
+            << all_volume_geometries.size()
+            << " volume geometries grouped by NEIGHBOUR_GEOMETRIES[0] into "
+            << volumetric_geometry_batches.size()
+            << " GapSbmSolidElementVolumetric elements with "
+            << total_final_quadrature_points
+            << " final quadrature points";
+        if (use_moment_fitted_volume_quadrature) {
+            volume_summary
+                << " (reference points: "
+                << total_reference_quadrature_points
+                << ", fallback groups: "
+                << number_of_fallback_groups
+                << ", fitting time: "
+                << total_moment_fitting_time << " s)";
+        }
+        volume_summary << ".\n";
+        KRATOS_INFO("SnakeGapSbmProcess") << volume_summary.str();
+    }
+
+    KRATOS_WATCH("POST VOLUME MOMENT FITTING")
+
+    std::vector<SnakeGapSbm3DUtilities::Type1VolumeQuadratureData>()
+        .swap(type1_creation_result.VolumeQuadratureDataList);
     std::vector<SnakeGapSbm3DUtilities::Type2VolumeQuadratureData>()
         .swap(type2_creation_result.VolumeQuadratureDataList);
     std::vector<SnakeGapSbm3DUtilities::Type3VolumeQuadratureData>()
@@ -12779,7 +15894,8 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         << number_of_non_manifold_faces << "\n";
 
     //debug //FIXME:
-    const std::size_t gap_surface_integration_order = mGapInterpolationOrder + 3; //TODO: make this an input parameter
+    const std::size_t gap_surface_integration_order =
+        3 * mGapInterpolationOrder;
 
     auto open_lateral_surface_data_list = utilities.CreateOpenLateralSurfaceQuadratureData(
                                                     gap_surface_integration_order,
@@ -12804,6 +15920,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         array_1d<double, 3> Point0 = ZeroVector(3);
         array_1d<double, 3> Point1 = ZeroVector(3);
         array_1d<double, 3> Point2 = ZeroVector(3);
+        array_1d<double, 3> Normal = ZeroVector(3);
         array_1d<double, 3> Center = ZeroVector(3);
         double Radius = 0.0;
     };
@@ -12814,6 +15931,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     skin_triangle_center_points.reserve(rSkinSubModelPart.NumberOfConditions());
 
     double max_skin_triangle_radius = 0.0;
+    std::size_t number_of_skipped_degenerate_skin_triangles = 0;
 
     auto append_skin_triangle_projection_data = [&](
         const array_1d<double, 3>& rPoint0,
@@ -12824,6 +15942,28 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         data.Point0 = rPoint0;
         data.Point1 = rPoint1;
         data.Point2 = rPoint2;
+        const array_1d<double, 3> edge_01 = rPoint1 - rPoint0;
+        const array_1d<double, 3> edge_02 = rPoint2 - rPoint0;
+        const array_1d<double, 3> edge_12 = rPoint2 - rPoint1;
+        MathUtils<double>::CrossProduct(
+            data.Normal,
+            edge_01,
+            edge_02);
+        const double normal_norm = norm_2(data.Normal);
+        const double edge_length_squared = std::max({
+            inner_prod(edge_01, edge_01),
+            inner_prod(edge_02, edge_02),
+            inner_prod(edge_12, edge_12)});
+        const double relative_degeneracy_tolerance =
+            100.0 * std::numeric_limits<double>::epsilon();
+        if (edge_length_squared <=
+                std::numeric_limits<double>::min() ||
+            normal_norm <=
+                relative_degeneracy_tolerance * edge_length_squared) {
+            ++number_of_skipped_degenerate_skin_triangles;
+            return;
+        }
+        data.Normal /= normal_norm;
         noalias(data.Center) = (rPoint0 + rPoint1 + rPoint2) / 3.0;
 
         data.Radius = std::max({
@@ -12868,6 +16008,15 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
         << "No skin triangles available for open lateral projection.\n";
 
+    KRATOS_INFO_IF(
+        "SnakeGapSbm3DUtilities",
+        mEchoLevel > 0 &&
+            number_of_skipped_degenerate_skin_triangles > 0)
+        << "Skipped "
+        << number_of_skipped_degenerate_skin_triangles
+        << " degenerate skin triangles while building the open lateral "
+        << "projection search.\n";
+
     DynamicBins skin_triangle_center_bins(
         skin_triangle_center_points.begin(),
         skin_triangle_center_points.end());
@@ -12897,7 +16046,49 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         open_lateral_projection_node_tolerance *
         open_lateral_projection_node_tolerance;
 
-    NodePointerContainerType created_open_lateral_projection_nodes;
+    struct ProjectionNodeCell
+    {
+        long long X;
+        long long Y;
+        long long Z;
+
+        bool operator==(const ProjectionNodeCell& rOther) const
+        {
+            return X == rOther.X && Y == rOther.Y && Z == rOther.Z;
+        }
+    };
+
+    struct ProjectionNodeCellHasher
+    {
+        std::size_t operator()(const ProjectionNodeCell& rCell) const
+        {
+            std::size_t seed = std::hash<long long>{}(rCell.X);
+            seed ^= std::hash<long long>{}(rCell.Y) +
+                    0x9e3779b9 + (seed << 6) + (seed >> 2);
+            seed ^= std::hash<long long>{}(rCell.Z) +
+                    0x9e3779b9 + (seed << 6) + (seed >> 2);
+            return seed;
+        }
+    };
+
+    using ProjectionNodeCellMap = std::unordered_map<
+        ProjectionNodeCell,
+        NodePointerContainerType,
+        ProjectionNodeCellHasher>;
+
+    ProjectionNodeCellMap created_open_lateral_projection_node_cells;
+
+    auto projection_node_cell = [&](
+        const array_1d<double, 3>& rPoint) -> ProjectionNodeCell
+    {
+        return {
+            static_cast<long long>(std::floor(
+                rPoint[0] / open_lateral_projection_node_tolerance)),
+            static_cast<long long>(std::floor(
+                rPoint[1] / open_lateral_projection_node_tolerance)),
+            static_cast<long long>(std::floor(
+                rPoint[2] / open_lateral_projection_node_tolerance))};
+    };
 
     IndexType next_open_lateral_projection_node_id = 1;
     for (const auto& r_node : r_skin_root_model_part.Nodes()) {
@@ -12905,8 +16096,30 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
             std::max(next_open_lateral_projection_node_id, r_node.Id() + 1);
     }
 
+    SnakeGapSbm3DUtilities outer_initial_projection_utilities(mEchoLevel);
+    bool use_exact_open_lateral_projection_on_outer_initial = false;
+    if (mpSkinModelPartOuterInitial != nullptr) {
+        std::size_t number_of_outer_initial_surface_geometries = 0;
+        for (const auto& r_geometry : mpSkinModelPartOuterInitial->Geometries()) {
+            const auto p_surface = std::dynamic_pointer_cast<NurbsSurfaceType>(
+                mpSkinModelPartOuterInitial->pGetGeometry(r_geometry.Id()));
+            if (p_surface) {
+                ++number_of_outer_initial_surface_geometries;
+            }
+        }
+
+        if (number_of_outer_initial_surface_geometries > 0) {
+            outer_initial_projection_utilities.SetInitialNurbsSkinModelPart(
+                *mpSkinModelPartOuterInitial);
+            outer_initial_projection_utilities.SetMaximumNurbsProjectionDistance(
+                3.0 * max_knot_span_size);
+            use_exact_open_lateral_projection_on_outer_initial = true;
+        }
+    }
+
     auto find_closest_skin_projection = [&](
-        const Geometry<Node>& rQuadratureGeometry) -> array_1d<double, 3>
+        const Geometry<Node>& rQuadratureGeometry,
+        array_1d<double, 3>& rProjectionNormal) -> array_1d<double, 3>
     {
         const auto quadrature_center = rQuadratureGeometry.Center();
 
@@ -12954,6 +16167,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
             if (distance_squared < closest_distance_squared) {
                 closest_distance_squared = distance_squared;
                 closest_point = candidate_point;
+                rProjectionNormal = rSkinTriangle.Normal;
             }
         };
 
@@ -13000,11 +16214,48 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
             << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
             << "Failed to project an open lateral quadrature center onto the skin.\n";
 
+        if (use_exact_open_lateral_projection_on_outer_initial) {
+            const double triangle_projection_distance =
+                std::sqrt(closest_distance_squared);
+            const double local_nurbs_projection_cutoff = std::min(
+                3.0 * max_knot_span_size,
+                triangle_projection_distance +
+                    0.25 * max_skin_triangle_radius);
+            outer_initial_projection_utilities
+                .SetMaximumNurbsProjectionDistance(
+                    local_nurbs_projection_cutoff);
+
+            array_1d<double, 3> exact_projection = ZeroVector(3);
+            array_1d<double, 3> exact_normal = ZeroVector(3);
+            double exact_projection_distance =
+                std::numeric_limits<double>::max();
+            if (outer_initial_projection_utilities
+                    .TryProjectPointToInitialNurbsSkin(
+                        quadrature_center_coordinates,
+                        exact_projection,
+                        exact_projection_distance,
+                        &exact_normal)) {
+                const array_1d<double, 3> projection_direction =
+                    quadrature_center_coordinates - exact_projection;
+                const double projection_direction_norm =
+                    norm_2(projection_direction);
+                const double direction_tolerance =
+                    1.0e-12 * std::max(1.0, max_knot_span_size);
+                if (projection_direction_norm > direction_tolerance) {
+                    exact_normal =
+                        projection_direction / projection_direction_norm;
+                }
+                rProjectionNormal = exact_normal;
+                return exact_projection;
+            }
+        }
+
         return closest_point;
     };
 
     auto find_or_create_open_lateral_projection_node = [&](
-        const array_1d<double, 3>& rProjectionPoint) -> NodeType::Pointer
+        const array_1d<double, 3>& rProjectionPoint,
+        const array_1d<double, 3>& rProjectionNormal) -> NodeType::Pointer
     {
         auto add_to_skin_sub_model_part_if_needed = [&](
             const NodeType::Pointer& pNode) -> NodeType::Pointer
@@ -13017,15 +16268,44 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                 rSkinSubModelPart.AddNode(pNode);
             }
 
+            pNode->SetValue(NORMAL, rProjectionNormal);
+            pNode->SetValue(
+                IDENTIFIER,
+                TIsInnerLoop ? "inner" : "outer");
             return pNode;
         };
 
-        for (const auto& p_created_node : created_open_lateral_projection_nodes) {
-            const array_1d<double, 3> delta =
-                p_created_node->Coordinates() - rProjectionPoint;
-            if (inner_prod(delta, delta) <=
-                open_lateral_projection_node_tolerance_squared) {
-                return add_to_skin_sub_model_part_if_needed(p_created_node);
+        const ProjectionNodeCell point_cell =
+            projection_node_cell(rProjectionPoint);
+
+        // Points within one tolerance can only be in the same cell or in one
+        // of its 26 neighbours. This avoids the previous linear scan over all
+        // projection nodes, which made this loop quadratic.
+        for (long long i = -1; i <= 1; ++i) {
+            for (long long j = -1; j <= 1; ++j) {
+                for (long long k = -1; k <= 1; ++k) {
+                    const ProjectionNodeCell candidate_cell{
+                        point_cell.X + i,
+                        point_cell.Y + j,
+                        point_cell.Z + k};
+                    const auto cell_it =
+                        created_open_lateral_projection_node_cells.find(
+                            candidate_cell);
+                    if (cell_it ==
+                        created_open_lateral_projection_node_cells.end()) {
+                        continue;
+                    }
+
+                    for (const auto& p_created_node : cell_it->second) {
+                        const array_1d<double, 3> delta =
+                            p_created_node->Coordinates() - rProjectionPoint;
+                        if (inner_prod(delta, delta) <=
+                            open_lateral_projection_node_tolerance_squared) {
+                            return add_to_skin_sub_model_part_if_needed(
+                                p_created_node);
+                        }
+                    }
+                }
             }
         }
 
@@ -13068,7 +16348,12 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
             rProjectionPoint[1],
             rProjectionPoint[2]);
 
-        created_open_lateral_projection_nodes.push_back(p_projection_node);
+        p_projection_node->SetValue(NORMAL, rProjectionNormal);
+        p_projection_node->SetValue(
+            IDENTIFIER,
+            TIsInnerLoop ? "inner" : "outer");
+        created_open_lateral_projection_node_cells[point_cell].push_back(
+            p_projection_node);
 
         return p_projection_node;
     };
@@ -13086,10 +16371,34 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 
     std::size_t number_of_open_lateral_projection_nodes = 0;
     double max_open_lateral_projection_distance = 0.0;
+    double max_open_type3_top_projection_distance = 0.0;
+    double max_open_non_type3_top_projection_distance = 0.0;
+    array_1d<double, 3> worst_open_lateral_quadrature_center = ZeroVector(3);
+    array_1d<double, 3> worst_open_lateral_projected_point = ZeroVector(3);
+    int worst_open_lateral_gap_type = 0;
+    bool worst_open_lateral_is_type3_top_face = false;
+    IndexType worst_open_lateral_surrogate_condition_id = 0;
+    SnakeGapSbm3DUtilities::SpanKey3D worst_open_lateral_external_span;
+    double worst_open_lateral_characteristic_length = 0.0;
 
     std::string gap_condition_name = "GapSbmSolidCondition"; //TODO: connect it with the json
+    // std::string gap_condition_name =
+    //     "GapSbmEnhancedSolidCondition"; //TODO: connect it with the json
 
-    // std::string gap_condition_name = "GapSbmEnhancedSolidCondition"; //TODO: connect it with the json
+    struct OpenLateralConditionBatch
+    {
+        std::vector<Geometry<Node>::Pointer> QuadratureGeometries;
+        std::vector<Geometry<Node>::Pointer> NeighbourGeometries;
+        std::string ConditionName;
+        double CharacteristicLength = 0.0;
+    };
+    std::vector<OpenLateralConditionBatch> open_lateral_batches;
+    std::unordered_map<const Geometry<Node>*, std::size_t>
+        dirichlet_batch_by_neighbour;
+    std::unordered_map<const Geometry<Node>*, std::size_t>
+        neumann_batch_by_neighbour;
+    constexpr bool use_open_lateral_condition_batching = false;
+    constexpr std::size_t open_lateral_batch_size = 8;
     
     for (auto& r_lateral_data : open_lateral_surface_data_list) {
         if (r_lateral_data.SurfaceQuadraturePointGeometries.size() == 0) {
@@ -13100,8 +16409,38 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 
         for (auto& r_quadrature_geometry :
              r_lateral_data.SurfaceQuadraturePointGeometries) {
+            array_1d<double, 3> projection_normal = ZeroVector(3);
             const array_1d<double, 3> projected_point =
-                find_closest_skin_projection(r_quadrature_geometry);
+                find_closest_skin_projection(
+                    r_quadrature_geometry,
+                    projection_normal);
+            KRATOS_ERROR_IF(
+                norm_2(projection_normal) <=
+                std::numeric_limits<double>::epsilon())
+                << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+                << "Could not determine the true skin normal at an open "
+                << "lateral projection point.\n";
+
+            const auto quadrature_method =
+                r_quadrature_geometry.GetDefaultIntegrationMethod();
+            auto surrogate_normal =
+                r_quadrature_geometry.Normal(0, quadrature_method);
+            const double surrogate_normal_norm = norm_2(surrogate_normal);
+            KRATOS_ERROR_IF(
+                surrogate_normal_norm <=
+                std::numeric_limits<double>::epsilon())
+                << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
+                << "Zero surrogate normal at an open lateral quadrature "
+                << "point.\n";
+            surrogate_normal /= surrogate_normal_norm;
+
+            const double normal_dot =
+                inner_prod(projection_normal, surrogate_normal);
+            const bool must_reverse_projection_normal =
+                TIsInnerLoop ? normal_dot > 0.0 : normal_dot < 0.0;
+            if (must_reverse_projection_normal) {
+                projection_normal = -projection_normal;
+            }
 
             const auto quadrature_center = r_quadrature_geometry.Center();
             array_1d<double, 3> quadrature_center_coordinates = ZeroVector(3);
@@ -13109,38 +16448,144 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
             quadrature_center_coordinates[1] = quadrature_center.Y();
             quadrature_center_coordinates[2] = quadrature_center.Z();
 
-            max_open_lateral_projection_distance = std::max(
-                max_open_lateral_projection_distance,
-                norm_2(projected_point - quadrature_center_coordinates));
+            const double projection_distance =
+                norm_2(projected_point - quadrature_center_coordinates);
+            if (r_lateral_data.IsType3TopFace) {
+                max_open_type3_top_projection_distance = std::max(
+                    max_open_type3_top_projection_distance,
+                    projection_distance);
+            } else {
+                max_open_non_type3_top_projection_distance = std::max(
+                    max_open_non_type3_top_projection_distance,
+                    projection_distance);
+            }
+            if (projection_distance > max_open_lateral_projection_distance) {
+                max_open_lateral_projection_distance = projection_distance;
+                worst_open_lateral_quadrature_center =
+                    quadrature_center_coordinates;
+                worst_open_lateral_projected_point = projected_point;
+                worst_open_lateral_gap_type = r_lateral_data.GapType;
+                worst_open_lateral_is_type3_top_face =
+                    r_lateral_data.IsType3TopFace;
+                worst_open_lateral_surrogate_condition_id =
+                    r_lateral_data.SurrogateConditionId;
+                worst_open_lateral_external_span =
+                    r_lateral_data.ExternalSpan;
+                worst_open_lateral_characteristic_length =
+                    r_lateral_data.CharacteristicLength;
+            }
 
             const auto p_projection_node =
-                find_or_create_open_lateral_projection_node(projected_point);
+                find_or_create_open_lateral_projection_node(
+                    projected_point,
+                    projection_normal);
 
             set_projection_node(
                 r_quadrature_geometry,
                 p_projection_node);
             ++number_of_open_lateral_projection_nodes;
 
-            if (projected_point[2] > 1.0)
+            if (projected_point[2] > 1.0) {
+            // if (projected_point[2] > 0.35) {
                 current_gap_condition_name = "GapSbmLoadSolidCondition";
-                // current_gap_condition_name = "GapSbmEnhancedLoadSolidCondition";
-
-            // if (projected_point[2] > 0.35)
-            //     // current_gap_condition_name = "GapSbmEnhancedLoadSolidCondition";
-            //     current_gap_condition_name = "GapSbmLoadSolidCondition";
+                // current_gap_condition_name =
+                //     "GapSbmEnhancedLoadSolidCondition";
+            }
         }
     
+        KRATOS_ERROR_IF(r_lateral_data.NeighbourGeometries.size() != 1 ||
+                        !r_lateral_data.NeighbourGeometries.front())
+            << "Open lateral condition creation requires exactly one "
+            << "non-null neighbour geometry.\n";
+        if (!use_open_lateral_condition_batching) {
+            this->CreateConditions(
+                r_lateral_data.SurfaceQuadraturePointGeometries.ptr_begin(),
+                r_lateral_data.SurfaceQuadraturePointGeometries.ptr_end(),
+                r_gap_conditions_model_part,
+                current_gap_condition_name,
+                id_condition,
+                PropertiesPointerType(),
+                knot_span_sizes,
+                r_lateral_data.NeighbourGeometries,
+                r_lateral_data.CharacteristicLength);
+            continue;
+        }
+        const bool is_neumann =
+            current_gap_condition_name == "GapSbmLoadSolidCondition" ||
+            current_gap_condition_name ==
+                "GapSbmEnhancedLoadSolidCondition";
+        auto& r_batch_indices = is_neumann
+            ? neumann_batch_by_neighbour
+            : dirichlet_batch_by_neighbour;
+        const Geometry<Node>* p_neighbour =
+            r_lateral_data.NeighbourGeometries.front().get();
+        for (auto geometry_it =
+                 r_lateral_data.SurfaceQuadraturePointGeometries.ptr_begin();
+             geometry_it !=
+                 r_lateral_data.SurfaceQuadraturePointGeometries.ptr_end();
+             ++geometry_it) {
+            auto insertion = r_batch_indices.emplace(
+                p_neighbour,
+                open_lateral_batches.size());
+            if (!insertion.second &&
+                open_lateral_batches[insertion.first->second]
+                        .QuadratureGeometries.size() >=
+                    open_lateral_batch_size) {
+                insertion.first->second = open_lateral_batches.size();
+                insertion.second = true;
+            }
+            if (insertion.second) {
+                OpenLateralConditionBatch batch;
+                batch.NeighbourGeometries =
+                    r_lateral_data.NeighbourGeometries;
+                batch.ConditionName = is_neumann
+                    ? current_gap_condition_name + "Batched"
+                    : "GapSbmEnhancedSolidConditionBatched";
+                batch.CharacteristicLength =
+                    r_lateral_data.CharacteristicLength;
+                batch.QuadratureGeometries.reserve(
+                    open_lateral_batch_size);
+                open_lateral_batches.emplace_back(std::move(batch));
+            }
+            auto& r_batch =
+                open_lateral_batches[insertion.first->second];
+            r_batch.CharacteristicLength = std::max(
+                r_batch.CharacteristicLength,
+                r_lateral_data.CharacteristicLength);
+            r_batch.QuadratureGeometries.push_back(*geometry_it);
+        }
+
+        r_lateral_data.SurfaceQuadraturePointGeometries =
+            SnakeGapSbm3DUtilities::GeometriesArrayType();
+    }
+
+    std::size_t number_of_batched_open_lateral_points = 0;
+    for (auto& r_batch : open_lateral_batches) {
+        number_of_batched_open_lateral_points +=
+            r_batch.QuadratureGeometries.size();
+        auto p_batched_geometry =
+            Kratos::make_shared<CouplingGeometry<Node>>(
+                std::move(r_batch.QuadratureGeometries));
+        SnakeGapSbm3DUtilities::GeometriesArrayType batched_geometries;
+        batched_geometries.push_back(p_batched_geometry);
         this->CreateConditions(
-            r_lateral_data.SurfaceQuadraturePointGeometries.ptr_begin(),
-            r_lateral_data.SurfaceQuadraturePointGeometries.ptr_end(),
+            batched_geometries.ptr_begin(),
+            batched_geometries.ptr_end(),
             r_gap_conditions_model_part,
-            current_gap_condition_name,
+            r_batch.ConditionName,
             id_condition,
             PropertiesPointerType(),
             knot_span_sizes,
-            r_lateral_data.NeighbourGeometries,
-            r_lateral_data.CharacteristicLength);
+            r_batch.NeighbourGeometries,
+            r_batch.CharacteristicLength);
     }
+
+    KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 0)
+        << "Open lateral batching: "
+        << number_of_batched_open_lateral_points
+        << " quadrature points grouped into "
+        << open_lateral_batches.size()
+        << " compact conditions.\n";
 
     KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 2)
         << "Set " << number_of_open_lateral_projection_nodes
@@ -13148,26 +16593,397 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 
     KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel >= 0)
         << "Maximum open lateral quadrature-to-skin projection distance: "
-        << max_open_lateral_projection_distance << "\n";
+        << max_open_lateral_projection_distance << "\n"
+        << "  maximum type3 top-face projection distance: "
+        << max_open_type3_top_projection_distance << "\n"
+        << "  maximum non-type3-top projection distance: "
+        << max_open_non_type3_top_projection_distance << "\n";
 
+    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 1)
+        << "Worst open lateral projection diagnostic:\n"
+        << "  quadrature center: "
+        << worst_open_lateral_quadrature_center << "\n"
+        << "  projected point: "
+        << worst_open_lateral_projected_point << "\n"
+        << "  gap type: "
+        << worst_open_lateral_gap_type << "\n"
+        << "  is type3 top face: "
+        << worst_open_lateral_is_type3_top_face << "\n"
+        << "  surrogate condition id: "
+        << worst_open_lateral_surrogate_condition_id << "\n"
+        << "  external span: "
+        << utilities.SpanToString(worst_open_lateral_external_span) << "\n"
+        << "  lateral characteristic length: "
+        << worst_open_lateral_characteristic_length << "\n";
+
+    std::vector<SnakeGapSbm3DUtilities::LateralSurfaceQuadratureData>()
+        .swap(open_lateral_surface_data_list);
 
     // //TODO: interface conditions on lateral surfaces
+    const std::size_t interface_candidate_integration_order =
+        mGapInterpolationOrder + 1;
+    const std::size_t interface_reference_integration_order =
+        2 * mGapInterpolationOrder + 1;
     auto interface_lateral_surface_data_list =
-                                                utilities.CreateInterfaceLateralSurfaceQuadratureData(
-                                                    gap_surface_integration_order,
-                                                    number_of_shape_functions_derivatives);
+        utilities.CreateInterfaceLateralSurfaceQuadratureData(
+            use_moment_fitted_interface_quadrature
+                ? interface_candidate_integration_order
+                : gap_surface_integration_order,
+            number_of_shape_functions_derivatives);
+    std::vector<SnakeGapSbm3DUtilities::LateralSurfaceQuadratureData>
+        interface_reference_surface_data_list;
+    if (use_moment_fitted_interface_quadrature) {
+        interface_reference_surface_data_list =
+            utilities.CreateInterfaceLateralSurfaceQuadratureData(
+                interface_reference_integration_order,
+                number_of_shape_functions_derivatives);
+    }
 
-    for (auto& r_interface_data : interface_lateral_surface_data_list) {
-        this->CreateConditions(
-            r_interface_data.SurfaceQuadraturePointGeometries.ptr_begin(),
-            r_interface_data.SurfaceQuadraturePointGeometries.ptr_end(),
-            *mpGapInterfaceSubModelPart,
-            mGapInterfaceConditionName,
-            id_condition,
-            PropertiesPointerType(),
-            knot_span_sizes,
-            r_interface_data.NeighbourGeometries,
-            r_interface_data.CharacteristicLength);
+    if (mGapInterfaceConditionName ==
+        "GapSbmSolidInterfaceCondition") {
+        struct OrderedInterfaceGeometryPair
+        {
+            const Geometry<Node>* pPlus = nullptr;
+            const Geometry<Node>* pMinus = nullptr;
+
+            bool operator==(
+                const OrderedInterfaceGeometryPair& rOther) const
+            {
+                return pPlus == rOther.pPlus &&
+                    pMinus == rOther.pMinus;
+            }
+        };
+
+        struct OrderedInterfaceGeometryPairHash
+        {
+            std::size_t operator()(
+                const OrderedInterfaceGeometryPair& rKey) const
+            {
+                const std::size_t plus_hash =
+                    std::hash<const Geometry<Node>*>{}(rKey.pPlus);
+                const std::size_t minus_hash =
+                    std::hash<const Geometry<Node>*>{}(rKey.pMinus);
+                return plus_hash ^
+                    (minus_hash + 0x9e3779b9 +
+                     (plus_hash << 6) + (plus_hash >> 2));
+            }
+        };
+
+        struct InterfaceConditionBatch
+        {
+            std::vector<Geometry<Node>::Pointer>
+                QuadraturePointGeometries;
+            std::vector<Geometry<Node>::Pointer>
+                NeighbourGeometries;
+            double CharacteristicLength = 0.0;
+        };
+
+        std::vector<InterfaceConditionBatch> interface_batches;
+        std::unordered_map<
+            OrderedInterfaceGeometryPair,
+            std::size_t,
+            OrderedInterfaceGeometryPairHash>
+            batch_index_by_ordered_neighbours;
+        std::size_t number_of_interface_quadrature_points = 0;
+        std::size_t number_of_interface_reference_points = 0;
+        std::size_t number_of_fitted_interface_quadrature_points = 0;
+        std::size_t number_of_interface_fallback_groups = 0;
+        std::size_t number_of_adapted_interface_faces = 0;
+        std::size_t maximum_interface_candidate_order =
+            interface_candidate_integration_order;
+        double interface_moment_fitting_time = 0.0;
+
+        if (use_moment_fitted_interface_quadrature) {
+            KRATOS_ERROR_IF(
+                interface_lateral_surface_data_list.size() !=
+                interface_reference_surface_data_list.size())
+                << "Candidate and reference interface quadrature contain "
+                << "different numbers of faces: "
+                << interface_lateral_surface_data_list.size() << " and "
+                << interface_reference_surface_data_list.size() << ".\n";
+
+            for (std::size_t face_index = 0;
+                 face_index < interface_lateral_surface_data_list.size();
+                 ++face_index) {
+                auto& r_candidate_data =
+                    interface_lateral_surface_data_list[face_index];
+                auto& r_reference_data =
+                    interface_reference_surface_data_list[face_index];
+                KRATOS_ERROR_IF(
+                    r_candidate_data.NeighbourGeometries.size() != 2 ||
+                    r_reference_data.NeighbourGeometries.size() != 2 ||
+                    r_candidate_data.NeighbourGeometries[0].get() !=
+                        r_reference_data.NeighbourGeometries[0].get() ||
+                    r_candidate_data.NeighbourGeometries[1].get() !=
+                        r_reference_data.NeighbourGeometries[1].get())
+                    << "Candidate/reference interface face mismatch at "
+                    << "face " << face_index << ".\n";
+
+                std::vector<Geometry<Node>::Pointer>
+                    reference_geometries;
+                reference_geometries.reserve(
+                    r_reference_data
+                        .SurfaceQuadraturePointGeometries.size());
+                for (auto geometry_it = r_reference_data
+                         .SurfaceQuadraturePointGeometries.ptr_begin();
+                     geometry_it != r_reference_data
+                         .SurfaceQuadraturePointGeometries.ptr_end();
+                     ++geometry_it) {
+                    reference_geometries.push_back(*geometry_it);
+                }
+
+                const auto fitting_start_time =
+                    std::chrono::steady_clock::now();
+                InterfaceMomentFittingResult fitting_result;
+                double validation_residual =
+                    std::numeric_limits<double>::infinity();
+                std::size_t accepted_order =
+                    interface_candidate_integration_order;
+                for (std::size_t candidate_order =
+                         interface_candidate_integration_order;
+                     candidate_order <=
+                         interface_reference_integration_order;
+                     ++candidate_order) {
+                    if (candidate_order !=
+                        interface_candidate_integration_order) {
+                        KRATOS_ERROR_IF_NOT(
+                            r_candidate_data.pSurfaceGeometry)
+                            << "Missing interface surface geometry for "
+                            << "adaptive quadrature.\n";
+                        r_candidate_data
+                            .SurfaceQuadraturePointGeometries =
+                            utilities.CreateAdaptiveInterfaceSurfaceQuadrature(
+                                r_candidate_data.pSurfaceGeometry,
+                                candidate_order,
+                                number_of_shape_functions_derivatives);
+                    }
+
+                    std::vector<Geometry<Node>::Pointer>
+                        candidate_geometries;
+                    candidate_geometries.reserve(
+                        r_candidate_data
+                            .SurfaceQuadraturePointGeometries.size());
+                    for (auto geometry_it = r_candidate_data
+                             .SurfaceQuadraturePointGeometries.ptr_begin();
+                         geometry_it != r_candidate_data
+                             .SurfaceQuadraturePointGeometries.ptr_end();
+                         ++geometry_it) {
+                        candidate_geometries.push_back(*geometry_it);
+                    }
+
+                    fitting_result =
+                        CreateMomentFittedInterfaceQuadrature(
+                            candidate_geometries,
+                            reference_geometries,
+                            candidate_order - 1,
+                            interface_moment_fitting_rank_tolerance,
+                            interface_moment_fitting_residual_tolerance);
+                    validation_residual =
+                        CalculateInterfaceGeometricValidationResidual(
+                            fitting_result.QuadraturePointGeometries,
+                            reference_geometries,
+                            mGapInterpolationOrder);
+                    accepted_order = candidate_order;
+                    if (std::isfinite(validation_residual) &&
+                        validation_residual <=
+                            interface_moment_fitting_residual_tolerance) {
+                        break;
+                    }
+                    KRATOS_ERROR_IF(
+                        candidate_order ==
+                        interface_reference_integration_order)
+                        << "Adaptive interface quadrature failed at the "
+                        << "reference order " << candidate_order
+                        << " with geometric validation residual "
+                        << validation_residual << ".\n";
+                }
+                const auto fitting_end_time =
+                    std::chrono::steady_clock::now();
+                interface_moment_fitting_time +=
+                    std::chrono::duration<double>(
+                        fitting_end_time - fitting_start_time).count();
+                number_of_interface_reference_points +=
+                    fitting_result.NumberOfReferencePoints;
+                number_of_fitted_interface_quadrature_points +=
+                    fitting_result.NumberOfSelectedPoints;
+                if (accepted_order >
+                    interface_candidate_integration_order) {
+                    ++number_of_adapted_interface_faces;
+                }
+                maximum_interface_candidate_order = std::max(
+                    maximum_interface_candidate_order,
+                    accepted_order);
+
+                KRATOS_INFO_IF(
+                    "GapSbmInterfaceMomentFitting",
+                    mEchoLevel > 2)
+                    << "Interface face: candidate/reference/final points "
+                    << fitting_result.NumberOfCandidatePoints << " / "
+                    << fitting_result.NumberOfReferencePoints << " / "
+                    << fitting_result.NumberOfSelectedPoints
+                    << ", moments/rank "
+                    << fitting_result.NumberOfMoments << " / "
+                    << fitting_result.EstimatedRank
+                    << ", residual "
+                    << fitting_result.RelativeResidual
+                    << ", geometric validation residual "
+                    << validation_residual
+                    << ", accepted order " << accepted_order
+                    << ", min/max weight "
+                    << fitting_result.MinimumWeight << " / "
+                    << fitting_result.MaximumWeight << ".\n";
+
+                SnakeGapSbm3DUtilities::GeometriesArrayType
+                    fitted_geometries;
+                for (const auto& p_geometry :
+                     fitting_result.QuadraturePointGeometries) {
+                    fitted_geometries.push_back(p_geometry);
+                }
+                r_candidate_data.SurfaceQuadraturePointGeometries =
+                    std::move(fitted_geometries);
+                r_reference_data.SurfaceQuadraturePointGeometries =
+                    SnakeGapSbm3DUtilities::GeometriesArrayType();
+            }
+        }
+
+        for (auto& r_interface_data :
+             interface_lateral_surface_data_list) {
+            if (r_interface_data
+                    .SurfaceQuadraturePointGeometries.size() == 0) {
+                continue;
+            }
+            KRATOS_ERROR_IF(
+                r_interface_data.NeighbourGeometries.size() != 2)
+                << "[SnakeGapSbmProcess::"
+                << "CreateSbmExtendedGeometries3D] Interface batching "
+                << "requires exactly two ordered "
+                << "NEIGHBOUR_GEOMETRIES entries, got "
+                << r_interface_data.NeighbourGeometries.size()
+                << ".\n";
+            KRATOS_ERROR_IF_NOT(
+                r_interface_data.NeighbourGeometries[0])
+                << "Cannot batch an interface with a null plus-side "
+                << "neighbour geometry.\n";
+            KRATOS_ERROR_IF_NOT(
+                r_interface_data.NeighbourGeometries[1])
+                << "Cannot batch an interface with a null minus-side "
+                << "neighbour geometry.\n";
+
+            const OrderedInterfaceGeometryPair key{
+                r_interface_data.NeighbourGeometries[0].get(),
+                r_interface_data.NeighbourGeometries[1].get()};
+            const auto insertion =
+                batch_index_by_ordered_neighbours.emplace(
+                    key,
+                    interface_batches.size());
+            if (insertion.second) {
+                InterfaceConditionBatch batch;
+                batch.NeighbourGeometries =
+                    r_interface_data.NeighbourGeometries;
+                batch.CharacteristicLength =
+                    r_interface_data.CharacteristicLength;
+                interface_batches.emplace_back(std::move(batch));
+            }
+
+            auto& r_batch =
+                interface_batches[insertion.first->second];
+            KRATOS_ERROR_IF(
+                r_batch.NeighbourGeometries[0].get() != key.pPlus ||
+                r_batch.NeighbourGeometries[1].get() != key.pMinus)
+                << "Ordered interface batching key mismatch.\n";
+            r_batch.CharacteristicLength = std::max(
+                r_batch.CharacteristicLength,
+                r_interface_data.CharacteristicLength);
+            r_batch.QuadraturePointGeometries.reserve(
+                r_batch.QuadraturePointGeometries.size() +
+                r_interface_data
+                    .SurfaceQuadraturePointGeometries.size());
+            for (auto geometry_it = r_interface_data
+                     .SurfaceQuadraturePointGeometries.ptr_begin();
+                 geometry_it != r_interface_data
+                     .SurfaceQuadraturePointGeometries.ptr_end();
+                 ++geometry_it) {
+                r_batch.QuadraturePointGeometries.push_back(
+                    *geometry_it);
+                ++number_of_interface_quadrature_points;
+            }
+            r_interface_data.SurfaceQuadraturePointGeometries =
+                SnakeGapSbm3DUtilities::GeometriesArrayType();
+        }
+
+        for (auto& r_batch : interface_batches) {
+            KRATOS_ERROR_IF(
+                r_batch.QuadraturePointGeometries.empty())
+                << "Encountered an empty interface-condition batch.\n";
+
+            if (!use_moment_fitted_interface_quadrature) {
+                number_of_fitted_interface_quadrature_points +=
+                    r_batch.QuadraturePointGeometries.size();
+            }
+
+            auto p_batched_geometry =
+                Kratos::make_shared<CouplingGeometry<Node>>(
+                    std::move(
+                        r_batch.QuadraturePointGeometries));
+            SnakeGapSbm3DUtilities::GeometriesArrayType
+                batched_geometries;
+            batched_geometries.push_back(p_batched_geometry);
+
+            this->CreateConditions(
+                batched_geometries.ptr_begin(),
+                batched_geometries.ptr_end(),
+                *mpGapInterfaceSubModelPart,
+                "GapSbmSolidInterfaceConditionBatched",
+                id_condition,
+                PropertiesPointerType(),
+                knot_span_sizes,
+                r_batch.NeighbourGeometries,
+                r_batch.CharacteristicLength);
+        }
+
+        KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 0)
+            << "Interface batching: "
+            << number_of_interface_quadrature_points
+            << " candidate quadrature points reduced to "
+            << number_of_fitted_interface_quadrature_points
+            << " final points and grouped into "
+            << interface_batches.size()
+            << " GapSbmSolidInterfaceConditionBatched conditions"
+            << (use_moment_fitted_interface_quadrature
+                    ? ", fallback groups: "
+                    : ".\n")
+            << (use_moment_fitted_interface_quadrature
+                    ? std::to_string(
+                          number_of_interface_fallback_groups) +
+                          ", reference points: " +
+                          std::to_string(
+                              number_of_interface_reference_points) +
+                          ", adapted faces: " +
+                          std::to_string(
+                              number_of_adapted_interface_faces) +
+                          ", maximum accepted order: " +
+                          std::to_string(
+                              maximum_interface_candidate_order) +
+                          ", fitting time: " +
+                          std::to_string(interface_moment_fitting_time) +
+                          " s.\n"
+                    : "");
+    } else {
+        for (auto& r_interface_data :
+             interface_lateral_surface_data_list) {
+            this->CreateConditions(
+                r_interface_data
+                    .SurfaceQuadraturePointGeometries.ptr_begin(),
+                r_interface_data
+                    .SurfaceQuadraturePointGeometries.ptr_end(),
+                *mpGapInterfaceSubModelPart,
+                mGapInterfaceConditionName,
+                id_condition,
+                PropertiesPointerType(),
+                knot_span_sizes,
+                r_interface_data.NeighbourGeometries,
+                r_interface_data.CharacteristicLength);
+        }
     }
 
     // KRATOS_WATCH("a ver")

@@ -175,6 +175,48 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     snake_parameters.AddBool(
         "use_triangle_radial_quadrature_for_curved_type3",
         mParameters["use_triangle_radial_quadrature_for_curved_type3"].GetBool());
+    snake_parameters.AddBool(
+        "use_moment_fitted_volume_quadrature",
+        mParameters["use_moment_fitted_volume_quadrature"].GetBool());
+    snake_parameters.AddBool(
+        "use_moment_fitted_interface_quadrature",
+        mParameters["use_moment_fitted_interface_quadrature"].GetBool());
+    snake_parameters.AddInt(
+        "interface_moment_fitting_degree",
+        mParameters["interface_moment_fitting_degree"].GetInt());
+    snake_parameters.AddDouble(
+        "interface_moment_fitting_rank_tolerance",
+        mParameters["interface_moment_fitting_rank_tolerance"].GetDouble());
+    snake_parameters.AddDouble(
+        "interface_moment_fitting_residual_tolerance",
+        mParameters["interface_moment_fitting_residual_tolerance"].GetDouble());
+    snake_parameters.AddInt(
+        "moment_fitting_total_degree",
+        mParameters["moment_fitting_total_degree"].GetInt());
+    snake_parameters.AddBool(
+        "moment_fitting_use_tensor_product_basis",
+        mParameters["moment_fitting_use_tensor_product_basis"].GetBool());
+    snake_parameters.AddInt(
+        "moment_fitting_tensor_product_degree",
+        mParameters["moment_fitting_tensor_product_degree"].GetInt());
+    snake_parameters.AddInt(
+        "moment_fitting_candidate_integration_order",
+        mParameters["moment_fitting_candidate_integration_order"].GetInt());
+    snake_parameters.AddInt(
+        "moment_fitting_maximum_candidate_integration_order",
+        mParameters["moment_fitting_maximum_candidate_integration_order"].GetInt());
+    snake_parameters.AddDouble(
+        "moment_fitting_rank_tolerance",
+        mParameters["moment_fitting_rank_tolerance"].GetDouble());
+    snake_parameters.AddDouble(
+        "moment_fitting_residual_tolerance",
+        mParameters["moment_fitting_residual_tolerance"].GetDouble());
+    snake_parameters.AddDouble(
+        "moment_fitting_maximum_absolute_weight_ratio",
+        mParameters["moment_fitting_maximum_absolute_weight_ratio"].GetDouble());
+    snake_parameters.AddInt(
+        "moment_fitting_maximum_selected_point_multiplier",
+        mParameters["moment_fitting_maximum_selected_point_multiplier"].GetInt());
 
     // Create the surrogate_sub_model_part for inner and outer
 
@@ -348,6 +390,48 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
     snake_parameters.AddBool(
         "use_triangle_radial_quadrature_for_curved_type3",
         mParameters["use_triangle_radial_quadrature_for_curved_type3"].GetBool());
+    snake_parameters.AddBool(
+        "use_moment_fitted_volume_quadrature",
+        mParameters["use_moment_fitted_volume_quadrature"].GetBool());
+    snake_parameters.AddBool(
+        "use_moment_fitted_interface_quadrature",
+        mParameters["use_moment_fitted_interface_quadrature"].GetBool());
+    snake_parameters.AddInt(
+        "interface_moment_fitting_degree",
+        mParameters["interface_moment_fitting_degree"].GetInt());
+    snake_parameters.AddDouble(
+        "interface_moment_fitting_rank_tolerance",
+        mParameters["interface_moment_fitting_rank_tolerance"].GetDouble());
+    snake_parameters.AddDouble(
+        "interface_moment_fitting_residual_tolerance",
+        mParameters["interface_moment_fitting_residual_tolerance"].GetDouble());
+    snake_parameters.AddInt(
+        "moment_fitting_total_degree",
+        mParameters["moment_fitting_total_degree"].GetInt());
+    snake_parameters.AddBool(
+        "moment_fitting_use_tensor_product_basis",
+        mParameters["moment_fitting_use_tensor_product_basis"].GetBool());
+    snake_parameters.AddInt(
+        "moment_fitting_tensor_product_degree",
+        mParameters["moment_fitting_tensor_product_degree"].GetInt());
+    snake_parameters.AddInt(
+        "moment_fitting_candidate_integration_order",
+        mParameters["moment_fitting_candidate_integration_order"].GetInt());
+    snake_parameters.AddInt(
+        "moment_fitting_maximum_candidate_integration_order",
+        mParameters["moment_fitting_maximum_candidate_integration_order"].GetInt());
+    snake_parameters.AddDouble(
+        "moment_fitting_rank_tolerance",
+        mParameters["moment_fitting_rank_tolerance"].GetDouble());
+    snake_parameters.AddDouble(
+        "moment_fitting_residual_tolerance",
+        mParameters["moment_fitting_residual_tolerance"].GetDouble());
+    snake_parameters.AddDouble(
+        "moment_fitting_maximum_absolute_weight_ratio",
+        mParameters["moment_fitting_maximum_absolute_weight_ratio"].GetDouble());
+    snake_parameters.AddInt(
+        "moment_fitting_maximum_selected_point_multiplier",
+        mParameters["moment_fitting_maximum_selected_point_multiplier"].GetInt());
         
     // Create the surrogate_sub_model_part for inner and outer
     SnakeGapSbmProcess snake_gap_sbm_process(*mpModel, snake_parameters);
@@ -392,7 +476,21 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "use_pyramid_quadrature_for_type1": true,
         "use_tetra_quadrature_for_linear_type2_type3": true,
         "use_anisotropic_quadrature_for_curved_type2": true,
-        "use_triangle_radial_quadrature_for_curved_type3": true
+        "use_triangle_radial_quadrature_for_curved_type3": false,
+        "use_moment_fitted_volume_quadrature": false,
+        "use_moment_fitted_interface_quadrature": false,
+        "interface_moment_fitting_degree": 1,
+        "interface_moment_fitting_rank_tolerance": 1e-12,
+        "interface_moment_fitting_residual_tolerance": 1e-8,
+        "moment_fitting_total_degree": -1,
+        "moment_fitting_use_tensor_product_basis": true,
+        "moment_fitting_tensor_product_degree": 3,
+        "moment_fitting_candidate_integration_order": 3,
+        "moment_fitting_maximum_candidate_integration_order": 5,
+        "moment_fitting_rank_tolerance": 1e-12,
+        "moment_fitting_residual_tolerance": 1e-8,
+        "moment_fitting_maximum_absolute_weight_ratio": 100.0,
+        "moment_fitting_maximum_selected_point_multiplier": 2
     })");
 }
 
@@ -426,7 +524,21 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "use_pyramid_quadrature_for_type1": true,
         "use_tetra_quadrature_for_linear_type2_type3": true,
         "use_anisotropic_quadrature_for_curved_type2": true,
-        "use_triangle_radial_quadrature_for_curved_type3": true
+        "use_triangle_radial_quadrature_for_curved_type3": false,
+        "use_moment_fitted_volume_quadrature": false,
+        "use_moment_fitted_interface_quadrature": false,
+        "interface_moment_fitting_degree": 1,
+        "interface_moment_fitting_rank_tolerance": 1e-12,
+        "interface_moment_fitting_residual_tolerance": 1e-8,
+        "moment_fitting_total_degree": -1,
+        "moment_fitting_use_tensor_product_basis": true,
+        "moment_fitting_tensor_product_degree": 3,
+        "moment_fitting_candidate_integration_order": 3,
+        "moment_fitting_maximum_candidate_integration_order": 5,
+        "moment_fitting_rank_tolerance": 1e-12,
+        "moment_fitting_residual_tolerance": 1e-8,
+        "moment_fitting_maximum_absolute_weight_ratio": 100.0,
+        "moment_fitting_maximum_selected_point_multiplier": 2
     })");
 }
 

@@ -43,11 +43,6 @@ using NodeType = Node;
     using CoordinatesArrayType = GeometryType::CoordinatesArrayType;
     using PropertiesPointerType = Properties::Pointer;
     using BrepCurveType = BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType>;
-    using VolumeQuadratureConsumerType = std::function<void(
-        GeometriesArrayType&,
-        const std::vector<Geometry<Node>::Pointer>&,
-        double)>;
-    
     using NurbsCurveGeometryType = NurbsCurveGeometry<3, PointerVector<Node>>;
     using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
     using NurbsVolumeType = NurbsVolumeGeometry<PointerVector<NodeType>>;
@@ -78,6 +73,10 @@ using NodeType = Node;
     using SkinEdgeControlPointMap = std::unordered_map<
         SkinEdgeKey,
         std::vector<NodePointerType>,
+        SkinEdgeKeyHash>;
+    using SkinEdgeNormalMap = std::unordered_map<
+        SkinEdgeKey,
+        array_1d<double, 3>,
         SkinEdgeKeyHash>;
 
     struct SkinTopFaceKey
@@ -489,13 +488,72 @@ using NodeType = Node;
         array_1d<double, 3> MiddlePointLocalCoordinates = ZeroVector(3);
     };
 
-    struct Type1VolumeQuadratureData
+    enum class VolumeQuadratureRule
     {
-        GeometriesArrayType VolumeQuadraturePointGeometries;
+        Pyramid,
+        LinearTetrahedron,
+        CurvedType2,
+        CurvedType3TriangleRadial,
+        NurbsVolume
+    };
+
+    struct VolumeGeometryData
+    {
+        NurbsVolumeType::Pointer pVolumeGeometry;
+        GeometryType::Pointer pTopSurfaceGeometry;
+        std::vector<NodePointerType> RuleNodes;
         std::vector<Geometry<Node>::Pointer> NeighbourGeometries;
 
         double CharacteristicLength = 0.0;
+        std::size_t IntegrationOrder = 1;
+        std::size_t NumberOfShapeFunctionsDerivatives = 1;
+        int GapType = 0;
+        VolumeQuadratureRule QuadratureRule = VolumeQuadratureRule::NurbsVolume;
+    };
 
+    struct PhysicalQuadraturePoint
+    {
+        array_1d<double, 3> Coordinates = ZeroVector(3);
+        double Weight = 0.0;
+    };
+
+    struct MomentFittingSettings
+    {
+        std::size_t PolynomialDegree = 1;
+        int TotalDegree = -1;
+        bool UseTensorProductBasis = true;
+        int TensorProductDegree = 3;
+        std::size_t CandidateIntegrationOrder = 3;
+        std::size_t MaximumCandidateIntegrationOrder = 5;
+        double RankTolerance = 1.0e-12;
+        double ResidualTolerance = 1.0e-8;
+        double MaximumAbsoluteWeightRatio = 100.0;
+        std::size_t MaximumSelectedPointMultiplier = 2;
+    };
+
+    struct MomentFittedVolumeQuadratureResult
+    {
+        GeometriesArrayType QuadraturePointGeometries;
+        std::size_t NumberOfVolumeGeometries = 0;
+        std::size_t NumberOfCandidatePoints = 0;
+        std::size_t NumberOfSelectedPoints = 0;
+        std::size_t NumberOfMoments = 0;
+        std::size_t EstimatedRank = 0;
+        std::size_t NumberOfReferencePoints = 0;
+        double RelativeMomentResidual = 0.0;
+        double FittedVolume = 0.0;
+        double ReferenceVolume = 0.0;
+        double AbsoluteWeightRatio = 0.0;
+        double LastAttemptAbsoluteWeightRatio = 0.0;
+        double MinimumWeight = 0.0;
+        double MaximumWeight = 0.0;
+        array_1d<double, 4> ReferenceLinearMoments = ZeroVector(4);
+        array_1d<double, 4> FittedLinearMoments = ZeroVector(4);
+        bool UsedFallback = false;
+    };
+
+    struct Type1VolumeQuadratureData : public VolumeGeometryData
+    {
         std::array<NodePointerType, 4> BaseNodes;
         NodePointerType pProjectionNode;
 
@@ -518,11 +576,13 @@ using NodeType = Node;
     struct LateralSurfaceQuadratureData
     {
         GeometriesArrayType SurfaceQuadraturePointGeometries;
+        Geometry<Node>::Pointer pSurfaceGeometry;
         std::vector<Geometry<Node>::Pointer> NeighbourGeometries;
 
         double CharacteristicLength = 0.0;
 
         int GapType = 0;
+        bool IsType3TopFace = false;
         IndexType SurrogateConditionId = 0;
         SpanKey3D ExternalSpan;
     };
@@ -599,13 +659,8 @@ using NodeType = Node;
 
     //-------------------------------------------------
     // type 2 struct
-    struct Type2VolumeQuadratureData
+    struct Type2VolumeQuadratureData : public VolumeGeometryData
     {
-        GeometriesArrayType VolumeQuadraturePointGeometries;
-        std::vector<Geometry<Node>::Pointer> NeighbourGeometries;
-
-        double CharacteristicLength = 0.0;
-
         SurrogateEdgeKey3D EdgeKey;
 
         NodePointerType pEdgeNode0;
@@ -659,13 +714,8 @@ using NodeType = Node;
 
     //-------------------------------------------------
     // type 3 structs
-    struct Type3VolumeQuadratureData
+    struct Type3VolumeQuadratureData : public VolumeGeometryData
     {
-        GeometriesArrayType VolumeQuadraturePointGeometries;
-        std::vector<Geometry<Node>::Pointer> NeighbourGeometries;
-
-        double CharacteristicLength = 0.0;
-
         NodePointerType pSurrogateNode;
         NodePointerType pProjectionNode0;
         NodePointerType pProjectionNode1;
@@ -751,6 +801,18 @@ using NodeType = Node;
     void SetStoreGapDebugGeometries(
         const bool StoreGapDebugGeometries);
 
+    void SetInitialNurbsSkinModelPart(
+        const ModelPart& rInitialSkinModelPart);
+
+    void SetMaximumNurbsProjectionDistance(
+        const double MaximumProjectionDistance);
+
+    bool TryProjectPointToInitialNurbsSkin(
+        const array_1d<double, 3>& rPoint,
+        array_1d<double, 3>& rProjectionPoint,
+        double& rProjectionDistance,
+        array_1d<double, 3>* pProjectionNormal = nullptr) const;
+
     void SetUsePyramidQuadratureForType1(
         const bool UsePyramidQuadratureForType1);
 
@@ -784,6 +846,11 @@ using NodeType = Node;
     std::vector<LateralSurfaceQuadratureData> CreateInterfaceLateralSurfaceQuadratureData(
         const std::size_t IntegrationOrder,
         const std::size_t NumberOfShapeFunctionsDerivatives) const;
+
+    GeometriesArrayType CreateAdaptiveInterfaceSurfaceQuadrature(
+        const GeometryType::Pointer& pSurfaceGeometry,
+        const std::size_t IntegrationOrder,
+        const std::size_t NumberOfShapeFunctionsDerivatives) const;
     //-----------------------------------------------------
 
     // type 2 element creation----------------------------
@@ -812,9 +879,14 @@ using NodeType = Node;
         Type3CreationResult& rType3CreationResult,
         const KnotSpanGridInfo& rGridInfo,
         const std::size_t IntegrationOrder,
-        const std::size_t NumberOfShapeFunctionsDerivatives,
-        const VolumeQuadratureConsumerType& rVolumeQuadratureConsumer =
-            VolumeQuadratureConsumerType());
+        const std::size_t NumberOfShapeFunctionsDerivatives);
+
+    MomentFittedVolumeQuadratureResult CreateMomentFittedVolumeQuadrature(
+        const std::vector<const VolumeGeometryData*>& rVolumeGeometries,
+        const MomentFittingSettings& rSettings) const;
+
+    GeometriesArrayType CreateOriginalVolumeQuadrature(
+        const std::vector<const VolumeGeometryData*>& rVolumeGeometries) const;
 
     NurbsSurfaceType::Pointer CreateCollapsedTriangleSurface(
         const NodePointerType& pNode0,
@@ -1533,6 +1605,32 @@ private:
         const GeometryType::Pointer& pTopSurfaceGeometry,
         const std::size_t IntegrationOrder) const;
 
+    GeometriesArrayType CreateOriginalVolumeQuadrature(
+        const VolumeGeometryData& rVolumeGeometry) const;
+
+    std::vector<PhysicalQuadraturePoint>
+    CreateOriginalPhysicalVolumeQuadrature(
+        const VolumeGeometryData& rVolumeGeometry) const;
+
+    std::vector<PhysicalQuadraturePoint>
+    CreateMappedPhysicalVolumeQuadrature(
+        const Geometry<Node>::Pointer& pVolumeGeometry,
+        const IntegrationPointsArrayType& rReferenceIntegrationPoints) const;
+
+    std::vector<PhysicalQuadraturePoint>
+    CreateNativePhysicalVolumeQuadrature(
+        const Geometry<Node>::Pointer& pVolumeGeometry,
+        const std::size_t IntegrationOrder) const;
+
+    std::vector<PhysicalQuadraturePoint>
+    CreateCurvedType3TriangleRadialPhysicalQuadrature(
+        const NodePointerType& pSurrogateNode,
+        const GeometryType::Pointer& pTopSurfaceGeometry,
+        const std::size_t IntegrationOrder) const;
+
+    GeometriesArrayType MaterializePhysicalVolumeQuadrature(
+        const std::vector<PhysicalQuadraturePoint>& rPhysicalPoints) const;
+
     double CalculateType1CharacteristicLength(
         const SurrogateFaceData& rFaceData,
         const NodePointerType& pApexNode) const;
@@ -1685,6 +1783,29 @@ private:
         array_1d<double, 3>& rProjectionPoint,
         double& rProjectionDistance) const;
 
+    bool ProjectPointToClosestNurbsSurface(
+        const array_1d<double, 3>& rPoint,
+        array_1d<double, 3>& rProjectionPoint,
+        double& rProjectionDistance,
+        const bool IncludeKnotSpanBoundaryLines = false,
+        const double MaximumProjectionDistance =
+            std::numeric_limits<double>::max(),
+        array_1d<double, 3>* pProjectionNormal = nullptr) const;
+
+    bool ProjectPointToInitialNurbsSkinAlongDirection(
+        const array_1d<double, 3>& rPoint,
+        const array_1d<double, 3>& rDirection,
+        const double MaximumDistance,
+        array_1d<double, 3>& rProjectionPoint) const;
+
+    void RebuildSkinEdgeAverageNormalMap(
+        const ModelPart& rSkinSubModelPart);
+
+    NodePointerType FindClosestSkinMeshNode(
+        const ModelPart& rSkinSubModelPart,
+        const array_1d<double, 3>& rPoint,
+        double& rDistance) const;
+
     std::vector<NodePointerType> GetOrCreateQuadraticSkinEdgeControlNodes(
         ModelPart& rSkinSubModelPart,
         const NodePointerType& pSkinNode0,
@@ -1746,6 +1867,10 @@ private:
     CurvedEdgeRegistry mCurvedEdgeRegistry;
     CurvedTopFaceRegistry mCurvedTopFaceRegistry;
     std::vector<SkinProjectionTriangleData> mSkinProjectionTriangleData;
+    std::vector<NurbsSurfaceType::Pointer> mInitialNurbsSkinSurfaces;
+    double mMaximumNurbsProjectionDistance =
+        std::numeric_limits<double>::max();
+    SkinEdgeNormalMap mSkinEdgeAverageNormals;
     LateralFaceRegistry mLateralFaceRegistry;
 };
 

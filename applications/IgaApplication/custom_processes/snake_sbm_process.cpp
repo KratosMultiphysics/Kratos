@@ -2216,18 +2216,18 @@ void SnakeSbmProcess::KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid
 void SnakeSbmProcess::CreateTheSnakeCoordinates3D()
 {   
     // Initilize the property of skin_model_part_in and out
-    if (mpSkinModelPartInnerInitial->NumberOfNodes()>0) {
+    if (mpSkinModelPartInnerInitial->NumberOfNodes()>0 || mpSkinModelPartInnerInitial->NumberOfGeometries()>0) {
         mpSkinModelPartInnerInitial->pGetProperties(0);
         mpSkinModelPart->pGetProperties(0);
         // template argument IsInnerLoop set true
-        CreateTheSnakeCoordinates3D<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart);
+        CreateTheSnakeCoordinates3D<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs);
             
     }
-    if (mpSkinModelPartOuterInitial->NumberOfNodes()>0) {
+    if (mpSkinModelPartOuterInitial->NumberOfNodes()>0 || mpSkinModelPartOuterInitial->NumberOfGeometries()>0) {
         mpSkinModelPartOuterInitial->pGetProperties(0);
         mpSkinModelPart->pGetProperties(0);
         // template argument IsInnerLoop set false
-        CreateTheSnakeCoordinates3D<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart);
+        CreateTheSnakeCoordinates3D<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs);
     }
 }
 
@@ -2239,8 +2239,89 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
     const double Lambda,
     IndexType EchoLevel,
     ModelPart& rIgaModelPart,
-    ModelPart& rSkinModelPart) 
+    ModelPart& rSkinModelPart,
+    const int NumberInitialPointsIfImportingNurbs)
 { 
+    if (rSkinModelPartInitial.NumberOfConditions() == 0 &&
+        rSkinModelPartInitial.NumberOfGeometries() > 0) {
+        KRATOS_ERROR_IF(NumberInitialPointsIfImportingNurbs < 4)
+            << "::[SnakeSbmProcess]:: number_initial_points_if_importing_nurbs must be at least 4 "
+            << "when importing NURBS surfaces." << std::endl;
+
+        Model tessellated_skin_model;
+        ModelPart& r_tessellated_skin = tessellated_skin_model.CreateModelPart("TessellatedNurbsSkin");
+        auto p_properties = r_tessellated_skin.CreateNewProperties(0);
+
+        const std::size_t number_of_surfaces = rSkinModelPartInitial.NumberOfGeometries();
+        const double points_per_surface = static_cast<double>(NumberInitialPointsIfImportingNurbs) /
+            static_cast<double>(number_of_surfaces);
+        const IndexType divisions = std::max<IndexType>(1,
+            static_cast<IndexType>(std::ceil(std::sqrt(points_per_surface))) - 1);
+
+        IndexType next_node_id = GetNextRootNodeId(rSkinModelPart);
+        IndexType next_condition_id = 1;
+        for (const auto& r_geometry : rSkinModelPartInitial.Geometries()) {
+            auto p_surface = std::dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(
+                rSkinModelPartInitial.pGetGeometry(r_geometry.Id()));
+            KRATOS_ERROR_IF_NOT(p_surface)
+                << "::[SnakeSbmProcess]:: Geometry " << r_geometry.Id()
+                << " is not a NurbsSurfaceGeometry<3>. The 3D NURBS skin must contain only surfaces."
+                << std::endl;
+
+            const double u_min = p_surface->DomainIntervalU().MinParameter();
+            const double u_max = p_surface->DomainIntervalU().MaxParameter();
+            const double v_min = p_surface->DomainIntervalV().MinParameter();
+            const double v_max = p_surface->DomainIntervalV().MaxParameter();
+            const IndexType first_surface_node_id = next_node_id;
+
+            for (IndexType j = 0; j <= divisions; ++j) {
+                const double v = v_min + (v_max - v_min) * static_cast<double>(j) / divisions;
+                for (IndexType i = 0; i <= divisions; ++i) {
+                    const double u = u_min + (u_max - u_min) * static_cast<double>(i) / divisions;
+                    CoordinatesArrayType local_coordinates = ZeroVector(3);
+                    local_coordinates[0] = u;
+                    local_coordinates[1] = v;
+                    CoordinatesArrayType global_coordinates;
+                    p_surface->GlobalCoordinates(global_coordinates, local_coordinates);
+                    r_tessellated_skin.CreateNewNode(
+                        next_node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+                }
+            }
+
+            const auto node_id = [first_surface_node_id, divisions](IndexType i, IndexType j) {
+                return first_surface_node_id + j * (divisions + 1) + i;
+            };
+            for (IndexType j = 0; j < divisions; ++j) {
+                for (IndexType i = 0; i < divisions; ++i) {
+                    auto p_first_triangle = r_tessellated_skin.CreateNewCondition(
+                        "SurfaceCondition3D3N", next_condition_id++,
+                        {{node_id(i, j), node_id(i + 1, j), node_id(i + 1, j + 1)}}, p_properties);
+                    auto p_second_triangle = r_tessellated_skin.CreateNewCondition(
+                        "SurfaceCondition3D3N", next_condition_id++,
+                        {{node_id(i, j), node_id(i + 1, j + 1), node_id(i, j + 1)}}, p_properties);
+
+                    if (p_surface->Has(IDENTIFIER)) {
+                        p_first_triangle->SetValue(IDENTIFIER, p_surface->GetValue(IDENTIFIER));
+                        p_second_triangle->SetValue(IDENTIFIER, p_surface->GetValue(IDENTIFIER));
+                    }
+                    if (p_surface->Has(CONDITION_NAME)) {
+                        p_first_triangle->SetValue(CONDITION_NAME, p_surface->GetValue(CONDITION_NAME));
+                        p_second_triangle->SetValue(CONDITION_NAME, p_surface->GetValue(CONDITION_NAME));
+                    }
+                }
+            }
+        }
+
+        KRATOS_INFO_IF("::[SnakeSbmProcess]::", EchoLevel > 0)
+            << "Tessellated " << number_of_surfaces << " NURBS surfaces into "
+            << r_tessellated_skin.NumberOfConditions() << " triangles." << std::endl;
+
+        CreateTheSnakeCoordinates3D<TIsInnerLoop>(
+            r_tessellated_skin, NumberOfLoops, Lambda, EchoLevel,
+            rIgaModelPart, rSkinModelPart, NumberInitialPointsIfImportingNurbs);
+        return;
+    }
+
     KRATOS_ERROR_IF(rIgaModelPart.GetValue(KNOT_VECTOR_U).size() == 0) << "::[SnakeSbmProcess]::" 
                 << "The iga model part has KNOT_VECTOR_U of size 0" << std::endl;
     KRATOS_ERROR_IF(rIgaModelPart.GetValue(KNOT_VECTOR_V).size() == 0) << "::[SnakeSbmProcess]::" 
@@ -2417,9 +2498,14 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
             ordered_ids[1] = i_cond.GetGeometry()[1].Id();
             ordered_ids[2] = i_cond.GetGeometry()[2].Id();
 
+            const std::string layer_name = i_cond.Has(IDENTIFIER)
+                ? i_cond.GetValue(IDENTIFIER) : "";
+            const std::string condition_name = i_cond.Has(CONDITION_NAME)
+                ? i_cond.GetValue(CONDITION_NAME) : "";
+
 
             SnakeStep3D(id_matrix_knot_spans_available, knot_span_uvw, xyz_coord_i_cond, knot_step_uvw, starting_pos_uvw,
-                        r_skin_sub_model_part, knot_spans_available, ordered_ids);
+                        r_skin_sub_model_part, knot_spans_available, ordered_ids, layer_name, condition_name);
             
         }
     }
@@ -2453,7 +2539,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
         MarkKnotSpansAvailable3D(id_inner_loop, points_bin, r_skin_sub_model_part, Lambda,
                                 n_knot_spans_uvw, knot_step_uvw, starting_pos_uvw, knot_spans_available);  
 
-        // RemoveIslands3D(knot_spans_available); //FIXME:
+        RemoveIslands3D(knot_spans_available); 
     
         if (EchoLevel >  0) {
             KRATOS_INFO_IF("::[SnakeSbmProcess]::", is_inner) << "Inner :: Ending MarkKnotSpansAvailable" << std::endl;
@@ -2504,24 +2590,33 @@ bool SnakeSbmProcess::IsInside3D(
 void SnakeSbmProcess::RemoveIslands3D(
     std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable)
 {
-    const std::array<std::array<int, 3>, 6> directions{{
-        {{1, 0, 0}},
-        {{-1, 0, 0}},
-        {{0, 1, 0}},
-        {{0, -1, 0}},
-        {{0, 0, 1}},
-        {{0, 0, -1}}
-    }};
+    std::vector<std::array<int, 3>> directions;
+    directions.reserve(26);
+
+    for (int dk = -1; dk <= 1; ++dk) {
+        for (int dj = -1; dj <= 1; ++dj) {
+            for (int di = -1; di <= 1; ++di) {
+                if (di == 0 && dj == 0 && dk == 0) {
+                    continue;
+                }
+
+                directions.push_back({{di, dj, dk}});
+            }
+        }
+    }
 
     for (std::size_t loop = 0; loop < rKnotSpansAvailable.size(); ++loop) {
         auto& r_grid = rKnotSpansAvailable[loop];
+
         if (r_grid.empty()) {
             continue;
         }
 
         std::vector<std::vector<std::vector<int>>> labels(r_grid.size());
+
         for (std::size_t k = 0; k < r_grid.size(); ++k) {
             labels[k].resize(r_grid[k].size());
+
             for (std::size_t j = 0; j < r_grid[k].size(); ++j) {
                 labels[k][j].assign(r_grid[k][j].size(), -1);
             }
@@ -2539,16 +2634,21 @@ void SnakeSbmProcess::RemoveIslands3D(
                     }
 
                     std::queue<std::array<int, 3>> active_cells;
+
                     active_cells.push({{
                         static_cast<int>(i),
                         static_cast<int>(j),
-                        static_cast<int>(k)}});
+                        static_cast<int>(k)
+                    }});
+
                     labels[k][j][i] = component_id;
+
                     int current_component_size = 0;
 
                     while (!active_cells.empty()) {
                         const auto current_cell = active_cells.front();
                         active_cells.pop();
+
                         ++current_component_size;
 
                         for (const auto& r_direction : directions) {
@@ -2561,6 +2661,7 @@ void SnakeSbmProcess::RemoveIslands3D(
                                 ni >= 0 && ni < static_cast<int>(r_grid[nk][nj].size()) &&
                                 r_grid[nk][nj][ni] == 1 &&
                                 labels[nk][nj][ni] == -1) {
+
                                 labels[nk][nj][ni] = component_id;
                                 active_cells.push({{ni, nj, nk}});
                             }
@@ -2571,6 +2672,7 @@ void SnakeSbmProcess::RemoveIslands3D(
                         largest_component_size = current_component_size;
                         largest_component_id = component_id;
                     }
+
                     ++component_id;
                 }
             }
@@ -2583,7 +2685,8 @@ void SnakeSbmProcess::RemoveIslands3D(
         for (std::size_t k = 0; k < r_grid.size(); ++k) {
             for (std::size_t j = 0; j < r_grid[k].size(); ++j) {
                 for (std::size_t i = 0; i < r_grid[k][j].size(); ++i) {
-                    if (r_grid[k][j][i] == 1 && labels[k][j][i] != largest_component_id) {
+                    if (r_grid[k][j][i] == 1 &&
+                        labels[k][j][i] != largest_component_id) {
                         r_grid[k][j][i] = 0;
                     }
                 }
@@ -2601,7 +2704,9 @@ void SnakeSbmProcess::SnakeStep3D(
     const Vector rStartingPosition,
     ModelPart& rSkinModelPart, 
     std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable,
-    array_1d<IndexType, 3>& ordered_ids)
+    array_1d<IndexType, 3>& ordered_ids,
+    const std::string& rLayerName,
+    const std::string& rConditionName)
 {
     bool isSplitted = false;
     if (rKnotSpansUVW[0][0] != rKnotSpansUVW[0][1] || rKnotSpansUVW[0][0] != rKnotSpansUVW[0][2] || rKnotSpansUVW[0][1] != rKnotSpansUVW[0][2] || 
@@ -2696,7 +2801,9 @@ void SnakeSbmProcess::SnakeStep3D(
                 rStartingPosition,
                 rSkinModelPart,
                 rKnotSpansAvailable,
-                ordered_ids_1
+                ordered_ids_1,
+                rLayerName,
+                rConditionName
             );
 
             // Second subtriangle
@@ -2708,7 +2815,9 @@ void SnakeSbmProcess::SnakeStep3D(
                 rStartingPosition,
                 rSkinModelPart,
                 rKnotSpansAvailable,
-                ordered_ids_2
+                ordered_ids_2,
+                rLayerName,
+                rConditionName
             );
 
             // Third subtriangle
@@ -2720,7 +2829,9 @@ void SnakeSbmProcess::SnakeStep3D(
                 rStartingPosition,
                 rSkinModelPart,
                 rKnotSpansAvailable,
-                ordered_ids_3
+                ordered_ids_3,
+                rLayerName,
+                rConditionName
             );
 
             // Central subtriangle --> Is it necessary?
@@ -2732,7 +2843,9 @@ void SnakeSbmProcess::SnakeStep3D(
                 rStartingPosition,
                 rSkinModelPart,
                 rKnotSpansAvailable,
-                ordered_ids_4
+                ordered_ids_4,
+                rLayerName,
+                rConditionName
             );
 
         }
@@ -2804,6 +2917,16 @@ void SnakeSbmProcess::SnakeStep3D(
 
         Condition::Pointer p_cond1 = rSkinModelPart.CreateNewCondition("SurfaceCondition3D3N", last_condition_id+1, 
                                                                         {{ordered_ids[0], ordered_ids[1], ordered_ids[2]}}, p_cond_prop );
+        if (!rLayerName.empty()) {
+            p_cond1->SetValue(IDENTIFIER, rLayerName);
+            ModelPart& r_layer_model_part = rSkinModelPart.HasSubModelPart(rLayerName)
+                ? rSkinModelPart.GetSubModelPart(rLayerName)
+                : rSkinModelPart.CreateSubModelPart(rLayerName);
+            r_layer_model_part.AddCondition(p_cond1);
+        }
+        if (!rConditionName.empty()) {
+            p_cond1->SetValue(CONDITION_NAME, rConditionName);
+        }
         
     }
 }

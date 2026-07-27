@@ -125,10 +125,12 @@ void GapSbmSolidCondition::InitializeSbmMemberVariables()
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = r_geometry.Center().Coordinates() - r_surrogate_geometry.Center().Coordinates();
     
-    Vector center = ZeroVector(3);
-    center[0] = 1.0; center[1] = 1.0; center[2] = 1.0;
-    Vector true_normal = r_geometry.Center().Coordinates() - center;
-    true_normal /= MathUtils<double>::Norm(true_normal);
+    // Vector center = ZeroVector(3);
+    // center[0] = 1.0; center[1] = 1.0; center[2] = 1.0;
+    // Vector true_normal = r_geometry.Center().Coordinates() - center;
+    // true_normal /= MathUtils<double>::Norm(true_normal);
+
+    SetValue(PROJECTION_NODE_COORDINATES, r_geometry.GetValue(PROJECTION_NODE)->Coordinates());
     
     // if (norm_2(mNormalPhysicalSpace - true_normal) > 5e-1)
     // {
@@ -482,20 +484,6 @@ void GapSbmSolidCondition::CalculateRightHandSide(
     // noalias(rRightHandSideVector) = -prod(lhs, values);
 
     // return;
-
-    for (unsigned int i = 0; i < this->GetValue(NEIGHBOUR_GEOMETRIES)[0]->size(); i++) {
-        auto& r_node = (*this->GetValue(NEIGHBOUR_GEOMETRIES)[0])[i];
-        // if (r_geometry[i].GetId() == 420) 
-        // {
-        //     KRATOS_WATCH(r_geometry[i].Coordinates())
-        //     KRATOS_WATCH(DN_DX(i,0))
-        //     KRATOS_WATCH(DN_DX(i,1))
-        // }
-    
-        std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-        outputFile << r_node.GetId() << "  " << r_node.GetDof(DISPLACEMENT_Z).EquationId() <<"\n";
-        outputFile.close();
-    }
 
     KRATOS_CATCH("")
 }

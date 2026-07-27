@@ -241,6 +241,12 @@ void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
  * 
  */
 void InitializeMemberVariables();
+void InitializeMemberVariables(const GeometryType& rGeometry);
+
+virtual const GeometryType& GetBoundaryGeometry() const
+{
+    return GetGeometry();
+}
 
 /**
  * @brief 
@@ -337,6 +343,7 @@ double ComputeTaylorTerm3D(
     Vector mDistanceVectorGap;
     unsigned int mDim;
     IndexType mBasisFunctionsOrder;
+    const std::vector<Matrix>* mpTaylorDerivativeCache = nullptr;
     
     
     
@@ -363,5 +370,106 @@ private:
     ///@}
 
 }; // Class SupportPenaltyLaplacianCondition
+
+class KRATOS_API(IGA_APPLICATION)
+    GapSbmEnhancedLoadSolidConditionBatched
+    : public GapSbmEnhancedLoadSolidCondition
+{
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(
+        GapSbmEnhancedLoadSolidConditionBatched);
+
+    using BaseType = GapSbmEnhancedLoadSolidCondition;
+    using GeometryType = BaseType::GeometryType;
+    using NodesArrayType = BaseType::NodesArrayType;
+    using PropertiesType = BaseType::PropertiesType;
+    using MatrixType = BaseType::MatrixType;
+    using VectorType = BaseType::VectorType;
+    using NodeType = GeometryType::PointType;
+
+    GapSbmEnhancedLoadSolidConditionBatched(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
+
+    GapSbmEnhancedLoadSolidConditionBatched(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties);
+
+    ~GapSbmEnhancedLoadSolidConditionBatched() override = default;
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override;
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override;
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    std::size_t QuadraturePointsNumber() const;
+    array_1d<double, 3> GetQuadraturePointCoordinates(
+        const std::size_t PointIndex) const;
+    void SetQuadraturePointForceComponent(
+        const std::size_t PointIndex,
+        const std::size_t ComponentIndex,
+        const double Value);
+
+    std::string Info() const override
+    {
+        return "GapSbmEnhancedLoadSolidConditionBatched #" +
+            std::to_string(Id());
+    }
+
+protected:
+    GapSbmEnhancedLoadSolidConditionBatched() = default;
+
+private:
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    std::vector<NodeType::Pointer> mProjectionNodes;
+    Vector mQuadraturePointReferenceWeights;
+    Vector mQuadraturePointWeights;
+    Matrix mQuadraturePointCoordinates;
+    Matrix mQuadraturePointNormals;
+    Matrix mQuadraturePointForces;
+    std::vector<int> mHasQuadraturePointForce;
+
+    std::size_t NumberOfQuadraturePoints() const;
+    const GeometryType& GetRepresentativeGeometry() const;
+    void CompactQuadratureGeometries();
+    void SetCurrentQuadraturePoint(const std::size_t PointIndex);
+    const GeometryType& GetBoundaryGeometry() const override;
+    void CalculateAllContributions(
+        MatrixType* pLeftHandSideMatrix,
+        VectorType* pRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
+};
 
 }  // namespace Kratos.

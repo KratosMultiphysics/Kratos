@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_conditions/gap_sbm_load_solid_condition.h"
+#include "geometries/coupling_geometry.h"
 
 namespace Kratos
 {
@@ -51,7 +52,7 @@ void GapSbmLoadSolidCondition::InitializeMaterial()
 void GapSbmLoadSolidCondition::InitializeMemberVariables()
 {
     // // Compute class memeber variables
-    const auto& r_geometry = GetGeometry();
+    const auto& r_geometry = GetBoundaryGeometry();
 
     const auto& r_projected_geometry = GetSurrogateGeometry();
     const auto& r_DN_De = r_projected_geometry.ShapeFunctionsLocalGradients(r_projected_geometry.GetDefaultIntegrationMethod());
@@ -98,7 +99,7 @@ void GapSbmLoadSolidCondition::InitializeMemberVariables()
 
 void GapSbmLoadSolidCondition::InitializeSbmMemberVariables()
 {
-    const auto& r_geometry = this->GetGeometry();
+    const auto& r_geometry = GetBoundaryGeometry();
     const auto& r_surrogate_geometry = GetSurrogateGeometry();
 
     mDistanceVector.resize(3);
@@ -107,6 +108,7 @@ void GapSbmLoadSolidCondition::InitializeSbmMemberVariables()
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
 
+    SetValue(PROJECTION_NODE_COORDINATES, r_geometry.GetValue(PROJECTION_NODE)->Coordinates());
 }
 
 void GapSbmLoadSolidCondition::CalculateLocalSystem(
@@ -149,7 +151,6 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
 {
     KRATOS_TRY
     const auto& r_surrogate_geometry = GetSurrogateGeometry();
-    const auto& r_true_geometry = GetGeometry();
     const unsigned int number_of_control_points = r_surrogate_geometry.size();
 
     // reading integration points and local gradients
@@ -188,14 +189,16 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
     // const double y = r_true_geometry.Center().Y();
     // const double z = r_true_geometry.Center().Z();
 
-    const Vector projection_node_coordinates = r_true_geometry.GetValue(PROJECTION_NODE)->Coordinates();
+    const auto& r_projection_node = GetProjectionNode();
+    const Vector projection_node_coordinates = r_projection_node.Coordinates();
     const double x = projection_node_coordinates[0];
     const double y = projection_node_coordinates[1];
     const double z = projection_node_coordinates[2];
 
-    Kratos::array_1d<double, 3UL> projection_node_normal = -r_true_geometry.GetValue(PROJECTION_NODE)->GetValue(NORMAL);
+    Kratos::array_1d<double, 3UL> projection_node_normal =
+        r_projection_node.GetValue(NORMAL);
 
-    projection_node_normal = mNormalPhysicalSpace;  //DEBUG
+    // projection_node_normal = mNormalPhysicalSpace;  //DEBUG
 
     const double c_vol = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu));
 
@@ -434,7 +437,8 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
         CalculateB(B_sum, grad_N_sum);
 
         // obtain the tangent constitutive matrix at the true position
-        ConstitutiveLaw::Parameters values_true(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters values_true(
+            GetBoundaryGeometry(), GetProperties(), rCurrentProcessInfo);
 
         Vector old_displacement_coefficient_vector(mat_size);
         GetSolutionCoefficientVector(old_displacement_coefficient_vector);
@@ -659,6 +663,314 @@ double GapSbmLoadSolidCondition::ComputeTaylorTerm3D(
     const IndexType k_z)
 {   
     return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) / (MathUtils<double>::Factorial(k_x) * MathUtils<double>::Factorial(k_y) * MathUtils<double>::Factorial(k_z));    
+}
+
+GapSbmLoadSolidConditionBatched::GapSbmLoadSolidConditionBatched(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry)
+    : BaseType(NewId, pGeometry)
+{
+    CompactQuadratureGeometries();
+}
+
+GapSbmLoadSolidConditionBatched::GapSbmLoadSolidConditionBatched(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
+{
+    CompactQuadratureGeometries();
+}
+
+Condition::Pointer GapSbmLoadSolidConditionBatched::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive<GapSbmLoadSolidConditionBatched>(
+        NewId, pGeom, pProperties);
+}
+
+Condition::Pointer GapSbmLoadSolidConditionBatched::Create(
+    IndexType NewId,
+    NodesArrayType const& ThisNodes,
+    PropertiesType::Pointer pProperties) const
+{
+    std::vector<GeometryType::Pointer> geometry_parts(
+        NumberOfQuadraturePoints(),
+        GetGeometry().pGetGeometryPart(0));
+    auto p_geometry = Kratos::make_shared<CouplingGeometry<Node>>(
+        std::move(geometry_parts));
+    auto p_condition = Kratos::make_intrusive<
+        GapSbmLoadSolidConditionBatched>(
+            NewId, p_geometry, pProperties);
+    p_condition->mProjectionNodes = mProjectionNodes;
+    p_condition->mQuadraturePointReferenceWeights =
+        mQuadraturePointReferenceWeights;
+    p_condition->mQuadraturePointCoordinates =
+        mQuadraturePointCoordinates;
+    p_condition->mQuadraturePointNormals = mQuadraturePointNormals;
+    return p_condition;
+}
+
+GeometryData::IntegrationMethod
+GapSbmLoadSolidConditionBatched::GetIntegrationMethod() const
+{
+    return NumberOfQuadraturePoints() > 0
+        ? GetRepresentativeGeometry().GetDefaultIntegrationMethod()
+        : BaseType::GetIntegrationMethod();
+}
+
+void GapSbmLoadSolidConditionBatched::Initialize(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(NumberOfQuadraturePoints() == 0)
+        << Info() << " has no quadrature points.\n";
+    KRATOS_ERROR_IF_NOT(Has(NEIGHBOUR_GEOMETRIES) &&
+                        GetValue(NEIGHBOUR_GEOMETRIES).size() == 1)
+        << Info() << " requires one neighbour geometry.\n";
+
+    BaseType::Initialize(rCurrentProcessInfo);
+
+    const std::size_t number_of_points = NumberOfQuadraturePoints();
+    mQuadraturePointWeights.resize(number_of_points, false);
+    mConstitutiveLawVector.resize(number_of_points);
+    for (std::size_t point_index = 0;
+         point_index < number_of_points;
+         ++point_index) {
+        double weight = mQuadraturePointReferenceWeights[point_index];
+        if (mDim == 2) {
+            weight *= GetProperties().Has(THICKNESS)
+                ? GetProperties()[THICKNESS]
+                : 1.0;
+        }
+        mQuadraturePointWeights[point_index] = weight;
+
+        if (point_index == 0) {
+            mConstitutiveLawVector[point_index] = mpConstitutiveLaw;
+            continue;
+        }
+
+        SetCurrentQuadraturePoint(point_index);
+        Vector N_sum_vec = ZeroVector(GetSurrogateGeometry().size());
+        ComputeTaylorExpansionContribution(N_sum_vec);
+        mConstitutiveLawVector[point_index] =
+            GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mConstitutiveLawVector[point_index]->InitializeMaterial(
+            GetProperties(), GetSurrogateGeometry(), N_sum_vec);
+    }
+    SetCurrentQuadraturePoint(0);
+}
+
+void GapSbmLoadSolidConditionBatched::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateAllContributions(
+        &rLeftHandSideMatrix, &rRightHandSideVector, rCurrentProcessInfo);
+}
+
+void GapSbmLoadSolidConditionBatched::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateAllContributions(&rLeftHandSideMatrix, nullptr, rCurrentProcessInfo);
+}
+
+void GapSbmLoadSolidConditionBatched::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateAllContributions(nullptr, &rRightHandSideVector, rCurrentProcessInfo);
+}
+
+void GapSbmLoadSolidConditionBatched::CalculateAllContributions(
+    MatrixType* pLeftHandSideMatrix,
+    VectorType* pRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const std::size_t matrix_size = GetSurrogateGeometry().size() * mDim;
+    if (pLeftHandSideMatrix) {
+        pLeftHandSideMatrix->resize(matrix_size, matrix_size, false);
+        noalias(*pLeftHandSideMatrix) = ZeroMatrix(matrix_size, matrix_size);
+    }
+    if (pRightHandSideVector) {
+        pRightHandSideVector->resize(matrix_size, false);
+        noalias(*pRightHandSideVector) = ZeroVector(matrix_size);
+    }
+
+    Vector point_rhs;
+    for (std::size_t point_index = 0;
+         point_index < NumberOfQuadraturePoints();
+         ++point_index) {
+        SetCurrentQuadraturePoint(point_index);
+        if (pRightHandSideVector) {
+            BaseType::CalculateRightHandSide(point_rhs, rCurrentProcessInfo);
+            noalias(*pRightHandSideVector) += point_rhs;
+        }
+    }
+    if (!mConstitutiveLawVector.empty()) {
+        SetCurrentQuadraturePoint(0);
+    }
+}
+
+void GapSbmLoadSolidConditionBatched::InitializeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    for (std::size_t point_index = 0;
+         point_index < NumberOfQuadraturePoints();
+         ++point_index) {
+        SetCurrentQuadraturePoint(point_index);
+        BaseType::InitializeSolutionStep(rCurrentProcessInfo);
+    }
+}
+
+void GapSbmLoadSolidConditionBatched::FinalizeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    for (std::size_t point_index = 0;
+         point_index < NumberOfQuadraturePoints();
+         ++point_index) {
+        SetCurrentQuadraturePoint(point_index);
+        BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
+    }
+}
+
+std::size_t GapSbmLoadSolidConditionBatched::NumberOfQuadraturePoints() const
+{
+    return GetGeometry().NumberOfGeometryParts();
+}
+
+const GapSbmLoadSolidConditionBatched::GeometryType&
+GapSbmLoadSolidConditionBatched::GetRepresentativeGeometry() const
+{
+    KRATOS_ERROR_IF(NumberOfQuadraturePoints() == 0)
+        << Info() << " has no representative geometry.\n";
+    return GetGeometry().GetGeometryPart(0);
+}
+
+const GapSbmLoadSolidConditionBatched::GeometryType&
+GapSbmLoadSolidConditionBatched::GetBoundaryGeometry() const
+{
+    return GetRepresentativeGeometry();
+}
+
+const GapSbmLoadSolidConditionBatched::NodeType&
+GapSbmLoadSolidConditionBatched::GetProjectionNode() const
+{
+    KRATOS_ERROR_IF(mCurrentQuadraturePoint >= mProjectionNodes.size() ||
+                    !mProjectionNodes[mCurrentQuadraturePoint])
+        << Info() << " has no projection node at quadrature point "
+        << mCurrentQuadraturePoint << ".\n";
+    return *mProjectionNodes[mCurrentQuadraturePoint];
+}
+
+void GapSbmLoadSolidConditionBatched::CompactQuadratureGeometries()
+{
+    const std::size_t number_of_points =
+        GetGeometry().NumberOfGeometryParts();
+    if (number_of_points == 0 ||
+        mQuadraturePointCoordinates.size1() == number_of_points) {
+        return;
+    }
+
+    mProjectionNodes.resize(number_of_points);
+    mQuadraturePointReferenceWeights.resize(number_of_points, false);
+    mQuadraturePointCoordinates.resize(number_of_points, 3, false);
+    mQuadraturePointNormals.resize(number_of_points, 3, false);
+    auto p_representative = GetGeometry().pGetGeometryPart(0);
+    for (std::size_t point_index = 0;
+         point_index < number_of_points;
+         ++point_index) {
+        auto p_geometry = GetGeometry().pGetGeometryPart(point_index);
+        KRATOS_ERROR_IF_NOT(p_geometry->Has(PROJECTION_NODE))
+            << "Missing PROJECTION_NODE at point " << point_index
+            << " of " << Info() << ".\n";
+        mProjectionNodes[point_index] =
+            p_geometry->GetValue(PROJECTION_NODE);
+        const auto method = p_geometry->GetDefaultIntegrationMethod();
+        const auto& r_points = p_geometry->IntegrationPoints(method);
+        KRATOS_ERROR_IF(r_points.size() != 1)
+            << Info() << " requires one integration point per geometry.\n";
+        mQuadraturePointReferenceWeights[point_index] =
+            r_points.front().Weight();
+        const auto center = p_geometry->Center();
+        auto normal = p_geometry->Normal(0, method);
+        const double normal_norm = norm_2(normal);
+        KRATOS_ERROR_IF(normal_norm <= std::numeric_limits<double>::epsilon())
+            << "Zero normal at point " << point_index
+            << " of " << Info() << ".\n";
+        normal /= normal_norm;
+        for (std::size_t component = 0; component < 3; ++component) {
+            mQuadraturePointCoordinates(point_index, component) =
+                center[component];
+            mQuadraturePointNormals(point_index, component) =
+                normal[component];
+        }
+        if (point_index > 0) {
+            GetGeometry().SetGeometryPart(point_index, p_representative);
+        }
+    }
+}
+
+void GapSbmLoadSolidConditionBatched::SetCurrentQuadraturePoint(
+    const std::size_t PointIndex)
+{
+    KRATOS_ERROR_IF(PointIndex >= NumberOfQuadraturePoints())
+        << "Invalid point index in " << Info() << ".\n";
+    mCurrentQuadraturePoint = PointIndex;
+    if (!mConstitutiveLawVector.empty()) {
+        mpConstitutiveLaw = mConstitutiveLawVector[PointIndex];
+    }
+    SetValue(INTEGRATION_WEIGHT, mQuadraturePointWeights.size() > PointIndex
+        ? mQuadraturePointWeights[PointIndex]
+        : mQuadraturePointReferenceWeights[PointIndex]);
+
+    const auto surrogate_center = GetSurrogateGeometry().Center();
+    if (mDistanceVector.size() != 3) {
+        mDistanceVector.resize(3, false);
+    }
+    for (std::size_t component = 0; component < 3; ++component) {
+        mNormalParameterSpace[component] =
+            mQuadraturePointNormals(PointIndex, component);
+        mNormalPhysicalSpace[component] =
+            mQuadraturePointNormals(PointIndex, component);
+        mDistanceVector[component] =
+            mQuadraturePointCoordinates(PointIndex, component) -
+            surrogate_center[component];
+    }
+    SetValue(PROJECTION_NODE_COORDINATES, GetProjectionNode().Coordinates());
+}
+
+void GapSbmLoadSolidConditionBatched::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GapSbmLoadSolidCondition);
+    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("ProjectionNodes", mProjectionNodes);
+    rSerializer.save("QuadraturePointReferenceWeights",
+                     mQuadraturePointReferenceWeights);
+    rSerializer.save("QuadraturePointWeights", mQuadraturePointWeights);
+    rSerializer.save("QuadraturePointCoordinates",
+                     mQuadraturePointCoordinates);
+    rSerializer.save("QuadraturePointNormals", mQuadraturePointNormals);
+}
+
+void GapSbmLoadSolidConditionBatched::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GapSbmLoadSolidCondition);
+    rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("ProjectionNodes", mProjectionNodes);
+    rSerializer.load("QuadraturePointReferenceWeights",
+                     mQuadraturePointReferenceWeights);
+    rSerializer.load("QuadraturePointWeights", mQuadraturePointWeights);
+    rSerializer.load("QuadraturePointCoordinates",
+                     mQuadraturePointCoordinates);
+    rSerializer.load("QuadraturePointNormals", mQuadraturePointNormals);
+    mCurrentQuadraturePoint = 0;
+    if (!mConstitutiveLawVector.empty()) {
+        mpConstitutiveLaw = mConstitutiveLawVector.front();
+    }
 }
 
 } // Namespace Kratos

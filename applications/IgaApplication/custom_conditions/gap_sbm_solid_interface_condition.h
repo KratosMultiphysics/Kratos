@@ -240,13 +240,13 @@ void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
  * @brief 
  * 
  */
-void InitializeMemberVariables();
+void InitializeMemberVariables(const GeometryType& rTrueGeometry);
 
 /**
  * @brief 
  * 
  */
-void InitializeSbmMemberVariables();
+void InitializeSbmMemberVariables(const GeometryType& rTrueGeometry);
 
 
 /**
@@ -309,6 +309,18 @@ void ComputeGradientTaylorExpansionContribution(
     const GeometryType& rGeometry,
     const Vector& rDistanceVector, 
     Matrix& grad_H_sum);
+
+using TaylorDerivativeData = std::vector<Matrix>;
+
+TaylorDerivativeData CalculateTaylorDerivativeData(
+    const GeometryType& rGeometry) const;
+
+void EvaluateTaylorExpansion(
+    const GeometryType& rGeometry,
+    const Vector& rDistanceVector,
+    const TaylorDerivativeData& rDerivativeData,
+    Vector* pShapeFunctions,
+    Matrix* pShapeFunctionGradients) const;
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
@@ -388,5 +400,147 @@ private:
     ///@}
 
 }; // Class SupportPenaltyLaplacianCondition
+
+class KRATOS_API(IGA_APPLICATION) GapSbmSolidInterfaceConditionBatched
+    : public GapSbmSolidInterfaceCondition
+{
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(
+        GapSbmSolidInterfaceConditionBatched);
+
+    using BaseType = GapSbmSolidInterfaceCondition;
+    using GeometryType = BaseType::GeometryType;
+    using NodesArrayType = BaseType::NodesArrayType;
+    using PropertiesType = BaseType::PropertiesType;
+    using MatrixType = BaseType::MatrixType;
+    using VectorType = BaseType::VectorType;
+
+    GapSbmSolidInterfaceConditionBatched(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
+
+    GapSbmSolidInterfaceConditionBatched(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties);
+
+    ~GapSbmSolidInterfaceConditionBatched() override = default;
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override;
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override;
+
+    IntegrationMethod GetIntegrationMethod() const override;
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "GapSbmSolidInterfaceConditionBatched #" << Id();
+        return buffer.str();
+    }
+
+protected:
+    GapSbmSolidInterfaceConditionBatched() = default;
+
+private:
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    Vector mQuadraturePointWeights;
+    Vector mQuadraturePointReferenceWeights;
+    Matrix mQuadraturePointNormals;
+    Matrix mQuadraturePointCoordinates;
+
+    void CompactQuadratureGeometries();
+
+    void SetQuadraturePointDistances(
+        const std::size_t PointIndex);
+
+    std::size_t NumberOfQuadraturePoints() const;
+
+    const GeometryType& GetQuadraturePointGeometry(
+        const std::size_t PointIndex) const;
+
+    void FillB(
+        Matrix& rB,
+        const Matrix& rShapeFunctionGradients,
+        const std::size_t NumberOfControlPoints) const;
+
+    void CalculateAllContributions(
+        MatrixType* pLeftHandSideMatrix,
+        VectorType* pRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(
+            rSerializer,
+            GapSbmSolidInterfaceCondition);
+        rSerializer.save(
+            "ConstitutiveLawVector",
+            mConstitutiveLawVector);
+        rSerializer.save(
+            "QuadraturePointWeights",
+            mQuadraturePointWeights);
+        rSerializer.save(
+            "QuadraturePointReferenceWeights",
+            mQuadraturePointReferenceWeights);
+        rSerializer.save(
+            "QuadraturePointNormals",
+            mQuadraturePointNormals);
+        rSerializer.save(
+            "QuadraturePointCoordinates",
+            mQuadraturePointCoordinates);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(
+            rSerializer,
+            GapSbmSolidInterfaceCondition);
+        rSerializer.load(
+            "ConstitutiveLawVector",
+            mConstitutiveLawVector);
+        rSerializer.load(
+            "QuadraturePointWeights",
+            mQuadraturePointWeights);
+        rSerializer.load(
+            "QuadraturePointReferenceWeights",
+            mQuadraturePointReferenceWeights);
+        rSerializer.load(
+            "QuadraturePointNormals",
+            mQuadraturePointNormals);
+        rSerializer.load(
+            "QuadraturePointCoordinates",
+            mQuadraturePointCoordinates);
+    }
+};
 
 }  // namespace Kratos.

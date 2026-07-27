@@ -292,6 +292,15 @@ protected:
      */
     void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
 
+    using TaylorDerivativeData = std::vector<Matrix>;
+
+    TaylorDerivativeData CalculateTaylorDerivativeData() const;
+
+    void EvaluateTaylorExpansion(
+        const TaylorDerivativeData& rDerivativeData,
+        Vector* pShapeFunctions,
+        Matrix* pShapeFunctionGradients) const;
+
     /**
      * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
      * @param derivative 
@@ -360,7 +369,7 @@ protected:
 
     ///@}
 
-private:
+protected:
     ///@name Operations
     ///@{
     const GeometryType& GetSurrogateGeometry() const
@@ -420,6 +429,172 @@ private:
     ///@}
 
 }; // Class GapSbmSolidElement
+
+/**
+ * @brief Gap-SBM solid element integrating a batch of volume quadrature points.
+ *
+ * The element geometry is a CouplingGeometry whose geometry parts are the
+ * original single-point quadrature geometries. All points in the batch share
+ * the same first NEIGHBOUR_GEOMETRIES entry and consequently the same DOFs.
+ */
+class KRATOS_API(IGA_APPLICATION) GapSbmSolidElementVolumetric
+    : public GapSbmSolidElement
+{
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GapSbmSolidElementVolumetric);
+
+    using BaseType = GapSbmSolidElement;
+    using GeometryType = BaseType::GeometryType;
+    using NodesArrayType = BaseType::NodesArrayType;
+    using PropertiesType = BaseType::PropertiesType;
+    using MatrixType = BaseType::MatrixType;
+    using VectorType = BaseType::VectorType;
+
+    GapSbmSolidElementVolumetric(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
+
+    GapSbmSolidElementVolumetric(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties);
+
+    ~GapSbmSolidElementVolumetric() override = default;
+
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override;
+
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override;
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+    std::size_t QuadraturePointsNumber() const;
+
+    array_1d<double, 3> GetQuadraturePointCoordinates(
+        const std::size_t PointIndex) const;
+
+    void SetQuadraturePointBodyForceComponent(
+        const std::size_t PointIndex,
+        const std::size_t ComponentIndex,
+        const double Value);
+
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "GapSbmSolidElementVolumetric #" << Id();
+        return buffer.str();
+    }
+
+protected:
+    GapSbmSolidElementVolumetric() = default;
+
+private:
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    Vector mQuadraturePointWeights;
+    Vector mQuadraturePointReferenceWeights;
+    Matrix mQuadraturePointCoordinates;
+    Matrix mQuadraturePointBodyForces;
+    std::vector<int> mHasQuadraturePointBodyForce;
+
+    void CompactQuadratureGeometries();
+
+    std::size_t NumberOfQuadraturePoints() const;
+
+    const GeometryType& GetQuadraturePointGeometry(
+        const std::size_t PointIndex) const;
+
+    double GetQuadraturePointWeight(
+        const std::size_t PointIndex) const;
+
+    void SetQuadraturePointDistance(
+        const std::size_t PointIndex);
+
+    void FillBBlock(
+        Matrix& rBStack,
+        const std::size_t StackPointIndex,
+        const Matrix& rShapeFunctionGradients) const;
+
+    void CalculateAllContributions(
+        MatrixType* pLeftHandSideMatrix,
+        VectorType* pRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GapSbmSolidElement);
+        rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+        rSerializer.save("QuadraturePointWeights", mQuadraturePointWeights);
+        rSerializer.save(
+            "QuadraturePointReferenceWeights",
+            mQuadraturePointReferenceWeights);
+        rSerializer.save(
+            "QuadraturePointCoordinates",
+            mQuadraturePointCoordinates);
+        rSerializer.save(
+            "QuadraturePointBodyForces",
+            mQuadraturePointBodyForces);
+        rSerializer.save(
+            "HasQuadraturePointBodyForce",
+            mHasQuadraturePointBodyForce);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GapSbmSolidElement);
+        rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+        rSerializer.load("QuadraturePointWeights", mQuadraturePointWeights);
+        rSerializer.load(
+            "QuadraturePointReferenceWeights",
+            mQuadraturePointReferenceWeights);
+        rSerializer.load(
+            "QuadraturePointCoordinates",
+            mQuadraturePointCoordinates);
+        rSerializer.load(
+            "QuadraturePointBodyForces",
+            mQuadraturePointBodyForces);
+        rSerializer.load(
+            "HasQuadraturePointBodyForce",
+            mHasQuadraturePointBodyForce);
+    }
+};
 
 ///@}
 
