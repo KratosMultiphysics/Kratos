@@ -249,15 +249,16 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefine, KratosMeshioPlusPl
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsDecimateNeedsASurface, KratosMeshioPlusPlusFastSuite)
 {
     // decimate is surface-only; a volume mesh raises by name pointing at extract_surface,
-    // per the meshio++ contract.
+    // per the meshio++ contract. target_ratio must be set explicitly - decimate validates
+    // its own options (exactly one stopping criterion) before checking the mesh at all.
     Model model;
     auto& r_source = model.CreateModelPart("source");
     PopulateCubeOfTetrahedra(r_source);
     auto& r_destination = model.CreateModelPart("destination");
 
+    Parameters settings = OperationSettings("decimate", R"({"target_ratio" : 0.5})");
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("decimate"), r_destination),
-        "extract_surface");
+        MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination), "extract_surface");
 }
 
 /***********************************************************************************/
@@ -636,7 +637,9 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsComputeQuality, KratosMesh
     KRATOS_EXPECT_EQ(report["number_of_cells"].GetInt(), 6);
     KRATOS_EXPECT_EQ(report["number_of_inverted"].GetInt(), 0);
     KRATOS_EXPECT_TRUE(report.Has("metrics"));
-    KRATOS_EXPECT_GT(report["metrics"].size(), 0);
+    // "metrics" is an object keyed by metric name, not an array - Parameters::size() only
+    // accepts the Array type, so its non-emptiness is checked by iterating instead.
+    KRATOS_EXPECT_TRUE(report["metrics"].begin() != report["metrics"].end());
 }
 
 /***********************************************************************************/
@@ -731,8 +734,9 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsDiffOfDifferentModelParts,
     PopulateCubeOfTetrahedra(r_first);
     auto& r_second = model.CreateModelPart("second");
     PopulateCubeOfTetrahedra(r_second);
-    // Move one node so the two meshes genuinely differ.
-    r_second.GetNode(1).X() = 5.0;
+    // ModelPartToMesh (which Diff uses) reads the *initial* coordinates by default, so the
+    // difference must be created there - mutating Node::X() afterwards would be invisible.
+    r_second.GetNode(2).X0() = 5.0;
 
     const Parameters report = MeshioPlusPlusMeshOperations::Diff(r_first, r_second);
     KRATOS_EXPECT_FALSE(report["equal"].GetBool());
@@ -743,33 +747,45 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsDiffOfDifferentModelParts,
 
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsEntityTypeFiltering, KratosMeshioPlusPlusFastSuite)
 {
+    // The tetrahedron (element) and the triangle (condition) are given disjoint geometry -
+    // one at the origin, one far away - so which one made it into the operation's input can
+    // be told apart by node count and position alone. This matters because, once an entity
+    // reaches meshio++, "element vs condition" is re-derived from cell dimension on the way
+    // back into Kratos (highest dimension present -> element, lower -> condition): with only
+    // one kind selected it is also the *only* cell block, so it always comes back an element
+    // regardless of which Kratos container it started in. Node position is therefore the
+    // only source-agnostic way to check that "entity_type" actually filtered the input.
     Model model;
     auto& r_source = model.CreateModelPart("source");
     r_source.CreateNewNode(1, 0.0, 0.0, 0.0);
     r_source.CreateNewNode(2, 1.0, 0.0, 0.0);
     r_source.CreateNewNode(3, 0.0, 1.0, 0.0);
     r_source.CreateNewNode(4, 0.0, 0.0, 1.0);
+    r_source.CreateNewNode(5, 100.0, 0.0, 0.0);
+    r_source.CreateNewNode(6, 101.0, 0.0, 0.0);
+    r_source.CreateNewNode(7, 100.0, 1.0, 0.0);
     auto p_properties = r_source.CreateNewProperties(1);
     r_source.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties);
-    r_source.CreateNewCondition("SurfaceCondition3D3N", 1, {1, 2, 3}, p_properties);
+    r_source.CreateNewCondition("SurfaceCondition3D3N", 1, {5, 6, 7}, p_properties);
 
     {
         auto& r_elements_only = model.CreateModelPart("elements_only");
         Parameters settings = OperationSettings("clean", R"({"entity_type" : "elements"})");
         MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_elements_only);
-        KRATOS_EXPECT_EQ(r_elements_only.NumberOfElements(), 1);
-        KRATOS_EXPECT_EQ(r_elements_only.NumberOfConditions(), 0);
+        KRATOS_EXPECT_EQ(r_elements_only.NumberOfNodes(), 4); // the tetrahedron only
+        KRATOS_EXPECT_LT(r_elements_only.GetNode(1).X(), 10.0);
     }
     {
         auto& r_conditions_only = model.CreateModelPart("conditions_only");
         Parameters settings = OperationSettings("clean", R"({"entity_type" : "conditions"})");
         MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_conditions_only);
-        KRATOS_EXPECT_EQ(r_conditions_only.NumberOfElements(), 0);
-        KRATOS_EXPECT_EQ(r_conditions_only.NumberOfConditions(), 1);
+        KRATOS_EXPECT_EQ(r_conditions_only.NumberOfNodes(), 3); // the triangle only
+        KRATOS_EXPECT_GT(r_conditions_only.GetNode(1).X(), 10.0);
     }
     {
         auto& r_automatic = model.CreateModelPart("automatic");
         MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("clean"), r_automatic);
+        KRATOS_EXPECT_EQ(r_automatic.NumberOfNodes(), 7); // both, disjoint
         KRATOS_EXPECT_EQ(r_automatic.NumberOfElements(), 1);
         KRATOS_EXPECT_EQ(r_automatic.NumberOfConditions(), 1);
     }
@@ -778,11 +794,34 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsEntityTypeFiltering, Krato
 /***********************************************************************************/
 /***********************************************************************************/
 
-KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsPropertiesSurviveAnOperation, KratosMeshioPlusPlusFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsPropertiesSurviveTransform, KratosMeshioPlusPlusFastSuite)
 {
-    // Material data is carried by Internals::FillMeshioModelPart/ExportMeshioProperties, the
-    // same conversion Execute uses - so it should survive an ordinary mesh-producing
-    // operation, not just a direct MeshioPlusPlusIO read/write round trip.
+    // Material data reaches the meshio++ mesh via Internals::FillMeshioModelPart /
+    // ExportMeshioProperties (the same conversion Execute uses for every operation), but
+    // meshio++ 9.2.0 only *propagates* property sets from the input mesh to an operation's
+    // result for a subset of operations - "transform" and "smooth" are documented to carry
+    // them; "merge", "crop", "split", "partition" and "diff" are documented not to.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    r_source.pGetProperties(1)->SetValue(DENSITY, 7850.0);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("transform"), r_destination);
+
+    KRATOS_EXPECT_TRUE(r_destination.HasProperties(1));
+    KRATOS_EXPECT_TRUE(r_destination.GetProperties(1).Has(DENSITY));
+    KRATOS_EXPECT_NEAR(r_destination.GetProperties(1).GetValue(DENSITY), 7850.0, 1e-12);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsPropertiesDoNotSurviveClean, KratosMeshioPlusPlusFastSuite)
+{
+    // The other half of the finding above, pinned down explicitly so a future meshio++
+    // release that starts propagating property sets through "clean" changes this test
+    // rather than silently changing behaviour unnoticed.
     Model model;
     auto& r_source = model.CreateModelPart("source");
     PopulateCubeOfTetrahedra(r_source);
@@ -791,9 +830,7 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsPropertiesSurviveAnOperati
 
     MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("clean"), r_destination);
 
-    KRATOS_EXPECT_TRUE(r_destination.HasProperties(1));
-    KRATOS_EXPECT_TRUE(r_destination.GetProperties(1).Has(DENSITY));
-    KRATOS_EXPECT_NEAR(r_destination.GetProperties(1).GetValue(DENSITY), 7850.0, 1e-12);
+    KRATOS_EXPECT_FALSE(r_destination.HasProperties(1));
 }
 
 /***********************************************************************************/
