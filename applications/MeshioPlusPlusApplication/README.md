@@ -64,9 +64,17 @@ The application includes tests to check the proper functioning of the applicatio
 
     * *`diff` — structured mesh comparison with tolerances*
 
-    * *`data_*` — expression calculator, conditioning, rename/drop/keep, point ⇄ cell averaging*
+    * *`data_calc` — evaluate an expression over one or more arrays into a new one*
 
-    * *`interpolate` — cross-mesh field transfer*
+    * *`data_condition` — clamp, normalize or standardize an array's values*
+
+    * *`data_manage` — keep, drop or rename arrays; `data_info` reports their shape and dtype*
+
+    * *`point_data_to_cell_data` and `cell_data_to_point_data` — averaging transfer between nodes and cells*
+
+    * *`interpolate` (`MeshioPlusPlusMeshOperations.Interpolate`, or the `MeshioInterpolateModeler`) — sample one mesh's field data onto another's geometry (nearest/barycentric, with extrapolation and conflict handling)*
+
+    Field data (nodal/elemental/conditional variables, flags and ids) reaches all of the above through the same `nodal_solution_step_data_variables` / `nodal_data_value_variables` / `nodal_flags` / `element_data_value_variables` / `element_flags` / `condition_data_value_variables` / `condition_flags` / `gauss_point_variables_in_elements` / `write_ids` settings `MeshioPlusPlusIO` uses — pass them to `operation_settings` and the selected variables are staged into the meshio++ mesh before the operation runs and, where the result carries a matching registered `Variable` name, written back onto the output model part afterwards.
 
 ## 🛠️ Building:
 
@@ -89,7 +97,10 @@ then point the Kratos configure at it:
 ```
 
 > [!IMPORTANT]
-> The application requires **meshio++ 9.2.0 exactly**. The meshio++ C++ API makes no ABI promise — `Mesh`, `ModelPart` and `GeometricalEntity` are header-defined types whose layout changes with the headers — so the application must be rebuilt whenever meshio++ is. All three version components must be spelled out: under `SameMajorVersion`, `EXACT` is a full string comparison, so `9.2` does not match an installed `9.2.0`.
+> The application requires **meshio++ ABI 3**, which is **v9.2.0 or newer**. The pin is on `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version: that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect this application needs no rebuild. Getting it wrong is not silent — the C++ variants' `SOVERSION` is the ABI version and every translation unit carries a link-time sentinel naming it, so a skew is a link error rather than memory corruption. See meshio++'s [`doc/abi.md`](https://github.com/loumalouomega/meshioplusplus/blob/master/doc/abi.md) for the criterion.
+
+> [!NOTE]
+> Upgrading from a meshio++ older than v9.4.0 requires relinking this application once: the C++ variants' `SOVERSION` changed from a flat `0` to the ABI version, so the needed library is now `libmeshioplusplus_core_kratos.so.3` rather than `.so.0`. Install the new meshio++ wholesale rather than part-upgrading — v9.4.0 headers reference a sentinel a `≤9.3.0` library does not define, which fails closed at link time.
 
 ## 📖 Usage:
 
@@ -152,6 +163,7 @@ print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats())
 - `Properties` entries that are not numeric are left to the materials file: a `Begin Table` curve, and text values such as a constitutive law name (instantiating one needs Kratos's own registry, which meshio++ deliberately does not link). Everything numeric — scalars, integers and vector-valued variables alike — round-trips.
 - The C++ `mdpa` reader throws by name on constructs it cannot represent (`Geometries`, `Mesh <id>`, `Constraints`, ...); `ReadOptions::mLenient` downgrades those to a warning and a skip.
 - Transient output is held open by the IO. Call `CloseOutput()` before deleting the output of a run: a live writer finalizes on destruction and would recreate the file, and since the series is opened in append mode the next run would then continue a series believed deleted. `MeshioOutputProcess` does this in `ExecuteFinalize`.
+- The operations layer only writes a resulting array back onto the output model part when its name matches a registered `Variable<T>` with the right component count: Kratos stores non-historical/historical data keyed by `Variable` objects, not arbitrary strings, so an operation's own invented array names (`attach_quality`'s `"quality:scaled_jacobian"`, for instance) are computed but cannot be retrieved from the output model part — point the operation's own naming setting (`data_calc`'s `"output"`, `data_manage`'s renames, ...) at an existing variable name to get the result back.
 
 ## 🗎 Documentation:
 
