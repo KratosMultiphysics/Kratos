@@ -47,7 +47,18 @@ then point the Kratos configure at it, and add the application:
 add_app ${KRATOS_APP_DIR}/MeshioPlusPlusApplication
 ```
 
-> **Version pin**: the application requires **meshio++ 9.2.0 exactly** (`find_package(meshioplusplus 9.2.0 EXACT CONFIG REQUIRED COMPONENTS CXX)`). The meshio++ C++ API makes no ABI promise — `Mesh`, `ModelPart` and `GeometricalEntity` are header-defined types whose layout changes with the headers — so the application must be rebuilt whenever meshio++ is. All three version components must be spelled out: under `SameMajorVersion`, `EXACT` is a full string comparison, so `9.2` does not match an installed `9.2.0`.
+> **Version pin**: the application requires **meshio++ ABI 3**, which is **v9.2.0 or newer**. It pins `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version — that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect the application needs no rebuild:
+>
+> ```cmake
+> find_package(meshioplusplus CONFIG REQUIRED COMPONENTS CXX)
+> if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 3)
+>     message(FATAL_ERROR "...")
+> endif()
+> ```
+>
+> Getting it wrong is not silent: the C++ variants' `SOVERSION` is the ABI version, and every consumer translation unit carries a link-time sentinel naming it, so a header/library skew is a link error rather than memory corruption. See meshio++'s [`doc/abi.md`](https://github.com/loumalouomega/meshioplusplus/blob/master/doc/abi.md) for the criterion that decides when the ABI version moves.
+
+> **Upgrading from a meshio++ older than v9.4.0** requires relinking the application once: the C++ variants' `SOVERSION` changed from a flat `0` to the ABI version, so the needed library is now `libmeshioplusplus_core_kratos.so.3` rather than `.so.0`. Install the new meshio++ wholesale rather than part-upgrading — v9.4.0 headers reference a sentinel a `≤9.3.0` library does not define, which fails closed at link time.
 
 ## Supported formats
 
