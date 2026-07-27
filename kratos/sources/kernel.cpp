@@ -98,7 +98,6 @@ void Kernel::Initialize() {
             Registry::AddItem<std::string>("libraries.gidpost");
             Registry::AddItem<std::string>("libraries.intrusive_ptr");
             Registry::AddItem<std::string>("libraries.json");
-            Registry::AddItem<std::string>("libraries.meshioplusplus");
             Registry::AddItem<std::string>("libraries.pybind11");
             Registry::AddItem<std::string>("libraries.span");
             Registry::AddItem<std::string>("libraries.tinyexpr");

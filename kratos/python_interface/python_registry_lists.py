@@ -1,7 +1,6 @@
 python_modelers_to_be_registered = [
     "modelers.delete_model_parts_modeler.DeleteModelPartsModeler",
-    "modelers.import_mdpa_modeler.ImportMDPAModeler",
-    "modelers.meshio_input_modeler.MeshioInputModeler"
+    "modelers.import_mdpa_modeler.ImportMDPAModeler"
 ]
 
 python_operations_to_be_registered = []
@@ -29,8 +28,7 @@ python_processes_to_be_registered = [
     "assign_vector_variable_to_constraints_process.AssignVectorVariableToConstraintsProcess",
     "assign_vector_variable_to_elements_process.AssignVectorVariableToElementsProcess",
     "assign_vector_variable_to_entities_process.AssignVectorVariableToEntitiesProcess",
-    "assign_vector_variable_to_nodes_process.AssignVectorVariableToNodesProcess",
-    "meshio_output_process.MeshioOutputProcess"
+    "assign_vector_variable_to_nodes_process.AssignVectorVariableToNodesProcess"
 ]
 
 python_stages_to_be_registered = [
