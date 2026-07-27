@@ -13,12 +13,41 @@
 //                   Richard Faasse
 
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.hpp"
-#include "containers/model.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/process_utilities.h"
 #include "utilities/atomic_utilities.h"
-#include "utilities/variable_utils.h"
+
+namespace
+{
+
+using namespace Kratos;
+
+void CheckElement(Element& rElement, const std::string& rModelPartName, const ProcessInfo& rProcessInfo)
+{
+    int check_result = 0;
+    try {
+        check_result = rElement.Check(rProcessInfo);
+    } catch (const std::exception& rException) {
+        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Exception while "
+                        "calling Element::Check "
+                     << "before extrapolation for element id " << rElement.Id() << " in ModelPart='"
+                     << rModelPartName << "'. Original error: " << rException.what()
+                     << " Plausible cause: this modelpart is not activated." << std::endl;
+    } catch (...) {
+        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Unknown exception "
+                        "while calling "
+                     << "Element::Check before extrapolation for element id " << rElement.Id()
+                     << " in ModelPart='" << rModelPartName
+                     << "'.  Plausible cause: this modelpart is not activated." << std::endl;
+    }
+
+    KRATOS_ERROR_IF(check_result != 0) << "GeoExtrapolateIntegrationPointValuesToNodesProcess: "
+                                          "Element Check failed before extrapolation for "
+                                       << "element id " << rElement.Id() << " in ModelPart='" << rModelPartName
+                                       << "'. Check returned " << check_result << "." << std::endl;
+}
+} // namespace
 
 namespace Kratos
 {
@@ -195,33 +224,6 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatri
 const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtrapolationMatrixFor(const Element& rElement) const
 {
     return mExtrapolationMatrixMap.at(typeid(rElement).hash_code());
-}
-
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::CheckElement(Element& rElement,
-                                                                      const std::string& rModelPartName,
-                                                                      const ProcessInfo& rProcessInfo) const
-{
-    int check_result = 0;
-    try {
-        check_result = rElement.Check(rProcessInfo);
-    } catch (const std::exception& rException) {
-        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Exception while "
-                        "calling Element::Check "
-                     << "before extrapolation for element id " << rElement.Id() << " in ModelPart='"
-                     << rModelPartName << "'. Original error: " << rException.what()
-                     << " Plausible cause: this modelpart is not activated." << std::endl;
-    } catch (...) {
-        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Unknown exception "
-                        "while calling "
-                     << "Element::Check before extrapolation for element id " << rElement.Id()
-                     << " in ModelPart='" << rModelPartName
-                     << "'.  Plausible cause: this modelpart is not activated." << std::endl;
-    }
-
-    KRATOS_ERROR_IF(check_result != 0) << "GeoExtrapolateIntegrationPointValuesToNodesProcess: "
-                                          "Element Check failed before extrapolation for "
-                                       << "element id " << rElement.Id() << " in ModelPart='" << rModelPartName
-                                       << "'. Check returned " << check_result << "." << std::endl;
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
