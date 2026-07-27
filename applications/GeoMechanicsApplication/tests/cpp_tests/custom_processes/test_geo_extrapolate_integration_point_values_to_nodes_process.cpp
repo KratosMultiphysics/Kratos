@@ -156,14 +156,9 @@ ModelPart& CreateModelPartWithSingleStubElement(Model& model, const VariableData
 
 ModelPart& CreateModelPartWithStubElements(Model& model, const VariableData& rVariable, bool hasMixedElements = false)
 {
-    //   This function creates the following two-element system if hasMixedElements = false (Default):
-    //   4------3------6
-    //   |  El1 |  El2 |
-    //   1------2------5
-    //   and the following three -element system if hasMixedElements = true:
-    //   4------3-----6
-    //   |  El1 | 2\3 |
-    //   1------2-----5
+    //   This function creates the following two-element system if hasMixedElements = false
+    //   (Default): 4------3------6 |  El1 |  El2 | 1------2------5 and the following three -element
+    //   system if hasMixedElements = true: 4------3-----6 |  El1 | 2\3 | 1------2-----5
 
     auto& r_result = model.CreateModelPart("MainModelPart"s);
     r_result.AddNodalSolutionStepVariable(rVariable);
@@ -186,16 +181,14 @@ ModelPart& CreateModelPartWithStubElements(Model& model, const VariableData& rVa
         const auto nodes_of_element_3 = Testing::ModelSetupUtilities::GetNodesFromIds(r_result, {6, 3, 5});
         r_result.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
             3, std::make_shared<Triangle2D3<Node>>(nodes_of_element_3)));
-    }
-    else {
-        const auto nodes_of_element_2 = Testing::ModelSetupUtilities::GetNodesFromIds(r_result, {2, 5, 6, 3});
+    } else {
+        const auto nodes_of_element_2 =
+            Testing::ModelSetupUtilities::GetNodesFromIds(r_result, {2, 5, 6, 3});
         r_result.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
             2, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_2)));
     }
     return r_result;
 }
-
-
 
 std::string MakeModelPartNameFrom(const ModelPart& rModelPart)
 {
@@ -568,8 +561,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
     AssertNodalValues(r_model_part.Nodes(), r_test_variable, expected_values);
 }
 
-    KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyForLinearFieldsWithMixedElementMesh,
-                              KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyForLinearFieldsWithMixedElementMesh,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     //   This test uses the following two-element system.
     //   4-----3-----6
@@ -585,20 +578,20 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
     r_model_part.Elements()[1].SetValuesOnIntegrationPoints(
         r_test_variable,
         std::vector{array_1d<double, 3>(3, -inv_sqrt3), array_1d<double, 3>(3, inv_sqrt3),
-                   array_1d<double, 3>(3, inv_sqrt3), array_1d<double, 3>(3, -inv_sqrt3)},
+                    array_1d<double, 3>(3, inv_sqrt3), array_1d<double, 3>(3, -inv_sqrt3)},
         dummy_process_info);
 
     // Linear field in y between -1 and 1
     r_model_part.Elements()[2].SetValuesOnIntegrationPoints(
         r_test_variable,
-        std::vector{array_1d<double, 3>(3, -2./3.), array_1d<double, 3>(3, -2./3.),
-                    array_1d<double, 3>(3, 1./3.)},
+        std::vector{array_1d<double, 3>(3, -2. / 3.), array_1d<double, 3>(3, -2. / 3.),
+                    array_1d<double, 3>(3, 1. / 3.)},
         dummy_process_info);
 
     r_model_part.Elements()[3].SetValuesOnIntegrationPoints(
         r_test_variable,
-        std::vector{array_1d<double, 3>(3, 2./3.), array_1d<double, 3>(3, 2./3.) ,
-                    array_1d<double, 3>(3, -1./3.)},
+        std::vector{array_1d<double, 3>(3, 2. / 3.), array_1d<double, 3>(3, 2. / 3.),
+                    array_1d<double, 3>(3, -1. / 3.)},
         dummy_process_info);
 
     CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
@@ -608,7 +601,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
         array_1d<double, 3>(3, -1.0), array_1d<double, 3>(3, -1.0), array_1d<double, 3>(3, 1.0)};
     AssertNodalValues(r_model_part.Nodes(), r_test_variable, expected_values);
 }
-
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNodesAreSharedBetweenModelParts,
                           KratosGeoMechanicsFastSuiteWithoutKernel)

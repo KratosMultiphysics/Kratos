@@ -66,10 +66,10 @@ private:
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariables;
     std::vector<const Variable<Vector>*>              mVectorVariables;
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
-    std::map<std::tuple<GeometryData::KratosGeometryType, std::size_t, int>, Matrix>                        mExtrapolationMatrixMap = {};
-    std::map<const Variable<Vector>*, Vector>         mZeroValuesOfVectorVariables;
-    std::map<const Variable<Matrix>*, Matrix>         mZeroValuesOfMatrixVariables;
-    std::map<std::size_t, std::set<std::size_t>>      mNodeIdToConnectedElementIds;
+    std::map<std::tuple<GeometryData::KratosGeometryType, std::size_t, int>, Matrix> mExtrapolationMatrixMap = {};
+    std::map<const Variable<Vector>*, Vector>    mZeroValuesOfVectorVariables;
+    std::map<const Variable<Matrix>*, Matrix>    mZeroValuesOfMatrixVariables;
+    std::map<std::size_t, std::set<std::size_t>> mNodeIdToConnectedElementIds;
 
     void FillVariableLists(const Parameters& rParameters);
     void InitializeVectorAndMatrixZeros();
