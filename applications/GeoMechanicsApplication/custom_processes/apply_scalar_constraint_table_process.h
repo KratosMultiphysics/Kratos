@@ -57,6 +57,12 @@ private:
                                        std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
                                         std::vector<std::string> NamesOfSettingsToCopy);
+    void AppendOptionalFluidParameters(const Parameters&         rProcessSettings,
+                                       std::vector<std::string>& rNamesOfSettingsToCopy) const;
+
+    template <typename TableProcessType, typename ConstantProcessType>
+    void InstantiateProcessByTablePresence(const Parameters&          rProcessSettings,
+                                           std::vector<std::string>&& rNamesOfSettingsToCopy);
 
     ModelPart&           mrModelPart;
     ProcessUniquePointer mProcess;

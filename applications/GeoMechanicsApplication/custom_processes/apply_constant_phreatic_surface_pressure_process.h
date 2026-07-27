@@ -55,7 +55,7 @@ protected:
     Vector3      mSecondReferenceCoordinate;
     Vector3      mThirdReferenceCoordinate;
     Vector3      mNormalVector;
-    double       mEqRHS;
+    double       mEqRHS = 0.0;
     double       mPressureTensionCutOff;
 
 private:

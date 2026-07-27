@@ -40,6 +40,7 @@ if(${INCLUDE_MMG} MATCHES ON)
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/mmg/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/mmg/*.cpp
     )
 
     IF (MMG_ROOT)
