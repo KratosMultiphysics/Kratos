@@ -127,9 +127,9 @@ public:
      * @param rImplicitStrategyData Data container of the implicit strategy
      * @return true if the solution is converged, false otherwise
      */
-    virtual bool IsConverged(
+    bool IsConverged(
         ModelPart& rModelPart,
-        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
     {
         // Get effective solution vector
         const auto p_eff_dof_set = rImplicitStrategyData.pGetEffectiveDofSet();
@@ -150,20 +150,15 @@ public:
             KRATOS_WARNING("SolutionCriteria") << "Zero solution norm detected. Setting reference norm to dx norm" << std::endl;
             sol_norm = dx_norm;
         }
-        
-        // Calculate convergence ratio    
-        DataType ratio = 0.0;
-        if(dx_norm < std::numeric_limits<DataType>::epsilon()) {
-            ratio = 0.0;
-        } else {
-            ratio = dx_norm / sol_norm;
-        }
+
+        // Calculate convergence ratio
+        const DataType ratio = dx_norm < std::numeric_limits<DataType>::epsilon() ? 0.0 : dx_norm / sol_norm;
         rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
 
         // Calculate absolute solution increment norm (dx / ndof)
         const DataType absolute_norm = (dx_norm / std::sqrt(static_cast<DataType>(n_free_dofs)));
         rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
-        
+
         // Print current iteration information
         const int rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
         KRATOS_INFO_IF("SolutionCriteria", this->GetEchoLevel() > 0 && rank == 0) << "[Obtained ratio = " << ratio << "; Expected ratio = " << mRelativeTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAbsoluteTolerance << "]" << std::endl;
@@ -171,7 +166,7 @@ public:
         // Check convergence
         const bool is_converged = ratio <= mRelativeTolerance || absolute_norm < mAbsoluteTolerance;
         KRATOS_INFO_IF("SolutionCriteria", is_converged && this->GetEchoLevel() > 0 && rank == 0) << "Convergence achieved" << std::endl;
-        
+
         return is_converged;
     }
 
@@ -350,7 +345,7 @@ private:
         // Check if the problem is distributed
         DataType sol_norm;
         if (r_data_communicator.IsDistributed()) {
-            
+
             // // The current MPI rank
             // const int rank = r_data_communicator.Rank();
 
@@ -368,7 +363,7 @@ private:
             // mReferenceDispNorm = std::sqrt(r_data_communicator.SumAll(reference_disp_norm));
         } else {
             // Loop over Dofs and add the contribution of each free DOF to the norm
-            const DataType sol_norm = block_for_each<SumReduction<DataType>>(rDofSet, [](auto& rDof) {
+            sol_norm = block_for_each<SumReduction<DataType>>(rDofSet, [](auto& rDof) {
                 if (rDof.IsFree()) {
                     return std::pow(rDof.GetSolutionStepValue(), 2);
                 } else {
@@ -395,12 +390,12 @@ private:
     {
         // Retrieve the data communicator
         const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
-        
+
         // Define custom reduction for parallel computation
         // First item in the reduction tuple: sum of the squared norm of the variation of the DOFs
         // Second item in the reduction tuple: number of free DOFs
         using CustomReductionType = CombinedReduction<SumReduction<DataType>,SumReduction<std::size_t>>;
-        
+
         // Check if the problem is distributed
         DataType dx_norm;
         std::size_t n_free_dofs;
@@ -412,7 +407,7 @@ private:
             // // Note that the PARTITION_INDEX is considered in distributed runs to avoid adding more than once the same value into the norm
             // std::tie(final_correction_norm, n_free_dofs) = block_for_each<CustomReductionType>(rDofSet, TLS(), [&rDx, rank](auto& rDof, TLS& rTLS) {
             //     if (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == rank)) {
-                    
+
             //         DataType dof_dx_value = rDx[]
 
 
@@ -441,7 +436,7 @@ private:
         // Communicator reduction
         n_free_dofs = r_data_communicator.SumAll(n_free_dofs);
         dx_norm = std::sqrt(r_data_communicator.SumAll(dx_norm));
-        
+
         return std::make_pair(n_free_dofs, dx_norm);
     }
 

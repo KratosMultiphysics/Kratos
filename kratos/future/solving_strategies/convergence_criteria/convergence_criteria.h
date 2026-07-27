@@ -160,7 +160,11 @@ public:
      */
     virtual bool IsConverged(
         ModelPart& rModelPart,
-        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) = 0;
+        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+    {
+        KRATOS_ERROR << "Calling the base class IsConverged method. This should be implemented in the derived class." << std::endl;
+        return false;
+    }
 
     /**
      * @brief This function initialize the convergence criteria

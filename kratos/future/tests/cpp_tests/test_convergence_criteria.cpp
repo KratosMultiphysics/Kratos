@@ -44,13 +44,24 @@ KRATOS_TEST_CASE_IN_SUITE(ConvergenceCriteria, KratosCoreFastSuite)
     SolvingStrategiesTestUtilities::SetUpTestModelPart1D(num_elems, elem_size, r_test_model_part);
 
     // Create an implicit strategy data container with a fake effective solution increment vector
+    DenseVector<double> aux_data(3);
+    aux_data[0] = 3.0;
+    aux_data[1] = 7.0;
+    aux_data[2] = 2.0;
+    Future::SerialLinearAlgebraTraits::VectorType eff_dx(aux_data);
+    auto p_eff_dx = Kratos::make_shared<Future::SerialLinearAlgebraTraits::VectorType>(eff_dx);
+
+    auto p_eff_lin_sys = Kratos::make_shared<Future::LinearSystem<Future::SerialLinearAlgebraTraits>>();
+    p_eff_lin_sys->pSetVector(p_eff_dx, Future::LinearSystemTags::DenseVectorTag::Dx);
+
     Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
-    auto p_linear_system = Kratos::make_unique<Future::DenseLinearSystem<Future::SerialLinearAlgebraTraits>>();
-    p_linear_system->Initialize(r_test_model_part);
-    auto& r_dx = *(p_linear_system->pGetVector(Future::LinearSystemTags::DenseVectorTag::Dx));
-    r_dx.resize(r_test_model_part.GetModelPart().Nodes().size() * 3, false);
-    r_dx.assign(10.0);
-    strategy_data_container.pAssignEffectiveLinearSystem(std::move(p_linear_system));
+    strategy_data_container.pSetEffectiveLinearSystem(p_eff_lin_sys);
+
+    // Set solution values and fix one node to check that the convergence criteria works with fixed DOFs
+    for (auto& r_node : r_test_model_part.Nodes()) {
+        r_node.FastGetSolutionStepValue(DISTANCE) = 2.0 * static_cast<double>(r_node.Id());
+    }
+    r_test_model_part.pGetNode(1)->Fix(DISTANCE);
 
     // Create solution criteria
     Parameters solution_criteria_parameters = Parameters(R"({
@@ -59,6 +70,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConvergenceCriteria, KratosCoreFastSuite)
         "absolute_tolerance" : 1.0e-6
     })");
     auto p_convergence_criteria = Kratos::make_unique<Future::SolutionCriteria<Future::SerialLinearAlgebraTraits>>(solution_criteria_parameters);
+
+    // Call convergence criteria check
+    const bool is_converged = p_convergence_criteria->IsConverged(r_test_model_part, strategy_data_container);
+    const double res_norm = r_test_model_part.GetProcessInfo()[RESIDUAL_NORM];
+    const double conv_ratio = r_test_model_part.GetProcessInfo()[CONVERGENCE_RATIO];
+
+    std::cout << std::setprecision(12) << res_norm << std::endl;
+    std::cout << std::setprecision(12) << conv_ratio << std::endl;
 
     // Parameters scheme_settings = Parameters(R"({
     //     "build_settings" : {
