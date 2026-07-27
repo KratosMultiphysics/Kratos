@@ -26,7 +26,7 @@ def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=Non
 
 def extract_saturation_and_y_from_line(line):
     return _extract_x_and_y_from_line(
-        line, index_of_x=1, index_of_y=0, x_transform=lambda x : x / 100.0
+        line, index_of_x=1, index_of_y=0, x_transform=lambda x : x
     )
 
 def extract_x_and_y_from_line(line):
@@ -57,19 +57,20 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             for node in simulation.model.GetModelPart(
                     "PorousDomain.porous_computational_model_part"
             ).Nodes:
-                if abs(node.X - 1.62) < 0.01:
+                if abs(node.X - 1.52) < 0.01:
                     y_coord_by_id_for_right_boundary_nodes[node.Id] = node.Y
-            water_pressures = GiDOutputFileReader.nodal_values_at_time(
+            saturations = GiDOutputFileReader.nodal_values_at_time(
                 "DEGREE_OF_SATURATION",
                 1.0,
                 output_data,
                 y_coord_by_id_for_right_boundary_nodes.keys(),
             )
+            saturations = [saturation / 0.403 * 100 for saturation in saturations]
             sorted_depth, sorted_data = zip(
                 *sorted(
                     zip(
                         y_coord_by_id_for_right_boundary_nodes.values(),
-                        water_pressures,
+                        saturations,
                     )
                 )
             )
@@ -92,7 +93,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             plot_utils._make_plot(
                 data_series_collection,
                 os.path.join(file_path, "saturation_on_right_boundary.svg"),
-                xlabel="Degree of Saturation [-]",
+                xlabel="Degree of Saturation [%]",
                 ylabel="Y [m]",
                 yaxis_inverted=False,
             )
@@ -139,7 +140,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
 
 
             data_series_collection = [plot_utils.DataSeries(
-                isoline_coords[0], label="Phreatic line Kratos", line_style="-", marker=""
+                isoline_coords[0], label="p = 0 line Kratos", line_style="-", marker=""
             )]
             data_points = sorted(test_helper.get_data_points_from_file(
                 os.path.join(file_path,"expected_phreatic_line.csv"), extract_x_and_y_from_line
@@ -149,7 +150,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             data_series_collection.append(
                 plot_utils.DataSeries(
                     data_points,
-                    label="Phreatic line commercial FE",
+                    label="p = 0 line commercial FE",
                 )
             )
             plot_utils._make_plot(
@@ -179,7 +180,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
     #     )
     def test_van_genuchten_hydrostatic(self):
         self._assert_fully_saturated_flow(
-            "Muskat", "van_genuchten_hydrostatic", 100, 11400
+            "Muskat", "van_genuchten_hydrostatic", 100, 11183.4
         )
 
 if __name__ == "__main__":
