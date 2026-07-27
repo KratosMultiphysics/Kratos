@@ -73,11 +73,11 @@ The application includes tests to check the proper functioning of the applicatio
 meshio++ is consumed as a normal external dependency; **nothing is vendored into Kratos**. Build and install it with the C++ API and the `KRATOS` mesh backend:
 
 ```bash
-cmake -S <meshioplusplus> -B build \
-  -DMESHIOPLUSPLUS_INSTALL_CPP=ON \
+cmake -S <meshioplusplus> -B build               \
+  -DMESHIOPLUSPLUS_INSTALL_CPP=ON                \
   -DMESHIOPLUSPLUS_INSTALL_CPP_BACKENDS="KRATOS" \
-  -DMESHIOPLUSPLUS_MESH_BACKEND=KRATOS \
-  -DMESHIOPLUSPLUS_BUILD_PYTHON=OFF \
+  -DMESHIOPLUSPLUS_MESH_BACKEND=KRATOS           \
+  -DMESHIOPLUSPLUS_BUILD_PYTHON=OFF              \
   -DBUILD_SHARED_LIBS=ON
 cmake --build build && cmake --install build --prefix <prefix>
 ```
