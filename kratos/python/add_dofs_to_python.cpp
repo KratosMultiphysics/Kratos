@@ -74,6 +74,7 @@ void  AddDofsToPython(pybind11::module& m)
         .def("GetEquationIds", [](ModelPart::DofsArrayType &self) {
             auto values = py::array_t<std::size_t>(self.size());
             auto buf = values.request();
+            
             auto *ptr = static_cast<std::size_t *>(buf.ptr);
             IndexPartition<int>(self.size()).for_each([&](int i) {
                 ptr[i] = (self.begin()+i)->EquationId();
