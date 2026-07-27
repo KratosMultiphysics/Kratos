@@ -33,30 +33,33 @@ KRATOS_TEST_CASE_IN_SUITE(GeoStringUtilities_ConvertStringToLower, KratosGeoMech
     EXPECT_EQ(lower_case_string, expected_string);
 }
 
-class ParameterizedJoinStringsTest
-    : public ::testing::TestWithParam<std::tuple<std::vector<std::string>, std::string, std::string>>
-//                                               ^^^                       ^^^          ^^^
-//                                               Input strings             Separator    Expected result
+struct JoinStringsTestData {
+    std::vector<std::string> InputStrings;
+    std::string              Separator;
+    std::string              ExpectedResult;
+};
+
+class ParameterizedJoinStringsTest : public ::testing::TestWithParam<JoinStringsTestData>
 {
 };
 
 TEST_P(ParameterizedJoinStringsTest, JoiningMultipleStringsYieldsASingleStringWithEachElementSeparatedByTheGivenSeparator)
 {
     // Arrange
-    const auto& [input_strings, separator, expected_value] = GetParam();
+    const auto& [input_strings, separator, expected_result] = GetParam();
 
     // Act
     const auto joined_string = GeoStringUtilities::Join(input_strings, separator);
 
     // Assert
-    EXPECT_EQ(joined_string, expected_value);
+    EXPECT_EQ(joined_string, expected_result);
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                          ParameterizedJoinStringsTest,
-                         testing::Values(std::make_tuple(std::vector<std::string>{}, ", "s, ""s),
-                                         std::make_tuple(std::vector{"Foo"s}, ", "s, "Foo"s),
-                                         std::make_tuple(std::vector{"Foo"s, "Bar"s, "Baz"s}, ", "s, "Foo, Bar, Baz"s),
-                                         std::make_tuple(std::vector{"Foo"s, "Bar"s, "Baz"s}, ""s, "FooBarBaz"s)));
+                         testing::Values(JoinStringsTestData{{}, ", "s, {}},
+                                         JoinStringsTestData{{"Foo"s}, ", "s, "Foo"s},
+                                         JoinStringsTestData{{"Foo"s, "Bar"s, "Baz"s}, ", "s, "Foo, Bar, Baz"s},
+                                         JoinStringsTestData{{"Foo"s, "Bar"s, "Baz"s}, {}, "FooBarBaz"s}));
 
 } // namespace Kratos::Testing
