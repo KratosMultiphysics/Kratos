@@ -37,6 +37,7 @@ void ValidateParameters(Parameters ThisParameters)
         {
             "projection_type"  : "planar_mean_normal",
             "global_direction" : [0.0, 0.0, 1.0],
+            "sub_model_parts"  : [],
             "echo_level"       : 0
         })" );
 
@@ -52,18 +53,22 @@ void InitialFlatteningUtility::Execute(ModelPart& rModelPart, Parameters ThisPar
     const int echo_level = ThisParameters["echo_level"].GetInt();
 
     const std::string& r_projection_type = ThisParameters["projection_type"].GetString();
+    const std::vector<std::string> sub_model_part_names = ThisParameters["sub_model_parts"].GetStringArray();
 
-    Vector3 normal;
     if (r_projection_type == "planar_fixed_direction") {
-        normal = GetFixedDirection(ThisParameters);
+        const Vector3 normal = GetFixedDirection(ThisParameters);
+        ProjectNodesOntoPlane(rModelPart, normal, echo_level);
     } else if (r_projection_type == "planar_mean_normal") {
-        normal = ComputeMeanSurfaceNormal(rModelPart);
+        if (sub_model_part_names.empty()) {
+            const Vector3 normal = ComputeMeanSurfaceNormal(rModelPart);
+            ProjectNodesOntoPlane(rModelPart, normal, echo_level);
+        } else {
+            ProjectNodesOntoPlanePerPart(rModelPart, sub_model_part_names, echo_level);
+        }
     } else {
         KRATOS_ERROR << "projection type: " << r_projection_type
             << " not available, please use planar_fixed_direction, planar_mean_normal" << std::endl;
     }
-
-    ProjectNodesOntoPlane(rModelPart, normal, echo_level);
 }
 
 InitialFlatteningUtility::Vector3 InitialFlatteningUtility::GetFixedDirection(Parameters ThisParameters)
@@ -136,6 +141,55 @@ void InitialFlatteningUtility::ProjectNodesOntoPlane(ModelPart& rModelPart, cons
     KRATOS_INFO_IF("InitialFlatteningUtility", EchoLevel > 0)
         << "Initial flattening projected " << rModelPart.NumberOfNodes()
         << " nodes onto plane with normal " << rNormal << std::endl;
+}
+
+void InitialFlatteningUtility::ProjectNodesOntoPlanePerPart(ModelPart& rModelPart, const std::vector<std::string>& rSubModelPartNames, const int EchoLevel)
+{
+    // One mean normal per named sub model part 
+    std::vector<Vector3> part_normals;
+    part_normals.reserve(rSubModelPartNames.size());
+    for (const auto& r_name : rSubModelPartNames) {
+        const Vector3 part_normal = ComputeMeanSurfaceNormal(rModelPart.GetSubModelPart(r_name));
+        part_normals.push_back(part_normal);
+        KRATOS_INFO_IF("InitialFlatteningUtility", EchoLevel > 0)
+            << "Mean surface normal for \"" << r_name << "\": " << part_normal << std::endl;
+    }
+
+    std::unordered_map<SizeType, Vector3> node_normal_sum;
+    for (SizeType i = 0; i < rSubModelPartNames.size(); ++i) {
+        for (const auto& r_node : rModelPart.GetSubModelPart(rSubModelPartNames[i]).Nodes()) {
+            auto it = node_normal_sum.find(r_node.Id());
+            if (it == node_normal_sum.end()) {
+                node_normal_sum.emplace(r_node.Id(), part_normals[i]);
+            } else {
+                it->second += part_normals[i];
+            }
+        }
+    }
+
+    const SizeType buffer_size = rModelPart.GetBufferSize();
+    SizeType num_projected = 0;
+    for (auto& r_node : rModelPart.Nodes()) {
+        auto it = node_normal_sum.find(r_node.Id());
+        KRATOS_ERROR_IF(it == node_normal_sum.end())
+            << "InitialFlatteningUtility: node " << r_node.Id()
+            << " does not belong to any of the given \"sub_model_parts\"!" << std::endl;
+
+        Vector3 normal = it->second;
+        NormalizeVector(normal);
+
+        const Vector3& r_ref_position = r_node.GetInitialPosition();
+        const Vector3 proj_vec = -inner_prod(normal, r_ref_position) * normal;
+
+        for (SizeType i = 0; i < buffer_size; ++i) {
+            r_node.FastGetSolutionStepValue(DISPLACEMENT, i) = proj_vec;
+        }
+        ++num_projected;
+    }
+
+    KRATOS_INFO_IF("InitialFlatteningUtility", EchoLevel > 0)
+        << "Initial flattening (per-part) projected " << num_projected << " nodes across "
+        << rSubModelPartNames.size() << " sub model parts." << std::endl;
 }
 
 } // namespace Kratos.

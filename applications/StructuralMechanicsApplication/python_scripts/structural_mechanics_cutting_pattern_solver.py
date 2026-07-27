@@ -35,6 +35,7 @@ class CuttingPatternMechanicalSolver(MechanicalSolver):
             "initial_flattening_settings": {
                 "projection_type"  : "planar_mean_normal",
                 "global_direction" : [0.0, 0.0, 1.0],
+                "sub_model_parts"  : [],
                 "echo_level"       : 0
             }
         }""")

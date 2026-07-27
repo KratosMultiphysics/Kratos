@@ -12,6 +12,8 @@
 #pragma once
 
 // System includes
+#include <string>
+#include <vector>
 
 // External includes
 
@@ -74,6 +76,8 @@ private:
     static Vector3 ComputeMeanSurfaceNormal(const ModelPart& rModelPart);
 
     static void ProjectNodesOntoPlane(ModelPart& rModelPart, const Vector3& rNormal, const int EchoLevel);
+
+    static void ProjectNodesOntoPlanePerPart(ModelPart& rModelPart, const std::vector<std::string>& rSubModelPartNames, const int EchoLevel);
 
     ///@}
 
