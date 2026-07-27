@@ -104,10 +104,12 @@ Parameters OperationSettings(const std::string& rOperation, const std::string& r
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsGetSupportedOperations, KratosMeshioPlusPlusFastSuite)
 {
     const auto operations = MeshioPlusPlusMeshOperations::GetSupportedOperations();
-    for (const std::string name : {"attach_quality", "clean", "convert_cells", "crop_bbox",
-                                   "crop_halfspace", "decimate", "extract_skin", "extract_surface",
-                                   "isosurface", "partition", "quality", "refine", "reorder",
-                                   "slice", "smooth", "split", "stats", "transform"}) {
+    for (const std::string name : {"attach_quality", "cell_data_to_point_data", "clean",
+                                   "convert_cells", "crop_bbox", "crop_halfspace", "data_calc",
+                                   "data_condition", "data_info", "data_manage", "decimate",
+                                   "extract_skin", "extract_surface", "isosurface",
+                                   "point_data_to_cell_data", "partition", "quality", "refine",
+                                   "reorder", "slice", "smooth", "split", "stats", "transform"}) {
         KRATOS_EXPECT_TRUE(std::find(operations.begin(), operations.end(), name) != operations.end());
     }
     KRATOS_EXPECT_TRUE(std::is_sorted(operations.begin(), operations.end()));
@@ -123,6 +125,12 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsGetDefaultParameters, Krat
     KRATOS_EXPECT_FALSE(defaults["weld"].GetBool());
     KRATOS_EXPECT_EQ(defaults["number_of_parts"].GetInt(), 2);
     KRATOS_EXPECT_EQ(defaults["ghost_layers"].GetInt(), 0);
+    // Field data is opt-in: every selection is empty/false, so an operation run without
+    // overriding these settings stages nothing (byte-identical to the pre-field-data behavior).
+    KRATOS_EXPECT_TRUE(defaults["nodal_solution_step_data_variables"].GetStringArray().empty());
+    KRATOS_EXPECT_TRUE(defaults["nodal_data_value_variables"].GetStringArray().empty());
+    KRATOS_EXPECT_FALSE(defaults["write_ids"].GetBool());
+    KRATOS_EXPECT_EQ(defaults["on_conflict"].GetString(), "error");
 }
 
 /***********************************************************************************/
@@ -452,10 +460,9 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsIsosurfaceNeedsAnArrayName
 
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsIsosurfaceThrowsOnAnUnknownArray, KratosMeshioPlusPlusFastSuite)
 {
-    // Internals::ModelPartToMesh (the conversion Execute uses) carries topology and material
-    // data, but never nodal/elemental *field* data - there is currently no way to reach this
-    // operation with a real point_data array through MeshioPlusPlusMeshOperations::Execute.
-    // This pins down that gap: naming any array fails, not just an empty name.
+    // Field data is opt-in (see BuildFieldDataSelection): with none of the
+    // "nodal_*_variables" settings listing "TEMPERATURE", nothing is staged as point_data even
+    // though TEMPERATURE is a registered Variable, so the array can never resolve.
     Model model;
     auto& r_source = model.CreateModelPart("source");
     PopulateCubeOfTetrahedra(r_source);
@@ -464,6 +471,39 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsIsosurfaceThrowsOnAnUnknow
     Parameters settings = OperationSettings("isosurface", R"({"array_name" : "TEMPERATURE"})");
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination), "");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsIsosurfaceWithStagedFieldData, KratosMeshioPlusPlusFastSuite)
+{
+    // Staging TEMPERATURE (via "nodal_data_value_variables") makes it a real point_data array,
+    // so isosurface can now resolve it - the gap the field-data hoist closed. TEMPERATURE is
+    // set to the node's own Z coordinate, so the level set at 0.5 must cut the cube in half
+    // (the bottom face is at Z=0, the top at Z=1).
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.SetValue(TEMPERATURE, r_node.Z());
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings = OperationSettings("isosurface", R"({
+        "array_name" : "TEMPERATURE",
+        "isovalues" : [0.5],
+        "nodal_data_value_variables" : ["TEMPERATURE"]
+    })");
+    MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    KRATOS_EXPECT_GT(r_destination.NumberOfNodes(), 0);
+    // "The contoured field is exactly the isovalue on the cut points" (isosurface.hpp) - so the
+    // write-back path (Internals::MeshToModelPart -> ApplyDataArrayToEntities) is exercised too:
+    // every new node's non-historical TEMPERATURE must come back as exactly 0.5.
+    for (const auto& r_node : r_destination.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), 0.5, 1e-12);
+    }
 }
 
 /***********************************************************************************/
@@ -478,10 +518,259 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsAttachQuality, KratosMeshi
 
     MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("attach_quality"), r_destination);
 
-    // The quality metrics attach_quality computes are mesh-level cell_data; MeshToModelPart
-    // (the bridge Execute stores its result through) does not carry arbitrary cell_data into
-    // Kratos, so only the topology is expected to survive here.
+    // attach_quality names its cell_data "quality:scaled_jacobian" etc. (see quality.hpp).
+    // MeshToModelPart's write-back (Internals::ApplyDataArrayToEntities) does attempt every
+    // array the result carries, but a Kratos entity can only hold data under an actual
+    // registered Variable, and "quality:scaled_jacobian" is not one - so the metrics are
+    // computed (attach_quality ran) but unretrievable from the destination model part; only
+    // the topology is expected to survive here.
     KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), r_source.NumberOfElements());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsFieldDataRoundTripsThroughClean, KratosMeshioPlusPlusFastSuite)
+{
+    // A mesh-producing operation that changes nothing (a clean mesh, weld off) must still
+    // carry a staged nodal variable all the way through: into the meshio++ mesh
+    // (Internals::ModelPartToMeshWithData), through "clean", and back out
+    // (Internals::MeshToModelPart -> ApplyDataArrayToEntities).
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.SetValue(TEMPERATURE, 10.0 * r_node.Id());
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings = OperationSettings("clean", R"({"nodal_data_value_variables" : ["TEMPERATURE"]})");
+    MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), r_source.NumberOfNodes());
+    for (const auto& r_node : r_destination.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), 10.0 * r_node.Id(), 1e-12);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsDataCalc, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.SetValue(TEMPERATURE, r_node.Z());
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // "output" reuses the staged array's own name with "output_overwrite" - a registered
+    // Variable name, so the doubled result comes straight back as non-historical TEMPERATURE.
+    Parameters settings = OperationSettings("data_calc", R"({
+        "expression"                  : "TEMPERATURE * 2.0",
+        "output"                      : "TEMPERATURE",
+        "output_overwrite"            : true,
+        "nodal_data_value_variables"  : ["TEMPERATURE"]
+    })");
+    MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    for (const auto& r_node : r_destination.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), 2.0 * r_node.Z(), 1e-12);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsDataCondition, KratosMeshioPlusPlusFastSuite)
+{
+    // "clamp" (the default mode) maps x -> min(max(x, lo), hi); Z in {0, 1} with hi = 0.5
+    // must clamp only the top face's nodes down to 0.5.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.SetValue(TEMPERATURE, r_node.Z());
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings = OperationSettings("data_condition", R"({
+        "names"                        : ["TEMPERATURE"],
+        "mode"                          : "clamp",
+        "lo"                            : 0.0,
+        "hi"                            : 0.5,
+        "nodal_data_value_variables"    : ["TEMPERATURE"]
+    })");
+    MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    for (const auto& r_node : r_destination.Nodes()) {
+        KRATOS_EXPECT_LE(r_node.GetValue(TEMPERATURE), 0.5 + 1e-12);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsDataManageRename, KratosMeshioPlusPlusFastSuite)
+{
+    // Renaming "point_data:TEMPERATURE" to "point_data:PRESSURE" both proves data_manage's
+    // rename phase runs and demonstrates the write-back constraint's escape hatch: the
+    // renamed-to name is itself a registered Variable, so it survives the trip back into
+    // Kratos even though the array started life under a different name.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.SetValue(TEMPERATURE, 42.0);
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings = OperationSettings("data_manage", R"({
+        "rename"                     : [{"location" : "point", "from" : "TEMPERATURE", "to" : "PRESSURE"}],
+        "nodal_data_value_variables" : ["TEMPERATURE"]
+    })");
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    KRATOS_EXPECT_EQ(report["renamed"].size(), 1);
+    for (const auto& r_node : r_destination.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.GetValue(PRESSURE), 42.0, 1e-12);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsDataInfo, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.SetValue(TEMPERATURE, r_node.Z());
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings = OperationSettings("data_info", R"({"nodal_data_value_variables" : ["TEMPERATURE"]})");
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    KRATOS_EXPECT_EQ(report["number_of_point_data"].GetInt(), 1);
+    KRATOS_EXPECT_EQ(report["arrays"][0]["name"].GetString(), "TEMPERATURE");
+    KRATOS_EXPECT_EQ(report["arrays"][0]["num_values"].GetInt(), static_cast<int>(r_source.NumberOfNodes()));
+    // Report-only: nothing is written into the destination.
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsPointDataToCellData, KratosMeshioPlusPlusFastSuite)
+{
+    // A uniform nodal value keeps the expected cell average trivial to state regardless of
+    // which nodes each tetrahedron happens to use.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.SetValue(TEMPERATURE, 5.0);
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings = OperationSettings("point_data_to_cell_data", R"({
+        "names"                       : ["TEMPERATURE"],
+        "nodal_data_value_variables"  : ["TEMPERATURE"]
+    })");
+    MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), r_source.NumberOfElements());
+    for (const auto& r_element : r_destination.Elements()) {
+        KRATOS_EXPECT_NEAR(r_element.GetValue(TEMPERATURE), 5.0, 1e-12);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsCellDataToPointData, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_element : r_source.Elements()) {
+        r_element.SetValue(DENSITY, 7850.0);
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings = OperationSettings("cell_data_to_point_data", R"({
+        "names"                          : ["DENSITY"],
+        "element_data_value_variables"   : ["DENSITY"]
+    })");
+    MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), r_source.NumberOfNodes());
+    for (const auto& r_node : r_destination.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.GetValue(DENSITY), 7850.0, 1e-12);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsInterpolateNearest, KratosMeshioPlusPlusFastSuite)
+{
+    // Source and target are geometrically identical cubes (independent node/element id
+    // spaces), so nearest-point sampling must be exact: every target point coincides with a
+    // source point. The target's own (unset, defaulted-to-zero) TEMPERATURE forces the
+    // name conflict that "on_conflict" : "overwrite" then resolves.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.SetValue(TEMPERATURE, r_node.Z());
+    }
+    auto& r_target = model.CreateModelPart("target");
+    PopulateCubeOfTetrahedra(r_target);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings(R"({
+        "method"                      : "nearest",
+        "on_conflict"                 : "overwrite",
+        "nodal_data_value_variables"  : ["TEMPERATURE"]
+    })");
+    const Parameters report = MeshioPlusPlusMeshOperations::Interpolate(r_source, r_target, settings, r_destination);
+
+    KRATOS_EXPECT_EQ(report["number_of_nodes"].GetInt(), static_cast<int>(r_target.NumberOfNodes()));
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), r_target.NumberOfNodes());
+    for (const auto& r_node : r_destination.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), r_node.Z(), 1e-12);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsInterpolateConflictThrowsByDefault, KratosMeshioPlusPlusFastSuite)
+{
+    // Field data is staged identically onto source and target (Interpolate applies the same
+    // FieldDataSelection to both), so TEMPERATURE exists on both meshes here; the default
+    // "on_conflict" : "error" must therefore throw rather than silently pick a side.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.SetValue(TEMPERATURE, r_node.Z());
+    }
+    auto& r_target = model.CreateModelPart("target");
+    PopulateCubeOfTetrahedra(r_target);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings(R"({
+        "method"                      : "nearest",
+        "nodal_data_value_variables"  : ["TEMPERATURE"]
+    })");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::Interpolate(r_source, r_target, settings, r_destination), "");
 }
 
 /***********************************************************************************/
