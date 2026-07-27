@@ -45,6 +45,10 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("WriteModelPart", py::overload_cast<const ModelPart&>(&MeshioPlusPlusIO::WriteModelPart), py::arg("model_part"),
             "Writes the model part. Repeated calls extend the current output: XDMF appends steps "
             "to the temporal collection of the file, other formats write a file series.")
+        .def("CloseOutput", &MeshioPlusPlusIO::CloseOutput,
+            "Finishes any transient output still held open, so the .xdmf light data is complete "
+            "and the file is released. Idempotent. Call it before deleting the output of a "
+            "transient run: a live writer finalizes on destruction and would recreate the file.")
         .def("GetNumberOfTimeSteps", &MeshioPlusPlusIO::GetNumberOfTimeSteps,
             "Number of transient steps this file's format reports, without a full read. "
             "0 for a format with no time-series concept.")
