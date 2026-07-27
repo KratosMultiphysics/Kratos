@@ -18,6 +18,8 @@ The application includes tests to check the proper functioning of the applicatio
 
     * *Registered entity names (`SmallDisplacementElement3D4N`, ...) preserved across a round trip, instead of degrading to the generic cell-type name*
 
+    * *`Properties` material data carried in both directions, so a `mdpa` round trip keeps the values and not just the ids*
+
 - **Transient output**
 
     * *XDMF temporal collections written in a single file, file series for every other format*
@@ -87,7 +89,7 @@ then point the Kratos configure at it:
 ```
 
 > [!IMPORTANT]
-> The application requires **meshio++ 9.1 exactly**. The meshio++ C++ API makes no ABI promise — `Mesh`, `ModelPart` and `GeometricalEntity` are header-defined types whose layout changes with the headers — so the application must be rebuilt whenever meshio++ is.
+> The application requires **meshio++ 9.2.0 exactly**. The meshio++ C++ API makes no ABI promise — `Mesh`, `ModelPart` and `GeometricalEntity` are header-defined types whose layout changes with the headers — so the application must be rebuilt whenever meshio++ is. All three version components must be spelled out: under `SameMajorVersion`, `EXACT` is a full string comparison, so `9.2` does not match an installed `9.2.0`.
 
 ## 📖 Usage:
 
@@ -146,10 +148,10 @@ print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats())
 ## ⚠️ Limitations:
 
 - **Serial only.** meshio++ has no MPI, no distributed reader or writer and no communicator. The intended distributed workflow is `partition` with ghost layers, feeding an MPI assembly.
-- `Matrix`-valued variables are not written.
-- **`Properties` values do not round-trip yet.** meshio++ 9.1.0 parses `Begin Properties` bodies into an `MdpaInfo` side channel, but its format registry — which this IO reads through — does not thread that through, so a read produces the properties *ids* referenced by the entities and no material data. The typed assignment is already implemented on the Kratos side (`ApplyMeshioProperty`) and starts working as soon as upstream carries the values on the mesh. Set material data from the materials file meanwhile.
-- Reading a format that stores the properties id as a cell tag (the `gmsh:physical` convention, which the `mdpa` writer follows) produces an extra `gmsh_physical_<id>` sub model part alongside the real ones.
+- `Matrix`-valued variables are not written, and a `Matrix`-valued `Properties` entry is skipped with a warning — meshio++ has no representation for it.
+- `Properties` entries that are not numeric are left to the materials file: a `Begin Table` curve, and text values such as a constitutive law name (instantiating one needs Kratos's own registry, which meshio++ deliberately does not link). Everything numeric — scalars, integers and vector-valued variables alike — round-trips.
 - The C++ `mdpa` reader throws by name on constructs it cannot represent (`Geometries`, `Mesh <id>`, `Constraints`, ...); `ReadOptions::mLenient` downgrades those to a warning and a skip.
+- Transient output is held open by the IO. Call `CloseOutput()` before deleting the output of a run: a live writer finalizes on destruction and would recreate the file, and since the series is opened in append mode the next run would then continue a series believed deleted. `MeshioOutputProcess` does this in `ExecuteFinalize`.
 
 ## 🗎 Documentation:
 
