@@ -12,6 +12,10 @@ summary: Applies a meshio++ mesh operation to a model part from JSON settings.
 
 The operation is selected with `"operation"`, and its own settings are passed through `"operation_settings"`. Query what a build supports with `KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetSupportedOperations()`, and the available settings with `GetDefaultParameters()`.
 
+`"operation_settings"` also carries the field-data selection (`"nodal_solution_step_data_variables"`, `"nodal_data_value_variables"`, `"nodal_flags"`, `"element_data_value_variables"`, `"element_flags"`, `"condition_data_value_variables"`, `"condition_flags"`, `"gauss_point_variables_in_elements"`, `"write_ids"`) — see [Utilities](../Utilities/Mesh_Operations.html#field-data) for what each stages and the write-back constraint on the result.
+
+`"interpolate"` is not reachable through this modeler: it needs two independent source model parts, which does not fit this modeler's single `"input_model_part_name"`. Use the [Meshio Interpolate Modeler](Meshio_Interpolate_Modeler.html) instead.
+
 ## Usage
 
 ```json
