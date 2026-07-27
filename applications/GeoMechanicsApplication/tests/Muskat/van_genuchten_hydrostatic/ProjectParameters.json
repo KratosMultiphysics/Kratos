@@ -15,6 +15,7 @@
             "input_type": "mdpa",
             "input_filename": "../common/column"
         },
+        "auxiliary_variables_list": ["DEGREE_OF_SATURATION"],
         "material_import_settings": {
             "materials_filename": "MaterialParametersNonLinear.json"
         },
@@ -78,7 +79,8 @@
                                 "WATER_PRESSURE",
                                 "NORMAL_FLUID_FLUX",
                                 "VOLUME_ACCELERATION",
-                                "HYDRAULIC_DISCHARGE"
+                                "HYDRAULIC_DISCHARGE",
+                                "DEGREE_OF_SATURATION"
                             ],
                             "gauss_point_results": ["FLUID_FLUX_VECTOR", "HYDRAULIC_HEAD", "DEGREE_OF_SATURATION"]
                         },
@@ -152,6 +154,17 @@
                     "active": [false, true, false],
                     "value": [0.0, -9.81, 0.0],
                     "table": [0, 0, 0]
+                }
+            }
+        ],
+        "auxiliary_process_list": [
+            {
+                "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain",
+                    "list_of_variables": ["DEGREE_OF_SATURATION"]
                 }
             }
         ]
