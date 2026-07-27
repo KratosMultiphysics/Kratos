@@ -248,6 +248,8 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
 
     this->InternalForcesLeastSquare(rRightHandSideVector, integration_method, rCurrentProcessInfo);
 
+    noalias(rRightHandSideVector) = -rRightHandSideVector;
+
     this->ResponseFunctionLeastSquare(rResponse, integration_method, rCurrentProcessInfo);
 
     KRATOS_CATCH("");
