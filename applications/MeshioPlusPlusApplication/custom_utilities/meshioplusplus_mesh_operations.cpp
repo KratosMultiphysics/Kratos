@@ -24,8 +24,15 @@
 #include "meshioplusplus/operations/clean.hpp"
 #include "meshioplusplus/operations/convert_cells.hpp"
 #include "meshioplusplus/operations/crop.hpp"
+#include "meshioplusplus/operations/data_average.hpp"
+#include "meshioplusplus/operations/data_calc.hpp"
+#include "meshioplusplus/operations/data_common.hpp"
+#include "meshioplusplus/operations/data_condition.hpp"
+#include "meshioplusplus/operations/data_info.hpp"
+#include "meshioplusplus/operations/data_manage.hpp"
 #include "meshioplusplus/operations/decimate.hpp"
 #include "meshioplusplus/operations/diff.hpp"
+#include "meshioplusplus/operations/interpolate.hpp"
 #include "meshioplusplus/operations/isosurface.hpp"
 #include "meshioplusplus/operations/merge.hpp"
 #include "meshioplusplus/operations/partition.hpp"
@@ -54,9 +61,11 @@ namespace
 const std::vector<std::string>& OperationNames()
 {
     static const std::vector<std::string> names = {
-        "attach_quality", "clean", "convert_cells", "crop_bbox", "crop_halfspace",
+        "attach_quality", "cell_data_to_point_data", "clean", "convert_cells", "crop_bbox",
+        "crop_halfspace", "data_calc", "data_condition", "data_info", "data_manage",
         "decimate", "extract_skin", "extract_surface", "isosurface", "partition",
-        "quality", "refine", "reorder", "slice", "smooth", "split", "stats", "transform"
+        "point_data_to_cell_data", "quality", "refine", "reorder", "slice", "smooth",
+        "split", "stats", "transform"
     };
     return names;
 }
@@ -73,6 +82,68 @@ std::array<double, 3> ReadVector3(Parameters Settings, const std::string& rKey)
         value[i] = read[i];
     }
     return value;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// Builds the shared @ref Internals::FieldDataSelection from the settings @ref Execute /
+/// @ref Interpolate / @ref MeshioPlusPlusMeshOperations::Merge have in common with
+/// @ref MeshioPlusPlusIO - empty/false by default, so an operation run without them stages
+/// nothing (byte-identical to the pre-field-data behavior).
+Internals::FieldDataSelection BuildFieldDataSelection(const Parameters& rSettings)
+{
+    Internals::FieldDataSelection selection;
+    selection.NodalSolutionStepVariables = rSettings["nodal_solution_step_data_variables"].GetStringArray();
+    selection.NodalDataValueVariables = rSettings["nodal_data_value_variables"].GetStringArray();
+    selection.NodalFlags = rSettings["nodal_flags"].GetStringArray();
+    selection.ElementDataValueVariables = rSettings["element_data_value_variables"].GetStringArray();
+    selection.ElementFlags = rSettings["element_flags"].GetStringArray();
+    selection.ConditionDataValueVariables = rSettings["condition_data_value_variables"].GetStringArray();
+    selection.ConditionFlags = rSettings["condition_flags"].GetStringArray();
+    selection.GaussPointVariables = rSettings["gauss_point_variables_in_elements"].GetStringArray();
+    selection.WriteIds = rSettings["write_ids"].GetBool();
+    return selection;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// Reads a "location" setting ("point"/"cell") into the meshio++ enum.
+mio::DataLocation ReadLocation(const Parameters& rSettings, const std::string& rKey = "location")
+{
+    return mio::data_location_from_name(rSettings[rKey].GetString());
+}
+
+/// Reads a JSON array of {"location", "name"} objects into meshio++ DataKeys (data_manage's
+/// "drop"/"keep" settings).
+std::vector<mio::DataKey> ReadDataKeys(Parameters Settings)
+{
+    std::vector<mio::DataKey> keys;
+    keys.reserve(Settings.size());
+    for (std::size_t i = 0; i < Settings.size(); ++i) {
+        mio::DataKey key;
+        key.location = ReadLocation(Settings[i]);
+        key.name = Settings[i]["name"].GetString();
+        keys.push_back(key);
+    }
+    return keys;
+}
+
+/// Reads a JSON array of {"location", "from", "to"} objects into meshio++ DataRenames
+/// (data_manage's "rename" setting).
+std::vector<mio::DataRename> ReadDataRenames(Parameters Settings)
+{
+    std::vector<mio::DataRename> renames;
+    renames.reserve(Settings.size());
+    for (std::size_t i = 0; i < Settings.size(); ++i) {
+        mio::DataRename rename;
+        rename.location = ReadLocation(Settings[i]);
+        rename.from = Settings[i]["from"].GetString();
+        rename.to = Settings[i]["to"].GetString();
+        renames.push_back(rename);
+    }
+    return renames;
 }
 
 /***********************************************************************************/
@@ -124,49 +195,86 @@ std::vector<std::string> MeshioPlusPlusMeshOperations::GetSupportedOperations()
 Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
 {
     return Parameters(R"({
-        "operation"                    : "clean",
-        "entity_type"                  : "automatic",
-        "use_deformed_configuration"   : false,
-        "weld"                         : false,
-        "tolerance"                    : 1e-8,
-        "remove_orphans"               : true,
-        "drop_degenerate"              : true,
-        "drop_duplicate_cells"         : true,
-        "translation"                  : [0.0, 0.0, 0.0],
-        "scale"                        : [1.0, 1.0, 1.0],
-        "rotation_axis"                : [0.0, 0.0, 1.0],
-        "rotation_angle"               : 0.0,
-        "rotate_vector_data"           : false,
-        "mode"                         : "linearize",
-        "levels"                       : 1,
-        "target_ratio"                 : -1.0,
-        "target_faces"                 : -1,
-        "max_error"                    : -1.0,
-        "preserve_boundary"            : true,
-        "preserve_features"            : true,
-        "feature_angle"                : 30.0,
-        "method"                       : "taubin",
-        "iterations"                   : 10,
-        "lambda"                       : -1.0,
-        "mu"                           : -0.34,
-        "fix_boundary"                 : true,
-        "guard_inversion"              : true,
-        "number_of_parts"              : 2,
-        "imbalance"                    : 0.03,
-        "seed"                         : 0,
-        "ghost_layers"                 : 0,
-        "weights_variable"             : "",
-        "split_by"                     : "type",
-        "tag_name"                     : "",
-        "box_min"                      : [0.0, 0.0, 0.0],
-        "box_max"                      : [1.0, 1.0, 1.0],
-        "origin"                       : [0.0, 0.0, 0.0],
-        "normal"                       : [0.0, 0.0, 1.0],
-        "keep_partial_cells"           : false,
-        "array_name"                   : "",
-        "isovalues"                    : [0.0],
-        "linearize"                    : false,
-        "record_parent_ids"            : false
+        "operation"                                   : "clean",
+        "entity_type"                                 : "automatic",
+        "use_deformed_configuration"                  : false,
+        "weld"                                         : false,
+        "tolerance"                                    : 1e-8,
+        "remove_orphans"                               : true,
+        "drop_degenerate"                              : true,
+        "drop_duplicate_cells"                         : true,
+        "translation"                                  : [0.0, 0.0, 0.0],
+        "scale"                                        : [1.0, 1.0, 1.0],
+        "rotation_axis"                                : [0.0, 0.0, 1.0],
+        "rotation_angle"                               : 0.0,
+        "rotate_vector_data"                           : false,
+        "mode"                                         : "linearize",
+        "levels"                                       : 1,
+        "target_ratio"                                 : -1.0,
+        "target_faces"                                 : -1,
+        "max_error"                                    : -1.0,
+        "preserve_boundary"                            : true,
+        "preserve_features"                            : true,
+        "feature_angle"                                : 30.0,
+        "method"                                       : "taubin",
+        "iterations"                                   : 10,
+        "lambda"                                       : -1.0,
+        "mu"                                           : -0.34,
+        "fix_boundary"                                 : true,
+        "guard_inversion"                              : true,
+        "number_of_parts"                              : 2,
+        "imbalance"                                    : 0.03,
+        "seed"                                         : 0,
+        "ghost_layers"                                 : 0,
+        "weights_variable"                             : "",
+        "split_by"                                     : "type",
+        "tag_name"                                     : "",
+        "box_min"                                      : [0.0, 0.0, 0.0],
+        "box_max"                                      : [1.0, 1.0, 1.0],
+        "origin"                                       : [0.0, 0.0, 0.0],
+        "normal"                                       : [0.0, 0.0, 1.0],
+        "keep_partial_cells"                           : false,
+        "array_name"                                   : "",
+        "isovalues"                                    : [0.0],
+        "linearize"                                    : false,
+        "record_parent_ids"                            : false,
+
+        "nodal_solution_step_data_variables"           : [],
+        "nodal_data_value_variables"                   : [],
+        "nodal_flags"                                  : [],
+        "element_data_value_variables"                 : [],
+        "element_flags"                                : [],
+        "condition_data_value_variables"               : [],
+        "condition_flags"                              : [],
+        "gauss_point_variables_in_elements"            : [],
+        "write_ids"                                    : false,
+
+        "expression"                                   : "",
+        "location"                                     : "point",
+        "output"                                        : "",
+        "output_overwrite"                             : false,
+
+        "names"                                        : [],
+        "scope"                                        : "component",
+        "lo"                                           : 0.0,
+        "hi"                                           : 1.0,
+        "nan_policy"                                   : "ignore",
+        "nan_replacement"                              : 0.0,
+        "output_suffix"                                : "",
+        "preserve_dtype"                               : true,
+
+        "drop"                                         : [],
+        "keep"                                         : [],
+        "rename"                                       : [],
+        "ignore_missing"                               : false,
+
+        "weight"                                       : "uniform",
+        "prefix"                                       : "",
+        "overwrite"                                    : true,
+
+        "extrapolate"                                  : false,
+        "default_value"                                : 0.0,
+        "on_conflict"                                  : "error"
     })");
 }
 
@@ -191,8 +299,9 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
     const bool write_elements = entity_type != "conditions";
     const bool write_conditions = entity_type != "elements";
 
-    mio::Mesh mesh = Internals::ModelPartToMesh(rSource, write_elements, write_conditions,
-                                                Settings["use_deformed_configuration"].GetBool());
+    mio::Mesh mesh = Internals::ModelPartToMeshWithData(
+        rSource, write_elements, write_conditions, Settings["use_deformed_configuration"].GetBool(),
+        BuildFieldDataSelection(Settings));
 
     const auto crop_mode = Settings["keep_partial_cells"].GetBool() ? mio::CropMode::Any
                                                                    : mio::CropMode::All;
@@ -324,6 +433,89 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         mio::Mesh result = mio::attach_quality(mesh);
         StoreResult(result, rDestination);
 
+    } else if (operation == "data_calc") {
+        const std::string expression = Settings["expression"].GetString();
+        KRATOS_ERROR_IF(expression.empty())
+            << "The \"data_calc\" operation needs an \"expression\"" << std::endl;
+        mio::DataCalcOptions options;
+        options.location = ReadLocation(Settings);
+        options.output = Settings["output"].GetString();
+        KRATOS_ERROR_IF(options.output.empty())
+            << "The \"data_calc\" operation needs an \"output\" array name" << std::endl;
+        options.overwrite = Settings["output_overwrite"].GetBool();
+        mio::Mesh result = mio::data_calc(mesh, expression, options);
+        StoreResult(result, rDestination);
+
+    } else if (operation == "data_condition") {
+        mio::DataConditionOptions options;
+        options.location = ReadLocation(Settings);
+        options.names = Settings["names"].GetStringArray();
+        options.mode = mio::condition_mode_from_name(Settings["mode"].GetString());
+        options.scope = mio::condition_scope_from_name(Settings["scope"].GetString());
+        options.lo = Settings["lo"].GetDouble();
+        options.hi = Settings["hi"].GetDouble();
+        options.nan_policy = mio::nan_policy_from_name(Settings["nan_policy"].GetString());
+        options.nan_replacement = Settings["nan_replacement"].GetDouble();
+        options.suffix = Settings["output_suffix"].GetString();
+        options.preserve_dtype = Settings["preserve_dtype"].GetBool();
+        mio::Mesh result = mio::data_condition(mesh, options);
+        StoreResult(result, rDestination);
+
+    } else if (operation == "data_manage") {
+        mio::DataManageOptions options;
+        options.keep = ReadDataKeys(Settings["keep"]);
+        options.drop = ReadDataKeys(Settings["drop"]);
+        options.rename = ReadDataRenames(Settings["rename"]);
+        options.ignore_missing = Settings["ignore_missing"].GetBool();
+        mio::DataManageResult result = mio::data_manage(mesh, options);
+        report.AddStringArray("dropped", result.mDropped);
+        Parameters renamed(R"([])");
+        for (const auto& r_rename : result.mRenamed) {
+            Parameters entry(R"({})");
+            entry.AddString("from", r_rename.first);
+            entry.AddString("to", r_rename.second);
+            renamed.Append(entry);
+        }
+        report.AddValue("renamed", renamed);
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "data_info") {
+        const mio::DataInfoReport info = mio::data_info(mesh);
+        report.AddInt("number_of_point_data", static_cast<int>(info.mNumPointData));
+        report.AddInt("number_of_cell_data", static_cast<int>(info.mNumCellData));
+        report.AddInt("number_of_field_data", static_cast<int>(info.mNumFieldData));
+        Parameters arrays(R"([])");
+        for (const auto& r_array : info.mArrays) {
+            Parameters entry(R"({})");
+            entry.AddString("location", mio::data_location_name(r_array.mLocation));
+            entry.AddString("name", r_array.mName);
+            entry.AddInt("num_components", static_cast<int>(r_array.mNumComponents));
+            entry.AddInt("num_values", static_cast<int>(r_array.mNumValues));
+            entry.AddDouble("min", r_array.mMin);
+            entry.AddDouble("max", r_array.mMax);
+            entry.AddDouble("mean", r_array.mMean);
+            entry.AddInt("num_nan", static_cast<int>(r_array.mNumNan));
+            entry.AddInt("num_inf", static_cast<int>(r_array.mNumInf));
+            arrays.Append(entry);
+        }
+        report.AddValue("arrays", arrays);
+        // Report-only: nothing is written into rDestination.
+        return report;
+
+    } else if (operation == "point_data_to_cell_data" || operation == "cell_data_to_point_data") {
+        mio::DataAverageOptions options;
+        options.names = Settings["names"].GetStringArray();
+        options.weight = mio::cell_point_weight_from_name(Settings["weight"].GetString());
+        options.prefix = Settings["prefix"].GetString();
+        options.suffix = Settings["output_suffix"].GetString();
+        options.overwrite = Settings["overwrite"].GetBool();
+        options.nan_policy = mio::nan_policy_from_name(Settings["nan_policy"].GetString());
+        options.nan_replacement = Settings["nan_replacement"].GetDouble();
+        mio::Mesh result = operation == "point_data_to_cell_data"
+            ? mio::point_data_to_cell_data(mesh, options)
+            : mio::cell_data_to_point_data(mesh, options);
+        StoreResult(result, rDestination);
+
     } else if (operation == "split") {
         mio::SplitResult result = mio::split(mesh, mio::split_by_from_name(Settings["split_by"].GetString()),
                                              Settings["tag_name"].GetString());
@@ -402,6 +594,47 @@ Parameters MeshioPlusPlusMeshOperations::Merge(
 
     Parameters report(R"({})");
     report.AddInt("number_of_sources", static_cast<int>(rSources.size()));
+    report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
+    report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
+    report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));
+    return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::Interpolate(
+    const ModelPart& rSource,
+    const ModelPart& rTarget,
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rSource.IsDistributed() || rTarget.IsDistributed())
+        << "The meshio++ operations do not support distributed model parts" << std::endl;
+
+    Settings.AddMissingParameters(GetDefaultParameters());
+
+    const bool deformed = Settings["use_deformed_configuration"].GetBool();
+    const Internals::FieldDataSelection selection = BuildFieldDataSelection(Settings);
+    mio::Mesh source = Internals::ModelPartToMeshWithData(rSource, true, true, deformed, selection);
+    mio::Mesh target = Internals::ModelPartToMeshWithData(rTarget, true, true, deformed, selection);
+
+    mio::InterpolateOptions options;
+    options.mMethod = mio::interpolate_method_from_name(Settings["method"].GetString());
+    options.mArrays = Settings["names"].GetStringArray();
+    options.mExtrapolate = Settings["extrapolate"].GetBool();
+    options.mDefaultValue = Settings["default_value"].GetDouble();
+    options.mOnConflict = mio::interpolate_conflict_from_name(Settings["on_conflict"].GetString());
+
+    mio::Mesh result = mio::interpolate(source, target, options);
+    Internals::MeshToModelPart(result, rDestination);
+
+    Parameters report(R"({})");
     report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
     report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
     report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));

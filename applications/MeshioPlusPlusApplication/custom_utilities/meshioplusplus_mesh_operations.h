@@ -47,6 +47,18 @@ namespace Kratos
  *  - report-only (stats, quality, diff, ...): the destination is left untouched and the
  *    whole result is in the returned @ref Parameters.
  *
+ * @ref Execute optionally carries field data through the operation, using the same
+ * "nodal_solution_step_data_variables" / "nodal_data_value_variables" / "nodal_flags" /
+ * "element_data_value_variables" / "element_flags" / "condition_data_value_variables" /
+ * "condition_flags" / "gauss_point_variables_in_elements" / "write_ids" settings
+ * @ref MeshioPlusPlusIO uses (all empty/false by default, so an operation run without them
+ * behaves exactly as before this was added). A resulting array is written back onto the
+ * destination as non-historical data only when its name matches a registered @ref Variable
+ * whose component count agrees - an operation's own invented array names never carry
+ * through (see @ref Internals::MeshToModelPart), which is the one thing to know before
+ * relying on "data_calc"'s "output" setting or similar: point it at an existing variable
+ * name to get the result back into Kratos.
+ *
  * @note meshio++ is serial: these operations do not support distributed model parts. The
  * intended distributed workflow is "partition" with ghost layers feeding an MPI assembly.
  * @author Vicente Mataix Ferrandiz
@@ -105,6 +117,32 @@ public:
      */
     static Parameters Merge(
         const std::vector<const ModelPart*>& rSources,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Samples one model part's field data onto another's geometry.
+     * @details Not reachable through @ref Execute: unlike every other operation this needs
+     * two independent meshes rather than one. The shared field data settings (see the
+     * class-level details) apply to *both* @p rSource and @p rTarget, using the same
+     * variable/flag names for each - the usual case is that @p rSource carries the named
+     * data and @p rTarget does not, but a name present on both is exactly what
+     * "on_conflict" resolves. The target's own topology is what is written into
+     * @p rDestination, with the interpolated arrays added.
+     * @param rSource The model part carrying the field data to sample.
+     * @param rTarget The model part whose geometry the data is sampled onto.
+     * @param Settings Interpolation settings ("method": "nearest"/"barycentric"; "names":
+     *                 array names to interpolate, empty = every array @p rSource's field
+     *                 data settings collect; "extrapolate"; "default_value"; "on_conflict":
+     *                 "error"/"overwrite"/"suffix") plus the shared field data settings.
+     * @param rDestination The model part receiving the target's geometry plus the
+     *                     interpolated data (expected empty).
+     * @return The interpolation report.
+     */
+    static Parameters Interpolate(
+        const ModelPart& rSource,
+        const ModelPart& rTarget,
         Parameters Settings,
         ModelPart& rDestination
         );

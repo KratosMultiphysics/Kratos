@@ -24,6 +24,7 @@
 #include "meshioplusplus/kratos_bridge.hpp"
 #include "meshioplusplus/mesh.hpp"
 #include "meshioplusplus/properties.hpp"
+#include "meshioplusplus/formats/xdmf_time_series.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -32,6 +33,47 @@
 
 namespace Kratos::Internals
 {
+///@name Type Definitions
+///@{
+
+/// A named data array (row-major, rows x components) - shared with @ref MeshioPlusPlusIO,
+/// which needs the same shape for its own transient writer.
+using DataArray = meshioplusplus::XdmfTimeSeriesWriter::NamedArray;
+
+/**
+ * @brief Which nodal/elemental/conditional variables, flags and ids to stage as mesh
+ * point/cell data - the vocabulary @ref MeshioPlusPlusIO uses for its own settings, shared so
+ * @ref MeshioPlusPlusMeshOperations can carry field data through the operations layer too.
+ * @details A name that is not a registered @ref Variable (or, for
+ * @ref FieldDataSelection::NodalSolutionStepVariables, not added to the model part's solution
+ * step data) is skipped with a warning rather than failing the whole conversion.
+ */
+struct FieldDataSelection
+{
+    /// Historical nodal variables (validated against the model part's solution step data).
+    std::vector<std::string> NodalSolutionStepVariables;
+    /// Non-historical nodal variables.
+    std::vector<std::string> NodalDataValueVariables;
+    /// Nodal flags, staged as 1 (set) / 0 (unset) / -1 (undefined).
+    std::vector<std::string> NodalFlags;
+    /// Non-historical elemental variables.
+    std::vector<std::string> ElementDataValueVariables;
+    /// Elemental flags, staged as 1 / 0 / -1.
+    std::vector<std::string> ElementFlags;
+    /// Non-historical conditional variables.
+    std::vector<std::string> ConditionDataValueVariables;
+    /// Conditional flags, staged as 1 / 0 / -1.
+    std::vector<std::string> ConditionFlags;
+    /// Gauss point variables, averaged over the integration points of each entity. Matches
+    /// @ref MeshioPlusPlusIO's "gauss_point_variables_in_elements" setting exactly, including
+    /// its scope: applied to *both* elements and conditions, not elements only.
+    std::vector<std::string> GaussPointVariables;
+    /// Whether to also stage KRATOS_NODE_ID / KRATOS_ELEMENT_ID / KRATOS_CONDITION_ID and
+    /// PROPERTIES_ID arrays.
+    bool WriteIds = false;
+};
+
+///@}
 ///@name Kratos Classes
 ///@{
 
@@ -147,9 +189,67 @@ meshioplusplus::Mesh ModelPartToMesh(
     );
 
 /**
+ * @brief Collects the selected nodal data as flat point-data arrays (node container order).
+ * @param rSource The model part to read from.
+ * @param rSelection Which variables/flags/ids to collect; see @ref FieldDataSelection.
+ * @return One array per collected name; a name that could not be resolved is skipped (a
+ * warning is logged) rather than aborting the collection.
+ */
+KRATOS_API(KRATOS_MESHIOPLUSPLUS_APPLICATION)
+std::vector<DataArray> CollectPointData(const ModelPart& rSource, const FieldDataSelection& rSelection);
+
+/**
+ * @brief Collects the selected elemental/conditional data as flat cell-data arrays.
+ * @details Element rows first, then condition rows, zero-filled for the entity kind an array
+ * does not apply to - the layout @ref ModelPartToMeshWithData splits back into the per-kind
+ * containers meshio++ restores per block.
+ * @param rSource The model part to read from.
+ * @param WriteElements Whether elements are considered.
+ * @param WriteConditions Whether conditions are considered.
+ * @param rSelection Which variables/flags/ids to collect; see @ref FieldDataSelection.
+ * @return One combined array per collected name.
+ */
+KRATOS_API(KRATOS_MESHIOPLUSPLUS_APPLICATION)
+std::vector<DataArray> CollectCellData(
+    const ModelPart& rSource,
+    const bool WriteElements,
+    const bool WriteConditions,
+    const FieldDataSelection& rSelection
+    );
+
+/**
+ * @brief Builds a staged meshio++ mesh from a Kratos model part, carrying field data too.
+ * @details The data-carrying counterpart of @ref ModelPartToMesh: builds the mesh the same
+ * way, then stages the arrays @ref CollectPointData / @ref CollectCellData collect as the
+ * mesh's point_data / cell_data (the same "set nodal/elemental/conditional data, then
+ * InvalidateBlocks()" sequence @ref MeshioPlusPlusIO uses for its own transient writes).
+ * @param rSource The Kratos model part to convert.
+ * @param WriteElements Whether elements are transferred.
+ * @param WriteConditions Whether conditions are transferred.
+ * @param WriteDeformedConfiguration True uses the current coordinates, false the initial ones.
+ * @param rSelection Which variables/flags/ids to carry; see @ref FieldDataSelection.
+ * @return The equivalent meshio++ mesh, data included.
+ */
+KRATOS_API(KRATOS_MESHIOPLUSPLUS_APPLICATION)
+meshioplusplus::Mesh ModelPartToMeshWithData(
+    const ModelPart& rSource,
+    const bool WriteElements,
+    const bool WriteConditions,
+    const bool WriteDeformedConfiguration,
+    const FieldDataSelection& rSelection
+    );
+
+/**
  * @brief Fills a Kratos model part from a meshio++ mesh.
  * @details Creates the properties blocks referenced by the entities, transfers the material
- * data through @ref ApplyMeshioProperty, and restores sub model parts from the named regions.
+ * data through @ref ApplyMeshioProperty, restores sub model parts from the named regions, and
+ * carries the mesh's point_data / cell_data back as non-historical nodal / elemental /
+ * conditional @ref Variable data: an array survives only when its name matches a registered
+ * variable whose component count agrees (the same `double`/`int`/`bool`/`array_1d`/`Vector`
+ * dispatch @ref ApplyMeshioProperty uses); anything else is skipped with a warning, because a
+ * Kratos entity can only hold data under a name that is an actual registered `Variable` - an
+ * operation's own invented array names (`attach_quality`'s `"quality:scaled_jacobian"`, say)
+ * never carry through, and that is by design rather than a gap.
  * @param rSource The meshio++ mesh to read (mutable: materializing its model part view is lazy).
  * @param rDestination The Kratos model part to fill (expected empty).
  */
