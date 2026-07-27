@@ -20,7 +20,7 @@ meshio++ is consumed as a normal, **independently built external dependency** �
   - Sub model parts map to meshio++ named regions, nesting included.
   - Registered entity names (`SmallDisplacementElement3D4N`, ...) are preserved across a round trip instead of degrading to the generic cell-type name.
   - `Properties` material data is carried in both directions, so a `mdpa` round trip keeps the values and not just the ids.
-- **Transient output**: XDMF temporal collections in a single file, file series for every other format. Append mode continues an existing series (a restart does not destroy the previous run's output), and crash-safe flushing means a killed run still leaves a readable `.xdmf`.
+- **Transient output**: XDMF temporal collections in a single file, file series for every other format. Append mode continues an existing series (a restart does not destroy the previous run's output), and crash-safe flushing means a killed run still leaves a readable `.xdmf`. `GetNumberOfTimeSteps`/`GetTimeValues`/`GetTimeStepIndex` introspect either kind — a single transient file or a file series discovered from the output naming convention — without reading the mesh data.
 - **Mesh and data operations** through `MeshioPlusPlusMeshOperations` — see [Utilities](../Utilities/Mesh_Operations.html): cleanup, transform, cell-type conversion, subsetting/extraction (split, crop, slice, isosurface, skin/surface extraction, merge), mesh improvement (refine, decimate, smooth, reorder), partitioning with ghost layers, and diagnostics (stats, quality, diff).
 
 ## Building

@@ -20,6 +20,22 @@ The process is called once per output step, and the underlying IO **extends the 
 - **Every other format**: one file per output step is written as a file series `<output_name>_<label>.<ext>`, where the label is the `STEP` or the `TIME` (see `"output_control_type"`), like the VTK output does.
 - With `"time_series": "single_file"` every call overwrites the same file (useful for writing a single, final mesh).
 
+## Discovering what was written
+
+`MeshioPlusPlusIO.GetNumberOfTimeSteps()` / `.GetTimeValues()` / `.GetTimeStepIndex(time)` answer "how many steps, and at what times" without reading any mesh data, for either transient shape:
+
+- A single transient file (XDMF, or any format meshio++ itself reports time values for) is summarized through its own header.
+- A **file series** is detected from disk: the directory is scanned for every `<prefix><stem><postfix>_<label><ext>` entry matching the naming `ComposeOutputPath` uses (same `"custom_name_prefix"`/`"custom_name_postfix"` settings as the writer), each `<label>` is parsed as a number, and the results are returned sorted ascending — regardless of write order or filesystem enumeration order.
+
+```python
+meshio_io = KratosMultiphysics.MeshioPlusPlusApplication.MeshioPlusPlusIO("results.vtu")
+meshio_io.GetNumberOfTimeSteps()   # 3, discovered from results_1.vtu, results_2.vtu, results_5.vtu
+meshio_io.GetTimeValues()          # [1.0, 2.0, 5.0]
+meshio_io.GetTimeStepIndex(2.0)    # 1
+```
+
+A file series only carries as much time precision as `"label_precision"` kept when it was written, so a `GetTimeStepIndex` lookup finer than that will not match. A file that does not parse as numeric (an unrelated file sharing the extension, say) is silently skipped rather than failing the scan.
+
 ## Closing the output
 
 The IO holds the time series open for its whole lifetime, and `ExecuteFinalize` closes it by calling `MeshioPlusPlusIO.CloseOutput()`. That finalizes the `.xdmf` light data and releases the file, so the series ends when the analysis ends rather than whenever the IO happens to be garbage collected.
