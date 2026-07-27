@@ -6,9 +6,23 @@ class MeshioOperationModeler(KratosMultiphysics.Modeler):
     """Modeler applying a meshio++ mesh operation to a model part.
 
     The operation is selected with the "operation" setting, and its own settings are
-    passed through in "operation_settings". Query what this build supports with
-    KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetSupportedOperations(), and the
-    available settings with GetDefaultParameters().
+    passed through in "operation_settings" - including "clean", "transform", "convert_cells",
+    "refine", "decimate", "smooth", "reorder", "extract_surface", "extract_skin", "crop_bbox",
+    "crop_halfspace", "slice", "isosurface", "attach_quality", "split", "partition", "stats",
+    "quality", and the data operations "data_calc", "data_condition", "data_manage",
+    "data_info", "point_data_to_cell_data", "cell_data_to_point_data". Query what this build
+    supports with KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetSupportedOperations(),
+    and the available settings with GetDefaultParameters(). "interpolate" is not reachable
+    here - it needs two source model parts; see MeshioInterpolateModeler.
+
+    Field data (nodal/elemental/conditional variables, flags and ids) can be carried through
+    the operation with the same "nodal_solution_step_data_variables" /
+    "nodal_data_value_variables" / "nodal_flags" / "element_data_value_variables" /
+    "element_flags" / "condition_data_value_variables" / "condition_flags" /
+    "gauss_point_variables_in_elements" / "write_ids" settings MeshioPlusPlusIO uses, empty by
+    default. A resulting array is written back onto the output model part only when its name
+    matches a registered Variable with the right component count - point "data_calc"'s
+    "output" setting (or similar) at an existing variable name to get the result back.
 
     The result is written into "output_model_part_name". The multi-output operations
     ("split", "partition") instead create one model part per piece, named
