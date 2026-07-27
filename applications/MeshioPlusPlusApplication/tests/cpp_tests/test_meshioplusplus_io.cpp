@@ -22,7 +22,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/model_part.h"
 #include "includes/variables.h"
 #include "custom_io/meshioplusplus_io.h"
 #include "meshioplusplus_fast_suite.h"
