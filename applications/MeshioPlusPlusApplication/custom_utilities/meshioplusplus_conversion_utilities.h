@@ -75,9 +75,13 @@ const std::string& RegisteredEntityName(const Condition& rCondition);
  * consumer: the key is resolved against the registered `double`, `int`, `bool`, `Vector`
  * and `array_1d<double, 3>` variables.
  *
- * Entries that cannot be represented (a table, a non-numeric value such as a constitutive
- * law name, or a key that is not a registered variable) are skipped with a warning rather
- * than aborting the read, since the mesh itself is still perfectly usable.
+ * Multi-component values are recovered from text where the format stored them that way:
+ * `mdpa` only turns a single number into a numeric array, so `VOLUME_ACCELERATION 0 0 -9.81`
+ * arrives verbatim as text and is tokenized back into a numeric list here.
+ *
+ * Entries that cannot be represented (a table, a genuinely non-numeric value such as a
+ * constitutive law name, or a key that is not a registered variable) are skipped with a
+ * warning rather than aborting the read, since the mesh itself is still perfectly usable.
  * @param pProperties The destination properties block.
  * @param rValue The meshio++ key/value pair to assign.
  */
@@ -85,12 +89,30 @@ KRATOS_API(KRATOS_MESHIOPLUSPLUS_APPLICATION)
 void ApplyMeshioProperty(Properties::Pointer pProperties, const meshioplusplus::PropertyValue& rValue);
 
 /**
+ * @brief Exports a Kratos Properties block's material data as meshio++ property values.
+ * @details The write-side counterpart of @ref ApplyMeshioProperty, and the reverse of its
+ * type dispatch: each entry of the block's variable container is resolved against the
+ * registered `double`, `int`, `bool`, `Vector` and `array_1d<double, 3>` variables and
+ * appended as a key/value pair. Without this the entities would carry only their properties
+ * *id*, and a write to a format that stores material data (`mdpa`) would emit empty blocks.
+ *
+ * Variables of a type meshio++ has no representation for are skipped with a warning; the
+ * mesh is still written. Keep this in step with @ref ApplyMeshioProperty - the two dispatch
+ * lists are deliberately adjacent so they cannot drift apart.
+ * @param rProperties The source properties block.
+ * @param rDestination The meshio++ property set to append to.
+ */
+KRATOS_API(KRATOS_MESHIOPLUSPLUS_APPLICATION)
+void ExportMeshioProperties(const Properties& rProperties, meshioplusplus::PropertySet& rDestination);
+
+/**
  * @brief Populates a meshio++ model part from a Kratos one (one bulk O(n) pass).
  * @details meshio++'s own `from_model_part` cannot be used here: its sub-model-part copy is
  * gated on methods `Kratos::ModelPart` spells differently (`SubModelPartNames` versus
  * `GetSubModelPartNames`) and would silently drop them. The entity mapping still goes
  * through @ref meshioplusplus::bridge_traits<Kratos::ModelPart>, and the Kratos registration
- * names are carried across so a round trip does not degrade them.
+ * names are carried across so a round trip does not degrade them. Material data is carried
+ * too, via @ref ExportMeshioProperties.
  * @param rSource The Kratos model part to read.
  * @param rDestination The meshio++ model part to fill (expected empty).
  * @param WriteElements Whether elements are transferred.

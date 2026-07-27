@@ -16,6 +16,7 @@
 // System includes
 #include <map>
 #include <mutex>
+#include <sstream>
 #include <typeindex>
 #include <utility>
 
@@ -178,6 +179,15 @@ void FillMeshioModelPart(
         }
     }
 
+    // Material data. The entity loops above register the properties *ids* they reference;
+    // this carries the values, so a format that stores them (mdpa) writes real blocks
+    // instead of empty ones. CreateNewProperties is find-or-create, so a block already
+    // registered by an entity is filled in place rather than duplicated.
+    for (const auto& r_properties : rSource.GetMesh().Properties()) {
+        ExportMeshioProperties(r_properties,
+                               rDestination.CreateNewProperties(r_properties.Id()));
+    }
+
     CopySubModelParts(rSource, rDestination, WriteElements, WriteConditions);
 }
 
@@ -223,19 +233,39 @@ void ApplyMeshioProperty(Properties::Pointer pProperties, const mio::PropertyVal
 {
     KRATOS_TRY
 
-    // A table is a curve, not a value; a text entry is something like a constitutive law
-    // name, which needs the application's own registry to instantiate. Both are left to
-    // the caller rather than guessed at here.
-    if (rValue.mIsTable || rValue.IsText()) {
+    // A table is a curve, not a value: it needs the application's own registry and is left
+    // to the caller rather than guessed at here.
+    if (rValue.mIsTable) {
         KRATOS_WARNING("MeshioPlusPlusIO")
-            << "Property \"" << rValue.mKey << "\" is "
-            << (rValue.mIsTable ? "a table" : "not numeric")
+            << "Property \"" << rValue.mKey << "\" is a table"
             << " and was not assigned; set it from the materials file instead." << std::endl;
         return;
     }
 
-    const double* p_values = rValue.mValues.As<double>();
-    const std::size_t number_of_values = rValue.mValues.Size();
+    // The values, whichever way the format stored them. mdpa only turns a *single* number
+    // into a numeric array; a multi-component value such as "0 0 -9.81" arrives verbatim as
+    // text, so it is tokenized here. Anything that is not a whitespace-separated list of
+    // numbers - a constitutive law name, say - stays unparsed and is skipped below.
+    std::vector<double> parsed_values;
+    if (rValue.IsText()) {
+        std::istringstream stream(rValue.mText);
+        double token = 0.0;
+        while (stream >> token) {
+            parsed_values.push_back(token);
+        }
+        if (parsed_values.empty() || !stream.eof()) {
+            KRATOS_WARNING("MeshioPlusPlusIO")
+                << "Property \"" << rValue.mKey << "\" is not numeric"
+                << " and was not assigned; set it from the materials file instead." << std::endl;
+            return;
+        }
+    } else {
+        const double* p_raw = rValue.mValues.As<double>();
+        parsed_values.assign(p_raw, p_raw + rValue.mValues.Size());
+    }
+
+    const double* p_values = parsed_values.data();
+    const std::size_t number_of_values = parsed_values.size();
 
     if (KratosComponents<Variable<double>>::Has(rValue.mKey)) {
         pProperties->SetValue(KratosComponents<Variable<double>>::Get(rValue.mKey), p_values[0]);
@@ -264,6 +294,61 @@ void ApplyMeshioProperty(Properties::Pointer pProperties, const mio::PropertyVal
 
     KRATOS_CATCH("")
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ExportMeshioProperties(const Properties& rProperties, mio::PropertySet& rDestination)
+{
+    KRATOS_TRY
+
+    // Builds one key/value pair; the NDArray is always Float64, which is what meshio++
+    // carries and what ApplyMeshioProperty reads back.
+    auto append = [&rDestination](const std::string& rKey, const std::vector<double>& rValues) {
+        mio::PropertyValue value;
+        value.mKey = rKey;
+        value.mValues = mio::NDArray::Uninit(mio::DType::Float64, {rValues.size()});
+        std::copy(rValues.begin(), rValues.end(), value.mValues.As<double>());
+        rDestination.mValues.push_back(std::move(value));
+    };
+
+    for (const auto& r_item : rProperties.GetData()) {
+        const std::string variable_name = r_item.first->Name();
+
+        // The reverse of ApplyMeshioProperty's dispatch, in the same order. The value is
+        // read through the typed variable rather than the container's void*, so no cast is
+        // involved and the component variables resolve exactly as they were registered.
+        if (KratosComponents<Variable<double>>::Has(variable_name)) {
+            append(variable_name, {rProperties.GetValue(KratosComponents<Variable<double>>::Get(variable_name))});
+        } else if (KratosComponents<Variable<int>>::Has(variable_name)) {
+            append(variable_name, {static_cast<double>(
+                rProperties.GetValue(KratosComponents<Variable<int>>::Get(variable_name)))});
+        } else if (KratosComponents<Variable<bool>>::Has(variable_name)) {
+            append(variable_name, {rProperties.GetValue(
+                KratosComponents<Variable<bool>>::Get(variable_name)) ? 1.0 : 0.0});
+        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name)) {
+            const auto& r_value = rProperties.GetValue(
+                KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name));
+            append(variable_name, {r_value[0], r_value[1], r_value[2]});
+        } else if (KratosComponents<Variable<Vector>>::Has(variable_name)) {
+            const auto& r_value = rProperties.GetValue(
+                KratosComponents<Variable<Vector>>::Get(variable_name));
+            append(variable_name, std::vector<double>(r_value.begin(), r_value.end()));
+        } else {
+            // Matrix, string, table-valued and application-specific types have no meshio++
+            // representation; the geometry is still written.
+            KRATOS_WARNING_ONCE("MeshioPlusPlusIO")
+                << "Property \"" << variable_name << "\" of properties block "
+                << rProperties.Id() << " has a type meshio++ cannot carry and was not written."
+                << std::endl;
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 mio::CellType MeshioCellTypeFromKratosGeometry(const GeometryData::KratosGeometryType GeometryType)
 {
