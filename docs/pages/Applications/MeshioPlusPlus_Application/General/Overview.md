@@ -19,6 +19,7 @@ meshio++ is consumed as a normal, **independently built external dependency** �
   - The format is resolved explicitly or inferred from the file extension.
   - Sub model parts map to meshio++ named regions, nesting included.
   - Registered entity names (`SmallDisplacementElement3D4N`, ...) are preserved across a round trip instead of degrading to the generic cell-type name.
+  - `Properties` material data is carried in both directions, so a `mdpa` round trip keeps the values and not just the ids.
 - **Transient output**: XDMF temporal collections in a single file, file series for every other format. Append mode continues an existing series (a restart does not destroy the previous run's output), and crash-safe flushing means a killed run still leaves a readable `.xdmf`.
 - **Mesh and data operations** through `MeshioPlusPlusMeshOperations` — see [Utilities](../Utilities/Mesh_Operations.html): cleanup, transform, cell-type conversion, subsetting/extraction (split, crop, slice, isosurface, skin/surface extraction, merge), mesh improvement (refine, decimate, smooth, reorder), partitioning with ghost layers, and diagnostics (stats, quality, diff).
 
@@ -46,7 +47,7 @@ then point the Kratos configure at it, and add the application:
 add_app ${KRATOS_APP_DIR}/MeshioPlusPlusApplication
 ```
 
-> **Version pin**: the application requires **meshio++ 9.1.0 exactly** (`find_package(meshioplusplus 9.1.0 EXACT CONFIG REQUIRED COMPONENTS CXX)`). The meshio++ C++ API makes no ABI promise — `Mesh`, `ModelPart` and `GeometricalEntity` are header-defined types whose layout changes with the headers — so the application must be rebuilt whenever meshio++ is.
+> **Version pin**: the application requires **meshio++ 9.2.0 exactly** (`find_package(meshioplusplus 9.2.0 EXACT CONFIG REQUIRED COMPONENTS CXX)`). The meshio++ C++ API makes no ABI promise — `Mesh`, `ModelPart` and `GeometricalEntity` are header-defined types whose layout changes with the headers — so the application must be rebuilt whenever meshio++ is. All three version components must be spelled out: under `SameMajorVersion`, `EXACT` is a full string comparison, so `9.2` does not match an installed `9.2.0`.
 
 ## Supported formats
 
@@ -66,10 +67,10 @@ print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats())
 ## Limitations
 
 - **Serial only.** meshio++ has no MPI, no distributed reader or writer and no communicator. The intended distributed workflow is `partition` with ghost layers, feeding an MPI assembly.
-- `Matrix`-valued variables are not written.
-- **`Properties` values do not round-trip yet.** meshio++ parses `Begin Properties` bodies, but its format registry does not thread that data through to a consumer, so a read produces the properties *ids* referenced by the entities and no material data. Set material data from the materials file in the meantime.
-- Reading a format that stores the properties id as a cell tag (the `gmsh:physical` convention, which the `mdpa` writer follows) produces an extra `gmsh_physical_<id>` sub model part alongside the real ones.
+- `Matrix`-valued variables are not written, and a `Matrix`-valued `Properties` entry is skipped with a warning — meshio++ has no representation for it.
+- `Properties` entries that are not numeric are left to the materials file: a `Begin Table` curve, and text values such as a constitutive law name (instantiating one needs Kratos's own registry, which meshio++ deliberately does not link). Everything numeric — scalars, integers and vector-valued variables alike — round-trips.
 - The `mdpa` reader throws by name on constructs it cannot represent (`Geometries`, `Mesh <id>`, `Constraints`, ...).
+- Transient output is held open by the IO. Call `CloseOutput()` before deleting the output of a run: a live writer finalizes on destruction and would recreate the file, and since the series is opened in append mode the next run would then continue a series believed deleted. `MeshioOutputProcess` does this in `ExecuteFinalize`.
 
 ## Documentation
 

@@ -20,6 +20,12 @@ The process is called once per output step, and the underlying IO **extends the 
 - **Every other format**: one file per output step is written as a file series `<output_name>_<label>.<ext>`, where the label is the `STEP` or the `TIME` (see `"output_control_type"`), like the VTK output does.
 - With `"time_series": "single_file"` every call overwrites the same file (useful for writing a single, final mesh).
 
+## Closing the output
+
+The IO holds the time series open for its whole lifetime, and `ExecuteFinalize` closes it by calling `MeshioPlusPlusIO.CloseOutput()`. That finalizes the `.xdmf` light data and releases the file, so the series ends when the analysis ends rather than whenever the IO happens to be garbage collected.
+
+> Call `CloseOutput()` before deleting the output of a transient run. A live writer finalizes on destruction, which **recreates** a file deleted underneath it — and because the series is opened in append mode, the *next* run then continues a series you believed deleted, so the mistake surfaces one run later as a wrong step count. A further `WriteModelPart` after `CloseOutput()` simply reopens the series and appends to what is on disk.
+
 ## Usage
 
 ```json
