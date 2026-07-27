@@ -158,7 +158,7 @@ namespace Kratos
     // ---------------------------------------------------------------------
     // functions for cutting-pattern generation
     // ---------------------------------------------------------------------
-    
+
     void Relaxation(
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
@@ -251,6 +251,42 @@ namespace Kratos
 
 
   private:
+    /**
+    * @brief Computes the shared per-Gauss-point state needed by ResponseFunctionLeastSquare
+    */
+    void ComputeLeastSquareBaseState(
+      const Matrix& rShapeFunctionGradientValues,
+      array_1d<Vector, 2>& rReferenceBaseVectors,
+      array_1d<Vector, 2>& rCurrentBaseVectors,
+      Matrix& rReferenceMetric,
+      Matrix& rCurrentContravariantMetric,
+      double& rDetJReference,
+      double& rDetJCurrent,
+      double rC_ref[2][2][2][2],
+      double rC_act[2][2][2][2],
+      Matrix& rEpsilon,
+      Matrix& rSigma,
+      Matrix& rSigmaP,
+      const double YoungModulus,
+      const double PoissonRatio);
+
+    void DerivativeJacobiDeterminant(
+      double& rDerivDetJ,
+      const Matrix& rShapeFunctionGradientValues,
+      const SizeType DofR,
+      const array_1d<Vector, 2>& rBaseVectors,
+      const double DetJ);
+
+    void Derivative2JacobiDeterminant(
+      double& rDeriv2DetJ,
+      const Matrix& rShapeFunctionGradientValues,
+      const SizeType DofR,
+      const SizeType DofS,
+      const array_1d<Vector, 2>& rBaseVectors,
+      const double DetJ,
+      const double DerivRDetJ,
+      const double DerivSDetJ);
+
      /**
      * @brief Calculates the covariant base vectors
      * @param rBaseVectors The base vectors to be calculated

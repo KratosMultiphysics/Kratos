@@ -245,12 +245,131 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
     rResponse = 0.0;
 
     this->StiffnessMatrixLeastSquare(rLeftHandSideMatrix, integration_method, rCurrentProcessInfo);
-    
+
     this->InternalForcesLeastSquare(rRightHandSideVector, integration_method, rCurrentProcessInfo);
 
     this->ResponseFunctionLeastSquare(rResponse, integration_method, rCurrentProcessInfo);
 
     KRATOS_CATCH("");
+  }
+
+
+  void MembraneCuttingPatternElement::DerivativeJacobiDeterminant(double& rDerivDetJ, const Matrix& rShapeFunctionGradientValues,
+    const SizeType DofR, const array_1d<Vector, 2>& rBaseVectors, const double DetJ)
+  {
+    array_1d<Vector, 2> deriv_r_base_vectors;
+    this->DeriveCurrentCovariantBaseVectors(deriv_r_base_vectors, rShapeFunctionGradientValues, DofR);
+
+    Vector cross_g1g2 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(cross_g1g2, rBaseVectors[0], rBaseVectors[1]);
+
+    Vector deriv_r_cross_1 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(deriv_r_cross_1, deriv_r_base_vectors[0], rBaseVectors[1]);
+    Vector deriv_r_cross_2 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(deriv_r_cross_2, rBaseVectors[0], deriv_r_base_vectors[1]);
+
+    const Vector deriv_r_cross = deriv_r_cross_1 + deriv_r_cross_2;
+
+    rDerivDetJ = inner_prod(deriv_r_cross, cross_g1g2) / DetJ;
+  }
+
+
+  void MembraneCuttingPatternElement::Derivative2JacobiDeterminant(double& rDeriv2DetJ, const Matrix& rShapeFunctionGradientValues,
+    const SizeType DofR, const SizeType DofS, const array_1d<Vector, 2>& rBaseVectors, const double DetJ,
+    const double DerivRDetJ, const double DerivSDetJ)
+  {
+    array_1d<Vector, 2> deriv_r_base_vectors;
+    this->DeriveCurrentCovariantBaseVectors(deriv_r_base_vectors, rShapeFunctionGradientValues, DofR);
+    array_1d<Vector, 2> deriv_s_base_vectors;
+    this->DeriveCurrentCovariantBaseVectors(deriv_s_base_vectors, rShapeFunctionGradientValues, DofS);
+
+    Vector cross_g1g2 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(cross_g1g2, rBaseVectors[0], rBaseVectors[1]);
+
+    Vector deriv_r_cross_1 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(deriv_r_cross_1, deriv_r_base_vectors[0], rBaseVectors[1]);
+    Vector deriv_r_cross_2 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(deriv_r_cross_2, rBaseVectors[0], deriv_r_base_vectors[1]);
+    const Vector deriv_r_cross = deriv_r_cross_1 + deriv_r_cross_2;
+
+    Vector deriv_s_cross_1 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(deriv_s_cross_1, deriv_s_base_vectors[0], rBaseVectors[1]);
+    Vector deriv_s_cross_2 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(deriv_s_cross_2, rBaseVectors[0], deriv_s_base_vectors[1]);
+    const Vector deriv_s_cross = deriv_s_cross_1 + deriv_s_cross_2;
+
+    Vector cross_rs_1 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(cross_rs_1, deriv_r_base_vectors[0], deriv_s_base_vectors[1]);
+    Vector cross_rs_2 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(cross_rs_2, deriv_s_base_vectors[0], deriv_r_base_vectors[1]);
+    const Vector deriv_rs_cross = cross_rs_1 + cross_rs_2;
+
+    rDeriv2DetJ = (inner_prod(deriv_rs_cross, cross_g1g2) + inner_prod(deriv_r_cross, deriv_s_cross)) / DetJ
+      - (DerivRDetJ * DerivSDetJ) / DetJ;
+  }
+
+
+  void MembraneCuttingPatternElement::ComputeLeastSquareBaseState(
+    const Matrix& rShapeFunctionGradientValues,
+    array_1d<Vector, 2>& rReferenceBaseVectors,
+    array_1d<Vector, 2>& rCurrentBaseVectors,
+    Matrix& rReferenceMetric,
+    Matrix& rCurrentContravariantMetric,
+    double& rDetJReference,
+    double& rDetJCurrent,
+    double rC_ref[2][2][2][2],
+    double rC_act[2][2][2][2],
+    Matrix& rEpsilon,
+    Matrix& rSigma,
+    Matrix& rSigmaP,
+    const double YoungModulus,
+    const double PoissonRatio)
+  {
+    this->CovariantBaseVectors(rReferenceBaseVectors, rShapeFunctionGradientValues, ConfigurationType::Reference);
+    this->CovariantBaseVectors(rCurrentBaseVectors, rShapeFunctionGradientValues, ConfigurationType::Current);
+
+    Matrix current_metric = ZeroMatrix(2);
+    this->CovariantMetric(rReferenceMetric, rReferenceBaseVectors);
+    this->CovariantMetric(current_metric, rCurrentBaseVectors);
+    this->ContravariantMetric(rCurrentContravariantMetric, current_metric);
+
+    this->JacobiDeterminante(rDetJReference, rReferenceBaseVectors);
+    this->JacobiDeterminante(rDetJCurrent, rCurrentBaseVectors);
+
+    const double inv_det_f = rDetJCurrent / rDetJReference;
+
+    const double lambda = YoungModulus * PoissonRatio / (1.0 - PoissonRatio * PoissonRatio);
+    const double mu = YoungModulus / (2.0 * (1.0 + PoissonRatio));
+
+    for (SizeType alpha = 0; alpha < 2; ++alpha) {
+      for (SizeType beta = 0; beta < 2; ++beta) {
+        for (SizeType gamma = 0; gamma < 2; ++gamma) {
+          for (SizeType delta = 0; delta < 2; ++delta) {
+            rC_ref[alpha][beta][gamma][delta] = (lambda * (rCurrentContravariantMetric(alpha, beta) * rCurrentContravariantMetric(gamma, delta)))
+              + (mu * ((rCurrentContravariantMetric(alpha, gamma) * rCurrentContravariantMetric(beta, delta))
+                + (rCurrentContravariantMetric(alpha, delta) * rCurrentContravariantMetric(beta, gamma))));
+
+            rC_act[alpha][beta][gamma][delta] = inv_det_f * rC_ref[alpha][beta][gamma][delta];
+          }
+        }
+      }
+    }
+
+    rEpsilon = ZeroMatrix(2);
+    noalias(rEpsilon) = 0.5 * (rReferenceMetric - current_metric);
+
+    rSigma = ZeroMatrix(2);
+    for (SizeType alpha = 0; alpha < 2; ++alpha) {
+      for (SizeType beta = 0; beta < 2; ++beta) {
+        for (SizeType gamma = 0; gamma < 2; ++gamma) {
+          for (SizeType delta = 0; delta < 2; ++delta) {
+            rSigma(alpha, beta) += rC_act[alpha][beta][gamma][delta] * rEpsilon(gamma, delta);
+          }
+        }
+      }
+    }
+
+    this->PreStress(rSigmaP);
   }
 
 
