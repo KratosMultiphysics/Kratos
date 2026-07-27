@@ -1,0 +1,76 @@
+---
+title: Overview
+keywords: meshio meshioplusplus mesh io formats xdmf vtu gmsh med mdpa operations
+tags: [Overview.md]
+sidebar: meshioplusplus_application
+summary: What the Meshio++ Application is, how to build it, and where its features live.
+---
+
+## What is the Meshio++ Application?
+
+The **Meshio++ Application** wraps the [meshio++](https://github.com/loumalouomega/meshioplusplus) library, bringing multi-format mesh input/output and a full mesh/data operations layer into *Kratos Multiphysics*.
+
+meshio++ is consumed as a normal, **independently built external dependency** — nothing is vendored into Kratos. The only meshio++-shaped code that lives in this application is the bridge mapping Kratos entities to meshio++ ones (`custom_utilities/meshioplusplus_conversion_utilities.h`); everything else — the format readers/writers and the mesh operations — comes from the installed meshio++ C++ API.
+
+## Features
+
+- **Multi-format mesh input/output** through `MeshioPlusPlusIO` — see [Output Process](../Output_Process/Meshio_Output_Process.html) and [Modelers](../Modelers/Meshio_Input_Modeler.html).
+  - 41 readable and 43 writable formats, including the Kratos native `mdpa`.
+  - The format is resolved explicitly or inferred from the file extension.
+  - Sub model parts map to meshio++ named regions, nesting included.
+  - Registered entity names (`SmallDisplacementElement3D4N`, ...) are preserved across a round trip instead of degrading to the generic cell-type name.
+- **Transient output**: XDMF temporal collections in a single file, file series for every other format. Append mode continues an existing series (a restart does not destroy the previous run's output), and crash-safe flushing means a killed run still leaves a readable `.xdmf`.
+- **Mesh and data operations** through `MeshioPlusPlusMeshOperations` — see [Utilities](../Utilities/Mesh_Operations.html): cleanup, transform, cell-type conversion, subsetting/extraction (split, crop, slice, isosurface, skin/surface extraction, merge), mesh improvement (refine, decimate, smooth, reorder), partitioning with ghost layers, and diagnostics (stats, quality, diff).
+
+## Building
+
+Build and install meshio++ with the C++ API and the `KRATOS` mesh backend:
+
+```bash
+cmake -S <meshioplusplus> -B build \
+  -DMESHIOPLUSPLUS_INSTALL_CPP=ON \
+  -DMESHIOPLUSPLUS_INSTALL_CPP_BACKENDS="KRATOS" \
+  -DMESHIOPLUSPLUS_MESH_BACKEND=KRATOS \
+  -DMESHIOPLUSPLUS_BUILD_PYTHON=OFF \
+  -DBUILD_SHARED_LIBS=ON
+cmake --build build && cmake --install build --prefix <prefix>
+```
+
+then point the Kratos configure at it, and add the application:
+
+```bash
+-Dmeshioplusplus_DIR=<prefix>/lib/cmake/meshioplusplus
+```
+
+```python
+add_app ${KRATOS_APP_DIR}/MeshioPlusPlusApplication
+```
+
+> **Version pin**: the application requires **meshio++ 9.1.0 exactly** (`find_package(meshioplusplus 9.1.0 EXACT CONFIG REQUIRED COMPONENTS CXX)`). The meshio++ C++ API makes no ABI promise — `Mesh`, `ModelPart` and `GeometricalEntity` are header-defined types whose layout changes with the headers — so the application must be rebuilt whenever meshio++ is.
+
+## Supported formats
+
+**Read (41):** `abaqus` `ansys` `ansysinp` `avsucd` `cgns` `dex` `dolfin` `ensight` `exodus` `flac3d` `flux` `freefem` `gmsh` `h5m` `hmf` `ip` `mdpa` `med` `medit` `mff` `mfm` `mphtxt` `nastran` `netgen` `obj` `off` `openfoam` `permas` `ply` `stl` `su2` `tecplot` `tetgen` `triangle` `ugrid` `unv` `vtk` `vtp` `vtu` `wkt` `xdmf`
+
+**Write (43):** the same set except `openfoam` (read-only), plus `gmsh22`, `svg` and `tikz` (write-only).
+
+`cgns`, `h5m`, `hmf`, `med` and the XDMF-HDF data path require an HDF5-enabled meshio++ build; `exodus` requires netCDF. A format compiled out is still resolved by extension and reports *why* it is unavailable rather than "unknown format". Query what your build supports at runtime:
+
+```python
+import KratosMultiphysics.MeshioPlusPlusApplication as KratosMeshioPlusPlus
+
+print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedReadFormats())
+print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats())
+```
+
+## Limitations
+
+- **Serial only.** meshio++ has no MPI, no distributed reader or writer and no communicator. The intended distributed workflow is `partition` with ghost layers, feeding an MPI assembly.
+- `Matrix`-valued variables are not written.
+- **`Properties` values do not round-trip yet.** meshio++ parses `Begin Properties` bodies, but its format registry does not thread that data through to a consumer, so a read produces the properties *ids* referenced by the entities and no material data. Set material data from the materials file in the meantime.
+- Reading a format that stores the properties id as a cell tag (the `gmsh:physical` convention, which the `mdpa` writer follows) produces an extra `gmsh_physical_<id>` sub model part alongside the real ones.
+- The `mdpa` reader throws by name on constructs it cannot represent (`Geometries`, `Mesh <id>`, `Constraints`, ...).
+
+## Documentation
+
+The meshio++ library documentation, including a page per format and per operation, is available at [loumalouomega.github.io/meshioplusplus](https://loumalouomega.github.io/meshioplusplus).
