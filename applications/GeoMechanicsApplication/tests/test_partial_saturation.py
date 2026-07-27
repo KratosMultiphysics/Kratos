@@ -183,10 +183,10 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 sorted_depth, sorted_data = zip(
                     *sorted(zip(depth_by_id_for_left_boundary_nodes.values(), water_pressures))
                 )
-                list = zip(sorted_data, sorted_depth)
+                data = zip(sorted_data, sorted_depth)
                 data_series_collection.append(
                     plot_utils.DataSeries(
-                        list, label=f"Time = {time}", line_style="-", marker=""
+                        data, label=f"Time = {time}", line_style="-", marker=""
                     )
                 )
             asserted_data_points = []
