@@ -387,200 +387,360 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
 
     const double thickness = GetProperties()[THICKNESS];
 
-    double young_modulus = GetProperties()[YOUNG_MODULUS];
-    double poisson_ratio = GetProperties()[POISSON_RATIO];
-
-    array_1d<Vector, 2> current_covariant_base_vectors;
-    Matrix covariant_metric_current = ZeroMatrix(2);
-
-    double detJ = 0.0;
-
-    Matrix cauchy_stress = ZeroMatrix(2);
-    Matrix derivative_cauchy_stress_r = ZeroMatrix(2);
-    Matrix derivative_cauchy_stress_s = ZeroMatrix(2);
-    Matrix derivative2_cauchy_stress = ZeroMatrix(2);
-    Matrix prestress = ZeroMatrix(2);
+    const double young_modulus = GetProperties()[YOUNG_MODULUS];
+    const double poisson_ratio = GetProperties()[POISSON_RATIO];
+    const double lambda = young_modulus * poisson_ratio / (1.0 - poisson_ratio * poisson_ratio);
+    const double mu = young_modulus / (2.0 * (1.0 + poisson_ratio));
 
     rStiffnessMatrix = ZeroMatrix(number_dofs);
-
 
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
       const double integration_weight_i = r_integration_points[point_number].Weight();
       const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
-      this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
-      this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
+      array_1d<Vector, 2> reference_base_vectors, current_base_vectors;
+      Matrix reference_metric = ZeroMatrix(2);
+      Matrix current_contravariant_metric = ZeroMatrix(2);
+      double det_j_reference = 0.0;
+      double det_j_current = 0.0;
+      double C_ref[2][2][2][2];
+      double C_act[2][2][2][2];
+      Matrix epsilon = ZeroMatrix(2);
+      Matrix sigma = ZeroMatrix(2);
+      Matrix sigma_p = ZeroMatrix(2);
 
-      this->JacobiDeterminante(detJ, current_covariant_base_vectors);
+      this->ComputeLeastSquareBaseState(shape_functions_gradients_i, reference_base_vectors, current_base_vectors,
+        reference_metric, current_contravariant_metric, det_j_reference, det_j_current, C_ref, C_act,
+        epsilon, sigma, sigma_p, young_modulus, poisson_ratio);
 
-      this->CauchyStress(cauchy_stress, shape_functions_gradients_i, young_modulus, poisson_ratio);
-
-      this->PreStress(prestress);
+      const Matrix delta_sigma = sigma - sigma_p;
+      const double inv_det_f = det_j_current / det_j_reference;
 
       for (SizeType dof_r = 0; dof_r < number_dofs; ++dof_r) {
 
-        this->DerivativeCauchyStress(derivative_cauchy_stress_r, shape_functions_gradients_i, dof_r, young_modulus, poisson_ratio);
+        Matrix deriv_r_current_metric = ZeroMatrix(2);
+        this->DerivativeCurrentCovariantMetric(deriv_r_current_metric, shape_functions_gradients_i, dof_r, current_base_vectors);
+        Matrix deriv_r_current_contra_metric = ZeroMatrix(2);
+        this->DerivativeContravariantMetric(deriv_r_current_contra_metric, shape_functions_gradients_i, dof_r, current_base_vectors);
+
+        double deriv_r_det_j_current = 0.0;
+        this->DerivativeJacobiDeterminant(deriv_r_det_j_current, shape_functions_gradients_i, dof_r, current_base_vectors, det_j_current);
+        const double deriv_r_inv_det_f = deriv_r_det_j_current / det_j_reference;
+
+        const Matrix deriv_r_epsilon = -0.5 * deriv_r_current_metric;
+
+        double deriv_r_C_ref[2][2][2][2];
+        double deriv_r_C_act[2][2][2][2];
+        for (SizeType alpha = 0; alpha < 2; ++alpha) {
+          for (SizeType beta = 0; beta < 2; ++beta) {
+            for (SizeType gamma = 0; gamma < 2; ++gamma) {
+              for (SizeType delta = 0; delta < 2; ++delta) {
+                deriv_r_C_ref[alpha][beta][gamma][delta] =
+                  lambda * (deriv_r_current_contra_metric(alpha, beta) * current_contravariant_metric(gamma, delta)
+                    + current_contravariant_metric(alpha, beta) * deriv_r_current_contra_metric(gamma, delta))
+                  + mu * (deriv_r_current_contra_metric(alpha, gamma) * current_contravariant_metric(beta, delta)
+                    + deriv_r_current_contra_metric(alpha, delta) * current_contravariant_metric(beta, gamma)
+                    + current_contravariant_metric(alpha, gamma) * deriv_r_current_contra_metric(beta, delta)
+                    + current_contravariant_metric(alpha, delta) * deriv_r_current_contra_metric(beta, gamma));
+
+                deriv_r_C_act[alpha][beta][gamma][delta] = deriv_r_inv_det_f * C_ref[alpha][beta][gamma][delta]
+                  + inv_det_f * deriv_r_C_ref[alpha][beta][gamma][delta];
+              }
+            }
+          }
+        }
+
+        Matrix deriv_r_sigma = ZeroMatrix(2);
+        for (SizeType alpha = 0; alpha < 2; ++alpha) {
+          for (SizeType beta = 0; beta < 2; ++beta) {
+            for (SizeType gamma = 0; gamma < 2; ++gamma) {
+              for (SizeType delta = 0; delta < 2; ++delta) {
+                deriv_r_sigma(alpha, beta) += deriv_r_C_act[alpha][beta][gamma][delta] * epsilon(gamma, delta)
+                  + C_act[alpha][beta][gamma][delta] * deriv_r_epsilon(gamma, delta);
+              }
+            }
+          }
+        }
 
         for (SizeType dof_s = 0; dof_s < number_dofs; ++dof_s) {
 
-          this->DerivativeCauchyStress(derivative_cauchy_stress_s, shape_functions_gradients_i, dof_s, young_modulus, poisson_ratio);
+          Matrix deriv_s_current_metric = ZeroMatrix(2);
+          this->DerivativeCurrentCovariantMetric(deriv_s_current_metric, shape_functions_gradients_i, dof_s, current_base_vectors);
+          Matrix deriv_s_current_contra_metric = ZeroMatrix(2);
+          this->DerivativeContravariantMetric(deriv_s_current_contra_metric, shape_functions_gradients_i, dof_s, current_base_vectors);
 
-          this->Derivative2CauchyStress(derivative2_cauchy_stress, shape_functions_gradients_i, dof_r, dof_s, young_modulus, poisson_ratio);
+          double deriv_s_det_j_current = 0.0;
+          this->DerivativeJacobiDeterminant(deriv_s_det_j_current, shape_functions_gradients_i, dof_s, current_base_vectors, det_j_current);
+          const double deriv_s_inv_det_f = deriv_s_det_j_current / det_j_reference;
 
-          double k_elm = 0.0;
+          const Matrix deriv_s_epsilon = -0.5 * deriv_s_current_metric;
 
-          for (SizeType m = 0; m < 2; m++) {
-            for (SizeType n = 0; n < 2; n++) {
-              for (SizeType l = 0; l < 2; l++) {
-                for (SizeType k = 0; k < 2; k++) {
-                  k_elm += ((derivative_cauchy_stress_s(m, n) * derivative_cauchy_stress_r(l, k)) + ((cauchy_stress(m, n) - prestress(m, n)) * derivative2_cauchy_stress(l, k))) * covariant_metric_current(m, l) * covariant_metric_current(n, k);
+          double deriv_s_C_ref[2][2][2][2];
+          double deriv_s_C_act[2][2][2][2];
+          for (SizeType alpha = 0; alpha < 2; ++alpha) {
+            for (SizeType beta = 0; beta < 2; ++beta) {
+              for (SizeType gamma = 0; gamma < 2; ++gamma) {
+                for (SizeType delta = 0; delta < 2; ++delta) {
+                  deriv_s_C_ref[alpha][beta][gamma][delta] =
+                    lambda * (deriv_s_current_contra_metric(alpha, beta) * current_contravariant_metric(gamma, delta)
+                      + current_contravariant_metric(alpha, beta) * deriv_s_current_contra_metric(gamma, delta))
+                    + mu * (deriv_s_current_contra_metric(alpha, gamma) * current_contravariant_metric(beta, delta)
+                      + deriv_s_current_contra_metric(alpha, delta) * current_contravariant_metric(beta, gamma)
+                      + current_contravariant_metric(alpha, gamma) * deriv_s_current_contra_metric(beta, delta)
+                      + current_contravariant_metric(alpha, delta) * deriv_s_current_contra_metric(beta, gamma));
+
+                  deriv_s_C_act[alpha][beta][gamma][delta] = deriv_s_inv_det_f * C_ref[alpha][beta][gamma][delta]
+                    + inv_det_f * deriv_s_C_ref[alpha][beta][gamma][delta];
                 }
               }
             }
           }
 
-          rStiffnessMatrix(dof_r, dof_s) += k_elm * detJ * integration_weight_i * thickness;
+          Matrix deriv_s_sigma = ZeroMatrix(2);
+          for (SizeType alpha = 0; alpha < 2; ++alpha) {
+            for (SizeType beta = 0; beta < 2; ++beta) {
+              for (SizeType gamma = 0; gamma < 2; ++gamma) {
+                for (SizeType delta = 0; delta < 2; ++delta) {
+                  deriv_s_sigma(alpha, beta) += deriv_s_C_act[alpha][beta][gamma][delta] * epsilon(gamma, delta)
+                    + C_act[alpha][beta][gamma][delta] * deriv_s_epsilon(gamma, delta);
+                }
+              }
+            }
+          }
 
+          Matrix deriv2_current_metric = ZeroMatrix(2);
+          this->Derivative2CurrentCovariantMetric(deriv2_current_metric, shape_functions_gradients_i, dof_r, dof_s);
+          Matrix deriv2_current_contra_metric = ZeroMatrix(2);
+          this->Derivative2ContravariantMetric(deriv2_current_contra_metric, shape_functions_gradients_i, dof_r, dof_s, current_base_vectors);
+
+          double deriv2_det_j_current = 0.0;
+          this->Derivative2JacobiDeterminant(deriv2_det_j_current, shape_functions_gradients_i, dof_r, dof_s, current_base_vectors,
+            det_j_current, deriv_r_det_j_current, deriv_s_det_j_current);
+          const double deriv2_inv_det_f = deriv2_det_j_current / det_j_reference;
+
+          const Matrix deriv2_epsilon = -0.5 * deriv2_current_metric;
+
+          double deriv2_C_ref[2][2][2][2];
+          double deriv2_C_act[2][2][2][2];
+          for (SizeType alpha = 0; alpha < 2; ++alpha) {
+            for (SizeType beta = 0; beta < 2; ++beta) {
+              for (SizeType gamma = 0; gamma < 2; ++gamma) {
+                for (SizeType delta = 0; delta < 2; ++delta) {
+                  deriv2_C_ref[alpha][beta][gamma][delta] =
+                    lambda * (deriv2_current_contra_metric(alpha, beta) * current_contravariant_metric(gamma, delta)
+                      + deriv_r_current_contra_metric(alpha, beta) * deriv_s_current_contra_metric(gamma, delta)
+                      + deriv_s_current_contra_metric(alpha, beta) * deriv_r_current_contra_metric(gamma, delta)
+                      + current_contravariant_metric(alpha, beta) * deriv2_current_contra_metric(gamma, delta))
+                    + mu * (deriv2_current_contra_metric(alpha, gamma) * current_contravariant_metric(beta, delta)
+                      + deriv_r_current_contra_metric(alpha, gamma) * deriv_s_current_contra_metric(beta, delta)
+                      + deriv_s_current_contra_metric(alpha, gamma) * deriv_r_current_contra_metric(beta, delta)
+                      + current_contravariant_metric(alpha, gamma) * deriv2_current_contra_metric(beta, delta)
+                      + deriv2_current_contra_metric(alpha, delta) * current_contravariant_metric(beta, gamma)
+                      + deriv_r_current_contra_metric(alpha, delta) * deriv_s_current_contra_metric(beta, gamma)
+                      + deriv_s_current_contra_metric(alpha, delta) * deriv_r_current_contra_metric(beta, gamma)
+                      + current_contravariant_metric(alpha, delta) * deriv2_current_contra_metric(beta, gamma));
+
+                  deriv2_C_act[alpha][beta][gamma][delta] = deriv2_inv_det_f * C_ref[alpha][beta][gamma][delta]
+                    + deriv_r_inv_det_f * deriv_s_C_ref[alpha][beta][gamma][delta]
+                    + deriv_s_inv_det_f * deriv_r_C_ref[alpha][beta][gamma][delta]
+                    + inv_det_f * deriv2_C_ref[alpha][beta][gamma][delta];
+                }
+              }
+            }
+          }
+
+          Matrix deriv2_sigma = ZeroMatrix(2);
+          for (SizeType alpha = 0; alpha < 2; ++alpha) {
+            for (SizeType beta = 0; beta < 2; ++beta) {
+              for (SizeType gamma = 0; gamma < 2; ++gamma) {
+                for (SizeType delta = 0; delta < 2; ++delta) {
+                  deriv2_sigma(alpha, beta) += deriv2_C_act[alpha][beta][gamma][delta] * epsilon(gamma, delta)
+                    + deriv_r_C_act[alpha][beta][gamma][delta] * deriv_s_epsilon(gamma, delta)
+                    + deriv_s_C_act[alpha][beta][gamma][delta] * deriv_r_epsilon(gamma, delta)
+                    + C_act[alpha][beta][gamma][delta] * deriv2_epsilon(gamma, delta);
+                }
+              }
+            }
+          }
+
+          double k_elm = 0.0;
+          for (SizeType m = 0; m < 2; m++) {
+            for (SizeType n = 0; n < 2; n++) {
+              for (SizeType l = 0; l < 2; l++) {
+                for (SizeType k = 0; k < 2; k++) {
+                  k_elm += ((deriv_s_sigma(m, n) * deriv_r_sigma(l, k)) + (delta_sigma(m, n) * deriv2_sigma(l, k)))
+                    * reference_metric(m, l) * reference_metric(n, k);
+                }
+              }
+            }
+          }
+
+          rStiffnessMatrix(dof_r, dof_s) += k_elm * integration_weight_i * det_j_reference * thickness;
         }
       }
     }
   }
 
 
-  
-
   void MembraneCuttingPatternElement::InternalForcesLeastSquare(Vector& rInternalForces, const IntegrationMethod& ThisMethod, const ProcessInfo& rCurrentProcessInfo) {
 
+    const auto& r_geom = GetGeometry();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType number_dofs = dimension * number_of_nodes;
+    rInternalForces = ZeroVector(number_dofs);
 
-     const auto& r_geom = GetGeometry();
-     const SizeType dimension = r_geom.WorkingSpaceDimension();
-     const SizeType number_of_nodes = r_geom.size();
-     const SizeType number_dofs = dimension * number_of_nodes;
-     rInternalForces = ZeroVector(number_dofs);
+    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
 
-     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
-     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
+    const double thickness = GetProperties()[THICKNESS];
 
-     const double thickness = GetProperties()[THICKNESS];
+    const double young_modulus = GetProperties()[YOUNG_MODULUS];
+    const double poisson_ratio = GetProperties()[POISSON_RATIO];
+    const double lambda = young_modulus * poisson_ratio / (1.0 - poisson_ratio * poisson_ratio);
+    const double mu = young_modulus / (2.0 * (1.0 + poisson_ratio));
 
-     double young_modulus = GetProperties()[YOUNG_MODULUS];
-     double poisson_ratio = GetProperties()[POISSON_RATIO];
+    for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
-     array_1d<Vector, 2> current_covariant_base_vectors;
-     Matrix covariant_metric_current = ZeroMatrix(2);
-    
-     double detJ = 0.0;
+      const double integration_weight_i = r_integration_points[point_number].Weight();
+      const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
-     Matrix cauchy_stress = ZeroMatrix(2);
-     Matrix derivative_cauchy_stress = ZeroMatrix(2);
-     Matrix prestress = ZeroMatrix(2);
+      array_1d<Vector, 2> reference_base_vectors, current_base_vectors;
+      Matrix reference_metric = ZeroMatrix(2);
+      Matrix current_contravariant_metric = ZeroMatrix(2);
+      double det_j_reference = 0.0;
+      double det_j_current = 0.0;
+      double C_ref[2][2][2][2];
+      double C_act[2][2][2][2];
+      Matrix epsilon = ZeroMatrix(2);
+      Matrix sigma = ZeroMatrix(2);
+      Matrix sigma_p = ZeroMatrix(2);
 
+      this->ComputeLeastSquareBaseState(shape_functions_gradients_i, reference_base_vectors, current_base_vectors,
+        reference_metric, current_contravariant_metric, det_j_reference, det_j_current, C_ref, C_act,
+        epsilon, sigma, sigma_p, young_modulus, poisson_ratio);
 
-     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-       
-       const double integration_weight_i = r_integration_points[point_number].Weight();
-       const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+      const Matrix delta_sigma = sigma - sigma_p;
+      const double inv_det_f = det_j_current / det_j_reference;
 
-       this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
-       this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
+      for (SizeType dof_r = 0; dof_r < number_dofs; ++dof_r)
+      {
+        Matrix deriv_r_current_metric = ZeroMatrix(2);
+        this->DerivativeCurrentCovariantMetric(deriv_r_current_metric, shape_functions_gradients_i, dof_r, current_base_vectors);
+        Matrix deriv_r_current_contra_metric = ZeroMatrix(2);
+        this->DerivativeContravariantMetric(deriv_r_current_contra_metric, shape_functions_gradients_i, dof_r, current_base_vectors);
 
-       this->JacobiDeterminante(detJ, current_covariant_base_vectors);
+        double deriv_r_det_j_current = 0.0;
+        this->DerivativeJacobiDeterminant(deriv_r_det_j_current, shape_functions_gradients_i, dof_r, current_base_vectors, det_j_current);
+        const double deriv_r_inv_det_f = deriv_r_det_j_current / det_j_reference;
 
-       this->CauchyStress(cauchy_stress, shape_functions_gradients_i, young_modulus, poisson_ratio);
-       //KRATOS_WATCH (cauchy_stress)
+        const Matrix deriv_r_epsilon = -0.5 * deriv_r_current_metric;
 
-       this->PreStress(prestress);
+        double deriv_r_C_ref[2][2][2][2];
+        double deriv_r_C_act[2][2][2][2];
+        for (SizeType alpha = 0; alpha < 2; ++alpha) {
+          for (SizeType beta = 0; beta < 2; ++beta) {
+            for (SizeType gamma = 0; gamma < 2; ++gamma) {
+              for (SizeType delta = 0; delta < 2; ++delta) {
+                deriv_r_C_ref[alpha][beta][gamma][delta] =
+                  lambda * (deriv_r_current_contra_metric(alpha, beta) * current_contravariant_metric(gamma, delta)
+                    + current_contravariant_metric(alpha, beta) * deriv_r_current_contra_metric(gamma, delta))
+                  + mu * (deriv_r_current_contra_metric(alpha, gamma) * current_contravariant_metric(beta, delta)
+                    + deriv_r_current_contra_metric(alpha, delta) * current_contravariant_metric(beta, gamma)
+                    + current_contravariant_metric(alpha, gamma) * deriv_r_current_contra_metric(beta, delta)
+                    + current_contravariant_metric(alpha, delta) * deriv_r_current_contra_metric(beta, gamma));
 
-       //KRATOS_WATCH (prestress)
+                deriv_r_C_act[alpha][beta][gamma][delta] = deriv_r_inv_det_f * C_ref[alpha][beta][gamma][delta]
+                  + inv_det_f * deriv_r_C_ref[alpha][beta][gamma][delta];
+              }
+            }
+          }
+        }
 
-       for (SizeType dof_r = 0; dof_r < number_dofs; ++dof_r)
-       {
+        Matrix deriv_r_sigma = ZeroMatrix(2);
+        for (SizeType alpha = 0; alpha < 2; ++alpha) {
+          for (SizeType beta = 0; beta < 2; ++beta) {
+            for (SizeType gamma = 0; gamma < 2; ++gamma) {
+              for (SizeType delta = 0; delta < 2; ++delta) {
+                deriv_r_sigma(alpha, beta) += deriv_r_C_act[alpha][beta][gamma][delta] * epsilon(gamma, delta)
+                  + C_act[alpha][beta][gamma][delta] * deriv_r_epsilon(gamma, delta);
+              }
+            }
+          }
+        }
 
-         this->DerivativeCauchyStress(derivative_cauchy_stress, shape_functions_gradients_i, dof_r, young_modulus, poisson_ratio);
+        double f_int = 0.0;
+        for (SizeType m = 0; m < 2; m++) {
+          for (SizeType n = 0; n < 2; n++) {
+            for (SizeType l = 0; l < 2; l++) {
+              for (SizeType k = 0; k < 2; k++) {
+                f_int += delta_sigma(m, n) * deriv_r_sigma(l, k) * reference_metric(m, l) * reference_metric(n, k);
+              }
+            }
+          }
+        }
 
-         Matrix delta_sigma = cauchy_stress - prestress;
-
-         double product_internal_forces = 0.0;
-
-         for (SizeType m = 0; m < 2; m++) {
-           for (SizeType n = 0; n < 2; n++) {
-             for (SizeType l = 0; l < 2; l++) {
-               for (SizeType k = 0; k < 2; k++) {
-
-                 product_internal_forces += ((cauchy_stress(m, n) - prestress(m, n)) * derivative_cauchy_stress(l, k)) * covariant_metric_current(m, l) * covariant_metric_current(n, k);
-
-               }
-             }
-           }
-         }
-
-         rInternalForces[dof_r] += product_internal_forces * detJ * integration_weight_i * thickness;
-       }
-     }
+        rInternalForces[dof_r] += f_int * integration_weight_i * det_j_reference * thickness;
+      }
+    }
   }
 
 
   void MembraneCuttingPatternElement::ResponseFunctionLeastSquare(double& rResponseLS, const IntegrationMethod& ThisMethod, const ProcessInfo& rCurrentProcessInfo) {
 
-     const auto& r_geom = GetGeometry();
-     const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const auto& r_geom = GetGeometry();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
 
-     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
-     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
+    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
 
-     const double thickness = GetProperties()[THICKNESS];
+    const double thickness = GetProperties()[THICKNESS];
 
-     double young_modulus = GetProperties()[YOUNG_MODULUS];
-     double poisson_ratio = GetProperties()[POISSON_RATIO];
+    const double young_modulus = GetProperties()[YOUNG_MODULUS];
+    const double poisson_ratio = GetProperties()[POISSON_RATIO];
 
-     array_1d<Vector, 2> current_covariant_base_vectors;
+    rResponseLS = 0.0;
 
-     Matrix covariant_metric_current = ZeroMatrix(2);
+    for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
-     double detJ = 0.0;
+      const double integration_weight_i = r_integration_points[point_number].Weight();
+      const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
-     Matrix cauchy_stress = ZeroMatrix(2);
-     Matrix prestress = ZeroMatrix(2);
+      array_1d<Vector, 2> reference_base_vectors, current_base_vectors;
+      Matrix reference_metric = ZeroMatrix(2);
+      Matrix current_contravariant_metric = ZeroMatrix(2);
+      double det_j_reference = 0.0;
+      double det_j_current = 0.0;
+      double C_ref[2][2][2][2];
+      double C_act[2][2][2][2];
+      Matrix epsilon = ZeroMatrix(2);
+      Matrix sigma = ZeroMatrix(2);
+      Matrix sigma_p = ZeroMatrix(2);
 
+      this->ComputeLeastSquareBaseState(shape_functions_gradients_i, reference_base_vectors, current_base_vectors,
+        reference_metric, current_contravariant_metric, det_j_reference, det_j_current, C_ref, C_act,
+        epsilon, sigma, sigma_p, young_modulus, poisson_ratio);
 
-     rResponseLS = 0.0;
+      const Matrix delta_sigma = sigma - sigma_p;
 
+      double product_delta_sigma = 0.0;
 
-     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-       
-       const double integration_weight_i = r_integration_points[point_number].Weight();
-       const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+      for (SizeType m = 0; m < 2; m++) {
+        for (SizeType n = 0; n < 2; n++) {
+          for (SizeType l = 0; l < 2; l++) {
+            for (SizeType k = 0; k < 2; k++) {
+              product_delta_sigma += (delta_sigma(m, n) * delta_sigma(l, k)) * reference_metric(m, l) * reference_metric(n, k);
+            }
+          }
+        }
+      }
 
-       this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
+      product_delta_sigma *= det_j_reference * integration_weight_i * thickness;
 
-       this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
-       
-       this->JacobiDeterminante(detJ, current_covariant_base_vectors);
-       
-       this->CauchyStress(cauchy_stress, shape_functions_gradients_i, young_modulus, poisson_ratio);
-       this->PreStress(prestress);
+      rResponseLS += 0.5 * product_delta_sigma;
 
-       Matrix delta_sigma = cauchy_stress - prestress;
-
-       double product_delta_sigma = 0.0;
-       
-       for (SizeType m = 0; m < 2; m++) {
-         for (SizeType n = 0; n < 2; n++) {
-           for (SizeType l = 0; l < 2; l++) {
-             for (SizeType k = 0; k < 2; k++) {
-
-               product_delta_sigma += (delta_sigma(m, n) * delta_sigma(l, k)) * covariant_metric_current(m,l) * covariant_metric_current(n, k);
-             }
-           }
-         }
-       }
-       
-       product_delta_sigma *=  detJ * integration_weight_i * thickness;
-
-       rResponseLS += 0.5 * product_delta_sigma;
-        
-     }
+    }
   }
 
 
