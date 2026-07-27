@@ -28,6 +28,11 @@ def extract_saturation_and_y_from_line(line):
     return _extract_x_and_y_from_line(
         line, index_of_x=1, index_of_y=0, x_transform=lambda x : x / 100.0
     )
+
+def extract_x_and_y_from_line(line):
+    return _extract_x_and_y_from_line(
+        line, index_of_x=0, index_of_y=1
+    )
 class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
     """
     To be detailed out
@@ -42,11 +47,11 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(os.path.join(parent_name, test_name))
         simulation = test_helper.run_kratos(file_path)
 
+        reader = GiDOutputFileReader()
+        output_data = reader.read_output_from(
+            os.path.join(file_path, "not_Muskat_yet.post.res")
+        )
         if test_helper.want_test_plots():
-            reader = GiDOutputFileReader()
-            output_data = reader.read_output_from(
-                os.path.join(file_path, "not_Muskat_yet.post.res")
-            )
             data_series_collection = []
             y_coord_by_id_for_right_boundary_nodes = {}
             for node in simulation.model.GetModelPart(
@@ -92,6 +97,68 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 yaxis_inverted=False,
             )
 
+        xs = []
+        ys = []
+        pressures = []
+        for node in simulation.model.GetModelPart("PorousDomain.porous_computational_model_part").Nodes:
+            xs.append(node.X)
+            ys.append(node.Y)
+            pressures.append(GiDOutputFileReader.nodal_values_at_time(
+                "WATER_PRESSURE",
+                1.0,
+                output_data,
+                [node.Id],
+            )[0])
+
+        # Store data in a variable for reuse
+        pressure_data = {'xs': xs, 'ys': ys, 'pressures': pressures}
+        isoline_coords = None
+        
+        if test_helper.want_test_plots():
+            import matplotlib.pyplot as plt
+            from matplotlib.tri import Triangulation
+            import numpy as np
+            
+            # Create triangulation from scattered points
+            tri = Triangulation(xs, ys)
+            
+            # Plot isoline at pressure = 0 using triangulation
+            plt.figure(figsize=(10, 8))
+            
+            # Highlight the zero isoline in red
+            contour_zero = plt.tricontour(tri, pressures, levels=[0], colors='red', linewidths=2)
+
+            # Extract isoline coordinates
+            isoline_coords = []
+            if hasattr(contour_zero, 'allsegs'):
+                for level_segs in contour_zero.allsegs:
+                    for seg in level_segs:
+                        isoline_coords.append(seg)
+                        print(seg)
+
+
+
+            data_series_collection = [plot_utils.DataSeries(
+                isoline_coords[0], label="Phreatic line Kratos", line_style="-", marker=""
+            )]
+            data_points = sorted(test_helper.get_data_points_from_file(
+                os.path.join(file_path,"expected_phreatic_line.csv"), extract_x_and_y_from_line
+            ), key=lambda point: point[1])
+
+
+            data_series_collection.append(
+                plot_utils.DataSeries(
+                    data_points,
+                    label="Phreatic line commercial FE",
+                )
+            )
+            plot_utils._make_plot(
+                data_series_collection,
+                os.path.join(file_path, "phreatic_line.svg"),
+                xlabel="X [m]",
+                ylabel="Y [m]",
+                yaxis_inverted=False,
+            )
 
 
         water_pressure = [
