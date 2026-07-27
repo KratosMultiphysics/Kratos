@@ -47,7 +47,8 @@ class IntegrationValuesExtrapolationToNodesProcess; // forward declaration (gaus
  *
  * Reading: elements are created from the highest-dimension cell blocks and
  * conditions from the lower-dimension ones; integer tag arrays (gmsh physical
- * groups etc.) become sub model parts.
+ * groups etc.) become sub model parts, except in .mdpa, where the same tag
+ * stores a properties id rather than a group. Material data is transferred too.
  *
  * Writing supports transient output: repeated calls to @ref WriteModelPart on
  * the same instance extend the current output instead of overwriting it. For
@@ -207,6 +208,9 @@ public:
      * @details The target model part must be empty. Elements are created from
      * the highest-dimension cell blocks, conditions from lower-dimension ones,
      * and integer tag arrays (e.g. gmsh physical groups) become sub model parts.
+     * The one exception is .mdpa's "gmsh:physical", which stores a properties id
+     * rather than a group and so is not turned into one. Material data carried by
+     * the format is assigned to the corresponding @ref Properties blocks.
      * @param rThisModelPart Reference to the model part to read into.
      */
     void ReadModelPart(ModelPart& rThisModelPart) override;
@@ -222,6 +226,24 @@ public:
      * @param rThisModelPart Const reference to the model part to write from.
      */
     void WriteModelPart(const ModelPart& rThisModelPart) override;
+
+    /**
+     * @brief Finishes any transient output this IO still holds open.
+     * @details Finalizes and releases the XDMF time-series writers, so the `.xdmf` light
+     * data is complete and the file is no longer owned by this object. Idempotent, and
+     * called by the destructor - an explicit call exists so the series ends at a point the
+     * caller chooses rather than whenever the IO happens to be collected, and so a write
+     * failure surfaces as an exception instead of only a log message.
+     *
+     * @warning Call this before deleting the output of a transient run. A live writer
+     * finalizes on destruction, which **recreates** a file deleted underneath it; with the
+     * append mode this IO uses, the next run then continues a series believed deleted and
+     * the mistake surfaces one run later as a wrong step count.
+     *
+     * A subsequent @ref WriteModelPart simply opens the series again, appending to what is
+     * on disk.
+     */
+    void CloseOutput();
 
     /**
      * @brief The number of transient steps this file's format reports.
@@ -285,8 +307,6 @@ private:
     /// ("" = the root model part; sub model part suffixes when
     /// "output_sub_model_parts" is enabled)
     std::map<std::string, std::unique_ptr<meshioplusplus::XdmfTimeSeriesWriter>> mXdmfWriters;
-    /// Per target: whether its series continues one an earlier run left behind.
-    std::map<std::string, bool> mXdmfResumed;
 
     /// Extrapolates the "gauss_point_variables_extrapolated_to_nodes" to nodal
     /// data before every write (created lazily at the first WriteModelPart)
@@ -370,7 +390,7 @@ private:
      */
     /**
      * @brief Builds a meshio++ mesh of the model part carrying the configured nodal and
-     * cell data, used by the static writers and by a resumed XDMF series.
+     * cell data, used by the static writers.
      * @param rThisModelPart The model part to convert.
      * @return The staged mesh, data included.
      */

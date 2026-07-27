@@ -518,7 +518,39 @@ MeshioPlusPlusIO::MeshioPlusPlusIO(
     KRATOS_CATCH("")
 }
 
-MeshioPlusPlusIO::~MeshioPlusPlusIO() = default;
+MeshioPlusPlusIO::~MeshioPlusPlusIO()
+{
+    // The writers finalize themselves on destruction anyway; going through CloseOutput
+    // keeps that in one place. A failure here can only be logged - a destructor must not
+    // throw, which is exactly why CloseOutput is also public.
+    try {
+        CloseOutput();
+    } catch (const std::exception& r_exception) {
+        KRATOS_WARNING("MeshioPlusPlusIO")
+            << "Could not finish the transient output of " << mFileName << ": "
+            << r_exception.what() << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshioPlusPlusIO::CloseOutput()
+{
+    KRATOS_TRY
+
+    // Finalize before releasing: the destructor would do it too, but then a failure could
+    // only be logged. Clearing the map is what actually hands the file back to the caller,
+    // so a later delete is not undone by a writer still holding it.
+    for (auto& r_entry : mXdmfWriters) {
+        if (r_entry.second != nullptr) {
+            r_entry.second->Finalize();
+        }
+    }
+    mXdmfWriters.clear();
+
+    KRATOS_CATCH("")
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -739,6 +771,19 @@ void MeshioPlusPlusIO::ReadModelPart(ModelPart& rThisModelPart)
     // conditions, and turns integer tag arrays (gmsh physical groups, ...) into
     // sub model parts.
     mio::Mesh mesh = mio::registry_readers().at(format_name)(mFileName.string());
+
+    // In .mdpa a "gmsh:physical" tag is how a Kratos properties id is stored, not a
+    // physical group, so the automatic tag pass would synthesize a spurious
+    // "gmsh_physical_<id>" sub model part beside the deck's real ones. In a genuine gmsh
+    // file the very same key does mean a physical group, which must keep becoming a sub
+    // model part - hence the exclusion is scoped to the format rather than applied
+    // globally. Only the file-read path needs this: a mesh staged from a Kratos model
+    // part never carries the key, because the backend reads "gmsh:physical" from staged
+    // cell data and never synthesizes it from entity properties ids.
+    if (format_name == "mdpa") {
+        mesh.ExcludeTagSubModelPartKey("gmsh:physical");
+    }
+
     mio::ModelPart& r_source = mesh.GetModelPart();
 
     // Bridge into the real Kratos model part (one bulk O(n) creation pass).
@@ -1183,35 +1228,27 @@ void MeshioPlusPlusIO::WriteXdmfStep(
         // flush, which is quadratic in the step count - hence the opt-out.
         p_writer->SetAutoFlush(mParameters["xdmf_auto_flush"].GetBool());
 
-        // Resuming a series recovers the step count and the mesh grid from the file, so the
-        // static grid must not be written again. It does not recover the point/cell counts
-        // (meshio++ 9.1.0 sets those only in WritePointsCells), which the array overload of
-        // WriteData validates against - so a resumed series has to go through the Mesh
-        // overload, which carries its own counts. That costs a full re-staging of the model
-        // part per step, hence the fast path for a fresh series.
-        mXdmfResumed[rTargetSuffix] = p_writer->NumSteps() > 0;
-        if (!mXdmfResumed[rTargetSuffix]) {
+        // Resuming a series recovers the step count, the mesh grid and (since meshio++
+        // 9.2.0) the point/cell counts the array overload validates against, so the static
+        // grid must not be written again and every step can take the array fast path.
+        if (p_writer->NumSteps() > 0) {
+            KRATOS_INFO("MeshioPlusPlusIO")
+                << "Continuing the existing XDMF time series \""
+                << ComposeOutputPath(rTargetSuffix, "").string() << "\" at step "
+                << p_writer->NumSteps() << std::endl;
+        } else {
             mio::Mesh mesh;
             Internals::FillMeshioModelPart(rThisModelPart, mesh.GetModelPart(), WritesElements(), WritesConditions(),
                                 mParameters["write_deformed_configuration"].GetBool());
             mesh.InvalidateBlocks();
             p_writer->WritePointsCells(mesh);
-        } else {
-            KRATOS_INFO("MeshioPlusPlusIO")
-                << "Continuing the existing XDMF time series \""
-                << ComposeOutputPath(rTargetSuffix, "").string() << "\" at step "
-                << p_writer->NumSteps() << std::endl;
         }
     }
 
-    const double time_value = GetOutputTimeValue(rThisModelPart);
-    if (mXdmfResumed[rTargetSuffix]) {
-        mio::Mesh mesh = BuildMeshWithData(rThisModelPart);
-        p_writer->WriteData(time_value, mesh);
-    } else {
-        p_writer->WriteData(time_value, CollectPointData(rThisModelPart),
-                            CollectCellData(rThisModelPart));
-    }
+    // Only the values change from step to step, so the arrays are handed over directly
+    // rather than re-staging the whole model part into a Mesh.
+    p_writer->WriteData(GetOutputTimeValue(rThisModelPart), CollectPointData(rThisModelPart),
+                        CollectCellData(rThisModelPart));
 
     KRATOS_CATCH("")
 }
