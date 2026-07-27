@@ -189,7 +189,7 @@ private:
             "output_control_type"                : "step",
             "save_output_files_in_folder"        : true,
             "output_path"                        : "cutting_pattern_results_vtk",
-            "nodal_data_value_variables"         : ["DISPLACEMENT"]
+            "nodal_solution_step_data_variables" : ["DISPLACEMENT"]
         })");
 
         const int max_prefix = int(std::floor(std::log10(BaseType::mMaxIterationNumber)))+1;
@@ -201,7 +201,7 @@ private:
     void PrintGiDFiles(const int rIterationNumber)
     {
         double solution_tag = rIterationNumber;
-        mpIterationIO->WriteNodalResultsNonHistorical(DISPLACEMENT,BaseType::GetModelPart().Nodes(),solution_tag);
+        mpIterationIO->WriteNodalResults(DISPLACEMENT,BaseType::GetModelPart().Nodes(),solution_tag,0);
     }
 
     void InitializeIterationIO()
