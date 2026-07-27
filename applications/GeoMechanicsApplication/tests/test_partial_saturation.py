@@ -202,58 +202,70 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             )
 
         if test_helper.want_test_plots():
-            plot_times = [12000, 24000, 36000, 48000, 72000, 96000, 192000]
-            data_series_collection = []
-            for time in plot_times:
-                water_pressures = reader.nodal_values_at_time(
-                    "WATER_PRESSURE",
-                    time,
-                    output_data,
-                    depth_by_id_for_left_boundary_nodes.keys(),
-                )
-                sorted_depth, sorted_data = zip(
-                    *sorted(
-                        zip(
-                            depth_by_id_for_left_boundary_nodes.values(),
-                            water_pressures,
-                        )
-                    )
-                )
-                data = zip(sorted_data, sorted_depth)
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        data, label=f"Time = {time}", line_style="-", marker=""
-                    )
-                )
-            asserted_data_points = []
-            for time, expected_results in expected_results_at_times.items():
-                for expected_result in expected_results:
-                    water_pressure = expected_result.value
+            self.create_pressure_depth_plots(
+                depth_by_id_for_left_boundary_nodes,
+                expected_results_at_times,
+                file_path,
+                output_data,
+            )
 
-                    asserted_data_points.append(
-                        (
-                            water_pressure,
-                            depth_by_id_for_left_boundary_nodes[
-                                expected_result.node_id
-                            ],
-                        )
+    def create_pressure_depth_plots(
+        self,
+        depth_by_id_for_left_boundary_nodes,
+        expected_results_at_times,
+        file_path,
+        output_data,
+    ):
+        plot_times = [12000, 24000, 36000, 48000, 72000, 96000, 192000]
+        data_series_collection = []
+        for time in plot_times:
+            water_pressures = GiDOutputFileReader.nodal_values_at_time(
+                "WATER_PRESSURE",
+                time,
+                output_data,
+                depth_by_id_for_left_boundary_nodes.keys(),
+            )
+            sorted_depth, sorted_data = zip(
+                *sorted(
+                    zip(
+                        depth_by_id_for_left_boundary_nodes.values(),
+                        water_pressures,
                     )
+                )
+            )
+            data = zip(sorted_data, sorted_depth)
             data_series_collection.append(
                 plot_utils.DataSeries(
-                    asserted_data_points,
-                    label=f"Asserted pressures",
-                    line_style="",
-                    marker="x",
-                    color="r",
+                    data, label=f"Time = {time}", line_style="-", marker=""
                 )
             )
-            plot_utils._make_plot(
-                data_series_collection,
-                os.path.join(file_path, "infiltration_from_top_boundary.svg"),
-                xlabel="water pressure [Pa]",
-                ylabel="depth [m]",
-                yaxis_inverted=True,
+        asserted_data_points = []
+        for time, expected_results in expected_results_at_times.items():
+            for expected_result in expected_results:
+                water_pressure = expected_result.value
+
+                asserted_data_points.append(
+                    (
+                        water_pressure,
+                        depth_by_id_for_left_boundary_nodes[expected_result.node_id],
+                    )
+                )
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                asserted_data_points,
+                label=f"Asserted pressures",
+                line_style="",
+                marker="x",
+                color="r",
             )
+        )
+        plot_utils._make_plot(
+            data_series_collection,
+            os.path.join(file_path, "infiltration_from_top_boundary.svg"),
+            xlabel="water pressure [Pa]",
+            ylabel="depth [m]",
+            yaxis_inverted=True,
+        )
 
 
 if __name__ == "__main__":
