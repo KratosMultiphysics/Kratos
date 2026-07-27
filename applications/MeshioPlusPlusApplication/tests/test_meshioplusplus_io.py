@@ -181,6 +181,68 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
             self.assertEqual(content.count("<Time Value="), 4)
             self.assertEqual(content.count('Name="mesh"'), 1)
 
+            # Release the series before the temporary directory is removed: a live writer
+            # finalizes on destruction and would recreate the file underneath it.
+            meshio_io.CloseOutput()
+            appending_io.CloseOutput()
+
+    def testMdpaPropertiesRoundTrip(self):
+        """Material data survives Kratos -> .mdpa -> Kratos, values included."""
+        write_model_part = self.model.CreateModelPart("props_write")
+        _PopulateModelPart(write_model_part)
+        props = write_model_part.GetProperties()[1]
+        props.SetValue(KratosMultiphysics.DENSITY, 7850.0)
+        props.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
+        props.SetValue(KratosMultiphysics.VOLUME_ACCELERATION, [0.0, 0.0, -9.81])
+
+        settings = KratosMultiphysics.Parameters("""{"time_series" : "single_file"}""")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = str(Path(temp_dir) / "materials.mdpa")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name, settings.Clone()).WriteModelPart(write_model_part)
+
+            read_model_part = self.model.CreateModelPart("props_read")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(file_name).ReadModelPart(read_model_part)
+
+            self.assertTrue(read_model_part.HasProperties(1))
+            read_props = read_model_part.GetProperties()[1]
+            self.assertAlmostEqual(read_props.GetValue(KratosMultiphysics.DENSITY), 7850.0)
+            self.assertEqual(read_props.GetValue(KratosMultiphysics.DOMAIN_SIZE), 3)
+            self.assertVectorAlmostEqual(
+                read_props.GetValue(KratosMultiphysics.VOLUME_ACCELERATION), [0.0, 0.0, -9.81])
+
+            # In .mdpa a "gmsh:physical" tag stores the properties id, not a physical
+            # group, so it must not be turned into a sub model part.
+            for sub_model_part in read_model_part.SubModelParts:
+                self.assertFalse(sub_model_part.Name.startswith("gmsh_physical_"))
+
+    def testCloseOutput(self):
+        """CloseOutput() ends the series, so deleting the output really deletes it."""
+        model_part = self.model.CreateModelPart("closing")
+        _PopulateModelPart(model_part)
+
+        settings = KratosMultiphysics.Parameters("""{"xdmf_data_format" : "XML"}""")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = Path(temp_dir) / "closing.xdmf"
+            meshio_io = KratosMeshioPlusPlus.MeshioPlusPlusIO(str(file_name), settings.Clone())
+            meshio_io.WriteModelPart(model_part)
+            meshio_io.WriteModelPart(model_part)
+            meshio_io.CloseOutput()
+
+            self.assertTrue(file_name.is_file())
+            self.assertEqual(file_name.read_text().count("<Time Value="), 2)
+
+            # The still-alive IO must not resurrect the deleted output, and a further write
+            # starts a fresh series instead of appending to a stale one.
+            kratos_utils.DeleteFileIfExisting(str(file_name))
+            meshio_io.CloseOutput()  # idempotent
+            self.assertFalse(file_name.is_file())
+
+            meshio_io.WriteModelPart(model_part)
+            meshio_io.CloseOutput()
+            self.assertEqual(file_name.read_text().count("<Time Value="), 1)
+
     def testReadThroughPythonSolver(self):
         """The simulation-loop entry point: any meshio++ format as "input_type"."""
         from KratosMultiphysics.python_solver import PythonSolver

@@ -415,6 +415,112 @@ $EndElements
     KRATOS_EXPECT_EQ(r_surface.NumberOfNodes(), 3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOMdpaDoesNotInventGmshPhysicalSubModelParts, KratosMeshioPlusPlusFastSuite)
+{
+    // In .mdpa a "gmsh:physical" tag is how a properties id is stored, not a physical
+    // group, so it must not become a sub model part - unlike in a real gmsh file, which
+    // MeshioPlusPlusIOReadGmshPhysicalTagsAsSubModelParts covers.
+    const auto file_path = TestFilePath(".mdpa");
+
+    Model model;
+    auto& r_written = model.CreateModelPart("written");
+    PopulateTetrahedraModelPart(r_written);
+    r_written.CreateSubModelPart("Structure").AddElements({1, 2});
+    {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_written);
+    }
+
+    auto& r_read = model.CreateModelPart("read");
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read);
+    }
+    RemoveIfExists(file_path);
+
+    for (const auto& r_sub_model_part : r_read.SubModelParts()) {
+        KRATOS_EXPECT_TRUE(r_sub_model_part.Name().rfind("gmsh_physical_", 0) != 0);
+    }
+    // The deck's own group still survives.
+    KRATOS_EXPECT_TRUE(r_read.HasSubModelPart("Structure"));
+    KRATOS_EXPECT_EQ(r_read.GetSubModelPart("Structure").NumberOfElements(), 2);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOMdpaPropertiesRoundTrip, KratosMeshioPlusPlusFastSuite)
+{
+    // Material data must survive Kratos -> .mdpa -> Kratos: the write side exports the
+    // Properties values (ExportMeshioProperties) and the read side assigns them back
+    // (ApplyMeshioProperty). Before meshio++ 9.2.0 the values were dropped in transit and
+    // only the properties ids survived.
+    const auto file_path = TestFilePath(".mdpa");
+
+    Model model;
+    auto& r_written = model.CreateModelPart("written");
+    PopulateTetrahedraModelPart(r_written);
+    auto p_properties = r_written.pGetProperties(1);
+    p_properties->SetValue(DENSITY, 7850.0);
+    p_properties->SetValue(DOMAIN_SIZE, 3);
+    array_1d<double, 3> gravity = ZeroVector(3);
+    gravity[2] = -9.81;
+    p_properties->SetValue(VOLUME_ACCELERATION, gravity);
+    {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_written);
+    }
+
+    auto& r_read = model.CreateModelPart("read");
+    {
+        MeshioPlusPlusIO io_read(file_path);
+        io_read.ReadModelPart(r_read);
+    }
+    RemoveIfExists(file_path);
+
+    KRATOS_EXPECT_TRUE(r_read.HasProperties(1));
+    const auto& r_read_properties = r_read.GetProperties(1);
+    KRATOS_EXPECT_TRUE(r_read_properties.Has(DENSITY));
+    KRATOS_EXPECT_NEAR(r_read_properties.GetValue(DENSITY), 7850.0, 1e-12);
+    KRATOS_EXPECT_TRUE(r_read_properties.Has(DOMAIN_SIZE));
+    KRATOS_EXPECT_EQ(r_read_properties.GetValue(DOMAIN_SIZE), 3);
+    KRATOS_EXPECT_TRUE(r_read_properties.Has(VOLUME_ACCELERATION));
+    KRATOS_EXPECT_VECTOR_NEAR(r_read_properties.GetValue(VOLUME_ACCELERATION), gravity, 1e-12);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOCloseOutputReleasesTheSeries, KratosMeshioPlusPlusFastSuite)
+{
+    // A live writer finalizes on destruction, which would recreate an output deleted
+    // underneath it - and since the series is opened in append mode, the next run would
+    // then continue a series believed deleted. CloseOutput() ends it deterministically.
+    const auto file_path = TestFilePath(".xdmf");
+    RemoveIfExists(file_path);
+
+    Model model;
+    auto& r_model_part = model.CreateModelPart("main");
+    PopulateTetrahedraModelPart(r_model_part);
+
+    Parameters settings(R"({"xdmf_data_format" : "XML"})");
+    MeshioPlusPlusIO io(file_path, settings.Clone());
+    io.WriteModelPart(r_model_part);
+    io.WriteModelPart(r_model_part);
+
+    io.CloseOutput();
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(file_path));
+    KRATOS_EXPECT_EQ(CountOccurrences(ReadFileContent(file_path), "<Time Value="), 2);
+
+    // With the series released, deleting the file really deletes it: the still-alive IO
+    // must not resurrect it, and a further write starts a fresh series rather than
+    // appending to a stale one.
+    RemoveIfExists(file_path);
+    io.CloseOutput(); // idempotent
+    KRATOS_EXPECT_FALSE(std::filesystem::exists(file_path));
+
+    io.WriteModelPart(r_model_part);
+    io.CloseOutput();
+    KRATOS_EXPECT_EQ(CountOccurrences(ReadFileContent(file_path), "<Time Value="), 1);
+    RemoveIfExists(file_path);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFileSeries, KratosMeshioPlusPlusFastSuite)
 {
     Model model;
