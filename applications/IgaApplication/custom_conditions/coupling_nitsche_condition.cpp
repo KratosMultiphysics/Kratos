@@ -167,49 +167,6 @@ namespace Kratos
         rDerivativeNormal[1] = inner_prod(dn_arclen, rReferenceKinematic.a2); // (n_2),t
     }
 
-    void CouplingNitscheCondition::CalculateFirstVariationT2(
-        IndexType IntegrationPointIndex,
-        Matrix& rFirstVariationT2,
-        const array_1d<double, 3> rT2,   
-        const PatchType& rPatch)
-    {
-        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
-        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
-        
-        const SizeType number_of_control_points = r_geometry.size();
-        const SizeType mat_size = number_of_control_points * 3;
-        
-        const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
-
-        array_1d<double, 3> local_tangent;
-        GetGeometry().GetGeometryPart(GeometryPart).Calculate(LOCAL_TANGENT, local_tangent); //CHECK THIS nonlinear
-
-        array_1d<double, 3> tangent_tilde = rT2;
-        double line_tangent  = norm_2(rT2);
-        array_1d<double, 3> tangent = rT2 / line_tangent;
-        
-        for (IndexType r = 0; r < mat_size; r++)
-        {
-            // local node number kr and dof direction dirr
-            IndexType kr = r / 3;
-            IndexType dirr = r % 3;
-
-            array_1d<double, 3> first_variation_tangent_tilde;
-            first_variation_tangent_tilde.clear();
-            double line_first_variation_tangent;
-            
-            first_variation_tangent_tilde[dirr] = local_tangent[0]*r_DN_De(kr, 0) + local_tangent[1]*r_DN_De(kr, 1); 
-            line_first_variation_tangent = inner_prod(first_variation_tangent_tilde, tangent);
-
-            rFirstVariationT2(0, r) = first_variation_tangent_tilde[0] / line_tangent
-                                         - line_first_variation_tangent * tangent[0] / line_tangent;
-            rFirstVariationT2(1, r) = first_variation_tangent_tilde[1] / line_tangent 
-                                         - line_first_variation_tangent * tangent[1] / line_tangent;
-            rFirstVariationT2(2, r) = first_variation_tangent_tilde[2] / line_tangent
-                                         - line_first_variation_tangent * tangent[2] / line_tangent;                    
-        }
-    }
-
     void CouplingNitscheCondition::CalculateFirstVariationT1(
         IndexType IntegrationPointIndex,
         Matrix& rFirstVariationT1,
@@ -275,75 +232,6 @@ namespace Kratos
                                          - line_first_variation_tangent * tangent[1] / line_tangent;
             rFirstVariationT1(2, r) = first_variation_tangent_tilde[2] / line_tangent
                                          - line_first_variation_tangent * tangent[2] / line_tangent;                    
-        }
-    }
-
-    void CouplingNitscheCondition::CalculateSecondVariationT2( 
-        IndexType IntegrationPointIndex,
-        std::vector<std::vector<array_1d<double, 3> > >& rSecondVariationT2,
-        const Matrix& rFirstVariationT2,
-        const array_1d<double, 3> rT2,   
-        const PatchType& rPatch)
-    {
-        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
-        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
-
-        const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
-        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
-
-        array_1d<double, 3> local_tangent;
-        GetGeometry().GetGeometryPart(GeometryPart).Calculate(LOCAL_TANGENT, local_tangent);
- 
-        const SizeType number_of_control_points = r_geometry.size();
-        const SizeType mat_size = number_of_control_points * 3;
-
-        std::vector<array_1d<double,3>> first_variation_tangent_tilde(mat_size);
-        std::vector<array_1d<double,3>> first_variation_tangent(mat_size);
-        std::vector<double> line_first_variation_tangent(mat_size);
-
-        array_1d<double, 3> tangent_tilde = rT2;
-        double line_tangent  = norm_2(rT2);
-        array_1d<double, 3> tangent = rT2 / line_tangent;
-
-        for (IndexType r = 0; r < mat_size; r++)
-        {
-            IndexType kr = r / 3;
-            IndexType dirr = r % 3;
-
-            first_variation_tangent_tilde[r].clear();
-            first_variation_tangent_tilde[r][dirr] = local_tangent[0]*r_DN_De(kr,0) + local_tangent[1]*r_DN_De(kr,1);
-            line_first_variation_tangent[r] = inner_prod(tangent, first_variation_tangent_tilde[r]);
-
-            first_variation_tangent[r][0] = first_variation_tangent_tilde[r][0] / line_tangent
-                                         - line_first_variation_tangent[r] * tangent[0] / line_tangent;
-            first_variation_tangent[r][1] = first_variation_tangent_tilde[r][1] / line_tangent 
-                                         - line_first_variation_tangent[r] * tangent[1] / line_tangent;
-            first_variation_tangent[r][2] = first_variation_tangent_tilde[r][2] / line_tangent
-                                         - line_first_variation_tangent[r] * tangent[2] / line_tangent; 
-        }
-
-        for (IndexType r = 0; r < mat_size; r++)
-        {
-            // local node number kr and dof direction dirr
-            IndexType kr = r / 3;
-            IndexType dirr = r % 3;
-
-            for (IndexType s = 0; s < mat_size; s++)
-            {
-                // local node number ks and dof direction dirs
-                IndexType ks = s / 3;
-                IndexType dirs = s % 3;
-
-                double line_t2_rs = inner_prod(first_variation_tangent[s], first_variation_tangent_tilde[r]);
-
-                for (IndexType d = 0; d < 3; d++)
-                {
-                     rSecondVariationT2[r][s][d] =
-                            (-line_first_variation_tangent[s]*first_variation_tangent_tilde[r][d]) / pow(line_tangent, 2)
-                            - line_t2_rs * tangent[d] / line_tangent 
-                            - line_first_variation_tangent[r] * (first_variation_tangent[s][d] * line_tangent - line_first_variation_tangent[s]*tangent[d]) / pow(line_tangent, 2);
-                }
-            }
         }
     }
 
@@ -416,7 +304,6 @@ namespace Kratos
 
         for (IndexType r = 0; r < mat_size; r++)
         {
-            // KRATOS_WATCH(r);
             // local node number kr and dof direction dirr
             IndexType kr = r / 3;
             IndexType dirr = r % 3;
@@ -1258,86 +1145,6 @@ namespace Kratos
                     H(2, index + 2) = -N_slave(point_number, i);
             }
 
-            //////////////////////// Additional shear //////////////////////////
-            // // Compute Variation Shear
-            // array_1d<double, 2> shear_master = ZeroVector(2);
-            // array_1d<double, 2> shear_slave = ZeroVector(2);
-            // std::vector<array_1d<double, 2>> first_variation_shear_master;
-            // std::vector<array_1d<double, 2>> first_variation_shear_slave;
-            // std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_master;
-            // std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_slave;
-            // first_variation_shear_master.resize(mat_size);
-            // first_variation_shear_slave.resize(mat_size);
-            // second_variation_shear_master.resize(mat_size);
-            // second_variation_shear_slave.resize(mat_size);
-            // for(IndexType i = 0; i < number_of_nodes_master * 3; i++)
-            // {
-            //     second_variation_shear_master[i].resize(mat_size);
-            //     first_variation_shear_master[i] = ZeroVector(2);
-
-            //     for(IndexType j = 0; j < number_of_nodes_master * 3; j++)
-            //     {
-            //         second_variation_shear_master[i][j] = ZeroVector(2);
-            //     }
-            // }
-            // for(IndexType i = 0; i < number_of_nodes_slave * 3; i++)
-            // {
-            //     second_variation_shear_slave[i].resize(number_of_nodes_slave * 3);
-            //     first_variation_shear_slave[i] = ZeroVector(2);
-
-            //     for(IndexType j = 0; j < number_of_nodes_slave * 3; j++)
-            //     {
-            //         second_variation_shear_slave[i][j] = ZeroVector(2);
-            //     }
-            // }
-            // CalculateVariationShear(point_number, shear_master, first_variation_shear_master, second_variation_shear_master,
-            //                         kinematic_variables_reference_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
-            // CalculateVariationShear(point_number, shear_slave, first_variation_shear_slave, second_variation_shear_slave,
-            //                         kinematic_variables_reference_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
-
-            // // 1. Traction + Shear
-            // array_1d<double, 3> shear_vector_master = ZeroVector(3);
-            // array_1d<double, 3> shear_vector_slave = ZeroVector(3);
-
-            // shear_vector_master = kinematic_variables_master.a3 * shear_master[0];
-            // shear_vector_slave = kinematic_variables_slave.a3 * shear_slave[0];
-
-            // traction_vector_master += shear_vector_master;
-            // traction_vector_slave += shear_vector_slave;
-
-            // // 1. First Variation Traction + Shear
-            // for (SizeType i=0;i<3 * number_of_nodes_master;++i){
-            //     first_variations_traction(0, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[0];
-            //     first_variations_traction(1, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[1];
-            //     first_variations_traction(2, i) += first_variation_shear_master[i][0] * kinematic_variables_master.a3[2];
-            // }
-            // for (SizeType i=0;i<3 * number_of_nodes_slave;++i){
-            //     first_variations_traction(0, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[0];
-            //     first_variations_traction(1, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[1];
-            //     first_variations_traction(2, i + 3 * number_of_nodes_master) -= first_variation_shear_slave[i][0] * kinematic_variables_slave.a3[2];
-            // }
-
-            // // 2. Second Variation Traction + Shear
-            // array_1d<double, 3> diff_displacement = displacement_vector_master - displacement_vector_slave;
-            // for (IndexType i = 0; i < 3 * number_of_nodes_master; i++)
-            // {
-            //     for (IndexType j = 0; j < 3 * number_of_nodes_master; j++)
-            //     {   
-            //         array_1d<double, 3> shear_component_master = second_variation_shear_master[i][j][0] * kinematic_variables_master.a3;
-            //         second_variations_traction_master(i, j) += inner_prod(shear_component_master, diff_displacement);
-            //     }
-            // }
-            
-            // for (IndexType i = 0; i < 3 * number_of_nodes_slave; i++)
-            // {
-            //     for (IndexType j = 0; j < 3 * number_of_nodes_slave; j++)
-            //     {
-            //         array_1d<double, 3> shear_component_slave = second_variation_shear_slave[i][j][0] * kinematic_variables_slave.a3;
-            //         second_variations_traction_slave(i, j) -= inner_prod(shear_component_slave, diff_displacement);
-            //     }
-            // }
-            //////////////////////// Additional shear //////////////////////////
-
             // Differential area
             const double integration_weight = integration_points[point_number].Weight();
             double determinant_jacobian = determinant_jacobian_vector_initial[point_number];
@@ -1346,10 +1153,6 @@ namespace Kratos
             // Rotation coupling
             if (Is(IgaFlags::FIX_ROTATION_X))
             {
-                //Get the rotation vectors of the previous iteration step
-                array_1d<double, 3> rotation_vector_master;
-                array_1d<double, 3> rotation_vector_slave;
-
                 Vector phi_r = ZeroVector(mat_size);
                 Matrix phi_rs = ZeroMatrix(mat_size, mat_size);
                 array_1d<double, 2> diff_phi;
@@ -1376,38 +1179,12 @@ namespace Kratos
                     opposite_direction_of_trims = false;
                 }
 
-                //compute first variation tangent
-                Matrix first_variations_T2_master = ZeroMatrix(3, 3 * number_of_nodes_master);
-                Matrix first_variations_T2_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
-
-                CalculateFirstVariationT2(point_number, first_variations_T2_master, kinematic_variables_master.t, PatchType::Master);
-                CalculateFirstVariationT2(point_number, first_variations_T2_slave, kinematic_variables_slave.t, PatchType::Slave);   
-
                 Matrix first_variations_T1_master = ZeroMatrix(3, 3 * number_of_nodes_master);
                 Matrix first_variations_T1_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
                 CalculateFirstVariationT1(point_number, first_variations_T1_master, kinematic_variables_master.n, kinematic_variables_master, PatchType::Master);
-                CalculateFirstVariationT1(point_number, first_variations_T1_slave, kinematic_variables_slave.n, kinematic_variables_slave, PatchType::Slave);  
+                CalculateFirstVariationT1(point_number, first_variations_T1_slave, kinematic_variables_slave.n, kinematic_variables_slave, PatchType::Slave);
 
                 //compute second variation tangent
-                std::vector<std::vector<array_1d<double, 3>>> second_variations_T2_master;
-                std::vector<std::vector<array_1d<double, 3>>> second_variations_T2_slave;
-
-                second_variations_T2_master.resize(3 * number_of_nodes_master);
-                second_variations_T2_slave.resize(3 * number_of_nodes_slave);
-
-                for(SizeType i = 0; i < 3 * number_of_nodes_master; i++)
-                {
-                    second_variations_T2_master[i].resize(3 * number_of_nodes_master);
-                }
-
-                for(SizeType i = 0; i < 3 * number_of_nodes_slave; i++)
-                {
-                    second_variations_T2_slave[i].resize(3 * number_of_nodes_slave);
-                }
-
-                CalculateSecondVariationT2(point_number, second_variations_T2_master, first_variations_T2_master, kinematic_variables_master.t, PatchType::Master);
-                CalculateSecondVariationT2(point_number, second_variations_T2_slave, first_variations_T2_slave, kinematic_variables_slave.t, PatchType::Slave); 
-
                 std::vector<std::vector<array_1d<double, 3>>> second_variations_T1_master;
                 std::vector<std::vector<array_1d<double, 3>>> second_variations_T1_slave;
 
@@ -1425,7 +1202,7 @@ namespace Kratos
                 }
 
                 CalculateSecondVariationT1(point_number, second_variations_T1_master, first_variations_T1_master, kinematic_variables_master.n, kinematic_variables_master, PatchType::Master);
-                CalculateSecondVariationT1(point_number, second_variations_T1_slave, first_variations_T1_slave, kinematic_variables_slave.n, kinematic_variables_slave, PatchType::Slave); 
+                CalculateSecondVariationT1(point_number, second_variations_T1_slave, first_variations_T1_slave, kinematic_variables_slave.n, kinematic_variables_slave, PatchType::Slave);
 
                 // Compute the moment projection
                 double moment_T2;
@@ -1448,43 +1225,15 @@ namespace Kratos
                 CalculateFirstVariationMomentCovariant(point_number, first_variations_moment_covariant_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
                 CalculateFirstVariationMomentCovariant(point_number, first_variations_moment_covariant_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
-                //Calculate first variation of moment vectors
-                // Matrix first_variations_moment_master = ZeroMatrix(3, 3 * number_of_nodes_master);
-                // Matrix first_variations_moment_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
-
-                // CalculateFirstVariationMoment(point_number, first_variations_moment_master, first_variations_moment_covariant_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
-                // CalculateFirstVariationMoment(point_number, first_variations_moment_slave, first_variations_moment_covariant_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
-
-                // // Matrix first_variations_moment = ZeroMatrix(3, mat_size);
-                // // for (SizeType i=0;i<3 * number_of_nodes_master;++i){
-                // //     first_variations_moment(0, i) = first_variations_moment_master(0, i);
-                // //     first_variations_moment(1, i) = first_variations_moment_master(1, i);
-                // //     first_variations_moment(2, i) = first_variations_moment_master(2, i);
-                // // }
-                // // for (SizeType i=0;i<3 * number_of_nodes_slave;++i){
-                // //     first_variations_moment(0, i + 3 * number_of_nodes_master) = -first_variations_moment_slave(0, i);
-                // //     first_variations_moment(1, i + 3 * number_of_nodes_master) = -first_variations_moment_slave(1, i);
-                // //     first_variations_moment(2, i + 3 * number_of_nodes_master) = -first_variations_moment_slave(2, i);
-                // // }
-
                 //Calculate first variation of moment vectors T2
                 Vector first_variations_moment_master_T2 = ZeroVector(number_of_nodes_master * 3);
                 Vector first_variations_moment_slave_T2 = ZeroVector(number_of_nodes_slave * 3);
                 Vector first_variations_moment_T2 = ZeroVector(mat_size);
 
-                CalculateFirstVariationMomentT2(point_number, first_variations_moment_master_T2, first_variations_moment_covariant_master, first_variations_T1_master, 
+                CalculateFirstVariationMomentT2(point_number, first_variations_moment_master_T2, first_variations_moment_covariant_master, first_variations_T1_master,
                                                T1_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
-                CalculateFirstVariationMomentT2(point_number, first_variations_moment_slave_T2, first_variations_moment_covariant_slave, first_variations_T1_slave, 
+                CalculateFirstVariationMomentT2(point_number, first_variations_moment_slave_T2, first_variations_moment_covariant_slave, first_variations_T1_slave,
                                                T1_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
-
-                // for (SizeType i=0;i<3 * number_of_nodes_master;++i){
-                //     first_variations_moment_master_T2(i) =  T2_master[0]*first_variations_moment_master(0,i) + T2_master[1]*first_variations_moment_master(1,i) +
-                //                                         T2_master[2]*first_variations_moment_master(2,i);
-                // }
-                // for (SizeType i=0;i<3 * number_of_nodes_slave;++i){
-                //     first_variations_moment_slave_T2(i) = T2_slave[0]*first_variations_moment_slave(0,i) + T2_slave[1]*first_variations_moment_slave(1,i) +
-                //                                         T2_slave[2]*first_variations_moment_slave(2,i);
-                // } 
 
                 for (IndexType i = 0; i < 3 * number_of_nodes_master; i++)
                 {
@@ -1510,11 +1259,6 @@ namespace Kratos
                 CalculateSecondVariationMomentProduct(point_number, Pi_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
                 CalculateSecondVariationMomentProduct(point_number, Pi_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
-                // array_1d<double, 3> second_variations_moment_product_vector_master = prod(trans(Pi_master), rotation_vector_master);
-                // array_1d<double, 3> second_variations_moment_product_vector_slave = prod(trans(Pi_slave), rotation_vector_slave);
-                // array_1d<double, 3> second_variations_moment_product_vector_master_slave = prod(trans(Pi_slave), rotation_vector_master);
-                // array_1d<double, 3> second_variations_moment_product_vector_slave_master = prod(trans(Pi_master), rotation_vector_slave);
-
                 array_1d<double, 3> second_variations_moment_product_vector_master = prod(trans(Pi_master), T1_master);
                 array_1d<double, 3> second_variations_moment_product_vector_slave = prod(trans(Pi_slave), T1_slave);
                 array_1d<double, 3> second_variations_moment_product_vector_master_slave = prod(trans(Pi_slave), T1_master);
@@ -1524,19 +1268,14 @@ namespace Kratos
                 Matrix second_variations_moment_master = ZeroMatrix(3 * number_of_nodes_master, 3 * number_of_nodes_master);
                 Matrix second_variations_moment_slave = ZeroMatrix(3 * number_of_nodes_slave, 3 * number_of_nodes_slave);
 
-                // CalculateSecondVariationMoment(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, rotation_vector_master, rotation_vector_slave, 
-                //                                second_variations_moment_product_vector_master, second_variations_moment_product_vector_slave_master, PatchType::Master);
-                // CalculateSecondVariationMoment(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, rotation_vector_master, rotation_vector_slave, 
-                //                                second_variations_moment_product_vector_slave, second_variations_moment_product_vector_master_slave, PatchType::Slave);
-
-                CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T1_master, T1_master, T1_slave, 
+                CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T1_master, T1_master, T1_slave,
                                                 second_variations_moment_product_vector_master, second_variations_moment_product_vector_slave_master, PatchType::Master);
-                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, first_variations_T1_slave, T1_slave, T1_master, 
+                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, first_variations_T1_slave, T1_slave, T1_master,
                                                 second_variations_moment_product_vector_slave, second_variations_moment_product_vector_master_slave, PatchType::Slave);
 
-                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T1_master, second_variations_T1_master, T1_master, T1_slave, 
+                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T1_master, second_variations_T1_master, T1_master, T1_slave,
                                                 moment_vector_master, moment_vector_master, constitutive_variables_curvature_master, PatchType::Master);
-                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave,first_variations_T1_slave, second_variations_T1_slave, T1_slave, T1_master, 
+                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave,first_variations_T1_slave, second_variations_T1_slave, T1_slave, T1_master,
                                                 moment_vector_slave, moment_vector_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
                 second_variations_moment_master *= diff_phi(0);
@@ -2281,38 +2020,12 @@ namespace Kratos
                 opposite_direction_of_trims = false;
             }
 
-            //compute first variation tangent
-            Matrix first_variations_T2_master = ZeroMatrix(3, 3 * number_of_nodes_master);
-            Matrix first_variations_T2_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
-
-            CalculateFirstVariationT2(point_number, first_variations_T2_master, kinematic_variables_master.t, PatchType::Master);
-            CalculateFirstVariationT2(point_number, first_variations_T2_slave, kinematic_variables_slave.t, PatchType::Slave);   
-
             Matrix first_variations_T1_master = ZeroMatrix(3, 3 * number_of_nodes_master);
             Matrix first_variations_T1_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
             CalculateFirstVariationT1(point_number, first_variations_T1_master, kinematic_variables_master.n, kinematic_variables_master, PatchType::Master);
-            CalculateFirstVariationT1(point_number, first_variations_T1_slave, kinematic_variables_slave.n, kinematic_variables_slave, PatchType::Slave);  
+            CalculateFirstVariationT1(point_number, first_variations_T1_slave, kinematic_variables_slave.n, kinematic_variables_slave, PatchType::Slave);
 
             //compute second variation tangent
-            std::vector<std::vector<array_1d<double, 3>>> second_variations_T2_master;
-            std::vector<std::vector<array_1d<double, 3>>> second_variations_T2_slave;
-
-            second_variations_T2_master.resize(3 * number_of_nodes_master);
-            second_variations_T2_slave.resize(3 * number_of_nodes_slave);
-
-            for(SizeType i = 0; i < 3 * number_of_nodes_master; i++)
-            {
-                second_variations_T2_master[i].resize(3 * number_of_nodes_master);
-            }
-
-            for(SizeType i = 0; i < 3 * number_of_nodes_slave; i++)
-            {
-                second_variations_T2_slave[i].resize(3 * number_of_nodes_slave);
-            }
-
-            CalculateSecondVariationT2(point_number, second_variations_T2_master, first_variations_T2_master, kinematic_variables_master.t, PatchType::Master);
-            CalculateSecondVariationT2(point_number, second_variations_T2_slave, first_variations_T2_slave, kinematic_variables_slave.t, PatchType::Slave); 
-
             std::vector<std::vector<array_1d<double, 3>>> second_variations_T1_master;
             std::vector<std::vector<array_1d<double, 3>>> second_variations_T1_slave;
 
@@ -2330,15 +2043,12 @@ namespace Kratos
             }
 
             CalculateSecondVariationT1(point_number, second_variations_T1_master, first_variations_T1_master, kinematic_variables_master.n, kinematic_variables_master, PatchType::Master);
-            CalculateSecondVariationT1(point_number, second_variations_T1_slave, first_variations_T1_slave, kinematic_variables_slave.n, kinematic_variables_slave, PatchType::Slave); 
+            CalculateSecondVariationT1(point_number, second_variations_T1_slave, first_variations_T1_slave, kinematic_variables_slave.n, kinematic_variables_slave, PatchType::Slave);
 
             // Compute the moment projection
             double moment_T2;
             double moment_T2_master = inner_prod(moment_vector_master, T2_master);
             double moment_T2_slave = inner_prod(moment_vector_slave, T2_slave);
-
-            // double moment_T2_master = inner_prod(moment_vector_master, T2_master);
-            // double moment_T2_slave = inner_prod(moment_vector_slave, T2_slave);
 
             if (opposite_direction_of_trims)
             {
@@ -2356,48 +2066,15 @@ namespace Kratos
             CalculateFirstVariationMomentCovariant(point_number, first_variations_moment_covariant_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
             CalculateFirstVariationMomentCovariant(point_number, first_variations_moment_covariant_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
-            //Calculate first variation of moment vectors
-            // Matrix first_variations_moment_master = ZeroMatrix(3, 3 * number_of_nodes_master);
-            // Matrix first_variations_moment_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
-
-            // CalculateFirstVariationMoment(point_number, first_variations_moment_master, first_variations_moment_covariant_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
-            // CalculateFirstVariationMoment(point_number, first_variations_moment_slave, first_variations_moment_covariant_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
-
-            // // Matrix first_variations_moment = ZeroMatrix(3, mat_size);
-            // // for (SizeType i=0;i<3 * number_of_nodes_master;++i){
-            // //     first_variations_moment(0, i) = first_variations_moment_master(0, i);
-            // //     first_variations_moment(1, i) = first_variations_moment_master(1, i);
-            // //     first_variations_moment(2, i) = first_variations_moment_master(2, i);
-            // // }
-            // // for (SizeType i=0;i<3 * number_of_nodes_slave;++i){
-            // //     first_variations_moment(0, i + 3 * number_of_nodes_master) = -first_variations_moment_slave(0, i);
-            // //     first_variations_moment(1, i + 3 * number_of_nodes_master) = -first_variations_moment_slave(1, i);
-            // //     first_variations_moment(2, i + 3 * number_of_nodes_master) = -first_variations_moment_slave(2, i);
-            // // }
-
             //Calculate first variation of moment vectors T2
             Vector first_variations_moment_master_T2 = ZeroVector(number_of_nodes_master * 3);
             Vector first_variations_moment_slave_T2 = ZeroVector(number_of_nodes_slave * 3);
             Vector first_variations_moment_T2 = ZeroVector(mat_size);
 
-            CalculateFirstVariationMomentT2(point_number, first_variations_moment_master_T2, first_variations_moment_covariant_master, first_variations_T1_master, 
+            CalculateFirstVariationMomentT2(point_number, first_variations_moment_master_T2, first_variations_moment_covariant_master, first_variations_T1_master,
                                                T1_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
-            CalculateFirstVariationMomentT2(point_number, first_variations_moment_slave_T2, first_variations_moment_covariant_slave, first_variations_T1_slave, 
+            CalculateFirstVariationMomentT2(point_number, first_variations_moment_slave_T2, first_variations_moment_covariant_slave, first_variations_T1_slave,
                                             T1_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
-
-            // CalculateFirstVariationMomentT2(point_number, first_variations_moment_master_T2, first_variations_moment_covariant_master, first_variations_T2_master, 
-            //                                T2_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
-            // CalculateFirstVariationMomentT2(point_number, first_variations_moment_slave_T2, first_variations_moment_covariant_slave, first_variations_T2_slave, 
-            //                                T2_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
-
-            // for (SizeType i=0;i<3 * number_of_nodes_master;++i){
-            //     first_variations_moment_master_T2(i) = T2_master[0]*first_variations_moment_master(0,i) + T2_master[1]*first_variations_moment_master(1,i) +
-            //                                            T2_master[2]*first_variations_moment_master(2,i);
-            // }
-            // for (SizeType i=0;i<3 * number_of_nodes_slave;++i){
-            //     first_variations_moment_slave_T2(i) = T2_slave[0]*first_variations_moment_slave(0,i) + T2_slave[1]*first_variations_moment_slave(1,i) +
-            //                                           T2_slave[2]*first_variations_moment_slave(2,i);
-            // } 
 
             for (IndexType i = 0; i < 3 * number_of_nodes_master; i++)
             {
@@ -2423,52 +2100,27 @@ namespace Kratos
             CalculateSecondVariationMomentProduct(point_number, Pi_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
             CalculateSecondVariationMomentProduct(point_number, Pi_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
-            // array_1d<double, 3> second_variations_moment_product_vector_master = prod(trans(Pi_master), rotation_vector_master);
-            // array_1d<double, 3> second_variations_moment_product_vector_slave = prod(trans(Pi_slave), rotation_vector_slave);
-            // array_1d<double, 3> second_variations_moment_product_vector_master_slave = prod(trans(Pi_slave), rotation_vector_master);
-            // array_1d<double, 3> second_variations_moment_product_vector_slave_master = prod(trans(Pi_master), rotation_vector_slave);
-
             array_1d<double, 3> second_variations_moment_product_vector_master = prod(trans(Pi_master), T2_master);
             array_1d<double, 3> second_variations_moment_product_vector_slave = prod(trans(Pi_slave), T2_slave);
             array_1d<double, 3> second_variations_moment_product_vector_master_slave = prod(trans(Pi_slave), T2_master);
             array_1d<double, 3> second_variations_moment_product_vector_slave_master = prod(trans(Pi_master), T2_slave);
 
-            // array_1d<double, 3> second_variations_moment_product_vector_master = prod(trans(Pi_master), T2_master);
-            // array_1d<double, 3> second_variations_moment_product_vector_slave = prod(trans(Pi_slave), T2_slave);
-            // array_1d<double, 3> second_variations_moment_product_vector_master_slave = prod(trans(Pi_slave), T2_master);
-            // array_1d<double, 3> second_variations_moment_product_vector_slave_master = prod(trans(Pi_master), T2_slave);
-
             //Calculate second variation of moment vectors
             Matrix second_variations_moment_master = ZeroMatrix(3 * number_of_nodes_master, 3 * number_of_nodes_master);
             Matrix second_variations_moment_slave = ZeroMatrix(3 * number_of_nodes_slave, 3 * number_of_nodes_slave);
 
-            // CalculateSecondVariationMoment(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, rotation_vector_master, rotation_vector_slave, 
-            //                                second_variations_moment_product_vector_master, second_variations_moment_product_vector_slave_master, PatchType::Master);
-            // CalculateSecondVariationMoment(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, rotation_vector_master, rotation_vector_slave, 
-            //                                second_variations_moment_product_vector_slave, second_variations_moment_product_vector_master_slave, PatchType::Slave);
-
             if(norm_2(kinematic_variables_reference_master.a3_tilde) > tol_surface_normal && norm_2(kinematic_variables_reference_slave.a3_tilde) > tol_surface_normal)
             {
-                CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T1_master, T1_master, T1_slave, 
+                CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T1_master, T1_master, T1_slave,
                                                 second_variations_moment_product_vector_master, second_variations_moment_product_vector_slave_master, PatchType::Master);
-                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, first_variations_T1_slave, T1_slave, T1_master, 
+                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, first_variations_T1_slave, T1_slave, T1_master,
                                                 second_variations_moment_product_vector_slave, second_variations_moment_product_vector_master_slave, PatchType::Slave);
 
-                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T1_master, second_variations_T1_master, T1_master, T1_slave, 
+                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T1_master, second_variations_T1_master, T1_master, T1_slave,
                                                 moment_vector_master, moment_vector_master, constitutive_variables_curvature_master, PatchType::Master);
-                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave,first_variations_T1_slave, second_variations_T1_slave, T1_slave, T1_master, 
+                CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave,first_variations_T1_slave, second_variations_T1_slave, T1_slave, T1_master,
                                                 moment_vector_slave, moment_vector_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
-                // CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T2_master, T2_master, T2_slave, 
-                //                                 second_variations_moment_product_vector_master, second_variations_moment_product_vector_slave_master, PatchType::Master);
-                // CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, first_variations_T2_slave, T2_slave, T2_master, 
-                //                                 second_variations_moment_product_vector_slave, second_variations_moment_product_vector_master_slave, PatchType::Slave);
-
-                // CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T2_master, second_variations_T2_master, T2_master, T2_slave, 
-                //                                 moment_vector_master, moment_vector_master, constitutive_variables_curvature_master, PatchType::Master);
-                // CalculateAdditionalSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave,first_variations_T2_slave, second_variations_T2_slave, T2_slave, T2_master, 
-                //                                 moment_vector_slave, moment_vector_slave, constitutive_variables_curvature_slave, PatchType::Slave);
-                
                 second_variations_moment_master *= moment_T2;
                 second_variations_moment_slave *= moment_T2;
 
@@ -2607,117 +2259,6 @@ namespace Kratos
         rTraction[0] = rActualKinematic.a1[0]*traction_0 + rActualKinematic.a2[0]*traction_1 + rActualKinematic.a3[0]*traction_2;
         rTraction[1] = rActualKinematic.a1[1]*traction_0 + rActualKinematic.a2[1]*traction_1 + rActualKinematic.a3[1]*traction_2;
         rTraction[2] = rActualKinematic.a1[2]*traction_0 + rActualKinematic.a2[2]*traction_1 + rActualKinematic.a3[2]*traction_2;
-    }
-
-    void CouplingNitscheCondition::CalculateVariationShear(
-        IndexType IntegrationPointIndex,
-        array_1d<double, 2>& rShear,
-        std::vector<array_1d<double, 2>>& rFirstVariationShear,
-        std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
-        const KinematicVariables& rReferenceKinematic,
-        const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
-        const PatchType& rPatch)
-    {
-        //This is equivalent to get_var_of_pk1_trans_shear_forces_nln
-        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
-        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
-        
-        const SizeType number_of_control_points = r_geometry.size();
-        const SizeType mat_size = number_of_control_points * 3;
-        
-        const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
-        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
-        const Matrix& r_DDDN_DDDe = r_geometry.ShapeFunctionDerivatives(3, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
-
-        // Compute Variation Shear PK2
-        array_1d<double, 2> shear_curvilinear = ZeroVector(2);
-        std::vector<array_1d<double, 2>> first_variation_shear_curvilinear;
-        std::vector<std::vector<array_1d<double, 2>>> second_variation_shear_curvilinear;
-        first_variation_shear_curvilinear.resize(mat_size);
-        second_variation_shear_curvilinear.resize(mat_size);
-        for(IndexType i = 0; i < mat_size; i++)
-        {
-            second_variation_shear_curvilinear[i].resize(mat_size);
-            first_variation_shear_curvilinear[i] = ZeroVector(2);
-
-            for(IndexType j = 0; j < mat_size; j++)
-            {
-                second_variation_shear_curvilinear[i][j] = ZeroVector(2);
-            }
-        }
-        double twisting_moment_gradient_unused = 0.0;
-        Vector first_variation_twisting_moment_gradient_unused;
-        Matrix second_variation_twisting_moment_gradient_unused;
-        CalculateVariationShearPK2(IntegrationPointIndex, shear_curvilinear, first_variation_shear_curvilinear, second_variation_shear_curvilinear,
-                                   twisting_moment_gradient_unused, first_variation_twisting_moment_gradient_unused, second_variation_twisting_moment_gradient_unused,
-                                   rReferenceKinematic, rActualKinematic, rThisConstitutiveVariablesCurvature, rPatch);
-        
-        array_1d<double, 3> n_covariant = ZeroVector(3); //equivalent to T_cov
-        array_1d<double, 3> t_covariant = ZeroVector(3); //equivalent to T2_cov
-
-        n_covariant[0] = rReferenceKinematic.a1[0]*rReferenceKinematic.n[0]/norm_2(rReferenceKinematic.n) + rReferenceKinematic.a1[1]*rReferenceKinematic.n[1]/norm_2(rReferenceKinematic.n) + rReferenceKinematic.a1[2]*rReferenceKinematic.n[2]/norm_2(rReferenceKinematic.n);
-        n_covariant[1] = rReferenceKinematic.a2[0]*rReferenceKinematic.n[0]/norm_2(rReferenceKinematic.n) + rReferenceKinematic.a2[1]*rReferenceKinematic.n[1]/norm_2(rReferenceKinematic.n) + rReferenceKinematic.a2[2]*rReferenceKinematic.n[2]/norm_2(rReferenceKinematic.n);
-
-        t_covariant[0] = rReferenceKinematic.a1[0]*rReferenceKinematic.t[0]/norm_2(rReferenceKinematic.t) + rReferenceKinematic.a1[1]*rReferenceKinematic.t[1]/norm_2(rReferenceKinematic.t) + rReferenceKinematic.a1[2]*rReferenceKinematic.t[2]/norm_2(rReferenceKinematic.t);
-        t_covariant[1] = rReferenceKinematic.a2[0]*rReferenceKinematic.t[0]/norm_2(rReferenceKinematic.t) + rReferenceKinematic.a2[1]*rReferenceKinematic.t[1]/norm_2(rReferenceKinematic.t) + rReferenceKinematic.a2[2]*rReferenceKinematic.t[2]/norm_2(rReferenceKinematic.t);
-
-        // 1. Calculate Traction Shear
-        Matrix Palphabeta = ZeroMatrix(3, 3);
-        Palphabeta(0,2) = shear_curvilinear[0];
-        Palphabeta(1,2) = shear_curvilinear[1];
-        Palphabeta(2,0) = shear_curvilinear[0];
-        Palphabeta(2,1) = shear_curvilinear[1];
-
-        for(IndexType ll = 0; ll < 2; ll++)
-        {
-            rShear[0] += Palphabeta(2, ll) * n_covariant[ll];
-            rShear[1] += Palphabeta(2, ll) * t_covariant[ll];
-        }
-        
-        // 2. Calculate First Variation Traction Shear
-        std::vector<Matrix> P_ij_r;
-        P_ij_r.resize(mat_size);
-
-        for(IndexType r = 0; r < mat_size; r++)
-        {
-            P_ij_r[r] = ZeroMatrix(3, 3);
-            P_ij_r[r](0, 2) = first_variation_shear_curvilinear[r][0];
-            P_ij_r[r](1, 2) = first_variation_shear_curvilinear[r][1];
-            P_ij_r[r](2, 0) = first_variation_shear_curvilinear[r][0];
-            P_ij_r[r](2, 1) = first_variation_shear_curvilinear[r][1];
-
-            for(IndexType ll = 0; ll < 3; ll++)
-            {
-                rFirstVariationShear[r][0] += P_ij_r[r](2, ll) * n_covariant(ll);// + Palphabeta(2, ll) * n_covariant(ll);
-                rFirstVariationShear[r][1] += P_ij_r[r](2, ll) * t_covariant(ll);// + Palphabeta(2, ll) * t_contravariant(ll);
-            }
-        }
-
-        // 3. Calculate Second Variation Traction Shear
-        for(IndexType r = 0; r < mat_size; r++)
-        {
-            for(IndexType s = 0; s <= r; s++)
-            {
-                //stress tensor components PK1
-                Matrix P_ij_rs = ZeroMatrix(3, 3);
-                //shear part
-                P_ij_rs(0, 2) = second_variation_shear_curvilinear[r][s][0];
-                P_ij_rs(1, 2) = second_variation_shear_curvilinear[r][s][1];
-                P_ij_rs(2, 0) = second_variation_shear_curvilinear[r][s][0];
-                P_ij_rs(2, 1) = second_variation_shear_curvilinear[r][s][1];
-
-
-                for(IndexType ll = 0; ll < 2; ll++)
-                {
-                    rSecondVariationShear[r][s][0] += P_ij_rs(2, ll) * n_covariant(ll);// + P_ij_r[r](2, ll) * n_covariant(ll) + P_ij_r[s](2, ll) * n_covariant(ll);
-                    rSecondVariationShear[r][s][1] += P_ij_rs(2, ll) * t_covariant(ll);// + P_ij_r[r](2, ll) * t_contravariant(ll) + P_ij_r[s](2, ll) * t_contravariant(ll);
-                }
-
-                rSecondVariationShear[s][r][0] = rSecondVariationShear[r][s][0];
-                rSecondVariationShear[s][r][1] = rSecondVariationShear[r][s][1];
-            }
-        }
     }
 
     void CouplingNitscheCondition::CalculateVariationShearPK2(
@@ -4771,79 +4312,6 @@ namespace Kratos
         }
     }
 
-    void CouplingNitscheCondition::CalculateFirstVariationMoment(
-        IndexType IntegrationPointIndex,
-        Matrix& rFirstVariationMoment,
-        Matrix& rFirstVariationMomentCovariant,
-        const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
-        const PatchType& rPatch)
-    {
-        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
-        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
-        
-        const SizeType number_of_control_points = r_geometry.size();
-        const SizeType mat_size = number_of_control_points * 3;
-        
-        const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
-
-        //get the normal vector
-        array_1d<double, 2> n_covariant_vector; 
-        if (rPatch==PatchType::Master)
-        {
-            n_covariant_vector = m_n_covariant_vector_master[IntegrationPointIndex];
-        }
-        else
-        {
-            n_covariant_vector = m_n_covariant_vector_slave[IntegrationPointIndex];
-        }
-
-        //Compute the first variation of the traction vectors:
-        //1. normal vector * derivative stress covariant
-        
-        // normal vector * covariant base vector
-        Matrix n_a = ZeroMatrix(3, 3); 
-
-        for (IndexType r = 0; r < 3; r++)
-        {
-            n_a (r, 0) = rActualKinematic.a1[r] * n_covariant_vector[0];
-            n_a (r, 1) = rActualKinematic.a2[r] * n_covariant_vector[1];
-            n_a (r, 2) = rActualKinematic.a1[r] * n_covariant_vector[1] + rActualKinematic.a2[r] * n_covariant_vector[0];
-        }
-
-        rFirstVariationMoment = prod(n_a, rFirstVariationMomentCovariant);
-
-        //2. derivative normal vector * moment covariant
-        
-        // Transform the 2nd Piola-kirchhoff stresses in the covariant systems
-        array_1d<double, 3> moment_vector_covariant;
-        if (rPatch==PatchType::Master)
-        {
-            moment_vector_covariant = prod(m_T_hat_vector_master[IntegrationPointIndex], rThisConstitutiveVariablesCurvature.StressVector);
-        }
-        else
-        {
-            moment_vector_covariant = prod(m_T_hat_vector_slave[IntegrationPointIndex], rThisConstitutiveVariablesCurvature.StressVector);
-        }
-
-        Matrix r_DN_Dxi = ZeroMatrix(3, mat_size);
-        Matrix r_DN_Deta = ZeroMatrix(3, mat_size);
-
-        for (IndexType r = 0; r < number_of_control_points; r++)
-        {
-            r_DN_Dxi(0, 3 * r) = r_DN_De(r, 0);
-            r_DN_Dxi(1, 3 * r + 1) = r_DN_De(r, 0);
-            r_DN_Dxi(2, 3 * r + 2) = r_DN_De(r, 0);
-
-            r_DN_Deta(0, 3 * r) = r_DN_De(r, 1);
-            r_DN_Deta(1, 3 * r + 1) = r_DN_De(r, 1);
-            r_DN_Deta(2, 3 * r + 2) = r_DN_De(r, 1);
-        }
-
-        rFirstVariationMoment += r_DN_Dxi*(n_covariant_vector[0]*moment_vector_covariant[0] + n_covariant_vector[1]*moment_vector_covariant[2])+
-                                 r_DN_Deta*(n_covariant_vector[1]*moment_vector_covariant[1] + n_covariant_vector[0]*moment_vector_covariant[2]);
-    }
-
     void CouplingNitscheCondition::CalculateFirstVariationMomentT2(
         IndexType IntegrationPointIndex,
         Vector& rFirstVariationMomentT2,
@@ -4977,220 +4445,6 @@ namespace Kratos
         }
 
         rPi = prod(n_a, rPi);
-    }
-
-    void CouplingNitscheCondition::CalculateSecondVariationMoment(
-        IndexType IntegrationPointIndex,
-        Matrix& rSecondVariationMoment,
-        const KinematicVariables& rActualKinematic,
-        Matrix& rFirstVariationMomentCovariant, 
-        array_1d<double, 3>& rRotationMaster,
-        array_1d<double, 3>& rRotationSlave,
-        array_1d<double, 3>& rSecondVariationMomentProduct,
-        array_1d<double, 3>& rSecondVariationMomentProductMasterSlave,
-        const PatchType& rPatch)
-    {
-        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
-        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
-
-        const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
-        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
- 
-        const SizeType number_of_control_points = r_geometry.size();
-        const SizeType mat_size = number_of_control_points * 3;
-
-        Matrix r_DN_Dxi = ZeroMatrix(3, mat_size);
-        Matrix r_DN_Deta = ZeroMatrix(3, mat_size);
-
-        for (IndexType r = 0; r < number_of_control_points; r++)
-        {
-            r_DN_Dxi(0, 3 * r) = r_DN_De(r, 0);
-            r_DN_Dxi(1, 3 * r + 1) = r_DN_De(r, 0);
-            r_DN_Dxi(2, 3 * r + 2) = r_DN_De(r, 0);
-
-            r_DN_Deta(0, 3 * r) = r_DN_De(r, 1);
-            r_DN_Deta(1, 3 * r + 1) = r_DN_De(r, 1);
-            r_DN_Deta(2, 3 * r + 2) = r_DN_De(r, 1);
-        }
-
-        // 1. second variation of moment * base vector
-        double l_a3 = norm_2(rActualKinematic.a3_tilde);
-        double l_a3_3 = pow(l_a3, 3);
-        double l_a3_5 = pow(l_a3, 5);
-        double inv_l_a3 = 1 / l_a3;
-        double inv_l_a3_3 = 1 / l_a3_3;
-        double inv_l_a3_5 = 1 / l_a3_5;
-
-        Matrix S_da3 = ZeroMatrix(3, mat_size);
-        Vector S_a3_da3 = ZeroVector(mat_size);
-        Vector S_a3_da3_l_a3_3 = ZeroVector(mat_size);
-        Matrix S_dn = ZeroMatrix(3, mat_size);
-
-        Matrix H = ZeroMatrix(3, 3);
-        CalculateHessian(H, r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod()), ConfigurationType::Current, rPatch);
-
-        // first variation of curvature w.r.t. dof
-        for (IndexType r = 0; r < mat_size; r++)
-        {
-            // local node number kr and dof direction dirr
-            IndexType kr = r / 3;
-            IndexType dirr = r % 3;
-
-            array_1d<double, 3> S_dg_1 = ZeroVector(3);
-            array_1d<double, 3> S_dg_2 = ZeroVector(3);
-            S_dg_1(dirr) = r_DN_De(kr, 0);
-            S_dg_2(dirr) = r_DN_De(kr, 1);
-
-            // curvature
-            S_da3(0, r) = S_dg_1(1) * rActualKinematic.a2(2) - S_dg_1(2) * rActualKinematic.a2(1) + rActualKinematic.a1(1) * S_dg_2(2) - rActualKinematic.a1(2) * S_dg_2(1);
-            S_da3(1, r) = S_dg_1(2) * rActualKinematic.a2(0) - S_dg_1(0) * rActualKinematic.a2(2) + rActualKinematic.a1(2) * S_dg_2(0) - rActualKinematic.a1(0) * S_dg_2(2);
-            S_da3(2, r) = S_dg_1(0) * rActualKinematic.a2(1) - S_dg_1(1) * rActualKinematic.a2(0) + rActualKinematic.a1(0) * S_dg_2(1) - rActualKinematic.a1(1) * S_dg_2(0);
-
-            S_a3_da3[r] = rActualKinematic.a3_tilde[0] * S_da3(0, r) + rActualKinematic.a3_tilde[1] * S_da3(1, r) + rActualKinematic.a3_tilde[2] * S_da3(2, r);
-            S_a3_da3_l_a3_3[r] = S_a3_da3[r] * inv_l_a3_3;
-
-            S_dn(0, r) = S_da3(0, r) * inv_l_a3 - rActualKinematic.a3_tilde[0] * S_a3_da3_l_a3_3[r];
-            S_dn(1, r) = S_da3(1, r) * inv_l_a3 - rActualKinematic.a3_tilde[1] * S_a3_da3_l_a3_3[r];
-            S_dn(2, r) = S_da3(2, r) * inv_l_a3 - rActualKinematic.a3_tilde[2] * S_a3_da3_l_a3_3[r];
-        }
-
-        // second variation of curvature w.r.t. dofs
-        for (IndexType r = 0; r < mat_size; r++)
-        {
-            // local node number kr and dof direction dirr
-            IndexType kr = r / 3;
-            IndexType dirr = r % 3;
-
-            for (IndexType s = 0; s <= r; s++)
-            {
-                // local node number ks and dof direction dirs
-                IndexType ks = s / 3;
-                IndexType dirs = s % 3;
-
-                array_1d<double, 3> dda3 = ZeroVector(3);
-                int dirt = 4 - static_cast<int>(dirr) - static_cast<int>(dirs);
-                int ddir = static_cast<int>(dirr) - static_cast<int>(dirs);
-                if (ddir == -1) dda3(dirt - 1) = r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
-                else if (ddir == 2) dda3(dirt - 1) = r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
-                else if (ddir == 1) dda3(dirt - 1) = -r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(ks, 0) * r_DN_De(kr, 1);
-                else if (ddir == -2) dda3(dirt - 1) = -r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(ks, 0) * r_DN_De(kr, 1);
-
-                double c = -(dda3[0] * rActualKinematic.a3_tilde[0] + dda3[1] * rActualKinematic.a3_tilde[1] + dda3[2] * rActualKinematic.a3_tilde[2]
-                    + S_da3(0, r) * S_da3(0, s) + S_da3(1, r) * S_da3(1, s) + S_da3(2, r) * S_da3(2, s)
-                    ) * inv_l_a3_3;
-
-                double d = 3.0 * S_a3_da3[r] * S_a3_da3[s] * inv_l_a3_5;
-
-                array_1d<double, 3> ddn = ZeroVector(3);
-                ddn[0] = dda3[0] * inv_l_a3 - S_a3_da3_l_a3_3[s] * S_da3(0, r) - S_a3_da3_l_a3_3[r] * S_da3(0, s) + (c + d) * rActualKinematic.a3_tilde[0];
-                ddn[1] = dda3[1] * inv_l_a3 - S_a3_da3_l_a3_3[s] * S_da3(1, r) - S_a3_da3_l_a3_3[r] * S_da3(1, s) + (c + d) * rActualKinematic.a3_tilde[1];
-                ddn[2] = dda3[2] * inv_l_a3 - S_a3_da3_l_a3_3[s] * S_da3(2, r) - S_a3_da3_l_a3_3[r] * S_da3(2, s) + (c + d) * rActualKinematic.a3_tilde[2];
-
-                array_1d<double, 3> ddK_cu = ZeroVector(3);
-                ddK_cu[0] = -(r_DDN_DDe(kr, 0) * S_dn(dirr, s) + r_DDN_DDe(ks, 0) * S_dn(dirs, r)
-                    + H(0, 0) * ddn[0] + H(1, 0) * ddn[1] + H(2, 0) * ddn[2]);
-                ddK_cu[1] = -(r_DDN_DDe(kr, 2) * S_dn(dirr, s) + r_DDN_DDe(ks, 2) * S_dn(dirs, r)
-                    + H(0, 1) * ddn[0] + H(1, 1) * ddn[1] + H(2, 1) * ddn[2]);
-                ddK_cu[2] = -(r_DDN_DDe(kr, 1) * S_dn(dirr, s) + r_DDN_DDe(ks, 1) * S_dn(dirs, r)
-                    + H(0, 2) * ddn[0] + H(1, 2) * ddn[1] + H(2, 2) * ddn[2]);
-
-                rSecondVariationMoment(r, s) += ddK_cu[0]*rSecondVariationMomentProduct(0);
-                rSecondVariationMoment(r, s) += ddK_cu[1]*rSecondVariationMomentProduct(1);
-                rSecondVariationMoment(r, s) += ddK_cu[2]*rSecondVariationMomentProduct(2);
-
-                rSecondVariationMoment(r, s) -= ddK_cu[0]*rSecondVariationMomentProductMasterSlave(0);
-                rSecondVariationMoment(r, s) -= ddK_cu[1]*rSecondVariationMomentProductMasterSlave(1);
-                rSecondVariationMoment(r, s) -= ddK_cu[2]*rSecondVariationMomentProductMasterSlave(2);
-
-                rSecondVariationMoment(s, r) = rSecondVariationMoment(r, s);
-            }
-        }
-        
-        // 2. first variation of moment * first variation of base vector
-        array_1d<double, 2> n_covariant_vector; 
-
-        if (rPatch==PatchType::Master)
-        {
-            n_covariant_vector = m_n_covariant_vector_master[IntegrationPointIndex];
-        }
-        else
-        {
-            n_covariant_vector = m_n_covariant_vector_slave[IntegrationPointIndex];
-        }
-
-        Vector first_variations_moment_covariant_1 = ZeroVector(mat_size);
-        Vector first_variations_moment_covariant_2 = ZeroVector(mat_size);
-        Vector first_variations_moment_covariant_3 = ZeroVector(mat_size);
-
-        for (IndexType r = 0; r < mat_size; r++)
-        {
-            first_variations_moment_covariant_1(r) = rFirstVariationMomentCovariant(0, r);
-            first_variations_moment_covariant_2(r) = rFirstVariationMomentCovariant(1, r);
-            first_variations_moment_covariant_3(r) = rFirstVariationMomentCovariant(2, r);
-        }
-
-        // rotation * first variation stress covariant
-        Matrix rotation_dNCovariant1_master = ZeroMatrix(3, mat_size); 
-        Matrix rotation_dNCovariant2_master = ZeroMatrix(3, mat_size); 
-        Matrix rotation_dNCovariant3_master = ZeroMatrix(3, mat_size); 
-
-        Matrix rotation_dNCovariant1_slave = ZeroMatrix(3, mat_size); 
-        Matrix rotation_dNCovariant2_slave = ZeroMatrix(3, mat_size); 
-        Matrix rotation_dNCovariant3_slave = ZeroMatrix(3, mat_size); 
-
-        for (IndexType r = 0; r < mat_size; r++)
-        {
-            rotation_dNCovariant1_master(0, r) = rRotationMaster(0)*first_variations_moment_covariant_1(r);
-            rotation_dNCovariant1_master(1, r) = rRotationMaster(1)*first_variations_moment_covariant_1(r);
-            rotation_dNCovariant1_master(2, r) = rRotationMaster(2)*first_variations_moment_covariant_1(r);
-
-            rotation_dNCovariant2_master(0, r) = rRotationMaster(0)*first_variations_moment_covariant_2(r);
-            rotation_dNCovariant2_master(1, r) = rRotationMaster(1)*first_variations_moment_covariant_2(r);
-            rotation_dNCovariant2_master(2, r) = rRotationMaster(2)*first_variations_moment_covariant_2(r);
-
-            rotation_dNCovariant3_master(0, r) = rRotationMaster(0)*first_variations_moment_covariant_3(r);
-            rotation_dNCovariant3_master(1, r) = rRotationMaster(1)*first_variations_moment_covariant_3(r);
-            rotation_dNCovariant3_master(2, r) = rRotationMaster(2)*first_variations_moment_covariant_3(r);
-
-            rotation_dNCovariant1_slave(0, r) = rRotationSlave(0)*first_variations_moment_covariant_1(r);
-            rotation_dNCovariant1_slave(1, r) = rRotationSlave(1)*first_variations_moment_covariant_1(r);
-            rotation_dNCovariant1_slave(2, r) = rRotationSlave(2)*first_variations_moment_covariant_1(r);
-
-            rotation_dNCovariant2_slave(0, r) = rRotationSlave(0)*first_variations_moment_covariant_2(r);
-            rotation_dNCovariant2_slave(1, r) = rRotationSlave(1)*first_variations_moment_covariant_2(r);
-            rotation_dNCovariant2_slave(2, r) = rRotationSlave(2)*first_variations_moment_covariant_2(r);
-
-            rotation_dNCovariant3_slave(0, r) = rRotationSlave(0)*first_variations_moment_covariant_3(r);
-            rotation_dNCovariant3_slave(1, r) = rRotationSlave(1)*first_variations_moment_covariant_3(r);
-            rotation_dNCovariant3_slave(2, r) = rRotationSlave(2)*first_variations_moment_covariant_3(r);
-        }
-
-        if (rPatch==PatchType::Slave)
-        {
-            rotation_dNCovariant1_master *= -1.0;
-            rotation_dNCovariant2_master *= -1.0;
-            rotation_dNCovariant3_master *= -1.0;
-
-            rotation_dNCovariant1_slave *= -1.0;
-            rotation_dNCovariant2_slave *= -1.0;
-            rotation_dNCovariant3_slave *= -1.0;
-        }
-
-        rSecondVariationMoment += prod(trans(r_DN_Dxi), rotation_dNCovariant1_master)*n_covariant_vector(0);
-        rSecondVariationMoment += prod(trans(r_DN_Deta), rotation_dNCovariant2_master)*n_covariant_vector(1);
-        rSecondVariationMoment += (prod(trans(r_DN_Dxi), rotation_dNCovariant3_master)*n_covariant_vector(1) + prod(trans(r_DN_Deta), rotation_dNCovariant3_master)*n_covariant_vector(0));
-
-        rSecondVariationMoment += prod(trans(rotation_dNCovariant1_master), r_DN_Dxi)*n_covariant_vector(0);
-        rSecondVariationMoment += prod(trans(rotation_dNCovariant2_master), r_DN_Deta)*n_covariant_vector(1);
-        rSecondVariationMoment += (prod(trans(rotation_dNCovariant3_master), r_DN_Dxi)*n_covariant_vector(1) + prod(trans(rotation_dNCovariant3_master), r_DN_Deta)*n_covariant_vector(0));
-
-        rSecondVariationMoment -= prod(trans(r_DN_Dxi), rotation_dNCovariant1_slave)*n_covariant_vector(0);
-        rSecondVariationMoment -= prod(trans(r_DN_Deta), rotation_dNCovariant2_slave)*n_covariant_vector(1);
-        rSecondVariationMoment -= (prod(trans(r_DN_Dxi), rotation_dNCovariant3_slave)*n_covariant_vector(1) + prod(trans(r_DN_Deta), rotation_dNCovariant3_slave)*n_covariant_vector(0));
-
-        rSecondVariationMoment -= prod(trans(rotation_dNCovariant1_slave), r_DN_Dxi)*n_covariant_vector(0);
-        rSecondVariationMoment -= prod(trans(rotation_dNCovariant2_slave), r_DN_Deta)*n_covariant_vector(1);
-        rSecondVariationMoment -= (prod(trans(rotation_dNCovariant3_slave), r_DN_Dxi)*n_covariant_vector(1) + prod(trans(rotation_dNCovariant3_slave), r_DN_Deta)*n_covariant_vector(0));
     }
 
     void CouplingNitscheCondition::CalculateSecondVariationMomentT2(

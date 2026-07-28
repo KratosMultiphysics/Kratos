@@ -399,26 +399,13 @@ private:
         array_1d<Matrix, 2>& rT, array_1d<Matrix, 2>& rT_hat, 
         const PatchType& rPatch); 
 
-    void CalculateFirstVariationT2(
-        IndexType IntegrationPointIndex,
-        Matrix& rFirstVariationT2,
-        const array_1d<double, 3> rT2,   
-        const PatchType& rPatch);
-
     void CalculateFirstVariationT1(
         IndexType IntegrationPointIndex,
         Matrix& rFirstVariationT1,
-        const array_1d<double, 3> rT1, 
-        const KinematicVariables& rKinematicVariables,  
+        const array_1d<double, 3> rT1,
+        const KinematicVariables& rKinematicVariables,
         const PatchType& rPatch);
 
-    void CalculateSecondVariationT2(
-        IndexType IntegrationPointIndex,
-        std::vector<std::vector<array_1d<double, 3> > >& rSecondVariationT2,
-        const Matrix& rFirstVariationT2,
-        const array_1d<double, 3> rT2,   
-        const PatchType& rPatch);
-    
     void CalculateSecondVariationT1(
         IndexType IntegrationPointIndex,
         std::vector<std::vector<array_1d<double, 3> > >& rSecondVariationT1,
@@ -499,16 +486,6 @@ private:
         const PatchType& rPatch);
 
     // Shear-related functions
-    void CalculateVariationShear(
-        IndexType IntegrationPointIndex,
-        array_1d<double, 2>& rShear,
-        std::vector<array_1d<double, 2>>& rFirstVariationShear,
-        std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
-        const KinematicVariables& rReferenceKinematic,
-        const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
-        const PatchType& rPatch);
-
     void CalculateVariationShearPK2(
         IndexType IntegrationPointIndex,
         array_1d<double, 2>& rShear,
@@ -576,14 +553,6 @@ private:
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
         const PatchType& rPatch);
 
-    // void CalculateDerivativeOfCurvature(
-    //     const IndexType IntegrationPointIndex,
-    //     array_1d<double, 3>& rDCurvature_D1,
-    //     array_1d<double, 3>& rDCurvature_D2,
-    //     const Matrix& rHessian,
-    //     const KinematicVariables& rReferenceKinematic,
-    //     const KinematicVariables& rActualKinematic);
-    
     // Moment-related functions
     void CalculateMoment(
         IndexType IntegrationPointIndex,
@@ -594,14 +563,6 @@ private:
 
     void CalculateFirstVariationMomentCovariant(
         IndexType IntegrationPointIndex,
-        Matrix& rFirstVariationMomentCovariant,
-        const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
-        const PatchType& rPatch);
-
-    void CalculateFirstVariationMoment(
-        IndexType IntegrationPointIndex,
-        Matrix& rFirstVariationMoment,
         Matrix& rFirstVariationMomentCovariant,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
@@ -622,17 +583,6 @@ private:
         Matrix& rPi,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
-        const PatchType& rPatch);
-
-    void CalculateSecondVariationMoment(
-        IndexType IntegrationPointIndex,
-        Matrix& rSecondVariationMoment,
-        const KinematicVariables& rActualKinematic,
-        Matrix& rFirstVariationMomentCovariant, 
-        array_1d<double, 3>& rRotationMaster,
-        array_1d<double, 3>& rRotationSlave,
-        array_1d<double, 3>& rSecondVariationMomentProduct,
-        array_1d<double, 3>& rSecondVariationMomentProductMasterSlave,
         const PatchType& rPatch);
 
     void CalculateSecondVariationMomentT2(
