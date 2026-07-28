@@ -116,5 +116,65 @@ KRATOS_TEST_CASE_IN_SUITE(GetScaleNorm, KratosCoreFastSuite)
     KRATOS_EXPECT_DOUBLE_EQ(norm, 1.0);
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests for new methods: GetNumLocalRows, GetLocalCOO, GetRawValuesPtr
+// ─────────────────────────────────────────────────────────────────────────────
+
+using LocalSparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+
+KRATOS_TEST_CASE_IN_SUITE(UblasGetNumLocalRows, KratosCoreFastSuite)
+{
+    CompressedMatrix A(4, 4);
+    A.push_back(0, 0, 1.0);
+    A.push_back(1, 1, 2.0);
+    A.push_back(2, 2, 3.0);
+    A.push_back(3, 3, 4.0);
+
+    KRATOS_EXPECT_EQ(LocalSparseSpaceType::GetNumLocalRows(A), std::size_t(4));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UblasGetLocalCOOSparse, KratosCoreFastSuite)
+{
+    // Symmetric tridiagonal: diag=[2,2], off-diag=[-1]
+    CompressedMatrix A(3, 3);
+    A.push_back(0, 0,  2.0);
+    A.push_back(0, 1, -1.0);
+    A.push_back(1, 0, -1.0);
+    A.push_back(1, 1,  2.0);
+    A.push_back(1, 2, -1.0);
+    A.push_back(2, 1, -1.0);
+    A.push_back(2, 2,  2.0);
+
+    std::vector<std::size_t> rows, cols;
+    std::vector<double> vals;
+    LocalSparseSpaceType::GetLocalCOO(A, rows, cols, vals);
+
+    // All 7 entries must be returned
+    KRATOS_EXPECT_EQ(rows.size(), std::size_t(7));
+
+    // Lower-triangular only: 5 entries (3 diag + 2 lower off-diag)
+    std::vector<std::size_t> rows_lt, cols_lt;
+    std::vector<double> vals_lt;
+    LocalSparseSpaceType::GetLocalCOO(A, rows_lt, cols_lt, vals_lt, /*LowerTriangularOnly=*/true);
+    KRATOS_EXPECT_EQ(rows_lt.size(), std::size_t(5));
+
+    for (std::size_t k = 0; k < rows_lt.size(); ++k) {
+        KRATOS_EXPECT_TRUE(rows_lt[k] >= cols_lt[k]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UblasGetRawValuesPtr, KratosCoreFastSuite)
+{
+    Vector v(4);
+    v[0] = 1.0; v[1] = 2.0; v[2] = 3.0; v[3] = 4.0;
+
+    double* ptr = LocalSparseSpaceType::GetRawValuesPtr(v);
+    KRATOS_EXPECT_NE(ptr, nullptr);
+
+    // Modifying through the pointer must change the vector
+    ptr[0] = 42.0;
+    KRATOS_EXPECT_DOUBLE_EQ(v[0], 42.0);
+}
+
 } // namespace Testing
 } // namespace Kratos.
