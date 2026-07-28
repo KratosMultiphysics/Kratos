@@ -466,6 +466,9 @@ namespace MortarUtilities
         const GeometryType& rGeometry,
         const Variable<array_1d<double,3> >& rVariable
         ) {
+        /* DEFINITIONS */
+        BoundedMatrix<double, TNumNodes, TDim> var_matrix;
+
         if (rVariable == NORMAL) {
             const auto element_normal = rGeometry.UnitNormal(ZeroVector(TDim));
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -474,9 +477,6 @@ namespace MortarUtilities
             }
             return var_matrix;
         }
-
-        /* DEFINITIONS */
-        BoundedMatrix<double, TNumNodes, TDim> var_matrix;
 
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& value = rGeometry[i_node].GetValue(rVariable);
