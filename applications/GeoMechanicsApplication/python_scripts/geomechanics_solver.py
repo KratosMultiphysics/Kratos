@@ -88,7 +88,8 @@ class GeoMechanicalSolver(PythonSolver):
             "strategy_type": "newton_raphson",
             "quasi_newton_type": "lbfgs",
             "quasi_newton_restart_interval": 100,
-            "quasi_newton_max_rank": 10,  
+            "quasi_newton_max_rank": 10,
+            "use_old_stiffness_in_first_iteration": false,
             "max_piping_iterations": 50,
             "convergence_criterion": "Displacement_criterion",
             "water_pressure_relative_tolerance": 1.0e-4,
@@ -481,6 +482,8 @@ class GeoMechanicalSolver(PythonSolver):
 
         if strategy_type.lower() == "newton_raphson":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
+            self.strategy_params.AddValue("use_old_stiffness_in_first_iteration",
+                                          self.settings["use_old_stiffness_in_first_iteration"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonStrategy(self.computing_model_part,
                                                                                          self.scheme,
                                                                                          self.convergence_criterion,
@@ -507,6 +510,8 @@ class GeoMechanicalSolver(PythonSolver):
         elif strategy_type.lower() == "newton_raphson_with_piping":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("max_piping_iterations", self.settings["max_piping_iterations"])
+            self.strategy_params.AddValue("use_old_stiffness_in_first_iteration",
+                                          self.settings["use_old_stiffness_in_first_iteration"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonErosionProcessStrategy(self.computing_model_part,
                                                                                                        self.scheme,
                                                                                                        self.convergence_criterion,
@@ -568,5 +573,4 @@ class GeoMechanicalSolver(PythonSolver):
         water_pressure_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         return water_pressure_criterion
-
 

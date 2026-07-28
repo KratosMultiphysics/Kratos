@@ -67,7 +67,11 @@ public:
                                       std::vector<Vector>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override
     {
-        if (rVariable == PK2_STRESS_VECTOR) rOutput = mIntegrationPointVectors;
+        if (rVariable == PK2_STRESS_VECTOR) {
+            rOutput = mPk2StressVectors;
+        } else if (rVariable == CAUCHY_STRESS_VECTOR) {
+            rOutput = mCauchyStressVectors;
+        }
     }
 
     using Element::CalculateOnIntegrationPoints;
@@ -76,13 +80,18 @@ public:
                                       const std::vector<Vector>& rValues,
                                       const ProcessInfo&) override
     {
-        if (rVariable == PK2_STRESS_VECTOR) mIntegrationPointVectors = rValues;
+        if (rVariable == PK2_STRESS_VECTOR) {
+            mPk2StressVectors = rValues;
+        } else if (rVariable == CAUCHY_STRESS_VECTOR) {
+            mCauchyStressVectors = rValues;
+        }
     }
 
     using Element::SetValuesOnIntegrationPoints;
 
 private:
-    std::vector<Vector>                   mIntegrationPointVectors = {};
+    std::vector<Vector>                   mPk2StressVectors        = {};
+    std::vector<Vector>                   mCauchyStressVectors     = {};
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws        = {};
 };
 
@@ -135,6 +144,40 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsIn
                                   initial_stress_vector, 1e-12)
         KRATOS_EXPECT_VECTOR_NEAR(constitutive_law->GetInitialState().GetInitialStrainVector(),
                                   Vector{ZeroVector{4}}, 1e-12)
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(
+    ApplyFinalStressesOfPreviousStageToInitialState_UsesCauchyStressWhenPk2StressVectorsAreEmpty,
+    KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& model_part = CreateModelPartWithAStubElement(model);
+
+    constexpr auto number_of_integration_points = 3;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
+    const auto dummy_process_info    = ProcessInfo{};
+    model_part.Elements()[1].SetValuesOnIntegrationPoints(
+        PK2_STRESS_VECTOR, std::vector<Vector>(number_of_integration_points), dummy_process_info);
+    model_part.Elements()[1].SetValuesOnIntegrationPoints(
+        CAUCHY_STRESS_VECTOR,
+        std::vector<Vector>(number_of_integration_points, initial_stress_vector),
+        dummy_process_info);
+
+    const auto parameters = Parameters{R"({"model_part_name" : "MainModelPart"})"};
+    ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
+
+    process.ExecuteInitialize();
+    model_part.Elements()[1].Initialize(model_part.GetProcessInfo());
+    process.ExecuteBeforeSolutionLoop();
+
+    std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+    model_part.Elements()[1].CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws,
+                                                          model_part.GetProcessInfo());
+
+    for (const auto& p_constitutive_law : constitutive_laws) {
+        KRATOS_EXPECT_VECTOR_NEAR(p_constitutive_law->GetInitialState().GetInitialStressVector(),
+                                  initial_stress_vector, 1e-12)
     }
 }
 
