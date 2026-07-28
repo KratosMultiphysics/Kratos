@@ -444,7 +444,7 @@ public:
 
             p_geometry = Element::GeometryType::Pointer(new Element::GeometryType(temp));
 
-            Element::Pointer p_element = rReferenceElement.Create(i_element + 1, *p_geometry, properties);
+            Element::Pointer p_element = rReferenceElement.Create(i_element + 1, p_geometry->Points(), properties);
 
             ThisModelPart.Elements().push_back(p_element);
         }

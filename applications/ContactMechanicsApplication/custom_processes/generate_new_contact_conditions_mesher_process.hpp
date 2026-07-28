@@ -183,7 +183,7 @@ namespace Kratos
 
 	      id += 1;
 
-	      Condition::Pointer pContactCondition = rReferenceCondition.Create(id, Vertices, pProperties);
+	      Condition::Pointer pContactCondition = rReferenceCondition.Create(id, Vertices.Points(), pProperties);
 
 
 	      //search the model part condition associated to this contact element MASTER CONDITION
