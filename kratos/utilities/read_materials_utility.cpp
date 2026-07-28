@@ -581,18 +581,18 @@ void ReadMaterialsUtility::CheckModelPartIsNotRepeated(std::vector<std::string> 
     KRATOS_ERROR_IF_NOT(it == ModelPartsNames.end()) << "Materials for ModelPart \""
         << *it << "\" are specified multiple times!" << std::endl;
 }
-void ReadMaterialsUtility::ValidatePropertyIds(const Parameters& rAllMaterialParameters)
+void ReadMaterialsUtility::ValidatePropertyIds(const Parameters& rMaterials)
 {
-    for (IndexType i = 0; i < rAllMaterialParameters[properties_key].size(); ++i) {
-        const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
+    for (IndexType i = 0; i < rMaterials[properties_key].size(); ++i) {
+        const auto property = rMaterials[properties_key].GetArrayItem(i);
         KRATOS_ERROR_IF_NOT(property.Has(properties_id_key)) << "Property at index " << i << " does not have a '" << properties_id_key << "'. Please, provide a unique ID for each property.\n";
     }
 }
 
-void ReadMaterialsUtility::ValidateTargetModelPartNames(const Parameters& rAllMaterialParameters)
+void ReadMaterialsUtility::ValidateTargetModelPartNames(const Parameters& rMaterials)
 {
-    for (IndexType i = 0; i < rAllMaterialParameters[properties_key].size(); ++i) {
-        const auto property = rAllMaterialParameters[properties_key].GetArrayItem(i);
+    for (IndexType i = 0; i < rMaterials[properties_key].size(); ++i) {
+        const auto property = rMaterials[properties_key].GetArrayItem(i);
         const auto property_id = property[properties_id_key].GetInt();
         KRATOS_ERROR_IF(!property.Has(model_part_name_key) && !property.Has(model_part_name_list_key))
             << "Property " << property_id << " does not provide any model part name. Please, provide either '" << model_part_name_key << "' or '" << model_part_name_list_key << "'.\n";
@@ -609,11 +609,11 @@ void ReadMaterialsUtility::ValidateTargetModelPartNames(const Parameters& rAllMa
     }
 }
 
-std::vector<std::string> ReadMaterialsUtility::GetTargetModelPartNames(const Parameters& rMaterialParameters)
+std::vector<std::string> ReadMaterialsUtility::GetTargetModelPartNames(const Parameters& rMaterial)
 {
-    return rMaterialParameters.Has(model_part_name_list_key)
-               ? rMaterialParameters[model_part_name_list_key].GetStringArray()
-               : std::vector{rMaterialParameters[model_part_name_key].GetString()};
+    return rMaterial.Has(model_part_name_list_key)
+               ? rMaterial[model_part_name_list_key].GetStringArray()
+               : std::vector{rMaterial[model_part_name_key].GetString()};
 }
 
 }  // namespace Kratos.
