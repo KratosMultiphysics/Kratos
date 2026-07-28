@@ -237,6 +237,24 @@ private:
     ///@{
 
     /**
+     * @brief Detects whether the stream contains a binary STL file.
+     * @details Checks if the file size matches the expected binary STL layout
+     *          (80-byte header + 4-byte triangle count + 50 bytes per triangle).
+     * @return True if the stream is a binary STL, false if it is ASCII.
+     */
+    bool IsBinaryStl();
+
+    /**
+     * @brief Reads a binary STL stream into the model part.
+     * @param rThisModelPart Reference to the model part to populate.
+     * @param rCreateEntityFunctor A functor to create entities from node arrays.
+     */
+    void ReadBinaryModelPart(
+        ModelPart& rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+        );
+
+    /**
      * @brief Read a solid object from a model part.
      * @details This function reads a solid object from the given model part using the provided function to create the entity.
      * @param rThisModelPart Reference to the model part to read the solid from.
