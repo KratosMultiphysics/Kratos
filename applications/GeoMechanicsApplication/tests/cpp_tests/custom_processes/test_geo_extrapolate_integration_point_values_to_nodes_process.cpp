@@ -157,8 +157,15 @@ ModelPart& CreateModelPartWithSingleStubElement(Model& model, const VariableData
 ModelPart& CreateModelPartWithStubElements(Model& model, const VariableData& rVariable, bool hasMixedElements = false)
 {
     //   This function creates the following two-element system if hasMixedElements = false
-    //   (Default): 4------3------6 |  El1 |  El2 | 1------2------5 and the following three -element
-    //   system if hasMixedElements = true: 4------3-----6 |  El1 | 2\3 | 1------2-----5
+    //   (Default):
+    //   4------3------6
+    //   |  El1 |  El2 |
+    //   1------2------5
+    //   and the following three -element
+    //   system if hasMixedElements = true:
+    //   4------3-----6
+    //   |  El1 | 2\3 |
+    //   1------2-----5
 
     auto& r_result = model.CreateModelPart("MainModelPart"s);
     r_result.AddNodalSolutionStepVariable(rVariable);
