@@ -41,8 +41,8 @@ void GenerateElementsWithCellColor::Generate(ModelPart& rModelPart, Parameters p
 
     array_1d<std::size_t, 3> number_of_cells = GetNumberOfCells();
 
-    ModelPart::NodesContainerType new_nodes;
-    ModelPart::ElementsContainerType new_elements;
+    std::vector<ModelPart::NodeType::Pointer> new_nodes;
+    std::vector<ModelPart::ElementType::Pointer> new_elements;
 
     auto& r_prototype_element = KratosComponents<Element>::Get(
         parameters["generated_entity"].GetString());
@@ -63,8 +63,8 @@ void GenerateElementsWithCellColor::Generate(ModelPart& rModelPart, Parameters p
         }
     }
 
-    AddNodesToModelPart(rModelPart, new_nodes);
-    rModelPart.AddElements(new_elements.begin(), new_elements.end());
+    rModelPart.AddNodes(std::move(new_nodes));
+    rModelPart.AddElements(std::move(new_elements));
 }
 
 }

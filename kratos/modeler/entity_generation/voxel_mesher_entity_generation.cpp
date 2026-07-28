@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "utilities/model_part_utils.h"
 
 #include "voxel_mesher_entity_generation.h"
@@ -108,13 +109,6 @@ bool VoxelMesherEntityGeneration::IntersectionsGenerated(int Color) const {
 }
 
 
-void VoxelMesherEntityGeneration::AddNodesToModelPart(ModelPart& rModelPart, ModelPart::NodesContainerType& rNewNodes) const
-{
-    rNewNodes.Unique();
-    ModelPartUtils::AddNodesFromOrderedContainer(rModelPart, rNewNodes.begin(), rNewNodes.end());
-}
-
-
 void VoxelMesherEntityGeneration::SetStartIds(ModelPart& rModelPart)
 {
     mrModeler.SetStartIds(rModelPart);
@@ -144,7 +138,7 @@ array_1d<std::size_t, 3> VoxelMesherEntityGeneration::GetNumberOfCells() const
 
 Node::Pointer VoxelMesherEntityGeneration::GenerateOrRetrieveNode(
     ModelPart& rTheVolumeModelPart,
-    ModelPart::NodesContainerType& rThisNodes,
+    std::vector<ModelPart::NodeType::Pointer>& rThisNodes,
     const std::size_t I,
     const std::size_t J,
     const std::size_t K)
@@ -155,7 +149,7 @@ Node::Pointer VoxelMesherEntityGeneration::GenerateOrRetrieveNode(
 
 Node::Pointer VoxelMesherEntityGeneration::GenerateOrRetrieveQuadraticNode(
     ModelPart& rTheVolumeModelPart,
-    ModelPart::NodesContainerType& rThisNodes,
+    std::vector<ModelPart::NodeType::Pointer>& rThisNodes,
     const std::size_t I,
     const std::size_t J,
     const std::size_t K)
@@ -173,7 +167,7 @@ Node::Pointer VoxelMesherEntityGeneration::GenerateNode(ModelPart& rModelPart, c
 void VoxelMesherEntityGeneration::GetLinearCellNodes(
     Element::NodesArrayType& rCellNodes,
     ModelPart& rTheVolumeModelPart,
-    ModelPart::NodesContainerType& rThisNodes,
+    std::vector<ModelPart::NodeType::Pointer>& rThisNodes,
     const std::size_t I,
     const std::size_t J,
     const std::size_t K)
@@ -192,7 +186,7 @@ void VoxelMesherEntityGeneration::GetLinearCellNodes(
 void VoxelMesherEntityGeneration::GetQuadraticCellNodes(
     Element::NodesArrayType& rCellNodes,
     ModelPart& rTheVolumeModelPart,
-    ModelPart::NodesContainerType& rThisNodes,
+    std::vector<ModelPart::NodeType::Pointer>& rThisNodes,
     const std::size_t I,
     const std::size_t J,
     const std::size_t K)
