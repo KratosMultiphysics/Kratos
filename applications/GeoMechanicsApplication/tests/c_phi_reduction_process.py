@@ -45,8 +45,11 @@ class KratosGeoMechanicsCPhiReductionProcess(KratosUnittest.TestCase):
 
     def test_c_phi_reduction_process(self):
         test_cases = {
-            "Mohr_Coulomb_model64": [-0.002667, -0.0096777, -0.0115495],
-            "Mohr_Coulomb_model": [-0.00268182, -0.00965477,  -0.011628],
+            "Mohr_Coulomb_model64": [-0.00198728, -0.00631146, -0.00450714],
+            "Mohr_Coulomb_model": [-0.00222039, -0.00572449, -0.00338423],
+            "Mohr_Coulomb_numerical_tangent": [-0.000371072, -0.000576557, 0.00110469],
+            "Mohr_Coulomb_CL_APP": [-0.000371072, -0.000576557, 0.00110469]
+
         }
 
         for case_name, expected_displacements_x in test_cases.items():

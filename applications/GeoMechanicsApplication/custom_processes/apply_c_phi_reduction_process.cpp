@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
+#include "custom_constitutive/mohr_coulomb_with_tension_cutoff_elastoplastic_tangent_matrix.h"
 #include "containers/model.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/mohr_coulomb_law.h"
@@ -45,7 +46,10 @@ bool UsesInternalMohrCoulombModel(const Element& rElement)
     KRATOS_ERROR_IF_NOT(rElement.GetProperties().Has(CONSTITUTIVE_LAW))
         << "Properties do not have CONSTITUTIVE_LAW" << std::endl;
 
-    return dynamic_cast<const MohrCoulombLaw*>(rElement.GetProperties()[CONSTITUTIVE_LAW].get()) != nullptr;
+    const auto* p_constitutive_law = rElement.GetProperties()[CONSTITUTIVE_LAW].get();
+    return dynamic_cast<const MohrCoulombLaw*>(p_constitutive_law) != nullptr ||
+           dynamic_cast<const MohrCoulombWithTensionCutOffElastoPlasticTangentMatrix*>(
+               p_constitutive_law) != nullptr;
 }
 } // namespace
 
@@ -53,12 +57,24 @@ ApplyCPhiReductionProcess::ApplyCPhiReductionProcess(Model& rModel, const Parame
 {
     mrModelParts = ProcessUtilities::GetModelPartsFromSettings(rModel, rProcessSettings,
                                                                ApplyCPhiReductionProcess::Info());
+    if (rProcessSettings.Has("equilibrate_initial_state")) {
+        mEquilibrateInitialState = rProcessSettings["equilibrate_initial_state"].GetBool();
+    }
 }
 
 void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
+    if (mEquilibrateInitialState && !mInitialEquilibriumCompleted) {
+        mIsInitialEquilibriumStep = true;
+        KRATOS_INFO("ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep")
+            << "Solve the initial equilibrium with reduction factor 1 (safety factor 1)."
+            << std::endl;
+        return;
+    }
+
+    mIsInitialEquilibriumStep = false;
     if (IsStepRestarted()) mReductionIncrement *= 0.5;
     mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
     KRATOS_ERROR_IF(mReductionFactor <= 0.01)
@@ -100,6 +116,15 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
 
 void ApplyCPhiReductionProcess::ExecuteFinalizeSolutionStep()
 {
+    if (mIsInitialEquilibriumStep) {
+        mInitialEquilibriumCompleted = true;
+        mIsInitialEquilibriumStep    = false;
+        KRATOS_INFO("ApplyCPhiReductionProcess::ExecuteFinalizeSolutionStep")
+            << "Initial equilibrium reached with reduction factor 1 (safety factor 1)."
+            << std::endl;
+        return;
+    }
+
     mPreviousReductionFactor = mReductionFactor;
     KRATOS_INFO("ApplyCPhiReductionProcess::ExecuteFinalizeSolutionStep")
         << "Reached safety factor so far = " << 1.0 / mReductionFactor << std::endl;
@@ -200,6 +225,10 @@ void ApplyCPhiReductionProcess::InitializeParametersForInternalMohrCoulombModel(
     const auto  dummy_vector   = Vector();
     for (const auto& p_law : constitutive_laws) {
         if (const auto p_mohr_coulomb = dynamic_cast<MohrCoulombLaw*>(p_law.get())) {
+            p_mohr_coulomb->InitializeMaterial(r_properties, dummy_geometry, dummy_vector);
+        } else if (const auto p_mohr_coulomb =
+                       dynamic_cast<MohrCoulombWithTensionCutOffElastoPlasticTangentMatrix*>(
+                           p_law.get())) {
             p_mohr_coulomb->InitializeMaterial(r_properties, dummy_geometry, dummy_vector);
         }
     }

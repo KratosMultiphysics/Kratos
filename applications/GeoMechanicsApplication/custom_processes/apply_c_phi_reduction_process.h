@@ -41,9 +41,12 @@ public:
 
 private:
     std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
-    double                                         mReductionFactor         = 1.0;
-    double                                         mPreviousReductionFactor = 1.0;
-    double                                         mReductionIncrement      = 0.1;
+    double mReductionFactor             = 1.0;
+    double mPreviousReductionFactor     = 1.0;
+    double mReductionIncrement          = 0.1;
+    bool   mEquilibrateInitialState     = false;
+    bool   mInitialEquilibriumCompleted = false;
+    bool   mIsInitialEquilibriumStep    = false;
 
     [[nodiscard]] static double GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId);
 
