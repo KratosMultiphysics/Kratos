@@ -551,6 +551,8 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, 
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
+    // KRATOS_WATCH(NormalSlave) // this one plts
+
     // The ALM parameters
     const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
@@ -13706,6 +13708,8 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, 
     const BoundedMatrix<double, 3, 3> LM = MortarUtilities::GetVariableMatrix<3, 3>(this->GetParentGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
+
+    // KRATOS_WATCH(NormalSlave)
 
     // The ALM parameters
     const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
@@ -27832,6 +27836,8 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, 
     const BoundedMatrix<double, 3, 3> LM = MortarUtilities::GetVariableMatrix<3, 3>(r_geometry, VECTOR_LAGRANGE_MULTIPLIER, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
+
+    // KRATOS_WATCH(NormalSlave)
 
     // The ALM parameters
     const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(r_geometry, DYNAMIC_FACTOR);
