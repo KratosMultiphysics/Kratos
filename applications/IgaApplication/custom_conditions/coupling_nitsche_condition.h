@@ -431,7 +431,7 @@ private:
     void CalculateDerivativesTangentNormal(
         IndexType IntegrationPointIndex,
         array_1d<double, 2>& rDerivativeTangent,
-        array_1d<double, 2> rDerivativeNormal, 
+        array_1d<double, 2>& rDerivativeNormal,
         const KinematicVariables& rReferenceKinematic,
         const PatchType& rPatch);
 
@@ -439,11 +439,12 @@ private:
     void CalculateTraction(
         IndexType IntegrationPointIndex,
         array_1d<double, 3>& rTraction,
-        array_1d<double, 2> rShear, 
+        array_1d<double, 2> rShear,
+        const double TwistingMomentGradient,
         array_1d<double, 4>& rMixedCurvature,
         const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
-        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         const PatchType& rPatch);
 
     void CalculateFirstVariationStressCovariant(
@@ -458,6 +459,7 @@ private:
         Matrix& rFirstVariationTraction,
         Matrix& rFirstVariationStressCovariant,
         std::vector<array_1d<double, 2>>& rFirstVariationShear,
+        const Vector& rFirstVariationTwistingMomentGradient,
         const array_1d<double, 4>& rMixedCurvature,
         const std::vector<array_1d<double, 4>>& rFirstVariationMixedCurvature,
         const KinematicVariables& rActualKinematic,
@@ -476,6 +478,7 @@ private:
         IndexType IntegrationPointIndex,
         Matrix& rSecondVariationTraction,
         std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
+        const Matrix& rSecondVariationTwistingMomentGradient,
         const array_1d<double, 4>& rMixedCurvature,
         const std::vector<array_1d<double, 4>>& rFirstVariationMixedCurvature,
         const std::vector<std::vector<array_1d<double, 4>>>& rSecondVariationMixedCurvature,
@@ -511,9 +514,12 @@ private:
         array_1d<double, 2>& rShear,
         std::vector<array_1d<double, 2>>& rFirstVariationShear,
         std::vector<std::vector<array_1d<double, 2>>>& rSecondVariationShear,
+        double& rTwistingMomentGradient,
+        Vector& rFirstVariationTwistingMomentGradient,
+        Matrix& rSecondVariationTwistingMomentGradient,
         const KinematicVariables& rReferenceKinematic,
         const KinematicVariables& rActualKinematic,
-        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         const PatchType& rPatch);
     
     // Testing the new format
