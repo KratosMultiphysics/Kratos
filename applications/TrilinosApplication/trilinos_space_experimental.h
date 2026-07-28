@@ -61,6 +61,75 @@ namespace Kratos
 ///@{
 
 ///@}
+
+/// @cond
+namespace Detail {
+
+/// Prefer getLocalNumRows (Trilinos >= 13); fall back to deprecated getNodeNumRows.
+template <class TMatrix>
+auto GetNumLocalRowsImpl(const TMatrix& rMatrix, int)
+    -> decltype(rMatrix.getLocalNumRows(), typename TMatrix::local_ordinal_type{})
+{
+    return static_cast<typename TMatrix::local_ordinal_type>(rMatrix.getLocalNumRows());
+}
+
+template <class TMatrix>
+typename TMatrix::local_ordinal_type GetNumLocalRowsImpl(const TMatrix& rMatrix, long)
+{
+    return static_cast<typename TMatrix::local_ordinal_type>(rMatrix.getNodeNumRows());
+}
+
+template <class TMatrix>
+typename TMatrix::local_ordinal_type GetNumLocalRows(const TMatrix& rMatrix)
+{
+    return GetNumLocalRowsImpl(rMatrix, 0);
+}
+
+/// Prefer getLocalNumElements (Trilinos >= 13); fall back to deprecated getNodeNumElements.
+template <class TMap>
+auto GetNumLocalElementsImpl(const TMap& rMap, int)
+    -> decltype(rMap.getLocalNumElements(), typename TMap::local_ordinal_type{})
+{
+    return static_cast<typename TMap::local_ordinal_type>(rMap.getLocalNumElements());
+}
+
+template <class TMap>
+typename TMap::local_ordinal_type GetNumLocalElementsImpl(const TMap& rMap, long)
+{
+    return static_cast<typename TMap::local_ordinal_type>(rMap.getNodeNumElements());
+}
+
+template <class TMap>
+typename TMap::local_ordinal_type GetNumLocalElements(const TMap& rMap)
+{
+    return GetNumLocalElementsImpl(rMap, 0);
+}
+
+/// Prefer getLocalElementList (Trilinos >= 13); fall back to deprecated getNodeElementList.
+template <class TMap>
+auto GetLocalElementListImpl(const TMap& rMap, int)
+    -> decltype(rMap.getLocalElementList())
+{
+    return rMap.getLocalElementList();
+}
+
+template <class TMap>
+auto GetLocalElementListImpl(const TMap& rMap, long)
+    -> decltype(rMap.getNodeElementList())
+{
+    return rMap.getNodeElementList();
+}
+
+template <class TMap>
+auto GetLocalElementList(const TMap& rMap)
+    -> decltype(GetLocalElementListImpl(rMap, 0))
+{
+    return GetLocalElementListImpl(rMap, 0);
+}
+
+} // namespace Detail
+/// @endcond
+
 ///@name Kratos Classes
 ///@{
 
@@ -403,7 +472,7 @@ public:
         // Reproduce the sparsity pattern through a new FECrsGraph
         const auto p_row_map = rMatrix.getRowMap();
         const auto p_col_map = rMatrix.getColMap();
-        const LO num_local_rows = static_cast<LO>(rMatrix.getNodeNumRows());
+        const LO num_local_rows = Detail::GetNumLocalRows(rMatrix);
 
         // Compute max entries per row to size the FE graph allocation.
         // (FECrsGraph accepts a scalar maxNumEntriesPerRow, not a per-row array.)
@@ -705,7 +774,7 @@ public:
         if (!rC.isFillActive()) rC.resumeFill();
         auto p_fe_rC = dynamic_cast<MatrixType*>(&rC);
         if (p_fe_rC) p_fe_rC->beginAssembly();
-        for (LO i = 0; i < static_cast<LO>(aux_C->getNodeNumRows()); ++i) {
+        for (LO i = 0; i < Detail::GetNumLocalRows(*aux_C); ++i) {
             const auto global_row_index = aux_C->getRowMap()->getGlobalElement(i);
             typename MatrixType::local_inds_host_view_type local_cols;
             typename MatrixType::values_host_view_type vals;
@@ -771,7 +840,7 @@ public:
         if (!rC.isFillActive()) rC.resumeFill();
         auto p_fe_rC = dynamic_cast<MatrixType*>(&rC);
         if (p_fe_rC) p_fe_rC->beginAssembly();
-        for (LO i = 0; i < static_cast<LO>(aux_C->getNodeNumRows()); ++i) {
+        for (LO i = 0; i < Detail::GetNumLocalRows(*aux_C); ++i) {
             const auto global_row_index = aux_C->getRowMap()->getGlobalElement(i);
             typename MatrixType::local_inds_host_view_type local_cols;
             typename MatrixType::values_host_view_type vals;
@@ -818,7 +887,7 @@ public:
 
         auto build_fe_from_crs = [&](const CrsMatrixType& rSrc) {
             std::size_t max_entries_per_row = 0;
-            for (LO i = 0; i < static_cast<LO>(rSrc.getNodeNumRows()); ++i) {
+            for (LO i = 0; i < Detail::GetNumLocalRows(rSrc); ++i) {
                 typename MatrixType::local_inds_host_view_type local_cols;
                 typename MatrixType::values_host_view_type vals;
                 rSrc.getLocalRowView(i, local_cols, vals);
@@ -828,7 +897,7 @@ public:
             Teuchos::RCP<GraphType> p_graph = Teuchos::rcp(new GraphType(
                 rSrc.getRowMap(), rSrc.getColMap(), max_entries_per_row));
             p_graph->beginAssembly();
-            for (LO i = 0; i < static_cast<LO>(rSrc.getNodeNumRows()); ++i) {
+            for (LO i = 0; i < Detail::GetNumLocalRows(rSrc); ++i) {
                 const auto global_row_index = rSrc.getRowMap()->getGlobalElement(i);
                 typename MatrixType::local_inds_host_view_type local_cols;
                 typename MatrixType::values_host_view_type vals;
@@ -846,7 +915,7 @@ public:
             auto p_matrix = Teuchos::rcp(new MatrixType(Teuchos::rcp_const_cast<const GraphType>(p_graph)));
             if (p_matrix->isFillActive()) p_matrix->fillComplete();
             p_matrix->beginAssembly();
-            for (LO i = 0; i < static_cast<LO>(rSrc.getNodeNumRows()); ++i) {
+            for (LO i = 0; i < Detail::GetNumLocalRows(rSrc); ++i) {
                 const auto global_row_index = rSrc.getRowMap()->getGlobalElement(i);
                 typename MatrixType::local_inds_host_view_type local_cols;
                 typename MatrixType::values_host_view_type vals;
@@ -913,7 +982,7 @@ public:
 
         // Preserve existing structure from rD (hard-zero positions) so FE
         // assembly does not shrink the graph to only aux_2 inserted entries.
-        for (LO i = 0; i < static_cast<LO>(rD.getNodeNumRows()); ++i) {
+        for (LO i = 0; i < Detail::GetNumLocalRows(rD); ++i) {
             const auto global_row_index = rD.getRowMap()->getGlobalElement(i);
             typename MatrixType::local_inds_host_view_type local_cols_d;
             typename MatrixType::values_host_view_type vals_d;
@@ -930,7 +999,7 @@ public:
 
         // Zero rA before summing: full replacement, not accumulation.
         rA.setAllToScalar(static_cast<ST>(0));
-        for (LO i = 0; i < static_cast<LO>(aux_2->getNodeNumRows()); ++i) {
+        for (LO i = 0; i < Detail::GetNumLocalRows(*aux_2); ++i) {
             const auto global_row_index = aux_2->getRowMap()->getGlobalElement(i);
             typename MatrixType::local_inds_host_view_type local_cols;
             typename MatrixType::values_host_view_type vals;
@@ -1083,7 +1152,7 @@ public:
         }
         // Zero out rDest before summing to avoid accumulating onto existing values
         rDest.setAllToScalar(static_cast<ST>(0));
-        for (LO i = 0; i < static_cast<LO>(rSrc.getNodeNumRows()); ++i) {
+        for (LO i = 0; i < Detail::GetNumLocalRows(rSrc); ++i) {
             const auto global_row_index = rSrc.getRowMap()->getGlobalElement(i);
             typename MatrixType::local_inds_host_view_type local_cols;
             typename MatrixType::values_host_view_type vals;
@@ -2069,10 +2138,10 @@ public:
         // Open the FE graph for insertion (sets fillState_=open)
         graph->beginAssembly();
 
-        const auto numLocalRows = r_row_map->getNodeNumElements();
+        const auto number_of_local_rows = Detail::GetNumLocalElements(*r_row_map);
 
         // Combine graphs using global indexing
-        for (LO i = 0; i < static_cast<LO>(numLocalRows); ++i) {
+        for (LO i = 0; i < static_cast<LO>(number_of_local_rows); ++i) {
             const auto global_row_index = r_row_map->getGlobalElement(i);
             std::set<GO> combined_indices;
 
@@ -2133,7 +2202,7 @@ public:
         }
         rA.setAllToScalar(static_cast<ST>(0));
 
-        for (LO i = 0; i < static_cast<LO>(rB.getNodeNumRows()); ++i) {
+        for (LO i = 0; i < Detail::GetNumLocalRows(rB); ++i) {
             const auto global_row_index = rB.getRowMap()->getGlobalElement(i);
             typename MatrixType::local_inds_host_view_type local_cols_b;
             typename MatrixType::values_host_view_type vals;

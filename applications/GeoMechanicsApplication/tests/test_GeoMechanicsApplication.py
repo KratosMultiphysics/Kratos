@@ -7,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests of test_classes to create the suits
 from test_excavation import KratosGeoMechanicsExcavationTests
 from test_interface import KratosGeoMechanicsInterfaceTests
-from test_reset_displacement import KratosGeoMechanicsResetDisplacementTests
+from test_reset_totals import KratosGeoMechanicsResetTotalsTests
 from test_benchmark_set_1 import KratosGeoMechanicsBenchmarkSet1
 from test_benchmark_set_2 import KratosGeoMechanicsBenchmarkSet2
 from test_soil_structure_interactions import KratosGeoMechanicsSoilStructureInteractionTests
@@ -90,7 +90,7 @@ def AssembleTestSuites():
     # Create an array with the selected tests (Small tests):
     small_test_cases = [
                         KratosGeoMechanicsExcavationTests,
-                        KratosGeoMechanicsResetDisplacementTests,
+                        KratosGeoMechanicsResetTotalsTests,
                         KratosGeoMechanicsSoilStructureInteractionTests,
                         KratosGeoMechanicsWaterPressureTests,
                         KratosGeoMechanicsElementTypeTests,

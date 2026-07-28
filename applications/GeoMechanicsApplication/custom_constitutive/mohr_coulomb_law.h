@@ -14,20 +14,22 @@
 
 #pragma once
 
-#include "custom_constitutive/coulomb_impl.h"
 #include "includes/constitutive_law.h"
+#include <memory>
 
 namespace Kratos
 {
 
 class ConstitutiveLawDimension;
+class CoulombImpl;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombLaw : public ConstitutiveLaw
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombLaw);
 
-    MohrCoulombLaw() = default;
+    MohrCoulombLaw();
+    ~MohrCoulombLaw() override;
     explicit MohrCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     // Copying is not allowed. Use member `Clone` instead.
@@ -35,8 +37,8 @@ public:
     MohrCoulombLaw& operator=(const MohrCoulombLaw&) = delete;
 
     // Moving is supported
-    MohrCoulombLaw(MohrCoulombLaw&&) noexcept            = default;
-    MohrCoulombLaw& operator=(MohrCoulombLaw&&) noexcept = default;
+    MohrCoulombLaw(MohrCoulombLaw&&) noexcept;
+    MohrCoulombLaw& operator=(MohrCoulombLaw&&) noexcept;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
     SizeType                               WorkingSpaceDimension() override;
@@ -66,7 +68,7 @@ private:
     Vector                                    mStressVector;
     Vector                                    mStressVectorFinalized;
     Vector                                    mStrainVectorFinalized;
-    CoulombImpl                               mCoulombImpl;
+    std::unique_ptr<CoulombImpl>              mpCoulombImpl;
     bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;

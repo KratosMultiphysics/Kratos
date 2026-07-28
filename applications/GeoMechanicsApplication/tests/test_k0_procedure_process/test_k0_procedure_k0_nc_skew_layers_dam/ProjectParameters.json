@@ -31,7 +31,7 @@
         "block_builder":                      true,
         "solution_type":                      "quasi_static",
         "scheme_type":                        "Backward_Euler",
-        "reset_displacements":                true,
+        "reset_totals":                       true,
         "strategy_type":                      "linear",
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-4,
