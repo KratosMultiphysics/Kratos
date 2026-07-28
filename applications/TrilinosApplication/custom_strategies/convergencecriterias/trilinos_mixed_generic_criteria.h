@@ -1,3 +1,4 @@
+
 //  KRATOS  _____     _ _ _
 //         |_   _| __(_) (_)_ __   ___  ___
 //           | || '__| | | | '_ \ / _ \/ __|
@@ -26,6 +27,7 @@
 #endif
 
 // Project includes
+#include "trilinos_space.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 
@@ -42,11 +44,11 @@ namespace Kratos
 /**
  * @class TrilinosMixedGenericCriteria
  * @ingroup TrilinosApplication
- * @brief Convergence criteria for mixed vector-scalar problems.
+ * @brief The TrilinosMixedGenericCriteria class implements a convergence control based on a nodal vector variable and a nodal scalar variable. The error is evaluated separately for each of them, and relative and absolute tolerances for both must be specified.
  * @details This class implements a convergence control based on a nodal vector variable and a nodal scalar variable. The error is evaluated separately for each of them, and relative and absolute tolerances for both must be specified.
+ * @tparam TSparseSpace The sparse space considered (e.g. for the global system matrix and vectors)
+ * @tparam TDenseSpace The dense space considered (e.g. for the local system matrix and vectors)
  * @author Jordi Cotela, Riccardo Rossi, Carlos Roig and Ruben Zorrilla
- * @tparam TSparseSpace The sparse space considered (e.g. for the system matrix and the solution vector)
- * @tparam TDenseSpace The dense space considered (e.g. for the local element matrices and vectors)
  */
 template< class TSparseSpace, class TDenseSpace >
 class TrilinosMixedGenericCriteria : public MixedGenericCriteria< TSparseSpace, TDenseSpace >
