@@ -852,6 +852,6 @@ namespace Kratos
     }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class FetiDynamicCouplingUtilities< UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>, UblasSpace<double, Matrix, Vector> >;
+template class KRATOS_API(CO_SIMULATION_APPLICATION) FetiDynamicCouplingUtilities< UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>, UblasSpace<double, Matrix, Vector> >;
 
 } // namespace Kratos.

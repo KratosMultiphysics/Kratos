@@ -28,7 +28,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosMetisCore SHARED ${KRATOS_METIS_APPLICATION_CORE})
 target_link_libraries(KratosMetisCore PUBLIC KratosCore ${METIS_LIBRARIES})
-set_target_properties(KratosMetisCore PROPERTIES COMPILE_DEFINITIONS "METIS_APPLICATION=EXPORT,API")
+set_target_properties(KratosMetisCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "METIS_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

@@ -332,7 +332,6 @@ private:
 
 }; // Class AssignScalarInputToEntitiesProcess
 
-
 ///@}
 
 ///@name Type Definitions

@@ -35,7 +35,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosCompressiblePotentialFlowCore SHARED ${KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE})
 target_link_libraries(KratosCompressiblePotentialFlowCore PUBLIC KratosCore KratosFluidDynamicsCore)
-set_target_properties(KratosCompressiblePotentialFlowCore PROPERTIES COMPILE_DEFINITIONS "COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION=EXPORT,API")
+set_target_properties(KratosCompressiblePotentialFlowCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION=EXPORT,API")
 
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosCompressiblePotentialFlowApplication MODULE THIN_LTO ${KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_PYTHON_INTERFACE})

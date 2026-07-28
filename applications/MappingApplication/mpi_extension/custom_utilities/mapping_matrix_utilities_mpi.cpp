@@ -110,7 +110,7 @@ void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>
 } // anonymous namespace
 
 template<>
-void MappingMatrixUtilitiesType::InitializeSystemVector(
+KRATOS_API(MAPPING_MPI_APPLICATION) void MappingMatrixUtilitiesType::InitializeSystemVector(
     Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType>& rpVector,
     const std::size_t VectorSize)
 {
@@ -118,7 +118,7 @@ void MappingMatrixUtilitiesType::InitializeSystemVector(
 }
 
 template<>
-void MappingMatrixUtilitiesType::BuildMappingMatrix(
+KRATOS_API(MAPPING_MPI_APPLICATION) void MappingMatrixUtilitiesType::BuildMappingMatrix(
     Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMappingMatrix,
     Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType>& rpInterfaceVectorOrigin,
     Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType>& rpInterfaceVectorDestination,

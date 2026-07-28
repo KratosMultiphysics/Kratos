@@ -35,7 +35,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## ShallowWaterApplication core library (C++ parts)
 add_library(KratosShallowWaterCore SHARED ${KRATOS_SHALLOW_WATER_APPLICATION_SOURCES})
 target_link_libraries(KratosShallowWaterCore PUBLIC KratosCore)
-set_target_properties(KratosShallowWaterCore PROPERTIES COMPILE_DEFINITIONS "SHALLOW_WATER_APPLICATION=EXPORT,API")
+set_target_properties(KratosShallowWaterCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "SHALLOW_WATER_APPLICATION=EXPORT,API")
 
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosShallowWaterApplication MODULE THIN_LTO ${KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE})

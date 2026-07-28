@@ -255,7 +255,7 @@ const Parameters CalculateDistanceToPathProcess<THistorical>::GetDefaultParamete
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class CalculateDistanceToPathProcess<true>;
-template class CalculateDistanceToPathProcess<false>;
+template class KRATOS_API(KRATOS_CORE) CalculateDistanceToPathProcess<true>;
+template class KRATOS_API(KRATOS_CORE) CalculateDistanceToPathProcess<false>;
 
 } /// namespace Kratos

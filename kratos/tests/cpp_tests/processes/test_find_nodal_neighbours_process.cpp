@@ -21,7 +21,7 @@
 #include "tests/test_utilities/cpp_tests_utilities.h"
 
 /* Processes */
-#include "processes/find_global_nodal_neighbours_for_entities_process.h"
+#include "processes/find_nodal_neighbours_for_entities_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 
 namespace Kratos::Testing

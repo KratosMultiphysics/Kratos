@@ -50,7 +50,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template <SizeType TVoigtSize = 6>
-class MohrCoulombPlasticPotential
+class KRATOS_EXPOSE MohrCoulombPlasticPotential
 {
 public:
     ///@name Type Definitions

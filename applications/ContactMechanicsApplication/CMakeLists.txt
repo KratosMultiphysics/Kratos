@@ -104,7 +104,7 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_PYTHON_INTERFACE
 
 add_library(KratosContactMechanicsCore SHARED ${KRATOS_CONTACT_MECHANICS_APPLICATION_CORE})
 target_link_libraries(KratosContactMechanicsCore PUBLIC KratosCore KratosDelaunayMeshingCore)
-set_target_properties(KratosContactMechanicsCore PROPERTIES COMPILE_DEFINITIONS "CONTACT_MECHANICS_APPLICATION=EXPORT,API")
+set_target_properties(KratosContactMechanicsCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "CONTACT_MECHANICS_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

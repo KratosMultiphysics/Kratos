@@ -53,7 +53,7 @@ if (${USE_MPI})
 endif()
 
 target_link_libraries(KratosCoSimulationCore PUBLIC KratosCore co_sim_io)
-set_target_properties(KratosCoSimulationCore PROPERTIES COMPILE_DEFINITIONS "CO_SIMULATION_APPLICATION=EXPORT,API")
+set_target_properties(KratosCoSimulationCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "CO_SIMULATION_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

@@ -155,7 +155,7 @@ template<SizeType TDim>
 const Kratos::Flags SubModelPartSkinDetectionProcess<TDim>::NODE_SELECTED(Kratos::Flags::Create(0));
 
 
-template class SubModelPartSkinDetectionProcess<2>;
-template class SubModelPartSkinDetectionProcess<3>;
+template class KRATOS_API(KRATOS_CORE) SubModelPartSkinDetectionProcess<2>;
+template class KRATOS_API(KRATOS_CORE) SubModelPartSkinDetectionProcess<3>;
 
 }  // namespace Kratos.

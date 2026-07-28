@@ -102,7 +102,7 @@ set( KRATOS_THERMAL_DEM_APPLICATION_PYTHON_INTERFACE_SOURCES
 ## Define library Kratos which defines the basic python interface
 add_library(KratosThermalDEMCore SHARED ${KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES})
 target_link_libraries(KratosThermalDEMCore KratosDEMCore KratosCore ${MESHER_LIBRARIES})
-set_target_properties(KratosThermalDEMCore PROPERTIES COMPILE_DEFINITIONS "THERMAL_DEM_APPLICATION=EXPORT,API")
+set_target_properties(KratosThermalDEMCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "THERMAL_DEM_APPLICATION=EXPORT,API")
 
 ## Python module
 pybind11_add_module(KratosThermalDEMApplication MODULE ${KRATOS_THERMAL_DEM_APPLICATION_PYTHON_INTERFACE_SOURCES})

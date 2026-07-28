@@ -162,6 +162,6 @@ namespace Kratos
         return mNegativeInterfacesParentIds;
     }
 
-    template class DivideGeometry<Node>;
-    template class DivideGeometry<IndexedPoint>;
+    template class KRATOS_API(KRATOS_CORE) DivideGeometry<Node>;
+    template class KRATOS_API(KRATOS_CORE) DivideGeometry<IndexedPoint>;
 };

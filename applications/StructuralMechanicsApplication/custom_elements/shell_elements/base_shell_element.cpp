@@ -921,9 +921,9 @@ void BaseShellElement<TCoordinateTransformation>::load(Serializer& rSerializer)
     mIntegrationMethod = (IntegrationMethod)temp;
 }
 
-template class BaseShellElement< ShellT3_CoordinateTransformation >;
-template class BaseShellElement< ShellT3_CorotationalCoordinateTransformation  >;
-template class BaseShellElement< ShellQ4_CoordinateTransformation >;
-template class BaseShellElement< ShellQ4_CorotationalCoordinateTransformation  >;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BaseShellElement< ShellT3_CoordinateTransformation >;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BaseShellElement< ShellT3_CorotationalCoordinateTransformation  >;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BaseShellElement< ShellQ4_CoordinateTransformation >;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BaseShellElement< ShellQ4_CorotationalCoordinateTransformation  >;
 
 } // namespace Kratos.

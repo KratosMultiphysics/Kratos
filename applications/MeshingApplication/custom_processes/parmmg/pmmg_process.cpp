@@ -596,6 +596,6 @@ const Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ParMmgProcess<PMMGLibrary::PMMG3D>;
+template class KRATOS_API(MESHING_APPLICATION) ParMmgProcess<PMMGLibrary::PMMG3D>;
 
 }// namespace Kratos.

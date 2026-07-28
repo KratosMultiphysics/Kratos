@@ -62,7 +62,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
  */
-class Node final
+class KRATOS_EXPOSE Node final
     : public Point, public Flags
 {
 public:
@@ -1587,9 +1587,6 @@ private:
 }; // Class Node
 
 ///@}
-
-// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node >;
-// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node::Pointer >;
 
 ///@name Type Definitions
 ///@{

@@ -171,7 +171,7 @@ namespace Kratos
 /***********************************************************************************/
 /***********************************************************************************/
 
-    template class SetInitialStateProcess<2>;
-    template class SetInitialStateProcess<3>;
+    template class KRATOS_API(KRATOS_CORE) SetInitialStateProcess<2>;
+    template class KRATOS_API(KRATOS_CORE) SetInitialStateProcess<3>;
 
 }  // namespace Kratos.

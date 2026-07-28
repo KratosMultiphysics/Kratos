@@ -32,7 +32,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosIgaCore SHARED ${KRATOS_IGA_APPLICATION_CORE})
 target_link_libraries(KratosIgaCore PUBLIC KratosCore)
-set_target_properties(KratosIgaCore PROPERTIES COMPILE_DEFINITIONS "IGA_APPLICATION=EXPORT,API")
+set_target_properties(KratosIgaCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "IGA_APPLICATION=EXPORT,API")
 
 # Define library Kratos which defines the basic python interface
 pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_PYTHON_INTERFACE})

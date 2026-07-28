@@ -21,7 +21,7 @@ set( KRATOS_SHAPE_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
 
 add_library(KratosShapeOptimizationCore SHARED ${KRATOS_SHAPE_OPTIMIZATION_APPLICATION_CORE})
 target_link_libraries(KratosShapeOptimizationCore PUBLIC KratosCore)
-set_target_properties(KratosShapeOptimizationCore PROPERTIES COMPILE_DEFINITIONS "SHAPE_OPTIMIZATION_APPLICATION=EXPORT,API")
+set_target_properties(KratosShapeOptimizationCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "SHAPE_OPTIMIZATION_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

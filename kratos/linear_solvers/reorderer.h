@@ -56,7 +56,7 @@ unknowns, right hand side vector and their respective operators.
 right hand sides and their operators.
 */
 template<class TSparseSpaceType, class TDenseSpaceType>
-class Reorderer
+class KRATOS_EXPOSE Reorderer
 {
 public:
     ///@name Type Definitions

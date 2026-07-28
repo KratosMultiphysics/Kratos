@@ -35,7 +35,7 @@ namespace Kratos
  *  auxiliary infrastructure.
  */
 template< class TSparseSpace >
-class TrilinosDofUpdater : public DofUpdater<TSparseSpace>
+class KRATOS_EXPOSE TrilinosDofUpdater : public DofUpdater<TSparseSpace>
 {
 public:
     ///@name Type Definitions

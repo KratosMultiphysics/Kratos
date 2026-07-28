@@ -31,7 +31,7 @@ file(GLOB_RECURSE KRATOS_CABLE_NET_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_
 
 add_library(KratosCableNetCore SHARED ${KRATOS_CABLE_NET_APPLICATION_CORE})
 target_link_libraries(KratosCableNetCore PUBLIC KratosCore KratosStructuralMechanicsCore)
-set_target_properties(KratosCableNetCore PROPERTIES COMPILE_DEFINITIONS "CABLE_NET_APPLICATION=EXPORT,API")
+set_target_properties(KratosCableNetCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "CABLE_NET_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

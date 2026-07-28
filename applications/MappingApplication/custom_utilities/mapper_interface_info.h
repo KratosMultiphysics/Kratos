@@ -39,7 +39,7 @@ namespace Kratos
  * constructed.
  * For the data-exchange in MPI the data is saved using serialization
 */
-class MapperInterfaceInfo
+class KRATOS_EXPOSE MapperInterfaceInfo
 {
 public:
     ///@name Type Definitions

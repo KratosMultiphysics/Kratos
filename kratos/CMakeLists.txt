@@ -77,9 +77,9 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     add_executable(KratosCoreTest ${KRATOS_TEST_SOURCES} ${KRATOS_FUTURE_TEST_SOURCES} ${KRATOS_LEGACY_TEST_SOURCES})
 
     target_link_libraries(KratosCoreTestUtilities KratosCore GTest::gtest GTest::gmock)
-    set_target_properties(KratosCoreTestUtilities PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_UTILS=IMPORT,API")
+    set_target_properties(KratosCoreTestUtilities PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "KRATOS_TEST_UTILS=IMPORT,API")
     target_link_libraries(KratosCoreTest PUBLIC KratosCoreTestUtilities GTest::gmock_main)
-    set_target_properties(KratosCoreTest PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_CORE=IMPORT,API")
+    set_target_properties(KratosCoreTest PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "KRATOS_TEST_CORE=IMPORT,API")
 
     install(TARGETS KratosCoreTestUtilities DESTINATION libs)
     install(TARGETS KratosCoreTest DESTINATION test)
@@ -97,14 +97,14 @@ if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
         get_filename_component(filename ${file} NAME_WE)
         add_executable(${filename} ${file})
         target_link_libraries(${filename} PUBLIC KratosCore benchmark::benchmark)
-        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
+        set_target_properties(${filename} PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
         install(TARGETS ${filename} DESTINATION benchmark)
     endforeach(file ${KRATOS_BENCHMARK_SOURCES})
 endif(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
 
 ## Define KratosVersion object
 add_library(KratosVersion OBJECT ${KRATOS_VERSION_SOURCES})
-set_target_properties(KratosVersion PROPERTIES COMPILE_DEFINITIONS "KRATOS_VERSION=IMPORT,API")
+set_target_properties(KratosVersion PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "KRATOS_VERSION=IMPORT,API")
 target_compile_definitions(KratosVersion PRIVATE
     KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
@@ -113,6 +113,18 @@ target_compile_definitions(KratosVersion PRIVATE
     KRATOS_BRANCH_NAME="${KratosMultiphysics_BRANCH_NAME}"
     KRATOS_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
 )
+
+# Intel LLVM (icx) on Windows crashes (ICE 0xC0000005 during "Per-file LLVM IR generation",
+# observed with oneAPI 2025.2 and 2026.1) when compiling these OpenMP-heavy TUs at /O2 with the
+# Intel proprietary loop optimizer enabled; disable it for the affected files only.
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+    set_source_files_properties(
+        ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/builder_and_solvers/p_multigrid/augmented_lagrange_constraint_assembler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/builder_and_solvers/p_multigrid/p_grid.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_builder_and_solver.cpp
+        PROPERTIES COMPILE_OPTIONS "-mllvm;-loopopt=0")
+endif()
 
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TENSOR_ADAPTOR_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
@@ -139,7 +151,7 @@ if(KRATOS_USE_TBB)
 endif()
 target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES})
 
-set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
+set_target_properties(KratosCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 
 # Set batch size in the unity build
 if(CMAKE_UNITY_BUILD MATCHES ON)

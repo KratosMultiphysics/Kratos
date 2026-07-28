@@ -574,8 +574,8 @@ SkinDetectionProcess<TDim>::SkinDetectionProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SkinDetectionProcess<2>;
-template class SkinDetectionProcess<3>;
+template class KRATOS_API(KRATOS_CORE) SkinDetectionProcess<2>;
+template class KRATOS_API(KRATOS_CORE) SkinDetectionProcess<3>;
 // class SkinDetectionProcess
 
 } // namespace Kratos

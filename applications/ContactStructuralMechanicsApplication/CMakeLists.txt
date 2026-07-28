@@ -39,7 +39,7 @@ file(GLOB_RECURSE KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFA
 
 add_library(KratosContactStructuralMechanicsCore SHARED ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE})
 target_link_libraries(KratosContactStructuralMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore)
-set_target_properties(KratosContactStructuralMechanicsCore PROPERTIES COMPILE_DEFINITIONS "CONTACT_STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
+set_target_properties(KratosContactStructuralMechanicsCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "CONTACT_STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 
 ## ContactStructuralMechanics benchmark sources. Disabled by default
 if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
@@ -51,7 +51,7 @@ if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
         get_filename_component(filename ${file} NAME_WE)
         add_executable(${filename} ${file})
         target_link_libraries(${filename} PUBLIC KratosContactStructuralMechanicsCore benchmark::benchmark)
-        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
+        set_target_properties(${filename} PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
         install(TARGETS ${filename} DESTINATION benchmark)
     endforeach(file ${KRATOS_BENCHMARK_SOURCES})
 endif(${KRATOS_BUILD_BENCHMARK} MATCHES ON)

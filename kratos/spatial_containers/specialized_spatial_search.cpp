@@ -298,8 +298,8 @@ Parameters SpecializedSpatialSearch<TSearchBackend>::GetDefaultParameters() cons
     return default_parameters;
 }
 
-template class SpecializedSpatialSearch<SpatialContainer::KDTree>;
-template class SpecializedSpatialSearch<SpatialContainer::Octree>;
-template class SpecializedSpatialSearch<SpatialContainer::BinsStatic>;
-template class SpecializedSpatialSearch<SpatialContainer::BinsDynamic>;
+template class KRATOS_API(KRATOS_CORE) SpecializedSpatialSearch<SpatialContainer::KDTree>;
+template class KRATOS_API(KRATOS_CORE) SpecializedSpatialSearch<SpatialContainer::Octree>;
+template class KRATOS_API(KRATOS_CORE) SpecializedSpatialSearch<SpatialContainer::BinsStatic>;
+template class KRATOS_API(KRATOS_CORE) SpecializedSpatialSearch<SpatialContainer::BinsDynamic>;
 } // namespace Kratos.

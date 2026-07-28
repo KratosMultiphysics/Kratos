@@ -409,7 +409,7 @@ template struct VariableVectorRetriever<ComputeNodalGradientProcessSettings::Get
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>;
-template class ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>;
+template class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>;
+template class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>;
 
 } /* namespace Kratos.*/

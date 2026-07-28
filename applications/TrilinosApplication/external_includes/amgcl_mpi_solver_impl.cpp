@@ -99,11 +99,14 @@ private:
     std::optional<amgcl::adapter::epetra_map> mAdaptor;
 };
 
+template class KRATOS_API(TRILINOS_APPLICATION) Kratos::AMGCLSolver<
+    TrilinosSpace<Epetra_FECrsMatrix,Epetra_FEVector>,
+    UblasSpace<double,Matrix,Vector>
+>;
 
 template class KRATOS_API(TRILINOS_APPLICATION) AmgclMPISolver<
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
     UblasSpace<double, Matrix, Vector>
 >;
-
 
 } // namespace Kratos

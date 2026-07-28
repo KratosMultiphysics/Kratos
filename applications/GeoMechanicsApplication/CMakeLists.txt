@@ -42,7 +42,7 @@ file(GLOB_RECURSE TestSetupSources
 
 add_library(KratosGeoMechanicsTestSetupUtilities SHARED ${TestSetupSources})
 target_link_libraries(KratosGeoMechanicsTestSetupUtilities KratosGeoMechanicsCore)
-set_target_properties(KratosGeoMechanicsTestSetupUtilities PROPERTIES COMPILE_DEFINITIONS "KRATOS_GEO_TEST_UTILS=IMPORT,API" CXX_STANDARD 20)
+set_target_properties(KratosGeoMechanicsTestSetupUtilities PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "KRATOS_GEO_TEST_UTILS=IMPORT,API" CXX_STANDARD 20)
 
 ## GeoMechanics testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -57,7 +57,7 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURR
 
 add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_CORE})
 target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosLinearSolversCore ${CMAKE_DL_LIBS})
-set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API" CXX_STANDARD 20)
+set_target_properties(KratosGeoMechanicsCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API" CXX_STANDARD 20)
 
 
 ###############################################################
@@ -133,7 +133,7 @@ if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
         get_filename_component(filename ${file} NAME_WE)
         add_executable(${filename} ${file})
         target_link_libraries(${filename} PUBLIC KratosGeoMechanicsCore KratosGeoMechanicsTestSetupUtilities benchmark::benchmark)
-        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_GEO_BENCHMARK=IMPORT,API")
+        set_target_properties(${filename} PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "KRATOS_GEO_BENCHMARK=IMPORT,API")
         set_target_properties(${filename} PROPERTIES CXX_STANDARD 20)
 
         install(TARGETS ${filename} DESTINATION benchmark)

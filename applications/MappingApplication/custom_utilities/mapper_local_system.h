@@ -35,7 +35,7 @@ namespace Kratos
 /** This class assembles the local system for the mappers, using the Information that
  * was provided by the "MapperInterfaceInfo"
 */
-class MapperLocalSystem
+class KRATOS_EXPOSE MapperLocalSystem
 {
 public:
     ///@name Type Definitions

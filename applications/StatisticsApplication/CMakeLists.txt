@@ -29,7 +29,7 @@ file(GLOB_RECURSE KRATOS_STATISTICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT
 
 add_library(KratosStatisticsCore SHARED ${KRATOS_STATISTICS_APPLICATION_CORE})
 target_link_libraries(KratosStatisticsCore PUBLIC KratosCore)
-set_target_properties(KratosStatisticsCore PROPERTIES COMPILE_DEFINITIONS "STATISTICS_APPLICATION=EXPORT,API")
+set_target_properties(KratosStatisticsCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "STATISTICS_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

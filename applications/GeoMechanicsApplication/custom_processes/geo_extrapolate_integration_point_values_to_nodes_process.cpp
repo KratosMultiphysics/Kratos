@@ -226,6 +226,33 @@ const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtra
     return mExtrapolationMatrixMap.at(typeid(rElement).hash_code());
 }
 
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::CheckElement(Element& rElement,
+                                                                      const std::string& rModelPartName,
+                                                                      const ProcessInfo& rProcessInfo) const
+{
+    int check_result = 0;
+    try {
+        check_result = rElement.Check(rProcessInfo);
+    } catch (const std::exception& rException) {
+        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Exception while "
+                        "calling Element::Check "
+                     << "before extrapolation for element id " << rElement.Id() << " in ModelPart='"
+                     << rModelPartName << "'. Original error: " << rException.what()
+                     << " Plausible cause: this modelpart is not activated." << std::endl;
+    } catch (...) {
+        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Unknown exception "
+                        "while calling "
+                     << "Element::Check before extrapolation for element id " << rElement.Id()
+                     << " in ModelPart='" << rModelPartName
+                     << "'.  Plausible cause: this modelpart is not activated." << std::endl;
+    }
+
+    KRATOS_ERROR_IF(check_result != 0) << "GeoExtrapolateIntegrationPointValuesToNodesProcess: "
+                                          "Element Check failed before extrapolation for "
+                                       << "element id " << rElement.Id() << " in ModelPart='" << rModelPartName
+                                       << "'. Check returned " << check_result << "." << std::endl;
+}
+
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
     Element& rElement, const Matrix& rExtrapolationMatrix, const ProcessInfo& rProcessInfo) const
 {
