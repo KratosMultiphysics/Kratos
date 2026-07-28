@@ -2047,8 +2047,8 @@ namespace Kratos
 
             // Compute the moment projection
             double moment_T2;
-            double moment_T2_master = inner_prod(moment_vector_master, T2_master);
-            double moment_T2_slave = inner_prod(moment_vector_slave, T2_slave);
+            double moment_T2_master = inner_prod(moment_vector_master, T1_master);
+            double moment_T2_slave = inner_prod(moment_vector_slave, T1_slave);
 
             if (opposite_direction_of_trims)
             {
@@ -2100,10 +2100,10 @@ namespace Kratos
             CalculateSecondVariationMomentProduct(point_number, Pi_master, kinematic_variables_master, constitutive_variables_curvature_master, PatchType::Master);
             CalculateSecondVariationMomentProduct(point_number, Pi_slave, kinematic_variables_slave, constitutive_variables_curvature_slave, PatchType::Slave);
 
-            array_1d<double, 3> second_variations_moment_product_vector_master = prod(trans(Pi_master), T2_master);
-            array_1d<double, 3> second_variations_moment_product_vector_slave = prod(trans(Pi_slave), T2_slave);
-            array_1d<double, 3> second_variations_moment_product_vector_master_slave = prod(trans(Pi_slave), T2_master);
-            array_1d<double, 3> second_variations_moment_product_vector_slave_master = prod(trans(Pi_master), T2_slave);
+            array_1d<double, 3> second_variations_moment_product_vector_master = prod(trans(Pi_master), T1_master);
+            array_1d<double, 3> second_variations_moment_product_vector_slave = prod(trans(Pi_slave), T1_slave);
+            array_1d<double, 3> second_variations_moment_product_vector_master_slave = prod(trans(Pi_slave), T1_master);
+            array_1d<double, 3> second_variations_moment_product_vector_slave_master = prod(trans(Pi_master), T1_slave);
 
             //Calculate second variation of moment vectors
             Matrix second_variations_moment_master = ZeroMatrix(3 * number_of_nodes_master, 3 * number_of_nodes_master);
