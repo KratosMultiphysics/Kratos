@@ -155,9 +155,9 @@ Each json object in the list assigned to the `property` field is defined through
             | :-------: | :--------: | :------------: | :-------: |
             |  1        |  1         |  1             |   1       |
             |  3        |  4         |  4             |   8       |
-            |  4        |  8         |  9             |  27       |
-            |  6        | 14         | 16             |  64       |
-            | 12        | 24         | 25             | 125       |
+            |  6        |  8         |  9             |  27       |
+            | 12        | 14         | 16             |  64       |
+            |           | 24         | 25             | 125       |
 
         * other variables depending on the type of constitutive law that has been chosen.
 
