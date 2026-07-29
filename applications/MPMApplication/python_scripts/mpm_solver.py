@@ -24,6 +24,12 @@ class MPMSolver(PythonSolver):
 
         # Add model part containers
         self._AddModelPartContainers()
+        if custom_settings["time_stepping"].Has("time_step"):
+            self.grid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = custom_settings["time_stepping"]["time_step"].GetDouble()
+            self.material_point_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = custom_settings["time_stepping"]["time_step"].GetDouble()
+            print("andihehe= ", self.grid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME])
+            print("andihehe= ", self.material_point_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME])
+        # self.grid_model_part.ProcessInfo[KratosMPM.IS_MIXED_FORMULATION] = True
 
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "Solver is constructed correctly.")
 
@@ -153,7 +159,7 @@ class MPMSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        
+
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
@@ -234,7 +240,7 @@ class MPMSolver(PythonSolver):
             # self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
 
             # Generate MP Element and Condition
-            KratosMPM.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
+            # KratosMPM.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
             KratosMPM.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
         else:
             # TODO: Revert this temporary fix once PR #13376 is merged
@@ -297,6 +303,11 @@ class MPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_INERTIA)
 
+        water_depth_variable = KratosMultiphysics.KratosGlobals.GetVariable("WATER_DEPTH")
+        free_surface_elevation_variable = KratosMultiphysics.KratosGlobals.GetVariable("MPM_FREE_SURFACE_ELEVATION")
+        model_part.AddNodalSolutionStepVariable(water_depth_variable)
+        model_part.AddNodalSolutionStepVariable(free_surface_elevation_variable)
+
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])
 
@@ -305,6 +316,8 @@ class MPMSolver(PythonSolver):
             # add specific variables for the problem (pressure dofs)
             model_part.AddNodalSolutionStepVariable(KratosMPM.PRESSURE_REACTION)
             model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MPRESSURE)
+        print("solver", self.grid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME])
+
 
     def _AddDynamicVariables(self, model_part):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
@@ -483,7 +496,7 @@ class MPMSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintWarning("::[MPMSolver]:: ","Constitutive law was not imported.")
 
             # Clone property of model_part2 to model_part3
-            self.material_point_model_part.Properties = self.initial_mesh_model_part.Properties
+            # self.material_point_model_part.Properties = self.initial_mesh_model_part.Properties
         else:
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.material_point_model_part.Elements)
 

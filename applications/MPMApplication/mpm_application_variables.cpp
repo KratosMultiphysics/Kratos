@@ -65,7 +65,12 @@ namespace Kratos
 
     // Mesh variables
     KRATOS_CREATE_VARIABLE(std::vector<typename Geometry<Node>::Pointer>, GEOMETRY_NEIGHBOURS)
+
+    // Inlet related variables
     KRATOS_CREATE_VARIABLE( double, MP_VERTICAL_DISTANCE)
+    KRATOS_CREATE_VARIABLE( double, WATER_DEPTH )
+    KRATOS_CREATE_VARIABLE( double, MPM_FREE_SURFACE_ELEVATION )
+    // KRATOS_CREATE_VARIABLE( double, ACCUMULATED_SURFACE_NORMAL_DISPLACEMENT )
 
     // Conditions
     // Essential Boundary Conditions

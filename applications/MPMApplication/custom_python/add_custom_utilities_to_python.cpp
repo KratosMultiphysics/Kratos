@@ -65,6 +65,43 @@ namespace Kratos::Python{
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart);
     }
 
+    void GenerateMaterialPointAtInletAccordingToDimension(
+        ModelPart& rBackgroundGridModelPart,
+        ModelPart& rMPMModelPart,
+        ModelPart& rInletBottomNodesModelPart,
+        bool IsMixedFormulation,
+        double rAccumulatedDisplacement,
+        array_1d<double, 3> rGravity,
+        array_1d<double, 3> rUnitGravity,
+        const double rVerticalDistance)
+    {
+        const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        if (dimension == 2)
+        {
+            MaterialPointGeneratorUtility::GenerateMaterialPointAtInlet<2>(
+                rBackgroundGridModelPart,
+                rMPMModelPart,
+                rInletBottomNodesModelPart,
+                IsMixedFormulation,
+                rAccumulatedDisplacement,
+                rGravity,
+                rUnitGravity,
+                rVerticalDistance);
+        }
+        else if (dimension == 3)
+        {
+            MaterialPointGeneratorUtility::GenerateMaterialPointAtInlet<3>(
+                rBackgroundGridModelPart,
+                rMPMModelPart,
+                rInletBottomNodesModelPart,
+                IsMixedFormulation,
+                rAccumulatedDisplacement,
+                rGravity,
+                rUnitGravity,
+                rVerticalDistance);
+        }
+    }
+
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
 
@@ -74,6 +111,7 @@ namespace Kratos::Python{
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
         m.def("GenerateMaterialPointElementFromSwModel", MaterialPointGeneratorUtility::GenerateMaterialPointElementFromSwModel);
+        m.def("GenerateMaterialPointAtInlet", GenerateMaterialPointAtInletAccordingToDimension);
         m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
 
         // Calculate energy utility

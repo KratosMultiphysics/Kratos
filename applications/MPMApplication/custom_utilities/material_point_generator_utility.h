@@ -32,9 +32,16 @@ namespace Kratos::MaterialPointGeneratorUtility
 
     using SizeType =  std::size_t;
 
+    using NodeType = Node;
+
     using GeometryType =  Geometry<Node>;
 
     using IntegrationMethod =  GeometryData::IntegrationMethod;
+
+    /// @brief Compute height from free surface elevation
+    void ComputeHeightFromFreeSurface(
+            ModelPart& rModelPart,
+            const array_1d<double, 3>& rUnitGravity);
 
     /// @brief Get the element type based on the formulation and geometry
     const Element& GetElementType(
@@ -95,6 +102,18 @@ namespace Kratos::MaterialPointGeneratorUtility
         ModelPart& rMPMModelPart,
         bool IsMixedFormulation,
         double MinimumHeight);
+
+    template<SizeType TDimension>
+    void GenerateMaterialPointAtInlet(
+        ModelPart& rBackgroundGridModelPart,
+        ModelPart& rMPMModelPart,
+        ModelPart& rInletBottomNodesModelPart,
+        bool IsMixedFormulation,
+        double rAccumulatedDisplacement,
+        array_1d<double, 3> rGravity,
+        array_1d<double, 3> rUnitGravity,
+        const double rVerticalDistance);
+
     /**
      * @brief Function to add dofs to elements for Lagrange multiplier.
      * @details non-conforming Perturbed Lagrangian or Lagrange multiplier conditions

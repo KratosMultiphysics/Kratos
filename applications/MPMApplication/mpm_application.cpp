@@ -204,7 +204,12 @@ namespace Kratos
 
         // Mesh variables
         KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS )
+
+        // Inlet related variables
         KRATOS_REGISTER_VARIABLE( MP_VERTICAL_DISTANCE )
+        KRATOS_REGISTER_VARIABLE( WATER_DEPTH )
+        KRATOS_REGISTER_VARIABLE( MPM_FREE_SURFACE_ELEVATION )
+        // KRATOS_REGISTER_VARIABLE( ACCUMULATED_SURFACE_NORMAL_DISPLACEMENT )
 
         // Registering condition variables
         // Essential Boundary Conditions
