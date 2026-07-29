@@ -45,6 +45,7 @@
 #include "meshioplusplus/operations/stats.hpp"
 #include "meshioplusplus/operations/surface.hpp"
 #include "meshioplusplus/operations/transform.hpp"
+#include "meshioplusplus/version.hpp"
 
 // Project includes
 #include "custom_utilities/meshioplusplus_mesh_operations.h"
@@ -146,6 +147,20 @@ std::vector<mio::DataRename> ReadDataRenames(Parameters Settings)
     return renames;
 }
 
+/// Reads a JSON array of integers into meshio++'s block-major global cell indices (refine's
+/// "cells" selector). Parameters has no int64 accessor, so this widens the same way GetInt()
+/// itself narrows the underlying JSON number - as everywhere else in this file (mSeed,
+/// mGhostLayers, ... are all read the same way).
+std::vector<std::int64_t> ReadCellIndices(Parameters Settings)
+{
+    std::vector<std::int64_t> cells;
+    cells.reserve(Settings.size());
+    for (std::size_t i = 0; i < Settings.size(); ++i) {
+        cells.push_back(static_cast<std::int64_t>(Settings[i].GetInt()));
+    }
+    return cells;
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -194,7 +209,7 @@ std::vector<std::string> MeshioPlusPlusMeshOperations::GetSupportedOperations()
 
 Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
 {
-    return Parameters(R"({
+    Parameters params(R"({
         "operation"                                   : "clean",
         "entity_type"                                 : "automatic",
         "use_deformed_configuration"                  : false,
@@ -276,6 +291,23 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
         "default_value"                                : 0.0,
         "on_conflict"                                  : "error"
     })");
+
+#if MESHIOPLUSPLUS_VERSION_AT_LEAST(9, 5, 0)
+    // "refine"'s selective-refinement settings, new in meshio++ v9.5.0. Guarded so this still
+    // compiles against the still-accepted ABI-3 range (v9.2.0-v9.4.1), whose RefineOptions has
+    // none of these members. At most one of "cells"/"region"/"predicate_array" may be set
+    // (mio::refine itself rejects two); none set is the pre-9.5.0 uniform behavior,
+    // byte-identical to a build without this block.
+    params.AddEmptyArray("cells");
+    params.AddString("region", "");
+    params.AddString("predicate_array", "");
+    params.AddString("predicate_op", "<");
+    params.AddDouble("predicate_value", 0.0);
+    params.AddString("closure", "redgreen");
+    params.AddBool("record_levels", false);
+#endif
+
+    return params;
 }
 
 /***********************************************************************************/
@@ -347,6 +379,28 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         mio::RefineOptions options;
         options.mLevels = Settings["levels"].GetInt();
         options.mRecordParentIds = Settings["record_parent_ids"].GetBool();
+#if MESHIOPLUSPLUS_VERSION_AT_LEAST(9, 5, 0)
+        options.mCells = ReadCellIndices(Settings["cells"]);
+        options.mRegion = Settings["region"].GetString();
+        options.mPredicateArray = Settings["predicate_array"].GetString();
+        options.mPredicateOp = mio::refine_compare_from_name(Settings["predicate_op"].GetString());
+        options.mPredicateValue = Settings["predicate_value"].GetDouble();
+        options.mClosure = mio::refine_closure_from_name(Settings["closure"].GetString());
+        options.mRecordLevels = Settings["record_levels"].GetBool();
+#else
+        KRATOS_ERROR_IF(Settings.Has("cells") && Settings["cells"].size() > 0)
+            << "The \"cells\" refine selector needs meshio++ >= 9.5.0; this build is compiled "
+               "against an older meshio++" << std::endl;
+        KRATOS_ERROR_IF(Settings.Has("region") && !Settings["region"].GetString().empty())
+            << "The \"region\" refine selector needs meshio++ >= 9.5.0; this build is compiled "
+               "against an older meshio++" << std::endl;
+        KRATOS_ERROR_IF(Settings.Has("predicate_array") && !Settings["predicate_array"].GetString().empty())
+            << "The \"predicate_array\" refine selector needs meshio++ >= 9.5.0; this build is "
+               "compiled against an older meshio++" << std::endl;
+        KRATOS_ERROR_IF(Settings.Has("record_levels") && Settings["record_levels"].GetBool())
+            << "\"record_levels\" needs meshio++ >= 9.5.0; this build is compiled against an "
+               "older meshio++" << std::endl;
+#endif
         mio::RefineResult result = mio::refine(mesh, options);
         StoreResult(result.mMesh, rDestination);
 

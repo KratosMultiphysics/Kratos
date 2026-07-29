@@ -26,18 +26,23 @@ include(pybind11Tools)
 # MESHIOPLUSPLUS_ABI_VERSION, a binary-compatibility counter that moves only when the installed
 # headers stop being compatible with an already-compiled consumer - so a release that provably
 # cannot affect this application (v9.3.0 added one inline constexpr string) needs no rebuild,
-# where a "X.Y.Z EXACT" pin would have forced one. ABI 3 is meshio++ v9.2.0 onwards.
+# where a "X.Y.Z EXACT" pin would have forced one. ABI 3 (meshio++ v9.2.0-v9.4.1) and ABI 4
+# (v9.5.0 onwards) are both accepted: ABI 4 moved only because RefineOptions gained new data
+# members for selective refinement (see meshio++'s abi_version.hpp), a feature this application
+# compiles around with MESHIOPLUSPLUS_VERSION_AT_LEAST(9, 5, 0) rather than needing a hard
+# floor - so there is no reason to also raise the floor.
 #
 # Getting it wrong is not silent: the C++ variants' SOVERSION is the ABI version, and every
 # consumer translation unit carries a link-time sentinel naming it, so a header/library skew is
 # a link error rather than memory corruption. See meshio++'s doc/abi.md for the criterion.
 find_package(meshioplusplus CONFIG REQUIRED COMPONENTS CXX)
 
-if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 3)
+if(MESHIOPLUSPLUS_ABI_VERSION LESS 3 OR MESHIOPLUSPLUS_ABI_VERSION GREATER 4)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ ABI 3, but the install at "
+        "MeshioPlusPlusApplication needs meshio++ ABI 3 or ABI 4, but the install at "
         "'${meshioplusplus_DIR}' reports ABI ${MESHIOPLUSPLUS_ABI_VERSION} "
-        "(release ${meshioplusplus_VERSION}). ABI 3 is meshio++ v9.2.0 onwards.")
+        "(release ${meshioplusplus_VERSION}). ABI 3 is meshio++ v9.2.0-v9.4.1, ABI 4 is "
+        "v9.5.0 onwards (adds RefineOptions' selective-refinement fields).")
 endif()
 
 if(NOT TARGET meshioplusplus::core_kratos)
@@ -48,10 +53,18 @@ if(NOT TARGET meshioplusplus::core_kratos)
         "including it).")
 endif()
 
+if(meshioplusplus_VERSION VERSION_LESS 9.5.0)
+    set(_meshioplusplus_selective_refine "unavailable (needs meshio++ >= 9.5.0)")
+else()
+    set(_meshioplusplus_selective_refine "available")
+endif()
+
 message(STATUS "meshio++ ${meshioplusplus_VERSION} (ABI ${MESHIOPLUSPLUS_ABI_VERSION}): "
                "backends '${MESHIOPLUSPLUS_MESH_BACKENDS}', "
                "parallel '${MESHIOPLUSPLUS_PARALLEL_BACKEND}', HDF5 '${MESHIOPLUSPLUS_WITH_HDF5}', "
-               "netCDF '${MESHIOPLUSPLUS_WITH_NETCDF}'")
+               "netCDF '${MESHIOPLUSPLUS_WITH_NETCDF}', selective refine "
+               "'${_meshioplusplus_selective_refine}'")
+unset(_meshioplusplus_selective_refine)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
