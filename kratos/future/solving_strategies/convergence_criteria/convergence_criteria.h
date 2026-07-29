@@ -20,6 +20,9 @@
 // Project includes
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/reduction_utilities.h"
+#include "containers/system_vector.h"
+#include "containers/distributed_system_vector.h"
 #ifdef KRATOS_USE_FUTURE
 #include "future/solving_strategies/strategies/implicit_strategy_data.h"
 #endif
@@ -69,6 +72,9 @@ public:
 
     /// The data type
     using DataType = typename TLinearAlgebra::DataType;
+
+    /// The index type
+    using IndexType = typename TLinearAlgebra::IndexType;
 
     /// The DOFs array type
     using DofsArrayType = typename ModelPart::DofsArrayType;
@@ -335,7 +341,7 @@ protected:
     }
 
     /**
-     * @brief This method computes the norm of the given vector
+     * @brief This method computes the norm of the given serial system vector
      * @details Note that only the free DOFs are considered in the norm calculation.
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's DOFs
@@ -345,7 +351,40 @@ protected:
     std::pair<std::size_t, DataType> CalculateVectorNorm(
         const ModelPart& rModelPart,
         const DofsArrayType& rDofSet,
-        const TLinearAlgebra::VectorType& rVector)
+        const SystemVector<DataType, IndexType>& rVector)
+    {
+        // Define custom reduction for parallel computation
+        // First item in the reduction tuple: sum of the squared norm of the variation of the DOFs
+        // Second item in the reduction tuple: number of free DOFs
+        using CustomReductionType = CombinedReduction<SumReduction<DataType>,SumReduction<std::size_t>>;
+
+        // Loop over Dofs and add the contribution of each free DOF to the norm
+        DataType vector_norm;
+        std::size_t n_free_dofs;
+        std::tie(vector_norm, n_free_dofs) = block_for_each<CustomReductionType>(rDofSet, [&rVector](auto& rDof) {
+            if (rDof.IsFree()) {
+                return std::make_tuple(std::pow(rVector[rDof.EquationId()], 2), 1);
+            } else {
+                return std::make_tuple(DataType(), 0);
+            }
+        });
+
+        return std::make_pair(n_free_dofs, std::sqrt(vector_norm));
+    }
+
+    /**
+     * @brief This method computes the norm of the given distributed systemvector
+     * @details Note that only the free DOFs are considered in the norm calculation.
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's DOFs
+     * @param rVector The vector whose norm is to be computed
+     * @return A pair containing the number of free DOFs and the norm of the vector
+     * @note TODO: implementation to be tested when the distributed environment implementation is completed
+     */
+    std::pair<std::size_t, DataType> CalculateVectorNorm(
+        const ModelPart& rModelPart,
+        const DofsArrayType& rDofSet,
+        const DistributedSystemVector<DataType, IndexType>& rVector)
     {
         // Retrieve the data communicator
         const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
@@ -355,43 +394,22 @@ protected:
         // Second item in the reduction tuple: number of free DOFs
         using CustomReductionType = CombinedReduction<SumReduction<DataType>,SumReduction<std::size_t>>;
 
-        // Check if the problem is distributed
+        // Loop over Dofs and add the contribution of each free DOF to the norm
+        // Note that only local contributions from each rank are considered
         DataType vector_norm;
         std::size_t n_free_dofs;
-        if (r_data_communicator.IsDistributed()) {
-            // // The current MPI rank
-            // const int rank = r_data_communicator.Rank();
-
-            // // Loop over Dofs and add the contribution of each free DOF to the norm
-            // // Note that the PARTITION_INDEX is considered in distributed runs to avoid adding more than once the same value into the norm
-            // std::tie(final_correction_norm, n_free_dofs) = block_for_each<CustomReductionType>(rDofSet, TLS(), [&rDx, rank](auto& rDof, TLS& rTLS) {
-            //     if (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == rank)) {
-
-            //         DataType dof_dx_value = rDx[]
-
-
-
-
-
-            //         rTLS.variation_dof_value = SparseSpaceType::GetValue(rDx, rDof.EquationId());
-            //         return std::make_tuple(std::pow(rTLS.variation_dof_value, 2), 1);
-            //     } else {
-            //         return std::make_tuple(DataType(), 0);
-            //     }
-            // });
-
-            KRATOS_ERROR << "Not implemented yet!" << std::endl;
-
-        } else {
-            // Loop over Dofs and add the contribution of each free DOF to the norm
-            std::tie(vector_norm, n_free_dofs) = block_for_each<CustomReductionType>(rDofSet, [&rVector](auto& rDof) {
+        std::tie(vector_norm, n_free_dofs) = block_for_each<CustomReductionType>(rDofSet, [&rVector](auto& rDof) {
+            IndexType gl_eq_id = rDof.EquationId();
+            if (rVector.GetNumbering().IsLocal(gl_eq_id)) {
                 if (rDof.IsFree()) {
-                    return std::make_tuple(std::pow(rVector[rDof.EquationId()], 2), 1);
+                    const auto& r_local_data = rVector.GetLocalData();
+                    IndexType loc_eq_id = rVector.GetNumbering().LocalId(gl_eq_id);
+                    return std::make_tuple(std::pow(r_local_data[loc_eq_id], 2), 1);
                 } else {
                     return std::make_tuple(DataType(), 0);
                 }
-            });
-        }
+            }
+        });
 
         // Communicator reduction
         n_free_dofs = r_data_communicator.SumAll(n_free_dofs);
@@ -429,6 +447,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+
 
     ///@}
     ///@name Private  Access
