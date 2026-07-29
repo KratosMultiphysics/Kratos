@@ -223,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_GetLawFea
     // Assert'
     constexpr auto expected_strain_size = std::size_t{5};
     KRATOS_EXPECT_EQ(expected_strain_size, law.GetStrainSize());
-    constexpr auto expected_space_dimension = std::size_t{3};
+    constexpr auto expected_space_dimension = std::size_t{2};
     KRATOS_EXPECT_EQ(expected_space_dimension,
                      PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::space_dimension);
 }

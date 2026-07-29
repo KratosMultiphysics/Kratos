@@ -34,7 +34,7 @@ public:
 
     // Geometry constants
     static constexpr SizeType strain_size     = 5;
-    static constexpr SizeType space_dimension = 3;
+    static constexpr SizeType space_dimension = 2;
 
     PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw() = default;
     PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw(
