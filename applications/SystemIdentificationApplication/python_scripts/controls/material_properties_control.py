@@ -1,5 +1,6 @@
 import math, numpy
 from typing import Optional
+import pandas as pd
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -42,7 +43,12 @@ class MaterialPropertiesControl(Control):
                     "primal_model_part_name" : "PLEASE_PROVIDE_MODEL_PART_NAME",
                     "adjoint_model_part_name": "PLEASE_PROVIDE_MODEL_PART_NAME"
                 }
-            ]
+            ],
+            "control_initialization_settings": {
+                "initialize_from_file" : false,
+                "filetype" : "csv",
+                "file_name" : ""
+            }
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -93,6 +99,14 @@ class MaterialPropertiesControl(Control):
         self.interval_bounder = TensorAdaptorBoundingManager(control_variable_bounds)
         self.clamper = KratosSI.SmoothClamper(0, 1)
 
+        # Control initialization settings
+        self.initialization_settings = parameters["control_initialization_settings"]
+        self.initialize_from_file = self.initialization_settings["initialize_from_file"].GetBool()
+        if self.initialize_from_file:
+            if self.initialization_settings["filetype"].GetString() != "csv":
+                raise RuntimeError(f"Only csv file type is supported for control initialization. [ control name = \"{self.GetName()}\"]")
+            self.initialization_file_name = self.initialization_settings["file_name"].GetString()
+
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
         self.adjoint_model_part = self.adjoint_model_part_operation.GetModelPart()
@@ -100,6 +114,18 @@ class MaterialPropertiesControl(Control):
         if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.primal_model_part, "element_specific_properties_created"):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.primal_model_part, self.primal_model_part.Elements, self.consider_recursive_property_update)
             KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.primal_model_part, "element_specific_properties_created")
+
+            if self.initialize_from_file:
+                df = pd.read_csv(self.initialization_file_name, header=0, index_col=0)
+
+                # check sizes
+                if len(df) != self.primal_model_part.NumberOfElements():
+                    raise RuntimeError(f"Number of elements in the primal model part ({self.primal_model_part.NumberOfElements()}) does not match the number of rows in the initialization file ({len(df)}). [ control name = \"{self.GetName()}\"]")
+
+                # Assign values to properties
+                ta = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.primal_model_part.Elements, self.controlled_physical_variable)
+                ta.data[:] = df.to_numpy().flatten()
+                ta.StoreData()
 
             if self.primal_model_part != self.adjoint_model_part:
                 if KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.adjoint_model_part, "element_specific_properties_created"):

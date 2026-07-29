@@ -1,5 +1,6 @@
 import math, numpy
 from typing import Optional
+import pandas as pd
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
@@ -42,7 +43,12 @@ class DataValuesControl(Control):
                     "primal_model_part_name" : "PLEASE_PROVIDE_MODEL_PART_NAME",
                     "adjoint_model_part_name": "PLEASE_PROVIDE_MODEL_PART_NAME"
                 }
-            ]
+            ],
+            "control_initialization_settings": {
+                "initialize_from_file" : false,
+                "filetype" : "csv",
+                "file_name" : ""
+            }
         }""")
 
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -103,9 +109,30 @@ class DataValuesControl(Control):
         self.interval_bounder = TensorAdaptorBoundingManager(control_variable_bounds)
         self.clamper = KratosSI.SmoothClamper(0, 1)
 
+        # Control initialization settings
+        self.initialization_settings = parameters["control_initialization_settings"]
+        self.initialize_from_file = self.initialization_settings["initialize_from_file"].GetBool()
+        if self.initialize_from_file:
+            if self.initialization_settings["filetype"].GetString() != "csv":
+                raise RuntimeError(f"Only csv file type is supported for control initialization. [ control name = \"{self.GetName()}\"]")
+            self.initialization_file_name = self.initialization_settings["file_name"].GetString()
+
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
         self.adjoint_model_part = self.adjoint_model_part_operation.GetModelPart()
+
+        # initialize the control field if required from a file
+        if self.initialize_from_file:
+            df = pd.read_csv(self.initialization_file_name, header=0, index_col=0)
+
+            # check sizes
+            if len(df) != self.GetEmptyField().Shape()[0]:
+                raise RuntimeError(f"Control initialization file does not have the required number of entries. [ control name = \"{self.GetName()}\", required = {self.GetEmptyField().Shape()[0]}, provided = {len(df)}]")
+
+            # Assign to the specific field
+            ta = GetTensorAdaptor(self.primal_model_part, self.container_type, self.controlled_physical_variable)
+            ta.data[:] = df.to_numpy().flatten()
+            ta.StoreData()
 
         # initialize the filter
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
