@@ -10,8 +10,8 @@
                 "Variables": {
                     "GEO_DRAINAGE_TYPE" : "FULLY_COUPLED",
                     "YOUNG_MODULUS": 10000,
-                    "POISSON_RATIO": 0.2,
-                    "DENSITY_SOLID": 2.65,
+                    "POISSON_RATIO": 0.4,
+                    "DENSITY_SOLID": 2.65e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.33,
                     "BULK_MODULUS_SOLID": 6.700000e+19,
