@@ -192,7 +192,7 @@ void AccelerationSensor::CalculateSecondDerivativesGradient(
 
     if (rAdjointElement.Id() == mElementId) {
         // Update current sensor error
-        this->SetValue(SENSOR_ERROR, CalculateSensorValue(rAdjointElement) - this->GetValue(SENSOR_MEASURED_VALUE));
+        // this->SetValue(SENSOR_ERROR, CalculateSensorValue(rAdjointElement) - this->GetValue(SENSOR_MEASURED_VALUE));
         // calculate second derivatives gradient
         const auto& r_geometry = rAdjointElement.GetGeometry();
         const IndexType block_size = rResidualGradient.size1() / r_geometry.size();
