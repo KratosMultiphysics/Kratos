@@ -54,7 +54,7 @@ The application includes tests to check the proper functioning of the applicatio
 
 - **Mesh improvement and partitioning**
 
-    * *`refine` — uniform subdivision, and `decimate` — quadric-error edge collapse*
+    * *`refine` — uniform subdivision, or selective/adaptive subdivision (explicit cell list, named region, or a cell-data predicate, with a choice of conforming closure — meshio++ v9.5.0+), and `decimate` — quadric-error edge collapse*
 
     * *`smooth` — Laplacian and Taubin coordinate smoothing*
 
@@ -101,10 +101,15 @@ then point the Kratos configure at it:
 ```
 
 > [!IMPORTANT]
-> The application requires **meshio++ ABI 3**, which is **v9.2.0 or newer**. The pin is on `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version: that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect this application needs no rebuild. Getting it wrong is not silent — the C++ variants' `SOVERSION` is the ABI version and every translation unit carries a link-time sentinel naming it, so a skew is a link error rather than memory corruption. See meshio++'s [`doc/abi.md`](https://github.com/loumalouomega/meshioplusplus/blob/master/doc/abi.md) for the criterion.
+> The application requires **meshio++ ABI 3 or ABI 4** — **v9.2.0 or newer** (ABI 3 covers v9.2.0-v9.4.1, ABI 4 covers v9.5.0 onwards). The pin is on `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version: that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect this application needs no rebuild. Getting it wrong is not silent — the C++ variants' `SOVERSION` is the ABI version and every translation unit carries a link-time sentinel naming it, so a skew is a link error rather than memory corruption. See meshio++'s [`doc/abi.md`](https://github.com/loumalouomega/meshioplusplus/blob/master/doc/abi.md) for the criterion.
 
 > [!NOTE]
 > Upgrading from a meshio++ older than v9.4.0 requires relinking this application once: the C++ variants' `SOVERSION` changed from a flat `0` to the ABI version, so the needed library is now `libmeshioplusplus_core_kratos.so.3` rather than `.so.0`. Install the new meshio++ wholesale rather than part-upgrading — v9.4.0 headers reference a sentinel a `≤9.3.0` library does not define, which fails closed at link time.
+
+> [!NOTE]
+> Upgrading across the ABI 3 → ABI 4 boundary (anything before v9.5.0 to v9.5.0+) likewise needs one relink: `SOVERSION` follows the ABI counter, so the needed library becomes `libmeshioplusplus_core_kratos.so.4`. ABI 4 unlocks `refine`'s selective/predicate-driven mode (`cells`/`region`/`predicate_array`/`closure`/`record_levels`) — see `docs/pages/Applications/MeshioPlusPlus_Application/Utilities/Mesh_Operations.md`. Compiled against an older meshio++, these settings are rejected with a clear error instead of being silently ignored — the application still builds and works against ABI 3, it simply doesn't expose the new selectors.
+>
+> meshio++ v9.6.0's MED improvements (named regions via `FAS`/`GRO` groups, `med:num` global numbering, stricter MED major-version validation) needed **no code changes here** — `MeshioPlusPlusIO` treats MED like every other format through the generic region/format-table machinery already in place.
 
 ## 📖 Usage:
 
