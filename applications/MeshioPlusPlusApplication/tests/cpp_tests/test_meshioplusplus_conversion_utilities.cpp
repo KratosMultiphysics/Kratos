@@ -14,12 +14,16 @@
 //
 
 // System includes
+#include <cstdint>
 
 // External includes
 #include "meshioplusplus/cell_type.hpp"
+#include "meshioplusplus/ndarray.hpp"
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/geometry_data.h"
+#include "includes/variables.h"
 #include "custom_utilities/meshioplusplus_conversion_utilities.h"
 #include "meshioplusplus_fast_suite.h"
 
@@ -84,6 +88,46 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusConversionUtilitiesCellTypeMappingThrows
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         Internals::MeshioCellTypeFromKratosGeometry(GeometryData::KratosGeometryType::Kratos_Sphere3D1),
         "is not supported by MeshioPlusPlusIO");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusConversionUtilitiesMeshToModelPartAcceptsInt64Arrays, KratosMeshioPlusPlusFastSuite)
+{
+    // ApplyDataArrayToEntities used to reject every non-Float64 array outright, dropping
+    // meshio++'s own Int64 bookkeeping arrays (refine:level, refine:parent_cell, ...)
+    // regardless of name. No *real* operation currently produces an Int64 array under a name
+    // that also happens to be a registered Kratos Variable (those arrays are all
+    // colon-namespaced, e.g. "refine:level", which no Kratos Variable ever is), so this is
+    // exercised directly against the mesh rather than through a real operation: staging a
+    // synthetic Int64 point_data array under "DOMAIN_SIZE" (a registered Variable<int>, also
+    // used this way in test_meshioplusplus_io.cpp).
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    r_source.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_source.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_source.CreateNewNode(3, 0.0, 1.0, 0.0);
+
+    // Mirrors Internals::ModelPartToMeshWithData's own sequence: fill the topology, stage
+    // data directly on the model part view, then InvalidateBlocks() once at the end.
+    meshioplusplus::Mesh mesh;
+    Internals::FillMeshioModelPart(r_source, mesh.GetModelPart(), true, true, false);
+    meshioplusplus::NDArray domain_size_array =
+        meshioplusplus::NDArray::Uninit(meshioplusplus::DType::Int64, {3});
+    std::int64_t* p_values = domain_size_array.As<std::int64_t>();
+    p_values[0] = 2;
+    p_values[1] = 3;
+    p_values[2] = 3;
+    mesh.GetModelPart().SetNodalData("DOMAIN_SIZE", domain_size_array);
+    mesh.InvalidateBlocks();
+
+    auto& r_destination = model.CreateModelPart("destination");
+    Internals::MeshToModelPart(mesh, r_destination);
+
+    KRATOS_EXPECT_EQ(r_destination.GetNode(1).GetValue(DOMAIN_SIZE), 2);
+    KRATOS_EXPECT_EQ(r_destination.GetNode(2).GetValue(DOMAIN_SIZE), 3);
+    KRATOS_EXPECT_EQ(r_destination.GetNode(3).GetValue(DOMAIN_SIZE), 3);
 }
 
 } // namespace Kratos::Testing

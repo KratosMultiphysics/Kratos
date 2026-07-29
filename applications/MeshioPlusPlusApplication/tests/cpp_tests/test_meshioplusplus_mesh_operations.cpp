@@ -20,18 +20,22 @@
 #include <sstream>
 
 // External includes
+#include "meshioplusplus/operations/refine.hpp"
+#include "meshioplusplus/version.hpp"
 
 // Project includes
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "custom_utilities/meshioplusplus_mesh_operations.h"
+#include "custom_utilities/meshioplusplus_conversion_utilities.h"
 #include "custom_io/meshioplusplus_io.h"
 #include "meshioplusplus_fast_suite.h"
 
 namespace Kratos::Testing {
 
 namespace {
+namespace mio = meshioplusplus;
 
 std::filesystem::path TestFilePath(const std::string& rExtension)
 {
@@ -250,6 +254,164 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefine, KratosMeshioPlusPl
     KRATOS_EXPECT_GT(r_destination.NumberOfElements(), r_source.NumberOfElements());
     KRATOS_EXPECT_GT(r_destination.NumberOfNodes(), r_source.NumberOfNodes());
 }
+
+#if MESHIOPLUSPLUS_VERSION_AT_LEAST(9, 5, 0)
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefineSelectByExplicitCells, KratosMeshioPlusPlusFastSuite)
+{
+    // Two triangles sharing edge 1-3. Selecting only cell 0 (RedGreen, the default closure)
+    // fully splits it into 4; cell 1 sees exactly its one shared edge bisected and splits
+    // into 2 - so the total is 6, not the 8 a uniform refine of both would give.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings = OperationSettings("refine", R"({"cells" : [0]})");
+    MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 6);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefineSelectByRegion, KratosMeshioPlusPlusFastSuite)
+{
+    // The region path must resolve to the same selection as the explicit "cells" index -
+    // a sub model part containing only the first triangle's element and nodes.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+    auto& r_region = r_source.CreateSubModelPart("target_region");
+    r_region.AddNodes({1, 2, 3});
+    r_region.AddElements({1});
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings = OperationSettings("refine", R"({"region" : "target_region"})");
+    MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 6);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefineSelectByPredicate, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+    r_source.GetElement(1).SetValue(TEMPERATURE, 0.0);
+    r_source.GetElement(2).SetValue(TEMPERATURE, 1.0);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings = OperationSettings("refine", R"({
+        "predicate_array" : "TEMPERATURE",
+        "predicate_op" : "<",
+        "predicate_value" : 0.5,
+        "element_data_value_variables" : ["TEMPERATURE"]
+    })");
+    MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination);
+
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 6);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefineClosureRedGreenVsPropagate, KratosMeshioPlusPlusFastSuite)
+{
+    // Same single-cell selection, different closures: RedGreen keeps the neighbour's split
+    // partial (6 total, as in the explicit-cells test); Propagate promotes any non-empty
+    // mask straight to a full split, so both triangles end up fully split (4 + 4 = 8).
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+
+    auto& r_redgreen = model.CreateModelPart("redgreen");
+    MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("refine", R"({"cells" : [0], "closure" : "redgreen"})"), r_redgreen);
+
+    auto& r_propagate = model.CreateModelPart("propagate");
+    MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("refine", R"({"cells" : [0], "closure" : "propagate"})"), r_propagate);
+
+    KRATOS_EXPECT_EQ(r_redgreen.NumberOfElements(), 6);
+    KRATOS_EXPECT_EQ(r_propagate.NumberOfElements(), 8);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefineBalancedClosureLeavesHangingNode, KratosMeshioPlusPlusFastSuite)
+{
+    // record_parent_ids-style Int64 bookkeeping arrays (here "refine:hanging") are computed
+    // by meshio++ but never reach the destination model part - their name is not a registered
+    // Kratos Variable, by design (see the write-back constraint). Exercised directly against
+    // the mesh rather than through Execute() for exactly that reason.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+
+    mio::Mesh mesh = Internals::ModelPartToMesh(r_source);
+    mio::RefineOptions options;
+    options.mCells = {0};
+    options.mClosure = mio::RefineClosure::Balanced;
+    const mio::RefineResult result = mio::refine(mesh, options);
+
+    KRATOS_EXPECT_TRUE(result.mMesh.HasPointData(mio::kRefineHangingName));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefineRecordLevelsAttachesLevelArray, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+
+    mio::Mesh mesh = Internals::ModelPartToMesh(r_source);
+    mio::RefineOptions options;
+    options.mRecordLevels = true;
+    const mio::RefineResult result = mio::refine(mesh, options);
+
+    KRATOS_EXPECT_TRUE(result.mMesh.HasCellData(mio::kRefineLevelName));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefineTwoSelectorsIsAnError, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateTriangulatedSquare(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    Parameters settings = OperationSettings("refine", R"({"cells" : [0], "region" : "whatever"})");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::Execute(r_source, settings, r_destination), "");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsGetDefaultParametersRefineSelectiveKeys, KratosMeshioPlusPlusFastSuite)
+{
+    const Parameters defaults = MeshioPlusPlusMeshOperations::GetDefaultParameters();
+    KRATOS_EXPECT_EQ(defaults["cells"].size(), 0);
+    KRATOS_EXPECT_TRUE(defaults["region"].GetString().empty());
+    KRATOS_EXPECT_TRUE(defaults["predicate_array"].GetString().empty());
+    KRATOS_EXPECT_EQ(defaults["closure"].GetString(), "redgreen");
+    KRATOS_EXPECT_FALSE(defaults["record_levels"].GetBool());
+}
+
+#endif
 
 /***********************************************************************************/
 /***********************************************************************************/

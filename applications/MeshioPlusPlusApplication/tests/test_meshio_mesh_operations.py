@@ -26,6 +26,18 @@ def _CreateCubeOfTetrahedra(model_part):
         model_part.CreateNewElement("Element3D4N", i + 1, nodes, properties)
 
 
+def _CreateTriangulatedSquare(model_part):
+    """A single quad (two triangles sharing edge 1-3) on the z=0 plane."""
+    model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+    model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+    model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+    model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+
+    properties = model_part.CreateNewProperties(1)
+    model_part.CreateNewElement("Element2D3N", 1, [1, 2, 3], properties)
+    model_part.CreateNewElement("Element2D3N", 2, [1, 3, 4], properties)
+
+
 class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
     def setUp(self):
         self.model = KratosMultiphysics.Model()
@@ -76,6 +88,60 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
     def test_refine_increases_the_cell_count(self):
         destination, _ = self._Execute("refine")
         self.assertGreater(destination.NumberOfElements(), self.source.NumberOfElements())
+
+    # Selective refinement (meshio++ >= 9.5.0 - see MESHIOPLUSPLUS_VERSION_AT_LEAST on the C++
+    # side). Two triangles sharing edge 1-3: selecting only cell 0 fully splits it into 4
+    # (RedGreen, the default closure); cell 1 sees only its shared edge bisected and splits
+    # into 2, so the total is 6 - not the 8 a uniform refine of both would give.
+    def test_refine_select_by_explicit_cells(self):
+        square = self.model.CreateModelPart("Square")
+        _CreateTriangulatedSquare(square)
+        destination = self.model.CreateModelPart("RefineByCells")
+
+        settings = KratosMultiphysics.Parameters("""{"operation" : "refine", "cells" : [0]}""")
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(square, settings, destination)
+
+        self.assertEqual(destination.NumberOfElements(), 6)
+
+    def test_refine_select_by_region(self):
+        square = self.model.CreateModelPart("SquareForRegion")
+        _CreateTriangulatedSquare(square)
+        region = square.CreateSubModelPart("target_region")
+        region.AddNodes([1, 2, 3])
+        region.AddElements([1])
+        destination = self.model.CreateModelPart("RefineByRegion")
+
+        settings = KratosMultiphysics.Parameters("""{"operation" : "refine", "region" : "target_region"}""")
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(square, settings, destination)
+
+        self.assertEqual(destination.NumberOfElements(), 6)
+
+    def test_refine_closure_redgreen_vs_propagate(self):
+        square = self.model.CreateModelPart("SquareForClosure")
+        _CreateTriangulatedSquare(square)
+
+        redgreen = self.model.CreateModelPart("RefineRedGreen")
+        redgreen_settings = KratosMultiphysics.Parameters(
+            """{"operation" : "refine", "cells" : [0], "closure" : "redgreen"}""")
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(square, redgreen_settings, redgreen)
+
+        propagate = self.model.CreateModelPart("RefinePropagate")
+        propagate_settings = KratosMultiphysics.Parameters(
+            """{"operation" : "refine", "cells" : [0], "closure" : "propagate"}""")
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(square, propagate_settings, propagate)
+
+        self.assertEqual(redgreen.NumberOfElements(), 6)
+        self.assertEqual(propagate.NumberOfElements(), 8)
+
+    def test_refine_two_selectors_raises(self):
+        square = self.model.CreateModelPart("SquareForError")
+        _CreateTriangulatedSquare(square)
+        destination = self.model.CreateModelPart("RefineError")
+
+        settings = KratosMultiphysics.Parameters(
+            """{"operation" : "refine", "cells" : [0], "region" : "whatever"}""")
+        with self.assertRaises(RuntimeError):
+            KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(square, settings, destination)
 
     def test_partition_creates_one_model_part_per_piece(self):
         settings = KratosMultiphysics.Parameters("""{"number_of_parts" : 2}""")
