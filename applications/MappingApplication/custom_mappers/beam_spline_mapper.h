@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-// Main authors:    Qinfei Ran - Initial development
+// Main authors:
 // Contributor:
 
 // This mapper is created with RBF technique with Cubic Kernel
@@ -25,7 +25,6 @@
 
 // Project includes
 #include "mappers/mapper.h"
-#include "linear_solvers/linear_solver.h"
 #include "custom_searching/interface_communicator.h"
 #include "custom_utilities/interface_vector_container.h"
 #include "custom_utilities/mapper_local_system.h"
@@ -97,24 +96,16 @@ public:
 
     void GetValue(GeometryType& rValue, const InfoType ValueType) const override
     {
-        KRATOS_ERROR_IF_NOT(mpInterfaceObject)
-            << "BeamSplineMapperInterfaceInfo does not hold an interface object." << std::endl;
         rValue = *(mpInterfaceObject->pGetBaseGeometry());
     }
 
     void GetValue(
-        MatrixType& rRotationMatrix_L_G,
+        MatrixType& rRotationMatrixLocalToGlobal,
         VectorType& rProjectionPointValue,
         VectorType& rLinearShapeValues,
         GeometryType& rGeometryValue) const
     {
-        KRATOS_ERROR_IF_NOT(mpInterfaceObject)
-            << "BeamSplineMapperInterfaceInfo does not hold an interface object." << std::endl;
-        KRATOS_ERROR_IF(mLinearShapeFunctionValues.size() != 2)
-            << "Expected two linear shape-function values for a 2-node beam, got "
-            << mLinearShapeFunctionValues.size() << "." << std::endl;
-
-        rRotationMatrix_L_G = mRotationMatrix_L_G;
+        rRotationMatrixLocalToGlobal = mRotationMatrixLocalToGlobal;
         rProjectionPointValue(0) = mProjectionOfPoint[0];
         rProjectionPointValue(1) = mProjectionOfPoint[1];
         rProjectionPointValue(2) = mProjectionOfPoint[2];
@@ -137,7 +128,7 @@ private:
     double mClosestProjectionDistance = std::numeric_limits<double>::max();
     ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
     InterfaceObjectPointerType mpInterfaceObject;
-    MatrixType mRotationMatrix_L_G;
+    MatrixType mRotationMatrixLocalToGlobal;
 
     void SaveSearchResult(const InterfaceObject& rInterfaceObject, const bool ComputeApproximation);
 
@@ -180,6 +171,8 @@ public:
         EquationIdVectorType& rDestinationIds,
         MapperLocalSystem::PairingStatus& rPairingStatus) const override
     {
+        KRATOS_WARNING("BeamSplineMapperLocalSystem")
+            << "CalculateAll() was called, but is not implemented for BeamSplineMapperLocalSystem." << std::endl;
     }
 
     CoordinatesArrayType& Coordinates() const override
@@ -233,9 +226,6 @@ public:
     using MapperUniquePointerType = typename BaseType::MapperUniquePointerType;
     using MatrixType = typename TDenseSpace::MatrixType;
     using VectorType = typename TDenseSpace::VectorType;
-    using SparseMatrixType = typename TSparseSpace::MatrixType;
-    using LinearSolverType = LinearSolver<TSparseSpace, TDenseSpace>;
-    using LinearSolverSharedPointerType = Kratos::shared_ptr<LinearSolverType>;
     using ComponentVariableType = Variable<double>;
     using GeometryType = Geometry<Node>;
     using NodePointerType = InterfaceObject::NodePointerType;
@@ -311,10 +301,11 @@ private:
         std::vector<IndexType> SupportNodeIds;
         std::unordered_map<IndexType, IndexType> SupportNodeIdToLocalIndex;
         std::vector<double> LocalXCoordinates;
+        double CoordinateHalfLength = 1.0;
         std::vector<MatrixType> SupportFramesLocalToGlobal;
         std::vector<array_1d<double, 3>> SupportReferenceCoordinates;
         MatrixType SplineSystemMatrix;
-        MatrixType InverseTransposedSplineSystemMatrix;
+        MatrixType TransposedSplineSystemMatrix;
     };
 
     struct BeamChainSourceStateData
@@ -333,17 +324,20 @@ private:
     double mLocalCoordTol = 0.0;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
-    LinearSolverSharedPointerType mpLinearSolver = nullptr;
     std::unordered_map<std::string, BeamChainCacheData> mBeamChainCache;
     std::unordered_map<IndexType, std::string> mNodeIdToBeamChainKey;
+    // The nonlinear inverse differentiates the finite section rotation
+    // evaluated by the most recent successful forward map. Before the first
+    // map, only an unambiguous zero standard initial state is accepted.
+    bool mHasLastForwardState = false;
 
     void ValidateInput();
 
     void Initialize();
 
-    void InitializeInterfaceCommunicator();
+    void InvalidateForwardState();
 
-    void CreateLinearSolver();
+    void InitializeInterfaceCommunicator();
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
@@ -388,11 +382,13 @@ private:
 
     VectorType BuildEvaluationDerivativeRow(
         const std::vector<double>& rSourceCoordinates,
-        const double ProjectionCoordinate) const;
+        const double ProjectionCoordinate,
+        const double CoordinateHalfLength) const;
 
     VectorType BuildRightHandSide(
         const std::vector<double>& rDisplacements,
-        const std::vector<double>& rRotations) const;
+        const std::vector<double>& rRotations,
+        const double CoordinateHalfLength) const;
 
     void BuildLocalSourceData(
         const BeamChainCacheData& rBeamChainCacheData,
@@ -416,11 +412,8 @@ private:
     MatrixType BuildSplineSystemMatrix(
         const std::vector<double>& rSourceCoordinates) const;
 
-    MatrixType BuildInverseTransposedMatrix(
+    MatrixType BuildTransposedMatrix(
         const MatrixType& rMatrix) const;
-
-    SparseMatrixType BuildSparseMatrix(
-        const MatrixType& rDenseMatrix) const;
 
     void ComputeBeamChainSupport(
         const GeometryType& rBeamGeometry,
@@ -430,6 +423,7 @@ private:
     void ComputeSupportReferenceData(
         const std::vector<IndexType>& rSupportNodeIds,
         std::vector<double>& rLocalXCoordinates,
+        double& rCoordinateHalfLength,
         std::vector<MatrixType>& rSupportFramesLocalToGlobal,
         std::vector<array_1d<double, 3>>& rSupportReferenceCoordinates) const;
 
@@ -461,7 +455,7 @@ private:
         const array_1d<double, 3>& rVector) const;
 
     VectorType TransformVectorToGlobal(
-        const MatrixType& rRotationMatrix_L_G,
+        const MatrixType& rRotationMatrixLocalToGlobal,
         const VectorType& rLocalVector) const;
 
     array_1d<double, 3> GetReferenceCoordinates(const Node& rNode) const;

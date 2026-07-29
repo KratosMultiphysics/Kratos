@@ -7,25 +7,13 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-// Main authors:    Qinfei Ran - Initial development
+// Main authors:
 // Contributor:
-
-/*
-Compilation Commands:
-
-make -C build/applications/MappingApplication custom_mappers/beam_spline_mapper.o
-make -f applications/MappingApplication/CMakeFiles/KratosMappingCore.dir/build.make applications/MappingApplication/libKratosMappingCore.so
-make -f applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/build.make applications/MappingApplication/KratosMappingApplication.cpython-310-x86_64-linux-gnu.so
-
-
-*/
-
 
 
 // System includes
 #include <algorithm>
 #include <array>
-#include <iostream>
 #include <queue>
 #include <sstream>
 #include <unordered_map>
@@ -37,7 +25,6 @@ make -f applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/
 
 // Project includes
 #include "beam_spline_mapper.h"
-#include "factories/linear_solver_factory.h"
 #include "mappers/mapper_define.h"
 #include "mapping_application_variables.h"
 
@@ -108,6 +95,82 @@ array_1d<double, 3> NormalizeVector(const array_1d<double, 3>& rVector)
     return normalized_vector;
 }
 
+struct ReferenceLineProjection
+{
+    Point ProjectionPoint;
+    Vector ShapeValues{2};
+    double LocalCoordinate = 0.0;
+    double Distance = 0.0;
+    bool IsInside = false;
+};
+
+ReferenceLineProjection ProjectOnReferenceLine(
+    const Geometry<Node>& rGeometry,
+    const Point& rPoint,
+    const bool ClampToSegment)
+{
+    KRATOS_ERROR_IF(rGeometry.size() != 2)
+        << "BeamSplineMapper expects a two-node line geometry." << std::endl;
+
+    array_1d<double, 3> x0{{rGeometry[0].X0(), rGeometry[0].Y0(), rGeometry[0].Z0()}};
+    array_1d<double, 3> x1{{rGeometry[1].X0(), rGeometry[1].Y0(), rGeometry[1].Z0()}};
+    const array_1d<double, 3> direction = x1 - x0;
+    const double length_squared = inner_prod(direction, direction);
+    KRATOS_ERROR_IF(length_squared <= FrameTolerance * FrameTolerance)
+        << "Cannot project on a zero-length reference beam." << std::endl;
+
+    array_1d<double, 3> relative = rPoint.Coordinates() - x0;
+    double segment_coordinate = inner_prod(relative, direction) / length_squared;
+    const double unclamped_coordinate = segment_coordinate;
+    if (ClampToSegment) {
+        segment_coordinate = std::clamp(segment_coordinate, 0.0, 1.0);
+    }
+
+    ReferenceLineProjection result;
+    result.ShapeValues(0) = 1.0 - segment_coordinate;
+    result.ShapeValues(1) = segment_coordinate;
+    result.LocalCoordinate = 2.0 * segment_coordinate - 1.0;
+    result.IsInside = unclamped_coordinate >= 0.0 && unclamped_coordinate <= 1.0;
+    noalias(result.ProjectionPoint.Coordinates()) =
+        result.ShapeValues(0) * x0 + result.ShapeValues(1) * x1;
+    result.Distance = norm_2(rPoint.Coordinates() - result.ProjectionPoint.Coordinates());
+    return result;
+}
+
+Matrix BuildReferenceFrame(const Geometry<Node>& rGeometry)
+{
+    array_1d<double, 3> tangent{{
+        rGeometry[1].X0() - rGeometry[0].X0(),
+        rGeometry[1].Y0() - rGeometry[0].Y0(),
+        rGeometry[1].Z0() - rGeometry[0].Z0()}};
+    tangent = NormalizeVector(tangent);
+
+    // Select the Cartesian axis least aligned with the tangent.  Projection
+    // followed by cross products is continuous away from the unavoidable
+    // equal-alignment ties and always produces a right-handed frame.
+    IndexType reference_index = 0;
+    if (std::abs(tangent[1]) < std::abs(tangent[reference_index])) {
+        reference_index = 1;
+    }
+    if (std::abs(tangent[2]) < std::abs(tangent[reference_index])) {
+        reference_index = 2;
+    }
+    array_1d<double, 3> normal = ZeroVector(3);
+    normal[reference_index] = 1.0;
+    normal -= DotProduct(normal, tangent) * tangent;
+    normal = NormalizeVector(normal);
+    array_1d<double, 3> binormal = NormalizeVector(CrossProduct(tangent, normal));
+    normal = NormalizeVector(CrossProduct(binormal, tangent));
+
+    Matrix frame(3, 3, 0.0);
+    for (IndexType i = 0; i < 3; ++i) {
+        frame(i, 0) = tangent[i];
+        frame(i, 1) = normal[i];
+        frame(i, 2) = binormal[i];
+    }
+    return frame;
+}
+
 array_1d<double, 3> MakeArrayFromVector(const Vector& rVector)
 {
     array_1d<double, 3> coordinates = ZeroVector(3);
@@ -123,115 +186,37 @@ const Variable<double>& GetComponentVariable(
 {
     return KratosComponents<Variable<double>>::Get(rVariable.Name() + ComponentSuffixes[ComponentIndex]);
 }
-
-// TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-template<class TVectorType>
-void PrintDebugVector(
-    const std::string& rName,
-    const TVectorType& rVector)
-{
-    (void)rName;
-    (void)rVector;
-    // Debug output intentionally disabled. Keep this helper as a no-op so
-    // temporary diagnostic call sites do not affect the mapper calculation.
-}
-
-// TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-template<class TMatrixType>
-void PrintDebugMatrix(
-    const std::string& rName,
-    const TMatrixType& rMatrix)
-{
-    (void)rName;
-    (void)rMatrix;
-    // Debug output intentionally disabled. Keep this helper as a no-op so
-    // temporary diagnostic call sites do not affect the mapper calculation.
-}
 }
 
 void BeamSplineMapperInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
 {
-    SaveSearchResult(rInterfaceObject, true);
+    SaveSearchResult(rInterfaceObject, false);
 }
 
 void BeamSplineMapperInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject)
 {
     const auto p_geom = rInterfaceObject.pGetBaseGeometry();
+    const Point point_to_project(this->Coordinates());
+    mCoordinates = point_to_project;
+    const auto projection = ProjectOnReferenceLine(*p_geom, point_to_project, true);
 
-    double proj_dist;
-
-    const Point point_to_proj(this->Coordinates());
-    Point projected_point;
-    Point local_coords;
-
-    mCoordinates = point_to_proj;
-
-    Vector linear_shape_function_values;
-    std::vector<int> eq_ids;
-
-    for (auto& r_node : p_geom->Points()) {
-        r_node.X() = r_node.X0();
-        r_node.Y() = r_node.Y0();
-        r_node.Z() = r_node.Z0();
-    }
-
-    // First project the surface point onto the infinite line of this beam candidate.
-    std::ignore = GeometricalProjectionUtilities::FastProjectOnLine((*p_geom), point_to_proj, projected_point);
-
-    p_geom->IsInside(projected_point, local_coords, 1e-14);
-    p_geom->PointLocalCoordinates(local_coords, projected_point);
-
-    // Approximate projections can fall outside the beam segment; clamp them to the valid line element range.
-    local_coords[0] = std::clamp(local_coords[0], -1.0, 1.0);
-    p_geom->ShapeFunctionsValues(linear_shape_function_values, local_coords);
-
-    Point clamped_projected_point;
-    noalias(clamped_projected_point.Coordinates()) =
-        linear_shape_function_values[0] * (*p_geom)[0].Coordinates() +
-        linear_shape_function_values[1] * (*p_geom)[1].Coordinates();
-
-    const double projection_distance = norm_2(point_to_proj - clamped_projected_point);
-
-    if (projection_distance < mClosestProjectionDistance) {
+    if (ProjectionUtilities::PairingIndex::Closest_Point > mPairingIndex ||
+        (ProjectionUtilities::PairingIndex::Closest_Point == mPairingIndex &&
+         projection.Distance < mClosestProjectionDistance)) {
         SetIsApproximation();
-
         mPairingIndex = ProjectionUtilities::PairingIndex::Closest_Point;
-
-        const bool compute_approximation = false;
-        std::ignore = ProjectionUtilities::ProjectOnLine(
-            *p_geom,
-            point_to_proj,
-            mLocalCoordTol,
-            linear_shape_function_values,
-            eq_ids,
-            proj_dist,
-            compute_approximation);
-
-        if (eq_ids.size() != p_geom->PointsNumber()) {
-            eq_ids.resize(p_geom->PointsNumber());
-            for (IndexType i = 0; i < p_geom->PointsNumber(); ++i) {
-                KRATOS_DEBUG_ERROR_IF_NOT((*p_geom)[i].Has(INTERFACE_EQUATION_ID))
-                    << (*p_geom)[i] << " does not have an \"INTERFACE_EQUATION_ID\"" << std::endl;
-                eq_ids[i] = (*p_geom)[i].GetValue(INTERFACE_EQUATION_ID);
-            }
+        mClosestProjectionDistance = projection.Distance;
+        mProjectionOfPoint = projection.ProjectionPoint;
+        mNodeIds.resize(2);
+        mLinearShapeFunctionValues.resize(2);
+        for (IndexType i = 0; i < 2; ++i) {
+            KRATOS_DEBUG_ERROR_IF_NOT((*p_geom)[i].Has(INTERFACE_EQUATION_ID))
+                << (*p_geom)[i] << " does not have an INTERFACE_EQUATION_ID." << std::endl;
+            mNodeIds[i] = (*p_geom)[i].GetValue(INTERFACE_EQUATION_ID);
+            mLinearShapeFunctionValues[i] = projection.ShapeValues(i);
         }
-
-        mClosestProjectionDistance = projection_distance;
-        mNodeIds = eq_ids;
-
-        const IndexType num_values_linear = linear_shape_function_values.size();
-        if (mLinearShapeFunctionValues.size() != num_values_linear) {
-            mLinearShapeFunctionValues.resize(num_values_linear);
-        }
-
-        for (IndexType i = 0; i < num_values_linear; ++i) {
-            mLinearShapeFunctionValues[i] = linear_shape_function_values[i];
-        }
-
-        mProjectionOfPoint = clamped_projected_point;
         mpInterfaceObject = make_shared<InterfaceGeometryObject>(rInterfaceObject.pGetBaseGeometry());
     }
-
 }
 
 void BeamSplineMapperInterfaceInfo::SaveSearchResult(
@@ -240,175 +225,47 @@ void BeamSplineMapperInterfaceInfo::SaveSearchResult(
 {
     const auto p_geom = rInterfaceObject.pGetBaseGeometry();
 
-    double proj_dist;
-
-    const Point point_to_proj(this->Coordinates());
-    Point projected_point;
-
-    mCoordinates = point_to_proj;
-
-    Vector linear_shape_function_values;
-    std::vector<int> eq_ids;
-
-    for (auto& r_node : p_geom->Points()) {
-        r_node.X() = r_node.X0();
-        r_node.Y() = r_node.Y0();
-        r_node.Z() = r_node.Z0();
+    const Point point_to_project(this->Coordinates());
+    mCoordinates = point_to_project;
+    const auto projection = ProjectOnReferenceLine(*p_geom, point_to_project, ComputeApproximation);
+    const bool is_full_projection = projection.IsInside;
+    if (!is_full_projection && !ComputeApproximation) {
+        return;
     }
 
-    const auto geom_family = p_geom->GetGeometryFamily();
-    KRATOS_ERROR_IF(geom_family != GeometryData::KratosGeometryFamily::Kratos_Linear) << "Invalid geometry of the Origin! The geometry should be a beam!";
+    const auto pairing_index = is_full_projection
+        ? ProjectionUtilities::PairingIndex::Line_Inside
+        : ProjectionUtilities::PairingIndex::Closest_Point;
 
-    // Compute the line projection weights and classify how good this candidate beam is.
-    const auto pairing_index_linear = ProjectionUtilities::ProjectOnLine(
-        *p_geom,
-        point_to_proj,
-        mLocalCoordTol,
-        linear_shape_function_values,
-        eq_ids,
-        proj_dist,
-        ComputeApproximation);
-
-    std::ignore = GeometricalProjectionUtilities::FastProjectOnLine(
-        *p_geom,
-        point_to_proj,
-        projected_point);
-
-    const bool is_full_projection = (pairing_index_linear == ProjectionUtilities::PairingIndex::Line_Inside);
     if (is_full_projection) {
         SetLocalSearchWasSuccessful();
     } else {
-        if (!ComputeApproximation) {
-            return;
-        }
         SetIsApproximation();
     }
 
-    // Several beam candidates can be visited; keep the best pairing and, for ties, the nearest projection.
-    if (pairing_index_linear > mPairingIndex ||
-        (pairing_index_linear == mPairingIndex && proj_dist < mClosestProjectionDistance)) {
-        mPairingIndex = pairing_index_linear;
-        mClosestProjectionDistance = proj_dist;
-        mNodeIds = eq_ids;
-
-        const IndexType num_values_linear = linear_shape_function_values.size();
-        if (mLinearShapeFunctionValues.size() != num_values_linear) {
-            mLinearShapeFunctionValues.resize(num_values_linear);
+    if (pairing_index > mPairingIndex ||
+        (pairing_index == mPairingIndex && projection.Distance < mClosestProjectionDistance)) {
+        mPairingIndex = pairing_index;
+        mClosestProjectionDistance = projection.Distance;
+        mProjectionOfPoint = projection.ProjectionPoint;
+        mNodeIds.resize(2);
+        mLinearShapeFunctionValues.resize(2);
+        for (IndexType i = 0; i < 2; ++i) {
+            KRATOS_DEBUG_ERROR_IF_NOT((*p_geom)[i].Has(INTERFACE_EQUATION_ID))
+                << (*p_geom)[i] << " does not have an INTERFACE_EQUATION_ID." << std::endl;
+            mNodeIds[i] = (*p_geom)[i].GetValue(INTERFACE_EQUATION_ID);
+            mLinearShapeFunctionValues[i] = projection.ShapeValues(i);
         }
-
-        for (IndexType i = 0; i < num_values_linear; ++i) {
-            mLinearShapeFunctionValues[i] = linear_shape_function_values[i];
-        }
-
-        mProjectionOfPoint = projected_point;
         mpInterfaceObject = make_shared<InterfaceGeometryObject>(rInterfaceObject.pGetBaseGeometry());
     }
-
 }
 
 void BeamSplineMapperInterfaceInfo::ComputeRotationMatrix()
 {
-    // Known limitations of this frame construction:
-    // - It compares normalized floating-point axis components with exact 0.0/1.0 values, so nearly axis-aligned
-    //   beams can enter an unintended branch due to round-off.
-    // - Negative axis-aligned beams, e.g. (-1, 0, 0), can fall through to the generic branch and divide by
-    //   axis_X[2] when it is zero.
-    // - The special case axis_X = (0, 0, 1) sets axis_Z = (1, 0, 0), while axis_X x axis_Y = (-1, 0, 0);
-    //   this creates a left-handed local frame.
-    // - A more robust construction would choose a non-parallel reference vector and build the frame with
-    //   normalized cross products.
-    std::vector<double> axis_X;
-    std::vector<double> axis_Y;
-    std::vector<double> axis_Z;
-
-    axis_X.resize(3);
-    axis_Y.resize(3);
-    axis_Z.resize(3);
-    
+    KRATOS_ERROR_IF_NOT(mpInterfaceObject)
+        << "Cannot build a beam frame without an interface object." << std::endl;
     const auto p_geom = mpInterfaceObject->pGetBaseGeometry();
-
-    auto temp_v = (*p_geom)[1].Coordinates() - (*p_geom)[0].Coordinates();
-    double length_X = sqrt(temp_v[0]*temp_v[0] + temp_v[1]*temp_v[1] + temp_v[2]*temp_v[2]);
-    
-    KRATOS_ERROR_IF(length_X < 0.000001) << "Lenght of the beam is 0.0" << std::endl;
-    
-    axis_X[0] = temp_v[0] / length_X;
-    axis_X[1] = temp_v[1] / length_X;
-    axis_X[2] = temp_v[2] / length_X;   
-
-    if (axis_X[0] == 1.0 && axis_X[1] == 0.0 && axis_X[2] == 0.0 ){
-        axis_Y[0] = 0.0;
-        axis_Y[1] = 1.0;
-        axis_Y[2] = 0.0;
-        axis_Z[0] = 0.0;
-        axis_Z[1] = 0.0;
-        axis_Z[2] = 1.0;
-    }
-    else if (axis_X[0] == 0.0 && axis_X[1] == 1.0 && axis_X[2] == 0.0 ){
-        axis_Y[0] = 0.0;
-        axis_Y[1] = 0.0;
-        axis_Y[2] = 1.0;
-        axis_Z[0] = 1.0;
-        axis_Z[1] = 0.0;
-        axis_Z[2] = 0.0;
-    }
-    else if (axis_X[0] == 0.0 && axis_X[1] == 0.0 && axis_X[2] == 1.0 ){
-        axis_Y[0] = 0.0;
-        axis_Y[1] = 1.0;
-        axis_Y[2] = 0.0;
-        axis_Z[0] = 1.0;
-        axis_Z[1] = 0.0;
-        axis_Z[2] = 0.0;
-    }
-    else if (axis_X[0] != 0.0 && axis_X[1] != 0.0 && axis_X[2] == 0.0 ){
-        axis_Y[0] = -axis_X[1];
-        axis_Y[1] =  axis_X[0];
-        axis_Y[2] =  0.0;
-        axis_Z[0] = axis_X[1]*axis_Y[2] - axis_X[2]*axis_Y[1]; 
-        axis_Z[1] = axis_X[2]*axis_Y[0] - axis_X[0]*axis_Y[2];
-        axis_Z[2] = axis_X[0]*axis_Y[1] - axis_X[1]*axis_Y[0];
-    }
-    else if (axis_X[0] != 0.0 && axis_X[1] == 0.0 && axis_X[2] != 0.0 ){
-        axis_Y[0] = -axis_X[2];
-        axis_Y[1] =  0;
-        axis_Y[2] =  axis_X[0];
-        axis_Z[0] = axis_X[1]*axis_Y[2] - axis_X[2]*axis_Y[1]; 
-        axis_Z[1] = axis_X[2]*axis_Y[0] - axis_X[0]*axis_Y[2];
-        axis_Z[2] = axis_X[0]*axis_Y[1] - axis_X[1]*axis_Y[0];
-    }
-    else if (axis_X[0] == 0.0 && axis_X[1] != 0.0 && axis_X[2] != 0.0){
-        axis_Y[0] =  0;
-        axis_Y[1] = -axis_X[2];
-        axis_Y[2] =  axis_X[1];
-        axis_Z[0] = axis_X[1]*axis_Y[2] - axis_X[2]*axis_Y[1]; 
-        axis_Z[1] = axis_X[2]*axis_Y[0] - axis_X[0]*axis_Y[2];
-        axis_Z[2] = axis_X[0]*axis_Y[1] - axis_X[1]*axis_Y[0];
-    }
-    else{
-        axis_Y[0] = 1;
-        axis_Y[1] = 1;
-        axis_Y[2] = (-axis_X[0] - axis_X[1]) / axis_X[2];
-        double length_Y = sqrt(axis_Y[0]*axis_Y[0] + axis_Y[1]*axis_Y[1] + axis_Y[2]*axis_Y[2]);
-        axis_Y[0] = axis_Y[0]/length_Y;
-        axis_Y[1] = axis_Y[1]/length_Y;
-        axis_Y[2] = axis_Y[2]/length_Y;
-        
-        axis_Z[0] = axis_X[1]*axis_Y[2] - axis_X[2]*axis_Y[1]; 
-        axis_Z[1] = axis_X[2]*axis_Y[0] - axis_X[0]*axis_Y[2];
-        axis_Z[2] = axis_X[0]*axis_Y[1] - axis_X[1]*axis_Y[0];
-    }
-
-    MatrixType rotation_matrix(3, 3, 0.0);
-
-    for(IndexType j = 0; j < 3; j++)
-    {
-        rotation_matrix(j, 0) = axis_X[j];
-        rotation_matrix(j, 1) = axis_Y[j];
-        rotation_matrix(j, 2) = axis_Z[j];
-    }
-
-    mRotationMatrix_L_G = rotation_matrix;
-
+    mRotationMatrixLocalToGlobal = BuildReferenceFrame(*p_geom);
 }
 
 void BeamSplineMapperInterfaceInfo::save(Serializer& rSerializer) const
@@ -436,17 +293,17 @@ void BeamSplineMapperInterfaceInfo::load(Serializer& rSerializer)
 void BeamSplineMapperLocalSystem::PairingInfo(std::ostream& rOStream, const int EchoLevel) const
 {
     KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not initialized!" << std::endl;
+
     rOStream << "BeamSplineMapperLocalSystem based on " << mpNode->Info();
+    if (EchoLevel > 1) {
+        rOStream << " at Coordinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+    }
 }
 
 BeamSplineMapperLocalSystem::ProjectionData BeamSplineMapperLocalSystem::CalculateProjectionData()
 {
     ProjectionData projection_data;
     projection_data.pNode = mpNode;
-
-    KRATOS_ERROR_IF_NOT(mpNode) << "Destination node is a nullptr." << std::endl;
-    KRATOS_ERROR_IF(mInterfaceInfos.empty())
-        << "Cannot calculate BeamSpline projection data without interface information." << std::endl;
 
     for (auto& r_interface_info : mInterfaceInfos) {
         auto beam_interface_info = std::dynamic_pointer_cast<BeamSplineMapperInterfaceInfo>(r_interface_info);
@@ -480,6 +337,7 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BeamSplineMapper(
 
     ValidateInput();
     mLocalCoordTol = JsonParameters["local_coord_tolerance"].GetDouble();
+    KRATOS_ERROR_IF(mLocalCoordTol < 0.0) << "The local_coord_tolerance cannot be negative." << std::endl;
 
     Initialize();
 
@@ -536,10 +394,25 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InverseMap(
     const Variable<array_1d<double, 3>>& rDestinationVariableForces,
     Kratos::Flags MappingOptions)
 {
-    InitializeOriginForcesAndMoments(
-        rOriginVariablesForces,
-        rOriginVariablesMoments);
+    if (!mHasLastForwardState) {
+        bool is_zero_standard_initial_state = true;
+        constexpr double zero_tolerance = 1.0e-14;
+        for (const auto& r_node : mrModelPartOrigin.Nodes()) {
+            is_zero_standard_initial_state =
+                is_zero_standard_initial_state &&
+                norm_2(r_node.FastGetSolutionStepValue(DISPLACEMENT)) <=
+                    zero_tolerance &&
+                norm_2(r_node.FastGetSolutionStepValue(ROTATION)) <=
+                    zero_tolerance;
+        }
+        KRATOS_ERROR_IF_NOT(is_zero_standard_initial_state)
+            << "BeamSplineMapper::InverseMap requires a successful preceding Map call on "
+            << "the current interface unless standard DISPLACEMENT and ROTATION are both "
+            << "zero. Only that unambiguous initial state may use the zero section-rotation "
+            << "tangent before the first forward transfer." << std::endl;
+    }
 
+    InitializeOriginForcesAndMoments(rOriginVariablesForces, rOriginVariablesMoments);
     InitializeInformationBeamsInverse(
         rOriginVariablesForces,
         rOriginVariablesMoments,
@@ -583,6 +456,14 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::ValidateInput()
 {
     Parameters mapper_default_settings(GetMapperDefaultSettings());
     mMapperSettings.ValidateAndAssignDefaults(mapper_default_settings);
+
+    if (mMapperSettings["search_radius"].GetDouble() < 0.0) {
+        const double search_radius = MapperUtilities::ComputeSearchRadius(
+            mrModelPartOrigin,
+            mrModelPartDestination,
+            mMapperSettings["echo_level"].GetInt());
+        mMapperSettings["search_radius"].SetDouble(search_radius);
+    }
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -590,9 +471,15 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::Initialize()
 {
     mBeamChainCache.clear();
     mNodeIdToBeamChainKey.clear();
-    CreateLinearSolver();
+    InvalidateForwardState();
     InitializeInterfaceCommunicator();
     InitializeInterface();
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void BeamSplineMapper<TSparseSpace, TDenseSpace>::InvalidateForwardState()
+{
+    mHasLastForwardState = false;
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -605,66 +492,11 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInterfaceCommunicato
 }
 
 template<class TSparseSpace, class TDenseSpace>
-void BeamSplineMapper<TSparseSpace, TDenseSpace>::CreateLinearSolver()
-{
-    LinearSolverFactory<TSparseSpace, TDenseSpace> solver_factory;
-
-    if (mMapperSettings["linear_solver_settings"].Has("solver_type")) {
-        const std::string solver_type =
-            mMapperSettings["linear_solver_settings"]["solver_type"].GetString();
-
-        KRATOS_INFO("BeamSplineMapper")
-            << "Using specified linear solver: " << solver_type << std::endl;
-
-        mpLinearSolver = solver_factory.Create(mMapperSettings["linear_solver_settings"]);
-    } else if (solver_factory.Has("pardiso_lu")) {
-        KRATOS_INFO("BeamSplineMapper")
-            << "No linear solver specified. Using PardisoLU." << std::endl;
-
-        Parameters default_settings(R"({
-            "solver_type" : "pardiso_lu"
-        })");
-        mpLinearSolver = solver_factory.Create(default_settings);
-    } else if (solver_factory.Has("pardiso_ldlt")) {
-        KRATOS_INFO("BeamSplineMapper")
-            << "No linear solver specified. Using PardisoLDLT." << std::endl;
-
-        Parameters default_settings(R"({
-            "solver_type" : "pardiso_ldlt"
-        })");
-        mpLinearSolver = solver_factory.Create(default_settings);
-    } else if (solver_factory.Has("sparse_lu")) {
-        KRATOS_INFO("BeamSplineMapper")
-            << "No linear solver specified. Using SparseLU." << std::endl;
-
-        Parameters default_settings(R"({
-            "solver_type" : "sparse_lu"
-        })");
-        mpLinearSolver = solver_factory.Create(default_settings);
-    } else {
-        KRATOS_WARNING("BeamSplineMapper")
-            << "No pivoting direct linear solver is registered. Using AMGCL GMRES fallback." << std::endl;
-
-        Parameters default_settings(R"({
-            "solver_type"                  : "amgcl",
-            "preconditioner_type"          : "dummy",
-            "krylov_type"                  : "gmres",
-            "tolerance"                    : 1.0e-12,
-            "max_iteration"                : 5000,
-            "gmres_krylov_space_dimension" : 500,
-            "verbosity"                    : 0,
-            "scaling"                      : true,
-            "block_size"                   : 1
-        })");
-        mpLinearSolver = solver_factory.Create(default_settings);
-    }
-}
-
-template<class TSparseSpace, class TDenseSpace>
 void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Flags MappingOptions)
 {
     mBeamChainCache.clear();
     mNodeIdToBeamChainKey.clear();
+    InvalidateForwardState();
     CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(), mMapperLocalSystems);
     BuildProblem(MappingOptions);
 }
@@ -672,6 +504,10 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Fl
 template<class TSparseSpace, class TDenseSpace>
 void BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildProblem(Kratos::Flags MappingOptions)
 {
+    // Search/projection changes invalidate every per-destination rotation
+    // cached by the preceding nonlinear forward map.
+    InvalidateForwardState();
+
     MapperUtilities::AssignInterfaceEquationIdsToNodes(mrModelPartOrigin.GetCommunicator());
     MapperUtilities::AssignInterfaceEquationIdsToNodes(mrModelPartDestination.GetCommunicator());
 
@@ -759,7 +595,8 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(
             projection_coordinate);
         const VectorType evaluation_derivative_row = BuildEvaluationDerivativeRow(
             r_beam_chain_cache_data.LocalXCoordinates,
-            projection_coordinate);
+            projection_coordinate,
+            r_beam_chain_cache_data.CoordinateHalfLength);
 
         const double axial_displacement =
             projection_data.LinearShapeValues(0) * r_source_state_data.LocalDisplacements[0][first_segment_node_index] +
@@ -770,8 +607,12 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(
             projection_data.LinearShapeValues(1) * r_source_state_data.LocalRotations[0][second_segment_node_index];
         VectorType evaluation_rotation_vector(3);
         evaluation_rotation_vector(0) = torsional_rotation;
-        evaluation_rotation_vector(1) = -inner_prod(evaluation_derivative_row, r_source_state_data.SplineCoefficientsZ);
-        evaluation_rotation_vector(2) = inner_prod(evaluation_derivative_row, r_source_state_data.SplineCoefficientsY);
+        evaluation_rotation_vector(1) = -inner_prod(
+            evaluation_derivative_row,
+            r_source_state_data.SplineCoefficientsZ);
+        evaluation_rotation_vector(2) = inner_prod(
+            evaluation_derivative_row,
+            r_source_state_data.SplineCoefficientsY);
         beam_sys->SaveEvaluationRotationVector(evaluation_rotation_vector);
 
         const array_1d<double, 3> projection_point_reference = MakeArrayFromVector(projection_data.ProjectionPoint);
@@ -794,28 +635,15 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(
             evaluation_rotation_matrix_local_to_global,
             local_displacement);
 
-        // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-        VectorType initial_destination_displacement(3, 0.0);
-        for (IndexType i = 0; i < 3; ++i) {
-            initial_destination_displacement(i) =
-                projection_data.pNode->FastGetSolutionStepValue(GetComponentVariable(rDestinationVariableDisplacement, i));
-        }
-        // TEMP DEBUG OUTPUT DISABLED - REMOVE AFTER VERIFICATION
-        // std::cout << "[BeamSplineMapper DEBUG] MapDisplacements::destination_node_id = "
-        //           << projection_data.pNode->Id() << std::endl;
-        // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-        PrintDebugVector("MapDisplacements::initial_destination_displacement_global", initial_destination_displacement);
-        // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-        PrintDebugVector("MapDisplacements::final_destination_displacement_local", local_displacement);
-        // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-        PrintDebugVector("MapDisplacements::final_destination_displacement_global", global_displacement);
-
         for (IndexType i = 0; i < 3; ++i) {
             projection_data.pNode->FastGetSolutionStepValue(GetComponentVariable(rDestinationVariableDisplacement, i)) =
                 global_displacement(i);
         }
     }
 
+    // Publish the nonlinear state only after all destination nodes were
+    // mapped successfully.
+    mHasLastForwardState = true;
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -863,28 +691,25 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsInve
         const double projection_coordinate =
             projection_data.LinearShapeValues(0) * r_beam_chain_cache_data.LocalXCoordinates[first_segment_node_index] +
             projection_data.LinearShapeValues(1) * r_beam_chain_cache_data.LocalXCoordinates[second_segment_node_index];
-
         const VectorType evaluation_row = BuildEvaluationRow(
             r_beam_chain_cache_data.LocalXCoordinates,
             projection_coordinate);
         const VectorType evaluation_derivative_row = BuildEvaluationDerivativeRow(
             r_beam_chain_cache_data.LocalXCoordinates,
-            projection_coordinate);
+            projection_coordinate,
+            r_beam_chain_cache_data.CoordinateHalfLength);
 
         array_1d<double, 3> surface_force_global = ZeroVector(3);
         for (IndexType i = 0; i < 3; ++i) {
             surface_force_global[i] =
                 projection_data.pNode->FastGetSolutionStepValue(GetComponentVariable(rDestinationVariableForces, i));
         }
-
         const VectorType surface_force_local = TransformVectorToLocal(
             evaluation_rotation_matrix_global_to_local,
             surface_force_global);
 
-        const array_1d<double, 3> projection_point_reference =
-            MakeArrayFromVector(projection_data.ProjectionPoint);
-        const array_1d<double, 3> destination_point_reference =
-            GetReferenceCoordinates(*projection_data.pNode);
+        const array_1d<double, 3> projection_point_reference = MakeArrayFromVector(projection_data.ProjectionPoint);
+        const array_1d<double, 3> destination_point_reference = GetReferenceCoordinates(*projection_data.pNode);
         const VectorType offset_vector_local = TransformGlobalToLocal(
             evaluation_rotation_matrix_global_to_local,
             projection_point_reference,
@@ -992,20 +817,22 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsInve
 
         VectorType adjoint_coefficients_y(spline_system_size, 0.0);
         VectorType adjoint_coefficients_z(spline_system_size, 0.0);
-        TDenseSpace::Mult(
-            r_beam_chain_cache_data.InverseTransposedSplineSystemMatrix,
-            right_hand_side_y,
-            adjoint_coefficients_y);
-        TDenseSpace::Mult(
-            r_beam_chain_cache_data.InverseTransposedSplineSystemMatrix,
-            right_hand_side_z,
-            adjoint_coefficients_z);
+        MathUtils<double>::Solve(
+            r_beam_chain_cache_data.TransposedSplineSystemMatrix,
+            adjoint_coefficients_y,
+            right_hand_side_y);
+        MathUtils<double>::Solve(
+            r_beam_chain_cache_data.TransposedSplineSystemMatrix,
+            adjoint_coefficients_z,
+            right_hand_side_z);
 
         for (IndexType i = 0; i < number_of_support_nodes; ++i) {
             local_forces[1][i] += adjoint_coefficients_y(i);
-            local_moments[2][i] += adjoint_coefficients_y(number_of_support_nodes + i);
+            local_moments[2][i] += r_beam_chain_cache_data.CoordinateHalfLength *
+                adjoint_coefficients_y(number_of_support_nodes + i);
             local_forces[2][i] += adjoint_coefficients_z(i);
-            local_moments[1][i] -= adjoint_coefficients_z(number_of_support_nodes + i);
+            local_moments[1][i] -= r_beam_chain_cache_data.CoordinateHalfLength *
+                adjoint_coefficients_z(number_of_support_nodes + i);
         }
 
         for (IndexType i = 0; i < number_of_support_nodes; ++i) {
@@ -1042,29 +869,22 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsInve
 template<class TSparseSpace, class TDenseSpace>
 double BeamSplineMapper<TSparseSpace, TDenseSpace>::EvaluateKernelValue(const double Distance) const
 {
-    double abs_distance = std::abs(Distance);
-    double KernelValue = abs_distance * abs_distance * abs_distance;
-
-    return KernelValue;
+    return std::abs(Distance) * Distance * Distance;
 }
 
 template<class TSparseSpace, class TDenseSpace>
 double BeamSplineMapper<TSparseSpace, TDenseSpace>::EvaluateKernelFirstDerivative(const double Distance) const
 {
-    double abs_distance = std::abs(Distance);
-    double KernelFirstDerivative = 3.0 * Distance * abs_distance;
-
-    return KernelFirstDerivative;
+    return 3.0 * Distance * std::abs(Distance);
 }
 
 template<class TSparseSpace, class TDenseSpace>
 double BeamSplineMapper<TSparseSpace, TDenseSpace>::EvaluateKernelSecondDerivative(const double Distance) const
 {
-    const double abs_distance = std::abs(Distance);
-    if (abs_distance < PolynomialTolerance) {
+    if (std::abs(Distance) < PolynomialTolerance) {
         return 0.0;
     }
-    return 6.0 * abs_distance;
+    return 6.0 * std::abs(Distance);
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -1077,8 +897,6 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildSplineSystemMatrices(
     MatrixType& rPsFirstDerivative) const
 {
     const IndexType number_of_source_nodes = rSourceCoordinates.size();
-    KRATOS_ERROR_IF(number_of_source_nodes < 2)
-        << "BeamSplineMapper requires at least two source coordinates to build a spline system." << std::endl;
 
     rMss.resize(number_of_source_nodes, number_of_source_nodes, false);
     rMssFirstDerivative.resize(number_of_source_nodes, number_of_source_nodes, false);
@@ -1099,7 +917,6 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildSplineSystemMatrices(
             rMssSecondDerivative(i, j) = EvaluateKernelSecondDerivative(distance);
         }
     }
-
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -1109,9 +926,6 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildEvaluationRow(
     const double ProjectionCoordinate) const
 {
     const IndexType number_of_source_nodes = rSourceCoordinates.size();
-    KRATOS_ERROR_IF(number_of_source_nodes < 2)
-        << "BeamSplineMapper requires at least two source coordinates to build an evaluation row." << std::endl;
-
     VectorType evaluation_row(2 * number_of_source_nodes + 2, 0.0);
 
     for (IndexType j = 0; j < number_of_source_nodes; ++j) {
@@ -1119,19 +933,8 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildEvaluationRow(
         evaluation_row(j) = EvaluateKernelValue(distance);
         evaluation_row(number_of_source_nodes + j) = EvaluateKernelFirstDerivative(distance);
     }
-
-    evaluation_row(2 * number_of_source_nodes) = 1.0;
+    evaluation_row(2 * number_of_source_nodes + 0) = 1.0;
     evaluation_row(2 * number_of_source_nodes + 1) = ProjectionCoordinate;
-
-    /*
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildEvaluationRow::source_coordinates", rSourceCoordinates);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    std::cout << "[BeamSplineMapper DEBUG] BuildEvaluationRow::projection_coordinate = "
-              << ProjectionCoordinate << std::endl;
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildEvaluationRow::C_f_[Mfs_Mprimefs_Pf]", evaluation_row);
-    */
 
     return evaluation_row;
 }
@@ -1140,22 +943,19 @@ template<class TSparseSpace, class TDenseSpace>
 typename BeamSplineMapper<TSparseSpace, TDenseSpace>::VectorType
 BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildEvaluationDerivativeRow(
     const std::vector<double>& rSourceCoordinates,
-    const double ProjectionCoordinate) const
+    const double ProjectionCoordinate,
+    const double CoordinateHalfLength) const
 {
     const IndexType number_of_source_nodes = rSourceCoordinates.size();
-    KRATOS_ERROR_IF(number_of_source_nodes < 2)
-        << "BeamSplineMapper requires at least two source coordinates to build an evaluation derivative row." << std::endl;
-
     VectorType evaluation_derivative_row(2 * number_of_source_nodes + 2, 0.0);
 
     for (IndexType j = 0; j < number_of_source_nodes; ++j) {
         const double distance = ProjectionCoordinate - rSourceCoordinates[j];
-        evaluation_derivative_row(j) = EvaluateKernelFirstDerivative(distance);
-        evaluation_derivative_row(number_of_source_nodes + j) = EvaluateKernelSecondDerivative(distance);
+        evaluation_derivative_row(j) = EvaluateKernelFirstDerivative(distance) / CoordinateHalfLength;
+        evaluation_derivative_row(number_of_source_nodes + j) =
+            EvaluateKernelSecondDerivative(distance) / CoordinateHalfLength;
     }
-
-    evaluation_derivative_row(2 * number_of_source_nodes) = 0.0;
-    evaluation_derivative_row(2 * number_of_source_nodes + 1) = 1.0;
+    evaluation_derivative_row(2 * number_of_source_nodes + 1) = 1.0 / CoordinateHalfLength;
 
     return evaluation_derivative_row;
 }
@@ -1164,30 +964,16 @@ template<class TSparseSpace, class TDenseSpace>
 typename BeamSplineMapper<TSparseSpace, TDenseSpace>::VectorType
 BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildRightHandSide(
     const std::vector<double>& rDisplacements,
-    const std::vector<double>& rRotations) const
+    const std::vector<double>& rRotations,
+    const double CoordinateHalfLength) const
 {
     const IndexType number_of_source_nodes = rDisplacements.size();
-    KRATOS_ERROR_IF(number_of_source_nodes < 2)
-        << "BeamSplineMapper requires at least two displacement values to build the spline right-hand side." << std::endl;
-    KRATOS_ERROR_IF(rRotations.size() != number_of_source_nodes)
-        << "The number of spline rotation values (" << rRotations.size()
-        << ") does not match the number of displacement values (" << number_of_source_nodes << ")." << std::endl;
-
     VectorType right_hand_side(2 * number_of_source_nodes + 2, 0.0);
 
     for (IndexType i = 0; i < number_of_source_nodes; ++i) {
         right_hand_side(i) = rDisplacements[i];
-        right_hand_side(number_of_source_nodes + i) = rRotations[i];
+        right_hand_side(number_of_source_nodes + i) = CoordinateHalfLength * rRotations[i];
     }
-
-    /*
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildRightHandSide::displacements", rDisplacements);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildRightHandSide::rotations", rRotations);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildRightHandSide::right_hand_side", right_hand_side);
-    */
 
     return right_hand_side;
 }
@@ -1227,21 +1013,6 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildLocalSourceData(
             rLocalRotations[j][i] = rotation_local(j);
         }
     }
-
-    /*
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildLocalSourceData::local_displacements_x", rLocalDisplacements[0]);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildLocalSourceData::local_displacements_y", rLocalDisplacements[1]);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildLocalSourceData::local_displacements_z", rLocalDisplacements[2]);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildLocalSourceData::local_rotations_x", rLocalRotations[0]);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildLocalSourceData::local_rotations_y", rLocalRotations[1]);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildLocalSourceData::local_rotations_z", rLocalRotations[2]);
-    */
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -1281,7 +1052,8 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildAllBeamChainSourceStates(
 
         const VectorType right_hand_side_y = BuildRightHandSide(
             source_state_data.LocalDisplacements[1],
-            source_state_data.LocalRotations[2]);
+            source_state_data.LocalRotations[2],
+            r_beam_chain_cache_data.CoordinateHalfLength);
 
         std::vector<double> negative_local_rotation_y(
             source_state_data.LocalRotations[1].size(),
@@ -1292,7 +1064,8 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildAllBeamChainSourceStates(
 
         const VectorType right_hand_side_z = BuildRightHandSide(
             source_state_data.LocalDisplacements[2],
-            negative_local_rotation_y);
+            negative_local_rotation_y,
+            r_beam_chain_cache_data.CoordinateHalfLength);
 
         source_state_data.SplineCoefficientsY = SolveSplineCoefficients(
             r_beam_chain_cache_data.SplineSystemMatrix,
@@ -1326,13 +1099,14 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::GetOrCreateBeamChainCacheData(
     ComputeSupportReferenceData(
         beam_chain_cache_data.SupportNodeIds,
         beam_chain_cache_data.LocalXCoordinates,
+        beam_chain_cache_data.CoordinateHalfLength,
         beam_chain_cache_data.SupportFramesLocalToGlobal,
         beam_chain_cache_data.SupportReferenceCoordinates);
     beam_chain_cache_data.Key = CreateBeamChainKey(beam_chain_cache_data.SupportNodeIds);
     beam_chain_cache_data.SplineSystemMatrix = BuildSplineSystemMatrix(
         beam_chain_cache_data.LocalXCoordinates);
-    beam_chain_cache_data.InverseTransposedSplineSystemMatrix =
-        BuildInverseTransposedMatrix(beam_chain_cache_data.SplineSystemMatrix);
+    beam_chain_cache_data.TransposedSplineSystemMatrix =
+        BuildTransposedMatrix(beam_chain_cache_data.SplineSystemMatrix);
 
     for (const IndexType node_id : beam_chain_cache_data.SupportNodeIds) {
         mNodeIdToBeamChainKey[node_id] = beam_chain_cache_data.Key;
@@ -1351,12 +1125,6 @@ std::string BeamSplineMapper<TSparseSpace, TDenseSpace>::CreateBeamChainKey(
     for (const IndexType node_id : rSupportNodeIds) {
         key_stream << node_id << '-';
     }
-
-    /*
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("CreateBeamChainKey::support_node_ids", rSupportNodeIds);
-    */
-
     return key_stream.str();
 }
 
@@ -1392,42 +1160,33 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildSplineSystemMatrix(
                 mss_second_derivative(i, j);
         }
 
-        spline_system(i, 2 * number_of_source_nodes) = ps(i, 0);
+        spline_system(i, 2 * number_of_source_nodes + 0) = ps(i, 0);
         spline_system(i, 2 * number_of_source_nodes + 1) = ps(i, 1);
-        spline_system(number_of_source_nodes + i, 2 * number_of_source_nodes) =
+        spline_system(number_of_source_nodes + i, 2 * number_of_source_nodes + 0) =
             ps_first_derivative(i, 0);
         spline_system(number_of_source_nodes + i, 2 * number_of_source_nodes + 1) =
             ps_first_derivative(i, 1);
-
-        spline_system(2 * number_of_source_nodes, i) = ps(i, 0);
+        spline_system(2 * number_of_source_nodes + 0, i) = ps(i, 0);
         spline_system(2 * number_of_source_nodes + 1, i) = ps(i, 1);
-        spline_system(2 * number_of_source_nodes, number_of_source_nodes + i) =
+        spline_system(2 * number_of_source_nodes + 0, number_of_source_nodes + i) =
             ps_first_derivative(i, 0);
         spline_system(2 * number_of_source_nodes + 1, number_of_source_nodes + i) =
             ps_first_derivative(i, 1);
     }
-
-    /*
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("BuildSplineSystemMatrix::source_coordinates", rSourceCoordinates);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugMatrix("BuildSplineSystemMatrix::A", spline_system);
-    */
 
     return spline_system;
 }
 
 template<class TSparseSpace, class TDenseSpace>
 typename BeamSplineMapper<TSparseSpace, TDenseSpace>::MatrixType
-BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildInverseTransposedMatrix(
+BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildTransposedMatrix(
     const MatrixType& rMatrix) const
 {
     const IndexType matrix_size = rMatrix.size1();
     KRATOS_ERROR_IF(matrix_size == 0)
-        << "Cannot invert an empty matrix." << std::endl;
+        << "Cannot transpose an empty beam-spline matrix." << std::endl;
     KRATOS_ERROR_IF(rMatrix.size2() != matrix_size)
-        << "Cannot invert the transpose of a non-square matrix. Got "
-        << rMatrix.size1() << " x " << rMatrix.size2() << "." << std::endl;
+        << "Cannot transpose a non-square beam-spline matrix." << std::endl;
 
     MatrixType transposed_matrix(matrix_size, matrix_size, 0.0);
     for (IndexType i = 0; i < matrix_size; ++i) {
@@ -1436,53 +1195,14 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildInverseTransposedMatrix(
         }
     }
 
-    MatrixType inverse_transposed_matrix(matrix_size, matrix_size, 0.0);
-    SparseMatrixType sparse_transposed_matrix = BuildSparseMatrix(transposed_matrix);
-    VectorType right_hand_side(matrix_size, 0.0);
-    VectorType solution(matrix_size, 0.0);
-    for (IndexType column_index = 0; column_index < matrix_size; ++column_index) {
-        std::fill(right_hand_side.begin(), right_hand_side.end(), 0.0);
-        std::fill(solution.begin(), solution.end(), 0.0);
-        right_hand_side(column_index) = 1.0;
-
-        mpLinearSolver->Solve(
-            sparse_transposed_matrix,
-            solution,
-            right_hand_side);
-
-        for (IndexType row_index = 0; row_index < matrix_size; ++row_index) {
-            inverse_transposed_matrix(row_index, column_index) = solution(row_index);
-        }
-    }
-
-    return inverse_transposed_matrix;
-}
-
-template<class TSparseSpace, class TDenseSpace>
-typename BeamSplineMapper<TSparseSpace, TDenseSpace>::SparseMatrixType
-BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildSparseMatrix(
-    const MatrixType& rDenseMatrix) const
-{
-    const IndexType number_of_rows = rDenseMatrix.size1();
-    const IndexType number_of_columns = rDenseMatrix.size2();
-    SparseMatrixType sparse_matrix(number_of_rows, number_of_columns);
-
-    for (IndexType i = 0; i < number_of_rows; ++i) {
-        for (IndexType j = 0; j < number_of_columns; ++j) {
-            const double value = rDenseMatrix(i, j);
-            if (std::abs(value) > 0.0) {
-                sparse_matrix(i, j) = value;
-            }
-        }
-    }
-
-    return sparse_matrix;
+    return transposed_matrix;
 }
 
 template<class TSparseSpace, class TDenseSpace>
 void BeamSplineMapper<TSparseSpace, TDenseSpace>::ComputeSupportReferenceData(
     const std::vector<IndexType>& rSupportNodeIds,
     std::vector<double>& rLocalXCoordinates,
+    double& rCoordinateHalfLength,
     std::vector<MatrixType>& rSupportFramesLocalToGlobal,
     std::vector<array_1d<double, 3>>& rSupportReferenceCoordinates) const
 {
@@ -1501,6 +1221,14 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::ComputeSupportReferenceData(
             rLocalXCoordinates[i] = rLocalXCoordinates[i - 1] +
                 norm_2(rSupportReferenceCoordinates[i] - rSupportReferenceCoordinates[i - 1]);
         }
+    }
+
+    const double total_length = rLocalXCoordinates.back();
+    KRATOS_ERROR_IF(total_length <= 2.0 * FrameTolerance)
+        << "BeamSplineMapper cannot normalize a zero-length beam chain." << std::endl;
+    rCoordinateHalfLength = 0.5 * total_length;
+    for (double& r_coordinate : rLocalXCoordinates) {
+        r_coordinate = r_coordinate / rCoordinateHalfLength - 1.0;
     }
 
     std::vector<array_1d<double, 3>> tangents(number_of_source_nodes, ZeroVector(3));
@@ -1551,18 +1279,6 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::ComputeSupportReferenceData(
             rSupportFramesLocalToGlobal[i](k, 2) = current_binormal[k];
         }
     }
-
-    /*
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("ComputeSupportReferenceData::support_node_ids", rSupportNodeIds);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("ComputeSupportReferenceData::local_x_coordinates", rLocalXCoordinates);
-    for (IndexType i = 0; i < rSupportFramesLocalToGlobal.size(); ++i) {
-        // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-        PrintDebugMatrix("ComputeSupportReferenceData::support_frame_local_to_global[" + std::to_string(i) + "]",
-            rSupportFramesLocalToGlobal[i]);
-    }
-    */
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -1749,32 +1465,12 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::SolveSplineCoefficients(
     KRATOS_ERROR_IF(system_size == 0)
         << "Cannot solve an empty spline coefficient system." << std::endl;
     KRATOS_ERROR_IF(rSplineSystemMatrix.size2() != system_size)
-        << "Spline coefficient system matrix must be square. Got "
-        << rSplineSystemMatrix.size1() << " x " << rSplineSystemMatrix.size2() << "." << std::endl;
+        << "Spline coefficient system matrix must be square." << std::endl;
     KRATOS_ERROR_IF(rRightHandSide.size() != system_size)
-        << "Spline coefficient right-hand side size (" << rRightHandSide.size()
-        << ") does not match system size (" << system_size << ")." << std::endl;
+        << "Spline coefficient right-hand side has the wrong size." << std::endl;
 
     VectorType coefficients(system_size, 0.0);
-
-    KRATOS_ERROR_IF_NOT(mpLinearSolver)
-        << "BeamSplineMapper linear solver was not created before solving the spline system." << std::endl;
-
-    SparseMatrixType sparse_spline_system = BuildSparseMatrix(rSplineSystemMatrix);
-    VectorType right_hand_side = rRightHandSide;
-    mpLinearSolver->Solve(
-        sparse_spline_system,
-        coefficients,
-        right_hand_side);
-
-    /*
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugMatrix("SolveSplineCoefficients::A", rSplineSystemMatrix);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("SolveSplineCoefficients::right_hand_side", rRightHandSide);
-    // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-    PrintDebugVector("SolveSplineCoefficients::coefficients", coefficients);
-    */
+    MathUtils<double>::Solve(rSplineSystemMatrix, coefficients, rRightHandSide);
 
     return coefficients;
 }
@@ -1928,24 +1624,16 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::EvaluatePointDisplacementLocal(
     rotation_z(1, 1) = cos_z;
     rotation_z(2, 2) = 1.0;
 
-    MatrixType rotation_matrix(3, 3);
-    MatrixType tmp_rotation(3, 3);
-    tmp_rotation = prod(rotation_x, rotation_z);
-    rotation_matrix = prod(tmp_rotation, rotation_y);
-
-    // get R * rOffset 
+    const MatrixType rotation_x_z = prod(rotation_x, rotation_z);
+    const MatrixType rotation_matrix = prod(rotation_x_z, rotation_y);
     VectorType rotated_offset(3, 0.0);
     TDenseSpace::Mult(rotation_matrix, rOffsetVectorLocal, rotated_offset);
 
-
     VectorType local_displacement(3);
-    // Δr = R * rOffset - rOffset
-    //       = (R - I) * rOffset
-    // u_local = u_centerline + Δr
-    //         = u_centerline + (R - I) * rOffset
-    local_displacement(0) = centerline_displacement(0) + rotated_offset(0) - rOffsetVectorLocal(0);
-    local_displacement(1) = centerline_displacement(1) + rotated_offset(1) - rOffsetVectorLocal(1);
-    local_displacement(2) = centerline_displacement(2) + rotated_offset(2) - rOffsetVectorLocal(2);
+    for (IndexType i = 0; i < 3; ++i) {
+        local_displacement(i) =
+            centerline_displacement(i) + rotated_offset(i) - rOffsetVectorLocal(i);
+    }
 
     return local_displacement;
 }
@@ -1965,7 +1653,6 @@ Parameters BeamSplineMapper<TSparseSpace, TDenseSpace>::GetMapperDefaultSettings
         "search_radius"                : -1.0,
         "search_iterations"            : 3,
         "local_coord_tolerance"        : 0.25,
-        "linear_solver_settings"       : {},
         "echo_level"                   : 0
     })");
 }
