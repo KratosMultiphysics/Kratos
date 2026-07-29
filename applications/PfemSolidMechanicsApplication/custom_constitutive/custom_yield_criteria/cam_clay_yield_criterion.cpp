@@ -43,7 +43,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    CamClayYieldCriterion& CamClayYieldCriterion::operator=(CamClayYieldCriterion const& rOther)

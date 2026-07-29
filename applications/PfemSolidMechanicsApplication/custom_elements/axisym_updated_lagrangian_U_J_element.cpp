@@ -57,7 +57,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    AxisymUpdatedLagrangianUJElement&  AxisymUpdatedLagrangianUJElement::operator=(AxisymUpdatedLagrangianUJElement const& rOther)
@@ -485,7 +485,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
 
       // copy of a non-derived class
 
-      //Get the parent coodinates derivative [dN/d£]
+      //Get the parent coordinates derivative [dN/d£]
       const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
       //Get the shape functions for the order of the integration method [N]
@@ -660,7 +660,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       // VectorType Fh=rRightHandSideVector;
       // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
-      //use of this variable for the complete parameter: (deffault: 4)
+      //use of this variable for the complete parameter: (default: 4)
       double AlphaStabilization  = 4.0;
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_J];
       AlphaStabilization *= StabilizationFactor;
@@ -1056,7 +1056,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       unsigned int indexpi = dimension;
       double consistent = 1.0;
 
-      //use of this variable for the complete parameter: (deffault: 4)
+      //use of this variable for the complete parameter: (default: 4)
       double AlphaStabilization  = 4.0;
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_J];
       AlphaStabilization *= StabilizationFactor;
@@ -1135,7 +1135,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
          //compute element kinematics
          this->CalculateKinematics( Variables, PointNumber );
 
-         //getting informations for integration
+         //getting information for integration
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ * 2.0 * 3.141592654 * Variables.CurrentRadius;
 
 
