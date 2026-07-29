@@ -307,7 +307,8 @@ private:
     /*
      * polynomial_level is intentionally numeric in user settings:
      *
-     * 0 AUTO: select the highest level whose scaled polynomial matrix is
+     * 0 AUTO: prefer levels 7, 6, 5, then fall back through 4, 3, 2, 1.
+     *   A candidate is accepted only when its scaled polynomial matrix is
      *   full-column-rank and has kappa_2 <= 1e8.
      *
      * 1 PAPER_FULL_3D_LINEAR (12 modes):
@@ -329,6 +330,53 @@ private:
      *   P2..P3(xi)e_a and P2..P5(xi)(e_a x r), where Pn are
      *   Legendre polynomials.  It spans the former monomial high-order space
      *   while avoiding the severe origin/length scaling of s^n.
+     *
+     * Levels 5--7 use a chosen line-supported affine completion.  For
+     *
+     *     u(X) = a + B X,
+     *
+     * collinear displacement values and curls identify only
+     *
+     *     a,  g = B t,  c = curl(u),
+     *
+     * i.e. nine independent affine quantities rather than all twelve
+     * coefficients of (a,B).  The deterministic local frame Q=[t,n,b] uses
+     * the cyclic global reference direction x->y->z->x (projected normal to
+     * t) to fix its otherwise arbitrary section orientation.  In that frame,
+     * the mapper selects the following right-inverse of those observations:
+     *
+     *             [ g_t  g_n-c_b  c_n+g_b ]
+     *     B_hat = [ g_n     0       -c_t  ].
+     *             [ g_b     0         0   ]
+     *
+     * Thus B_hat*t=g and curl(B_hat X)=c exactly.  The transverse affine
+     * nullspace is not claimed to be identified from the beam data: its
+     * representative is fixed by this upper-triangular shear convention.
+     *
+     * 5 LINE_SHEAR_BASIC (9 modes):
+     *   translations, P1(xi)e_a centerline-gradient modes, and three local
+     *   curl modes that realize the upper-triangular completion above.
+     *
+     * 6 LINE_SHEAR_ENRICHED (12 modes): level 5 plus
+     *   P1(xi) times the three shear-completion curl modes.
+     *
+     * 7 LINE_SHEAR_HIGH_ORDER_ORTHOGONAL (30 modes): level 6 plus the same
+     *   Legendre hierarchy as level 4, using shear-completion curl modes in
+     *   place of rigid/skew modes.
+     *
+     * Levels 2--4 deliberately retain the former rigid/skew interpretation.
+     * In particular, axial curl cannot distinguish a chosen cross-section
+     * shear from rigid twist without additional section data.
+     *
+     * Only level 0 may select a lower effective level. Explicit levels 1--7
+     * are strict requests and fail if their polynomial functionals are not
+     * unisolvent for the supplied beam support.
+     *
+     * In finite mode, ROTATION is interpreted as a global total rotation
+     * vector (exponential coordinates). This is exactly compatible with
+     * single-axis/commuting CrBeamElement3D2N motion, but not in general with
+     * the element's internally accumulated quaternion after non-commuting
+     * increments.
      */
     static constexpr IndexType Full3DPolynomialBasisSize = 4;
     static constexpr IndexType Full3DVectorPolynomialSize = 3 * Full3DPolynomialBasisSize;
@@ -356,6 +404,7 @@ private:
         std::string PolynomialBasis;
         array_1d<double, 3> PolynomialReferencePoint = ZeroVector(3);
         array_1d<double, 3> PolynomialTangent = ZeroVector(3);
+        MatrixType PolynomialFrameLocalToGlobal = IdentityMatrix(3);
         double PolynomialHalfLength = 1.0;
         IndexType PolynomialRank = 0;
         double PolynomialConditionNumber = 0.0;
@@ -393,6 +442,8 @@ private:
     void ValidateInput();
 
     void Initialize();
+
+    void InvalidateFiniteForwardState();
 
     void InitializeInterfaceCommunicator();
 

@@ -153,20 +153,21 @@ ReferenceLineProjection ProjectOnReferenceLine(
     return result;
 }
 
-Matrix BuildReferenceFrame(const Geometry<Node>& rGeometry)
+Matrix BuildReferenceFrameFromTangent(const array_1d<double, 3>& rInputTangent)
 {
-    array_1d<double, 3> tangent{{
-        rGeometry[1].X0() - rGeometry[0].X0(),
-        rGeometry[1].Y0() - rGeometry[0].Y0(),
-        rGeometry[1].Z0() - rGeometry[0].Z0()}};
-    tangent = NormalizeVector(tangent);
-    IndexType reference_index = 0;
-    if (std::abs(tangent[1]) < std::abs(tangent[reference_index])) {
-        reference_index = 1;
+    const array_1d<double, 3> tangent = NormalizeVector(rInputTangent);
+    IndexType dominant_index = 0;
+    if (std::abs(tangent[1]) > std::abs(tangent[dominant_index])) {
+        dominant_index = 1;
     }
-    if (std::abs(tangent[2]) < std::abs(tangent[reference_index])) {
-        reference_index = 2;
+    if (std::abs(tangent[2]) > std::abs(tangent[dominant_index])) {
+        dominant_index = 2;
     }
+    // The cyclic convention x->y->z->x makes the otherwise unidentifiable
+    // orientation of the upper-triangular section closure deterministic.
+    // The selected reference cannot be parallel to the tangent because its
+    // component is no larger than the dominant component.
+    const IndexType reference_index = (dominant_index + 1) % 3;
     array_1d<double, 3> normal = ZeroVector(3);
     normal[reference_index] = 1.0;
     normal -= DotProduct(normal, tangent) * tangent;
@@ -181,6 +182,15 @@ Matrix BuildReferenceFrame(const Geometry<Node>& rGeometry)
         frame(i, 2) = binormal[i];
     }
     return frame;
+}
+
+Matrix BuildReferenceFrame(const Geometry<Node>& rGeometry)
+{
+    const array_1d<double, 3> tangent{{
+        rGeometry[1].X0() - rGeometry[0].X0(),
+        rGeometry[1].Y0() - rGeometry[0].Y0(),
+        rGeometry[1].Z0() - rGeometry[0].Z0()}};
+    return BuildReferenceFrameFromTangent(tangent);
 }
 
 double LegendreValue(const IndexType Degree, const double Xi)
@@ -415,8 +425,8 @@ BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::BeamSplineMa
         << "The kernel_radius must be positive for kernel_type '" << mKernelType << "'." << std::endl;
     KRATOS_ERROR_IF(mRegularization < 0.0)
         << "The regularization must be non-negative." << std::endl;
-    KRATOS_ERROR_IF(mPolynomialLevel < 0 || mPolynomialLevel > 4)
-        << "polynomial_level must be an integer in [0,4], got " << mPolynomialLevel << "." << std::endl;
+    KRATOS_ERROR_IF(mPolynomialLevel < 0 || mPolynomialLevel > 7)
+        << "polynomial_level must be an integer in [0,7], got " << mPolynomialLevel << "." << std::endl;
     KRATOS_ERROR_IF(mRotationRecoveryMode != "small" && mRotationRecoveryMode != "finite")
         << "rotation_recovery_mode must be 'small' or 'finite', got '"
         << mRotationRecoveryMode << "'." << std::endl;
@@ -476,6 +486,25 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Inverse
     const Variable<array_1d<double, 3>>& rDestinationVariableForces,
     Kratos::Flags MappingOptions)
 {
+    if (mRotationRecoveryMode == "finite" && !mHasLastFiniteSourceState) {
+        bool is_zero_standard_initial_state = true;
+        constexpr double zero_tolerance = 1.0e-14;
+        for (const auto& r_node : mrModelPartOrigin.Nodes()) {
+            is_zero_standard_initial_state =
+                is_zero_standard_initial_state &&
+                norm_2(r_node.FastGetSolutionStepValue(DISPLACEMENT)) <=
+                    zero_tolerance &&
+                norm_2(r_node.FastGetSolutionStepValue(ROTATION)) <=
+                    zero_tolerance;
+        }
+        KRATOS_ERROR_IF_NOT(is_zero_standard_initial_state)
+            << "Finite BeamSplineMapperWithRecoveryOfRotations::InverseMap requires a "
+            << "successful preceding Map call on the current interface unless standard "
+            << "DISPLACEMENT and ROTATION are both zero. Only that unambiguous initial "
+            << "state may build the SO(3) tangent before the first forward transfer."
+            << std::endl;
+    }
+
     InitializeOriginForcesAndMoments(
         rOriginVariablesForces,
         rOriginVariablesMoments);
@@ -516,6 +545,10 @@ template<class TSparseSpace, class TDenseSpace>
 void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::PrintData(std::ostream& rOStream) const
 {
     BaseType::PrintData(rOStream);
+    rOStream << "\nrotation_recovery_mode: " << mRotationRecoveryMode
+             << "\nrequested_polynomial_level: " << mPolynomialLevel
+             << "\nhas_finite_forward_state: "
+             << (mHasLastFiniteSourceState ? "true" : "false");
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -530,11 +563,17 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
 {
     mBeamChainCache.clear();
     mNodeIdToBeamChainKey.clear();
-    mLastFiniteSourceStates.clear();
-    mHasLastFiniteSourceState = false;
+    InvalidateFiniteForwardState();
     CreateLinearSolver();
     InitializeInterfaceCommunicator();
     InitializeInterface();
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::InvalidateFiniteForwardState()
+{
+    mLastFiniteSourceStates.clear();
+    mHasLastFiniteSourceState = false;
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -615,8 +654,7 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
 {
     mBeamChainCache.clear();
     mNodeIdToBeamChainKey.clear();
-    mLastFiniteSourceStates.clear();
-    mHasLastFiniteSourceState = false;
+    InvalidateFiniteForwardState();
     CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(), mMapperLocalSystems);
     BuildProblem(MappingOptions);
 }
@@ -624,6 +662,10 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
 template<class TSparseSpace, class TDenseSpace>
 void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::BuildProblem(Kratos::Flags MappingOptions)
 {
+    // Search/projection changes invalidate the coefficients and the SO(3)
+    // tangent cached by the previous finite forward map.
+    InvalidateFiniteForwardState();
+
     MapperUtilities::AssignInterfaceEquationIdsToNodes(mrModelPartOrigin.GetCommunicator());
     MapperUtilities::AssignInterfaceEquationIdsToNodes(mrModelPartDestination.GetCommunicator());
 
@@ -669,11 +711,6 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
     const auto beam_chain_source_states = BuildAllBeamChainSourceStates(
         rOriginVariablesDisplacements,
         rOriginVariablesRotations);
-    if (mRotationRecoveryMode == "finite") {
-        mLastFiniteSourceStates = beam_chain_source_states;
-        mHasLastFiniteSourceState = true;
-    }
-
     for (auto& r_local_sys : mMapperLocalSystems) {
         if (!r_local_sys->HasInterfaceInfo()) {
             continue;
@@ -701,29 +738,35 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
                 evaluation_matrix,
                 r_source_state_data.Coefficients);
         } else {
+            const array_1d<double, 3> destination_coordinates =
+                GetReferenceCoordinates(*projection_data.pNode);
+            const MatrixType destination_evaluation_matrix = BuildEvaluationMatrix(
+                r_beam_chain_cache_data,
+                destination_coordinates);
+            global_displacement = EvaluateDisplacement(
+                destination_evaluation_matrix,
+                r_source_state_data.Coefficients);
+
             const array_1d<double, 3> center_coordinates =
                 MakeArrayFromVector(projection_data.ProjectionPoint);
-            const MatrixType center_evaluation_matrix = BuildEvaluationMatrix(
-                r_beam_chain_cache_data,
-                center_coordinates);
             const MatrixType curl_evaluation_matrix = BuildCurlEvaluationMatrix(
                 r_beam_chain_cache_data,
                 center_coordinates);
-            global_displacement = EvaluateDisplacement(
-                center_evaluation_matrix,
-                r_source_state_data.Coefficients);
             VectorType rotation_vector(3, 0.0);
             TDenseSpace::Mult(curl_evaluation_matrix, r_source_state_data.Coefficients, rotation_vector);
             rotation_vector *= 0.5;
 
-            const array_1d<double, 3> destination_coordinates =
-                GetReferenceCoordinates(*projection_data.pNode);
             const array_1d<double, 3> reference_offset =
                 destination_coordinates - center_coordinates;
             VectorType rotated_offset(3, 0.0);
             TDenseSpace::Mult(BuildRotationMatrix(rotation_vector), reference_offset, rotated_offset);
+            const array_1d<double, 3> linear_rotation_offset =
+                CrossProduct(MakeArrayFromVector(rotation_vector), reference_offset);
             for (IndexType i = 0; i < 3; ++i) {
-                global_displacement(i) += rotated_offset(i) - reference_offset[i];
+                global_displacement(i) +=
+                    rotated_offset(i) -
+                    reference_offset[i] -
+                    linear_rotation_offset[i];
             }
         }
 
@@ -733,6 +776,12 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
         }
     }
 
+    // Publish the state only after every destination node was mapped
+    // successfully, so InverseMap cannot consume a partial forward state.
+    if (mRotationRecoveryMode == "finite") {
+        mLastFiniteSourceStates = beam_chain_source_states;
+        mHasLastFiniteSourceState = true;
+    }
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -749,16 +798,17 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
             r_pair.first,
             VectorType(r_pair.second.SystemMatrix.size1(), 0.0));
     }
-    std::unordered_map<std::string, RecoveryOfRotationsSourceStateData> fallback_finite_source_states;
+    std::unordered_map<std::string, RecoveryOfRotationsSourceStateData>
+        fallback_finite_source_states;
     const std::unordered_map<std::string, RecoveryOfRotationsSourceStateData>* p_finite_source_states = nullptr;
     if (mRotationRecoveryMode == "finite") {
         if (mHasLastFiniteSourceState) {
             p_finite_source_states = &mLastFiniteSourceStates;
         } else {
-            KRATOS_WARNING("BeamSplineMapperWithRecoveryOfRotations")
-                << "Finite InverseMap was called before Map; constructing the tangent state from "
-                << "standard DISPLACEMENT and ROTATION variables." << std::endl;
-            fallback_finite_source_states = BuildAllBeamChainSourceStates(DISPLACEMENT, ROTATION);
+            // The public entry point has already verified that this is the
+            // unique zero standard initial state accepted before first Map.
+            fallback_finite_source_states =
+                BuildAllBeamChainSourceStates(DISPLACEMENT, ROTATION);
             p_finite_source_states = &fallback_finite_source_states;
         }
     }
@@ -798,11 +848,13 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
             KRATOS_ERROR_IF(state_iterator == p_finite_source_states->end())
                 << "Missing finite recovery state for beam chain '"
                 << r_beam_chain_cache_data.Key << "'." << std::endl;
+            const array_1d<double, 3> destination_coordinates =
+                GetReferenceCoordinates(*projection_data.pNode);
             const array_1d<double, 3> center_coordinates =
                 MakeArrayFromVector(projection_data.ProjectionPoint);
-            const MatrixType center_evaluation = BuildEvaluationMatrix(
+            const MatrixType destination_evaluation = BuildEvaluationMatrix(
                 r_beam_chain_cache_data,
-                center_coordinates);
+                destination_coordinates);
             const MatrixType curl_evaluation = BuildCurlEvaluationMatrix(
                 r_beam_chain_cache_data,
                 center_coordinates);
@@ -810,11 +862,15 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Initial
             TDenseSpace::Mult(curl_evaluation, state_iterator->second.Coefficients, rotation_vector);
             rotation_vector *= 0.5;
             const array_1d<double, 3> reference_offset =
-                GetReferenceCoordinates(*projection_data.pNode) - center_coordinates;
+                destination_coordinates - center_coordinates;
             const MatrixType rotation_offset_tangent =
                 BuildRotationOffsetTangent(rotation_vector, reference_offset);
-            tangent_operator = center_evaluation;
-            noalias(tangent_operator) += 0.5 * prod(rotation_offset_tangent, curl_evaluation);
+            const MatrixType linear_rotation_offset_tangent =
+                BuildRotationOffsetTangent(VectorType(3, 0.0), reference_offset);
+            tangent_operator = destination_evaluation;
+            noalias(tangent_operator) += 0.5 * prod(
+                rotation_offset_tangent - linear_rotation_offset_tangent,
+                curl_evaluation);
         }
 
         auto& r_adjoint_rhs = chain_adjoint_right_hand_sides.at(r_beam_chain_cache_data.Key);
@@ -1194,53 +1250,72 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Evaluat
         relative_coordinates[1] * r_tangent[1] +
         relative_coordinates[2] * r_tangent[2]) / rCacheData.PolynomialHalfLength;
     const double inverse_half_length = 1.0 / rCacheData.PolynomialHalfLength;
+    const bool uses_shear_completion =
+        rCacheData.PolynomialBasis == "line_shear" ||
+        rCacheData.PolynomialBasis == "enriched_line_shear" ||
+        rCacheData.PolynomialBasis == "high_order_line_shear";
+    const bool is_enriched =
+        rCacheData.PolynomialBasis == "enriched_line_adapted" ||
+        rCacheData.PolynomialBasis == "high_order_line_adapted" ||
+        rCacheData.PolynomialBasis == "enriched_line_shear" ||
+        rCacheData.PolynomialBasis == "high_order_line_shear";
+    const bool is_high_order =
+        rCacheData.PolynomialBasis == "high_order_line_adapted" ||
+        rCacheData.PolynomialBasis == "high_order_line_shear";
 
-    rValues[0][0] = 1.0;
-    rValues[1][1] = 1.0;
-    rValues[2][2] = 1.0;
-
-    rValues[3][1] = -relative_coordinates[2];
-    rValues[3][2] =  relative_coordinates[1];
-    rCurls[3][0] = 2.0;
-
-    rValues[4][0] =  relative_coordinates[2];
-    rValues[4][2] = -relative_coordinates[0];
-    rCurls[4][1] = 2.0;
-
-    rValues[5][0] = -relative_coordinates[1];
-    rValues[5][1] =  relative_coordinates[0];
-    rCurls[5][2] = 2.0;
-
-    rValues[6][0] = xi;
-    rCurls[6][1] =  inverse_half_length * r_tangent[2];
-    rCurls[6][2] = -inverse_half_length * r_tangent[1];
-
-    rValues[7][1] = xi;
-    rCurls[7][0] = -inverse_half_length * r_tangent[2];
-    rCurls[7][2] =  inverse_half_length * r_tangent[0];
-
-    rValues[8][2] = xi;
-    rCurls[8][0] =  inverse_half_length * r_tangent[1];
-    rCurls[8][1] = -inverse_half_length * r_tangent[0];
-
-    if (rCacheData.PolynomialBasis == "enriched_line_adapted" ||
-        rCacheData.PolynomialBasis == "high_order_line_adapted") {
-        const std::array<array_1d<double, 3>, 3> axes{{
-            array_1d<double, 3>{1.0, 0.0, 0.0},
-            array_1d<double, 3>{0.0, 1.0, 0.0},
-            array_1d<double, 3>{0.0, 0.0, 1.0}}};
-
+    std::array<array_1d<double, 3>, 3> axes{{
+        array_1d<double, 3>{1.0, 0.0, 0.0},
+        array_1d<double, 3>{0.0, 1.0, 0.0},
+        array_1d<double, 3>{0.0, 0.0, 1.0}}};
+    if (uses_shear_completion) {
         for (IndexType axis_index = 0; axis_index < 3; ++axis_index) {
-            const array_1d<double, 3> rigid_rotation =
-                CrossProduct(axes[axis_index], relative_coordinates);
-            const IndexType mode_index = 9 + axis_index;
+            for (IndexType component_index = 0; component_index < 3; ++component_index) {
+                axes[axis_index][component_index] =
+                    rCacheData.PolynomialFrameLocalToGlobal(component_index, axis_index);
+            }
+        }
+    }
 
-            rValues[mode_index] = xi * rigid_rotation;
-            rCurls[mode_index] = inverse_half_length * CrossProduct(r_tangent, rigid_rotation);
-            rCurls[mode_index] += 2.0 * xi * axes[axis_index];
+    std::array<array_1d<double, 3>, 3> completion_values{{
+        ZeroVector(3), ZeroVector(3), ZeroVector(3)}};
+    std::array<array_1d<double, 3>, 3> completion_curls{{
+        ZeroVector(3), ZeroVector(3), ZeroVector(3)}};
+    if (uses_shear_completion) {
+        const double eta = inner_prod(relative_coordinates, axes[1]);
+        const double zeta = inner_prod(relative_coordinates, axes[2]);
+        completion_values[0] = -2.0 * zeta * axes[1];
+        completion_values[1] =  2.0 * zeta * axes[0];
+        completion_values[2] = -2.0 * eta * axes[0];
+        for (IndexType axis_index = 0; axis_index < 3; ++axis_index) {
+            completion_curls[axis_index] = 2.0 * axes[axis_index];
+        }
+    } else {
+        for (IndexType axis_index = 0; axis_index < 3; ++axis_index) {
+            completion_values[axis_index] =
+                CrossProduct(axes[axis_index], relative_coordinates);
+            completion_curls[axis_index] = 2.0 * axes[axis_index];
+        }
+    }
+
+    for (IndexType axis_index = 0; axis_index < 3; ++axis_index) {
+        rValues[axis_index] = axes[axis_index];
+        rValues[3 + axis_index] = completion_values[axis_index];
+        rCurls[3 + axis_index] = completion_curls[axis_index];
+        rValues[6 + axis_index] = xi * axes[axis_index];
+        rCurls[6 + axis_index] =
+            inverse_half_length * CrossProduct(r_tangent, axes[axis_index]);
+    }
+
+    if (is_enriched) {
+        for (IndexType axis_index = 0; axis_index < 3; ++axis_index) {
+            const IndexType mode_index = 9 + axis_index;
+            rValues[mode_index] = xi * completion_values[axis_index];
+            rCurls[mode_index] =
+                inverse_half_length * CrossProduct(r_tangent, completion_values[axis_index]);
+            rCurls[mode_index] += xi * completion_curls[axis_index];
         }
 
-        if (rCacheData.PolynomialBasis == "high_order_line_adapted") {
+        if (is_high_order) {
             IndexType mode_index = EnrichedLineAdaptedVectorPolynomialSize;
 
             for (IndexType degree = 2; degree <= 3; ++degree) {
@@ -1256,13 +1331,14 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Evaluat
             for (IndexType degree = 2; degree <= 5; ++degree) {
                 const double polynomial_value = LegendreValue(degree, xi);
                 const double derivative_factor = LegendreDerivative(degree, xi) * inverse_half_length;
-                for (const auto& r_axis : axes) {
-                    const array_1d<double, 3> rigid_rotation =
-                        CrossProduct(r_axis, relative_coordinates);
-
-                    rValues[mode_index] = polynomial_value * rigid_rotation;
-                    rCurls[mode_index] = derivative_factor * CrossProduct(r_tangent, rigid_rotation);
-                    rCurls[mode_index] += 2.0 * polynomial_value * r_axis;
+                for (IndexType axis_index = 0; axis_index < 3; ++axis_index) {
+                    rValues[mode_index] =
+                        polynomial_value * completion_values[axis_index];
+                    rCurls[mode_index] =
+                        derivative_factor * CrossProduct(
+                            r_tangent, completion_values[axis_index]);
+                    rCurls[mode_index] +=
+                        polynomial_value * completion_curls[axis_index];
                     ++mode_index;
                 }
             }
@@ -1279,6 +1355,9 @@ std::string BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::
         case 2: return "line_adapted";
         case 3: return "enriched_line_adapted";
         case 4: return "high_order_line_adapted";
+        case 5: return "line_shear";
+        case 6: return "enriched_line_shear";
+        case 7: return "high_order_line_shear";
         default: KRATOS_ERROR << "No concrete polynomial basis exists for level "
                               << PolynomialLevel << "." << std::endl;
     }
@@ -1364,19 +1443,29 @@ int BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::GetEffec
     const IndexType number_of_support_nodes = rCacheData.SupportNodeIds.size();
     std::vector<int> candidates;
     if (mPolynomialLevel == 0) {
-        candidates = {4, 3, 2, 1};
-    } else if (mPolynomialLevel == 4 && number_of_support_nodes < 5) {
-        candidates = number_of_support_nodes >= 3 ? std::vector<int>{3, 2, 1} : std::vector<int>{2, 1};
-    } else if (mPolynomialLevel == 3 && number_of_support_nodes < 3) {
-        candidates = {2, 1};
+        candidates = {7, 6, 5, 4, 3, 2, 1};
     } else {
+        KRATOS_ERROR_IF(
+            (mPolynomialLevel == 4 || mPolynomialLevel == 7) &&
+            number_of_support_nodes < 5)
+            << "Explicit polynomial_level=" << mPolynomialLevel
+            << " requires at least 5 beam support nodes, got "
+            << number_of_support_nodes
+            << ". Use polynomial_level=0 to permit automatic level selection." << std::endl;
+        KRATOS_ERROR_IF(
+            (mPolynomialLevel == 3 || mPolynomialLevel == 6) &&
+            number_of_support_nodes < 3)
+            << "Explicit polynomial_level=" << mPolynomialLevel
+            << " requires at least 3 beam support nodes, got "
+            << number_of_support_nodes
+            << ". Use polynomial_level=0 to permit automatic level selection." << std::endl;
         candidates = {mPolynomialLevel};
     }
 
     constexpr double automatic_condition_limit = 1.0e8;
     for (const int candidate : candidates) {
-        if ((candidate == 4 && number_of_support_nodes < 5) ||
-            (candidate == 3 && number_of_support_nodes < 3)) {
+        if (((candidate == 4 || candidate == 7) && number_of_support_nodes < 5) ||
+            ((candidate == 3 || candidate == 6) && number_of_support_nodes < 3)) {
             continue;
         }
         rCacheData.PolynomialLevel = candidate;
@@ -1405,13 +1494,16 @@ template<class TSparseSpace, class TDenseSpace>
 IndexType BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::GetVectorPolynomialSize(
     const std::string& rPolynomialBasis) const
 {
-    if (rPolynomialBasis == "line_adapted") {
+    if (rPolynomialBasis == "line_adapted" ||
+        rPolynomialBasis == "line_shear") {
         return LineAdaptedVectorPolynomialSize;
     }
-    if (rPolynomialBasis == "enriched_line_adapted") {
+    if (rPolynomialBasis == "enriched_line_adapted" ||
+        rPolynomialBasis == "enriched_line_shear") {
         return EnrichedLineAdaptedVectorPolynomialSize;
     }
-    if (rPolynomialBasis == "high_order_line_adapted") {
+    if (rPolynomialBasis == "high_order_line_adapted" ||
+        rPolynomialBasis == "high_order_line_shear") {
         return HighOrderLineAdaptedVectorPolynomialSize;
     }
     return Full3DVectorPolynomialSize;
@@ -1905,6 +1997,8 @@ void BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::Compute
     rCacheData.PolynomialHalfLength = 0.5 * tangent_norm;
     tangent /= tangent_norm;
     rCacheData.PolynomialTangent = tangent;
+    rCacheData.PolynomialFrameLocalToGlobal =
+        BuildReferenceFrameFromTangent(tangent);
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -2190,7 +2284,10 @@ bool BeamSplineMapperWithRecoveryOfRotations<TSparseSpace, TDenseSpace>::UsesLin
 {
     return rPolynomialBasis == "line_adapted" ||
            rPolynomialBasis == "enriched_line_adapted" ||
-           rPolynomialBasis == "high_order_line_adapted";
+           rPolynomialBasis == "high_order_line_adapted" ||
+           rPolynomialBasis == "line_shear" ||
+           rPolynomialBasis == "enriched_line_shear" ||
+           rPolynomialBasis == "high_order_line_shear";
 }
 
 template class BeamSplineMapperWithRecoveryOfRotations<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>;

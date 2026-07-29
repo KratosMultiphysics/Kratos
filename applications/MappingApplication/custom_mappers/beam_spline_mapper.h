@@ -326,10 +326,16 @@ private:
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
     std::unordered_map<std::string, BeamChainCacheData> mBeamChainCache;
     std::unordered_map<IndexType, std::string> mNodeIdToBeamChainKey;
+    // The nonlinear inverse differentiates the finite section rotation
+    // evaluated by the most recent successful forward map. Before the first
+    // map, only an unambiguous zero standard initial state is accepted.
+    bool mHasLastForwardState = false;
 
     void ValidateInput();
 
     void Initialize();
+
+    void InvalidateForwardState();
 
     void InitializeInterfaceCommunicator();
 

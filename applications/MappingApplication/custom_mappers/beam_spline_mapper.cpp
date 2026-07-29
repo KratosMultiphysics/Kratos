@@ -394,6 +394,24 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InverseMap(
     const Variable<array_1d<double, 3>>& rDestinationVariableForces,
     Kratos::Flags MappingOptions)
 {
+    if (!mHasLastForwardState) {
+        bool is_zero_standard_initial_state = true;
+        constexpr double zero_tolerance = 1.0e-14;
+        for (const auto& r_node : mrModelPartOrigin.Nodes()) {
+            is_zero_standard_initial_state =
+                is_zero_standard_initial_state &&
+                norm_2(r_node.FastGetSolutionStepValue(DISPLACEMENT)) <=
+                    zero_tolerance &&
+                norm_2(r_node.FastGetSolutionStepValue(ROTATION)) <=
+                    zero_tolerance;
+        }
+        KRATOS_ERROR_IF_NOT(is_zero_standard_initial_state)
+            << "BeamSplineMapper::InverseMap requires a successful preceding Map call on "
+            << "the current interface unless standard DISPLACEMENT and ROTATION are both "
+            << "zero. Only that unambiguous initial state may use the zero section-rotation "
+            << "tangent before the first forward transfer." << std::endl;
+    }
+
     InitializeOriginForcesAndMoments(rOriginVariablesForces, rOriginVariablesMoments);
     InitializeInformationBeamsInverse(
         rOriginVariablesForces,
@@ -453,8 +471,15 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::Initialize()
 {
     mBeamChainCache.clear();
     mNodeIdToBeamChainKey.clear();
+    InvalidateForwardState();
     InitializeInterfaceCommunicator();
     InitializeInterface();
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void BeamSplineMapper<TSparseSpace, TDenseSpace>::InvalidateForwardState()
+{
+    mHasLastForwardState = false;
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -471,6 +496,7 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Fl
 {
     mBeamChainCache.clear();
     mNodeIdToBeamChainKey.clear();
+    InvalidateForwardState();
     CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(), mMapperLocalSystems);
     BuildProblem(MappingOptions);
 }
@@ -478,6 +504,10 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Fl
 template<class TSparseSpace, class TDenseSpace>
 void BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildProblem(Kratos::Flags MappingOptions)
 {
+    // Search/projection changes invalidate every per-destination rotation
+    // cached by the preceding nonlinear forward map.
+    InvalidateForwardState();
+
     MapperUtilities::AssignInterfaceEquationIdsToNodes(mrModelPartOrigin.GetCommunicator());
     MapperUtilities::AssignInterfaceEquationIdsToNodes(mrModelPartDestination.GetCommunicator());
 
@@ -610,6 +640,10 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(
                 global_displacement(i);
         }
     }
+
+    // Publish the nonlinear state only after all destination nodes were
+    // mapped successfully.
+    mHasLastForwardState = true;
 }
 
 template<class TSparseSpace, class TDenseSpace>
