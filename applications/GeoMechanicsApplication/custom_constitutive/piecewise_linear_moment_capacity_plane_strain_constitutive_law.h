@@ -19,6 +19,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 /**
  * @class PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw
  * @brief 1D moment-curvature law (plane-strain specific)
@@ -43,6 +45,7 @@ public:
         PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw&&) noexcept = default;
     PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw& operator=(
         PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw&&) noexcept = default;
+    ~PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw() override     = default;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
