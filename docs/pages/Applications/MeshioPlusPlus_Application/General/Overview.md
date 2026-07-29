@@ -47,11 +47,11 @@ then point the Kratos configure at it, and add the application:
 add_app ${KRATOS_APP_DIR}/MeshioPlusPlusApplication
 ```
 
-> **Version pin**: the application requires **meshio++ ABI 3**, which is **v9.2.0 or newer**. It pins `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version — that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect the application needs no rebuild:
+> **Version pin**: the application requires **meshio++ ABI 3 or ABI 4** — **v9.2.0 or newer** (ABI 3 covers v9.2.0-v9.4.1, ABI 4 covers v9.5.0 onwards). It pins `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version — that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect the application needs no rebuild:
 >
 > ```cmake
 > find_package(meshioplusplus CONFIG REQUIRED COMPONENTS CXX)
-> if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 3)
+> if(MESHIOPLUSPLUS_ABI_VERSION LESS 3 OR MESHIOPLUSPLUS_ABI_VERSION GREATER 4)
 >     message(FATAL_ERROR "...")
 > endif()
 > ```
@@ -59,6 +59,10 @@ add_app ${KRATOS_APP_DIR}/MeshioPlusPlusApplication
 > Getting it wrong is not silent: the C++ variants' `SOVERSION` is the ABI version, and every consumer translation unit carries a link-time sentinel naming it, so a header/library skew is a link error rather than memory corruption. See meshio++'s [`doc/abi.md`](https://github.com/loumalouomega/meshioplusplus/blob/master/doc/abi.md) for the criterion that decides when the ABI version moves.
 
 > **Upgrading from a meshio++ older than v9.4.0** requires relinking the application once: the C++ variants' `SOVERSION` changed from a flat `0` to the ABI version, so the needed library is now `libmeshioplusplus_core_kratos.so.3` rather than `.so.0`. Install the new meshio++ wholesale rather than part-upgrading — v9.4.0 headers reference a sentinel a `≤9.3.0` library does not define, which fails closed at link time.
+
+> **Upgrading across the ABI 3 → ABI 4 boundary** (anything before v9.5.0 to v9.5.0+) likewise needs one relink, to `libmeshioplusplus_core_kratos.so.4`. ABI 4 moved because `RefineOptions` gained new data members for selective/adaptive refinement (a layout change); the application compiles around it with `MESHIOPLUSPLUS_VERSION_AT_LEAST(9, 5, 0)` rather than raising its ABI floor, so it keeps building against ABI 3 too — just without the new `refine` selectors, which are rejected with a clear error rather than silently ignored if set against an older build. See [Utilities](../Utilities/Mesh_Operations.html) for the settings.
+>
+> **meshio++ v9.6.0's MED improvements** (named regions via `FAS`/`GRO` groups, `med:num` global numbering, stricter MED major-version validation) needed no code changes here — `MeshioPlusPlusIO` treats MED like every other format through the generic region/format-table machinery.
 
 ## Supported formats
 

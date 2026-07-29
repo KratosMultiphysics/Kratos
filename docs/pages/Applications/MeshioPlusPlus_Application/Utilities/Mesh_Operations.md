@@ -47,7 +47,7 @@ Every setting below is read from the same flat `Parameters` object as `"operatio
 | `clean` | Weld coincident nodes, drop degenerate/duplicate cells, remove orphan nodes. | `weld`, `tolerance`, `remove_orphans`, `drop_degenerate`, `drop_duplicate_cells` |
 | `transform` | Affine transform (scale, then rotate, then translate), optionally rotating vector field data. | `scale`, `rotation_axis`, `rotation_angle`, `translation`, `rotate_vector_data` |
 | `convert_cells` | Element-type conversion: `"linearize"` (drop mid nodes), `"simplexify"` (decompose into simplices), `"elevate"` (linear → quadratic). | `mode`, `record_parent_ids` |
-| `refine` | Uniform subdivision. | `levels`, `record_parent_ids` |
+| `refine` | Uniform subdivision, or selective/adaptive subdivision of a chosen subset (meshio++ >= 9.5.0) — see below. | `levels`, `record_parent_ids`, `cells`, `region`, `predicate_array`, `predicate_op`, `predicate_value`, `closure`, `record_levels` |
 | `decimate` | Surface decimation by quadric-error edge collapse. | `target_ratio`, `target_faces`, `max_error`, `preserve_boundary`, `preserve_features`, `feature_angle` |
 | `smooth` | Coordinate smoothing (Laplacian/Taubin). | `method`, `iterations`, `lambda`, `mu`, `fix_boundary`, `preserve_features`, `feature_angle`, `guard_inversion` |
 | `reorder` | Node renumbering (`"rcm"`, `"morton"`, `"hilbert"`); the report carries the bandwidth before and after. | `method` |
@@ -71,6 +71,22 @@ Every setting below is read from the same flat `Parameters` object as `"operatio
 
 All operations also read the shared settings `"entity_type"` (`"elements"`, `"conditions"`, or `"automatic"` for both) and `"use_deformed_configuration"` (current vs. initial node coordinates).
 
+## Selective refinement (`refine`, meshio++ >= 9.5.0)
+
+By default `refine` subdivides every cell (the pre-9.5.0 behavior, byte-identical when none of the settings below are set). Setting exactly one of the following switches to selective mode; setting more than one is an error:
+
+- `"cells"` — explicit, block-major cell indices to refine.
+- `"region"` — the name of an existing sub model part of the source model part (nested parts are addressed `/`-joined, e.g. `"Outer/Inner"`). A part built only from nodes selects every cell touching any of them; one carrying elements/conditions selects those cells directly.
+- `"predicate_array"` / `"predicate_op"` (`"<"`, `"<="`, `">"`, `">="`, `"=="`, `"!="`) / `"predicate_value"` — threshold a staged scalar `cell_data` array, e.g. composing with `attach_quality`'s output.
+
+`"closure"` (`"redgreen"` default, `"propagate"`, `"balanced"`) controls how the hanging nodes a partial refinement leaves behind are resolved:
+
+- `"redgreen"` promotes an affected neighbor's split to the smallest conforming superset — keeps the extra refinement local.
+- `"propagate"` promotes any affected neighbor straight to a full split — always conforming, but not local (converges to uniform refinement of the whole connected component).
+- `"balanced"` does not close at all: it keeps genuine hanging nodes and only enforces 2:1 balance, the classic adaptive-mesh-refinement meaning of "propagate" — the only mode whose cost is bounded by the selection rather than by the mesh.
+
+`"record_levels"` attaches meshio++'s own `Int64` `refine:level` bookkeeping array (cumulative refinement depth per cell); `"balanced"` always attaches an `Int64` `refine:hanging` array flagging constrained nodes. Both are computed but, like `record_parent_ids`'s `*:parent_cell` arrays on every operation that has it, are **not** written back onto the destination model part through `Execute()` — their names are not registered Kratos `Variable`s (see the write-back constraint below).
+
 ## Field data
 
 Nodal, elemental and conditional data reaches every operation through the same settings `MeshioPlusPlusIO` uses, read once per call and staged into the meshio++ mesh before the operation runs:
@@ -89,7 +105,7 @@ Nodal, elemental and conditional data reaches every operation through the same s
 
 All default to empty (nothing staged) — an operation that needs a specific array, like `isosurface`'s `"array_name"`, has that array present in the mesh only when its variable is listed in one of the settings above.
 
-> **The write-back constraint.** A resulting array is written back onto the destination model part only when its name matches a registered `Variable<T>` with the right component count — Kratos stores non-historical/historical data keyed by `Variable` objects, not arbitrary strings. An operation's own invented names, such as `attach_quality`'s `"quality:scaled_jacobian"`, are computed and appear in the report but cannot be retrieved from the model part afterwards. Point an operation's own naming setting (`data_calc`'s `"output"`, `data_manage`'s `"rename"`, ...) at an existing variable name to get the result back onto the mesh.
+> **The write-back constraint.** A resulting array is written back onto the destination model part only when it is `Float64` or `Int64` **and** its name matches a registered `Variable<T>` with the right component count — Kratos stores non-historical/historical data keyed by `Variable` objects, not arbitrary strings. An operation's own invented names, such as `attach_quality`'s `"quality:scaled_jacobian"` or `refine`'s `"refine:level"`/`"refine:hanging"`, are computed and appear in the report but cannot be retrieved from the model part afterwards, regardless of dtype. Point an operation's own naming setting (`data_calc`'s `"output"`, `data_manage`'s `"rename"`, ...) at an existing variable name to get the result back onto the mesh.
 
 Query the exact set a build supports:
 
