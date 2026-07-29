@@ -13,6 +13,7 @@ except:
 # Import the tests or test_classes to create the suites
 import test_bounding_box
 import test_calculate_distance_to_skin
+import test_data_container
 import test_embedded_skin_mapping
 import test_model_part
 import test_model_part_io
@@ -137,6 +138,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_print_info_in_file.TestPrintElementalInfoInFile]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_distance_to_skin.TestCalculateDistanceToSkin]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_embedded_skin_mapping.TestEmbeddedSkinMapping]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_data_container.TestDataContainer]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part.TestModelPart]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_io.TestModelPartIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_io.TestModelPartIOMPI]))
