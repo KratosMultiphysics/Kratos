@@ -1498,7 +1498,6 @@ protected:
     void ComputeDampingDerivative(
         Matrix& rOutput,
         std::span<const IAdjoint::DynamicVariable> Variables,
-        const Vector& rValues,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const final override;
 
@@ -1506,7 +1505,6 @@ protected:
     void ComputeMassDerivative(
         Matrix& rOutput,
         std::span<const IAdjoint::DynamicVariable> Variables,
-        const Vector& rValues,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const final override;
 

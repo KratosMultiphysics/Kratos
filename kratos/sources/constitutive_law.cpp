@@ -1694,7 +1694,6 @@ void ConstitutiveLaw::GetMassInfluencingVariables(
 void ConstitutiveLaw::ComputeDampingDerivative(
     Matrix& rOutput,
     std::span<const IAdjoint::DynamicVariable>,
-    const Vector&,
     const ProcessInfo&,
     int) const {
         rOutput.clear();
@@ -1704,7 +1703,6 @@ void ConstitutiveLaw::ComputeDampingDerivative(
 void ConstitutiveLaw::ComputeMassDerivative(
     Matrix& rOutput,
     std::span<const IAdjoint::DynamicVariable>,
-    const Vector&,
     const ProcessInfo&,
     int) const {
         rOutput.clear();

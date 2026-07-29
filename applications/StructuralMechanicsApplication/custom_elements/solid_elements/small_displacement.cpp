@@ -327,7 +327,6 @@ void SmallDisplacement::GetLoadInfluencingVariables(
 void SmallDisplacement::ComputeStiffnessDerivative(
     Matrix& rOutput,
     std::span<const IAdjoint::DynamicVariable> Variables,
-    const Vector& rValues,
     const ProcessInfo& rProcessInfo,
     int iBuffer) const {
         KRATOS_TRY
@@ -445,11 +444,14 @@ void SmallDisplacement::ComputeStiffnessDerivative(
                     << "does not depend on " << r_variable.Name();
             } // for r_variable in Variables
 
+            Vector state;
+            this->GetValuesVector(state, iBuffer);
+
             // Instantiate the utility and compute finite differences.
             Utility utility;
             utility.FiniteDifferenceDerivative(
                 *this,
-                rValues,
+                state,
                 perturbations,
                 rOutput,
                 iBuffer,

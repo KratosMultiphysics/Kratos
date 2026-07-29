@@ -190,28 +190,56 @@ public:
 
     /// @brief Compute the partial derivative of a residual term with respect to a set of variables.
     /// @tparam Term Term of the residual to compute the partial derivatives of.
-    /// @details The residual term @f$T@f$ can be the mass (@f$M@f$), damping (@f$D@f$) or stiffness (@f$K@f$) term,
-    ///          (but not the load @f$F@f$). This function the inner product of the term's partial derivative with
-    ///          respect to the provided variables, and the provided vector @p rValues.
-    ///          @f[
-    ///              \begin{bmatrix}
-    ///                  \frac{\partial T}{\partial \xi} v    \\
-    ///                  \frac{\partial T}{\partial \eta} v   \\
-    ///                  \vdots                               \\
-    ///                  \frac{\partial T}{\partial \zeta} v
-    ///              \end{bmatrix}
-    ///          @f]
+    /// @details The residual term @f$T@f$ can be the load (@f$f@f$), mass (@f$M@f$), damping (@f$D@f$) or stiffness (@f$K@f$) term.
+    ///          This function computes
+    ///          1) the inner product of the term's partial derivative with respect to the provided variables, and the corresponding
+    ///             time derivatives of the state vector. More precisely:
+    ///             - if @f$T@f$ is the mass term @f$M@f$
+    ///               @f[
+    ///                 \begin{bmatrix}
+    ///                     \frac{\partial T}{\partial \xi} \ddot{u}    \\
+    ///                     \frac{\partial T}{\partial \eta} \ddot{u}   \\
+    ///                     \vdots                                      \\
+    ///                     \frac{\partial T}{\partial \zeta} \ddot{u}
+    ///                 \end{bmatrix}
+    ///               @f]
+    ///             - if @f$T@f$ is the damping term @f$D@f$
+    ///               @f[
+    ///                 \begin{bmatrix}
+    ///                     \frac{\partial T}{\partial \xi} \dot{u}     \\
+    ///                     \frac{\partial T}{\partial \eta} \dot{u}    \\
+    ///                     \vdots                                      \\
+    ///                     \frac{\partial T}{\partial \zeta} \dot{u}
+    ///                 \end{bmatrix}
+    ///               @f]
+    ///             - if @f$T@f$ is the stiffness term @f$K@f$
+    ///               @f[
+    ///                 \begin{bmatrix}
+    ///                     \frac{\partial T}{\partial \xi} u           \\
+    ///                     \frac{\partial T}{\partial \eta} u          \\
+    ///                     \vdots                                      \\
+    ///                     \frac{\partial T}{\partial \zeta} u
+    ///                 \end{bmatrix}
+    ///               @f]
+    ///          2) if the @f$T@f$ is the load term @f$f@f$:
+    ///               @f[
+    ///                 \begin{bmatrix}
+    ///                     \frac{\partial T}{\partial \xi}             \\
+    ///                     \frac{\partial T}{\partial \eta}            \\
+    ///                     \vdots                                      \\
+    ///                     \frac{\partial T}{\partial \zeta}
+    ///                 \end{bmatrix}
+    ///               @f]
     ///          where
     ///          - @f$T@f$ is a term of the residual @f$R@f$,
     ///          - @f$\xi@f$ is the first variable the term is differentiated with respect to,
     ///          - @f$\eta@f$ is the second variable the term is differentiated with respect to,
     ///          - ...
     ///          - @f$\zeta@f$ is the last variable the term is differentiated with respect to, and
-    ///          - @f$v@f$ is the provided vector @p rValues.
+    ///          - @f$u@f$ is the state vector.
     /// @param[out] rOutput Output matrix containing the dot products of the derivatives
     ///                     and the arrays of variables.
     /// @param[in] Variables Set of variables to compute the derivative with respect to.
-    /// @param[in] rValues Vector to compute the inner product with.
     /// @param[in] rProcessInfo Current state of the computing model part.
     /// @param[in] iBuffer Relative reverse time step index to compute the derivative for.
     /// @see @ref IAdjointElement::ComputeStiffnessDerivative "ComputeStiffnessDerivative"
@@ -219,73 +247,37 @@ public:
     /// @see @ref IAdjointElement::ComputeMassDerivative "ComputeMassDerivative"
     /// @see @ref IAdjointElement::ComputeLoadDerivative "ComputeLoadDerivative"
     template <IAdjoint::ResidualTerm Term>
-    requires (Term == IAdjoint::ResidualTerm::Stiffness || Term == IAdjoint::ResidualTerm::Damping || Term == IAdjoint::ResidualTerm::Mass)
     void ComputeDerivative(
         Matrix& rOutput,
         std::span<const IAdjoint::DynamicVariable> Variables,
-        const Vector& rValues,
         const ProcessInfo& rProcessInfo,
         int iBuffer = 0) const {
             if constexpr (Term == IAdjoint::ResidualTerm::Mass)
                 this->ComputeMassDerivative(
                     rOutput,
                     Variables,
-                    rValues,
                     rProcessInfo,
                     iBuffer);
             else if constexpr (Term == IAdjoint::ResidualTerm::Damping)
                 this->ComputeDampingDerivative(
                     rOutput,
                     Variables,
-                    rValues,
                     rProcessInfo,
                     iBuffer);
             else if constexpr (Term == IAdjoint::ResidualTerm::Stiffness)
                 this->ComputeStiffnessDerivative(
                     rOutput,
                     Variables,
-                    rValues,
                     rProcessInfo,
                     iBuffer);
-    }
-
-    /// @brief Compute the partial derivative of the load term with respect to a set of variables.
-    /// @tparam Term Term of the residual to compute the partial derivatives of (must be the @ref IAdjoint::ResidualTerm::Load).
-    /// @details @f[
-    ///              \begin{bmatrix}
-    ///                  \frac{\partial F}{\partial \xi}     \\
-    ///                  \frac{\partial F}{\partial \eta}    \\
-    ///                  \vdots                              \\
-    ///                  \frac{\partial F}{\partial \zeta}
-    ///              \end{bmatrix}
-    ///          @f]
-    ///          where
-    ///          - @f$T@f$ is a term of the residual @f$R@f$,
-    ///          - @f$\xi@f$ is the first variable the term is differentiated with respect to,
-    ///          - @f$\eta@f$ is the second variable the term is differentiated with respect to,
-    ///          - ...
-    ///          - @f$\zeta@f$ is the last variable the term is differentiated with respect to.
-    /// @param[out] rOutput Output matrix containing the dot products of the derivatives
-    ///                     and the arrays of variables.
-    /// @param[in] Variables Set of variables to compute the derivative with respect to.
-    /// @param[in] rProcessInfo Current state of the computing model part.
-    /// @param[in] iBuffer Relative reverse time step index to compute the derivative for.
-    /// @see @ref IAdjointElement::ComputeStiffnessDerivative "ComputeStiffnessDerivative"
-    /// @see @ref IAdjointElement::ComputeDampingDerivative "ComputeDampingDerivative"
-    /// @see @ref IAdjointElement::ComputeMassDerivative "ComputeMassDerivative"
-    /// @see @ref IAdjointElement::ComputeLoadDerivative "ComputeLoadDerivative"
-    template <IAdjoint::ResidualTerm Term>
-    requires (Term == IAdjoint::ResidualTerm::Load)
-    void ComputeDerivative(
-        Matrix& rOutput,
-        std::span<const IAdjoint::DynamicVariable> Variables,
-        const ProcessInfo& rProcessInfo,
-        int iBuffer = 0) const {
-            return this->ComputeLoadDerivative(
-                rOutput,
-                Variables,
-                rProcessInfo,
-                iBuffer);
+            else if constexpr (Term == IAdjoint::ResidualTerm::Load)
+                this->ComputeLoadDerivative(
+                    rOutput,
+                    Variables,
+                    rProcessInfo,
+                    iBuffer);
+            else
+                static_assert(Term == IAdjoint::ResidualTerm::Mass, "invalid residual term");
     }
 
     /// @}
@@ -326,15 +318,15 @@ protected:
     /// @name Derivative Query Implementation
     /// @{
 
-    /// @brief Compute @f$\frac{\partial K}{\partial \xi} v@f$.
+    /// @brief Compute @f$\frac{\partial K}{\partial \xi} u@f$.
     /// @details Compute the dot product of the stiffness term's derivative
-    ///          with respect to a variable, and an input vector @f$v@f$.
+    ///          with respect to a variable, and the state vector @f$u@f$.
     ///          @f[
     ///             \begin{bmatrix}
-    ///                 \frac{\partial K}{\partial \xi} v   \\
-    ///                 \frac{\partial K}{\partial \eta} v  \\
+    ///                 \frac{\partial K}{\partial \xi} u   \\
+    ///                 \frac{\partial K}{\partial \eta} u  \\
     ///                 \vdots                              \\
-    ///                 \frac{\partial K}{\partial \zeta} v
+    ///                 \frac{\partial K}{\partial \zeta} u
     ///             \end{bmatrix}
     ///          @f]
     ///          where
@@ -345,11 +337,10 @@ protected:
     ///          - @f$\eta@f$ is the second variable the stiffness term is differentiated with respect to,
     ///          - ...
     ///          - @f$\zeta@f$ is the last variable the stiffness term is differentiated with respect to,
-    ///          - @f$v@f$ is the input vector @p rValues.
+    ///          - @f$u@f$ is the state vector.
     /// @param[out] rOutput Output matrix containing the dot products of the derivatives
     ///                     and the arrays of variables.
     /// @param[in] Variables Set of variables to compute the derivative with respect to.
-    /// @param[in] rValues Vector to compute the inner product with.
     /// @param[in] rProcessInfo Current state of the computing model part.
     /// @param[in] iBuffer Relative reverse time step index to compute the derivative for.
     /// @see @ref IAdjointElement::ComputeDerivative "ComputeDerivative"
@@ -359,19 +350,18 @@ protected:
     virtual void ComputeStiffnessDerivative(
         Matrix& rOutput,
         std::span<const IAdjoint::DynamicVariable> Variables,
-        const Vector& rValues,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const;
 
     /// @brief Compute @f$\frac{\partial D}{\partial \xi} \dot{u}@f$.
     /// @details Compute the dot product of the damping term's derivative
-    ///          with respect to a variable, and an input vector @f$v@f$.
+    ///          with respect to a variable, and the state vector's first time derivative.
     ///          @f[
     ///             \begin{bmatrix}
-    ///                 \frac{\partial D}{\partial \xi} v     \\
-    ///                 \frac{\partial D}{\partial \eta} v    \\
-    ///                 \vdots                                \\
-    ///                 \frac{\partial D}{\partial \zeta} v
+    ///                 \frac{\partial D}{\partial \xi} \dot{u}     \\
+    ///                 \frac{\partial D}{\partial \eta} \dot{u}    \\
+    ///                 \vdots                                      \\
+    ///                 \frac{\partial D}{\partial \zeta} \dot{u}
     ///             \end{bmatrix}
     ///          @f]
     ///          where
@@ -382,11 +372,9 @@ protected:
     ///          - @f$\eta@f$ is the second variable the damping term is differentiated with respect to,
     ///          - ...
     ///          - @f$\zeta@f$ is the last variable the damping term is differentiated with respect to,
-    ///          - @f$v@f$ is the input vector @p rValues.
+    ///          - @f$u@f$ is the state vector.
     /// @param[out] rOutput Output matrix containing the dot products of the derivatives
     ///                     and the arrays of variables.
-    /// @param[in] Variables Set of variables to compute the derivative with respect to.
-    /// @param[in] rValues Vector to compute the inner product with.
     /// @param[in] rProcessInfo Current state of the computing model part.
     /// @param[in] iBuffer Relative reverse time step index to compute the derivative for.
     /// @see @ref IAdjointElement::ComputeDerivative "ComputeDerivative"
@@ -396,19 +384,18 @@ protected:
     virtual void ComputeDampingDerivative(
         Matrix& rOutput,
         std::span<const IAdjoint::DynamicVariable> Variables,
-        const Vector& rValues,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const;
 
-    /// @brief Compute @f$\frac{\partial M}{\partial \xi} v@f$.
+    /// @brief Compute @f$\frac{\partial M}{\partial \xi} \ddot{u}@f$.
     /// @details Compute the dot product of the mass term's derivative
-    ///          with respect to a variable, and an input vector @f$v@f$.
+    ///          with respect to a variable, and the state vector's second time derivative.
     ///          @f[
     ///             \begin{bmatrix}
-    ///                 \frac{\partial M}{\partial \xi} v    \\
-    ///                 \frac{\partial M}{\partial \eta} v   \\
-    ///                 \vdots                               \\
-    ///                 \frac{\partial M}{\partial \zeta} v
+    ///                 \frac{\partial M}{\partial \xi} \ddot{u}    \\
+    ///                 \frac{\partial M}{\partial \eta} \ddot{u}   \\
+    ///                 \vdots                                      \\
+    ///                 \frac{\partial M}{\partial \zeta} \ddot{u}
     ///             \end{bmatrix}
     ///          @f]
     ///          where
@@ -419,11 +406,10 @@ protected:
     ///          - @f$\eta@f$ is the second variable the stiffness term is differentiated with respect to,
     ///          - ...
     ///          - @f$\zeta@f$ is the last variable the stiffness term is differentiated with respect to,
-    ///          - @f$v@f$ is the input vector @p rValues.
+    ///          - @f$u@f$ is the state vector.
     /// @param[out] rOutput Output matrix containing the dot products of the derivatives
     ///                     and the arrays of variables.
     /// @param[in] Variables Set of variables to compute the derivative with respect to.
-    /// @param[in] rValues Vector to compute the inner product with.
     /// @param[in] rProcessInfo Current state of the computing model part.
     /// @param[in] iBuffer Relative reverse time step index to compute the derivative for.
     /// @see @ref IAdjointElement::ComputeDerivative "ComputeDerivative"
@@ -433,7 +419,6 @@ protected:
     virtual void ComputeMassDerivative(
         Matrix& rOutput,
         std::span<const IAdjoint::DynamicVariable> Variables,
-        const Vector& rValues,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const;
 

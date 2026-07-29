@@ -388,7 +388,6 @@ protected:
     void ComputeStiffnessDerivative(
         Matrix& rOutput,
         std::span<const IAdjoint::DynamicVariable> Variables,
-        const Vector& rValues,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const override;
 

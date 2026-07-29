@@ -99,7 +99,6 @@ void IAdjointElement::GetLoadInfluencingVariables(
 void IAdjointElement::ComputeStiffnessDerivative(
     Matrix&,
     std::span<const IAdjoint::DynamicVariable>,
-    const Vector&,
     const ProcessInfo&,
     int) const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
@@ -109,7 +108,6 @@ void IAdjointElement::ComputeStiffnessDerivative(
 void IAdjointElement::ComputeDampingDerivative(
     Matrix&,
     std::span<const IAdjoint::DynamicVariable>,
-    const Vector&,
     const ProcessInfo&,
     int) const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
@@ -119,7 +117,6 @@ void IAdjointElement::ComputeDampingDerivative(
 void IAdjointElement::ComputeMassDerivative(
     Matrix&,
     std::span<const IAdjoint::DynamicVariable>,
-    const Vector&,
     const ProcessInfo&,
     int) const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";

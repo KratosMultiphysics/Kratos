@@ -117,7 +117,6 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
                 const IAdjointElement& rThis,
                 IAdjoint::ResidualTerm Term,
                 const std::vector<IAdjoint::DynamicVariable> Variables,
-                const Vector& rValues,
                 const ProcessInfo& rProcessInfo,
                 int iBuffer) {
                     Matrix output;
@@ -126,7 +125,6 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
                             rThis.ComputeDerivative<IAdjoint::ResidualTerm::Stiffness>(
                                 output,
                                 Variables,
-                                rValues,
                                 rProcessInfo,
                                 iBuffer);
                             break;
@@ -134,7 +132,6 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
                             rThis.ComputeDerivative<IAdjoint::ResidualTerm::Damping>(
                                 output,
                                 Variables,
-                                rValues,
                                 rProcessInfo,
                                 iBuffer);
                             break;
@@ -142,7 +139,13 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
                             rThis.ComputeDerivative<IAdjoint::ResidualTerm::Mass>(
                                 output,
                                 Variables,
-                                rValues,
+                                rProcessInfo,
+                                iBuffer);
+                            break;
+                        case IAdjoint::ResidualTerm::Load:
+                            rThis.ComputeDerivative<IAdjoint::ResidualTerm::Load>(
+                                output,
+                                Variables,
                                 rProcessInfo,
                                 iBuffer);
                             break;
@@ -150,25 +153,6 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
                             KRATOS_ERROR << "invalid residual term '" << IAdjoint::TermName(Term) << "'";
                     }
                     return output;})
-        .def(
-            "ComputeDerivative",
-            [] (
-                const IAdjointElement& rThis,
-                IAdjoint::ResidualTerm Term,
-                std::vector<IAdjoint::DynamicVariable> Variables,
-                const ProcessInfo& rProcessInfo,
-                int iBuffer) {
-                    KRATOS_ERROR_IF_NOT(Term == IAdjoint::ResidualTerm::Load)
-                        << "invalid residual term '"
-                        << IAdjoint::TermName(Term) << "'";
-                    Matrix output;
-                    rThis.ComputeDerivative<IAdjoint::ResidualTerm::Load>(
-                        output,
-                        Variables,
-                        rProcessInfo,
-                        iBuffer);
-                    return output;
-                })
         ;
 } // AddAdjointInterfaceToPython
 

@@ -370,7 +370,6 @@ void ElasticIsotropic3D::GetLoadInfluencingVariables(
 void ElasticIsotropic3D::ComputeStiffnessDerivative(
     [[maybe_unused]] Matrix& rOutput,
     [[maybe_unused]] std::span<const IAdjoint::DynamicVariable> Variables,
-    [[maybe_unused]] const Vector& rValues,
     [[maybe_unused]] const ProcessInfo& rProcessInfo,
     [[maybe_unused]] int iBuffer) const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
