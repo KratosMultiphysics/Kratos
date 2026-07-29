@@ -154,12 +154,18 @@ ModelPart& CreateModelPartWithSingleStubElement(Model& model, const VariableData
     return r_result;
 }
 
-ModelPart& CreateModelPartWithTwoStubElements(Model& model, const VariableData& rVariable)
+ModelPart& CreateModelPartWithStubElements(Model& model, const VariableData& rVariable, bool hasMixedElements = false)
 {
-    //   This function creates the following two-element system:
+    //   This function creates the following two-element system if hasMixedElements = false
+    //   (Default):
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
+    //   and the following three -element
+    //   system if hasMixedElements = true:
+    //   4------3-----6
+    //   |  El1 | 2\3 |
+    //   1------2-----5
 
     auto& r_result = model.CreateModelPart("MainModelPart"s);
     r_result.AddNodalSolutionStepVariable(rVariable);
@@ -175,10 +181,19 @@ ModelPart& CreateModelPartWithTwoStubElements(Model& model, const VariableData& 
     r_result.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
         1, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_1)));
 
-    const auto nodes_of_element_2 = Testing::ModelSetupUtilities::GetNodesFromIds(r_result, {2, 5, 6, 3});
-    r_result.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
-        2, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_2)));
-
+    if (hasMixedElements) {
+        const auto nodes_of_element_2 = Testing::ModelSetupUtilities::GetNodesFromIds(r_result, {2, 5, 3});
+        r_result.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
+            2, std::make_shared<Triangle2D3<Node>>(nodes_of_element_2)));
+        const auto nodes_of_element_3 = Testing::ModelSetupUtilities::GetNodesFromIds(r_result, {6, 3, 5});
+        r_result.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
+            3, std::make_shared<Triangle2D3<Node>>(nodes_of_element_3)));
+    } else {
+        const auto nodes_of_element_2 =
+            Testing::ModelSetupUtilities::GetNodesFromIds(r_result, {2, 5, 6, 3});
+        r_result.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
+            2, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_2)));
+    }
     return r_result;
 }
 
@@ -314,7 +329,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
 
     auto        model           = Model{};
     const auto& r_test_variable = HYDRAULIC_HEAD;
-    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
+    auto&       r_model_part    = CreateModelPartWithStubElements(model, r_test_variable);
 
     const auto dummy_process_info = ProcessInfo{};
     r_model_part.Elements()[1].SetValuesOnIntegrationPoints(r_test_variable, std::vector(4, 1.0), dummy_process_info);
@@ -337,7 +352,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
 
     auto        model           = Model{};
     const auto& r_test_variable = HYDRAULIC_HEAD;
-    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
+    auto&       r_model_part    = CreateModelPartWithStubElements(model, r_test_variable);
 
     const auto dummy_process_info = ProcessInfo{};
     r_model_part.Elements()[1].SetValuesOnIntegrationPoints(r_test_variable, std::vector(4, 1.0), dummy_process_info);
@@ -358,7 +373,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
 
     auto        model           = Model{};
     const auto& r_test_variable = HYDRAULIC_HEAD;
-    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
+    auto&       r_model_part    = CreateModelPartWithStubElements(model, r_test_variable);
 
     // Linear field in x between -1 and 1
     const auto dummy_process_info = ProcessInfo{};
@@ -384,7 +399,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
 
     auto        model             = Model{};
     const auto& r_test_variable   = HYDRAULIC_HEAD;
-    auto&       r_main_model_part = CreateModelPartWithTwoStubElements(model, r_test_variable);
+    auto&       r_main_model_part = CreateModelPartWithStubElements(model, r_test_variable);
     const auto& r_foo_model_part  = model.CreateModelPart("foo"s);
     const auto& r_bar_model_part  = model.CreateModelPart("bar"s);
 
@@ -463,7 +478,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
 
     auto        model           = Model{};
     const auto& r_test_variable = CAUCHY_STRESS_TENSOR;
-    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
+    auto&       r_model_part    = CreateModelPartWithStubElements(model, r_test_variable);
 
     // Linear field in x between -1 and 1
     const auto dummy_process_info = ProcessInfo{};
@@ -496,7 +511,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
 
     auto        model           = Model{};
     const auto& r_test_variable = CAUCHY_STRESS_VECTOR;
-    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
+    auto&       r_model_part    = CreateModelPartWithStubElements(model, r_test_variable);
 
     // Linear field in x between -1 and 1
     const auto dummy_process_info = ProcessInfo{};
@@ -528,7 +543,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
 
     auto        model           = Model{};
     const auto& r_test_variable = FLUID_FLUX_VECTOR;
-    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
+    auto&       r_model_part    = CreateModelPartWithStubElements(model, r_test_variable);
 
     // Linear field in x between -1 and 1
     const auto dummy_process_info = ProcessInfo{};
@@ -543,6 +558,47 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
         r_test_variable,
         std::vector{array_1d<double, 3>(3, -inv_sqrt3), array_1d<double, 3>(3, -inv_sqrt3),
                     array_1d<double, 3>(3, inv_sqrt3), array_1d<double, 3>(3, inv_sqrt3)},
+        dummy_process_info);
+
+    CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
+
+    const auto expected_values = std::vector{
+        array_1d<double, 3>(3, -1.0), array_1d<double, 3>(3, 0.0),  array_1d<double, 3>(3, 1.0),
+        array_1d<double, 3>(3, -1.0), array_1d<double, 3>(3, -1.0), array_1d<double, 3>(3, 1.0)};
+    AssertNodalValues(r_model_part.Nodes(), r_test_variable, expected_values);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyForLinearFieldsWithMixedElementMesh,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    //   This test uses the following two-element system.
+    //   4-----3-----6
+    //   | El1 | 2\3 |
+    //   1-----2-----5
+
+    auto        model           = Model{};
+    const auto& r_test_variable = FLUID_FLUX_VECTOR;
+    auto&       r_model_part    = CreateModelPartWithStubElements(model, r_test_variable, true);
+
+    // Linear field in x between -1 and 1
+    const auto dummy_process_info = ProcessInfo{};
+    r_model_part.Elements()[1].SetValuesOnIntegrationPoints(
+        r_test_variable,
+        std::vector{array_1d<double, 3>(3, -inv_sqrt3), array_1d<double, 3>(3, inv_sqrt3),
+                    array_1d<double, 3>(3, inv_sqrt3), array_1d<double, 3>(3, -inv_sqrt3)},
+        dummy_process_info);
+
+    // Linear field in y between -1 and 1
+    r_model_part.Elements()[2].SetValuesOnIntegrationPoints(
+        r_test_variable,
+        std::vector{array_1d<double, 3>(3, -2. / 3.), array_1d<double, 3>(3, -2. / 3.),
+                    array_1d<double, 3>(3, 1. / 3.)},
+        dummy_process_info);
+
+    r_model_part.Elements()[3].SetValuesOnIntegrationPoints(
+        r_test_variable,
+        std::vector{array_1d<double, 3>(3, 2. / 3.), array_1d<double, 3>(3, 2. / 3.),
+                    array_1d<double, 3>(3, -1. / 3.)},
         dummy_process_info);
 
     CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
