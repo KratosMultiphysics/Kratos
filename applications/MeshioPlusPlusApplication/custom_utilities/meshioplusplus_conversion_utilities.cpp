@@ -16,6 +16,7 @@
 // System includes
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <map>
 #include <mutex>
 #include <sstream>
@@ -510,7 +511,7 @@ mio::NDArray ToNDArray(const DataArray& rData)
 
 /// Assigns one mesh data array back onto a Kratos entity container, resolving the array's
 /// name against a registered Variable whose component count agrees - the reverse of
-/// CollectVariableDataArrays' dispatch, in the same type order. A non-Float64 array, or a
+/// CollectVariableDataArrays' dispatch, in the same type order. A non-Float64/Int64 array, or a
 /// name/component-count that matches no registered variable, is skipped with a warning: a
 /// Kratos entity can only hold data under an actual registered Variable, so an operation's
 /// own invented array name (attach_quality's "quality:scaled_jacobian", say) never carries
@@ -523,9 +524,9 @@ void ApplyDataArrayToEntities(
     const std::size_t NumberOfEntities
     )
 {
-    if (rArray.Dtype() != mio::DType::Float64) {
+    if (rArray.Dtype() != mio::DType::Float64 && rArray.Dtype() != mio::DType::Int64) {
         KRATOS_INFO_ONCE("MeshioPlusPlusApplication") << "Data array \"" << rName
-            << "\" is not Float64 and was not carried onto the model part." << std::endl;
+            << "\" is not Float64 or Int64 and was not carried onto the model part." << std::endl;
         return;
     }
     const auto& r_shape = rArray.Shape();
@@ -533,7 +534,17 @@ void ApplyDataArrayToEntities(
         return;
     }
     const std::size_t number_of_components = r_shape.size() >= 2 ? r_shape[1] : 1;
-    const double* p_values = rArray.As<double>();
+
+    std::vector<double> widened_int64_values;
+    const double* p_values = nullptr;
+    if (rArray.Dtype() == mio::DType::Float64) {
+        p_values = rArray.As<double>();
+    } else {
+        const std::int64_t* p_int64_values = rArray.As<std::int64_t>();
+        const std::size_t total_values = NumberOfEntities * number_of_components;
+        widened_int64_values.assign(p_int64_values, p_int64_values + total_values);
+        p_values = widened_int64_values.data();
+    }
 
     auto assign_scalar = [&](const auto& rVariable) {
         std::size_t i = 0;

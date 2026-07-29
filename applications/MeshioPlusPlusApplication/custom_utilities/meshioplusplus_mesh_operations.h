@@ -16,8 +16,6 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <vector>
 
 // External includes
 

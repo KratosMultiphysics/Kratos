@@ -16,8 +16,6 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <vector>
 
 // External includes
 #include "meshioplusplus/cell_type.hpp"
@@ -27,7 +25,6 @@
 #include "meshioplusplus/formats/xdmf_time_series.hpp"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "geometries/geometry_data.h"
 
@@ -244,12 +241,13 @@ meshioplusplus::Mesh ModelPartToMeshWithData(
  * @details Creates the properties blocks referenced by the entities, transfers the material
  * data through @ref ApplyMeshioProperty, restores sub model parts from the named regions, and
  * carries the mesh's point_data / cell_data back as non-historical nodal / elemental /
- * conditional @ref Variable data: an array survives only when its name matches a registered
- * variable whose component count agrees (the same `double`/`int`/`bool`/`array_1d`/`Vector`
- * dispatch @ref ApplyMeshioProperty uses); anything else is skipped with a warning, because a
- * Kratos entity can only hold data under a name that is an actual registered `Variable` - an
- * operation's own invented array names (`attach_quality`'s `"quality:scaled_jacobian"`, say)
- * never carry through, and that is by design rather than a gap.
+ * conditional @ref Variable data: an array survives only when it is `Float64` or `Int64` and its
+ * name matches a registered variable whose component count agrees (the same
+ * `double`/`int`/`bool`/`array_1d`/`Vector` dispatch @ref ApplyMeshioProperty uses); anything
+ * else is skipped with a warning, because a Kratos entity can only hold data under a name that
+ * is an actual registered `Variable` - an operation's own invented array names
+ * (`attach_quality`'s `"quality:scaled_jacobian"`, `refine`'s `"refine:level"`, say) never carry
+ * through, and that is by design rather than a gap.
  * @param rSource The meshio++ mesh to read (mutable: materializing its model part view is lazy).
  * @param rDestination The Kratos model part to fill (expected empty).
  */
