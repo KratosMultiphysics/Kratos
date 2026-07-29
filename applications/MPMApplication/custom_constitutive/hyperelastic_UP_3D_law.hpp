@@ -116,6 +116,13 @@ public:
      */
     void GetLawFeatures(Features& rFeatures) override;
 
+    /**
+     * This function is designed to be called once to check compatibility with element
+     */
+    int Check(const Properties& rMaterialProperties,
+              const GeometryType& rElementGeometry,
+              const ProcessInfo& rCurrentProcessInfo) const override;
+
 
     /**
      * Computes the material response:
