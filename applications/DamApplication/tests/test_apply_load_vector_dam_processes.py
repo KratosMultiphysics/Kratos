@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.DamApplication as KratosDam
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 from KratosMultiphysics.DamApplication.apply_load_vector_dam_table_process import (
     ApplyLoadVectorDamTableProcess,
@@ -19,7 +20,7 @@ class TestApplyLoadVectorDamProcesses(KratosUnittest.TestCase):
         process.ExecuteBeforeSolutionLoop()
 
         self._CheckNodalValues(model_part, [3.0, -6.0, 1.5])
-        self._CheckComponentsAreFree(model_part)
+        self._CheckLoadComponentsAreNotDofs(model_part)
 
     def test_constant_table_load_does_not_fix_components(self):
         model, model_part = self._CreateModelPart()
@@ -33,7 +34,7 @@ class TestApplyLoadVectorDamProcesses(KratosUnittest.TestCase):
         process.ExecuteBeforeSolutionLoop()
 
         self._CheckNodalValues(model_part, [3.0, -6.0, 1.5])
-        self._CheckComponentsAreFree(model_part)
+        self._CheckLoadComponentsAreNotDofs(model_part)
 
     def test_table_load_does_not_fix_components(self):
         model, model_part = self._CreateModelPart()
@@ -50,29 +51,26 @@ class TestApplyLoadVectorDamProcesses(KratosUnittest.TestCase):
         )
 
         process.ExecuteBeforeSolutionLoop()
-        self._CheckComponentsAreFree(model_part)
+        self._CheckLoadComponentsAreNotDofs(model_part)
 
         model_part.CloneTimeStep(1.0)
         process.ExecuteInitializeSolutionStep()
 
         self._CheckNodalValues(model_part, [4.0, 4.0, 4.0])
-        self._CheckComponentsAreFree(model_part)
+        self._CheckLoadComponentsAreNotDofs(model_part)
 
     @staticmethod
     def _CreateModelPart():
         model = KratosMultiphysics.Model()
         model_part = model.CreateModelPart("main")
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosStructural.POINT_LOAD)
         model_part.ProcessInfo[KratosDam.TIME_UNIT_CONVERTER] = 1.0
 
         for node_id, coordinates in enumerate(
             ((0.0, 0.0, 0.0), (1.0, 2.0, 3.0)),
             start=1,
         ):
-            node = model_part.CreateNewNode(node_id, *coordinates)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
+            model_part.CreateNewNode(node_id, *coordinates)
 
         return model, model_part
 
@@ -82,7 +80,7 @@ class TestApplyLoadVectorDamProcesses(KratosUnittest.TestCase):
             """
             {
                 "model_part_name" : "main",
-                "variable_name"   : "DISPLACEMENT",
+                "variable_name"   : "POINT_LOAD",
                 "modulus"         : 3.0,
                 "direction"       : [1.0, -2.0, 0.5]
             }
@@ -91,9 +89,9 @@ class TestApplyLoadVectorDamProcesses(KratosUnittest.TestCase):
 
     def _CheckNodalValues(self, model_part, expected_values):
         variables = (
-            KratosMultiphysics.DISPLACEMENT_X,
-            KratosMultiphysics.DISPLACEMENT_Y,
-            KratosMultiphysics.DISPLACEMENT_Z,
+            KratosStructural.POINT_LOAD_X,
+            KratosStructural.POINT_LOAD_Y,
+            KratosStructural.POINT_LOAD_Z,
         )
         for node in model_part.Nodes:
             for variable, expected_value in zip(variables, expected_values):
@@ -102,15 +100,15 @@ class TestApplyLoadVectorDamProcesses(KratosUnittest.TestCase):
                     expected_value,
                 )
 
-    def _CheckComponentsAreFree(self, model_part):
+    def _CheckLoadComponentsAreNotDofs(self, model_part):
         variables = (
-            KratosMultiphysics.DISPLACEMENT_X,
-            KratosMultiphysics.DISPLACEMENT_Y,
-            KratosMultiphysics.DISPLACEMENT_Z,
+            KratosStructural.POINT_LOAD_X,
+            KratosStructural.POINT_LOAD_Y,
+            KratosStructural.POINT_LOAD_Z,
         )
         for node in model_part.Nodes:
             for variable in variables:
-                self.assertFalse(node.IsFixed(variable))
+                self.assertFalse(node.HasDofFor(variable))
 
 
 if __name__ == "__main__":
