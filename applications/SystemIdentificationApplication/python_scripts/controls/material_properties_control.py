@@ -1,6 +1,5 @@
 import math, numpy
 from typing import Optional
-import pandas as pd
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -116,15 +115,17 @@ class MaterialPropertiesControl(Control):
             KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.primal_model_part, "element_specific_properties_created")
 
             if self.initialize_from_file:
-                df = pd.read_csv(self.initialization_file_name, header=0, index_col=0)
-
+                df = numpy.loadtxt(self.initialization_file_name, delimiter=',', skiprows=1)
+                
                 # check sizes
+                if df.shape[1] != 2:
+                    raise RuntimeError(f"Initialization file for control \"{self.GetName()}\" should have 2 columns (Node/Element/ConditionID, {self.controlled_physical_variable.Name()}) with first row for header. [ provided file: {self.initialization_file_name} ]")
                 if len(df) != self.primal_model_part.NumberOfElements():
                     raise RuntimeError(f"Number of elements in the primal model part ({self.primal_model_part.NumberOfElements()}) does not match the number of rows in the initialization file ({len(df)}). [ control name = \"{self.GetName()}\"]")
 
                 # Assign values to properties
                 ta = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.primal_model_part.Elements, self.controlled_physical_variable)
-                ta.data[:] = df.to_numpy().flatten()
+                ta.data[:] = df[:, 1].flatten()
                 ta.StoreData()
 
             if self.primal_model_part != self.adjoint_model_part:

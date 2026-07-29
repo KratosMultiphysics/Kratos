@@ -1,6 +1,5 @@
 import math, numpy
 from typing import Optional
-import pandas as pd
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
@@ -123,15 +122,17 @@ class DataValuesControl(Control):
 
         # initialize the control field if required from a file
         if self.initialize_from_file:
-            df = pd.read_csv(self.initialization_file_name, header=0, index_col=0)
-
+            df = numpy.loadtxt(self.initialization_file_name, delimiter=',', skiprows=1)
+                            
             # check sizes
+            if df.shape[1] != 2:
+                raise RuntimeError(f"Initialization file for control \"{self.GetName()}\" should have 2 columns (Node/Element/ConditionID, {self.controlled_physical_variable.Name()}) with first row for header. [ provided file: {self.initialization_file_name} ]")
             if len(df) != self.GetEmptyField().Shape()[0]:
                 raise RuntimeError(f"Control initialization file does not have the required number of entries. [ control name = \"{self.GetName()}\", required = {self.GetEmptyField().Shape()[0]}, provided = {len(df)}]")
 
             # Assign to the specific field
             ta = GetTensorAdaptor(self.primal_model_part, self.container_type, self.controlled_physical_variable)
-            ta.data[:] = df.to_numpy().flatten()
+            ta.data[:] = df[:, 1].flatten()
             ta.StoreData()
 
         # initialize the filter
