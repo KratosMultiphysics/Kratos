@@ -95,7 +95,7 @@ namespace Kratos {
             const auto& r_master_dofs = p_const->GetMasterDofsVector();
 
             // Create empty constraint
-            MasterSlaveConstraint::Pointer p_new_const = Kratos::make_shared<LinearMasterSlaveConstraint>(2);
+            MasterSlaveConstraint::Pointer p_new_const = Kratos::make_intrusive<LinearMasterSlaveConstraint>(2);
             p_new_const->SetLocalSystem(matrix, vector, r_process_info);
             p_new_const->SetDofList(r_slave_dofs, r_master_dofs, r_process_info);
 
