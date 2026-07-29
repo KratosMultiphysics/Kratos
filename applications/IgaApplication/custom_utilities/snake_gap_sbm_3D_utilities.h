@@ -722,6 +722,7 @@ using NodeType = Node;
         NodePointerType pProjectionNode2;
 
         IndexType SurrogateNodeId = 0;
+        IndexType SurrogateConditionId = 0;
         IndexType ProjectionNodeId0 = 0;
         IndexType ProjectionNodeId1 = 0;
         IndexType ProjectionNodeId2 = 0;
@@ -914,6 +915,18 @@ using NodeType = Node;
         const bool HasType1NeighbourPath,
         const bool HasNeighbourActiveSpan,
         const SpanKey3D& rNeighbourActiveSpan);
+
+    /**
+     * @brief Build the surrogate face-centre quadrature geometries used as
+     * NEIGHBOUR_GEOMETRIES by the type1/type2/type3 workflow.
+     *
+     * The returned geometry is deliberately not the linear surrogate
+     * condition geometry: it carries the NURBS control-point connectivity and
+     * shape functions evaluated at the BREP face centre.
+     */
+    std::unordered_map<IndexType, Geometry<Node>::Pointer>
+    CreateSurrogateFaceCentreNeighbourGeometries(
+        const ModelPart& rSurrogateSubModelPart) const;
 
 private:
     std::size_t ComputeSpanCount(
@@ -1855,6 +1868,12 @@ private:
         double Radius = 0.0;
     };
 
+    struct NurbsSurfaceProjectionData
+    {
+        array_1d<double, 3> ControlPointMin = ZeroVector(3);
+        array_1d<double, 3> ControlPointMax = ZeroVector(3);
+    };
+
     int mEchoLevel = 0;
     std::size_t mGapApproximationOrder = 1;
     bool mStoreGapDebugGeometries = false;
@@ -1868,6 +1887,7 @@ private:
     CurvedTopFaceRegistry mCurvedTopFaceRegistry;
     std::vector<SkinProjectionTriangleData> mSkinProjectionTriangleData;
     std::vector<NurbsSurfaceType::Pointer> mInitialNurbsSkinSurfaces;
+    std::vector<NurbsSurfaceProjectionData> mInitialNurbsSkinProjectionData;
     double mMaximumNurbsProjectionDistance =
         std::numeric_limits<double>::max();
     SkinEdgeNormalMap mSkinEdgeAverageNormals;

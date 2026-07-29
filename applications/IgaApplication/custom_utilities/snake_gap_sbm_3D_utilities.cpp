@@ -22,6 +22,7 @@
 #include <utility>
 
 // Project includes
+#include "custom_utilities/snake_gap_sbm_3d_level_set_clipping_utilities.h"
 #include "custom_utilities/snake_gap_sbm_3D_utilities.h"
 #include "custom_processes/snake_gap_sbm_process.h"
 #include "custom_utilities/snake_gap_sbm_3D_utilities.h"
@@ -1249,13 +1250,38 @@ void SnakeGapSbm3DUtilities::SetInitialNurbsSkinModelPart(
     const ModelPart& rInitialSkinModelPart)
 {
     mInitialNurbsSkinSurfaces.clear();
+    mInitialNurbsSkinProjectionData.clear();
     mInitialNurbsSkinSurfaces.reserve(rInitialSkinModelPart.NumberOfGeometries());
+    mInitialNurbsSkinProjectionData.reserve(
+        rInitialSkinModelPart.NumberOfGeometries());
 
     for (const auto& r_geometry : rInitialSkinModelPart.Geometries()) {
         auto p_surface = std::dynamic_pointer_cast<NurbsSurfaceType>(
             rInitialSkinModelPart.pGetGeometry(r_geometry.Id()));
         if (p_surface) {
+            KRATOS_ERROR_IF(p_surface->PointsNumber() == 0)
+                << "Initial NURBS skin surface #" << r_geometry.Id()
+                << " has no control points.\n";
+
+            NurbsSurfaceProjectionData projection_data;
+            projection_data.ControlPointMin = p_surface->GetPoint(0).Coordinates();
+            projection_data.ControlPointMax = projection_data.ControlPointMin;
+            for (IndexType point_index = 1;
+                 point_index < p_surface->PointsNumber();
+                 ++point_index) {
+                const auto& r_control_point = p_surface->GetPoint(point_index);
+                for (std::size_t component = 0; component < 3; ++component) {
+                    projection_data.ControlPointMin[component] = std::min(
+                        projection_data.ControlPointMin[component],
+                        r_control_point[component]);
+                    projection_data.ControlPointMax[component] = std::max(
+                        projection_data.ControlPointMax[component],
+                        r_control_point[component]);
+                }
+            }
+
             mInitialNurbsSkinSurfaces.push_back(std::move(p_surface));
+            mInitialNurbsSkinProjectionData.push_back(projection_data);
         }
     }
 
@@ -2258,6 +2284,19 @@ SnakeGapSbm3DUtilities::ClassifyExternalSpans(
 {
     ExternalSpanDataMap external_spans;
 
+    // Type2/type3 candidates are generated from an active span rather than
+    // directly from a surrogate face.  Preserve the face IDs incident to that
+    // active span so downstream workflows (including level-set clipping) can
+    // retain the correct face-centre NURBS NEIGHBOUR_GEOMETRY.
+    std::map<SpanKey3D, std::vector<IndexType>> active_span_condition_ids;
+    for (const auto& r_face_data : rSurrogateFaces) {
+        if (r_face_data.pCondition != nullptr) {
+            AddUniqueConditionId(
+                active_span_condition_ids[r_face_data.ActiveSpan],
+                r_face_data.pCondition->Id());
+        }
+    }
+
     for (const auto& r_face_data : rSurrogateFaces) {
         RegisterExternalSpanCandidate(
             external_spans,
@@ -2300,12 +2339,23 @@ SnakeGapSbm3DUtilities::ClassifyExternalSpans(
                         manhattan_distance == 2 ? GapSpanType::Type2 :
                                                    GapSpanType::Type3;
 
-                    RegisterExternalSpanCandidate(
-                        external_spans,
-                        candidate_span,
-                        type,
-                        r_active_span,
-                        0);
+                    const auto condition_ids_it =
+                        active_span_condition_ids.find(r_active_span);
+                    KRATOS_ERROR_IF(
+                        condition_ids_it == active_span_condition_ids.end() ||
+                        condition_ids_it->second.empty())
+                        << "[SnakeGapSbm3DUtilities::ClassifyExternalSpans] "
+                        << "Active span " << SpanToString(r_active_span)
+                        << " has no incident surrogate condition.\n";
+
+                    for (const IndexType condition_id : condition_ids_it->second) {
+                        RegisterExternalSpanCandidate(
+                            external_spans,
+                            candidate_span,
+                            type,
+                            r_active_span,
+                            condition_id);
+                    }
                 }
             }
         }
@@ -2323,6 +2373,18 @@ SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan(
     const KnotSpanGridInfo& rGridInfo) const
 {
     if (!mInitialNurbsSkinSurfaces.empty()) {
+        array_1d<double, 3> span_min = ZeroVector(3);
+        span_min[0] = rGridInfo.MinU + rSpan.I * rGridInfo.SpanSizeX;
+        span_min[1] = rGridInfo.MinV + rSpan.J * rGridInfo.SpanSizeY;
+        span_min[2] = rGridInfo.MinW + rSpan.K * rGridInfo.SpanSizeZ;
+        array_1d<double, 3> span_max = span_min;
+        span_max[0] += rGridInfo.SpanSizeX;
+        span_max[1] += rGridInfo.SpanSizeY;
+        span_max[2] += rGridInfo.SpanSizeZ;
+        const double tolerance = 1.0e-10 * std::max({
+            rGridInfo.SpanSizeX,
+            rGridInfo.SpanSizeY,
+            rGridInfo.SpanSizeZ});
         array_1d<double, 3> nurbs_projection = ZeroVector(3);
         double nurbs_projection_distance = std::numeric_limits<double>::max();
         if (ProjectPointToClosestNurbsSurface(
@@ -2331,18 +2393,6 @@ SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan(
                 nurbs_projection_distance,
                 false,
                 MaximumSkinProjectionDistance(rGridInfo))) {
-            array_1d<double, 3> span_min = ZeroVector(3);
-            span_min[0] = rGridInfo.MinU + rSpan.I * rGridInfo.SpanSizeX;
-            span_min[1] = rGridInfo.MinV + rSpan.J * rGridInfo.SpanSizeY;
-            span_min[2] = rGridInfo.MinW + rSpan.K * rGridInfo.SpanSizeZ;
-            array_1d<double, 3> span_max = span_min;
-            span_max[0] += rGridInfo.SpanSizeX;
-            span_max[1] += rGridInfo.SpanSizeY;
-            span_max[2] += rGridInfo.SpanSizeZ;
-            const double tolerance = 1.0e-10 * std::max({
-                rGridInfo.SpanSizeX,
-                rGridInfo.SpanSizeY,
-                rGridInfo.SpanSizeZ});
             // A point on a shared span face must not be assigned independently
             // to both neighbouring spans: that produces coincident projection
             // nodes and collapsed type-3 volumes. In that case retain the
@@ -2366,6 +2416,160 @@ SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan(
                     nurbs_projection[1],
                     nurbs_projection[2]);
             }
+        }
+
+        if (false) {
+        // The unconstrained closest point may belong to a neighbouring span.
+        // Do not fall back immediately to the tessellated skin: find an exact
+        // NURBS point on a face of this span box instead. This preserves span
+        // ownership without introducing the tessellation error in projection
+        // nodes shared by type2/type3 geometries.
+        array_1d<double, 3> best_span_boundary_point = ZeroVector(3);
+        double best_span_boundary_distance_squared =
+            std::numeric_limits<double>::max();
+
+        auto consider_exact_nurbs_point = [&](const array_1d<double, 3>& rPoint) {
+            for (std::size_t component = 0; component < 3; ++component) {
+                if (rPoint[component] < span_min[component] - tolerance ||
+                    rPoint[component] > span_max[component] + tolerance) {
+                    return;
+                }
+            }
+            const double distance_squared = inner_prod(
+                rPoint - rReferencePoint,
+                rPoint - rReferencePoint);
+            if (distance_squared < best_span_boundary_distance_squared) {
+                best_span_boundary_distance_squared = distance_squared;
+                best_span_boundary_point = rPoint;
+            }
+        };
+
+        constexpr std::size_t samples_per_knot_span = 8;
+        constexpr std::size_t bisection_iterations = 48;
+        for (const auto& p_surface : mInitialNurbsSkinSurfaces) {
+            const auto u_spans = p_surface->KnotSpanIntervalsU();
+            const auto v_spans = p_surface->KnotSpanIntervalsV();
+
+            auto evaluate = [&](const double U, const double V) {
+                CoordinatesArrayType local_coordinates = ZeroVector(3);
+                local_coordinates[0] = U;
+                local_coordinates[1] = V;
+                CoordinatesArrayType point;
+                p_surface->GlobalCoordinates(point, local_coordinates);
+                return array_1d<double, 3>(point);
+            };
+
+            auto find_segment_plane_intersection = [&](
+                const double U0, const double V0,
+                const double U1, const double V1,
+                const array_1d<double, 3>& rPoint0,
+                const array_1d<double, 3>& rPoint1,
+                const std::size_t Component,
+                const double PlaneCoordinate)
+            {
+                double value0 = rPoint0[Component] - PlaneCoordinate;
+                double value1 = rPoint1[Component] - PlaneCoordinate;
+                if (std::abs(value0) <= tolerance) {
+                    consider_exact_nurbs_point(rPoint0);
+                }
+                if (value0 * value1 > 0.0 ||
+                    (std::abs(value0) <= tolerance &&
+                     std::abs(value1) <= tolerance)) {
+                    return;
+                }
+
+                double left = 0.0;
+                double right = 1.0;
+                for (std::size_t iteration = 0;
+                     iteration < bisection_iterations;
+                     ++iteration) {
+                    const double middle = 0.5 * (left + right);
+                    const auto point = evaluate(
+                        U0 + middle * (U1 - U0),
+                        V0 + middle * (V1 - V0));
+                    const double value = point[Component] - PlaneCoordinate;
+                    if (std::abs(value) <= tolerance) {
+                        left = middle;
+                        right = middle;
+                        break;
+                    }
+                    if (value0 * value <= 0.0) {
+                        right = middle;
+                        value1 = value;
+                    } else {
+                        left = middle;
+                        value0 = value;
+                    }
+                }
+                consider_exact_nurbs_point(evaluate(
+                    U0 + 0.5 * (left + right) * (U1 - U0),
+                    V0 + 0.5 * (left + right) * (V1 - V0)));
+            };
+
+            for (const auto& r_u_span : u_spans) {
+                for (const auto& r_v_span : v_spans) {
+                    for (std::size_t j = 0; j <= samples_per_knot_span; ++j) {
+                        for (std::size_t i = 0; i <= samples_per_knot_span; ++i) {
+                            const double u0 = r_u_span.MinParameter() +
+                                (r_u_span.MaxParameter() - r_u_span.MinParameter()) *
+                                static_cast<double>(i) / samples_per_knot_span;
+                            const double v0 = r_v_span.MinParameter() +
+                                (r_v_span.MaxParameter() - r_v_span.MinParameter()) *
+                                static_cast<double>(j) / samples_per_knot_span;
+                            const auto point0 = evaluate(u0, v0);
+                            consider_exact_nurbs_point(point0);
+
+                            const auto test_segment = [&](const double U1, const double V1) {
+                                const auto point1 = evaluate(U1, V1);
+                                for (std::size_t component = 0; component < 3; ++component) {
+                                    find_segment_plane_intersection(
+                                        u0, v0, U1, V1, point0, point1,
+                                        component, span_min[component]);
+                                    find_segment_plane_intersection(
+                                        u0, v0, U1, V1, point0, point1,
+                                        component, span_max[component]);
+                                }
+                            };
+                            if (i < samples_per_knot_span) {
+                                test_segment(
+                                    r_u_span.MinParameter() +
+                                        (r_u_span.MaxParameter() - r_u_span.MinParameter()) *
+                                        static_cast<double>(i + 1) / samples_per_knot_span,
+                                    v0);
+                            }
+                            if (j < samples_per_knot_span) {
+                                test_segment(
+                                    u0,
+                                    r_v_span.MinParameter() +
+                                        (r_v_span.MaxParameter() - r_v_span.MinParameter()) *
+                                        static_cast<double>(j + 1) / samples_per_knot_span);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (std::isfinite(best_span_boundary_distance_squared)) {
+            // A NURBS point on a shared span face must have a single node
+            // identity. Reuse it when the adjacent external span reaches the
+            // same exact intersection later in this assignment pass.
+            for (const auto& r_node : rSkinSubModelPart.Nodes()) {
+                if (norm_2(r_node.Coordinates() - best_span_boundary_point) <=
+                    tolerance) {
+                    return rSkinSubModelPart.pGetNode(r_node.Id());
+                }
+            }
+            IndexType new_node_id = GetNextAuxiliarySkinNodeId(rSkinSubModelPart);
+            while (rSkinSubModelPart.GetRootModelPart().HasNode(new_node_id)) {
+                ++new_node_id;
+            }
+            return rSkinSubModelPart.CreateNewNode(
+                new_node_id,
+                best_span_boundary_point[0],
+                best_span_boundary_point[1],
+                best_span_boundary_point[2]);
+        }
         }
     }
 
@@ -3399,6 +3603,32 @@ SnakeGapSbm3DUtilities::CreateSurrogateFaceNeighbourGeometry(
         << "from BREP surface #" << rBrepPatchData.pBrepSurface->Id() << ".\n";
 
     return quadrature_point_list(0);
+}
+
+std::unordered_map<IndexType, Geometry<Node>::Pointer>
+SnakeGapSbm3DUtilities::CreateSurrogateFaceCentreNeighbourGeometries(
+    const ModelPart& rSurrogateSubModelPart) const
+{
+    const ModelPart& r_iga_model_part = rSurrogateSubModelPart.GetRootModelPart();
+    const std::size_t number_of_shape_functions_derivatives =
+        ComputeNumberOfShapeFunctionsDerivatives(r_iga_model_part);
+    const auto brep_patch_data_list = BuildBrepPatchDataVector(
+        r_iga_model_part,
+        rSurrogateSubModelPart);
+
+    std::unordered_map<IndexType, Geometry<Node>::Pointer> result;
+    result.reserve(rSurrogateSubModelPart.NumberOfConditions());
+    for (const auto& r_condition : rSurrogateSubModelPart.Conditions()) {
+        const auto& r_brep_patch_data = FindBrepPatchMatchingCondition(
+            r_condition,
+            brep_patch_data_list);
+        result.emplace(
+            r_condition.Id(),
+            CreateSurrogateFaceNeighbourGeometry(
+                r_brep_patch_data,
+                number_of_shape_functions_derivatives));
+    }
+    return result;
 }
 
 SnakeGapSbm3DUtilities::NurbsSurfaceType::Pointer
@@ -4527,8 +4757,43 @@ bool SnakeGapSbm3DUtilities::ProjectPointToClosestNurbsSurface(
             ? 1.0e-12 * std::max(1.0, active_maximum_projection_distance)
             : 0.0;
 
-    for (const auto& p_surface : mInitialNurbsSkinSurfaces) {
-        const double best_distance_before_surface = rProjectionDistance;
+    KRATOS_ERROR_IF(
+        mInitialNurbsSkinProjectionData.size() !=
+        mInitialNurbsSkinSurfaces.size())
+        << "Inconsistent initial NURBS projection cache.\n";
+
+    for (std::size_t surface_index = 0;
+         surface_index < mInitialNurbsSkinSurfaces.size();
+         ++surface_index) {
+        const auto& p_surface = mInitialNurbsSkinSurfaces[surface_index];
+        const auto& r_projection_data =
+            mInitialNurbsSkinProjectionData[surface_index];
+        // A NURBS surface is contained in the convex hull of its control
+        // points. The distance to their axis-aligned bounding box is thus a
+        // rigorous lower bound for the distance to the surface, so distant
+        // patches can be skipped without changing the closest projection.
+        double surface_box_distance_squared = 0.0;
+        for (std::size_t component = 0; component < 3; ++component) {
+            const double coordinate_distance =
+                rPoint[component] < r_projection_data.ControlPointMin[component]
+                    ? r_projection_data.ControlPointMin[component] - rPoint[component]
+                    : rPoint[component] > r_projection_data.ControlPointMax[component]
+                        ? rPoint[component] - r_projection_data.ControlPointMax[component]
+                        : 0.0;
+            surface_box_distance_squared +=
+                coordinate_distance * coordinate_distance;
+        }
+
+        const double maximum_admissible_distance = std::min(
+            rProjectionDistance,
+            has_projection_cutoff
+                ? active_maximum_projection_distance + cutoff_tolerance
+                : std::numeric_limits<double>::max());
+        if (surface_box_distance_squared >
+            maximum_admissible_distance * maximum_admissible_distance) {
+            continue;
+        }
+
         const auto u_spans = p_surface->KnotSpanIntervalsU();
         const auto v_spans = p_surface->KnotSpanIntervalsV();
         const auto domain_u = p_surface->DomainIntervalU();
@@ -4713,16 +4978,7 @@ bool SnakeGapSbm3DUtilities::ProjectPointToClosestNurbsSurface(
             }
         }
 
-        bool skip_boundary_minimization = false;
-        if (IncludeKnotSpanBoundaryLines &&
-            rProjectionDistance < best_distance_before_surface) {
-            skip_boundary_minimization =
-                !has_projection_cutoff ||
-                rProjectionDistance <=
-                    active_maximum_projection_distance + cutoff_tolerance;
-        }
-
-        if (IncludeKnotSpanBoundaryLines && !skip_boundary_minimization) {
+        if (IncludeKnotSpanBoundaryLines) {
             for (const auto& r_u_span : u_spans) {
                 for (const auto& r_v_span : v_spans) {
                     minimize_span_rectangle(
@@ -5204,13 +5460,12 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
                        MaximumProjectionDistance;
         };
 
-        if (has_projection_direction && mGapApproximationOrder == 2) {
-            constexpr std::array<double, 3> sample_parameters = {{
-                0.25,
-                0.50,
-                0.75
-            }};
-            std::array<array_1d<double, 3>, 3> projected_sample_points;
+        if (mGapApproximationOrder == 2) {
+            // Use the closest point at the edge midpoint.  This is the
+            // original quadratic-edge construction and is more robust than
+            // fitting several points obtained along a fixed edge normal.
+            constexpr std::array<double, 1> sample_parameters = {{0.50}};
+            std::array<array_1d<double, 3>, 1> projected_sample_points;
 
             for (std::size_t sample_index = 0;
                  sample_index < sample_parameters.size();
@@ -5221,12 +5476,13 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
                     t * p_canonical_node_1->Coordinates();
 
                 array_1d<double, 3> projected_point = ZeroVector(3);
-                if (!ProjectPointToSkinBoundaryAlongDirection(
-                        rSkinSubModelPart,
+                double projection_distance = std::numeric_limits<double>::max();
+                if (!ProjectPointToClosestNurbsSurface(
                         linear_point,
-                        projection_direction,
-                        MaximumProjectionDistance,
-                        projected_point)) {
+                        projected_point,
+                        projection_distance,
+                        true,
+                        MaximumProjectionDistance)) {
                     created_curved_edge = false;
                     break;
                 }
@@ -5242,7 +5498,7 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
             }
 
             if (created_curved_edge) {
-                std::array<double, 3> fitted_curve_parameters =
+                std::array<double, 1> fitted_curve_parameters =
                     sample_parameters;
                 array_1d<double, 3> bezier_control_point =
                     0.5 * (p_canonical_node_0->Coordinates() +
@@ -5331,8 +5587,8 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
                             p_canonical_node_0->Coordinates(),
                             bezier_control_point,
                             p_canonical_node_1->Coordinates(),
-                            projected_sample_points[1],
-                            fitted_curve_parameters[1]);
+                            projected_sample_points[0],
+                            fitted_curve_parameters[0]);
                     const array_1d<double, 3> midpoint_on_fitted_curve =
                         EvaluateQuadraticBezierPoint(
                             p_canonical_node_0->Coordinates(),
@@ -7488,14 +7744,18 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 }
             }
 
-            KRATOS_ERROR_IF_NOT(found_valid_triangulation)
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
-                << "Could not find a type3 triangulation that stays on the "
-                << "free side of already registered faces.\n"
-                << "  surrogate node: " << surrogate_node_id << "\n"
-                << "  direction: " << direction_names[direction_index] << "\n"
-                << "  spans:" << span_list_to_string(r_selected_direction_spans)
-                << "\n";
+            if (!found_valid_triangulation) {
+                ++result.Summary.NumberOfSkippedFaces;
+                KRATOS_WARNING("SnakeGapSbm3DUtilities")
+                    << "[CreateType3GapGeometries] Skipping a collapsed or "
+                    << "topologically incompatible type3 closure; no volume "
+                    << "quadrature will be created.\n"
+                    << "  surrogate node: " << surrogate_node_id << "\n"
+                    << "  direction: " << direction_names[direction_index] << "\n"
+                    << "  spans: "
+                    << span_list_to_string(r_selected_direction_spans) << "\n";
+                continue;
+            }
 
             auto register_type3_face_if_needed = [&](
                 const NodePointerType& pNode0,
@@ -9579,6 +9839,7 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
             rGridInfo.SpanSizeY,
             rGridInfo.SpanSizeZ});
 
+
     RebuildSkinEdgeAverageNormalMap(rSkinSubModelPart);
 
     auto make_edge_key = [](
@@ -9654,7 +9915,7 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
                edge_it->second.IsCurved;
     };
 
-    auto create_quadratic_top_controls = [&](
+    auto create_quadratic_top_controls = [this, &get_oriented_edge_controls, &IntegrationOrder](
         const NodePointerType& pNode0,
         const NodePointerType& pNode1,
         const NodePointerType& pNode2,
@@ -9669,20 +9930,83 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
         const auto edge_12 = get_oriented_edge_controls(pNode1, pNode2);
         const auto edge_02 = get_oriented_edge_controls(pNode0, pNode2);
 
-        static_cast<void>(TopAlpha);
-        static_cast<void>(rSkinSubModelPart);
-        static_cast<void>(maximum_projection_distance);
-
-        array_1d<double, 3> middle_control_point =
+        array_1d<double, 3> coons_middle_control_point =
             0.5 * edge_01[1]->Coordinates();
-        noalias(middle_control_point) +=
+        noalias(coons_middle_control_point) +=
             0.5 * edge_02[1]->Coordinates();
-        noalias(middle_control_point) +=
+        noalias(coons_middle_control_point) +=
             0.5 * edge_12[1]->Coordinates();
-        noalias(middle_control_point) -=
+        noalias(coons_middle_control_point) -=
             0.25 * pNode0->Coordinates();
-        noalias(middle_control_point) -=
+        noalias(coons_middle_control_point) -=
             0.25 * pNode1->Coordinates();
+        array_1d<double, 3> middle_control_point =
+            coons_middle_control_point;
+
+        // Fit the only interior control point to the same tensor-product
+        // Gauss points used by the curved top surface. This directly reduces
+        // the distance between the actual quadrature points and the NURBS
+        // skin, instead of enforcing the fit at a single patch centre.
+        if (!mInitialNurbsSkinSurfaces.empty()) {
+            const std::array<NodePointerType, 9> control_grid = {{
+                edge_01[0], edge_01[1], edge_01[2],
+                edge_02[1], nullptr, edge_12[1],
+                pNode2, pNode2, pNode2}};
+            const std::size_t fit_order = CappedGaussOrder(IntegrationOrder);
+            IntegrationPointsArrayType fit_points(fit_order * fit_order);
+            auto fit_point_iterator = fit_points.begin();
+            IntegrationPointUtilities::IntegrationPoints2D(
+                fit_point_iterator, fit_order, fit_order,
+                0.0, 1.0, 0.0, 1.0);
+
+            array_1d<double, 3> least_squares_numerator = ZeroVector(3);
+            double least_squares_denominator = 0.0;
+            for (const auto& r_fit_point : fit_points) {
+                const double u = r_fit_point[0];
+                const double v = r_fit_point[1];
+                const std::array<double, 3> basis_u = {{
+                    (1.0 - u) * (1.0 - u), 2.0 * u * (1.0 - u), u * u}};
+                const std::array<double, 3> basis_v = {{
+                    (1.0 - v) * (1.0 - v), 2.0 * v * (1.0 - v), v * v}};
+                const double centre_weight = basis_u[1] * basis_v[1];
+                array_1d<double, 3> known_contribution = ZeroVector(3);
+                for (std::size_t j = 0; j < 3; ++j) {
+                    for (std::size_t i = 0; i < 3; ++i) {
+                        if (i != 1 || j != 1) {
+                            noalias(known_contribution) += basis_u[i] * basis_v[j] *
+                                control_grid[3 * j + i]->Coordinates();
+                        }
+                    }
+                }
+
+                const array_1d<double, 3> coons_point =
+                    known_contribution + centre_weight * coons_middle_control_point;
+                array_1d<double, 3> nurbs_projection = ZeroVector(3);
+                double projection_distance = std::numeric_limits<double>::max();
+                if (!ProjectPointToClosestNurbsSurface(
+                        coons_point, nurbs_projection, projection_distance,
+                        true, mMaximumNurbsProjectionDistance)) {
+                    continue;
+                }
+
+                const double weighted_centre_coefficient =
+                    r_fit_point.Weight() * centre_weight;
+                noalias(least_squares_numerator) +=
+                    weighted_centre_coefficient *
+                    (nurbs_projection - known_contribution);
+                least_squares_denominator +=
+                    weighted_centre_coefficient * centre_weight;
+            }
+
+            if (least_squares_denominator >
+                std::numeric_limits<double>::epsilon()) {
+                const array_1d<double, 3> fitted_middle_control_point =
+                    least_squares_numerator / least_squares_denominator;
+                middle_control_point = coons_middle_control_point +
+                    TopAlpha * (fitted_middle_control_point -
+                                coons_middle_control_point);
+            }
+        }
 
         NodePointerType p_middle_node(new Node(0, middle_control_point));
 
@@ -9856,7 +10180,10 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
                 // The top patch is initialized from its three shared edge
                 // curves. Quadratic patches use the existing middle-control
                 // construction; cubic patches use a bicubic Coons net.
-                top_data.Alpha = 0.0;
+                // Diagnostic mode: keep the original Coons top construction
+                // and do not apply the NURBS-based interior-control-point
+                // correction.
+                top_data.Alpha = 1.0;
                 refresh_top_face(top_data);
                 register_top_face_incidence(top_data);
                 mCurvedTopFaceRegistry.emplace(top_key, std::move(top_data));
@@ -9949,6 +10276,11 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
             return false;
         }
 
+        // Keep most of the NURBS correction when a temporary validity check
+        // asks for damping.  The previous factor (0.5) moved the type3 top
+        // patch too close to the initial Coons construction and noticeably
+        // degraded the pointwise projection accuracy, even when the volume
+        // mapping remained valid.
         r_top_data.Alpha *= 0.5;
         if (r_top_data.Alpha < 1.0e-6) {
             r_top_data.Alpha = 0.0;
@@ -15153,7 +15485,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     const double max_knot_span_size = std::max(knot_span_sizes[0], std::max(knot_span_sizes[1], knot_span_sizes[2]));
     KRATOS_ERROR_IF(min_knot_span_size <= 0.0)
         << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: knot span sizes must be positive." << std::endl;
-    utilities.SetMaximumNurbsProjectionDistance(3.0 * max_knot_span_size);
+    utilities.SetMaximumNurbsProjectionDistance(2.0);
 
     const double area_tol = 1.0e-12 * min_knot_span_size * min_knot_span_size;
     const double volume_tol = 1.0e-12 * min_knot_span_size * min_knot_span_size * min_knot_span_size;
@@ -15491,6 +15823,46 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                     << "  coordinates: " << r_node.Coordinates() << "\n";
             }
         }
+    }
+
+    if (mThisParameters["use_level_set_clipping_gap_integration"].GetBool()) {
+        const auto surrogate_faces = utilities.BuildSurrogateFaceDataVector(
+            rSurrogateSubModelPart,
+            grid_info);
+        const auto active_background_spans = utilities.ExtractActiveSpans(
+            surrogate_faces);
+        SnakeGapSbm3DLevelSetClippingUtilities::Settings clipping_settings;
+        clipping_settings.KeepNegativePhi = !TIsInnerLoop;
+        clipping_settings.CreateInterfaceConditions =
+            mThisParameters["level_set_clipping_create_interface_conditions"].GetBool();
+        clipping_settings.VolumeIntegrationOrder = gap_volume_integration_order;
+        clipping_settings.BoundaryIntegrationOrder = 1;
+        clipping_settings.SubdivisionsPerSpan = static_cast<std::size_t>(
+            mThisParameters["level_set_clipping_subdivisions_per_span"].GetInt());
+        clipping_settings.EchoLevel = mEchoLevel;
+        clipping_settings.VolumeElementName = "GapSbmSolidElementVolumetric";
+        clipping_settings.BoundaryConditionName = mGapConditionName;
+        clipping_settings.InterfaceConditionName = mGapInterfaceConditionName;
+
+        KRATOS_INFO_IF("SnakeGapSbm3DLevelSetClipping", mEchoLevel > 0)
+            << "Using experimental level-set clipping Gap-SBM integration for the "
+            << (TIsInnerLoop ? "inner" : "outer") << " skin.\n";
+
+        SnakeGapSbm3DLevelSetClippingUtilities clipping_utilities;
+        clipping_utilities.Create(
+            utilities,
+            r_root_model_part,
+            rSkinSubModelPart,
+            rSurrogateSubModelPart,
+            grid_info,
+            active_background_spans,
+            knot_span_sizes,
+            *mpGapElementsSubModelPart,
+            *mpGapConditionsSubModelPart,
+            *mpGapInterfaceSubModelPart,
+            mpIgaModelPart->pGetProperties(1),
+            clipping_settings);
+        return;
     }
 
     auto external_spans = utilities.InitializeExternalSpanData(
@@ -16096,26 +16468,13 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
             std::max(next_open_lateral_projection_node_id, r_node.Id() + 1);
     }
 
-    SnakeGapSbm3DUtilities outer_initial_projection_utilities(mEchoLevel);
-    bool use_exact_open_lateral_projection_on_outer_initial = false;
-    if (mpSkinModelPartOuterInitial != nullptr) {
-        std::size_t number_of_outer_initial_surface_geometries = 0;
-        for (const auto& r_geometry : mpSkinModelPartOuterInitial->Geometries()) {
-            const auto p_surface = std::dynamic_pointer_cast<NurbsSurfaceType>(
-                mpSkinModelPartOuterInitial->pGetGeometry(r_geometry.Id()));
-            if (p_surface) {
-                ++number_of_outer_initial_surface_geometries;
-            }
-        }
-
-        if (number_of_outer_initial_surface_geometries > 0) {
-            outer_initial_projection_utilities.SetInitialNurbsSkinModelPart(
-                *mpSkinModelPartOuterInitial);
-            outer_initial_projection_utilities.SetMaximumNurbsProjectionDistance(
-                3.0 * max_knot_span_size);
-            use_exact_open_lateral_projection_on_outer_initial = true;
-        }
-    }
+    // `utilities` is initialized above with the initial skin selected by
+    // TIsInnerLoop. Reusing it here keeps the final lateral projection on the
+    // same exact NURBS boundary for both inner and outer loops.
+    const bool use_exact_open_lateral_nurbs_projection =
+        r_initial_skin_model_part.NumberOfGeometries() > 0;
+    std::size_t number_of_exact_open_lateral_nurbs_projections = 0;
+    std::size_t number_of_open_lateral_triangle_fallbacks = 0;
 
     auto find_closest_skin_projection = [&](
         const Geometry<Node>& rQuadratureGeometry,
@@ -16127,6 +16486,57 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         quadrature_center_coordinates[0] = quadrature_center.X();
         quadrature_center_coordinates[1] = quadrature_center.Y();
         quadrature_center_coordinates[2] = quadrature_center.Z();
+
+        // Debug mode: use the analytic spherical projection for every point.
+        // This intentionally bypasses both the NURBS closest-point search and
+        // the triangulated-skin fallback to isolate geometry errors.
+        array_1d<double, 3> debug_control_point_min = ZeroVector(3);
+        array_1d<double, 3> debug_control_point_max = ZeroVector(3);
+        bool debug_has_control_point = false;
+        for (const auto& p_surface_geometry : r_initial_skin_model_part.Geometries()) {
+            const auto p_nurbs_surface =
+                std::dynamic_pointer_cast<NurbsSurfaceType>(
+                    r_initial_skin_model_part.pGetGeometry(
+                        p_surface_geometry.Id()));
+            if (!p_nurbs_surface || p_nurbs_surface->PointsNumber() == 0) {
+                continue;
+            }
+            for (IndexType point_index = 0;
+                 point_index < p_nurbs_surface->PointsNumber();
+                 ++point_index) {
+                const auto& r_point = p_nurbs_surface->GetPoint(point_index);
+                if (!debug_has_control_point) {
+                    debug_control_point_min = r_point.Coordinates();
+                    debug_control_point_max = debug_control_point_min;
+                    debug_has_control_point = true;
+                } else {
+                    for (std::size_t component = 0; component < 3; ++component) {
+                        debug_control_point_min[component] = std::min(
+                            debug_control_point_min[component], r_point[component]);
+                        debug_control_point_max[component] = std::max(
+                            debug_control_point_max[component], r_point[component]);
+                    }
+                }
+            }
+        }
+        if (debug_has_control_point) {
+            const array_1d<double, 3> debug_sphere_center =
+                0.5 * (debug_control_point_min + debug_control_point_max);
+            const array_1d<double, 3> debug_half_extents =
+                0.5 * (debug_control_point_max - debug_control_point_min);
+            const double debug_sphere_radius =
+                (debug_half_extents[0] + debug_half_extents[1] +
+                 debug_half_extents[2]) / 3.0;
+            array_1d<double, 3> debug_direction =
+                quadrature_center_coordinates - debug_sphere_center;
+            const double debug_direction_norm = norm_2(debug_direction);
+            if (debug_sphere_radius > std::numeric_limits<double>::epsilon() &&
+                debug_direction_norm > std::numeric_limits<double>::epsilon()) {
+                debug_direction /= debug_direction_norm;
+                rProjectionNormal = debug_direction;
+                return debug_sphere_center + debug_sphere_radius * debug_direction;
+            }
+        }
 
         PointType center_search_point(
             0,
@@ -16214,42 +16624,89 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
             << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries3D: "
             << "Failed to project an open lateral quadrature center onto the skin.\n";
 
-        if (use_exact_open_lateral_projection_on_outer_initial) {
+        if (use_exact_open_lateral_nurbs_projection) {
             const double triangle_projection_distance =
                 std::sqrt(closest_distance_squared);
             const double local_nurbs_projection_cutoff = std::min(
                 3.0 * max_knot_span_size,
                 triangle_projection_distance +
                     0.25 * max_skin_triangle_radius);
-            outer_initial_projection_utilities
-                .SetMaximumNurbsProjectionDistance(
+            utilities.SetMaximumNurbsProjectionDistance(
                     local_nurbs_projection_cutoff);
 
             array_1d<double, 3> exact_projection = ZeroVector(3);
             array_1d<double, 3> exact_normal = ZeroVector(3);
             double exact_projection_distance =
                 std::numeric_limits<double>::max();
-            if (outer_initial_projection_utilities
+            if (utilities
                     .TryProjectPointToInitialNurbsSkin(
                         quadrature_center_coordinates,
                         exact_projection,
                         exact_projection_distance,
-                        &exact_normal)) {
-                const array_1d<double, 3> projection_direction =
-                    quadrature_center_coordinates - exact_projection;
-                const double projection_direction_norm =
-                    norm_2(projection_direction);
-                const double direction_tolerance =
-                    1.0e-12 * std::max(1.0, max_knot_span_size);
-                if (projection_direction_norm > direction_tolerance) {
-                    exact_normal =
-                        projection_direction / projection_direction_norm;
-                }
+                        &exact_normal) &&
+                norm_2(exact_normal) >
+                    std::numeric_limits<double>::epsilon()) {
                 rProjectionNormal = exact_normal;
+                ++number_of_exact_open_lateral_nurbs_projections;
                 return exact_projection;
             }
         }
 
+        // Debug fallback for the spherical reference geometry.  The exact
+        // NURBS projection must normally succeed, but keeping a projected
+        // point here is preferable during geometry diagnostics to aborting
+        // the whole modeler because of a missing/degenerate normal.
+        array_1d<double, 3> control_point_min = ZeroVector(3);
+        array_1d<double, 3> control_point_max = ZeroVector(3);
+        bool has_control_point = false;
+        for (const auto& p_surface : r_initial_skin_model_part.Geometries()) {
+            const auto p_nurbs_surface =
+                std::dynamic_pointer_cast<NurbsSurfaceType>(
+                    r_initial_skin_model_part.pGetGeometry(p_surface.Id()));
+            if (!p_nurbs_surface || p_nurbs_surface->PointsNumber() == 0) {
+                continue;
+            }
+            for (IndexType point_index = 0;
+                 point_index < p_nurbs_surface->PointsNumber();
+                 ++point_index) {
+                const auto& r_point = p_nurbs_surface->GetPoint(point_index);
+                if (!has_control_point) {
+                    control_point_min = r_point.Coordinates();
+                    control_point_max = control_point_min;
+                    has_control_point = true;
+                } else {
+                    for (std::size_t component = 0; component < 3; ++component) {
+                        control_point_min[component] = std::min(
+                            control_point_min[component], r_point[component]);
+                        control_point_max[component] = std::max(
+                            control_point_max[component], r_point[component]);
+                    }
+                }
+            }
+        }
+
+        if (has_control_point) {
+            const array_1d<double, 3> sphere_center =
+                0.5 * (control_point_min + control_point_max);
+            const array_1d<double, 3> half_extents =
+                0.5 * (control_point_max - control_point_min);
+            const double sphere_radius =
+                (half_extents[0] + half_extents[1] + half_extents[2]) / 3.0;
+            array_1d<double, 3> radial_direction =
+                quadrature_center_coordinates - sphere_center;
+            const double radial_norm = norm_2(radial_direction);
+            if (sphere_radius > std::numeric_limits<double>::epsilon() &&
+                radial_norm > std::numeric_limits<double>::epsilon()) {
+                radial_direction /= radial_norm;
+                rProjectionNormal = radial_direction;
+                KRATOS_WARNING("SnakeGapSbmProcess")
+                    << "Using spherical debug projection fallback for an "
+                    << "open lateral type3-top quadrature point.\n";
+                return sphere_center + sphere_radius * radial_direction;
+            }
+        }
+
+        ++number_of_open_lateral_triangle_fallbacks;
         return closest_point;
     };
 
@@ -16381,9 +16838,9 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     SnakeGapSbm3DUtilities::SpanKey3D worst_open_lateral_external_span;
     double worst_open_lateral_characteristic_length = 0.0;
 
-    std::string gap_condition_name = "GapSbmSolidCondition"; //TODO: connect it with the json
-    // std::string gap_condition_name =
-    //     "GapSbmEnhancedSolidCondition"; //TODO: connect it with the json
+    // std::string gap_condition_name = "GapSbmSolidCondition"; //TODO: connect it with the json
+    std::string gap_condition_name =
+        "GapSbmEnhancedSolidCondition"; //TODO: connect it with the json
 
     struct OpenLateralConditionBatch
     {
@@ -16397,7 +16854,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         dirichlet_batch_by_neighbour;
     std::unordered_map<const Geometry<Node>*, std::size_t>
         neumann_batch_by_neighbour;
-    constexpr bool use_open_lateral_condition_batching = false;
+    constexpr bool use_open_lateral_condition_batching = false; //FIXME:
     constexpr std::size_t open_lateral_batch_size = 8;
     
     for (auto& r_lateral_data : open_lateral_surface_data_list) {
@@ -16487,9 +16944,9 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 
             if (projected_point[2] > 1.0) {
             // if (projected_point[2] > 0.35) {
-                current_gap_condition_name = "GapSbmLoadSolidCondition";
-                // current_gap_condition_name =
-                //     "GapSbmEnhancedLoadSolidCondition";
+                // current_gap_condition_name = "GapSbmLoadSolidCondition";
+                current_gap_condition_name =
+                    "GapSbmEnhancedLoadSolidCondition";
             }
         }
     
@@ -16598,6 +17055,13 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         << max_open_type3_top_projection_distance << "\n"
         << "  maximum non-type3-top projection distance: "
         << max_open_non_type3_top_projection_distance << "\n";
+
+    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 0)
+        << "Open lateral projection method:\n"
+        << "  exact NURBS projections: "
+        << number_of_exact_open_lateral_nurbs_projections << "\n"
+        << "  triangulated-skin fallbacks: "
+        << number_of_open_lateral_triangle_fallbacks << "\n";
 
     KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 1)
         << "Worst open lateral projection diagnostic:\n"

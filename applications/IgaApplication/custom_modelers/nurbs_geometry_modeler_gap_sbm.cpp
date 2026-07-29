@@ -176,6 +176,15 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         "use_triangle_radial_quadrature_for_curved_type3",
         mParameters["use_triangle_radial_quadrature_for_curved_type3"].GetBool());
     snake_parameters.AddBool(
+        "use_level_set_clipping_gap_integration",
+        mParameters["use_level_set_clipping_gap_integration"].GetBool());
+    snake_parameters.AddBool(
+        "level_set_clipping_create_interface_conditions",
+        mParameters["level_set_clipping_create_interface_conditions"].GetBool());
+    snake_parameters.AddInt(
+        "level_set_clipping_subdivisions_per_span",
+        mParameters["level_set_clipping_subdivisions_per_span"].GetInt());
+    snake_parameters.AddBool(
         "use_moment_fitted_volume_quadrature",
         mParameters["use_moment_fitted_volume_quadrature"].GetBool());
     snake_parameters.AddBool(
@@ -391,6 +400,15 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
         "use_triangle_radial_quadrature_for_curved_type3",
         mParameters["use_triangle_radial_quadrature_for_curved_type3"].GetBool());
     snake_parameters.AddBool(
+        "use_level_set_clipping_gap_integration",
+        mParameters["use_level_set_clipping_gap_integration"].GetBool());
+    snake_parameters.AddBool(
+        "level_set_clipping_create_interface_conditions",
+        mParameters["level_set_clipping_create_interface_conditions"].GetBool());
+    snake_parameters.AddInt(
+        "level_set_clipping_subdivisions_per_span",
+        mParameters["level_set_clipping_subdivisions_per_span"].GetInt());
+    snake_parameters.AddBool(
         "use_moment_fitted_volume_quadrature",
         mParameters["use_moment_fitted_volume_quadrature"].GetBool());
     snake_parameters.AddBool(
@@ -477,6 +495,9 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "use_tetra_quadrature_for_linear_type2_type3": true,
         "use_anisotropic_quadrature_for_curved_type2": true,
         "use_triangle_radial_quadrature_for_curved_type3": false,
+        "use_level_set_clipping_gap_integration": false,
+        "level_set_clipping_create_interface_conditions": true,
+        "level_set_clipping_subdivisions_per_span": 1,
         "use_moment_fitted_volume_quadrature": false,
         "use_moment_fitted_interface_quadrature": false,
         "interface_moment_fitting_degree": 1,
@@ -525,6 +546,9 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "use_tetra_quadrature_for_linear_type2_type3": true,
         "use_anisotropic_quadrature_for_curved_type2": true,
         "use_triangle_radial_quadrature_for_curved_type3": false,
+        "use_level_set_clipping_gap_integration": false,
+        "level_set_clipping_create_interface_conditions": true,
+        "level_set_clipping_subdivisions_per_span": 1,
         "use_moment_fitted_volume_quadrature": false,
         "use_moment_fitted_interface_quadrature": false,
         "interface_moment_fitting_degree": 1,

@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "iga_application.h"
 #include "iga_application_variables.h"
+#include "custom_elements/gap_sbm_solid_element.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -99,8 +100,31 @@ PYBIND11_MODULE(KratosIgaApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BUILD_LEVEL)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, KNOT_SPAN_SIZES)
-    
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROJECTION_NODE_ID)
+
+    m.def(
+        "GetGapSbmVolumetricQuadraturePointCoordinates",
+        [](const Element& rElement) {
+            const auto* p_gap_element = dynamic_cast<
+                const GapSbmSolidElementVolumetric*>(&rElement);
+            KRATOS_ERROR_IF_NOT(p_gap_element)
+                << "Expected a GapSbmSolidElementVolumetric, got "
+                << rElement.Info() << ".\n";
+
+            py::list result;
+            for (std::size_t point_index = 0;
+                 point_index < p_gap_element->QuadraturePointsNumber();
+                 ++point_index) {
+                const auto coordinates =
+                    p_gap_element->GetQuadraturePointCoordinates(point_index);
+                result.append(py::make_tuple(
+                    coordinates[0], coordinates[1], coordinates[2]));
+            }
+            return result;
+        },
+        py::arg("element"),
+        "Return the physical quadrature-point coordinates of a batched "
+        "GapSbmSolidElementVolumetric.");
 
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
