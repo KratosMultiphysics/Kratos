@@ -1,3 +1,5 @@
 *
 !.gitignore
 !doxyfile
+!implementation_details/
+!implementation_details/**
