@@ -67,6 +67,12 @@ public:
     /// The definition of the current class
     typedef ConvergenceCriteria< TLinearAlgebra > ClassType;
 
+    /// The data type
+    using DataType = typename TLinearAlgebra::DataType;
+
+    /// The DOFs array type
+    using DofsArrayType = typename ModelPart::DofsArrayType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -103,8 +109,11 @@ public:
     ///@name Operations
     ///@{
 
-    /// Create method
-    /// @param ThisParameters The configuration parameters
+    /**
+     * @brief This method creates a new instance of the convergence criteria
+     * @param ThisParameters The configuration parameters
+     * @return A pointer to the new instance
+     */
     virtual typename ClassType::Pointer Create(Parameters ThisParameters) const
     {
         return Kratos::make_shared<ClassType>(ThisParameters);
@@ -113,11 +122,6 @@ public:
     /**
      * @brief It sets the level of echo for the solving strategy
      * @param Level The level to set
-     * @details The different levels of echo are:
-     * - 0: Mute... no echo at all
-     * - 1: Printing time and basic information
-     * - 2: Printing linear solver data
-     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      */
     void SetEchoLevel(const int Level)
     {
@@ -160,7 +164,7 @@ public:
      */
     virtual bool IsConverged(
         ModelPart& rModelPart,
-        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+        ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
     {
         KRATOS_ERROR << "Calling the base class IsConverged method. This should be implemented in the derived class." << std::endl;
         return false;
@@ -268,11 +272,6 @@ public:
 
     /**
      * @brief This returns the level of echo for the solving strategy
-     * @details The different levels of echo are:
-     * - 0: Mute... no echo at all
-     * - 1: Printing time and basic information
-     * - 2: Printing linear solver data
-     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      * @return Level of echo for the solving strategy
      */
     int GetEchoLevel() const
@@ -335,6 +334,71 @@ protected:
         mEchoLevel = ThisParameters["echo_level"].GetInt();
     }
 
+    /**
+     * @brief This method computes the norm of the given vector
+     * @details Note that only the free DOFs are considered in the norm calculation.
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's DOFs
+     * @param rVector The vector whose norm is to be computed
+     * @return A pair containing the number of free DOFs and the norm of the vector
+     */
+    std::pair<std::size_t, DataType> CalculateVectorNorm(
+        const ModelPart& rModelPart,
+        const DofsArrayType& rDofSet,
+        const TLinearAlgebra::VectorType& rVector)
+    {
+        // Retrieve the data communicator
+        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+        // Define custom reduction for parallel computation
+        // First item in the reduction tuple: sum of the squared norm of the variation of the DOFs
+        // Second item in the reduction tuple: number of free DOFs
+        using CustomReductionType = CombinedReduction<SumReduction<DataType>,SumReduction<std::size_t>>;
+
+        // Check if the problem is distributed
+        DataType vector_norm;
+        std::size_t n_free_dofs;
+        if (r_data_communicator.IsDistributed()) {
+            // // The current MPI rank
+            // const int rank = r_data_communicator.Rank();
+
+            // // Loop over Dofs and add the contribution of each free DOF to the norm
+            // // Note that the PARTITION_INDEX is considered in distributed runs to avoid adding more than once the same value into the norm
+            // std::tie(final_correction_norm, n_free_dofs) = block_for_each<CustomReductionType>(rDofSet, TLS(), [&rDx, rank](auto& rDof, TLS& rTLS) {
+            //     if (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == rank)) {
+
+            //         DataType dof_dx_value = rDx[]
+
+
+
+
+
+            //         rTLS.variation_dof_value = SparseSpaceType::GetValue(rDx, rDof.EquationId());
+            //         return std::make_tuple(std::pow(rTLS.variation_dof_value, 2), 1);
+            //     } else {
+            //         return std::make_tuple(DataType(), 0);
+            //     }
+            // });
+
+            KRATOS_ERROR << "Not implemented yet!" << std::endl;
+
+        } else {
+            // Loop over Dofs and add the contribution of each free DOF to the norm
+            std::tie(vector_norm, n_free_dofs) = block_for_each<CustomReductionType>(rDofSet, [&rVector](auto& rDof) {
+                if (rDof.IsFree()) {
+                    return std::make_tuple(std::pow(rVector[rDof.EquationId()], 2), 1);
+                } else {
+                    return std::make_tuple(DataType(), 0);
+                }
+            });
+        }
+
+        // Communicator reduction
+        n_free_dofs = r_data_communicator.SumAll(n_free_dofs);
+        vector_norm = std::sqrt(r_data_communicator.SumAll(vector_norm));
+
+        return std::make_pair(n_free_dofs, vector_norm);
+    }
 
     ///@}
     ///@name Protected  Access

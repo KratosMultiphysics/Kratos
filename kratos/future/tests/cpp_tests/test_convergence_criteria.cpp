@@ -25,15 +25,16 @@
 
 #ifdef KRATOS_USE_FUTURE
 #include "future/containers/define_linear_algebra_serial.h"
-#include "future/solving_strategies/convergence_criteria/convergence_criteria.h"
 #include "future/solving_strategies/convergence_criteria/solution_criteria.h"
+#include "future/solving_strategies/convergence_criteria/residual_criteria.h"
+#include "future/solving_strategies/schemes/static_scheme.h"
 #include "test_utilities/solving_strategies_test_utilities.h"
 #endif
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ConvergenceCriteria, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FutureSolutionCriteria, KratosCoreFastSuite)
 {
 #ifdef KRATOS_USE_FUTURE
     // Set up the test model part
@@ -43,19 +44,27 @@ KRATOS_TEST_CASE_IN_SUITE(ConvergenceCriteria, KratosCoreFastSuite)
     const double elem_size = 1.0;
     SolvingStrategiesTestUtilities::SetUpTestModelPart1D(num_elems, elem_size, r_test_model_part);
 
-    // Create an implicit strategy data container with a fake effective solution increment vector
+    // Create an implicit strategy data container to hold DOFs sets and system vectors
+    Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
+
+    // Create an auxiliary scheme to initialize the DOFs sets
+    Parameters scheme_settings = Parameters(R"({
+        "build_settings" : {
+            "name" : "elimination_builder"
+        }
+    })");
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
+    p_scheme->Initialize(strategy_data_container);
+
+    // Create an effective solution increment vector
     DenseVector<double> aux_data(3);
     aux_data[0] = 3.0;
     aux_data[1] = 7.0;
     aux_data[2] = 2.0;
     Future::SerialLinearAlgebraTraits::VectorType eff_dx(aux_data);
     auto p_eff_dx = Kratos::make_shared<Future::SerialLinearAlgebraTraits::VectorType>(eff_dx);
-
-    auto p_eff_lin_sys = Kratos::make_shared<Future::LinearSystem<Future::SerialLinearAlgebraTraits>>();
+    auto p_eff_lin_sys = strategy_data_container.pGetEffectiveLinearSystem();
     p_eff_lin_sys->pSetVector(p_eff_dx, Future::LinearSystemTags::DenseVectorTag::Dx);
-
-    Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
-    strategy_data_container.pSetEffectiveLinearSystem(p_eff_lin_sys);
 
     // Set solution values and fix one node to check that the convergence criteria works with fixed DOFs
     for (auto& r_node : r_test_model_part.Nodes()) {
@@ -65,6 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConvergenceCriteria, KratosCoreFastSuite)
 
     // Create solution criteria
     Parameters solution_criteria_parameters = Parameters(R"({
+        "echo_level" : 0,
         "variable_name" : "DISTANCE",
         "relative_tolerance" : 1.0e-4,
         "absolute_tolerance" : 1.0e-6
@@ -75,48 +85,71 @@ KRATOS_TEST_CASE_IN_SUITE(ConvergenceCriteria, KratosCoreFastSuite)
     const bool is_converged = p_convergence_criteria->IsConverged(r_test_model_part, strategy_data_container);
     const double res_norm = r_test_model_part.GetProcessInfo()[RESIDUAL_NORM];
     const double conv_ratio = r_test_model_part.GetProcessInfo()[CONVERGENCE_RATIO];
+    KRATOS_EXPECT_FALSE(is_converged);
+    KRATOS_EXPECT_NEAR(res_norm, 5.14781507049, 1e-10);
+    KRATOS_EXPECT_NEAR(conv_ratio, 1.00956959603, 1e-10);
+#else
+    true;
+#endif
+}
 
-    std::cout << std::setprecision(12) << res_norm << std::endl;
-    std::cout << std::setprecision(12) << conv_ratio << std::endl;
+KRATOS_TEST_CASE_IN_SUITE(FutureResidualCriteria, KratosCoreFastSuite)
+{
+#ifdef KRATOS_USE_FUTURE
+    // Set up the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    const std::size_t num_elems = 2;
+    const double elem_size = 1.0;
+    SolvingStrategiesTestUtilities::SetUpTestModelPart1D(num_elems, elem_size, r_test_model_part);
 
-    // Parameters scheme_settings = Parameters(R"({
-    //     "build_settings" : {
-    //         "name" : "block_builder"
-    //     }
-    // })");
-    // using SchemeType = Future::StaticScheme<Future::SerialLinearAlgebraTraits>;
-    // auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
+    // Create an implicit strategy data container to hold DOFs sets and system vectors
+    Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
 
-    // // Set up the matrix graph and arrays
-    // // Note that in a standard case this happens at the strategy level
-    // Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
+    // Create an auxiliary scheme to initialize the DOFs sets
+    Parameters scheme_settings = Parameters(R"({
+        "build_settings" : {
+            "name" : "elimination_builder"
+        }
+    })");
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
+    p_scheme->Initialize(strategy_data_container);
 
-    // // Call the initialize solution step (note that this sets all the arrays above)
-    // p_scheme->Initialize(strategy_data_container);
-    // p_scheme->InitializeSolutionStep(strategy_data_container);
+    // Create an implicit strategy data container with a fake effective residual vector
+    DenseVector<double> aux_data(3);
+    aux_data[0] = 3.0;
+    aux_data[1] = 7.0;
+    aux_data[2] = 2.0;
+    Future::SerialLinearAlgebraTraits::VectorType eff_rhs(aux_data);
+    auto p_eff_rhs = Kratos::make_shared<Future::SerialLinearAlgebraTraits::VectorType>(eff_rhs);
+    auto p_eff_lin_sys = strategy_data_container.pGetEffectiveLinearSystem();
+    p_eff_lin_sys->pSetVector(p_eff_rhs, Future::LinearSystemTags::DenseVectorTag::RHS);
 
-    // // Call the build
-    // const auto p_linear_system = strategy_data_container.pGetLinearSystem();
-    // auto& r_lhs = *(p_linear_system->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS));
-    // auto& r_rhs = *(p_linear_system->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS));
-    // p_scheme->Build(r_lhs, r_rhs);
+    // Create solution criteria
+    Parameters residual_criteria_parameters = Parameters(R"({
+        "echo_level" : 0,
+        "relative_tolerance" : 1.0e-4,
+        "absolute_tolerance" : 1.0e-6
+    })");
+    auto p_convergence_criteria = Kratos::make_unique<Future::ResidualCriteria<Future::SerialLinearAlgebraTraits>>(residual_criteria_parameters);
 
-    // // Check resultant matrices
-    // const double tol = 1.0e-12;
-    // std::vector<double> expected_rhs = {0.5,1.0,0.5};
-    // BoundedMatrix<double,3,3> expected_lhs;
-    // expected_lhs(0,0) = 1.0; expected_lhs(0,1) = -1.0; expected_lhs(0,2) = 0.0;
-    // expected_lhs(1,0) = -1.0; expected_lhs(1,1) = 2.0; expected_lhs(1,2) = -1.0;
-    // expected_lhs(2,0) = 0.0; expected_lhs(2,1) = -1.0; expected_lhs(2,2) = 1.0;
-    // KRATOS_CHECK_VECTOR_NEAR(r_rhs, expected_rhs, tol); // Note that as there are not non-zero entries in the sparse vector we can use the standard macro
-    // for (unsigned int i = 0; i < r_lhs.size1(); ++i) {
-    //     for (unsigned int j = 0; j < r_lhs.size2(); ++j) {
-    //         const double expected_val = expected_lhs(i,j);
-    //         if (std::abs(expected_val) > tol) {
-    //             KRATOS_CHECK_NEAR(r_lhs(i,j), expected_val, tol); // Note that we check if the expected value is non-zero as this is a CSR matrix
-    //         }
-    //     }
-    // }
+    // Call InitializeSolutionStep (sets the initial residual norm)
+    p_convergence_criteria->InitializeSolutionStep(r_test_model_part, strategy_data_container);
+
+    // Change the effective residual vector
+    eff_rhs[0] = 10.0;
+    eff_rhs[1] = 11.0;
+    eff_rhs[2] = 12.0;
+    p_eff_rhs = Kratos::make_shared<Future::SerialLinearAlgebraTraits::VectorType>(eff_rhs);
+    p_eff_lin_sys->pSetVector(p_eff_rhs, Future::LinearSystemTags::DenseVectorTag::RHS);
+
+    // Call convergence criteria check
+    const bool is_converged = p_convergence_criteria->IsConverged(r_test_model_part, strategy_data_container);
+    const double res_norm = r_test_model_part.GetProcessInfo()[RESIDUAL_NORM];
+    const double conv_ratio = r_test_model_part.GetProcessInfo()[CONVERGENCE_RATIO];
+    KRATOS_EXPECT_FALSE(is_converged);
+    KRATOS_EXPECT_NEAR(res_norm, 11.0302614052, 1e-10);
+    KRATOS_EXPECT_NEAR(conv_ratio, 2.4263340195, 1e-10);
 #else
     true;
 #endif

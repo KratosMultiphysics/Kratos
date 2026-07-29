@@ -113,8 +113,9 @@ public:
     ///@{
 
     /**
-     * @brief Create method
+     * @brief This method creates a new instance of the convergence criteria
      * @param ThisParameters The configuration parameters
+     * @return A pointer to the new instance
      */
     typename BaseType::Pointer Create(Parameters ThisParameters) const override
     {
@@ -129,9 +130,10 @@ public:
      */
     bool IsConverged(
         ModelPart& rModelPart,
-        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+        ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
     {
         // Get effective solution vector
+        // Note that this already accounts for MPC constraints
         const auto p_eff_dof_set = rImplicitStrategyData.pGetEffectiveDofSet();
         const auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
         const auto p_eff_dx = p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::Dx);
@@ -142,21 +144,21 @@ public:
         }
 
         // Calculate the norm of the solution increment (dx)
-        const auto [n_free_dofs, dx_norm] = CalculateDxNorm(rModelPart, *p_eff_dof_set, *p_eff_dx);
+        const auto [n_free_dofs, eff_dx_norm] = this->CalculateVectorNorm(rModelPart, *p_eff_dof_set, *p_eff_dx);
 
         // Calculate the norm of the solution (reference norm)
-        DataType sol_norm = CalculateReferenceNorm(rModelPart, *p_eff_dof_set);
+        DataType sol_norm = CalculateSolutionNorm(rModelPart, *p_eff_dof_set);
         if (sol_norm < std::numeric_limits<DataType>::epsilon()) {
             KRATOS_WARNING("SolutionCriteria") << "Zero solution norm detected. Setting reference norm to dx norm" << std::endl;
-            sol_norm = dx_norm;
+            sol_norm = eff_dx_norm;
         }
 
         // Calculate convergence ratio
-        const DataType ratio = dx_norm < std::numeric_limits<DataType>::epsilon() ? 0.0 : dx_norm / sol_norm;
+        const DataType ratio = eff_dx_norm < std::numeric_limits<DataType>::epsilon() ? 0.0 : eff_dx_norm / sol_norm;
         rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
 
-        // Calculate absolute solution increment norm (dx / ndof)
-        const DataType absolute_norm = (dx_norm / std::sqrt(static_cast<DataType>(n_free_dofs)));
+        // Calculate absolute solution increment norm (dx / sqrt(ndof))
+        const DataType absolute_norm = (eff_dx_norm / std::sqrt(static_cast<DataType>(n_free_dofs)));
         rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
         // Print current iteration information
@@ -244,9 +246,9 @@ protected:
 
     const VariableData* mpSolutionVariable = nullptr; /// Pointer to the variable to be checked
 
-    DataType mRelativeTolerance = 0.0; /// The ratio threshold for the norm of the solution increment (dx/x)
+    DataType mRelativeTolerance = DataType(); /// The ratio threshold for the norm of the solution increment (dx/x)
 
-    DataType mAbsoluteTolerance = 0.0; /// The absolute value threshold for the norm of the solution (dx/ndof)
+    DataType mAbsoluteTolerance = DataType(); /// The absolute value threshold for the norm of the solution (dx/ndof)
 
     ///@}
     ///@name Protected Operators
@@ -309,33 +311,14 @@ private:
     ///@name Private Operations
     ///@{
 
-    // /**
-    //  * @brief Check if a Degree of Freedom (DOF) is free.
-    //  * @details This function checks if a given Degree of Freedom (DOF) is free.
-    //  * The reason why PARTITION_INDEX is considered in distributed runs is to avoid adding twice (or even more times) the same value into the norm
-    //  * @param rDof The Degree of Freedom to check
-    //  * @param Rank The rank of the DOF
-    //  * @return True if the DOF is free, false otherwise
-    //  */
-    // bool IsFreeAndLocalDof(
-    //     const DofType& rDof,
-    //     const int Rank)
-    // {
-    //     if constexpr (!TSparseSpace::IsDistributed()) {
-    //         return rDof.IsFree();
-    //     } else {
-    //         return (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
-    //     }
-    // }
-
     /**
-     * @brief This method computes the reference norm
-     * @details It checks if the dof is fixed
+     * @brief This method computes the reference norm from the DOFs solution values
+     * @details It checks if the DOFs are fixed
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
+     * @return The norm of the solution
      */
-    DataType CalculateReferenceNorm(
+    DataType CalculateSolutionNorm(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet)
     {
@@ -374,70 +357,6 @@ private:
 
         // Synchronize the norm among all processes and return
         return std::sqrt(r_data_communicator.SumAll(sol_norm));
-    }
-
-    /**
-     * @brief This method computes the final solution increment norm
-     * @param rDofSet Reference to the container of the problem's DOFs
-     * @param rDx Vector of solution increment values (variations on nodal variables)
-     * @param rModelPart Reference to the ModelPart containing the problem.
-     * @return A pair containing the number of free DOFs and the norm of the solution increment
-     */
-    std::pair<std::size_t, DataType> CalculateDxNorm(
-        const ModelPart& rModelPart,
-        const DofsArrayType& rDofSet,
-        const TLinearAlgebra::VectorType& rDx)
-    {
-        // Retrieve the data communicator
-        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
-
-        // Define custom reduction for parallel computation
-        // First item in the reduction tuple: sum of the squared norm of the variation of the DOFs
-        // Second item in the reduction tuple: number of free DOFs
-        using CustomReductionType = CombinedReduction<SumReduction<DataType>,SumReduction<std::size_t>>;
-
-        // Check if the problem is distributed
-        DataType dx_norm;
-        std::size_t n_free_dofs;
-        if (r_data_communicator.IsDistributed()) {
-            // // The current MPI rank
-            // const int rank = r_data_communicator.Rank();
-
-            // // Loop over Dofs and add the contribution of each free DOF to the norm
-            // // Note that the PARTITION_INDEX is considered in distributed runs to avoid adding more than once the same value into the norm
-            // std::tie(final_correction_norm, n_free_dofs) = block_for_each<CustomReductionType>(rDofSet, TLS(), [&rDx, rank](auto& rDof, TLS& rTLS) {
-            //     if (rDof.IsFree() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == rank)) {
-
-            //         DataType dof_dx_value = rDx[]
-
-
-
-
-
-            //         rTLS.variation_dof_value = SparseSpaceType::GetValue(rDx, rDof.EquationId());
-            //         return std::make_tuple(std::pow(rTLS.variation_dof_value, 2), 1);
-            //     } else {
-            //         return std::make_tuple(DataType(), 0);
-            //     }
-            // });
-
-        } else {
-
-            // Loop over Dofs and add the contribution of each free DOF to the norm
-            std::tie(dx_norm, n_free_dofs) = block_for_each<CustomReductionType>(rDofSet, [&rDx](auto& rDof) {
-                if (rDof.IsFree()) {
-                    return std::make_tuple(std::pow(rDx[rDof.EquationId()], 2), 1);
-                } else {
-                    return std::make_tuple(DataType(), 0);
-                }
-            });
-        }
-
-        // Communicator reduction
-        n_free_dofs = r_data_communicator.SumAll(n_free_dofs);
-        dx_norm = std::sqrt(r_data_communicator.SumAll(dx_norm));
-
-        return std::make_pair(n_free_dofs, dx_norm);
     }
 
     ///@}
