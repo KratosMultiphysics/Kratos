@@ -1,5 +1,6 @@
 import typing
 from pathlib import Path
+import math
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -159,3 +160,54 @@ def AddMaskStatusController(sensor_group_data: ComponentDataView, sensor_mask_na
         sensor_group_data.GetUnBufferedData()[f"mask_status_controllers/{sensor_mask_name}"] = []
 
     sensor_group_data.GetUnBufferedData()[f"mask_status_controllers/{sensor_mask_name}"].append(mask_status_controller)
+
+def SetSensorNormalizationFactor(list_of_sensors: 'list[KratosSI.Sensors.Sensor]', sensor_normalization_settings: Kratos.Parameters) -> None:
+    sensor_normalization_type = sensor_normalization_settings["type"].GetString()
+    if sensor_normalization_type == "none" or sensor_normalization_type == "":
+        normalization_factor = 1.0
+        for sensor in list_of_sensors:
+            sensor.GetNode().SetValue(KratosSI.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
+    elif sensor_normalization_type == "maximum_measured_value":
+        # Find groups and their maximums
+        sensor_type_maximum_dict = {}
+        for sensor in list_of_sensors:
+            sensor_type = sensor.GetSensorParameters()["type"].GetString()
+            if not sensor_type in sensor_type_maximum_dict:
+                sensor_type_maximum_dict[sensor_type] = abs(sensor.GetNode().GetValue(KratosSI.SENSOR_MEASURED_VALUE))
+            else:
+                sensor_type_maximum_dict[sensor_type] = max(sensor_type_maximum_dict[sensor_type], abs(sensor.GetNode().GetValue(KratosSI.SENSOR_MEASURED_VALUE)))
+        # Set normalization factor
+        for sensor in list_of_sensors:
+            sensor_type = sensor.GetSensorParameters()["type"].GetString()
+            normalization_factor = sensor_type_maximum_dict[sensor_type]
+            if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
+                raise RuntimeError(f"The maximum measured value for sensor type \"{sensor_type}\" normalization is approximately zero ({normalization_factor}). Cannot normalize.")
+            sensor.GetNode().SetValue(KratosSI.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
+    elif sensor_normalization_type == "average_measured_value":
+        normalization_factor = sum(abs(sensor.GetNode().GetValue(KratosSI.SENSOR_MEASURED_VALUE)) for sensor in list_of_sensors) / len(list_of_sensors)
+        if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
+            raise RuntimeError(f"The average measured value for sensor normalization is approximately zero ({normalization_factor}). Cannot normalize.")
+        for sensor in list_of_sensors:
+            sensor.GetNode().SetValue(KratosSI.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
+    elif sensor_normalization_type == "local_measured_value":
+        for sensor in list_of_sensors:
+            normalization_factor = abs(sensor.GetNode().GetValue(KratosSI.SENSOR_MEASURED_VALUE))
+            if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
+                raise RuntimeError(f"The local measured value for sensor \"{sensor.GetName()}\" normalization is approximately zero ({normalization_factor}). Cannot normalize.")
+            sensor.GetNode().SetValue(KratosSI.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
+    elif sensor_normalization_type == "local_maximum_measured_value":
+        if not sensor_normalization_settings.Has("epsilon"):
+            raise RuntimeError(f"""The sensor normalization settings for type \"local_maximum_measured_value\"
+                                must have an \"epsilon\" value.""")
+        epsilon = sensor_normalization_settings["epsilon"].GetDouble()
+        max_measured_value = max(abs(sensor.GetNode().GetValue(KratosSI.SENSOR_MEASURED_VALUE)) for sensor in list_of_sensors)
+        for sensor in list_of_sensors:
+            normalization_factor = max(abs(sensor.GetNode().GetValue(KratosSI.SENSOR_MEASURED_VALUE)), epsilon * max_measured_value)
+            if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
+                raise RuntimeError(f"The local maximum measured value for sensor \"{sensor.GetName()}\" normalization is approximately zero ({normalization_factor}). Cannot normalize.")
+            sensor.GetNode().SetValue(KratosSI.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
+    else:
+        raise RuntimeError(f"""Unsupported sensor normalization type \"{sensor_normalization_type}\".
+                            Supported types are: none, maximum_measured_value, average_measured_value,
+                            local_measured_value, local_maximum_measured_value.""")
+
