@@ -169,6 +169,16 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         return self.time
 
+    def BeforeSolutionLoop(self):
+        for solver in self.solver_wrappers.values():
+            solver.BeforeSolutionLoop()
+            
+        for predictor in self.predictors_list:
+            predictor.BeforeSolutionLoop()
+
+        for coupling_operation in self.coupling_operations_dict.values():
+            coupling_operation.BeforeSolutionLoop()
+
     def Predict(self):
         for predictor in self.predictors_list:
             predictor.Predict()
