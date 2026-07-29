@@ -31,6 +31,7 @@ The [changelog](https://github.com/KratosMultiphysics/CoSimIO/blob/master/CHANGE
 Besides the native C++ interface, the _CoSimIO_ also provides interfaces to other languages. Currently the following languages are supported:
 - C
 - Python
+- Fortran
 
 These interfaces are implemented as consistent as possible with the C++ interface.
 
@@ -45,6 +46,9 @@ The C interface is defined in [co_sim_io_c.h](https://github.com/KratosMultiphys
 
 ### **Python**
 The Python interface is defined in [_CoSimIO_ python module](https://github.com/KratosMultiphysics/CoSimIO/blob/master/co_sim_io/python/co_sim_io_python.cpp). The [pybind library](https://github.com/pybind/pybind11) is used for the Python exposure of the C++ interface.
+
+### **Fortran**
+The Fortran interface is defined in [co_sim_io.f90](https://github.com/KratosMultiphysics/CoSimIO/blob/master/co_sim_io/fortran/co_sim_io.f90). In addition to including this file it is required to compile _CoSimIO_ into a shared library and link against it.
 
 ## Parallelism
 The _CoSimIO_ supports pure sequential and mpi-parallel executions. Shared memory parallelism is currently not planned but might be added at a later stage.

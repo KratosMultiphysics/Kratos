@@ -108,13 +108,17 @@ public:
 
 
 private:
+    #ifndef CO_SIM_IO_COMPILED_IN_WINDOWS
     int mPipeHandleWrite;
     int mPipeHandleRead;
+    #endif
 
     fs::path mPipeNameWrite;
     fs::path mPipeNameRead;
 
+    #ifndef CO_SIM_IO_COMPILED_IN_WINDOWS
     std::size_t mBufferSize;
+    #endif
 
     void SendSize(const std::uint64_t Size);
 

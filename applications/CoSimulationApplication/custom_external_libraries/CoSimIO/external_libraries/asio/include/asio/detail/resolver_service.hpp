@@ -2,7 +2,7 @@
 // detail/resolver_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -21,7 +21,6 @@
 
 #include "asio/ip/basic_resolver_query.hpp"
 #include "asio/ip/basic_resolver_results.hpp"
-#include "asio/detail/concurrency_hint.hpp"
 #include "asio/detail/memory.hpp"
 #include "asio/detail/resolve_endpoint_op.hpp"
 #include "asio/detail/resolve_query_op.hpp"
@@ -34,7 +33,7 @@ namespace detail {
 
 template <typename Protocol>
 class resolver_service :
-  public execution_context_service_base<resolver_service<Protocol> >,
+  public execution_context_service_base<resolver_service<Protocol>>,
   public resolver_service_base
 {
 public:
@@ -53,7 +52,7 @@ public:
 
   // Constructor.
   resolver_service(execution_context& context)
-    : execution_context_service_base<resolver_service<Protocol> >(context),
+    : execution_context_service_base<resolver_service<Protocol>>(context),
       resolver_service_base(context)
   {
   }
