@@ -321,4 +321,31 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_PhreaticMultiLine_Co
     EXPECT_NO_THROW(process.ExecuteInitialize());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_PhreaticLine_BranchCreation,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    SetupModelPart(nullptr, model);
+
+    Parameters parameters(R"(
+      {
+          "model_part_name": "Main",
+          "variable_name":   "WATER_PRESSURE",
+          "table": 0,
+          "fluid_pressure_type": "Phreatic_Line",
+          "gravity_direction": 1,
+          "out_of_plane_direction": 2,
+          "first_reference_coordinate": [0.0, 0.0, 0.0],
+          "second_reference_coordinate": [1.0, 1.0, 5.0],
+          "specific_weight": 10000.0,
+          "is_fixed": false
+      }  )");
+
+    ApplyScalarConstraintTableProcess process(model, parameters);
+
+    // Act & Assert
+    EXPECT_NO_THROW(process.ExecuteInitialize());
+}
+
 } // namespace Kratos::Testing
