@@ -71,9 +71,9 @@ private:
     void       InstantiateProcessByTablePresence(ModelPart&                 rModelPart,
                                                  const Parameters&          rProcessSettings,
                                                  std::vector<std::string>&& rNamesOfSettingsToCopy);
-    Parameters PrepareProcessParameters(const ModelPart&                rModelPart,
-                                        const Parameters&               rProcessSettings,
-                                        const std::vector<std::string>& rNamesOfSettingsToCopy);
+    Parameters PrepareProcessParameters(const ModelPart&           rModelPart,
+                                        const Parameters&          rProcessSettings,
+                                        std::vector<std::string>&& rNamesOfSettingsToCopy);
 
     std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
     std::vector<std::unique_ptr<Process>>          mProcesses;

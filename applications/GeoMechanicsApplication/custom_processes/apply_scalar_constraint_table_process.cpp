@@ -149,7 +149,7 @@ void ApplyScalarConstraintTableProcess::MakeProcessForInterpolatedLine(ModelPart
     AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
 
     mProcesses.emplace_back(std::make_unique<ApplyConstantInterpolateLinePressureProcess>(
-        rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, NamesOfSettingsToCopy)));
+        rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy))));
 }
 
 void ApplyScalarConstraintTableProcess::ExecuteInitialize()
@@ -200,7 +200,7 @@ void ApplyScalarConstraintTableProcess::InstantiateProcessByTablePresence(ModelP
 
 Parameters ApplyScalarConstraintTableProcess::PrepareProcessParameters(const ModelPart& rModelPart,
                                                                        const Parameters& rProcessSettings,
-                                                                       const std::vector<std::string>& rNamesOfSettingsToCopy)
+                                                                       std::vector<std::string>&& rNamesOfSettingsToCopy)
 {
     auto result = ParametersUtilities::CopyRequiredParameters(rProcessSettings, rNamesOfSettingsToCopy);
 
