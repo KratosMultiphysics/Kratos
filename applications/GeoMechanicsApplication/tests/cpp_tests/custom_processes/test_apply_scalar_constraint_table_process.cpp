@@ -275,7 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_InterpolateLine_NoTa
 {
     // Arrange
     Model model;
-    auto& r_model_part = SetupModelPart(nullptr, model);
+    SetupModelPart(nullptr, model);
 
     Parameters parameters(R"(
       {
@@ -291,6 +291,33 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_InterpolateLine_NoTa
     ApplyScalarConstraintTableProcess process(model, parameters);
 
     // Act and Assert
+    EXPECT_NO_THROW(process.ExecuteInitialize());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_PhreaticMultiLine_CoordinatesParsing,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    SetupModelPart(nullptr, model);
+
+    Parameters parameters(R"(
+      {
+          "model_part_name": "Main",
+          "variable_name":   "WATER_PRESSURE",
+          "table": 0,
+          "fluid_pressure_type": "Phreatic_Multi_Line",
+          "gravity_direction": 1,
+          "out_of_plane_direction": 2,
+          "x_coordinates": [0.0, 5.0, 10.0],
+          "y_coordinates": [10.0, 8.0, 5.0],
+          "z_coordinates": [0.0, 0.0, 0.0],
+          "specific_weight": 9810.0
+      }  )");
+
+    ApplyScalarConstraintTableProcess process(model, parameters);
+
+    // Act & Assert
     EXPECT_NO_THROW(process.ExecuteInitialize());
 }
 
