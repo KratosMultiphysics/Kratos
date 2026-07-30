@@ -51,6 +51,7 @@
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 #include "geometries/surface_in_nurbs_volume_geometry.h"
 #include "geometries/brep_surface.h" 
+#include "geometries/brep_curve.h" 
 
 namespace Kratos::Python
 {
@@ -499,6 +500,48 @@ void  AddGeometriesToPython(pybind11::module& m)
             py::arg("u1"),
             py::arg("v0"),
             py::arg("v1")
+        );
+
+    // BrepCurve
+    using ContainerNodeType = PointerVector<Node>;
+    using ContainerEmbeddedNodeType = PointerVector<Point>;
+    using BrepCurveType = BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType>;
+    py::class_<BrepCurveType, typename BrepCurveType::Pointer, GeometryType>(m, "BrepCurve")
+        .def(
+            py::init<
+                typename BrepCurveType::NurbsCurveType::Pointer
+            >(),
+            py::arg("nurbs_curve")
+        )
+        .def(
+            "Knots",
+            [](const BrepCurveType& self)
+            {
+                return self.Knots();
+            }
+        )
+        .def(
+            "EvaluateShapeFunctionsAtLocalCoordinates",
+            [](const BrepCurveType& self,
+            const BrepCurveType::CoordinatesArrayType& rLocalCoordinates,
+            const BrepCurveType::IndexType DerivativeOrder)
+            {
+                std::vector<BrepCurveType::IndexType> control_point_ids;
+                Vector shape_function_values;
+
+                self.ShapeFunctionsValuesAndCPIndices(
+                    rLocalCoordinates,
+                    control_point_ids,
+                    shape_function_values,
+                    DerivativeOrder,
+                    nullptr);
+
+                return py::make_tuple(
+                    control_point_ids,
+                    shape_function_values);
+            },
+            py::arg("local_coordinates"),
+            py::arg("derivative_order") = 0
         );
 
     py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
