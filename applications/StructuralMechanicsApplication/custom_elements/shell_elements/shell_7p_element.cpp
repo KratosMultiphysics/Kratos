@@ -151,30 +151,301 @@ void Shell7pElement::CalculateRightHandSide(
         rRightHandSideVector.resize(number_dofs, false);
     }
 
-    MatrixType LHS;
-    CalculateLeftHandSide(LHS, rCurrentProcessInfo);
+    //MatrixType LHS;
+    //CalculateLeftHandSide(LHS, rCurrentProcessInfo);
+//
+    //Vector current_displacement_values = ZeroVector(number_dofs);
+    //for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
+    //    const SizeType index = 6 * i_node;
+    //    const auto& v_dof = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+    //    const auto& w_dof = r_geom[i_node].FastGetSolutionStepValue(DIFFERENCE_DIRECTOR);
+//
+    //    current_displacement_values[index] = v_dof[0];
+    //    current_displacement_values[index + 1] = v_dof[1];
+    //    current_displacement_values[index + 2] = v_dof[2];
+    //    current_displacement_values[index + 3] = w_dof[0];
+    //    current_displacement_values[index + 4] = w_dof[1];
+    //    current_displacement_values[index + 5] = w_dof[2];
+    //}
+//
+    //noalias(rRightHandSideVector) = -prod(LHS, current_displacement_values);
+    VectorType internal_force_vector;
+    CalculateInternalForces(internal_force_vector, rCurrentProcessInfo);
 
-    Vector current_displacement_values = ZeroVector(number_dofs);
-    for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
-        const SizeType index = 6 * i_node;
-        const auto& v_dof = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        const auto& w_dof = r_geom[i_node].FastGetSolutionStepValue(DIFFERENCE_DIRECTOR);
-
-        current_displacement_values[index] = v_dof[0];
-        current_displacement_values[index + 1] = v_dof[1];
-        current_displacement_values[index + 2] = v_dof[2];
-        current_displacement_values[index + 3] = w_dof[0];
-        current_displacement_values[index + 4] = w_dof[1];
-        current_displacement_values[index + 5] = w_dof[2];
-    }
-
-    noalias(rRightHandSideVector) = -prod(LHS, current_displacement_values);
-    // VectorType internal_force_vector;
-    // CalculateInternalForces(internal_force_vector, rCurrentProcessInfo);
-// 
-    // noalias(rRightHandSideVector) = -internal_force_vector;
+    noalias(rRightHandSideVector) = -internal_force_vector;
 }
 
+void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, const ProcessInfo& rCurrentProcessInfo) const
+{
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType number_dofs = 6*number_of_nodes;
+    rInternalForceVector = ZeroVector(number_dofs);
+
+    const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+    const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
+    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
+
+    const double thickness = GetProperties()[THICKNESS];
+    double A_element = GetGeometry().Area();
+    // Stabilization factor for transverse shear
+    double sqrt_f_s = std::sqrt(thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element)));
+
+    array_1d<Vector,3> akovr;
+    array_1d<Vector,3> gkovr;
+    array_1d<Vector,2> a3kvpr;
+
+    array_1d<Vector,3> akovc;
+    array_1d<Vector,2> a3kvpc;
+
+    Matrix amkovr;
+    Matrix gmkovr;
+    Matrix gmkonr;
+
+    Matrix amkovc;
+    Matrix gmkovc;
+    double detJ_surface = 0.0;
+
+    Matrix Bop;
+    array_1d<double,6> PK2_stress;
+    array_1d<double,6> GL_strain;
+    BoundedMatrix<double, 12, 12> Dmatrix;
+    array_1d<double,12> stress_resultants;
+    Matrix DB = ZeroMatrix(12,number_dofs);
+
+    array_1d<double,2> gpcoord_t;
+    gpcoord_t[0] =  1.0 / std::sqrt(3.0);
+    gpcoord_t[1] = -1.0 / std::sqrt(3.0);
+    array_1d<double,2> gpweight_t;
+    gpweight_t[0] = 1.0;
+    gpweight_t[1] = 1.0;
+
+    double gmdet_body = 0.0;
+
+    ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
+    SizeType n_ans_points=4;
+    // 4 ANS sampling points: (r, s)
+    array_1d<array_1d<double,2>,4> ans_points;
+    ans_points[0][0] =  0.0; ans_points[0][1] = -1.0;
+    ans_points[1][0] =  0.0; ans_points[1][1] =  1.0;
+    ans_points[2][0] = -1.0; ans_points[2][1] =  0.0;
+    ans_points[3][0] =  1.0; ans_points[3][1] =  0.0;
+    array_1d<double,2> frq;
+    array_1d<double,2> fsq;
+
+    Matrix N_ans = ZeroMatrix(n_ans_points, number_of_nodes);
+    array_1d<Matrix,4> DN_ans;
+    array_1d<array_1d<Vector,3>,4> akovr_ans;
+    Vector Np;
+    Np.resize(number_of_nodes, false);
+
+    for (SizeType p = 0; p < n_ans_points; ++p) {
+        DN_ans[p].resize(number_of_nodes, 2, false);
+
+        array_1d<double,3> local_coords;
+        local_coords[0] = ans_points[p][0]; // r
+        local_coords[1] = ans_points[p][1]; // s
+        local_coords[2] = 0.0;
+
+        r_geom.ShapeFunctionsValues(Np, local_coords);
+        row(N_ans, p) = Np;
+
+        r_geom.ShapeFunctionsLocalGradients(DN_ans[p], local_coords);
+
+        CovariantBaseVectorsMidsurface(akovr_ans[p], DN_ans[p], row(N_ans, p), ConfigurationType::Reference, thickness);
+    }
+    ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////BEGIN ANS CURVATURE THICKNESS LOCKING ELIMINATION STUFF////////////////////////////////////////////////////////////////
+    SizeType n_ct_ans_points=4;
+    // 4 ANS sampling points: (r, s)
+    array_1d<array_1d<double,2>,4> ct_ans_points;
+    ct_ans_points[0][0] = -1.0; ct_ans_points[0][1] = -1.0;
+    ct_ans_points[1][0] =  1.0; ct_ans_points[1][1] = -1.0;
+    ct_ans_points[2][0] =  1.0; ct_ans_points[2][1] =  1.0;
+    ct_ans_points[3][0] = -1.0; ct_ans_points[3][1] =  1.0;
+
+    Matrix N_ct_ans = ZeroMatrix(n_ct_ans_points, number_of_nodes);
+    array_1d<Matrix,4> DN_ct_ans;
+    array_1d<array_1d<Vector,3>,4> akovr_ct_ans;
+    Vector Np_ct;
+    Np_ct.resize(number_of_nodes, false);
+
+    for (SizeType p = 0; p < n_ct_ans_points; ++p) {
+        DN_ct_ans[p].resize(number_of_nodes, 2, false);
+
+        array_1d<double,3> local_coords;
+        local_coords[0] = ct_ans_points[p][0]; // r
+        local_coords[1] = ct_ans_points[p][1]; // s
+        local_coords[2] = 0.0;
+
+        r_geom.ShapeFunctionsValues(Np_ct, local_coords);
+        row(N_ct_ans, p) = Np_ct;
+
+        r_geom.ShapeFunctionsLocalGradients(DN_ct_ans[p], local_coords);
+
+        CovariantBaseVectorsMidsurface(akovr_ct_ans[p], DN_ct_ans[p], row(N_ct_ans, p), ConfigurationType::Reference, thickness);
+    }
+    ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
+
+    array_1d<SizeType,3> eas_modes_per_kinematic_variable_set; // number of EAS modes for the set of kinematic varables: [ [konstant a11,a12,a22, linear b11,b12,b22] Modes, [konstant a13,a23, linear b13,b23] Modes, [b33 linear] Modes ]
+    eas_modes_per_kinematic_variable_set[0] = 4;   // for membrane and bending kinematic variables (alpha11, alpha22, alpha12, betta11, betta22, betta12)
+    eas_modes_per_kinematic_variable_set[1] = 0;   // for shear related kinematic variables (alpha13, alpha23, betta13, betta23)
+    eas_modes_per_kinematic_variable_set[2] = 4;   // for thickness related kinematic variable (betta33)
+    SizeType num_eas_modes = 0;
+    num_eas_modes = eas_modes_per_kinematic_variable_set[0] * 2 + eas_modes_per_kinematic_variable_set[1] * 2 + eas_modes_per_kinematic_variable_set[2]; // total number of EAS modes from the sum over all kinematic variables. faktor 2 is due to the fact that we have two sets of EAS modes: konstant and linear
+    
+    //SizeType num_eas_modes = 4;
+    Matrix M0_eas = ZeroMatrix(12, num_eas_modes);              // Shape function matrix for EAS modes (incomatible strains) formulated at the center of the element. rows: 12 kinamatic variables. columns: num_eas_modes EAS modes.
+    Matrix M_eas = ZeroMatrix(12, num_eas_modes);               // Shape function matrix for EAS modes transformed to the current GP via basis transformation from coordinate system of midpoint to coordinate system of GP
+    Matrix T = ZeroMatrix(12, 12);                              // Transformation matrix from EAS modes formulated at the center of the element to EAS modes formulated at the current GP
+    Matrix Lt = ZeroMatrix(num_eas_modes, number_dofs);         // L-matrix for EAS [num_eas_modes x numdof] at the GP: coupling matrix between EAS parameters and nodal DOFs. 
+    Matrix Dtild = ZeroMatrix(num_eas_modes, num_eas_modes);    // Dtilde matrix for EAS [num_eas_modes x num_eas_modes] at the GP: enhanced stiffness matrix
+    Matrix Dtild_inv = ZeroMatrix(num_eas_modes, num_eas_modes);
+    Vector Rtild = ZeroVector(num_eas_modes);                   // enhanced internal force vector
+    Matrix DM = ZeroMatrix(12,num_eas_modes);
+    
+    Matrix DN_eas0;
+    DN_eas0.resize(number_of_nodes, 2, false);
+    Vector N_eas0;
+    N_eas0.resize(number_of_nodes, false);
+    array_1d<Vector,3> akovr0_eas;
+    array_1d<Vector,3> akonr0_eas;
+    Matrix amkovr0_eas = ZeroMatrix(3);
+    Matrix amkonr0_eas = ZeroMatrix(3);
+    double amdet0_body = 0.0;
+    double detJ0_surface = 0.0;
+
+    array_1d<double,3> local_coords;
+    local_coords[0] = 0.0;      // the EAS modes are initially formulated at the element center
+    local_coords[1] = 0.0;
+    local_coords[2] = 0.0;
+    r_geom.ShapeFunctionsValues(N_eas0, local_coords);
+
+    r_geom.ShapeFunctionsLocalGradients(DN_eas0, local_coords);
+
+    // midsurface midpoint kinematics in reference configuration  
+    CovariantBaseVectorsMidsurface(akovr0_eas,DN_eas0,N_eas0,ConfigurationType::Reference,thickness);
+    CovariantMetric(amkovr0_eas,akovr0_eas);
+    ContravariantMetric(amkonr0_eas,amkovr0_eas,amdet0_body);
+    ContraVariantBaseVectors(akonr0_eas,amkonr0_eas,akovr0_eas);
+    JacobiDeterminante(detJ0_surface,akovr0_eas);
+
+    ////////////////////////////////////////////////////////////////END EAS STUFF////////////////////////////////////////////////////////////////
+
+    for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+        // getting information for integration
+        const double integration_weight_i = r_integration_points[point_number].Weight();
+        const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+        const Vector& Nshape = row(Ncontainer,point_number);
+
+        // surface kinematics in reference configuration
+        CovariantBaseVectorsMidsurface(akovr,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,thickness);
+        DirectorDerivatives(a3kvpr,shape_functions_gradients_i,ConfigurationType::Reference,thickness);
+        CovariantMetric(amkovr,akovr);
+        JacobiDeterminante(detJ_surface,akovr);
+
+        // surface kinematics in current configuration
+        CovariantBaseVectorsMidsurface(akovc,shape_functions_gradients_i,Nshape,ConfigurationType::Current,thickness);
+        DirectorDerivatives(a3kvpc,shape_functions_gradients_i,ConfigurationType::Current,thickness);
+        CovariantMetric(amkovc,akovc);
+
+        ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
+        const auto& r_gp = r_integration_points[point_number];
+
+        const double r  = r_gp.X();
+        const double s = r_gp.Y();
+
+        s8_ansqshapefunctions(frq, fsq, r, s);
+        ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
+
+        Bop = ZeroMatrix(12,number_dofs);
+        CalculatelinearBOperator(Bop,akovc,a3kvpc,shape_functions_gradients_i,Nshape,number_of_nodes);
+        //-------------------------------------- modifications due to ans
+        BOperatorANSTransverseShearmodification(Bop,frq,fsq,akovr_ans,a3kvpc,DN_ans,N_ans,number_of_nodes,sqrt_f_s);
+
+        GeometryType::CoordinatesArrayType local_coords_gp;
+        local_coords_gp[0] = r;
+        local_coords_gp[1] = s;
+        local_coords_gp[2] = 0.0;
+        r_geom.ShapeFunctionsValues(Np_ct,local_coords_gp);
+        BOperatorANSCurvatureThicknessModification(Bop,akovr_ct_ans,N_ct_ans,r,s,Np_ct,number_of_nodes);
+
+        Dmatrix = ZeroMatrix(12,12);
+        stress_resultants = ZeroVector(12);
+        //-------------------------------------- loop over GP in thickness direction for preintegration of constitutive law
+        for (SizeType k=0; k<2; ++k){
+            double Theta3 = gpcoord_t[k];
+            double tweight = gpweight_t[k];
+            CovariantBaseVectorsShellBody(gkovr,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,Theta3,thickness);
+            CovariantMetric(gmkovr,gkovr);
+
+            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3);
+            ContravariantMetric(gmkonr,gmkovr,gmdet_body);
+
+            double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
+
+            CalculateMaterialLaw(Dmatrix, gmkonr, thickness, ConstitutiveLawType::gStVenantKirchhoff, Theta3, scalefactor, PK2_stress, GL_strain, stress_resultants);
+        }
+
+        Dmatrix(2,2) *= 5.0/6.0;
+        Dmatrix(2,4) *= 5.0/6.0;
+        Dmatrix(4,2) *= 5.0/6.0;
+        Dmatrix(4,4) *= 5.0/6.0;
+        Dmatrix(8,8) *= 0.7;
+        Dmatrix(8,10) *= 0.7;
+        Dmatrix(10,8) *= 0.7;
+        Dmatrix(10,10) *= 0.7;
+
+        double weight = integration_weight_i * detJ_surface;
+        rInternalForceVector += prod(trans(Bop), stress_resultants) * weight; 
+        noalias(DB) = prod(Dmatrix, Bop);
+
+        ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
+        
+        // shape functions for (incompatible strains) EAS strains formulated at the center of the element
+        CalculateEASShapeFunctions(M0_eas,r,s,eas_modes_per_kinematic_variable_set,num_eas_modes);
+        // basis transformation of EAS strains formulated in midpoint to the current GP
+        BasisTransformationEASShapeFunctions(T, M0_eas, M_eas, akonr0_eas, akovr, detJ0_surface, detJ_surface);
+        //==============================================================
+        //       L^T (num_eas_modes,nd) = M^T (num_eas_modes,12) * D(12,12) * B(12,nd)
+        // here:   "Lt"            "transP"         "D"       "bop"   
+        //==============================================================
+        noalias(Lt) += prod(trans(M_eas), DB) * weight; // * thickness*0.5; check whether weight 2D Jacobian insted of 3D one
+        //         D (num_eas_modes,num_eas_modes) = M^T(num_eas_modes,12) * D(12,12) * M(12,num_eas_modes)
+        // here: "Dtild"           "transP"         "D"      "transP"    
+        //=============================================================
+        Matrix DM = ZeroMatrix(12,num_eas_modes);
+        noalias(DM) = prod(Dmatrix, M_eas);   
+        noalias(Dtild) += prod(trans(M_eas), DM) * weight; // * thickness*0.5; check whether weight 2D Jacobian insted of 3D one    
+        
+        //==========================================================//
+         //  Rtilde(nhyb) = Mtrans(nhyb,12) * Forces(12)             //
+         //==========================================================//
+         //---------------------- eas part of internal forces Rtilde //
+         noalias(Rtild) += prod(trans(M_eas), stress_resultants) * weight; //
+    }
+
+    //------------------------------------ make inverse of matrix Dtilde //
+        double det_Dtild = 0.0;
+        const double det_tol = 1.0e-14;
+        // Generic Kratos inversion for dynamic-size Matrix
+        MathUtils<double>::InvertMatrix(Dtild, Dtild_inv, det_Dtild);
+        KRATOS_ERROR_IF(std::abs(det_Dtild) < det_tol) << "Singular or near-singular Dtild. det = " << det_Dtild << " in element " << Id() << std::endl;
+        
+    //===================================================================//
+    // R(nd) = R(nd) - Ltrans(nhyb,nd) * Dtilde^-1(nhyb,nhyb) * Rtilde(nhyb) //
+    //===================================================================//
+    Vector temp = ZeroVector(num_eas_modes);
+    noalias(temp) = prod(Dtild_inv, Rtild);
+    rInternalForceVector -= prod(trans(Lt), temp);
+
+    /////////////////////////////////////////////////////////END EAS STUFF////////////////////////////////////////////////////////////////
+
+}
 
 void Shell7pElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
@@ -223,6 +494,7 @@ void Shell7pElement::CalculateLeftHandSide(
     array_1d<double,6> GL_strain;
     BoundedMatrix<double, 12, 12> Dmatrix;
     array_1d<double,12> stress_resultants;
+    Matrix DB = ZeroMatrix(12,number_dofs);
 
     array_1d<double,2> gpcoord_t;
     gpcoord_t[0] =  1.0 / std::sqrt(3.0);
@@ -326,6 +598,7 @@ void Shell7pElement::CalculateLeftHandSide(
     Matrix Dtild = ZeroMatrix(num_eas_modes, num_eas_modes);    // Dtilde matrix for EAS [num_eas_modes x num_eas_modes] at the GP: enhanced stiffness matrix
     Matrix Dtild_inv = ZeroMatrix(num_eas_modes, num_eas_modes);
     Vector Rtild = ZeroVector(num_eas_modes);                   // enhanced internal force vector
+    Matrix DM = ZeroMatrix(12,num_eas_modes);
 
     Matrix DN_eas0;
     DN_eas0.resize(number_of_nodes, 2, false);
@@ -410,12 +683,12 @@ void Shell7pElement::CalculateLeftHandSide(
 
             // change to consistent current metric for stress/strain calculation
             array_1d<double,6> GL_strain;
-            CalculateGreenLagrangeStrain(GL_strain,gmkovr,gmkovc,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3);
+            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3);
             ContravariantMetric(gmkonr,gmkovr,gmdet_body);
 
             double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
 
-            CalculateMaterialLaw(Dmatrix,gmkonr,thickness,ConstitutiveLawType::gStVenantKirchhoff,Theta3,scalefactor,PK2_stress,GL_strain,stress_resultants);
+            CalculateMaterialLaw(Dmatrix, gmkonr, thickness, ConstitutiveLawType::gStVenantKirchhoff, Theta3, scalefactor, PK2_stress, GL_strain, stress_resultants);
         }
 
         double f_s = 1.0; // thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element));
@@ -429,7 +702,6 @@ void Shell7pElement::CalculateLeftHandSide(
         Dmatrix(10,10) *= 0.7 * f_s;
 
         double weight = integration_weight_i * detJ_surface; // * thickness*0.5; 
-        Matrix DB = ZeroMatrix(12,number_dofs); 
         noalias(DB) = prod(Dmatrix, Bop);
         rLeftHandSideMatrix += prod(trans(Bop), DB) * weight;
 
@@ -448,7 +720,6 @@ void Shell7pElement::CalculateLeftHandSide(
         //         D (num_eas_modes,num_eas_modes) = M^T(num_eas_modes,12) * D(12,12) * M(12,num_eas_modes)
         // here: "Dtild"           "transP"         "D"      "transP"    
         //=============================================================
-        Matrix DM = ZeroMatrix(12,num_eas_modes);
         noalias(DM) = prod(Dmatrix, M_eas);   
         noalias(Dtild) += prod(trans(M_eas), DM) * weight; // * thickness*0.5; check whether weight 2D Jacobian insted of 3D one    
         
@@ -535,7 +806,6 @@ void Shell7pElement::CovariantBaseVectorsMidsurface(array_1d<Vector,3>& akovr,
     akovr[1] = a2;
     akovr[2] = a3;
 }
-
 void Shell7pElement::DirectorDerivatives(array_1d<Vector,2>& a3kvp,const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration, const double& thickness) const
 
 {
@@ -574,7 +844,7 @@ void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& r
     }
 }
 
-void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_vector, const Matrix& gmkovr, Matrix& gmkovc, const Matrix& amkovr, const Matrix& amkovc, const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, const array_1d<Vector,2>& a3kvpc, const double& Theta3) const
+void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_vector, const Matrix& amkovr, const Matrix& amkovc, const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, const array_1d<Vector,2>& a3kvpc, const double& Theta3) const
 {
     Matrix GL_strain_tensor = ZeroMatrix(3);
 
@@ -747,8 +1017,8 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact, arr
         CC(5,3) = C[2][2][1][1];
         CC(5,4) = C[2][2][2][1];
         CC(5,5) = C[2][2][2][2];
-
         
+        // Constitutive matrix preintegration
         for (SizeType i=0; i<6; ++i){
             const SizeType i6 = i + 6;
             for (SizeType j=0; j<6; ++j){
@@ -760,7 +1030,17 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact, arr
              }
         }
 
-       StressPreintegration(CC, PK2_stress, GL_strain, stress_resultants, Theta3, fact);
+        // Stress preintegration
+        noalias(PK2_stress) = prod(CC, GL_strain);
+
+        for (SizeType i=0; i<6; ++i){
+            const SizeType i6 = i + 6;
+            stress_resultants[i] += PK2_stress[i]*fact;
+            stress_resultants[i6] += PK2_stress[i]*Theta3*fact;
+        }
+        // StressPreintegration(CC, PK2_stress, GL_strain, stress_resultants, gmkonr, option, Theta3, fact);
+
+    }
 
        //CL(2,2) *= 5.0/6.0;    // shear correction factor alpha=5/6 for n13,n23
        //CL(2,4) *= 5.0/6.0;
@@ -770,7 +1050,6 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact, arr
        //CL(8,10) *= 0.7;
        //CL(10,8) *= 0.7;
        //CL(10,10) *= 0.7;
-    }
  else {
     const double Ebar = E*(1.0-nu)/((1.0+nu)*(1.0-2.0*nu));
     const double hbar = thickness*thickness*thickness/12.0;
@@ -803,12 +1082,12 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact, arr
         CL(11,11) = G*hq_bar;
     }
 
-
 }
 
-void Shell7pElement::StressPreintegration(const BoundedMatrix<double, 6, 6>& C, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants, const double Theta3, const double fact) const
+void Shell7pElement::StressPreintegration(const BoundedMatrix<double, 6, 6>& CC, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants, const Matrix& gmkonr,
+const ConstitutiveLawType& option, const double& Theta3, const double& fact) const
 {
-    noalias(PK2_stress) = prod(C, GL_strain);
+    noalias(PK2_stress) = prod(CC, GL_strain);
 
     for (SizeType i=0; i<6; ++i){
         const SizeType i6 = i + 6;
@@ -816,7 +1095,7 @@ void Shell7pElement::StressPreintegration(const BoundedMatrix<double, 6, 6>& C, 
         stress_resultants[i6] += PK2_stress[i]*Theta3*fact;
     }
 }
-                                                                                                                                                                  // [N_node][derivative direction]   // Nshape[i] = N_i evaluated at the current GP
+                                                                                                                                                                // [N_node][derivative direction]   // Nshape[i] = N_i evaluated at the current GP
 void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes) const
 {
     const double a1x = CovariantBaseVectors[0][0];
