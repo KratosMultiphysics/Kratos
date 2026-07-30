@@ -90,7 +90,10 @@ public:
     }
 
     /// Constructor with Parameters
-    explicit ConvergenceCriteria(Kratos::Parameters ThisParameters)
+    explicit ConvergenceCriteria(
+        ModelPart& rModelPart,
+        Kratos::Parameters ThisParameters)
+        : mpModelPart(&rModelPart)
     {
         // Validate and assign defaults
         ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
@@ -135,42 +138,12 @@ public:
     }
 
     /**
-     * @brief Criterias that need to be called before getting the solution
-     * @param rModelPart Reference to the ModelPart containing the problem
-     * @param rImplicitStrategyData Data container of the implicit strategy
-     * @return true if convergence is achieved, false otherwise
-     */
-    //FIXME: I THINK WE SHOULD REMOVE THIS!
-    virtual bool PreCriteria(
-        ModelPart& rModelPart,
-        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
-    {
-        return true;
-    }
-
-    /**
-     * @brief Criterias that need to be called after getting the solution
-     * @param rModelPart Reference to the ModelPart containing the problem
-     * @param rImplicitStrategyData Data container of the implicit strategy
-     * @return true if convergence is achieved, false otherwise
-     */
-    //FIXME: I THINK WE SHOULD REMOVE THIS AND JUST CALL IT IsConverged()!
-    virtual bool PostCriteria(
-        ModelPart& rModelPart,
-        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
-    {
-        return true;
-    }
-
-    /**
      * @brief Checks if the solution is converged
-     * @param rModelPart Reference to the ModelPart containing the problem
      * @param rImplicitStrategyData Data container of the implicit strategy
+     * @warning Must be defined on the derived classes
      * @return true if the solution is converged, false otherwise
      */
-    virtual bool IsConverged(
-        ModelPart& rModelPart,
-        ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
+    virtual bool IsConverged(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
     {
         KRATOS_ERROR << "Calling the base class IsConverged method. This should be implemented in the derived class." << std::endl;
         return false;
@@ -186,63 +159,46 @@ public:
 
     /**
      * @brief This function initializes the solution step
-     * @warning Must be defined on the derived classes
-     * @param rModelPart Reference to the ModelPart containing the problem
      * @param rImplicitStrategyData Data container of the implicit strategy
      */
-    virtual void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+    virtual void InitializeSolutionStep(const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
 
     /**
      * @brief This function initializes the non-linear iteration
-     * @warning Must be defined on the derived classes
-     * @param rModelPart Reference to the ModelPart containing the problem
      * @param rImplicitStrategyData Data container of the implicit strategy
      */
-    virtual void InitializeNonLinearIteration(
-        ModelPart& rModelPart,
-        const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+    virtual void InitializeNonLinearIteration(const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
 
     /**
      * @brief This function finalizes the non-linear iteration
-     * @warning Must be defined on the derived classes
-     * @param rModelPart Reference to the ModelPart containing the problem
      * @param rImplicitStrategyData Data container of the implicit strategy
      */
-    virtual void FinalizeNonLinearIteration(
-        ModelPart& rModelPart,
-        const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+    virtual void FinalizeNonLinearIteration(const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
 
     /**
      * @brief This function finalizes the solution step
-     * @warning Must be defined on the derived classes
-     * @param rModelPart Reference to the ModelPart containing the problem
      * @param rImplicitStrategyData Data container of the implicit strategy
      */
-    virtual void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+    virtual void FinalizeSolutionStep(const ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
     }
 
     /**
      * @brief This function is designed to be called once to perform all the checks needed on the input provided. Checks can be "expensive" as the function is designed to catch user's errors.
-     * @warning Must be defined on the derived classes
-     * @param rModelPart Reference to the ModelPart containing the problem.
      * @return 0 all OK, 1 otherwise
      */
-    virtual int Check(ModelPart& rModelPart)
+    virtual int Check()
     {
         KRATOS_TRY
 
         return 0;
+
         KRATOS_CATCH("");
     }
 
@@ -272,9 +228,25 @@ public:
     ///@name Access
     ///@{
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+    /**
+     * @brief Get the Model Part object
+     * Returns a reference to the model part the scheme is referring to
+     * @return ModelPart& Reference to the scheme model part
+     */
+    ModelPart& GetModelPart()
+    {
+        return *mpModelPart;
+    }
+
+    /**
+     * @brief Get the Model Part object
+     * Returns a reference to the model part the scheme is referring to
+     * @return const ModelPart& Reference to the scheme model part
+     */
+    const ModelPart& GetModelPart() const
+    {
+        return *mpModelPart;
+    }
 
     /**
      * @brief This returns the level of echo for the solving strategy
@@ -284,6 +256,10 @@ public:
     {
         return mEchoLevel;
     }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
 
     ///@}
     ///@name Input and output
@@ -321,8 +297,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    int mEchoLevel; /// The echo level
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -343,13 +317,11 @@ protected:
     /**
      * @brief This method computes the norm of the given serial system vector
      * @details Note that only the free DOFs are considered in the norm calculation.
-     * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's DOFs
      * @param rVector The vector whose norm is to be computed
      * @return A pair containing the number of free DOFs and the norm of the vector
      */
     std::pair<std::size_t, DataType> CalculateVectorNorm(
-        const ModelPart& rModelPart,
         const DofsArrayType& rDofSet,
         const SystemVector<DataType, IndexType>& rVector)
     {
@@ -375,19 +347,17 @@ protected:
     /**
      * @brief This method computes the norm of the given distributed systemvector
      * @details Note that only the free DOFs are considered in the norm calculation.
-     * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's DOFs
      * @param rVector The vector whose norm is to be computed
      * @return A pair containing the number of free DOFs and the norm of the vector
      * @note TODO: implementation to be tested when the distributed environment implementation is completed
      */
     std::pair<std::size_t, DataType> CalculateVectorNorm(
-        const ModelPart& rModelPart,
         const DofsArrayType& rDofSet,
         const DistributedSystemVector<DataType, IndexType>& rVector)
     {
         // Retrieve the data communicator
-        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+        const auto& r_data_communicator = mpModelPart->GetCommunicator().GetDataCommunicator();
 
         // Define custom reduction for parallel computation
         // First item in the reduction tuple: sum of the squared norm of the variation of the DOFs
@@ -440,6 +410,10 @@ private:
     ///@name Member Variables
     ///@{
 
+    int mEchoLevel; /// The echo level
+
+    ModelPart* mpModelPart = nullptr; /// The pointer to the model part
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -447,8 +421,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-
 
     ///@}
     ///@name Private  Access

@@ -65,10 +65,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ResidualCriteria );
 
     /// The definition of the base ConvergenceCriteria
-    using BaseType = ConvergenceCriteria< TLinearAlgebra >; 
+    using BaseType = ConvergenceCriteria< TLinearAlgebra >;
 
     /// The definition of the current class
-    using ClassType = ResidualCriteria< TLinearAlgebra >; 
+    using ClassType = ResidualCriteria< TLinearAlgebra >;
 
     /// The data type
     using DataType = typename TLinearAlgebra::DataType;
@@ -118,13 +118,10 @@ public:
 
     /**
      * @brief Checks if the solution is converged
-     * @param rModelPart Reference to the ModelPart containing the problem
      * @param rImplicitStrategyData Data container of the implicit strategy
      * @return true if the solution is converged, false otherwise
      */
-    bool IsConverged(
-        ModelPart& rModelPart,
-        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
+    bool IsConverged(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
     {
         // Get effective solution residual vector
         // Note that this already accounts for MPC constraints
@@ -138,18 +135,19 @@ public:
         }
 
         // Calculate the norm of the current residual (RHS)
-        const auto [n_free_dofs, eff_rhs_norm] = this->CalculateVectorNorm(rModelPart, *p_eff_dof_set, *p_eff_rhs);
+        const auto [n_free_dofs, eff_rhs_norm] = this->CalculateVectorNorm(*p_eff_dof_set, *p_eff_rhs);
 
         // Calculate convergence ratio
+        auto& r_model_part = this->GetModelPart();
         const DataType ratio = mInitialResidualNorm < std::numeric_limits<DataType>::epsilon() ? 0.0 : eff_rhs_norm / mInitialResidualNorm;
-        rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
+        r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
 
         // Calculate absolute residual norm (RHS / sqrt(ndof))
         const DataType absolute_norm = (eff_rhs_norm / std::sqrt(static_cast<DataType>(n_free_dofs)));
-        rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
+        r_model_part.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
         // Print current iteration information
-        const int rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
+        const int rank = r_model_part.GetCommunicator().GetDataCommunicator().Rank();
         KRATOS_INFO_IF("ResidualCriterion", this->GetEchoLevel() > 1 && rank == 0) << " :: [Initial residual norm = " << mInitialResidualNorm << "; Current residual norm =  " << eff_rhs_norm << "]" << std::endl;
         KRATOS_INFO_IF("ResidualCriterion", this->GetEchoLevel() > 0 && rank == 0) << " :: [Obtained ratio = " << ratio << "; Expected ratio = " << mRelativeTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAbsoluteTolerance << "]" << std::endl;
 
@@ -162,16 +160,12 @@ public:
 
     /**
      * @brief This function initializes the solution step
-     * @warning Must be defined on the derived classes
-     * @param rModelPart Reference to the ModelPart containing the problem
      * @param rImplicitStrategyData Data container of the implicit strategy
      */
-    void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        const ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
+    void InitializeSolutionStep(const ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
     {
-        BaseType::InitializeSolutionStep(rModelPart, rImplicitStrategyData);
-        
+        BaseType::InitializeSolutionStep(rImplicitStrategyData);
+
         // Get effective solution residual vector
         // Note that this already accounts for MPC constraints
         const auto p_eff_dof_set = rImplicitStrategyData.pGetEffectiveDofSet();
@@ -180,7 +174,7 @@ public:
 
         // Calculate the residual norm at the beginning of the solution step
         // Note that this will be used as reference for the convergence ratio
-        const auto output = this->CalculateVectorNorm(rModelPart, *p_eff_dof_set, *p_eff_rhs);
+        const auto output = this->CalculateVectorNorm(*p_eff_dof_set, *p_eff_rhs);
         mInitialResidualNorm = std::get<1>(output);
     }
 

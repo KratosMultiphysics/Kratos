@@ -73,16 +73,16 @@ KRATOS_TEST_CASE_IN_SUITE(FutureSolutionCriteria, KratosCoreFastSuite)
     r_test_model_part.pGetNode(1)->Fix(DISTANCE);
 
     // Create solution criteria
-    Parameters solution_criteria_parameters = Parameters(R"({
+    Parameters solution_criteria_settings = Parameters(R"({
         "echo_level" : 0,
         "variable_name" : "DISTANCE",
         "relative_tolerance" : 1.0e-4,
         "absolute_tolerance" : 1.0e-6
     })");
-    auto p_convergence_criteria = Kratos::make_unique<Future::SolutionCriteria<Future::SerialLinearAlgebraTraits>>(solution_criteria_parameters);
+    auto p_convergence_criteria = Kratos::make_unique<Future::SolutionCriteria<Future::SerialLinearAlgebraTraits>>(r_test_model_part, solution_criteria_settings);
 
     // Call convergence criteria check
-    const bool is_converged = p_convergence_criteria->IsConverged(r_test_model_part, strategy_data_container);
+    const bool is_converged = p_convergence_criteria->IsConverged(strategy_data_container);
     const double res_norm = r_test_model_part.GetProcessInfo()[RESIDUAL_NORM];
     const double conv_ratio = r_test_model_part.GetProcessInfo()[CONVERGENCE_RATIO];
     KRATOS_EXPECT_FALSE(is_converged);
@@ -126,15 +126,15 @@ KRATOS_TEST_CASE_IN_SUITE(FutureResidualCriteria, KratosCoreFastSuite)
     p_eff_lin_sys->pSetVector(p_eff_rhs, Future::LinearSystemTags::DenseVectorTag::RHS);
 
     // Create solution criteria
-    Parameters residual_criteria_parameters = Parameters(R"({
+    Parameters residual_criteria_settings = Parameters(R"({
         "echo_level" : 0,
         "relative_tolerance" : 1.0e-4,
         "absolute_tolerance" : 1.0e-6
     })");
-    auto p_convergence_criteria = Kratos::make_unique<Future::ResidualCriteria<Future::SerialLinearAlgebraTraits>>(residual_criteria_parameters);
+    auto p_convergence_criteria = Kratos::make_unique<Future::ResidualCriteria<Future::SerialLinearAlgebraTraits>>(r_test_model_part, residual_criteria_settings);
 
     // Call InitializeSolutionStep (sets the initial residual norm)
-    p_convergence_criteria->InitializeSolutionStep(r_test_model_part, strategy_data_container);
+    p_convergence_criteria->InitializeSolutionStep(strategy_data_container);
 
     // Change the effective residual vector
     eff_rhs[0] = 10.0;
@@ -144,7 +144,7 @@ KRATOS_TEST_CASE_IN_SUITE(FutureResidualCriteria, KratosCoreFastSuite)
     p_eff_lin_sys->pSetVector(p_eff_rhs, Future::LinearSystemTags::DenseVectorTag::RHS);
 
     // Call convergence criteria check
-    const bool is_converged = p_convergence_criteria->IsConverged(r_test_model_part, strategy_data_container);
+    const bool is_converged = p_convergence_criteria->IsConverged(strategy_data_container);
     const double res_norm = r_test_model_part.GetProcessInfo()[RESIDUAL_NORM];
     const double conv_ratio = r_test_model_part.GetProcessInfo()[CONVERGENCE_RATIO];
     KRATOS_EXPECT_FALSE(is_converged);

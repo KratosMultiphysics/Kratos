@@ -124,13 +124,10 @@ public:
 
     /**
      * @brief Checks if the solution is converged
-     * @param rModelPart Reference to the ModelPart containing the problem
      * @param rImplicitStrategyData Data container of the implicit strategy
      * @return true if the solution is converged, false otherwise
      */
-    bool IsConverged(
-        ModelPart& rModelPart,
-        ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
+    bool IsConverged(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
     {
         // Get effective solution vector
         // Note that this already accounts for MPC constraints
@@ -144,25 +141,26 @@ public:
         }
 
         // Calculate the norm of the solution increment (dx)
-        const auto [n_free_dofs, eff_dx_norm] = this->CalculateVectorNorm(rModelPart, *p_eff_dof_set, *p_eff_dx);
+        const auto [n_free_dofs, eff_dx_norm] = this->CalculateVectorNorm(*p_eff_dof_set, *p_eff_dx);
 
         // Calculate the norm of the solution (reference norm)
-        DataType sol_norm = CalculateSolutionNorm(rModelPart, *p_eff_dof_set);
+        DataType sol_norm = CalculateSolutionNorm(*p_eff_dof_set);
         if (sol_norm < std::numeric_limits<DataType>::epsilon()) {
             KRATOS_WARNING("SolutionCriteria") << "Zero solution norm detected. Setting reference norm to dx norm" << std::endl;
             sol_norm = eff_dx_norm;
         }
 
         // Calculate convergence ratio
+        auto& r_model_part = this->GetModelPart();
         const DataType ratio = eff_dx_norm < std::numeric_limits<DataType>::epsilon() ? 0.0 : eff_dx_norm / sol_norm;
-        rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
+        r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
 
         // Calculate absolute solution increment norm (dx / sqrt(ndof))
         const DataType absolute_norm = (eff_dx_norm / std::sqrt(static_cast<DataType>(n_free_dofs)));
-        rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
+        r_model_part.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
         // Print current iteration information
-        const int rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
+        const int rank = r_model_part.GetCommunicator().GetDataCommunicator().Rank();
         KRATOS_INFO_IF("SolutionCriteria", this->GetEchoLevel() > 0 && rank == 0) << "[Obtained ratio = " << ratio << "; Expected ratio = " << mRelativeTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAbsoluteTolerance << "]" << std::endl;
 
         // Check convergence
@@ -314,16 +312,14 @@ private:
     /**
      * @brief This method computes the reference norm from the DOFs solution values
      * @details It checks if the DOFs are fixed
-     * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @return The norm of the solution
      */
-    DataType CalculateSolutionNorm(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet)
+    DataType CalculateSolutionNorm(DofsArrayType& rDofSet)
     {
         // Retrieve the data communicator
-        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+        const auto& r_model_part = this->GetModelPart();
+        const auto& r_data_communicator = r_model_part.GetCommunicator().GetDataCommunicator();
 
         // Check if the problem is distributed
         DataType sol_norm;
