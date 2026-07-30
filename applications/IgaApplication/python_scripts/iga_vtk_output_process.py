@@ -44,6 +44,10 @@ class IgaVTKOutputProcess(KM.OutputProcess):
         # Ensure correct file extension
         self.output_file_name = self.output_file_name.with_suffix(".vtkhdf")
 
+        # Remove old VTKHDF file at the beginning of a fresh analysis
+        if self.output_file_name.exists():
+            self.output_file_name.unlink()
+
         # IDs of Brep surfaces to be exported
         self.brep_surface_ids = [
             params["brep_surface_ids"][i].GetInt()
