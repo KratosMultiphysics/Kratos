@@ -6,6 +6,7 @@ from pathlib import Path
 
 VTK_QUAD = 9
 VTK_TRIANGLE = 5
+VTK_LINE = 3
 VERSION = (2, 4)
 GLOBAL_TYPE = 'UnstructuredGrid'
 
@@ -26,9 +27,11 @@ class IgaVTKOutputProcess(KM.OutputProcess):
         default_parameters = KM.Parameters("""{
             "output_file_name"     : "",
             "brep_surface_ids"     : [],
+            "brep_curve_ids": [],
             "model_part_name"      : "",
             "nodal_solution_step_data_variables" : [],
-            "output_refinement"    : [],
+            "output_refinement_surface"    : [],
+            "output_refinement_curve"    : [],
             "output_control_type"  : "none",
             "output_frequency"     : 1,
             "output_interval"      : 0.0,
@@ -54,10 +57,22 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             for i in range(params["brep_surface_ids"].size())
         ]
 
+        # IDs of Brep curves to be exported
+        self.brep_curve_ids = [
+            params["brep_curve_ids"][i].GetInt()
+            for i in range(params["brep_curve_ids"].size())
+        ]
+
         # Refinement level per parametric direction
-        self.output_refinement = [
-            params["output_refinement"][i].GetInt()
-            for i in range(params["output_refinement"].size())
+        self.output_refinement_surface = [
+            params["output_refinement_surface"][i].GetInt()
+            for i in range(params["output_refinement_surface"].size())
+        ]
+
+        # Refinement level per parametric direction
+        self.output_refinement_curve = [
+            params["output_refinement_curve"][i].GetInt()
+            for i in range(params["output_refinement_curve"].size())
         ]
 
         self.printed_step_count = 0
@@ -140,22 +155,42 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             else:
                 root = file["VTKHDF"]
 
-            # Rebuild UV sampling if needed (when reopening file)
+            # Rebuild parametric sampling if needed when reopening the file
             if self.cached_uv is None and "Points" in root:
-                all_uv = []
+                all_local_coordinates = []
                 self.cached_uv_sizes = []
 
+                # BRep surfaces
                 for brep_id in self.brep_surface_ids:
                     brep_surface = self.model_part.GetGeometry(brep_id)
-                    _, _, _, _, uv = self.__compute_full_grid(brep_surface)
-                    all_uv.extend(uv)
+
+                    _, _, _, _, uv = self.__compute_full_grid_brep_surface(
+                        brep_surface
+                    )
+
+                    all_local_coordinates.extend(uv)
                     self.cached_uv_sizes.append(len(uv))
 
-                self.cached_uv = all_uv
+                # IGA beam curves
+                for curve_id in self.brep_curve_ids:
+                    curve = self.model_part.GetGeometry(curve_id)
+
+                    _, _, _, _, u_coordinates = self.__compute_full_grid_brep_curve(
+                        curve
+                    )
+
+                    # Store curve coordinates in the same format as surface coordinates
+                    all_local_coordinates.extend(
+                        [(u, 0.0) for u in u_coordinates]
+                    )
+                    self.cached_uv_sizes.append(len(u_coordinates))
+
+                self.cached_uv = all_local_coordinates
 
             # Geometry is written only once
             if "Points" not in root:
                 self.cached_uv_sizes = []
+
                 all_pts = []
                 all_conn = []
                 all_offsets = []
@@ -165,10 +200,19 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                 point_shift = 0
                 conn_shift = 0
 
+                # BRep surfaces
                 for brep_id in self.brep_surface_ids:
                     brep_surface = self.model_part.GetGeometry(brep_id)
 
-                    pts, conn, offs, types, uv = self.__compute_full_grid(brep_surface)
+                    pts, conn, offs, types, uv = (
+                        self.__compute_full_grid_brep_surface(brep_surface)
+                    )
+
+                    if len(pts) == 0:
+                        raise RuntimeError(
+                            f"No visualization points were generated for "
+                            f"BRep surface {brep_id}."
+                        )
 
                     self.cached_uv_sizes.append(len(uv))
 
@@ -180,10 +224,52 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                     all_conn.append(conn_shifted)
                     all_offsets.append(offs_shifted)
                     all_types.append(types)
+
+                    # Surface local coordinates: (u, v)
                     all_uv.extend(uv)
 
                     point_shift += len(pts)
                     conn_shift += len(conn)
+
+                # IGA curves / beams
+                for curve_id in self.brep_curve_ids:
+                    curve = self.model_part.GetGeometry(curve_id)
+
+                    pts, conn, offs, types, u_coordinates = (
+                        self.__compute_full_grid_brep_curve(curve)
+                    )
+
+                    if len(pts) == 0:
+                        raise RuntimeError(
+                            f"No visualization points were generated for "
+                            f"IGA curve {curve_id}."
+                        )
+
+                    self.cached_uv_sizes.append(len(u_coordinates))
+
+                    # Shift indices for global assembly
+                    conn_shifted = conn + point_shift
+                    offs_shifted = offs[:-1] + conn_shift
+
+                    all_pts.append(pts)
+                    all_conn.append(conn_shifted)
+                    all_offsets.append(offs_shifted)
+                    all_types.append(types)
+
+                    # Store curve coordinates using the same (u, v) format
+                    all_uv.extend(
+                        [(u, 0.0) for u in u_coordinates]
+                    )
+
+                    point_shift += len(pts)
+                    conn_shift += len(conn)
+
+                if len(all_pts) == 0:
+                    raise RuntimeError(
+                        "No geometry was provided for VTK output. "
+                        f"brep_surface_ids={self.brep_surface_ids}, "
+                        f"brep_curve_ids={self.brep_curve_ids}"
+                    )
 
                 # Assemble global arrays
                 points = np.vstack(all_pts)
@@ -210,50 +296,127 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                 for var in self.nodal_variables:
                     data = []
                     uv_counter = 0
+                    patch_index = 0
 
-                    for patch_index, brep_id in enumerate(self.brep_surface_ids):
+                    # --------------------------------------------------
+                    # Evaluate variables on BRep surfaces
+                    # --------------------------------------------------
+                    for brep_id in self.brep_surface_ids:
                         brep_surface = self.model_part.GetGeometry(brep_id)
+
                         n_local = self.cached_uv_sizes[patch_index]
 
-                        local_uv = self.cached_uv[uv_counter:uv_counter + n_local]
+                        local_uv = self.cached_uv[
+                            uv_counter:uv_counter + n_local
+                        ]
 
                         for u, v in local_uv:
-                            val = self.__eval_variable(brep_surface, u, v, var)
+                            val = self.__eval_variable(
+                                brep_surface,
+                                u,
+                                v,
+                                var
+                            )
                             data.append(val)
 
                         uv_counter += n_local
+                        patch_index += 1
+
+                    # --------------------------------------------------
+                    # Evaluate variables on IGA curves / beams
+                    # --------------------------------------------------
+                    for curve_id in self.brep_curve_ids:
+                        curve = self.model_part.GetGeometry(curve_id)
+
+                        n_local = self.cached_uv_sizes[patch_index]
+
+                        local_uv = self.cached_uv[
+                            uv_counter:uv_counter + n_local
+                        ]
+
+                        for u, _ in local_uv:
+                            val = self.__eval_variable(
+                                curve,
+                                u,
+                                0.0,
+                                var
+                            )
+                            data.append(val)
+
+                        uv_counter += n_local
+                        patch_index += 1
 
                     data = np.array(data)
 
-                    # Ensure 2D array (scalar → (n,1))
+                    # Ensure 2D array: scalar -> (n, 1)
                     if data.ndim == 1:
                         data = data[:, np.newaxis]
 
-                    pd.create_dataset(var.Name(), data=data, maxshape=(None, data.shape[1]))
+                    pd.create_dataset(
+                        var.Name(),
+                        data=data,
+                        maxshape=(None, data.shape[1])
+                    )
 
                 n_pts = len(points)
 
             else:
-                # Append new time step data
+                # Append new time-step data
                 pd = root["PointData"]
                 n_pts = int(root["NumberOfPoints"][0])
 
                 for var in self.nodal_variables:
-
                     data = []
                     uv_counter = 0
+                    patch_index = 0
 
-                    for patch_index, brep_id in enumerate(self.brep_surface_ids):
+                    # --------------------------------------------------
+                    # Evaluate variables on BRep surfaces
+                    # --------------------------------------------------
+                    for brep_id in self.brep_surface_ids:
                         brep_surface = self.model_part.GetGeometry(brep_id)
+
                         n_local = self.cached_uv_sizes[patch_index]
 
-                        local_uv = self.cached_uv[uv_counter:uv_counter + n_local]
+                        local_uv = self.cached_uv[
+                            uv_counter:uv_counter + n_local
+                        ]
 
                         for u, v in local_uv:
-                            val = self.__eval_variable(brep_surface, u, v, var)
+                            val = self.__eval_variable(
+                                brep_surface,
+                                u,
+                                v,
+                                var
+                            )
                             data.append(val)
 
                         uv_counter += n_local
+                        patch_index += 1
+
+                    # --------------------------------------------------
+                    # Evaluate variables on IGA curves / beams
+                    # --------------------------------------------------
+                    for curve_id in self.brep_curve_ids:
+                        curve = self.model_part.GetGeometry(curve_id)
+
+                        n_local = self.cached_uv_sizes[patch_index]
+
+                        local_uv = self.cached_uv[
+                            uv_counter:uv_counter + n_local
+                        ]
+
+                        for u, _ in local_uv:
+                            val = self.__eval_variable(
+                                curve,
+                                u,
+                                0.0,
+                                var
+                            )
+                            data.append(val)
+
+                        uv_counter += n_local
+                        patch_index += 1
 
                     data = np.array(data)
 
@@ -261,7 +424,10 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                         data = data[:, np.newaxis]
 
                     if data.shape[0] != n_pts:
-                        raise RuntimeError("Non-constant number of points across time steps!")
+                        raise RuntimeError(
+                            "Non-constant number of points across time steps! "
+                            f"Expected {n_pts}, obtained {data.shape[0]}."
+                        )
 
                     ds = pd[var.Name()]
 
@@ -340,16 +506,16 @@ class IgaVTKOutputProcess(KM.OutputProcess):
         if self.output_control_type == "step":
             self.step_counter += 1
 
-    # Compute the visualization grid 
-    def __compute_full_grid(self, brep_surface):
+    # Compute the visualization grid for brep surfaces
+    def __compute_full_grid_brep_surface(self, brep_surface):
         knots_u = brep_surface.KnotsU()
         knots_v = brep_surface.KnotsV()
 
         u_min, u_max = knots_u[0], knots_u[-1]
         v_min, v_max = knots_v[0], knots_v[-1]
 
-        ku = self.__refine(knots_u, self.output_refinement[0])
-        kv = self.__refine(knots_v, self.output_refinement[1])
+        ku = self.__refine(knots_u, self.output_refinement_surface[0])
+        kv = self.__refine(knots_v, self.output_refinement_surface[1])
 
         pts, conn, offs, types = [], [], [], []
         uv_coords = []
@@ -444,26 +610,135 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             np.array(types,np.uint8),
             uv_coords
         )
+    
+    # Compute the visualization grid for a BRep curve
+    def __compute_full_grid_brep_curve(self, brep_curve):
+        knots = brep_curve.Knots()
 
-    # Evaluate the desired variable at a local coordinate position (u, v, 0)
+        if len(knots) < 2:
+            raise RuntimeError(
+                f"BRep curve {brep_curve.Id} has fewer than two knots."
+            )
+
+        u_min = knots[0]
+        u_max = u_max = knots[len(knots) - 1]
+
+        if len(self.output_refinement_curve) == 0:
+            refinement = 0
+        else:
+            refinement = self.output_refinement_curve[0]
+
+        refined_knots = self.__refine(knots, refinement)
+
+        pts = []
+        conn = []
+        offs = []
+        types = []
+        u_coordinates = []
+
+        point_id = 0
+        connectivity_counter = 0
+
+        # Loop over the refined knot spans
+        for i in range(len(refined_knots) - 1):
+            u0 = refined_knots[i]
+            u1 = refined_knots[i + 1]
+
+            # Skip zero-length knot spans
+            if abs(u1 - u0) < 1e-12:
+                continue
+
+            local_point_ids = []
+
+            # Create both endpoints of the VTK line
+            for u in (u0, u1):
+                u = max(u_min, min(u_max, u))
+
+                if not np.isfinite(u):
+                    raise RuntimeError(
+                        f"Non-finite local coordinate u={u} encountered "
+                        f"for BRep curve {brep_curve.Id}."
+                    )
+
+                local_coordinates = KM.Array3()
+                local_coordinates[0] = u
+                local_coordinates[1] = 0.0
+                local_coordinates[2] = 0.0
+
+                try:
+                    global_coordinates = brep_curve.GlobalCoordinates(
+                        local_coordinates
+                    )
+                except Exception as exception:
+                    raise RuntimeError(
+                        f"Failed to compute global coordinates for "
+                        f"BRep curve {brep_curve.Id} at u={u}."
+                    ) from exception
+
+                pts.append([
+                    global_coordinates[0],
+                    global_coordinates[1],
+                    global_coordinates[2],
+                ])
+
+                u_coordinates.append(u)
+                local_point_ids.append(point_id)
+                point_id += 1
+
+            offs.append(connectivity_counter)
+            conn.extend(local_point_ids)
+
+            connectivity_counter += 2
+            types.append(VTK_LINE)
+
+        offs.append(connectivity_counter)
+
+        if len(pts) == 0:
+            raise RuntimeError(
+                f"No visualization points were generated for "
+                f"BRep curve {brep_curve.Id}. "
+                f"Knots: {list(knots)}"
+            )
+
+        return (
+            np.array(pts, dtype=float),
+            np.array(conn, dtype=np.int64),
+            np.array(offs, dtype=np.int64),
+            np.array(types, dtype=np.uint8),
+            u_coordinates,
+        )
+
+    # Evaluate the desired variable at a local coordinate position  
     def __eval_variable(self, brep, u, v, variable):
         lc = KM.Array3()
-        lc[0], lc[1], lc[2] = u, v, 0.0
+        lc[0] = u
+        lc[1] = v
+        lc[2] = 0.0
 
         ids, N = brep.EvaluateShapeFunctionsAtLocalCoordinates(lc, 0)
+
+        if len(ids) == 0:
+            raise RuntimeError(
+                f"No active control points found for geometry {brep.Id} "
+                f"at local coordinates ({u}, {v})."
+            )
 
         sample_node = self.model_part.GetNode(ids[0])
         value = sample_node.GetSolutionStepValue(variable)
 
         if hasattr(value, "__len__"):
             result = np.zeros(len(value))
-            for i, id in enumerate(ids):
-                node = self.model_part.GetNode(id)
-                result += N[i] * np.array(node.GetSolutionStepValue(variable))
+
+            for i, node_id in enumerate(ids):
+                node = self.model_part.GetNode(node_id)
+                result += N[i] * np.asarray(
+                    node.GetSolutionStepValue(variable)
+                )
         else:
             result = 0.0
-            for i, id in enumerate(ids):
-                node = self.model_part.GetNode(id)
+
+            for i, node_id in enumerate(ids):
+                node = self.model_part.GetNode(node_id)
                 result += N[i] * node.GetSolutionStepValue(variable)
 
         return result
@@ -481,5 +756,5 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                 t = j/(n+1)
                 out.append((1-t)*a + t*b)
 
-        out.append(knots[-1])
+        out.append(knots[len(knots) - 1])
         return out
