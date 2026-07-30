@@ -492,15 +492,17 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     // Assign the p_properties to the elements and conditions of all model parts.
     for (const auto& r_name : model_part_names) {
         auto& r_model_part = mrModel.GetModelPart(r_name);
+        auto& r_elements_array = r_model_part.Elements();
+        auto& r_conditions_array = r_model_part.Conditions();
 
         block_for_each(
-            r_model_part.Elements(),
+            r_elements_array,
             [&p_prop](Element& rElement)
             { rElement.SetProperties(p_prop); }
         );
 
         block_for_each(
-            r_model_part.Conditions(),
+            r_conditions_array,
             [&p_prop](Condition& rCondition)
             { rCondition.SetProperties(p_prop); }
         );
