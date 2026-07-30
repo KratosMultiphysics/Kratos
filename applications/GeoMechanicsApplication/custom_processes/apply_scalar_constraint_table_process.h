@@ -27,7 +27,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyScalarConstraintTableProcess : 
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyScalarConstraintTableProcess);
 
-    ApplyScalarConstraintTableProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
+    ApplyScalarConstraintTableProcess(Model& rModel, const Parameters& rProcessSettings);
 
     ~ApplyScalarConstraintTableProcess() override = default;
 
@@ -42,30 +42,41 @@ public:
     std::string Info() const override;
 
 private:
-    void MakeInternalProcess(const Parameters& rProcessSettings);
-    void MakeProcessForFluidPressureType(const Parameters&        rProcessSettings,
+    void MakeInternalProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
+    void MakeProcessForFluidPressureType(ModelPart&               rModelPart,
+                                         const Parameters&        rProcessSettings,
                                          std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeScalarConstraintProcess(const Parameters&        rProcessSettings,
+    void MakeScalarConstraintProcess(ModelPart&               rModelPart,
+                                     const Parameters&        rProcessSettings,
                                      std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForHydrostaticFluidPressure(const Parameters&        rProcessSettings,
+    void MakeProcessForHydrostaticFluidPressure(ModelPart&               rModelPart,
+                                                const Parameters&        rProcessSettings,
                                                 std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForPhreaticLine(const Parameters&        rProcessSettings,
+    void MakeProcessForPhreaticLine(ModelPart&               rModelPart,
+                                    const Parameters&        rProcessSettings,
                                     std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForPhreaticMultiLine(const Parameters&        rProcessSettings,
+    void MakeProcessForPhreaticMultiLine(ModelPart&               rModelPart,
+                                         const Parameters&        rProcessSettings,
                                          std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForPhreaticSurface(const Parameters&        rProcessSettings,
+    void MakeProcessForPhreaticSurface(ModelPart&               rModelPart,
+                                       const Parameters&        rProcessSettings,
                                        std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
+    void MakeProcessForInterpolatedLine(ModelPart&               rModelPart,
+                                        const Parameters&        rProcessSettings,
                                         std::vector<std::string> NamesOfSettingsToCopy);
-    void AppendOptionalFluidParameters(const Parameters&         rProcessSettings,
+    void AppendOptionalFluidParameters(const Parameters&               rProcessSettings,
                                        std::vector<std::string>& rNamesOfSettingsToCopy) const;
 
     template <typename TableProcessType, typename ConstantProcessType>
-    void InstantiateProcessByTablePresence(const Parameters&          rProcessSettings,
-                                           std::vector<std::string>&& rNamesOfSettingsToCopy);
+    void       InstantiateProcessByTablePresence(ModelPart&                 rModelPart,
+                                                 const Parameters&          rProcessSettings,
+                                                 std::vector<std::string>&& rNamesOfSettingsToCopy);
+    Parameters PrepareProcessParameters(const ModelPart&                rModelPart,
+                                        const Parameters&               rProcessSettings,
+                                        const std::vector<std::string>& rNamesOfSettingsToCopy);
 
-    ModelPart&           mrModelPart;
-    ProcessUniquePointer mProcess;
+    std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
+    std::vector<std::unique_ptr<Process>>          mProcesses;
 };
 
 } // namespace Kratos

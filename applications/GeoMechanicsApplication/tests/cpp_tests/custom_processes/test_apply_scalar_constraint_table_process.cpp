@@ -69,7 +69,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
           "value":           0.5
       }  )");
 
-    ApplyScalarConstraintTableProcess process(r_model_part, parameters);
+    ApplyScalarConstraintTableProcess process(model, parameters);
 
     // Act
     process.ExecuteInitialize();
@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValues
           "value":           0.3
       }  )");
 
-    ApplyScalarConstraintTableProcess process(r_model_part, parameters);
+    ApplyScalarConstraintTableProcess process(model, parameters);
 
     // Act & Assert
     process.ExecuteInitialize();
@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValues
     AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyScalarConstraintTableProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_CheckInfoApplyScalarConstraintTableProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -142,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyScalarConstraintTableProcess, KratosGeoM
           "table":           1,
           "value":           0.3
       }  )");
-    const ApplyScalarConstraintTableProcess process(r_model_part, parameters);
+    const ApplyScalarConstraintTableProcess process(model, parameters);
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "ApplyScalarConstraintTableProcess");
 }
