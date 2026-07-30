@@ -88,6 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(FutureSolutionCriteria, KratosCoreFastSuite)
     KRATOS_EXPECT_FALSE(is_converged);
     KRATOS_EXPECT_NEAR(res_norm, 5.14781507049, 1e-10);
     KRATOS_EXPECT_NEAR(conv_ratio, 1.00956959603, 1e-10);
+    KRATOS_EXPECT_FALSE(p_convergence_criteria->RequiresResidual());
 #else
     true;
 #endif
@@ -150,6 +151,7 @@ KRATOS_TEST_CASE_IN_SUITE(FutureResidualCriteria, KratosCoreFastSuite)
     KRATOS_EXPECT_FALSE(is_converged);
     KRATOS_EXPECT_NEAR(res_norm, 11.0302614052, 1e-10);
     KRATOS_EXPECT_NEAR(conv_ratio, 2.4263340195, 1e-10);
+    KRATOS_EXPECT_TRUE(p_convergence_criteria->RequiresResidual());
 #else
     true;
 #endif

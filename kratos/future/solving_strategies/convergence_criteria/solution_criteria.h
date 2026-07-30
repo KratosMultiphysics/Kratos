@@ -89,8 +89,10 @@ public:
     }
 
     /// Constructor with Parameters
-    explicit SolutionCriteria(Kratos::Parameters ThisParameters)
-        : BaseType()
+    explicit SolutionCriteria(
+        ModelPart& rModelPart,
+        Kratos::Parameters ThisParameters)
+        : BaseType(rModelPart, ThisParameters)
     {
         // Validate and assign defaults
         ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
@@ -114,12 +116,15 @@ public:
 
     /**
      * @brief This method creates a new instance of the convergence criteria
+     * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      * @return A pointer to the new instance
      */
-    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    typename BaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters) const override
     {
-        return Kratos::make_shared<ClassType>(ThisParameters);
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
 
     /**
@@ -185,8 +190,7 @@ public:
         })");
 
         // Getting base class default parameters
-        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        default_parameters.RecursivelyAddMissingParameters(BaseType::GetDefaultParameters());
         return default_parameters;
     }
 

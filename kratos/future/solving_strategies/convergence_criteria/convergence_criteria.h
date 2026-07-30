@@ -86,7 +86,6 @@ public:
     /// Default constructor
     explicit ConvergenceCriteria()
     {
-        SetEchoLevel(0);
     }
 
     /// Constructor with Parameters
@@ -95,9 +94,6 @@ public:
         Kratos::Parameters ThisParameters)
         : mpModelPart(&rModelPart)
     {
-        // Validate and assign defaults
-        ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
     }
 
     /// Copy constructor
@@ -120,12 +116,15 @@ public:
 
     /**
      * @brief This method creates a new instance of the convergence criteria
+     * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      * @return A pointer to the new instance
      */
-    virtual typename ClassType::Pointer Create(Parameters ThisParameters) const
+    virtual typename ClassType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters) const
     {
-        return Kratos::make_shared<ClassType>(ThisParameters);
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
 
     /**
@@ -261,6 +260,11 @@ public:
     ///@name Inquiry
     ///@{
 
+    virtual bool RequiresResidual() const
+    {
+        return false;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -296,6 +300,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    ModelPart* mpModelPart = nullptr; /// The pointer to the model part
 
     ///@}
     ///@name Protected Operators
@@ -410,9 +416,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    int mEchoLevel; /// The echo level
-
-    ModelPart* mpModelPart = nullptr; /// The pointer to the model part
+    int mEchoLevel = 0; /// The echo level
 
     ///@}
     ///@name Private Operators

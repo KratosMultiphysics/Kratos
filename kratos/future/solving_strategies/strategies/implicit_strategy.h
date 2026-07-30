@@ -21,6 +21,7 @@
 
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/linear_solver.h"
+#include "future/solving_strategies/convergence_criteria/convergence_criteria.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/strategies/strategy.h"
 #endif
@@ -68,6 +69,9 @@ public:
 
     // Linear solver pointer definition
     using LinearSolverPointerType = typename Future::LinearSolver<TLinearAlgebra>::Pointer;
+
+    // Convergence criteria pointer definition
+    using ConvergenceCriteriaPointerType = typename Future::ConvergenceCriteria<TLinearAlgebra>::Pointer;
 
     /// Data container type definition
     using ImplicitStrategyDataType = ImplicitStrategyData<TLinearAlgebra>;
@@ -123,7 +127,8 @@ public:
      * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
+     * @param pLinearSolver The linear solver employed
+     * @param pConvergenceCriteria The convergence criteria employed
      * @param CalculateReactionFlag The flag for the reaction calculation
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
@@ -133,6 +138,7 @@ public:
         ModelPart& rModelPart,
         SchemePointerType pScheme,
         LinearSolverPointerType pLinearSolver,
+        ConvergenceCriteriaPointerType pConvergenceCriteria = nullptr,
         bool ComputeReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
@@ -140,6 +146,7 @@ public:
         : Strategy(rModelPart, Parameters())
         , mpScheme(pScheme)
         , mpLinearSolver(pLinearSolver)
+        , mpConvergenceCriteria(pConvergenceCriteria)
         , mReformDofsAtEachStep(ReformDofSetAtEachStep)
         , mComputeReactions(ComputeReactions)
     {
@@ -187,9 +194,6 @@ public:
         // Initialize scheme (this has to be done once)
         pGetScheme()->Initialize(mImplicitStrategyData);
 
-        // // Initialize linear solver
-        // pGetLinearSolver()->Initialize();
-
         KRATOS_CATCH("")
     }
 
@@ -199,6 +203,12 @@ public:
 
         // Call the scheme InitializeSolutionStep
         pGetScheme()->InitializeSolutionStep(mImplicitStrategyData);
+
+        // Call the convergence criteria InitializeSolutionStep
+        // Note that this operation is skipped if convergence criteria is not set (e.g., in the case of a linear strategy)
+        if (mpConvergenceCriteria != nullptr) {
+            mpConvergenceCriteria->InitializeSolutionStep(mImplicitStrategyData);
+        }
 
         KRATOS_CATCH("")
     }
@@ -263,6 +273,10 @@ public:
 
         pGetScheme()->Check();
 
+        if (mpConvergenceCriteria != nullptr) {
+            mpConvergenceCriteria->Check();
+        }
+
         //TODO: think if we do this in debug mode only
         //TODO: this should probably go to the Scheme check (based on previous comment)
         // If reactions are to be calculated, we check if all the dofs have reactions defined
@@ -291,7 +305,8 @@ public:
             "compute_reactions" : false,
             "reform_dofs_at_each_step" : false,
             "linear_solver_settings" : {},
-            "scheme_settings" : {}
+            "scheme_settings" : {},
+            "convergence_criteria_settings" : {}
         })");
 
         // Add base class default parameters
@@ -389,6 +404,24 @@ public:
     LinearSolverPointerType pGetLinearSolver()
     {
         return mpLinearSolver;
+    }
+
+    /**
+     * @brief Set method for the convergence criteria
+     * @param pConvergenceCriteria The pointer to the convergence criteria considered
+     */
+    void SetConvergenceCriteria(ConvergenceCriteriaPointerType pConvergenceCriteria)
+    {
+        mpConvergenceCriteria = pConvergenceCriteria;
+    }
+
+    /**
+     * @brief Get method for the convergence criteria
+     * @return mpConvergenceCriteria The pointer to the convergence criteria
+     */
+    ConvergenceCriteriaPointerType pGetConvergenceCriteria()
+    {
+        return mpConvergenceCriteria;
     }
 
     // /**
@@ -627,8 +660,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    LinearSolverPointerType mpLinearSystemSolver = nullptr; /// Pointer to the linear solver
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -641,15 +672,24 @@ protected:
      * @brief This method assigns settings to member variables
      * @param ThisParameters Parameters that are assigned to the member variables
      */
-    void AssignSettings(const Parameters ThisParameters)
+    virtual void AssignSettings(const Parameters ThisParameters)
     {
-        // BaseType::AssignSettings(ThisParameters); // TODO: Once we have a base class
         mEchoLevel = ThisParameters["echo_level"].GetInt();
         mComputeReactions = ThisParameters["compute_reactions"].GetBool();
         mReformDofsAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+
+        // Saving the linear solver
+        if (ThisParameters["linear_solver_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+
+        // Saving the convergence criteria
+        if (ThisParameters["convergence_criteria_settings"].Has("name")) {
             KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
     }
@@ -705,6 +745,8 @@ private:
     SchemePointerType mpScheme = nullptr; /// The pointer to the scheme
 
     LinearSolverPointerType mpLinearSolver = nullptr; /// The pointer to the linear solver
+
+    ConvergenceCriteriaPointerType mpConvergenceCriteria = nullptr; /// The pointer to the convergence criteria
 
     ImplicitStrategyDataType mImplicitStrategyData; /// The implicit strategy data container (includes linear systems, DOFs, etc.)
 

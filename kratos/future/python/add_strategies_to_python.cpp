@@ -24,12 +24,16 @@
 #include "future/containers/define_linear_algebra_serial.h"
 #include "future/python/add_strategies_to_python.h"
 #include "future/solving_strategies/builders/builder.h"
+#include "future/solving_strategies/convergence_criteria/convergence_criteria.h"
+#include "future/solving_strategies/convergence_criteria/residual_criteria.h"
+#include "future/solving_strategies/convergence_criteria/solution_criteria.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
 #include "future/solving_strategies/strategies/strategy.h"
 #include "future/solving_strategies/strategies/implicit_strategy.h"
 #include "future/solving_strategies/strategies/implicit_strategy_data.h"
 #include "future/solving_strategies/strategies/linear_strategy.h"
+#include "future/solving_strategies/strategies/newton_raphson_strategy.h"
 
 namespace Kratos::Future::Python
 {
@@ -119,6 +123,29 @@ void AddStrategiesToPython(py::module& m)
         .def(py::init<ModelPart&, Parameters>())
     ;
 
+    using ConvergenceCriteriaType = Future::ConvergenceCriteria<Future::SerialLinearAlgebraTraits>;
+    py::class_<ConvergenceCriteriaType, typename ConvergenceCriteriaType::Pointer>(m, "ConvergenceCriteria")
+        .def("Initialize", &ConvergenceCriteriaType::Initialize)
+        .def("InitializeSolutionStep", &ConvergenceCriteriaType::InitializeSolutionStep)
+        .def("IsConverged", &ConvergenceCriteriaType::IsConverged)
+        .def("FinalizeSolutionStep", &ConvergenceCriteriaType::FinalizeSolutionStep)
+        .def("Check", &ConvergenceCriteriaType::Check)
+        .def("GetModelPart", [&](const ConvergenceCriteriaType &rThis) -> const ModelPart& { return rThis.GetModelPart(); }, py::return_value_policy::reference_internal)
+        .def("GetEchoLevel", &ConvergenceCriteriaType::GetEchoLevel)
+        .def("SetEchoLevel", &ConvergenceCriteriaType::SetEchoLevel)
+        .def("RequiresResidual", &ConvergenceCriteriaType::RequiresResidual)
+    ;
+
+    using SolutionCriteriaType = Future::SolutionCriteria<Future::SerialLinearAlgebraTraits>;
+    py::class_<SolutionCriteriaType, typename SolutionCriteriaType::Pointer, ConvergenceCriteriaType>(m, "SolutionCriteria")
+        .def(py::init<ModelPart&, Parameters>())
+    ;
+
+    using ResidualCriteriaType = Future::ResidualCriteria<Future::SerialLinearAlgebraTraits>;
+    py::class_<ResidualCriteriaType, typename ResidualCriteriaType::Pointer, ConvergenceCriteriaType>(m, "ResidualCriteria")
+        .def(py::init<ModelPart&, Parameters>())
+    ;
+
     py::class_<Strategy, typename Strategy::Pointer>(m, "Strategy")
         .def("GetModelPart", [&](const Strategy& rThis) -> const ModelPart& {return rThis.GetModelPart();}, py::return_value_policy::reference_internal)
         .def("Info", &Strategy::Info)
@@ -131,7 +158,7 @@ void AddStrategiesToPython(py::module& m)
     using ImplicitStrategyType = Future::ImplicitStrategy<Future::SerialLinearAlgebraTraits>;
     py::class_<ImplicitStrategyType, typename ImplicitStrategyType::Pointer, Strategy>(m, "ImplicitStrategy")
         // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
-        .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
+        .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, typename ConvergenceCriteriaType::Pointer, bool, bool, bool, bool>())
         .def("Initialize", &ImplicitStrategyType::Initialize)
         .def("InitializeSolutionStep", &ImplicitStrategyType::InitializeSolutionStep)
         .def("Predict", &ImplicitStrategyType::Predict)
@@ -152,6 +179,12 @@ void AddStrategiesToPython(py::module& m)
     py::class_<LinearStrategyType, typename LinearStrategyType::Pointer, ImplicitStrategyType>(m, "LinearStrategy")
         // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
         .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
+    ;
+
+    using NewtonRaphsonStrategyType = Future::NewtonRaphsonStrategy<Future::SerialLinearAlgebraTraits>;
+    py::class_<NewtonRaphsonStrategyType, typename NewtonRaphsonStrategyType::Pointer, ImplicitStrategyType>(m, "NewtonRaphsonStrategy")
+        // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
+        .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, typename ConvergenceCriteriaType::Pointer, bool, bool, bool>())
     ;
 }
 

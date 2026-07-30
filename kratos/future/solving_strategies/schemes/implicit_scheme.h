@@ -1031,12 +1031,15 @@ public:
      * This method applies the linear system constraints, that is the master-slave and the Dirichlet constraints
      * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
      * @param rImplicitStrategyData Auxiliary container with the linear system arrays
+     * @param SkipLeftHandSide If true, the constraints are only applied to the residual vector (default: false)
      */
-    virtual void ApplyLinearSystemConstraints(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+    virtual void ApplyLinearSystemConstraints(
+        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData,
+        const bool SkipLeftHandSide = false)
     {
         BuiltinTimer apply_linear_system_constraints_time;
 
-        GetBuilder().ApplyLinearSystemConstraints(rImplicitStrategyData);
+        GetBuilder().ApplyLinearSystemConstraints(rImplicitStrategyData, SkipLeftHandSide);
 
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Apply linear system constraints time: " << apply_linear_system_constraints_time << std::endl;
     }

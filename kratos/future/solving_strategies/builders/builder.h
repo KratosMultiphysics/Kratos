@@ -259,8 +259,11 @@ public:
      * constraints. The way the constraints are applied will be reimplemented and applied
      * in the derived classes depending on the build type.
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param SkipLeftHandSide Flag to indicate if the application to the LeftHandSide should be skipped (default = false)
      */
-    virtual void ApplyLinearSystemConstraints(ImplicitStrategyData<TLinearAlgebra>& rLinearSystemContainer)
+    virtual void ApplyLinearSystemConstraints(
+        ImplicitStrategyData<TLinearAlgebra>& rLinearSystemContainer,
+        bool SkipLeftHandSide = false)
     {
         KRATOS_ERROR << "Calling base class 'ApplyLinearSystemConstraints'." << std::endl;
     }

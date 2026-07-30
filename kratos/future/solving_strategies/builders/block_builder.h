@@ -168,18 +168,23 @@ public:
         }
     }
 
-    //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
+    void ApplyLinearSystemConstraints(
+        ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData,
+        const bool SkipLeftHandSide = false) override
     {
         // Calculate the effective LHS, RHS and solution vector
-        ApplyBlockBuildMasterSlaveConstraints(rImplicitStrategyData);
+        ApplyBlockBuildMasterSlaveConstraints(rImplicitStrategyData, SkipLeftHandSide);
 
         // Apply the Dirichlet BCs in a block way by leveraging the CSR matrix implementation
         auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
-        auto& r_eff_lhs = *(p_eff_lin_sys->pGetMatrix(SparseMatrixTag::LHS));
         auto& r_eff_rhs = *(p_eff_lin_sys->pGetVector(DenseVectorTag::RHS));
         auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
-        ApplyBlockBuildDirichletConditions(r_eff_dof_set, r_eff_lhs, r_eff_rhs);
+        if (SkipLeftHandSide) {
+            ApplyBlockBuildDirichletConditions(r_eff_dof_set, r_eff_rhs);
+        } else {
+            auto& r_eff_lhs = *(p_eff_lin_sys->pGetMatrix(SparseMatrixTag::LHS));
+            ApplyBlockBuildDirichletConditions(r_eff_dof_set, r_eff_lhs, r_eff_rhs);
+        }
     }
 
     ///@}
@@ -196,9 +201,13 @@ private:
     /**
      * @brief Applies the master-slave constraints
      * This method applies the master-slave constraints following a block-type build
+     * Note that the application of the constraints to the LHS is skipped if the SkipLeftHandSide flag is set to true
      * @param rImplicitStrategyData Auxiliary container with the linear system arrays
+     * @param SkipLeftHandSide Flag to indicate if the application to the LeftHandSide should be skipped
      */
-    void ApplyBlockBuildMasterSlaveConstraints(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
+    void ApplyBlockBuildMasterSlaveConstraints(
+        ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData,
+        const bool SkipLeftHandSide = false)
     {
         const auto& r_model_part = this->GetModelPart();
         auto p_lin_sys = rImplicitStrategyData.pGetLinearSystem();
@@ -225,12 +234,13 @@ private:
             p_eff_T->TransposeSpMV(*p_rhs, *p_eff_rhs);
 
             // Apply constraints to LHS
-            //TODO: Rethink once we figure out the LinearSystemContainer, LinearOperator and so...
-            auto p_lhs = p_lin_sys->pGetMatrix(SparseMatrixTag::LHS);
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rImplicitStrategyData.pGetEffectiveT());
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
-            auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-            p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
+            if (!SkipLeftHandSide) {
+                auto p_lhs = p_lin_sys->pGetMatrix(SparseMatrixTag::LHS);
+                auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rImplicitStrategyData.pGetEffectiveT());
+                auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
+                auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+                p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
+            }
 
             // // Compute the scale factor value
             // //TODO: think on how to make this user-definable

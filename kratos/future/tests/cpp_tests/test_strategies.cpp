@@ -26,6 +26,7 @@
 #include "future/containers/define_linear_algebra_serial.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
+#include "future/solving_strategies/convergence_criteria/residual_criteria.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
 #include "future/solving_strategies/strategies/linear_strategy.h"
 #include "future/solving_strategies/strategies/newton_raphson_strategy.h"
@@ -937,10 +938,16 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonStrategyEliminationBuild, KratosCoreFastS
     using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
-    // Create the strategy
-    Parameters strategy_settings = Parameters(R"({
+    // Create the convvergence criteria
+    Parameters convergence_criteria_settings = Parameters(R"({
+        "echo_level" : 1,
+        "absolute_tolerance" : 1.0e-4,
+        "relative_tolerance" : 1.0e-6
     })");
-    auto p_strategy = Kratos::make_unique<Future::NewtonRaphsonStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_conv_criteria = Kratos::make_shared<Future::ResidualCriteria<Future::SerialLinearAlgebraTraits>>(r_test_model_part, convergence_criteria_settings);
+
+    // Create the strategy
+    auto p_strategy = Kratos::make_unique<Future::NewtonRaphsonStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver, p_conv_criteria);
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);

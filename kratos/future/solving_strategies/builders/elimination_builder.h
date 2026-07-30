@@ -187,8 +187,9 @@ public:
         mpDirichletT.swap(p_aux_T);
     }
 
-    //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
+    void ApplyLinearSystemConstraints(
+        ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData,
+        const bool SkipLeftHandSide = false) override
     {
         // Get effective arrays
         auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
@@ -221,10 +222,12 @@ public:
             rImplicitStrategyData.pGetEffectiveT()->TransposeSpMV(r_rhs, r_eff_rhs);
 
             // Apply constraints to LHS
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
-            auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-            p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
+            if (!SkipLeftHandSide) {
+                auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
+                auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
+                auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+                p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
+            }
         } else {
             // Assign the Dirichlet relation matrix as the effective ones since there are no other constraints
             rImplicitStrategyData.pSetEffectiveT(mpDirichletT);
@@ -233,10 +236,12 @@ public:
             rImplicitStrategyData.pGetEffectiveT()->TransposeSpMV(r_rhs, r_eff_rhs);
 
             // Apply Dirichlet constraints to LHS
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
-            auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-            p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
+            if (!SkipLeftHandSide) {
+                auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
+                auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
+                auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+                p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
+            }
         }
     }
 

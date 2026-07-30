@@ -23,6 +23,7 @@
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_operators/sparse_matrix_linear_operator.h"
 #include "future/linear_solvers/linear_solver.h"
+#include "future/solving_strategies/convergence_criteria/convergence_criteria.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/strategies/implicit_strategy.h"
 #endif
@@ -75,6 +76,9 @@ public:
 
     // Linear solver pointer definition
     using LinearSolverPointerType = typename BaseType::LinearSolverPointerType;
+
+    // Convergence criteria pointer definition
+    using ConvergenceCriteriaPointerType = typename BaseType::ConvergenceCriteriaPointerType;
 
     /// Dense vector tag type definition
     using DenseVectorTag = typename LinearSystemTags::DenseVectorTag;
@@ -131,20 +135,22 @@ public:
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param MaxIterations The maximum number of iterations
      * @param CalculateReactionFlag The flag for the reaction calculation
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
-     * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
     explicit NewtonRaphsonStrategy(
         ModelPart& rModelPart,
         SchemePointerType pScheme,
         LinearSolverPointerType pLinearSolver,
-        bool ComputeReactions = false,
+        ConvergenceCriteriaPointerType pConvergenceCriteria,
+        int MaxIterations = 30,
+        bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
-        bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false)
-        : BaseType(rModelPart, pScheme, pLinearSolver, ComputeReactions, ReformDofSetAtEachStep, CalculateNormDxFlag, MoveMeshFlag)
+        : BaseType(rModelPart, pScheme, pLinearSolver, pConvergenceCriteria, CalculateReactions, ReformDofSetAtEachStep, false, MoveMeshFlag)
     {
         KRATOS_TRY
 
@@ -180,10 +186,47 @@ public:
         return Kratos::make_shared<NewtonRaphsonStrategy<TLinearAlgebra>>(rModelPart, ThisParameters);
     }
 
+    void Initialize() override
+    {
+        // Call base class Initialize
+        // Note that this calls the Initialize of the scheme
+        BaseType::Initialize();
+
+        // Initialize convergence criteria
+        this->pGetConvergenceCriteria()->Initialize(this->GetImplicitStrategyData());
+    }
+
+    void InitializeSolutionStep() override
+    {
+        // Call base class InitializeSolutionStep
+        // Note that this calls the InitializeSolutionStep of the scheme
+        BaseType::InitializeSolutionStep();
+
+        // Calculate residual in case the convergence criteria is residual-based
+        if (this->pGetConvergenceCriteria()->RequiresResidual()) {
+            // Get scheme pointer
+            auto p_scheme = this->pGetScheme();
+
+            // Initialize residual vector
+            auto p_linear_system = this->GetImplicitStrategyData().pGetLinearSystem();
+            auto& r_rhs = *(p_linear_system->pGetVector(DenseVectorTag::RHS));
+            r_rhs.SetValue(0.0);
+
+            // Build the residual and apply Dirichlet conditions and constraints to it
+            p_scheme->Build(r_rhs);
+            p_scheme->BuildLinearSystemConstraints(this->GetImplicitStrategyData());
+            p_scheme->ApplyLinearSystemConstraints(this->GetImplicitStrategyData(), true); // The true flag skips the LHS application
+        }
+
+        // Initialize convergence criteria step
+        this->pGetConvergenceCriteria()->InitializeSolutionStep(this->GetImplicitStrategyData());
+    }
+
     bool SolveSolutionStep() override
     {
-        // Get scheme pointer
+        // Get scheme and convergence criteria pointers
         auto p_scheme = this->pGetScheme();
+        auto p_conv_crit = this->pGetConvergenceCriteria();
 
         // Get system data
         auto& r_dof_set = this->GetDofSet();
@@ -198,59 +241,106 @@ public:
         auto p_constraints_T = r_strategy_data_container.pGetConstraintsT();
         auto p_constraints_q = r_strategy_data_container.pGetConstraintsQ();
 
-        // Initialize non-linear iteration (once as this is a linear strategy)
-        p_scheme->InitializeNonLinIteration(r_strategy_data_container);
+        // Build the linear system constraints
+        // Note that the constraints are built once as they are not expected to change during the solution step
+        p_scheme->BuildLinearSystemConstraints(r_strategy_data_container);
 
-        if (!(this->GetStiffnessMatrixIsBuilt())) {
-            // Initialize values
-            r_lhs.SetValue(0.0);
-            r_rhs.SetValue(0.0);
-            r_dx.SetValue(0.0);
+        // Newton-Raphson cycle
+        bool is_converged = false;
+        unsigned int iteration_number = 0;
+        while (!is_converged && iteration_number++ <= mMaxIteration) {
 
-            // Build the local system and apply the Dirichlet conditions
-            p_scheme->Build(r_lhs, r_rhs);
-            p_scheme->BuildLinearSystemConstraints(r_strategy_data_container);
-            p_scheme->ApplyLinearSystemConstraints(r_strategy_data_container);
-            this->SetStiffnessMatrixIsBuilt(true);
+            // Initialize current iteration
+            this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+            p_scheme->InitializeNonLinIteration(r_strategy_data_container);
+            p_conv_crit->InitializeNonLinearIteration(r_strategy_data_container);
+
+            // Build the system
+            if (!(this->GetStiffnessMatrixIsBuilt())) {
+                // Initialize values
+                r_lhs.SetValue(0.0);
+                r_rhs.SetValue(0.0);
+                r_dx.SetValue(0.0);
+
+                // Build the local system and apply the Dirichlet conditions
+                if (iteration_number == 1 && mUseOldStiffnessInFirstIteration) {
+                    KRATOS_ERROR << "The option 'use_old_stiffness_in_first_iteration' is not yet implemented in the new strategy." << std::endl;
+                } else {
+                    p_scheme->Build(r_lhs, r_rhs);
+                    // p_scheme->BuildLinearSystemConstraints(r_strategy_data_container);
+                    p_scheme->ApplyLinearSystemConstraints(r_strategy_data_container);
+                    this->SetStiffnessMatrixIsBuilt(true);
+                }
+            } else {
+                //FIXME: Do the RHS-only one!!!!
+
+                // // Initialize values
+                // p_rhs->SetValue(0.0);
+                // p_dx->SetValue(0.0);
+
+                // // Build the RHS and apply the Dirichlet conditions
+                // p_scheme->Build(*p_rhs);
+                // p_scheme->ApplyMasterSlaveConstraints(p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
+                // p_scheme->ApplyDirichletConditions(r_eff_dof_set, r_eff_dof_map, *p_eff_rhs);
+            }
+
+            // Get the effective arrays to solve the system
+            auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
+            auto p_eff_dx = p_eff_lin_sys->pGetVector(DenseVectorTag::Dx);
+            auto p_eff_lhs = p_eff_lin_sys->pGetMatrix(SparseMatrixTag::LHS);
+            auto p_eff_rhs = p_eff_lin_sys->pGetVector(DenseVectorTag::RHS);
+            auto p_eff_lhs_lin_op = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(p_eff_lhs);
+
+            // Solve the system
+            const auto& rp_linear_solver = this->pGetLinearSolver();
+            if (rp_linear_solver->RequiresAdditionalData()) {
+                p_eff_lin_sys->SetAdditionalData(this->GetModelPart(), r_eff_dof_set);
+                rp_linear_solver->PrepareAdditionalData(*p_eff_lin_sys);
+            }
+            rp_linear_solver->Initialize(*p_eff_lin_sys); //TODO: Check if this is needed at each iteration (only if the effective linear system changes the size, e.g., changing the Dirichlet BCs in elimination or the constraints set)
+            rp_linear_solver->InitializeSolutionStep(*p_eff_lin_sys); //TODO: Check if this is needed at each iteration (only if the effective linear system changes the size, e.g., changing the Dirichlet BCs in elimination or the constraints set)
+            rp_linear_solver->PerformSolutionStep(*p_eff_lin_sys);
+            rp_linear_solver->FinalizeSolutionStep(*p_eff_lin_sys); //TODO: Check if this is needed at each iteration (only if the effective linear system changes the size, e.g., changing the Dirichlet BCs in elimination or the constraints set)
+
+            // Debugging info
+            this->EchoInfo();
+
+            // Update results (note that this also updates the mesh if needed)
+            p_scheme->Update(r_strategy_data_container);
+
+            // Finalize current (unique) non linear iteration
+            p_scheme->FinalizeNonLinIteration(r_strategy_data_container);
+            p_conv_crit->FinalizeNonLinearIteration(r_strategy_data_container);
+
+            // Check convergence
+            // Note that the residual is computed again with current solution if the convergence criteria requires it
+            if (p_conv_crit->RequiresResidual()) {
+
+                r_rhs.SetValue(0.0);
+                p_scheme->Build(r_rhs);
+                // p_scheme->BuildLinearSystemConstraints(r_strategy_data_container);
+                p_scheme->ApplyLinearSystemConstraints(r_strategy_data_container, true); // The true flag skips the LHS application
+            }
+            is_converged = p_conv_crit->IsConverged(r_strategy_data_container);
+
+            // Set the rebuilt stifness matrix flag
+            if (iteration_number == 1 && mUseOldStiffnessInFirstIteration) {
+                this->SetStiffnessMatrixIsBuilt(false);
+            } else if (mUpdateStiffnessAtEachIteration) {
+                this->SetStiffnessMatrixIsBuilt(false);
+            } else {
+                this->SetStiffnessMatrixIsBuilt(true);
+            }
+        }
+
+        // Plots a warning if the maximum number of iterations is exceeded
+        if (iteration_number >= mMaxIteration) {
+            KRATOS_WARNING_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+                << "Maximum iterations (" << mMaxIteration << ") exceeded" << std::endl;
         } else {
-            //FIXME: Do the RHS-only one!!!!
-
-            // // Initialize values
-            // p_rhs->SetValue(0.0);
-            // p_dx->SetValue(0.0);
-
-            // // Build the RHS and apply the Dirichlet conditions
-            // p_scheme->Build(*p_rhs);
-            // p_scheme->ApplyMasterSlaveConstraints(p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
-            // p_scheme->ApplyDirichletConditions(r_eff_dof_set, r_eff_dof_map, *p_eff_rhs);
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+                << "Convergence achieved after " << iteration_number << " / " << mMaxIteration << " iterations" << std::endl;
         }
-
-        // Get the effective arrays to solve the system
-        auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-        auto p_eff_dx = p_eff_lin_sys->pGetVector(DenseVectorTag::Dx);
-        auto p_eff_lhs = p_eff_lin_sys->pGetMatrix(SparseMatrixTag::LHS);
-        auto p_eff_rhs = p_eff_lin_sys->pGetVector(DenseVectorTag::RHS);
-        auto p_eff_lhs_lin_op = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(p_eff_lhs);
-
-        // Solve the system
-        const auto& rp_linear_solver = this->pGetLinearSolver();
-        if (rp_linear_solver->RequiresAdditionalData()) {
-            p_eff_lin_sys->SetAdditionalData(this->GetModelPart(), r_eff_dof_set);
-            rp_linear_solver->PrepareAdditionalData(*p_eff_lin_sys);
-        }
-        rp_linear_solver->Initialize(*p_eff_lin_sys);
-        rp_linear_solver->InitializeSolutionStep(*p_eff_lin_sys);
-        rp_linear_solver->PerformSolutionStep(*p_eff_lin_sys);
-        rp_linear_solver->FinalizeSolutionStep(*p_eff_lin_sys);
-
-        // Debugging info
-        this->EchoInfo();
-
-        // Update results (note that this also updates the mesh if needed)
-        p_scheme->Update(r_strategy_data_container);
-
-        // Finalize current (unique) non linear iteration
-        p_scheme->FinalizeNonLinIteration(r_strategy_data_container);
 
         // Calculate reactions if required //TODO: Think on the constraints in here!!!
         if (this->GetComputeReactions()) {
@@ -259,7 +349,7 @@ public:
 
         //FIXME: Free the effective arrays memory if p_lhs != p_eff_lhs
 
-        return true;
+        return is_converged;
     }
 
     int Check() override
@@ -277,7 +367,9 @@ public:
     {
         // Current class default parameters
         Parameters default_parameters = Parameters(R"({
-            "name" : "linear_strategy"
+            "name" : "newton_raphson_strategy",
+            "max_iteration" : 10,
+            "use_old_stiffness_in_first_iteration" : false,
         })");
 
         // Add base class default parameters
@@ -324,6 +416,81 @@ public:
 
     ///@}
     ///@name Friends
+    ///@{
+
+    ///@}
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        // Call base class AssignSettings
+        BaseType::AssignSettings(ThisParameters);
+
+        // Assign current Newton-Raphson settings
+        mMaxIteration = ThisParameters["max_iteration"].GetInt();
+        mUpdateStiffnessAtEachIteration = ThisParameters["update_stiffness_at_each_iteration"].GetBool();
+        mUseOldStiffnessInFirstIteration = ThisParameters["use_old_stiffness_in_first_iteration"].GetBool();
+    }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    unsigned int mMaxIteration; // Maximum number of iterations
+
+    bool mUpdateStiffnessAtEachIteration = true; // Indicates if the stiffness matrix is updated at each iteration
+
+    bool mUseOldStiffnessInFirstIteration = false; // Indicates if the first iteration is linearized on the previous time step solution
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
     ///@{
 
     ///@}
