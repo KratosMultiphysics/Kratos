@@ -156,6 +156,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<>())
         .def("CalculateBodyFittedFlowForcesAndMoments", &FlowForcesAndMomentsUtilities::CalculateBodyFittedFlowForcesAndMoments)
         .def("CalculateEmbeddedFlowForcesAndMoments", &FlowForcesAndMomentsUtilities::CalculateEmbeddedFlowForcesAndMoments)
+        .def("CalculateShiftedBoundaryFlowForcesAndMoments", &FlowForcesAndMomentsUtilities::CalculateShiftedBoundaryFlowForcesAndMoments)
         ;
 
     py::class_<
