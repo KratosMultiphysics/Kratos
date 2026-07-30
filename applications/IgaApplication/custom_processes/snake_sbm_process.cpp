@@ -2587,36 +2587,135 @@ bool SnakeSbmProcess::IsInside3D(
     return false;  // All nodes are inside
 }
 
+// void SnakeSbmProcess::RemoveIslands3D(
+//     std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable)
+// {
+//     std::vector<std::array<int, 3>> directions;
+//     directions.reserve(26);
+
+//     for (int dk = -1; dk <= 1; ++dk) {
+//         for (int dj = -1; dj <= 1; ++dj) {
+//             for (int di = -1; di <= 1; ++di) {
+//                 if (di == 0 && dj == 0 && dk == 0) {
+//                     continue;
+//                 }
+
+//                 directions.push_back({{di, dj, dk}});
+//             }
+//         }
+//     }
+
+//     for (std::size_t loop = 0; loop < rKnotSpansAvailable.size(); ++loop) {
+//         auto& r_grid = rKnotSpansAvailable[loop];
+
+//         if (r_grid.empty()) {
+//             continue;
+//         }
+
+//         std::vector<std::vector<std::vector<int>>> labels(r_grid.size());
+
+//         for (std::size_t k = 0; k < r_grid.size(); ++k) {
+//             labels[k].resize(r_grid[k].size());
+
+//             for (std::size_t j = 0; j < r_grid[k].size(); ++j) {
+//                 labels[k][j].assign(r_grid[k][j].size(), -1);
+//             }
+//         }
+
+//         int component_id = 0;
+//         int largest_component_id = -1;
+//         int largest_component_size = 0;
+
+//         for (std::size_t k = 0; k < r_grid.size(); ++k) {
+//             for (std::size_t j = 0; j < r_grid[k].size(); ++j) {
+//                 for (std::size_t i = 0; i < r_grid[k][j].size(); ++i) {
+//                     if (r_grid[k][j][i] != 1 || labels[k][j][i] != -1) {
+//                         continue;
+//                     }
+
+//                     std::queue<std::array<int, 3>> active_cells;
+
+//                     active_cells.push({{
+//                         static_cast<int>(i),
+//                         static_cast<int>(j),
+//                         static_cast<int>(k)
+//                     }});
+
+//                     labels[k][j][i] = component_id;
+
+//                     int current_component_size = 0;
+
+//                     while (!active_cells.empty()) {
+//                         const auto current_cell = active_cells.front();
+//                         active_cells.pop();
+
+//                         ++current_component_size;
+
+//                         for (const auto& r_direction : directions) {
+//                             const int ni = current_cell[0] + r_direction[0];
+//                             const int nj = current_cell[1] + r_direction[1];
+//                             const int nk = current_cell[2] + r_direction[2];
+
+//                             if (nk >= 0 && nk < static_cast<int>(r_grid.size()) &&
+//                                 nj >= 0 && nj < static_cast<int>(r_grid[nk].size()) &&
+//                                 ni >= 0 && ni < static_cast<int>(r_grid[nk][nj].size()) &&
+//                                 r_grid[nk][nj][ni] == 1 &&
+//                                 labels[nk][nj][ni] == -1) {
+
+//                                 labels[nk][nj][ni] = component_id;
+//                                 active_cells.push({{ni, nj, nk}});
+//                             }
+//                         }
+//                     }
+
+//                     if (current_component_size > largest_component_size) {
+//                         largest_component_size = current_component_size;
+//                         largest_component_id = component_id;
+//                     }
+
+//                     ++component_id;
+//                 }
+//             }
+//         }
+
+//         if (largest_component_id == -1) {
+//             continue;
+//         }
+
+//         for (std::size_t k = 0; k < r_grid.size(); ++k) {
+//             for (std::size_t j = 0; j < r_grid[k].size(); ++j) {
+//                 for (std::size_t i = 0; i < r_grid[k][j].size(); ++i) {
+//                     if (r_grid[k][j][i] == 1 &&
+//                         labels[k][j][i] != largest_component_id) {
+//                         r_grid[k][j][i] = 0;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
+
 void SnakeSbmProcess::RemoveIslands3D(
     std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable)
 {
-    std::vector<std::array<int, 3>> directions;
-    directions.reserve(26);
-
-    for (int dk = -1; dk <= 1; ++dk) {
-        for (int dj = -1; dj <= 1; ++dj) {
-            for (int di = -1; di <= 1; ++di) {
-                if (di == 0 && dj == 0 && dk == 0) {
-                    continue;
-                }
-
-                directions.push_back({{di, dj, dk}});
-            }
-        }
-    }
+    const std::array<std::array<int, 3>, 6> directions{{
+        {{1, 0, 0}},
+        {{-1, 0, 0}},
+        {{0, 1, 0}},
+        {{0, -1, 0}},
+        {{0, 0, 1}},
+        {{0, 0, -1}}
+    }};
 
     for (std::size_t loop = 0; loop < rKnotSpansAvailable.size(); ++loop) {
         auto& r_grid = rKnotSpansAvailable[loop];
-
         if (r_grid.empty()) {
             continue;
         }
 
         std::vector<std::vector<std::vector<int>>> labels(r_grid.size());
-
         for (std::size_t k = 0; k < r_grid.size(); ++k) {
             labels[k].resize(r_grid[k].size());
-
             for (std::size_t j = 0; j < r_grid[k].size(); ++j) {
                 labels[k][j].assign(r_grid[k][j].size(), -1);
             }
@@ -2634,21 +2733,16 @@ void SnakeSbmProcess::RemoveIslands3D(
                     }
 
                     std::queue<std::array<int, 3>> active_cells;
-
                     active_cells.push({{
                         static_cast<int>(i),
                         static_cast<int>(j),
-                        static_cast<int>(k)
-                    }});
-
+                        static_cast<int>(k)}});
                     labels[k][j][i] = component_id;
-
                     int current_component_size = 0;
 
                     while (!active_cells.empty()) {
                         const auto current_cell = active_cells.front();
                         active_cells.pop();
-
                         ++current_component_size;
 
                         for (const auto& r_direction : directions) {
@@ -2661,7 +2755,6 @@ void SnakeSbmProcess::RemoveIslands3D(
                                 ni >= 0 && ni < static_cast<int>(r_grid[nk][nj].size()) &&
                                 r_grid[nk][nj][ni] == 1 &&
                                 labels[nk][nj][ni] == -1) {
-
                                 labels[nk][nj][ni] = component_id;
                                 active_cells.push({{ni, nj, nk}});
                             }
@@ -2672,7 +2765,6 @@ void SnakeSbmProcess::RemoveIslands3D(
                         largest_component_size = current_component_size;
                         largest_component_id = component_id;
                     }
-
                     ++component_id;
                 }
             }
@@ -2685,8 +2777,7 @@ void SnakeSbmProcess::RemoveIslands3D(
         for (std::size_t k = 0; k < r_grid.size(); ++k) {
             for (std::size_t j = 0; j < r_grid[k].size(); ++j) {
                 for (std::size_t i = 0; i < r_grid[k][j].size(); ++i) {
-                    if (r_grid[k][j][i] == 1 &&
-                        labels[k][j][i] != largest_component_id) {
+                    if (r_grid[k][j][i] == 1 && labels[k][j][i] != largest_component_id) {
                         r_grid[k][j][i] = 0;
                     }
                 }
