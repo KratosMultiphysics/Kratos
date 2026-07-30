@@ -270,4 +270,28 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_HydrostaticBranch_Di
     EXPECT_NO_THROW(process.ExecuteInitialize());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_InterpolateLine_NoTable_FixedValue,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = SetupModelPart(nullptr, model);
+
+    Parameters parameters(R"(
+      {
+          "model_part_name": "Main",
+          "variable_name":   "WATER_PRESSURE",
+          "table": 0,
+          "fluid_pressure_type": "Interpolate_Line",
+          "gravity_direction": 1,
+          "out_of_plane_direction": 2,
+          "value": 2500.0
+      }  )");
+
+    ApplyScalarConstraintTableProcess process(model, parameters);
+
+    // Act and Assert
+    EXPECT_NO_THROW(process.ExecuteInitialize());
+}
+
 } // namespace Kratos::Testing
