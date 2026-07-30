@@ -14,7 +14,9 @@
 
 #include "processes/process.h"
 
+#include <memory> // Required for std::unique_ptr
 #include <string>
+#include <vector> // Required for std::vector
 
 namespace Kratos
 {
