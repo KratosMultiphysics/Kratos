@@ -1457,7 +1457,8 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, 
                 ++iteration;
             }
             // Unable to find enough neighbour nodes for n_max_iterations
-            if (iteration >= n_max_iterations){ // giving up on this method, settling for the default method
+            if (!the_cloud_of_neighbours_is_successful &&
+                iteration >= n_max_iterations){ // giving up on this method, settling for the default method
                 mSomeCloudsDontWork = true;
                 neigh_nodes.clear();
                 inode->FastGetSolutionStepValue(NODAL_WEIGHTS).clear();
@@ -1534,12 +1535,15 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
     ids[p_node->Id()] = p_node->Id();
     for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
         Geometry<Node >& geom = neigh_elems[i_el].GetGeometry();
-        unsigned int jj = 0; // index of the node in geom corresponding to neighbour neigh_elems[i_el]
-        if (geom[jj].Id() == p_node->Id()){ // skipping itself
-            ++jj;
-        }
-        for (unsigned int j = 0; j < TDim; ++j){
-            Node::Pointer p_neigh = geom(jj);
+        // Add every node of the neighbouring element except p_node.
+        // The previous implementation selected jj once and then reused it
+        // for every iteration, so it added at most one distinct node per
+        // element and could not build a full-rank recovery cloud.
+        for (unsigned int j = 0; j < geom.size(); ++j){
+            Node::Pointer p_neigh = geom(j);
+            if (p_neigh->Id() == p_node->Id()) {
+                continue;
+            }
             if (ids.find(p_neigh->Id()) == ids.end()){
                 neigh_nodes.push_back(p_neigh);
                 ids[p_neigh->Id()] = p_neigh->Id();
