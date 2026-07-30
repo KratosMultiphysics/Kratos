@@ -18,7 +18,7 @@
 
 namespace Kratos
 {
-
+class Model;
 class ModelPart;
 class Parameters;
 
@@ -64,7 +64,7 @@ private:
     void MakeProcessForInterpolatedLine(ModelPart&               rModelPart,
                                         const Parameters&        rProcessSettings,
                                         std::vector<std::string> NamesOfSettingsToCopy);
-    void AppendOptionalFluidParameters(const Parameters&               rProcessSettings,
+    void AppendOptionalFluidParameters(const Parameters&         rProcessSettings,
                                        std::vector<std::string>& rNamesOfSettingsToCopy) const;
 
     template <typename TableProcessType, typename ConstantProcessType>
