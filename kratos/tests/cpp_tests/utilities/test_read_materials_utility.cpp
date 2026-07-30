@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAPropertyDoesNotH
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property at index 0 does not have a 'properties_id'. Please, provide a unique ID for each property.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Material at index 0 does not have a 'properties_id'. Please, provide a unique ID for each material.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenNeitherAModelPartNameNorANameListIsGiven, KratosCoreFastSuiteWithoutKernel) {
@@ -62,7 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenNeitherAModelPart
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 does not provide any model part name. Please, provide either 'model_part_name' or 'model_part_name_list'.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Material 1 does not provide any model part name. Please, provide either 'model_part_name' or 'model_part_name_list'.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAnEmptyModelPartNameListIsGiven, KratosCoreFastSuiteWithoutKernel) {
@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenAnEmptyModelPartN
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 has an empty model part name list. Please, provide at least one model part name.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Material 1 has an empty model part name list. Please, provide at least one model part name.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenBothModelPartNameAndNameListAreGiven, KratosCoreFastSuiteWithoutKernel) {
@@ -89,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenBothModelPartName
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 provides 'model_part_name' as well as 'model_part_name_list'.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Material 1 provides 'model_part_name' as well as 'model_part_name_list'.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityCreatesAPropertyAndAssignsItToTheModelPart, KratosCoreFastSuiteWithoutKernel) {
@@ -171,7 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityRaisesAnErrorWhenTheModelPartNameL
             }
         ]
     })"s;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Property 1 has a model part name list with non-unique names: 'Foo'")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ReadMaterialsUtility{test_properties, model}), "Material 1 has a model part name list with non-unique names: 'Foo'")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtilityAssignsPropertiesOfModelPartToElement, KratosCoreFastSuiteWithoutKernel) {
