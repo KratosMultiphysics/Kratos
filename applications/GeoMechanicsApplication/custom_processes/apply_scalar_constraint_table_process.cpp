@@ -35,6 +35,7 @@ ApplyScalarConstraintTableProcess::ApplyScalarConstraintTableProcess(Model& rMod
     const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(
         rModel, rProcessSettings, "ApplyScalarConstraintTableProcess");
     mProcesses.clear();
+    mProcesses.reserve(model_parts.size());
     for (const auto& r_model_part : model_parts)
         MakeInternalProcess(r_model_part, rProcessSettings);
 }
