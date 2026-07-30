@@ -36,12 +36,14 @@ class StabilizedFormulation:
                 self._SetUpWeaklyCompressible(settings)
             elif formulation == "weakly_compressible":
                 self._SetUpWeaklyCompressible(settings)
+            elif formulation == "navier_stokes":
+                self._SetUpNavierStokes(settings)
             elif formulation == "axisymmetric_navier_stokes":
                 self._SetUpAxisymmetricNavierStokes(settings)
             elif formulation == "p2p1":
                 self._SetUpP2P1(settings)
             else:
-                formulation_list = ["qsvms", "dvms", "fic", "weakly_compressible", "axisymmetric_navier_stokes", "p2p1"]
+                formulation_list = ["qsvms", "dvms", "fic", "weakly_compressible", "navier_stokes", "axisymmetric_navier_stokes", "p2p1"]
                 err_msg = f"Wrong \'element_type\' : \'{formulation}\' provided. Available options are:\n"
                 for elem in formulation_list:
                     err_msg += f"\t- {elem}\n"
@@ -178,6 +180,26 @@ class StabilizedFormulation:
         #TODO: Remove SOUND_VELOCITY from ProcessInfo. Should be obtained from the properties.
         self.process_data[KratosMultiphysics.SOUND_VELOCITY] = settings["sound_velocity"].GetDouble()
 
+    def _SetUpNavierStokes(self,settings):
+        """
+        Symbolic incompressible Navier-Stokes element (NavierStokes<TDim>).
+        Maps to the registered elements 'NavierStokes2D3N' / 'NavierStokes3D4N'.
+        """
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "navier_stokes",
+            "dynamic_tau": 1.0,
+            "sound_velocity": 1.0e+12
+        }""")
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "NavierStokes"
+        self.condition_name = "NavierStokesWallCondition"
+        self.element_integrates_in_time = True
+        self.element_has_nodal_properties = False
+
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
+        self.process_data[KratosMultiphysics.SOUND_VELOCITY] = settings["sound_velocity"].GetDouble()
+    
     def _SetUpAxisymmetricNavierStokes(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "axisymmetric_navier_stokes",
