@@ -295,7 +295,7 @@ KRATOS_TEST_CASE_IN_SUITE(DatabaseAccessorSimplePropertiesProcessInfo, KratosCor
 
         //check interpolation of non-historical database
         auto non_historical_accessor = DatabaseAccessor("node_non_historical");
-        //p_elem_prop->SetAccessor(YOUNG_MODULUS, non_historical_accessor.Clone());
+        //p_elem_prop->SetAccessor(YOUNG_MODULUS, non_historical_accessor.Clone()); //NOTE: this does nothing as an emplace is used inside
         p_elem_prop->pGetAccessor(YOUNG_MODULUS) = non_historical_accessor.Clone();
         KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
         KRATOS_EXPECT_EQ(35.0, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
