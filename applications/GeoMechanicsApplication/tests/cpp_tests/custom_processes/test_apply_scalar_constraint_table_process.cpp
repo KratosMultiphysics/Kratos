@@ -22,25 +22,28 @@ namespace
 using namespace Kratos;
 using namespace Kratos::Testing;
 
-void AssertNodesHaveCorrectValueAndFixity(double                               ExpectedValue,
+template <typename T>
+void AssertNodesHaveCorrectValueAndFixity(const Variable<T>&                   rVariable,
+                                          double                               ExpectedValue,
                                           bool                                 ExpectedFixity,
                                           const ModelPart::NodesContainerType& rNodes)
 {
     for (const auto& r_node : rNodes) {
-        KRATOS_EXPECT_EQ(r_node.IsFixed(DISPLACEMENT_X), ExpectedFixity);
-        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(DISPLACEMENT_X), ExpectedValue);
+        KRATOS_EXPECT_EQ(r_node.IsFixed(rVariable), ExpectedFixity);
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(rVariable), ExpectedValue);
     }
 }
 
 ModelPart& SetupModelPart(const Table<double>::Pointer& rTable, Model& rModel)
 {
-    const auto nodal_variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X)};
+    const auto nodal_variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(WATER_PRESSURE)};
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(rModel, nodal_variables);
     r_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER] = 1.0;
-    r_model_part.AddTable(1, rTable);
+    if (rTable != nullptr) r_model_part.AddTable(1, rTable);
 
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.AddDof(DISPLACEMENT_X);
+        r_node.AddDof(WATER_PRESSURE);
     }
 
     return r_model_part;
@@ -82,7 +85,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
     constexpr double expected_value =
         0.5; // Same as the initial value, since we have not initialized any solution step
     constexpr bool expected_fixity = false;
-    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
+    AssertNodesHaveCorrectValueAndFixity(DISPLACEMENT_X, expected_value, expected_fixity,
+                                         r_model_part.Nodes());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValuesThroughTime_ForDoubleVariable,
@@ -112,22 +116,26 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValues
     process.ExecuteInitialize();
     double expected_value = 0.3; // Initial value, since we haven't initialized a solution step
     constexpr bool expected_fixity = true;
-    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
+    AssertNodesHaveCorrectValueAndFixity(DISPLACEMENT_X, expected_value, expected_fixity,
+                                         r_model_part.Nodes());
 
     r_model_part.GetProcessInfo()[TIME] = 0.5;
     process.ExecuteInitializeSolutionStep();
     expected_value = 1.0;
-    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
+    AssertNodesHaveCorrectValueAndFixity(DISPLACEMENT_X, expected_value, expected_fixity,
+                                         r_model_part.Nodes());
 
     r_model_part.GetProcessInfo()[TIME] = 0.8;
     process.ExecuteInitializeSolutionStep();
     expected_value = 1.3;
-    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
+    AssertNodesHaveCorrectValueAndFixity(DISPLACEMENT_X, expected_value, expected_fixity,
+                                         r_model_part.Nodes());
 
     r_model_part.GetProcessInfo()[TIME] = 2.0;
     process.ExecuteInitializeSolutionStep();
     expected_value = 2.5; // Extrapolated value
-    AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
+    AssertNodesHaveCorrectValueAndFixity(DISPLACEMENT_X, expected_value, expected_fixity,
+                                         r_model_part.Nodes());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_CheckInfoApplyScalarConstraintTableProcess,
@@ -149,6 +157,116 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_CheckInfoApplyScalar
     const ApplyScalarConstraintTableProcess process(model, parameters);
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "ApplyScalarConstraintTableProcess");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_UniformFluidPressure_NoTable,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = SetupModelPart(nullptr, model);
+
+    const Parameters parameters(R"(
+      {
+          "model_part_name": "Main",
+          "variable_name":   "WATER_PRESSURE",
+          "is_fixed":        false,
+          "table":           0,
+          "value":           10500.0,
+          "fluid_pressure_type": "Uniform"
+      }  )");
+
+    ApplyScalarConstraintTableProcess process(model, parameters);
+
+    // Act
+    process.ExecuteInitialize();
+    r_model_part.GetProcessInfo()[TIME] = 5.0;
+    process.ExecuteInitializeSolutionStep();
+
+    // Assert
+    constexpr auto expected_value  = 10500.0;
+    constexpr auto expected_fixity = false;
+    AssertNodesHaveCorrectValueAndFixity(WATER_PRESSURE, expected_value, expected_fixity,
+                                         r_model_part.Nodes());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_GenericVariableWithTable, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto  table = std::make_shared<Table<double>>();
+    table->insert(0.0, 1.0);
+    table->insert(10.0, 5.0);
+    table->SetNameOfX("TIME");
+    table->SetNameOfY("WATER_PRESSURE");
+    auto& r_model_part = SetupModelPart(table, model);
+
+    const Parameters parameters(R"(
+      {
+          "model_part_name": "Main",
+          "variable_name":   "WATER_PRESSURE",
+          "table":           1,
+          "value":           0.0
+      }  )");
+
+    ApplyScalarConstraintTableProcess process(model, parameters);
+
+    // Act
+    process.ExecuteInitialize();
+    r_model_part.GetProcessInfo()[TIME] = 5.0;
+    process.ExecuteInitializeSolutionStep();
+
+    // Assert
+    const auto     expected_value  = 3.0; // Linear interpolation between 1.0 and 5.0 at TIME=5.0
+    constexpr auto expected_fixity = false;
+    AssertNodesHaveCorrectValueAndFixity(WATER_PRESSURE, expected_value, expected_fixity,
+                                         r_model_part.Nodes());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_ErrorOnUnknownFluidType, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    SetupModelPart(nullptr, model);
+
+    const Parameters parameters(R"(
+      {
+          "model_part_name": "Main",
+          "variable_name":   "WATER_PRESSURE",
+          "fluid_pressure_type": "NonExistent_Type"
+      }  )");
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ApplyScalarConstraintTableProcess process(model, parameters),
+                                      "Unknown fluid_pressure_type: NonExistent_Type");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_HydrostaticBranch_Dispatch,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    SetupModelPart(nullptr, model);
+
+    const Parameters parameters(R"(
+      {
+       "model_part_name": "Main",
+        "gravity_direction": 1,
+        "is_fixed": false,
+        "is_seepage": false,
+        "pressure_tension_cut_off": 0.0,
+        "reference_coordinate": 0.0,
+        "specific_weight": 10000.0,
+        "table": 0,
+        "variable_name": "WATER_PRESSURE",
+        "value":           10500.0
+      }  )");
+
+    // Act
+    ApplyScalarConstraintTableProcess process(model, parameters);
+
+    // Assert
+    EXPECT_NO_THROW(process.ExecuteInitialize());
 }
 
 } // namespace Kratos::Testing
