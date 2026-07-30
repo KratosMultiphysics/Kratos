@@ -75,8 +75,7 @@ private:
                                         const Parameters&          rProcessSettings,
                                         std::vector<std::string>&& rNamesOfSettingsToCopy);
 
-    std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
-    std::vector<std::unique_ptr<Process>>          mProcesses;
+    std::vector<std::unique_ptr<Process>> mProcesses;
 };
 
 } // namespace Kratos

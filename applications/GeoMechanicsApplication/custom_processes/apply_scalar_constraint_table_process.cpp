@@ -32,10 +32,10 @@ using namespace std::string_literals;
 ApplyScalarConstraintTableProcess::ApplyScalarConstraintTableProcess(Model& rModel, const Parameters& rProcessSettings)
     : Process(Flags())
 {
-    mrModelParts = ProcessUtilities::GetModelPartsFromSettings(rModel, rProcessSettings,
-                                                               "ApplyScalarConstraintTableProcess");
+    const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(
+        rModel, rProcessSettings, "ApplyScalarConstraintTableProcess");
     mProcesses.clear();
-    for (const auto& r_model_part : mrModelParts)
+    for (const auto& r_model_part : model_parts)
         MakeInternalProcess(r_model_part, rProcessSettings);
 }
 
