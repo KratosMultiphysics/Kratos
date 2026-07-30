@@ -15,7 +15,6 @@
             "input_type": "mdpa",
             "input_filename": "../common/column"
         },
-        "auxiliary_variables_list": ["DEGREE_OF_SATURATION"],
         "material_import_settings": {
             "materials_filename": "MaterialParametersNonLinear.json"
         },
@@ -48,6 +47,7 @@
             "scaling": true,
             "preconditioner_type": "ilu0"
         },
+        "auxiliary_variables_list": ["DEGREE_OF_SATURATION"],
         "problem_domain_sub_model_part_list": ["porous"],
         "body_domain_sub_model_part_list": ["porous"]
     },

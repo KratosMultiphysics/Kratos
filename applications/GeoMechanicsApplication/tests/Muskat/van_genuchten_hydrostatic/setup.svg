@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="81.714203mm"
-   height="61.155537mm"
-   viewBox="0 0 81.714204 61.155537"
+   width="151.84543mm"
+   height="147.15538mm"
+   viewBox="0 0 151.84543 147.15538"
    version="1.1"
    id="svg1"
    inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
@@ -23,9 +23,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="2.0334082"
-     inkscape:cx="58.522437"
-     inkscape:cy="161.55143"
+     inkscape:zoom="0.6284352"
+     inkscape:cx="289.60822"
+     inkscape:cy="209.2499"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
      inkscape:window-x="-8"
@@ -38,27 +38,75 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-15.503221,-31.78583)">
+     transform="translate(0.70602143,-28.628185)">
     <rect
-       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:2.11457"
        id="rect2"
-       width="81.714203"
-       height="61.155537"
-       x="15.503221"
-       y="31.78583" />
+       width="151.84543"
+       height="147.15538"
+       x="-0.70602143"
+       y="28.628185" />
     <rect
-       style="fill:none;stroke:#000000;stroke-width:0.199504"
+       style="fill:none;stroke:#000000;stroke-width:0.61062"
        id="rect1"
-       width="16.000496"
-       height="39.800495"
-       x="25.361834"
-       y="40.083027" />
-    <rect
-       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
-       id="rect3"
-       width="3.6433086"
-       height="4.4240174"
-       x="75.878044"
-       y="60.411827" />
+       width="48.972576"
+       height="121.81702"
+       x="49.210773"
+       y="38.598072" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#0f9ed5;stroke-width:1.09573;stroke-dasharray:2.19145, 1.09573;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 106.7926,146.29569 -8.650047,-5.7e-4 -47.972761,-83.862383 -8.650043,-5.72e-4"
+       id="path3" />
+    <text
+       xml:space="preserve"
+       style="font-size:7.80559px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';writing-mode:lr-tb;direction:ltr;fill:#0f9ed5;fill-opacity:1;stroke:none;stroke-width:0.48818;stroke-dasharray:0.976363, 0.48818;stroke-dashoffset:0;stroke-opacity:1"
+       x="107.41077"
+       y="138.40343"
+       id="text4"><tspan
+         sodipodi:role="line"
+         id="tspan4"
+         style="fill:#0f9ed5;fill-opacity:1;stroke-width:0.48818"
+         x="107.41077"
+         y="138.40343">initial </tspan><tspan
+         sodipodi:role="line"
+         style="fill:#0f9ed5;fill-opacity:1;stroke-width:0.48818"
+         x="107.41077"
+         y="148.16042"
+         id="tspan6">phreatic</tspan><tspan
+         sodipodi:role="line"
+         style="fill:#0f9ed5;fill-opacity:1;stroke-width:0.48818"
+         x="107.41077"
+         y="157.9174"
+         id="tspan5">line</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.80559px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';writing-mode:lr-tb;direction:ltr;fill:#0f9ed5;fill-opacity:1;stroke:none;stroke-width:0.48818;stroke-dasharray:0.976363, 0.48818;stroke-dashoffset:0;stroke-opacity:1"
+       x="5.598701"
+       y="71.554207"
+       id="text4-7"><tspan
+         sodipodi:role="line"
+         style="fill:#0f9ed5;fill-opacity:1;stroke-width:0.48818"
+         x="5.598701"
+         y="71.554207"
+         id="tspan5-4">fixed head</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.80559px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';writing-mode:lr-tb;direction:ltr;fill:#0f9ed5;fill-opacity:1;stroke:none;stroke-width:0.48818;stroke-dasharray:0.976363, 0.48818;stroke-dashoffset:0;stroke-opacity:1"
+       x="106.47401"
+       y="114.23322"
+       id="text4-7-3"><tspan
+         sodipodi:role="line"
+         style="fill:#0f9ed5;fill-opacity:1;stroke-width:0.48818"
+         x="106.47401"
+         y="114.23322"
+         id="tspan5-4-4">fixed head</tspan></text>
+    <path
+       style="fill:#0f9ed5;fill-opacity:1;stroke:#0f9ed5;stroke-width:1.09573;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 42.7323,69.447535 h 6.173163"
+       id="path7" />
+    <path
+       style="fill:#0f9ed5;fill-opacity:1;stroke:#0f9ed5;stroke-width:1.09573;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 98.488659,111.68507 h 6.173161"
+       id="path7-6" />
   </g>
 </svg>

@@ -11,7 +11,7 @@ The test is performed in a single stage, with the following constraints and cond
 - For the left boundary, the water pressure is prescribed using a hydrostatic profile with reference coordinate of 3.0m
 - For the right boundary, the water pressure is prescribed using a hydrostatic profile with reference coordinate of 1.62m. Using this fixed boundary instead of a seepage boundary is the main difference with the traditional Muskat problem.
 
-A PLACEHOLDER schematic can be found in the figure below:
+A schematic of this  can be found in the figure below:
 ![Schematic](setup.svg)
 
 ## Results
@@ -20,8 +20,9 @@ The following outputs are used as first-reference results for this test, compute
 - Phreatic line evolution (reference: `expected_phreatic_line.csv`).
 - Hydrostatic response values (reference: `expected_results.csv`).
 
-The saturation profile on the right boundary is visualized below:
+The phreatic line profile is visualized below:
 ![Phreatic line](phreatic_line.svg)
+The saturation profile on the right boundary is visualized below:
 ![Saturation on right boundary](saturation_on_right_boundary.svg)
 
 
