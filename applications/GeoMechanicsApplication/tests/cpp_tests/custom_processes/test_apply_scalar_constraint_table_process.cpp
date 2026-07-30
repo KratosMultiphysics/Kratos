@@ -132,8 +132,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_CheckInfoApplyScalar
 {
     // Arrange
     Model model;
-    auto  table        = std::make_shared<Table<double>>();
-    auto& r_model_part = SetupModelPart(table, model);
+    auto  table = std::make_shared<Table<double>>();
+    SetupModelPart(table, model);
 
     const Parameters                        parameters(R"(
       {
