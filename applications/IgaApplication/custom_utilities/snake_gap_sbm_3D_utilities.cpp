@@ -1300,7 +1300,8 @@ bool SnakeGapSbm3DUtilities::TryProjectPointToInitialNurbsSkin(
     const array_1d<double, 3>& rPoint,
     array_1d<double, 3>& rProjectionPoint,
     double& rProjectionDistance,
-    array_1d<double, 3>* pProjectionNormal) const
+    array_1d<double, 3>* pProjectionNormal,
+    const array_1d<double, 3>* pInitialGuess) const
 {
     if (mInitialNurbsSkinSurfaces.empty()) {
         return false;
@@ -1312,7 +1313,8 @@ bool SnakeGapSbm3DUtilities::TryProjectPointToInitialNurbsSkin(
         rProjectionDistance,
         true,
         std::numeric_limits<double>::max(),
-        pProjectionNormal);
+        pProjectionNormal,
+        pInitialGuess);
 }
 
 void SnakeGapSbm3DUtilities::SetUsePyramidQuadratureForType1(
@@ -4737,7 +4739,8 @@ bool SnakeGapSbm3DUtilities::ProjectPointToClosestNurbsSurface(
     double& rProjectionDistance,
     const bool IncludeKnotSpanBoundaryLines,
     const double MaximumProjectionDistance,
-    array_1d<double, 3>* pProjectionNormal) const
+    array_1d<double, 3>* pProjectionNormal,
+    const array_1d<double, 3>* pInitialGuess) const
 {
     bool found_projection = false;
     rProjectionDistance = std::numeric_limits<double>::max();
@@ -4932,6 +4935,54 @@ bool SnakeGapSbm3DUtilities::ProjectPointToClosestNurbsSurface(
 
             return boundaries;
         };
+
+        // The closest point on the triangulated skin is a very good spatial
+        // seed for the exact NURBS search. Convert it once to local NURBS
+        // coordinates and refine the actual query point in that span before
+        // considering the generic span candidates below.
+        if (pInitialGuess != nullptr) {
+            CoordinatesArrayType seed_local_coordinates = ZeroVector(3);
+            seed_local_coordinates[0] = 0.5 * (
+                domain_u.MinParameter() + domain_u.MaxParameter());
+            seed_local_coordinates[1] = 0.5 * (
+                domain_v.MinParameter() + domain_v.MaxParameter());
+            const int seed_projection_result =
+                p_surface->ProjectionPointGlobalToLocalSpace(
+                    *pInitialGuess,
+                    seed_local_coordinates,
+                    surface_projection_tolerance);
+            if (seed_projection_result != 0 &&
+                std::isfinite(seed_local_coordinates[0]) &&
+                std::isfinite(seed_local_coordinates[1])) {
+                seed_local_coordinates[0] = std::clamp(
+                    seed_local_coordinates[0],
+                    domain_u.MinParameter(), domain_u.MaxParameter());
+                seed_local_coordinates[1] = std::clamp(
+                    seed_local_coordinates[1],
+                    domain_v.MinParameter(), domain_v.MaxParameter());
+                for (const auto& r_u_span : u_spans) {
+                    if (seed_local_coordinates[0] < r_u_span.MinParameter() -
+                            parameter_tolerance ||
+                        seed_local_coordinates[0] > r_u_span.MaxParameter() +
+                            parameter_tolerance) {
+                        continue;
+                    }
+                    for (const auto& r_v_span : v_spans) {
+                        if (seed_local_coordinates[1] < r_v_span.MinParameter() -
+                                parameter_tolerance ||
+                            seed_local_coordinates[1] > r_v_span.MaxParameter() +
+                                parameter_tolerance) {
+                            continue;
+                        }
+                        minimize_span_rectangle(
+                            r_u_span.MinParameter(), r_u_span.MaxParameter(),
+                            r_v_span.MinParameter(), r_v_span.MaxParameter());
+                        break;
+                    }
+                    break;
+                }
+            }
+        }
 
         for (const auto& r_u_span : u_spans) {
             for (const auto& r_v_span : v_spans) {
@@ -5393,7 +5444,7 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
     edge_data.CurvedControlNodes = edge_data.LinearControlNodes;
     edge_data.CurrentControlNodes = edge_data.LinearControlNodes;
 
-    if (mGapApproximationOrder > 1 && !mInitialNurbsSkinSurfaces.empty()) {
+    if (mGapApproximationOrder > 1) {
         bool created_curved_edge = true;
         std::vector<NodePointerType> curved_control_nodes;
         std::vector<array_1d<double, 3>> cubic_interpolation_points;
@@ -5460,7 +5511,8 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
                        MaximumProjectionDistance;
         };
 
-        if (mGapApproximationOrder == 2) {
+        if (mGapApproximationOrder == 2 &&
+            !mInitialNurbsSkinSurfaces.empty()) {
             // Use the closest point at the edge midpoint.  This is the
             // original quadratic-edge construction and is more robust than
             // fitting several points obtained along a fixed edge normal.
@@ -5599,6 +5651,33 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
                         NodePointerType(
                             new Node(0, midpoint_on_fitted_curve));
                 }
+            }
+        } else if (mGapApproximationOrder == 2) {
+            const array_1d<double, 3> midpoint =
+                0.5 * (p_canonical_node_0->Coordinates() +
+                       p_canonical_node_1->Coordinates());
+            array_1d<double, 3> projected_midpoint = ZeroVector(3);
+            double projected_distance = std::numeric_limits<double>::max();
+            if (ProjectPointToClosestSkinBoundary(
+                    rSkinSubModelPart,
+                    midpoint,
+                    projected_midpoint,
+                    projected_distance) &&
+                is_valid_projected_point(projected_midpoint, midpoint)) {
+                // A quadratic Bezier does not pass through its middle
+                // control node. Choose that node so B(0.5) is exactly the
+                // closest point found on the triangulated skin.
+                array_1d<double, 3> bezier_control_point =
+                    2.0 * projected_midpoint;
+                noalias(bezier_control_point) -= 0.5 *
+                    (p_canonical_node_0->Coordinates() +
+                     p_canonical_node_1->Coordinates());
+                curved_control_nodes.push_back(
+                    NodePointerType(new Node(0, bezier_control_point)));
+                p_quadratic_interpolation_skin_node =
+                    NodePointerType(new Node(0, projected_midpoint));
+            } else {
+                created_curved_edge = false;
             }
         } else if (has_projection_direction) {
             for (std::size_t i = 1; i < mGapApproximationOrder; ++i) {
@@ -16471,8 +16550,9 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     // `utilities` is initialized above with the initial skin selected by
     // TIsInnerLoop. Reusing it here keeps the final lateral projection on the
     // same exact NURBS boundary for both inner and outer loops.
-    const bool use_exact_open_lateral_nurbs_projection =
-        r_initial_skin_model_part.NumberOfGeometries() > 0;
+    // Diagnostic mode: use only the triangulated skin for the final open
+    // lateral projection, including when the reference skin is NURBS.
+    constexpr bool use_exact_open_lateral_nurbs_projection = false;
     std::size_t number_of_exact_open_lateral_nurbs_projections = 0;
     std::size_t number_of_open_lateral_triangle_fallbacks = 0;
 
@@ -16487,6 +16567,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         quadrature_center_coordinates[1] = quadrature_center.Y();
         quadrature_center_coordinates[2] = quadrature_center.Z();
 
+        /* Disabled spherical debug projection:
         // Debug mode: use the analytic spherical projection for every point.
         // This intentionally bypasses both the NURBS closest-point search and
         // the triangulated-skin fallback to isolate geometry errors.
@@ -16537,6 +16618,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                 return debug_sphere_center + debug_sphere_radius * debug_direction;
             }
         }
+        */
 
         PointType center_search_point(
             0,
@@ -16627,10 +16709,15 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         if (use_exact_open_lateral_nurbs_projection) {
             const double triangle_projection_distance =
                 std::sqrt(closest_distance_squared);
+            // The triangulated skin is only an accelerator/initial guess.
+            // Do not use its local chord error as a strict rejection bound
+            // for the exact NURBS closest point: on curved patches it can
+            // underestimate the actual NURBS distance and incorrectly force
+            // the triangulated fallback.  One triangle radius keeps the
+            // search local while admitting the exact surface projection.
             const double local_nurbs_projection_cutoff = std::min(
-                3.0 * max_knot_span_size,
-                triangle_projection_distance +
-                    0.25 * max_skin_triangle_radius);
+                2.0,
+                triangle_projection_distance + max_skin_triangle_radius);
             utilities.SetMaximumNurbsProjectionDistance(
                     local_nurbs_projection_cutoff);
 
@@ -16643,7 +16730,8 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                         quadrature_center_coordinates,
                         exact_projection,
                         exact_projection_distance,
-                        &exact_normal) &&
+                        &exact_normal,
+                        &closest_point) &&
                 norm_2(exact_normal) >
                     std::numeric_limits<double>::epsilon()) {
                 rProjectionNormal = exact_normal;
@@ -16652,6 +16740,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
             }
         }
 
+        /* Disabled spherical debug fallback:
         // Debug fallback for the spherical reference geometry.  The exact
         // NURBS projection must normally succeed, but keeping a projected
         // point here is preferable during geometry diagnostics to aborting
@@ -16705,6 +16794,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                 return sphere_center + sphere_radius * radial_direction;
             }
         }
+        */
 
         ++number_of_open_lateral_triangle_fallbacks;
         return closest_point;
@@ -16838,9 +16928,9 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     SnakeGapSbm3DUtilities::SpanKey3D worst_open_lateral_external_span;
     double worst_open_lateral_characteristic_length = 0.0;
 
-    // std::string gap_condition_name = "GapSbmSolidCondition"; //TODO: connect it with the json
-    std::string gap_condition_name =
-        "GapSbmEnhancedSolidCondition"; //TODO: connect it with the json
+    std::string gap_condition_name = "GapSbmSolidCondition"; //TODO: connect it with the json
+    // std::string gap_condition_name =
+    //     "GapSbmEnhancedSolidCondition"; //TODO: connect it with the json
 
     struct OpenLateralConditionBatch
     {
@@ -16942,11 +17032,11 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                 p_projection_node);
             ++number_of_open_lateral_projection_nodes;
 
-            if (projected_point[2] > 1.0) {
-            // if (projected_point[2] > 0.35) {
-                // current_gap_condition_name = "GapSbmLoadSolidCondition";
-                current_gap_condition_name =
-                    "GapSbmEnhancedLoadSolidCondition";
+            // if (projected_point[2] > 1.0) {
+            if (projected_point[2] > 0.35) {
+                current_gap_condition_name = "GapSbmLoadSolidCondition";
+                // current_gap_condition_name =
+                //     "GapSbmEnhancedLoadSolidCondition";
             }
         }
     

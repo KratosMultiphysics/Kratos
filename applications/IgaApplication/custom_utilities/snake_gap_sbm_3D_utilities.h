@@ -812,7 +812,8 @@ using NodeType = Node;
         const array_1d<double, 3>& rPoint,
         array_1d<double, 3>& rProjectionPoint,
         double& rProjectionDistance,
-        array_1d<double, 3>* pProjectionNormal = nullptr) const;
+        array_1d<double, 3>* pProjectionNormal = nullptr,
+        const array_1d<double, 3>* pInitialGuess = nullptr) const;
 
     void SetUsePyramidQuadratureForType1(
         const bool UsePyramidQuadratureForType1);
@@ -1803,7 +1804,8 @@ private:
         const bool IncludeKnotSpanBoundaryLines = false,
         const double MaximumProjectionDistance =
             std::numeric_limits<double>::max(),
-        array_1d<double, 3>* pProjectionNormal = nullptr) const;
+        array_1d<double, 3>* pProjectionNormal = nullptr,
+        const array_1d<double, 3>* pInitialGuess = nullptr) const;
 
     bool ProjectPointToInitialNurbsSkinAlongDirection(
         const array_1d<double, 3>& rPoint,
