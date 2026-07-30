@@ -298,9 +298,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                     uv_counter = 0
                     patch_index = 0
 
-                    # --------------------------------------------------
                     # Evaluate variables on BRep surfaces
-                    # --------------------------------------------------
                     for brep_id in self.brep_surface_ids:
                         brep_surface = self.model_part.GetGeometry(brep_id)
 
@@ -322,9 +320,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                         uv_counter += n_local
                         patch_index += 1
 
-                    # --------------------------------------------------
                     # Evaluate variables on IGA curves / beams
-                    # --------------------------------------------------
                     for curve_id in self.brep_curve_ids:
                         curve = self.model_part.GetGeometry(curve_id)
 
@@ -394,9 +390,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                         uv_counter += n_local
                         patch_index += 1
 
-                    # --------------------------------------------------
                     # Evaluate variables on IGA curves / beams
-                    # --------------------------------------------------
                     for curve_id in self.brep_curve_ids:
                         curve = self.model_part.GetGeometry(curve_id)
 
