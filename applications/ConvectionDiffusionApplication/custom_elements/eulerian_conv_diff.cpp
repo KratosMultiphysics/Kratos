@@ -103,11 +103,6 @@ namespace Kratos
         this-> GetNodalValues(Variables,rCurrentProcessInfo);
         double h = this->ComputeH(DN_DX);
 
-        if (this->GetValue(FLAG_VARIABLE) && this->GetProperties().Has(ARTIFICIAL_CONDUCTIVITY))
-        {        
-            Variables.conductivity = this->GetProperties()[ARTIFICIAL_CONDUCTIVITY];
-        } 
-
         this->ComputeTurbulentConductivity(DN_DX, h, Variables, rCurrentProcessInfo);
 
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(Variables.phi+Variables.phi_old));
