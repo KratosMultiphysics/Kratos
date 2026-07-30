@@ -58,11 +58,14 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
     Model model;
     auto  table = std::make_shared<Table<double>>();
     table->SetNameOfX("TIME"); // Table can be minimal, since we only do Initialize and Finalize
-    auto& r_model_part = SetupModelPart(table, model);
+    auto& r_model_part      = SetupModelPart(table, model);
+    auto& r_copy_model_part = model.CreateModelPart("Copy");
+    r_copy_model_part.SetProcessInfo(r_model_part.pGetProcessInfo());
+    r_copy_model_part.AddTable(1, table);
 
     Parameters parameters(R"(
       {
-          "model_part_name": "Main",
+          "model_part_name_list": ["Main", "Copy"],
           "variable_name":   "DISPLACEMENT_X",
           "is_fixed":        true,
           "table":           1,
