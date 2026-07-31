@@ -150,24 +150,24 @@ void ApplyScalarConstraintTableProcess::MakeProcessForInterpolatedLine(ModelPart
     AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
 
     mProcesses.emplace_back(std::make_unique<ApplyConstantInterpolateLinePressureProcess>(
-        rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy))));
+        rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, NamesOfSettingsToCopy)));
 }
 
 void ApplyScalarConstraintTableProcess::ExecuteInitialize()
 {
-    for (auto& r_process : mProcesses)
+    for (const auto& r_process : mProcesses)
         r_process->ExecuteInitialize();
 }
 
 void ApplyScalarConstraintTableProcess::ExecuteInitializeSolutionStep()
 {
-    for (auto& r_process : mProcesses)
+    for (const auto& r_process : mProcesses)
         r_process->ExecuteInitializeSolutionStep();
 }
 
 void ApplyScalarConstraintTableProcess::ExecuteFinalize()
 {
-    for (auto& r_process : mProcesses)
+    for (const auto& r_process : mProcesses)
         r_process->ExecuteFinalize();
 }
 
@@ -192,16 +192,15 @@ void ApplyScalarConstraintTableProcess::InstantiateProcessByTablePresence(ModelP
     if (ParametersUtilities::HasTableAttached(rProcessSettings)) {
         rNamesOfSettingsToCopy.emplace_back("table");
         mProcesses.emplace_back(std::make_unique<TableProcessType>(
-            rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, std::move(rNamesOfSettingsToCopy))));
+            rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, rNamesOfSettingsToCopy)));
     } else {
         mProcesses.emplace_back(std::make_unique<ConstantProcessType>(
-            rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, std::move(rNamesOfSettingsToCopy))));
+            rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, rNamesOfSettingsToCopy)));
     }
 }
 
-Parameters ApplyScalarConstraintTableProcess::PrepareProcessParameters(const ModelPart& rModelPart,
-                                                                       const Parameters& rProcessSettings,
-                                                                       std::vector<std::string>&& rNamesOfSettingsToCopy)
+const Parameters ApplyScalarConstraintTableProcess::PrepareProcessParameters(
+    const ModelPart& rModelPart, const Parameters& rProcessSettings, const std::vector<std::string>& rNamesOfSettingsToCopy)
 {
     auto result = ParametersUtilities::CopyRequiredParameters(rProcessSettings, rNamesOfSettingsToCopy);
 
