@@ -43,7 +43,7 @@ class StabilizedFormulation:
             elif formulation == "p2p1":
                 self._SetUpP2P1(settings)
             else:
-                formulation_list = ["qsvms", "dvms", "fic", "weakly_compressible", "navier_stokes", "axisymmetric_navier_stokes", "p2p1"]
+                formulation_list = ["vms", "qsvms", "dvms", "fic", "weakly_compressible", "navier_stokes", "axisymmetric_navier_stokes", "p2p1"]
                 err_msg = f"Wrong \'element_type\' : \'{formulation}\' provided. Available options are:\n"
                 for elem in formulation_list:
                     err_msg += f"\t- {elem}\n"
