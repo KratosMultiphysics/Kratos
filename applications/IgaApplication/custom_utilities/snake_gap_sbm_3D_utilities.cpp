@@ -9329,6 +9329,27 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
             CreateOpenUnitKnotVector(mGapApproximationOrder));
     };
 
+    auto create_linear_top_surface = [](
+        const CurvedTopFaceData& rTopData)
+    {
+        PointerVector<NodeType> control_points;
+        control_points.push_back(rTopData.CornerNodes[0]);
+        control_points.push_back(rTopData.CornerNodes[1]);
+        control_points.push_back(rTopData.CornerNodes[2]);
+        control_points.push_back(rTopData.CornerNodes[2]);
+
+        Vector knot_vector = ZeroVector(2);
+        knot_vector[0] = 0.0;
+        knot_vector[1] = 1.0;
+
+        return Kratos::make_shared<NurbsSurfaceType>(
+            control_points,
+            1,
+            1,
+            knot_vector,
+            knot_vector);
+    };
+
     auto check_surface_orientation = [](
         const GeometryType& rSurface,
         const LateralFaceOccurrence& rOccurrence)
@@ -9714,9 +9735,10 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
             *p_surface,
             *p_reference_occurrence);
         if (initial_orientation == 0) {
-            KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 1)
-                << "[UpdateLateralFaceRegistryGeometries] Accepting a "
-                << "type3 top face with locally mixed normal orientation.\n"
+            KRATOS_WARNING("SnakeGapSbm3DUtilities")
+                << "[UpdateLateralFaceRegistryGeometries] Falling back to a "
+                << "linear type3 top face after detecting locally mixed normal "
+                << "orientation.\n"
                 << "  face node ids: "
                 << face_key.NodeIds[0] << ", "
                 << face_key.NodeIds[1] << ", "
@@ -9726,6 +9748,16 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
                     r_top_data,
                     *p_surface,
                     *p_reference_occurrence);
+            }
+
+            r_top_data.Alpha = 0.0;
+            r_top_data.IsCurved = false;
+            p_surface = create_linear_top_surface(r_top_data);
+
+            if (check_surface_orientation(
+                    *p_surface,
+                    *p_reference_occurrence) < 0) {
+                p_surface = reverse_surface_parameterization(*p_surface);
             }
         } else {
             if (initial_orientation < 0) {
@@ -9792,14 +9824,17 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
 
         const auto top_it = mCurvedTopFaceRegistry.find(make_top_key(
             face_nodes[0], face_nodes[1], face_nodes[2]));
-        if (top_it != mCurvedTopFaceRegistry.end() &&
-            top_it->second.IsCurved) {
-            ++number_of_faces_with_registered_curved_top;
+        if (top_it != mCurvedTopFaceRegistry.end()) {
             p_top_face_data = &top_it->second;
-            p_final_surface = top_it->second.pSurfaceGeometry;
-            KRATOS_ERROR_IF_NOT(p_final_surface)
-                << "[UpdateLateralFaceRegistryGeometries] Curved type3 "
-                << "top face has no finalized shared geometry.\n";
+            if (top_it->second.IsCurved) {
+                ++number_of_faces_with_registered_curved_top;
+                p_final_surface = top_it->second.pSurfaceGeometry;
+                KRATOS_ERROR_IF_NOT(p_final_surface)
+                    << "[UpdateLateralFaceRegistryGeometries] Curved type3 "
+                    << "top face has no finalized shared geometry.\n";
+            } else if (top_it->second.pSurfaceGeometry) {
+                p_final_surface = top_it->second.pSurfaceGeometry;
+            }
         }
 
         if (!p_final_surface && has_registered_curved_edge) {
@@ -11105,7 +11140,7 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
                 << r_type2_data.pProjectionNode1->Id() << "\n";
         }
 
-        for (const auto& r_type3_data :
+        for (auto& r_type3_data :
              rType3CreationResult.VolumeQuadratureDataList) {
             if (!r_type3_data.RequiresQuadrature) {
                 continue;
@@ -11113,7 +11148,41 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
 
             const auto type3_volume_data =
                 create_final_type3_volume_data(r_type3_data);
-            KRATOS_ERROR_IF_NOT(is_volume_mapping_valid(*type3_volume_data.pVolume))
+            if (is_volume_mapping_valid(*type3_volume_data.pVolume)) {
+                continue;
+            }
+
+            const SkinTopFaceKey top_key = make_top_key(
+                r_type3_data.pProjectionNode0,
+                r_type3_data.pProjectionNode1,
+                r_type3_data.pProjectionNode2);
+            const auto top_it = mCurvedTopFaceRegistry.find(top_key);
+            const bool has_curved_top =
+                top_it != mCurvedTopFaceRegistry.end() &&
+                top_it->second.IsCurved;
+
+            Matrix center_jacobian;
+            type3_volume_data.pVolume->Jacobian(
+                center_jacobian,
+                center_coordinates);
+            const double center_determinant =
+                MathUtils<double>::Det(center_jacobian);
+            if (!has_curved_top && std::isfinite(center_determinant) &&
+                std::abs(center_determinant) <= 1.0e-14) {
+                r_type3_data.RequiresQuadrature = false;
+                KRATOS_WARNING("SnakeGapSbm3DUtilities")
+                    << "[FinalizeType2AndType3GapGeometries] Skipping a "
+                    << "degenerate linear type3 volume.\n"
+                    << "  surrogate node: "
+                    << r_type3_data.pSurrogateNode->Id() << "\n"
+                    << "  skin projection nodes: "
+                    << r_type3_data.pProjectionNode0->Id() << ", "
+                    << r_type3_data.pProjectionNode1->Id() << ", "
+                    << r_type3_data.pProjectionNode2->Id() << "\n";
+                continue;
+            }
+
+            KRATOS_ERROR
                 << "[FinalizeType2AndType3GapGeometries] Type3 volume mapping "
                 << "remains invalid after high-order damping/fallback.\n"
                 << "  surrogate node: "
@@ -11165,6 +11234,11 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
     UpdateLateralFaceRegistryGeometries(
         rRootModelPart,
         rSkinSubModelPart);
+
+    const auto final_volume_creation_start_time =
+        std::chrono::steady_clock::now();
+    KRATOS_INFO("SnakeGapSbm3DUtilities")
+        << "Creating final type2/type3 volume geometries.\n";
 
     ModelPart& r_gap_type2_debug = GetOrCreateSubModelPart(
         rRootModelPart,
@@ -11278,6 +11352,13 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
             r_gap_type3_debug.AddGeometry(p_debug_volume);
         }
     }
+
+    KRATOS_INFO("SnakeGapSbm3DUtilities")
+        << "Final type2/type3 volume geometries created in "
+        << std::chrono::duration<double>(
+               std::chrono::steady_clock::now() -
+               final_volume_creation_start_time).count()
+        << " seconds.\n";
 
     mSkinProjectionTriangleData.clear();
 }
