@@ -69,6 +69,38 @@ class FluidElementTest(UnitTest.TestCase):
         self.is_time_integrated = True
         self.runCavity()
 
+    def testNavierStokesSetup(self):
+        """Verify that solver setup with the navier_stokes formulation works correctly."""
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
+            self.model = Model()
+
+            with open("solver_settings.json","r") as settings_file:
+                settings = Parameters(settings_file.read())
+
+            settings["solver_settings"]["formulation"]["element_type"].SetString("navier_stokes")
+
+            settings["solver_settings"].AddEmptyValue("time_scheme")
+            settings["solver_settings"]["time_scheme"].SetString("bdf2")
+
+            self.fluid_solver = navier_stokes_solver.CreateSolver(self.model,settings["solver_settings"])
+            self.fluid_solver.AddVariables()
+            self.fluid_solver.ImportModelPart()
+            self.fluid_solver.PrepareModelPart()
+            self.fluid_solver.AddDofs()
+
+            fluid_model_part_name = settings["solver_settings"]["model_part_name"].GetString() + "." + settings["solver_settings"]["volume_model_part_name"].GetString()
+            fluid_model_part = self.model.GetModelPart(fluid_model_part_name)
+
+            # Verify ProcessInfo values are set correctly
+            self.assertEqual(fluid_model_part.ProcessInfo[DYNAMIC_TAU], 1.0)
+            self.assertEqual(fluid_model_part.ProcessInfo[SOUND_VELOCITY], 1.0e+12)
+
+            # Verify that elements are of the expected NavierStokes type
+            for element in fluid_model_part.Elements:
+                element_name = element.Info()
+                self.assertTrue("NavierStokes" in element_name, f"Expected NavierStokes element, got {element_name}")
+                break  # Only need to check one element
+
     def testTimeIntegratedQSVMS(self):
         self.element = "qsvms"
         self.reference_file = "reference10_time_integrated"
