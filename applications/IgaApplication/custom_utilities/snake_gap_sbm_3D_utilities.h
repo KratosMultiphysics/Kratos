@@ -70,6 +70,10 @@ using NodeType = Node;
         }
     };
 
+    using SkinEdgeControlPointMap = std::unordered_map<
+        SkinEdgeKey,
+        std::vector<NodePointerType>,
+        SkinEdgeKeyHash>;
     using SkinEdgeNormalMap = std::unordered_map<
         SkinEdgeKey,
         array_1d<double, 3>,
@@ -1833,10 +1837,6 @@ private:
         const NodePointerType& pSkinNode0,
         const NodePointerType& pSkinNode1) const;
 
-    bool HasGeometricEdgeCurvature(
-        const std::vector<NodePointerType>& rLinearControlNodes,
-        const std::vector<NodePointerType>& rCurrentControlNodes) const;
-
     std::vector<NodePointerType> GetOrCreateFinalSkinEdgeControlNodes(
         ModelPart& rSkinSubModelPart,
         const NodePointerType& pSkinNode0,
@@ -1883,6 +1883,8 @@ private:
     bool mUseTetraQuadratureForLinearType2Type3 = true;
     bool mUseAnisotropicQuadratureForCurvedType2 = true;
     bool mUseTriangleRadialQuadratureForCurvedType3 = true;
+    SkinEdgeControlPointMap mSkinEdgeControlNodes;
+    std::set<SkinEdgeKey> mLinearSkinEdges;
     CurvedEdgeRegistry mCurvedEdgeRegistry;
     CurvedTopFaceRegistry mCurvedTopFaceRegistry;
     std::vector<SkinProjectionTriangleData> mSkinProjectionTriangleData;
