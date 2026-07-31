@@ -46,6 +46,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif solver_type == "first_order_stokes_variable_viscosity":
             solver_module_name = "first_order_stokes_variable_viscosity_solver"
 
+        elif solver_type == "thermally_driven_active_fluid":
+            solver_module_name = "thermally_driven_active_fluid_solver"
+
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper. Solver type is : " + solver_type)
 

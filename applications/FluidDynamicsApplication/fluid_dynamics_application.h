@@ -61,7 +61,8 @@
 #include "custom_elements/first_order_stokes_variable_viscosity_bvs_gl.h"
 #include "custom_elements/first_order_stokes_variable_viscosity_pspg_sd.h"
 #include "custom_conditions/first_order_stokes_variable_viscosity_condition.h"
-
+#include "custom_elements/thermally_driven_active_fluid.h"
+#include "custom_conditions/thermally_driven_active_fluid_condition.h"
 
 #include "custom_conditions/wall_condition.h"
 #include "custom_conditions/fs_werner_wengle_wall_condition.h"
@@ -455,10 +456,14 @@ private:
     const FirstOrderStokesVariableViscosityBvsGl<3> mFirstOrderStokesVariableViscosityBvsGl3D4N;
     const FirstOrderStokesVariableViscosityPspgSd<2> mFirstOrderStokesVariableViscosityPspgSd2D3N;
     const FirstOrderStokesVariableViscosityPspgSd<3> mFirstOrderStokesVariableViscosityPspgSd3D4N;
+    const ThermallyDrivenActiveFluid<2> mThermallyDrivenActiveFluid2D6N;
+    const ThermallyDrivenActiveFluid<3> mThermallyDrivenActiveFluid3D10N;
 
     // KratosFECompiler-based conditions
     const FirstOrderStokesVariableViscosityCondition<2> mFirstOrderStokesVariableViscosityCondition2D2N;
     const FirstOrderStokesVariableViscosityCondition<3> mFirstOrderStokesVariableViscosityCondition3D3N;
+    const ThermallyDrivenActiveFluidCondition<2> mThermallyDrivenActiveFluidCondition2D3N;
+    const ThermallyDrivenActiveFluidCondition<3> mThermallyDrivenActiveFluidCondition3D6N;
 
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;

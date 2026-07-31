@@ -152,6 +152,8 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     // KratosFECompiler-based conditions
     mFirstOrderStokesVariableViscosityCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
     mFirstOrderStokesVariableViscosityCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+    mThermallyDrivenActiveFluidCondition2D3N(0, Element::GeometryType::Pointer(new Line2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+    mThermallyDrivenActiveFluidCondition3D6N(0, Element::GeometryType::Pointer(new Triangle3D6<Node>(Element::GeometryType::PointsArrayType(6)))),
     // Embedded Navier-Stokes symbolic elements
     mEmbeddedNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
     mEmbeddedNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
@@ -192,6 +194,9 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mFirstOrderStokesVariableViscosityBvsGl3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mFirstOrderStokesVariableViscosityPspgSd2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mFirstOrderStokesVariableViscosityPspgSd3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mThermallyDrivenActiveFluid2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
+    mThermallyDrivenActiveFluid3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
+    
     // Fluid adjoint elements
     mVMSAdjointElement2D(0,Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -453,7 +458,9 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("FirstOrderStokesVariableViscosityBvsGl3D4N", mFirstOrderStokesVariableViscosityBvsGl3D4N);
     KRATOS_REGISTER_ELEMENT("FirstOrderStokesVariableViscosityPspgSd2D3N", mFirstOrderStokesVariableViscosityPspgSd2D3N);
     KRATOS_REGISTER_ELEMENT("FirstOrderStokesVariableViscosityPspgSd3D4N", mFirstOrderStokesVariableViscosityPspgSd3D4N);
-
+    KRATOS_REGISTER_ELEMENT("ThermallyDrivenActiveFluid2D6N", mThermallyDrivenActiveFluid2D6N);
+    KRATOS_REGISTER_ELEMENT("ThermallyDrivenActiveFluid3D10N", mThermallyDrivenActiveFluid3D10N);
+    
     // Adjoint elements
     KRATOS_REGISTER_ELEMENT("VMSAdjointElement2D", mVMSAdjointElement2D);   // old naming convention
     KRATOS_REGISTER_ELEMENT("VMSAdjointElement3D", mVMSAdjointElement3D);   // old naming convention
@@ -510,6 +517,8 @@ void KratosFluidDynamicsApplication::Register() {
     // KratosFECompiler-based conditions
     KRATOS_REGISTER_CONDITION("FirstOrderStokesVariableViscosityCondition2D2N", mFirstOrderStokesVariableViscosityCondition2D2N);
     KRATOS_REGISTER_CONDITION("FirstOrderStokesVariableViscosityCondition3D3N", mFirstOrderStokesVariableViscosityCondition3D3N);
+    KRATOS_REGISTER_CONDITION("ThermallyDrivenActiveFluidCondition2D3N", mThermallyDrivenActiveFluidCondition2D3N);
+    KRATOS_REGISTER_CONDITION("ThermallyDrivenActiveFluidCondition3D6N", mThermallyDrivenActiveFluidCondition3D6N);
 
     // Register constitutive laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);

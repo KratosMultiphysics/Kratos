@@ -419,7 +419,7 @@ void FirstOrderStokesVariableViscosityBvsGl<2>::AddGaussPointLeftHandSideContrib
     // Assemble LHS contribution
     const double w_g = rData.Weight;
 
-    //substitute_element_lhs_2D3N
+    //substitute_element_lhs_2D_def-3N
     
 }
 
@@ -495,7 +495,7 @@ void FirstOrderStokesVariableViscosityBvsGl<2>::AddConditionGaussPointLeftHandSi
 
         const double delta_gauss = rData.Delta;
         
-        //substitute_condition_lhs_2D3N
+        //substitute_condition_lhs_2D_def-3N
 
     }
 }
@@ -526,7 +526,7 @@ void FirstOrderStokesVariableViscosityBvsGl<3>::AddGaussPointLeftHandSideContrib
     // Assemble LHS contribution
     const double w_g = rData.Weight;
 
-    //substitute_element_lhs_3D4N
+    //substitute_element_lhs_3D_def-4N
 
 }
 
@@ -555,7 +555,7 @@ void FirstOrderStokesVariableViscosityBvsGl<3>::AddConditionGaussPointLeftHandSi
 
     Matrix rLeftHandSideMatrix = ZeroMatrix(LocalSize);
 
-    //substitute_condition_lhs_3D4N
+    //substitute_condition_lhs_3D_def-4N
 
 }
 
@@ -586,7 +586,7 @@ void FirstOrderStokesVariableViscosityBvsGl<2>::AddGaussPointRightHandSideContri
     // Assemble LHS contribution
     const double w_g = rData.Weight;
 
-    //substitute_element_rhs_2D3N
+    //substitute_element_rhs_2D_def-3N
 
 }
 
@@ -662,7 +662,7 @@ void FirstOrderStokesVariableViscosityBvsGl<2>::AddConditionGaussPointRightHandS
 
         const double delta_gauss = rData.Delta;
 
-        //substitute_condition_rhs_2D3N
+        //substitute_condition_rhs_2D_def-3N
 
     }
 }
@@ -693,7 +693,7 @@ void FirstOrderStokesVariableViscosityBvsGl<3>::AddGaussPointRightHandSideContri
     // Assemble LHS contribution
     const double w_g = rData.Weight;
 
-    //substitute_element_rhs_3D4N
+    //substitute_element_rhs_3D_def-4N
     
 }
 
@@ -721,7 +721,7 @@ void FirstOrderStokesVariableViscosityBvsGl<3>::AddConditionGaussPointRightHandS
 
     Vector rRightHandSideVector = ZeroVector(LocalSize);
 
-    //substitute_condition_rhs_3D4N
+    //substitute_condition_rhs_3D_def-4N
 
 }
 
