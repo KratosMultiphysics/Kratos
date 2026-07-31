@@ -372,7 +372,15 @@ class NavierStokesMonolithicSolver(FluidSolver):
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
         self.historical_nodal_variables_list = self.formulation.historical_nodal_variables_list
         self.non_historical_nodal_variables_list = self.formulation.non_historical_nodal_variables_list
-
+        # For NavierStokes elements we require BDF2 coefficients. If the user
+        # left the default time scheme (bossak), switch to bdf2 here.
+        if self.element_name == "NavierStokes" and self.settings["time_scheme"].GetString() == "bossak":
+            self.settings["time_scheme"].SetString("bdf2")
+            KratosMultiphysics.Logger.PrintInfo(
+                self.__class__.__name__,
+                "Element 'NavierStokes' requires BDF coefficients. "
+                "Default 'time_scheme' changed from 'bossak' to 'bdf2'.")
+    
     def _SetTimeSchemeBufferSize(self):
         scheme_type = self.settings["time_scheme"].GetString()
         if scheme_type == "bossak":
