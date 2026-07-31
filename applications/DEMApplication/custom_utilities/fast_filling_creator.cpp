@@ -47,18 +47,21 @@ namespace Kratos {
             if (!rv_settings["do_use_seed"].GetBool()){
                 seed = std::random_device{}();
             }
-            if (mFastFillingCreatorSettings["PROBABILITY_DISTRIBUTION"].GetString() == "piecewise_linear"){
+            
+            const auto& name = mFastFillingCreatorSettings["NAME"].GetString();
 
-                mInletsRandomVariables[mFastFillingCreatorSettings["NAME"].GetString()] = std::unique_ptr<PiecewiseLinearRandomVariable>(new PiecewiseLinearRandomVariable(rv_settings, seed));
+            if (mInletsRandomVariables.find(name) == mInletsRandomVariables.end()) {
+
+                if (mFastFillingCreatorSettings["PROBABILITY_DISTRIBUTION"].GetString() == "piecewise_linear") {
+                    mInletsRandomVariables[name] =
+                        std::make_unique<PiecewiseLinearRandomVariable>(rv_settings, seed);
+                }
+                else {
+                    mInletsRandomVariables[name] =
+                        std::make_unique<DiscreteRandomVariable>(rv_settings, seed);
+                }
             }
 
-            else if (mFastFillingCreatorSettings["PROBABILITY_DISTRIBUTION"].GetString() == "discrete"){
-                mInletsRandomVariables[mFastFillingCreatorSettings["NAME"].GetString()] = std::unique_ptr<DiscreteRandomVariable>(new DiscreteRandomVariable(rv_settings, seed));
-            }
-
-            else {
-                KRATOS_ERROR << "Unknown Fast Filling Creator random variable: " << mFastFillingCreatorSettings["PROBABILITY_DISTRIBUTION"].GetString() << ".";
-            }
         }
 
         double radius = creator.SelectRadius(mFastFillingCreatorSettings, mInletsRandomVariables);
