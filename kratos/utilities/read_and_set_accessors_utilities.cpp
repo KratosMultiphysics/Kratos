@@ -57,9 +57,9 @@ void ReadAndSetAccessorsUtilities::ReadAndSetAccessors(
                 const Variable<double> *p_input_var = static_cast<const Variable<double> *>(KratosComponents<VariableData>::pGet(input_var_name));
 
                 // We set the variable type of the input variable (node_historical, node_non_historical and element)
-                std::string input_var_type = accessor_param["properties"].Has("table_input_variable_type") ? accessor_param["properties"]["table_input_variable_type"].GetString() : "node_historical";
+                std::string input_var_type = accessor_param["properties"].Has("input_variable_type") ? accessor_param["properties"]["input_variable_type"].GetString() : "node_historical";
 
-                KRATOS_ERROR_IF(rProperty.HasAccessor(*p_input_var)) << "You are trying to add an DatabaseAccessor for " << input_var_name << " which already exists..." << std::endl;
+                KRATOS_ERROR_IF(rProperty.HasAccessor(*p_input_var)) << "You are trying to add a DatabaseAccessor for " << input_var_name << " which already exists..." << std::endl;
 
                 rProperty.SetAccessor(*p_input_var, (DatabaseAccessor(input_var_type)).Clone());
             } else {
