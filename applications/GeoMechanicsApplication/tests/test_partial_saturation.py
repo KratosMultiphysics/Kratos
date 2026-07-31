@@ -5,6 +5,8 @@ import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analy
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
 )
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import Pa_to_kPa
+
 from dataclasses import dataclass
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -165,29 +167,37 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             value: float
 
         expected_results_at_times = {
-            12000: [
+            12000.0: [
                 ExpectedResult(node_id=1, value=0.0),
                 ExpectedResult(node_id=17, value=6243.59),
-                ExpectedResult(node_id=26, value=16400),
+                ExpectedResult(node_id=26, value=16400.0),
             ],
-            72000: [
+            72000.0: [
                 ExpectedResult(node_id=55, value=0.0),
                 ExpectedResult(node_id=61, value=5013.57),
                 ExpectedResult(node_id=70, value=7535.47),
             ],
-            96000: [
+            96000.0: [
                 ExpectedResult(node_id=87, value=-293.249),
                 ExpectedResult(node_id=91, value=970.378),
                 ExpectedResult(node_id=100, value=1672.53),
             ],
-            192000: [
+            192000.0: [
                 # This is the hydrostatic line from p = 0 at depth = 0m
                 # and p = -20000 Pa at depth = 2m, as seen in the plot
                 ExpectedResult(node_id=1, value=0.0),
-                ExpectedResult(node_id=58, value=-10000),
-                ExpectedResult(node_id=3, value=-20000),
+                ExpectedResult(node_id=58, value=-10000.0),
+                ExpectedResult(node_id=3, value=-20000.0),
             ],
         }
+
+        if test_helper.want_test_plots():
+            self.create_pressure_depth_plots(
+                depth_by_id_for_left_boundary_nodes,
+                expected_results_at_times,
+                file_path,
+                output_data,
+            )
 
         for time, expected_results in expected_results_at_times.items():
             water_pressures = reader.nodal_values_at_time(
@@ -201,14 +211,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 water_pressures, expected_water_pressures, places=None, delta=10.0
             )
 
-        if test_helper.want_test_plots():
-            self.create_pressure_depth_plots(
-                depth_by_id_for_left_boundary_nodes,
-                expected_results_at_times,
-                file_path,
-                output_data,
-            )
-
     def create_pressure_depth_plots(
         self,
         depth_by_id_for_left_boundary_nodes,
@@ -216,7 +218,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         file_path,
         output_data,
     ):
-        plot_times = [12000, 24000, 36000, 48000, 72000, 96000, 192000]
+        plot_times = [12000.0, 24000.0, 36000.0, 48000.0, 72000.0, 96000.0, 192000.0]
         data_series_collection = []
         for time in plot_times:
             water_pressures = GiDOutputFileReader.nodal_values_at_time(
@@ -225,7 +227,8 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 depth_by_id_for_left_boundary_nodes.keys(),
             )
-            sorted_depth, sorted_data = zip(
+            water_pressures = [Pa_to_kPa(pressure) for pressure in water_pressures]
+            sorted_depth, sorted_pressures = zip(
                 *sorted(
                     zip(
                         depth_by_id_for_left_boundary_nodes.values(),
@@ -233,7 +236,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                     )
                 )
             )
-            data = zip(sorted_data, sorted_depth)
+            data = zip(sorted_pressures, sorted_depth)
             data_series_collection.append(
                 plot_utils.DataSeries(
                     data, label=f"Time = {time}", line_style="-", marker=""
@@ -242,7 +245,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         asserted_data_points = []
         for time, expected_results in expected_results_at_times.items():
             for expected_result in expected_results:
-                water_pressure = expected_result.value
+                water_pressure = Pa_to_kPa(expected_result.value)
 
                 asserted_data_points.append(
                     (
@@ -262,7 +265,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         plot_utils._make_plot(
             data_series_collection,
             os.path.join(file_path, "infiltration_from_top_boundary.svg"),
-            xlabel="water pressure [Pa]",
+            xlabel="water pressure [kPa]",
             ylabel="depth [m]",
             yaxis_inverted=True,
         )

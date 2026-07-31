@@ -3,11 +3,6 @@ Begin Table 1 TIME WATER_PRESSURE
    4.800000e+04   -0.000000e+00
 End Table
 
-Begin Table 2 TIME NORMAL_FLUID_FLUX
-   0.000000e+00    0.000000e+00
-   4.800000e+04    0.000000e+00
-End Table
-
 Begin Properties 1
 End Properties
 
@@ -647,8 +642,6 @@ End Conditions
 
 
 Begin SubModelPart sandfine
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2
@@ -1274,8 +1267,6 @@ Begin SubModelPart sandfine
     345
     346
   End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
  End SubModelPart
 
 
@@ -1291,9 +1282,6 @@ End SubModelPart
 
 
 Begin SubModelPart botF
-  Begin SubModelPartTables
-    2
-  End SubModelPartTables
   Begin SubModelPartNodes
     3
     4
