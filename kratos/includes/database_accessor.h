@@ -63,8 +63,6 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    DatabaseAccessor()
-    {}
 
     /// Custom constructor
     DatabaseAccessor(const std::string& rInputVariableType = "node_historical")
