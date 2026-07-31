@@ -199,8 +199,9 @@ void ApplyScalarConstraintTableProcess::InstantiateProcessByTablePresence(ModelP
     }
 }
 
-const Parameters ApplyScalarConstraintTableProcess::PrepareProcessParameters(
-    const ModelPart& rModelPart, const Parameters& rProcessSettings, const std::vector<std::string>& rNamesOfSettingsToCopy)
+Parameters ApplyScalarConstraintTableProcess::PrepareProcessParameters(const ModelPart& rModelPart,
+                                                                       const Parameters& rProcessSettings,
+                                                                       const std::vector<std::string>& rNamesOfSettingsToCopy) const
 {
     auto result = ParametersUtilities::CopyRequiredParameters(rProcessSettings, rNamesOfSettingsToCopy);
 
