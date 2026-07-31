@@ -129,7 +129,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             "time_scheme": "bdf2",
             "compute_reactions": false,
             "analysis_type": "non_linear",
-            "reform_dofs_at_each_step": false,
+            "reform_dofs_at_each_step": true,
             "consider_periodic_conditions": false,
             "assign_neighbour_elements_to_conditions": true,
             "relative_velocity_tolerance": 1e-5,
@@ -412,6 +412,10 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
     def InitializeSolutionStep(self):
         # Compute the BDF coefficients
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+
+        # Free nodes that were fixed for enclosed volumes by the shifted-boundary utility
+        for sbm_utility in self.sbm_utilities:
+            sbm_utility.FreePressureOfEnclosedNode()
 
         if self.__IsFmAleStep():
             # Set the virtual mesh values (VELOCITY and PRESSURE) from the background fluid mesh

@@ -727,6 +727,13 @@ namespace Kratos
         KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "'" << mSkinModelPartName << "' skin point conditions were added." << std::endl;
     }
 
+    void ShiftedBoundaryPointBasedUtility::FreePressureOfEnclosedNode()
+    {
+        if (mPositiveSideIsEnclosed || mNegativeSideIsEnclosed) {
+            mpModelPart->GetNode(mEnclosedNodeId).Free(PRESSURE);
+        }
+    }
+
     void ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPoints()
     {
         const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
@@ -1652,6 +1659,7 @@ namespace Kratos
             if ((mPositiveSideIsEnclosed && rSidesVector[i_node] > 0) or (mNegativeSideIsEnclosed && rSidesVector[i_node] < 0)) {
                 auto& r_node = r_geom[i_node];
                 if (r_node.Is(ACTIVE)) {
+                    mEnclosedNodeId = r_node.Id();
                     r_node.Fix(PRESSURE);
                     r_node.FastGetSolutionStepValue(PRESSURE) = 0.0;
                     return true;

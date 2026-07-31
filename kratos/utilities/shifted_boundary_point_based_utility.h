@@ -300,6 +300,9 @@ public:
     void CalculateAndAddSkinIntegrationPointConditions();
 
     //TODO
+    void FreePressureOfEnclosedNode();
+
+    //TODO
     // Calculate positive and negative side pressure and velocity and traction at the integration points of the skin geometry - for mpSkinPointsSubModelPart.
     // Results are stored in POSITIVE_FACE_PRESSURE, NEGATIVE_FACE_PRESSURE, POSITIVE_FACE_FLUID_VELOCITY, NEGATIVE_FACE_FLUID_VELOCITY, TRACTION_FROM_FLUID_PRESSURE, TRACTION_FROM_FLUID_STRESS, DRAG_FORCE.
     //TODO
@@ -378,6 +381,7 @@ protected:
 
     bool mPositiveSideIsEnclosed = false;
     bool mNegativeSideIsEnclosed = false;
+    std::size_t mEnclosedNodeId = 0;
 
     /// @brief Protected empty constructor for derived classes
     //ShiftedBoundaryPointBasedUtility() {}
