@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <fstream>
 #include <functional>
 #include <iomanip>
 #include <limits>
@@ -5400,6 +5401,43 @@ SnakeGapSbm3DUtilities::CreateStraightSkinEdgeControlNodes(
     return control_nodes;
 }
 
+bool SnakeGapSbm3DUtilities::HasGeometricEdgeCurvature(
+    const std::vector<NodePointerType>& rLinearControlNodes,
+    const std::vector<NodePointerType>& rCurrentControlNodes) const
+{
+    KRATOS_ERROR_IF(
+        rLinearControlNodes.size() != rCurrentControlNodes.size())
+        << "[SnakeGapSbm3DUtilities::HasGeometricEdgeCurvature] "
+        << "Control node vectors have different sizes.\n";
+
+    double coordinate_scale = 1.0;
+    for (std::size_t i = 0; i < rLinearControlNodes.size(); ++i) {
+        KRATOS_ERROR_IF_NOT(rLinearControlNodes[i])
+            << "[SnakeGapSbm3DUtilities::HasGeometricEdgeCurvature] "
+            << "Linear control node is null.\n";
+        KRATOS_ERROR_IF_NOT(rCurrentControlNodes[i])
+            << "[SnakeGapSbm3DUtilities::HasGeometricEdgeCurvature] "
+            << "Current control node is null.\n";
+
+        for (std::size_t component = 0; component < 3; ++component) {
+            coordinate_scale = std::max(
+                coordinate_scale,
+                std::abs(rLinearControlNodes[i]->Coordinates()[component]));
+        }
+    }
+
+    const double curvature_tolerance = 1.0e-12 * coordinate_scale;
+    for (std::size_t i = 1; i + 1 < rLinearControlNodes.size(); ++i) {
+        if (norm_2(
+                rCurrentControlNodes[i]->Coordinates() -
+                rLinearControlNodes[i]->Coordinates()) > curvature_tolerance) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::vector<SnakeGapSbm3DUtilities::NodePointerType>
 SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
     ModelPart& rSkinSubModelPart,
@@ -5452,53 +5490,6 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
         curved_control_nodes.reserve(mGapApproximationOrder + 1);
         cubic_interpolation_points.reserve(2);
         curved_control_nodes.push_back(p_canonical_node_0);
-
-        const array_1d<double, 3> edge_vector =
-            p_canonical_node_1->Coordinates() -
-            p_canonical_node_0->Coordinates();
-
-        array_1d<double, 3> projection_direction = ZeroVector(3);
-        bool has_projection_direction = false;
-        array_1d<double, 3> unused_closest_point = ZeroVector(3);
-        double unused_projection_distance = 0.0;
-
-        const auto edge_normal_it = mSkinEdgeAverageNormals.find(key);
-        if (edge_normal_it != mSkinEdgeAverageNormals.end() &&
-            norm_2(edge_normal_it->second) >
-                std::numeric_limits<double>::epsilon()) {
-            projection_direction = edge_normal_it->second;
-            has_projection_direction = true;
-        }
-
-        if (!has_projection_direction && ProjectPointToClosestSkinBoundary(
-                rSkinSubModelPart,
-                0.5 * (p_canonical_node_0->Coordinates() +
-                       p_canonical_node_1->Coordinates()),
-                unused_closest_point,
-                unused_projection_distance)) {
-            projection_direction =
-                unused_closest_point -
-                0.5 * (p_canonical_node_0->Coordinates() +
-                       p_canonical_node_1->Coordinates());
-            has_projection_direction =
-                norm_2(projection_direction) >
-                std::numeric_limits<double>::epsilon();
-        }
-
-        if (!has_projection_direction) {
-            array_1d<double, 3> fallback_axis = ZeroVector(3);
-            fallback_axis[0] = 1.0;
-            if (std::abs(edge_vector[0]) >
-                std::abs(edge_vector[1])) {
-                fallback_axis[0] = 0.0;
-                fallback_axis[1] = 1.0;
-            }
-            projection_direction =
-                MathUtils<double>::CrossProduct(edge_vector, fallback_axis);
-            has_projection_direction =
-                norm_2(projection_direction) >
-                std::numeric_limits<double>::epsilon();
-        }
 
         auto is_valid_projected_point = [&](
             const array_1d<double, 3>& rProjectedPoint,
@@ -5679,42 +5670,85 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
             } else {
                 created_curved_edge = false;
             }
-        } else if (has_projection_direction) {
-            for (std::size_t i = 1; i < mGapApproximationOrder; ++i) {
-                const double t =
-                    static_cast<double>(i) /
-                    static_cast<double>(mGapApproximationOrder);
-                const array_1d<double, 3> linear_point =
-                    (1.0 - t) * p_canonical_node_0->Coordinates() +
-                    t * p_canonical_node_1->Coordinates();
+        } else {
+            const array_1d<double, 3> edge_vector =
+                p_canonical_node_1->Coordinates() -
+                p_canonical_node_0->Coordinates();
+            array_1d<double, 3> projection_direction = ZeroVector(3);
+            bool has_projection_direction = false;
 
-                array_1d<double, 3> projected_point = ZeroVector(3);
-                if (!ProjectPointToSkinBoundaryAlongDirection(
+            const auto edge_normal_it = mSkinEdgeAverageNormals.find(key);
+            if (edge_normal_it != mSkinEdgeAverageNormals.end() &&
+                norm_2(edge_normal_it->second) >
+                    std::numeric_limits<double>::epsilon()) {
+                projection_direction = edge_normal_it->second;
+                has_projection_direction = true;
+            }
+
+            if (!has_projection_direction) {
+                array_1d<double, 3> closest_point = ZeroVector(3);
+                double projection_distance = 0.0;
+                if (ProjectPointToClosestSkinBoundary(
                         rSkinSubModelPart,
-                        linear_point,
-                        projection_direction,
-                        MaximumProjectionDistance,
-                        projected_point)) {
-                    created_curved_edge = false;
-                    break;
-                }
-
-                if (!is_valid_projected_point(
-                        projected_point,
-                        linear_point)) {
-                    created_curved_edge = false;
-                    break;
-                }
-
-                if (mGapApproximationOrder == 3) {
-                    cubic_interpolation_points.push_back(projected_point);
-                } else {
-                    curved_control_nodes.push_back(
-                        NodePointerType(new Node(0, projected_point)));
+                        0.5 * (p_canonical_node_0->Coordinates() +
+                               p_canonical_node_1->Coordinates()),
+                        closest_point,
+                        projection_distance)) {
+                    projection_direction = closest_point -
+                        0.5 * (p_canonical_node_0->Coordinates() +
+                               p_canonical_node_1->Coordinates());
+                    has_projection_direction =
+                        norm_2(projection_direction) >
+                        std::numeric_limits<double>::epsilon();
                 }
             }
-        } else {
-            created_curved_edge = false;
+
+            if (!has_projection_direction) {
+                array_1d<double, 3> fallback_axis = ZeroVector(3);
+                fallback_axis[0] = 1.0;
+                if (std::abs(edge_vector[0]) >
+                    std::abs(edge_vector[1])) {
+                    fallback_axis[0] = 0.0;
+                    fallback_axis[1] = 1.0;
+                }
+                projection_direction = MathUtils<double>::CrossProduct(
+                    edge_vector,
+                    fallback_axis);
+                has_projection_direction =
+                    norm_2(projection_direction) >
+                    std::numeric_limits<double>::epsilon();
+            }
+
+            if (!has_projection_direction) {
+                created_curved_edge = false;
+            } else {
+                for (std::size_t i = 1;
+                     i < mGapApproximationOrder;
+                     ++i) {
+                    const double t =
+                        static_cast<double>(i) /
+                        static_cast<double>(mGapApproximationOrder);
+                    const array_1d<double, 3> linear_point =
+                        (1.0 - t) * p_canonical_node_0->Coordinates() +
+                        t * p_canonical_node_1->Coordinates();
+
+                    array_1d<double, 3> projected_point = ZeroVector(3);
+                    if (!ProjectPointToSkinBoundaryAlongDirection(
+                            rSkinSubModelPart,
+                            linear_point,
+                            projection_direction,
+                            MaximumProjectionDistance,
+                            projected_point) ||
+                        !is_valid_projected_point(
+                            projected_point,
+                            linear_point)) {
+                        created_curved_edge = false;
+                        break;
+                    }
+
+                    cubic_interpolation_points.push_back(projected_point);
+                }
+            }
         }
 
         if (created_curved_edge && mGapApproximationOrder == 3) {
@@ -5747,21 +5781,24 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
             edge_data.CurvedControlNodes = curved_control_nodes;
             edge_data.CurrentControlNodes = curved_control_nodes;
             edge_data.Alpha = 1.0;
-            edge_data.IsCurved = true;
+            edge_data.IsCurved = HasGeometricEdgeCurvature(
+                edge_data.LinearControlNodes,
+                edge_data.CurrentControlNodes);
+            if (!edge_data.IsCurved) {
+                edge_data.Alpha = 0.0;
+                edge_data.CurrentControlNodes = edge_data.LinearControlNodes;
+            }
             if (mGapApproximationOrder == 2) {
                 edge_data.pQuadraticInterpolationNode =
                     p_quadratic_interpolation_skin_node;
             }
         } else {
-            mLinearSkinEdges.insert(key);
             KRATOS_WARNING("SnakeGapSbm3DUtilities")
                 << "[GetOrCreateFinalSkinEdgeControlNodes] Falling back to "
                 << "a linear skin edge after high-order projection failed.\n"
                 << "  context: " << rContext << "\n"
                 << "  edge ids: " << key.first << " - " << key.second << "\n";
         }
-    } else if (mGapApproximationOrder > 1) {
-        mLinearSkinEdges.insert(key);
     }
 
     if (mGapApproximationOrder == 2) {
@@ -5782,7 +5819,6 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
     }
 
     mCurvedEdgeRegistry.emplace(key, edge_data);
-    mSkinEdgeControlNodes[key] = edge_data.CurrentControlNodes;
 
     auto control_nodes = edge_data.CurrentControlNodes;
     if (reverse_orientation) {
@@ -5904,9 +5940,10 @@ SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes(
         std::min(pSkinNode0->Id(), pSkinNode1->Id()),
         std::max(pSkinNode0->Id(), pSkinNode1->Id()));
 
-    const auto cached_it = mSkinEdgeControlNodes.find(key);
-    if (cached_it != mSkinEdgeControlNodes.end()) {
-        std::vector<NodePointerType> control_nodes = cached_it->second;
+    const auto cached_it = mCurvedEdgeRegistry.find(key);
+    if (cached_it != mCurvedEdgeRegistry.end()) {
+        std::vector<NodePointerType> control_nodes =
+            cached_it->second.CurrentControlNodes;
         if (reverse_orientation) {
             std::reverse(control_nodes.begin(), control_nodes.end());
         }
@@ -5991,9 +6028,32 @@ SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes(
         canonical_control_nodes = {pSkinNode0, p_control_node, pSkinNode1};
     }
 
-    mSkinEdgeControlNodes.emplace(key, canonical_control_nodes);
+    const NodePointerType p_canonical_node_0 =
+        reverse_orientation ? pSkinNode1 : pSkinNode0;
+    const NodePointerType p_canonical_node_1 =
+        reverse_orientation ? pSkinNode0 : pSkinNode1;
+    CurvedEdgeData edge_data;
+    edge_data.Key = key;
+    edge_data.LinearControlNodes = CreateStraightSkinEdgeControlNodes(
+        rSkinSubModelPart,
+        p_canonical_node_0,
+        p_canonical_node_1);
+    edge_data.CurvedControlNodes = canonical_control_nodes;
+    edge_data.CurrentControlNodes = canonical_control_nodes;
+    edge_data.pQuadraticInterpolationNode =
+        NodePointerType(new Node(0, projected_midpoint));
+    edge_data.Alpha = 1.0;
+    edge_data.IsCurved = HasGeometricEdgeCurvature(
+        edge_data.LinearControlNodes,
+        edge_data.CurrentControlNodes);
+    if (!edge_data.IsCurved) {
+        edge_data.Alpha = 0.0;
+        edge_data.CurrentControlNodes = edge_data.LinearControlNodes;
+    }
+    mCurvedEdgeRegistry.emplace(key, std::move(edge_data));
 
-    std::vector<NodePointerType> control_nodes = canonical_control_nodes;
+    std::vector<NodePointerType> control_nodes =
+        mCurvedEdgeRegistry.at(key).CurrentControlNodes;
     if (reverse_orientation) {
         std::reverse(control_nodes.begin(), control_nodes.end());
     }
@@ -6013,12 +6073,12 @@ SnakeGapSbm3DUtilities::FindCachedSkinEdgeControlNodes(
         std::min(pNode0->Id(), pNode1->Id()),
         std::max(pNode0->Id(), pNode1->Id()));
 
-    const auto cached_it = mSkinEdgeControlNodes.find(key);
-    if (cached_it == mSkinEdgeControlNodes.end()) {
+    const auto cached_it = mCurvedEdgeRegistry.find(key);
+    if (cached_it == mCurvedEdgeRegistry.end()) {
         return nullptr;
     }
 
-    return &cached_it->second;
+    return &cached_it->second.CurrentControlNodes;
 }
 
 void SnakeGapSbm3DUtilities::RegisterLateralFaceOccurrence(
@@ -9860,8 +9920,6 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
 {
     mCurvedEdgeRegistry.clear();
     mCurvedTopFaceRegistry.clear();
-    mSkinEdgeControlNodes.clear();
-    mLinearSkinEdges.clear();
 
     const std::size_t estimated_type2_volumes =
         rType2CreationResult.VolumeQuadratureDataList.size();
@@ -9870,7 +9928,6 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
     const std::size_t estimated_skin_edges =
         estimated_type2_volumes + 3 * estimated_type3_volumes;
     mCurvedEdgeRegistry.reserve(estimated_skin_edges);
-    mSkinEdgeControlNodes.reserve(estimated_skin_edges);
     mCurvedTopFaceRegistry.reserve(estimated_type3_volumes);
 
     mSkinProjectionTriangleData.clear();
@@ -9919,7 +9976,11 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
             rGridInfo.SpanSizeZ});
 
 
-    RebuildSkinEdgeAverageNormalMap(rSkinSubModelPart);
+    if (mGapApproximationOrder == 3) {
+        RebuildSkinEdgeAverageNormalMap(rSkinSubModelPart);
+    } else {
+        mSkinEdgeAverageNormals.clear();
+    }
 
     auto make_edge_key = [](
         const NodePointerType& pNode0,
@@ -10262,7 +10323,9 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
                 // Diagnostic mode: keep the original Coons top construction
                 // and do not apply the NURBS-based interior-control-point
                 // correction.
-                top_data.Alpha = 1.0;
+                top_data.Alpha =
+                    mGapApproximationOrder == 2 &&
+                    !mInitialNurbsSkinSurfaces.empty() ? 1.0 : 0.0;
                 refresh_top_face(top_data);
                 register_top_face_incidence(top_data);
                 mCurvedTopFaceRegistry.emplace(top_key, std::move(top_data));
@@ -10319,11 +10382,17 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
         if (r_edge_data.Alpha < 1.0e-6) {
             r_edge_data.Alpha = 0.0;
         }
-        r_edge_data.IsCurved = r_edge_data.Alpha > 0.0;
         r_edge_data.CurrentControlNodes = blend_control_nodes(
             r_edge_data.LinearControlNodes,
             r_edge_data.CurvedControlNodes,
             r_edge_data.Alpha);
+        r_edge_data.IsCurved = HasGeometricEdgeCurvature(
+            r_edge_data.LinearControlNodes,
+            r_edge_data.CurrentControlNodes);
+        if (!r_edge_data.IsCurved) {
+            r_edge_data.Alpha = 0.0;
+            r_edge_data.CurrentControlNodes = r_edge_data.LinearControlNodes;
+        }
         if (mGapApproximationOrder == 2) {
             array_1d<double, 3> interpolation_point =
                 0.25 * r_edge_data.CurrentControlNodes[0]->Coordinates();
@@ -10333,10 +10402,6 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
                 0.25 * r_edge_data.CurrentControlNodes[2]->Coordinates();
             r_edge_data.pQuadraticInterpolationNode =
                 NodePointerType(new Node(0, interpolation_point));
-        }
-        mSkinEdgeControlNodes[rKey] = r_edge_data.CurrentControlNodes;
-        if (!r_edge_data.IsCurved) {
-            mLinearSkinEdges.insert(rKey);
         }
         refresh_top_faces_for_edge(rKey);
 
@@ -10763,6 +10828,103 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
 
     bool all_mappings_valid_after_damping = false;
     std::set<std::array<IndexType, 3>> face_keys_requiring_damping;
+    std::unordered_map<
+        SkinEdgeKey,
+        std::vector<std::size_t>,
+        SkinEdgeKeyHash> type2_volumes_by_edge;
+    std::unordered_map<
+        SkinEdgeKey,
+        std::vector<std::size_t>,
+        SkinEdgeKeyHash> type3_volumes_by_edge;
+    std::unordered_map<
+        SkinTopFaceKey,
+        std::vector<std::size_t>,
+        SkinTopFaceKeyHash> type3_volumes_by_top;
+    std::vector<bool> type2_volumes_pending_validation(
+        rType2CreationResult.VolumeQuadratureDataList.size(),
+        false);
+    std::vector<bool> type3_volumes_pending_validation(
+        rType3CreationResult.VolumeQuadratureDataList.size(),
+        false);
+
+    type2_volumes_by_edge.reserve(estimated_type2_volumes);
+    type3_volumes_by_edge.reserve(3 * estimated_type3_volumes);
+    type3_volumes_by_top.reserve(estimated_type3_volumes);
+
+    for (std::size_t index = 0;
+         index < rType2CreationResult.VolumeQuadratureDataList.size();
+         ++index) {
+        const auto& r_type2_data =
+            rType2CreationResult.VolumeQuadratureDataList[index];
+        if (!r_type2_data.RequiresQuadrature) {
+            continue;
+        }
+
+        type2_volumes_pending_validation[index] = true;
+        type2_volumes_by_edge[make_edge_key(
+            r_type2_data.pProjectionNode0,
+            r_type2_data.pProjectionNode1)].push_back(index);
+    }
+
+    for (std::size_t index = 0;
+         index < rType3CreationResult.VolumeQuadratureDataList.size();
+         ++index) {
+        const auto& r_type3_data =
+            rType3CreationResult.VolumeQuadratureDataList[index];
+        if (!r_type3_data.RequiresQuadrature) {
+            continue;
+        }
+
+        type3_volumes_pending_validation[index] = true;
+        const SkinEdgeKey edge_key_01 = make_edge_key(
+            r_type3_data.pProjectionNode0,
+            r_type3_data.pProjectionNode1);
+        const SkinEdgeKey edge_key_12 = make_edge_key(
+            r_type3_data.pProjectionNode1,
+            r_type3_data.pProjectionNode2);
+        const SkinEdgeKey edge_key_02 = make_edge_key(
+            r_type3_data.pProjectionNode0,
+            r_type3_data.pProjectionNode2);
+        type3_volumes_by_edge[edge_key_01].push_back(index);
+        type3_volumes_by_edge[edge_key_12].push_back(index);
+        type3_volumes_by_edge[edge_key_02].push_back(index);
+        type3_volumes_by_top[make_top_key(
+            r_type3_data.pProjectionNode0,
+            r_type3_data.pProjectionNode1,
+            r_type3_data.pProjectionNode2)].push_back(index);
+    }
+
+    auto mark_edge_incident_volumes_for_validation = [&](
+        const SkinEdgeKey& rEdgeKey)
+    {
+        const auto type2_it = type2_volumes_by_edge.find(rEdgeKey);
+        if (type2_it != type2_volumes_by_edge.end()) {
+            for (const std::size_t index : type2_it->second) {
+                type2_volumes_pending_validation[index] = true;
+            }
+        }
+
+        const auto type3_it = type3_volumes_by_edge.find(rEdgeKey);
+        if (type3_it != type3_volumes_by_edge.end()) {
+            for (const std::size_t index : type3_it->second) {
+                type3_volumes_pending_validation[index] = true;
+            }
+        }
+    };
+
+    auto mark_top_incident_volumes_for_validation = [&](
+        const SkinTopFaceKey& rTopKey)
+    {
+        const auto type3_it = type3_volumes_by_top.find(rTopKey);
+        if (type3_it == type3_volumes_by_top.end()) {
+            return;
+        }
+
+        for (const std::size_t index : type3_it->second) {
+            type3_volumes_pending_validation[index] = true;
+        }
+    };
+
     // Do not reduce shared skin-edge curvature only because one lateral face
     // has an indeterminate orientation check. That global damping propagates
     // to open type3 faces and dominates the geometric convergence. Invalid
@@ -10774,11 +10936,16 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
         std::unordered_set<SkinEdgeKey, SkinEdgeKeyHash> edge_keys_to_reduce;
         std::unordered_set<SkinTopFaceKey, SkinTopFaceKeyHash> top_keys_to_reduce;
 
-        for (const auto& r_type2_data :
-             rType2CreationResult.VolumeQuadratureDataList) {
-            if (!r_type2_data.RequiresQuadrature) {
+        for (std::size_t index = 0;
+             index < rType2CreationResult.VolumeQuadratureDataList.size();
+             ++index) {
+            if (!type2_volumes_pending_validation[index]) {
                 continue;
             }
+            type2_volumes_pending_validation[index] = false;
+
+            const auto& r_type2_data =
+                rType2CreationResult.VolumeQuadratureDataList[index];
 
             const auto p_volume = create_final_type2_volume(r_type2_data);
             if (is_volume_mapping_valid(*p_volume)) {
@@ -10791,11 +10958,16 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
                 r_type2_data.pProjectionNode1));
         }
 
-        for (const auto& r_type3_data :
-             rType3CreationResult.VolumeQuadratureDataList) {
-            if (!r_type3_data.RequiresQuadrature) {
+        for (std::size_t index = 0;
+             index < rType3CreationResult.VolumeQuadratureDataList.size();
+             ++index) {
+            if (!type3_volumes_pending_validation[index]) {
                 continue;
             }
+            type3_volumes_pending_validation[index] = false;
+
+            const auto& r_type3_data =
+                rType3CreationResult.VolumeQuadratureDataList[index];
 
             const auto type3_volume_data =
                 create_final_type3_volume_data(r_type3_data);
@@ -10897,10 +11069,16 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
 
         bool reduced_curvature = false;
         for (const auto& r_edge_key : edge_keys_to_reduce) {
-            reduced_curvature |= reduce_edge_curvature(r_edge_key);
+            if (reduce_edge_curvature(r_edge_key)) {
+                reduced_curvature = true;
+                mark_edge_incident_volumes_for_validation(r_edge_key);
+            }
         }
         for (const auto& r_top_key : top_keys_to_reduce) {
-            reduced_curvature |= reduce_top_curvature(r_top_key);
+            if (reduce_top_curvature(r_top_key)) {
+                reduced_curvature = true;
+                mark_top_incident_volumes_for_validation(r_top_key);
+            }
         }
 
         if (!reduced_curvature) {
@@ -15550,6 +15728,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     ModelPart& rSkinSubModelPart,
     const ModelPart& rSurrogateSubModelPart)
 {
+    const auto workflow_start_time = std::chrono::steady_clock::now();
     SnakeGapSbm3DUtilities utilities(mEchoLevel);
     utilities.SetGapApproximationOrder(mGapApproximationOrder);
     const ModelPart& r_initial_skin_model_part = TIsInnerLoop
@@ -16025,7 +16204,6 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     SnakeGapSbm3DUtilities::ExternalSpanDataMap()
         .swap(external_spans);
 
-    KRATOS_WATCH("PRE VOLUME MOMENT FITTING")
     utilities.FinalizeType2AndType3GapGeometries(
         r_root_model_part,
         rSkinSubModelPart,
@@ -16098,6 +16276,9 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
             r_batch.CharacteristicLength,
             p_volume_data->CharacteristicLength);
     }
+
+    const double pre_moment_fitting_time = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - workflow_start_time).count();
 
     std::size_t total_final_quadrature_points = 0;
     std::size_t total_reference_quadrature_points = 0;
@@ -16345,6 +16526,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         << number_of_non_manifold_faces << "\n";
 
     //debug //FIXME:
+    const auto final_projection_start_time = std::chrono::steady_clock::now();
     const std::size_t gap_surface_integration_order =
         3 * mGapInterpolationOrder;
 
@@ -16928,9 +17110,9 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     SnakeGapSbm3DUtilities::SpanKey3D worst_open_lateral_external_span;
     double worst_open_lateral_characteristic_length = 0.0;
 
-    std::string gap_condition_name = "GapSbmSolidCondition"; //TODO: connect it with the json
-    // std::string gap_condition_name =
-    //     "GapSbmEnhancedSolidCondition"; //TODO: connect it with the json
+    // std::string gap_condition_name = "GapSbmSolidCondition"; //TODO: connect it with the json
+    std::string gap_condition_name =
+        "GapSbmEnhancedSolidCondition"; //TODO: connect it with the json
 
     struct OpenLateralConditionBatch
     {
@@ -17034,9 +17216,9 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 
             // if (projected_point[2] > 1.0) {
             if (projected_point[2] > 0.35) {
-                current_gap_condition_name = "GapSbmLoadSolidCondition";
-                // current_gap_condition_name =
-                //     "GapSbmEnhancedLoadSolidCondition";
+                // current_gap_condition_name = "GapSbmLoadSolidCondition";
+                current_gap_condition_name =
+                    "GapSbmEnhancedLoadSolidCondition";
             }
         }
     
@@ -17172,6 +17354,25 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 
     std::vector<SnakeGapSbm3DUtilities::LateralSurfaceQuadratureData>()
         .swap(open_lateral_surface_data_list);
+
+    const double final_projection_time = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - final_projection_start_time).count();
+    std::ofstream timing_file("snake_gap_sbm_3d_timings.txt", std::ios::app);
+    if (!timing_file) {
+        KRATOS_WARNING("SnakeGapSbmProcess")
+            << "[CreateSbmExtendedGeometries3D] Could not open "
+            << "snake_gap_sbm_3d_timings.txt for writing.\n";
+    } else {
+        timing_file << std::fixed << std::setprecision(6)
+            << "SnakeGapSbmProcess 3D timings ("
+            << (TIsInnerLoop ? "inner" : "outer") << ")\n"
+            << "  pre_moment_fitting_seconds: "
+            << pre_moment_fitting_time << "\n"
+            << "  moment_fitting_only_seconds: "
+            << total_moment_fitting_time << "\n"
+            << "  final_open_lateral_projection_seconds: "
+            << final_projection_time << "\n\n";
+    }
 
     // //TODO: interface conditions on lateral surfaces
     const std::size_t interface_candidate_integration_order =
