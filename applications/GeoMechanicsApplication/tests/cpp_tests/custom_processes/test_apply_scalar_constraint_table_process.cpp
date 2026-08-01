@@ -59,8 +59,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
     Model model;
     auto  p_table = std::make_shared<Table<double>>();
     p_table->SetNameOfX("TIME"); // Table can be minimal, since we only do Initialize and Finalize
-    auto& r_first_model_part  = SetupModelPartWith2D3NElement(p_table, model, "First");
-    auto& r_second_model_part = SetupModelPartWith2D3NElement(p_table, model, "Second");
+    auto& r_first_model_part  = SetupModelPartWith2D3NElement(p_table, model, "First"s);
+    auto& r_second_model_part = SetupModelPartWith2D3NElement(p_table, model, "Second"s);
 
     Parameters parameters(R"(
       {
@@ -97,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValues
     p_table->insert(1.0, 1.5);
     p_table->SetNameOfX("TIME");
     p_table->SetNameOfY("DISPLACEMENT_X");
-    auto& r_model_part = SetupModelPartWith2D3NElement(p_table, model, "Main");
+    auto& r_model_part = SetupModelPartWith2D3NElement(p_table, model, "Main"s);
 
     Parameters parameters(R"(
       {
@@ -142,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_CheckInfoApplyScalar
     // Arrange
     Model model;
     auto  p_table = std::make_shared<Table<double>>();
-    SetupModelPartWith2D3NElement(p_table, model, "Main");
+    SetupModelPartWith2D3NElement(p_table, model, "Main"s);
 
     const Parameters                        parameters(R"(
       {
@@ -162,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_UniformFluidPressure
 {
     // Arrange
     Model model;
-    auto& r_model_part = SetupModelPartWith2D3NElement(nullptr, model, "Main");
+    auto& r_model_part = SetupModelPartWith2D3NElement(nullptr, model, "Main"s);
 
     const Parameters parameters(R"(
       {
@@ -197,7 +197,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_GenericVariableWithT
     p_table->insert(10.0, 5.0);
     p_table->SetNameOfX("TIME");
     p_table->SetNameOfY("WATER_PRESSURE");
-    auto& r_model_part = SetupModelPartWith2D3NElement(p_table, model, "Main");
+    auto& r_model_part = SetupModelPartWith2D3NElement(p_table, model, "Main"s);
 
     const Parameters parameters(R"(
       {
@@ -225,7 +225,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_ErrorOnUnknownFluidT
 {
     // Arrange
     Model model;
-    SetupModelPartWith2D3NElement(nullptr, model, "Main");
+    SetupModelPartWith2D3NElement(nullptr, model, "Main"s);
 
     const Parameters parameters(R"(
       {
@@ -244,7 +244,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_HydrostaticBranch_Di
 {
     // Arrange
     Model model;
-    SetupModelPartWith2D3NElement(nullptr, model, "Main");
+    SetupModelPartWith2D3NElement(nullptr, model, "Main"s);
 
     const Parameters parameters(R"(
       {
@@ -273,7 +273,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_InterpolateLine_NoTa
 {
     // Arrange
     Model model;
-    SetupModelPartWith2D3NElement(nullptr, model, "Main");
+    SetupModelPartWith2D3NElement(nullptr, model, "Main"s);
 
     Parameters parameters(R"(
       {
@@ -297,7 +297,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_PhreaticMultiLine_Co
 {
     // Arrange
     Model model;
-    SetupModelPartWith2D3NElement(nullptr, model, "Main");
+    SetupModelPartWith2D3NElement(nullptr, model, "Main"s);
 
     Parameters parameters(R"(
       {
@@ -324,7 +324,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_PhreaticLine_BranchC
 {
     // Arrange
     Model model;
-    SetupModelPartWith2D3NElement(nullptr, model, "Main");
+    SetupModelPartWith2D3NElement(nullptr, model, "Main"s);
 
     Parameters parameters(R"(
       {

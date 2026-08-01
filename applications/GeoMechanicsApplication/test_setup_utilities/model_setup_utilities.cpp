@@ -27,7 +27,6 @@ namespace
 {
 
 using namespace Kratos;
-using namespace std::string_literals;
 
 void AddNodalVariablesToModelPart(ModelPart& rModelPart, const Geo::ConstVariableRefs& rNodalVariables)
 {
