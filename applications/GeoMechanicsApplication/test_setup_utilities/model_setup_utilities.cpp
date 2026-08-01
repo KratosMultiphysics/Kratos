@@ -27,6 +27,7 @@ namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 void AddNodalVariablesToModelPart(ModelPart& rModelPart, const Geo::ConstVariableRefs& rNodalVariables)
 {
@@ -93,9 +94,10 @@ PointerVector<Node> ModelSetupUtilities::CreateNodes(ModelPart& rModelPart, cons
 }
 
 ModelPart& ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(Model& rModel,
-                                                                      const Geo::ConstVariableRefs& rNodalVariables)
+                                                                      const Geo::ConstVariableRefs& rNodalVariables,
+                                                                      const std::string& ModelPartName)
 {
-    auto& r_result = rModel.CreateModelPart("Main");
+    auto& r_result = rModel.CreateModelPart(ModelPartName);
     AddNodalVariablesToModelPart(r_result, rNodalVariables);
 
     auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor2D3NElement());

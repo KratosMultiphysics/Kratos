@@ -16,6 +16,8 @@
 
 #include "geo_mechanics_application_variables.h"
 
+#include <string>
+
 namespace
 {
 
@@ -34,10 +36,11 @@ void AssertNodesHaveCorrectValueAndFixity(const Variable<T>&                   r
     }
 }
 
-ModelPart& SetupModelPart(const Table<double>::Pointer& rTable, Model& rModel)
+ModelPart& SetupModelPartWith2D3NElement(const Table<double>::Pointer& rTable, Model& rModel, const std::string& ModelPartName)
 {
     const auto nodal_variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(WATER_PRESSURE)};
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(rModel, nodal_variables);
+    auto& r_model_part =
+        ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(rModel, nodal_variables, ModelPartName);
     r_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER] = 1.0;
     if (rTable) r_model_part.AddTable(1, rTable);
 
@@ -56,14 +59,12 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
     Model model;
     auto  p_table = std::make_shared<Table<double>>();
     p_table->SetNameOfX("TIME"); // Table can be minimal, since we only do Initialize and Finalize
-    auto& r_model_part      = SetupModelPart(p_table, model);
-    auto& r_copy_model_part = model.CreateModelPart("Copy");
-    r_copy_model_part.SetProcessInfo(r_model_part.pGetProcessInfo());
-    r_copy_model_part.AddTable(1, p_table);
+    auto& r_first_model_part  = SetupModelPartWith2D3NElement(p_table, model, "First");
+    auto& r_second_model_part = SetupModelPartWith2D3NElement(p_table, model, "Second");
 
     Parameters parameters(R"(
       {
-          "model_part_name_list": ["Main", "Copy"],
+          "model_part_name_list": ["First", "Second"],
           "variable_name":   "DISPLACEMENT_X",
           "is_fixed":        true,
           "table":           1,
@@ -81,7 +82,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
         0.5; // Same as the initial value, since we have not initialized any solution step
     constexpr bool expected_fixity = false;
     AssertNodesHaveCorrectValueAndFixity(DISPLACEMENT_X, expected_value, expected_fixity,
-                                         r_model_part.Nodes());
+                                         r_first_model_part.Nodes());
+    AssertNodesHaveCorrectValueAndFixity(DISPLACEMENT_X, expected_value, expected_fixity,
+                                         r_second_model_part.Nodes());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValuesThroughTime_ForDoubleVariable,
@@ -94,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValues
     p_table->insert(1.0, 1.5);
     p_table->SetNameOfX("TIME");
     p_table->SetNameOfY("DISPLACEMENT_X");
-    auto& r_model_part = SetupModelPart(p_table, model);
+    auto& r_model_part = SetupModelPartWith2D3NElement(p_table, model, "Main");
 
     Parameters parameters(R"(
       {
@@ -139,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_CheckInfoApplyScalar
     // Arrange
     Model model;
     auto  p_table = std::make_shared<Table<double>>();
-    SetupModelPart(p_table, model);
+    SetupModelPartWith2D3NElement(p_table, model, "Main");
 
     const Parameters                        parameters(R"(
       {
@@ -159,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_UniformFluidPressure
 {
     // Arrange
     Model model;
-    auto& r_model_part = SetupModelPart(nullptr, model);
+    auto& r_model_part = SetupModelPartWith2D3NElement(nullptr, model, "Main");
 
     const Parameters parameters(R"(
       {
@@ -194,7 +197,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_GenericVariableWithT
     p_table->insert(10.0, 5.0);
     p_table->SetNameOfX("TIME");
     p_table->SetNameOfY("WATER_PRESSURE");
-    auto& r_model_part = SetupModelPart(p_table, model);
+    auto& r_model_part = SetupModelPartWith2D3NElement(p_table, model, "Main");
 
     const Parameters parameters(R"(
       {
@@ -222,7 +225,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_ErrorOnUnknownFluidT
 {
     // Arrange
     Model model;
-    SetupModelPart(nullptr, model);
+    SetupModelPartWith2D3NElement(nullptr, model, "Main");
 
     const Parameters parameters(R"(
       {
@@ -241,7 +244,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_HydrostaticBranch_Di
 {
     // Arrange
     Model model;
-    SetupModelPart(nullptr, model);
+    SetupModelPartWith2D3NElement(nullptr, model, "Main");
 
     const Parameters parameters(R"(
       {
@@ -270,7 +273,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_InterpolateLine_NoTa
 {
     // Arrange
     Model model;
-    SetupModelPart(nullptr, model);
+    SetupModelPartWith2D3NElement(nullptr, model, "Main");
 
     Parameters parameters(R"(
       {
@@ -294,7 +297,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_PhreaticMultiLine_Co
 {
     // Arrange
     Model model;
-    SetupModelPart(nullptr, model);
+    SetupModelPartWith2D3NElement(nullptr, model, "Main");
 
     Parameters parameters(R"(
       {
@@ -321,7 +324,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_PhreaticLine_BranchC
 {
     // Arrange
     Model model;
-    SetupModelPart(nullptr, model);
+    SetupModelPartWith2D3NElement(nullptr, model, "Main");
 
     Parameters parameters(R"(
       {
