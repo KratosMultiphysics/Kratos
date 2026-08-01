@@ -26,7 +26,6 @@ class ModelPart;
 
 namespace Kratos::Testing
 {
-using namespace std::string_literals;
 
 struct NodeDefinition {
     std::size_t id       = 1;
@@ -43,7 +42,7 @@ public:
 
     static ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel,
                                                             const Geo::ConstVariableRefs& rNodalVariables = {},
-                                                            const std::string& ModelPartName = "Main"s);
+                                                            const std::string& ModelPartName = "Main");
 
     static ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel);
 

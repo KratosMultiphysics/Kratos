@@ -23,6 +23,7 @@ namespace
 
 using namespace Kratos;
 using namespace Kratos::Testing;
+using namespace std::string_literals;
 
 template <typename T>
 void AssertNodesHaveCorrectValueAndFixity(const Variable<T>&                   rVariable,
