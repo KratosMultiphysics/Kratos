@@ -39,7 +39,7 @@ ModelPart& SetupModelPart(const Table<double>::Pointer& rTable, Model& rModel)
     const auto nodal_variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(WATER_PRESSURE)};
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(rModel, nodal_variables);
     r_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER] = 1.0;
-    if (rTable != nullptr) r_model_part.AddTable(1, rTable);
+    if (rTable) r_model_part.AddTable(1, rTable);
 
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.AddDof(DISPLACEMENT_X);
@@ -59,12 +59,12 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_FreesDoFAfterFinaliz
 {
     // Arrange
     Model model;
-    auto  table = std::make_shared<Table<double>>();
-    table->SetNameOfX("TIME"); // Table can be minimal, since we only do Initialize and Finalize
-    auto& r_model_part      = SetupModelPart(table, model);
+    auto  p_table = std::make_shared<Table<double>>();
+    p_table->SetNameOfX("TIME"); // Table can be minimal, since we only do Initialize and Finalize
+    auto& r_model_part      = SetupModelPart(p_table, model);
     auto& r_copy_model_part = model.CreateModelPart("Copy");
     r_copy_model_part.SetProcessInfo(r_model_part.pGetProcessInfo());
-    r_copy_model_part.AddTable(1, table);
+    r_copy_model_part.AddTable(1, p_table);
 
     Parameters parameters(R"(
       {
@@ -94,12 +94,12 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValues
 {
     // Arrange
     Model model;
-    auto  table = std::make_shared<Table<double>>();
-    table->insert(0.0, 0.5);
-    table->insert(1.0, 1.5);
-    table->SetNameOfX("TIME");
-    table->SetNameOfY("DISPLACEMENT_X");
-    auto& r_model_part = SetupModelPart(table, model);
+    auto  p_table = std::make_shared<Table<double>>();
+    p_table->insert(0.0, 0.5);
+    p_table->insert(1.0, 1.5);
+    p_table->SetNameOfX("TIME");
+    p_table->SetNameOfY("DISPLACEMENT_X");
+    auto& r_model_part = SetupModelPart(p_table, model);
 
     Parameters parameters(R"(
       {
@@ -143,8 +143,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_CheckInfoApplyScalar
 {
     // Arrange
     Model model;
-    auto  table = std::make_shared<Table<double>>();
-    SetupModelPart(table, model);
+    auto  p_table = std::make_shared<Table<double>>();
+    SetupModelPart(p_table, model);
 
     const Parameters                        parameters(R"(
       {
@@ -194,12 +194,12 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_GenericVariableWithT
 {
     // Arrange
     Model model;
-    auto  table = std::make_shared<Table<double>>();
-    table->insert(0.0, 1.0);
-    table->insert(10.0, 5.0);
-    table->SetNameOfX("TIME");
-    table->SetNameOfY("WATER_PRESSURE");
-    auto& r_model_part = SetupModelPart(table, model);
+    auto  p_table = std::make_shared<Table<double>>();
+    p_table->insert(0.0, 1.0);
+    p_table->insert(10.0, 5.0);
+    p_table->SetNameOfX("TIME");
+    p_table->SetNameOfY("WATER_PRESSURE");
+    auto& r_model_part = SetupModelPart(p_table, model);
 
     const Parameters parameters(R"(
       {

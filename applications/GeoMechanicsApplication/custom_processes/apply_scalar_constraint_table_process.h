@@ -16,7 +16,7 @@
 
 #include <memory> // Required for std::unique_ptr
 #include <string>
-#include <vector> // Required for std::vector
+#include <vector>
 
 namespace Kratos
 {
@@ -35,8 +35,6 @@ public:
 
     ApplyScalarConstraintTableProcess(const ApplyScalarConstraintTableProcess&)            = delete;
     ApplyScalarConstraintTableProcess& operator=(const ApplyScalarConstraintTableProcess&) = delete;
-
-    using ProcessUniquePointer = std::unique_ptr<Process>;
 
     void        ExecuteInitialize() override;
     void        ExecuteInitializeSolutionStep() override;
@@ -70,9 +68,9 @@ private:
                                        std::vector<std::string>& rNamesOfSettingsToCopy) const;
 
     template <typename TableProcessType, typename ConstantProcessType>
-    void       InstantiateProcessByTablePresence(ModelPart&                 rModelPart,
-                                                 const Parameters&          rProcessSettings,
-                                                 std::vector<std::string>&& rNamesOfSettingsToCopy);
+    void       InstantiateProcessByTablePresence(ModelPart&               rModelPart,
+                                                 const Parameters&        rProcessSettings,
+                                                 std::vector<std::string> rNamesOfSettingsToCopy);
     Parameters PrepareProcessParameters(const ModelPart&  rModelPart,
                                         const Parameters& rProcessSettings,
                                         const std::vector<std::string>& rNamesOfSettingsToCopy) const;
