@@ -1,9 +1,16 @@
-// SPH Application 
+//  ____  ____  _   _                   _ _           _   _             
+// / ___||  _ \| | | | __ _ _ __  _ __ | (_) ___ __ _| |_(_) ___  _ __  
+// \___ \| |_) | |_| |/ _` | '_ \| '_ \| | |/ __/ _` | __| |/ _ \| '_ \ 
+//  ___) |  __/|  _  | (_| | |_) | |_) | | | (_| (_| | |_| | (_) | | | |
+// |____/|_|   |_| |_|\__,_| .__/| .__/|_|_|\___\__,_|\__|_|\___/|_| |_|
+//                         |_|   |_|                                    
 
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 
 //  Main authors:    Marco Pilotto
+
+#pragma once
 
 #include "includes/element.h"
 #include "sph_application_variables.h"
@@ -314,6 +321,18 @@ protected:
     void InitializeMaterial();
 
 private:
+
+    /**
+     * @brief This method gets a value directly in the CL avoiding code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @tparam TType The type considered
+     */
+
+    template<class TType>
+    void GetValueOnConstituitiveLaw(const Variable<TType>& rVariable, std::vector<TType>& rOutput){
+        mThisConstitutiveLaw->GetValue(rVariable, rOutput[0]);   ////
+    }
 
 };
 

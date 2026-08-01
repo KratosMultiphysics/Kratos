@@ -378,11 +378,11 @@ void SmallDisplacementParticle<TKernelType>::Calculate2DB(MatrixType& rB, const 
     const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
     const SizeType domain_size = GetGeometry().WorkingSpaceDimension();
 
+    rB.clear();
+
     for (IndexType i =0; i < number_of_neigh; ++i){
         const IndexType index = i * domain_size;
         rB(0, index + 0) = rDW_DX(i, 0);
-        rB(0, index + 1) = 0.0;
-        rB(1, index + 0) = 0.0;
         rB(1, index + 1) = rDW_DX(i, 1);
         rB(2, index + 0) = rDW_DX(i, 1);
         rB(2, index + 1) = rDW_DX(i, 0);
@@ -395,25 +395,18 @@ void SmallDisplacementParticle<TKernelType>::Calculate3DB(MatrixType& rB, const 
     const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
     const SizeType domain_size = GetGeometry().WorkingSpaceDimension();
 
+    rB.clear();
+
     for (IndexType i =0; i < number_of_neigh; ++i){
         const IndexType index = i * domain_size;
         rB(0, index + 0) = rDW_DX(i, 0);
-        rB(0, index + 1) = 0.0;
-        rB(0, index + 2) = 0.0;
-        rB(1, index + 0) = 0.0;
         rB(1, index + 1) = rDW_DX(i, 1);
-        rB(1, index + 2) = 0.0;
-        rB(2, index + 0) = 0.0;
-        rB(2, index + 1) = 0.0;
         rB(2, index + 2) = rDW_DX(i, 2);
         rB(3,index+0) = rDW_DX(i, 1);
         rB(3,index+1) = rDW_DX(i, 0);
-        rB(3,index+2) = 0.0;
-        rB(4,index+0) = 0.0;
         rB(4,index+1) = rDW_DX(i, 2);
         rB(4,index+2) = rDW_DX(i, 1);
         rB(5,index+0) = rDW_DX(i, 2);
-        rB(5,index+1) = 0.0;
         rB(5,index+2) = rDW_DX(i, 0);
     }
 }
@@ -507,34 +500,49 @@ void SmallDisplacementParticle<TKernelType>::CalculateMassMatrix(MatrixType& rMa
     const auto& GPcoords = r_geom[0].GetInitialPosition();
     const double gauss_weight = r_geom[0].GetValue(VOLUME);
 
-    MatrixType MassMatrix(mat_size, dimension);
-    noalias(MassMatrix) = ZeroMatrix(mat_size, dimension);
-    VectorType X_AB_target(dimension);
-    double kernel;
-
-    for (IndexType i = 0; i < number_of_neigh; ++i){
-
-        const auto& IPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
-        const double volume = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
-
-        for (IndexType d = 0; d < dimension; ++d){
-            X_AB_target[d] = GPcoords[d] - IPcoords[d];
-        }
-
-        TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
-        ComputeKernelCorrectionUtilities::ApplyKernelCorrection(*this, kernel);
-
-        MassMatrix(dimension * i, 0) = kernel * volume;
-        MassMatrix(dimension * i + 1, 1) = kernel * volume;
-        if (dimension == 3){
-            MassMatrix(dimension * i + 2, 2) = kernel * volume;
-        }
-    }
-
     double factor = gauss_weight * density * thickness;
+    bool compute_lumped_mass_matrix = SPHElementUtilities::ComputeLumpedMassMatrix(r_prop, rProcessInfo);
 
-    noalias(rMassMatrix) = prod(MassMatrix, trans(MassMatrix));
-    rMassMatrix *= factor;
+    if (compute_lumped_mass_matrix){
+        int this_id = this->Id();
+        for (IndexType i = 0; i < number_of_neigh; ++i){
+            if (this_id == r_neighbours[i]->Id()){
+                for (IndexType d = 0; d < dimension; ++d){
+                    rMassMatrix(dimension * i + d, dimension * i + d) = factor;
+                }
+                break;
+            }
+        }
+    } else { // Consistent mass matrix
+        
+        MatrixType MassMatrix(mat_size, dimension);
+        noalias(MassMatrix) = ZeroMatrix(mat_size, dimension);
+        
+        VectorType X_AB_target(dimension);
+        double kernel, temp;
+
+        for (IndexType i = 0; i < number_of_neigh; ++i){
+
+            const auto& IPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
+            const double volume = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
+
+            for (IndexType d = 0; d < dimension; ++d){
+                X_AB_target[d] = GPcoords[d] - IPcoords[d];
+            }
+
+            TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
+            ComputeKernelCorrectionUtilities::ApplyKernelCorrection(*this, kernel);
+
+            MassMatrix(dimension * i, 0) = kernel * volume;
+            MassMatrix(dimension * i + 1, 1) = kernel * volume;
+            if (dimension == 3){
+                MassMatrix(dimension * i + 2, 2) = kernel * volume;
+            }
+        }
+
+        noalias(rMassMatrix) = prod(MassMatrix, trans(MassMatrix));
+        rMassMatrix *= factor;
+    }
 
     KRATOS_CATCH("")
 }
@@ -542,7 +550,7 @@ void SmallDisplacementParticle<TKernelType>::CalculateMassMatrix(MatrixType& rMa
 template<class TKernelType>
 void SmallDisplacementParticle<TKernelType>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rProcessInfo)
 {
-    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
     const SizeType mat_size = GetGeometry().WorkingSpaceDimension() * r_neighbours.size();
 
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(*this, rDampingMatrix, rProcessInfo, mat_size);
@@ -574,6 +582,10 @@ void SmallDisplacementParticle<TKernelType>::CalculateOnIntegrationPoints(const 
             rOutput[index] = dkernel;
             ++index;
         }
+    } else if (mThisConstitutiveLaw->Has(rVariable)){  // At the moment this funtion is never called because the Point2D/Point3D geometries does not have an integration point
+        const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
+        rOutput.resize(1, ZeroVector(strain_size));
+        mThisConstitutiveLaw->GetValue(rVariable, rOutput[0]);
     }
 }
 
@@ -613,6 +625,27 @@ int SmallDisplacementParticle<TKernelType>::Check(const ProcessInfo& rCurrentPro
 
     KRATOS_ERROR_IF(this->Id() < 1)<<"Particle element with invalid Id"<< this->Id() << std::endl;
     KRATOS_ERROR_IF(this->GetGeometry().size() != 1) << "Particle element" << this->Id() << "must have exactly 1 node, found " << this->GetGeometry().size() << std::endl;
+
+    const auto& r_prop = GetProperties();
+
+    if (r_prop[CONSTITUTIVE_LAW] != nullptr) mThisConstitutiveLaw->Check( r_prop, GetGeometry(), rCurrentProcessInfo );
+
+    /** These checks ensure that the NEIGHBOURS variable is properly set. 
+     * In Total Lagrangian SPH these check are performed once at the beginning of the simulation, while in case 
+     * of non-TL SPH they should be moved to the InitializeSolutionStep method
+    */
+    KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOURS)) 
+        << "NEIGHBOURS variable is not defined for element with ID: " << this->Id() << std::endl;
+
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
+    
+    KRATOS_ERROR_IF(r_neighbours.size() == 0) 
+        << "Element with ID " << this->Id() << " has no neighbours assigned." << std::endl;
+    
+    for (IndexType i = 0; i < r_neighbours.size(); ++i) {
+        KRATOS_ERROR_IF(r_neighbours[i] == nullptr) 
+            << "Neighbour pointer at index " << i << " is null for element ID: " << this->Id() << std::endl;
+    }
 
     return 0; 
     KRATOS_CATCH("")

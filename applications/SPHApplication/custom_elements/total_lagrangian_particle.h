@@ -1,17 +1,18 @@
-// SPH Application 
+//  ____  ____  _   _                   _ _           _   _             
+// / ___||  _ \| | | | __ _ _ __  _ __ | (_) ___ __ _| |_(_) ___  _ __  
+// \___ \| |_) | |_| |/ _` | '_ \| '_ \| | |/ __/ _` | __| |/ _ \| '_ \ 
+//  ___) |  __/|  _  | (_| | |_) | |_) | | | (_| (_| | |_| | (_) | | | |
+// |____/|_|   |_| |_|\__,_| .__/| .__/|_|_|\___\__,_|\__|_|\___/|_| |_|
+//                         |_|   |_|                                    
 
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 
 //  Main authors:    Marco Pilotto
 
-#include "includes/element.h"
-#include "sph_application_variables.h"
-#include "custom_utilities/custom_kernels/kernel_factory.h"
-#include "custom_utilities/compute_kernel_correction_utilities.h"
-#include "custom_utilities/sph_element_utilities.h"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
-#include "structural_mechanics_application_variables.h"
+#pragma once
+
+#include "custom_elements/small_displacement_particle.h"
 
 namespace Kratos
 {
@@ -19,65 +20,22 @@ namespace Kratos
 using SizeType = std::size_t;
 
 template<class TKernelType>
-class KRATOS_API(SPH_APPLICATION) TotalLagrangianDisplacementParticle: public Element
+class KRATOS_API(SPH_APPLICATION) TotalLagrangianDisplacementParticle: public SmallDisplacementParticle<TKernelType>
 {
-protected:
-    /**
-     * Internal variables used in the kinematic calculations
-     */
-    struct KinematicVariables
-    {
-        VectorType W;
-        MatrixType DW_DX;
-        MatrixType B;
-        double detF;
-        MatrixType F;
-        VectorType Velocities;
-
-        /**
-         * @brief Default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         * @param DomainSize The size of the problem domain
-         * @param NumberOfNeighbours The number of neighbours of the particle
-         */
-        KinematicVariables(
-            const SizeType StrainSize,
-            const SizeType DomainSize,
-            const SizeType NumberOfNeighbours
-        )
-        {
-            W = ZeroVector(NumberOfNeighbours);
-            DW_DX = ZeroMatrix(NumberOfNeighbours, DomainSize);
-            B = ZeroMatrix(StrainSize, DomainSize * NumberOfNeighbours);
-            detF = 1.0;
-            F = IdentityMatrix(DomainSize);
-            Velocities = ZeroVector(DomainSize * NumberOfNeighbours);
-        }
-    };
-    
-    struct ConstitutiveVariables
-    {
-        ConstitutiveLaw::StrainVectorType StrainVector;
-        ConstitutiveLaw::StressVectorType StressVector;
-        ConstitutiveLaw::VoigtSizeMatrixType C;
-
-        /**
-         * @brief Default constructor
-         */
-        ConstitutiveVariables(const SizeType StrainSize)
-        {
-            if (StrainVector.size() != StrainSize) StrainVector.resize(StrainSize);
-            if (StressVector.size() != StrainSize) StressVector.resize(StrainSize);
-            if (C.size1() != StrainSize || C.size2() != StrainSize) C.resize(StrainSize, StrainSize);
-
-            noalias(StrainVector) = ZeroVector(StrainSize);
-            noalias(StressVector) = ZeroVector(StrainSize);
-            noalias(C) = ZeroMatrix(StrainSize, StrainSize);
-        }
-    };
 public: 
 
-    using BaseType = Element;
+    using BaseType = SmallDisplacementParticle<TKernelType>;
+
+    using GeometryType = typename BaseType::GeometryType;
+    using PropertiesType = typename BaseType::PropertiesType;
+    using IndexType = typename BaseType::IndexType;
+    using MatrixType = typename BaseType::MatrixType;
+    using VectorType = typename BaseType::VectorType;
+    using SizeType = typename BaseType::SizeType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
+    
+    using KinematicVariables = typename BaseType::KinematicVariables;
+    using ConstitutiveVariables = typename BaseType::ConstitutiveVariables;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -97,14 +55,11 @@ public:
     TotalLagrangianDisplacementParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
     {
-        mThisIntegrationMethod =  GeometryData::IntegrationMethod::GI_GAUSS_1;  ///
     }
 
     // Copy constructor
     TotalLagrangianDisplacementParticle(TotalLagrangianDisplacementParticle const& rOther)
-        : BaseType(rOther),
-        mThisConstitutiveLaw(rOther.mThisConstitutiveLaw),
-        mThisIntegrationMethod(rOther.mThisIntegrationMethod)  ////
+        : BaseType(rOther)
     {
     }
 
@@ -124,11 +79,6 @@ public:
      * @brief It creates a new element pointer and clones the previous element data
      */
     Element::Pointer Clone( IndexType NewId, NodesArrayType const& rThisNodes) const override;
-    
-    /**
-     * @brief Called to initialize the element
-     */
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Called at the beginning of each solution step
@@ -142,11 +92,6 @@ public:
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    IntegrationMethod GetIntegrationMethod() const override
-    {
-        return mThisIntegrationMethod;   ////
-    }
-
     /**
      * @brief This function tells the position of the particle in the list of neighbours
      */
@@ -158,66 +103,6 @@ public:
 
         return i;
     }
-         
-    /**
-     * @brief Sets on rResult the ID's of the element degrees of freedom
-     * @param rResult The vector containing the equation IDs
-     */
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const override;
-    
-    /**
-     *  @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     */
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const override;
-    
-    /**
-     * @brief Sets on rValues the nodal displacements
-     */
-    void GetValuesVector(VectorType& rValues, int step ) const override;
-
-    /**
-     * @brief Sets on rValues the nodal velocities
-     */
-    void GetFirstDerivativesVector(VectorType& rValues, int step = 0) const override;
-
-    /**
-     * @brief Sets on rValues the nodal accelerations
-     */
-    void GetSecondDerivativesVector(VectorType& rValues, int step = 0) const override;
-
-    /**
-     * @brief This is called during the assembling process in order to calculate the local system
-     * @param rLeftHandSideMatrix the elemental left hand side matrix
-     * @param rRightHandSideVector the elemental right hand side vector
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
-     * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
-     */
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
-     * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
-     */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
 
     /**
      * @brief This functions calculates both the RHS and the LHS
@@ -333,17 +218,6 @@ public:
     ) const; 
 
     /**
-     * @brief This function calculates the contribution of the external forces to the RHS
-     */
-    void CalculateAndAddExternelForcesContribution(
-        const VectorType& rW,
-        const ProcessInfo& rProcessInfo,
-        const VectorType& rBodyForce,
-        VectorType& rRHS,
-        const double weight
-    ) const;
-
-    /**
      * @brief This function calculates the contribution of the penalization to the LHS and RHS
      * @details A pairwise elastic spring is introduced between neighboring particles to suppress spurious zero-energy 
      * modes and improve the stability of the discretization. 
@@ -358,16 +232,6 @@ public:
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag 
     ); 
-
-    /**
-      * @brief This is called during the assembling process in order to calculate the elemental mass matrix
-      * @param rMassMatrix The elemental mass matrix
-      * @param rCurrentProcessInfo The current process info instance
-      */
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
 
     /**
       * @brief This is called during the assembling process in order to calculate the elemental damping matrix
@@ -391,76 +255,19 @@ public:
         const ProcessInfo& rProcessInfo
     );
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
     /**
      * @brief These functions calculates the values of variables in the integrations points.
      * In SPH case coincide with the neighbouring particles 
      * @details These functions expect a std::vector of values for the specified variable type
      * @param rVariable This parameter selects the output 
-     * @param SPH_KERNEL The function computes the kernel values in the neighbours  
-     * @param SPH_KERNEL_GRADIENT The function computes the kernel gradient values in the neighbours  
+     * @param F_DEFORMATION_GRADIENT The function computes the deformation gradient in the neighbours  
      */
-
-    void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
 
     void CalculateOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
-
-protected:
-
-    ConstitutiveLaw::Pointer mThisConstitutiveLaw;
-    IntegrationMethod mThisIntegrationMethod; ////
-
-    /**
-     * @brief This function sets the used constitutive laws
-     */
-    void SetConstitutiveLaw(const ConstitutiveLaw::Pointer rThisConstitutiveLaw)
-    {
-        mThisConstitutiveLaw = rThisConstitutiveLaw;
-    }
-
-    /**
-     * @brief Sets the used integration method
-     * @details In SPH the inetgration points are the particles themselves,
-     * this method is implement to maintain compatibility and display the results on the integration points 
-     */
-    void SetIntegrationMethod(const IntegrationMethod ThisIntegrationMethod)
-    {
-        mThisIntegrationMethod = ThisIntegrationMethod; ////
-    }
-
-    /**
-     * @brief It initializes the material
-     */
-    void InitializeMaterial();
-
-private:
-
-    /**
-     * @brief This method gets a value directly in the CL avoiding code repetition
-     * @param rVariable The variable we want to get
-     * @param rOutput The values obtained in the integration points
-     * @tparam TType The type considered
-     */
-
-    template<class TType>
-    void GetValueOnConstituitiveLaw(const Variable<TType>& rVariable, std::vector<TType>& rOutput){
-        mThisConstitutiveLaw->GetValue(rVariable, rOutput[0]);   ////
-    }
 
 };
 
