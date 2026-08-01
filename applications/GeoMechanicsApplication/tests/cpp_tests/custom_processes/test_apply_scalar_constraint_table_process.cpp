@@ -41,11 +41,6 @@ ModelPart& SetupModelPart(const Table<double>::Pointer& rTable, Model& rModel)
     r_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER] = 1.0;
     if (rTable) r_model_part.AddTable(1, rTable);
 
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.AddDof(DISPLACEMENT_X);
-        r_node.AddDof(WATER_PRESSURE);
-    }
-
     return r_model_part;
 }
 
