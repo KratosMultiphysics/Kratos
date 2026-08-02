@@ -1,6 +1,7 @@
 import time as timer
 import os
 import sys
+from pathlib import Path
 
 sys.path.append(os.path.join('..','..','..'))
 
@@ -11,6 +12,41 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
 
+def _validated_parameter_path(
+    filename: str
+) -> Path:
+    """
+    Validates that 'filename' resolves within current working directory.
+    
+    Args:
+        filename: Name of the JSON file provided via argv.
+    
+    Returns:
+        Absolute resolved Path object if safe.
+        
+    Raises:
+        TypeError: If the path escapes the designated boundary.
+        FileNotFoundError: If the validated file does not exist.
+    """
+    safe_base = Path.cwd().resolve() #Path(__file__).resolve().parent
+    
+    candidate = (Path.cwd().resolve() / filename).expanduser().resolve(strict=False)
+
+    try:
+        candidate.relative_to(safe_base)
+    except ValueError as exc:
+        raise TypeError(
+            f"Access denied. Parameter file '{filename}' points outside the "
+            f"allowed directory '{safe_base}'."
+        ) from exc
+
+    if candidate.suffix.lower() != ".json":
+        raise TypeError(f"Invalid file type '{candidate.suffix}'. Only .json files are accepted.")
+
+    if not candidate.exists():
+        raise FileNotFoundError(f"Parameter file not found: {candidate}")
+
+    return candidate
 
 def copy_nodal_solution_step_values(model_part, variable, source_index, destination_index):
     if not model_part.HasNodalSolutionStepVariable(variable):
@@ -243,7 +279,7 @@ if __name__ == '__main__':
         raise TypeError(err_msg)
 
     if len(argv) == 2: # ProjectParameters is being passed from outside
-        parameter_file_name = argv[1]
+        parameter_file_name = _validated_parameter_path(argv[1])
     else: # using default name
         parameter_file_name = "ProjectParameters.json"
 
