@@ -28,9 +28,12 @@ def _validated_parameter_path(
         TypeError: If the path escapes the designated boundary.
         FileNotFoundError: If the validated file does not exist.
     """
-    safe_base = Path.cwd().resolve() #Path(__file__).resolve().parent
+    safe_base = Path.cwd().resolve()
     
-    candidate = (Path.cwd().resolve() / filename).expanduser().resolve(strict=False)
+    candidate = Path(filename).expanduser()
+    if not candidate.is_absolute():
+        candidate = safe_base / candidate
+    candidate = candidate.resolve(strict=False)
 
     try:
         candidate.relative_to(safe_base)
