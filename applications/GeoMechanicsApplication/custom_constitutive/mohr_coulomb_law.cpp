@@ -13,9 +13,9 @@
 //
 
 // Application includes
+#include "custom_constitutive/mohr_coulomb_law.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/coulomb_impl.h"
-#include "custom_constitutive/mohr_coulomb_law.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.hpp"

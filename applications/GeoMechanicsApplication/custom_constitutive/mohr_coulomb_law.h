@@ -48,9 +48,9 @@ public:
     StressMeasure                          GetStressMeasure() override;
     [[nodiscard]] SizeType                 GetStrainSize() const override;
     StrainMeasure                          GetStrainMeasure() override;
-    void    InitializeMaterial(const Properties&     rMaterialProperties,
-                               const Geometry<Node>& rElementGeometry,
-                               const Vector&         rShapeFunctionsValues) override;
+    void                                   InitializeMaterial(const Properties&     rMaterialProperties,
+                                                              const Geometry<Node>& rElementGeometry,
+                                                              const Vector&         rShapeFunctionsValues) override;
     void    InitializeMaterialResponseCauchy(Parameters& rValues) override;
     void    GetLawFeatures(Features& rFeatures) override;
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
