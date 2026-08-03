@@ -1,7 +1,8 @@
 import sys
 import os
-import KratosMultiphysics
+from pathlib import Path
 
+import KratosMultiphysics
 from KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis import GeoMechanicsAnalysis
 
 def _validated_stage_directory_paths(project_path, n_stages):
@@ -19,7 +20,7 @@ def _validated_stage_directory_paths(project_path, n_stages):
         # Construct the candidate directory name
         dir_name = f"Stage_{i + 1}"
         candidate = (safe_base / dir_name).resolve()
-        # Security Check 1: Prevent escaping via '..' in Stage names
+        # Security Check 1: Ensure the resolved stage directory stays within the project root (e.g., prevent symlink escape)
         try:
             candidate.relative_to(safe_base)
         except ValueError as exc:
