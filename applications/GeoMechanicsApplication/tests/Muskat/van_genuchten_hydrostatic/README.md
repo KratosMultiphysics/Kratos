@@ -18,7 +18,7 @@ A schematic of this  can be found in the figure below:
 
 The following outputs are used as first-reference results for this test, computed using a commercial FEM package:
 - Phreatic line evolution (reference: `expected_phreatic_line.csv`).
-- Hydrostatic response values (reference: `expected_results.csv`).
+- Hydrostatic response values (reference: `expected_saturation_at_x_1_52.csv`).
 
 The phreatic line profile is visualized below:
 ![Phreatic line](phreatic_line.svg)

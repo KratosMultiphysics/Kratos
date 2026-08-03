@@ -60,12 +60,12 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 if abs(node.X - 1.52) < 0.01:
                     y_coord_by_id_for_right_boundary_nodes[node.Id] = node.Y
             saturations = GiDOutputFileReader.nodal_values_at_time(
-                "DEGREE_OF_SATURATION",
+                "EFFECTIVE_SATURATION",
                 1.0,
                 output_data,
                 y_coord_by_id_for_right_boundary_nodes.keys(),
             )
-            saturations = [saturation / 0.403 * 100 for saturation in saturations]
+            saturations = [saturation * 100 for saturation in saturations]
             sorted_depth, sorted_data = zip(
                 *sorted(
                     zip(
@@ -82,7 +82,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             )
 
             data_points = test_helper.get_data_points_from_file(
-                os.path.join(file_path,"expected_results.csv"), extract_saturation_and_y_from_line
+                os.path.join(file_path,"expected_saturation_at_x_1_52.csv"), extract_saturation_and_y_from_line
             )
             data_series_collection.append(
                 plot_utils.DataSeries(
@@ -110,24 +110,15 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 output_data,
                 [node.Id],
             )[0])
-
-        # Store data in a variable for reuse
-        pressure_data = {'xs': xs, 'ys': ys, 'pressures': pressures}
-        isoline_coords = None
         
         if test_helper.want_test_plots():
             import matplotlib.pyplot as plt
             from matplotlib.tri import Triangulation
             import numpy as np
             
-            # Create triangulation from scattered points
             tri = Triangulation(xs, ys)
-            
-            # Plot isoline at pressure = 0 using triangulation
             plt.figure(figsize=(10, 8))
-            
-            # Highlight the zero isoline in red
-            contour_zero = plt.tricontour(tri, pressures, levels=[0], colors='red', linewidths=2)
+            contour_zero = plt.tricontour(tri, pressures, levels=[0])
 
             # Extract isoline coordinates
             isoline_coords = []
@@ -135,7 +126,6 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 for level_segs in contour_zero.allsegs:
                     for seg in level_segs:
                         isoline_coords.append(seg)
-                        print(seg)
 
 
 
@@ -173,7 +163,6 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
     #     self._assert_fully_saturated_flow(
     #         "Muskat", "fully_saturated_hydrostatic", 100, 22800.0
     #     )
-    #
     # def test_fully_saturated_hydrostatic_cutoff(self):
     #     self._assert_fully_saturated_flow(
     #         "Muskat", "fully_saturated_hydrostatic_cutoff", 100, 0.0
