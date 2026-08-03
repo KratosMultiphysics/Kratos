@@ -37,9 +37,8 @@
         "min_iterations": 6,
         "max_iterations": 100,
         "number_cycles": 1,
-        "reduction_factor": 0.5,
-        "increase_factor": 2.0,
-        "desired_iterations": 4,
+        "reduction_factor": 1.0,
+        "increase_factor": 1.0,
         "linear_solver_settings": {
             "solver_type": "bicgstab",
             "tolerance": 1.0e-06,
@@ -74,17 +73,11 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "plane_output": [],
                             "nodal_results": [
                                 "WATER_PRESSURE",
-                                "NORMAL_FLUID_FLUX",
-                                "VOLUME_ACCELERATION",
-                                "HYDRAULIC_DISCHARGE",
                                 "EFFECTIVE_SATURATION"
-                            ],
-                            "gauss_point_results": ["FLUID_FLUX_VECTOR", "HYDRAULIC_HEAD", "DEGREE_OF_SATURATION"]
-                        },
-                        "point_data_configuration": []
+                            ]
+                        }
                     }
                 }
             }
