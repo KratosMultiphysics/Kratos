@@ -33,8 +33,9 @@ DisplacementSensor::DisplacementSensor(
     Node::Pointer pNode,
     const array_1d<double, 3>& rDirection,
     const Element& rElement,
-    const double Weight)
-    : BaseType(rName, pNode, Weight),
+    const double Weight,
+    const double ErrorThreshold)
+    : BaseType(rName, pNode, Weight, ErrorThreshold),
       mElementId(rElement.Id()),
       mDirection(rDirection)
 {
@@ -133,7 +134,8 @@ Sensor::Pointer DisplacementSensor::Create(
         p_node,
         array_1d<double, 3>{direction[0], direction[1], direction[2]},
         r_element,
-        SensorParameters["weight"].GetDouble()
+        SensorParameters["weight"].GetDouble(),
+        SensorParameters["error_threshold"].GetDouble()
     );
 
     SensorUtils::ReadVariableData(p_sensor->GetNode()->GetData(), SensorParameters["variable_data"]);
@@ -161,6 +163,7 @@ Parameters DisplacementSensor::GetDefaultParameters()
         "location"     : [0.0, 0.0, 0.0],
         "direction"    : [0.0, 0.0, 0.0],
         "weight"       : 1.0,
+        "error_threshold": 1e-16,
         "variable_data": {}
     })" );
 }

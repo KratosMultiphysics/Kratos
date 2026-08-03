@@ -54,7 +54,8 @@ public:
         Node::Pointer pNode,
         const array_1d<double, 3>& rDirection,
         const Element& rElement,
-        const double Weight);
+        const double Weight,
+        const double ErrorThreshold = 1e-16);
 
     /// Destructor.
     ~DisplacementSensor() override = default;

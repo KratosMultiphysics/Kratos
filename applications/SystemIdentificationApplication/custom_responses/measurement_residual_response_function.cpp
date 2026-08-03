@@ -150,7 +150,8 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
 
     for (auto& p_sensor : mpSensorsList) {
         const double sensor_value = p_sensor->CalculateValue(rModelPart);
-        const double current_sensor_error = sensor_value - p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE);
+        const double raw_sensor_error = sensor_value - p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE);
+        const double current_sensor_error = std::abs(raw_sensor_error) < p_sensor->GetErrorThreshold() ? 0.0 : raw_sensor_error;
 
         p_sensor->SetSensorValue(sensor_value);
         p_sensor->GetNode()->SetValue(SENSOR_ERROR, current_sensor_error);

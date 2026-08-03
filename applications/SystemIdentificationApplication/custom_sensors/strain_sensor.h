@@ -68,7 +68,8 @@ public:
         const Variable<Matrix>& rStrainVariable,
         const StrainType& rStrainType,
         const Element& rElement,
-        const double Weight);
+        const double Weight,
+        const double ErrorThreshold = 1e-16);
 
     /// Destructor.
     ~StrainSensor() override = default;

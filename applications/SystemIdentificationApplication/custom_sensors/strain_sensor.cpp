@@ -34,8 +34,9 @@ StrainSensor::StrainSensor(
     const Variable<Matrix>& rStrainVariable,
     const StrainType& rStrainType,
     const Element& rElement,
-    const double Weight)
-    : BaseType(rName, pNode, Weight),
+    const double Weight,
+    const double ErrorThreshold)
+    : BaseType(rName, pNode, Weight, ErrorThreshold),
       mElementId(rElement.Id()),
       mStrainType(rStrainType),
       mrStrainVariable(rStrainVariable)
@@ -127,7 +128,8 @@ Sensor::Pointer StrainSensor::Create(
         KratosComponents<Variable<Matrix>>::Get(SensorParameters["strain_variable"].GetString()),
         strain_type,
         r_element,
-        SensorParameters["weight"].GetDouble()
+        SensorParameters["weight"].GetDouble(),
+        SensorParameters["error_threshold"].GetDouble()
     );
 
     SensorUtils::ReadVariableData(p_sensor->GetNode()->GetData(), SensorParameters["variable_data"]);
@@ -148,6 +150,7 @@ Parameters StrainSensor::GetDefaultParameters()
         "strain_type"    : "strain_xx",
         "strain_variable": "SHELL_STRAIN",
         "weight"         : 0.0,
+        "error_threshold": 1e-16,
         "variable_data": {}
     })" );
 }

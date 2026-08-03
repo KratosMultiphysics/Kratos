@@ -35,6 +35,10 @@ class SensorModelPartController(ModelPartController):
 
     def ImportModelPart(self) -> None:
         self.domain_model_part = self.model[self.domain_model_part_name]
+
+        vtu_output: Kratos.VtuOutput = Kratos.VtuOutput(self.domain_model_part)
+        vtu_output.PrintOutput("domain_model_part.vtu")
+
         self.list_of_sensors = CreateSensors(self.sensor_model_part, self.domain_model_part, self.parameters["list_of_sensors"].values())
 
         # add the list of sensors to optimization problem

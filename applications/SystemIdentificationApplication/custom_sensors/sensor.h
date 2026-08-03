@@ -53,14 +53,16 @@ public:
      *                  position should reflect the location of the sensor. It does not have to necessarily
      *                  coincide with a mesh node. Usually these nodes are created in a separate model part
      *                  and not as a part of the mesh.
-     * @param rName     Name of the sensor. Needs to be unique.
-     * @param pNode     Node which represents the location of the sensor and data value container.
-     * @param Weight    Weight of the sensor.
+     * @param rName             Name of the sensor. Needs to be unique.
+     * @param pNode             Node which represents the location of the sensor and data value container.
+     * @param Weight            Weight of the sensor.
+     * @param ErrorThreshold    Absolute error threshold below which SENSOR_ERROR is treated as zero.
      */
     Sensor(
         const std::string& rName,
         Node::Pointer pNode,
-        const double Weight);
+        const double Weight,
+        const double ErrorThreshold = 1e-16);
 
     /// Destructor.
     ~Sensor() = default;
@@ -138,6 +140,13 @@ public:
     double GetWeight() const;
 
     /**
+     * @brief Get the Error Threshold of the sensor.
+     *
+     * @return double       The absolute error threshold below which SENSOR_ERROR is treated as zero.
+     */
+    double GetErrorThreshold() const;
+
+    /**
      * @brief Get the Sensor value
      *
      * @return double       Value of the sensor.
@@ -207,6 +216,8 @@ private:
     Node::Pointer mpNode;
 
     const double mWeight;
+
+    const double mErrorThreshold;
 
     double mSensorValue;
 
