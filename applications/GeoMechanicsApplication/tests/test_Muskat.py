@@ -28,9 +28,7 @@ def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=Non
 
 
 def extract_saturation_and_y_from_line(line):
-    return _extract_x_and_y_from_line(
-        line, index_of_x=1, index_of_y=0, x_transform=lambda x: x
-    )
+    return _extract_x_and_y_from_line(line, index_of_x=1, index_of_y=0)
 
 
 def extract_x_and_y_from_line(line):
@@ -39,7 +37,8 @@ def extract_x_and_y_from_line(line):
 
 class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
     """
-    To be detailed out
+    A test suite representing (semi)-Muskat test cases. Instead of a seepage boundary, a fixed head is used on the
+    right boundary. For more information on the test case, see the README.md file in the corresponding test folder.
     """
 
     def _assert_muskat_results(
@@ -92,7 +91,9 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             )
 
             asserted_data_points = []
-            for expected_result in expected_results_for_variable["EFFECTIVE_SATURATION"]:
+            for expected_result in expected_results_for_variable[
+                "EFFECTIVE_SATURATION"
+            ]:
                 effective_saturation = expected_result.value * 100
 
                 asserted_data_points.append(
@@ -117,31 +118,27 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 yaxis_inverted=False,
             )
 
-        xs = []
-        ys = []
-        pressures = []
-        for node in simulation.model.GetModelPart(
+        model_part = simulation.model.GetModelPart(
             "PorousDomain.porous_computational_model_part"
-        ).Nodes:
-            xs.append(node.X)
-            ys.append(node.Y)
-            pressures.append(
-                GiDOutputFileReader.nodal_values_at_time(
-                    "WATER_PRESSURE",
-                    1.0,
-                    output_data,
-                    [node.Id],
-                )[0]
-            )
+        )
+        nodes = list(model_part.Nodes)
+        node_ids = [node.Id for node in nodes]
+        xs = [node.X for node in nodes]
+        ys = [node.Y for node in nodes]
+        pressures = GiDOutputFileReader.nodal_values_at_time(
+            "WATER_PRESSURE",
+            1.0,
+            output_data,
+            node_ids,
+        )
 
         if test_helper.want_test_plots():
             import matplotlib.pyplot as plt
-            import numpy as np
             from matplotlib.tri import Triangulation
 
             tri = Triangulation(xs, ys)
             plt.figure(figsize=(10, 8))
-            contour_zero = plt.tricontour(tri, pressures, levels=[0])
+            contour_zero = plt.tricontour(tri, pressures, levels=[0.0])
 
             # Extract isoline coordinates
             isoline_coords = []
@@ -192,7 +189,6 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 self.assertAlmostEqual(expected_result.value, actual_results[idx], 6)
 
     def test_van_genuchten_hydrostatic(self):
-
         @dataclass
         class ExpectedResult:
             node_id: int
