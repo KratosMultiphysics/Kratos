@@ -33,6 +33,10 @@
 #include "lobatto_integration_scheme.h"
 #include "lumped_integration_scheme.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace
 {
 
@@ -103,7 +107,8 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
       mpStressStatePolicy(std::move(pStressStatePolicy)),
       mContributions(rContributions)
 {
-    MakeIntegrationSchemeAndAssignFunction();
+    MakeIntegrationScheme();
+    InitializeRotationMatrixCalculator();
     mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
 }
 
@@ -117,17 +122,16 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
 {
 }
 
-void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
+void UPwInterfaceElement::MakeIntegrationScheme()
 {
-    if (GetDisplacementGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
-        mpIntegrationScheme =
-            std::make_unique<LobattoIntegrationScheme>(GetDisplacementMidGeometry().PointsNumber());
-        mfpCalculateRotationMatrix = GeometryUtilities::Calculate2DRotationMatrixForLineGeometry;
-    } else {
-        mpIntegrationScheme =
-            std::make_unique<LumpedIntegrationScheme>(GetDisplacementMidGeometry().PointsNumber());
-        mfpCalculateRotationMatrix = GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry;
-    }
+    const auto is_line_interface = GetDisplacementGeometry().GetGeometryFamily() ==
+                                   GeometryData::KratosGeometryFamily::Kratos_Linear;
+    mpIntegrationScheme =
+        is_line_interface
+            ? std::unique_ptr<IntegrationScheme>{std::make_unique<LobattoIntegrationScheme>(
+                  GetDisplacementMidGeometry().PointsNumber())}
+            : std::unique_ptr<IntegrationScheme>{std::make_unique<LumpedIntegrationScheme>(
+                  GetDisplacementMidGeometry().PointsNumber())};
 }
 
 Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
@@ -526,6 +530,15 @@ const Geometry<Node>& UPwInterfaceElement::GetDisplacementMidGeometry() const
 {
     constexpr auto unused_part_index = std::size_t{0};
     return GetDisplacementGeometry().GetGeometryPart(unused_part_index);
+}
+
+void UPwInterfaceElement::InitializeRotationMatrixCalculator()
+{
+    const auto is_line_interface = GetDisplacementGeometry().GetGeometryFamily() ==
+                                   GeometryData::KratosGeometryFamily::Kratos_Linear;
+    mfpCalculateRotationMatrix = is_line_interface
+                                     ? GeometryUtilities::Calculate2DRotationMatrixForLineGeometry
+                                     : GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry;
 }
 
 Element::DofsVectorType UPwInterfaceElement::GetDofs() const
@@ -1090,6 +1103,44 @@ void UPwInterfaceElement::CalculateAndAssembleFluidBodyFlowVector(VectorType& rR
 {
     GeoElementUtilities::AssemblePBlockVector(
         rRightHandSideVector, CreateFluidBodyFlowCalculator<TNumNodes>().RHSContribution());
+}
+
+void UPwInterfaceElement::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+
+    rSerializer.save("IntegrationScheme"s, mpIntegrationScheme);
+    rSerializer.save("StressStatePolicy"s, mpStressStatePolicy);
+    rSerializer.save("ConstitutiveLaws"s, mConstitutiveLaws);
+    rSerializer.save("RetentionLaws"s, mRetentionLaws);
+    rSerializer.save("IntegrationCoefficientsCalculator"s, mIntegrationCoefficientsCalculator);
+    rSerializer.save("OptionalPressureGeometry"s, mpOptionalPressureGeometry);
+    auto contributions = std::vector<int>{};
+    std::ranges::transform(mContributions, std::back_inserter(contributions),
+                           [](auto contribution) { return static_cast<int>(contribution); });
+    rSerializer.save("Contributions"s, contributions);
+
+    // No need to save data member `mfpCalculateRotationMatrix`, it can be reinitialized based on the geometry family
+}
+
+void UPwInterfaceElement::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+
+    rSerializer.load("IntegrationScheme"s, mpIntegrationScheme);
+    rSerializer.load("StressStatePolicy"s, mpStressStatePolicy);
+    rSerializer.load("ConstitutiveLaws"s, mConstitutiveLaws);
+    rSerializer.load("RetentionLaws"s, mRetentionLaws);
+    rSerializer.load("IntegrationCoefficientsCalculator"s, mIntegrationCoefficientsCalculator);
+    rSerializer.load("OptionalPressureGeometry"s, mpOptionalPressureGeometry);
+    auto contributions = std::vector<int>{};
+    rSerializer.load("Contributions"s, contributions);
+    mContributions.clear();
+    std::ranges::transform(contributions, std::back_inserter(mContributions), [](auto contribution) {
+        return static_cast<CalculationContribution>(contribution);
+    });
+
+    InitializeRotationMatrixCalculator();
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.

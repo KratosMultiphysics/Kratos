@@ -699,37 +699,49 @@ private:
 
         for (auto& r_node : r_model_part.Nodes()) {
 
-            // initialize the full vector to zero first
+            // Initialize imaginary displacement
             auto& r_displacement_imaginary = r_node.FastGetSolutionStepValue(DISPLACEMENT_IMAGINARY);
-            r_displacement_imaginary[0] = 0.0;
-            r_displacement_imaginary[1] = 0.0;
-            r_displacement_imaginary[2] = 0.0;
+            auto& r_rotation_imaginary = r_node.FastGetSolutionStepValue(ROTATION_IMAGINARY);
+
+            r_displacement_imaginary = ZeroVector(3);
+            r_rotation_imaginary = ZeroVector(3);
 
             auto& r_node_dofs = r_node.GetDofs();
 
             for (auto it_dof = r_node_dofs.begin(); it_dof != r_node_dofs.end(); ++it_dof) {
+
                 auto& p_dof = *it_dof;
                 const auto& r_var = p_dof->GetVariable();
 
                 if (!p_dof->IsFixed()) {
+
                     const std::size_t eq_id = p_dof->EquationId();
                     const ComplexType u = rSolution[eq_id];
 
                     const double u_real = std::real(u);
                     const double u_imag = std::imag(u);
 
-                    // real part -> actual displacement DOF value
+                    // Store real part
                     p_dof->GetSolutionStepValue() = u_real;
 
-                    // imaginary part -> MESH_DISPLACEMENT vector
+                    // Store imaginary part
                     if (r_var == DISPLACEMENT_X) {
                         r_displacement_imaginary[0] = u_imag;
                     } else if (r_var == DISPLACEMENT_Y) {
                         r_displacement_imaginary[1] = u_imag;
                     } else if (r_var == DISPLACEMENT_Z) {
                         r_displacement_imaginary[2] = u_imag;
+                    } else if (r_var == ROTATION_X) {
+                        r_rotation_imaginary[0] = u_imag;
+                    } else if (r_var == ROTATION_Y) {
+                        r_rotation_imaginary[1] = u_imag;
+                    } else if (r_var == ROTATION_Z) {
+                        r_rotation_imaginary[2] = u_imag;
                     }
+
                 } else {
+
+                    // Fixed DOFs
                     p_dof->GetSolutionStepValue() = 0.0;
 
                     if (r_var == DISPLACEMENT_X) {
@@ -738,6 +750,12 @@ private:
                         r_displacement_imaginary[1] = 0.0;
                     } else if (r_var == DISPLACEMENT_Z) {
                         r_displacement_imaginary[2] = 0.0;
+                    } else if (r_var == ROTATION_X) {
+                        r_rotation_imaginary[0] = 0.0;
+                    } else if (r_var == ROTATION_Y) {
+                        r_rotation_imaginary[1] = 0.0;
+                    } else if (r_var == ROTATION_Z) {
+                        r_rotation_imaginary[2] = 0.0;
                     }
                 }
             }

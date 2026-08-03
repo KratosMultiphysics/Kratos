@@ -32,7 +32,6 @@ using TrilinosVectorType = TrilinosSparseSpaceType::VectorType;
 using TrilinosLocalMatrixType = TrilinosLocalSpaceType::MatrixType;
 using TrilinosLocalVectorType = TrilinosLocalSpaceType::VectorType;
 
-
 KRATOS_TEST_CASE_IN_SUITE(TrilinosVectorSetValue, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
@@ -50,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosVectorSetValue, KratosTrilinosApplicationMPITe
     // Solution global
     TrilinosSparseSpaceType::SetToZero(vector);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetGlobalValue(vector, rank * 2 + i, 1.0);
+        TrilinosAssemblingUtilities<TrilinosSparseSpaceType>::SetGlobalValue(vector, rank * 2 + i, 1.0);
     }
 
     // Check global
@@ -59,7 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosVectorSetValue, KratosTrilinosApplicationMPITe
     // Solution local
     TrilinosSparseSpaceType::SetToZero(vector);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetLocalValue(vector, i, 1.0);
+        TrilinosAssemblingUtilities<TrilinosSparseSpaceType>::SetLocalValue(vector, i, 1.0);
     }
 
     // Check local
@@ -83,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosVectorSetGlobalValueWithoutGlobalAssembly, Kra
     // Solution global
     TrilinosSparseSpaceType::SetToZero(vector);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(vector, rank * 2 + i, 1.0);
+        TrilinosAssemblingUtilities<TrilinosSparseSpaceType>::SetGlobalValueWithoutGlobalAssembly(vector, rank * 2 + i, 1.0);
     }
     vector.GlobalAssemble();
 
@@ -93,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosVectorSetGlobalValueWithoutGlobalAssembly, Kra
     // Solution local
     TrilinosSparseSpaceType::SetToZero(vector);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetLocalValueWithoutGlobalAssembly(vector, i, 1.0);
+        TrilinosAssemblingUtilities<TrilinosSparseSpaceType>::SetLocalValueWithoutGlobalAssembly(vector, i, 1.0);
     }
     vector.GlobalAssemble();
 
@@ -117,7 +116,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosMatrixSetValue, KratosTrilinosApplicationMPITe
 
     // Solution global
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetGlobalValue(matrix, rank * 2 + i, rank * 2 + i, 1.0);
+        TrilinosAssemblingUtilities<TrilinosSparseSpaceType>::SetGlobalValue(matrix, rank * 2 + i, rank * 2 + i, 1.0);
     }
 
     // Check global
@@ -126,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosMatrixSetValue, KratosTrilinosApplicationMPITe
     // Solution local
     TrilinosSparseSpaceType::SetToZero(matrix);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetLocalValue(matrix, i, i, 1.0);
+        TrilinosAssemblingUtilities<TrilinosSparseSpaceType>::SetLocalValue(matrix, i, i, 1.0);
     }
 
     // Check local
@@ -149,7 +148,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosMatrixSetGlobalValueWithoutGlobalAssembly, Kra
 
     // Solution global
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(matrix, rank * 2 + i, rank * 2 + i, 1.0);
+        TrilinosAssemblingUtilities<TrilinosSparseSpaceType>::SetGlobalValueWithoutGlobalAssembly(matrix, rank * 2 + i, rank * 2 + i, 1.0);
     }
     matrix.GlobalAssemble();
 
@@ -159,7 +158,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosMatrixSetGlobalValueWithoutGlobalAssembly, Kra
     // Solution local
     TrilinosSparseSpaceType::SetToZero(matrix);
     for (int i = 0; i < 2; ++i) {
-        TrilinosAssemblingUtilities::SetLocalValueWithoutGlobalAssembly(matrix, i, i, 1.0);
+        TrilinosAssemblingUtilities<TrilinosSparseSpaceType>::SetLocalValueWithoutGlobalAssembly(matrix, i, i, 1.0);
     }
     matrix.GlobalAssemble();
 

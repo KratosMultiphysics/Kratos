@@ -32,7 +32,6 @@
 
 namespace Kratos
 {
-
 template <unsigned int TDim, unsigned int TNumNodes>
 UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType             NewId,
                                                               const NodesArrayType& ThisNodes,
@@ -258,7 +257,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const 
                "UPwSmallStrainElement::SetValuesOnIntegrationPoints"
             << std::endl;
         mStressVector.resize(rValues.size());
-        std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
+        std::ranges::copy(rValues, mStressVector.begin());
     } else {
         KRATOS_ERROR_IF(rValues.size() < mConstitutiveLawVector.size())
             << "Insufficient number of values for "
@@ -378,21 +377,17 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                                    nodal_hydraulic_head.begin(), 0.0);
         }
     } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
-        size_t variable_index = 0;
+        auto variable_index = std::size_t{0};
         if (rVariable == CONFINED_STIFFNESS) {
-            if (TDim == 2) {
-                variable_index = INDEX_2D_PLANE_STRAIN_XX;
-            } else if (TDim == 3) {
-                variable_index = INDEX_3D_XX;
-            } else {
+            if constexpr (!(TDim == 2 || TDim == 3)) {
                 KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
             }
         } else if (rVariable == SHEAR_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = INDEX_2D_PLANE_STRAIN_XY;
+                variable_index = std::size_t{3};
             } else if (TDim == 3) {
-                variable_index = INDEX_3D_XZ;
+                variable_index = std::size_t{5};
             } else {
                 KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
@@ -975,7 +970,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLef
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                            const ElementVariables& rVariables)
+                                                                            const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1333,7 +1328,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariable
 
     rVariables.detJ = rVariables.detJContainer[IntegrationPointIndex];
 
-    Matrix J0, InvJ0;
+    Matrix J0;
+    Matrix InvJ0;
     this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0, InvJ0,
                                                      rVariables.GradNpTInitialConfiguration,
                                                      IntegrationPointIndex);
@@ -1363,19 +1359,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
 {
     if (rStrainVectors.size() != rDeformationGradients.size()) {
         rStrainVectors.resize(rDeformationGradients.size());
-        std::fill(rStrainVectors.begin(), rStrainVectors.end(),
-                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
+        std::ranges::fill(rStrainVectors, ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
     }
     if (rStressVectors.size() != rDeformationGradients.size()) {
         rStressVectors.resize(rDeformationGradients.size());
-        std::fill(rStressVectors.begin(), rStressVectors.end(),
-                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
+        std::ranges::fill(rStressVectors, ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
     }
     if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
         rConstitutiveMatrices.resize(rDeformationGradients.size());
-        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
-                  ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(),
-                             this->GetStressStatePolicy().GetVoigtSize()));
+        std::ranges::fill(rConstitutiveMatrices, ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(),
+                                                            this->GetStressStatePolicy().GetVoigtSize()));
     }
 
     const auto determinants_of_deformation_gradients =

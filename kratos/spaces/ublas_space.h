@@ -185,6 +185,17 @@ public:
         return VectorPointerType(new TVectorType(0));
     }
 
+    /**
+     * @brief This method returns true if the pointer is null
+     * @param pPointer The pointer considered
+     * @return True if the pointer is null
+     */
+    template<class TPointerType>
+    inline static bool IsNull(const TPointerType& pPointer)
+    {
+        return !static_cast<bool>(pPointer);
+    }
+
     /// return size of vector rV
 
     static IndexType Size(VectorType const& rV)

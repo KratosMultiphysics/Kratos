@@ -52,7 +52,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.number_cycles       = solver_settings["number_cycles"].GetInt()
         self.max_iterations      = solver_settings["max_iterations"].GetInt()
         self.solution_type       = solver_settings["solution_type"].GetString()
-        self.reset_displacements = solver_settings["reset_displacements"].GetBool()
+        self.reset_totals        = solver_settings["reset_totals"].GetBool()
         self.rebuild_level       = solver_settings["rebuild_level"].GetInt()
 
     def Initialize(self):
@@ -63,7 +63,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 
-        if self.reset_displacements:
+        if self.reset_totals:
             self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_DISPLACEMENT)
             self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_ROTATION)
 

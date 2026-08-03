@@ -100,10 +100,13 @@ if(${INSTALL_TPL_LIBRARIES} MATCHES ON)
         install(DIRECTORY "${MED_ROOT_DEP}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
     endif()
     if(UNIX AND NOT APPLE)
-        file(GLOB_RECURSE LIB_FILES "${HDF5_ROOT_DEP_LIB}/*.so*")
-        file(GLOB_RECURSE LIB_FILES APPEND "${HDF5_ROOT_DEP_BIN}/*.so*")
-        file(GLOB_RECURSE LIB_FILES APPEND "${MED_ROOT_DEP}/*.so*")
-        install(FILES ${LIB_FILES} DESTINATION libs)
+        file(GLOB_RECURSE HDF5_LIB_FILES "${HDF5_ROOT_DEP_LIB}/*.so*")
+        file(GLOB_RECURSE HDF5_BIN_FILES "${HDF5_ROOT_DEP_BIN}/*.so*")
+        file(GLOB_RECURSE MED_LIB_FILES  "${MED_ROOT_DEP}/*.so*")
+        
+        set(ALL_LIB_FILES ${HDF5_LIB_FILES} ${HDF5_BIN_FILES} ${MED_LIB_FILES})
+        
+        install(FILES ${ALL_LIB_FILES} DESTINATION libs)
     endif()
 endif()
 

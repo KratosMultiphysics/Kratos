@@ -212,9 +212,10 @@ protected:
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
 
     void CalculateAndAddStiffnessMatrix(MatrixType&                      rLeftHandSideMatrix,
-                                        const InterfaceElementVariables& rVariables);
+                                        const InterfaceElementVariables& rVariables) const;
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const InterfaceElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType&                      rLeftHandSideMatrix,
+                                       const InterfaceElementVariables& rVariables) const;
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
                                                       const InterfaceElementVariables& rVariables);
@@ -232,7 +233,7 @@ protected:
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
+    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables) const;
 
     virtual void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
                                                     const InterfaceElementVariables& rVariables);
@@ -248,7 +249,7 @@ protected:
     template <class TValueType>
     void InterpolateOutputValues(std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues);
 
-    double CalculateBulkModulus(const Matrix& ConstitutiveMatrix);
+    double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
 
     void InitializeBiotCoefficients(InterfaceElementVariables& rVariables, const bool& hasBiotCoefficient = false);
 
@@ -258,7 +259,7 @@ protected:
 
     void CalculateSoilGamma(InterfaceElementVariables& rVariables);
 
-    Vector SetFullStressVector(const Vector& rStressVector);
+    Vector SetFullStressVector(const Vector& rStressVector) const;
 
 private:
     /// Member Variables
