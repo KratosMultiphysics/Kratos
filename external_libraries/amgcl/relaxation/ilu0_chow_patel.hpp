@@ -172,7 +172,7 @@ struct ilu0_chow_patel {
         auto &inv_diag = *inv_diag_ptr;  // inv_diag[i] = 1/a_ii
 
         // scale[i] is the left scale factor d_i for row i.
-        backend::numa_vector<value_type> scale(n, false);
+        backend::numa_vector<value_type> scale(n);
 #ifdef _OPENMP
 #  pragma omp parallel for schedule(guided, 64)
 #endif
@@ -214,16 +214,16 @@ struct ilu0_chow_patel {
         const size_t Lnz = static_cast<size_t>(Lptr[n]);
         const size_t Unz = static_cast<size_t>(Uptr[n]);
 
-        // Use numa_vector (no zero-fill on allocation) so that the parallel
-        // first-touch in step 3 below places each page on the NUMA node of
-        // the thread that will own it during the sweep loops.
-        backend::numa_vector<col_type>   Lcol(Lnz, false);
-        backend::numa_vector<value_type> Lval(Lnz, false);
+        // Zero-initialize all factor arrays so that repeated construction
+        // never reads stale data from a previous factorization that happened
+        // to reuse the same heap pages.
+        backend::numa_vector<col_type>   Lcol(Lnz);
+        backend::numa_vector<value_type> Lval(Lnz);
 
-        backend::numa_vector<col_type>   Ucol(Unz, false);
-        backend::numa_vector<value_type> Uval(Unz, false);
+        backend::numa_vector<col_type>   Ucol(Unz);
+        backend::numa_vector<value_type> Uval(Unz);
 
-        backend::numa_vector<value_type> Udiag(n, false);
+        backend::numa_vector<value_type> Udiag(n);
 
         // -----------------------------------------------------------------
         // 3. Standard initial guess (Section 2.3 of the paper):
@@ -265,8 +265,8 @@ struct ilu0_chow_patel {
         // Keep a copy of the scaled matrix entries as RHS of the fixed-point
         // equations (these do not change during sweeps).  Parallel copy so
         // that a_L / a_U are first-touched on the same nodes as Lval / Uval.
-        backend::numa_vector<value_type> a_L(Lnz, false);
-        backend::numa_vector<value_type> a_U(Unz, false);
+        backend::numa_vector<value_type> a_L(Lnz);
+        backend::numa_vector<value_type> a_U(Unz);
 #ifdef _OPENMP
 #  pragma omp parallel for schedule(guided, 64)
 #endif
@@ -287,7 +287,7 @@ struct ilu0_chow_patel {
         // -----------------------------------------------------------------
         std::vector<ptr_type>    Ucptr(n + 1, 0);
         std::vector<col_type>    Ucrow(Unz);
-        backend::numa_vector<value_type> Ucval(Unz, false);
+        backend::numa_vector<value_type> Ucval(Unz);
 
         // build_ucsc: rebuild full CSC (structure + values) from current Uval.
         // Structure is computed sequentially; values are then filled in
@@ -487,10 +487,10 @@ struct ilu0_chow_patel {
         // -----------------------------------------------------------------
         auto L_out = std::make_shared<build_matrix>();
         auto U_out = std::make_shared<build_matrix>();
-        L_out->set_size(n, n); L_out->set_nonzeros(Lnz); L_out->ptr[0] = 0;
-        U_out->set_size(n, n); U_out->set_nonzeros(Unz); U_out->ptr[0] = 0;
+        L_out->set_size(n, n, true); L_out->set_nonzeros(Lnz); L_out->ptr[0] = 0;
+        U_out->set_size(n, n, true); U_out->set_nonzeros(Unz); U_out->ptr[0] = 0;
 
-        auto D_out = std::make_shared<backend::numa_vector<value_type>>(n, false);
+        auto D_out = std::make_shared<backend::numa_vector<value_type>>(n);
 
 #ifdef _OPENMP
 #  pragma omp parallel for schedule(guided, 64)
