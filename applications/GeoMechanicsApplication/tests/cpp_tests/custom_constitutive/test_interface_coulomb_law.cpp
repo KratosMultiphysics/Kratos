@@ -48,7 +48,7 @@ Vector IntegrateInterfaceCoulombDisplacementPath(const Properties& rProperties,
     parameters.SetMaterialProperties(rProperties);
 
     Vector relative_displacement = ZeroVector(2);
-	Vector traction_vector = ZeroVector(2);
+    Vector traction_vector       = ZeroVector(2);
     parameters.SetStrainVector(relative_displacement);
     parameters.SetStressVector(traction_vector);
     law.InitializeMaterialResponseCauchy(parameters);
@@ -534,10 +534,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAX_RELATIVE_OVERSHOOT in the property with Id 3 has an invalid value: 2 is out of the range (0, 1].")
     properties.SetValue(GEO_MAX_RELATIVE_OVERSHOOT, 0.1);
 
-	properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 0);
-	KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+    properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_MAX_NUMBER_OF_SUB_STEPS in the property with Id 3 has an invalid value: 0 is out of the range [1, 2.14748e+09].")
-    properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS,100);
+    properties.SetValue(GEO_MAX_NUMBER_OF_SUB_STEPS, 100);
 
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
