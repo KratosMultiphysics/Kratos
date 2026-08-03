@@ -26,7 +26,7 @@ The phreatic line profile is visualized below:
 
 The saturation profile at x = 1.52 (10 cm from the right boundary) is visualized below:
 
-![Saturation on right boundary](van_genuchten_hydrostatic/saturation_on_right_boundary.svg)
+![Saturation on right boundary](van_genuchten_hydrostatic/saturation_for_x_1_52.svg)
 
 
 ## Assertions

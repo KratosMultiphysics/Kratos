@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "not_Muskat_yet",
+        "problem_name": "Muskat_Dirichlet",
         "start_time": 0.0,
         "end_time": 1.0,
         "echo_level": 1,
@@ -57,7 +57,7 @@
                 "process_name": "GiDOutputProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "output_name": "not_Muskat_yet",
+                    "output_name": "Muskat_Dirichlet",
                     "postprocess_parameters": {
                         "result_file_configuration": {
                             "gidpost_flags": {

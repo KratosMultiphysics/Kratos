@@ -42,7 +42,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
     To be detailed out
     """
 
-    def _assert_fully_saturated_flow(
+    def _assert_muskat_results(
         self, parent_name, test_name, expected_results_for_variable
     ):
         file_path = test_helper.get_file_path(os.path.join(parent_name, test_name))
@@ -50,7 +50,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
 
         reader = GiDOutputFileReader()
         output_data = reader.read_output_from(
-            os.path.join(file_path, "not_Muskat_yet.post.res")
+            os.path.join(file_path, "Muskat_Dirichlet.post.res")
         )
         if test_helper.want_test_plots():
             data_series_collection = []
@@ -111,8 +111,8 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             )
             plot_utils._make_plot(
                 data_series_collection,
-                os.path.join(file_path, "saturation_on_right_boundary.svg"),
-                xlabel="Degree of Saturation [%]",
+                os.path.join(file_path, "saturation_for_x_1_52.svg"),
+                xlabel="Effective Saturation [%]",
                 ylabel="Y [m]",
                 yaxis_inverted=False,
             )
@@ -210,7 +210,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 ExpectedResult(node_id=1440, value=0.924914),
             ],
         }
-        self._assert_fully_saturated_flow(
+        self._assert_muskat_results(
             "Muskat", "van_genuchten_hydrostatic", expected_results_for_variables
         )
 
