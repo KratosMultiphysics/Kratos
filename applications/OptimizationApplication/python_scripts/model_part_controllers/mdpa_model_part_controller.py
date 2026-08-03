@@ -12,9 +12,7 @@ class MdpaModelPartController(ModelPartController):
             "model_part_name": "",
             "input_filename" : "",
             "domain_size"    : -1,
-            "read_data"      : false,
-            "offset_x"       : 0.0,
-            "offset_y"       : 0.0
+            "read_data"      : false
         }""")
 
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -33,8 +31,6 @@ class MdpaModelPartController(ModelPartController):
 
         self.model_part = model.CreateModelPart(model_part_name)
         self.read_data = parameters["read_data"].GetBool()
-        self.offset_x = parameters["offset_x"].GetDouble()
-        self.offset_y = parameters["offset_y"].GetDouble()
 
     def ImportModelPart(self) -> None:
         if self.read_data:
@@ -43,13 +39,6 @@ class MdpaModelPartController(ModelPartController):
             Kratos.ModelPartIO(self.input_filename, Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(self.model_part)
 
         self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = self.domain_size
-
-        if self.offset_x != 0.0 or self.offset_y != 0.0:
-            for node in self.model_part.Nodes:
-                node.X0 += self.offset_x
-                node.Y0 += self.offset_y
-                node.X += self.offset_x
-                node.Y += self.offset_y
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model_part
