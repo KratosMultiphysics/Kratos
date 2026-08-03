@@ -20,6 +20,7 @@
 #include "apply_phreatic_multi_line_pressure_table_process.h"
 #include "apply_phreatic_surface_pressure_table_process.h"
 #include "custom_utilities/parameters_utilities.h"
+#include "custom_utilities/process_utilities.h"
 #include "geo_apply_constant_scalar_value_process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -28,67 +29,74 @@ namespace Kratos
 {
 using namespace std::string_literals;
 
-ApplyScalarConstraintTableProcess::ApplyScalarConstraintTableProcess(ModelPart& rModelPart,
-                                                                     const Parameters& rProcessSettings)
-    : Process(Flags()), mrModelPart{rModelPart}
+ApplyScalarConstraintTableProcess::ApplyScalarConstraintTableProcess(Model& rModel, const Parameters& rProcessSettings)
+    : Process(Flags())
 {
-    MakeInternalProcess(rProcessSettings);
+    const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(
+        rModel, rProcessSettings, "ApplyScalarConstraintTableProcess");
+
+    mProcesses.reserve(model_parts.size());
+    for (const auto& r_model_part : model_parts)
+        MakeInternalProcess(r_model_part, rProcessSettings);
 }
 
-void ApplyScalarConstraintTableProcess::MakeInternalProcess(const Parameters& rProcessSettings)
+void ApplyScalarConstraintTableProcess::MakeInternalProcess(ModelPart& rModelPart, const Parameters& rProcessSettings)
 {
-    auto names_of_settings_to_copy = std::vector<std::string>{"model_part_name", "variable_name"};
+    auto names_of_settings_to_copy = std::vector{"variable_name"s};
     ParametersUtilities::AppendParameterNameIfExists("is_fixed", rProcessSettings, names_of_settings_to_copy);
 
     if (rProcessSettings.Has("fluid_pressure_type")) {
-        MakeProcessForFluidPressureType(rProcessSettings, std::move(names_of_settings_to_copy));
+        MakeProcessForFluidPressureType(rModelPart, rProcessSettings, std::move(names_of_settings_to_copy));
     } else {
-        MakeScalarConstraintProcess(rProcessSettings, std::move(names_of_settings_to_copy));
+        MakeScalarConstraintProcess(rModelPart, rProcessSettings, std::move(names_of_settings_to_copy));
     }
 }
 
-void ApplyScalarConstraintTableProcess::MakeProcessForFluidPressureType(const Parameters& rProcessSettings,
+void ApplyScalarConstraintTableProcess::MakeProcessForFluidPressureType(ModelPart& rModelPart,
+                                                                        const Parameters& rProcessSettings,
                                                                         std::vector<std::string> NamesOfSettingsToCopy)
 {
     const auto fluid_pressure_type = rProcessSettings["fluid_pressure_type"].GetString();
     if (fluid_pressure_type == "Uniform") {
-        MakeScalarConstraintProcess(rProcessSettings, std::move(NamesOfSettingsToCopy));
+        MakeScalarConstraintProcess(rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Hydrostatic") {
-        MakeProcessForHydrostaticFluidPressure(rProcessSettings, std::move(NamesOfSettingsToCopy));
+        MakeProcessForHydrostaticFluidPressure(rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Phreatic_Line") {
-        MakeProcessForPhreaticLine(rProcessSettings, std::move(NamesOfSettingsToCopy));
+        MakeProcessForPhreaticLine(rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Phreatic_Multi_Line") {
-        MakeProcessForPhreaticMultiLine(rProcessSettings, std::move(NamesOfSettingsToCopy));
+        MakeProcessForPhreaticMultiLine(rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Interpolate_Line") {
-        MakeProcessForInterpolatedLine(rProcessSettings, std::move(NamesOfSettingsToCopy));
+        MakeProcessForInterpolatedLine(rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Phreatic_Surface") {
-        MakeProcessForPhreaticSurface(rProcessSettings, std::move(NamesOfSettingsToCopy));
+        MakeProcessForPhreaticSurface(rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else {
         KRATOS_ERROR << "Unknown fluid_pressure_type: " << fluid_pressure_type << std::endl;
     }
 }
 
-void ApplyScalarConstraintTableProcess::MakeScalarConstraintProcess(const Parameters& rProcessSettings,
+void ApplyScalarConstraintTableProcess::MakeScalarConstraintProcess(ModelPart& rModelPart,
+                                                                    const Parameters& rProcessSettings,
                                                                     std::vector<std::string> NamesOfSettingsToCopy)
 {
-    NamesOfSettingsToCopy.emplace_back("value");
+    NamesOfSettingsToCopy.emplace_back("value"s);
 
     InstantiateProcessByTablePresence<ApplyComponentTableProcess, GeoApplyConstantScalarValueProcess>(
-        rProcessSettings, std::move(NamesOfSettingsToCopy));
+        rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
 }
 
-void ApplyScalarConstraintTableProcess::MakeProcessForHydrostaticFluidPressure(const Parameters& rProcessSettings,
-                                                                               std::vector<std::string> NamesOfSettingsToCopy)
+void ApplyScalarConstraintTableProcess::MakeProcessForHydrostaticFluidPressure(
+    ModelPart& rModelPart, const Parameters& rProcessSettings, std::vector<std::string> NamesOfSettingsToCopy)
 {
     NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(),
                                  {"gravity_direction", "reference_coordinate", "specific_weight"});
     AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
 
     InstantiateProcessByTablePresence<ApplyHydrostaticPressureTableProcess, ApplyConstantHydrostaticPressureProcess>(
-        rProcessSettings, std::move(NamesOfSettingsToCopy));
+        rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
 }
 
-void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticLine(const Parameters& rProcessSettings,
+void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticLine(ModelPart& rModelPart,
+                                                                   const Parameters& rProcessSettings,
                                                                    std::vector<std::string> NamesOfSettingsToCopy)
 {
     NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(),
@@ -98,10 +106,11 @@ void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticLine(const Paramet
     AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
 
     InstantiateProcessByTablePresence<ApplyPhreaticLinePressureTableProcess, ApplyConstantPhreaticLinePressureProcess>(
-        rProcessSettings, std::move(NamesOfSettingsToCopy));
+        rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
 }
 
-void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticMultiLine(const Parameters& rProcessSettings,
+void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticMultiLine(ModelPart& rModelPart,
+                                                                        const Parameters& rProcessSettings,
                                                                         std::vector<std::string> NamesOfSettingsToCopy)
 {
     NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(),
@@ -111,10 +120,11 @@ void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticMultiLine(const Pa
     AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
 
     InstantiateProcessByTablePresence<ApplyPhreaticMultiLinePressureTableProcess, ApplyConstantPhreaticMultiLinePressureProcess>(
-        rProcessSettings, std::move(NamesOfSettingsToCopy));
+        rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
 }
 
-void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticSurface(const Parameters& rProcessSettings,
+void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticSurface(ModelPart& rModelPart,
+                                                                      const Parameters& rProcessSettings,
                                                                       std::vector<std::string> NamesOfSettingsToCopy)
 {
     NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(),
@@ -124,10 +134,11 @@ void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticSurface(const Para
     AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
 
     InstantiateProcessByTablePresence<ApplyPhreaticSurfacePressureTableProcess, ApplyConstantPhreaticSurfacePressureProcess>(
-        rProcessSettings, std::move(NamesOfSettingsToCopy));
+        rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
 }
 
-void ApplyScalarConstraintTableProcess::MakeProcessForInterpolatedLine(const Parameters& rProcessSettings,
+void ApplyScalarConstraintTableProcess::MakeProcessForInterpolatedLine(ModelPart& rModelPart,
+                                                                       const Parameters& rProcessSettings,
                                                                        std::vector<std::string> NamesOfSettingsToCopy)
 {
     KRATOS_ERROR_IF(ParametersUtilities::HasTableAttached(rProcessSettings))
@@ -138,18 +149,27 @@ void ApplyScalarConstraintTableProcess::MakeProcessForInterpolatedLine(const Par
 
     AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
 
-    mProcess = std::make_unique<ApplyConstantInterpolateLinePressureProcess>(
-        mrModelPart, ParametersUtilities::CopyRequiredParameters(rProcessSettings, NamesOfSettingsToCopy));
+    mProcesses.emplace_back(std::make_unique<ApplyConstantInterpolateLinePressureProcess>(
+        rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, NamesOfSettingsToCopy)));
 }
 
-void ApplyScalarConstraintTableProcess::ExecuteInitialize() { mProcess->ExecuteInitialize(); }
+void ApplyScalarConstraintTableProcess::ExecuteInitialize()
+{
+    for (const auto& r_process : mProcesses)
+        r_process->ExecuteInitialize();
+}
 
 void ApplyScalarConstraintTableProcess::ExecuteInitializeSolutionStep()
 {
-    mProcess->ExecuteInitializeSolutionStep();
+    for (const auto& r_process : mProcesses)
+        r_process->ExecuteInitializeSolutionStep();
 }
 
-void ApplyScalarConstraintTableProcess::ExecuteFinalize() { mProcess->ExecuteFinalize(); }
+void ApplyScalarConstraintTableProcess::ExecuteFinalize()
+{
+    for (const auto& r_process : mProcesses)
+        r_process->ExecuteFinalize();
+}
 
 std::string ApplyScalarConstraintTableProcess::Info() const
 {
@@ -165,18 +185,28 @@ void ApplyScalarConstraintTableProcess::AppendOptionalFluidParameters(const Para
 }
 
 template <typename TableProcessType, typename ConstantProcessType>
-void ApplyScalarConstraintTableProcess::InstantiateProcessByTablePresence(const Parameters& rProcessSettings,
-                                                                          std::vector<std::string>&& rNamesOfSettingsToCopy)
+void ApplyScalarConstraintTableProcess::InstantiateProcessByTablePresence(ModelPart& rModelPart,
+                                                                          const Parameters& rProcessSettings,
+                                                                          std::vector<std::string> NamesOfSettingsToCopy)
 {
     if (ParametersUtilities::HasTableAttached(rProcessSettings)) {
-        rNamesOfSettingsToCopy.emplace_back("table");
-        mProcess = std::make_unique<TableProcessType>(
-            mrModelPart, ParametersUtilities::CopyRequiredParameters(
-                             rProcessSettings, std::move(rNamesOfSettingsToCopy)));
+        NamesOfSettingsToCopy.emplace_back("table"s);
+        mProcesses.emplace_back(std::make_unique<TableProcessType>(
+            rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, NamesOfSettingsToCopy)));
     } else {
-        mProcess = std::make_unique<ConstantProcessType>(
-            mrModelPart, ParametersUtilities::CopyRequiredParameters(
-                             rProcessSettings, std::move(rNamesOfSettingsToCopy)));
+        mProcesses.emplace_back(std::make_unique<ConstantProcessType>(
+            rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, NamesOfSettingsToCopy)));
     }
+}
+
+Parameters ApplyScalarConstraintTableProcess::PrepareProcessParameters(const ModelPart& rModelPart,
+                                                                       const Parameters& rProcessSettings,
+                                                                       const std::vector<std::string>& rNamesOfSettingsToCopy) const
+{
+    auto result = ParametersUtilities::CopyRequiredParameters(rProcessSettings, rNamesOfSettingsToCopy);
+
+    result.AddString("model_part_name"s, rModelPart.Name());
+
+    return result;
 }
 } // namespace Kratos
