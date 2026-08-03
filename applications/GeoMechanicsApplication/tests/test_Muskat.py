@@ -1,3 +1,4 @@
+import csv
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -8,31 +9,8 @@ if test_helper.want_test_plots():
 
 from dataclasses import dataclass
 
-from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
-    GiDOutputFileReader,
-)
-
-
-def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
-    line = line.strip().lstrip("\ufeff").replace("ï»¿", "")
-    words = [
-        word.strip() for word in (line.split(",") if "," in line else line.split())
-    ]
-
-    x_ = float(words[index_of_x])
-    if x_transform:
-        x_ = x_transform(x_)
-    y_ = float(words[index_of_y])
-
-    return x_, y_
-
-
-def extract_saturation_and_y_from_line(line):
-    return _extract_x_and_y_from_line(line, index_of_x=1, index_of_y=0)
-
-
-def extract_x_and_y_from_line(line):
-    return _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1)
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import \
+    GiDOutputFileReader
 
 
 class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
@@ -97,10 +75,17 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             plot_utils.DataSeries(data, label="Kratos", line_style="-", marker="")
         )
 
-        data_points = test_helper.get_data_points_from_file(
+        data_points = []
+        with open(
             os.path.join(file_path, "expected_saturation_at_x_1_52.csv"),
-            extract_saturation_and_y_from_line,
-        )
+            newline="",
+        ) as csv_file:
+            reader = csv.DictReader(
+                csv_file, fieldnames=["y", "saturation"], skipinitialspace=True
+            )
+            data_points = [
+                (float(row["saturation"]), float(row["y"])) for row in reader
+            ]
         data_series_collection.append(
             plot_utils.DataSeries(
                 data_points,
@@ -171,13 +156,16 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 marker="",
             )
         ]
-        data_points = sorted(
-            test_helper.get_data_points_from_file(
-                os.path.join(file_path, "expected_phreatic_line.csv"),
-                extract_x_and_y_from_line,
-            ),
-            key=lambda point: point[1],
-        )
+        with open(
+            os.path.join(file_path, "expected_phreatic_line.csv"), newline=""
+        ) as csv_file:
+            reader = csv.DictReader(
+                csv_file, fieldnames=["x", "y"], skipinitialspace=True
+            )
+            data_points = sorted(
+                [(float(row["x"]), float(row["y"])) for row in reader],
+                key=lambda point: point[1],
+            )
 
         data_series_collection.append(
             plot_utils.DataSeries(
