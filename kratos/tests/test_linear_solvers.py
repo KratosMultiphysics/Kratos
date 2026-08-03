@@ -335,6 +335,29 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    def test_amgcl_bicgstab_ilu0_chow_patel_block(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amgcl",
+                        "smoother_type":"ilu0_chow_patel",
+                        "krylov_type": "bicgstab",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 0,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 4,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
+
     def test_amgcl_bicgstab_ilu0(self):
         self._RunParametrized("""
             {
