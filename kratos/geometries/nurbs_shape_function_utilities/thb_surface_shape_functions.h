@@ -24,14 +24,18 @@ namespace Kratos {
 ///
 /// At each evaluation point (u, v):
 ///   1. The finest active level L is determined via ActiveLevelAtPoint.
-///   2. B-spline shape functions are evaluated at EVERY level l = 0 .. L.
+///   2. NURBS shape functions are evaluated at EVERY level l = 0 .. L.
 ///   3. For each level l, only ACTIVE basis functions are kept.
 ///      A function is active if its support is not fully covered by the next
 ///      refinement domain (ComputeActiveFunctions convention).
 ///   4. Each active function's truncated value is computed:
-///        trunc(B_i^l)(u,v) = B_i^l(u,v)
-///                           − sum_{j active at l+1} c_{ij} * B_j^{l+1}(u,v)
-///      where c_{ij} are the refinement coefficients (GetTruncationData).
+///        trunc(N_i^l)(u,v) = N_i^l(u,v)
+///                           - sum_{j active at m>l} D_ij * (w_i / w_j) * N_j^m(u,v)
+///      where D_ij are B-spline refinement coefficients from ComputeTruncationData.
+///      The w_i/w_j scaling corrects for the rational case: because H-refinement
+///      preserves the NURBS weight function W identically across levels, one has
+///        N_i^l = sum_j D_ij * (w_i/w_j) * N_j^m
+///      for every derivative row. For non-rational geometries w_i = w_j = 1.
 ///   5. CP indices are mapped to the packed Points() array of the geometry.
 ///
 /// This multi-level approach correctly handles evaluation points near refinement
@@ -93,7 +97,7 @@ public:
     /// Shape function value: operator()(cp_index, derivative_row).
     /// cp_index runs over the nonzero CPs (0 .. NumberOfNonzeroControlPoints-1).
     /// derivative_row follows the NurbsSurfaceShapeFunction convention:
-    ///   0 → N,  1 → dN/du,  2 → dN/dv,  3 → d²N/du², ...
+    ///   0 -> N,  1 -> dN/du,  2 -> dN/dv,  3 -> d^2N/du^2, ...
     double operator()(IndexType ControlPointIndex, IndexType DerivativeRow) const
     {
         return mValues[DerivativeRow * NumberOfNonzeroControlPoints() + ControlPointIndex];
@@ -117,8 +121,8 @@ public:
         const auto& AllLevels = rGeometry.Levels();
         const SizeType number_of_shape_function_rows = NumberOfShapeFunctionRows(mDerivativeOrder);
 
-        // evaluate B-splines at every level 0..ActiveLevel
-        // Store raw values and build a flat-index to local-position lookup per level.
+        // Evaluate NURBS shape functions at every level 0..ActiveLevel.
+        // Store values and build a flat-index to local-position lookup per level.
         struct LevelCache {
             SizeType number_of_nonzero_control_points = 0;
             std::vector<int> local_flat_indices;
@@ -157,8 +161,13 @@ public:
         }
 
         // Collect active contributions with multi-level truncation.
-        // τ(B_i^l) = B_i^l − Σ_{m>l} Σ_{j active at m} D_{ij}^m * B_j^m
-        // where D coefficients are precomputed in ComputeTruncationData.
+        // tau(N_i^l) = N_i^l - sum_{m>l} sum_{j active at m} D_ij * (w_i/w_j) * N_j^m
+        //
+        // The (w_i/w_j) factor corrects for the rational case. Since H-refinement
+        // preserves the NURBS weight function W identically across all levels, W cancels
+        // in the ratio N_i^l / N_j^m = (w_i * B_i^l / W) / (w_j * B_j^m / W), giving
+        // N_i^l = D_ij * (w_i/w_j) * N_j^m for every derivative row. For non-rational
+        // geometries (all weights empty) w_i/w_j = 1 and the formula is unchanged.
         mControlPointIndices.clear();
         std::vector<std::vector<double>> truncated_value_per_control_point;
 
@@ -176,15 +185,19 @@ public:
 
                 // Multi-level truncation: subtract active fine-level contributions.
                 // Entries can target any FineLevel from l+1 to num_levels-1;
-                // skip levels beyond the active range (those B-splines are zero here).
+                // skip levels beyond the active range (those shape functions are zero here).
+                const double w_i = AllLevels[l].Weights.empty() ? 1.0 : AllLevels[l].Weights[flat_index];
                 for (const auto& TruncationEntry : rGeometry.GetTruncationData(l, flat_index)) {
                     if (TruncationEntry.FineLevel > ActiveLevel) continue;
                     const auto& FinerLevelCache = level_caches[TruncationEntry.FineLevel];
                     auto position_iterator = FinerLevelCache.flat_index_to_local_position.find(TruncationEntry.FineFlatIndex);
                     if (position_iterator == FinerLevelCache.flat_index_to_local_position.end()) continue;
                     const SizeType local_position = position_iterator->second;
+                    const double w_j = AllLevels[TruncationEntry.FineLevel].Weights.empty()
+                        ? 1.0 : AllLevels[TruncationEntry.FineLevel].Weights[TruncationEntry.FineFlatIndex];
+                    const double scaled_coeff = TruncationEntry.Coefficient * (w_i / w_j);
                     for (SizeType row = 0; row < number_of_shape_function_rows; ++row)
-                        truncated_value[row] -= TruncationEntry.Coefficient
+                        truncated_value[row] -= scaled_coeff
                             * FinerLevelCache.values[row * FinerLevelCache.number_of_nonzero_control_points + local_position];
                 }
 
