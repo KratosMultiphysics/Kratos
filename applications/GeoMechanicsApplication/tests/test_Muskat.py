@@ -80,6 +80,18 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             data_series_collection.append(
                 plot_utils.DataSeries(data, label="Kratos", line_style="-", marker="")
             )
+
+            data_points = test_helper.get_data_points_from_file(
+                os.path.join(file_path, "expected_saturation_at_x_1_52.csv"),
+                extract_saturation_and_y_from_line,
+            )
+            data_series_collection.append(
+                plot_utils.DataSeries(
+                    data_points,
+                    label="Commercial FE package",
+                )
+            )
+
             asserted_data_points = []
             for expected_result in expected_results_for_variable["EFFECTIVE_SATURATION"]:
                 effective_saturation = expected_result.value * 100
@@ -96,17 +108,6 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                     label=f"Asserted effective saturation",
                     line_style="",
                     marker="x",
-                    # color="r",
-                )
-            )
-            data_points = test_helper.get_data_points_from_file(
-                os.path.join(file_path, "expected_saturation_at_x_1_52.csv"),
-                extract_saturation_and_y_from_line,
-            )
-            data_series_collection.append(
-                plot_utils.DataSeries(
-                    data_points,
-                    label="Commercial FE package",
                 )
             )
             plot_utils._make_plot(
