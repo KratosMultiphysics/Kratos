@@ -15,6 +15,9 @@ def _validated_stage_directory_paths(project_path, n_stages):
     if not safe_base.is_dir():
         raise FileNotFoundError(f"Project path does not exist or is not a directory: {safe_base}")
 
+    if(n_stages <=0):
+        raise ValueError(f"Number of stages must be positive: {n_stages}")
+    
     result = []
     for i in range(n_stages):
         # Construct the candidate directory name

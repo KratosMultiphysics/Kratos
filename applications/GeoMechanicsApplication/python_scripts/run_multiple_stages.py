@@ -16,9 +16,6 @@ def _validated_stage_file_paths(input_path, n_stages, filename_pattern, base_pat
     if not input_dir.is_dir():
         raise FileNotFoundError(f"Input path does not exist or is not a directory: {input_dir}")
 
-    if(n_stages <=0):
-        raise ValueError(f"Number of stages must be positive: {n_stages}")
-
     result = []
     for i in range(n_stages):
         candidate = (input_dir / filename_pattern.format(i + 1)).resolve()
