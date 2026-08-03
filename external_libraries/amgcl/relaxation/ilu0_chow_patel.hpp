@@ -42,9 +42,8 @@ THE SOFTWARE.
  * nonzero of L and U can be updated independently, giving fine-grained
  * parallelism that scales well regardless of matrix ordering.
  *
- * The matrix is scaled to have a unit diagonal before factorization,
- * as recommended by the paper for convergence.  Two scaling strategies
- * are available:
+ * The matrix is diagonally scaled before factorization, as recommended by
+ * the paper for convergence.  Two scaling strategies are available:
  *   - Row scaling:       A' = diag(1/a_ii) * A             (default)
  *   - Symmetric scaling: A' = diag(1/sqrt|a_ii|)*A*diag(1/sqrt|a_ii|)
  *
@@ -150,10 +149,13 @@ struct ilu0_chow_patel {
         typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
         const ptrdiff_t n = static_cast<ptrdiff_t>(backend::rows(A));
 
+        precondition(prm.sweeps > 0, "ILU0 Chow-Patel requires at least one sweep");
+        precondition(prm.omega > 0 && prm.omega <= 1,
+            "ILU0 Chow-Patel omega should be in the (0, 1] interval");
+
         // -----------------------------------------------------------------
         // 1. Diagonal scaling.
-        //    Compute per-row scale factors so the scaled matrix has unit
-        //    diagonal.  Two strategies are supported:
+        //    Compute scaling factors for the two supported strategies:
         //
         //    Row scaling (default):
         //      A' = diag(d_i) * A,  where d_i = 1/a_ii.
@@ -168,8 +170,29 @@ struct ilu0_chow_patel {
         //    For symmetric scaling col_scale[j] stores the column factor
         //    (same array – it equals scale[j]).
         // -----------------------------------------------------------------
-        auto inv_diag_ptr = backend::diagonal(A, /*invert=*/true);
-        auto &inv_diag = *inv_diag_ptr;  // inv_diag[i] = 1/a_ii
+        backend::numa_vector<value_type> inv_diag(n);
+        for (ptrdiff_t i = 0; i < n; ++i) {
+            bool has_diagonal = false;
+            for (ptr_type j = A.ptr[i]; j < A.ptr[i + 1]; ++j) {
+                if (A.col[j] == i) {
+                    precondition(std::isfinite(math::norm(A.val[j])),
+                        "Non-finite diagonal value in system matrix");
+                    precondition(!math::is_zero(A.val[j]),
+                            "Zero diagonal value in system matrix");
+                    inv_diag[i] = math::inverse(A.val[j]);
+                    precondition(std::isfinite(math::norm(inv_diag[i])),
+                            "Singular diagonal block in system matrix");
+                    if (prm.symmetric_scaling) {
+                    precondition(math::norm(A.val[j]) >
+                        std::numeric_limits<scalar_type>::min(),
+                        "Diagonal value is too small for symmetric scaling");
+                    }
+                    has_diagonal = true;
+                    break;
+                }
+            }
+            precondition(has_diagonal, "No diagonal value in system matrix");
+        }
 
         // scale[i] is the left scale factor d_i for row i.
         backend::numa_vector<value_type> scale(n);
@@ -180,9 +203,8 @@ struct ilu0_chow_patel {
             if (prm.symmetric_scaling) {
                 // d_i = 1 / sqrt(|a_ii|)
                 scalar_type abs_aii = math::norm(math::inverse(inv_diag[i]));
-                scale[i] = (abs_aii > std::numeric_limits<scalar_type>::min())
-                    ? static_cast<scalar_type>(1.0 / std::sqrt(abs_aii)) * math::identity<value_type>()
-                    : inv_diag[i];
+                scale[i] = static_cast<scalar_type>(1.0 / std::sqrt(abs_aii))
+                    * math::identity<value_type>();
             } else {
                 // d_i = 1 / a_ii  (row scaling)
                 scale[i] = inv_diag[i];
@@ -224,15 +246,16 @@ struct ilu0_chow_patel {
         backend::numa_vector<value_type> Uval(Unz);
 
         backend::numa_vector<value_type> Udiag(n);
+        backend::numa_vector<value_type> a_diag(n);
 
         // -----------------------------------------------------------------
         // 3. Standard initial guess (Section 2.3 of the paper):
         //      L^(0)_{ij} = a'_{ij}      (i > j)
         //      U^(0)_{ij} = a'_{ij}      (i < j)
-        //      U^(0)_{ii} = 1            (unit diagonal after scaling)
+        //      U^(0)_{ii} = a'_{ii}
         //
-        //    Row scaling:       a'_{ij} = a_{ij} * scale[i]
-        //    Symmetric scaling: a'_{ij} = a_{ij} * scale[i] * scale[j]
+        //    Row scaling:       a'_{ij} = scale[i] * a_{ij}
+        //    Symmetric scaling: a'_{ij} = scale[i] * a_{ij} * scale[j]
         //
         //    The loop is parallel so that each thread first-touches its own
         //    slice of Lcol/Lval, Ucol/Uval, and Udiag – matching the access
@@ -245,9 +268,9 @@ struct ilu0_chow_patel {
             ptr_type lh = Lptr[i], uh = Uptr[i];
             for (ptr_type j = A.ptr[i]; j < A.ptr[i + 1]; ++j) {
                 ptrdiff_t c = A.col[j];
-                // Scale: row scaling  a'_ij = a_ij * scale[i]
-                //        sym scaling  a'_ij = a_ij * scale[i] * scale[c]
-                value_type v = A.val[j] * scale[i];
+                // Scale: row scaling  a'_ij = scale[i] * a_ij
+                //        sym scaling  a'_ij = scale[i] * a_ij * scale[c]
+                value_type v = scale[i] * A.val[j];
                 if (prm.symmetric_scaling) v = v * scale[c];
                 if (c < i) {
                     Lcol[lh] = static_cast<col_type>(c);
@@ -257,9 +280,11 @@ struct ilu0_chow_patel {
                     Ucol[uh] = static_cast<col_type>(c);
                     Uval[uh] = v;
                     ++uh;
+                } else {
+                    a_diag[i] = v;
                 }
             }
-            Udiag[i] = math::identity<value_type>();
+            Udiag[i] = a_diag[i];
         }
 
         // Keep a copy of the scaled matrix entries as RHS of the fixed-point
@@ -349,7 +374,7 @@ struct ilu0_chow_patel {
         //
         //    For each (i,j) in S, in parallel:
         //      if i > j:  l_ij = (a_ij - sum_{k<j} l_ik u_kj) / u_jj
-        //      if i = j:  u_ii = a_ii - sum_{k<i} l_ik u_ki  [a_ii=1]
+        //      if i = j:  u_ii = a'_ii - sum_{k<i} l_ik u_ki
         //      if i < j:  u_ij = a_ij - sum_{k<i} l_ik u_kj
         //
         //    The inner products are sparse-sparse dot products between
@@ -369,6 +394,34 @@ struct ilu0_chow_patel {
         const scalar_type pivot_tol =
             std::sqrt(std::numeric_limits<scalar_type>::epsilon())
             * math::norm(math::identity<value_type>());
+
+        auto inverse_pivot = [&](value_type pivot) {
+            scalar_type pivot_norm = math::norm(pivot);
+            if (pivot_norm < pivot_tol) {
+                pivot = pivot_tol * math::identity<value_type>();
+                pivot_norm = pivot_tol;
+            }
+
+            value_type inverse = math::inverse(pivot);
+            const scalar_type condition_limit = static_cast<scalar_type>(1) / pivot_tol;
+            scalar_type inverse_norm = math::norm(inverse);
+            scalar_type shift = pivot_tol
+                * std::max(pivot_norm, static_cast<scalar_type>(1));
+            for (int attempt = 0; attempt < 3 &&
+                    (!std::isfinite(inverse_norm) || pivot_norm * inverse_norm > condition_limit);
+                    ++attempt)
+            {
+                pivot += shift * math::identity<value_type>();
+                inverse = math::inverse(pivot);
+                inverse_norm = math::norm(inverse);
+                shift *= static_cast<scalar_type>(10);
+            }
+            if (!std::isfinite(inverse_norm) || pivot_norm * inverse_norm > condition_limit) {
+                inverse = static_cast<scalar_type>(1) /
+                    std::max(pivot_norm, pivot_tol) * math::identity<value_type>();
+            }
+            return inverse;
+        };
 
         for (int sweep = 0; sweep < prm.sweeps; ++sweep) {
             // Synchronize CSC copy of U with (possibly updated) CSR values.
@@ -401,12 +454,7 @@ struct ilu0_chow_patel {
                         else { s += Lval[lp] * Ucval[up]; ++lp; ++up; }
                     }
 
-                    // Guard against zero pivot.
-                    value_type pivot = Udiag[j];
-                    if (math::norm(pivot) < pivot_tol)
-                        pivot = pivot_tol * math::identity<value_type>();
-
-                    value_type l_new = (a_L[jj] - s) * math::inverse(pivot);
+                    value_type l_new = (a_L[jj] - s) * inverse_pivot(Udiag[j]);
 
                     // Protect against NaN/Inf from numerical blow-up.
                     if (!std::isfinite(math::norm(l_new))) l_new = a_L[jj];
@@ -421,7 +469,7 @@ struct ilu0_chow_patel {
 #  pragma omp parallel for schedule(guided, 64)
 #endif
             for (ptrdiff_t i = 0; i < n; ++i) {
-                // u_ii = 1 - sum_{k<i} l_ik u_ki
+                // u_ii = a'_ii - sum_{k<i} l_ik u_ki
                 {
                     value_type s = math::zero<value_type>();
                     ptr_type lp = Lptr[i],  le = Lptr[i + 1];
@@ -435,9 +483,9 @@ struct ilu0_chow_patel {
                         else if (lc > uc) { ++up; }
                         else { s += Lval[lp] * Ucval[up]; ++lp; ++up; }
                     }
-                    value_type u_diag_new = math::identity<value_type>() - s;
+                    value_type u_diag_new = a_diag[i] - s;
                     if (!std::isfinite(math::norm(u_diag_new)))
-                        u_diag_new = math::identity<value_type>();
+                        u_diag_new = a_diag[i];
                     Udiag[i] = omega * u_diag_new + one_m_w * Udiag[i];
                 }
 
@@ -475,7 +523,7 @@ struct ilu0_chow_patel {
         //
         //    Row scaling:  A' = diag(1/a_ii)*A,  L'U' ≈ A'.
         //      (I + L_s)(pivot + U_s) = diag(a_ii)*(I + L')(diag(U'd) + U')
-        //        L_s_{ij}  = (a_ii / a_jj) * L'_{ij}
+        //        L_s_{ij}  = a_ii * L'_{ij} * inv(a_jj)
         //        pivot_i   = a_ii * U'diag_i
         //        U_s_{ij}  = a_ii * U'_{ij}
         //
@@ -506,14 +554,12 @@ struct ilu0_chow_patel {
                 if (prm.symmetric_scaling) {
                     // L_s_{ij} = sqrt(|a_ii| / |a_jj|) * L'_{ij}
                     scalar_type abs_ajj = math::norm(math::inverse(inv_diag[j]));
-                    scalar_type ratio = (abs_ajj > std::numeric_limits<scalar_type>::min())
-                        ? std::sqrt(abs_aii / abs_ajj)
-                        : static_cast<scalar_type>(1);
+                    scalar_type ratio = std::sqrt(abs_aii) / std::sqrt(abs_ajj);
                     L_out->val[jj] = ratio * Lval[jj];
                 } else {
-                    // L_s_{ij} = (a_ii / a_jj) * L'_{ij}
+                    // L_s_{ij} = a_ii * L'_{ij} * inv(a_jj)
                     value_type a_jj = math::inverse(inv_diag[j]);
-                    L_out->val[jj] = (a_ii * math::inverse(a_jj)) * Lval[jj];
+                    L_out->val[jj] = a_ii * Lval[jj] * math::inverse(a_jj);
                 }
             }
             L_out->ptr[i + 1] = Lptr[i + 1];
@@ -524,7 +570,7 @@ struct ilu0_chow_patel {
                     // U_s_{ij} = sqrt(|a_ii| * |a_jj|) * U'_{ij}
                     ptrdiff_t j = Ucol[jj];
                     scalar_type abs_ajj = math::norm(math::inverse(inv_diag[j]));
-                    scalar_type factor = std::sqrt(abs_aii * abs_ajj);
+                    scalar_type factor = std::sqrt(abs_aii) * std::sqrt(abs_ajj);
                     U_out->val[jj] = factor * Uval[jj];
                 } else {
                     // U_s_{ij} = a_ii * U'_{ij}
@@ -533,18 +579,17 @@ struct ilu0_chow_patel {
             }
             U_out->ptr[i + 1] = Uptr[i + 1];
 
-            // Compute pivot and guard against zero.
-            value_type pivot;
+            // Invert the scaled pivot before unscaling. This preserves scale
+            // invariance for systems with very small or very large entries.
+            const value_type inverse_scaled_pivot = inverse_pivot(Udiag[i]);
             if (prm.symmetric_scaling) {
-                // pivot_i = |a_ii| * U'diag_i
-                pivot = abs_aii * Udiag[i];
+                // inv(pivot_i) = inv(U'diag_i) / |a_ii|
+                (*D_out)[i] = static_cast<scalar_type>(1) / abs_aii
+                    * inverse_scaled_pivot;
             } else {
-                // pivot_i = a_ii * U'diag_i
-                pivot = a_ii * Udiag[i];
+                // inv(pivot_i) = inv(U'diag_i) * inv(a_ii)
+                (*D_out)[i] = inverse_scaled_pivot * inv_diag[i];
             }
-            if (math::norm(pivot) < pivot_tol)
-                pivot = pivot_tol * math::identity<value_type>();
-            (*D_out)[i] = math::inverse(pivot);
         }
 
         ilu = std::make_shared<ilu_solve>(L_out, U_out, D_out, prm.solve, bprm);
