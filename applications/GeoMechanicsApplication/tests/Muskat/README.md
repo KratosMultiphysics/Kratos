@@ -22,11 +22,11 @@ The following outputs are used as first-reference results for this test, compute
 
 The phreatic line profile is visualized below:
 
-![Phreatic line](phreatic_line.svg)
+![Phreatic line](van_genuchten_hydrostatic/phreatic_line.svg)
 
-The saturation profile on the right boundary is visualized below:
+The saturation profile at x = 1.52 (10 cm from the right boundary) is visualized below:
 
-![Saturation on right boundary](saturation_on_right_boundary.svg)
+![Saturation on right boundary](van_genuchten_hydrostatic/saturation_on_right_boundary.svg)
 
 
 ## Assertions
