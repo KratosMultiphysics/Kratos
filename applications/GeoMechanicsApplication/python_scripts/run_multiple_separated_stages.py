@@ -43,12 +43,12 @@ if __name__ == "__main__":
 
     stage_directories = _validated_stage_directory_paths(project_path, n_stages)
 
-    # set stage parameters
-    parameters_stages = [None] * n_stages
-    for idx, stage_directory in enumerate(stage_directories):
-        parameter_file_name = stage_directory / "ProjectParameters.json"
-        with open(parameter_file_name, 'r') as parameter_file:
-            parameters_stages[idx] = KratosMultiphysics.Parameters(parameter_file.read())
+    parameters_stages = [
+        KratosMultiphysics.Parameters(
+           (stage_directory / "ProjectParameters.json").read_text(encoding='utf-8')
+        )
+        for stage_directory in stage_directories
+    ]
 
     stages = [GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
 
