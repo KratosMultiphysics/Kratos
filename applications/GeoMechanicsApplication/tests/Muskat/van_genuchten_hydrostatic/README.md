@@ -21,8 +21,11 @@ The following outputs are used as first-reference results for this test, compute
 - Hydrostatic response values (reference: `expected_saturation_at_x_1_52.csv`).
 
 The phreatic line profile is visualized below:
+
 ![Phreatic line](phreatic_line.svg)
+
 The saturation profile on the right boundary is visualized below:
+
 ![Saturation on right boundary](saturation_on_right_boundary.svg)
 
 
