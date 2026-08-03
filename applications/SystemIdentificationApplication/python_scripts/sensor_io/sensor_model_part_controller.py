@@ -13,9 +13,11 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 class SensorModelPartController(ModelPartController):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
-            "sensor_group_name"     : "",
-            "domain_model_part_name": "",
-            "list_of_sensors"       : []
+            "sensor_group_name"       : "",
+            "domain_model_part_name"  : "",
+            "list_of_sensors"         : [],
+            "debug_output"            : false,
+            "debug_output_filename"   : "domain_model_part.vtu"
         }""")
 
         self.model = model
@@ -25,6 +27,8 @@ class SensorModelPartController(ModelPartController):
 
         self.domain_model_part_name = parameters["domain_model_part_name"].GetString()
         self.sensor_group_name = parameters["sensor_group_name"].GetString()
+        self.debug_output = parameters["debug_output"].GetBool()
+        self.debug_output_filename = parameters["debug_output_filename"].GetString()
 
         if model.HasModelPart(self.sensor_group_name):
             raise RuntimeError(f"The sensor model part name \"{self.sensor_group_name}\" already exists. Please provide a different \"sensor_group_name\".")
@@ -36,8 +40,9 @@ class SensorModelPartController(ModelPartController):
     def ImportModelPart(self) -> None:
         self.domain_model_part = self.model[self.domain_model_part_name]
 
-        vtu_output: Kratos.VtuOutput = Kratos.VtuOutput(self.domain_model_part)
-        vtu_output.PrintOutput("domain_model_part.vtu")
+        if self.debug_output:
+            vtu_output: Kratos.VtuOutput = Kratos.VtuOutput(self.domain_model_part)
+            vtu_output.PrintOutput(self.debug_output_filename)
 
         self.list_of_sensors = CreateSensors(self.sensor_model_part, self.domain_model_part, self.parameters["list_of_sensors"].values())
 

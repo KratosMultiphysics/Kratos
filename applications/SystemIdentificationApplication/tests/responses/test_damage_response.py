@@ -148,54 +148,36 @@ class TestDamageDetectionAdjointResponseFunctionErrorThreshold(kratos_unittest.T
         cls.raw_errors = [sensor.GetNode().GetValue(KratosSI.SENSOR_ERROR) for sensor in cls.baseline_sensors]
 
     @classmethod
-    def __CreateResponseAndSensors(cls, error_threshold: float, suffix: str):
+    def __CreateResponseAndSensors(cls, error_threshold, suffix: str):
+        """Creates the 4 test sensors and the response function.
+
+        If error_threshold is None, the "error_threshold" key is omitted from the
+        sensor parameters entirely, so DisplacementSensor::GetDefaultParameters()'s
+        default value (Sensor::DefaultErrorThreshold) is the one that gets applied.
+        """
         sensor_model_part = cls.model.CreateModelPart(f"SensorModelPart{suffix}")
+
+        error_threshold_entry = "" if error_threshold is None else '"error_threshold": %.20g,' % error_threshold
+
+        sensor_settings = [
+            ("disp_x_1", "[0.3333333333333, 0.3333333333333, 0.0]", "[1.0, 0.0, 0.0]", 2.0),
+            ("disp_x_2", "[0.6666666666667, 0.6666666666667, 0.0]", "[1.0, 0.0, 0.0]", 3.0),
+            ("disp_x_3", "[0.3333333333333, 0.3333333333333, 0.0]", "[1.0, 1.0, 0.0]", 4.0),
+            ("disp_x_4", "[0.6666666666667, 0.6666666666667, 0.0]", "[1.0, 1.0, 0.0]", 1.0),
+        ]
 
         parameters = [
             Kratos.Parameters("""{
-
                 "type"         : "displacement_sensor",
-                "name"         : "disp_x_1",
+                "name"         : "%s",
                 "value"        : 0,
-                "location"     : [0.3333333333333, 0.3333333333333, 0.0],
-                "direction"    : [1.0, 0.0, 0.0],
-                "weight"       : 2.0,
-                "error_threshold": %.20g,
+                "location"     : %s,
+                "direction"    : %s,
+                "weight"       : %s,
+                %s
                 "variable_data": {}
-            }""" % error_threshold),
-            Kratos.Parameters("""{
-
-                "type"         : "displacement_sensor",
-                "name"         : "disp_x_2",
-                "value"        : 0,
-                "location"     : [0.6666666666667, 0.6666666666667, 0.0],
-                "direction"    : [1.0, 0.0, 0.0],
-                "weight"       : 3.0,
-                "error_threshold": %.20g,
-                "variable_data": {}
-            }""" % error_threshold),
-            Kratos.Parameters("""{
-
-                "type"         : "displacement_sensor",
-                "name"         : "disp_x_3",
-                "value"        : 0,
-                "location"     : [0.3333333333333, 0.3333333333333, 0.0],
-                "direction"    : [1.0, 1.0, 0.0],
-                "weight"       : 4.0,
-                "error_threshold": %.20g,
-                "variable_data": {}
-            }""" % error_threshold),
-            Kratos.Parameters("""{
-
-                "type"         : "displacement_sensor",
-                "name"         : "disp_x_4",
-                "value"        : 0,
-                "location"     : [0.6666666666667, 0.6666666666667, 0.0],
-                "direction"    : [1.0, 1.0, 0.0],
-                "weight"       : 1.0,
-                "error_threshold": %.20g,
-                "variable_data": {}
-            }""" % error_threshold)
+            }""" % (name, location, direction, weight, error_threshold_entry))
+            for name, location, direction, weight in sensor_settings
         ]
 
         sensors = CreateSensors(sensor_model_part, cls.model_part, parameters)
@@ -254,6 +236,22 @@ class TestDamageDetectionAdjointResponseFunctionErrorThreshold(kratos_unittest.T
         num_zeroed = sum(1 for sensor in sensors if sensor.GetNode().GetValue(KratosSI.SENSOR_ERROR) == 0.0)
         self.assertGreater(num_zeroed, 0)
         self.assertLess(num_zeroed, len(sensors))
+
+    def test_ErrorThresholdOmittedUsesDefault(self):
+        # "error_threshold" is not provided in the sensor parameters at all -> sensor creation
+        # should still succeed and fall back to Sensor.DefaultErrorThreshold
+        response, sensors = self.__CreateResponseAndSensors(None, "OmittedDefault")
+
+        for sensor in sensors:
+            self.assertEqual(sensor.GetErrorThreshold(), KratosSI.Sensors.Sensor.DefaultErrorThreshold)
+
+        value = response.CalculateValue(self.model_part)
+        self.assertAlmostEqual(value, self.__ExpectedValue(sensors, KratosSI.Sensors.Sensor.DefaultErrorThreshold), 8)
+
+        # the default threshold is negligibly small, so it should behave exactly like the
+        # "below all errors" case: none of the SENSOR_ERROR values get zeroed out.
+        for sensor, raw_error in zip(sensors, self.raw_errors):
+            self.assertAlmostEqual(sensor.GetNode().GetValue(KratosSI.SENSOR_ERROR), raw_error, 8)
 
 class TestDamageDetectionResponse(kratos_unittest.TestCase):
     def test_DamageResponse(self):

@@ -42,6 +42,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Sensor);
 
     ///@}
+    ///@name Static Member Variables
+    ///@{
+
+    /// Default absolute error threshold below which SENSOR_ERROR is treated as zero.
+    static constexpr double DefaultErrorThreshold = 1e-16;
+
+    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -62,7 +69,7 @@ public:
         const std::string& rName,
         Node::Pointer pNode,
         const double Weight,
-        const double ErrorThreshold = 1e-16);
+        const double ErrorThreshold = DefaultErrorThreshold);
 
     /// Destructor.
     ~Sensor() = default;

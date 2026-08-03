@@ -36,6 +36,7 @@ void  AddCustomSensorsToPython(pybind11::module& m)
 
     // Add sensor specifications
     py::class_<Sensor, Sensor::Pointer, AdjointResponseFunction>(sensor_module, "Sensor")
+        .def_readonly_static("DefaultErrorThreshold", &Sensor::DefaultErrorThreshold)
         .def("GetName", &Sensor::GetName)
         .def("GetNode", &Sensor::GetNode)
         .def("GetWeight", &Sensor::GetWeight)
@@ -68,7 +69,7 @@ void  AddCustomSensorsToPython(pybind11::module& m)
             py::arg("direction"),
             py::arg("element"),
             py::arg("weight"),
-            py::arg("error_threshold") = 1e-16)
+            py::arg("error_threshold") = Sensor::DefaultErrorThreshold)
         .def_static("GetDefaultParameters", &DisplacementSensor::GetDefaultParameters)
         .def_static("Create", &DisplacementSensor::Create, py::arg("domain_model_part"), py::arg("sensor_model_part"), py::arg("sensor_id"), py::arg("sensor_parameters"))
         ;
@@ -90,7 +91,7 @@ void  AddCustomSensorsToPython(pybind11::module& m)
             py::arg("strain_type"),
             py::arg("element"),
             py::arg("weight"),
-            py::arg("error_threshold") = 1e-16)
+            py::arg("error_threshold") = Sensor::DefaultErrorThreshold)
         .def_static("GetDefaultParameters", &StrainSensor::GetDefaultParameters)
         .def_static("Create", &StrainSensor::Create, py::arg("domain_model_part"), py::arg("sensor_model_part"), py::arg("sensor_id"), py::arg("sensor_parameters"))
         ;

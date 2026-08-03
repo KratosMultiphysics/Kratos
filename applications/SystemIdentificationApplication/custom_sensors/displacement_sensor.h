@@ -55,7 +55,7 @@ public:
         const array_1d<double, 3>& rDirection,
         const Element& rElement,
         const double Weight,
-        const double ErrorThreshold = 1e-16);
+        const double ErrorThreshold = Sensor::DefaultErrorThreshold);
 
     /// Destructor.
     ~DisplacementSensor() override = default;

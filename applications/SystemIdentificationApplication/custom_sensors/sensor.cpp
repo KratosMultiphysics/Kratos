@@ -46,7 +46,7 @@ Parameters Sensor::GetSensorParameters() const
         "value"        : 0.0,
         "location"     : [0.0, 0.0, 0.0],
         "weight"       : 0.0,
-        "error_threshold": 1e-16,
+        "error_threshold": 0.0,
         "variable_data": {}
     })" );
 

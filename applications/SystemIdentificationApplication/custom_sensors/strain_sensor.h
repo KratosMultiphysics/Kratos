@@ -69,7 +69,7 @@ public:
         const StrainType& rStrainType,
         const Element& rElement,
         const double Weight,
-        const double ErrorThreshold = 1e-16);
+        const double ErrorThreshold = Sensor::DefaultErrorThreshold);
 
     /// Destructor.
     ~StrainSensor() override = default;

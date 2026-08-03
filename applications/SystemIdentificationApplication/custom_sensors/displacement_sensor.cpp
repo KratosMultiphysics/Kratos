@@ -155,7 +155,7 @@ Parameters DisplacementSensor::GetSensorParameters() const
 
 Parameters DisplacementSensor::GetDefaultParameters()
 {
-    return Parameters(R"(
+    Parameters parameters(R"(
     {
         "type"         : "displacement_sensor",
         "name"         : "",
@@ -163,9 +163,11 @@ Parameters DisplacementSensor::GetDefaultParameters()
         "location"     : [0.0, 0.0, 0.0],
         "direction"    : [0.0, 0.0, 0.0],
         "weight"       : 1.0,
-        "error_threshold": 1e-16,
+        "error_threshold": 0.0,
         "variable_data": {}
     })" );
+    parameters["error_threshold"].SetDouble(Sensor::DefaultErrorThreshold);
+    return parameters;
 }
 
 double DisplacementSensor::CalculateValue(ModelPart& rModelPart)

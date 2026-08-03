@@ -141,7 +141,7 @@ Sensor::Pointer StrainSensor::Create(
 
 Parameters StrainSensor::GetDefaultParameters()
 {
-    return Parameters(R"(
+    Parameters parameters(R"(
     {
         "type"           : "strain_sensor",
         "name"           : "",
@@ -150,9 +150,11 @@ Parameters StrainSensor::GetDefaultParameters()
         "strain_type"    : "strain_xx",
         "strain_variable": "SHELL_STRAIN",
         "weight"         : 0.0,
-        "error_threshold": 1e-16,
+        "error_threshold": 0.0,
         "variable_data": {}
     })" );
+    parameters["error_threshold"].SetDouble(Sensor::DefaultErrorThreshold);
+    return parameters;
 }
 
 Parameters StrainSensor::GetSensorParameters() const
