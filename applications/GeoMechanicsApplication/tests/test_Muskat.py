@@ -52,71 +52,91 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             os.path.join(file_path, "Muskat_Dirichlet.post.res")
         )
         if test_helper.want_test_plots():
-            data_series_collection = []
-            y_coord_by_id_for_right_boundary_nodes = {}
-            for node in simulation.model.GetModelPart(
-                "PorousDomain.porous_computational_model_part"
-            ).Nodes:
-                if abs(node.X - 1.52) < 0.01:
-                    y_coord_by_id_for_right_boundary_nodes[node.Id] = node.Y
-            saturations = GiDOutputFileReader.nodal_values_at_time(
-                "EFFECTIVE_SATURATION",
+            self._create_effective_saturation_plot(
+                expected_results_for_variable, file_path, output_data, simulation
+            )
+            self._create_phreatic_line_plot(file_path, output_data, simulation)
+
+        for variable_name, expected_results in expected_results_for_variable.items():
+            actual_results = GiDOutputFileReader.nodal_values_at_time(
+                variable_name,
                 1.0,
                 output_data,
-                y_coord_by_id_for_right_boundary_nodes.keys(),
+                [result.node_id for result in expected_results],
             )
-            saturations = [saturation * 100 for saturation in saturations]
-            sorted_depth, sorted_data = zip(
-                *sorted(
-                    zip(
-                        y_coord_by_id_for_right_boundary_nodes.values(),
-                        saturations,
-                    )
-                )
-            )
-            data = zip(sorted_data, sorted_depth)
-            data_series_collection.append(
-                plot_utils.DataSeries(data, label="Kratos", line_style="-", marker="")
-            )
+            for idx, expected_result in enumerate(expected_results):
+                self.assertAlmostEqual(expected_result.value, actual_results[idx], 6)
 
-            data_points = test_helper.get_data_points_from_file(
-                os.path.join(file_path, "expected_saturation_at_x_1_52.csv"),
-                extract_saturation_and_y_from_line,
-            )
-            data_series_collection.append(
-                plot_utils.DataSeries(
-                    data_points,
-                    label="Commercial FE package",
+    def _create_effective_saturation_plot(
+        self, expected_results_for_variable, file_path, output_data, simulation
+    ):
+        data_series_collection = []
+        y_coord_by_id_for_right_boundary_nodes = {}
+        for node in simulation.model.GetModelPart(
+            "PorousDomain.porous_computational_model_part"
+        ).Nodes:
+            if abs(node.X - 1.52) < 0.01:
+                y_coord_by_id_for_right_boundary_nodes[node.Id] = node.Y
+        saturations = GiDOutputFileReader.nodal_values_at_time(
+            "EFFECTIVE_SATURATION",
+            1.0,
+            output_data,
+            y_coord_by_id_for_right_boundary_nodes.keys(),
+        )
+        saturations = [saturation * 100 for saturation in saturations]
+        sorted_depth, sorted_data = zip(
+            *sorted(
+                zip(
+                    y_coord_by_id_for_right_boundary_nodes.values(),
+                    saturations,
                 )
             )
+        )
+        data = zip(sorted_data, sorted_depth)
+        data_series_collection.append(
+            plot_utils.DataSeries(data, label="Kratos", line_style="-", marker="")
+        )
 
-            asserted_data_points = []
-            for expected_result in expected_results_for_variable[
-                "EFFECTIVE_SATURATION"
-            ]:
-                effective_saturation = expected_result.value * 100
+        data_points = test_helper.get_data_points_from_file(
+            os.path.join(file_path, "expected_saturation_at_x_1_52.csv"),
+            extract_saturation_and_y_from_line,
+        )
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                data_points,
+                label="Commercial FE package",
+            )
+        )
 
-                asserted_data_points.append(
-                    (
-                        effective_saturation,
-                        y_coord_by_id_for_right_boundary_nodes[expected_result.node_id],
-                    )
-                )
-            data_series_collection.append(
-                plot_utils.DataSeries(
-                    asserted_data_points,
-                    label=f"Asserted effective saturation",
-                    line_style="",
-                    marker="x",
+        asserted_data_points = []
+        for expected_result in expected_results_for_variable["EFFECTIVE_SATURATION"]:
+            effective_saturation = expected_result.value * 100
+
+            asserted_data_points.append(
+                (
+                    effective_saturation,
+                    y_coord_by_id_for_right_boundary_nodes[expected_result.node_id],
                 )
             )
-            plot_utils._make_plot(
-                data_series_collection,
-                os.path.join(file_path, "saturation_for_x_1_52.svg"),
-                xlabel="Effective Saturation [%]",
-                ylabel="Y [m]",
-                yaxis_inverted=False,
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                asserted_data_points,
+                label=f"Asserted effective saturation",
+                line_style="",
+                marker="x",
             )
+        )
+        plot_utils._make_plot(
+            data_series_collection,
+            os.path.join(file_path, "saturation_for_x_1_52.svg"),
+            xlabel="Effective Saturation [%]",
+            ylabel="Y [m]",
+            yaxis_inverted=False,
+        )
+
+    def _create_phreatic_line_plot(self, file_path, output_data, simulation):
+        import matplotlib.pyplot as plt
+        from matplotlib.tri import Triangulation
 
         model_part = simulation.model.GetModelPart(
             "PorousDomain.porous_computational_model_part"
@@ -132,63 +152,49 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             node_ids,
         )
 
-        if test_helper.want_test_plots():
-            import matplotlib.pyplot as plt
-            from matplotlib.tri import Triangulation
+        tri = Triangulation(xs, ys)
+        plt.figure(figsize=(10, 8))
+        contour_zero = plt.tricontour(tri, pressures, levels=[0.0])
 
-            tri = Triangulation(xs, ys)
-            plt.figure(figsize=(10, 8))
-            contour_zero = plt.tricontour(tri, pressures, levels=[0.0])
+        # Extract isoline coordinates
+        isoline_coords = []
+        if hasattr(contour_zero, "allsegs"):
+            for level_segs in contour_zero.allsegs:
+                for seg in level_segs:
+                    isoline_coords.append(seg)
 
-            # Extract isoline coordinates
-            isoline_coords = []
-            if hasattr(contour_zero, "allsegs"):
-                for level_segs in contour_zero.allsegs:
-                    for seg in level_segs:
-                        isoline_coords.append(seg)
-
-            data_series_collection = [
-                plot_utils.DataSeries(
-                    isoline_coords[0],
-                    label="p = 0 line Kratos",
-                    line_style="-",
-                    marker="",
-                )
-            ]
-            data_points = sorted(
-                test_helper.get_data_points_from_file(
-                    os.path.join(file_path, "expected_phreatic_line.csv"),
-                    extract_x_and_y_from_line,
-                ),
-                key=lambda point: point[1],
+        data_series_collection = [
+            plot_utils.DataSeries(
+                isoline_coords[0],
+                label="p = 0 line Kratos",
+                line_style="-",
+                marker="",
             )
+        ]
+        data_points = sorted(
+            test_helper.get_data_points_from_file(
+                os.path.join(file_path, "expected_phreatic_line.csv"),
+                extract_x_and_y_from_line,
+            ),
+            key=lambda point: point[1],
+        )
 
-            data_series_collection.append(
-                plot_utils.DataSeries(
-                    data_points,
-                    label="p = 0 line commercial FE",
-                )
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                data_points,
+                label="p = 0 line commercial FE",
             )
+        )
 
-            plot_utils._make_plot(
-                data_series_collection,
-                os.path.join(file_path, "phreatic_line.svg"),
-                xlabel="X [m]",
-                ylabel="Y [m]",
-                yaxis_inverted=False,
-            )
+        plot_utils._make_plot(
+            data_series_collection,
+            os.path.join(file_path, "phreatic_line.svg"),
+            xlabel="X [m]",
+            ylabel="Y [m]",
+            yaxis_inverted=False,
+        )
 
-        for variable_name, expected_results in expected_results_for_variable.items():
-            actual_results = GiDOutputFileReader.nodal_values_at_time(
-                variable_name,
-                1.0,
-                output_data,
-                [result.node_id for result in expected_results],
-            )
-            for idx, expected_result in enumerate(expected_results):
-                self.assertAlmostEqual(expected_result.value, actual_results[idx], 6)
-
-    def test_van_genuchten_hydrostatic(self):
+    def test_muskat_van_genuchten_hydrostatic(self):
         @dataclass
         class ExpectedResult:
             node_id: int
