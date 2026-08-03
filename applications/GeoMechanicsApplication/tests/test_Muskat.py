@@ -66,7 +66,6 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
                 output_data,
                 y_coord_by_id_for_right_boundary_nodes.keys(),
             )
-            print(y_coord_by_id_for_right_boundary_nodes.keys())
             saturations = [saturation * 100 for saturation in saturations]
             sorted_depth, sorted_data = zip(
                 *sorted(

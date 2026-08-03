@@ -46,7 +46,6 @@
             "scaling": true,
             "preconditioner_type": "ilu0"
         },
-        "auxiliary_variables_list": ["EFFECTIVE_SATURATION"],
         "problem_domain_sub_model_part_list": ["porous"],
         "body_domain_sub_model_part_list": ["porous"]
     },
