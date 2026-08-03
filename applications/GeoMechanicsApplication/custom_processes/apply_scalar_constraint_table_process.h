@@ -70,7 +70,7 @@ private:
     template <typename TableProcessType, typename ConstantProcessType>
     void       InstantiateProcessByTablePresence(ModelPart&               rModelPart,
                                                  const Parameters&        rProcessSettings,
-                                                 std::vector<std::string> rNamesOfSettingsToCopy);
+                                                 std::vector<std::string> NamesOfSettingsToCopy);
     Parameters PrepareProcessParameters(const ModelPart&  rModelPart,
                                         const Parameters& rProcessSettings,
                                         const std::vector<std::string>& rNamesOfSettingsToCopy) const;

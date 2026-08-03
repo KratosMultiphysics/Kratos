@@ -187,15 +187,15 @@ void ApplyScalarConstraintTableProcess::AppendOptionalFluidParameters(const Para
 template <typename TableProcessType, typename ConstantProcessType>
 void ApplyScalarConstraintTableProcess::InstantiateProcessByTablePresence(ModelPart& rModelPart,
                                                                           const Parameters& rProcessSettings,
-                                                                          std::vector<std::string> rNamesOfSettingsToCopy)
+                                                                          std::vector<std::string> NamesOfSettingsToCopy)
 {
     if (ParametersUtilities::HasTableAttached(rProcessSettings)) {
-        rNamesOfSettingsToCopy.emplace_back("table"s);
+        NamesOfSettingsToCopy.emplace_back("table"s);
         mProcesses.emplace_back(std::make_unique<TableProcessType>(
-            rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, rNamesOfSettingsToCopy)));
+            rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, NamesOfSettingsToCopy)));
     } else {
         mProcesses.emplace_back(std::make_unique<ConstantProcessType>(
-            rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, rNamesOfSettingsToCopy)));
+            rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, NamesOfSettingsToCopy)));
     }
 }
 

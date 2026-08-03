@@ -94,9 +94,9 @@ PointerVector<Node> ModelSetupUtilities::CreateNodes(ModelPart& rModelPart, cons
 
 ModelPart& ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(Model& rModel,
                                                                       const Geo::ConstVariableRefs& rNodalVariables,
-                                                                      const std::string& ModelPartName)
+                                                                      const std::string& rModelPartName)
 {
-    auto& r_result = rModel.CreateModelPart(ModelPartName);
+    auto& r_result = rModel.CreateModelPart(rModelPartName);
     AddNodalVariablesToModelPart(r_result, rNodalVariables);
 
     auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor2D3NElement());
