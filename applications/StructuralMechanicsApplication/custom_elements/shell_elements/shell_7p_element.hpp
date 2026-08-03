@@ -99,7 +99,8 @@ private:
     void CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& rBaseVectorCovariant) const;
 
     void CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_vector, const Matrix& amkovr, const Matrix& amkovc, 
-    const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, const array_1d<Vector,2>& a3kvpc, const double& Theta3) const;
+    const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, const array_1d<Vector,2>& a3kvpc, const double& Theta3, const SizeType& ansq, 
+    const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const array_1d<Matrix,4>& amkovr_ansq, const array_1d<Matrix,4>& amkovc_ansq) const;
 
     void ContraVariantBaseVectors(array_1d<Vector,3>& rBaseVectors,const Matrix& rContraVariantMetric,
     const array_1d<Vector,3> rCovariantBaseVectors) const;
@@ -118,12 +119,12 @@ private:
     const Matrix& gmkonr, const ConstitutiveLawType& option, const double& Theta3, const double& fact) const;
 
     void CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, 
-    const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes) const;
+    const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes, const SizeType& ansq) const;
 
-    void s8_ansqshapefunctions(array_1d<double,2>& frq, array_1d<double,2>& fsq,const double xi, const double eta) const;
+    void CalculateANSTransverseShearShapeFunctions(array_1d<double,2>& N13_ansq, array_1d<double,2>& N23_ansq,const double r, const double s) const;
 
-    void BOperatorANSTransverseShearmodification(Matrix& Bop, const array_1d<double,2>& frq, const array_1d<double,2>& fsq,
-    const array_1d<array_1d<Vector,3>,4>& akovr_ans,const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
+    void BOperatorANSTransverseShearmodification(Matrix& Bop, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq,
+    const array_1d<array_1d<Vector,3>,4>& akovc_ans,const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
     const Matrix& N_ans, const SizeType& number_of_nodes, const double sqrt_f_s) const;
 
     void BOperatorANSCurvatureThicknessModification(Matrix& Bop, const array_1d<array_1d<Vector,3>,4>& akovr_ct_ans, 
@@ -137,7 +138,8 @@ private:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void ComputeGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const array_1d<double,12>& stress_resultants, const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, const double& weight) const;
+    void ComputeGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const array_1d<double,12>& stress_resultants, const Matrix& rShapeFunctionGradientValues, const Vector& rNshape,
+    const double& weight, const SizeType& ansq, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const Matrix& N_ans, const array_1d<Matrix,4>& DN_ans) const;
 
     friend class Serializer;
 

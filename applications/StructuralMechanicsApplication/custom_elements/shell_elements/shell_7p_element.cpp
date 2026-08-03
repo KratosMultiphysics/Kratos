@@ -224,6 +224,7 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
     double gmdet_body = 0.0;
 
     ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
+    SizeType ansq = 1;
     SizeType n_ans_points=4;
     // 4 ANS sampling points: (r, s)
     array_1d<array_1d<double,2>,4> ans_points;
@@ -231,12 +232,15 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
     ans_points[1][0] =  0.0; ans_points[1][1] =  1.0;
     ans_points[2][0] = -1.0; ans_points[2][1] =  0.0;
     ans_points[3][0] =  1.0; ans_points[3][1] =  0.0;
-    array_1d<double,2> frq;
-    array_1d<double,2> fsq;
+    array_1d<double,2> N13_ansq;
+    array_1d<double,2> N23_ansq;
 
     Matrix N_ans = ZeroMatrix(n_ans_points, number_of_nodes);
     array_1d<Matrix,4> DN_ans;
     array_1d<array_1d<Vector,3>,4> akovr_ans;
+    array_1d<array_1d<Vector,3>,4> akovc_ans;
+    array_1d<Matrix,4> amkovr_ansq;
+    array_1d<Matrix,4> amkovc_ansq;
     Vector Np;
     Np.resize(number_of_nodes, false);
 
@@ -254,6 +258,9 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
         r_geom.ShapeFunctionsLocalGradients(DN_ans[p], local_coords);
 
         CovariantBaseVectorsMidsurface(akovr_ans[p], DN_ans[p], row(N_ans, p), ConfigurationType::Reference, thickness);
+        CovariantMetric(amkovr_ansq[p],akovr_ans[p]);
+        CovariantBaseVectorsMidsurface(akovc_ans[p], DN_ans[p], row(N_ans, p), ConfigurationType::Current, thickness);
+        CovariantMetric(amkovc_ansq[p],akovc_ans[p]);
     }
     ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
 
@@ -285,7 +292,7 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
 
         r_geom.ShapeFunctionsLocalGradients(DN_ct_ans[p], local_coords);
 
-        CovariantBaseVectorsMidsurface(akovr_ct_ans[p], DN_ct_ans[p], row(N_ct_ans, p), ConfigurationType::Reference, thickness);
+        CovariantBaseVectorsMidsurface(akovr_ct_ans[p], DN_ct_ans[p], row(N_ct_ans, p), ConfigurationType::Current, thickness);
     }
     ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
 
@@ -338,6 +345,9 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
 
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
         // getting information for integration
+        const auto& r_gp = r_integration_points[point_number];
+        const double r  = r_gp.X();
+        const double s = r_gp.Y();
         const double integration_weight_i = r_integration_points[point_number].Weight();
         const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
         const Vector& Nshape = row(Ncontainer,point_number);
@@ -353,26 +363,24 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
         DirectorDerivatives(a3kvpc,shape_functions_gradients_i,ConfigurationType::Current,thickness);
         CovariantMetric(amkovc,akovc);
 
+        Bop = ZeroMatrix(12,number_dofs);
+        CalculatelinearBOperator(Bop,akovc,a3kvpc,shape_functions_gradients_i,Nshape,number_of_nodes,ansq);
+        
         ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
-        const auto& r_gp = r_integration_points[point_number];
-
-        const double r  = r_gp.X();
-        const double s = r_gp.Y();
-
-        s8_ansqshapefunctions(frq, fsq, r, s);
+        if (ansq) {
+        CalculateANSTransverseShearShapeFunctions(N13_ansq, N23_ansq, r, s);
+        BOperatorANSTransverseShearmodification(Bop,N13_ansq,N23_ansq,akovc_ans,a3kvpc,DN_ans,N_ans,number_of_nodes,sqrt_f_s);
+        }
         ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
 
-        Bop = ZeroMatrix(12,number_dofs);
-        CalculatelinearBOperator(Bop,akovc,a3kvpc,shape_functions_gradients_i,Nshape,number_of_nodes);
-        //-------------------------------------- modifications due to ans
-        BOperatorANSTransverseShearmodification(Bop,frq,fsq,akovr_ans,a3kvpc,DN_ans,N_ans,number_of_nodes,sqrt_f_s);
-
+        ////////////////////////////////////////////////////////////////BEGIN ANS CURVATURE THICKNESS  ELIMINATION STUFF////////////////////////////////////////////////////////////////
         GeometryType::CoordinatesArrayType local_coords_gp;
         local_coords_gp[0] = r;
         local_coords_gp[1] = s;
         local_coords_gp[2] = 0.0;
         r_geom.ShapeFunctionsValues(Np_ct,local_coords_gp);
         BOperatorANSCurvatureThicknessModification(Bop,akovr_ct_ans,N_ct_ans,r,s,Np_ct,number_of_nodes);
+        ////////////////////////////////////////////////////////////////END ANS CURVATURE THICKNESS  ELIMINATION STUFF////////////////////////////////////////////////////////////////
 
         Dmatrix = ZeroMatrix(12,12);
         stress_resultants = ZeroVector(12);
@@ -383,7 +391,7 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
             CovariantBaseVectorsShellBody(gkovr,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,Theta3,thickness);
             CovariantMetric(gmkovr,gkovr);
 
-            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3);
+            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3,ansq,N13_ansq,N23_ansq,amkovr_ansq,amkovc_ansq);
             ContravariantMetric(gmkonr,gmkovr,gmdet_body);
 
             double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
@@ -507,6 +515,7 @@ void Shell7pElement::CalculateLeftHandSide(
     double gmdet_body = 0.0;
 
     ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
+    SizeType ansq = 1;
     SizeType n_ans_points=4; 
     // 4 ANS sampling points: (r, s)
     array_1d<array_1d<double,2>,4> ans_points;
@@ -514,8 +523,8 @@ void Shell7pElement::CalculateLeftHandSide(
     ans_points[1][0] =  0.0; ans_points[1][1] =  1.0;
     ans_points[2][0] = -1.0; ans_points[2][1] =  0.0;
     ans_points[3][0] =  1.0; ans_points[3][1] =  0.0;
-    array_1d<double,2> frq;
-    array_1d<double,2> fsq;
+    array_1d<double,2> N13_ansq;
+    array_1d<double,2> N23_ansq;
 
     //array_1d<Vector,4> funct_q;                        
     //array_1d<Matrix,4> deriv_q;
@@ -523,6 +532,9 @@ void Shell7pElement::CalculateLeftHandSide(
     Matrix N_ans = ZeroMatrix(n_ans_points, number_of_nodes);   // N_ans(p,i) = N_i at point p
     array_1d<Matrix,4> DN_ans;                                  // DN_ansp=dNi/dxi (DN_ans[p](i, 0)), DN_ansp=dNi/deta (DN_ans[p](i, 1))
     array_1d<array_1d<Vector,3>,4> akovr_ans;
+    array_1d<array_1d<Vector,3>,4> akovc_ans;
+    array_1d<Matrix,4> amkovr_ansq;
+    array_1d<Matrix,4> amkovc_ansq;
     Vector Np;
     Np.resize(number_of_nodes, false);
 
@@ -541,7 +553,9 @@ void Shell7pElement::CalculateLeftHandSide(
         r_geom.ShapeFunctionsLocalGradients(DN_ans[p], local_coords);
 
         CovariantBaseVectorsMidsurface(akovr_ans[p], DN_ans[p], row(N_ans, p), ConfigurationType::Reference, thickness);
-
+        CovariantMetric(amkovr_ansq[p],akovr_ans[p]);
+        CovariantBaseVectorsMidsurface(akovc_ans[p], DN_ans[p], row(N_ans, p), ConfigurationType::Current, thickness);
+        CovariantMetric(amkovc_ansq[p],akovc_ans[p]);
     }
 
     ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
@@ -575,7 +589,7 @@ void Shell7pElement::CalculateLeftHandSide(
 
         r_geom.ShapeFunctionsLocalGradients(DN_ct_ans[p], local_coords);
 
-        CovariantBaseVectorsMidsurface(akovr_ct_ans[p], DN_ct_ans[p], row(N_ct_ans, p), ConfigurationType::Reference, thickness);
+        CovariantBaseVectorsMidsurface(akovr_ct_ans[p], DN_ct_ans[p], row(N_ct_ans, p), ConfigurationType::Current, thickness);
 
     }
 
@@ -630,6 +644,9 @@ void Shell7pElement::CalculateLeftHandSide(
     
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
         // getting information for integration
+        const auto& r_gp = r_integration_points[point_number];
+        const double r  = r_gp.X();
+        const double s = r_gp.Y();
         const double integration_weight_i = r_integration_points[point_number].Weight();
         const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
         const Vector& Nshape = row(Ncontainer,point_number);        // Node shape function values at the current integration point. Nshape[i] = N_i evaluated at the current GP
@@ -647,20 +664,16 @@ void Shell7pElement::CalculateLeftHandSide(
         DirectorDerivatives(a3kvpc,shape_functions_gradients_i,ConfigurationType::Current,thickness);
         CovariantMetric(amkovc,akovc);
 
-        ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
-        const auto& r_gp = r_integration_points[point_number];
-
-        const double r  = r_gp.X();
-        const double s = r_gp.Y();
-
-        s8_ansqshapefunctions(frq, fsq, r, s);
-
-        ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
-
         Bop = ZeroMatrix(12,number_dofs);
-        CalculatelinearBOperator(Bop,akovc,a3kvpc,shape_functions_gradients_i,Nshape,number_of_nodes);
-        //-------------------------------------- modifications due to ans 
-        BOperatorANSTransverseShearmodification(Bop,frq,fsq,akovr_ans,a3kvpc,DN_ans,N_ans,number_of_nodes,sqrt_f_s);
+        CalculatelinearBOperator(Bop,akovc,a3kvpc,shape_functions_gradients_i,Nshape,number_of_nodes,ansq);
+
+        ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
+        if (ansq) {
+        CalculateANSTransverseShearShapeFunctions(N13_ansq, N23_ansq, r, s);
+        BOperatorANSTransverseShearmodification(Bop,N13_ansq,N23_ansq,akovc_ans,a3kvpc,DN_ans,N_ans,number_of_nodes,sqrt_f_s);
+        }
+        ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
+        
         ////////////////////////////////////////////////////////////////BEGIN ANS CURVATURE THICKNESS  ELIMINATION STUFF////////////////////////////////////////////////////////////////
 
         GeometryType::CoordinatesArrayType local_coords_gp;
@@ -683,7 +696,7 @@ void Shell7pElement::CalculateLeftHandSide(
 
             // change to consistent current metric for stress/strain calculation
             array_1d<double,6> GL_strain;
-            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3);
+            CalculateGreenLagrangeStrain(GL_strain,amkovr,amkovc,akovr,akovc,a3kvpr,a3kvpc,Theta3,ansq,N13_ansq,N23_ansq,amkovr_ansq,amkovc_ansq);
             ContravariantMetric(gmkonr,gmkovr,gmdet_body);
 
             double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
@@ -705,7 +718,7 @@ void Shell7pElement::CalculateLeftHandSide(
         noalias(DB) = prod(Dmatrix, Bop);
         rLeftHandSideMatrix += prod(trans(Bop), DB) * weight;
 
-        ComputeGeometricStiffnessMatrix(rLeftHandSideMatrix, stress_resultants,shape_functions_gradients_i,Nshape,weight);
+        ComputeGeometricStiffnessMatrix(rLeftHandSideMatrix, stress_resultants,shape_functions_gradients_i,Nshape,weight,ansq,N13_ansq,N23_ansq,N_ans,DN_ans);
         ////////////////////////////////////////////////////////////////BEGIN EAS STUFF////////////////////////////////////////////////////////////////
         
         // shape functions for (incompatible strains) EAS strains formulated at the center of the element
@@ -844,7 +857,7 @@ void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& r
     }
 }
 
-void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_vector, const Matrix& amkovr, const Matrix& amkovc, const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, const array_1d<Vector,2>& a3kvpc, const double& Theta3) const
+void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_vector, const Matrix& amkovr, const Matrix& amkovc, const array_1d<Vector,3> akovr,  const array_1d<Vector,3> akovc, const array_1d<Vector,2>& a3kvpr, const array_1d<Vector,2>& a3kvpc, const double& Theta3, const SizeType& ansq, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const array_1d<Matrix,4>& amkovr_ansq, const array_1d<Matrix,4>& amkovc_ansq) const
 {
     Matrix GL_strain_tensor = ZeroMatrix(3);
 
@@ -863,11 +876,26 @@ void Shell7pElement::CalculateGreenLagrangeStrain(array_1d<double,6>& GL_strain_
     double b32r = inner_prod(akovr[2],a3kvpr[1]);
 
     GL_strain_tensor(0,0) = 0.5 * ((amkovc(0,0)-amkovr(0,0)) + 2.0*Theta3 * (b11c-b11r));
-    GL_strain_tensor(1,1) = 0.5 * ((amkovc(1,1)-amkovr(1,1)) + 2.0*Theta3 * (b22c-b22r));
-    GL_strain_tensor(2,2) = 0.5 * (amkovc(2,2)-amkovr(2,2));
     GL_strain_tensor(0,1) = 0.5 * ((amkovc(0,1)-amkovr(0,1)) + Theta3 * (b21c+b12c-b21r-b12r));
-    GL_strain_tensor(0,2) = 0.5 * ((amkovc(0,2)-amkovr(0,2)) + Theta3 * (b31c-b31r));
-    GL_strain_tensor(1,2) = 0.5 * ((amkovc(1,2)-amkovr(1,2)) + Theta3 * (b32c-b32r));
+    GL_strain_tensor(0,2) = 0.5 * Theta3 * (b31c-b31r);
+    GL_strain_tensor(1,1) = 0.5 * ((amkovc(1,1)-amkovr(1,1)) + 2.0*Theta3 * (b22c-b22r));
+    GL_strain_tensor(1,2) = 0.5 * Theta3 * (b32c-b32r);
+    GL_strain_tensor(2,2) = 0.5 * (amkovc(2,2)-amkovr(2,2));
+
+    if (true) //(!ansq)
+    {
+        GL_strain_tensor(0,2) += 0.5 * (amkovc(0,2)-amkovr(0,2));
+        GL_strain_tensor(1,2) += 0.5 * (amkovc(1,2)-amkovr(1,2));
+    }
+    else
+    {
+    for (SizeType isamp = 0; isamp < 2; ++isamp)
+        {
+        GL_strain_tensor(0,2) += 0.5 * N13_ansq[isamp] * (amkovc_ansq[isamp](0,2)-amkovr_ansq[isamp](0,2));
+        GL_strain_tensor(1,2) += 0.5 * N23_ansq[isamp] * (amkovc_ansq[isamp+2](1,2)-amkovr_ansq[isamp+2](1,2));
+        }
+    }
+
     GL_strain_tensor(1,0) = GL_strain_tensor(0,1);
     GL_strain_tensor(2,0) = GL_strain_tensor(0,2);
     GL_strain_tensor(2,1) = GL_strain_tensor(1,2);
@@ -1096,7 +1124,7 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact) con
     }
 }
                                                                                                                                                                 // [N_node][derivative direction]   // Nshape[i] = N_i evaluated at the current GP
-void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes) const
+void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes, const SizeType& ansq) const
 {
     const double a1x = CovariantBaseVectors[0][0];
     const double a1y = CovariantBaseVectors[0][1];
@@ -1134,12 +1162,15 @@ void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector
             bop(1,index+4) = 0.0;
             bop(1,index+5) = 0.0;
 
+            if (!ansq) 
+            {
             bop(2,index)   = dNd1*a3x;
             bop(2,index+1) = dNd1*a3y;
             bop(2,index+2) = dNd1*a3z;                  // alpha 13
             bop(2,index+3) = N*a1x;
             bop(2,index+4) = N*a1y;
             bop(2,index+5) = N*a1z;
+            }
 
             bop(3,index)   = dNd2*a2x;
             bop(3,index+1) = dNd2*a2y;
@@ -1148,12 +1179,15 @@ void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector
             bop(3,index+4) = 0.0;
             bop(3,index+5) = 0.0;
 
+            if (!ansq)
+            {
             bop(4,index)   = dNd2*a3x;
             bop(4,index+1) = dNd2*a3y;
             bop(4,index+2) = dNd2*a3z;                  // alpha 23
             bop(4,index+3) = N*a2x;
             bop(4,index+4) = N*a2y;
             bop(4,index+5) = N*a2z;
+            }
 
             bop(5,index)   = 0.0;
             bop(5,index+1) = 0.0;
@@ -1206,17 +1240,17 @@ void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector
     }
 }
 
-void Shell7pElement::s8_ansqshapefunctions(array_1d<double,2>& frq, array_1d<double,2>& fsq,const double r, const double s) const
+void Shell7pElement::CalculateANSTransverseShearShapeFunctions(array_1d<double,2>& N13_ansq, array_1d<double,2>& N23_ansq,const double r, const double s) const
 {
 
-   frq[0] = 0.5 * (1.0 - s);
-   frq[1] = 0.5 * (1.0 + s);
-   fsq[0] = 0.5 * (1.0 - r);
-   fsq[1] = 0.5 * (1.0 + r);
+   N13_ansq[0] = 0.5 * (1.0 - s);
+   N13_ansq[1] = 0.5 * (1.0 + s);
+   N23_ansq[0] = 0.5 * (1.0 - r);
+   N23_ansq[1] = 0.5 * (1.0 + r);
 }
 
-void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const array_1d<double,2>& frq, const array_1d<double,2>& fsq,
-    const array_1d<array_1d<Vector,3>,4>& akovr_ans, const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
+void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq,
+    const array_1d<array_1d<Vector,3>,4>& akovc_ans, const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
     const Matrix& N_ans, const SizeType& number_of_nodes, const double sqrt_f_s) const
 {
     for (SizeType inode = 0; inode < number_of_nodes; ++inode)
@@ -1239,50 +1273,42 @@ void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const 
 
     for (SizeType isamp = 0; isamp < 2; ++isamp)
     {
-      const double a1x1 = akovr_ans[isamp][0][0];     // a1x
-      const double a1y1 = akovr_ans[isamp][0][1];     // a1y
-      const double a1z1 = akovr_ans[isamp][0][2];     // a1z
-      const double a3x1 = akovr_ans[isamp][2][0];     // a3x
-      const double a3y1 = akovr_ans[isamp][2][1];     // a3y
-      const double a3z1 = akovr_ans[isamp][2][2];     // a3z
+      const double a1x_c1 = akovc_ans[isamp][0][0];     // a1x
+      const double a1y_c1 = akovc_ans[isamp][0][1];     // a1y
+      const double a1z_c1 = akovc_ans[isamp][0][2];     // a1z
+      const double a3x_c1 = akovc_ans[isamp][2][0];     // a3x
+      const double a3y_c1 = akovc_ans[isamp][2][1];     // a3y
+      const double a3z_c1 = akovc_ans[isamp][2][2];     // a3z
 
-      const double a2x2 = akovr_ans[isamp+2][1][0];
-      const double a2y2 = akovr_ans[isamp+2][1][1];
-      const double a2z2 = akovr_ans[isamp+2][1][2];
-      const double a3x2 = akovr_ans[isamp+2][2][0];
-      const double a3y2 = akovr_ans[isamp+2][2][1];
-      const double a3z2 = akovr_ans[isamp+2][2][2];
+      const double a2x_c2 = akovc_ans[isamp+2][1][0];
+      const double a2y_c2 = akovc_ans[isamp+2][1][1];
+      const double a2z_c2 = akovc_ans[isamp+2][1][2];
+      const double a3x_c2 = akovc_ans[isamp+2][2][0];
+      const double a3y_c2 = akovc_ans[isamp+2][2][1];
+      const double a3z_c2 = akovc_ans[isamp+2][2][2];
 
-      //const double a31x1 = a3kvpc1q[isamp][0][0];
-      //const double a31y1 = a3kvpc1q[isamp][1][0];
-      //const double a31z1 = a3kvpc1q[isamp][2][0];
+      const double N_c1 = N_ans(isamp, inode);
+      const double N_c2 = N_ans(isamp+2, inode);
 
-      //const double a32x2 = a3kvpc2q[isamp][0][1];
-      //const double a32y2 = a3kvpc2q[isamp][1][1];
-      //const double a32z2 = a3kvpc2q[isamp][2][1];
+      const double dNd1_c1 = DN_ans[isamp](inode, 0);
+      const double dNd2_c2 = DN_ans[isamp+2](inode, 1);
 
-      const double N1 = N_ans(isamp, inode);
-      const double N2 = N_ans(isamp+2, inode);
-
-      const double dNd1 = DN_ans[isamp](inode, 0);
-      const double dNd2 = DN_ans[isamp+2](inode, 1);
-
-      const double N1_ans = frq[isamp];
-      const double N2_ans = fsq[isamp];
+      const double N13_gp = N13_ansq[isamp];
+      const double N23_gp = N23_ansq[isamp];
 /*--------------------------------------------------E13(CONST)-------- */
-      Bop(2,node_start+0) += dNd1*a3x1*N1_ans*sqrt_f_s;
-      Bop(2,node_start+1) += dNd1*a3y1*N1_ans*sqrt_f_s;
-      Bop(2,node_start+2) += dNd1*a3z1*N1_ans*sqrt_f_s;
-      Bop(2,node_start+3) += N1*a1x1*N1_ans*sqrt_f_s;
-      Bop(2,node_start+4) += N1*a1y1*N1_ans*sqrt_f_s;
-      Bop(2,node_start+5) += N1*a1z1*N1_ans*sqrt_f_s;
+      Bop(2,node_start+0) += N13_gp*a3x_c1*dNd1_c1*sqrt_f_s;
+      Bop(2,node_start+1) += N13_gp*a3y_c1*dNd1_c1*sqrt_f_s;
+      Bop(2,node_start+2) += N13_gp*a3z_c1*dNd1_c1*sqrt_f_s;
+      Bop(2,node_start+3) += N13_gp*a1x_c1*N_c1*sqrt_f_s;
+      Bop(2,node_start+4) += N13_gp*a1y_c1*N_c1*sqrt_f_s;
+      Bop(2,node_start+5) += N13_gp*a1z_c1*N_c1*sqrt_f_s;
 /*----------------------- --------------------------E23(CONST)-------- */
-      Bop(4,node_start+0) += dNd2*a3x2*N2_ans*sqrt_f_s;
-      Bop(4,node_start+1) += dNd2*a3y2*N2_ans*sqrt_f_s;
-      Bop(4,node_start+2) += dNd2*a3z2*N2_ans*sqrt_f_s;
-      Bop(4,node_start+3) += N2*a2x2*N2_ans*sqrt_f_s;  
-      Bop(4,node_start+4) += N2*a2y2*N2_ans*sqrt_f_s;
-      Bop(4,node_start+5) += N2*a2z2*N2_ans*sqrt_f_s;
+      Bop(4,node_start+0) += N23_gp*a3x_c2*dNd2_c2*sqrt_f_s;
+      Bop(4,node_start+1) += N23_gp*a3y_c2*dNd2_c2*sqrt_f_s;
+      Bop(4,node_start+2) += N23_gp*a3z_c2*dNd2_c2*sqrt_f_s;
+      Bop(4,node_start+3) += N23_gp*a2x_c2*N_c2*sqrt_f_s;  
+      Bop(4,node_start+4) += N23_gp*a2y_c2*N_c2*sqrt_f_s;
+      Bop(4,node_start+5) += N23_gp*a2z_c2*N_c2*sqrt_f_s;
     }
   }
 
@@ -1662,7 +1688,8 @@ void Shell7pElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
     KRATOS_CATCH("");
 }
 
-void Shell7pElement::ComputeGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const array_1d<double,12>& stress_resultants, const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, const double& weight) const
+void Shell7pElement::ComputeGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const array_1d<double,12>& stress_resultants, const Matrix& rShapeFunctionGradientValues, 
+const Vector& rNshape, const double& weight, const SizeType& ansq, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq, const Matrix& N_ans, const array_1d<Matrix,4>& DN_ans) const
 {
     KRATOS_TRY;
 
@@ -1694,10 +1721,36 @@ void Shell7pElement::ComputeGeometricStiffnessMatrix(MatrixType& rLeftHandSideMa
             const double dNd1_M = rShapeFunctionGradientValues(node_M, 0);
             const double dNd2_M = rShapeFunctionGradientValues(node_M, 1);
 
-            const double delt_v_virt_v = (n11 * (dNd1_M*dNd1_K) + n12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + n22 * (dNd2_M*dNd2_K)) * weight;
-            const double delt_w_virt_v = (m11 * (dNd1_M*dNd1_K) + m12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + m22 * (dNd2_M*dNd2_K) + n13 * (N_M*dNd1_K) + n23 * (N_M*dNd2_K)) * weight;
-            const double delt_v_virt_w = (m11 * (dNd1_M*dNd1_K) + m12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + m22 * (dNd2_M*dNd2_K) + n13 * (dNd1_M*N_K) + n23 * (dNd2_M*N_K)) * weight;
-            const double delt_w_virt_w = (m13 * (dNd1_M*N_K + N_M*dNd1_K) + m23 * (dNd2_M*N_K + N_M*dNd2_K) + n33 * (N_M*N_K)) * weight;
+            double delt_v_virt_v = (n11 * (dNd1_M*dNd1_K) + n12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + n22 * (dNd2_M*dNd2_K)) * weight;
+            double delt_w_virt_v = (m11 * (dNd1_M*dNd1_K) + m12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + m22 * (dNd2_M*dNd2_K)) * weight;
+            double delt_v_virt_w = (m11 * (dNd1_M*dNd1_K) + m12 * (dNd1_M*dNd2_K+dNd2_M*dNd1_K) + m22 * (dNd2_M*dNd2_K)) * weight;
+            double delt_w_virt_w = (m13 * (dNd1_M*N_K + N_M*dNd1_K) + m23 * (dNd2_M*N_K + N_M*dNd2_K) + n33 * (N_M*N_K)) * weight;
+
+            if (true) //(!ansq)
+            {
+               delt_w_virt_v += (n13 * (N_M*dNd1_K) + n23 * (N_M*dNd2_K)) * weight;
+               delt_v_virt_w += (n13 * (dNd1_M*N_K) + n23 * (dNd2_M*N_K)) * weight;
+            }
+            else
+            {
+                for (SizeType isamp = 0; isamp < 2; ++isamp)
+                {
+                    const double N_K_13_ansq = N_ans(isamp, node_K);
+                    const double dNd1_K_13_ansq = DN_ans[isamp](node_K, 0);
+                    const double N_M_13_ansq = N_ans(isamp, node_M);
+                    const double dNd1_M_13_ansq = DN_ans[isamp](node_M, 0);
+
+                    const double N_K_23_ansq = N_ans(isamp+2, node_K);
+                    const double dNd2_K_23_ansq = DN_ans[isamp+2](node_K, 1);
+                    const double N_M_23_ansq = N_ans(isamp+2, node_M);
+                    const double dNd2_M_23_ansq = DN_ans[isamp+2](node_M, 1);
+
+                    delt_w_virt_v += (n13 * N13_ansq[isamp] * (N_M_13_ansq*dNd1_K_13_ansq) + n23 * N23_ansq[isamp] * (N_M_23_ansq*dNd2_K_23_ansq)) * weight;
+                    delt_v_virt_w += (n13 * N13_ansq[isamp] * (dNd1_M_13_ansq*N_K_13_ansq) + n23 * N23_ansq[isamp] * (dNd2_M_23_ansq*N_K_23_ansq)) * weight;
+                }
+            }
+
+
 
             // Compute contributions in the lower triangle of the geometric stiffness matrix
             rLeftHandSideMatrix(node_K*nodal_ndofs, node_M*nodal_ndofs) += delt_v_virt_v;
