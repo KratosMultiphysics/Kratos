@@ -723,7 +723,7 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                     // get mp vertical distance and number of vertical layers to extrude the material point
                     const double vertical_distance = rMPMModelPart.GetProperties(1)[MP_VERTICAL_DISTANCE];
-                    const int number_of_vertical_layers = static_cast<int>(std::round(mp_height[PointNumber] / vertical_distance));
+                    const size_t number_of_vertical_layers = static_cast<size_t>(std::round(mp_height[PointNumber] / vertical_distance));
                     KRATOS_WATCH(number_of_vertical_layers)
                     // const unsigned int number_of_vertical_layers = 10;
                     const double vertical_distance_adjusted = mp_height[PointNumber] / number_of_vertical_layers;
@@ -969,8 +969,8 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                 // get mp vertical distance and number of vertical layers to extrude the material point
                 // const double rVerticalDistance = rMPMModelPart.GetProperties(1)[MP_VERTICAL_DISTANCE];
-                const int number_of_vertical_layers = static_cast<int>(std::round(mp_height[i_integration_point] / rVerticalDistance));
-                KRATOS_WATCH(number_of_vertical_layers)
+                const size_t number_of_vertical_layers = static_cast<size_t>(std::round(mp_height[i_integration_point] / rVerticalDistance));
+                // KRATOS_WATCH(number_of_vertical_layers)
                 // const unsigned int number_of_vertical_layers = 10;
                 const double vertical_distance_adjusted = mp_height[i_integration_point] / number_of_vertical_layers;
 
