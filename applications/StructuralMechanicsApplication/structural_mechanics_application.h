@@ -57,6 +57,7 @@
 #include "custom_elements/membrane_elements/membrane_element.hpp"
 #include "custom_elements/membrane_elements/membrane_element_2D2N.h"
 #include "custom_elements/shell_elements/mitc_thick_shell_element_3D4N.hpp"
+#include "custom_elements/shell_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_elements/shell_thick_element_3D3N.hpp"
@@ -123,6 +124,7 @@
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/flexible_elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
@@ -309,9 +311,13 @@ private:
     const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mMITCThickShellElement3D4N;
     const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mMITCThickShellCorotationalElement3D4N;
 
-    // deprecated
+    // Deprecated names, to be removed by Dec 2026
     const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mShellThickElement3D4N;
     const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D4N;
+
+    // Deprecated elements, to be removed by Dec 2026
+    const ShellThickElement3D4N<ShellKinematics::LINEAR> mLegacyThickShellElement3D4N;
+    const ShellThickElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mLegacyThickShellCorotationalElement3D4N;
 
     const ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalElement3D4N;
     const ShellThinElement3D3N<ShellKinematics::LINEAR> mShellThinElement3D3N;
@@ -548,6 +554,7 @@ private:
     const TrussConstitutiveLaw mTrussConstitutiveLaw;
     const BeamConstitutiveLaw mBeamConstitutiveLaw;
     const ElasticIsotropic3D mElasticIsotropic3D;
+    const FlexibleElasticIsotropic3D mFlexibleElasticIsotropic3D;
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;

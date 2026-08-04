@@ -614,6 +614,8 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateRightHandSide(
     BoundedMatrix<double, 6, 18> B;
     array_3 t, n, b, shape_functions, d_shape_functions;
 
+    GetNodalValuesVector(nodal_values);
+
     // Loop over the integration points
     for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
 
@@ -621,8 +623,6 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateRightHandSide(
         const double weight = r_integration_points[IP].Weight();
         const double J      = GetJacobian(xi);
         const double jacobian_weight = weight * J;
-
-        GetNodalValuesVector(nodal_values);
 
         noalias(shape_functions)   = GetShapeFunctionsValues(xi);
         noalias(d_shape_functions) = GetFirstDerivativesShapeFunctionsValues(xi, J);
@@ -752,8 +752,6 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateOnIntegrationPoints(
             const double xi = r_integration_points[IP].X();
             const double J  = GetJacobian(xi);
 
-            GetNodalValuesVector(nodal_values);
-
             noalias(shape_functions)   = GetShapeFunctionsValues(xi);
             noalias(d_shape_functions) = GetFirstDerivativesShapeFunctionsValues(xi, J);
 
@@ -823,6 +821,52 @@ int LinearTimoshenkoCurvedBeamElement3D3N::Check(const ProcessInfo& rCurrentProc
     return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement3D3N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (mConstitutiveLawVector.empty()) return;
+
+    const auto& r_geometry = GetGeometry();
+    const auto& r_properties = GetProperties();
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    const auto  strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+    VectorType strain_vector(strain_size);
+    VectorType stress_vector(strain_size);
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_properties, rCurrentProcessInfo);
+    cl_values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+
+    GlobalSizeVector nodal_values;
+    GetNodalValuesVector(nodal_values);
+    BoundedMatrix<double, 6, 18> B;
+    BoundedMatrix<double, 3, 3> frenet_serret;
+    BoundedMatrix<double, 6, 6> element_frenet_serret;
+    array_3 t, n, b, shape_functions, d_shape_functions;
+    for (auto integration_point = std::size_t{0}; integration_point < r_integration_points.size(); ++integration_point) {
+        if (!mConstitutiveLawVector[integration_point]->RequiresFinalizeMaterialResponse()) continue;
+        const auto xi = r_integration_points[integration_point].X();
+        noalias(shape_functions)   = GetShapeFunctionsValues(xi);
+        noalias(d_shape_functions) = GetFirstDerivativesShapeFunctionsValues(xi, GetJacobian(xi));
+        GetTangentandTransverseUnitVectors(xi, t, n, b);
+        noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n, b);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(frenet_serret, element_frenet_serret);
+        noalias(B) = CalculateB(shape_functions, d_shape_functions, t);
+        B = prod(element_frenet_serret, B);
+        noalias(strain_vector) = CalculateStrainVector(B, nodal_values);
+        mConstitutiveLawVector[integration_point]->FinalizeMaterialResponse(cl_values, mConstitutiveLawVector[integration_point]->GetStressMeasure());
+    }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
