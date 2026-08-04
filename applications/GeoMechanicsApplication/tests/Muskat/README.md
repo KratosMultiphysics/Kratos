@@ -7,11 +7,12 @@ This test is based on the Muskat problem, but instead of a seepage boundary on t
 ## Setup
 
 The test is performed in a single stage, with the following constraints and condition:
-- The initial condition for the water pressure is a phreatic line with the profile as depicted in the schematic below. The coordinates of the phreatic line are (-0.05, 1.62), (0.25, 1.62), (1.6, 0.48), (1.7, 0.48).
+- The initial condition for the water pressure is a phreatic line with the profile as depicted in the schematic below. The coordinates of the phreatic line are (-0.05, 3.22), (0.25, 3.22), (1.6, 0.48), (1.7, 0.48).
 - For the left boundary, the water pressure is prescribed using a hydrostatic profile with reference coordinate of 3.0m
 - For the right boundary, the water pressure is prescribed using a hydrostatic profile with reference coordinate of 1.62m. Using this fixed boundary instead of a seepage boundary is the main difference with the traditional Muskat problem.
 
 A schematic of this  can be found in the figure below:
+
 ![Schematic](setup.svg)
 
 ## Results
@@ -20,7 +21,7 @@ The following outputs are used as first-reference results for this test, compute
 - Phreatic line evolution (reference: `expected_phreatic_line.csv`).
 - Hydrostatic response values (reference: `expected_saturation_at_x_1_52.csv`).
 
-The phreatic line profile is visualized below:
+The phreatic line profile is visualized below. The profile is an estimation of the p=0 line. For the commercial package, the nodes with the lowest absolute pressures (close to zero) are plotted. For the Kratos result, Delaunay triangulation is used to find the p=0 isoline.
 
 ![Phreatic line](van_genuchten_hydrostatic/phreatic_line.svg)
 

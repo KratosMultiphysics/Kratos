@@ -137,6 +137,9 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             node_ids,
         )
 
+        # Although this triangulation (Delaunay triangulation) is identical to
+        # the mesh used in the simulation, it was decided, it is sufficient for 
+        # visualizing the p = 0 line.
         tri = Triangulation(xs, ys)
         plt.figure(figsize=(10, 8))
         contour_zero = plt.tricontour(tri, pressures, levels=[0.0])
