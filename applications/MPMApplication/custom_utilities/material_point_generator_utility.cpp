@@ -708,10 +708,10 @@ namespace Kratos::MaterialPointGeneratorUtility
                         global_coordinate[0][2] += shape_functions_values(PointNumber, node_i) * r_shallow_water_geometry[node_i].FastGetSolutionStepValue(TOPOGRAPHY);
                     }
                     // Check if reference gauss point is inside grid
-                    typename BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
+                    typename BinBasedFastPointLocator<3>::ResultIteratorType initial_result_begin = results.begin();
                     Element::Pointer dummy_pGridElement;
-                    Vector dummy_shape_function;
-                    bool initial_is_found = SearchStructure.FindPointOnMesh(global_coordinate[0], dummy_shape_function, dummy_pGridElement, result_begin);
+                    Vector dummy_initial_shape_function;
+                    bool initial_is_found = SearchStructure.FindPointOnMesh(global_coordinate[0], dummy_initial_shape_function, dummy_pGridElement, initial_result_begin);
 
                     if (!initial_is_found){
                         KRATOS_WARNING("GenerateMaterialPointElementFromSwModel") << "Search failed: skipping mp generation"
@@ -956,10 +956,10 @@ namespace Kratos::MaterialPointGeneratorUtility
                 }
 
                 // Check if reference gauss point is inside grid
-                typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+                typename BinBasedFastPointLocator<TDimension>::ResultIteratorType initial_result_begin = results.begin();
                 Element::Pointer dummy_pGridElement;
-                Vector dummy_shape_function;
-                bool initial_is_found = SearchStructure.FindPointOnMesh(global_coordinate[0], dummy_shape_function, dummy_pGridElement, result_begin);
+                Vector dummy_initial_shape_function;
+                bool initial_is_found = SearchStructure.FindPointOnMesh(global_coordinate[0], dummy_initial_shape_function, dummy_pGridElement, initial_result_begin);
 
                 if (!initial_is_found){
                     KRATOS_WARNING("GenerateMaterialPointElementFromSwModel") << "Search failed: skipping mp generation"
