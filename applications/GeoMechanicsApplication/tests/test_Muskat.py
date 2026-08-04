@@ -137,7 +137,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             node_ids,
         )
 
-        # Although this triangulation (Delaunay triangulation) is identical to
+        # Although this triangulation (Delaunay triangulation) is not identical to
         # the mesh used in the simulation, it was decided, it is sufficient for 
         # visualizing the p = 0 line.
         tri = Triangulation(xs, ys)
