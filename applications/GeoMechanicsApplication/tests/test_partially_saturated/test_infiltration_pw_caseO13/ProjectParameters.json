@@ -95,7 +95,7 @@
             "node_output"                : false,
             "skin_output"                : false,
             "plane_output"               : [],
-            "nodal_results"              : ["WATER_PRESSURE"],
+            "nodal_results"              : ["WATER_PRESSURE", "EFFECTIVE_SATURATION"],
             "gauss_point_results"        : ["DEGREE_OF_SATURATION"]
           },
           "point_data_configuration"     : []
@@ -182,6 +182,16 @@
         "table"                          : [0, 0, 0] 
       }
     }],
-    "auxiliar_process_list" : []
+    "auxiliar_process_list" : [
+            {
+        "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
+        "Parameters": {
+          "model_part_name": "PorousDomain",
+          "list_of_variables": ["EFFECTIVE_SATURATION"]
+        }
+      }
+    ]
   }
 }
