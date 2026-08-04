@@ -952,7 +952,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                     for (size_t node_i = 0; node_i < r_inlet_condition_geometry.size(); node_i++)
                     {
                         mp_height[i_integration_point] += shape_functions_values(i_integration_point, node_i) * r_inlet_condition_geometry[node_i].FastGetSolutionStepValue(WATER_DEPTH);
-                        mp_velocity[i_integration_point] += shape_functions_values(i_integration_point, node_i) * r_inlet_condition_geometry[node_i].FastGetSolutionStepValue(VELOCITY);
+                        mp_velocity[0] += shape_functions_values(i_integration_point, node_i) * r_inlet_condition_geometry[node_i].FastGetSolutionStepValue(VELOCITY); // deconstruction bug with mp_velocity[i_integration_point]
                         // mp_accumulated_surface_normal_displacement[i_integration_point] += shape_functions_values(i_integration_point, node_i) * r_inlet_condition_geometry[node_i].FastGetSolutionStepValue(ACCUMULATED_SURFACE_NORMAL_DISPLACEMENT);
                     }
 
