@@ -20,7 +20,7 @@
         },
         "time_stepping": {
             "time_step": 1.0,
-            "max_delta_time_factor": 1000
+            "max_delta_time_factor": 1.0e+03
         },
         "buffer_size": 2,
         "echo_level": 1,
@@ -86,7 +86,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyScalarConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain",
+                    "model_part_name": "PorousDomain.porous",
                     "variable_name": "WATER_PRESSURE",
                     "is_fixed": false,
                     "table": [0, 0, 0, 0],
@@ -112,7 +112,7 @@
                     "reference_coordinate": 3.0,
                     "table": 0,
                     "pressure_tension_cut_off": 1.0e+05,
-                    "specific_weight": 9810
+                    "specific_weight": 9.81e+03
                 }
             },
             {
@@ -128,7 +128,7 @@
                     "reference_coordinate": 1.62,
                     "table": 0,
                     "pressure_tension_cut_off": 1.0e+05,
-                    "specific_weight": 9810
+                    "specific_weight": 9.81e+03
                 }
             }
         ],
@@ -152,7 +152,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain",
+                    "model_part_name": "PorousDomain.porous",
                     "list_of_variables": ["EFFECTIVE_SATURATION"]
                 }
             }

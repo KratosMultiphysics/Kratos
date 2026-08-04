@@ -9,8 +9,10 @@ if test_helper.want_test_plots():
 
 from dataclasses import dataclass
 
-from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import \
-    GiDOutputFileReader
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
+    GiDOutputFileReader,
+)
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import fraction_to_percentage
 
 
 class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
@@ -61,7 +63,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             output_data,
             y_coord_by_id_for_right_boundary_nodes.keys(),
         )
-        saturations = [saturation * 100 for saturation in saturations]
+        saturations = [fraction_to_percentage(saturation) for saturation in saturations]
         sorted_depth, sorted_data = zip(
             *sorted(
                 zip(
@@ -80,11 +82,9 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             os.path.join(file_path, "expected_saturation_at_x_1_52.csv"),
             newline="",
         ) as csv_file:
-            reader = csv.DictReader(
-                csv_file, fieldnames=["y", "saturation"], skipinitialspace=True
-            )
+            reader = csv.DictReader(csv_file, skipinitialspace=True)
             data_points = [
-                (float(row["saturation"]), float(row["y"])) for row in reader
+                (float(row["Saturation"]), float(row["Y"])) for row in reader
             ]
         data_series_collection.append(
             plot_utils.DataSeries(
@@ -95,7 +95,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
 
         asserted_data_points = []
         for expected_result in expected_results_for_variable["EFFECTIVE_SATURATION"]:
-            effective_saturation = expected_result.value * 100
+            effective_saturation = fraction_to_percentage(expected_result.value)
 
             asserted_data_points.append(
                 (
@@ -159,11 +159,9 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
         with open(
             os.path.join(file_path, "expected_phreatic_line.csv"), newline=""
         ) as csv_file:
-            reader = csv.DictReader(
-                csv_file, fieldnames=["x", "y"], skipinitialspace=True
-            )
+            reader = csv.DictReader(csv_file, skipinitialspace=True)
             data_points = sorted(
-                [(float(row["x"]), float(row["y"])) for row in reader],
+                [(float(row["X"]), float(row["Y"])) for row in reader],
                 key=lambda point: point[1],
             )
 

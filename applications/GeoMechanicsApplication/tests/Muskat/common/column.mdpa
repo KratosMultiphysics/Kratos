@@ -2138,14 +2138,6 @@ Begin Elements SteadyStatePwElement2D6N
   761 0 243 467 464 648 1449 1329
 End Elements
 
-Begin Conditions LineCondition2D3N
-  1 0 1 7 11
-  2 0 7 8 12
-  3 0 8 9 13
-  4 0 9 10 14
-  5 0 10 2 15
-End Conditions
-
 Begin SubModelPart column_left_boundary
   Begin SubModelPartNodes
     1
@@ -2304,29 +2296,6 @@ Begin SubModelPart column_right_boundary
     167
     168
   End SubModelPartNodes
-End SubModelPart
-
-Begin SubModelPart bottom
-  Begin SubModelPartNodes
-    1
-    2
-    7
-    8
-    9
-    10
-    11
-    12
-    13
-    14
-    15
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    1
-    2
-    3
-    4
-    5
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart porous
