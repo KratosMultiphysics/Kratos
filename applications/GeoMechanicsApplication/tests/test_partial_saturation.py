@@ -264,6 +264,13 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=[5220.0, 10440.0, 14400.0],
             )
+            self.create_saturation_depth_plots(
+                depth_by_id_for_left_boundary_nodes,
+                expected_results_at_times,
+                file_path,
+                output_data,
+                plot_times=expected_results_at_times.keys(),
+            )
 
         # for time, expected_results in expected_results_at_times.items():
         #     water_pressures = reader.nodal_values_at_time(
@@ -463,6 +470,8 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         # )
         for file_name in ["expected_saturations_t_0_01_d.csv", "expected_saturations_t_0_06_d.csv", "expected_saturations_t_0_12_d.csv"]:
             expected_saturations_file = os.path.join(file_path, file_name)
+            if not os.path.exists(expected_saturations_file):
+                break
             with open(expected_saturations_file, newline="") as csv_file:
                 csv_reader = csv.reader(csv_file)
                 next(csv_reader, None)  # skip header
