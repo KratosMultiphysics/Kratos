@@ -19,8 +19,8 @@
       "materials_filename"               : "MaterialParameters_hydro.json"
     },
     "time_stepping" : {
-      "time_step"                        : 60,
-      "max_delta_time_factor"            : 1
+      "time_step"                        : 60.0,
+      "max_delta_time_factor"            : 1.0
     },
     "buffer_size"                        : 2,
     "echo_level"                         : 0,
@@ -157,7 +157,7 @@
         "is_fixed"                       : true,
         "fluid_pressure_type"            : "Uniform",
         "value"                          : 0.0,
-        "table"                          : 0
+        "table"                          : 1
       }
     }],
     "loads_process_list" : [{
