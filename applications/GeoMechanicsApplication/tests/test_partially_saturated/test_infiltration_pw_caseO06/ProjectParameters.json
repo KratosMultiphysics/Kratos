@@ -157,7 +157,7 @@
         "is_fixed"                       : true,
         "fluid_pressure_type"            : "Uniform",
         "value"                          : 0.0,
-        "table"                          : 1
+        "table"                          : 0
       }
     }],
     "loads_process_list" : [{

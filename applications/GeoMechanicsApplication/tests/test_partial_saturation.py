@@ -461,23 +461,24 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         #         color="r",
         #     )
         # )
-        expected_saturations_file = os.path.join(file_path, "expected_saturations_t_x.csv")
-        with open(expected_saturations_file, newline="") as csv_file:
-            csv_reader = csv.reader(csv_file)
-            next(csv_reader, None)  # skip header
-            expected_data = [
-                (float(effective_saturation), -1.0*float(depth))
-                for depth, effective_saturation in csv_reader
-            ]
-        data_series_collection.append(
-            plot_utils.DataSeries(
-                expected_data,
-                label="Expected (t-x CSV)",
-                line_style="--",
-                marker="",
-                color="r",
+        for file_name in ["expected_saturations_t_0_01_d.csv", "expected_saturations_t_0_06_d.csv", "expected_saturations_t_0_12_d.csv"]:
+            expected_saturations_file = os.path.join(file_path, file_name)
+            with open(expected_saturations_file, newline="") as csv_file:
+                csv_reader = csv.reader(csv_file)
+                next(csv_reader, None)  # skip header
+                expected_data = [
+                    (float(effective_saturation), -1.0*float(depth))
+                    for depth, effective_saturation in csv_reader
+                ]
+            data_series_collection.append(
+                plot_utils.DataSeries(
+                    expected_data,
+                    label="Expected (t-x CSV)",
+                    line_style="--",
+                    marker="",
+                    color="r",
+                )
             )
-        )
         plot_utils._make_plot(
             data_series_collection,
             os.path.join(file_path, "saturation_depth_plots.svg"),
