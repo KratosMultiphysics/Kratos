@@ -1,4 +1,5 @@
 import pathlib
+import math
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -74,8 +75,8 @@ def make_sub_plots(
     xscale=None,
     max_plots_per_row=5,
 ):
-    num_rows = int(np.ceil(len(data_series_collections) / max_plots_per_row))
-    num_cols = int(np.ceil(len(data_series_collections) / num_rows))
+    num_rows = math.ceil(len(data_series_collections) / max_plots_per_row)
+    num_cols = math.ceil(len(data_series_collections) / num_rows)
     figure, axes = plt.subplots(
         num_rows, num_cols, figsize=(20, 6), layout="constrained"
     )
@@ -95,8 +96,8 @@ def make_sub_plots(
             ax.set_ylabel(ylabel)
         ax.set_title(title)
 
-        for ax in axes[len(data_series_collections) :]:
-            ax.set_axis_off()
+    for ax in axes[len(data_series_collections) :]:
+        ax.set_axis_off()
 
     lines_with_unique_labels = []
     unique_labels = set()
