@@ -900,13 +900,16 @@ namespace Kratos::MaterialPointGeneratorUtility
 
             if (domain_size ==3)
             {
-                GetIntegrationPointVolumes(r_inlet_condition_geometry, r_integration_method, int_volumes); // get the gp length of current r_inlet_condition_geometry
+                // GetIntegrationPointVolumes(r_inlet_condition_geometry, r_integration_method, int_volumes); // get the gp length of current r_inlet_condition_geometry
+                for (size_t i_integration_point = 0; i_integration_point < number_of_integration_points; i_integration_point++){
+                    int_volumes[i_integration_point] = integration_points[i_integration_point].Weight() * r_inlet_condition_geometry.DeterminantOfJacobian(i_integration_point, r_integration_method);
+                }
             }
             else if (domain_size == 2)
             {
                 if (pProperties->Has(THICKNESS))
                 {
-                    int_volumes[0] = rMPMModelPart.GetProperties(1)[MATERIAL_POINTS_PER_ELEMENT];
+                    int_volumes[0] = rMPMModelPart.GetProperties(1)[THICKNESS];
                 }
                 else
                 {
