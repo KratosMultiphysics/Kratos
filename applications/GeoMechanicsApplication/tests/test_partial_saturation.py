@@ -345,6 +345,111 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             )
 
 
+    def test_infiltration_from_top_boundary_B06(self):
+        file_path = test_helper.get_file_path(
+            os.path.join("test_partially_saturated", "test_infiltration_pw_caseB06")
+        )
+        simulation = test_helper.run_kratos(file_path)
+
+        reader = GiDOutputFileReader()
+        output_data = reader.read_output_from(
+            os.path.join(file_path, "run1sim5_map_hydro.post.res")
+        )
+
+        depth_by_id_for_left_boundary_nodes = {}
+        for node in simulation.model.GetModelPart(
+                "PorousDomain.porous_computational_model_part"
+        ).Nodes:
+            if node.X == 0.0:
+                depth_by_id_for_left_boundary_nodes[node.Id] = -1.0 * node.Y
+
+        @dataclass
+        class ExpectedResult:
+            node_id: int
+            value: float
+
+        expected_results_at_times = {
+            3600.0: [],
+            7200.0: [],
+            10800.0: [],
+            14400.0: [],
+        }
+
+        if test_helper.want_test_plots():
+            self.create_pressure_depth_plots(
+                depth_by_id_for_left_boundary_nodes,
+                expected_results_at_times,
+                file_path,
+                output_data,
+                plot_times=expected_results_at_times.keys(),
+            )
+            self.create_saturation_depth_plots(
+                depth_by_id_for_left_boundary_nodes,
+                expected_results_at_times,
+                file_path,
+                output_data,
+                plot_times=expected_results_at_times.keys(),
+            )
+
+        # for time, expected_results in expected_results_at_times.items():
+        #     water_pressures = reader.nodal_values_at_time(
+        #         "WATER_PRESSURE",
+        #         time,
+        #         output_data,
+        #         [result.node_id for result in expected_results],
+        #     )
+        #     expected_water_pressures = [result.value for result in expected_results]
+        #     self.assertVectorAlmostEqual(
+        #         water_pressures, expected_water_pressures, places=None, delta=10.0
+        #     )
+
+
+    def test_infiltration_from_top_boundary_B09(self):
+        file_path = test_helper.get_file_path(
+            os.path.join("test_partially_saturated", "test_infiltration_pw_caseB09")
+        )
+        simulation = test_helper.run_kratos(file_path)
+
+        reader = GiDOutputFileReader()
+        output_data = reader.read_output_from(
+            os.path.join(file_path, "run1sim5_map_hydro.post.res")
+        )
+
+        depth_by_id_for_left_boundary_nodes = {}
+        for node in simulation.model.GetModelPart(
+                "PorousDomain.porous_computational_model_part"
+        ).Nodes:
+            if node.X == 0.0:
+                depth_by_id_for_left_boundary_nodes[node.Id] = -1.0 * node.Y
+
+        @dataclass
+        class ExpectedResult:
+            node_id: int
+            value: float
+
+        expected_results_at_times = {
+            3600.0: [],
+            7200.0: [],
+            10800.0: [],
+            14400.0: [],
+        }
+
+        if test_helper.want_test_plots():
+            self.create_pressure_depth_plots(
+                depth_by_id_for_left_boundary_nodes,
+                expected_results_at_times,
+                file_path,
+                output_data,
+                plot_times=expected_results_at_times.keys(),
+            )
+            self.create_saturation_depth_plots(
+                depth_by_id_for_left_boundary_nodes,
+                expected_results_at_times,
+                file_path,
+                output_data,
+                plot_times=expected_results_at_times.keys(),
+            )
+
         # for time, expected_results in expected_results_at_times.items():
         #     water_pressures = reader.nodal_values_at_time(
         #         "WATER_PRESSURE",
