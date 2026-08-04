@@ -806,7 +806,7 @@ namespace Kratos::MaterialPointGeneratorUtility
         bool IsMixedFormulation,
         double rAccumulatedDisplacement,
         array_1d<double, 3> rGravity,
-        array_1d<double, 3> rUnitGravity,
+        array_1d<double, 3> rSurfaceDirection,
         const double rVerticalDistance)
     {
         const bool IsAxisSymmetry = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
@@ -980,7 +980,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                 // Generate material point in vertical layers for the current gauss point
                 for (size_t vertical_layer_i = 1; vertical_layer_i < number_of_vertical_layers + 1; vertical_layer_i++)
                 {
-                    global_coordinate[0] += vertical_distance_adjusted * -1 * rUnitGravity;
+                    global_coordinate[0] += vertical_distance_adjusted * rSurfaceDirection;
 
                     typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                     Element::Pointer pGridElement;
