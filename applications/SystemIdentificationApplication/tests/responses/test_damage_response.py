@@ -73,6 +73,7 @@ class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
 
         for i, sensor in enumerate(cls.sensors):
             sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_NORMALIZATION_FACTOR, 1.0)
             cls.adjoint_response_function.AddSensor(sensor)
 
         cls.adjoint_response_function.Initialize()
@@ -285,6 +286,37 @@ class TestDamageDetectionResponse(kratos_unittest.TestCase):
                 self.assertAlmostEqual(gradients[index], sensitivity, 6)
                 element.Properties[Kratos.YOUNG_MODULUS] -= delta
 
+class TestDamageDetectionResponseSensorNormalized(kratos_unittest.TestCase):
+    def test_DamageResponse(self):
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            with open("auxiliary_files/optimization_parameters_p_norm_local_normalization.json", "r") as file_input:
+                parameters = Kratos.Parameters(file_input.read())
+
+            model = Kratos.Model()
+            analysis = OptimizationAnalysis(model, parameters)
+
+            analysis.Initialize()
+            analysis.Check()
+            objective: ResponseRoutine = analysis.optimization_problem.GetComponent("damage_response", ResponseRoutine)
+
+            var = objective.GetRequiredPhysicalGradients()
+            response = objective.GetReponse()
+            model_part = response.GetInfluencingModelPart()
+
+            ref_value = response.CalculateValue()
+            self.assertAlmostEqual(ref_value, 0.562499999, 6)
+
+            response.CalculateGradient(var)
+
+            gradients = var[Kratos.YOUNG_MODULUS].data
+
+            delta = 1e-8
+            for index, element in enumerate(model_part.Elements):
+                element.Properties[Kratos.YOUNG_MODULUS] += delta
+                sensitivity = ((response.CalculateValue() - ref_value) / delta)
+                self.assertAlmostEqual(gradients[index], sensitivity, 6)
+                element.Properties[Kratos.YOUNG_MODULUS] -= delta
+
 class TestDamageDetectionResponseStrainSensor(kratos_unittest.TestCase):
     def test_DamageResponse(self):
         with kratos_unittest.WorkFolderScope(".", __file__):
@@ -304,6 +336,37 @@ class TestDamageDetectionResponseStrainSensor(kratos_unittest.TestCase):
 
             ref_value = response.CalculateValue()
             self.assertAlmostEqual(ref_value, 2.7829118764552163e-08, 10)
+
+            response.CalculateGradient(var)
+
+            gradients = var[Kratos.YOUNG_MODULUS].data
+
+            delta = 1e-8
+            for index, element in enumerate(model_part.Elements):
+                element.Properties[Kratos.YOUNG_MODULUS] += delta
+                sensitivity = ((response.CalculateValue() - ref_value) / delta)
+                self.assertAlmostEqual(gradients[index], sensitivity, 6)
+                element.Properties[Kratos.YOUNG_MODULUS] -= delta
+
+class TestDamageDetectionResponseStrainSensorNormalized(kratos_unittest.TestCase):
+    def test_DamageResponse(self):
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            with open("auxiliary_files_2/optimization_parameters_p_norm_maximum_normalization.json", "r") as file_input:
+                parameters = Kratos.Parameters(file_input.read())
+
+            model = Kratos.Model()
+            analysis = OptimizationAnalysis(model, parameters)
+
+            analysis.Initialize()
+            analysis.Check()
+            objective: ResponseRoutine = analysis.optimization_problem.GetComponent("damage_response", ResponseRoutine)
+
+            var = objective.GetRequiredPhysicalGradients()
+            response = objective.GetReponse()
+            model_part = response.GetInfluencingModelPart()
+
+            ref_value = response.CalculateValue()
+            self.assertAlmostEqual(ref_value, 0.140624999, 6)
 
             response.CalculateGradient(var)
 
