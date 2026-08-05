@@ -84,7 +84,7 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
         ) as csv_file:
             reader = csv.DictReader(csv_file, skipinitialspace=True)
             data_points = [
-                (float(row["Saturation"]), float(row["Y"])) for row in reader
+                (float(row["Effective Saturation"]), float(row["Y"])) for row in reader
             ]
         data_series_collection.append(
             plot_utils.DataSeries(
