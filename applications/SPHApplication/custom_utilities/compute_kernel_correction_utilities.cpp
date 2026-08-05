@@ -1,10 +1,3 @@
-// SPH Application 
-
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
-
-//  Main authors:    Marco Pilotto
-
 #pragma once
 
 #include "custom_utilities/compute_kernel_correction_utilities.h"

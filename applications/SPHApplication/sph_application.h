@@ -1,14 +1,14 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
-//
+//  ____  ____  _   _                   _ _           _   _             
+// / ___||  _ \| | | | __ _ _ __  _ __ | (_) ___ __ _| |_(_) ___  _ __  
+// \___ \| |_) | |_| |/ _` | '_ \| '_ \| | |/ __/ _` | __| |/ _ \| '_ \ 
+//  ___) |  __/|  _  | (_| | |_) | |_) | | | (_| (_| | |_| | (_) | | | |
+// |____/|_|   |_| |_|\__,_| .__/| .__/|_|_|\___\__,_|\__|_|\___/|_| |_|
+//                         |_|   |_|                                    
+
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
-//
-//  Main authors:    @{KRATOS_APP_AUTHOR}
-//
+
+//  Main authors:    Marco Pilotto
 
 #pragma once
 
@@ -25,10 +25,9 @@
 #include "custom_elements/total_lagrangian_mixed_strain_particle.h"
 
 // Include constitutive 
-#include "custom_constitutive/volumetric_linear_elastic_2D_law.h"
 
 // Include conditions
-//#include "custom_conditions/fixed_direction_condition.h"
+
 
 
 namespace Kratos {
@@ -196,11 +195,9 @@ private:
     const TotalLagrangianMixedStrainParticle<CubicKernel3D> mTotalLagrangianMixedStrainCubicParticle3D;
 
     /* CONSTITUTIVE LAWS */ 
-    const VolumetricLinearElastic2DLaw mVolumetricLinearElastic2DLaw;
 
     /* CONDITION */
-    //const FixedDirectionCondition mFixedDirectionCondition;
-
+    
     ///@}
     ///@name Private Operators
     ///@{

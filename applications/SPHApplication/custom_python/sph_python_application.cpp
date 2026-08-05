@@ -37,6 +37,7 @@ PYBIND11_MODULE(KratosSPHApplication,m)
         ;
     
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SMOOTHING_LENGTH)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VOLUME)
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);

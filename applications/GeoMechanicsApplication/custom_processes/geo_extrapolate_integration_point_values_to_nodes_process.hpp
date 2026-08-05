@@ -55,6 +55,7 @@ public:
 
     void                           ExecuteBeforeSolutionLoop() override;
     void                           ExecuteFinalizeSolutionStep() override;
+    int                            Check() override;
     [[nodiscard]] const Parameters GetDefaultParameters() const override;
     [[nodiscard]] std::string      Info() const override;
     void                           PrintInfo(std::ostream& rOStream) const override;
@@ -65,10 +66,10 @@ private:
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariables;
     std::vector<const Variable<Vector>*>              mVectorVariables;
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
-    std::map<SizeType, Matrix>                        mExtrapolationMatrixMap = {};
-    std::map<const Variable<Vector>*, Vector>         mZeroValuesOfVectorVariables;
-    std::map<const Variable<Matrix>*, Matrix>         mZeroValuesOfMatrixVariables;
-    std::map<std::size_t, std::set<std::size_t>>      mNodeIdToConnectedElementIds;
+    std::map<std::tuple<GeometryData::KratosGeometryType, std::size_t, int>, Matrix> mExtrapolationMatrixMap = {};
+    std::map<const Variable<Vector>*, Vector>    mZeroValuesOfVectorVariables;
+    std::map<const Variable<Matrix>*, Matrix>    mZeroValuesOfMatrixVariables;
+    std::map<std::size_t, std::set<std::size_t>> mNodeIdToConnectedElementIds;
 
     void FillVariableLists(const Parameters& rParameters);
     void InitializeVectorAndMatrixZeros();

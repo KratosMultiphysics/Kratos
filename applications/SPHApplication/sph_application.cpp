@@ -44,7 +44,7 @@ KratosSPHApplication::KratosSPHApplication():
     mTotalLagrangianMixedStrainCubicParticle3D(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1))))
 
     /* CONDITION */
-    //mFixedDirectionCondition(0, Condition::GeometryType::Pointer(new Point2D<NodeType>(Condition::GeometryType::PointsArrayType(1))))
+    
 
     {}
 
@@ -61,10 +61,6 @@ void KratosSPHApplication::Register()
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedStrainCubicParticle2D", mTotalLagrangianMixedStrainCubicParticle2D)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedStrainCubicParticle3D", mTotalLagrangianMixedStrainCubicParticle3D)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("VolumetricLinearElastic2DLaw", mVolumetricLinearElastic2DLaw)
-
-
-    //KRATOS_REGISTER_CONDITION("FixedDirectionCondition", mFixedDirectionCondition)
 
 }
 
