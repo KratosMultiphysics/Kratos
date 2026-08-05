@@ -67,7 +67,7 @@ class DamageDetectionResponse(ResponseFunction):
             raise RuntimeError(f"No model parts were provided for {self._GetResponsePrefix()}. [ response name = \"{self.GetName()}\"]")
 
         # reading test analsis list
-        self.list_of_test_analysis_data: 'list[tuple[ExecutionPolicyDecorator, DataIO, str, float]]' = []
+        self.list_of_test_analysis_data: 'list[tuple[ExecutionPolicyDecorator, str, Kratos.Parameters, float]]' = []
         for params in parameters["test_analysis_list"].values():
             params.ValidateAndAssignDefaults(default_settings["test_analysis_list"][0])
             primal_analysis_name = params["primal_analysis_name"].GetString()
