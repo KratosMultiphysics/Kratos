@@ -445,7 +445,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateTaus(
     if (GetProperties().Has(DYNAMIC_VISCOSITY)) {
 
         const double constant1 = 16;
-        const double constant2 = 4;
+        const double constant2 = 12;
         const double delta_time = rCurrentProcessInfo[DELTA_TIME];
         const double& viscosity = GetProperties()[DYNAMIC_VISCOSITY]/ delta_time;
          GeometryType& r_geometry = GetGeometry();
