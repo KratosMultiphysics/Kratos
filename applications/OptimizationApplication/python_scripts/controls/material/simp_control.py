@@ -88,8 +88,10 @@ class SimpControl(Control):
 
         self.materials = Materials(parameters["list_of_materials"].values())
 
-        self.density_projection = CreateProjection(parameters["density_projection_settings"], self.optimization_problem)
-        self.young_modulus_projection = CreateProjection(parameters["young_modulus_projection_settings"], self.optimization_problem)
+        density_projection_restart_data = ComponentDataView(f"{self.GetName()}:density_projection", optimization_problem).GetUnBufferedData()
+        self.density_projection = CreateProjection(parameters["density_projection_settings"], self.optimization_problem, density_projection_restart_data)
+        young_modulus_projection_restart_data = ComponentDataView(f"{self.GetName()}:young_modulus_projection", optimization_problem).GetUnBufferedData()
+        self.young_modulus_projection = CreateProjection(parameters["young_modulus_projection_settings"], self.optimization_problem, young_modulus_projection_restart_data)
 
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
         if len(controlled_model_names_parts) == 0:

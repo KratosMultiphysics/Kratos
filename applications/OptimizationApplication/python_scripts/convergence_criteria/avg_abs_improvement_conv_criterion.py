@@ -55,6 +55,15 @@ class AvgAbsImprovementConvCriterion(ConvergenceCriterion):
         component = GetComponentHavingDataByFullName(self.__component_name, self.__optimization_problem)
         self.__component_data_view = ComponentDataView(component, self.__optimization_problem)
 
+        # __abs_value_change/__init_value evolve across iterations and are mirrored into
+        # unbuffered data below. On a restart (step > 0), re-hydrate them here instead of
+        # letting IsConverged() re-initialize from the current (mid-run) value.
+        unbuffered_data = self.__component_data_view.GetUnBufferedData()
+        prefix = f"{self.__value_name.split(':')[0]}_avg_abs_{self.__tracked_iter}_itr"
+        if self.__optimization_problem.GetStep() > 0 and unbuffered_data.HasValue(f"{prefix}_init_value"):
+            self.__init_value = unbuffered_data[f"{prefix}_init_value"]
+            self.__abs_value_change = numpy.array(unbuffered_data[f"{prefix}_abs_value_change"])
+
     @time_decorator()
     def IsConverged(self) -> bool:
         step = self.__optimization_problem.GetStep()
@@ -78,7 +87,11 @@ class AvgAbsImprovementConvCriterion(ConvergenceCriterion):
                 self.__value = numpy.abs(numpy.sum(self.__abs_value_change)) / step
                 self.__conv = False
 
-        self.__component_data_view.GetBufferedData().SetValue(f"{self.__value_name.split(':')[0]}_avg_abs_{self.__tracked_iter}_itr", self.__value)
+        prefix = f"{self.__value_name.split(':')[0]}_avg_abs_{self.__tracked_iter}_itr"
+        unbuffered_data = self.__component_data_view.GetUnBufferedData()
+        unbuffered_data.SetValue(f"{prefix}_init_value", self.__init_value, overwrite=True)
+        unbuffered_data.SetValue(f"{prefix}_abs_value_change", self.__abs_value_change.tolist(), overwrite=True)
+        self.__component_data_view.GetBufferedData().SetValue(prefix, self.__value)
 
         return self.__conv
 

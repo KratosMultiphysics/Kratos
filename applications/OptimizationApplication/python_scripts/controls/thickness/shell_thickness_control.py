@@ -57,7 +57,8 @@ class ShellThicknessControl(Control):
         self.output_all_fields = self.parameters["output_all_fields"].GetBool()
         self.physical_thicknesses = self.parameters["physical_thicknesses"].GetVector()
 
-        self.thickness_projection = CreateProjection(parameters["thickness_projection_settings"], self.optimization_problem)
+        thickness_projection_restart_data = ComponentDataView(f"{self.GetName()}:thickness_projection", optimization_problem).GetUnBufferedData()
+        self.thickness_projection = CreateProjection(parameters["thickness_projection_settings"], self.optimization_problem, thickness_projection_restart_data)
 
         self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
 

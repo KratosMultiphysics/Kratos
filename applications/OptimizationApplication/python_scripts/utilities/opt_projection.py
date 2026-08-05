@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 
 class DesignVariableProjection(ABC):
     """Design variable projection methods to convert given x space values to given y space values
@@ -69,7 +70,7 @@ class DesignVariableProjection(ABC):
         """
 
 class IdentityDesignVariableProjection(DesignVariableProjection):
-    def __init__(self, parameters: Kratos.Parameters, _):
+    def __init__(self, parameters: Kratos.Parameters, _, __):
         default_settings = Kratos.Parameters("""{
             "type"       : "identity_projection"
         }""")
@@ -98,7 +99,7 @@ class IdentityDesignVariableProjection(DesignVariableProjection):
         pass
 
 class SigmoidalDesignVariableProjection(DesignVariableProjection):
-    def __init__(self, parameters: Kratos.Parameters, _):
+    def __init__(self, parameters: Kratos.Parameters, _, __):
         default_parameters = Kratos.Parameters("""{
             "type"          : "sigmoidal_projection",
             "beta_value"    : 5,
@@ -129,7 +130,7 @@ class SigmoidalDesignVariableProjection(DesignVariableProjection):
         pass
 
 class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
-    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem, restart_data: Optional[BufferedDict] = None):
         default_parameters = Kratos.Parameters("""{
             "type"          : "adaptive_sigmoidal_projection",
             "initial_value" : 5,
@@ -140,17 +141,29 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
         }""")
 
         parameters.ValidateAndAssignDefaults(default_parameters)
-        self.beta = parameters["initial_value"].GetDouble()
         self.max_beta = parameters["max_value"].GetDouble()
         self.increase_fac = parameters["increase_fac"].GetDouble()
         self.update_period = parameters["update_period"].GetInt()
         self.penalty_factor = parameters["penalty_factor"].GetInt()
-        self.beta_computed_step = 1
 
         self.x_space_values: 'Optional[list[float]]' = None
         self.y_space_values: 'Optional[list[float]]' = None
 
         self.optimization_problem = optimization_problem
+        self.__restart_data = restart_data
+
+        # "beta" grows monotonically across iterations (see Update below). On a restart
+        # (step > 0) it is re-hydrated from restart_data instead of re-initialized, so the
+        # projection resumes exactly where it left off.
+        if self.__restart_data is not None and optimization_problem.GetStep() > 0 and self.__restart_data.HasValue("beta"):
+            self.beta = self.__restart_data["beta"]
+            self.beta_computed_step = self.__restart_data["beta_computed_step"]
+        else:
+            self.beta = parameters["initial_value"].GetDouble()
+            self.beta_computed_step = 1
+            if self.__restart_data is not None:
+                self.__restart_data.SetValue("beta", self.beta, overwrite=True)
+                self.__restart_data.SetValue("beta_computed_step", self.beta_computed_step, overwrite=True)
 
     def SetProjectionSpaces(self, x_space_values: 'list[float]', y_space_values: 'list[float]') -> None:
         self.x_space_values = x_space_values
@@ -171,9 +184,12 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
             self.beta_computed_step = step
             self.beta = min(self.beta * self.increase_fac, self.max_beta)
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Increased beta to {self.beta}.")
+            if self.__restart_data is not None:
+                self.__restart_data.SetValue("beta", self.beta, overwrite=True)
+                self.__restart_data.SetValue("beta_computed_step", self.beta_computed_step, overwrite=True)
 
 
-def CreateProjection(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> DesignVariableProjection:
+def CreateProjection(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem, restart_data: Optional[BufferedDict] = None) -> DesignVariableProjection:
     if not parameters.Has("type"):
         raise RuntimeError("DesignVariableProjection \"type\" is not present in following parameters:\n" + str(parameters))
 
@@ -186,6 +202,6 @@ def CreateProjection(parameters: Kratos.Parameters, optimization_problem: Optimi
     }
 
     if projection_type in projection_types_map.keys():
-        return projection_types_map[projection_type](parameters, optimization_problem)
+        return projection_types_map[projection_type](parameters, optimization_problem, restart_data)
     else:
         raise RuntimeError(f"Unsupported projected type = \"{projection_type}\" requested. Followings are supported:\n\t" + "\n\t".join(list(projection_types_map.keys())))
