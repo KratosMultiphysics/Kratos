@@ -4,14 +4,13 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GAUSS_POINT_ITEM )
-#define  KRATOS_GAUSS_POINT_ITEM
+#pragma once
 
 // System includes
 
@@ -52,12 +51,15 @@ class GaussPointItem
     : public Point
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
     /// The type used to identify index and key
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
+
+    /// Disambiguate from names injected by the dense-backend base of Point
+    using Matrix = Kratos::Matrix;
+    using Vector = Kratos::Vector;
 
     /// Counted pointer of GaussPointItem
     KRATOS_CLASS_POINTER_DEFINITION( GaussPointItem );
