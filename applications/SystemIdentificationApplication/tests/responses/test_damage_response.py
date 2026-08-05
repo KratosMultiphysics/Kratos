@@ -185,6 +185,7 @@ class TestDamageDetectionAdjointResponseFunctionErrorThreshold(kratos_unittest.T
         response = KratosSI.Responses.MeasurementResidualResponseFunction(3.0)
         for i, sensor in enumerate(sensors):
             sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_NORMALIZATION_FACTOR, 1.0)
             response.AddSensor(sensor)
         response.Initialize()
 
