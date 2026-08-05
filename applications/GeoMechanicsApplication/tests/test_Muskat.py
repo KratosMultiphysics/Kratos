@@ -205,6 +205,22 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
             "Muskat", "van_genuchten_hydrostatic", expected_results_for_variables
         )
 
+    def test_muskat_saturated_hydrostatic(self):
+        @dataclass
+        class ExpectedResult:
+            node_id: int
+            value: float
+
+        expected_results_for_variables = {
+            "WATER_PRESSURE": [
+            ],
+            "EFFECTIVE_SATURATION": [
+            ],
+        }
+        self._assert_muskat_results(
+            "Muskat", "saturated_hydrostatic", expected_results_for_variables
+        )
+
 
 if __name__ == "__main__":
     KratosUnittest.main()

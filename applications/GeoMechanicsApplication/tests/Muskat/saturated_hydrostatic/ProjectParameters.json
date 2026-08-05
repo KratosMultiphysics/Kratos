@@ -16,7 +16,7 @@
             "input_filename": "../common/column"
         },
         "material_import_settings": {
-            "materials_filename": "MaterialParametersNonLinear.json"
+            "materials_filename": "MaterialParameters.json"
         },
         "time_stepping": {
             "time_step": 1.0,
