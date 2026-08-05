@@ -282,11 +282,13 @@ if __name__ == '__main__':
         raise TypeError(err_msg)
 
     if len(argv) == 2: # ProjectParameters is being passed from outside
-        parameter_file_name = _validated_parameter_path(argv[1])
+        parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = Path("ProjectParameters.json")
+        parameter_file_name = "ProjectParameters.json"
 
-    with open(parameter_file_name,'r') as parameter_file:
+    path_to_parameter_file = _validated_parameter_path(parameter_file_name)
+
+    with open(path_to_parameter_file,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()
