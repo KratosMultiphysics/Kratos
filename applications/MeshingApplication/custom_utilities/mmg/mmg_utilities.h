@@ -226,7 +226,7 @@ public:
      * @brief This method retrieves the current Mmg version
      * @return The current version of Mmg (as a string)
      */
-    std::string GetMmgVersion();
+    static std::string GetMmgVersion();
 
     /**
      * @brief This method sets the echo level
