@@ -279,7 +279,8 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
 
         expected_results_at_times = {
             600: [],
-            5040.0: [],
+            7860.0: [],
+            12780.0: [],
         }
 
         if test_helper.want_test_plots():
@@ -417,7 +418,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             data = zip(sorted_pressures, sorted_depth)
             data_series_collection.append(
                 plot_utils.DataSeries(
-                    data, label=f"Time = {time}", line_style="-", marker=""
+                    data, label=f"Time = {int(time)}s", line_style="-", marker=""
                 )
             )
         asserted_data_points = []
@@ -476,7 +477,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             data = zip(sorted_pressures, sorted_depth)
             data_series_collection.append(
                 plot_utils.DataSeries(
-                    data, label=f"Time = {time}", line_style="-", marker=""
+                    data, label=f"Time = {int(time)}s", line_style="-", marker=""
                 )
             )
         asserted_data_points = []
@@ -499,11 +500,8 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 color="r",
             )
         )
-        for file_name in [
-            "expected_saturations_t_0_01_d.csv",
-            "expected_saturations_t_0_06_d.csv",
-            "expected_saturations_t_0_12_d.csv",
-        ]:
+        for time in plot_times:
+            file_name = f"expected_saturations_t_{int(time)}s.csv"
             expected_saturations_file = os.path.join(file_path, file_name)
             if not os.path.exists(expected_saturations_file):
                 break
@@ -517,10 +515,9 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             data_series_collection.append(
                 plot_utils.DataSeries(
                     expected_data,
-                    label="Expected (t-x CSV)",
+                    label=f"Time = {int(time)}s - commercial package",
                     line_style="--",
                     marker="",
-                    color="r",
                 )
             )
         plot_utils._make_plot(
