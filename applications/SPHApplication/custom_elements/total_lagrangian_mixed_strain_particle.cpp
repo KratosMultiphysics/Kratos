@@ -458,7 +458,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateAll(
         MatrixType K22(dimension * dimension * number_of_neighbours, dimension * dimension * number_of_neighbours); K22.clear();
 
         /* Geometric stiffness matrix */
-        //CalculateAndAddKg(K12, this_kinematic_variables.DW_DX, this_constitutive_variables.StressVector, gauss_weight);
+        CalculateAndAddKg(K12, this_kinematic_variables.DW_DX, this_constitutive_variables.StressVector, gauss_weight);
 
         /* Material stiffness matrix */
         //CalculateAndAddKm(K12, this_kinematic_variables.B, this_constitutive_variables.C, gauss_weight); 
@@ -483,17 +483,48 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateAll(
 template<class TKernelType>
 void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateAndAddKg(
     MatrixType& rK, 
-    const Matrix& DW_DX, 
-    const Vector& stress_vector, 
+    const Matrix& rDW_DX, 
+    const Vector& rStressVector, 
     const double weight
     ) const 
 {
     KRATOS_TRY
-    const SizeType domain_size = GetGeometry().WorkingSpaceDimension();
-    const MatrixType stress_tensor = weight * MathUtils<double>::StressVectorToTensor(stress_vector);
-    MatrixType reduced_Kg(DW_DX.size1(), DW_DX.size1());
-    MathUtils<double>::BDBtProductOperation(reduced_Kg, stress_tensor, DW_DX);
-    MathUtils<double>::ExpandAndAddReducedMatrix(rK, reduced_Kg, domain_size);
+
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const auto& r_neighbours = GetValue(NEIGHBOURS);
+
+    int self_index = GetNeighbourPosition(r_neighbours);
+    int column_start = dimension * dimension * self_index; 
+
+    VectorType A = ZeroVector(dimension); 
+
+    for (IndexType i = 0; i < r_neighbours.size(); ++i){
+
+        int row_start = dimension * i; 
+
+        if (dimension == 2){
+
+            A[0] = rStressVector[0] * rDW_DX(i, 0) + rStressVector[2] * rDW_DX(i, 1);
+            A[1] = rStressVector[2] * rDW_DX(i, 0) + rStressVector[1] * rDW_DX(i, 1);
+            A *= weight;
+
+        } else {
+
+            A[0] = rStressVector[0] * rDW_DX(i, 0) + rStressVector[3] * rDW_DX(i, 1) + rStressVector[5] * rDW_DX(i, 2); 
+            A[1] = rStressVector[3] * rDW_DX(i, 0) + rStressVector[1] * rDW_DX(i, 1) + rStressVector[4] * rDW_DX(i, 2); 
+            A[2] = rStressVector[5] * rDW_DX(i, 0) + rStressVector[4] * rDW_DX(i, 1) + rStressVector[2] * rDW_DX(i, 2);
+            A *= weight;
+
+        }
+
+        for (SizeType row = 0; row < dimension; ++row){
+            for (SizeType col = 0; col < dimension; ++col){
+                rK(row_start + row, column_start + row * dimension + col) += A[col];
+            }
+        }
+
+    }
+
     KRATOS_CATCH("")
 }
 

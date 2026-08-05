@@ -48,7 +48,7 @@ cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BU
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 rem Build
-cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install
 goto:eof
 
 rem Function to add apps
