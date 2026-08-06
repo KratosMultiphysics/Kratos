@@ -65,6 +65,10 @@ void AddCustomIOToPython(pybind11::module& m)
             "Names of every format this build can read.")
         .def_static("GetSupportedWriteFormats", &MeshioPlusPlusIO::GetSupportedWriteFormats,
             "Names of every format this build can write.")
+        .def_static("SniffFormat", &MeshioPlusPlusIO::SniffFormat, py::arg("file_name"),
+            "Identifies a file's format from its content rather than its extension, returning "
+            "the format name or an empty string. Useful when the extension is missing, wrong, "
+            "or shared ('.msh' is Gmsh, ANSYS and FreeFem++; '.inp' is Abaqus and ANSYS/APDL).")
         .def_static("FormatFromString", &MeshioPlusPlusIO::FormatFromString, py::arg("format_name"),
             "Converts a format name to the Format enum ('gmsh' -> Format.GMSH). Throws on unknown names.")
         .def_static("FormatName", &MeshioPlusPlusIO::FormatName, py::arg("format"),
