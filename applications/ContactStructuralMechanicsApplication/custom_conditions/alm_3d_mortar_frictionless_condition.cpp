@@ -335,7 +335,40 @@ void ALM3dMortarFrictionlessCondition::GetDofList(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    // KRATOS_ERROR << "You are calling to the base class method GetDofList, check your condition definition" << std::endl;
+    KRATOS_TRY
+
+    const GeometryType& r_current_master = this->GetPairedGeometry();
+    const GeometryType& r_current_slave = this->GetParentGeometry();
+    const SizeType system_size = this->GetSystemSize(); // 3 displacements per node (slave and master) + 1 lagrange multiplier per slave node
+
+    if (rConditionalDofList.size() != system_size)
+        rConditionalDofList.resize(system_size);
+
+    IndexType index = 0;
+
+    // Slave Nodes Lambda Equation IDs
+    for (IndexType i_slave = 0; i_slave < r_current_slave.PointsNumber(); ++i_slave)  {
+        const Node &r_slave_node = r_current_slave[i_slave];
+        rConditionalDofList[index++] = r_slave_node.pGetDof(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+    }
+
+    // Slave Nodes Displacement Equation IDs
+    for (IndexType i_slave = 0; i_slave < r_current_slave.PointsNumber(); ++i_slave) {
+        const Node& r_slave_node = r_current_slave[ i_slave ];
+        rConditionalDofList[index++] = r_slave_node.pGetDof(DISPLACEMENT_X);
+        rConditionalDofList[index++] = r_slave_node.pGetDof(DISPLACEMENT_Y);
+        rConditionalDofList[index++] = r_slave_node.pGetDof(DISPLACEMENT_Z);
+    }
+
+    // Master Nodes Displacement Equation IDs
+    for (IndexType i_master = 0; i_master < r_current_master.PointsNumber(); ++i_master) { 
+        const Node &r_master_node = r_current_master[i_master];
+        rConditionalDofList[index++] = r_master_node.pGetDof(DISPLACEMENT_X);
+        rConditionalDofList[index++] = r_master_node.pGetDof(DISPLACEMENT_Y);
+        rConditionalDofList[index++] = r_master_node.pGetDof(DISPLACEMENT_Z);
+    }
+
+    KRATOS_CATCH("GetDofList");
 }
 
 /***********************************************************************************/
