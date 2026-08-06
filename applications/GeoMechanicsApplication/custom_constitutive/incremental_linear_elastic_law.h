@@ -14,9 +14,24 @@
 
 #include "constitutive_law_dimension.h"
 #include "custom_constitutive/linear_elastic_law.h"
+#include "includes/properties.h"
+
+#include <variant>
 
 namespace Kratos
 {
+
+namespace Policies
+{
+struct Constant {
+    double operator()(const Kratos::Properties&) const;
+};
+
+struct Eur {
+    double operator()(const Kratos::Properties&) const;
+};
+} // namespace Policies
+
 /**
  * @class GeoIncrementalLinearElasticLaw
  * @ingroup GeoMechanicsApplication
@@ -59,7 +74,7 @@ public:
      * @brief Dimension of the law:
      * @return The dimension for which the law is working
      */
-    SizeType WorkingSpaceDimension() override;
+    [[nodiscard]] SizeType WorkingSpaceDimension() override;
 
     /**
      * @brief Voigt tensor size:
@@ -78,6 +93,10 @@ public:
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
     using ConstitutiveLaw::GetValue;
 
+    int Check(const Properties&   rMaterialProperties,
+              const GeometryType& rElementGeometry,
+              const ProcessInfo&  rCurrentProcessInfo) const override;
+
     /**
      * @brief It resets all the member variables and flags
      */
@@ -89,7 +108,7 @@ protected:
      * @param C The constitutive matrix
      * @param rValues Parameters of the constitutive law
      */
-    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateElasticMatrix(Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief It calculates the stress vector
@@ -110,6 +129,15 @@ private:
     Vector                                    mDeltaStrainVector;
     Vector                                    mStrainVectorFinalized;
     bool                                      mIsModelInitialized = false;
+
+    using ModulusPolicy = std::variant<Policies::Constant, Policies::Eur>;
+
+    ModulusPolicy mPolicy;
+
+    void   InitializePolicy(const Properties& rProps);
+    double GetYoungsModulus(const Properties& rProps) const;
+    double CalculateStressDependentYoungsModulus(const Properties& rProperties) const;
+    double CalculateMinorPrincipalEffectiveStress() const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
