@@ -8,6 +8,7 @@ import responses.test_damage_response
 import responses.test_temperature_response
 import responses.test_pressure_response
 import controls.test_data_values_control
+import controls.test_material_properties_control
 import test_smooth_clamper
 import test_mask_utils
 import test_distance_matrix
@@ -39,7 +40,11 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_pressure_response.TestPressureDetectionResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_pressure_response.TestPressureDetectionResponseStrainSensor]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_data_values_control.TestDataValuesControl_nodal_historical]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_data_values_control.TestDataValuesControl_nodal_historical_with_initialization]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_data_values_control.TestDataValuesControl_condition]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_data_values_control.TestDataValuesControl_condition_with_initialization]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_material_properties_control.TestMaterialPropertiesControl]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_material_properties_control.TestMaterialPropertiesControl_with_initialization]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_convergence_criterion.TestSensorErrorConvCriterion]))
 
     nightSuite = suites['nightly']
