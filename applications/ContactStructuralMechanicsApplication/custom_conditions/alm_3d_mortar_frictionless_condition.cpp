@@ -249,8 +249,19 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                 VectorType shape_functions_master;
                 VectorType dual_shape_functions; // Discretization of the LM
 
+                // TODO: 
+                /*
+                * fill in the master shape functions --> MortarExplicitContributionUtilities::MasterShapeFunctionValue
+                * fill in the dual shape functions
+                * create the element size interpolation matrices
+                * evaluate gap and LM at each IP -> identify contact/gap
+                * Jacobian of the segmented triangle
+                
+                */
+
 
                 array_1d<double, 3> zero = ZeroVector(3);
+                zero[1] = 1.0;
                 r_slave_geometry.ShapeFunctionsValues(shape_functions_slave, zero);
                 KRATOS_WATCH(shape_functions_slave)
                 // ...................
