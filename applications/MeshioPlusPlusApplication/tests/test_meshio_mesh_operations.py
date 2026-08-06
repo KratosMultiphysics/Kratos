@@ -89,8 +89,7 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
         destination, _ = self._Execute("refine")
         self.assertGreater(destination.NumberOfElements(), self.source.NumberOfElements())
 
-    # Selective refinement (meshio++ >= 9.5.0 - see MESHIOPLUSPLUS_VERSION_AT_LEAST on the C++
-    # side). Two triangles sharing edge 1-3: selecting only cell 0 fully splits it into 4
+    # Selective refinement. Two triangles sharing edge 1-3: selecting only cell 0 splits it into 4
     # (RedGreen, the default closure); cell 1 sees only its shared edge bisected and splits
     # into 2, so the total is 6 - not the 8 a uniform refine of both would give.
     def test_refine_select_by_explicit_cells(self):
@@ -392,6 +391,106 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
 
         self.assertIn("Begin Elements", written)
         self.assertIn("Element3D4N", written)
+
+    def test_gradient_of_a_linear_field(self):
+        # Green-Gauss is exact for a linear field on any cell, so f = 2x + 3y + 4z must
+        # differentiate to exactly (2, 3, 4). "output" points at VELOCITY, a registered
+        # array_1d<double, 3>, so the result survives the write-back.
+        for node in self.source.Nodes:
+            node.SetValue(KratosMultiphysics.TEMPERATURE, 2.0 * node.X + 3.0 * node.Y + 4.0 * node.Z)
+
+        settings = KratosMultiphysics.Parameters("""{
+            "array_name" : "TEMPERATURE",
+            "location" : "cell",
+            "output" : "VELOCITY",
+            "nodal_data_value_variables" : ["TEMPERATURE"]
+        }""")
+        destination, report = self._Execute("gradient", settings)
+
+        self.assertEqual(report["number_of_skipped"].GetInt(), 0)
+        for element in destination.Elements:
+            gradient = element.GetValue(KratosMultiphysics.VELOCITY)
+            self.assertAlmostEqual(gradient[0], 2.0, places=9)
+            self.assertAlmostEqual(gradient[1], 3.0, places=9)
+            self.assertAlmostEqual(gradient[2], 4.0, places=9)
+
+    def test_gradient_needs_an_array_name(self):
+        with self.assertRaises(RuntimeError):
+            self._Execute("gradient")
+
+    def test_crop_predicate(self):
+        square = self.model.CreateModelPart("SquareForCrop")
+        _CreateTriangulatedSquare(square)
+        square.GetElement(1).SetValue(KratosMultiphysics.TEMPERATURE, 0.0)
+        square.GetElement(2).SetValue(KratosMultiphysics.TEMPERATURE, 1.0)
+        destination = self.model.CreateModelPart("CropPredicate")
+
+        settings = KratosMultiphysics.Parameters("""{
+            "operation" : "crop_predicate",
+            "predicate_array" : "TEMPERATURE",
+            "predicate_op" : "<",
+            "predicate_value" : 0.5,
+            "element_data_value_variables" : ["TEMPERATURE"]
+        }""")
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(square, settings, destination)
+
+        self.assertEqual(destination.NumberOfElements(), 1)
+
+    def test_voxelize_fill_all(self):
+        settings = KratosMultiphysics.Parameters("""{"resolution" : [4, 4, 4]}""")
+        destination, report = self._Execute("voxelize", settings)
+        self.assertEqual(destination.NumberOfElements(), 64)
+        self.assertEqual(report["number_of_occupied"].GetInt(), 64)
+
+    def test_voxelize_needs_exactly_one_sizing(self):
+        # Neither or both of "resolution"/"cell_size" is meshio++'s own named error.
+        settings = KratosMultiphysics.Parameters("""{"resolution" : [4, 4, 4], "cell_size" : 0.25}""")
+        with self.assertRaises(RuntimeError):
+            self._Execute("voxelize", settings)
+
+    def test_grid(self):
+        # The one generator: no source model part at all.
+        destination = self.model.CreateModelPart("Grid")
+        settings = KratosMultiphysics.Parameters("""{
+            "dims" : [2, 3, 4], "origin" : [0.0, 0.0, 0.0], "spacing" : [1.0, 1.0, 1.0]
+        }""")
+        report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Grid(settings, destination)
+
+        self.assertEqual(destination.NumberOfElements(), 24)
+        self.assertEqual(destination.NumberOfNodes(), 60)
+        self.assertEqual(report["number_of_elements"].GetInt(), 24)
+
+    def test_distance_to_surface_renames_to_a_variable(self):
+        # Proves the "output" rename: meshio++ names the result "sdf:distance", which no
+        # Kratos Variable is, so without it nothing would be retrievable. Every cube node
+        # lies exactly on the cube's own skin, so the expected distance is exactly zero.
+        surface = self.model.CreateModelPart("Skin")
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(
+            self.source, KratosMultiphysics.Parameters("""{"operation" : "extract_skin"}"""), surface)
+        destination = self.model.CreateModelPart("Distances")
+
+        settings = KratosMultiphysics.Parameters("""{"output" : "DISTANCE"}""")
+        report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.DistanceToSurface(
+            self.source, surface, settings, destination)
+
+        self.assertEqual(destination.NumberOfNodes(), self.source.NumberOfNodes())
+        for node in destination.Nodes:
+            self.assertAlmostEqual(node.GetValue(KratosMultiphysics.DISTANCE), 0.0, places=9)
+        self.assertTrue(report["surface_quality"]["watertight"].GetBool())
+
+    def test_check_surface_watertight(self):
+        surface = self.model.CreateModelPart("ClosedSkin")
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(
+            self.source, KratosMultiphysics.Parameters("""{"operation" : "extract_skin"}"""), surface)
+        closed = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.CheckSurfaceWatertight(surface)
+        self.assertTrue(closed["watertight"].GetBool())
+
+        # A bare sheet is not: every outer edge is used by a single triangle.
+        sheet = self.model.CreateModelPart("OpenSheet")
+        _CreateTriangulatedSquare(sheet)
+        opened = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.CheckSurfaceWatertight(sheet)
+        self.assertFalse(opened["watertight"].GetBool())
+        self.assertGreater(opened["boundary_edges"].GetInt(), 0)
 
 
 if __name__ == "__main__":

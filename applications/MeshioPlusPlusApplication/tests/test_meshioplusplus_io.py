@@ -33,8 +33,10 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
 
         read_formats = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedReadFormats()
         write_formats = KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats()
-        self.assertIn("openfoam", read_formats)   # read-only format
-        self.assertNotIn("openfoam", write_formats)
+        # openfoam round-trips since meshio++ v9.20.0 added the polyMesh writer; it was
+        # read-only before, so both directions are pinned.
+        self.assertIn("openfoam", read_formats)
+        self.assertIn("openfoam", write_formats)
         for name in ("svg", "tikz"):              # write-only formats
             self.assertIn(name, write_formats)
             self.assertNotIn(name, read_formats)
@@ -347,6 +349,81 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
         }""")
         with self.assertRaisesRegex(Exception, 'nsupported "input_type"'):
             solver._ImportModelPart(model_part, import_settings)
+
+    def testReadsGappedMdpaNodeIds(self):
+        """Real Kratos decks routinely have gaps; the C++ reader rejected them before v9.13.0."""
+        deck = """Begin Properties 0
+End Properties
+
+Begin Nodes
+    7   0.0   0.0   0.0
+   42   1.0   0.0   0.0
+   99   0.0   1.0   0.0
+End Nodes
+
+Begin Elements Element2D3N
+    1   0   7   42   99
+End Elements
+"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "gapped.mdpa"
+            path.write_text(deck)
+
+            model_part = self.model.CreateModelPart("gapped")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(path)).ReadModelPart(model_part)
+
+        self.assertEqual(model_part.NumberOfNodes(), 3)
+        self.assertEqual(model_part.NumberOfElements(), 1)
+
+    def testWriteMdpaIdsPreservesOriginalIds(self):
+        """The mdpa writer renumbers to 1..n unless the mesh carries "mdpa:id"."""
+        source = self.model.CreateModelPart("gapped_source")
+        source.CreateNewNode(7, 0.0, 0.0, 0.0)
+        source.CreateNewNode(42, 1.0, 0.0, 0.0)
+        source.CreateNewNode(99, 0.0, 1.0, 0.0)
+        properties = source.CreateNewProperties(0)
+        source.CreateNewElement("Element2D3N", 55, [7, 42, 99], properties)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            preserved_path = Path(temp_dir) / "preserved.mdpa"
+            settings = KratosMultiphysics.Parameters(
+                """{"time_series" : "single_file", "write_mdpa_ids" : true}""")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(preserved_path), settings).WriteModelPart(source)
+            preserved = preserved_path.read_text()
+
+            renumbered_path = Path(temp_dir) / "renumbered.mdpa"
+            settings = KratosMultiphysics.Parameters("""{"time_series" : "single_file"}""")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(renumbered_path), settings).WriteModelPart(source)
+            renumbered = renumbered_path.read_text()
+
+        # The ids cannot collide with the coordinates (0.0 / 1.0), so a substring search is
+        # a sound differential oracle here.
+        self.assertIn("99", preserved)
+        self.assertIn("42", preserved)
+        self.assertNotIn("99", renumbered)
+        self.assertNotIn("42", renumbered)
+
+    def testSniffFormat(self):
+        """Identifies the format from content, not extension."""
+        source = self.model.CreateModelPart("to_sniff")
+        source.CreateNewNode(1, 0.0, 0.0, 0.0)
+        source.CreateNewNode(2, 1.0, 0.0, 0.0)
+        source.CreateNewNode(3, 0.0, 1.0, 0.0)
+        properties = source.CreateNewProperties(0)
+        source.CreateNewElement("Element2D3N", 1, [1, 2, 3], properties)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "mesh.misleading_suffix"
+            settings = KratosMultiphysics.Parameters(
+                """{"format" : "off", "time_series" : "single_file"}""")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(path), settings).WriteModelPart(source)
+            self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.SniffFormat(str(path)), "off")
+
+            # Deliberately conservative: "" rather than a guess. mdpa carries no signature
+            # the sniffer recognizes.
+            opaque = Path(temp_dir) / "opaque.dat"
+            opaque.write_text("Begin Nodes\n    1   0.0   0.0   0.0\nEnd Nodes\n")
+            self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.SniffFormat(str(opaque)), "")
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
