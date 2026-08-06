@@ -111,16 +111,16 @@ public:
     // using BelongType = typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type;
 
     /// The definition of the point with belonging
-    // using PointBelongType = PointBelong<TNumNodes, TNumNodesMaster>;
+    using PointBelongType = PointBelong<3, 3>;
 
     /// Type definition for the geometry with point belonging
     // using GeometryPointBelongType = Geometry<PointBelongType>;
 
     /// Type definition for an array of points with belonging
-    // using ConditionArrayType = array_1d<PointBelongType, 3>;
+    using ConditionArrayType = array_1d<PointBelongType, 3>;
 
     /// Type definition for a list of arrays of points with belonging
-    // using ConditionArrayListType = typename std::vector<ConditionArrayType>;
+    using ConditionArrayListType = typename std::vector<ConditionArrayType>;
 
     /// Type definition for a line in 2D
     // using LineType = Line2D2<PointType>;
@@ -150,8 +150,8 @@ public:
     // /// Type definition for mortar condition matrices with derivatives
     // using MortarConditionMatrices = MortarOperatorWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>;
 
-    // /// Type definition for integration utility with derivatives
-    // using IntegrationUtility = ExactMortarIntegrationUtility<TDim, TNumNodes, true, TNumNodesMaster>;
+    /// Type definition for integration utility with derivatives
+    using IntegrationUtility = ExactMortarIntegrationUtility<3, 3, true, 3>;
 
     // /// Type definition for derivatives utilities with derivatives
     // using DerivativesUtilitiesType = DerivativesUtilities<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster>;

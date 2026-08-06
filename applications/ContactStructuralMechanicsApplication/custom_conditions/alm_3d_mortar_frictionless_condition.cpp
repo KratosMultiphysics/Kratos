@@ -79,6 +79,36 @@ void ALM3dMortarFrictionlessCondition::Initialize(const ProcessInfo& rCurrentPro
     // We reset the ISOLATED flag
     this->Set(ISOLATED, false);
 
+    const auto& r_slave_geometry = GetParentGeometry();
+    const auto& r_master_geometry = GetPairedGeometry();
+
+    const SizeType slave_nodes = r_slave_geometry.PointsNumber();
+    const SizeType master_nodes = r_master_geometry.PointsNumber();
+
+    const SizeType system_size = 3 * (slave_nodes + master_nodes) + slave_nodes; // 3 dofs per node + 1 lagrange multiplier per slave node
+
+    const auto slave_normal = r_slave_geometry.UnitNormal(0);
+    const auto master_normal = r_master_geometry.UnitNormal(0);
+
+    KRATOS_WATCH(slave_normal)
+    KRATOS_WATCH(master_normal)
+    KRATOS_WATCH(r_slave_geometry.Area())
+    KRATOS_WATCH(r_master_geometry.Area())
+
+    const auto& r_properties = this->GetProperties();
+    const IndexType integration_order = r_properties.Has(INTEGRATION_ORDER_CONTACT) ? r_properties.GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
+    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
+    const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
+    IntegrationUtility integration_utility = IntegrationUtility(integration_order, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
+
+
+    ConditionArrayListType conditions_points_slave;
+    const bool is_inside = CheckIsolatedElement(rCurrentProcessInfo[DELTA_TIME]) ? false : 
+        integration_utility.GetExactIntegration(r_slave_geometry, slave_normal, r_master_geometry, master_normal, conditions_points_slave);
+
+
+
     KRATOS_CATCH("Initialize");
 }
 
@@ -276,7 +306,6 @@ int ALM3dMortarFrictionlessCondition::Check(const ProcessInfo& rCurrentProcessIn
     KRATOS_TRY
 
     int check_result = BaseType::Check(rCurrentProcessInfo);
-
 
     return check_result;
 
