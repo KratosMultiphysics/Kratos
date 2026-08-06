@@ -32,6 +32,7 @@
 #include "meshioplusplus/operations/data_manage.hpp"
 #include "meshioplusplus/operations/decimate.hpp"
 #include "meshioplusplus/operations/diff.hpp"
+#include "meshioplusplus/operations/gradient.hpp"
 #include "meshioplusplus/operations/interpolate.hpp"
 #include "meshioplusplus/operations/isosurface.hpp"
 #include "meshioplusplus/operations/merge.hpp"
@@ -39,13 +40,14 @@
 #include "meshioplusplus/operations/quality.hpp"
 #include "meshioplusplus/operations/refine.hpp"
 #include "meshioplusplus/operations/reorder.hpp"
+#include "meshioplusplus/operations/sdf.hpp"
 #include "meshioplusplus/operations/slice.hpp"
 #include "meshioplusplus/operations/smooth.hpp"
 #include "meshioplusplus/operations/split.hpp"
 #include "meshioplusplus/operations/stats.hpp"
 #include "meshioplusplus/operations/surface.hpp"
 #include "meshioplusplus/operations/transform.hpp"
-#include "meshioplusplus/version.hpp"
+#include "meshioplusplus/operations/voxelize.hpp"
 
 // Project includes
 #include "custom_utilities/meshioplusplus_mesh_operations.h"
@@ -62,11 +64,11 @@ namespace
 const std::vector<std::string>& OperationNames()
 {
     static const std::vector<std::string> names = {
-        "attach_quality", "cell_data_to_point_data", "clean", "convert_cells", "crop_bbox",
-        "crop_halfspace", "data_calc", "data_condition", "data_info", "data_manage",
-        "decimate", "extract_skin", "extract_surface", "isosurface", "partition",
-        "point_data_to_cell_data", "quality", "refine", "reorder", "slice", "smooth",
-        "split", "stats", "transform"
+        "attach_quality", "cell_data_to_point_data", "clean", "compute_sdf", "convert_cells",
+        "crop_bbox", "crop_halfspace", "crop_predicate", "data_calc", "data_condition",
+        "data_info", "data_manage", "decimate", "extract_skin", "extract_surface", "gradient",
+        "isosurface", "partition", "point_data_to_cell_data", "quality", "refine", "reorder",
+        "slice", "smooth", "split", "stats", "transform", "voxelize"
     };
     return names;
 }
@@ -104,7 +106,124 @@ Internals::FieldDataSelection BuildFieldDataSelection(const Parameters& rSetting
     selection.ConditionFlags = rSettings["condition_flags"].GetStringArray();
     selection.GaussPointVariables = rSettings["gauss_point_variables_in_elements"].GetStringArray();
     selection.WriteIds = rSettings["write_ids"].GetBool();
+    selection.WriteMdpaIds = rSettings["write_mdpa_ids"].GetBool();
     return selection;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// Reads the surface-distance settings meshio++ embeds by value in both VoxelOptions and
+/// SdfOptions, so "voxelize" and "compute_sdf" cannot drift on the shared half.
+mio::SurfaceDistanceOptions BuildSurfaceDistanceOptions(const Parameters& rSettings)
+{
+    mio::SurfaceDistanceOptions options;
+    options.mSign = mio::sdf_sign_from_name(rSettings["sdf_sign"].GetString());
+    options.mWeight = mio::sdf_weight_from_name(rSettings["sdf_weight"].GetString());
+    options.mLocation = mio::sdf_location_from_name(rSettings["sdf_location"].GetString());
+    options.mBand = rSettings["band"].GetDouble();
+    options.mRecordClosestCell = rSettings["record_closest_cell"].GetBool();
+    options.mRecordInside = rSettings["record_inside"].GetBool();
+    options.mWatertightCheck = mio::sdf_watertight_check_from_name(rSettings["watertight_check"].GetString());
+    options.mGridCellSize = rSettings["grid_cell_size"].GetDouble();
+    options.mMaxWindingWork = rSettings["max_winding_work"].GetDouble();
+    return options;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// Reads the lattice settings "voxelize" and "compute_sdf" share. Both spell "unset" as an
+/// empty array / a non-positive scalar, since meshio++ takes std::optional there and setting
+/// neither (or both) of resolution/cell size is its own named error.
+template <class TOptions>
+void ReadLatticeSettings(const Parameters& rSettings, TOptions& rOptions)
+{
+    const Vector resolution = rSettings["resolution"].GetVector();
+    if (resolution.size() > 0) {
+        KRATOS_ERROR_IF(resolution.size() != 3)
+            << "\"resolution\" needs three entries, got " << resolution.size() << std::endl;
+        rOptions.mResolution = std::array<std::int64_t, 3>{{static_cast<std::int64_t>(resolution[0]),
+                                                            static_cast<std::int64_t>(resolution[1]),
+                                                            static_cast<std::int64_t>(resolution[2])}};
+    }
+    const double cell_size = rSettings["cell_size"].GetDouble();
+    if (cell_size > 0.0) {
+        rOptions.mCellSize = cell_size;
+    }
+    const Vector bounds = rSettings["bounds"].GetVector();
+    if (bounds.size() > 0) {
+        KRATOS_ERROR_IF(bounds.size() != 6)
+            << "\"bounds\" needs six entries (xlo, ylo, zlo, xhi, yhi, zhi), got "
+            << bounds.size() << std::endl;
+        std::array<double, 6> value{};
+        for (std::size_t i = 0; i < 6; ++i) {
+            value[i] = bounds[i];
+        }
+        rOptions.mBounds = value;
+    }
+    rOptions.mPadding = rSettings["padding"].GetDouble();
+    rOptions.mPaddingRelative = rSettings["padding_relative"].GetDouble();
+    rOptions.mMaxCells = rSettings["max_cells"].GetInt();
+    rOptions.mDistance = BuildSurfaceDistanceOptions(rSettings);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// Renames a result array produced under one of meshio++'s own colon-namespaced names to the
+/// caller's "output". Without this the sdf/voxelize results are unreachable from Kratos: a
+/// Kratos entity can only hold data under a registered Variable, and "sdf:distance" never is.
+void RenameResultArray(
+    mio::Mesh& rMesh,
+    const mio::DataLocation Location,
+    const std::string& rFrom,
+    const std::string& rTo
+    )
+{
+    if (rTo.empty() || rTo == rFrom || !mio::data_has(rMesh, Location, rFrom)) {
+        return;
+    }
+    rMesh = mio::data_rename(rMesh, Location, rFrom, rTo);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// Appends a lattice description (dims / origin / spacing) to an operation's report.
+void AppendLatticeReport(
+    Parameters& rReport,
+    const std::array<std::int64_t, 3>& rDims,
+    const std::array<double, 3>& rOrigin,
+    const std::array<double, 3>& rSpacing
+    )
+{
+    Parameters dims(R"([])");
+    Parameters origin(R"([])");
+    Parameters spacing(R"([])");
+    for (std::size_t i = 0; i < 3; ++i) {
+        dims.Append(Parameters(std::to_string(rDims[i])));
+        origin.Append(Parameters(std::to_string(rOrigin[i])));
+        spacing.Append(Parameters(std::to_string(rSpacing[i])));
+    }
+    rReport.AddValue("dims", dims);
+    rReport.AddValue("origin", origin);
+    rReport.AddValue("spacing", spacing);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// Flattens a meshio++ surface verdict into a report.
+Parameters SurfaceQualityReport(const mio::SurfaceQuality& rQuality)
+{
+    Parameters report(R"({})");
+    report.AddBool("watertight", rQuality.mWatertight);
+    report.AddInt("boundary_edges", static_cast<int>(rQuality.mBoundaryEdges));
+    report.AddInt("non_manifold_edges", static_cast<int>(rQuality.mNonManifoldEdges));
+    report.AddInt("inconsistent_pairs", static_cast<int>(rQuality.mInconsistentPairs));
+    report.AddInt("degenerate_triangles", static_cast<int>(rQuality.mDegenerateTriangles));
+    return report;
 }
 
 /***********************************************************************************/
@@ -289,23 +408,49 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
 
         "extrapolate"                                  : false,
         "default_value"                                : 0.0,
-        "on_conflict"                                  : "error"
-    })");
+        "on_conflict"                                  : "error",
 
-#if MESHIOPLUSPLUS_VERSION_AT_LEAST(9, 5, 0)
-    // "refine"'s selective-refinement settings, new in meshio++ v9.5.0. Guarded so this still
-    // compiles against the still-accepted ABI-3 range (v9.2.0-v9.4.1), whose RefineOptions has
-    // none of these members. At most one of "cells"/"region"/"predicate_array" may be set
-    // (mio::refine itself rejects two); none set is the pre-9.5.0 uniform behavior,
-    // byte-identical to a build without this block.
-    params.AddEmptyArray("cells");
-    params.AddString("region", "");
-    params.AddString("predicate_array", "");
-    params.AddString("predicate_op", "<");
-    params.AddDouble("predicate_value", 0.0);
-    params.AddString("closure", "redgreen");
-    params.AddBool("record_levels", false);
-#endif
+        "cells"                                        : [],
+        "region"                                       : "",
+        "predicate_array"                              : "",
+        "predicate_op"                                 : "<",
+        "predicate_value"                              : 0.0,
+        "closure"                                      : "redgreen",
+        "record_levels"                                : false,
+
+        "gradient_operator"                            : "gradient",
+        "gradient_method"                              : "green_gauss",
+        "component"                                    : -1,
+
+        "resolution"                                   : [],
+        "cell_size"                                    : -1.0,
+        "bounds"                                       : [],
+        "padding"                                      : 0.0,
+        "padding_relative"                             : 0.0,
+        "max_cells"                                    : 20000000,
+        "fill"                                         : "all",
+        "attach_occupancy"                             : false,
+
+        "structure"                                    : "voxel",
+        "root_resolution"                              : 8,
+        "max_depth"                                    : 4,
+        "band_cells"                                   : 1.0,
+
+        "sdf_sign"                                     : "pseudonormal",
+        "sdf_weight"                                   : "angle",
+        "sdf_location"                                 : "corner",
+        "band"                                         : 0.0,
+        "record_closest_cell"                          : false,
+        "record_inside"                                : false,
+        "watertight_check"                             : "warn",
+        "grid_cell_size"                               : 0.0,
+        "max_winding_work"                             : 2.0e9,
+
+        "dims"                                         : [1, 1, 1],
+        "spacing"                                      : [1.0, 1.0, 1.0],
+
+        "write_mdpa_ids"                               : false
+    })");
 
     return params;
 }
@@ -379,7 +524,8 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         mio::RefineOptions options;
         options.mLevels = Settings["levels"].GetInt();
         options.mRecordParentIds = Settings["record_parent_ids"].GetBool();
-#if MESHIOPLUSPLUS_VERSION_AT_LEAST(9, 5, 0)
+        // At most one of "cells"/"region"/"predicate_array" may be set; mio::refine itself
+        // rejects two. None set is uniform refinement.
         options.mCells = ReadCellIndices(Settings["cells"]);
         options.mRegion = Settings["region"].GetString();
         options.mPredicateArray = Settings["predicate_array"].GetString();
@@ -387,20 +533,6 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         options.mPredicateValue = Settings["predicate_value"].GetDouble();
         options.mClosure = mio::refine_closure_from_name(Settings["closure"].GetString());
         options.mRecordLevels = Settings["record_levels"].GetBool();
-#else
-        KRATOS_ERROR_IF(Settings.Has("cells") && Settings["cells"].size() > 0)
-            << "The \"cells\" refine selector needs meshio++ >= 9.5.0; this build is compiled "
-               "against an older meshio++" << std::endl;
-        KRATOS_ERROR_IF(Settings.Has("region") && !Settings["region"].GetString().empty())
-            << "The \"region\" refine selector needs meshio++ >= 9.5.0; this build is compiled "
-               "against an older meshio++" << std::endl;
-        KRATOS_ERROR_IF(Settings.Has("predicate_array") && !Settings["predicate_array"].GetString().empty())
-            << "The \"predicate_array\" refine selector needs meshio++ >= 9.5.0; this build is "
-               "compiled against an older meshio++" << std::endl;
-        KRATOS_ERROR_IF(Settings.Has("record_levels") && Settings["record_levels"].GetBool())
-            << "\"record_levels\" needs meshio++ >= 9.5.0; this build is compiled against an "
-               "older meshio++" << std::endl;
-#endif
         mio::RefineResult result = mio::refine(mesh, options);
         StoreResult(result.mMesh, rDestination);
 
@@ -462,6 +594,67 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         const auto normal = ReadVector3(Settings, "normal");
         mio::CropResult result = mio::crop_halfspace(mesh, origin.data(), normal.data(), crop_mode,
                                                      Settings["record_parent_ids"].GetBool());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "crop_predicate") {
+        // Deliberately no "keep_partial_cells": bbox and half-space test *points* and then need
+        // a rule reducing a cell's several nodes to one verdict, whereas a cell_data predicate
+        // is already one value per cell. meshio++ rejects the mode outright for the same reason.
+        const std::string array_name = Settings["predicate_array"].GetString();
+        KRATOS_ERROR_IF(array_name.empty())
+            << "The \"crop_predicate\" operation needs a \"predicate_array\"" << std::endl;
+        mio::CropResult result = mio::crop_predicate(
+            mesh, array_name, mio::refine_compare_from_name(Settings["predicate_op"].GetString()),
+            Settings["predicate_value"].GetDouble(), Settings["record_parent_ids"].GetBool());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "gradient") {
+        mio::GradientOptions options;
+        options.mArrayName = Settings["array_name"].GetString();
+        KRATOS_ERROR_IF(options.mArrayName.empty())
+            << "The \"gradient\" operation needs an \"array_name\"" << std::endl;
+        options.mOperator = mio::gradient_operator_from_name(Settings["gradient_operator"].GetString());
+        options.mMethod = mio::gradient_method_from_name(Settings["gradient_method"].GetString());
+        options.mLocation = ReadLocation(Settings);
+        options.mOutputName = Settings["output"].GetString();
+        options.mOverwrite = Settings["output_overwrite"].GetBool();
+        // Negative is the "every component" sentinel every meshio++ binding boundary uses.
+        const int component = Settings["component"].GetInt();
+        if (component >= 0) {
+            options.mComponent = component;
+        }
+        mio::GradientResult result = mio::gradient(mesh, options);
+        report.AddInt("number_of_skipped", static_cast<int>(result.mNumSkipped));
+        report.AddInt("number_of_fallback", static_cast<int>(result.mNumFallback));
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "voxelize") {
+        mio::VoxelOptions options;
+        ReadLatticeSettings(Settings, options);
+        options.mFill = mio::voxel_fill_from_name(Settings["fill"].GetString());
+        options.mAttachOccupancy = Settings["attach_occupancy"].GetBool();
+        mio::VoxelResult result = mio::voxelize(mesh, options);
+        report.AddInt("number_of_occupied", static_cast<int>(result.mNumOccupied));
+        AppendLatticeReport(report, result.mDims, result.mOrigin, result.mSpacing);
+        RenameResultArray(result.mMesh, mio::DataLocation::Cell, mio::kVoxelOccupancyName,
+                          Settings["output"].GetString());
+        StoreResult(result.mMesh, rDestination);
+
+    } else if (operation == "compute_sdf") {
+        mio::SdfOptions options;
+        ReadLatticeSettings(Settings, options);
+        options.mStructure = mio::sdf_structure_from_name(Settings["structure"].GetString());
+        options.mRootResolution = Settings["root_resolution"].GetInt();
+        options.mMaxDepth = Settings["max_depth"].GetInt();
+        options.mBandCells = Settings["band_cells"].GetDouble();
+        options.mRecordLevels = Settings["record_levels"].GetBool();
+        mio::SdfResult result = mio::compute_sdf(mesh, options);
+        report.AddInt("max_depth", static_cast<int>(result.mMaxDepth));
+        report.AddInt("number_of_banded", static_cast<int>(result.mNumBanded));
+        AppendLatticeReport(report, result.mDims, result.mOrigin, result.mSpacing);
+        report.AddValue("surface_quality", SurfaceQualityReport(result.mQuality));
+        RenameResultArray(result.mMesh, mio::DataLocation::Point, mio::kSdfDistanceName,
+                          Settings["output"].GetString());
         StoreResult(result.mMesh, rDestination);
 
     } else if (operation == "slice") {
@@ -693,6 +886,94 @@ Parameters MeshioPlusPlusMeshOperations::Interpolate(
     report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
     report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));
     return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::Grid(
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    KRATOS_TRY
+
+    Settings.AddMissingParameters(GetDefaultParameters());
+
+    const Vector dims = Settings["dims"].GetVector();
+    KRATOS_ERROR_IF(dims.size() != 3)
+        << "\"dims\" needs three entries, got " << dims.size() << std::endl;
+    const std::array<std::int64_t, 3> counts{{static_cast<std::int64_t>(dims[0]),
+                                              static_cast<std::int64_t>(dims[1]),
+                                              static_cast<std::int64_t>(dims[2])}};
+    const auto origin = ReadVector3(Settings, "origin");
+    const auto spacing = ReadVector3(Settings, "spacing");
+
+    mio::Mesh result = mio::grid(counts, origin, spacing,
+                                 static_cast<std::int64_t>(Settings["max_cells"].GetInt()));
+    Internals::MeshToModelPart(result, rDestination);
+
+    Parameters report(R"({})");
+    AppendLatticeReport(report, counts, origin, spacing);
+    report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
+    report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
+    report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));
+    return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::DistanceToSurface(
+    const ModelPart& rQuery,
+    const ModelPart& rSurface,
+    Parameters Settings,
+    ModelPart& rDestination
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rQuery.IsDistributed() || rSurface.IsDistributed())
+        << "The meshio++ operations do not support distributed model parts" << std::endl;
+
+    Settings.AddMissingParameters(GetDefaultParameters());
+
+    const bool deformed = Settings["use_deformed_configuration"].GetBool();
+    const Internals::FieldDataSelection selection = BuildFieldDataSelection(Settings);
+    mio::Mesh query = Internals::ModelPartToMeshWithData(rQuery, true, true, deformed, selection);
+    mio::Mesh surface = Internals::ModelPartToMeshWithData(rSurface, true, true, deformed, selection);
+
+    mio::SurfaceDistanceResult result =
+        mio::distance_to_surface(query, surface, BuildSurfaceDistanceOptions(Settings));
+
+    RenameResultArray(result.mMesh, mio::DataLocation::Point, mio::kSdfDistanceName,
+                      Settings["output"].GetString());
+    Internals::MeshToModelPart(result.mMesh, rDestination);
+
+    Parameters report(R"({})");
+    report.AddInt("number_of_banded", static_cast<int>(result.mNumBanded));
+    report.AddValue("surface_quality", SurfaceQualityReport(result.mQuality));
+    report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
+    report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
+    report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));
+    return report;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters MeshioPlusPlusMeshOperations::CheckSurfaceWatertight(const ModelPart& rSurface)
+{
+    KRATOS_TRY
+
+    mio::Mesh surface = Internals::ModelPartToMesh(rSurface);
+    return SurfaceQualityReport(mio::surface_watertight_check(surface));
 
     KRATOS_CATCH("")
 }

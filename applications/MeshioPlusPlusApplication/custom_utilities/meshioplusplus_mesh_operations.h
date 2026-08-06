@@ -146,6 +146,56 @@ public:
         );
 
     /**
+     * @brief Builds a regular hexahedron lattice from nothing.
+     * @details Not reachable through @ref Execute: it is meshio++'s only *generator*, taking
+     * no source model part at all where every other operation transforms one.
+     * @param Settings Lattice settings ("dims": cell counts per axis; "origin": the lattice's
+     *                 low corner; "spacing": the cell size per axis; "max_cells").
+     * @param rDestination The model part receiving the grid (expected empty).
+     * @return The lattice report ("dims", "origin", "spacing" and the entity counts).
+     */
+    static Parameters Grid(
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Attaches the signed distance from a query model part to a surface.
+     * @details Not reachable through @ref Execute: like @ref Interpolate this needs two
+     * independent meshes. @p rQuery's geometry is copied unchanged and annotated.
+     *
+     * meshio++ names the result `"sdf:distance"`, which no Kratos `Variable` is (they are
+     * never colon-namespaced), so it could never be read back off @p rDestination. Set
+     * "output" to a registered variable name - `DISTANCE`, for a level-set initialization -
+     * and the array is renamed before the write-back, which is what makes the result usable
+     * rather than merely computed.
+     * @param rQuery The model part to annotate.
+     * @param rSurface The surface to measure against.
+     * @param Settings Surface-distance settings ("sdf_sign", "sdf_weight", "sdf_location",
+     *                 "band", "record_closest_cell", "record_inside", "watertight_check",
+     *                 "grid_cell_size", "max_winding_work") plus "output".
+     * @param rDestination The model part receiving the annotated query mesh (expected empty).
+     * @return The report: the surface verdict and the banded-query count.
+     */
+    static Parameters DistanceToSurface(
+        const ModelPart& rQuery,
+        const ModelPart& rSurface,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Reports what is wrong with a surface, in numbers rather than a bare flag.
+     * @details Report-only, so it takes no destination - the @ref ComputeQuality shape.
+     * A signed distance needs a closed, consistently wound surface; this is how to find out
+     * whether one is, before trusting a sign.
+     * @param rSurface The surface to check.
+     * @return The verdict: "watertight" plus the boundary-edge, non-manifold-edge,
+     *         inconsistent-pair and degenerate-triangle counts.
+     */
+    static Parameters CheckSurfaceWatertight(const ModelPart& rSurface);
+
+    /**
      * @brief Compares two model parts with tolerances.
      * @param rFirst The first model part.
      * @param rSecond The second model part.
