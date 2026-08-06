@@ -147,11 +147,12 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOFormatIntrospection, KratosMeshioPlusP
         KRATOS_EXPECT_TRUE(std::find(supported_formats.begin(), supported_formats.end(), name) != supported_formats.end());
     }
 
-    // openfoam is read-only
+    // openfoam round-trips since meshio++ v9.20.0 added the polyMesh writer; it was read-only
+    // before, and this assertion is pinned in both directions so a regression is visible.
     const auto read_formats = MeshioPlusPlusIO::GetSupportedReadFormats();
     const auto write_formats = MeshioPlusPlusIO::GetSupportedWriteFormats();
     KRATOS_EXPECT_TRUE(std::find(read_formats.begin(), read_formats.end(), "openfoam") != read_formats.end());
-    KRATOS_EXPECT_TRUE(std::find(write_formats.begin(), write_formats.end(), "openfoam") == write_formats.end());
+    KRATOS_EXPECT_TRUE(std::find(write_formats.begin(), write_formats.end(), "openfoam") != write_formats.end());
 
     // svg and tikz are write-only
     for (const std::string name : {"svg", "tikz"}) {
@@ -995,6 +996,114 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOGaussPointVariables, KratosMeshioPlusP
     KRATOS_EXPECT_TRUE(content.find("CAUCHY_STRESS_VECTOR") == std::string::npos); // skipped
     KRATOS_EXPECT_TRUE(content.find("TEMPERATURE") != std::string::npos);          // extrapolated nodal data
     RemoveIfExists(file_path);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOReadsGappedMdpaNodeIds, KratosMeshioPlusPlusFastSuite)
+{
+    // Real Kratos decks routinely have gaps - a sub model part extraction, an entity removal
+    // or a deck merge all leave them, which is why ModelPart keys entities in a hash map.
+    // The C++ mdpa reader rejected anything but 1..n outright until meshio++ v9.13.0, even
+    // under mLenient, so this deck was simply unreadable from this application.
+    const auto file_path = TestFilePath(".mdpa");
+    {
+        std::ofstream deck(file_path);
+        deck << "Begin Properties 0\n"
+             << "End Properties\n\n"
+             << "Begin Nodes\n"
+             << "    7   0.0   0.0   0.0\n"
+             << "   42   1.0   0.0   0.0\n"
+             << "   99   0.0   1.0   0.0\n"
+             << "End Nodes\n\n"
+             << "Begin Elements Element2D3N\n"
+             << "    1   0   7   42   99\n"
+             << "End Elements\n";
+    }
+
+    Model model;
+    auto& r_model_part = model.CreateModelPart("read_back");
+    MeshioPlusPlusIO(file_path).ReadModelPart(r_model_part);
+    RemoveIfExists(file_path);
+
+    KRATOS_EXPECT_EQ(r_model_part.NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(r_model_part.NumberOfElements(), 1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOWriteMdpaIdsPreservesOriginalIds, KratosMeshioPlusPlusFastSuite)
+{
+    // The mdpa writer renumbers to 1..n unless the mesh carries "mdpa:id". The ids here are
+    // chosen so they cannot collide with the coordinates (0.0 / 1.0) anywhere in the file,
+    // which makes a plain substring search a sound differential oracle.
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    r_source.CreateNewNode(7, 0.0, 0.0, 0.0);
+    r_source.CreateNewNode(42, 1.0, 0.0, 0.0);
+    r_source.CreateNewNode(99, 0.0, 1.0, 0.0);
+    auto p_properties = r_source.CreateNewProperties(0);
+    r_source.CreateNewElement("Element2D3N", 55, {7, 42, 99}, p_properties);
+
+    const auto preserved_path = TestFilePath("_preserved.mdpa");
+    {
+        Parameters settings(R"({"time_series" : "single_file", "write_mdpa_ids" : true})");
+        MeshioPlusPlusIO(preserved_path, settings).WriteModelPart(r_source);
+    }
+    const std::string preserved = ReadFileContent(preserved_path);
+    RemoveIfExists(preserved_path);
+
+    const auto renumbered_path = TestFilePath("_renumbered.mdpa");
+    {
+        Parameters settings(R"({"time_series" : "single_file"})");
+        MeshioPlusPlusIO(renumbered_path, settings).WriteModelPart(r_source);
+    }
+    const std::string renumbered = ReadFileContent(renumbered_path);
+    RemoveIfExists(renumbered_path);
+
+    KRATOS_EXPECT_TRUE(preserved.find("99") != std::string::npos);
+    KRATOS_EXPECT_TRUE(preserved.find("42") != std::string::npos);
+    // Without the setting the very same model part is renumbered, so those ids are gone.
+    KRATOS_EXPECT_TRUE(renumbered.find("99") == std::string::npos);
+    KRATOS_EXPECT_TRUE(renumbered.find("42") == std::string::npos);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOSniffFormat, KratosMeshioPlusPlusFastSuite)
+{
+    // Identifies the format from content, not extension: written through a deliberately
+    // misleading suffix, an OFF mesh is still reported as "off".
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    r_source.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_source.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_source.CreateNewNode(3, 0.0, 1.0, 0.0);
+    auto p_properties = r_source.CreateNewProperties(0);
+    r_source.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties);
+
+    const auto file_path = TestFilePath(".misleading_suffix");
+    {
+        Parameters settings(R"({"format" : "off", "time_series" : "single_file"})");
+        MeshioPlusPlusIO(file_path, settings).WriteModelPart(r_source);
+    }
+    const std::string sniffed = MeshioPlusPlusIO::SniffFormat(file_path);
+    RemoveIfExists(file_path);
+    KRATOS_EXPECT_EQ(sniffed, "off");
+
+    // Deliberately conservative: it answers "" rather than guessing. mdpa carries no
+    // signature the sniffer recognizes, so a Kratos deck is exactly such a case.
+    const auto opaque_path = TestFilePath(".opaque");
+    {
+        std::ofstream deck(opaque_path);
+        deck << "Begin Nodes\n    1   0.0   0.0   0.0\nEnd Nodes\n";
+    }
+    const std::string unknown = MeshioPlusPlusIO::SniffFormat(opaque_path);
+    RemoveIfExists(opaque_path);
+    KRATOS_EXPECT_TRUE(unknown.empty());
 }
 
 } // namespace Kratos::Testing
