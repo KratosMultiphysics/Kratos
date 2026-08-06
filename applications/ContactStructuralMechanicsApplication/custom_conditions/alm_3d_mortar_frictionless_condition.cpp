@@ -188,11 +188,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
 
     const auto& r_slave_geometry = GetParentGeometry(); // where we perrofm the integration
     const auto& r_master_geometry = GetPairedGeometry();
-
-    const SizeType slave_nodes = r_slave_geometry.PointsNumber();
-    const SizeType master_nodes = r_master_geometry.PointsNumber();
-
-    const SizeType system_size = 3 * (slave_nodes + master_nodes) + slave_nodes; // 3 displacements per node (slave and master) + 1 lagrange multiplier per slave node
+    const SizeType system_size = GetSystemSize(); // 3 displacements per node (slave and master) + 1 lagrange multiplier per slave node
 
     if (ComputeLHS) {
         if (rLeftHandSideMatrix.size1() != system_size || rLeftHandSideMatrix.size2() != system_size) {
@@ -200,34 +196,35 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
         }
         rLeftHandSideMatrix.clear();
     }
-
+    
     if (ComputeRHS) {
         if (rRightHandSideVector.size() != system_size) {
             rRightHandSideVector.resize(system_size, false);
         }
         rRightHandSideVector.clear();
     }
-
+    
     const auto slave_normal = r_slave_geometry.UnitNormal(0);
     const auto master_normal = r_master_geometry.UnitNormal(0);
-
+    
     const auto& r_properties = this->GetProperties();
-
+    
     const IndexType integration_order = r_properties.Has(INTEGRATION_ORDER_CONTACT) ? r_properties.GetValue(INTEGRATION_ORDER_CONTACT) : 2;
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
     const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
-
+    
     // The utility that performs the local clipping of the projected master to the slave plane
     IntegrationUtility integration_utility = IntegrationUtility(integration_order, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
-
+    
     ConditionArrayListType conditions_points_slave;
     // This fills the conditions_points_slave, which are LOCAL coordinates on the slave geometry
     const bool is_inside = CheckIsolatedElement(rCurrentProcessInfo[DELTA_TIME]) ? false : 
-        integration_utility.GetExactIntegration(r_slave_geometry, slave_normal, r_master_geometry, master_normal, conditions_points_slave);
-
+    integration_utility.GetExactIntegration(r_slave_geometry, slave_normal, r_master_geometry, master_normal, conditions_points_slave);
+    
     double integration_area;
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
+    
 
     if (is_inside && ((integration_area / r_slave_geometry.Area()) > MinIntegrationAreaRatioTolerance)) {
 
@@ -248,6 +245,15 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                 // We perform the integration over the segmented geometry
                 const auto &r_integration_points_slave = segmented_geom.IntegrationPoints(GetIntegrationMethod());
 
+                VectorType shape_functions_slave;
+                VectorType shape_functions_master;
+                VectorType dual_shape_functions; // Discretization of the LM
+
+
+                array_1d<double, 3> zero = ZeroVector(3);
+                r_slave_geometry.ShapeFunctionsValues(shape_functions_slave, zero);
+                KRATOS_WATCH(shape_functions_slave)
+                // ...................
 
             } // if valid segmented geometry
 
@@ -283,7 +289,42 @@ void ALM3dMortarFrictionlessCondition::EquationIdVector(
     const ProcessInfo& CurrentProcessInfo
     ) const
 {
-    // KRATOS_ERROR << "You are calling to the base class method EquationIdVector, check your condition definition" << std::endl;
+    KRATOS_TRY
+
+    const GeometryType& r_current_master = this->GetPairedGeometry();
+    const GeometryType& r_current_slave = this->GetParentGeometry();
+    const SizeType system_size = this->GetSystemSize(); // 3 displacements per node (slave and master) + 1 lagrange multiplier per slave node
+
+    if (rResult.size() != system_size)
+        rResult.resize(system_size, false);
+
+    IndexType index = 0;
+
+    /* ORDER - [ LAMBDA, SLAVE, MASTER ] */
+
+    // Slave Nodes  Lambda Equation IDs
+    for (IndexType i_slave = 0; i_slave < r_current_slave.PointsNumber(); ++i_slave) {
+        const Node &r_slave_node = r_current_slave[i_slave];
+        rResult[index++] = r_slave_node.GetDof(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE).EquationId();
+    }
+
+    // Slave Nodes Displacement Equation IDs
+    for (IndexType i_slave = 0; i_slave < r_current_slave.PointsNumber(); ++i_slave) {
+        const Node &r_slave_node = r_current_slave[i_slave];
+        rResult[index++] = r_slave_node.GetDof(DISPLACEMENT_X).EquationId();
+        rResult[index++] = r_slave_node.GetDof(DISPLACEMENT_Y).EquationId();
+        rResult[index++] = r_slave_node.GetDof(DISPLACEMENT_Z).EquationId();
+    }
+
+    // Master Nodes Displacement Equation IDs
+    for (IndexType i_master = 0; i_master < r_current_master.PointsNumber(); ++i_master) { // NOTE: Assuming same number of nodes for master and slave
+        const Node &r_master_node = r_current_master[i_master];
+        rResult[index++] = r_master_node.GetDof(DISPLACEMENT_X).EquationId();
+        rResult[index++] = r_master_node.GetDof(DISPLACEMENT_Y).EquationId();
+        rResult[index++] = r_master_node.GetDof(DISPLACEMENT_Z).EquationId();
+    }
+
+    KRATOS_CATCH("EquationIdVector");
 }
 
 /***********************************************************************************/
