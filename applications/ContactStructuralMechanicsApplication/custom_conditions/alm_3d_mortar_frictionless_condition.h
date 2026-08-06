@@ -466,6 +466,13 @@ protected:
         const bool HalfJump = true
         );
 
+    IndexType GetSystemSize() const
+    {
+        IndexType slave_nodes = this->GetParentGeometry().PointsNumber();
+        IndexType master_nodes = this->GetPairedGeometry().PointsNumber();
+        return 3 * (master_nodes + slave_nodes) + slave_nodes;
+    }
+
     /**
      * @brief It returns theintegration method considered
      */
