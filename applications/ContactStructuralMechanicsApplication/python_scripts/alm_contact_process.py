@@ -335,6 +335,10 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                 condition_name = "ALMNVFrictionlessComponentsMortarContact"
             else:
                 condition_name = "ALMFrictionlessComponentsMortarContact"
+
+        elif self.contact_settings["contact_type"].GetString() == "SimplifiedFrictionless":
+            condition_name = "ALMMortarFrictionless" # New simplified 3D frictionless condition (triangle vs triangle for now)
+            
         elif self.is_frictional:
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
                 if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
