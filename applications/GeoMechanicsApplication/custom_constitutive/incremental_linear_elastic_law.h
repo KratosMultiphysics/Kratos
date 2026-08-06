@@ -24,11 +24,11 @@ namespace Kratos
 namespace Policies
 {
 struct Constant {
-    double operator()(const Kratos::Properties&) const;
+    double operator()(const Properties&) const;
 };
 
 struct Eur {
-    double operator()(const Kratos::Properties&) const;
+    double operator()(const Properties&) const;
 };
 } // namespace Policies
 
@@ -58,11 +58,11 @@ public:
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     bool RequiresInitializeMaterialResponse() override;
-    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
 
     bool RequiresFinalizeMaterialResponse() override;
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rParameters) override;
 
     /**
      * @brief This function is designed to be called once to check compatibility with element
@@ -86,11 +86,11 @@ public:
 
     /**
      * @brief  It returns the value of a specified variable
-     * @param rThisVariable the variable to be returned
+     * @param rVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+    bool& GetValue(const Variable<bool>& rVariable, bool& rValue) override;
     using ConstitutiveLaw::GetValue;
 
     int Check(const Properties&   rMaterialProperties,
@@ -104,21 +104,21 @@ public:
 
 protected:
     /**
-     * @brief It calculates the constitutive matrix C
-     * @param C The constitutive matrix
-     * @param rValues Parameters of the constitutive law
+     * @brief It calculates the constitutive matrix
+     * @param rElasticMatrix The constitutive matrix
+     * @param rParameters Parameters of the constitutive law
      */
-    void CalculateElasticMatrix(Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateElasticMatrix(Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rParameters) override;
 
     /**
      * @brief It calculates the stress vector
      * @param rStrainVector The strain vector in Voigt notation
      * @param rStressVector The stress vector in Voigt notation
-     * @param rValues Parameters of the constitutive law
+     * @param rParameters Parameters of the constitutive law
      */
     void CalculatePK2Stress(const Vector&                rStrainVector,
                             Vector&                      rStressVector,
-                            ConstitutiveLaw::Parameters& rValues) override;
+                            ConstitutiveLaw::Parameters& rParameters) override;
 
     ///@}
 
@@ -130,13 +130,11 @@ private:
     Vector                                    mStrainVectorFinalized;
     bool                                      mIsModelInitialized = false;
 
-    using ModulusPolicy = std::variant<Policies::Constant, Policies::Eur>;
+    std::variant<Policies::Constant, Policies::Eur> mPolicy;
 
-    ModulusPolicy mPolicy;
-
-    void   InitializePolicy(const Properties& rProps);
-    double GetYoungsModulus(const Properties& rProps) const;
-    double CalculateStressDependentYoungsModulus(const Properties& rProperties) const;
+    void   InitializePolicy(const Properties& rProperties);
+    double GetYoungsModulus(const Properties& rProperties) const;
+    double CalculateYoungsModulusForEur(const Properties& rProperties) const;
     double CalculateMinorPrincipalEffectiveStress() const;
 
     friend class Serializer;
