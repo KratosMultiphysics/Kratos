@@ -649,6 +649,10 @@ std::vector<DataArray> CollectPointData(const ModelPart& rSource, const FieldDat
         point_data.push_back(CollectIdsArray(r_nodes, number_of_nodes, "KRATOS_NODE_ID"));
     }
 
+    if (rSelection.WriteMdpaIds) {
+        point_data.push_back(CollectIdsArray(r_nodes, number_of_nodes, mio::kMdpaIdName));
+    }
+
     return point_data;
 
     KRATOS_CATCH("")
@@ -684,6 +688,9 @@ std::vector<DataArray> CollectCellData(
             element_part.push_back(CollectIdsArray(r_elements, number_of_elements, "KRATOS_ELEMENT_ID"));
             element_part.push_back(CollectPropertiesIdsArray(r_elements, number_of_elements));
         }
+        if (rSelection.WriteMdpaIds) {
+            element_part.push_back(CollectIdsArray(r_elements, number_of_elements, mio::kMdpaIdName));
+        }
         if (!rSelection.GaussPointVariables.empty()) {
             // CalculateOnIntegrationPoints is non-const, hence the contained
             // const_cast (identical effective behavior to VtkOutput)
@@ -702,6 +709,9 @@ std::vector<DataArray> CollectCellData(
         if (rSelection.WriteIds) {
             condition_part.push_back(CollectIdsArray(r_conditions, number_of_conditions, "KRATOS_CONDITION_ID"));
             condition_part.push_back(CollectPropertiesIdsArray(r_conditions, number_of_conditions));
+        }
+        if (rSelection.WriteMdpaIds) {
+            condition_part.push_back(CollectIdsArray(r_conditions, number_of_conditions, mio::kMdpaIdName));
         }
         if (!rSelection.GaussPointVariables.empty()) {
             auto& r_mutable_conditions = const_cast<ModelPart&>(rSource).Conditions();

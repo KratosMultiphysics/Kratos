@@ -22,6 +22,7 @@
 #include "meshioplusplus/kratos_bridge.hpp"
 #include "meshioplusplus/mesh.hpp"
 #include "meshioplusplus/properties.hpp"
+#include "meshioplusplus/formats/mdpa.hpp"
 #include "meshioplusplus/formats/xdmf_time_series.hpp"
 
 // Project includes
@@ -68,6 +69,15 @@ struct FieldDataSelection
     /// Whether to also stage KRATOS_NODE_ID / KRATOS_ELEMENT_ID / KRATOS_CONDITION_ID and
     /// PROPERTIES_ID arrays.
     bool WriteIds = false;
+    /// Whether to stage the Kratos node/element/condition ids as meshio++'s `"mdpa:id"`.
+    /// @details Deliberately separate from @ref FieldDataSelection::WriteIds, which stages
+    /// `KRATOS_*_ID` arrays for inspection: `"mdpa:id"` is a *format contract*. The `mdpa`
+    /// writer renumbers entities to `1..n` unless the mesh carries it, so a model part whose
+    /// ids have gaps - routine after a sub model part extraction or an entity removal - loses
+    /// them silently on write without this. Element and condition ids are independent Kratos
+    /// namespaces and meshio++ checks each kind for duplicates separately, so the combined
+    /// element-then-condition cell array @ref CollectCellData builds is already the right shape.
+    bool WriteMdpaIds = false;
 };
 
 ///@}
