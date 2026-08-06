@@ -87,7 +87,7 @@ void ALM3dMortarFrictionlessCondition::Initialize(const ProcessInfo& rCurrentPro
 
 void ALM3dMortarFrictionlessCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     BaseType::InitializeSolutionStep(rCurrentProcessInfo);
 
@@ -99,7 +99,7 @@ void ALM3dMortarFrictionlessCondition::InitializeSolutionStep(const ProcessInfo&
 
 void ALM3dMortarFrictionlessCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
 
@@ -111,7 +111,7 @@ void ALM3dMortarFrictionlessCondition::InitializeNonLinearIteration(const Proces
 
 void ALM3dMortarFrictionlessCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -123,7 +123,7 @@ void ALM3dMortarFrictionlessCondition::FinalizeSolutionStep(const ProcessInfo& r
 
 void ALM3dMortarFrictionlessCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
 
@@ -192,12 +192,27 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     const SizeType slave_nodes = r_slave_geometry.PointsNumber();
     const SizeType master_nodes = r_master_geometry.PointsNumber();
 
-    const SizeType system_size = 3 * (slave_nodes + master_nodes) + slave_nodes; // 3 displacements per node + 1 lagrange multiplier per slave node
+    const SizeType system_size = 3 * (slave_nodes + master_nodes) + slave_nodes; // 3 displacements per node (slave and master) + 1 lagrange multiplier per slave node
+
+    if (ComputeLHS) {
+        if (rLeftHandSideMatrix.size1() != system_size || rLeftHandSideMatrix.size2() != system_size) {
+            rLeftHandSideMatrix.resize(system_size, system_size, false);
+        }
+        rLeftHandSideMatrix.clear();
+    }
+
+    if (ComputeRHS) {
+        if (rRightHandSideVector.size() != system_size) {
+            rRightHandSideVector.resize(system_size, false);
+        }
+        rRightHandSideVector.clear();
+    }
 
     const auto slave_normal = r_slave_geometry.UnitNormal(0);
     const auto master_normal = r_master_geometry.UnitNormal(0);
 
     const auto& r_properties = this->GetProperties();
+
     const IndexType integration_order = r_properties.Has(INTEGRATION_ORDER_CONTACT) ? r_properties.GetValue(INTEGRATION_ORDER_CONTACT) : 2;
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
@@ -226,6 +241,15 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
             }
 
             DecompositionType segmented_geom(points_array);
+
+            bool bad_shape = MortarUtilities::HeronCheck(segmented_geom);
+
+            if (!bad_shape) { // The segmented geometry is valid
+                // We perform the integration over the segmented geometry
+                const auto &r_integration_points_slave = segmented_geom.IntegrationPoints(GetIntegrationMethod());
+
+
+            } // if valid segmented geometry
 
         } // loop over segmented surfaces
     } else {
