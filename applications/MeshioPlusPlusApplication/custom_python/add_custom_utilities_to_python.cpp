@@ -66,6 +66,21 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             "filling destination_model_part with the target's topology plus the interpolated "
             "arrays. Not reachable through Execute: unlike every other operation this needs "
             "two independent meshes.")
+        .def_static("Grid", &MeshioPlusPlusMeshOperations::Grid,
+            py::arg("settings"), py::arg("destination_model_part"),
+            "Builds a regular hexahedron lattice from \"dims\"/\"origin\"/\"spacing\". Not "
+            "reachable through Execute: it takes no source model part, being the only "
+            "generator rather than a transformation.")
+        .def_static("DistanceToSurface", &MeshioPlusPlusMeshOperations::DistanceToSurface,
+            py::arg("query_model_part"), py::arg("surface_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "Attaches the signed distance from query_model_part to surface_model_part. Set "
+            "\"output\" to a registered Variable name (DISTANCE, say) to get the result back: "
+            "meshio++ names it \"sdf:distance\", which no Kratos Variable can be.")
+        .def_static("CheckSurfaceWatertight", &MeshioPlusPlusMeshOperations::CheckSurfaceWatertight,
+            py::arg("surface_model_part"),
+            "Reports whether a surface is watertight, with the boundary-edge, non-manifold, "
+            "inconsistent-winding and degenerate-triangle counts behind the verdict.")
         .def_static("Diff", &MeshioPlusPlusMeshOperations::Diff,
             py::arg("first_model_part"), py::arg("second_model_part"),
             py::arg("settings") = Parameters(R"({})"),
