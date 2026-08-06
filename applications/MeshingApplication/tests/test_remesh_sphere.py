@@ -1,15 +1,16 @@
 # We import the libraries
 import KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# Other imports
 import os
 
 # Import stuff
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
+from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 def _create_gid_debug_output(main_model_part):
     gid_output = GiDOutputProcess(main_model_part,
@@ -39,8 +40,6 @@ def _create_gid_debug_output(main_model_part):
     return gid_output
 
 def _create_json_output(current_model, output_file_name = "mmg_eulerian_test/distante_extrapolation_skin.json"):
-    import json_output_process
-
     out_parameters = KratosMultiphysics.Parameters("""
     {
         "output_variables"     : ["DISTANCE"],
@@ -50,7 +49,7 @@ def _create_json_output(current_model, output_file_name = "mmg_eulerian_test/dis
     }
     """)
 
-    out = json_output_process.JsonOutputProcess(current_model, out_parameters)
+    out = JsonOutputProcess(current_model, out_parameters)
     out.ExecuteInitialize()
     out.ExecuteBeforeSolutionLoop()
     out.ExecuteFinalizeSolutionStep()
