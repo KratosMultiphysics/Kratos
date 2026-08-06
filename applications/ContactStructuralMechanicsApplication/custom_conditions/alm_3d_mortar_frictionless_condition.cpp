@@ -22,11 +22,12 @@
 // Project includes
 #include "includes/global_variables.h"
 // #include "custom_conditions/mortar_contact_condition.h"
+#include "custom_conditions/alm_3d_mortar_frictionless_condition.h"
 
 /* Utilities */
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/math_utils.h"
-#include "custom_utilities/alm_3d_mortar_frictionless_condition.h"
+#include "custom_utilities/mortar_explicit_contribution_utilities.h"
 
 namespace Kratos
 {
@@ -192,7 +193,7 @@ void ALM3dMortarFrictionlessCondition::CalculateRightHandSide(
     MatrixType aux_left_hand_side_matrix = Matrix();
 
     // Resizing as needed
-    ResizeRHS(rRightHandSideVector);
+    // ResizeRHS(rRightHandSideVector);
 
     // Calculate condition system
     CalculateConditionSystem(aux_left_hand_side_matrix, rRightHandSideVector, rCurrentProcessInfo, false );
@@ -206,7 +207,7 @@ void ALM3dMortarFrictionlessCondition::CalculateMassMatrix(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     // rMassMatrix.resize(0, 0, false);
 
@@ -271,7 +272,7 @@ void ALM3dMortarFrictionlessCondition::AddExplicitContribution(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ALM3dMortarFrictionlessCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::CalculateConditionSystem(
+void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -342,7 +343,7 @@ void ALM3dMortarFrictionlessCondition::EquationIdVector(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ALM3dMortarFrictionlessCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::GetDofList(
+void ALM3dMortarFrictionlessCondition::GetDofList(
     DofsVectorType& rConditionalDofList,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -376,10 +377,9 @@ void ALM3dMortarFrictionlessCondition::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 void ALM3dMortarFrictionlessCondition::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector< array_1d<double, 3 > >& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
+    const Variable<array_1d<double, 3>> &rVariable,
+    std::vector<array_1d<double, 3>> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
 

@@ -108,19 +108,19 @@ public:
     using IntegrationPointsType = typename GeometryType::IntegrationPointsArrayType;
 
     /// The type of points belongs to be considered
-    using BelongType = typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type;
+    // using BelongType = typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type;
 
     /// The definition of the point with belonging
-    using PointBelongType = PointBelong<TNumNodes, TNumNodesMaster>;
+    // using PointBelongType = PointBelong<TNumNodes, TNumNodesMaster>;
 
     /// Type definition for the geometry with point belonging
-    using GeometryPointBelongType = Geometry<PointBelongType>;
+    // using GeometryPointBelongType = Geometry<PointBelongType>;
 
     /// Type definition for an array of points with belonging
-    using ConditionArrayType = array_1d<PointBelongType, TDim>;
+    // using ConditionArrayType = array_1d<PointBelongType, 3>;
 
     /// Type definition for a list of arrays of points with belonging
-    using ConditionArrayListType = typename std::vector<ConditionArrayType>;
+    // using ConditionArrayListType = typename std::vector<ConditionArrayType>;
 
     /// Type definition for a line in 2D
     // using LineType = Line2D2<PointType>;
@@ -129,7 +129,8 @@ public:
     using TriangleType = Triangle3D3<PointType>;
 
     /// The decomposition type
-    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType >::type;
+    // using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType >::type;
+    using DecompositionType = typename TriangleType;
 
     /// The derivative data type
     // using DerivativeDataType = typename std::conditional<TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY, DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNumNodesMaster> >::type;
