@@ -688,6 +688,13 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
 
         return true;
     } else {
+        // KRATOS_WATCH(rOriginalSlaveGeometry.Area())
+        // KRATOS_WATCH(master_geometry.Area())
+        // KRATOS_WATCH(slave_geometry.Area())
+
+        // KRATOS_WATCH(rOriginalMasterGeometry)
+        // KRATOS_WATCH(rOriginalSlaveGeometry)
+
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, master_geometry, PointBelongs::Master);
 
@@ -697,7 +704,9 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);
 
-        return TriangleIntersections<GeometryType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+        auto a = TriangleIntersections<GeometryType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+
+        return a;
     }
 
     return false;

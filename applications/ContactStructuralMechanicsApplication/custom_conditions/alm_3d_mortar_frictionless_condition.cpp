@@ -107,7 +107,10 @@ void ALM3dMortarFrictionlessCondition::Initialize(const ProcessInfo& rCurrentPro
     const bool is_inside = CheckIsolatedElement(rCurrentProcessInfo[DELTA_TIME]) ? false : 
         integration_utility.GetExactIntegration(r_slave_geometry, slave_normal, r_master_geometry, master_normal, conditions_points_slave);
 
+    double integration_area;
+    integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
 
+    KRATOS_WATCH(integration_area)
 
     KRATOS_CATCH("Initialize");
 }
