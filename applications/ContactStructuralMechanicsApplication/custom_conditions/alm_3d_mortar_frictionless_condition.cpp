@@ -79,39 +79,6 @@ void ALM3dMortarFrictionlessCondition::Initialize(const ProcessInfo& rCurrentPro
     // We reset the ISOLATED flag
     this->Set(ISOLATED, false);
 
-    const auto& r_slave_geometry = GetParentGeometry();
-    const auto& r_master_geometry = GetPairedGeometry();
-
-    const SizeType slave_nodes = r_slave_geometry.PointsNumber();
-    const SizeType master_nodes = r_master_geometry.PointsNumber();
-
-    const SizeType system_size = 3 * (slave_nodes + master_nodes) + slave_nodes; // 3 dofs per node + 1 lagrange multiplier per slave node
-
-    const auto slave_normal = r_slave_geometry.UnitNormal(0);
-    const auto master_normal = r_master_geometry.UnitNormal(0);
-
-    KRATOS_WATCH(slave_normal)
-    KRATOS_WATCH(master_normal)
-    KRATOS_WATCH(r_slave_geometry.Area())
-    KRATOS_WATCH(r_master_geometry.Area())
-
-    const auto& r_properties = this->GetProperties();
-    const IndexType integration_order = r_properties.Has(INTEGRATION_ORDER_CONTACT) ? r_properties.GetValue(INTEGRATION_ORDER_CONTACT) : 2;
-    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
-    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
-    const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
-    IntegrationUtility integration_utility = IntegrationUtility(integration_order, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
-
-
-    ConditionArrayListType conditions_points_slave;
-    const bool is_inside = CheckIsolatedElement(rCurrentProcessInfo[DELTA_TIME]) ? false : 
-        integration_utility.GetExactIntegration(r_slave_geometry, slave_normal, r_master_geometry, master_normal, conditions_points_slave);
-
-    double integration_area;
-    integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
-
-    KRATOS_WATCH(integration_area)
-
     KRATOS_CATCH("Initialize");
 }
 
@@ -219,7 +186,53 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
 {
     KRATOS_TRY
 
-    // TODOOOOO
+    const auto& r_slave_geometry = GetParentGeometry(); // where we perrofm the integration
+    const auto& r_master_geometry = GetPairedGeometry();
+
+    const SizeType slave_nodes = r_slave_geometry.PointsNumber();
+    const SizeType master_nodes = r_master_geometry.PointsNumber();
+
+    const SizeType system_size = 3 * (slave_nodes + master_nodes) + slave_nodes; // 3 displacements per node + 1 lagrange multiplier per slave node
+
+    const auto slave_normal = r_slave_geometry.UnitNormal(0);
+    const auto master_normal = r_master_geometry.UnitNormal(0);
+
+    const auto& r_properties = this->GetProperties();
+    const IndexType integration_order = r_properties.Has(INTEGRATION_ORDER_CONTACT) ? r_properties.GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
+    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
+    const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
+
+    // The utility that performs the local clipping of the projected master to the slave plane
+    IntegrationUtility integration_utility = IntegrationUtility(integration_order, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
+
+    ConditionArrayListType conditions_points_slave;
+    // This fills the conditions_points_slave, which are LOCAL coordinates on the slave geometry
+    const bool is_inside = CheckIsolatedElement(rCurrentProcessInfo[DELTA_TIME]) ? false : 
+        integration_utility.GetExactIntegration(r_slave_geometry, slave_normal, r_master_geometry, master_normal, conditions_points_slave);
+
+    double integration_area;
+    integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
+
+    if (is_inside && ((integration_area / r_slave_geometry.Area()) > MinIntegrationAreaRatioTolerance)) {
+
+        PointType global_point; // aux variable to store the global coordinates of the integration points
+        PointerVector<PointType> points_array(3); // aux variable to store the global coordinates of the clipping points
+        for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) { // Segmented surfaces
+            for (IndexType i_node = 0; i_node < conditions_points_slave[i_geom].size(); ++i_node) {
+                // Here we tranform the local coordinates to global coordinates
+                r_slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
+            }
+
+            DecompositionType segmented_geom(points_array);
+
+        } // loop over segmented surfaces
+    } else {
+        this->Set(ISOLATED, true); // We set the corresponding flag
+        rLeftHandSideMatrix.clear();
+        rRightHandSideVector.clear();
+    }
 
     KRATOS_CATCH("CalculateConditionSystem");
 }
