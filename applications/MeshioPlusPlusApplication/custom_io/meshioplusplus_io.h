@@ -176,9 +176,21 @@ public:
 
     /**
      * @brief The names of every format this build can write.
-     * @details Read-only formats (e.g. "openfoam") are not listed.
+     * @details Read-only formats are not listed. Since meshio++ v9.20.0 gained the polyMesh
+     * writer there are none among the file-based formats; the write-only ones ("svg", "tikz")
+     * are conversely absent from @ref GetSupportedReadFormats.
      */
     static std::vector<std::string> GetSupportedWriteFormats();
+
+    /**
+     * @brief Identifies a file's format from its *content* rather than its extension.
+     * @details Answers "what is this file?" before committing to a read - useful when the
+     * extension is missing, wrong, or shared by several formats (`.msh` is Gmsh, ANSYS and
+     * FreeFem++; `.inp` is Abaqus and ANSYS/APDL).
+     * @param rFileName The path to inspect.
+     * @return The format name, or an empty string when nothing matched.
+     */
+    static std::string SniffFormat(const std::string& rFileName);
 
     /**
      * @brief Converts a format name to the @ref Format enum ("gmsh" -> GMSH).

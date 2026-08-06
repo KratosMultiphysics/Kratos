@@ -30,6 +30,7 @@
 #include "meshioplusplus/formats/vtk.hpp"
 #include "meshioplusplus/formats/vtp.hpp"
 #include "meshioplusplus/formats/vtu.hpp"
+#include "meshioplusplus/operations/sniff.hpp"
 
 // Project includes
 #include "custom_io/meshioplusplus_io.h"
@@ -270,6 +271,7 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "output_sub_model_parts"                      : false,
         "write_deformed_configuration"                : false,
         "write_ids"                                   : false,
+        "write_mdpa_ids"                              : false,
         "xdmf_data_format"                            : "auto",
         "xdmf_auto_flush"                             : true,
         "xdmf_gzip_level"                             : -1,
@@ -318,6 +320,15 @@ std::vector<std::string> MeshioPlusPlusIO::GetSupportedWriteFormats()
         names.push_back(r_entry.first);
     }
     return names;
+}
+
+std::string MeshioPlusPlusIO::SniffFormat(const std::string& rFileName)
+{
+    KRATOS_TRY
+
+    return mio::sniff_format(rFileName);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -771,6 +782,7 @@ Internals::FieldDataSelection MeshioPlusPlusIO::GetFieldDataSelection() const
     selection.ConditionFlags = mParameters["condition_flags"].GetStringArray();
     selection.GaussPointVariables = mParameters["gauss_point_variables_in_elements"].GetStringArray();
     selection.WriteIds = mParameters["write_ids"].GetBool();
+    selection.WriteMdpaIds = mParameters["write_mdpa_ids"].GetBool();
     return selection;
 }
 
