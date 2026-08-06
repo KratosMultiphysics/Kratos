@@ -39,6 +39,7 @@
 #include "custom_conditions/ALM_frictional_mortar_contact_axisym_condition.h"
 #include "custom_conditions/penalty_frictional_mortar_contact_axisym_condition.h"
 #include "custom_conditions/mpc_mortar_contact_condition.h"
+#include "custom_conditions/alm_3d_mortar_frictionless_condition.h" // New 3D ALM frictionless mortar contact condition
 
 /* CONSTRAINTS */
 #include "custom_master_slave_constraints/contact_master_slave_constraint.h"
@@ -227,6 +228,8 @@ private:
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true,  4> mALMNVFrictionlessMortarContactCondition3D3N4N;
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3> mALMFrictionlessMortarContactCondition3D4N3N;
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true,  3> mALMNVFrictionlessMortarContactCondition3D4N3N;
+    // New 3D ALM frictionless mortar contact condition
+    const ALM3dMortarFrictionlessCondition mALM3dMortarFrictionlessCondition; // triangle vs triangle
     // Frictionless components cases
     const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2, 2, false> mALMFrictionlessComponentsMortarContactCondition2D2N;
     const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2, 2, true> mALMNVFrictionlessComponentsMortarContactCondition2D2N;
