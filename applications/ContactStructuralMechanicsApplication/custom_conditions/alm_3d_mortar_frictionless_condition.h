@@ -239,26 +239,6 @@ public:
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-    * @brief This method computes the mass matrix
-    * @param rMassMatrix The mass matrix to be computed
-    * @param rCurrentProcessInfo the current process info instance
-    */
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Initialize Damping Matrix
-     * @param rDampingMatrix The damping matrix to be computed
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * @brief Creates a new element pointer from an array of nodes
      * @param NewId the ID of the new element
      * @param rThisNodes the nodes of the new element
@@ -298,43 +278,6 @@ public:
         PropertiesType::Pointer pProperties,
         GeometryType::Pointer pMasterGeom
         ) const override;
-
-    /**
-     * @brief This is called during the assembling process in order to calculate the condition contribution in explicit calculation.
-     * @details NodalData is modified Inside the function, so the "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
-     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-     * @param rRHSVector input variable containing the RHS vector to be assembled
-     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void AddExplicitContribution(
-        const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        const Variable<double >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable (array_1d<double, 3>) version rDestinationVariable.
-     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
-     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-     * @param rRHSVector input variable containing the RHS vector to be assembled
-     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void AddExplicitContribution(const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        const Variable<array_1d<double, 3> >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
 
     /******************************************************************/
     /********** AUXILIARY METHODS FOR GENERAL CALCULATIONS ************/
