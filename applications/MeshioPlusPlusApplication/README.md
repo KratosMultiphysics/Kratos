@@ -6,7 +6,7 @@
 
 |            **Application**            |                                                                                                    **Description**                                                                                                    |                                              **Status**                                              |                                 **Authors**                                 |
 |:-------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------:|
-| `MeshioPlusPlusApplication`           | The *Meshio++ Application* wraps the [meshio++](https://github.com/loumalouomega/meshioplusplus) library, bringing multi-format mesh input/output (41 readable, 43 writable formats) and a full mesh/data operations layer into *Kratos Multiphysics* | <img src="https://img.shields.io/badge/Status-%F0%9F%94%A7Maintained-blue"  width="300px"> | [*Vicente Mataix Ferrándiz*](mailto:vicente.mataix-ferrandiz@siemens.com) |
+| `MeshioPlusPlusApplication`           | The *Meshio++ Application* wraps the [meshio++](https://github.com/loumalouomega/meshioplusplus) library, bringing multi-format mesh input/output (42 readable, 45 writable formats) and a full mesh/data operations layer into *Kratos Multiphysics* | <img src="https://img.shields.io/badge/Status-%F0%9F%94%A7Maintained-blue"  width="300px"> | [*Vicente Mataix Ferrándiz*](mailto:vicente.mataix-ferrandiz@siemens.com) |
 
 The application includes tests to check the proper functioning of the application.
 
@@ -14,7 +14,7 @@ The application includes tests to check the proper functioning of the applicatio
 
 - **Multi-format mesh input/output through `MeshioPlusPlusIO`**
 
-    * *41 readable and 43 writable formats, including the Kratos native `mdpa`*
+    * *42 readable and 45 writable formats, including the Kratos native `mdpa`*
 
     * *Format resolved explicitly or inferred from the file extension*
 
@@ -44,7 +44,7 @@ The application includes tests to check the proper functioning of the applicatio
 
     * *`split` — by cell type, connected component, integer tag or named region*
 
-    * *`crop` — axis-aligned bounding box or half-space*
+    * *`crop` — axis-aligned bounding box, half-space, or a `cell_data` predicate (`crop_predicate`, sharing `refine`'s comparison vocabulary and its evaluator)*
 
     * *`slice` and `isosurface` — planar cross-sections and level sets*
 
@@ -54,7 +54,7 @@ The application includes tests to check the proper functioning of the applicatio
 
 - **Mesh improvement and partitioning**
 
-    * *`refine` — uniform subdivision, or selective/adaptive subdivision (explicit cell list, named region, or a cell-data predicate, with a choice of conforming closure — meshio++ v9.5.0+), and `decimate` — quadric-error edge collapse*
+    * *`refine` — uniform subdivision, or selective/adaptive subdivision (explicit cell list, named region, or a cell-data predicate, with a choice of conforming closure), and `decimate` — quadric-error edge collapse*
 
     * *`smooth` — Laplacian and Taubin coordinate smoothing*
 
@@ -68,6 +68,8 @@ The application includes tests to check the proper functioning of the applicatio
 
     * *`diff` — structured mesh comparison with tolerances*
 
+    * *`gradient` — gradient, divergence and curl of a nodal field (Green-Gauss or least-squares), exact for a linear field, and the natural input to a gradient-based error indicator driving selective `refine`*
+
     * *`data_calc` — evaluate an expression over one or more arrays into a new one*
 
     * *`data_condition` — clamp, normalize or standardize an array's values*
@@ -77,6 +79,22 @@ The application includes tests to check the proper functioning of the applicatio
     * *`point_data_to_cell_data` and `cell_data_to_point_data` — averaging transfer between nodes and cells*
 
     * *`interpolate` (`MeshioPlusPlusMeshOperations.Interpolate`, or the `MeshioInterpolateModeler`) — sample one mesh's field data onto another's geometry (nearest/barycentric, with extrapolation and conflict handling)*
+
+- **Regular grids and signed distance**
+
+    * *`Grid` — a regular hexahedron lattice from nothing: the one *generator* in the library*
+
+    * *`voxelize` — a lattice around a mesh, keeping the whole bounding box, only the cells a surface passes through, or only those inside it*
+
+    * *`compute_sdf` and `DistanceToSurface` — signed distance to a surface, on a generated grid (uniform or adaptive octree) or attached to an existing model part; `CheckSurfaceWatertight` reports what is wrong with a skin in numbers rather than a bare flag*
+
+    * *Set `"output"` to a registered variable name (`DISTANCE`) and the result comes back as real Kratos data — meshio++ names it `sdf:distance`, which no `Variable` can be, so without this it would be computed but unreachable*
+
+- **Kratos-native `mdpa` fidelity**
+
+    * *Gapped and non-sequential node ids are read (they used to be rejected outright), which is what a deck left by a sub model part extraction or an entity removal actually looks like*
+
+    * *`write_mdpa_ids` preserves the model part's own entity ids on write instead of renumbering to `1..n`*
 
     Field data (nodal/elemental/conditional variables, flags and ids) reaches all of the above through the same `nodal_solution_step_data_variables` / `nodal_data_value_variables` / `nodal_flags` / `element_data_value_variables` / `element_flags` / `condition_data_value_variables` / `condition_flags` / `gauss_point_variables_in_elements` / `write_ids` settings `MeshioPlusPlusIO` uses — pass them to `operation_settings` and the selected variables are staged into the meshio++ mesh before the operation runs and, where the result carries a matching registered `Variable` name, written back onto the output model part afterwards.
 
@@ -101,15 +119,13 @@ then point the Kratos configure at it:
 ```
 
 > [!IMPORTANT]
-> The application requires **meshio++ ABI 3 or ABI 4** — **v9.2.0 or newer** (ABI 3 covers v9.2.0-v9.4.1, ABI 4 covers v9.5.0 onwards). The pin is on `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version: that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect this application needs no rebuild. Getting it wrong is not silent — the C++ variants' `SOVERSION` is the ABI version and every translation unit carries a link-time sentinel naming it, so a skew is a link error rather than memory corruption. See meshio++'s [`doc/abi.md`](https://github.com/loumalouomega/meshioplusplus/blob/master/doc/abi.md) for the criterion.
+> The application requires **meshio++ ABI 6** — **v9.20.0 or newer**, which includes **v10.0.0**. The pin is on `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version: that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect this application needs no rebuild (v10.0.0 is a pure version-number bump over v9.30.0 and holds the ABI at 6). It is a single ABI rather than a window on purpose — supporting several meant one `MESHIOPLUSPLUS_VERSION_AT_LEAST` guard per feature, and the operations exposed here would have needed one each. Getting it wrong is not silent — the C++ variants' `SOVERSION` is the ABI version and every translation unit carries a link-time sentinel naming it, so a skew is a link error rather than memory corruption. See meshio++'s [`doc/abi.md`](https://github.com/loumalouomega/meshioplusplus/blob/master/doc/abi.md) for the criterion.
 
 > [!NOTE]
-> Upgrading from a meshio++ older than v9.4.0 requires relinking this application once: the C++ variants' `SOVERSION` changed from a flat `0` to the ABI version, so the needed library is now `libmeshioplusplus_core_kratos.so.3` rather than `.so.0`. Install the new meshio++ wholesale rather than part-upgrading — v9.4.0 headers reference a sentinel a `≤9.3.0` library does not define, which fails closed at link time.
+> Upgrading from any older meshio++ requires relinking this application once: the C++ variants' `SOVERSION` is the ABI version, so the needed library is `libmeshioplusplus_core_kratos.so.6`. Install the new meshio++ wholesale rather than part-upgrading — its headers reference a link-time sentinel an older library does not define, which fails closed rather than silently mixing.
 
 > [!NOTE]
-> Upgrading across the ABI 3 → ABI 4 boundary (anything before v9.5.0 to v9.5.0+) likewise needs one relink: `SOVERSION` follows the ABI counter, so the needed library becomes `libmeshioplusplus_core_kratos.so.4`. ABI 4 unlocks `refine`'s selective/predicate-driven mode (`cells`/`region`/`predicate_array`/`closure`/`record_levels`) — see `docs/pages/Applications/MeshioPlusPlus_Application/Utilities/Mesh_Operations.md`. Compiled against an older meshio++, these settings are rejected with a clear error instead of being silently ignored — the application still builds and works against ABI 3, it simply doesn't expose the new selectors.
->
-> meshio++ v9.6.0's MED improvements (named regions via `FAS`/`GRO` groups, `med:num` global numbering, stricter MED major-version validation) needed **no code changes here** — `MeshioPlusPlusIO` treats MED like every other format through the generic region/format-table machinery already in place.
+> Since the ABI 3/4 era the library has moved a long way: ABI 5 (v9.9.0) and ABI 6 (v9.20.0) both came from format side-channel structs (`MedInfo`, `OpenFoamInfo`) this application never names, so neither could affect it. What it does pick up is `gradient`, `crop_predicate`, `voxelize`/`compute_sdf`, arbitrary and preserved `mdpa` ids, OpenFOAM as a *writable* format, `.vti`, polyhedral cells throughout the operations layer, and a materially fixed `refine(closure="balanced")`.
 
 ## 📖 Usage:
 
@@ -159,9 +175,9 @@ print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats())
 
 ## 📁 Supported formats:
 
-**Read (41):** `abaqus` `ansys` `ansysinp` `avsucd` `cgns` `dex` `dolfin` `ensight` `exodus` `flac3d` `flux` `freefem` `gmsh` `h5m` `hmf` `ip` `mdpa` `med` `medit` `mff` `mfm` `mphtxt` `nastran` `netgen` `obj` `off` `openfoam` `permas` `ply` `stl` `su2` `tecplot` `tetgen` `triangle` `ugrid` `unv` `vtk` `vtp` `vtu` `wkt` `xdmf`
+**Read (42):** `abaqus` `ansys` `ansysinp` `avsucd` `cgns` `dex` `dolfin` `ensight` `exodus` `flac3d` `flux` `freefem` `gmsh` `h5m` `hmf` `ip` `mdpa` `med` `medit` `mff` `mfm` `mphtxt` `nastran` `netgen` `obj` `off` `openfoam` `permas` `ply` `stl` `su2` `tecplot` `tetgen` `triangle` `ugrid` `unv` `vti` `vtk` `vtp` `vtu` `wkt` `xdmf`
 
-**Write (43):** the same set except `openfoam` (read-only), plus `gmsh22`, `svg` and `tikz` (write-only).
+**Write (45):** the same set (every readable format is writable since meshio++ v9.20.0 added the OpenFOAM polyMesh writer), plus `gmsh22`, `svg` and `tikz` (write-only).
 
 `cgns`, `h5m`, `hmf`, `med` and the XDMF-HDF data path require an HDF5-enabled meshio++ build; `exodus` requires netCDF. A format compiled out is still resolved by extension and reports *why* it is unavailable rather than "unknown format".
 
