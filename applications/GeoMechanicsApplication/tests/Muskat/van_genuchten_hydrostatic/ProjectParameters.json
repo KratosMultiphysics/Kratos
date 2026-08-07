@@ -130,6 +130,17 @@
                     "pressure_tension_cut_off": 1.0e+05,
                     "specific_weight": 9.81e+03
                 }
+            },
+            {
+                "python_module": "apply_scalar_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyScalarConstraintTableProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.bottom_and_top",
+                    "variable_name": "NORMAL_FLUID_FLUX",
+                    "value": 0.0,
+                    "table": 0
+                }
             }
         ],
         "loads_process_list": [
