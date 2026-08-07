@@ -351,8 +351,12 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
 
                     const bool active_contact = (augmented_lm <= 0.0); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
 
-                    // KRATOS_WATCH(active_contact);
-
+                    if (ComputeRHS) {
+                        AddRightHandSideContribution(rRightHandSideVector, scale_factor, penalty_factor, gap_n, interpolated_LM, integration_weight, Ns, Nm, N_LM, slave_normal, active_contact);
+                    }
+                    if (ComputeLHS) {
+                        AddLeftHandSideContribution(rLeftHandSideMatrix, scale_factor, penalty_factor, integration_weight, Ns, Nm, N_LM, slave_normal, active_contact);
+                    }
                 } // loop over the integration points of the segmented geometry
             } // if valid segmented geometry
         } // loop over segmented surfaces
@@ -378,10 +382,22 @@ void ALM3dMortarFrictionlessCondition::AddRightHandSideContribution(
     const Matrix& rNs,
     const Matrix& rNm,
     const Vector& rN_LM, // Phi
-    const Vector& rNormal // slave normal vector
+    const Vector& rNormal, // slave normal vector
+    const bool active_contact
 )
 {
+    KRATOS_TRY
 
+    if (active_contact) {
+        const double augmented_lm = k + penalty * gap; // contact pressure at the integration point
+        noalias(project(rRightHandSideVector, range(0, 3))) += integration_weight * k * gap * rN_LM; // LM dofs
+        noalias(project(rRightHandSideVector, range(3, 12))) -= integration_weight * augmented_lm * prod(trans(rNs), rNormal); // slave displacement dofs
+        noalias(project(rRightHandSideVector, range(12, 21))) += integration_weight * augmented_lm * prod(trans(rNm), rNormal); // master displacement dofs
+    } else { // Inactive
+        noalias(project(rRightHandSideVector, range(0, 3))) -= integration_weight * (k * k / penalty) * rN_LM;
+    }
+
+    KRATOS_CATCH("AddRightHandSideContribution");
 }
 
 /***********************************************************************************/
@@ -395,10 +411,32 @@ void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
     const Matrix& rNs,
     const Matrix& rNm,
     const Vector& rN_LM, // Phi
-    const Vector& rNormal // slave normal vector
+    const Vector& rNormal, // slave normal vector
+    const bool active_contact
 )
 {
+    KRATOS_TRY
 
+    if (active_contact) {
+        const Matrix n_n = outer_prod(rNormal, rNormal); // normal matrix
+
+        // noalias(project(rLeftHandSideMatrix, range(0, 3), range(0, 3))) += 0 // LM - LM
+        noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_weight * k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNs))); // LM - slave
+        noalias(project(rLeftHandSideMatrix, range(0, 3), range(12, 21))) += integration_weight * k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNm))); // LM - master
+
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(0, 3))) -= integration_weight * k * outer_prod(Vector(prod(rNs, rNormal)), rN_LM); // slave - LM
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_weight * penalty * prod(trans(rNs), Matrix(prod(n_n, rNs))); // slave - slave
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(12, 21))) -= integration_weight * penalty * prod(trans(rNs), Matrix(prod(n_n, rNm))); // slave - master
+
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(0, 3))) += integration_weight * k * outer_prod(Vector(prod(trans(rNm), rNormal)), rN_LM); // master - LM
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_weight * penalty * prod(trans(rNm), Matrix(prod(n_n, rNs))); // master - slave
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(12, 21))) += integration_weight * penalty * prod(trans(rNm), Matrix(prod(n_n, rNm))); // master - master
+
+    } else { // Inactive
+        noalias(project(rLeftHandSideMatrix, range(0, 3), range(0, 3))) -= integration_weight * (k * k / penalty) * outer_prod(rN_LM, rN_LM); // LM dofs
+    }
+
+    KRATOS_CATCH("AddLeftHandSideContribution");
 }
 
 /***********************************************************************************/

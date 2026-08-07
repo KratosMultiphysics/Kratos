@@ -493,7 +493,7 @@ protected:
      */
     void GetValuesVector(Vector &rValues, int Step = 0) const;
 
-    void ALM3dMortarFrictionlessCondition::AddRightHandSideContribution(
+    void AddRightHandSideContribution(
         VectorType &rRightHandSideVector,
         const double k,
         const double penalty,
@@ -503,10 +503,11 @@ protected:
         const Matrix &rNs,
         const Matrix &rNm,
         const Vector &rN_LM,  // Phi
-        const Vector &rNormal // slave normal vector
+        const Vector &rNormal, // slave normal vector
+        const bool active_contact
     );
 
-    void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
+    void AddLeftHandSideContribution(
         MatrixType &rLeftHandSideMatrix,
         const double k,
         const double penalty,
@@ -514,7 +515,8 @@ protected:
         const Matrix &rNs,
         const Matrix &rNm,
         const Vector &rN_LM,  // Phi
-        const Vector &rNormal // slave normal vector
+        const Vector &rNormal, // slave normal vector
+        const bool active_contact
     );
 
     /**
