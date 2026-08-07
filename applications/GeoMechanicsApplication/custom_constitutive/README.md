@@ -61,6 +61,56 @@ Where:
 * $`C`$: The elastic constitutive tensor.
 * $`\Delta \Delta u`$: The incremental relative displacement vector.
 
+### 1.2 Incremental linear elastic E_ur law
+
+This law is an incremental linear elastic continuum model with stress-dependent stiffness. It is an option in the linear elestaic material model. To activate it, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to a material properties. It has to have `Eur` keyword. 
+
+#### 1.2.1 Purpose
+
+Compared to the standard incremental linear elastic law, this model updates Young's modulus at each increment using
+an $E_{ur}$-type expression. This allows stiffer behavior at higher confinement while keeping a simple elastic incremental formulation.
+
+#### 1.2.2 Required and optional inputs
+
+Required material parameters:
+
+- `GEO_YOUNGS_MODULUS_FORMULATION = Eur`
+- `YOUNG_MODULUS`: reference unloading-reloading Young's modulus $E_{ur}^{ref}$
+- `POISSON_RATIO`: Poisson's ratio <!--(used if no unloading-reloading Poisson is supplied)-->
+- `GEO_PRESSURE_REFERENCE`: reference pressure $p_{ref}$
+- `GEO_STRESS_DEPENDENCY_EXPONENT`: stiffness exponent $m$
+- `GEO_COHESION` and `GEO_FRICTION_ANGLE`: used to compute a stress shift term
+  
+<!--
+Optional material parameters:
+
+- `POISSON_UNLOADING_RELOADING`: unloading-reloading Poisson's ratio $\nu_{ur}$ (if present, this is used)
+-->
+
+#### 1.2.3 Stress-dependent modulus
+
+The Young's modulus used in the elastic tensor is computed as:
+
+```math
+E = E_{ur}^{ref} \left(\frac{s - p}{s + p_{ref}}\right)^m
+```
+
+with:
+
+- $p$: minor principal effective stress $\sigma_3'$ from the finalized stress state
+- $p_{ref}$: reference pressure (`GEO_PRESSURE_REFERENCE`)
+- $m$: stiffness exponent (`GEO_STRESS_DEPENDENCY_EXPONENT`)
+- $s$: optional stress shift term
+
+When cohesion and friction angle are provided, the shift term is:
+
+```math
+s = c \cot(\phi)
+```
+
+where $c$ is `GEO_COHESION` and $\phi$ is `GEO_FRICTION_ANGLE`.
+
+For numerical robustness, the implemented formulation applies lower bounds to the confinement terms.
 
 ## 2. Mohr-Coulomb with tension cutoff
 
