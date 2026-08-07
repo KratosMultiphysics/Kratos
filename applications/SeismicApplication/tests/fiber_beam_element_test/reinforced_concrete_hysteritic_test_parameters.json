@@ -1,0 +1,139 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "reinforced_concrete_hysteritic_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0,
+        "end_time"      : 207
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Static",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "fiber_beam_element_test/reinforced_concrete_hysteritic_test"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "fiber_beam_element_test/reinforced_concrete_hysteritic_test_material.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 4.0
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 1e-9,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 1e-9,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "problem_domain_sub_model_part_list" : ["Parts_beam"],
+        "processes_sub_model_part_list"      : ["Structure", "DISPLACEMENT_fixed", "DISPLACEMENT_prescribed", "PrescribedDisplacement_prescribed"],
+        "rotation_dofs"                      : true,
+        "displacement_control"               : true
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_fixed",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_fixed",
+                "variable_name"   : "ROTATION",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_prescribed",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,false],
+                "value"           : [null,0.0,null],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_prescribed",
+                "variable_name"   : "ROTATION",
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,null,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "displacement_control_with_direction_process",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "Structure.PrescribedDisplacement_prescribed",
+                "direction"       : "z",
+                "point_load_value": 1.0,
+                "prescribed_displacement_value" : "0.1*t",
+                "interval"        : [0.0,40]
+            }
+        },{
+            "python_module" : "displacement_control_with_direction_process",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "Structure.PrescribedDisplacement_prescribed",
+                "direction"       : "z",
+                "point_load_value": 1.0,
+                "prescribed_displacement_value" : "0.1*39 + (t-39)*(-0.1)",
+                "interval"        : [40,113]
+            }
+        },{
+            "python_module" : "displacement_control_with_direction_process",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "Structure.PrescribedDisplacement_prescribed",
+                "direction"       : "z",
+                "point_load_value": 1.0,
+                "prescribed_displacement_value" : "0.1*39 + (112-39)*(-0.1) + (t-112)*(0.1)",
+                "interval"        : [113,208]
+            }
+        }],
+        "list_other_processes"     : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT_Z", "LOAD_FACTOR", "ROTATION_Y", "REACTION_MOMENT_Y"],
+                "input_file_name"  : "fiber_beam_element_test/reinforced_concrete_hysteritic_test_results.json",
+                "model_part_name"  : "Structure",
+                "time_frequency"   : 1.0
+            }
+        }]
+    },
+    "_json_output_process" : [
+        {
+            "python_module"   : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "JsonOutputProcess",
+            "Parameters"            : {
+                "output_variables" : ["DISPLACEMENT_Z", "LOAD_FACTOR", "ROTATION_Y", "REACTION_MOMENT_Y"],
+                "gauss_points_output_variables" : [],
+                "output_file_name" : "fiber_beam_element_test/reinforced_concrete_hysteritic_test_results.json",
+                "model_part_name"  : "Structure",
+                "time_frequency"   : 1.0
+            }
+        }
+    ],
+    "output_processes" : {}
+}
