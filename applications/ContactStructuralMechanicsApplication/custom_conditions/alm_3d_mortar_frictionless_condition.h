@@ -159,6 +159,7 @@ public:
     // The threshold coefficient considered for checking
     static constexpr double CheckThresholdCoefficient = 1.0e-12;
     static constexpr double MinIntegrationAreaRatioTolerance = 1.0e-5;
+    static constexpr double AugmentedLMtolerance = 1.0e-1;
 
     ///@}
     ///@name Life Cycle
@@ -600,6 +601,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    Vector mSlaveNormal; /// The normal of the slave surface
 
     ///@}
     ///@name Private Operators

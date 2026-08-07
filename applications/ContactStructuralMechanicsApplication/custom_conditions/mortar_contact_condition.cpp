@@ -302,9 +302,9 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     const GeometryType& r_slave_geometry = this->GetParentGeometry();
     const array_1d<double, 3>& r_normal_slave = this->GetValue(NORMAL);
 
-    KRATOS_WATCH(r_slave_geometry.Area())
-    KRATOS_WATCH(GetPairedGeometry().Area())
-    KRATOS_WATCH(GetParentGeometry().Area())
+    // KRATOS_WATCH(r_slave_geometry.Area())
+    // KRATOS_WATCH(GetPairedGeometry().Area())
+    // KRATOS_WATCH(GetParentGeometry().Area())
     // KRATOS_WATCH(GetGeometry().pGetGeometryPart(2)->Area())
 
     // Create and initialize condition variables
@@ -371,7 +371,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
 
             DecompositionType decomp_geom( points_array );
 
-            KRATOS_WATCH(decomp_geom.Area())
+            // KRATOS_WATCH(decomp_geom.Area())
 
             bool bad_shape;
             if constexpr (TDim == 2) {
