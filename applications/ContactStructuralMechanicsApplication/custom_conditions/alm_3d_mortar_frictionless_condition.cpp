@@ -245,9 +245,26 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                 // We perform the integration over the segmented geometry
                 const auto &r_integration_points_slave = segmented_geom.IntegrationPoints(GetIntegrationMethod());
 
-                VectorType shape_functions_slave;
-                VectorType shape_functions_master;
-                VectorType dual_shape_functions; // Discretization of the LM
+                VectorType shape_functions_slave; // Slave element shape functions evaluated at the integration point
+                VectorType shape_functions_master; // Master element shape functions evaluated at the integration point
+                VectorType dual_shape_functions; // LM slave shape functions evaluated at the integration point
+
+                PointType segmented_GP_global_point; // Global coordinates of the integration point of the segmented geometry
+                PointType segmented_GP_local_point; // Local coordinates of the integration point of the segmented geometry
+                PointType slave_GP_local_point; // Local coordinates of the integration point of the segmented geometry on the slave element
+                PointType master_GP_global_point; // Global coordinates of the integration point of the segmented geometry on the master element
+                PointType master_GP_local_point; // Local coordinates of the integration point of the segmented geometry on the master element
+
+                // Loop over the integration points of the segmented geometry
+                for (IndexType point_number = 0; point_number < r_integration_points_slave.size(); ++point_number) {
+                    segmented_GP_local_point = PointType(r_integration_points_slave[point_number].Coordinates());
+                    segmented_geom.GlobalCoordinates(segmented_GP_global_point, segmented_GP_local_point); // from local to global coordinates in the segmented
+                    r_slave_geometry.PointLocalCoordinates(slave_GP_local_point, segmented_GP_global_point); // from global to local coordinates in the slave
+                    GeometricalProjectionUtilities::FastProjectDirection(r_master_geometry, segmented_GP_global_point, master_GP_global_point, master_normal, slave_normal);
+                    r_master_geometry.PointLocalCoordinates(master_GP_local_point, master_GP_global_point); // from global to local coordinates in the master
+
+                } // loop over the integration points of the segmented geometry
+
 
                 // TODO: 
                 /*
@@ -260,10 +277,10 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                 */
 
 
-                array_1d<double, 3> zero = ZeroVector(3);
-                zero[1] = 1.0;
-                r_slave_geometry.ShapeFunctionsValues(shape_functions_slave, zero);
-                KRATOS_WATCH(shape_functions_slave)
+                // array_1d<double, 3> zero = ZeroVector(3);
+                // zero[1] = 1.0;
+                // r_slave_geometry.ShapeFunctionsValues(shape_functions_slave, zero);
+                // KRATOS_WATCH(shape_functions_slave)
                 // ...................
 
             } // if valid segmented geometry
