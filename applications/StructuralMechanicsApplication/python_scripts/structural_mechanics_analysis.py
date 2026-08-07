@@ -47,7 +47,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             # To avoid many prints
             if self.echo_level == 0:
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-
+    
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
