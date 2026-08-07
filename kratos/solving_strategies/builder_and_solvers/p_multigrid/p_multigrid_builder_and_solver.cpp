@@ -72,7 +72,9 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
 
     int mMaxIterations;
 
-    typename TSparse::DataType mTolerance;
+    typename TSparse::DataType mAbsoluteTolerance;
+
+    typename TSparse::DataType mRelativeTolerance;
 
     int mMaxDepth;
 
@@ -90,7 +92,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
           mpRootGridSolver(),
           mpDiagonalScaling(),
           mMaxIterations(0),
-          mTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
+          mAbsoluteTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
+          mRelativeTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
           mMaxDepth(-1),
           mVerbosity(0)
     {}
@@ -100,63 +103,98 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
     // --------------------------------------------------------- //
 
 
-    void ExecuteMultigridLoop(typename Interface::TSystemMatrixType& rLhs,
-                              typename Interface::TSystemVectorType& rSolution,
-                              const typename Interface::TSystemVectorType& rRhs,
-                              typename Interface::TSystemVectorType& rSolutionUpdate,
-                              typename Interface::TSystemVectorType& rResidual,
-                              const typename TSparse::DataType InitialResidualNorm,
-                              PMGStatusStream& rStream,
-                              PMGStatusStream::Report& rReport)
-    {
-        KRATOS_TRY
-        // Inner loop for multigrid.
-        rReport.multigrid_converged = false;
-        rReport.multigrid_iteration = 0ul;
+    void ExecuteMultigridLoop(
+        typename Interface::TSystemMatrixType& rLhs,
+        typename Interface::TSystemVectorType& rSolution,
+        const typename Interface::TSystemVectorType& rRhs,
+        typename Interface::TSystemVectorType& rSolutionUpdate,
+        typename Interface::TSystemVectorType& rResidual,
+        PMGStatusStream& rStream,
+        PMGStatusStream::Report& rReport) {
+            KRATOS_TRY
+                // Inner loop for multigrid.
+                rReport.multigrid_absolute_converged = false;
+                rReport.multigrid_relative_converged = false;
+                rReport.multigrid_iteration = 0ul;
 
-        while (   rReport.multigrid_iteration < static_cast<std::size_t>(mMaxIterations)
-               && !rReport.multigrid_converged) {
-            rReport.maybe_multigrid_residual.reset();
+                std::optional<typename TSparse::DataType> maybe_initial_residual_norm;
+                // Compute initial residual norm if it will be used.
+                if (mAbsoluteTolerance || mRelativeTolerance || 3 <= mVerbosity) {
+                    maybe_initial_residual_norm = TSparse::TwoNorm(rRhs);
+                    maybe_initial_residual_norm = maybe_initial_residual_norm.value()
+                        ? maybe_initial_residual_norm.value()
+                        : 1;
+                }
 
-            // Solve the coarse grid and apply its correction.
-            if (mMaybeHierarchy.has_value()) {
-                std::visit([&rSolutionUpdate, &rResidual, &rStream, this](auto& r_hierarchy){
+                while (   rReport.multigrid_iteration < static_cast<std::size_t>(mMaxIterations)
+                    && !(rReport.multigrid_absolute_converged || rReport.multigrid_relative_converged)) {
+                    rReport.maybe_multigrid_absolute_residual.reset();
+                    rReport.maybe_multigrid_relative_residual.reset();
+
+                    // Solve the coarse grid and apply its correction.
+                    if (mMaybeHierarchy.has_value()) {
+                        std::visit(
+                            [&rSolutionUpdate, &rResidual, &rStream, this] (auto& r_hierarchy) {
                                 return r_hierarchy.template ApplyCoarseCorrection<TSparse>(
                                     rSolutionUpdate,
                                     rResidual,
                                     *mpConstraintAssembler,
                                     rStream);},
-                           mMaybeHierarchy.value());
+                            mMaybeHierarchy.value());
 
-                // Update the fine solution.
-                TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
+                        // Update the fine solution.
+                        TSparse::UnaliasedAdd(
+                            rSolution,
+                            1.0,
+                            rSolutionUpdate);
 
-                // Update the fine residual.
-                BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidual, static_cast<typename TSparse::DataType>(-1));
-            } // if mMaybeHierarchy
+                        // Update the fine residual.
+                        BalancedProduct<TSparse,TSparse,TSparse>(
+                            rLhs,
+                            rSolutionUpdate,
+                            rResidual,
+                            static_cast<typename TSparse::DataType>(-1));
+                    } // if mMaybeHierarchy
 
-            // Perform smoothing on the fine grid.
-            TSparse::SetToZero(rSolutionUpdate); //< do I need this?
-            mpInterface->GetLinearSystemSolver()->PerformSolutionStep(rLhs, rSolutionUpdate, rResidual);
+                    // Perform smoothing on the fine grid.
+                    KRATOS_TRY
+                        TSparse::SetToZero(rSolutionUpdate); //< do I need this?
+                        mpInterface->GetLinearSystemSolver()->PerformSolutionStep(
+                            rLhs,
+                            rSolutionUpdate,
+                            rResidual);
+                    KRATOS_CATCH("")
 
-            // Update the fine solution.
-            TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
+                    // Update the fine solution.
+                    TSparse::UnaliasedAdd(
+                        rSolution,
+                        1.0,
+                        rSolutionUpdate);
 
-            // Update the fine residual.
-            BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidual, static_cast<typename TSparse::DataType>(-1));
+                    // Update the fine residual.
+                    BalancedProduct<TSparse,TSparse,TSparse>(
+                        rLhs,
+                        rSolutionUpdate,
+                        rResidual,
+                        static_cast<typename TSparse::DataType>(-1));
 
-            // Emit status and check for convergence.
-            rReport.maybe_multigrid_residual = TSparse::TwoNorm(rResidual) / InitialResidualNorm;
-            rReport.multigrid_converged = rReport.maybe_multigrid_residual.value() < mTolerance;
-            if (   rReport.multigrid_iteration + 1 < static_cast<std::size_t>(mMaxIterations)
-                && !rReport.multigrid_converged)
-                rStream.Submit(rReport.Tag(3), mVerbosity);
+                    // Emit status and check for convergence.
+                    if (maybe_initial_residual_norm.has_value()) {
+                        rReport.maybe_multigrid_absolute_residual = TSparse::TwoNorm(rResidual);
+                        rReport.maybe_multigrid_relative_residual = rReport.maybe_multigrid_absolute_residual.value() / maybe_initial_residual_norm.value();
+                        rReport.multigrid_absolute_converged = rReport.maybe_multigrid_absolute_residual.value() <= mAbsoluteTolerance;
+                        rReport.multigrid_relative_converged = rReport.maybe_multigrid_relative_residual.value() <= mRelativeTolerance;
+                    }
 
-            ++rReport.multigrid_iteration;
-        } // while i_multigrid_iteration <= mMaxIterations
+                    if (   rReport.multigrid_iteration + 1 < static_cast<std::size_t>(mMaxIterations)
+                        && !(rReport.multigrid_absolute_converged || rReport.multigrid_relative_converged))
+                            rStream.Submit(rReport.Tag(3), mVerbosity);
 
-        if (rReport.multigrid_iteration) rReport.multigrid_iteration -= 1;
-        KRATOS_CATCH("")
+                    ++rReport.multigrid_iteration;
+                } // while i_multigrid_iteration <= mMaxIterations
+
+                if (rReport.multigrid_iteration) rReport.multigrid_iteration -= 1;
+            KRATOS_CATCH("")
     }
 
 
@@ -169,31 +207,28 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
         KRATOS_TRY
         bool constraint_status = false;
         PMGStatusStream::Report status_report {
-            /*grid_level=*/                 0ul,
-            /*multigrid_converged=*/        false,
-            /*multigrid_iteration=*/        0ul,
-            /*maybe_multigrid_residual=*/   {},
-            /*constraints_converged=*/      false,
-            /*constraint_iteration=*/       0ul,
-            /*maybe_constraint_residual=*/  {}
-        };
+            .grid_level                         = 0ul,
+            .multigrid_absolute_converged       = false,
+            .multigrid_relative_converged       = false,
+            .multigrid_iteration                = 0ul,
+            .maybe_multigrid_absolute_residual  = {},
+            .maybe_multigrid_relative_residual  = {},
+            .constraints_absolute_converged     = false,
+            .constraints_relative_converged     = false,
+            .constraint_iteration               = 0ul,
+            .maybe_constraint_absolute_residual = {},
+            .maybe_constraint_relative_residual = {}};
 
-        typename TSparse::VectorType residual(rRhs.size()),
-                                     residual_update(rRhs.size()),
-                                     solution_update(rSolution.size());
-
-        // Compute the initial residual norm if it will be used.
-        typename TSparse::DataType initial_residual_norm = 1;
-        if (0 < mTolerance || 3 <= mVerbosity) {
-            initial_residual_norm = TSparse::TwoNorm(rRhs);
-            initial_residual_norm = initial_residual_norm ? initial_residual_norm : 1;
-        }
-
+        typename TSparse::VectorType
+            residual(rRhs.size()),
+            residual_update(rRhs.size()),
+            solution_update(rSolution.size());
         mpInterface->GetLinearSystemSolver()->InitializeSolutionStep(rLhs, rSolution, rRhs);
 
         // Outer loop for constraints.
         do {
-            status_report.maybe_multigrid_residual.reset();
+            status_report.maybe_multigrid_absolute_residual.reset();
+            status_report.maybe_multigrid_relative_residual.reset();
 
             // Initialize the constraint assembler and update residuals.
             mpConstraintAssembler->InitializeConstraintIteration(
@@ -212,7 +247,6 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                 rRhs,
                 solution_update,
                 residual,
-                initial_residual_norm,
                 rStream,
                 status_report);
 
@@ -227,11 +261,13 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                 rStream);
             if (constraint_status) {
                 rStream.Submit(status_report.Tag(2), mVerbosity);
-                status_report.maybe_constraint_residual.reset();
+                status_report.maybe_constraint_absolute_residual.reset();
+                status_report.maybe_constraint_relative_residual.reset();
                 break;
             } else {
                 rStream.Submit(status_report.Tag(3), mVerbosity);
-                status_report.maybe_constraint_residual.reset();
+                status_report.maybe_constraint_absolute_residual.reset();
+                status_report.maybe_constraint_relative_residual.reset();
             }
 
             ++status_report.constraint_iteration;
@@ -307,7 +343,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
             rRhs,
             mpInterface->GetDofSet());
 
-        return status_report.multigrid_converged && status_report.constraints_converged;
+        return (status_report.multigrid_absolute_converged || status_report.multigrid_relative_converged) && (status_report.constraints_absolute_converged || status_report.constraints_relative_converged);
         KRATOS_CATCH("")
     }
 
@@ -408,101 +444,139 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
     ///          The actual local system calculation, as well as assembly, is deferred to @ref MapEntityContribution.
     template <bool AssembleLHS,
               bool AssembleRHS>
-    void Assemble(ModelPart& rModelPart,
-                  typename Interface::TSchemeType& rScheme,
-                  std::optional<typename Interface::TSystemMatrixType*> pMaybeLhs,
-                  std::optional<typename Interface::TSystemVectorType*> pMaybeRhs)
-    {
-        KRATOS_TRY
+    void Assemble(
+        ModelPart& rModelPart,
+        typename Interface::TSchemeType& rScheme,
+        std::optional<typename Interface::TSystemMatrixType*> pMaybeLhs,
+        std::optional<typename Interface::TSystemVectorType*> pMaybeRhs) {
+            KRATOS_TRY
+                // Sanity checks.
+                if constexpr (AssembleLHS) {
+                    KRATOS_ERROR_IF_NOT(pMaybeLhs.has_value() && pMaybeLhs.value() != nullptr)
+                        << "Requested an assembly of the left hand side, but no matrix is provided to assemble into.";
+                }
 
-        // Sanity checks.
-        if constexpr (AssembleLHS) {
-            KRATOS_ERROR_IF_NOT(pMaybeLhs.has_value() && pMaybeLhs.value() != nullptr)
-                << "Requested an assembly of the left hand side, but no matrix is provided to assemble into.";
-        }
+                if constexpr (AssembleRHS) {
+                    KRATOS_ERROR_IF_NOT(pMaybeRhs.has_value() && pMaybeRhs.value() != nullptr)
+                        << "Requested an assembly of the right hand side, but no vector is provided to assemble into.";
+                }
 
-        if constexpr (AssembleRHS) {
-            KRATOS_ERROR_IF_NOT(pMaybeRhs.has_value() && pMaybeRhs.value() != nullptr)
-                << "Requested an assembly of the right hand side, but no vector is provided to assemble into.";
-        }
+                // Fetch the address of the first DoF.
+                // Indices of DoFs within the linear system are stored as "EquationId"s within the
+                // DoFs themselves as integers. The default value (i.e.: unset index) is unfortunately
+                // 0, which is a completely valid index for a DoF to have. To distinguish between the
+                // DoF with true 0 index, and other DoFs that are 0 because they're uninitialized, the
+                // address of the first DoF is stored and used for comparison to detect bugs related to
+                // using uninitialized DoFs.
+                if (mpInterface->GetDofSet().empty()) return;
+                const Dof<double>* p_first_dof = &mpInterface->GetDofSet().front();
 
-        // Assemble constraints.
-        // Constraint assembly MUST happen before assembling the unconstrained system,
-        // because constraints may have to propagate dirichlet conditions, and dirichlet
-        // conditions are partly imposed during element assembly.
-        mpConstraintAssembler->Assemble(
-            rModelPart.MasterSlaveConstraints(),
-            rModelPart.GetProcessInfo(),
-            mpInterface->GetDofSet().begin(),
-            mpInterface->GetDofSet().end(),
-            AssembleLHS,
-            AssembleRHS);
+                // Assemble constraints.
+                // Constraint assembly MUST happen before assembling the unconstrained system,
+                // because constraints may have to propagate dirichlet conditions, and dirichlet
+                // conditions are partly imposed during element assembly.
+                mpConstraintAssembler->Assemble(
+                    rModelPart.MasterSlaveConstraints(),
+                    rModelPart.GetProcessInfo(),
+                    mpInterface->GetDofSet().begin(),
+                    mpInterface->GetDofSet().end(),
+                    AssembleLHS,
+                    AssembleRHS);
 
-        // Function-wide variables.
-        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        typename Interface::TSystemMatrixType* pLhs = pMaybeLhs.has_value() ? pMaybeLhs.value() : nullptr;
-        typename Interface::TSystemVectorType* pRhs = pMaybeRhs.has_value() ? pMaybeRhs.value() : nullptr;
-        auto p_locks = std::make_unique<std::vector<LockObject>>(AssembleLHS ? pLhs->size1() : 0ul);
+                // Function-wide variables.
+                const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+                typename Interface::TSystemMatrixType* pLhs = pMaybeLhs.has_value() ? pMaybeLhs.value() : nullptr;
+                typename Interface::TSystemVectorType* pRhs = pMaybeRhs.has_value() ? pMaybeRhs.value() : nullptr;
+                auto p_locks = std::make_unique<std::vector<LockObject>>(AssembleLHS ? pLhs->size1() : 0ul);
 
-        const int element_count = rModelPart.Elements().size();
-        const int condition_count = rModelPart.Conditions().size();
-        const auto it_element_begin = rModelPart.Elements().begin();
-        const auto it_condition_begin = rModelPart.Conditions().begin();
+                const int element_count = rModelPart.Elements().size();
+                const int condition_count = rModelPart.Conditions().size();
+                const auto it_element_begin = rModelPart.Elements().begin();
+                const auto it_condition_begin = rModelPart.Conditions().begin();
 
-        // Collect contributions from constitutive entities.
-        #pragma omp parallel
-        {
-            // Thread-local variables.
-            Element::EquationIdVectorType equation_indices;
-            typename Interface::LocalSystemMatrixType lhs_contribution;
-            typename Interface::LocalSystemVectorType rhs_contribution;
+                // Collect contributions from constitutive entities.
+                #pragma omp parallel
+                {
+                    // Thread-local variables.
+                    Element::EquationIdVectorType equation_indices;
+                    typename Interface::LocalSystemMatrixType lhs_contribution;
+                    typename Interface::LocalSystemVectorType rhs_contribution;
 
-            // Collect contributions from elements.
-            #pragma omp for schedule(guided, 512) nowait
-            for (int i_entity=0; i_entity<element_count; ++i_entity) {
-                MapEntityContribution<TSparse,TDense,AssembleLHS,AssembleRHS>(
-                    *(it_element_begin + i_entity),
-                    rScheme,
-                    r_process_info,
-                    equation_indices,
-                    &lhs_contribution,
-                    &rhs_contribution,
-                    pLhs,
-                    pRhs,
-                    p_locks->data());
-            } // pragma omp for
+                    // Collect contributions from elements.
+                    #pragma omp for schedule(guided, 512) nowait
+                    for (int i_entity=0; i_entity<element_count; ++i_entity) {
+                        MapEntityContribution<TSparse,TDense,AssembleLHS,AssembleRHS>(
+                            *(it_element_begin + i_entity),
+                            rScheme,
+                            r_process_info,
+                            equation_indices,
+                            &lhs_contribution,
+                            &rhs_contribution,
+                            pLhs,
+                            pRhs,
+                            p_locks->data());
 
-            // Collect contributions from conditions.
-            #pragma omp for schedule(guided, 512)
-            for (int i_entity=0; i_entity<condition_count; ++i_entity) {
-                MapEntityContribution<TSparse,TDense,AssembleLHS,AssembleRHS>(
-                    *(it_condition_begin + i_entity),
-                    rScheme,
-                    r_process_info,
-                    equation_indices,
-                    &lhs_contribution,
-                    &rhs_contribution,
-                    pLhs,
-                    pRhs,
-                    p_locks->data());
-            } // pragma omp for
-        } // pragma omp parallel
+                        // Check for uninitialized DoFs.
+                        for (std::size_t i_local_dof=0; i_local_dof<equation_indices.size(); ++i_local_dof) {
+                            if (equation_indices[i_local_dof] == static_cast<Dof<double>::EquationIdType>(0)) {
+                                Element::DofsVectorType dofs;
+                                (it_element_begin + i_entity)->GetDofList(
+                                    dofs,
+                                    r_process_info);
+                                KRATOS_ERROR_IF_NOT(dofs[i_local_dof] == p_first_dof)
+                                    << dofs[i_local_dof]->GetVariable().Name() << " "
+                                    << "of node " << dofs[i_local_dof]->Id() << " "
+                                    << "in element " << (it_element_begin + i_entity)->Id() << " "
+                                    << "is used uninitialized";
+                            }
+                        } // for i_local_dof
+                    } // pragma omp for
 
-        // Assemble coarse hierarchy.
-        if (this->mMaybeHierarchy.has_value()) {
-            std::visit(
-                [&rModelPart, &pMaybeLhs, &pMaybeRhs, this](auto& r_grid){
-                    r_grid.template Assemble<AssembleLHS,AssembleRHS,TSparse>(
-                        rModelPart,
-                        pMaybeLhs.has_value() ? pMaybeLhs.value() : nullptr,
-                        pMaybeRhs.has_value() ? pMaybeRhs.value() : nullptr,
-                        *this->mpConstraintAssembler,
-                        mpInterface->GetDofSet());
-                    },
-                this->mMaybeHierarchy.value());
-        } // if mMaybeHierarchy
+                    // Collect contributions from conditions.
+                    #pragma omp for schedule(guided, 512)
+                    for (int i_entity=0; i_entity<condition_count; ++i_entity) {
+                        MapEntityContribution<TSparse,TDense,AssembleLHS,AssembleRHS>(
+                            *(it_condition_begin + i_entity),
+                            rScheme,
+                            r_process_info,
+                            equation_indices,
+                            &lhs_contribution,
+                            &rhs_contribution,
+                            pLhs,
+                            pRhs,
+                            p_locks->data());
 
-        KRATOS_CATCH("")
+                        // Check for uninitialized DoFs.
+                        for (std::size_t i_local_dof=0; i_local_dof<equation_indices.size(); ++i_local_dof) {
+                            if (equation_indices[i_local_dof] == static_cast<Dof<double>::EquationIdType>(0)) {
+                                Element::DofsVectorType dofs;
+                                (it_condition_begin + i_entity)->GetDofList(
+                                    dofs,
+                                    r_process_info);
+                                KRATOS_ERROR_IF_NOT(dofs[i_local_dof] == p_first_dof)
+                                    << dofs[i_local_dof]->GetVariable().Name() << " "
+                                    << "of node " << dofs[i_local_dof]->Id() << " "
+                                    << "in condition " << (it_condition_begin + i_entity)->Id() << " "
+                                    << "is used uninitialized";
+                            }
+                        } // for i_local_dof
+                    } // pragma omp for
+                } // pragma omp parallel
+
+                // Assemble coarse hierarchy.
+                if (this->mMaybeHierarchy.has_value()) {
+                    std::visit(
+                        [&rModelPart, &pMaybeLhs, &pMaybeRhs, this](auto& r_grid){
+                            r_grid.template Assemble<AssembleLHS,AssembleRHS,TSparse>(
+                                rModelPart,
+                                pMaybeLhs.has_value() ? pMaybeLhs.value() : nullptr,
+                                pMaybeRhs.has_value() ? pMaybeRhs.value() : nullptr,
+                                *this->mpConstraintAssembler,
+                                mpInterface->GetDofSet());
+                            },
+                        this->mMaybeHierarchy.value());
+                } // if mMaybeHierarchy
+            KRATOS_CATCH("")
     }
 
 }; // class PMultigridBuilderAndSolver::Impl
@@ -573,115 +647,110 @@ std::optional<std::size_t> FindNodeIndex(std::size_t NodeId,
 
 
 template <class TSparse, class TDense>
-void PMultigridBuilderAndSolver<TSparse,TDense>::SetUpDofSet(typename Interface::TSchemeType::Pointer pScheme,
-                                                             ModelPart& rModelPart)
-{
-    KRATOS_TRY;
+void PMultigridBuilderAndSolver<TSparse,TDense>::SetUpDofSet(
+    typename Interface::TSchemeType::Pointer pScheme,
+    ModelPart& rModelPart) {
+        KRATOS_TRY
 
-    using DofsVectorType = ModelPart::DofsVectorType;
-    this->GetDofSet().clear();
-    const auto& r_process_info = rModelPart.GetProcessInfo();
+        using DofsVectorType = ModelPart::DofsVectorType;
+        this->GetDofSet().clear();
+        const auto& r_process_info = rModelPart.GetProcessInfo();
 
-    std::vector<std::atomic<std::uint8_t>> hanging_nodes(rModelPart.Nodes().size());
-    std::fill(hanging_nodes.begin(),
-              hanging_nodes.end(),
-              static_cast<std::uint8_t>(1));
-
-    // Fill the global DOF set array
-    #pragma omp parallel
-    {
-        DofsVectorType tls_dofs, tls_constraint_dofs;
-
-        // We create the temporal set in current thread and we reserve some space on it
-        CSRHashSet<Node::DofType::Pointer, DofPointerHasher> dofs_tmp_set;
-        dofs_tmp_set.reserve(20000);
-
-        // Add the DOFs from the model part elements
-        const auto& r_elements_array = rModelPart.Elements();
-        const int number_of_elements = static_cast<int>(r_elements_array.size());
-
-        #pragma omp for schedule(guided, 512) nowait
-        for (int i_entity=0; i_entity<number_of_elements; ++i_entity) {
-            const auto& r_entity = *(r_elements_array.begin() + i_entity);
-            if (r_entity.IsActive()) {
-                r_entity.GetDofList(tls_dofs, r_process_info);
-                dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
-            } // r_entity.IsActive()
-        } // for i_entity in range(number_of_elements)
-
-        // Collect DoFs from constraints.
-        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-
-        #pragma omp for schedule(guided, 512) nowait
-        for (int i_entity=0; i_entity<number_of_constraints; ++i_entity) {
-            // Get current constraint iterator
-            const auto it_entity = rModelPart.MasterSlaveConstraints().begin() + i_entity;
-
-            // Trigger Dof index updates.
-            it_entity->GetDofList(tls_dofs, tls_constraint_dofs, r_process_info);
-
-            // Different behavior depending on whether MasterSlaveConstraint or MultifreedomConstraint.
-            if (tls_dofs.empty() && !tls_constraint_dofs.empty()) {
-                // Multifreedom constraint.
-                dofs_tmp_set.insert(tls_constraint_dofs.begin(), tls_constraint_dofs.end());
-            } else {
-                // Master-slave constraint.
-                dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
-                dofs_tmp_set.insert(tls_constraint_dofs.begin(), tls_constraint_dofs.end());
-            }
-        } // for i_entity in range(number_of_constraints)
-
-        // Merge all the sets in one thread
-        #pragma omp critical
+        // Fill the global DOF set array
+        #pragma omp parallel
         {
-            this->GetDofSet().insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+            DofsVectorType tls_dofs, tls_constraint_dofs;
+
+            // We create the temporal set in current thread and we reserve some space on it
+            CSRHashSet<Node::DofType::Pointer, DofPointerHasher> dofs_tmp_set;
+            dofs_tmp_set.reserve(20000);
+
+            // Add the DOFs from the model part elements
+            const auto& r_elements_array = rModelPart.Elements();
+            const int number_of_elements = static_cast<int>(r_elements_array.size());
+
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_entity=0; i_entity<number_of_elements; ++i_entity) {
+                const auto& r_entity = *(r_elements_array.begin() + i_entity);
+                if (r_entity.IsActive()) {
+                    r_entity.GetDofList(tls_dofs, r_process_info);
+                    dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
+                } // r_entity.IsActive()
+            } // for i_entity in range(number_of_elements)
+
+            // Collect DoFs from constraints.
+            const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_entity=0; i_entity<number_of_constraints; ++i_entity) {
+                // Get current constraint iterator
+                const auto it_entity = rModelPart.MasterSlaveConstraints().begin() + i_entity;
+
+                if (it_entity->IsActive()) {
+                    // Trigger Dof index updates.
+                    it_entity->GetDofList(tls_dofs, tls_constraint_dofs, r_process_info);
+
+                    // Different behavior depending on whether MasterSlaveConstraint or MultifreedomConstraint.
+                    if (tls_dofs.empty() && !tls_constraint_dofs.empty()) {
+                        // Multifreedom constraint.
+                        dofs_tmp_set.insert(tls_constraint_dofs.begin(), tls_constraint_dofs.end());
+                    } else {
+                        // Master-slave constraint.
+                        dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
+                        dofs_tmp_set.insert(tls_constraint_dofs.begin(), tls_constraint_dofs.end());
+                    }
+                } // if it_entity->IsActive
+            } // for i_entity in range(number_of_constraints)
+
+            // Merge all the sets in one thread
+            #pragma omp critical
+            {
+                this->GetDofSet().insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+            }
+        } // pragma omp parallel
+
+        // Make sure that conditions act exclusively on collected DoFs.
+        block_for_each(
+            rModelPart.Conditions().begin(),
+            rModelPart.Conditions().end(),
+            DofsVectorType(),
+            [&r_process_info, this] (const Condition& r_condition, auto& r_tls_dofs) {
+                if (r_condition.IsActive()) {
+                    r_condition.GetDofList(r_tls_dofs, r_process_info);
+                    for (Dof<typename TDense::DataType>* p_dof : r_tls_dofs) {
+                        KRATOS_ERROR_IF_NOT(this->GetDofSet().count(*p_dof))
+                            << "condition " << r_condition.Id() << " "
+                            << "acts on " << p_dof->GetVariable().Name() << " "
+                            << "of node " << p_dof->Id() << ", "
+                            << "which is not part of any element or constraint.";
+                    } // for p_dof in r_tls_dofs
+                } // if r_condition.IsActive()
+            });
+
+        #ifdef KRATOS_DEBUG
+        // If reactions are to be calculated, we check if all the dofs have reactions defined
+        // This is to be done only in debug mode
+        for (const auto& r_dof : this->GetDofSet()) {
+            KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
+                << "Reaction variable not set for "
+                << "DoF " << r_dof << " "
+                << "of node "<< r_dof.Id();
         }
-    } // pragma omp parallel
+        #endif
 
-    // Make sure that conditions act exclusively on collected DoFs.
-    #ifdef KRATOS_DEBUG
-    block_for_each(rModelPart.Conditions().begin(),
-                   rModelPart.Conditions().end(),
-                   DofsVectorType(),
-                   [&r_process_info, this](const Condition& r_condition, auto& r_tls_dofs){
-                        if (r_condition.IsActive()) {
-                            r_condition.GetDofList(r_tls_dofs, r_process_info);
-                            for (Dof<typename TDense::DataType>* p_dof : r_tls_dofs) {
-                                KRATOS_ERROR_IF_NOT(this->GetDofSet().count(*p_dof))
-                                    << "condition " << r_condition.Id() << " "
-                                    << "acts on " << p_dof->GetVariable().Name() << " "
-                                    << "of node " << p_dof->Id() << ", "
-                                    << "which is not part of any element or constraint.";
-                            } // for p_dof in r_tls_dofs
-                        } // if r_condition.IsActive()
-                   });
-    #endif
-
-    #ifdef KRATOS_DEBUG
-    // If reactions are to be calculated, we check if all the dofs have reactions defined
-    // This is to be done only in debug mode
-    for (const auto& r_dof : this->GetDofSet()) {
-        KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
-            << "Reaction variable not set for "
-            << "DoF " << r_dof << " "
-            << "of node "<< r_dof.Id();
-    }
-    #endif
-
-    KRATOS_CATCH("");
+        KRATOS_CATCH("")
 }
 
 
 template <class TSparse, class TDense>
-void PMultigridBuilderAndSolver<TSparse,TDense>::SetUpSystem(ModelPart& rModelPart)
-{
+void PMultigridBuilderAndSolver<TSparse,TDense>::SetUpSystem(ModelPart& rModelPart) {
     KRATOS_TRY
-    this->mEquationSystemSize = this->GetDofSet().size();
+        this->mEquationSystemSize = this->GetDofSet().size();
 
-    // Set equation indices of DoFs.
-    IndexPartition<std::size_t>(this->GetDofSet().size()).for_each([&, this](std::size_t Index){
-        (this->GetDofSet().begin() + Index)->SetEquationId(Index);
-    });
+        // Set equation indices of DoFs.
+        IndexPartition<std::size_t>(this->GetDofSet().size()).for_each([&, this](std::size_t Index){
+            (this->GetDofSet().begin() + Index)->SetEquationId(Index);
+        });
     KRATOS_CATCH("")
 }
 
@@ -784,12 +853,25 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::Build(typename Interface::TSche
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_ERROR_IF(!pScheme) << "missing scheme";
     KRATOS_TRY
-    mpImpl->mpMaybeModelPart = &rModelPart;
-    mpImpl->template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/true>(
-        rModelPart,
-        *pScheme,
-        &rLhs,
-        &rRhs);
+        mpImpl->mpMaybeModelPart = &rModelPart;
+        mpImpl->template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/true>(
+            rModelPart,
+            *pScheme,
+            &rLhs,
+            &rRhs);
+        if (4 <= mpImpl->mVerbosity) {
+            KRATOS_INFO(this->Info()) << "writing DoF data to dofs.csv\n";
+            std::ofstream file("dofs.csv");
+            file << "Equation Id,Variable Name,Node Id,constrained,Initial Value,RHS\n";
+            for (const Dof<double>& r_dof : this->GetDofSet())
+                file
+                    << r_dof.EquationId() << ','
+                    << r_dof.GetVariable().Name() << ','
+                    << r_dof.Id() << ','
+                    << (r_dof.IsFixed() ? 1 : 0) << ','
+                    << r_dof.GetSolutionStepValue() << ','
+                    << rRhs[r_dof.EquationId()] << '\n';
+        }
     KRATOS_CATCH("")
 }
 
@@ -1047,7 +1129,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters
 
     // Set the relative residual tolerance and max W cycles.
     mpImpl->mMaxIterations = settings["max_iterations"].Get<int>();
-    mpImpl->mTolerance = settings["tolerance"].Get<double>();
+    mpImpl->mAbsoluteTolerance = settings["absolute_tolerance"].Get<double>();
+    mpImpl->mRelativeTolerance = settings["relative_tolerance"].Get<double>();
 
     // Set multifreedom constraint imposition strategy.
     mpImpl->mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(settings["constraint_imposition_settings"],
@@ -1152,7 +1235,8 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense>::GetDefaultParameters() co
         "name"              : "p_multigrid",
         "diagonal_scaling"  : "max",
         "max_iterations"    : 1e2,
-        "tolerance"         : 1e-8,
+        "relative_tolerance": 1e-8,
+        "absolute_tolerance": 1e-8,
         "verbosity"         : 1,
         "smoother_settings" : {
             "solver_type" : ""
@@ -1190,96 +1274,99 @@ LinearSolver<TSparse,TDense>& PMultigridBuilderAndSolver<TSparse,TDense>::GetRoo
 
 
 template <class TSparse, class TDense>
-void PMultigridBuilderAndSolver<TSparse,TDense>::ProjectGrid(int GridLevel,
-                                                             const typename TSparse::MatrixType& rRootLhs,
-                                                             const typename TSparse::VectorType& rRootSolution,
-                                                             const typename TSparse::VectorType& rRootRhs)
-{
-    KRATOS_TRY
+void PMultigridBuilderAndSolver<TSparse,TDense>::ProjectGrid(
+    int GridLevel,
+    const typename TSparse::MatrixType& rRootLhs,
+    const typename TSparse::VectorType& rRootSolution,
+    const typename TSparse::VectorType& rRootRhs) {
+        KRATOS_TRY
+            typename TSparse::VectorType projected;
 
-    typename TSparse::VectorType projected;
+            // Project residuals.
+            if (0 < GridLevel) {
+                KRATOS_ERROR_IF_NOT(mpImpl->mMaybeHierarchy.has_value())
+                    << "grid level " << GridLevel << " does not exist";
+                const auto i_grid_level = GridLevel - 1;
 
-    // Project residuals.
-    if (0 < GridLevel) {
-        KRATOS_ERROR_IF_NOT(mpImpl->mMaybeHierarchy.has_value())
-            << "grid level " << GridLevel << " does not exist";
-        const auto i_grid_level = GridLevel - 1;
+                // Construct a flat vector of coarse grids.
+                std::variant<
+                    std::vector<const PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>*>,
+                    std::vector<const PGrid<TUblasSparseSpace<float>,TUblasDenseSpace<double>>*>
+                > coarse_grids;
 
-        // Construct a flat vector of coarse grids.
-        std::variant<
-            std::vector<const PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>*>,
-            std::vector<const PGrid<TUblasSparseSpace<float>,TUblasDenseSpace<double>>*>
-        > coarse_grids;
-
-        std::visit([&coarse_grids](const auto& r_coarse_grid){
-            using GridType = std::remove_cv_t<std::remove_reference_t<decltype(r_coarse_grid)>>;
-            coarse_grids = std::vector<const GridType*>();
-        }, mpImpl->mMaybeHierarchy.value());
-
-        std::visit(
-            [&coarse_grids](const auto& r_coarse_grid) {
-                std::visit([&r_coarse_grid](auto& r_vector){
+                std::visit([&coarse_grids](const auto& r_coarse_grid){
                     using GridType = std::remove_cv_t<std::remove_reference_t<decltype(r_coarse_grid)>>;
-                    using ValueType = typename std::remove_cv_t<std::remove_reference_t<decltype(r_vector)>>::value_type;
-                    if constexpr (std::is_same_v<ValueType,const GridType*>) {
-                        const GridType* p_grid = &r_coarse_grid;
-                        do {
-                            r_vector.push_back(p_grid);
-                            const auto p_maybe_child = p_grid->GetChild();
-                            p_grid = p_maybe_child.has_value() ? p_maybe_child.value() : nullptr;
-                        } while (p_grid);
+                    coarse_grids = std::vector<const GridType*>();
+                }, mpImpl->mMaybeHierarchy.value());
+
+                std::visit(
+                    [&coarse_grids](const auto& r_coarse_grid) {
+                        std::visit([&r_coarse_grid](auto& r_vector){
+                            using GridType = std::remove_cv_t<std::remove_reference_t<decltype(r_coarse_grid)>>;
+                            using ValueType = typename std::remove_cv_t<std::remove_reference_t<decltype(r_vector)>>::value_type;
+                            if constexpr (std::is_same_v<ValueType,const GridType*>) {
+                                const GridType* p_grid = &r_coarse_grid;
+                                do {
+                                    r_vector.push_back(p_grid);
+                                    const auto p_maybe_child = p_grid->GetChild();
+                                    p_grid = p_maybe_child.has_value() ? p_maybe_child.value() : nullptr;
+                                } while (p_grid);
+                            }
+                        }, coarse_grids);
+                    },
+                    mpImpl->mMaybeHierarchy.value());
+
+                // Initialize projected solution vector.
+                std::visit([&projected, i_grid_level](const auto& r_vector){
+                    KRATOS_ERROR_IF_NOT(static_cast<std::size_t>(i_grid_level) < r_vector.size())
+                        << "grid level " << i_grid_level + 1 << " does not exist";
+                    const auto& r_solution = r_vector[i_grid_level]->GetSolution();
+                    projected.resize(r_solution.size(), false);
+                    std::fill(projected.begin(), projected.end(), static_cast<typename TSparse::DataType>(0));
+                }, coarse_grids);
+
+                // Project solution to the root grid.
+                {
+                    typename TSparse::VectorType tmp;
+                    for (int i_grid=i_grid_level; 0<=i_grid; --i_grid) {
+                        std::visit([&projected, &tmp, i_grid, this](const auto& r_vector) {
+                            const auto& r_solution = r_vector[i_grid]->GetSolution();
+                            IndexPartition<std::size_t>(r_solution.size()).for_each([&r_solution, &projected](std::size_t i_component){
+                                projected[i_component] += r_solution[i_component];
+                            });
+                            r_vector[i_grid]->template Prolong<TSparse>(tmp, projected, *mpImpl->mpConstraintAssembler);
+                        }, coarse_grids);
+                        tmp.swap(projected);
                     }
-                }, coarse_grids);
-            },
-            mpImpl->mMaybeHierarchy.value());
+                }
 
-        // Initialize projected solution vector.
-        std::visit([&projected, i_grid_level](const auto& r_vector){
-            KRATOS_ERROR_IF_NOT(static_cast<std::size_t>(i_grid_level) < r_vector.size())
-                << "grid level " << i_grid_level + 1 << " does not exist";
-            const auto& r_solution = r_vector[i_grid_level]->GetSolution();
-            projected.resize(r_solution.size(), false);
-            std::fill(projected.begin(), projected.end(), static_cast<typename TSparse::DataType>(0));
-        }, coarse_grids);
-
-        // Project solution to the root grid.
-        {
-            typename TSparse::VectorType tmp;
-            for (int i_grid=i_grid_level; 0<=i_grid; --i_grid) {
-                std::visit([&projected, &tmp, i_grid, this](const auto& r_vector) {
-                    const auto& r_solution = r_vector[i_grid]->GetSolution();
-                    IndexPartition<std::size_t>(r_solution.size()).for_each([&r_solution, &projected](std::size_t i_component){
-                        projected[i_component] += r_solution[i_component];
-                    });
-                    r_vector[i_grid]->template Prolong<TSparse>(tmp, projected, *mpImpl->mpConstraintAssembler);
-                }, coarse_grids);
-                tmp.swap(projected);
+            } /*if 0 < GridLevel*/ else {
+                projected.resize(rRootRhs.size(), false);
+                TSparse::SetToZero(projected);
             }
-        }
 
-    } /*if 0 < GridLevel*/ else {
-        projected.resize(rRootRhs.size(), false);
-        TSparse::SetToZero(projected);
-    }
+            // Add diff of the root grid.
+            TSparse::UnaliasedAdd(projected, static_cast<typename TSparse::DataType>(1), rRootSolution);
 
-    // Add diff of the root grid.
-    TSparse::UnaliasedAdd(projected, static_cast<typename TSparse::DataType>(1), rRootSolution);
+            // Transform to dependent solution.
+            mpImpl->mpConstraintAssembler->ComputeDependentSolution(projected);
 
-    // Compute residual.
-    auto residual = rRootRhs;
-    BalancedProduct<TSparse,TSparse,TSparse>(rRootLhs,
-                                             projected,
-                                             residual,
-                                             static_cast<typename TSparse::DataType>(-1));
+            // Compute dependent residual.
+            auto residual = rRootRhs;
+            mpImpl->mpConstraintAssembler->ComputeDependentResidual(residual);
 
-    // Update DoFs.
-    IndexPartition<std::size_t>(projected.size()).for_each([this, &projected, &residual](std::size_t i_dof) {
-        auto& r_dof = *(this->GetDofSet().begin() + i_dof);
-        (this->GetDofSet().begin() + i_dof)->GetSolutionStepReactionValue() = residual[i_dof];
-        r_dof.GetSolutionStepValue() += projected[i_dof];
-    });
+            // Collect dependent DoFs.
+            const auto& r_dofs = mpImpl->mpConstraintAssembler->GetDependentDofs(this->GetDofSet());
+            KRATOS_ERROR_IF_NOT(projected.size() == r_dofs.size()) << projected.size() << " != " << r_dofs.size();
+            KRATOS_ERROR_IF_NOT(residual.size() == r_dofs.size()) << residual.size() << " != " << r_dofs.size();
 
-    KRATOS_CATCH("")
+            // Update DoFs.
+            IndexPartition<std::size_t>(projected.size()).for_each([&projected, &residual, &r_dofs](std::size_t i_dof) {
+                auto& r_dof = *(r_dofs.begin() + i_dof);
+                r_dof.GetSolutionStepReactionValue() = residual[i_dof];
+                r_dof.GetSolutionStepValue() += projected[i_dof];
+            });
+        KRATOS_CATCH("")
 }
 
 
