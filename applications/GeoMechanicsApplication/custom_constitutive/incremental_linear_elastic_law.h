@@ -123,19 +123,20 @@ protected:
     ///@}
 
 private:
-    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
-    Vector                                    mStressVector;
-    Vector                                    mStressVectorFinalized;
-    Vector                                    mDeltaStrainVector;
-    Vector                                    mStrainVectorFinalized;
-    bool                                      mIsModelInitialized = false;
-
+    std::unique_ptr<ConstitutiveLawDimension>       mpConstitutiveDimension;
+    Vector                                          mStressVector;
+    Vector                                          mStressVectorFinalized;
+    Vector                                          mDeltaStrainVector;
+    Vector                                          mStrainVectorFinalized;
+    bool                                            mIsModelInitialized = false;
     std::variant<Policies::Constant, Policies::Eur> mPolicy;
 
-    void   InitializePolicy(const Properties& rProperties);
+    void   InitializePolicy(const std::string& rFormulation);
     double GetYoungsModulus(const Properties& rProperties, double YoungsModulus) const;
     double CalculateYoungsModulusForEur(const Properties& rProperties, double YoungsModulus) const;
     double CalculateMinorPrincipalEffectiveStress() const;
+    std::string GetYoungsModulusFormulation(const Properties& rProperties) const;
+    std::string GetYoungsModulusFormulation() const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
