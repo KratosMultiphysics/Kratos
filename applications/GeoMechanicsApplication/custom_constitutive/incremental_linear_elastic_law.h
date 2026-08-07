@@ -24,11 +24,11 @@ namespace Kratos
 namespace Policies
 {
 struct Constant {
-    double operator()(const Properties&) const;
+    double operator()(const Properties&, double) const;
 };
 
 struct Eur {
-    double operator()(const Properties&) const;
+    double operator()(const Properties&, double) const;
 };
 } // namespace Policies
 
@@ -133,8 +133,8 @@ private:
     std::variant<Policies::Constant, Policies::Eur> mPolicy;
 
     void   InitializePolicy(const Properties& rProperties);
-    double GetYoungsModulus(const Properties& rProperties) const;
-    double CalculateYoungsModulusForEur(const Properties& rProperties) const;
+    double GetYoungsModulus(const Properties& rProperties, double YoungsModulus) const;
+    double CalculateYoungsModulusForEur(const Properties& rProperties, double YoungsModulus) const;
     double CalculateMinorPrincipalEffectiveStress() const;
 
     friend class Serializer;

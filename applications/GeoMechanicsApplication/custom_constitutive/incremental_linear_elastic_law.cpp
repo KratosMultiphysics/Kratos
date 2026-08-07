@@ -130,15 +130,14 @@ int GeoIncrementalLinearElasticLaw::Check(const Properties&   rMaterialPropertie
 {
     BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    if (rMaterialProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION)) {
-        if (rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == "Eur") {
-            const CheckProperties check_properties(rMaterialProperties, "parameters of material",
-                                                   CheckProperties::Bounds::AllExclusive);
-            check_properties.Check(GEO_PRESSURE_REFERENCE);
-            check_properties.Check(GEO_STRESS_DEPENDENCY_EXPONENT);
-            check_properties.Check(GEO_COHESION);
-            check_properties.Check(GEO_FRICTION_ANGLE);
-        }
+    if (rMaterialProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) &&
+        rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == "Eur") {
+        const CheckProperties check_properties(rMaterialProperties, "parameters of material",
+                                               CheckProperties::Bounds::AllExclusive);
+        check_properties.Check(GEO_PRESSURE_REFERENCE);
+        check_properties.Check(GEO_STRESS_DEPENDENCY_EXPONENT);
+        check_properties.Check(GEO_COHESION);
+        check_properties.Check(GEO_FRICTION_ANGLE);
     }
 
     return 0;
@@ -149,12 +148,11 @@ void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& rElasticMatr
 {
     KRATOS_TRY
 
-    const auto& r_properties   = rParameters.GetMaterialProperties();
-    const auto  youngs_modulus = GetYoungsModulus(r_properties);
+    const auto& r_properties = rParameters.GetMaterialProperties();
 
-    const auto poisson_ratio = r_properties.Has(POISSON_UNLOADING_RELOADING)
-                                   ? r_properties[POISSON_UNLOADING_RELOADING]
-                                   : r_properties[POISSON_RATIO];
+    const auto [youngs_modulus_constant, poisson_ratio] =
+        ConstitutiveLawUtilities::GetOrCalculateElasticProperties(r_properties);
+    const auto youngs_modulus = GetYoungsModulus(r_properties, youngs_modulus_constant);
 
     rElasticMatrix = ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
         youngs_modulus, poisson_ratio, mpConstitutiveDimension->GetStrainSize(),
@@ -169,16 +167,16 @@ void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& rElasticMatr
     KRATOS_CATCH("")
 }
 
-double GeoIncrementalLinearElasticLaw::GetYoungsModulus(const Properties& rProperties) const
+double GeoIncrementalLinearElasticLaw::GetYoungsModulus(const Properties& rProperties, double YoungsModulus) const
 {
-    return std::visit([this, &rProperties](auto&& policy) -> double {
+    return std::visit([this, &rProperties, YoungsModulus](auto& policy) {
         using T = std::decay_t<decltype(policy)>;
 
         if constexpr (std::is_same_v<T, Policies::Constant>) {
-            return rProperties[YOUNG_MODULUS];
+            return YoungsModulus;
 
         } else if constexpr (std::is_same_v<T, Policies::Eur>) {
-            return CalculateYoungsModulusForEur(rProperties);
+            return CalculateYoungsModulusForEur(rProperties, YoungsModulus);
         }
     }, mPolicy);
 }
@@ -283,13 +281,14 @@ void GeoIncrementalLinearElasticLaw::load(Serializer& rSerializer)
     rSerializer.load("IsModelInitialized"s, mIsModelInitialized);
 }
 
-double GeoIncrementalLinearElasticLaw::CalculateYoungsModulusForEur(const Properties& rProperties) const
+double GeoIncrementalLinearElasticLaw::CalculateYoungsModulusForEur(const Properties& rProperties,
+                                                                    double YoungsModulus) const
 {
     constexpr auto epsilon = std::numeric_limits<double>::epsilon();
 
     const auto reference_pressure = rProperties[GEO_PRESSURE_REFERENCE];
     const auto exponent           = rProperties[GEO_STRESS_DEPENDENCY_EXPONENT];
-    const auto eur_ref            = rProperties[YOUNG_MODULUS];
+    const auto eur_ref            = YoungsModulus;
 
     const auto friction_angle_rad = ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
     const auto stress_shift =
