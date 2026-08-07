@@ -218,10 +218,7 @@ void GeoIncrementalLinearElasticLaw::InitializeMaterialResponseCauchy(Constituti
     if (!mIsModelInitialized) {
         mStressVectorFinalized = rParameters.GetStressVector();
         mStrainVectorFinalized = rParameters.GetStrainVector();
-
-        const auto& r_material_props = rParameters.GetMaterialProperties();
-        InitializePolicy(GetYoungsModulusFormulation(r_material_props));
-
+        InitializePolicy(GetYoungsModulusFormulation(rParameters.GetMaterialProperties()));
         mIsModelInitialized = true;
     }
     KRATOS_CATCH("")
@@ -245,8 +242,6 @@ void GeoIncrementalLinearElasticLaw::ResetMaterial(const Properties&, const Geom
 {
     mStressVector          = ZeroVector(mStressVector.size());
     mStressVectorFinalized = ZeroVector(mStressVectorFinalized.size());
-
-    // set strain vectors:
     mDeltaStrainVector     = ZeroVector(mDeltaStrainVector.size());
     mStrainVectorFinalized = ZeroVector(mStrainVectorFinalized.size());
 
