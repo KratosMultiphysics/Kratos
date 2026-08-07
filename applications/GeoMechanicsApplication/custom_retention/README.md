@@ -36,7 +36,7 @@ It derives from the `RetentionLaw` base class and computes:
 Kratos uses the **soil mechanics sign convention** for fluid pressure $p$:
 
 - $p > 0$  → suction (above phreatic level, unsaturated regime)  
-- $p \le 0$ → positive pore water pressure (at or below phreatic level, fully saturated)
+- $p \le 0$ → compression pore water pressure (fully saturated; includes zero-pressure transition at the phreatic level).
 
 This is equivalent to the standard hydraulic head formulation where $h = -p/(\rho_w g)$ is the matric suction head in metres.
 
@@ -109,10 +109,13 @@ $$K_r = \Theta^l \Bigl[1 - \bigl(1-\Theta^{1/m}\bigr)^m\Bigr]^2$$
 |-----------------|------------------------------------|-------------------------|
 | $\theta_s$      | `SATURATED_SATURATION`             | $S_s = \theta_s$        |
 | $\theta_r$      | `RESIDUAL_SATURATION`              | $S_r = \theta_r$        |
-| $\alpha$        | `VAN_GENUCHTEN_AIR_ENTRY_PRESSURE` | $\alpha = 1/p_b$        |
+| $\alpha$        | -                                  | $\alpha = 1/p_b$        |
+| $h_a$ or GA     | `VAN_GENUCHTEN_AIR_ENTRY_PRESSURE` | $\p_b=\rho_w g h_a$     |
 | $n$             | `VAN_GENUCHTEN_GN`                 | $n = \mathtt{gn}$       |
 | $m$ (derived)   | —                                  | $m = 1 - 1/n$ (hardcoded) |
 | $l$             | `VAN_GENUCHTEN_GL`                 | $l = \mathtt{gl}$       |
+
+As a rule, GA is obtained from experiments that allows one to define $p_b$.
 
 #### Equivalence
 
