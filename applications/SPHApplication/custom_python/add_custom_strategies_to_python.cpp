@@ -41,15 +41,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
-    //********************************************************************
-    //********************************************************************
-    //  py::class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>,
-    //  		TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
-    //          BaseSolvingStrategyType>(m, "TestStrategy")
-    //  	.def(py::init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-    //  	.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-    //  	;
-
 }
 
 } // namespace Kratos::Python
