@@ -473,6 +473,50 @@ protected:
         return 3 * (master_nodes + slave_nodes) + slave_nodes;
     }
 
+    void CalculateInterpolationMatrices(
+        const Vector &rN_slave,
+        const Vector &rN_master,
+        const Vector &rN_LMgeom, // coming from the geometry
+        Matrix &rNs,
+        Matrix &rNm,
+        Vector &rN_LM);
+
+    /**
+     * ELEMENTS inherited from this class must implement this methods
+     * if they need the values of the time derivatives of any of the dof
+     * set by the element. If the derivatives do not exist can set to zero
+     * these methods are: MANDATORY ( when compatibility with dynamics is required )
+     */
+
+    /**
+     * Getting method to obtain the variable which defines the degrees of freedom
+     */
+    void GetValuesVector(Vector &rValues, int Step = 0) const;
+
+    void ALM3dMortarFrictionlessCondition::AddRightHandSideContribution(
+        VectorType &rRightHandSideVector,
+        const double k,
+        const double penalty,
+        const double gap,
+        const double LM,
+        const double integration_weight,
+        const Matrix &rNs,
+        const Matrix &rNm,
+        const Vector &rN_LM,  // Phi
+        const Vector &rNormal // slave normal vector
+    );
+
+    void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
+        MatrixType &rLeftHandSideMatrix,
+        const double k,
+        const double penalty,
+        const double integration_weight,
+        const Matrix &rNs,
+        const Matrix &rNm,
+        const Vector &rN_LM,  // Phi
+        const Vector &rNormal // slave normal vector
+    );
+
     /**
      * @brief It returns theintegration method considered
      */
