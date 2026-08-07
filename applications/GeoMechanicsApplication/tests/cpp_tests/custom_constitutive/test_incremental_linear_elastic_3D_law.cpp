@@ -180,7 +180,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     initial_parameters.SetStrainVector(initial_strain);
     auto initial_stress = Vector{ScalarVector{6, 1e6}};
     initial_parameters.SetStressVector(initial_stress);
-    initial_parameters.SetStressVector(initial_stress);
     auto p_material_props              = Kratos::make_shared<Kratos::Properties>(0);
     (*p_material_props)[YOUNG_MODULUS] = 30000000.0;
     initial_parameters.SetMaterialProperties(*p_material_props);
