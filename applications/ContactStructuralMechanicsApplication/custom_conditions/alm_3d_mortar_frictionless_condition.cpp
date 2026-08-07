@@ -389,12 +389,13 @@ void ALM3dMortarFrictionlessCondition::AddRightHandSideContribution(
     KRATOS_TRY
 
     if (active_contact) {
-        const double augmented_lm = k + penalty * gap; // contact pressure at the integration point
-        noalias(project(rRightHandSideVector, range(0, 3))) += integration_weight * k * gap * rN_LM; // LM dofs
-        noalias(project(rRightHandSideVector, range(3, 12))) -= integration_weight * augmented_lm * prod(trans(rNs), rNormal); // slave displacement dofs
-        noalias(project(rRightHandSideVector, range(12, 21))) += integration_weight * augmented_lm * prod(trans(rNm), rNormal); // master displacement dofs
+        const double augmented_lm = k * LM + penalty * gap; // contact pressure at the integration point
+        // NOTE: In here we change the sign of the RHS contributions since Kratos residual is f_ext - f_int, and the contact contributions are internal forces
+        noalias(project(rRightHandSideVector, range(0, 3))) -= integration_weight * k * gap * rN_LM; // LM dofs
+        noalias(project(rRightHandSideVector, range(3, 12))) += integration_weight * augmented_lm * prod(trans(rNs), rNormal); // slave displacement dofs
+        noalias(project(rRightHandSideVector, range(12, 21))) -= integration_weight * augmented_lm * prod(trans(rNm), rNormal); // master displacement dofs
     } else { // Inactive
-        noalias(project(rRightHandSideVector, range(0, 3))) -= integration_weight * (k * k / penalty) * rN_LM;
+        noalias(project(rRightHandSideVector, range(0, 3))) += integration_weight * (k * k / penalty) * LM * rN_LM;
     }
 
     KRATOS_CATCH("AddRightHandSideContribution");
@@ -424,7 +425,7 @@ void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
         noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_weight * k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNs))); // LM - slave
         noalias(project(rLeftHandSideMatrix, range(0, 3), range(12, 21))) += integration_weight * k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNm))); // LM - master
 
-        noalias(project(rLeftHandSideMatrix, range(3, 12), range(0, 3))) -= integration_weight * k * outer_prod(Vector(prod(rNs, rNormal)), rN_LM); // slave - LM
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(0, 3))) -= integration_weight * k * outer_prod(Vector(prod(trans(rNs), rNormal)), rN_LM); // slave - LM
         noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_weight * penalty * prod(trans(rNs), Matrix(prod(n_n, rNs))); // slave - slave
         noalias(project(rLeftHandSideMatrix, range(3, 12), range(12, 21))) -= integration_weight * penalty * prod(trans(rNs), Matrix(prod(n_n, rNm))); // slave - master
 
