@@ -19,11 +19,14 @@
 #include <cmath>
 #include <limits>
 #include <string>
+#include <type_traits>
 
 using namespace std::string_literals;
 
-namespace Kratos
+namespace
 {
+
+using namespace Kratos;
 
 void SetEntriesAboveDiagonalToZero(Matrix& rMatrix)
 {
@@ -49,6 +52,11 @@ void SetShearEntriesToZero(Matrix& rMatrix, std::size_t NumberOfNormalComponents
         rMatrix(i, i) = 0.0;
     }
 }
+
+} // namespace
+
+namespace Kratos
+{
 
 GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : GeoLinearElasticLaw{},
