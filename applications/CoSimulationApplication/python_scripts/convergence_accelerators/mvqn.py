@@ -11,6 +11,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_conve
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities.array_backend import HostArrayBoundary
 
 # Other imports
 import numpy as np
@@ -44,7 +45,9 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
+    @HostArrayBoundary
     def UpdateSolution( self, r, x ):
+        xp = self.xp
         self.R.appendleft( deepcopy(r) )
         self.X.appendleft( deepcopy(x) )
         col = len(self.R) - 1
@@ -58,32 +61,32 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             if self.J is None:
                 return self.alpha * r  # if no Jacobian, do relaxation
             else:
-                return np.linalg.solve( self.J, -r ) # use the Jacobian from previous step
+                return xp.linalg.solve( self.J, -r ) # use the Jacobian from previous step
 
         ## Let the initial Jacobian correspond to a constant relaxation
         if self.J is None:
-            self.J = - np.identity( row ) / self.alpha # correspongding to constant relaxation
+            self.J = - xp.identity( row ) / self.alpha # correspongding to constant relaxation
 
         ## Construct matrix V (differences of residuals)
-        V = np.empty( shape = (col, row) ) # will be transposed later
+        V = xp.empty( shape = (col, row) ) # will be transposed later
         for i in range(0, col):
             V[i] = self.R[i] - self.R[i + 1]
         V = V.T
 
         ## Construct matrix W(differences of intermediate solutions x)
-        W = np.empty( shape = (col, row) ) # will be transposed later
+        W = xp.empty( shape = (col, row) ) # will be transposed later
         for i in range(0, col):
             W[i] = self.X[i] - self.X[i + 1]
         W = W.T
 
         ## Solve least norm problem
-        rhs = V - np.dot(self.J, W)
-        b = np.identity( row )
-        W_right_inverse = np.linalg.lstsq(W, b, rcond=-1)[0]
-        J_tilde = np.dot(rhs, W_right_inverse)
+        rhs = V - xp.dot(self.J, W)
+        b = xp.identity( row )
+        W_right_inverse = xp.linalg.lstsq(W, b, rcond=-1)[0]
+        J_tilde = xp.dot(rhs, W_right_inverse)
         self.J_hat = self.J + J_tilde
         delta_r = -self.R[0]
-        delta_x = np.linalg.solve(self.J_hat, delta_r)
+        delta_x = xp.linalg.solve(self.J_hat, delta_r)
 
         return delta_x
 
