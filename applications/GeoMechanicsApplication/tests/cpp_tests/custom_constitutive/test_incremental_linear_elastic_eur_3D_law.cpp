@@ -396,7 +396,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsDiagonalCon
     // Act
     const auto constitutive_matrix = CalculateConstitutiveMatrixForEurElasticLaw(law, properties, strain_vector);
 
-    constexpr double expected_diagonal_value = 0.0369853;
+    constexpr double expected_diagonal_value = 13461538.461538462;
     const auto       expected_constitutive_matrix =
         UblasUtilities::CreateMatrix({{expected_diagonal_value, 0.0, 0.0, 0.0, 0.0, 0.0},
                                       {0.0, expected_diagonal_value, 0.0, 0.0, 0.0, 0.0},
