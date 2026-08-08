@@ -11,9 +11,15 @@
 //                   Richard Faasse
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
+#include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <cmath>
+#include <limits>
 #include <string>
+#include <type_traits>
 
 using namespace std::string_literals;
 
@@ -60,6 +66,7 @@ GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(std::unique_ptr<C
       mDeltaStrainVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mStrainVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
 {
+    mPolicy.emplace<Policies::Constant>();
 }
 
 GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(const GeoIncrementalLinearElasticLaw& rOther)
@@ -72,19 +79,22 @@ GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(const GeoIncremen
 {
     if (rOther.mpConstitutiveDimension)
         mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
+    InitializePolicy(rOther.GetYoungsModulusFormulation());
 }
 
 GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(const GeoIncrementalLinearElasticLaw& rOther)
 {
-    GeoLinearElasticLaw::operator=(rOther);
-    mStressVector          = rOther.mStressVector;
-    mStressVectorFinalized = rOther.mStressVectorFinalized;
-    mDeltaStrainVector     = rOther.mDeltaStrainVector;
-    mStrainVectorFinalized = rOther.mStrainVectorFinalized;
-    mIsModelInitialized    = rOther.mIsModelInitialized;
-    if (rOther.mpConstitutiveDimension)
-        mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
-
+    if (this != &rOther) {
+        GeoLinearElasticLaw::operator=(rOther);
+        mStressVector          = rOther.mStressVector;
+        mStressVectorFinalized = rOther.mStressVectorFinalized;
+        mDeltaStrainVector     = rOther.mDeltaStrainVector;
+        mStrainVectorFinalized = rOther.mStrainVectorFinalized;
+        mIsModelInitialized    = rOther.mIsModelInitialized;
+        if (rOther.mpConstitutiveDimension)
+            mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
+        InitializePolicy(rOther.GetYoungsModulusFormulation());
+    }
     return *this;
 }
 
@@ -93,10 +103,10 @@ ConstitutiveLaw::Pointer GeoIncrementalLinearElasticLaw::Clone() const
     return Kratos::make_shared<GeoIncrementalLinearElasticLaw>(*this);
 }
 
-bool& GeoIncrementalLinearElasticLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+bool& GeoIncrementalLinearElasticLaw::GetValue(const Variable<bool>& rVariable, bool& rValue)
 {
     // This Constitutive Law has been checked with Stenberg Stabilization
-    if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE) rValue = true;
+    if (rVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE) rValue = true;
     return rValue;
 }
 
@@ -125,34 +135,75 @@ SizeType GeoIncrementalLinearElasticLaw::GetStrainSize() const
 
 bool GeoIncrementalLinearElasticLaw::IsIncremental() { return true; }
 
-void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+int GeoIncrementalLinearElasticLaw::Check(const Properties&   rMaterialProperties,
+                                          const GeometryType& rElementGeometry,
+                                          const ProcessInfo&  rCurrentProcessInfo) const
+{
+    const auto result = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+
+    if (rMaterialProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) &&
+        rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == "Eur") {
+        const CheckProperties check_properties(rMaterialProperties, "parameters of material",
+                                               CheckProperties::Bounds::AllExclusive);
+        check_properties.Check(GEO_PRESSURE_REFERENCE);
+        check_properties.Check(GEO_STRESS_DEPENDENCY_EXPONENT);
+        check_properties.Check(GEO_COHESION);
+        check_properties.Check(GEO_FRICTION_ANGLE);
+    }
+
+    return result;
+}
+
+void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& rElasticMatrix,
+                                                            ConstitutiveLaw::Parameters& rParameters)
 {
     KRATOS_TRY
 
-    C = mpConstitutiveDimension->CalculateElasticConstitutiveTensor(rValues.GetMaterialProperties());
+    const auto& r_properties = rParameters.GetMaterialProperties();
+
+    const auto [youngs_modulus_constant, poisson_ratio] =
+        ConstitutiveLawUtilities::GetOrCalculateElasticProperties(r_properties);
+    const auto youngs_modulus = GetYoungsModulus(r_properties, youngs_modulus_constant);
+
+    rElasticMatrix = ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
+        youngs_modulus, poisson_ratio, mpConstitutiveDimension->GetStrainSize(),
+        mpConstitutiveDimension->GetNumberOfNormalComponents());
 
     if (this->GetConsiderDiagonalEntriesOnlyAndNoShear()) {
-        SetEntriesAboveDiagonalToZero(C);
-        SetEntriesBelowDiagonalToZero(C);
-        SetShearEntriesToZero(C, mpConstitutiveDimension->GetNumberOfNormalComponents());
+        SetEntriesAboveDiagonalToZero(rElasticMatrix);
+        SetEntriesBelowDiagonalToZero(rElasticMatrix);
+        SetShearEntriesToZero(rElasticMatrix, mpConstitutiveDimension->GetNumberOfNormalComponents());
     }
 
     KRATOS_CATCH("")
 }
 
+double GeoIncrementalLinearElasticLaw::GetYoungsModulus(const Properties& rProperties, double YoungsModulus) const
+{
+    return std::visit([this, &rProperties, YoungsModulus](const auto& policy) {
+        using T = std::decay_t<decltype(policy)>;
+
+        if constexpr (std::is_same_v<T, Policies::Constant>) {
+            return YoungsModulus;
+
+        } else if constexpr (std::is_same_v<T, Policies::Eur>) {
+            return CalculateYoungsModulusForEur(rProperties, YoungsModulus);
+        }
+    }, mPolicy);
+}
+
 void GeoIncrementalLinearElasticLaw::CalculatePK2Stress(const Vector&                rStrainVector,
                                                         Vector&                      rStressVector,
-                                                        ConstitutiveLaw::Parameters& rValues)
+                                                        ConstitutiveLaw::Parameters& rParameters)
 {
     KRATOS_TRY
 
-    mDeltaStrainVector = rValues.GetStrainVector() - mStrainVectorFinalized;
+    mDeltaStrainVector = rParameters.GetStrainVector() - mStrainVectorFinalized;
 
-    Matrix C;
-    this->CalculateElasticMatrix(C, rValues);
+    Matrix constitutive_matrix;
+    CalculateElasticMatrix(constitutive_matrix, rParameters);
 
-    // Incremental formulation
-    noalias(mStressVector) = mStressVectorFinalized + prod(C, mDeltaStrainVector);
+    noalias(mStressVector) = mStressVectorFinalized + prod(constitutive_matrix, mDeltaStrainVector);
 
     rStressVector = mStressVector;
 
@@ -161,42 +212,68 @@ void GeoIncrementalLinearElasticLaw::CalculatePK2Stress(const Vector&           
 
 bool GeoIncrementalLinearElasticLaw::RequiresInitializeMaterialResponse() { return true; }
 
-void GeoIncrementalLinearElasticLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
     KRATOS_TRY
     if (!mIsModelInitialized) {
-        // stress vector must be initialized:
-        mStressVectorFinalized = rValues.GetStressVector();
-        mStrainVectorFinalized = rValues.GetStrainVector();
-        mIsModelInitialized    = true;
+        mStressVectorFinalized = rParameters.GetStressVector();
+        mStrainVectorFinalized = rParameters.GetStrainVector();
+        InitializePolicy(GetYoungsModulusFormulation(rParameters.GetMaterialProperties()));
+        mIsModelInitialized = true;
     }
     KRATOS_CATCH("")
 }
 
 bool GeoIncrementalLinearElasticLaw::RequiresFinalizeMaterialResponse() { return true; }
 
-void GeoIncrementalLinearElasticLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
-    mStrainVectorFinalized = rValues.GetStrainVector();
+    mStrainVectorFinalized = rParameters.GetStrainVector();
     mStressVectorFinalized = mStressVector;
 }
 
-void GeoIncrementalLinearElasticLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rParameters)
 {
     // Small deformation so we can call the Cauchy method
-    FinalizeMaterialResponseCauchy(rValues);
+    FinalizeMaterialResponseCauchy(rParameters);
 }
 
 void GeoIncrementalLinearElasticLaw::ResetMaterial(const Properties&, const GeometryType&, const Vector&)
 {
     mStressVector          = ZeroVector(mStressVector.size());
     mStressVectorFinalized = ZeroVector(mStressVectorFinalized.size());
-
-    // set strain vectors:
     mDeltaStrainVector     = ZeroVector(mDeltaStrainVector.size());
     mStrainVectorFinalized = ZeroVector(mStrainVectorFinalized.size());
 
     mIsModelInitialized = false;
+}
+
+void GeoIncrementalLinearElasticLaw::InitializePolicy(const std::string& rFormulation)
+{
+    if (rFormulation == "Constant") {
+        mPolicy.emplace<Policies::Constant>();
+    } else if (rFormulation == "Eur") {
+        mPolicy.emplace<Policies::Eur>();
+    } else {
+        KRATOS_ERROR << "Unknown GEO_YOUNGS_MODULUS_FORMULATION: " << rFormulation;
+    }
+}
+
+std::string GeoIncrementalLinearElasticLaw::GetYoungsModulusFormulation(const Properties& rProperties) const
+{
+    return rProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) ? rProperties[GEO_YOUNGS_MODULUS_FORMULATION]
+                                                           : "Constant";
+}
+
+std::string GeoIncrementalLinearElasticLaw::GetYoungsModulusFormulation() const
+{
+    if (std::holds_alternative<Policies::Constant>(mPolicy)) {
+        return "Constant"s;
+    } else if (std::holds_alternative<Policies::Eur>(mPolicy)) {
+        return "Eur"s;
+    }
+    // default value
+    return "Constant"s;
 }
 
 void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
@@ -208,6 +285,7 @@ void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
     rSerializer.save("DeltaStrainVector"s, mDeltaStrainVector);
     rSerializer.save("StrainVectorFinalized"s, mStrainVectorFinalized);
     rSerializer.save("IsModelInitialized"s, mIsModelInitialized);
+    rSerializer.save("Policy"s, GetYoungsModulusFormulation());
 }
 
 void GeoIncrementalLinearElasticLaw::load(Serializer& rSerializer)
@@ -219,6 +297,46 @@ void GeoIncrementalLinearElasticLaw::load(Serializer& rSerializer)
     rSerializer.load("DeltaStrainVector"s, mDeltaStrainVector);
     rSerializer.load("StrainVectorFinalized"s, mStrainVectorFinalized);
     rSerializer.load("IsModelInitialized"s, mIsModelInitialized);
+    std::string youngs_modulus_formulation;
+    rSerializer.load("Policy"s, youngs_modulus_formulation);
+    InitializePolicy(youngs_modulus_formulation);
+}
+
+double GeoIncrementalLinearElasticLaw::CalculateYoungsModulusForEur(const Properties& rProperties,
+                                                                    double YoungsModulus) const
+{
+    constexpr auto epsilon = std::numeric_limits<double>::epsilon();
+
+    const auto reference_pressure = rProperties[GEO_PRESSURE_REFERENCE];
+    const auto exponent           = rProperties[GEO_STRESS_DEPENDENCY_EXPONENT];
+    const auto eur_ref            = YoungsModulus;
+
+    const auto friction_angle_rad = ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
+    const auto stress_shift =
+        rProperties[GEO_COHESION] * std::cos(friction_angle_rad) / std::sin(friction_angle_rad);
+
+    const auto base =
+        (stress_shift - CalculateMinorPrincipalEffectiveStress()) / (stress_shift + reference_pressure);
+
+    KRATOS_ERROR_IF_NOT(base > epsilon)
+        << "Negative base for std::pow ("
+        << base << "). Check GEO_COHESION, GEO_FRICTION_ANGLE, GEO_PRESSURE_REFERENCE and the finalized stress state.\n";
+
+    return eur_ref * std::pow(base, exponent);
+}
+
+double GeoIncrementalLinearElasticLaw::CalculateMinorPrincipalEffectiveStress() const
+{
+    auto principal_stresses = Vector{};
+    auto eigen_vectors      = Matrix{};
+    StressStrainUtilities::CalculatePrincipalStresses(mStressVectorFinalized, principal_stresses, eigen_vectors);
+
+    KRATOS_ERROR_IF(principal_stresses.size() < 3)
+        << "Could not compute principal stresses from stress vector with size "
+        << mStressVectorFinalized.size() << ". Expected at least 3 principal stresses, got "
+        << principal_stresses.size() << "\n";
+
+    return principal_stresses[2];
 }
 
 } // Namespace Kratos

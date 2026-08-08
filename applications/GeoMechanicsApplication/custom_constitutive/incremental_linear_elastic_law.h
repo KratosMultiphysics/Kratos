@@ -14,9 +14,24 @@
 
 #include "constitutive_law_dimension.h"
 #include "custom_constitutive/linear_elastic_law.h"
+#include "includes/properties.h"
+
+#include <variant>
 
 namespace Kratos
 {
+
+namespace Policies
+{
+struct Constant {
+    double operator()(const Properties&, double) const;
+};
+
+struct Eur {
+    double operator()(const Properties&, double) const;
+};
+} // namespace Policies
+
 /**
  * @class GeoIncrementalLinearElasticLaw
  * @ingroup GeoMechanicsApplication
@@ -43,11 +58,11 @@ public:
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     bool RequiresInitializeMaterialResponse() override;
-    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
 
     bool RequiresFinalizeMaterialResponse() override;
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rParameters) override;
 
     /**
      * @brief This function is designed to be called once to check compatibility with element
@@ -59,7 +74,7 @@ public:
      * @brief Dimension of the law:
      * @return The dimension for which the law is working
      */
-    SizeType WorkingSpaceDimension() override;
+    [[nodiscard]] SizeType WorkingSpaceDimension() override;
 
     /**
      * @brief Voigt tensor size:
@@ -71,12 +86,16 @@ public:
 
     /**
      * @brief  It returns the value of a specified variable
-     * @param rThisVariable the variable to be returned
+     * @param rVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+    bool& GetValue(const Variable<bool>& rVariable, bool& rValue) override;
     using ConstitutiveLaw::GetValue;
+
+    int Check(const Properties&   rMaterialProperties,
+              const GeometryType& rElementGeometry,
+              const ProcessInfo&  rCurrentProcessInfo) const override;
 
     /**
      * @brief It resets all the member variables and flags
@@ -85,31 +104,39 @@ public:
 
 protected:
     /**
-     * @brief It calculates the constitutive matrix C
-     * @param C The constitutive matrix
-     * @param rValues Parameters of the constitutive law
+     * @brief It calculates the constitutive matrix
+     * @param rElasticMatrix The constitutive matrix
+     * @param rParameters Parameters of the constitutive law
      */
-    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateElasticMatrix(Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rParameters) override;
 
     /**
      * @brief It calculates the stress vector
      * @param rStrainVector The strain vector in Voigt notation
      * @param rStressVector The stress vector in Voigt notation
-     * @param rValues Parameters of the constitutive law
+     * @param rParameters Parameters of the constitutive law
      */
     void CalculatePK2Stress(const Vector&                rStrainVector,
                             Vector&                      rStressVector,
-                            ConstitutiveLaw::Parameters& rValues) override;
+                            ConstitutiveLaw::Parameters& rParameters) override;
 
     ///@}
 
 private:
-    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
-    Vector                                    mStressVector;
-    Vector                                    mStressVectorFinalized;
-    Vector                                    mDeltaStrainVector;
-    Vector                                    mStrainVectorFinalized;
-    bool                                      mIsModelInitialized = false;
+    std::unique_ptr<ConstitutiveLawDimension>       mpConstitutiveDimension;
+    Vector                                          mStressVector;
+    Vector                                          mStressVectorFinalized;
+    Vector                                          mDeltaStrainVector;
+    Vector                                          mStrainVectorFinalized;
+    bool                                            mIsModelInitialized = false;
+    std::variant<Policies::Constant, Policies::Eur> mPolicy;
+
+    void   InitializePolicy(const std::string& rFormulation);
+    double GetYoungsModulus(const Properties& rProperties, double YoungsModulus) const;
+    double CalculateYoungsModulusForEur(const Properties& rProperties, double YoungsModulus) const;
+    double CalculateMinorPrincipalEffectiveStress() const;
+    std::string GetYoungsModulusFormulation(const Properties& rProperties) const;
+    std::string GetYoungsModulusFormulation() const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
