@@ -566,19 +566,15 @@ public:
      */
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue) requires (IsContiguous)
     {
-        if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-            return rValue.data().data();
+        // the underlying data structure for recursive static data types is
+        // contiguous starting at the first element in every supported dense
+        // backend, so the first element's address is the contiguous array.
+        if constexpr(TSize > 0) {
+            return reinterpret_cast<PrimitiveType const *>(&rValue[0]);
         } else {
-            // since the underlying data structure for recusive static data types
-            // is contiguous in ublas types, we can do the following to get the
-            // contiguous array.
-            if constexpr(TSize > 0) {
-                return reinterpret_cast<PrimitiveType const *>(&rValue[0]);
-            } else {
-                // not returning nullptr so, the return value can be subjected to
-                // arithmetic operations
-                return 0;
-            }
+            // not returning nullptr so, the return value can be subjected to
+            // arithmetic operations
+            return 0;
         }
     }
 
@@ -594,19 +590,15 @@ public:
      */
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue) requires (IsContiguous)
     {
-        if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
-            return rValue.data().data();
+        // the underlying data structure for recursive static data types is
+        // contiguous starting at the first element in every supported dense
+        // backend, so the first element's address is the contiguous array.
+        if constexpr(TSize > 0) {
+            return reinterpret_cast<PrimitiveType*>(&rValue[0]);
         } else {
-            // since the underlying data structure for recusive static data types
-            // is contiguous in ublas types, we can do the following to get the
-            // contiguous array.
-            if constexpr(TSize > 0) {
-                return reinterpret_cast<PrimitiveType*>(&rValue[0]);
-            } else {
-                // not returning nullptr so, the return value can be subjected to
-                // arithmetic operations
-                return 0;
-            }
+            // not returning nullptr so, the return value can be subjected to
+            // arithmetic operations
+            return 0;
         }
     }
 
