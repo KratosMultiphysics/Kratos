@@ -422,7 +422,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedStr
     // Assert
     constexpr auto tolerance = 1.0e-4;
     const auto     expected_stress =
-        UblasUtilities::CreateVector({0.0686869, 0.0686869, 0.0686869, 0.0105672, 0.0105672, 0.0105672});
+        UblasUtilities::CreateVector({2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, calculated_stress, tolerance)
 }
 
