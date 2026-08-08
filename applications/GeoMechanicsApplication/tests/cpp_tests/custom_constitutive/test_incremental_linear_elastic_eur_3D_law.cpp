@@ -347,6 +347,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ChecksAdditionalMa
 
     properties.SetValue(POISSON_RATIO, 0.3);
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
+    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, "Eur"s);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, geometry, process_info),
         "GEO_PRESSURE_REFERENCE does not exist in the parameters of material with Id 3.")
