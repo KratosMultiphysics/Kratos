@@ -542,18 +542,25 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ResetMaterialResto
     const auto properties = CreateConstantYoungsModulusProperties();
     SetEurLawToIncrementalState(law, properties);
 
-    const Properties     empty_properties;
-    const Geometry<Node> geometry;
-    const Vector         shape_functions_values;
+    const Properties     not_used_properties;
+    const Geometry<Node> not_used_geometry;
+    const Vector         not_used_shape_functions_values;
 
     // Act
-    law.ResetMaterial(empty_properties, geometry, shape_functions_values);
+    law.ResetMaterial(not_used_properties, not_used_geometry, not_used_shape_functions_values);
 
     // Assert: expected stress after reset computed from a fresh law in reset state
     auto       strain_vector      = Vector(6, 1.0);
     const auto stress_after_reset = CalculateStressForEurElasticLaw(law, properties, strain_vector);
 
-    auto ref_law = CreateIncrementalLinearElastic3DLaw();
+    auto                        ref_law = CreateIncrementalLinearElastic3DLaw();
+    ConstitutiveLaw::Parameters parameters;
+    auto                        initial_strain_vector = Vector(6, 0.0);
+    parameters.SetStrainVector(initial_strain_vector);
+    auto initial_stress_vector = Vector(6, 0.0);
+    parameters.SetStressVector(initial_stress_vector);
+    parameters.SetMaterialProperties(properties);
+    ref_law.InitializeMaterialResponseCauchy(parameters);
     const auto expected_stress = CalculateStressForEurElasticLaw(ref_law, properties, strain_vector);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress_after_reset, Defaults::relative_tolerance)
 }
