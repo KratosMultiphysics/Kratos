@@ -48,7 +48,7 @@ Vector Calculate3DStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw)
     return stress;
 }
 
-inline GeoIncrementalLinearElasticLaw CreateIncrementalLinearElastic3DLaw()
+GeoIncrementalLinearElasticLaw CreateIncrementalLinearElastic3DLaw()
 {
     return GeoIncrementalLinearElasticLaw{std::make_unique<ThreeDimensional>()};
 }
