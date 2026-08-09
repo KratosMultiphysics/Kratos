@@ -32,7 +32,7 @@ namespace
 using namespace Kratos;
 using namespace std::string_literals;
 
-GeoIncrementalLinearElasticLaw CreateIncrementalLinearElastic3DLaw()
+static GeoIncrementalLinearElasticLaw CreateIncrementalLinearElastic3DLaw()
 {
     return GeoIncrementalLinearElasticLaw{std::make_unique<ThreeDimensional>()};
 }
