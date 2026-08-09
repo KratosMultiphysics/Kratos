@@ -88,7 +88,7 @@ public:
      * @brief  It returns the value of a specified variable
      * @param rVariable the variable to be returned
      * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
+     * @return The value of the specified variable
      */
     bool& GetValue(const Variable<bool>& rVariable, bool& rValue) override;
     using ConstitutiveLaw::GetValue;

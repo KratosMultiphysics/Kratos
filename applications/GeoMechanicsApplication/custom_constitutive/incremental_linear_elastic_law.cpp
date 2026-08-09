@@ -319,7 +319,7 @@ double GeoIncrementalLinearElasticLaw::CalculateYoungsModulusForEur(const Proper
         (stress_shift - CalculateMinorPrincipalEffectiveStress()) / (stress_shift + reference_pressure);
 
     KRATOS_ERROR_IF_NOT(base > epsilon)
-        << "Negative base for std::pow ("
+        << "Non-positive base for std::pow ("
         << base << "). Check GEO_COHESION, GEO_FRICTION_ANGLE, GEO_PRESSURE_REFERENCE and the finalized stress state.\n";
 
     return eur_ref * std::pow(base, exponent);
