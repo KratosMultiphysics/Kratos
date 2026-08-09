@@ -63,7 +63,7 @@ Where:
 
 ### 1.2 Incremental linear elastic E_ur law
 
-This law is an incremental linear elastic continuum model with stress-dependent stiffness. It is an option in the linear elestaic material model. To activate it, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to a material properties. It has to have `Eur` keyword. 
+This law is an incremental linear elastic continuum model with stress-dependent stiffness. It is an option in the linear elastic material model. To activate it, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to a material properties. It has to have `Eur` keyword. 
 
 #### 1.2.1 Purpose
 

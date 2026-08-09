@@ -498,7 +498,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ThrowsWhenPowBaseI
     auto strain_vector = Vector(6, 1.0);
 
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CalculateStressForEurElasticLaw(law, properties, strain_vector), "Negative base for std::pow (-1.94118). Check GEO_COHESION, GEO_FRICTION_ANGLE, GEO_PRESSURE_REFERENCE and the finalized stress state.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CalculateStressForEurElasticLaw(law, properties, strain_vector), "Non-positive base for std::pow (-1.94118). Check GEO_COHESION, GEO_FRICTION_ANGLE, GEO_PRESSURE_REFERENCE and the finalized stress state.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_FinalizesMaterialResponseCauchyIncrementally,
