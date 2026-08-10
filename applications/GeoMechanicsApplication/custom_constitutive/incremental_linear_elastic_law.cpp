@@ -142,7 +142,7 @@ int GeoIncrementalLinearElasticLaw::Check(const Properties&   rMaterialPropertie
     const auto result = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
     if (rMaterialProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) &&
-        rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == "Eur") {
+        rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == Policies::Eur::Name) {
         const CheckProperties check_properties(rMaterialProperties, "parameters of material",
                                                CheckProperties::Bounds::AllExclusive);
         check_properties.Check(GEO_PRESSURE_REFERENCE);
@@ -250,9 +250,9 @@ void GeoIncrementalLinearElasticLaw::ResetMaterial(const Properties&, const Geom
 
 void GeoIncrementalLinearElasticLaw::InitializePolicy(const std::string& rFormulation)
 {
-    if (rFormulation == "Constant") {
+    if (rFormulation == Policies::Constant::Name) {
         mPolicy.emplace<Policies::Constant>();
-    } else if (rFormulation == "Eur") {
+    } else if (rFormulation == Policies::Eur::Name) {
         mPolicy.emplace<Policies::Eur>();
     } else {
         KRATOS_ERROR << "Unknown GEO_YOUNGS_MODULUS_FORMULATION: " << rFormulation;
@@ -262,7 +262,7 @@ void GeoIncrementalLinearElasticLaw::InitializePolicy(const std::string& rFormul
 std::string GeoIncrementalLinearElasticLaw::GetYoungsModulusFormulation(const Properties& rProperties) const
 {
     return rProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) ? rProperties[GEO_YOUNGS_MODULUS_FORMULATION]
-                                                           : "Constant";
+                                                           : Policies::Constant::Name;
 }
 
 std::string GeoIncrementalLinearElasticLaw::GetYoungsModulusFormulation() const
