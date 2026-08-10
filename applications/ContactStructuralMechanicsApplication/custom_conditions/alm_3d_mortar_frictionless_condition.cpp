@@ -440,21 +440,30 @@ void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
 
     if (active_contact) {
         const Matrix n_n = outer_prod(rNormal, rNormal); // normal matrix
+        const double integration_k = integration_weight * k;
+        const double integration_penalty = integration_weight * penalty;
 
-        // noalias(project(rLeftHandSideMatrix, range(0, 3), range(0, 3))) += 0 // LM - LM
-        noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_weight * k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNs))); // LM - slave
-        noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_weight * k * outer_prod(rN_LM, Vector(prod(trans(rDeltaX), rDnda_slave))); // LM - slave
-        noalias(project(rLeftHandSideMatrix, range(0, 3), range(12, 21))) += integration_weight * k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNm))); // LM - master
-
-        noalias(project(rLeftHandSideMatrix, range(3, 12), range(0, 3))) -= integration_weight * k * outer_prod(Vector(prod(trans(rNs), rNormal)), rN_LM); // slave - LM
-        noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_weight * penalty * prod(trans(rNs), Matrix(prod(n_n, rNs))); // slave - slave
+        //
+        noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNs))); // LM - slave
+        noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_k * outer_prod(rN_LM, Vector(prod(trans(rDeltaX), rDnda_slave))); // LM - slave
+        //
+        noalias(project(rLeftHandSideMatrix, range(0, 3), range(12, 21))) += integration_k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNm))); // LM - master
+        //
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(0, 3))) -= integration_k * outer_prod(Vector(prod(trans(rNs), rNormal)), rN_LM); // slave - LM
+        //
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_penalty * prod(trans(rNs), Matrix(prod(n_n, rNs))); // slave - slave
         noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) -= integration_weight * AugmentedLM * prod(trans(rNs), rDnda_slave); // slave - slave
-        noalias(project(rLeftHandSideMatrix, range(3, 12), range(12, 21))) -= integration_weight * penalty * prod(trans(rNs), Matrix(prod(n_n, rNm))); // slave - master
-
-        noalias(project(rLeftHandSideMatrix, range(12, 21), range(0, 3))) += integration_weight * k * outer_prod(Vector(prod(trans(rNm), rNormal)), rN_LM); // master - LM
-        noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_weight * penalty * prod(trans(rNm), Matrix(prod(n_n, rNs))); // master - slave
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_penalty * outer_prod(Vector(prod(trans(rDeltaX), rDnda_slave)), Vector(prod(trans(rNs), rNormal))); // slave - slave
+        //
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(12, 21))) -= integration_penalty * prod(trans(rNs), Matrix(prod(n_n, rNm))); // slave - master
+        //
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(0, 3))) += integration_k * outer_prod(Vector(prod(trans(rNm), rNormal)), rN_LM); // master - LM
+        //
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_penalty * prod(trans(rNm), Matrix(prod(n_n, rNs))); // master - slave
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_penalty * outer_prod(Vector(prod(trans(rDeltaX), rDnda_slave)), Vector(prod(trans(rNm), rNormal))); // master - slave
         noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) += integration_weight * AugmentedLM * prod(trans(rNm), rDnda_slave); // master - slave
-        noalias(project(rLeftHandSideMatrix, range(12, 21), range(12, 21))) += integration_weight * penalty * prod(trans(rNm), Matrix(prod(n_n, rNm))); // master - master
+        //
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(12, 21))) += integration_penalty * prod(trans(rNm), Matrix(prod(n_n, rNm))); // master - master
 
     } else { // Inactive
         noalias(project(rLeftHandSideMatrix, range(0, 3), range(0, 3))) -= integration_weight * (k * k / penalty) * outer_prod(rN_LM, rN_LM); // LM dofs
