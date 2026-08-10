@@ -12,6 +12,7 @@
 #pragma once
 
 #include "dam_application.h"
+#include "poromechanics_application.h"
 #include "structural_mechanics_application.h"
 #include "testing/testing.h"
 
@@ -23,6 +24,11 @@ public:
 
 private:
   KratosStructuralMechanicsApplication::Pointer mpStructuralMechanicsApp;
+  // Required by the thermo-mechanical lifecycle tests: the legacy
+  // SmallDisplacementThermoMechanicElement extrapolates Gauss-point stresses to
+  // the nodal variable NODAL_CAUCHY_STRESS_TENSOR (a PoromechanicsApplication
+  // variable) inside FinalizeSolutionStep.
+  KratosPoromechanicsApplication::Pointer mpPoromechanicsApp;
   KratosDamApplication::Pointer mpDamApp;
 };
 
