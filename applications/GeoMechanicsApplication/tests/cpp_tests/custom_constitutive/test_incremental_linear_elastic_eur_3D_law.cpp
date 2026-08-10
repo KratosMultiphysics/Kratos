@@ -175,6 +175,39 @@ void SetEurLawToIncrementalState(GeoIncrementalLinearElasticLaw& rLaw, const Pro
 
 namespace Kratos::Testing
 {
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_InputYoungsModulusFormulation,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto law        = CreateDefaultIncrementalLinearElastic3DLaw();
+    auto properties = CreateMaterialPropertiesForEurElasticLaw();
+    auto parameters = ConstitutiveLaw::Parameters{};
+    auto strain     = Vector(6, 0.0);
+    parameters.SetStrainVector(strain);
+    auto stress = Vector(6, 0.0);
+    parameters.SetStressVector(stress);
+    parameters.SetMaterialProperties(properties);
+
+    // Act and Assert for Eur
+    EXPECT_NO_THROW(law.InitializeMaterialResponseCauchy(parameters));
+
+    const auto not_used_properties             = Properties{};
+    const auto not_used_geometry               = Geometry<Node>{};
+    const auto not_used_shape_functions_values = Vector{};
+    law.ResetMaterial(not_used_properties, not_used_geometry, not_used_shape_functions_values);
+    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, "Constant"s);
+    parameters.SetMaterialProperties(properties);
+    // Act and Assert for Constant
+    EXPECT_NO_THROW(law.InitializeMaterialResponseCauchy(parameters));
+
+    law.ResetMaterial(not_used_properties, not_used_geometry, not_used_shape_functions_values);
+    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, "Not_available"s);
+    parameters.SetMaterialProperties(properties);
+
+    // Act and Assert for Not_available
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.InitializeMaterialResponseCauchy(parameters),
+                                      "Unknown GEO_YOUNGS_MODULUS_FORMULATION: Not_available")
+}
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CopyConstructorCopiesInternalState,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
