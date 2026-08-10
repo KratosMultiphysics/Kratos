@@ -181,12 +181,12 @@ void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& rElasticMatr
 double GeoIncrementalLinearElasticLaw::GetYoungsModulus(const Properties& rProperties, double YoungsModulus) const
 {
     return std::visit([this, &rProperties, YoungsModulus](const auto& policy) {
-        using T = std::decay_t<decltype(policy)>;
+        using PolicyT = std::decay_t<std::remove_reference_t<decltype(policy)>>;
 
-        if constexpr (std::is_same_v<T, Policies::Constant>) {
+        if constexpr (std::is_same_v<PolicyT, Policies::Constant>) {
             return YoungsModulus;
 
-        } else if constexpr (std::is_same_v<T, Policies::Eur>) {
+        } else if constexpr (std::is_same_v<PolicyT, Policies::Eur>) {
             return CalculateYoungsModulusForEur(rProperties, YoungsModulus);
         }
     }, mPolicy);
