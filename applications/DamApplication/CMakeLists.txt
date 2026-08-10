@@ -65,6 +65,12 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/added_mass_condition.cpp
 )
 
+# DamApplication testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_DAM_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosDamCore SOURCES "${KRATOS_DAM_APPLICATION_TESTING_SOURCES}")
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
 if(${USE_DAM_MPI} MATCHES ON)
 
     include_directories( ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication )
