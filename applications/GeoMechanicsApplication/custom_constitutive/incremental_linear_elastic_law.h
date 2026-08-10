@@ -24,11 +24,13 @@ namespace Kratos
 namespace Policies
 {
 struct Constant {
-    double operator()(const Properties&, double) const;
+    static constexpr const char* Name = "Constant";
+    double                       operator()(const Properties&, double) const;
 };
 
 struct Eur {
-    double operator()(const Properties&, double) const;
+    static constexpr const char* Name = "Eur";
+    double                       operator()(const Properties&, double) const;
 };
 } // namespace Policies
 
