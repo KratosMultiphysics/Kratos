@@ -32,7 +32,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             "nodal_solution_step_data_variables" : [],
             "output_refinement_surface"    : [],
             "output_refinement_curve"    : [],
-            "output_control_type"  : "none",
+            "output_control_type"  : "step",
             "output_frequency"     : 1,
             "output_interval"      : 0.0,
             "interval"               : [0.0, "End"]
@@ -41,8 +41,12 @@ class IgaVTKOutputProcess(KM.OutputProcess):
         params.ValidateAndAssignDefaults(default_parameters)
         self.interval_utility = KM.IntervalUtility(params)
 
-        self.model_part = model[params["model_part_name"].GetString()]
+        self.model = model
+        self.model_part_name = params["model_part_name"].GetString()
+        self.model_part = model[self.model_part_name]
         self.output_file_name = Path(params["output_file_name"].GetString())
+
+        self.settings = params
 
         # Ensure correct file extension
         self.output_file_name = self.output_file_name.with_suffix(".vtkhdf")
@@ -90,27 +94,6 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                     f"Make sure to call AddNodalSolutionStepVariable."
                 )
 
-        # Output control settings
-        self.output_control_type = params["output_control_type"].GetString()
-
-        if self.output_control_type == "none":
-            pass
-
-        elif self.output_control_type == "step":
-            self.output_frequency = params["output_frequency"].GetInt()
-            self.step_counter = -1  # ensures first output at step 0
-
-        elif self.output_control_type == "time":
-            self.output_interval = params["output_interval"].GetDouble()
-            if self.output_interval <= 0.0:
-                raise Exception('"output_interval" must be > 0.0 for "time" control.')
-            self.next_output_time = self.interval_utility.GetIntervalBegin()
-
-        else:
-            err_msg  = 'The requested "output_control_type" "' + self.output_control_type
-            err_msg += '" is not available!\nAvailable options are: "time", "step"'
-            raise Exception(err_msg)
-
         # Cached parametric sampling (shared across time steps)
         self.cached_uv = None
 
@@ -119,28 +102,11 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             "VTKHDF requires ParaView 5.11 or newer. Older versions may not support it reliably."
         )
 
-    # Decide whether to output or not a time
+    def ExecuteBeforeSolutionLoop(self):
+        self.__controller = KM.OutputController(self.model, self.settings)
+
     def IsOutputStep(self):
-        if self.output_control_type == "none":
-            return self.printed_step_count == 0
-
-        elif self.output_control_type == "step":
-            return (self.step_counter % int(self.output_frequency)) == 0
-
-        elif self.output_control_type == "time":
-            current_time = self.model_part.ProcessInfo[KM.TIME]
-
-            if not self.interval_utility.IsInInterval(current_time):
-                return False
-
-            if current_time >= self.next_output_time:
-                while current_time >= self.next_output_time:
-                    self.next_output_time += self.output_interval
-                return True
-
-            return False
-
-        return False
+        return self.__controller.Evaluate()
 
     # Print the output in the HDFVTK file
     def PrintOutput(self):
@@ -495,10 +461,8 @@ class IgaVTKOutputProcess(KM.OutputProcess):
 
             self.printed_step_count += 1
             steps.attrs["NSteps"] = self.printed_step_count
-
-    def ExecuteFinalizeSolutionStep(self):
-        if self.output_control_type == "step":
-            self.step_counter += 1
+        
+        self.__controller.Update()
 
     # Compute the visualization grid for brep surfaces
     def __compute_full_grid_brep_surface(self, brep_surface):
