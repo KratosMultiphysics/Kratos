@@ -53,7 +53,7 @@ class SPHAnalysis(AnalysisStage):
 		{
 			"model_part_name" : "Structure",
 			"controls"     : true,
-			"tol" : 1e-10
+			"tol" : 1e-08
 		}
 		""");
 		kernel_correction_process = SPH.ComputeKernelCorrectionProcess(model_part, params)

@@ -291,43 +291,43 @@ bool ComputeKernelCorrectionUtilities::VerifyKernelCorrection(ModelPart& rThisMo
 
     KRATOS_CATCH("")
 }
+
 bool ComputeKernelCorrectionUtilities::VerifyIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters)
 {
     KRATOS_TRY
-    auto& rElem = rThisModelPart.Elements();
+    auto& r_elements = rThisModelPart.Elements();
     const SizeType domain_size = rThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double tol = rThisParameters["tol"].GetDouble();
 
-    for (auto IP = rElem.begin(); IP != rElem.end(); ++IP) {
+    bool is_particle_itself; 
 
-        const auto& r_neighbours = IP->GetValue(NEIGHBOURS);
-        Vector control = ZeroVector(domain_size);
-        double control_scale = 0.0;
-        bool is_particle_itself; 
+    for (auto rElem = r_elements.begin(); rElem != r_elements.end(); ++rElem){
+
+        const auto& r_neighbours = rElem->GetValue(NEIGHBOURS);
+        Vector residual = ZeroVector(domain_size);
 
         std::vector<double> kernel;
-        std::vector<Vector> dkernel;
-        IP->CalculateOnIntegrationPoints(SPH_KERNEL, kernel, rThisModelPart.GetProcessInfo());
-        IP->CalculateOnIntegrationPoints(SPH_KERNEL_GRADIENT, dkernel, rThisModelPart.GetProcessInfo());
+        std::vector<Vector> kernel_gradient;
+        rElem->CalculateOnIntegrationPoints(SPH_KERNEL, kernel, rThisModelPart.GetProcessInfo());
+        rElem->CalculateOnIntegrationPoints(SPH_KERNEL_GRADIENT, kernel_gradient, rThisModelPart.GetProcessInfo());
 
-        for (IndexType index = 0; index < r_neighbours.size(); ++index) {
+        for (IndexType neighbour_index = 0; neighbour_index < r_neighbours.size(); ++neighbour_index) {
+            Element& r_neighbour = *r_neighbours[neighbour_index];
+            const auto& r_neighbour_node = r_neighbour.GetGeometry()[0];
+            const double volume = r_neighbour_node.GetValue(VOLUME);
 
-            const double volume = r_neighbours[index]->GetGeometry()[0].GetValue(VOLUME);
-            ApplyKernelGradientCorrectionInverted(*r_neighbours[index], kernel[index], dkernel[index]);
+            is_particle_itself = (rElem->Id() == r_neighbour.Id());
 
-            if (IP->Id() == r_neighbours[index]->Id())
-                is_particle_itself = true;
-            else
-                is_particle_itself = false;
-            
-            ApplyIntegrationCorrection(*r_neighbours[index], kernel[index], dkernel[index], is_particle_itself);
+            ApplyKernelGradientCorrectionInverted(r_neighbour, kernel[neighbour_index], kernel_gradient[neighbour_index]);
+            ApplyIntegrationCorrection(r_neighbour, kernel[neighbour_index], kernel_gradient[neighbour_index], is_particle_itself);
 
-            noalias(control) += volume * dkernel[index] - r_neighbours[index]->GetGeometry()[0].GetValue(BOUNDARY_NORMAL_AREA) * kernel[index];
-            control_scale += norm_2(volume * dkernel[index]) + norm_2(r_neighbours[index]->GetGeometry()[0].GetValue(BOUNDARY_NORMAL_AREA) * kernel[index]);
+            noalias(residual) += volume * kernel_gradient[neighbour_index] - r_neighbour_node.GetValue(BOUNDARY_NORMAL_AREA) * kernel[neighbour_index];
         }
 
-        const double residual_norm = norm_2(control);
-        if (!std::isfinite(residual_norm) || residual_norm > tol * std::max(1.0, control_scale)) {
+        KRATOS_WATCH(norm_2(residual));
+
+        if (norm_2(residual) > tol){
+            KRATOS_WARNING("ComputeKernelCorrections")<<"Integration correction check failed"<<std::endl;
             return false;
         }
     }
