@@ -77,6 +77,28 @@ public:
      */
     bool RequiresFinalizeMaterialResponse() override;
 
+    /**
+     * Computes the specialized thermo-mechanical vector outputs from the current
+     * state carried by the Parameters:
+     *   THERMAL_STRAIN_VECTOR    = epsilon_th
+     *   THERMAL_STRESS_VECTOR    = C * epsilon_th
+     *   MECHANICAL_STRESS_VECTOR = C * epsilon
+     * so that the total constitutive stress satisfies
+     *   stress = MECHANICAL_STRESS_VECTOR - THERMAL_STRESS_VECTOR.
+     * The output is read-only with respect to the constitutive state.
+     */
+    Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue) override;
+
+    /**
+     * Computes the specialized thermo-mechanical tensor outputs
+     * (THERMAL_STRAIN_TENSOR, THERMAL_STRESS_TENSOR, MECHANICAL_STRESS_TENSOR)
+     * as the tensor representations of the corresponding vector outputs,
+     * obtained by reusing CalculateValue(const Variable<Vector>&, ...) and the
+     * standard MathUtils Voigt-to-tensor conversions. The output is read-only
+     * with respect to the constitutive state.
+     */
+    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:

@@ -7,6 +7,7 @@
 
 /* Project includes */
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
+#include "utilities/math_utils.h"
 
 
 namespace Kratos
@@ -259,6 +260,126 @@ void ThermalLinearElastic3DLaw::CalculateThermalStrain( Vector& rThermalStrainVe
     //Thermal strain vector
     for(unsigned int i = 0; i < 6; i++)
         rThermalStrainVector[i] *= rElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Vector& ThermalLinearElastic3DLaw::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue)
+{
+    KRATOS_TRY
+
+    if (rThisVariable == THERMAL_STRAIN_VECTOR ||
+        rThisVariable == THERMAL_STRESS_VECTOR ||
+        rThisVariable == MECHANICAL_STRESS_VECTOR) {
+
+        // These outputs are computed from the current state carried by the
+        // Parameters (element-provided total strain, shape functions, geometry),
+        // so they reach the law through CalculateOnConstitutiveLaw. Has() is
+        // intentionally left false so that the parameter-dependent CalculateValue
+        // path is used instead of GetValue.
+        const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
+        const double& r_young_modulus = r_material_properties[YOUNG_MODULUS];
+        const double& r_poisson_ratio = r_material_properties[POISSON_RATIO];
+
+        // Constitutive matrix (dimensional specialization via virtual dispatch).
+        Matrix constitutive_matrix(rValue.size(), rValue.size());
+        noalias(constitutive_matrix) = ZeroMatrix(rValue.size(), rValue.size());
+        this->CalculateLinearElasticMatrix(constitutive_matrix, r_young_modulus, r_poisson_ratio);
+
+        if (rThisVariable == MECHANICAL_STRESS_VECTOR) {
+            // MECHANICAL_STRESS_VECTOR = C * epsilon
+            const Vector& r_strain = rParameterValues.GetStrainVector();
+            if (rValue.size() != r_strain.size())
+                rValue.resize(r_strain.size(), false);
+            noalias(rValue) = prod(constitutive_matrix, r_strain);
+            return rValue;
+        }
+
+        // Thermal state: temperature and reference temperature interpolated with
+        // the shape functions supplied through the Parameters.
+        MaterialResponseVariables elastic_variables;
+        elastic_variables.SetShapeFunctionsValues(rParameterValues.GetShapeFunctionsValues());
+        elastic_variables.SetElementGeometry(rParameterValues.GetElementGeometry());
+        elastic_variables.LameMu = 1.0 + r_poisson_ratio;
+        elastic_variables.ThermalExpansionCoefficient = r_material_properties[THERMAL_EXPANSION];
+
+        double temperature;
+        this->CalculateDomainTemperature(elastic_variables, temperature);
+        double reference_temperature;
+        this->CalculateNodalReferenceTemperature(elastic_variables, reference_temperature);
+
+        // Thermal strain (dimensional specialization via virtual dispatch).
+        Vector thermal_strain_vector(rValue.size());
+        this->CalculateThermalStrain(thermal_strain_vector, elastic_variables, temperature, reference_temperature);
+
+        if (rThisVariable == THERMAL_STRAIN_VECTOR) {
+            // THERMAL_STRAIN_VECTOR = epsilon_th
+            if (rValue.size() != thermal_strain_vector.size())
+                rValue.resize(thermal_strain_vector.size(), false);
+            noalias(rValue) = thermal_strain_vector;
+            return rValue;
+        }
+
+        // THERMAL_STRESS_VECTOR = C * epsilon_th
+        if (rValue.size() != thermal_strain_vector.size())
+            rValue.resize(thermal_strain_vector.size(), false);
+        noalias(rValue) = prod(constitutive_matrix, thermal_strain_vector);
+        return rValue;
+    }
+
+    // Not one of the specialized outputs: keep the base behaviour.
+    return rValue;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Matrix& ThermalLinearElastic3DLaw::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<Matrix>& rThisVariable,
+    Matrix& rValue)
+{
+    KRATOS_TRY
+
+    if (rThisVariable == THERMAL_STRAIN_TENSOR) {
+        // Reuse the validated vector output as the single source of truth.
+        Vector strain_vector;
+        this->CalculateValue(rParameterValues, THERMAL_STRAIN_VECTOR, strain_vector);
+        const std::size_t dimension = (strain_vector.size() == 6) ? 3 : 2;
+        if (rValue.size1() != dimension || rValue.size2() != dimension)
+            rValue.resize(dimension, dimension, false);
+        noalias(rValue) = MathUtils<double>::StrainVectorToTensor(strain_vector);
+        return rValue;
+    }
+
+    if (rThisVariable == THERMAL_STRESS_TENSOR) {
+        Vector stress_vector;
+        this->CalculateValue(rParameterValues, THERMAL_STRESS_VECTOR, stress_vector);
+        const std::size_t dimension = (stress_vector.size() == 6) ? 3 : 2;
+        if (rValue.size1() != dimension || rValue.size2() != dimension)
+            rValue.resize(dimension, dimension, false);
+        noalias(rValue) = MathUtils<double>::StressVectorToTensor(stress_vector);
+        return rValue;
+    }
+
+    if (rThisVariable == MECHANICAL_STRESS_TENSOR) {
+        Vector stress_vector;
+        this->CalculateValue(rParameterValues, MECHANICAL_STRESS_VECTOR, stress_vector);
+        const std::size_t dimension = (stress_vector.size() == 6) ? 3 : 2;
+        if (rValue.size1() != dimension || rValue.size2() != dimension)
+            rValue.resize(dimension, dimension, false);
+        noalias(rValue) = MathUtils<double>::StressVectorToTensor(stress_vector);
+        return rValue;
+    }
+
+    // Not one of the specialized outputs: keep the base behaviour.
+    return rValue;
 
     KRATOS_CATCH( "" )
 }
