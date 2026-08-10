@@ -43,7 +43,7 @@ std::size_t ComputePenaltyFrictionlessActiveSet(ModelPart& rModelPart)
 
                 rNode.SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
-                if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
+                if (augmented_normal_pressure <= 0.0) { // NOTE: This could be conflictive (< or <=)
                     if (rNode.IsNot(ACTIVE)) {
                         rNode.Set(ACTIVE, true);
                         return 1;
@@ -106,7 +106,7 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
 
                 rNode.SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure);
 
-                if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
+                if (augmented_normal_pressure <= 0.0) { // NOTE: This could be conflictive (< or <=)
                     // The friction coefficient
                     const double mu = rNode.GetValue(FRICTION_COEFFICIENT);
 
@@ -191,7 +191,7 @@ std::size_t ComputeALMFrictionlessActiveSet(ModelPart& rModelPart)
 
                 rNode.SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
-                if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
+                if (augmented_normal_pressure <= 0.0) { // NOTE: This could be conflictive (< or <=)
                     if (rNode.IsNot(ACTIVE)) {
                         rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = augmented_normal_pressure/scale_factor;
                         rNode.Set(ACTIVE, true);
@@ -239,7 +239,7 @@ std::size_t ComputeALMFrictionlessComponentsActiveSet(ModelPart& rModelPart)
 
                 rNode.SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
-                if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
+                if (augmented_normal_pressure <= 0.0) { // NOTE: This could be conflictive (< or <=)
                     if (rNode.IsNot(ACTIVE)) {
                         noalias(rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = r_nodal_normal * augmented_normal_pressure/scale_factor;
                         rNode.Set(ACTIVE, true);
@@ -308,7 +308,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
 
                 rNode.SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure);
 
-                if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
+                if (augmented_normal_pressure <= 0.0) { // NOTE: This could be conflictive (< or <=)
                     // The friction coefficient
                     const double mu = rNode.GetValue(FRICTION_COEFFICIENT);
 

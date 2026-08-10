@@ -158,8 +158,8 @@ public:
 
     // The threshold coefficient considered for checking
     static constexpr double CheckThresholdCoefficient = 1.0e-12;
-    static constexpr double MinIntegrationAreaRatioTolerance = 1.0e-5;
-    static constexpr double AugmentedLMtolerance = 1.0e-1;
+    static constexpr double MinIntegrationAreaRatioTolerance = 1.0e-10;
+    static constexpr double AugmentedLMtolerance = 1.0e-12;
 
     ///@}
     ///@name Life Cycle
@@ -541,61 +541,8 @@ protected:
      */
     IntegrationMethod GetIntegrationMethod() const override
     {
-        // Setting the auxiliary integration points
-        const auto& r_props = GetProperties();
-        const IndexType integration_order = r_props.Has(INTEGRATION_ORDER_CONTACT) ? r_props.GetValue(INTEGRATION_ORDER_CONTACT) : 2;
-
-        switch (integration_order) {
-        case 1:
-            return GeometryData::IntegrationMethod::GI_GAUSS_1;
-        case 2:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
-        case 3:
-            return GeometryData::IntegrationMethod::GI_GAUSS_3;
-        case 4:
-            return GeometryData::IntegrationMethod::GI_GAUSS_4;
-        case 5:
-            return GeometryData::IntegrationMethod::GI_GAUSS_5;
-        default:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
-        }
+        return GeometryData::IntegrationMethod::GI_GAUSS_5;
     }
-
-    // /**
-    //  * @brief This functions returns if the computation is axisymmetric or not
-    //  * @return If axisymmetric or not
-    //  */
-    // virtual bool IsAxisymmetric() const;
-
-    /**
-     * @brief This functions computes the integration weight to consider
-     * @param rVariables The kinematic variables
-     */
-    // virtual double GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const;
-
-    /**
-     * @brief This method just resizes the LHS matrix
-     * @param rLeftHandSideMatrix The LHS matrix
-     */
-    // virtual void ResizeLHS(MatrixType& rLeftHandSideMatrix);
-
-    /**
-     * This method just resizes the RHS vector
-     * @param rRightHandSideVector The RHS vector
-     */
-    // virtual void ResizeRHS(VectorType& rRightHandSideVector);
-
-    /**
-     * This method just sets as zero the LHS matrix
-     * @param rLeftHandSideMatrix The LHS matrix
-     */
-    // virtual void ZeroLHS(MatrixType& rLeftHandSideMatrix);
-
-    /**
-     *This method just sets as zero the RHS vector
-     * @param rRightHandSideVector The RHS vector
-     */
-    // virtual void ZeroRHS(VectorType& rRightHandSideVector);
 
     ///@}
     ///@name Protected  Access
