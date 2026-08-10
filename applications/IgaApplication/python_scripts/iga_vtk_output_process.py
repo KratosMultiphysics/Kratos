@@ -92,8 +92,9 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                     f"Make sure to call AddNodalSolutionStepVariable."
                 )
 
-        # Cached parametric sampling (shared across time steps)
+        # Cached parametric sampling and shape function data
         self.cached_uv = None
+        self.cached_shape_function_data = None
 
         KM.Logger.PrintWarning(
             "IgaVTKOutputProcess",
@@ -122,6 +123,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             # Rebuild parametric sampling if needed when reopening the file
             if self.cached_uv is None and "Points" in root:
                 all_local_coordinates = []
+                all_shape_function_data = []
                 self.cached_uv_sizes = []
 
                 # BRep surfaces
@@ -133,6 +135,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                     )
 
                     all_local_coordinates.extend(uv)
+                    all_shape_function_data.extend(self.__compute_shape_function_data(brep_surface, uv))
                     self.cached_uv_sizes.append(len(uv))
 
                 # IGA beam curves
@@ -144,12 +147,13 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                     )
 
                     # Store curve coordinates in the same format as surface coordinates
-                    all_local_coordinates.extend(
-                        [(u, 0.0) for u in u_coordinates]
-                    )
+                    curve_uv = [(u, 0.0) for u in u_coordinates]
+                    all_local_coordinates.extend(curve_uv)
+                    all_shape_function_data.extend(self.__compute_shape_function_data(curve, curve_uv))
                     self.cached_uv_sizes.append(len(u_coordinates))
 
                 self.cached_uv = all_local_coordinates
+                self.cached_shape_function_data = all_shape_function_data
 
             # Geometry is written only once
             if "Points" not in root:
@@ -160,6 +164,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                 all_offsets = []
                 all_types = []
                 all_uv = []
+                all_shape_function_data = []
 
                 point_shift = 0
                 conn_shift = 0
@@ -191,6 +196,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
 
                     # Surface local coordinates: (u, v)
                     all_uv.extend(uv)
+                    all_shape_function_data.extend(self.__compute_shape_function_data(brep_surface, uv))
 
                     point_shift += len(pts)
                     conn_shift += len(conn)
@@ -221,9 +227,9 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                     all_types.append(types)
 
                     # Store curve coordinates using the same (u, v) format
-                    all_uv.extend(
-                        [(u, 0.0) for u in u_coordinates]
-                    )
+                    curve_uv = [(u, 0.0) for u in u_coordinates]
+                    all_uv.extend(curve_uv)
+                    all_shape_function_data.extend(self.__compute_shape_function_data(curve, curve_uv))
 
                     point_shift += len(pts)
                     conn_shift += len(conn)
@@ -243,6 +249,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                 types = np.concatenate(all_types)
 
                 self.cached_uv = all_uv
+                self.cached_shape_function_data = all_shape_function_data
 
                 # Write geometry
                 root.create_dataset("Points", data=points)
@@ -259,51 +266,37 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                 # Initial write of nodal variables
                 for var in self.nodal_variables:
                     data = []
-                    uv_counter = 0
+                    shape_function_data_counter = 0
                     patch_index = 0
 
                     # Evaluate variables on BRep surfaces
                     for brep_id in self.brep_surface_ids:
-                        brep_surface = self.model_part.GetGeometry(brep_id)
-
                         n_local = self.cached_uv_sizes[patch_index]
 
-                        local_uv = self.cached_uv[
-                            uv_counter:uv_counter + n_local
+                        local_shape_function_data = self.cached_shape_function_data[
+                            shape_function_data_counter:shape_function_data_counter + n_local
                         ]
 
-                        for u, v in local_uv:
-                            val = self.__eval_variable(
-                                brep_surface,
-                                u,
-                                v,
-                                var
-                            )
+                        for nodes, N in local_shape_function_data:
+                            val = self.__eval_variable(nodes, N, var)
                             data.append(val)
 
-                        uv_counter += n_local
+                        shape_function_data_counter += n_local
                         patch_index += 1
 
                     # Evaluate variables on IGA curves / beams
                     for curve_id in self.brep_curve_ids:
-                        curve = self.model_part.GetGeometry(curve_id)
-
                         n_local = self.cached_uv_sizes[patch_index]
 
-                        local_uv = self.cached_uv[
-                            uv_counter:uv_counter + n_local
+                        local_shape_function_data = self.cached_shape_function_data[
+                            shape_function_data_counter:shape_function_data_counter + n_local
                         ]
 
-                        for u, _ in local_uv:
-                            val = self.__eval_variable(
-                                curve,
-                                u,
-                                0.0,
-                                var
-                            )
+                        for nodes, N in local_shape_function_data:
+                            val = self.__eval_variable(nodes, N, var)
                             data.append(val)
 
-                        uv_counter += n_local
+                        shape_function_data_counter += n_local
                         patch_index += 1
 
                     data = np.array(data)
@@ -327,51 +320,37 @@ class IgaVTKOutputProcess(KM.OutputProcess):
 
                 for var in self.nodal_variables:
                     data = []
-                    uv_counter = 0
+                    shape_function_data_counter = 0
                     patch_index = 0
 
                     # Evaluate variables on BRep surfaces
                     for brep_id in self.brep_surface_ids:
-                        brep_surface = self.model_part.GetGeometry(brep_id)
-
                         n_local = self.cached_uv_sizes[patch_index]
 
-                        local_uv = self.cached_uv[
-                            uv_counter:uv_counter + n_local
+                        local_shape_function_data = self.cached_shape_function_data[
+                            shape_function_data_counter:shape_function_data_counter + n_local
                         ]
 
-                        for u, v in local_uv:
-                            val = self.__eval_variable(
-                                brep_surface,
-                                u,
-                                v,
-                                var
-                            )
+                        for nodes, N in local_shape_function_data:
+                            val = self.__eval_variable(nodes, N, var)
                             data.append(val)
 
-                        uv_counter += n_local
+                        shape_function_data_counter += n_local
                         patch_index += 1
 
                     # Evaluate variables on IGA curves / beams
                     for curve_id in self.brep_curve_ids:
-                        curve = self.model_part.GetGeometry(curve_id)
-
                         n_local = self.cached_uv_sizes[patch_index]
 
-                        local_uv = self.cached_uv[
-                            uv_counter:uv_counter + n_local
+                        local_shape_function_data = self.cached_shape_function_data[
+                            shape_function_data_counter:shape_function_data_counter + n_local
                         ]
 
-                        for u, _ in local_uv:
-                            val = self.__eval_variable(
-                                curve,
-                                u,
-                                0.0,
-                                var
-                            )
+                        for nodes, N in local_shape_function_data:
+                            val = self.__eval_variable(nodes, N, var)
                             data.append(val)
 
-                        uv_counter += n_local
+                        shape_function_data_counter += n_local
                         patch_index += 1
 
                     data = np.array(data)
@@ -662,30 +641,38 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             u_coordinates,
         )
 
-    # Evaluate the desired variable at a local coordinate position
-    def __eval_variable(self, brep, u, v, variable):
-        lc = KM.Array3()
-        lc[0] = u
-        lc[1] = v
-        lc[2] = 0.0
+    # Evaluate the active control points and shape function values at a local coordinate position
+    def __compute_shape_function_data(self, brep, local_coords):
+        shape_function_data = []
 
-        ids, N = brep.EvaluateShapeFunctionsAtLocalCoordinates(lc, 0)
+        for u, v in local_coords:
+            lc = KM.Array3()
+            lc[0] = u
+            lc[1] = v
+            lc[2] = 0.0
 
-        if len(ids) == 0:
-            raise RuntimeError(
-                f"No active control points found for geometry {brep.Id} "
-                f"at local coordinates ({u}, {v})."
-            )
+            ids, N = brep.EvaluateShapeFunctionsAtLocalCoordinates(lc, 0)
 
-        sample_node = self.model_part.GetNode(ids[0])
-        value = sample_node.GetSolutionStepValue(variable)
+            if len(ids) == 0:
+                raise RuntimeError(
+                    f"No active control points found for geometry {brep.Id} "
+                    f"at local coordinates ({u}, {v})."
+                )
+
+            nodes = [self.model_part.GetNode(node_id) for node_id in ids]
+            shape_function_data.append((nodes, N))
+
+        return shape_function_data
+
+    # Evaluate the desired variable from cached shape function data
+    def __eval_variable(self, nodes, N, variable):
+        value = nodes[0].GetSolutionStepValue(variable)
 
         if hasattr(value, "__len__"):
             size = len(value)
             result = [0.0] * size
 
-            for i, node_id in enumerate(ids):
-                node = self.model_part.GetNode(node_id)
+            for i, node in enumerate(nodes):
                 node_value = node.GetSolutionStepValue(variable)
                 weight = N[i]
                 for k in range(size):
@@ -693,8 +680,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
         else:
             result = 0.0
 
-            for i, node_id in enumerate(ids):
-                node = self.model_part.GetNode(node_id)
+            for i, node in enumerate(nodes):
                 result += N[i] * node.GetSolutionStepValue(variable)
 
         return result
