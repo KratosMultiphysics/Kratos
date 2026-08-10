@@ -685,13 +685,15 @@ class IgaVTKOutputProcess(KM.OutputProcess):
         value = sample_node.GetSolutionStepValue(variable)
 
         if hasattr(value, "__len__"):
-            result = np.zeros(len(value))
+            size = len(value)
+            result = [0.0] * size
 
             for i, node_id in enumerate(ids):
                 node = self.model_part.GetNode(node_id)
-                result += N[i] * np.asarray(
-                    node.GetSolutionStepValue(variable)
-                )
+                v = node.GetSolutionStepValue(variable)
+                weight = N[i]
+                for k in range(size):
+                    result[k] += weight * v[k]
         else:
             result = 0.0
 
