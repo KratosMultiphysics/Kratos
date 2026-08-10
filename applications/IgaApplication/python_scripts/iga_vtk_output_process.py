@@ -39,11 +39,9 @@ class IgaVTKOutputProcess(KM.OutputProcess):
         }""")
 
         params.ValidateAndAssignDefaults(default_parameters)
-        self.interval_utility = KM.IntervalUtility(params)
 
         self.model = model
-        self.model_part_name = params["model_part_name"].GetString()
-        self.model_part = model[self.model_part_name]
+        self.model_part = model[params["model_part_name"].GetString()]
         self.output_file_name = Path(params["output_file_name"].GetString())
 
         self.settings = params
@@ -86,7 +84,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
         for i in range(params["nodal_solution_step_data_variables"].size()):
             var_name = params["nodal_solution_step_data_variables"][i].GetString()
             self.nodal_variables.append(KM.KratosGlobals.GetVariable(var_name))
-        
+
         for var in self.nodal_variables:
             if not self.model_part.HasNodalSolutionStepVariable(var):
                 raise Exception(
@@ -332,9 +330,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                     uv_counter = 0
                     patch_index = 0
 
-                    # --------------------------------------------------
                     # Evaluate variables on BRep surfaces
-                    # --------------------------------------------------
                     for brep_id in self.brep_surface_ids:
                         brep_surface = self.model_part.GetGeometry(brep_id)
 
@@ -461,7 +457,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
 
             self.printed_step_count += 1
             steps.attrs["NSteps"] = self.printed_step_count
-        
+
         self.__controller.Update()
 
     # Compute the visualization grid for brep surfaces
@@ -568,7 +564,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             np.array(types,np.uint8),
             uv_coords
         )
-    
+
     # Compute the visualization grid for a BRep curve
     def __compute_full_grid_brep_curve(self, brep_curve):
         knots = brep_curve.Knots()
@@ -579,7 +575,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             )
 
         u_min = knots[0]
-        u_max = u_max = knots[len(knots) - 1]
+        u_max = knots[len(knots) - 1]
 
         if len(self.output_refinement_curve) == 0:
             refinement = 0
@@ -666,7 +662,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             u_coordinates,
         )
 
-    # Evaluate the desired variable at a local coordinate position  
+    # Evaluate the desired variable at a local coordinate position
     def __eval_variable(self, brep, u, v, variable):
         lc = KM.Array3()
         lc[0] = u
@@ -690,10 +686,10 @@ class IgaVTKOutputProcess(KM.OutputProcess):
 
             for i, node_id in enumerate(ids):
                 node = self.model_part.GetNode(node_id)
-                v = node.GetSolutionStepValue(variable)
+                node_value = node.GetSolutionStepValue(variable)
                 weight = N[i]
                 for k in range(size):
-                    result[k] += weight * v[k]
+                    result[k] += weight * node_value[k]
         else:
             result = 0.0
 
