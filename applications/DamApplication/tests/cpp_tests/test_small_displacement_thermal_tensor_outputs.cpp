@@ -451,14 +451,14 @@ void ExpectMatrixSymmetric(const Matrix& rMatrix, const std::string& rWhat)
     }
 }
 
-void ExpectIntegrationPointMatricesNear(
-    const std::vector<Matrix>& rComputed,
-    const std::vector<Matrix>& rReference,
+void ExpectIntegrationPointVectorsNear(
+    const std::vector<Vector>& rComputed,
+    const std::vector<Vector>& rReference,
     const std::string& rWhat)
 {
     ASSERT_EQ(rComputed.size(), rReference.size()) << "Integration point count mismatch comparing " << rWhat;
     for (std::size_t point_number = 0; point_number < rReference.size(); ++point_number) {
-        ExpectMatrixComponentsNear(
+        ExpectVectorComponentsNear(
             rComputed[point_number], rReference[point_number],
             rWhat + " at integration point " + std::to_string(point_number));
     }
@@ -533,9 +533,11 @@ void VerifyTensorOutputs(
         const Vector epsilon_th = AnalyticalThermalStrain(rLawName, delta_temperature);
         const Vector& r_epsilon = total_strain_vector[gp];
 
+        const Vector expected_thermal_stress = prod(C, epsilon_th);
+        const Vector expected_mechanical_stress = prod(C, r_epsilon);
         const Matrix expected_thermal_strain_tensor = MathUtils<double>::StrainVectorToTensor(epsilon_th);
-        const Matrix expected_thermal_stress_tensor = MathUtils<double>::StressVectorToTensor(prod(C, epsilon_th));
-        const Matrix expected_mechanical_stress_tensor = MathUtils<double>::StressVectorToTensor(prod(C, r_epsilon));
+        const Matrix expected_thermal_stress_tensor = MathUtils<double>::StressVectorToTensor(expected_thermal_stress);
+        const Matrix expected_mechanical_stress_tensor = MathUtils<double>::StressVectorToTensor(expected_mechanical_stress);
 
         // Analytical tensor representations.
         ExpectMatrixComponentsNear(

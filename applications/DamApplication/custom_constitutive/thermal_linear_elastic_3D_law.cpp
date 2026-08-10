@@ -349,7 +349,7 @@ Matrix& ThermalLinearElastic3DLaw::CalculateValue(
 
     if (rThisVariable == THERMAL_STRAIN_TENSOR) {
         // Reuse the validated vector output as the single source of truth.
-        Vector strain_vector;
+        Vector strain_vector = ZeroVector(this->GetStrainSize());
         this->CalculateValue(rParameterValues, THERMAL_STRAIN_VECTOR, strain_vector);
         const std::size_t dimension = (strain_vector.size() == 6) ? 3 : 2;
         if (rValue.size1() != dimension || rValue.size2() != dimension)
@@ -359,7 +359,7 @@ Matrix& ThermalLinearElastic3DLaw::CalculateValue(
     }
 
     if (rThisVariable == THERMAL_STRESS_TENSOR) {
-        Vector stress_vector;
+        Vector stress_vector = ZeroVector(this->GetStrainSize());
         this->CalculateValue(rParameterValues, THERMAL_STRESS_VECTOR, stress_vector);
         const std::size_t dimension = (stress_vector.size() == 6) ? 3 : 2;
         if (rValue.size1() != dimension || rValue.size2() != dimension)
@@ -369,7 +369,7 @@ Matrix& ThermalLinearElastic3DLaw::CalculateValue(
     }
 
     if (rThisVariable == MECHANICAL_STRESS_TENSOR) {
-        Vector stress_vector;
+        Vector stress_vector = ZeroVector(this->GetStrainSize());
         this->CalculateValue(rParameterValues, MECHANICAL_STRESS_VECTOR, stress_vector);
         const std::size_t dimension = (stress_vector.size() == 6) ? 3 : 2;
         if (rValue.size1() != dimension || rValue.size2() != dimension)
