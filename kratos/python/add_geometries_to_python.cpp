@@ -225,6 +225,25 @@ void  AddGeometriesToPython(pybind11::module& m)
         {
         CoordinatesArrayType result = ZeroVector( 3 );
         return(self.GlobalCoordinates(result, LocalCoordinates)); })
+    .def("ProjectionPointGlobalToLocalSpace",[](const GeometryType& self,const CoordinatesArrayType& rPointGlobalCoordinates, const double Tolerance)
+        {
+            CoordinatesArrayType projected_point_local_coordinates;
+            projected_point_local_coordinates.clear();
+
+            const int projection_status =
+                self.ProjectionPointGlobalToLocalSpace(
+                    rPointGlobalCoordinates,
+                    projected_point_local_coordinates,
+                    Tolerance
+                );
+
+            return py::make_tuple(
+                projection_status,
+                projected_point_local_coordinates
+            );
+        },
+        py::arg("point_global_coordinates"),
+        py::arg("tolerance") = std::numeric_limits<double>::epsilon())
     // Geometrical
     .def("Center",&GeometryType::Center)
     .def("Length",&GeometryType::Length)
