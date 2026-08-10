@@ -26,6 +26,7 @@
 #include <cmath>
 #include <cstddef>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -162,6 +163,34 @@ void PrescribeVaryingState(ModelPart& rModelPart, const std::size_t rDimension)
     for (auto& r_node : rModelPart.Nodes()) {
         const array_1d<double, 3>& r_x0 = r_node.GetInitialPosition();
         array_1d<double, 3>& r_displacement = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+        r_displacement[0] = 1.0e-3 * r_x0[0] + 3.0e-4 * r_x0[1] + 1.0e-4 * r_x0[0] * r_x0[1]
+                           + 2.0e-4 * r_x0[0] * r_x0[2];
+        r_displacement[1] = 3.0e-4 * r_x0[0] - 1.0e-3 * r_x0[1] + 2.0e-4 * r_x0[0] * r_x0[0]
+                           + 1.0e-4 * r_x0[1] * r_x0[2];
+        r_displacement[2] = 5.0e-4 * r_x0[2] + 2.0e-4 * r_x0[0] + 1.0e-4 * r_x0[1]
+                           + 1.0e-4 * r_x0[0] * r_x0[1];
+        r_node.X() = r_x0[0] + r_displacement[0];
+        r_node.Y() = r_x0[1] + r_displacement[1];
+        r_node.Z() = r_x0[2] + r_displacement[2];
+        r_node.FastGetSolutionStepValue(TEMPERATURE) =
+            test_reference_temperature + 5.0 * static_cast<double>(node_index);
+        ++node_index;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/// Prescribes a thermo-mechanical state whose yz/xz shear strains are
+/// theoretically zero (the field used in the earlier diagnostic). It is used only
+/// to characterize the upstream element-level roundoff in those components.
+void PrescribeZeroShearState(ModelPart& rModelPart, const std::size_t rDimension)
+{
+    KRATOS_TRY;
+
+    std::size_t node_index = 0;
+    for (auto& r_node : rModelPart.Nodes()) {
+        const array_1d<double, 3>& r_x0 = r_node.GetInitialPosition();
+        array_1d<double, 3>& r_displacement = r_node.FastGetSolutionStepValue(DISPLACEMENT);
         r_displacement[0] = 1.0e-3 * r_x0[0] + 3.0e-4 * r_x0[1] + 1.0e-4 * r_x0[0] * r_x0[1];
         r_displacement[1] = 3.0e-4 * r_x0[0] - 1.0e-3 * r_x0[1] + 2.0e-4 * r_x0[0] * r_x0[0];
         r_displacement[2] = 5.0e-4 * r_x0[2];
@@ -277,6 +306,141 @@ void CompareNodalRawValues(
     KRATOS_CATCH("");
 }
 
+/// Minimal test-only element that returns a prescribed CAUCHY_STRESS_TENSOR
+/// field at its integration points. It is NOT registered in KratosComponents and
+/// introduces no production dependency; it is used to isolate the process-level
+/// extrapolation from the element-level strain computation.
+class PrescribedStressElement : public Element
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrescribedStressElement);
+    using BaseType = Element;
+
+    PrescribedStressElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId, pGeometry) {}
+
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        if (rVariable == CAUCHY_STRESS_TENSOR) {
+            rOutput = mPrescribedStress;
+        } else {
+            KRATOS_ERROR << "PrescribedStressElement: unsupported variable " << rVariable << std::endl;
+        }
+    }
+
+    void SetPrescribedStress(std::vector<Matrix> rStress) { mPrescribedStress = std::move(rStress); }
+
+private:
+    std::vector<Matrix> mPrescribedStress;
+};
+
+/// Creates a model part with the prescribed-stress element and the accumulator
+/// nodal variables initialized to zero. Returns the element pointer through
+/// rOutElement.
+ModelPart& CreatePrescribedGPModelPart(
+    Model& rModel,
+    const std::string& rModelPartName,
+    const std::string& rPrototypeElementName,
+    const std::size_t rDimension,
+    PrescribedStressElement*& rOutElement)
+{
+    KRATOS_TRY;
+
+    ModelPart& r_model_part = rModel.CreateModelPart(rModelPartName, 2);
+    ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    r_process_info[DOMAIN_SIZE] = rDimension;
+    r_process_info[SPACE_DIMENSION] = rDimension;
+    r_process_info[IS_RESTARTED] = false;
+
+    r_model_part.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
+    r_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
+
+    const Element& r_prototype = KratosComponents<Element>::Get(rPrototypeElementName);
+    const auto& r_prototype_geometry = r_prototype.GetGeometry();
+    Matrix local_coordinates;
+    r_prototype_geometry.PointsLocalCoordinates(local_coordinates);
+
+    const double geometry_scale = 2.5;
+    array_1d<double, 3> geometry_offset;
+    geometry_offset[0] = 0.75;
+    geometry_offset[1] = 1.25;
+    geometry_offset[2] = (rDimension == 3) ? 0.5 : 0.0;
+
+    const std::size_t number_of_nodes = r_prototype_geometry.PointsNumber();
+    for (std::size_t i = 0; i < number_of_nodes; ++i) {
+        const double x = geometry_scale * local_coordinates(i, 0) + geometry_offset[0];
+        const double y = geometry_scale * local_coordinates(i, 1) + geometry_offset[1];
+        const double z = (rDimension == 3) ? geometry_scale * local_coordinates(i, 2) + geometry_offset[2] : 0.0;
+        r_model_part.CreateNewNode(i + 1, x, y, z);
+    }
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+        Matrix zero_stress_tensor(rDimension, rDimension);
+        noalias(zero_stress_tensor) = ZeroMatrix(rDimension, rDimension);
+        r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = zero_stress_tensor;
+    }
+
+    Geometry<Node>::PointsArrayType points;
+    for (std::size_t i = 0; i < number_of_nodes; ++i) {
+        points.push_back(r_model_part.pGetNode(i + 1));
+    }
+    Geometry<Node>::Pointer p_geometry = r_prototype_geometry.Create(points);
+    auto p_element = Kratos::make_intrusive<PrescribedStressElement>(1, p_geometry);
+    r_model_part.AddElement(p_element);
+    rOutElement = p_element.get();
+
+    return r_model_part;
+
+    KRATOS_CATCH("");
+}
+
+/// Computes the expected legacy nodal raw accumulator for a prescribed GP
+/// stress field, following exactly the legacy mathematical path.
+Matrix ComputeExpectedNodalRawStress(
+    const Geometry<Node>& rGeometry,
+    const std::vector<Matrix>& rGaussStress,
+    const std::size_t rDimension,
+    const std::size_t rNodeIndex)
+{
+    const std::size_t number_of_gps = rGaussStress.size();
+    const std::size_t voigt_size = (rDimension == 2) ? 3 : 6;
+    Matrix stress_container(number_of_gps, voigt_size);
+    noalias(stress_container) = ZeroMatrix(number_of_gps, voigt_size);
+    for (std::size_t gp = 0; gp < number_of_gps; ++gp) {
+        stress_container(gp, 0) = rGaussStress[gp](0, 0);
+        stress_container(gp, 1) = rGaussStress[gp](1, 1);
+        if (rDimension == 2) {
+            stress_container(gp, 2) = rGaussStress[gp](0, 1);
+        } else {
+            stress_container(gp, 2) = rGaussStress[gp](2, 2);
+            stress_container(gp, 3) = rGaussStress[gp](0, 1);
+            stress_container(gp, 4) = rGaussStress[gp](1, 2);
+            stress_container(gp, 5) = rGaussStress[gp](0, 2);
+        }
+    }
+
+    Matrix aux_nodal_stress;
+    if (rDimension == 2) {
+        BoundedMatrix<double, 4, 4> q4;
+        PoroElementUtilities::Calculate2DExtrapolationMatrix(q4);
+        aux_nodal_stress = prod(Matrix(q4), stress_container);
+    } else {
+        BoundedMatrix<double, 8, 8> h8;
+        PoroElementUtilities::Calculate3DExtrapolationMatrix(h8);
+        aux_nodal_stress = prod(Matrix(h8), stress_container);
+    }
+
+    Vector nodal_voigt(voigt_size);
+    for (std::size_t comp = 0; comp < voigt_size; ++comp) {
+        nodal_voigt(comp) = aux_nodal_stress(rNodeIndex, comp);
+    }
+    const Matrix nodal_tensor = MathUtils<double>::StressVectorToTensor(nodal_voigt);
+    return rGeometry.Area() * nodal_tensor;
+}
+
 } // namespace
 
 //************************************************************************************
@@ -350,14 +514,37 @@ KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_SingleElement_Hexahedra3D8
     PrescribeVaryingState(r_candidate, 3);
     InitializeProcessElement(r_legacy);
     InitializeProcessElement(r_candidate);
+
+    // Verify that the GP stress field is non-uniform, all six components are
+    // non-degenerate, and the legacy and candidate integration-point stresses
+    // agree within the established mechanical-equivalence tolerance.
     {
         std::vector<Vector> legacy_sv, candidate_sv;
         r_legacy.pGetElement(1)->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, legacy_sv, r_legacy.GetProcessInfo());
         r_candidate.pGetElement(1)->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, candidate_sv, r_candidate.GetProcessInfo());
-        std::cout << "[CHARACTERIZATION] DEBUG H8 legacy GP0 yz=" << legacy_sv[0][4] << " xz=" << legacy_sv[0][5]
-                  << " candidate GP0 yz=" << candidate_sv[0][4] << " xz=" << candidate_sv[0][5]
-                  << " GP1 legacy yz=" << legacy_sv[1][4] << " candidate yz=" << candidate_sv[1][4] << std::endl;
+        KRATOS_EXPECT_EQ(legacy_sv.size(), candidate_sv.size());
+        double min_abs_component = std::numeric_limits<double>::max();
+        double max_abs_component = 0.0;
+        for (std::size_t gp = 0; gp < legacy_sv.size(); ++gp) {
+            KRATOS_EXPECT_EQ(legacy_sv[gp].size(), 6);
+            for (std::size_t c = 0; c < 6; ++c) {
+                min_abs_component = std::min(min_abs_component, std::abs(legacy_sv[gp](c)));
+                max_abs_component = std::max(max_abs_component, std::abs(legacy_sv[gp](c)));
+                KRATOS_EXPECT_NEAR(candidate_sv[gp](c), legacy_sv[gp](c),
+                                   std::max(1.0e-12, 1.0e-10 * std::abs(legacy_sv[gp](c))));
+            }
+        }
+        // Non-uniform GP stress field (max-min of the largest component).
+        double max_sxx = -std::numeric_limits<double>::max();
+        double min_sxx = std::numeric_limits<double>::max();
+        for (std::size_t gp = 0; gp < legacy_sv.size(); ++gp) {
+            max_sxx = std::max(max_sxx, legacy_sv[gp](0));
+            min_sxx = std::min(min_sxx, legacy_sv[gp](0));
+        }
+        KRATOS_EXPECT_TRUE((max_sxx - min_sxx) > 1.0e-3 * max_abs_component);
+        KRATOS_EXPECT_TRUE(min_abs_component > 1.0e-4 * max_abs_component);
     }
+
     RunLegacyFinalization(r_legacy);
     RunCandidateProcess(r_candidate);
     CompareNodalRawValues(r_legacy, r_candidate, "Hexahedra3D8");
@@ -555,6 +742,160 @@ KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_NoEquilibriumSideEffects, 
             }
         }
     }
+}
+
+//************************************************************************************
+// Prescribed-GP process-equivalence (identical GP inputs)
+//************************************************************************************
+
+KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_PrescribedGP_Hexahedra3D8, KratosDamFastSuite)
+{
+    // Isolates the PROCESS extrapolation from the element strain computation:
+    // both paths receive exactly the same prescribed GP stress field, so the
+    // process must reproduce the legacy mathematical path at machine precision.
+    Model model;
+    PrescribedStressElement* p_element = nullptr;
+    ModelPart& r_model_part = CreatePrescribedGPModelPart(
+        model, "PrescribedH8", "SmallDisplacementSolidElement3D8N", 3, p_element);
+
+    // Deliberately non-uniform 8-GP field with every stress component non-zero.
+    std::vector<Matrix> prescribed(8);
+    for (std::size_t gp = 0; gp < 8; ++gp) {
+        Matrix t(3, 3);
+        noalias(t) = ZeroMatrix(3, 3);
+        t(0, 0) = 1000.0 + 100.0 * static_cast<double>(gp);
+        t(1, 1) = 2000.0 + 200.0 * static_cast<double>(gp);
+        t(2, 2) = 3000.0 + 300.0 * static_cast<double>(gp);
+        t(0, 1) = t(1, 0) = 400.0 + 40.0 * static_cast<double>(gp);
+        t(0, 2) = t(2, 0) = 500.0 + 50.0 * static_cast<double>(gp);
+        t(1, 2) = t(2, 1) = 600.0 + 60.0 * static_cast<double>(gp);
+        prescribed[gp] = t;
+    }
+    p_element->SetPrescribedStress(prescribed);
+
+    DamNodalCauchyStressExtrapolationProcess process(r_model_part);
+    process.ExecuteFinalizeSolutionStep();
+
+    const auto& r_geometry = p_element->GetGeometry();
+    const double expected_area = r_geometry.Area();
+    for (auto& r_node : r_model_part.Nodes()) {
+        const std::size_t node_index = r_node.Id() - 1;
+        const Matrix expected_stress = ComputeExpectedNodalRawStress(r_geometry, prescribed, 3, node_index);
+        const Matrix& r_actual = r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+        for (std::size_t i = 0; i < 3; ++i) {
+            for (std::size_t j = 0; j < 3; ++j) {
+                KRATOS_EXPECT_NEAR(r_actual(i, j), expected_stress(i, j),
+                                   std::max(1.0e-12, 1.0e-10 * std::abs(expected_stress(i, j))));
+            }
+        }
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(NODAL_AREA), expected_area, 1.0e-12);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_PrescribedGP_Quadrilateral2D4, KratosDamFastSuite)
+{
+    Model model;
+    PrescribedStressElement* p_element = nullptr;
+    ModelPart& r_model_part = CreatePrescribedGPModelPart(
+        model, "PrescribedQ4", "SmallDisplacementSolidElement2D4N", 2, p_element);
+
+    std::vector<Matrix> prescribed(4);
+    for (std::size_t gp = 0; gp < 4; ++gp) {
+        Matrix t(2, 2);
+        noalias(t) = ZeroMatrix(2, 2);
+        t(0, 0) = 1000.0 + 100.0 * static_cast<double>(gp);
+        t(1, 1) = 2000.0 + 200.0 * static_cast<double>(gp);
+        t(0, 1) = t(1, 0) = 300.0 + 30.0 * static_cast<double>(gp);
+        prescribed[gp] = t;
+    }
+    p_element->SetPrescribedStress(prescribed);
+
+    DamNodalCauchyStressExtrapolationProcess process(r_model_part);
+    process.ExecuteFinalizeSolutionStep();
+
+    const auto& r_geometry = p_element->GetGeometry();
+    const double expected_area = r_geometry.Area();
+    for (auto& r_node : r_model_part.Nodes()) {
+        const std::size_t node_index = r_node.Id() - 1;
+        const Matrix expected_stress = ComputeExpectedNodalRawStress(r_geometry, prescribed, 2, node_index);
+        const Matrix& r_actual = r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+        for (std::size_t i = 0; i < 2; ++i) {
+            for (std::size_t j = 0; j < 2; ++j) {
+                KRATOS_EXPECT_NEAR(r_actual(i, j), expected_stress(i, j),
+                                   std::max(1.0e-12, 1.0e-10 * std::abs(expected_stress(i, j))));
+            }
+        }
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(NODAL_AREA), expected_area, 1.0e-12);
+    }
+}
+
+//************************************************************************************
+// Zero-shear roundoff characterization (documented, non-failing)
+//************************************************************************************
+
+KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_ZeroShearRoundoffCharacterization, KratosDamFastSuite)
+{
+    // For a field with theoretically zero yz/xz shears, the legacy element
+    // (displacement-gradient strain path) and the StructuralMechanics element
+    // (B-matrix strain path) produce algebraically equivalent but differently
+    // rounded shear stresses at the integration points (~1e-13). The
+    // extrapolation matrix maps these residues into nodal differences of ~1e-11.
+    // This is an upstream ELEMENT-level arithmetic roundoff effect, NOT a process
+    // mismatch. It is quantified here relative to the physical stress scale.
+    Model model;
+    ModelPart& r_legacy = CreateProcessModelPart(
+        model, "LegacyZS", "SmallDisplacementThermoMechanicElement3D8N",
+        "ThermalLinearElastic3DLaw", 3);
+    ModelPart& r_candidate = CreateProcessModelPart(
+        model, "CandidateZS", "SmallDisplacementElement3D8N",
+        "ThermalLinearElastic3DLaw", 3);
+    PrescribeZeroShearState(r_legacy, 3);
+    PrescribeZeroShearState(r_candidate, 3);
+    InitializeProcessElement(r_legacy);
+    InitializeProcessElement(r_candidate);
+
+    // GP shear-roundoff magnitude.
+    std::vector<Vector> legacy_sv, candidate_sv;
+    r_legacy.pGetElement(1)->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, legacy_sv, r_legacy.GetProcessInfo());
+    r_candidate.pGetElement(1)->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, candidate_sv, r_candidate.GetProcessInfo());
+    double max_gp_shear_diff = 0.0;
+    double max_gp_stress_scale = 0.0;
+    for (std::size_t gp = 0; gp < legacy_sv.size(); ++gp) {
+        for (std::size_t c = 0; c < 6; ++c) {
+            max_gp_shear_diff = std::max(max_gp_shear_diff, std::abs(legacy_sv[gp](c) - candidate_sv[gp](c)));
+            max_gp_stress_scale = std::max(max_gp_stress_scale, std::abs(legacy_sv[gp](c)));
+        }
+    }
+
+    // Nodal raw accumulator difference.
+    ResetNodalAccumulators(r_legacy, 3);
+    ResetNodalAccumulators(r_candidate, 3);
+    RunLegacyFinalization(r_legacy);
+    RunCandidateProcess(r_candidate);
+    double max_nodal_diff = 0.0;
+    double max_nodal_scale = 0.0;
+    auto it_l = r_legacy.Nodes().begin();
+    auto it_c = r_candidate.Nodes().begin();
+    for (; it_l != r_legacy.Nodes().end(); ++it_l, ++it_c) {
+        const Matrix& r_l = it_l->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+        const Matrix& r_c = it_c->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+        for (std::size_t i = 0; i < 3; ++i) {
+            for (std::size_t j = 0; j < 3; ++j) {
+                max_nodal_diff = std::max(max_nodal_diff, std::abs(r_l(i, j) - r_c(i, j)));
+                max_nodal_scale = std::max(max_nodal_scale, std::abs(r_l(i, j)));
+            }
+        }
+    }
+
+    std::cout << "[CHARACTERIZATION] zero-shear roundoff: max GP stress diff = "
+              << max_gp_shear_diff << " (scale " << max_gp_stress_scale << "), max nodal raw diff = "
+              << max_nodal_diff << " (scale " << max_nodal_scale << ")" << std::endl;
+
+    // The zero-shear residues are negligible relative to the physical stress
+    // scale (scale-aware check), confirming an upstream element roundoff effect
+    // and NOT a process mismatch.
+    KRATOS_EXPECT_TRUE(max_gp_shear_diff < 1.0e-6 * std::max(1.0, max_gp_stress_scale));
+    KRATOS_EXPECT_TRUE(max_nodal_diff < 1.0e-6 * std::max(1.0, max_nodal_scale));
 }
 
 } // namespace Testing
