@@ -267,13 +267,7 @@ std::string GeoIncrementalLinearElasticLaw::GetYoungsModulusFormulation(const Pr
 
 std::string GeoIncrementalLinearElasticLaw::GetYoungsModulusFormulation() const
 {
-    if (std::holds_alternative<Policies::Constant>(mPolicy)) {
-        return "Constant"s;
-    } else if (std::holds_alternative<Policies::Eur>(mPolicy)) {
-        return "Eur"s;
-    }
-    // default value
-    return "Constant"s;
+    return std::visit([](const auto& policy) -> std::string { return policy.Name; }, mPolicy);
 }
 
 void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
