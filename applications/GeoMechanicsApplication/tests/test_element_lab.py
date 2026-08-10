@@ -212,9 +212,9 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self._assert_average_stress_component(reader, stage_1_output, 1.0, 1, -46.661666666, 4)
         self._assert_average_stress_component(reader, stage_2_output, 2.0, 1, -100.005266666, 4)
 
-        self._assert_stage_y_displacements(reader, stage_1_output, 1.0, [1, 2, 6],
+        self._assert_y_displacements_at_time(stage_1_output, 1.0, [1, 2, 6],
                            [ 5.81721e-06, 5.4499e-06, 3.85041e-06], 9)
-        self._assert_stage_y_displacements(reader, stage_2_output, 2.0, [1, 2, 6],
+        self._assert_y_displacements_at_time(stage_2_output, 2.0, [1, 2, 6],
                            [ -5.82193e-06, -5.4545e-06, -3.8529e-06], 9)
 
     def _assert_average_stress_component(self, reader, output_data, time, component_index, expected_value, places):
@@ -226,11 +226,9 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         average_value = sum(component_values) / len(component_values)
         self.assertAlmostEqual(expected_value, average_value, places)
 
-    def _assert_stage_y_displacements(self, reader, output_data, time, node_ids, expected_y_displacements, places):
-        displacements = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, node_ids)
-
-        for displacement, expected_y_displacement in zip(displacements, expected_y_displacements):
-            self.assertAlmostEqual(expected_y_displacement, displacement[1], places)
+    def _assert_y_displacements_at_time(self, output_data, time, node_ids, expected_y_displacements, places):
+        for node_id, expected_y_displacement in zip(node_ids, expected_y_displacements):
+            self.assert_y_displacements_at_time(output_data, [node_id], expected_y_displacement, time, places=places)
 
     def test_oedometer_ULFEM(self):
         """
