@@ -278,9 +278,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             value: float
 
         expected_results_at_times = {
-            600: [],
-            7860.0: [],
-            12780.0: [],
+            60: [],
+            3600.0: [],
+            7200.0: [],
+            10800.0: [],
+            14400.0: [],
         }
 
         if test_helper.want_test_plots():
@@ -421,6 +423,28 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                     data, label=f"Time = {int(time)}s", line_style="-", marker=""
                 )
             )
+
+        file_name = "expected_water_pressures_internal_reference.csv"
+        expected_pressures_file = os.path.join(file_path, file_name)
+        if os.path.exists(expected_pressures_file):
+            for time in [0.0, 3600.0, 7200.0, 10800.0, 14400.0]:
+                with open(
+                        expected_pressures_file,
+                        newline="",
+                ) as csv_file:
+                    reader = csv.DictReader(csv_file, skipinitialspace=True)
+                    data_points = [
+                        (-1.0 * float(row[f"t={int(time)}"]), 2.0 - float(row["d"])) for row in reader
+                    ]
+                    data_series_collection.append(
+                        plot_utils.DataSeries(
+                            data_points,
+                            label=f"Internal Reference t = {time}",
+                            line_style="--",
+                        )
+                    )
+
+
         asserted_data_points = []
         for time, expected_results in expected_results_at_times.items():
             for expected_result in expected_results:
