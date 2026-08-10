@@ -1,9 +1,9 @@
-Begin Table 2 TIME NORMAL_CONTACT_STRESS
+Begin Table 1 TIME NORMAL_CONTACT_STRESS
   0.0 100.0
   2.0 100.0
 End Table
 
-Begin Table 3 TIME NORMAL_CONTACT_STRESS
+Begin Table 2 TIME NORMAL_CONTACT_STRESS
   0.0 100.0
   1.0 50.0
   2.0 100.0
@@ -73,7 +73,7 @@ End SubModelPart
 
 Begin SubModelPart Lateral_load
   Begin SubModelPartTables
-    2
+    1
   End SubModelPartTables
   Begin SubModelPartNodes
     6
@@ -87,7 +87,7 @@ End SubModelPart
 
 Begin SubModelPart Top_load
   Begin SubModelPartTables
-    3
+    2
   End SubModelPartTables
   Begin SubModelPartNodes
     1
