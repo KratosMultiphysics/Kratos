@@ -279,10 +279,10 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     noalias(master_normal) = r_master_geometry.UnitNormal(0);
     
     const auto& r_properties = this->GetProperties();
-    
-    const IndexType integration_order = r_properties.Has(INTEGRATION_ORDER_CONTACT) ? r_properties.GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+
+    const IndexType integration_order = 5;
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
-    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
+    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e-12;
     const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
 
     // The utility that performs the local clipping of the projected master to the slave plane
@@ -357,14 +357,19 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double gap_n = -inner_prod(segmented_GP_global_point - master_GP_global_point, slave_normal); // open contact if gap_n > 0, closed contact if gap_n < 0
 
                     r_slave_geometry.ShapeFunctionsValues(shape_functions_slave, slave_GP_local_point);
-                    r_slave_geometry.ShapeFunctionsValues(dual_shape_functions, slave_GP_local_point); // NOTE: for now we do not use DUAL shape functions
+                    // r_slave_geometry.ShapeFunctionsValues(dual_shape_functions, slave_GP_local_point); // NOTE: for now we do not use DUAL shape functions
+                    dual_shape_functions.resize(3);
+                    dual_shape_functions[0] = 3.0 - 4.0 * slave_GP_local_point[0] - 4.0 * slave_GP_local_point[1];
+                    dual_shape_functions[1] = 4.0 * slave_GP_local_point[0] - 1.0;
+                    dual_shape_functions[2] = 4.0 * slave_GP_local_point[1] - 1.0;
+
                     r_master_geometry.ShapeFunctionsValues(shape_functions_master, master_GP_local_point);
 
                     CalculateInterpolationMatrices(shape_functions_slave, shape_functions_master, dual_shape_functions, Ns, Nm, N_LM);
                     const double interpolated_LM = inner_prod(N_LM, lm_values); // interpolated Lagrange multiplier at the integration point
                     const double augmented_lm = scale_factor * interpolated_LM + penalty_factor * gap_n; // contact pressure at the integration point
 
-                    const bool active_contact = (augmented_lm < AugmentedLMtolerance); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
+                    const bool active_contact = (augmented_lm <= 0.0); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
 
                     if (ComputeRHS) {
                         AddRightHandSideContribution(rRightHandSideVector, scale_factor, penalty_factor, gap_n, interpolated_LM,
