@@ -16,19 +16,20 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        bool flag = mrThisParameters["controls"].GetBool();
+        const bool flag = mrThisParameters["controls"].GetBool();
         unsigned int iter;
 
         ComputeKernelCorrectionUtilities::ComputeWeightedSums(mrThisModelPart);
         ComputeKernelCorrectionUtilities::ComputeGradientCorrection(mrThisModelPart);
-        //ComputeKernelCorrectionUtilities::ComputeIntegrationCorrection(mrThisModelPart, mrThisParameters, iter);
+        ComputeKernelCorrectionUtilities::ComputeIntegrationCorrection(mrThisModelPart, mrThisParameters, iter);
         
         if (flag == true){
             bool correction_flag = ComputeKernelCorrectionUtilities::VerifyKernelCorrection(mrThisModelPart, mrThisParameters);
-            KRATOS_INFO("ComputeKernelCorrectionProcess")<<"Performing verification of kernel and kernel gradient corrections..."<<std::endl
-                <<"Kernel correction verification completed. Result: "<<(correction_flag ? "successful" : "failed")<<std::endl;
-            KRATOS_INFO("ComputeKernelCorrectionProcess")<<"The integration correction process was executed"<<std::endl
-                <<"Number of iterations for convergence: "<< iter <<std::endl;
+            KRATOS_INFO("ComputeKernelCorrectionProcess")<<"Kernel correction verification completed. Result: "<<(correction_flag ? "successful" : "failed")<<std::endl;
+            
+            bool integration_correction_flag = ComputeKernelCorrectionUtilities::VerifyIntegrationCorrection(mrThisModelPart, mrThisParameters);
+            KRATOS_INFO("ComputeKernelCorrectionProcess")<<"The integration correction process was executed: "
+                <<(integration_correction_flag ? "successful" : "failed")<<" in "<< iter << " iterations" <<std::endl;
         }
 
         KRATOS_INFO("ComputeKernelCorrectionProcess")<<"The kernel correction process was executed"<<std::endl;

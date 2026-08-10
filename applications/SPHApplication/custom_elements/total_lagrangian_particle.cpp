@@ -200,6 +200,7 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateDeformationGradi
     VectorType dkernel(domain_size), X_AB_target(domain_size), nodal_values(domain_size);
 
     rF = ZeroMatrix(domain_size, domain_size);
+    const int self_index = GetNeighbourPosition(r_neighbours);
 
     for (IndexType i = 0; i < r_neighbours.size(); ++i){
         
@@ -213,6 +214,7 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateDeformationGradi
         TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
         TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
         ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel);
+        ComputeKernelCorrectionUtilities::ApplyIntegrationCorrection(*this, kernel, dkernel, i == self_index);
             
         for (IndexType d = 0; d < domain_size; d++){
             nodal_values[d] = JP_current_position[d];
@@ -501,6 +503,7 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateOnIntegrationPoi
         VectorType dkernel(domain_size), X_AB_target(domain_size), nodal_values(domain_size);
 
         MatrixType rF = ZeroMatrix(domain_size, domain_size);
+        const int self_index = GetNeighbourPosition(r_neighbours);
 
         for (IndexType i = 0; i < r_neighbours.size(); ++i){
 
@@ -514,6 +517,7 @@ void TotalLagrangianDisplacementParticle<TKernelType>::CalculateOnIntegrationPoi
             TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
             TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
             ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel);
+            ComputeKernelCorrectionUtilities::ApplyIntegrationCorrection(*this, kernel, dkernel, i == self_index);
 
             for (IndexType d = 0; d < domain_size; d++){
                 nodal_values[d] = JP_current_position[d];
