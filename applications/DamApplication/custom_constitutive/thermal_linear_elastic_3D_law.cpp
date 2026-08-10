@@ -35,7 +35,64 @@ ConstitutiveLaw::Pointer ThermalLinearElastic3DLaw::Clone() const
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+void ThermalLinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
+{
+    // For this infinitesimal-strain law the PK2 stress coincides with the
+    // Kirchhoff and Cauchy stresses (J ~ 1). The common thermo-elastic
+    // response applies the thermal correction:
+    //     stress = C * (epsilon - epsilon_th)
+    this->CalculateThermoElasticResponse(rValues);
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
+{
+    this->CalculateThermoElasticResponse(rValues);
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ThermalLinearElastic3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
+    // For an infinitesimal-strain law PK2, Kirchhoff and Cauchy coincide, so
+    // the same thermo-elastic stress is returned for every measure.
+    //
+    // The inherited HyperElastic3DLaw::CalculateMaterialResponseCauchy applies
+    // the finite-deformation transformation sigma_Cauchy = tau_Kirchhoff/detF.
+    // That transformation is not applicable to an infinitesimal-strain law:
+    // the legacy Dam element supplies detF == 1 (so the division is a no-op),
+    // whereas the StructuralMechanics small-displacement element supplies
+    // detF = det(I + H) != 1 for a non-zero strain, which would introduce a
+    // spurious O(tr(H)) scaling into the Cauchy stress. For small strains the
+    // three measures must coincide, so the inherited 1/detF conversion is
+    // deliberately not applied here.
+    this->CalculateThermoElasticResponse(rValues);
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+bool ThermalLinearElastic3DLaw::RequiresInitializeMaterialResponse()
+{
+    // The thermal linear elastic law is stateless: no internal variable is
+    // updated at the beginning or at the end of a solution step, and the
+    // response depends only on the current strain, temperature and reference
+    // temperature supplied through ConstitutiveLaw::Parameters. Returning false
+    // is therefore correct and avoids the default (base ConstitutiveLaw) error
+    // raised when the element requests the material-response initialization.
+    return false;
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+bool ThermalLinearElastic3DLaw::RequiresFinalizeMaterialResponse()
+{
+    return false;
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ThermalLinearElastic3DLaw::CalculateThermoElasticResponse(Parameters& rValues)
 {
     KRATOS_TRY
 

@@ -43,11 +43,39 @@ public:
 
     /**
      * Computes the material response:
+     * PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     */
+    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+
+    /**
+     * Computes the material response:
      * Kirchhoff stresses and algorithmic ConstitutiveMatrix
      * @param rValues
      * @see   Parameters
      */
     void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
+
+    /**
+     * Computes the material response:
+     * Cauchy stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
+
+    /**
+     * This law has no evolving internal state, so the material-response
+     * initialization and finalization callbacks are not required.
+     */
+    bool RequiresInitializeMaterialResponse() override;
+
+    /**
+     * This law has no evolving internal state, so the material-response
+     * initialization and finalization callbacks are not required.
+     */
+    bool RequiresFinalizeMaterialResponse() override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -56,6 +84,15 @@ protected:
     // Member Variables
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Common infinitesimal thermo-elastic response shared by the PK2, Kirchhoff
+     * and Cauchy stress measures:
+     *     epsilon_th = alpha * (T - T_ref) * [1,1,1,0,0,0]
+     *     stress     = C * (epsilon - epsilon_th)
+     * @param rValues
+     */
+    void CalculateThermoElasticResponse(Parameters& rValues);
 
     double& CalculateDomainTemperature ( const MaterialResponseVariables & rElasticVariables, double & rTemperature) override;
     
