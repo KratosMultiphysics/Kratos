@@ -531,6 +531,7 @@ protected:
         const Matrix &rNm,
         const Vector &rN_LM,  // Phi
         const Vector &rNormal, // slave normal vector
+        const Vector& rDeltaX, // Xs - Xm
         const bool active_contact,
         const Matrix& rDnda_slave
     );

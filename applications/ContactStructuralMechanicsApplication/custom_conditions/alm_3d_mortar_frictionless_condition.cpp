@@ -367,10 +367,12 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const bool active_contact = (augmented_lm < AugmentedLMtolerance); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
 
                     if (ComputeRHS) {
-                        AddRightHandSideContribution(rRightHandSideVector, scale_factor, penalty_factor, gap_n, interpolated_LM, integration_weight, Ns, Nm, N_LM, slave_normal, active_contact);
+                        AddRightHandSideContribution(rRightHandSideVector, scale_factor, penalty_factor, gap_n, interpolated_LM,
+                            integration_weight, Ns, Nm, N_LM, slave_normal, active_contact);
                     }
                     if (ComputeLHS) {
-                        AddLeftHandSideContribution(rLeftHandSideMatrix, scale_factor, penalty_factor, integration_weight, augmented_lm, Ns, Nm, N_LM, slave_normal, active_contact, d_n_dslave_displacements);
+                        AddLeftHandSideContribution(rLeftHandSideMatrix, scale_factor, penalty_factor, integration_weight,
+                            augmented_lm, Ns, Nm, N_LM, slave_normal,  segmented_GP_global_point - master_GP_global_point, active_contact, d_n_dslave_displacements);
                     }
                 } // loop over the integration points of the segmented geometry
             } // if valid segmented geometry
@@ -429,6 +431,7 @@ void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
     const Matrix& rNm,
     const Vector& rN_LM, // Phi
     const Vector& rNormal, // slave normal vector
+    const Vector& rDeltaX, // Xs - Xm
     const bool active_contact,
     const Matrix& rDnda_slave
 )
@@ -440,6 +443,7 @@ void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
 
         // noalias(project(rLeftHandSideMatrix, range(0, 3), range(0, 3))) += 0 // LM - LM
         noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_weight * k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNs))); // LM - slave
+        noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_weight * k * outer_prod(rN_LM, Vector(prod(trans(rDeltaX), rDnda_slave))); // LM - slave
         noalias(project(rLeftHandSideMatrix, range(0, 3), range(12, 21))) += integration_weight * k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNm))); // LM - master
 
         noalias(project(rLeftHandSideMatrix, range(3, 12), range(0, 3))) -= integration_weight * k * outer_prod(Vector(prod(trans(rNs), rNormal)), rN_LM); // slave - LM
