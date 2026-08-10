@@ -63,7 +63,7 @@ Where:
 
 ### 1.2 Incremental linear elastic E_ur law
 
-This law is an incremental linear elastic continuum model with stress-dependent stiffness. It is an option in the linear elastic material model. To activate it, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to a material properties. It has to have `Eur` keyword. 
+This law is an incremental linear elastic continuum model with stress-dependent stiffness. It is an option in the linear elastic material model. To activate it, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to material properties. It has to have `Eur` value. This option is implemented using `std::variant` that combines the flexibility of Strategy with the performance of stack allocation. It avoids both deep inheritance trees and virtual calls during simulation. Another benefit is an easy extension with other formulations like `E50` and `Eoed`.
 
 #### 1.2.1 Purpose
 
@@ -74,7 +74,7 @@ an $E_{ur}$-type expression. This allows stiffer behavior at higher confinement 
 
 Required material parameters:
 
-- `GEO_YOUNGS_MODULUS_FORMULATION = Eur`
+- `GEO_YOUNGS_MODULUS_FORMULATION`with "Eur" value
 - `YOUNG_MODULUS`: reference unloading-reloading Young's modulus $E_{ur}^{ref}$
 - `POISSON_RATIO`: Poisson's ratio <!--(used if no unloading-reloading Poisson is supplied)-->
 - `GEO_PRESSURE_REFERENCE`: reference pressure $p_{ref}$
