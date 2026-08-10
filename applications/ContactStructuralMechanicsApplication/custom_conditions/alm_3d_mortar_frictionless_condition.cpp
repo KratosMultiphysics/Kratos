@@ -256,22 +256,21 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     const auto& r_master_geometry = GetPairedGeometry();
     const SizeType system_size = GetSystemSize(); // 3 displacements per node (slave and master) + 1 lagrange multiplier per slave node
 
-    if (ComputeLHS) {
-        if (rLeftHandSideMatrix.size1() != system_size || rLeftHandSideMatrix.size2() != system_size) {
-            rLeftHandSideMatrix.resize(system_size, system_size, false);
-        }
-        rLeftHandSideMatrix.clear();
+    if (rLeftHandSideMatrix.size1() != system_size || rLeftHandSideMatrix.size2() != system_size) {
+        rLeftHandSideMatrix.resize(system_size, system_size, false);
     }
-    
-    if (ComputeRHS) {
-        if (rRightHandSideVector.size() != system_size) {
-            rRightHandSideVector.resize(system_size, false);
-        }
-        rRightHandSideVector.clear();
-    }
+    rLeftHandSideMatrix.clear();
 
-    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? 1.0e4 * rCurrentProcessInfo[SCALE_FACTOR] : 1.0e16;
-    const double penalty_factor = rCurrentProcessInfo.Has(INITIAL_PENALTY) ? 1.0e4 * rCurrentProcessInfo[INITIAL_PENALTY] : 1.0e16;
+
+    if (rRightHandSideVector.size() != system_size) {
+        rRightHandSideVector.resize(system_size, false);
+    }
+    rRightHandSideVector.clear();
+
+    // const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? 1.0e4 * rCurrentProcessInfo[SCALE_FACTOR] : 1.0e16;
+    // const double penalty_factor = rCurrentProcessInfo.Has(INITIAL_PENALTY) ? 1.0e4 * rCurrentProcessInfo[INITIAL_PENALTY] : 1.0e16;
+    const double scale_factor = 1E6;
+    const double penalty_factor = 1E6;
 
     VectorType slave_normal(3);
     VectorType master_normal(3);
@@ -290,14 +289,14 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     
     ConditionArrayListType conditions_points_slave;
     // This fills the conditions_points_slave, which are LOCAL coordinates on the slave geometry
-    const bool is_inside = CheckIsolatedElement(rCurrentProcessInfo[DELTA_TIME]) ? false : 
+    // const bool is_inside = true;
     integration_utility.GetExactIntegration(r_slave_geometry, slave_normal, r_master_geometry, master_normal, conditions_points_slave);
-    
+
     double integration_area;
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
-    
 
-    if (is_inside && ((integration_area / r_slave_geometry.Area()) > MinIntegrationAreaRatioTolerance)) {
+    // if (((integration_area / r_slave_geometry.Area()) > MinIntegrationAreaRatioTolerance)) {
+    if (((integration_area / r_slave_geometry.Area()) > 1.0e-12)) {
 
         PointType global_point; // aux variable to store the global coordinates of the integration points
         PointerVector<PointType> points_array(3); // aux variable to store the global coordinates of the clipping points
@@ -345,7 +344,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     segmented_GP_local_point = PointType(r_integration_points_slave[point_number].Coordinates());
                     segmented_geom.GlobalCoordinates(segmented_GP_global_point, segmented_GP_local_point); // from local to global coordinates in the segmented
                     r_slave_geometry.PointLocalCoordinates(slave_GP_local_point, segmented_GP_global_point); // from global to local coordinates in the slave
-                    GeometricalProjectionUtilities::FastProjectDirection(r_master_geometry, segmented_GP_global_point, master_GP_global_point, master_normal, slave_normal);
+                    GeometricalProjectionUtilities::FastProjectDirection(r_master_geometry, segmented_GP_global_point, master_GP_global_point, slave_normal, slave_normal);
                     r_master_geometry.PointLocalCoordinates(master_GP_local_point, master_GP_global_point); // from global to local coordinates in the master
 
                     r_slave_geometry.ShapeFunctionsLocalGradients(slave_local_gradients, slave_GP_local_point);
@@ -369,6 +368,23 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double interpolated_LM = inner_prod(N_LM, lm_values); // interpolated Lagrange multiplier at the integration point
                     const double augmented_lm = scale_factor * interpolated_LM + penalty_factor * gap_n; // contact pressure at the integration point
 
+                    // KRATOS_WATCH("*******************************")
+                    // KRATOS_WATCH(r_slave_geometry[0].Id())
+                    // KRATOS_WATCH(r_slave_geometry[0].Coordinates())
+                    // KRATOS_WATCH(r_slave_geometry[1].Id())
+                    // KRATOS_WATCH(r_slave_geometry[2].Id())
+                    // KRATOS_WATCH(r_master_geometry[0].Id())
+                    // KRATOS_WATCH(r_master_geometry[1].Id())
+                    // KRATOS_WATCH(r_master_geometry[2].Id())
+                    // KRATOS_WATCH(segmented_geom.Area())
+                    // KRATOS_WATCH(gap_n)
+                    // KRATOS_WATCH(slave_normal)
+                    // KRATOS_WATCH(master_GP_global_point)
+                    // KRATOS_WATCH(segmented_GP_global_point)
+                    // KRATOS_WATCH(augmented_lm)
+                    // KRATOS_WATCH(interpolated_LM)
+                    // KRATOS_WATCH("*******************************")
+
                     const bool active_contact = (augmented_lm <= 0.0); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
 
                     if (ComputeRHS) {
@@ -382,11 +398,14 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                 } // loop over the integration points of the segmented geometry
             } // if valid segmented geometry
         } // loop over segmented surfaces
-    } else {
-        this->Set(ISOLATED, true); // We set the corresponding flag
-        rLeftHandSideMatrix.clear();
-        rRightHandSideVector.clear();
+        // KRATOS_WATCH(rRightHandSideVector)
+        // KRATOS_WATCH(rLeftHandSideMatrix)
     }
+    // else {
+    //     this->Set(ISOLATED, true); // We set the corresponding flag
+    //     rLeftHandSideMatrix.clear();
+    //     rRightHandSideVector.clear();
+    // }
 
     KRATOS_CATCH("CalculateConditionSystem");
 }
