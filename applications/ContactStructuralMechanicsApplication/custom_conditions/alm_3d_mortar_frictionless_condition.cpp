@@ -252,7 +252,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
 {
     KRATOS_TRY
 
-    const auto& r_slave_geometry = GetParentGeometry(); // where we perrofm the integration
+    const auto& r_slave_geometry = GetParentGeometry(); // where we perform the integration
     const auto& r_master_geometry = GetPairedGeometry();
     const SizeType system_size = GetSystemSize(); // 3 displacements per node (slave and master) + 1 lagrange multiplier per slave node
 
@@ -273,17 +273,10 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : 1.0e10;
     const double penalty_factor = rCurrentProcessInfo.Has(INITIAL_PENALTY) ? rCurrentProcessInfo[INITIAL_PENALTY] : 1.0e10;
 
-    const bool linearize_normal = true;
-
     VectorType slave_normal(3);
-    if (!linearize_normal) {
-        noalias(slave_normal) = mSlaveNormal;
-    } else {
-        noalias(slave_normal) = r_slave_geometry.UnitNormal(0);
-    }
-
-    // const auto slave_normal = r_slave_geometry.UnitNormal(0);
-    const auto master_normal = r_master_geometry.UnitNormal(0);
+    VectorType master_normal(3);
+    noalias(slave_normal) = r_slave_geometry.UnitNormal(0);
+    noalias(master_normal) = r_master_geometry.UnitNormal(0);
     
     const auto& r_properties = this->GetProperties();
     
@@ -327,6 +320,10 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                 VectorType shape_functions_master; // Master element shape functions evaluated at the integration point
                 VectorType dual_shape_functions; // LM slave shape functions evaluated at the integration point
 
+                MatrixType slave_local_gradients; // Slave element local gradients evaluated at the integration point
+                MatrixType slave_jacobian; // Slave element jacobian evaluated at the integration point
+                MatrixType d_n_dslave_displacements; // Derivative of the slave normal with respect to the slave displacements
+
                 PointType segmented_GP_global_point; // Global coordinates of the integration point of the segmented geometry
                 PointType segmented_GP_local_point; // Local coordinates of the integration point of the segmented geometry
                 PointType slave_GP_local_point; // Local coordinates of the integration point of the segmented geometry on the slave element
@@ -351,6 +348,10 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     GeometricalProjectionUtilities::FastProjectDirection(r_master_geometry, segmented_GP_global_point, master_GP_global_point, master_normal, slave_normal);
                     r_master_geometry.PointLocalCoordinates(master_GP_local_point, master_GP_global_point); // from global to local coordinates in the master
 
+                    r_slave_geometry.ShapeFunctionsLocalGradients(slave_local_gradients, slave_GP_local_point);
+                    r_slave_geometry.Jacobian(slave_jacobian, slave_GP_local_point);
+                    d_n_dslave_displacements = CalculateSlaveNormalDerivatives(slave_jacobian, slave_local_gradients);
+
                     const double integration_weight = r_integration_points_slave[point_number].Weight() * segmented_geom.DeterminantOfJacobian(segmented_GP_local_point);
 
                     const double gap_n = -inner_prod(segmented_GP_global_point - master_GP_global_point, slave_normal); // open contact if gap_n > 0, closed contact if gap_n < 0
@@ -364,13 +365,12 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double augmented_lm = scale_factor * interpolated_LM + penalty_factor * gap_n; // contact pressure at the integration point
 
                     const bool active_contact = (augmented_lm < AugmentedLMtolerance); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
-                    // KRATOS_WATCH(active_contact)
 
                     if (ComputeRHS) {
                         AddRightHandSideContribution(rRightHandSideVector, scale_factor, penalty_factor, gap_n, interpolated_LM, integration_weight, Ns, Nm, N_LM, slave_normal, active_contact);
                     }
                     if (ComputeLHS) {
-                        AddLeftHandSideContribution(rLeftHandSideMatrix, scale_factor, penalty_factor, integration_weight, Ns, Nm, N_LM, slave_normal, active_contact);
+                        AddLeftHandSideContribution(rLeftHandSideMatrix, scale_factor, penalty_factor, integration_weight, augmented_lm, Ns, Nm, N_LM, slave_normal, active_contact, d_n_dslave_displacements);
                     }
                 } // loop over the integration points of the segmented geometry
             } // if valid segmented geometry
@@ -424,11 +424,13 @@ void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
     const double k,
     const double penalty,
     const double integration_weight,
+    const double AugmentedLM,
     const Matrix& rNs,
     const Matrix& rNm,
     const Vector& rN_LM, // Phi
     const Vector& rNormal, // slave normal vector
-    const bool active_contact
+    const bool active_contact,
+    const Matrix& rDnda_slave
 )
 {
     KRATOS_TRY
@@ -442,10 +444,12 @@ void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
 
         noalias(project(rLeftHandSideMatrix, range(3, 12), range(0, 3))) -= integration_weight * k * outer_prod(Vector(prod(trans(rNs), rNormal)), rN_LM); // slave - LM
         noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_weight * penalty * prod(trans(rNs), Matrix(prod(n_n, rNs))); // slave - slave
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) -= integration_weight * AugmentedLM * prod(trans(rNs), rDnda_slave); // slave - slave
         noalias(project(rLeftHandSideMatrix, range(3, 12), range(12, 21))) -= integration_weight * penalty * prod(trans(rNs), Matrix(prod(n_n, rNm))); // slave - master
 
         noalias(project(rLeftHandSideMatrix, range(12, 21), range(0, 3))) += integration_weight * k * outer_prod(Vector(prod(trans(rNm), rNormal)), rN_LM); // master - LM
         noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_weight * penalty * prod(trans(rNm), Matrix(prod(n_n, rNs))); // master - slave
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) += integration_weight * AugmentedLM * prod(trans(rNm), rDnda_slave); // master - slave
         noalias(project(rLeftHandSideMatrix, range(12, 21), range(12, 21))) += integration_weight * penalty * prod(trans(rNm), Matrix(prod(n_n, rNm))); // master - master
 
     } else { // Inactive

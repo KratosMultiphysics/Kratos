@@ -154,7 +154,7 @@ public:
     using IntegrationUtility = ExactMortarIntegrationUtility<3, 3, true, 3>;
 
     // /// Type definition for derivatives utilities with derivatives
-    // using DerivativesUtilitiesType = DerivativesUtilities<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster>;
+    using DerivativesUtilitiesType = DerivativesUtilities<3, 3, false, false, 3>;
 
     // The threshold coefficient considered for checking
     static constexpr double CheckThresholdCoefficient = 1.0e-12;
@@ -350,6 +350,19 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+    MatrixType CalculateSlaveNormalDerivatives(const MatrixType& J, const MatrixType& DN_De)
+    {
+        MatrixType dN_dAs(3, 3 * 3);
+        array_1d<array_1d<double, 3>, 3*3> dN_dAs_array;
+        dN_dAs_array =  DerivativesUtilitiesType::GPDeltaNormalSlave(J, DN_De);
+        for (IndexType j = 0; j < 9; ++j) { // cols
+            for (IndexType i = 0; i < 3; ++i) { // rows
+                dN_dAs(i, j) = dN_dAs_array[j][i];
+            }
+        }
+        return dN_dAs;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -513,11 +526,13 @@ protected:
         const double k,
         const double penalty,
         const double integration_weight,
+        const double AugmentedLM,
         const Matrix &rNs,
         const Matrix &rNm,
         const Vector &rN_LM,  // Phi
         const Vector &rNormal, // slave normal vector
-        const bool active_contact
+        const bool active_contact,
+        const Matrix& rDnda_slave
     );
 
     /**
