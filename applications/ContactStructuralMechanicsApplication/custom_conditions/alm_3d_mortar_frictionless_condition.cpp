@@ -277,8 +277,8 @@ bool ALM3dMortarFrictionlessCondition::FastProjectDirection(
     noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + distance * projection_direction;
 
     array_1d<double, 3> aux_local_coords;
-    if (!rGeometryToProject.IsInside(rPointProjected.Coordinates(), aux_local_coords)) {
-        noalias(rPointProjected.Coordinates()) = rGeometryToProject.Center().Coordinates();
+    if (!rGeometryToProject.IsInside(rPointProjected.Coordinates(), aux_local_coords, 1.0e-8)) {
+        // noalias(rPointProjected.Coordinates()) = rGeometryToProject.Center().Coordinates();
         return false;
     }
 
@@ -325,8 +325,18 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     VectorType master_normal(3);
     noalias(slave_normal) = r_slave_geometry.UnitNormal(0);
     noalias(master_normal) = r_master_geometry.UnitNormal(0);
-    
-    const auto& r_properties = this->GetProperties();
+
+    VectorType nodal_normal(3);
+    nodal_normal.clear();
+    for (IndexType node = 0; node < r_slave_geometry.PointsNumber(); ++node) {
+        noalias(nodal_normal) += r_slave_geometry[node].FastGetSolutionStepValue(NORMAL);
+    }
+    nodal_normal /= (double)(r_slave_geometry.PointsNumber());
+    if (inner_prod(slave_normal, nodal_normal) < 1.0e-8) {
+        slave_normal *= -1.0;
+    }
+
+    const auto &r_properties = this->GetProperties();
 
     const IndexType integration_order = 5;
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
@@ -335,7 +345,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
 
     // The utility that performs the local clipping of the projected master to the slave plane
     IntegrationUtility integration_utility = IntegrationUtility(integration_order, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
-    
+
     ConditionArrayListType conditions_points_slave;
     // This fills the conditions_points_slave, which are LOCAL coordinates on the slave geometry
     // const bool is_inside = true;
@@ -344,8 +354,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     double integration_area;
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
 
-    // if (((integration_area / r_slave_geometry.Area()) > MinIntegrationAreaRatioTolerance)) {
-    if (((integration_area / r_slave_geometry.Area()) > 1.0e-12)) {
+    if (((integration_area / r_slave_geometry.Area()) > MinIntegrationAreaRatioTolerance)) {
 
         PointType global_point; // aux variable to store the global coordinates of the integration points
         PointerVector<PointType> points_array(3); // aux variable to store the global coordinates of the clipping points
@@ -417,24 +426,28 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double interpolated_LM = inner_prod(N_LM, lm_values); // interpolated Lagrange multiplier at the integration point
                     const double augmented_lm = scale_factor * interpolated_LM + penalty_factor * gap_n; // contact pressure at the integration point
 
-                    const bool active_contact = (augmented_lm <= 0.0) && successful_projection; // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
+                    const bool active_contact = (augmented_lm <= 0.0); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
 
                     // KRATOS_WATCH("*******************************")
-                    // KRATOS_WATCH(r_slave_geometry[0].Id())
+                    // KRATOS_WATCH(Id())
                     // KRATOS_WATCH(r_slave_geometry[0].Coordinates())
+                    // KRATOS_WATCH(r_slave_geometry[0].Id())
                     // KRATOS_WATCH(r_slave_geometry[1].Id())
                     // KRATOS_WATCH(r_slave_geometry[2].Id())
                     // KRATOS_WATCH(r_master_geometry[0].Id())
                     // KRATOS_WATCH(r_master_geometry[1].Id())
                     // KRATOS_WATCH(r_master_geometry[2].Id())
-                    // KRATOS_WATCH(segmented_geom.Area())
-                    // KRATOS_WATCH(active_contact)
-                    // KRATOS_WATCH(slave_normal)
+                    // KRATOS_WATCH(segmented_GP_global_point)
                     // KRATOS_WATCH(master_GP_global_point)
+                    // KRATOS_WATCH(active_contact)
+                    // KRATOS_WATCH(successful_projection)
+                    // KRATOS_WATCH(slave_normal)
+                    // KRATOS_WATCH(master_normal)
+                    // KRATOS_WATCH(gap_n)
+                    // KRATOS_WATCH(active_contact)
                     // KRATOS_WATCH(master_GP_local_point)
                     // KRATOS_WATCH(segmented_GP_global_point)
                     // KRATOS_WATCH(augmented_lm)
-                    // KRATOS_WATCH(interpolated_LM)
                     // KRATOS_WATCH("*******************************")
 
                     if (ComputeRHS) {
@@ -448,14 +461,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                 } // loop over the integration points of the segmented geometry
             } // if valid segmented geometry
         } // loop over segmented surfaces
-        // KRATOS_WATCH(rRightHandSideVector)
-        // KRATOS_WATCH(rLeftHandSideMatrix)
     }
-    // else {
-    //     this->Set(ISOLATED, true); // We set the corresponding flag
-    //     rLeftHandSideMatrix.clear();
-    //     rRightHandSideVector.clear();
-    // }
 
     KRATOS_CATCH("CalculateConditionSystem");
 }

@@ -58,6 +58,27 @@ void InterfacePreprocessCondition::GenerateInterfacePart(
         cond_counter = rInterfacePart.Conditions().size();
         // Check and creates the properties
         CheckAndCreateProperties(rInterfacePart);
+
+    } else if (rInterfacePart.Geometries().size() > 0)  {
+
+        std::vector<std::size_t> condition_ids(rInterfacePart.Geometries().size());
+        const auto p_prop = mrMainModelPart.Elements()[0].pGetProperties();
+
+        IndexType cond_id = ReorderConditions();
+
+        // IndexType counter = 0;
+        for (auto& r_geometry : rInterfacePart.Geometries()) {
+            const IndexType number_of_points = r_geometry.PointsNumber();
+            const std::string condition_name = (number_of_points == 3) ? "SurfaceCondition3D3N" : (number_of_points == 4) ? "SurfaceCondition3D4N" : (number_of_points == 6) ? "SurfaceCondition3D6N" : (number_of_points == 8) ? "SurfaceCondition3D8N" : "SurfaceCondition3D9N";
+            auto& r_condition = KratosComponents<Condition>::Get(condition_name);
+            cond_counter++;
+            cond_id++;
+            Condition::Pointer p_condition = CreateNewCondition(p_prop, r_geometry, cond_id, r_condition);
+            p_condition->Set(INTERFACE, true);
+            condition_ids[cond_counter] = cond_id;
+        }
+        mrMainModelPart.AddConditions(condition_ids);
+
     } else if (rInterfacePart.Nodes().size() > 0) { // Only in case we have assigned the flag directly to nodes (no conditions)
         // We reorder the conditions
         IndexType cond_id = ReorderConditions();
@@ -265,7 +286,7 @@ std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition:
 /***********************************************************************************/
 /***********************************************************************************/
 
-void InterfacePreprocessCondition::CreateNewCondition(
+Condition::Pointer InterfacePreprocessCondition::CreateNewCondition(
     Properties::Pointer pThisProperties,
     const GeometryType& rGeometry,
     const IndexType ConditionId,
@@ -277,6 +298,8 @@ void InterfacePreprocessCondition::CreateNewCondition(
     Condition::Pointer p_cond = Condition::Pointer(rCondition.Create(ConditionId, rGeometry.Points(), pThisProperties));
     mrMainModelPart.AddCondition(p_cond);
     AssignMasterSlaveCondition(p_cond);
+
+    return p_cond;
 
     KRATOS_CATCH("");
 }

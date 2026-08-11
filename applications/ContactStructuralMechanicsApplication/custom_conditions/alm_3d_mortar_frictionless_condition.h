@@ -108,7 +108,7 @@ public:
     using IntegrationPointsType = typename GeometryType::IntegrationPointsArrayType;
 
     /// The type of points belongs to be considered
-    // using BelongType = typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type;
+    using BelongType = typename PointBelongsTriangle3D3N;
 
     /// The definition of the point with belonging
     using PointBelongType = PointBelong<3, 3>;
