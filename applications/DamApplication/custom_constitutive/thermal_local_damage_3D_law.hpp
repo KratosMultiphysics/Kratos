@@ -50,10 +50,36 @@ public:
     ConstitutiveLaw::Pointer Clone() const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Material response entry points.
+    //
+    // This family is an infinitesimal-strain formulation: for element-provided
+    // infinitesimal strain the PK2, Kirchhoff and Cauchy entry points execute
+    // the SAME thermo-damage constitutive calculation (total strain minus
+    // thermal strain -> elastic predictor -> local-damage return mapping ->
+    // damaged stress/tangent). No finite-deformation stress/tangent
+    // transformation is performed and no detF scaling is applied.
+
+    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
     void CalculateMaterialResponseCauchy (Parameters & rValues) override;
 
+    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
+
+    void FinalizeMaterialResponseKirchhoff (Parameters & rValues) override;
+
     void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Lifecycle
+    //
+    // The damage state is initialized through InitializeMaterial (flow-rule
+    // history/threshold) and subsequently managed through the finalization
+    // (commit/restore with IS_CONVERGED). No local-damage state is initialized
+    // through the InitializeMaterialResponse hooks, so they are not required.
+
+    bool RequiresInitializeMaterialResponse() override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -67,6 +93,37 @@ protected:
 
     virtual void CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables, double & rNodalReferenceTemperature);
 
+    /**
+     * @brief Validates only the constitutive parameters genuinely consumed by
+     * the thermo-damage response/finalization.
+     * @note Shape-function derivatives, the deformation gradient and detF are
+     * NOT consumed by this infinitesimal-strain implementation, so they are not
+     * required (the generic CheckAllParameters requires them unconditionally,
+     * which prevented execution under StructuralMechanicsApplication elements).
+     */
+    void CheckThermalDamageParameters(Parameters& rValues) const;
+
+    /**
+     * @brief Common small-strain thermal-damage response shared by the PK2,
+     * Kirchhoff and Cauchy entry points:
+     *   total infinitesimal strain
+     *   -> interpolated temperature / reference temperature
+     *   -> thermal strain
+     *   -> mechanical strain = total strain - thermal strain (local copy)
+     *   -> elastic predictor
+     *   -> existing local-damage return mapping
+     *   -> existing damage tangent
+     *   -> total damaged stress.
+     */
+    virtual void CalculateThermalDamageResponse(Parameters& rValues);
+
+    /**
+     * @brief Common thermal-damage finalization shared by the PK2, Kirchhoff
+     * and Cauchy entry points. IS_CONVERGED selects commit (true) or restore
+     * (false) of the equilibrium damage/history state.
+     */
+    virtual void FinalizeThermalDamageResponse(Parameters& rValues);
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -77,12 +134,20 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LocalDamage3DLaw )
+        // The stateful damage/history state lives in the flow rule and must be
+        // preserved on serialization (restart).
+        rSerializer.save("mpFlowRule", mpFlowRule);
+        rSerializer.save("mpYieldCriterion", mpYieldCriterion);
+        rSerializer.save("mpHardeningLaw", mpHardeningLaw);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LocalDamage3DLaw )
+        rSerializer.load("mpFlowRule", mpFlowRule);
+        rSerializer.load("mpYieldCriterion", mpYieldCriterion);
+        rSerializer.load("mpHardeningLaw", mpHardeningLaw);
     }
 
 }; // Class ThermalLocalDamage3DLaw
