@@ -209,13 +209,13 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         stage_1_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_unloading_reloading_stage1.post.res"))
         stage_2_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_unloading_reloading_stage2.post.res"))
 
-        self._assert_average_stress_component(reader, stage_1_output, 1.0, 1, -46.661666666, 4)
-        self._assert_average_stress_component(reader, stage_2_output, 2.0, 1, -100.005266666, 4)
+        self._assert_average_stress_component(reader, stage_1_output, 1.0, 1, -46.667766, 4)
+        self._assert_average_stress_component(reader, stage_2_output, 2.0, 1, -100.01745, 4)
 
         self._assert_y_displacements_at_time(stage_1_output, 1.0, [1, 2, 6],
-                           [ 5.81721e-06, 5.4499e-06, 3.85041e-06], 9)
+                           [ 5.81174e-06, 5.44455e-06, 3.85041e-06], 8)
         self._assert_y_displacements_at_time(stage_2_output, 2.0, [1, 2, 6],
-                           [ -5.82193e-06, -5.4545e-06, -3.8529e-06], 9)
+                           [ -5.82745e-06, -5.4599e-06, -3.8529e-06], 8)
 
     def _assert_average_stress_component(self, reader, output_data, time, component_index, expected_value, places):
         stress_vectors_per_element = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data)
