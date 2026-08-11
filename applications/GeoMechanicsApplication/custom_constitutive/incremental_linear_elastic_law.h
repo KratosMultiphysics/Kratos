@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-namespace Policies
+namespace Formulations
 {
 struct Constant {
     static constexpr const char* Name = "Constant";
@@ -32,7 +32,7 @@ struct Eur {
     static constexpr const char* Name = "Eur";
     double                       operator()(const Properties&, double) const;
 };
-} // namespace Policies
+} // namespace Formulations
 
 /**
  * @class GeoIncrementalLinearElasticLaw
@@ -125,15 +125,15 @@ protected:
     ///@}
 
 private:
-    std::unique_ptr<ConstitutiveLawDimension>       mpConstitutiveDimension;
-    Vector                                          mStressVector;
-    Vector                                          mStressVectorFinalized;
-    Vector                                          mDeltaStrainVector;
-    Vector                                          mStrainVectorFinalized;
-    bool                                            mIsModelInitialized = false;
-    std::variant<Policies::Constant, Policies::Eur> mPolicy;
+    std::unique_ptr<ConstitutiveLawDimension>               mpConstitutiveDimension;
+    Vector                                                  mStressVector;
+    Vector                                                  mStressVectorFinalized;
+    Vector                                                  mDeltaStrainVector;
+    Vector                                                  mStrainVectorFinalized;
+    bool                                                    mIsModelInitialized = false;
+    std::variant<Formulations::Constant, Formulations::Eur> mFormulation;
 
-    void   InitializePolicy(const std::string& rFormulation);
+    void   InitializeFormulation(const std::string& rFormulation);
     double GetYoungsModulus(const Properties& rProperties, double YoungsModulus) const;
     double CalculateYoungsModulusForEur(const Properties& rProperties, double YoungsModulus) const;
     double CalculateMinorPrincipalEffectiveStress() const;
