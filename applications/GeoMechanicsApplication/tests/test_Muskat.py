@@ -15,6 +15,7 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
 )
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import fraction_to_percentage
 
+
 class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
     """
     A test suite representing (semi)-Muskat test cases. Instead of a seepage boundary, a fixed head is used on the
