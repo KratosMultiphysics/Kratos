@@ -181,7 +181,6 @@ void ApplyScalarConstraintTableProcess::AppendOptionalFluidParameters(const Para
 {
     ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
                                                      rNamesOfSettingsToCopy);
-    ParametersUtilities::AppendParameterNameIfExists("is_seepage", rProcessSettings, rNamesOfSettingsToCopy);
 }
 
 template <typename TableProcessType, typename ConstantProcessType>
