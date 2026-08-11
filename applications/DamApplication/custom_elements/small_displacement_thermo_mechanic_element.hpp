@@ -18,8 +18,6 @@
 #include "includes/serializer.h"
 #include "custom_elements/small_displacement_element.hpp"
 
-#include "custom_utilities/poro_element_utilities.hpp"
-
 #include "dam_application_variables.h"
 
 namespace Kratos
@@ -60,10 +58,6 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint);
-
-    void ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& Dim, const unsigned int& VoigtSize);
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

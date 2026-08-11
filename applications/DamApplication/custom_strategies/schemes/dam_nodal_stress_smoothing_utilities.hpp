@@ -35,7 +35,7 @@ namespace Kratos
  *      legacy joint accumulators);
  *   2. perform the standard element/condition finalization required by the
  *      scheme;
- *   3. if process-based nodal smoothing is enabled, invoke
+ *   3. invoke
  *      DamNodalCauchyStressExtrapolationProcess::ExtrapolateAndAccumulate();
  *   4. normalize the historical nodal stress with the legacy rule
  *      (NODAL_CAUCHY_STRESS_TENSOR /= NODAL_AREA when NODAL_AREA > 1.0e-15).
@@ -46,17 +46,6 @@ namespace Kratos
 class DamNodalStressSmoothingUtilities
 {
 public:
-    /// Determines whether the process-based ownership is active for this
-    /// model part. The decision is explicit and deterministic: it comes from
-    /// the Dam configuration variable USE_PROCESS_BASED_NODAL_CAUCHY_STRESS_EXTRAPOLATION
-    /// only. There is no element-name inspection and no runtime detection based
-    /// on the accumulated NODAL_AREA values.
-    static bool IsProcessBasedNodalSmoothing(const ModelPart& rModelPart)
-    {
-        return rModelPart.GetProcessInfo().Has(USE_PROCESS_BASED_NODAL_CAUCHY_STRESS_EXTRAPOLATION)
-            && rModelPart.GetProcessInfo()[USE_PROCESS_BASED_NODAL_CAUCHY_STRESS_EXTRAPOLATION];
-    }
-
     /// Resets the historical nodal accumulators used by the smoothing workflow.
     static void ResetNodalSmoothingVariables(ModelPart& rModelPart, const unsigned int Dim)
     {
@@ -146,11 +135,10 @@ public:
         using BaseSchemeType = typename TScheme::BaseType;
         static_cast<BaseSchemeType&>(rScheme).BaseSchemeType::FinalizeSolutionStep(rModelPart, A, Dx, b);
 
-        // 3. Process-based accumulation when the Dam scheme owns the
-        //    extrapolation. In legacy mode the element itself accumulates
-        //    during its finalization and the process is NOT invoked, so both
-        //    paths never accumulate during the same solution step.
-        if (IsProcessBasedNodalSmoothing(rModelPart)) {
+        // 3. Single production implementation of the nodal Cauchy-stress
+        //    extrapolation. The element no longer accumulates nodal stress;
+        //    the process is the only accumulator.
+        {
             DamNodalCauchyStressExtrapolationProcess process(rModelPart);
             process.ExtrapolateAndAccumulate();
         }

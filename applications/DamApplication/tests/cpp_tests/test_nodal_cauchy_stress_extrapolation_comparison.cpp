@@ -250,26 +250,7 @@ void RunGenericExtrapolationProcess(ModelPart& rModelPart, const bool rExtrapola
 }
 
 /// Tolerance associated with a reference value.
-double ComponentTolerance(const double rReferenceValue, const double rReferenceScale)
-{
-    double tolerance = std::max(comparison_absolute_tolerance,
-                                comparison_relative_tolerance * std::abs(rReferenceValue));
-    if (rReferenceValue == 0.0) {
-        tolerance = std::max(tolerance, machine_precision_allowance * rReferenceScale);
-    }
-    return tolerance;
-}
 
-double MaxAbsEntry(const Matrix& rMatrix)
-{
-    double max_abs_entry = 0.0;
-    for (std::size_t i = 0; i < rMatrix.size1(); ++i) {
-        for (std::size_t j = 0; j < rMatrix.size2(); ++j) {
-            max_abs_entry = std::max(max_abs_entry, std::abs(rMatrix(i, j)));
-        }
-    }
-    return max_abs_entry;
-}
 
 struct ComparisonMetrics
 {
@@ -282,70 +263,9 @@ struct ComparisonMetrics
     double reference_scale = 0.0;
 };
 
-void AccumulateComponentMetrics(
-    const double rComputedValue,
-    const double rReferenceValue,
-    const double rTolerance,
-    ComparisonMetrics& rMetrics)
-{
-    const double absolute_difference = std::abs(rComputedValue - rReferenceValue);
-    rMetrics.max_absolute_difference = std::max(rMetrics.max_absolute_difference, absolute_difference);
-    rMetrics.max_tolerance_used = std::max(rMetrics.max_tolerance_used, rTolerance);
-    rMetrics.reference_scale = std::max(rMetrics.reference_scale, std::abs(rReferenceValue));
-    if (rReferenceValue != 0.0) {
-        rMetrics.max_relative_difference =
-            std::max(rMetrics.max_relative_difference, absolute_difference / std::abs(rReferenceValue));
-    }
-    if (absolute_difference > rTolerance) {
-        ++rMetrics.failed_component_count;
-        rMetrics.pass = false;
-    }
-    ++rMetrics.component_count;
-}
 
-void PrintComparisonMetrics(const std::string& rWhat, const ComparisonMetrics& rMetrics)
-{
-    std::cout << "[CHARACTERIZATION] " << rWhat << ": "
-              << (rMetrics.pass ? "PASS" : "FAIL")
-              << " | max_abs_diff=" << rMetrics.max_absolute_difference
-              << " | max_rel_diff=" << rMetrics.max_relative_difference
-              << " | tolerance=" << rMetrics.max_tolerance_used
-              << " | scale=" << rMetrics.reference_scale
-              << " | failed_components=" << rMetrics.failed_component_count
-              << "/" << rMetrics.component_count
-              << std::endl;
-}
 
-void ExpectMatrixComponentsNear(
-    const Matrix& rComputed,
-    const Matrix& rReference,
-    const std::string& rWhat)
-{
-    ASSERT_EQ(rComputed.size1(), rReference.size1()) << "Row size mismatch comparing " << rWhat;
-    ASSERT_EQ(rComputed.size2(), rReference.size2()) << "Column size mismatch comparing " << rWhat;
-    const double reference_scale = MaxAbsEntry(rReference);
-    ComparisonMetrics metrics;
-    for (std::size_t i = 0; i < rReference.size1(); ++i) {
-        for (std::size_t j = 0; j < rReference.size2(); ++j) {
-            AccumulateComponentMetrics(
-                rComputed(i, j), rReference(i, j), ComponentTolerance(rReference(i, j), reference_scale), metrics);
-        }
-    }
-    PrintComparisonMetrics(rWhat, metrics);
-    for (std::size_t i = 0; i < rReference.size1(); ++i) {
-        for (std::size_t j = 0; j < rReference.size2(); ++j) {
-            KRATOS_EXPECT_NEAR(rComputed(i, j), rReference(i, j), ComponentTolerance(rReference(i, j), reference_scale));
-        }
-    }
-}
 
-void ExpectScalarsNear(const double rComputed, const double rReference, const std::string& rWhat)
-{
-    ComparisonMetrics metrics;
-    AccumulateComponentMetrics(rComputed, rReference, ComponentTolerance(rReference, std::abs(rReference)), metrics);
-    PrintComparisonMetrics(rWhat, metrics);
-    KRATOS_EXPECT_NEAR(rComputed, rReference, ComponentTolerance(rReference, std::abs(rReference)));
-}
 
 /// Reports the maximum absolute and relative difference between two matrices.
 void ReportMatrixDifference(
@@ -369,95 +289,37 @@ void ReportMatrixDifference(
 
 /// Compares the legacy historical nodal results with the candidate generic-
 /// process results for a single element.
-void CompareSingleElementNodalRecovery(
-    const std::string& rLegacyElementName,
+void VerifyGenericProcessProducesNodalStress(
     const std::string& rCandidateElementName,
     const std::string& rLawName,
     const std::size_t rDimension,
     const std::string& rLabel)
 {
+    // After Phase 3D.4B the legacy element no longer performs nodal recovery;
+    // the Dam process is validated against the analytic legacy formula in the
+    // phase-3D.2 tests. This helper only verifies that the generic Kratos
+    // extrapolation process still runs and produces a non-trivial nodal stress
+    // on the same candidate element.
     Model model;
-    ModelPart& r_legacy = CreateExtrapolationModelPart(
-        model, "Legacy" + rLabel, rLegacyElementName, rLawName, rDimension, 0);
     ModelPart& r_candidate = CreateExtrapolationModelPart(
         model, "Candidate" + rLabel, rCandidateElementName, rLawName, rDimension, 100);
-
-    PrescribeVaryingState(r_legacy, rDimension);
     PrescribeVaryingState(r_candidate, rDimension);
-    InitializeExtrapolationElement(r_legacy);
     InitializeExtrapolationElement(r_candidate);
 
-    // Legacy: FinalizeSolutionStep writes historical NODAL_CAUCHY_STRESS_TENSOR
-    // and NODAL_AREA.
-    r_legacy.pGetElement(1)->FinalizeSolutionStep(r_legacy.GetProcessInfo());
-
-    // Candidate: generic process (historical stress output).
     RunGenericExtrapolationProcess(r_candidate, false);
 
-    // Compare node-by-node and report the differences. The two recovery
-    // algorithms are NOT expected to coincide for the multi-GP geometries
-    // (Q4/H8) with a varying GP field; they coincide for the single-GP
-    // geometries (T2D3/T3D4), where both return the single Gauss-point stress.
-    const bool single_gp_geometry =
-        (rLegacyElementName.find("2D3N") != std::string::npos) ||
-        (rLegacyElementName.find("3D4N") != std::string::npos);
-
-    double max_stress_diff = 0.0;
-    double max_area_diff = 0.0;
-    double max_legacy_stress_scale = 0.0;
-    auto it_legacy = r_legacy.Nodes().begin();
-    auto it_candidate = r_candidate.Nodes().begin();
-    for (; it_legacy != r_legacy.Nodes().end(); ++it_legacy, ++it_candidate) {
-        const Matrix& r_legacy_stress = it_legacy->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-        const Matrix& r_candidate_stress = it_candidate->FastGetSolutionStepValue(CAUCHY_STRESS_TENSOR);
-        // The legacy stores the AREA-WEIGHTED sum: NODAL_CAUCHY_STRESS_TENSOR =
-        // sum(Area * sigma) and NODAL_AREA = sum(Area). The averaged nodal stress
-        // is obtained by dividing by NODAL_AREA downstream. The generic process
-        // already divides internally (by the shape-function-weighted measure), so
-        // the two are compared after normalizing the legacy value.
-        const double legacy_area = it_legacy->FastGetSolutionStepValue(NODAL_AREA);
-        const double candidate_area = it_candidate->GetValue(NODAL_AREA);
-        const Matrix legacy_stress_average = r_legacy_stress / legacy_area;
-
-        std::cout << "[CHARACTERIZATION]   node " << it_legacy->Id() << " legacy_avg(0,0)="
-                  << legacy_stress_average(0, 0) << " candidate(0,0)=" << r_candidate_stress(0, 0)
-                  << std::endl;
-        ReportMatrixDifference(
-            r_candidate_stress, legacy_stress_average,
-            rLabel + " node " + std::to_string(it_legacy->Id()) + " NODAL_CAUCHY_STRESS_TENSOR/NODAL_AREA (legacy avg) vs CAUCHY_STRESS_TENSOR (candidate)");
-        for (std::size_t i = 0; i < legacy_stress_average.size1(); ++i) {
-            for (std::size_t j = 0; j < legacy_stress_average.size2(); ++j) {
-                max_stress_diff = std::max(max_stress_diff, std::abs(r_candidate_stress(i, j) - legacy_stress_average(i, j)));
-                max_legacy_stress_scale = std::max(max_legacy_stress_scale, std::abs(legacy_stress_average(i, j)));
+    bool non_trivial = false;
+    for (auto& r_node : r_candidate.Nodes()) {
+        const Matrix& r_stress = r_node.FastGetSolutionStepValue(CAUCHY_STRESS_TENSOR);
+        for (std::size_t i = 0; i < r_stress.size1(); ++i) {
+            for (std::size_t j = 0; j < r_stress.size2(); ++j) {
+                if (r_stress(i, j) != 0.0) non_trivial = true;
             }
         }
-
-        max_area_diff = std::max(max_area_diff, std::abs(candidate_area - legacy_area));
-        std::cout << "[CHARACTERIZATION] " << rLabel << " node " << it_legacy->Id()
-                  << " NODAL_AREA: legacy=" << legacy_area << " candidate=" << candidate_area
-                  << " (legacy historical vs candidate non-historical)" << std::endl;
     }
-
-    std::cout << "[CHARACTERIZATION] " << rLabel << " summary: max_stress_abs_diff=" << max_stress_diff
-              << " max_area_diff=" << max_area_diff << " legacy_stress_scale=" << max_legacy_stress_scale
-              << std::endl;
-
-    if (single_gp_geometry) {
-        // Both algorithms return (essentially) the single Gauss-point stress; the
-        // residual is at most ~1e-4 relative (observed for the legacy
-        // FinalizeSolutionStep path).
-        std::cout << "[CHARACTERIZATION] " << rLabel
-                  << ": single-GP recovery relative diff = "
-                  << max_stress_diff / std::max(1.0, max_legacy_stress_scale) << std::endl;
-        KRATOS_EXPECT_TRUE(max_stress_diff < 1.0e-3 * std::max(1.0, max_legacy_stress_scale));
-    } else {
-        // The two recovery algorithms differ substantially for a varying GP field
-        // (the Q4/H8 cases show 18-64% differences).
-        KRATOS_EXPECT_TRUE(max_stress_diff > 1.0e-2 * std::max(1.0, max_legacy_stress_scale));
-    }
-    // The area/weighting variable always differs (element area vs shape-function
-    // weighted GP measure).
-    KRATOS_EXPECT_TRUE(max_area_diff > 1.0e-8);
+    std::cout << "[3D.4B] generic process " << rLabel << " non-trivial: "
+              << (non_trivial ? "yes" : "no") << std::endl;
+    KRATOS_EXPECT_TRUE(non_trivial);
 }
 
 } // namespace
@@ -466,32 +328,28 @@ void CompareSingleElementNodalRecovery(
 // Single-element comparisons
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolation_SingleElement_Triangle2D3, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolation_GenericProcess_Triangle2D3, KratosDamFastSuite)
 {
-    CompareSingleElementNodalRecovery(
-        "SmallDisplacementThermoMechanicElement2D3N", "SmallDisplacementElement2D3N",
-        "ThermalLinearElastic2DPlaneStrain", 2, "Triangle2D3");
+    VerifyGenericProcessProducesNodalStress(
+        "SmallDisplacementElement2D3N", "ThermalLinearElastic2DPlaneStrain", 2, "Triangle2D3");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolation_SingleElement_Quadrilateral2D4, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolation_GenericProcess_Quadrilateral2D4, KratosDamFastSuite)
 {
-    CompareSingleElementNodalRecovery(
-        "SmallDisplacementThermoMechanicElement2D4N", "SmallDisplacementElement2D4N",
-        "ThermalLinearElastic2DPlaneStrain", 2, "Quadrilateral2D4");
+    VerifyGenericProcessProducesNodalStress(
+        "SmallDisplacementElement2D4N", "ThermalLinearElastic2DPlaneStrain", 2, "Quadrilateral2D4");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolation_SingleElement_Tetrahedra3D4, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolation_GenericProcess_Tetrahedra3D4, KratosDamFastSuite)
 {
-    CompareSingleElementNodalRecovery(
-        "SmallDisplacementThermoMechanicElement3D4N", "SmallDisplacementElement3D4N",
-        "ThermalLinearElastic3DLaw", 3, "Tetrahedra3D4");
+    VerifyGenericProcessProducesNodalStress(
+        "SmallDisplacementElement3D4N", "ThermalLinearElastic3DLaw", 3, "Tetrahedra3D4");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolation_SingleElement_Hexahedra3D8, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolation_GenericProcess_Hexahedra3D8, KratosDamFastSuite)
 {
-    CompareSingleElementNodalRecovery(
-        "SmallDisplacementThermoMechanicElement3D8N", "SmallDisplacementElement3D8N",
-        "ThermalLinearElastic3DLaw", 3, "Hexahedra3D8");
+    VerifyGenericProcessProducesNodalStress(
+        "SmallDisplacementElement3D8N", "ThermalLinearElastic3DLaw", 3, "Hexahedra3D8");
 }
 
 //************************************************************************************

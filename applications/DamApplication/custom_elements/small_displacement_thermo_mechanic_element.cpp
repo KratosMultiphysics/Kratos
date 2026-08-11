@@ -50,13 +50,17 @@ Element::Pointer SmallDisplacementThermoMechanicElement::Create( IndexType NewId
 
 void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    // Nodal smoothing ownership: when the process-based nodal smoothing is
-    // enabled the Dam smoothing scheme owns the extrapolation and this element
-    // only performs the constitutive-law finalization (no nodal accumulation).
-    const bool process_based_nodal_smoothing =
-        rCurrentProcessInfo.Has(USE_PROCESS_BASED_NODAL_CAUCHY_STRESS_EXTRAPOLATION)
-        && rCurrentProcessInfo[USE_PROCESS_BASED_NODAL_CAUCHY_STRESS_EXTRAPOLATION];
-
+    // Constitutive finalization only: the nodal Cauchy-stress extrapolation has
+    // been removed from this element. The Dam smoothing scheme owns the single
+    // production implementation of nodal stress recovery through
+    // DamNodalCauchyStressExtrapolationProcess.
+    //
+    // The inherited Dam SolidElement::FinalizeSolutionStep was NOT adopted as a
+    // replacement because it finalizes with the element StressMeasure (PK2 by
+    // default), whereas this thermo-mechanical element must keep finalizing
+    // through the Cauchy entry point to preserve the validated constitutive
+    // commit/rollback behaviour for all thermal laws.
+    //
     //create and initialize element variables:
     ElementDataType Variables;
     this->InitializeElementData(Variables, rCurrentProcessInfo);
@@ -70,163 +74,21 @@ void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep(const ProcessI
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-    //Extrapolation variables
-    const GeometryType& Geom = this->GetGeometry();
-    const unsigned int& Dim  = Geom.WorkingSpaceDimension();
-    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
-    unsigned int VoigtSize = 6;
-    if(Dim == 2) VoigtSize = 3;
-    Matrix StressContainer(NumGPoints,VoigtSize);
-
-    for ( unsigned int PointNumber = 0; PointNumber < NumGPoints; PointNumber++ )
+    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
-
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
         //set general variables to constitutivelaw parameters
         this->SetElementData(Variables,Values,PointNumber);
 
-        //call the constitutive law to update material variables
+        //call the constitutive law to update material variables (state
+        //commit/rollback driven by IS_CONVERGED)
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponseCauchy(Values);
-
-        if(!process_based_nodal_smoothing)
-        {
-            this->SaveGPStress(StressContainer,Variables.StressVector,VoigtSize,PointNumber);
-        }
-    }
-
-    if(!process_based_nodal_smoothing)
-    {
-        this->ExtrapolateGPStress(StressContainer,Dim,VoigtSize);
     }
 }
 
 //----------------------------------------------------------------------------------------
-
-void SmallDisplacementThermoMechanicElement::SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint)
-{
-    for(unsigned int i = 0; i < VoigtSize; i++)
-    {
-        rStressContainer(GPoint,i) = StressVector[i];
-    }
-
-    /* INFO: (Quadrilateral_2D_4 with GI_GAUSS_2)
-     *
-     *                      |S0-0 S1-0 S2-0|
-     * rStressContainer =   |S0-1 S1-1 S2-1|
-     *                      |S0-2 S1-2 S2-2|
-     *                      |S0-3 S1-3 S2-3|
-     *
-     * S1-0 = S[1] at GP 0
-    */
-}
-
-//----------------------------------------------------------------------------------------
-
-void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& Dim, const unsigned int& VoigtSize)
-{
-    auto& rGeom = this->GetGeometry();
-    //const unsigned int& Dim  = rGeom.WorkingSpaceDimension();
-    const unsigned int& NumNodes = rGeom.size();
-    const double& Area = rGeom.Area(); // In 3D this is Volume
-
-    std::vector<Vector> NodalStressVector(NumNodes); //List with stresses at each node
-    std::vector<Matrix> NodalStressTensor(NumNodes);
-
-    for(unsigned int iNode = 0; iNode < NumNodes; iNode ++)
-    {
-        NodalStressVector[iNode].resize(VoigtSize);
-        NodalStressTensor[iNode].resize(Dim,Dim);
-    }
-
-    if (Dim == 2)
-    {
-        if(NumNodes == 3)
-        {
-            // Triangle_2d_3 with GI_GAUSS_1
-            for(unsigned int i = 0; i < 3; i++) //NumNodes
-            {
-                noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
-                noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
-
-                rGeom[i].SetLock();
-                noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-                rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
-                rGeom[i].UnSetLock();
-            }
-        }
-        else if(NumNodes == 4)
-        {
-            // Quadrilateral_2d_4 with GI_GAUSS_2
-            BoundedMatrix<double,4,4> ExtrapolationMatrix;
-            PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
-
-            BoundedMatrix<double,4,3> AuxNodalStress;
-            noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
-
-            /* INFO:
-             *
-             *                  |S0-0 S1-0 S2-0|
-             * AuxNodalStress = |S0-1 S1-1 S2-1|
-             *                  |S0-2 S1-2 S2-2|
-             *                  |S0-3 S1-3 S2-3|
-             *
-             * S1-0 = S[1] at node 0
-            */
-
-            for(unsigned int i = 0; i < 4; i++) //TNumNodes
-            {
-                noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
-                noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
-
-                rGeom[i].SetLock();
-                noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-                rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
-                rGeom[i].UnSetLock();
-            }
-        }
-    }
-    else
-    {
-        if(NumNodes == 4)
-        {
-            // Tetrahedra_3d_4 with GI_GAUSS_1
-            for(unsigned int i = 0; i < 4; i++) //NumNodes
-            {
-                noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
-                noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
-
-                rGeom[i].SetLock();
-                noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-                rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
-                rGeom[i].UnSetLock();
-            }
-        }
-        else if(NumNodes == 8)
-        {
-            // Hexahedra_3d_8 with GI_GAUSS_2
-            BoundedMatrix<double,8,8> ExtrapolationMatrix;
-            PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
-
-            BoundedMatrix<double,8,6> AuxNodalStress;
-            noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
-
-            for(unsigned int i = 0; i < 8; i++) //TNumNodes
-            {
-                noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
-                noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
-
-                rGeom[i].SetLock();
-                noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-                rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
-                rGeom[i].UnSetLock();
-            }
-        }
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                                           std::vector<Vector>& rOutput,

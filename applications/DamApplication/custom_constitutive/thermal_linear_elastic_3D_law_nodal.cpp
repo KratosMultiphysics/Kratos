@@ -35,6 +35,29 @@ ConstitutiveLaw::Pointer ThermalLinearElastic3DLawNodal::Clone() const
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+void ThermalLinearElastic3DLawNodal::CalculateMaterialResponsePK2 (Parameters& rValues)
+{
+    // Infinitesimal-strain formulation: the PK2 entry point executes the same
+    // nodal thermal-elastic calculation as the Kirchhoff entry point (which is
+    // also what the inherited Cauchy path reaches through
+    // HyperElastic3DLaw::CalculateMaterialResponseCauchy).
+    this->CalculateMaterialResponseKirchhoff(rValues);
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+bool ThermalLinearElastic3DLawNodal::RequiresInitializeMaterialResponse()
+{
+    return false;
+}
+
+bool ThermalLinearElastic3DLawNodal::RequiresFinalizeMaterialResponse()
+{
+    return false;
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 void ThermalLinearElastic3DLawNodal::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
     KRATOS_TRY

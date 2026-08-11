@@ -133,6 +133,7 @@ public:
 
             // Element-level extrapolation operator (matching the legacy element).
             bool single_gp = false;
+            bool unsupported_geometry = false;
             Matrix extrapolation_matrix;
             if (dimension == 2) {
                 if (number_of_nodes == 3) {
@@ -142,9 +143,7 @@ public:
                     PoroElementUtilities::Calculate2DExtrapolationMatrix(q4);
                     extrapolation_matrix = Matrix(q4);
                 } else {
-                    KRATOS_ERROR << "DamNodalCauchyStressExtrapolationProcess: unsupported 2D geometry with "
-                                 << number_of_nodes << " nodes (supported: Triangle2D3, Quadrilateral2D4)"
-                                 << std::endl;
+                    unsupported_geometry = true;
                 }
             } else if (dimension == 3) {
                 if (number_of_nodes == 4) {
@@ -154,13 +153,19 @@ public:
                     PoroElementUtilities::Calculate3DExtrapolationMatrix(h8);
                     extrapolation_matrix = Matrix(h8);
                 } else {
-                    KRATOS_ERROR << "DamNodalCauchyStressExtrapolationProcess: unsupported 3D geometry with "
-                                 << number_of_nodes << " nodes (supported: Tetrahedra3D4, Hexahedra3D8)"
-                                 << std::endl;
+                    unsupported_geometry = true;
                 }
             } else {
-                KRATOS_ERROR << "DamNodalCauchyStressExtrapolationProcess: unsupported dimension "
-                             << dimension << std::endl;
+                unsupported_geometry = true;
+            }
+
+            // Legacy-compatible policy: the legacy ExtrapolateGPStress only
+            // supported Triangle2D3, Quadrilateral2D4, Tetrahedra3D4 and
+            // Hexahedra3D8; higher-order geometries performed no nodal
+            // Cauchy-stress extrapolation. Preserve that behaviour by skipping
+            // unsupported geometries silently (they are not new fatal errors).
+            if (unsupported_geometry) {
+                return;
             }
 
             // Verify that the element integration scheme matches the legacy one.

@@ -49,6 +49,20 @@ public:
      */
     void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
+    /**
+     * Computes the material response: PK2. This infinitesimal-strain
+     * formulation executes the SAME nodal thermal-elastic calculation as the
+     * Kirchhoff entry point (no finite-deformation PK2/Kirchhoff/Cauchy
+     * transformation is applied). This makes the nodal family compatible with
+     * the StructuralMechanicsApplication::SmallDisplacement PK2 contract.
+     */
+    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+
+    /// Stateless: no material-response initialization/finalization is required.
+    bool RequiresInitializeMaterialResponse() override;
+
+    bool RequiresFinalizeMaterialResponse() override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:

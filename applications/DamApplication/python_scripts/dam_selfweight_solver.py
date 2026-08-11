@@ -45,7 +45,6 @@ class DamSelfweightSolver(object):
                 "scheme_type": "Newmark",
                 "rayleigh_m": 0.0,
                 "rayleigh_k": 0.0,
-                "use_process_based_nodal_stress_extrapolation": true,
                 "strategy_type": "Newton-Raphson",
                 "convergence_criterion": "Displacement_criterion",
                 "displacement_relative_tolerance": 1.0e-4,
@@ -332,23 +331,6 @@ class DamSelfweightSolver(object):
         if self.settings["mechanical_solver_settings"].Has("nonlocal_damage"):
             nonlocal_damage = self.settings["mechanical_solver_settings"]["nonlocal_damage"].GetBool()
         self.main_model_part.ProcessInfo[KratosDam.USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN] = nonlocal_damage
-
-        # The process-based nodal Cauchy-stress smoothing is the DEFAULT Dam
-        # behavior: the smoothing scheme owns the extrapolation (via
-        # DamNodalCauchyStressExtrapolationProcess) and the legacy element
-        # performs no nodal accumulation.
-        #
-        # The legacy (false) path is an explicitly selectable transitional
-        # fallback: the legacy thermo-mechanical element performs the nodal
-        # extrapolation and the scheme does not invoke the process.
-        #
-        # An old ProjectParameters file without this setting must also resolve
-        # to the process-based default (true), so the absence of the parameter
-        # must not be an error and must not silently select the legacy mode.
-        use_process_based_smoothing = True
-        if self.settings["mechanical_solver_settings"].Has("use_process_based_nodal_stress_extrapolation"):
-            use_process_based_smoothing = self.settings["mechanical_solver_settings"]["use_process_based_nodal_stress_extrapolation"].GetBool()
-        self.main_model_part.ProcessInfo[KratosDam.USE_PROCESS_BASED_NODAL_CAUCHY_STRESS_EXTRAPOLATION] = use_process_based_smoothing
 
         if(solution_type == "Quasi-Static"):
             if(rayleigh_m<1.0e-15 and rayleigh_k<1.0e-15):
