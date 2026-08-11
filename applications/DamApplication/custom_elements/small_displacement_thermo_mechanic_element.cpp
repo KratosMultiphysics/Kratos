@@ -48,46 +48,6 @@ Element::Pointer SmallDisplacementThermoMechanicElement::Create( IndexType NewId
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    // Constitutive finalization only: the nodal Cauchy-stress extrapolation has
-    // been removed from this element. The Dam smoothing scheme owns the single
-    // production implementation of nodal stress recovery through
-    // DamNodalCauchyStressExtrapolationProcess.
-    //
-    // The inherited Dam SolidElement::FinalizeSolutionStep was NOT adopted as a
-    // replacement because it finalizes with the element StressMeasure (PK2 by
-    // default), whereas this thermo-mechanical element must keep finalizing
-    // through the Cauchy entry point to preserve the validated constitutive
-    // commit/rollback behaviour for all thermal laws.
-    //
-    //create and initialize element variables:
-    ElementDataType Variables;
-    this->InitializeElementData(Variables, rCurrentProcessInfo);
-
-    //create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-    //set constitutive law flags:
-    Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
-    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-    {
-        //compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematics(Variables,PointNumber);
-
-        //set general variables to constitutivelaw parameters
-        this->SetElementData(Variables,Values,PointNumber);
-
-        //call the constitutive law to update material variables (state
-        //commit/rollback driven by IS_CONVERGED)
-        mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponseCauchy(Values);
-    }
-}
-
 //----------------------------------------------------------------------------------------
 
 void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
