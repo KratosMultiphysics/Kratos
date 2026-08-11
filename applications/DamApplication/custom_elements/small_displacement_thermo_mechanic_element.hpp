@@ -59,10 +59,6 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint);

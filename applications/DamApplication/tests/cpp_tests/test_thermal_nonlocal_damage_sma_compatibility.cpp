@@ -46,6 +46,7 @@
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
 #include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
+#include "custom_utilities/dam_nonlocal_damage_utilities.hpp"
 
 // StructuralMechanicsApplication small-displacement element
 #include "custom_elements/solid_elements/small_displacement.h"
@@ -482,8 +483,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamageSMA_LegacyVsNewLocal, KratosDamFa
     ApplyUniaxialState(r_legacy_mp, 2.0e-6);
     ApplyUniaxialState(r_candidate_mp, 2.0e-6);
 
-    // Legacy LOCAL via the element hook.
-    p_legacy->InitializeNonLinearIteration(r_legacy_mp.GetProcessInfo());
+    // Legacy LOCAL via the single production source (Dam LOCAL-update utility).
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_legacy_mp);
     const auto& r_legacy_diag = dynamic_cast<const DiagnosticSimoJuNonlocalDamage3DLaw&>(
         p_legacy->GetConstitutiveLaw(0));
     const double legacy_local = r_legacy_diag.GetLocalEquivalentStrain();

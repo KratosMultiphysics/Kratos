@@ -48,57 +48,6 @@ Element::Pointer SmallDisplacementThermoMechanicElement::Create( IndexType NewId
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    // When the Dam scheme owns the LOCAL equivalent-strain production
-    // (process-based nonlocal ownership active), this element no longer
-    // performs the old INITIALIZE_MATERIAL_RESPONSE LOCAL calculation; the
-    // scheme invokes the generic integration-point path instead. There must be
-    // exactly one LOCAL owner per nonlinear hook.
-    const bool process_based_local_ownership =
-        rCurrentProcessInfo.Has(USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN)
-        && rCurrentProcessInfo[USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN];
-
-    if (process_based_local_ownership) {
-        return;
-    }
-
-    //create and initialize element variables:
-    ElementDataType Variables;
-    this->InitializeElementData(Variables, rCurrentProcessInfo);
-
-    //create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-    //set constitutive law flags:
-    Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
-    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-    {
-        //compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematics(Variables,PointNumber);
-
-        //set general variables to constitutivelaw parameters
-        this->SetElementData(Variables,Values,PointNumber);
-
-        //call the constitutive law to update material variables
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-void SmallDisplacementThermoMechanicElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->InitializeNonLinearIteration(rCurrentProcessInfo);
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     // Nodal smoothing ownership: when the process-based nodal smoothing is

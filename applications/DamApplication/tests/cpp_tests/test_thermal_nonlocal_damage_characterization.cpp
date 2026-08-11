@@ -43,6 +43,7 @@
 #include "custom_constitutive/thermal_simo_ju_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_nonlocal_damage_plane_stress_2D_law.hpp"
 #include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
+#include "custom_utilities/dam_nonlocal_damage_utilities.hpp"
 
 // Poromechanics nonlocal averaging utility (allowed dependency, unchanged)
 #include "custom_utilities/nonlocal_damage_3D_utilities.hpp"
@@ -341,7 +342,7 @@ void ApplyTwoElementState(ModelPart& rModelPart, const double rEpsilonA, const d
 //    strain (one-element).
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_LegacyElementLocalQuantity, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_SingleSourceLocalProduction, KratosDamFastSuite)
 {
     Model model;
     TestThermoMechanicElement* p_element = nullptr;
@@ -359,29 +360,27 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_LegacyElementLocalQuantity, Krat
     KRATOS_EXPECT_NEAR(nonlocal0, 0.0, 1.0e-15);    // no nonlocal quantity yet
     KRATOS_EXPECT_NEAR(threshold0, test_damage_threshold, 1.0e-15);
 
-    // InitializeNonLinearIteration -> the legacy element reconstructs the
-    // kinematics and runs the thermal nonlocal Cauchy material response with
-    // INITIALIZE_MATERIAL_RESPONSE, which computes the LOCAL equivalent strain.
-    r_element.InitializeNonLinearIteration(r_mp.GetProcessInfo());
+    // Single production source: the Dam LOCAL-update utility invokes the
+    // generic integration-point interface, which drives the constitutive-law
+    // CalculateValue path (the legacy element no longer computes LOCAL).
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
     double local1, nonlocal1, threshold1, damage1;
     ReadNonlocalState<TestThermoMechanicElement>(r_element, local1, nonlocal1, threshold1, damage1);
     KRATOS_EXPECT_TRUE(local1 > 0.0);               // LOCAL quantity computed
     KRATOS_EXPECT_NEAR(nonlocal1, 0.0, 1.0e-15);    // NONLOCAL unchanged (no averaging yet)
-    KRATOS_EXPECT_NEAR(threshold1, test_damage_threshold, 1.0e-15);  // no commit in the hook
+    KRATOS_EXPECT_NEAR(threshold1, test_damage_threshold, 1.0e-15);  // no commit
 
-    // The local driving quantity for the applied uniaxial-STRESS field is
-    // kappa = sqrt(E)*epsilon (Simo-Ju).
     const double expected_local = std::sqrt(test_young_modulus) * 2.0e-6;
     KRATOS_EXPECT_NEAR(local1, expected_local, 1.0e-12);
 
-    // FinalizeNonLinearIteration recomputes the local quantity (same state).
-    r_element.FinalizeNonLinearIteration(r_mp.GetProcessInfo());
+    // Recompute at the same state (equivalent to the post-update finalize hook).
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
     double local2, nonlocal2, threshold2, damage2;
     ReadNonlocalState<TestThermoMechanicElement>(r_element, local2, nonlocal2, threshold2, damage2);
     KRATOS_EXPECT_NEAR(local2, local1, 1.0e-12);
     KRATOS_EXPECT_NEAR(nonlocal2, 0.0, 1.0e-15);
 
-    std::cout << "[4C] legacy hook: LOCAL=" << local1 << " NONLOCAL=" << nonlocal1 << std::endl;
+    std::cout << "[4E] single-source LOCAL=" << local1 << " NONLOCAL=" << nonlocal1 << std::endl;
 }
 
 //************************************************************************************
@@ -389,35 +388,36 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_LegacyElementLocalQuantity, Krat
 //    first exact workflow divergence.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_SMAElementHookDivergence, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_NoElementHookLocalProduction, KratosDamFastSuite)
 {
+    // After Phase 4E NEITHER element hook produces LOCAL: the element nonlinear
+    // hooks do not compute the local driving quantity. LOCAL is produced only by
+    // the Dam scheme-owned utility through the generic integration-point
+    // interface.
     Model model;
-    TestSmallDisplacementElement* p_element = nullptr;
-    ModelPart& r_mp = CreateOneElementModelPart(
-        model, "LocalSMA", "SmallDisplacementElement3D8N", 3, p_element);
-    auto& r_element = *p_element;
-    r_element.Initialize(r_mp.GetProcessInfo());
+    TestSmallDisplacementElement* p_sma = nullptr;
+    ModelPart& r_sma = CreateOneElementModelPart(
+        model, "LocalSMA", "SmallDisplacementElement3D8N", 3, p_sma);
+    auto& r_sma_element = *p_sma;
+    r_sma_element.Initialize(r_sma.GetProcessInfo());
+    ApplyUniaxialState(r_sma, 2.0e-6);
 
-    ApplyUniaxialState(r_mp, 2.0e-6);
-    ApplyTemperatureChange(r_mp, 0.0);
-
-    // SMA InitializeNonLinearIteration only forwards the deprecated no-op
-    // constitutive hook; it does NOT reconstruct kinematics nor run a material
-    // response, so the LOCAL equivalent strain is never computed.
-    r_element.InitializeNonLinearIteration(r_mp.GetProcessInfo());
     double local1, nonlocal1, threshold1, damage1;
-    ReadNonlocalState<TestSmallDisplacementElement>(r_element, local1, nonlocal1, threshold1, damage1);
-    std::cout << "[4C] SMA hook: LOCAL=" << local1 << " NONLOCAL=" << nonlocal1 << std::endl;
-    KRATOS_EXPECT_NEAR(local1, 0.0, 1.0e-15);  // STALE: the local quantity is never produced
+    ReadNonlocalState<TestSmallDisplacementElement>(r_sma_element, local1, nonlocal1, threshold1, damage1);
+    KRATOS_EXPECT_NEAR(local1, 0.0, 1.0e-15);
 
-    r_element.FinalizeNonLinearIteration(r_mp.GetProcessInfo());
-    double local2, nonlocal2, threshold2, damage2;
-    ReadNonlocalState<TestSmallDisplacementElement>(r_element, local2, nonlocal2, threshold2, damage2);
-    KRATOS_EXPECT_NEAR(local2, 0.0, 1.0e-15);
+    // SMA InitializeNonLinearIteration does not produce LOCAL.
+    r_sma_element.InitializeNonLinearIteration(r_sma.GetProcessInfo());
+    ReadNonlocalState<TestSmallDisplacementElement>(r_sma_element, local1, nonlocal1, threshold1, damage1);
+    KRATOS_EXPECT_NEAR(local1, 0.0, 1.0e-15);
 
-    // The legacy element produced a NON-ZERO local quantity under the identical
-    // state (see the previous test); this is the first exact divergence.
-    KRATOS_EXPECT_TRUE(local2 < 1.0e-15);
+    // The Dam LOCAL-update utility (the single production source) computes it.
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_sma);
+    ReadNonlocalState<TestSmallDisplacementElement>(r_sma_element, local1, nonlocal1, threshold1, damage1);
+    KRATOS_EXPECT_NEAR(local1, std::sqrt(test_young_modulus) * 2.0e-6, 1.0e-9);
+    KRATOS_EXPECT_NEAR(nonlocal1, 0.0, 1.0e-15);
+    KRATOS_EXPECT_NEAR(threshold1, test_damage_threshold, 1.0e-15);
+    std::cout << "[4E] no element-hook LOCAL; utility LOCAL=" << local1 << std::endl;
 }
 
 //************************************************************************************
@@ -648,8 +648,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_TwoElementAveraging, KratosDamFa
 
     // Different mechanical states -> LOCAL_A != LOCAL_B.
     ApplyTwoElementState(r_mp, 2.0e-6, 4.0e-6);
-    p_legacy_a->InitializeNonLinearIteration(r_pi);
-    p_legacy_b->InitializeNonLinearIteration(r_pi);
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
 
     double local_a, nonlocal_a, th_a, d_a;
     double local_b, nonlocal_b, th_b, d_b;
@@ -762,7 +762,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_ThermalCoupling, KratosDamFastSu
         r_node.Z() = r_x0[2] + r_displacement[2];
         r_node.FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature + 50.0;
     }
-    r_element.InitializeNonLinearIteration(r_mp.GetProcessInfo());
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
     double local1, nonlocal1, threshold1, damage1;
     ReadNonlocalState<TestThermoMechanicElement>(r_element, local1, nonlocal1, threshold1, damage1);
     std::cout << "[4C] thermal coupling free-expansion LOCAL=" << local1 << std::endl;
@@ -771,7 +771,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_ThermalCoupling, KratosDamFastSu
     // Mechanical loading drives the LOCAL quantity.
     ApplyUniaxialState(r_mp, 2.0e-6);
     ApplyTemperatureChange(r_mp, 0.0);
-    r_element.InitializeNonLinearIteration(r_mp.GetProcessInfo());
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
     ReadNonlocalState<TestThermoMechanicElement>(r_element, local1, nonlocal1, threshold1, damage1);
     KRATOS_EXPECT_TRUE(local1 > 0.0);
 
@@ -780,7 +780,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_ThermalCoupling, KratosDamFastSu
     // compressive thermal component contributes to the mechanical strain, so
     // the LOCAL quantity is non-zero (and larger than the pure mechanical one).
     ApplyTemperatureChange(r_mp, 50.0);
-    r_element.InitializeNonLinearIteration(r_mp.GetProcessInfo());
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
     ReadNonlocalState<TestThermoMechanicElement>(r_element, local1, nonlocal1, threshold1, damage1);
     KRATOS_EXPECT_TRUE(local1 > 0.0);
     std::cout << "[4C] thermal coupling combined LOCAL=" << local1 << std::endl;
@@ -875,7 +875,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_RepeatedCalls, KratosDamFastSuit
     KRATOS_EXPECT_NEAR(local1, 0.0, 1.0e-15);
 
     // The nonlinear-iteration initialization updates LOCAL.
-    r_element.InitializeNonLinearIteration(r_mp.GetProcessInfo());
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
     ReadNonlocalState<TestThermoMechanicElement>(r_element, local1, nonlocal1, threshold1, damage1);
     const double produced_local = local1;
     KRATOS_EXPECT_TRUE(produced_local > 0.0);
@@ -883,7 +883,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_RepeatedCalls, KratosDamFastSuit
 
     // Repeated hooks do not advance NONLOCAL (only SetValue/utility do).
     for (std::size_t i = 0; i < 3; ++i) {
-        r_element.InitializeNonLinearIteration(r_mp.GetProcessInfo());
+        DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
         ReadNonlocalState<TestThermoMechanicElement>(r_element, local1, nonlocal1, threshold1, damage1);
         KRATOS_EXPECT_NEAR(local1, produced_local, 1.0e-12);
         KRATOS_EXPECT_NEAR(nonlocal1, 0.0, 1.0e-15);
@@ -1113,8 +1113,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_NewtonRaphsonOrchestration, Krat
     })");
 
     // 1) Initialize nonlinear iteration (legacy element -> LOCAL produced).
-    p_legacy_a->InitializeNonLinearIteration(r_pi);
-    p_legacy_b->InitializeNonLinearIteration(r_pi);
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
     double la, na, ta, da, lb, nb, tb, db;
     ReadNonlocalState<TestThermoMechanicElement>(*p_legacy_a, la, na, ta, da);
     ReadNonlocalState<TestThermoMechanicElement>(*p_legacy_b, lb, nb, tb, db);
@@ -1134,8 +1134,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_NewtonRaphsonOrchestration, Krat
     ApplyTwoElementState(r_mp, 3.0e-6, 5.0e-6);
 
     // 5) Finalize nonlinear iteration -> LOCAL recomputed at the new state.
-    p_legacy_a->FinalizeNonLinearIteration(r_pi);
-    p_legacy_b->FinalizeNonLinearIteration(r_pi);
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
+    DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
     double la2, na2, ta2, da2, lb2, nb2, tb2, db2;
     ReadNonlocalState<TestThermoMechanicElement>(*p_legacy_a, la2, na2, ta2, da2);
     ReadNonlocalState<TestThermoMechanicElement>(*p_legacy_b, lb2, nb2, tb2, db2);
@@ -1177,7 +1177,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_2DFamily, KratosDamFastSuite)
 
         // Local-quantity production through the legacy 2D hook.
         ApplyUniaxialState(r_mp, 2.0e-6);
-        r_element.InitializeNonLinearIteration(r_mp.GetProcessInfo());
+        DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(r_mp);
         double local_val = 0.0;
         r_element.GetConstitutiveLaw(0).GetValue(LOCAL_EQUIVALENT_STRAIN, local_val);
         std::cout << "[4C] 2D " << name << " LOCAL=" << local_val << std::endl;

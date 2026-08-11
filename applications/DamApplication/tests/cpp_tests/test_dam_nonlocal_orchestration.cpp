@@ -339,9 +339,9 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_SingleOwnership, KratosDa
     KRATOS_EXPECT_EQ(*r_counting.mCalculateValueCount, 16);
     KRATOS_EXPECT_EQ(*r_counting.mInitializeFlagCount, 0);
 
-    // Legacy element + process-based ownership: the old INITIALIZE path is
-    // gated off; the scheme performs the LOCAL calculation through
-    // CalculateOnIntegrationPoints.
+    // Legacy Dam element + nonlocal damage enabled: the legacy element no
+    // longer computes LOCAL itself; the scheme performs the LOCAL calculation
+    // through the generic CalculateOnIntegrationPoints path only.
     TestThermoMechanicElement* p_legacy = nullptr;
     ModelPart& r_legacy = CreateOneElementModelPart<TestThermoMechanicElement, CountingNonlocalLaw>(
         model, "OwnLegacy", "SmallDisplacementThermoMechanicElement3D8N", 3, p_legacy, true);
@@ -351,25 +351,22 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_SingleOwnership, KratosDa
     *r_legacy_counting.mCalculateValueCount = 0;
     *r_legacy_counting.mInitializeFlagCount = 0;
 
-    // The legacy element hook must be gated off (no INITIALIZE flag LOCAL path).
+    // The legacy element nonlinear hook produces NO LOCAL (removed in 4E) and
+    // never invokes the INITIALIZE flag path.
     p_legacy->InitializeNonLinearIteration(r_legacy.GetProcessInfo());
     KRATOS_EXPECT_EQ(*r_legacy_counting.mInitializeFlagCount, 0);
     KRATOS_EXPECT_EQ(*r_legacy_counting.mCalculateValueCount, 0);
 
-    // The scheme performs the LOCAL calculation through the new scalar path.
+    // The scheme performs the LOCAL calculation exclusively through
+    // CalculateValue on the generic integration-point interface.
     RunSchemeInitializeNonLinIteration(scheme, r_legacy);
     KRATOS_EXPECT_EQ(*r_legacy_counting.mCalculateValueCount, 8);
     KRATOS_EXPECT_EQ(*r_legacy_counting.mInitializeFlagCount, 0);
 
-    // Process-based ownership false: the legacy element hook is active again
-    // (transition characterization).
-    r_legacy.GetProcessInfo()[USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN] = false;
-    *r_legacy_counting.mCalculateValueCount = 0;
-    *r_legacy_counting.mInitializeFlagCount = 0;
-    p_legacy->InitializeNonLinearIteration(r_legacy.GetProcessInfo());
-    KRATOS_EXPECT_EQ(*r_legacy_counting.mInitializeFlagCount, 8);
-    KRATOS_EXPECT_EQ(*r_legacy_counting.mCalculateValueCount, 0);
-    std::cout << "[4D.2] single ownership OK" << std::endl;
+    RunSchemeFinalizeNonLinIteration(scheme, r_legacy);
+    KRATOS_EXPECT_EQ(*r_legacy_counting.mCalculateValueCount, 16);
+    KRATOS_EXPECT_EQ(*r_legacy_counting.mInitializeFlagCount, 0);
+    std::cout << "[4E] single-source ownership OK" << std::endl;
 }
 
 //************************************************************************************
@@ -1036,6 +1033,126 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_ArcLengthStrategy, Kratos
     // LOCAL changed with the post-update state; NONLOCAL reflects the updated LOCAL.
     KRATOS_EXPECT_TRUE(std::abs(la - local_before) > 1.0e-12);
     KRATOS_EXPECT_TRUE(na >= 0.0);
+}
+
+//************************************************************************************
+// 11. Legacy-element Newton nonlocal strategy regression (transition workflow).
+//************************************************************************************
+
+KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_LegacyNewtonStrategy, KratosDamFastSuite)
+{
+    // Two legacy Dam thermo-mechanical hexahedra sharing a face (12 nodes),
+    // using the transition workflow: scheme-owned LOCAL via the generic
+    // CalculateOnIntegrationPoints interface + the new CONSTITUTIVE_LAW getter
+    // + the existing Poromechanics nonlocal strategy.
+    Model model;
+    ModelPart& r_mp = model.CreateModelPart("LegacyNewtonNL", 2);
+    ProcessInfo& r_pi = r_mp.GetProcessInfo();
+    r_pi[DOMAIN_SIZE] = 3;
+    r_pi[SPACE_DIMENSION] = 3;
+    r_pi[IS_RESTARTED] = false;
+    r_pi[DELTA_TIME] = 1.0;
+    r_pi[IS_CONVERGED] = true;
+    r_pi[USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN] = true;
+    r_mp.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_mp.AddNodalSolutionStepVariable(VELOCITY);
+    r_mp.AddNodalSolutionStepVariable(ACCELERATION);
+    r_mp.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+    r_mp.AddNodalSolutionStepVariable(TEMPERATURE);
+    r_mp.AddNodalSolutionStepVariable(NODAL_REFERENCE_TEMPERATURE);
+    r_mp.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
+    r_mp.AddNodalSolutionStepVariable(NODAL_AREA);
+    r_mp.AddNodalSolutionStepVariable(INITIAL_STRESS_TENSOR);
+
+    const double coords[12][3] = {
+        {0,0,0},{2,0,0},{2,1,0},{0,1,0},{0,0,1},{2,0,1},{2,1,1},{0,1,1},
+        {3,0,0},{3,1,0},{3,0,1},{3,1,1}
+    };
+    for (std::size_t i = 0; i < 12; ++i) {
+        Node::Pointer n = r_mp.CreateNewNode(i + 1, coords[i][0], coords[i][1], coords[i][2]);
+        n->AddDof(DISPLACEMENT_X);
+        n->AddDof(DISPLACEMENT_Y);
+        n->AddDof(DISPLACEMENT_Z);
+        n->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = test_reference_temperature;
+        n->FastGetSolutionStepValue(TEMPERATURE) = test_reference_temperature;
+        Matrix z3(3, 3); noalias(z3) = ZeroMatrix(3, 3);
+        n->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR) = z3;
+    }
+    auto p_prop = r_mp.CreateNewProperties(1);
+    (*p_prop)[YOUNG_MODULUS] = test_young_modulus;
+    (*p_prop)[POISSON_RATIO] = test_poisson_ratio;
+    (*p_prop)[DENSITY] = test_density;
+    (*p_prop)[THERMAL_EXPANSION] = test_thermal_expansion;
+    (*p_prop)[DAMAGE_THRESHOLD] = test_damage_threshold;
+    (*p_prop)[STRENGTH_RATIO] = test_strength_ratio;
+    (*p_prop)[FRACTURE_ENERGY] = test_fracture_energy;
+    p_prop->SetValue(CONSTITUTIVE_LAW, DiagnosticSimoJuNonlocalDamage3DLaw().Clone());
+
+    Geometry<Node>::PointsArrayType pa, pb;
+    for (std::size_t i : {1u,2u,3u,4u,5u,6u,7u,8u}) pa.push_back(r_mp.pGetNode(i));
+    for (std::size_t i : {2u,9u,10u,3u,6u,11u,12u,7u}) pb.push_back(r_mp.pGetNode(i));
+    auto p_elem_a = Kratos::make_intrusive<TestThermoMechanicElement>(
+        1, Geometry<Node>::Pointer(new Hexahedra3D8<Node>(pa)), p_prop);
+    auto p_elem_b = Kratos::make_intrusive<TestThermoMechanicElement>(
+        2, Geometry<Node>::Pointer(new Hexahedra3D8<Node>(pb)), p_prop);
+    r_mp.AddElement(p_elem_a);
+    r_mp.AddElement(p_elem_b);
+    p_elem_a->Initialize(r_pi);
+    p_elem_b->Initialize(r_pi);
+
+    ModelPart& r_body = r_mp.CreateSubModelPart("Body");
+    r_body.AddElements(r_mp.ElementsBegin(), r_mp.ElementsEnd());
+
+    for (auto& n : r_mp.Nodes()) {
+        n.Fix(DISPLACEMENT_Y);
+        n.Fix(DISPLACEMENT_Z);
+        n.FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
+        n.FastGetSolutionStepValue(DISPLACEMENT_Z) = 0.0;
+    }
+    for (std::size_t i : {1u, 4u, 5u, 8u}) {
+        r_mp.pGetNode(i)->Fix(DISPLACEMENT_X);
+        r_mp.pGetNode(i)->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
+    }
+    for (std::size_t i : {9u, 10u, 11u, 12u}) {
+        r_mp.pGetNode(i)->Fix(DISPLACEMENT_X);
+        r_mp.pGetNode(i)->FastGetSolutionStepValue(DISPLACEMENT_X) = 2.0e-6;
+    }
+
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+    using BuilderAndSolverType = ResidualBasedEliminationBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using CriteriaType = DisplacementCriteria<SparseSpaceType, LocalSpaceType>;
+    using StrategyType = PoromechanicsNewtonRaphsonNonlocalStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+
+    auto p_linear_solver = Kratos::make_shared<SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType>>();
+    auto p_builder = Kratos::make_shared<BuilderAndSolverType>(p_linear_solver);
+    auto p_criteria = Kratos::make_shared<CriteriaType>();
+    auto p_scheme = Kratos::make_shared<StaticSmoothingScheme>();
+    Kratos::Parameters parameters(R"({
+        "body_domain_sub_model_part_list": ["Body"],
+        "characteristic_length": 4.0,
+        "search_neighbours_step": false
+    })");
+
+    StrategyType strategy(r_mp, p_scheme, p_criteria, p_builder, parameters, 20, false, false, false);
+    strategy.Initialize();
+    const bool converged = strategy.SolveSolutionStep();
+
+    // The legacy elements now provide valid CONSTITUTIVE_LAW pointers to the
+    // Poro utility and the scheme produced LOCAL through the generic interface.
+    double la, na, ta, da, lb, nb, tb, db;
+    ReadNonlocalState<TestThermoMechanicElement>(*p_elem_a, la, na, ta, da);
+    ReadNonlocalState<TestThermoMechanicElement>(*p_elem_b, lb, nb, tb, db);
+    std::cout << "[4E] legacy Newton strategy: converged=" << converged
+              << " LOCAL B=" << lb << " NONLOCAL A=" << na << " B=" << nb << std::endl;
+    KRATOS_EXPECT_TRUE(converged);
+    KRATOS_EXPECT_TRUE(lb > 0.0);       // current LOCAL produced by the scheme
+    KRATOS_EXPECT_TRUE(na > 0.0);       // NONLOCAL averaged by Poro
+    KRATOS_EXPECT_TRUE(nb > 0.0);
+    // Valid law pointers.
+    std::vector<ConstitutiveLaw::Pointer> law_read;
+    static_cast<Element&>(*p_elem_a).CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, law_read, r_pi);
+    KRATOS_EXPECT_EQ(law_read.size(), 8);
+    KRATOS_EXPECT_TRUE(law_read[0] != nullptr);
 }
 
 } // namespace Testing
