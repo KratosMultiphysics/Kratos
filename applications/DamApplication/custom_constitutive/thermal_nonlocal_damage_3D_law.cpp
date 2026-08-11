@@ -23,7 +23,14 @@ ThermalNonlocalDamage3DLaw::ThermalNonlocalDamage3DLaw(FlowRulePointer pFlowRule
 //----------------------------------------------------------------------------------------
 
 //Copy Constructor
-ThermalNonlocalDamage3DLaw::ThermalNonlocalDamage3DLaw(const ThermalNonlocalDamage3DLaw& rOther) : NonlocalDamage3DLaw(rOther) {}
+ThermalNonlocalDamage3DLaw::ThermalNonlocalDamage3DLaw(const ThermalNonlocalDamage3DLaw& rOther)
+    : NonlocalDamage3DLaw(rOther)
+{
+    // The base NonlocalDamage3DLaw copy constructor does NOT preserve
+    // mNonlocalEquivalentStrain; it is preserved here in the Dam derived copy
+    // path (the member is protected and accessible in this class).
+    mNonlocalEquivalentStrain = rOther.mNonlocalEquivalentStrain;
+}
 
 //----------------------------------------------------------------------------------------
 
@@ -48,91 +55,232 @@ ConstitutiveLaw::Pointer ThermalNonlocalDamage3DLaw::Clone() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Lifecycle
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
+bool ThermalNonlocalDamage3DLaw::RequiresInitializeMaterialResponse()
 {
-  // Check
-  rValues.CheckAllParameters();
+    // The damage/history state is initialized through InitializeMaterial (flow
+    // rule) and managed through the finalization. No local-damage state is
+    // initialized through the InitializeMaterialResponse hooks.
+    return false;
+}
 
-  // Get values for the constitutive law
-  Flags& Options = rValues.GetOptions();
-  const Properties& MaterialProperties = rValues.GetMaterialProperties();
-  Vector& rStrainVector = rValues.GetStrainVector();
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-  // Initialize main variables //
+void ThermalNonlocalDamage3DLaw::ReinitializeMaterialProperties(const Properties& rMaterialProperties)
+{
+    // After a serialization/restart the transient Properties on the hardening
+    // law are not restored by the Serializer; re-establish them so that a
+    // subsequent material response works. The committed damage/history state is
+    // untouched.
+    if (mpHardeningLaw)
+    {
+        mpHardeningLaw->SetProperties(rMaterialProperties);
+    }
+}
 
-  // LinearElasticMatrix
-  const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
-  const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
-  const unsigned int VoigtSize = rStrainVector.size();
-  Matrix LinearElasticMatrix (VoigtSize,VoigtSize);
-  this->CalculateLinearElasticMatrix(LinearElasticMatrix,YoungModulus,PoissonCoefficient);
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Parameter-aware scalar outputs
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-  // MaterialResponseVariables (Thermal variables)
-  HyperElastic3DLaw::MaterialResponseVariables ElasticVariables;
-  ElasticVariables.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
-  ElasticVariables.SetElementGeometry(rValues.GetElementGeometry());
-  ElasticVariables.LameMu = 1.0+PoissonCoefficient;
-  ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION];
-  /* Calculate Nodal Reference Temperature */
-  double NodalReferenceTemperature;
-  this->CalculateNodalReferenceTemperature(ElasticVariables,NodalReferenceTemperature);
+double& ThermalNonlocalDamage3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
+{
+    if (rThisVariable == LOCAL_EQUIVALENT_STRAIN)
+    {
+        // Recompute the LOCAL driving quantity from the CURRENT kinematics
+        // supplied by the element (the generic SMA CalculateOnConstitutiveLaw
+        // path) and store it in the flow-rule state.
+        this->CalculateLocalEquivalentStrain(rParameterValues);
+        return this->GetValue(LOCAL_EQUIVALENT_STRAIN, rValue);
+    }
 
-  // ReturnMappingVariables
-  FlowRule::RadialReturnVariables ReturnMappingVariables;
-  ReturnMappingVariables.initialize();
-  // Strain and Stress matrices
-  const unsigned int Dim = this->WorkingSpaceDimension();
-  Matrix AuxMatrix(Dim,Dim);
-  ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
-  ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
-  // CharacteristicSize (for nonlocal damage it must be 1.0)
-  ReturnMappingVariables.CharacteristicSize = 1.0;
+    return HyperElasticPlastic3DLaw::CalculateValue(rParameterValues, rThisVariable, rValue);
+}
 
-  if(Options.Is(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE)) // LOCAL QUANTITIES
-  {
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Material response entry points
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ThermalNonlocalDamage3DLaw::CalculateMaterialResponsePK2 (Parameters & rValues)
+{
+    this->CalculateThermalNonlocalDamageResponse(rValues);
+}
+
+void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseKirchhoff (Parameters & rValues)
+{
+    this->CalculateThermalNonlocalDamageResponse(rValues);
+}
+
+void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters & rValues)
+{
+    this->CalculateThermalNonlocalDamageResponse(rValues);
+}
+
+void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponsePK2 (Parameters & rValues)
+{
+    this->FinalizeThermalNonlocalDamageResponse(rValues);
+}
+
+void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseKirchhoff (Parameters & rValues)
+{
+    this->FinalizeThermalNonlocalDamageResponse(rValues);
+}
+
+void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters & rValues)
+{
+    this->FinalizeThermalNonlocalDamageResponse(rValues);
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Parameter validation
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ThermalNonlocalDamage3DLaw::CheckThermalNonlocalDamageParameters(Parameters& rValues) const
+{
+    KRATOS_ERROR_IF_NOT(rValues.IsSetStrainVector()) << "ThermalNonlocalDamage3DLaw: StrainVector NOT SET" << std::endl;
+    KRATOS_ERROR_IF_NOT(rValues.IsSetShapeFunctionsValues()) << "ThermalNonlocalDamage3DLaw: ShapeFunctionsValues NOT SET" << std::endl;
+    KRATOS_ERROR_IF_NOT(rValues.IsSetElementGeometry()) << "ThermalNonlocalDamage3DLaw: ElementGeometry NOT SET" << std::endl;
+    KRATOS_ERROR_IF_NOT(rValues.IsSetMaterialProperties()) << "ThermalNonlocalDamage3DLaw: MaterialProperties NOT SET" << std::endl;
+    KRATOS_ERROR_IF_NOT(rValues.IsSetProcessInfo()) << "ThermalNonlocalDamage3DLaw: ProcessInfo NOT SET" << std::endl;
+
+    const Flags& Options = rValues.GetOptions();
+    if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
+    {
+        KRATOS_ERROR_IF_NOT(rValues.IsSetStressVector()) << "ThermalNonlocalDamage3DLaw: StressVector NOT SET" << std::endl;
+    }
+    if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
+    {
+        KRATOS_ERROR_IF_NOT(rValues.IsSetConstitutiveMatrix()) << "ThermalNonlocalDamage3DLaw: ConstitutiveMatrix NOT SET" << std::endl;
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Common LOCAL equivalent-strain calculation
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ThermalNonlocalDamage3DLaw::CalculateLocalEquivalentStrain(
+    Parameters& rValues,
+    Vector* pStressVector,
+    Matrix* pConstitutiveMatrix)
+{
+    // Validate only what is genuinely consumed (no shape-function derivatives,
+    // no F/detF requirement).
+    this->CheckThermalNonlocalDamageParameters(rValues);
+
+    const Properties& MaterialProperties = rValues.GetMaterialProperties();
+    const Vector& rTotalStrainVector = rValues.GetStrainVector();
+    const unsigned int VoigtSize = rTotalStrainVector.size();
+
+    // LinearElasticMatrix
+    const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
+    const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
+    Matrix LinearElasticMatrix (VoigtSize,VoigtSize);
+    this->CalculateLinearElasticMatrix(LinearElasticMatrix,YoungModulus,PoissonCoefficient);
+
+    // MaterialResponseVariables (Thermal variables)
+    MaterialResponseVariables ElasticVariables;
+    ElasticVariables.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
+    ElasticVariables.SetElementGeometry(rValues.GetElementGeometry());
+    ElasticVariables.LameMu = 1.0+PoissonCoefficient;
+    ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION];
+    /* Calculate Nodal Reference Temperature */
+    double NodalReferenceTemperature;
+    this->CalculateNodalReferenceTemperature(ElasticVariables,NodalReferenceTemperature);
+
     // Thermal strain
     Vector ThermalStrainVector(VoigtSize);
     this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
-    // Mechanical strain
-    noalias(rStrainVector) -= ThermalStrainVector;
-    noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    // Mechanical strain (local copy, the supplied total strain is not mutated)
+    Vector MechanicalStrainVector(VoigtSize);
+    noalias(MechanicalStrainVector) = rTotalStrainVector;
+    noalias(MechanicalStrainVector) -= ThermalStrainVector;
+
+    // ReturnMappingVariables
+    FlowRule::RadialReturnVariables ReturnMappingVariables;
+    ReturnMappingVariables.initialize();
+    const unsigned int Dim = this->WorkingSpaceDimension();
+    Matrix AuxMatrix(Dim,Dim);
+    noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(MechanicalStrainVector);
+    ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
     noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
+    ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
+    // CharacteristicSize (for nonlocal damage it must be 1.0)
+    ReturnMappingVariables.CharacteristicSize = 1.0;
 
-    if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) // Compute constitutive tensor and total stress
+    Vector EffectiveStressVector(VoigtSize);
+    this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,MechanicalStrainVector,rValues);
+
+    if (pConstitutiveMatrix != nullptr)
     {
-      if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
-      {
-        // COMPUTE_CONSTITUTIVE_TENSOR
-        Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-        Vector EffectiveStressVector(VoigtSize);
-
-        this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
-
-        this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
-      }
-      else
-      {
-        // COMPUTE_CONSTITUTIVE_TENSOR && COMPUTE_STRESS
-        Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-        Vector& rStressVector = rValues.GetStressVector();
-
-        this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
-
-        this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
-      }
+        this->CalculateConstitutiveTensor(*pConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
     }
-    else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS)) // Compute total stress
+
+    if (pStressVector != nullptr)
     {
-      // COMPUTE_STRESS
-      Vector& rStressVector = rValues.GetStressVector();
-
-      this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
+        noalias(*pStressVector) = EffectiveStressVector;
     }
-  }
-  else // NON LOCAL QUANTITIES
-  {
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Common thermal NONLOCAL response
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ThermalNonlocalDamage3DLaw::CalculateThermalNonlocalDamageResponse(Parameters& rValues)
+{
+    // Validate only the parameters genuinely consumed by this law.
+    this->CheckThermalNonlocalDamageParameters(rValues);
+
+    // Get values for the constitutive law
+    Flags& Options = rValues.GetOptions();
+    const Properties& MaterialProperties = rValues.GetMaterialProperties();
+    const Vector& rTotalStrainVector = rValues.GetStrainVector();
+    const unsigned int VoigtSize = rTotalStrainVector.size();
+
+    // LinearElasticMatrix
+    const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
+    const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
+    Matrix LinearElasticMatrix (VoigtSize,VoigtSize);
+    this->CalculateLinearElasticMatrix(LinearElasticMatrix,YoungModulus,PoissonCoefficient);
+
+    // MaterialResponseVariables (Thermal variables)
+    MaterialResponseVariables ElasticVariables;
+    ElasticVariables.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
+    ElasticVariables.SetElementGeometry(rValues.GetElementGeometry());
+    ElasticVariables.LameMu = 1.0+PoissonCoefficient;
+    ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION];
+    /* Calculate Nodal Reference Temperature */
+    double NodalReferenceTemperature;
+    this->CalculateNodalReferenceTemperature(ElasticVariables,NodalReferenceTemperature);
+
+    // ReturnMappingVariables
+    FlowRule::RadialReturnVariables ReturnMappingVariables;
+    ReturnMappingVariables.initialize();
+    const unsigned int Dim = this->WorkingSpaceDimension();
+    Matrix AuxMatrix(Dim,Dim);
+    ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
+    ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
+    // CharacteristicSize (for nonlocal damage it must be 1.0)
+    ReturnMappingVariables.CharacteristicSize = 1.0;
+
+    if(Options.Is(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE)) // LOCAL QUANTITIES (temporary legacy compatibility)
+    {
+        // The legacy Dam thermo-mechanical element requests COMPUTE_STRESS (and
+        // possibly COMPUTE_CONSTITUTIVE_TENSOR) together with this flag during
+        // its nonlinear-iteration hooks; reproduce those outputs.
+        Vector* pStress = Options.Is(ConstitutiveLaw::COMPUTE_STRESS) ? &rValues.GetStressVector() : nullptr;
+        Matrix* pTangent = Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) ? &rValues.GetConstitutiveMatrix() : nullptr;
+
+        this->CalculateLocalEquivalentStrain(rValues, pStress, pTangent);
+        return;
+    }
+
+    // NONLOCAL quantities
     ReturnMappingVariables.NormIsochoricStress = mNonlocalEquivalentStrain;
+
+    // Mechanical strain in a LOCAL vector
+    Vector MechanicalStrainVector(VoigtSize);
+    noalias(MechanicalStrainVector) = rTotalStrainVector;
 
     if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) // Compute constitutive tensor and total stress
     {
@@ -140,8 +288,8 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
       Vector ThermalStrainVector(VoigtSize);
       this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
       // Mechanical strain
-      noalias(rStrainVector) -= ThermalStrainVector;
-      noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+      noalias(MechanicalStrainVector) -= ThermalStrainVector;
+      noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(MechanicalStrainVector);
       noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
       if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
@@ -150,7 +298,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
         Vector EffectiveStressVector(VoigtSize);
 
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,MechanicalStrainVector,rValues);
 
         this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
       }
@@ -160,7 +308,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
         Vector& rStressVector = rValues.GetStressVector();
 
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,MechanicalStrainVector,rValues);
 
         this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
       }
@@ -173,10 +321,10 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         Vector& rStressVector = rValues.GetStressVector();
 
         // Total Strain
-        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(MechanicalStrainVector);
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,MechanicalStrainVector,rValues);
       }
       else if(Options.Is(ConstitutiveLaw::THERMAL_RESPONSE_ONLY))
       {
@@ -184,11 +332,13 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         Vector& rStressVector = rValues.GetStressVector();
 
         // Thermal strain
-        this->CalculateThermalStrain(rStrainVector,ElasticVariables,NodalReferenceTemperature);
-        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+        Vector ThermalStrainVector(VoigtSize);
+        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
+        noalias(MechanicalStrainVector) = ThermalStrainVector;
+        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(MechanicalStrainVector);
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,MechanicalStrainVector,rValues);
       }
       else // Compute total stress
       {
@@ -199,11 +349,11 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         Vector ThermalStrainVector(VoigtSize);
         this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
         // Mechanical strain
-        noalias(rStrainVector) -= ThermalStrainVector;
-        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+        noalias(MechanicalStrainVector) -= ThermalStrainVector;
+        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(MechanicalStrainVector);
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,MechanicalStrainVector,rValues);
       }
     }
     else if(Options.Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY))
@@ -211,29 +361,28 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
       // VOLUMETRIC_TENSOR_ONLY
       if(Options.Is(ConstitutiveLaw::THERMAL_RESPONSE_ONLY))
       {
-        // Thermal strain
+        // Thermal strain (the strain vector is the output channel of this query)
+        Vector& rStrainVector = rValues.GetStrainVector();
         this->CalculateThermalStrain(rStrainVector,ElasticVariables,NodalReferenceTemperature);
       }
       //other strain: to implement
     }
-  }
 }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Common thermal NONLOCAL finalization
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------
-
-void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
+void ThermalNonlocalDamage3DLaw::FinalizeThermalNonlocalDamageResponse(Parameters& rValues)
 {
-    // Check
-    rValues.CheckAllParameters();
+    // Validate only the parameters genuinely consumed by this law.
+    this->CheckThermalNonlocalDamageParameters(rValues);
 
     // Get values for the constitutive law
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
-    Vector& rStrainVector = rValues.GetStrainVector();
-    const unsigned int VoigtSize = rStrainVector.size();
+    const Vector& rTotalStrainVector = rValues.GetStrainVector();
+    const unsigned int VoigtSize = rTotalStrainVector.size();
     Vector EffectiveStressVector(VoigtSize);
-
-    // Initialize main variables
 
     // LinearElasticMatrix
     const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
@@ -242,7 +391,7 @@ void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rVa
     this->CalculateLinearElasticMatrix(LinearElasticMatrix,YoungModulus,PoissonCoefficient);
 
     // MaterialResponseVariables (Thermal variables)
-    HyperElastic3DLaw::MaterialResponseVariables ElasticVariables;
+    MaterialResponseVariables ElasticVariables;
 	ElasticVariables.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
 	ElasticVariables.SetElementGeometry(rValues.GetElementGeometry());
     ElasticVariables.LameMu = 1.0+PoissonCoefficient;
@@ -254,8 +403,10 @@ void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rVa
     // Compute Thermal strain
     Vector ThermalStrainVector(VoigtSize);
     this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
-    // Compute Mechanical strain
-    noalias(rStrainVector) -= ThermalStrainVector;
+    // Compute Mechanical strain in a LOCAL vector
+    Vector MechanicalStrainVector(VoigtSize);
+    noalias(MechanicalStrainVector) = rTotalStrainVector;
+    noalias(MechanicalStrainVector) -= ThermalStrainVector;
 
     // ReturnMappingVariables
     FlowRule::RadialReturnVariables ReturnMappingVariables;
@@ -263,7 +414,7 @@ void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rVa
     // Strain and Stress matrices
     const unsigned int Dim = this->WorkingSpaceDimension();
     ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
-    noalias(ReturnMappingVariables.StrainMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    noalias(ReturnMappingVariables.StrainMatrix) = MathUtils<double>::StrainVectorToTensor(MechanicalStrainVector);
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
     // CharacteristicSize
     ReturnMappingVariables.CharacteristicSize = 1.0;
@@ -273,13 +424,13 @@ void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rVa
     {
         ReturnMappingVariables.Options.Set(FlowRule::RETURN_MAPPING_COMPUTED,false); // Restore sate variable = false
 
-        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,MechanicalStrainVector,rValues);
     }
     else // No convergence is achieved. Restore state variable to equilibrium
     {
         ReturnMappingVariables.Options.Set(FlowRule::RETURN_MAPPING_COMPUTED,true); // Restore sate variable = true
 
-        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,MechanicalStrainVector,rValues);
     }
 
     if(rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS))
