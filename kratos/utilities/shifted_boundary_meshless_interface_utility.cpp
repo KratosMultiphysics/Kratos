@@ -160,6 +160,8 @@ namespace
         // If true, the basis is created such that it is conforming with the linear FE space of the surrogate boundary
         mConformingBasis = ThisParameters["conforming_basis"].GetBool();
 
+        mNitscheFlag = ThisParameters["nitsche_flag"].GetBool();
+
         // If true, the basis is created such that the surrogate boundary gradient is kept
         const std::string ext_op_type = ThisParameters["extension_operator_type"].GetString();
         if (ext_op_type == "MLS") {
@@ -204,6 +206,7 @@ namespace
             "boundary_sub_model_part_name" : "",
             "sbm_interface_condition_name" : "",
             "conforming_basis" : true,
+            "nitsche_flag" : false,
             "extension_operator_type" : "MLS",
             "mls_extension_operator_order" : 1,
             "levelset_variable_name" : "DISTANCE"
@@ -528,6 +531,18 @@ namespace
                         const double kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
                         p_meshless_sh_func(cloud_nodes_coordinates, r_coords, kernel_rad, N_container);
 
+                        // KRATOS_WATCH(r_node)
+                        // KRATOS_WATCH(r_coords)
+
+                        
+                        // KRATOS_WATCH(cloud_nodes)
+                        // KRATOS_WATCH(cloud_nodes_coordinates)
+                        // exit(0);
+
+                        // KRATOS_WATCH(kernel_rad)
+                        // KRATOS_WATCH(N_container)
+                        
+
                         // Save the extension operator nodal data
                         std::size_t n_cl_nod = cloud_nodes.size();
                         CloudDataVectorType cloud_data_vector(n_cl_nod);
@@ -556,6 +571,11 @@ namespace
                 Vector nodal_distances(n_nodes);
                 SetNodalDistancesVector(r_geom, *mpLevelSetVariable, nodal_distances);
 
+                // KRATOS_WATCH(*p_geom)
+                // KRATOS_WATCH(nodal_distances)
+
+                
+
                 // Set the modified shape functions pointer and calculate the positive interface data
                 auto p_mod_sh_func = p_mod_sh_func_factory(p_geom, nodal_distances);
                 Vector pos_int_w;
@@ -565,6 +585,12 @@ namespace
                 //TODO: Add a method without the interface gradients
                 p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(pos_int_N, pos_int_DN_DX, pos_int_w, GeometryData::IntegrationMethod::GI_GAUSS_2);
                 p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(pos_int_n, GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+                // KRATOS_WATCH(pos_int_N)
+                // KRATOS_WATCH(pos_int_DN_DX)
+                // KRATOS_WATCH(pos_int_w)
+                // KRATOS_WATCH(pos_int_n)
+                
 
                 // Calculate parent element size for the SBM BC imposition
                 const double h = p_element_size_func(*p_geom);
@@ -584,6 +610,10 @@ namespace
                     }
                 }
 
+                // KRATOS_WATCH(h)
+                // KRATOS_WATCH(cloud_nodes_set.size())
+                
+
                 // Save previous resuls in a pointer vector to be used in the creation of the condition
                 // Note that the obtained cloud is sorted by id to properly get the extension operator data
                 PointerVector<NodeType> cloud_nodes_vector;
@@ -600,6 +630,11 @@ namespace
                 DenseMatrix<double> i_g_DN_DX;
                 array_1d<double,3> i_g_coords;
                 const std::size_t n_int_pts = pos_int_w.size();
+                
+               
+                // KRATOS_WATCH(n_int_pts)
+                
+
                 for (std::size_t i_g = 0; i_g < n_int_pts; ++i_g) {
                     // Calculate Gauss pt. coordinates
                     i_g_N = row(pos_int_N, i_g);
@@ -608,6 +643,8 @@ namespace
                     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                         noalias(i_g_coords) += i_g_N[i_node] * r_geom[i_node].Coordinates();
                     }
+
+                    // KRATOS_WATCH(i_g_coords)
 
                     // Initialize the extension operator containers
                     const std::size_t n_cl_nodes = cloud_nodes_vector.size();
@@ -660,6 +697,8 @@ namespace
                         }
                     }
 
+                    // KRATOS_WATCH(N_container)
+
                     // Create a new condition with a geometry made up with the basis nodes
                     auto p_prop = rElement.pGetProperties();
                     auto p_cond = mpConditionPrototype->Create(++max_cond_id, cloud_nodes_vector, p_prop);
@@ -674,7 +713,26 @@ namespace
                     p_cond->SetValue(INTEGRATION_COORDINATES, i_g_coords);
                     p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
                     p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+
+                    // KRATOS_WATCH(i_g_coords)
+                    // KRATOS_WATCH(N_container)
+                    // KRATOS_WATCH(DN_DX_container)
+
+                    // KRATOS_WATCH(pos_int_w[i_g])
+                    // KRATOS_WATCH(pos_int_n[i_g] / n_norm)
+                    // KRATOS_WATCH(i_g_coords)
+                    // KRATOS_WATCH(h)
+                    // exit(0);
                 }
+            }
+        }
+        // KRATOS_WATCH(*mpModelPart)
+
+        // KRATOS_WATCH(mNitscheFlag)
+        if(mNitscheFlag)
+        {
+            for (auto& rElement : mpModelPart->Elements()) {
+                rElement.Set(ACTIVE, true);
             }
         }
     }
@@ -832,6 +890,35 @@ namespace
                 }
             }
         }
+
+        for (auto& rElement : mpModelPart->Elements()) {
+            std::size_t counter = 0;
+            if (rElement.Is(BOUNDARY))
+            {
+                auto& r_geom = rElement.GetGeometry();
+                for (auto& rNode : r_geom)
+                {
+                    if (rNode.Is(BOUNDARY))
+                    {
+                        counter++;
+                    }
+                }
+                if (counter == 1)
+                {
+                    rElement.Set(MARKER, true);
+                }
+            }
+        }
+
+        //counter to check active eleement
+        IndexType active_element_counter = 0;
+        for (auto& rElement : mpModelPart->Elements()) {
+            if (rElement.Is(ACTIVE))
+            {
+                active_element_counter++;
+            }
+        }
+        KRATOS_WATCH(active_element_counter)
     }
 
     ShiftedBoundaryMeshlessInterfaceUtility::MLSShapeFunctionsAndGradientsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsAndGradientsFunction() const

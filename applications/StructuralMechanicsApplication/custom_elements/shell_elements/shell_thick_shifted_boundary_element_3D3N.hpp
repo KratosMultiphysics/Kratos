@@ -348,6 +348,12 @@ private:
         const array_1d<double,2>& rUnitNormal,
         BoundedMatrix<double,6,LocalSize>& rAuxMat);
 
+    void CalculateCBProjectionLinearisationRotation(
+        const Matrix& rC,
+        const BoundedMatrix<double,8,LocalSize>& rB,
+        const array_1d<double,2>& rUnitNormal,
+        BoundedMatrix<double,6,LocalSize>& rAuxMat);
+
     ///@}
     ///@name Private  Access
     ///@{

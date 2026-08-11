@@ -313,6 +313,7 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     }
     const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT]; //TO DO: rCurrentProcessInfo[PENALTY_COEFFICIENT];
     // KRATOS_WATCH(gamma)
+    // KRATOS_WATCH(rCurrentProcessInfo[PENALTY_COEFFICIENT])
 
     // Calculate the Nitsche BC imposition contribution
     // 1. Add Nitsche penalty term //TO DO check this
@@ -321,12 +322,42 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     const double rho_C = norm_frobenius(C_mat); //TODO: GS uses the spectral radius in here
     const double aux_weight = w * gamma * rho_C / h;
 
+    const double aux_weight_membrane = aux_weight;
+    const double aux_weight_bending = aux_weight * thickness * thickness / 12.0; 
+    // const double aux_weight_shear = aux_weight; //later
+
+    // KRATOS_WATCH(w)
+    // KRATOS_WATCH(aux_weight)
+    // KRATOS_WATCH(r_N)
+    // KRATOS_WATCH(C_mat)
+    // KRATOS_WATCH(rho_C)
+    // exit(0);
+    // KRATOS_WATCH(rLeftHandSideMatrix)
+
+    // KRATOS_WATCH(h)
+
+    Vector N_left_part = ZeroVector(r_N.size());
+    // N_left_part = r_N;
+    // BIG HACK
+    for(SizeType i = 0; i < r_geometry.PointsNumber(); ++i)
+    {
+        // KRATOS_WATCH(i)
+        // KRATOS_WATCH(r_geometry[i].Is(BOUNDARY))
+        if(r_geometry[i].Is(BOUNDARY))
+        {
+            N_left_part[i] = 1.0;
+        }
+    }
+
+    // KRATOS_WATCH(N_left_part)
+
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-        aux_1 = aux_weight * r_N[i_node];
-        for (std::size_t d = 0; d < n_dim; ++d) {
+        // aux_1 = aux_weight * N_left_part[i_node]; //new approach : to do proof
+        aux_1 = aux_weight * r_N[i_node]; //classic approach
+        for (std::size_t d = 0; d < 3; ++d) {
             for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
 
-                // if(d == 2 || d == 3 || d == 4)
+                // if(d == 2)
                 // {
                     aux_2 = aux_1 * r_N[j_node];
                 // }
@@ -342,12 +373,42 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         }
     }
 
-    // 2. Add Nitsche stabilization term
+    // KRATOS_WATCH(rLeftHandSideMatrix)
+    // exit(0);
+
+    // for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+    //     // aux_1 = aux_weight * N_left_part[i_node]; //new approach : to do proof
+    //     aux_1 = aux_weight * r_N[i_node]; //classic approach
+    //     for (std::size_t d = 3; d < 5; ++d) {
+    //         for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+
+    //                 aux_2 = aux_1 * r_N[j_node];// *h*h;///(thickness*thickness/12.0);
+                
+    //             rLeftHandSideMatrix(i_node*n_dim + d, j_node*n_dim + d) += aux_2;
+    //             rRightHandSideVector(i_node*n_dim + d) -= aux_2 * unknown_values(j_node*n_dim + d);
+    //         }
+    //         rRightHandSideVector(i_node*n_dim + d) += aux_1 * bc_values[d];
+    //     }
+    // }
+
+    // KRATOS_WATCH(rLeftHandSideMatrix)
+    // KRATOS_WATCH(aux_weight)
+    // KRATOS_WATCH(r_N)
+    // KRATOS_WATCH(r_DN_DX)
+    // exit(0);
+
+    // // 2. Add Nitsche stabilization term (Dirichlet)
     Matrix aux_N(6, local_size);
-    Matrix transB_C_proj = ZeroMatrix(local_size, 8); //first variation traction
+    Matrix transB_C_proj = ZeroMatrix(local_size, 6); //first variation traction
     CalculateAuxShapeFunctionsMatrix(r_N, aux_N);
     CalculateBtransCProjectionLinearisation(D, B_mat_shell, normal, transB_C_proj);
     const Matrix stab_lhs = prod(transB_C_proj, aux_N); 
+
+    // KRATOS_WATCH(aux_N)
+    // KRATOS_WATCH(transB_C_proj)
+    // KRATOS_WATCH(w)
+    // KRATOS_WATCH(stab_lhs)
+    // exit(0);
 
     Vector stab_rhs_bc = ZeroVector(local_size);
 
@@ -358,9 +419,36 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     }
 
     const Vector stab_rhs_unk = prod(stab_lhs, unknown_values);
-    rLeftHandSideMatrix += w * stab_lhs;
+    rLeftHandSideMatrix -= w * stab_lhs *0.0; // this is negative!!
     rRightHandSideVector += w * stab_rhs_bc;
     rRightHandSideVector -= w * stab_rhs_unk;
+
+
+    // // 3. Add Nitsche stabilization term (Neumann)
+    Matrix aux_N_rot = ZeroMatrix(6, local_size);
+    Matrix transB_C_proj_rot = ZeroMatrix(local_size, 6); //first variation traction
+    CalculateAuxShapeFunctionsMatrixRotation(r_N, aux_N_rot);
+    CalculateBtransCProjectionLinearisationRotation(D, B_mat_shell, normal, transB_C_proj_rot);
+
+    Matrix trans_aux_N_rot = ZeroMatrix(local_size, 6);
+    Matrix B_C_proj_rot = ZeroMatrix(6, local_size);
+    trans_aux_N_rot = trans(aux_N_rot);
+    B_C_proj_rot = trans(transB_C_proj_rot);
+    
+    const Matrix stab_lhs_rot = prod(trans_aux_N_rot, B_C_proj_rot); 
+
+    // KRATOS_WATCH(B_C_proj_rot)
+    // exit(0);
+
+    // KRATOS_WATCH(aux_N_rot)
+    // KRATOS_WATCH(transB_C_proj_rot)
+    // KRATOS_WATCH(stab_lhs_rot)
+    // exit(0);
+
+    rLeftHandSideMatrix += w * stab_lhs_rot * 0.0;
+
+    // KRATOS_WATCH(rLeftHandSideMatrix)
+    // exit(0);
 
     KRATOS_CATCH("")
 }
@@ -577,21 +665,65 @@ void DisplacementShellShiftedBoundaryCondition::CalculateBtransCProjectionLinear
     // if (strain_size == 3) {
     // membrane part
         for (std::size_t j = 0; j < local_size; ++j) {
-            rAuxMat(j,0) = rUnitNormal[0]*aux_transBC(j,0) + rUnitNormal[1]*aux_transBC(j,2);
+            rAuxMat(j,0) = rUnitNormal[0]*aux_transBC(j,0) + rUnitNormal[1]*aux_transBC(j,2)*1;
         }
         for (std::size_t j = 0; j < local_size; ++j) {
-            rAuxMat(j,1) = rUnitNormal[0]*aux_transBC(j,2) + rUnitNormal[1]*aux_transBC(j,1);
+            rAuxMat(j,1) = rUnitNormal[0]*aux_transBC(j,2) + rUnitNormal[1]*aux_transBC(j,1)*1;
         }
     // bending part    
         for (std::size_t j = 0; j < local_size; ++j) {
-            rAuxMat(j,4) = rUnitNormal[0]*aux_transBC(j,3) + rUnitNormal[1]*aux_transBC(j,5);
+            rAuxMat(j,4) = (rUnitNormal[0]*aux_transBC(j,3) + rUnitNormal[1]*aux_transBC(j,5))*0;
         }
         for (std::size_t j = 0; j < local_size; ++j) {
-            rAuxMat(j,3) = rUnitNormal[0]*aux_transBC(j,5) + rUnitNormal[1]*aux_transBC(j,4);
+            rAuxMat(j,3) = (rUnitNormal[0]*aux_transBC(j,5) + rUnitNormal[1]*aux_transBC(j,4))*0;
         }
     // TO DO: shear and drilling part
         for (std::size_t j = 0; j < local_size; ++j) {
             rAuxMat(j,2) = rUnitNormal[0]*aux_transBC(j,6) + rUnitNormal[1]*aux_transBC(j,7);
+        }
+        
+
+    // } else {
+    //     for (std::size_t j = 0; j < local_size; ++j) {
+    //         rAuxMat(j,0) = rUnitNormal[0]*aux_transBC(j,0) + rUnitNormal[1]*aux_transBC(j,3) + rUnitNormal[2]*aux_transBC(j,5);
+    //     }
+    //     for (std::size_t j = 0; j < local_size; ++j) {
+    //         rAuxMat(j,1) = rUnitNormal[0]*aux_transBC(j,3) + rUnitNormal[1]*aux_transBC(j,1) + rUnitNormal[2]*aux_transBC(j,4);
+    //     }
+    //     for (std::size_t j = 0; j < local_size; ++j) {
+    //         rAuxMat(j,2) = rUnitNormal[0]*aux_transBC(j,5) + rUnitNormal[1]*aux_transBC(j,4) + rUnitNormal[2]*aux_transBC(j,2);
+    //     }
+    // }
+}
+
+void DisplacementShellShiftedBoundaryCondition::CalculateBtransCProjectionLinearisationRotation(
+    const Matrix& rC,
+    const Matrix& rB,
+    const array_1d<double, 3>& rUnitNormal,
+    Matrix& rAuxMat)
+{
+    const SizeType local_size = rB.size2();
+    const SizeType strain_size = rB.size1();
+    const Matrix aux_transBC = prod(trans(rB), rC);
+
+    // if (strain_size == 3) {
+    // membrane part
+        for (std::size_t j = 0; j < local_size; ++j) {
+            rAuxMat(j,0) = (rUnitNormal[0]*aux_transBC(j,0) + rUnitNormal[1]*aux_transBC(j,2))*0;
+        }
+        for (std::size_t j = 0; j < local_size; ++j) {
+            rAuxMat(j,1) = (rUnitNormal[0]*aux_transBC(j,2) + rUnitNormal[1]*aux_transBC(j,1))*0;
+        }
+    // bending part    
+        for (std::size_t j = 0; j < local_size; ++j) {
+            rAuxMat(j,4) = (rUnitNormal[0]*aux_transBC(j,3) + rUnitNormal[1]*aux_transBC(j,5));
+        }
+        for (std::size_t j = 0; j < local_size; ++j) {
+            rAuxMat(j,3) = (rUnitNormal[0]*aux_transBC(j,5) + rUnitNormal[1]*aux_transBC(j,4));
+        }
+    // TO DO: shear and drilling part
+        for (std::size_t j = 0; j < local_size; ++j) {
+            rAuxMat(j,2) = (rUnitNormal[0]*aux_transBC(j,6) + rUnitNormal[1]*aux_transBC(j,7))*0;
         }
         
 
@@ -617,7 +749,22 @@ void DisplacementShellShiftedBoundaryCondition::CalculateAuxShapeFunctionsMatrix
     const SizeType local_size = rAuxMat.size2();
     rAuxMat = ZeroMatrix(n_dim, local_size);
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-        for (IndexType d = 0; d < n_dim; ++d) {
+        for (IndexType d = 0; d < 6; ++d) {
+            rAuxMat(d, i_node*n_dim + d) = rN[i_node];
+        }
+    }
+}
+
+void DisplacementShellShiftedBoundaryCondition::CalculateAuxShapeFunctionsMatrixRotation(
+    const Vector& rN,
+    Matrix& rAuxMat)
+{
+    const SizeType n_nodes = rN.size();
+    const SizeType n_dim = rAuxMat.size1();
+    const SizeType local_size = rAuxMat.size2();
+    rAuxMat = ZeroMatrix(n_dim, local_size);
+    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+        for (IndexType d = 0; d < 6; ++d) {
             rAuxMat(d, i_node*n_dim + d) = rN[i_node];
         }
     }

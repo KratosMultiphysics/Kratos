@@ -219,15 +219,32 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 
                     B_parent = prod(R, B_temp);
 
+                    // KRATOS_WATCH(R)
+                    // KRATOS_WATCH(B_parent)
+                    // KRATOS_WATCH(B)
+                    // KRATOS_WATCH(n_sur_bd)
+                    // exit(0);
+                    KRATOS_WATCH(n_sur_bd)
+                    // // KRATOS_WATCH(-(this->mSections[0]->GetOrientationAngle()))
+
+                    // KRATOS_WATCH(D)
+                   
+
+                    // CalculateCBProjectionLinearisation(D, B, n_sur_bd, aux_CB_projection);
                     CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, aux_CB_projection);
                     CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
+
+                    KRATOS_WATCH(aux_CB_projection)
+                    KRATOS_WATCH(r_geom)
+                   
     
                     // Add the surrogate boundary flux contribution
                     // Note that the local face ids. are already taken into account in the assembly
                     // Note that the integration weight is calculated as 2 * Parent domain size * norm(DN_DX_cont_node)
                     double aux_val;
+                    double aux_val_penalty;
                     std::size_t i_loc_id;
-                    const double aux_w = 2 * dom_size_parent / h_sur_bd;// * data.dA; //TO DO Check
+                    const double aux_w = 2 * dom_size_parent / h_sur_bd;// * data.dA; //This is equivalent to the integration weight.
 
                     //This loop is the problem
                     // for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
@@ -243,24 +260,46 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     //     }
                     // }
 
+                    KRATOS_WATCH(dom_size_parent)
+                    KRATOS_WATCH(h_sur_bd)
+                    KRATOS_WATCH(aux_w)
+                    KRATOS_WATCH(penalty_parameter)
+
                     // Penalty
                     // Works!
                     for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
-                        aux_val = aux_w * r_sur_bd_N(0,i_node);
+                        aux_val_penalty = aux_w * r_sur_bd_N(0,i_node) / h_sur_bd; // different than Nitsche
                         i_loc_id = sur_bd_local_ids[i_node + 1];
-                        for (std::size_t d = 0; d < 5; ++d) { //HACK! if I put 6, it will affect the solution.
-                            right_hand_side(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
+                        for (std::size_t d = 0; d < 3; ++d) { //HACK! if I put 6, it will affect the solution. 5: fixed, 3: SS
+                            right_hand_side(i_loc_id*BlockSize+d) += aux_val_penalty * cauchy_traction[d];
                             for (std::size_t j_node = 1; j_node < NumNodes; ++j_node) { //HACK!
-                                left_hand_side(i_loc_id*BlockSize+d, j_node*BlockSize+d) += r_sur_bd_N(0,i_node) * aux_val * penalty_parameter; //Penalty
+                                left_hand_side(i_loc_id*BlockSize+d, j_node*BlockSize+d) += r_sur_bd_N(0,i_node) * aux_val_penalty * penalty_parameter; //Penalty
                             }
                         }
                     }
+
+                    // KRATOS_WATCH(r_sur_bd_N)
+                    // // KRATOS_WATCH(r_geom)
+                    // // KRATOS_WATCH(data.D)
+                    // KRATOS_WATCH(B_parent)
+                    // // KRATOS_WATCH(B)
+                    // KRATOS_WATCH(aux_CB_projection)
+                    // KRATOS_WATCH(n_bd_points)
+
+                    // KRATOS_WATCH(data.LCS0.X1())
+                    // KRATOS_WATCH(data.LCS0.X2())
+                    // KRATOS_WATCH(data.LCS0.X3())
+
+                    // KRATOS_WATCH(data.LCS0.Y1())
+                    // KRATOS_WATCH(data.LCS0.Y2())
+                    // KRATOS_WATCH(data.LCS0.Y3())
+                    
 
                     //Nitsche
                     for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
                         aux_val = aux_w * r_sur_bd_N(0,i_node); //later check r_sur_bd_N(0,i_node)
                         i_loc_id = sur_bd_local_ids[i_node + 1];
-                        for (std::size_t d = 0; d < 5; ++d) { //HACK!
+                        for (std::size_t d = 0; d < 3; ++d) { //HACK! 5: fixed, 3: SS
                             right_hand_side(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
                             for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) { //BIG TO DO
                             // for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
@@ -272,12 +311,20 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                             }
                         }
                     }
+
+                    // KRATOS_WATCH(left_hand_side)
+                    // exit(0);
+
+                    // KRATOS_WATCH(aux_CB_projection)
                 }
         }
 
         // Assemble contributions
         rLeftHandSideMatrix += left_hand_side;
         rRightHandSideVector += right_hand_side;
+
+        // KRATOS_WATCH(rLeftHandSideMatrix)
+        // exit(0);
     }
 
     KRATOS_CATCH("")
@@ -563,10 +610,10 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLin
 
         // bending part    
         for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(4,j) = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j);
+            rAuxMat(4,j) = (rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j))*0; //cannot change this
         }
         for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(3,j) = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j);
+            rAuxMat(3,j) = (rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j))*0; //check +-
         }
 
         // // TO DO: shear and drilling part

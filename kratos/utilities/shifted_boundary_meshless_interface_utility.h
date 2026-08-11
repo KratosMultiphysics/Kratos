@@ -166,6 +166,7 @@ private:
     ModelPart* mpBoundarySubModelPart = nullptr;
 
     bool mConformingBasis;
+    bool mNitscheFlag;
 
     const Variable<double>* mpLevelSetVariable;
 

@@ -160,6 +160,12 @@ private:
         const Matrix& rB,
         const array_1d<double, 3>& rUnitNormal,
         Matrix& rAuxMat);
+    
+    void CalculateBtransCProjectionLinearisationRotation(
+        const Matrix& rC,
+        const Matrix& rB,
+        const array_1d<double, 3>& rUnitNormal,
+        Matrix& rAuxMat);
 
     /**
      * @brief Auxiliary shape functions calculation
@@ -169,6 +175,10 @@ private:
      * @param rAuxMat Result shape functions matrix
      */
     void CalculateAuxShapeFunctionsMatrix(
+        const Vector& rN,
+        Matrix& rAuxMat);
+
+    void CalculateAuxShapeFunctionsMatrixRotation(
         const Vector& rN,
         Matrix& rAuxMat);
 
