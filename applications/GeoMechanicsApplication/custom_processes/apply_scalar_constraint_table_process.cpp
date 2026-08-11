@@ -25,6 +25,31 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 
+namespace
+{
+using namespace Kratos;
+using namespace std::string_literals;
+
+void AppendOptionalFluidParameters(const Parameters& rProcessSettings, std::vector<std::string>& rNamesOfSettingsToCopy)
+{
+    ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
+                                                     rNamesOfSettingsToCopy);
+    ParametersUtilities::AppendParameterNameIfExists("is_seepage", rProcessSettings, rNamesOfSettingsToCopy);
+}
+
+Parameters PrepareProcessParameters(const ModelPart&                rModelPart,
+                                    const Parameters&               rProcessSettings,
+                                    const std::vector<std::string>& rNamesOfSettingsToCopy)
+{
+    auto result = ParametersUtilities::CopyRequiredParameters(rProcessSettings, rNamesOfSettingsToCopy);
+
+    result.AddString("model_part_name"s, rModelPart.Name());
+
+    return result;
+}
+
+} // namespace
+
 namespace Kratos
 {
 using namespace std::string_literals;
@@ -176,14 +201,6 @@ std::string ApplyScalarConstraintTableProcess::Info() const
     return "ApplyScalarConstraintTableProcess"s;
 }
 
-void ApplyScalarConstraintTableProcess::AppendOptionalFluidParameters(const Parameters& rProcessSettings,
-                                                                      std::vector<std::string>& rNamesOfSettingsToCopy) const
-{
-    ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
-                                                     rNamesOfSettingsToCopy);
-    ParametersUtilities::AppendParameterNameIfExists("is_seepage", rProcessSettings, rNamesOfSettingsToCopy);
-}
-
 template <typename TableProcessType, typename ConstantProcessType>
 void ApplyScalarConstraintTableProcess::InstantiateProcessByTablePresence(ModelPart& rModelPart,
                                                                           const Parameters& rProcessSettings,
@@ -199,14 +216,4 @@ void ApplyScalarConstraintTableProcess::InstantiateProcessByTablePresence(ModelP
     }
 }
 
-Parameters ApplyScalarConstraintTableProcess::PrepareProcessParameters(const ModelPart& rModelPart,
-                                                                       const Parameters& rProcessSettings,
-                                                                       const std::vector<std::string>& rNamesOfSettingsToCopy) const
-{
-    auto result = ParametersUtilities::CopyRequiredParameters(rProcessSettings, rNamesOfSettingsToCopy);
-
-    result.AddString("model_part_name"s, rModelPart.Name());
-
-    return result;
-}
 } // namespace Kratos
