@@ -10,6 +10,7 @@
 
 // Application includes
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
+#include "custom_strategies/schemes/dam_nodal_stress_smoothing_utilities.hpp"
 #include "dam_application_variables.h"
 
 namespace Kratos
@@ -81,60 +82,11 @@ public:
     {
         KRATOS_TRY
 
-        unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
-        // Clear nodal variables
-        #pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-                Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                if(rNodalStress.size1() != Dim)
-                    rNodalStress.resize(Dim,Dim,false);
-                noalias(rNodalStress) = ZeroMatrix(Dim,Dim);
-                itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
-                itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
-            }
-        }
-
-        BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
-
-        // Compute smoothed nodal variables
-        #pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                const double& NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if (NodalArea>1.0e-15)
-                {
-                    const double InvNodalArea = 1.0/(NodalArea);
-                    Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                    for(unsigned int i = 0; i<Dim; i++)
-                    {
-                        for(unsigned int j = 0; j<Dim; j++)
-                        {
-                            rNodalStress(i,j) *= InvNodalArea;
-                        }
-                    }
-                }
-
-                const double& NodalJointArea = itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                if (NodalJointArea>1.0e-15)
-                {
-                    double& NodalJointWidth = itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH);
-                    NodalJointWidth = NodalJointWidth/NodalJointArea;
-                }
-            }
-        }
+        // Single-owner nodal Cauchy-stress smoothing lifecycle:
+        // reset -> element/condition finalization -> (process-based
+        // accumulation when enabled) -> normalization. See
+        // DamNodalStressSmoothingUtilities.
+        DamNodalStressSmoothingUtilities::FinalizeSolutionStep(*this, rModelPart, A, Dx, b);
 
         KRATOS_CATCH("")
     }

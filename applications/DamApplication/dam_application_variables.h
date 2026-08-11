@@ -54,6 +54,14 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE(DAM_APPLICATION, Matrix, INITIAL_NODAL_CAUCHY_STRESS_TENSOR )
     KRATOS_DEFINE_APPLICATION_VARIABLE(DAM_APPLICATION, double, PLACEMENT_TEMPERATURE )
 
+    // Nodal smoothing ownership
+    // When true, the nodal Cauchy-stress extrapolation is owned by the Dam
+    // smoothing scheme (via DamNodalCauchyStressExtrapolationProcess) and the
+    // legacy SmallDisplacementThermoMechanicElement performs no nodal
+    // accumulation. When false (default), the legacy element performs the
+    // extrapolation inside its FinalizeSolutionStep as before.
+    KRATOS_DEFINE_APPLICATION_VARIABLE( DAM_APPLICATION, bool, USE_PROCESS_BASED_NODAL_CAUCHY_STRESS_EXTRAPOLATION )
+
     // From Solid
     KRATOS_DEFINE_APPLICATION_VARIABLE( DAM_APPLICATION, bool, COMPUTE_CONSISTENT_MASS_MATRIX )
 

@@ -122,6 +122,15 @@ public:
                 CAUCHY_STRESS_TENSOR, gauss_stress, mrModelPart.GetProcessInfo());
             const std::size_t number_of_gps = gauss_stress.size();
 
+            // Skip elements that do not provide a Gauss-point Cauchy stress
+            // (e.g. interface elements). This mirrors the legacy workflow, in
+            // which only the small-displacement thermo-mechanical elements
+            // accumulate the nodal stress and every other element does not
+            // participate in the nodal smoothing.
+            if (number_of_gps == 0) {
+                return;
+            }
+
             // Element-level extrapolation operator (matching the legacy element).
             bool single_gp = false;
             Matrix extrapolation_matrix;

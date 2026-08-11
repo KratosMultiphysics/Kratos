@@ -88,6 +88,13 @@ void SmallDisplacementThermoMechanicElement::FinalizeNonLinearIteration(const Pr
 
 void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
+    // Nodal smoothing ownership: when the process-based nodal smoothing is
+    // enabled the Dam smoothing scheme owns the extrapolation and this element
+    // only performs the constitutive-law finalization (no nodal accumulation).
+    const bool process_based_nodal_smoothing =
+        rCurrentProcessInfo.Has(USE_PROCESS_BASED_NODAL_CAUCHY_STRESS_EXTRAPOLATION)
+        && rCurrentProcessInfo[USE_PROCESS_BASED_NODAL_CAUCHY_STRESS_EXTRAPOLATION];
+
     //create and initialize element variables:
     ElementDataType Variables;
     this->InitializeElementData(Variables, rCurrentProcessInfo);
@@ -121,10 +128,16 @@ void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep(const ProcessI
         //call the constitutive law to update material variables
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponseCauchy(Values);
 
-        this->SaveGPStress(StressContainer,Variables.StressVector,VoigtSize,PointNumber);
+        if(!process_based_nodal_smoothing)
+        {
+            this->SaveGPStress(StressContainer,Variables.StressVector,VoigtSize,PointNumber);
+        }
     }
 
-    this->ExtrapolateGPStress(StressContainer,Dim,VoigtSize);
+    if(!process_based_nodal_smoothing)
+    {
+        this->ExtrapolateGPStress(StressContainer,Dim,VoigtSize);
+    }
 }
 
 //----------------------------------------------------------------------------------------
