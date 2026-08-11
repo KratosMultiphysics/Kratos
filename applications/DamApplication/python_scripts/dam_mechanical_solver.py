@@ -290,6 +290,17 @@ class DamMechanicalSolver(object):
         # keeps the legacy element-based extrapolation. When true, the Dam
         # smoothing scheme owns the nodal Cauchy-stress extrapolation and the
         # legacy element performs no nodal accumulation.
+        # Internal nonlocal-damage ownership: when the existing user setting
+        # 'nonlocal_damage' is true, the Dam smoothing scheme owns the
+        # per-nonlinear-iteration LOCAL_EQUIVALENT_STRAIN production (through
+        # Element::CalculateOnIntegrationPoints) and the legacy element's
+        # INITIALIZE_MATERIAL_RESPONSE LOCAL path is gated off. This is an
+        # internal architectural flag, not a new user configuration option.
+        nonlocal_damage = False
+        if self.settings["mechanical_solver_settings"].Has("nonlocal_damage"):
+            nonlocal_damage = self.settings["mechanical_solver_settings"]["nonlocal_damage"].GetBool()
+        self.main_model_part.ProcessInfo[KratosDam.USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN] = nonlocal_damage
+
         # The process-based nodal Cauchy-stress smoothing is the DEFAULT Dam
         # behavior: the smoothing scheme owns the extrapolation (via
         # DamNodalCauchyStressExtrapolationProcess) and the legacy element

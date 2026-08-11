@@ -11,6 +11,7 @@
 // Application includes
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/schemes/dam_nodal_stress_smoothing_utilities.hpp"
+#include "custom_utilities/dam_nonlocal_damage_utilities.hpp"
 #include "dam_application_variables.h"
 
 namespace Kratos
@@ -60,6 +61,53 @@ public:
         KRATOS_CATCH("")
     }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        // 1. Normal element/condition nonlinear-iteration callbacks.
+        BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
+
+        // 2. When the scheme owns the LOCAL equivalent-strain production
+        //    (nonlocal damage active), recompute the current LOCAL quantities
+        //    before control returns to the Poromechanics nonlocal strategy,
+        //    which immediately performs the nonlocal averaging.
+        if (DamNonlocalDamageUtilities::IsProcessBasedLocalOwnership(rModelPart)) {
+            DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void FinalizeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        // 1. Normal element/condition nonlinear-iteration callbacks.
+        BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
+
+        // 2. The strategy has already updated the displacement state (and
+        //    optionally moved the mesh): recompute the current LOCAL quantities
+        //    at the post-update state. The Poromechanics strategy performs the
+        //    second nonlocal averaging immediately after this hook.
+        if (DamNonlocalDamageUtilities::IsProcessBasedLocalOwnership(rModelPart)) {
+            DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

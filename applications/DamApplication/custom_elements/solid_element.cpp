@@ -2021,6 +2021,39 @@ void SolidElement::CalculateOnIntegrationPoints(const Variable<double>& rVariabl
 	    rOutput[PointNumber] = StrainEnergy * Variables.IntegrationWeight;
         }
     }
+    else if (rVariable == LOCAL_EQUIVALENT_STRAIN)
+    {
+        // Parameter-aware LOCAL equivalent-strain calculation: reconstruct the
+        // current element kinematics, populate the ConstitutiveLaw::Parameters
+        // and call CalculateValue(LOCAL_EQUIVALENT_STRAIN) (the same pattern
+        // required by Phase 4D.1 for the scheme-owned LOCAL production).
+        //create and initialize element variables:
+        ElementDataType Variables;
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
+
+        //create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+        //set constitutive law flags:
+        Flags &ConstitutiveLawOptions=Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        //reading integration points
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+        {
+            //compute element kinematic variables B, F, DN_DX ...
+            this->CalculateKinematics(Variables,PointNumber);
+
+            //set general variables to constitutivelaw parameters
+            this->SetElementData(Variables,Values,PointNumber);
+
+            //call the parameter-aware constitutive calculation (recomputes and
+            //stores the current LOCAL quantity from the current kinematics)
+            rOutput[PointNumber] = mConstitutiveLawVector[PointNumber]->CalculateValue(
+                Values, LOCAL_EQUIVALENT_STRAIN, rOutput[PointNumber]);
+        }
+    }
     else
     {
 
@@ -2092,6 +2125,25 @@ void SolidElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariabl
     }
 
     KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void SolidElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                                std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                                const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == CONSTITUTIVE_LAW)
+    {
+        const unsigned int integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
+            rValues.resize(integration_points_number);
+        }
+        for (unsigned int point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];  // no clone
+        }
+    }
 }
 
 //************************************************************************************

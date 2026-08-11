@@ -49,6 +49,9 @@ namespace Kratos
     // Nodal smoothing ownership
     KRATOS_CREATE_VARIABLE(bool, USE_PROCESS_BASED_NODAL_CAUCHY_STRESS_EXTRAPOLATION)
 
+    // LOCAL equivalent-strain ownership
+    KRATOS_CREATE_VARIABLE(bool, USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN)
+
     // From Solid
     KRATOS_CREATE_VARIABLE(bool, COMPUTE_CONSISTENT_MASS_MATRIX)
 

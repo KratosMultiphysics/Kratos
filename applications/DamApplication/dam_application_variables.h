@@ -62,6 +62,14 @@ namespace Kratos
     // extrapolation inside its FinalizeSolutionStep as before.
     KRATOS_DEFINE_APPLICATION_VARIABLE( DAM_APPLICATION, bool, USE_PROCESS_BASED_NODAL_CAUCHY_STRESS_EXTRAPOLATION )
 
+    // LOCAL equivalent-strain ownership (internal architectural flag, not a
+    // user configuration option). When true, the Dam smoothing scheme owns the
+    // per-nonlinear-iteration LOCAL_EQUIVALENT_STRAIN production (through
+    // Element::CalculateOnIntegrationPoints) and the legacy element's
+    // INITIALIZE_MATERIAL_RESPONSE LOCAL path is gated off. It is activated by
+    // the Dam solvers when the existing 'nonlocal_damage' setting is true.
+    KRATOS_DEFINE_APPLICATION_VARIABLE( DAM_APPLICATION, bool, USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN )
+
     // From Solid
     KRATOS_DEFINE_APPLICATION_VARIABLE( DAM_APPLICATION, bool, COMPUTE_CONSISTENT_MASS_MATRIX )
 

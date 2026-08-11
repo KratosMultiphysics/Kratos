@@ -670,7 +670,11 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalDamage_TwoElementAveraging, KratosDamFa
         CONSTITUTIVE_LAW, law_read, r_pi);
     std::cout << "[4C] legacy element CONSTITUTIVE_LAW GP read populated = "
               << (law_read[0] != nullptr ? "yes" : "no") << std::endl;
-    KRATOS_EXPECT_TRUE(law_read[0] == nullptr);  // NOT populated by the Dam element
+    // After Phase 4D.2 the Dam solid-element hierarchy implements the
+    // CONSTITUTIVE_LAW getter, so the pointers ARE populated (needed by the
+    // Poromechanics nonlocal averaging utility).
+    KRATOS_EXPECT_TRUE(law_read[0] != nullptr);
+    KRATOS_EXPECT_EQ(law_read[0], p_legacy_a->GetConstitutiveLawPointer(0));
 
     // Run the EXISTING Poromechanics averaging mathematics with a test-only
     // subclass that builds the Gauss-point list from the element laws.

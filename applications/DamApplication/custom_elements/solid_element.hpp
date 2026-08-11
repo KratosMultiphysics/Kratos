@@ -548,6 +548,16 @@ class KRATOS_API(DAM_APPLICATION) SolidElement : public Element
                                       std::vector< Matrix >& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * Calculate a ConstitutiveLaw::Pointer Variable on the Element Constitutive
+     * Law. For CONSTITUTIVE_LAW this returns the actual per-integration-point
+     * constitutive-law pointers (no clone), required by the Poromechanics
+     * nonlocal averaging utility.
+     */
+    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
 
     //************************************************************************************
     //************************************************************************************

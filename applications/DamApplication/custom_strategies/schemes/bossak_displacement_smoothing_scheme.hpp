@@ -11,6 +11,7 @@
 // Application includes
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "custom_strategies/schemes/dam_nodal_stress_smoothing_utilities.hpp"
+#include "custom_utilities/dam_nonlocal_damage_utilities.hpp"
 #include "dam_application_variables.h"
 
 namespace Kratos
@@ -68,6 +69,49 @@ public:
         });
 
         mSchemeIsInitialized = true;
+
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        // 1. Normal element/condition nonlinear-iteration callbacks.
+        BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
+
+        // 2. Scheme-owned LOCAL equivalent-strain production (nonlocal damage).
+        if (DamNonlocalDamageUtilities::IsProcessBasedLocalOwnership(rModelPart)) {
+            DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void FinalizeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        // 1. Normal element/condition nonlinear-iteration callbacks.
+        BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
+
+        // 2. Post-update LOCAL equivalent-strain production (the dynamic scheme
+        //    has already updated the state).
+        if (DamNonlocalDamageUtilities::IsProcessBasedLocalOwnership(rModelPart)) {
+            DamNonlocalDamageUtilities::CalculateLocalEquivalentStrain(rModelPart);
+        }
 
         KRATOS_CATCH("")
     }

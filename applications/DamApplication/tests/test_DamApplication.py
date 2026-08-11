@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from generalTests import KratosDamGeneralTests
 from test_apply_load_vector_dam_processes import TestApplyLoadVectorDamProcesses
 from test_process_based_nodal_smoothing import DamProcessBasedNodalSmoothingTest
+from test_dam_nonlocal_ownership import DamNonlocalOwnershipTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -41,7 +42,8 @@ def AssembleTestSuites():
     smallSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             TestApplyLoadVectorDamProcesses,
-            DamProcessBasedNodalSmoothingTest
+            DamProcessBasedNodalSmoothingTest,
+            DamNonlocalOwnershipTest
         ])
     )
 
@@ -60,7 +62,8 @@ def AssembleTestSuites():
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             KratosDamGeneralTests,
             TestApplyLoadVectorDamProcesses,
-            DamProcessBasedNodalSmoothingTest
+            DamProcessBasedNodalSmoothingTest,
+            DamNonlocalOwnershipTest
         ])
     )
 
