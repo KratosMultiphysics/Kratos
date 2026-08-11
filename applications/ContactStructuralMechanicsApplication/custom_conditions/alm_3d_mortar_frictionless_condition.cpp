@@ -316,10 +316,10 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     }
     rRightHandSideVector.clear();
 
-    // const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? 1.0e4 * rCurrentProcessInfo[SCALE_FACTOR] : 1.0e16;
-    // const double penalty_factor = rCurrentProcessInfo.Has(INITIAL_PENALTY) ? 1.0e4 * rCurrentProcessInfo[INITIAL_PENALTY] : 1.0e16;
-    const double scale_factor = 1E6;
-    const double penalty_factor = 1E6;
+    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : 1.0e12;
+    const double penalty_factor = rCurrentProcessInfo.Has(INITIAL_PENALTY) ? rCurrentProcessInfo[INITIAL_PENALTY] : 1.0e12;
+    // const double scale_factor = 1E6;
+    // const double penalty_factor = 1E6;
 
     VectorType slave_normal(3);
     VectorType master_normal(3);
@@ -393,7 +393,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     segmented_GP_local_point = PointType(r_integration_points_slave[point_number].Coordinates());
                     segmented_geom.GlobalCoordinates(segmented_GP_global_point, segmented_GP_local_point); // from local to global coordinates in the segmented
                     r_slave_geometry.PointLocalCoordinates(slave_GP_local_point, segmented_GP_global_point); // from global to local coordinates in the slave
-                    GeometricalProjectionUtilities::FastProjectDirection(r_master_geometry, segmented_GP_global_point, master_GP_global_point, slave_normal, slave_normal);
+                    const bool successful_projection = FastProjectDirection(r_master_geometry, segmented_GP_global_point, master_GP_global_point, slave_normal);
                     r_master_geometry.PointLocalCoordinates(master_GP_local_point, master_GP_global_point); // from global to local coordinates in the master
 
                     r_slave_geometry.ShapeFunctionsLocalGradients(slave_local_gradients, slave_GP_local_point);
@@ -417,6 +417,8 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double interpolated_LM = inner_prod(N_LM, lm_values); // interpolated Lagrange multiplier at the integration point
                     const double augmented_lm = scale_factor * interpolated_LM + penalty_factor * gap_n; // contact pressure at the integration point
 
+                    const bool active_contact = (augmented_lm <= 0.0) && successful_projection; // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
+
                     // KRATOS_WATCH("*******************************")
                     // KRATOS_WATCH(r_slave_geometry[0].Id())
                     // KRATOS_WATCH(r_slave_geometry[0].Coordinates())
@@ -426,15 +428,14 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     // KRATOS_WATCH(r_master_geometry[1].Id())
                     // KRATOS_WATCH(r_master_geometry[2].Id())
                     // KRATOS_WATCH(segmented_geom.Area())
-                    // KRATOS_WATCH(gap_n)
+                    // KRATOS_WATCH(active_contact)
                     // KRATOS_WATCH(slave_normal)
                     // KRATOS_WATCH(master_GP_global_point)
+                    // KRATOS_WATCH(master_GP_local_point)
                     // KRATOS_WATCH(segmented_GP_global_point)
                     // KRATOS_WATCH(augmented_lm)
                     // KRATOS_WATCH(interpolated_LM)
                     // KRATOS_WATCH("*******************************")
-
-                    const bool active_contact = (augmented_lm <= 0.0); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
 
                     if (ComputeRHS) {
                         AddRightHandSideContribution(rRightHandSideVector, scale_factor, penalty_factor, gap_n, interpolated_LM,
