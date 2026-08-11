@@ -66,7 +66,7 @@ GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(std::unique_ptr<C
       mDeltaStrainVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mStrainVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
 {
-    mPolicy.emplace<Policies::Constant>();
+    mFormulation.emplace<Formulations::Constant>();
 }
 
 GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(const GeoIncrementalLinearElasticLaw& rOther)
@@ -79,7 +79,7 @@ GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(const GeoIncremen
 {
     if (rOther.mpConstitutiveDimension)
         mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
-    InitializePolicy(rOther.GetYoungsModulusFormulation());
+    InitializeFormulation(rOther.GetYoungsModulusFormulation());
 }
 
 GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(const GeoIncrementalLinearElasticLaw& rOther)
@@ -93,7 +93,7 @@ GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(const 
         mIsModelInitialized    = rOther.mIsModelInitialized;
         if (rOther.mpConstitutiveDimension)
             mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
-        InitializePolicy(rOther.GetYoungsModulusFormulation());
+        InitializeFormulation(rOther.GetYoungsModulusFormulation());
     }
     return *this;
 }
@@ -142,7 +142,7 @@ int GeoIncrementalLinearElasticLaw::Check(const Properties&   rMaterialPropertie
     const auto result = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
     if (rMaterialProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) &&
-        rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == Policies::Eur::Name) {
+        rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == Formulations::Eur::Name) {
         const CheckProperties check_properties(rMaterialProperties, "parameters of material",
                                                CheckProperties::Bounds::AllExclusive);
         check_properties.Check(GEO_PRESSURE_REFERENCE);
@@ -180,14 +180,14 @@ void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& rElasticMatr
 
 double GeoIncrementalLinearElasticLaw::GetYoungsModulus(const Properties& rProperties, double YoungsModulus) const
 {
-    return std::visit([this, &rProperties, YoungsModulus]<typename Policy>(const Policy& policy) {
-        if constexpr (std::is_same_v<std::decay_t<Policy>, Policies::Constant>) {
+    return std::visit([this, &rProperties, YoungsModulus]<typename TFormulation>(const TFormulation&) {
+        if constexpr (std::is_same_v<std::decay_t<TFormulation>, Formulations::Constant>) {
             return YoungsModulus;
 
-        } else if constexpr (std::is_same_v<std::decay_t<Policy>, Policies::Eur>) {
+        } else if constexpr (std::is_same_v<std::decay_t<TFormulation>, Formulations::Eur>) {
             return CalculateYoungsModulusForEur(rProperties, YoungsModulus);
         }
-    }, mPolicy);
+    }, mFormulation);
 }
 
 void GeoIncrementalLinearElasticLaw::CalculatePK2Stress(const Vector&                rStrainVector,
@@ -216,7 +216,7 @@ void GeoIncrementalLinearElasticLaw::InitializeMaterialResponseCauchy(Constituti
     if (!mIsModelInitialized) {
         mStressVectorFinalized = rParameters.GetStressVector();
         mStrainVectorFinalized = rParameters.GetStrainVector();
-        InitializePolicy(GetYoungsModulusFormulation(rParameters.GetMaterialProperties()));
+        InitializeFormulation(GetYoungsModulusFormulation(rParameters.GetMaterialProperties()));
         mIsModelInitialized = true;
     }
     KRATOS_CATCH("")
@@ -246,12 +246,12 @@ void GeoIncrementalLinearElasticLaw::ResetMaterial(const Properties&, const Geom
     mIsModelInitialized = false;
 }
 
-void GeoIncrementalLinearElasticLaw::InitializePolicy(const std::string& rFormulation)
+void GeoIncrementalLinearElasticLaw::InitializeFormulation(const std::string& rFormulation)
 {
-    if (rFormulation == Policies::Constant::Name) {
-        mPolicy.emplace<Policies::Constant>();
-    } else if (rFormulation == Policies::Eur::Name) {
-        mPolicy.emplace<Policies::Eur>();
+    if (rFormulation == Formulations::Constant::Name) {
+        mFormulation.emplace<Formulations::Constant>();
+    } else if (rFormulation == Formulations::Eur::Name) {
+        mFormulation.emplace<Formulations::Eur>();
     } else {
         KRATOS_ERROR << "Unknown GEO_YOUNGS_MODULUS_FORMULATION: " << rFormulation;
     }
@@ -260,12 +260,12 @@ void GeoIncrementalLinearElasticLaw::InitializePolicy(const std::string& rFormul
 std::string GeoIncrementalLinearElasticLaw::GetYoungsModulusFormulation(const Properties& rProperties) const
 {
     return rProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) ? rProperties[GEO_YOUNGS_MODULUS_FORMULATION]
-                                                           : Policies::Constant::Name;
+                                                           : Formulations::Constant::Name;
 }
 
 std::string GeoIncrementalLinearElasticLaw::GetYoungsModulusFormulation() const
 {
-    return std::visit([](const auto& policy) -> std::string { return policy.Name; }, mPolicy);
+    return std::visit([](const auto& Formulation) -> std::string { return Formulation.Name; }, mFormulation);
 }
 
 void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
@@ -277,7 +277,7 @@ void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
     rSerializer.save("DeltaStrainVector"s, mDeltaStrainVector);
     rSerializer.save("StrainVectorFinalized"s, mStrainVectorFinalized);
     rSerializer.save("IsModelInitialized"s, mIsModelInitialized);
-    rSerializer.save("Policy"s, GetYoungsModulusFormulation());
+    rSerializer.save("Formulation"s, GetYoungsModulusFormulation());
 }
 
 void GeoIncrementalLinearElasticLaw::load(Serializer& rSerializer)
@@ -290,8 +290,8 @@ void GeoIncrementalLinearElasticLaw::load(Serializer& rSerializer)
     rSerializer.load("StrainVectorFinalized"s, mStrainVectorFinalized);
     rSerializer.load("IsModelInitialized"s, mIsModelInitialized);
     std::string youngs_modulus_formulation;
-    rSerializer.load("Policy"s, youngs_modulus_formulation);
-    InitializePolicy(youngs_modulus_formulation);
+    rSerializer.load("Formulation"s, youngs_modulus_formulation);
+    InitializeFormulation(youngs_modulus_formulation);
 }
 
 double GeoIncrementalLinearElasticLaw::CalculateYoungsModulusForEur(const Properties& rProperties,
