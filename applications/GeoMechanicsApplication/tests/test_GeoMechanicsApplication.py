@@ -73,6 +73,7 @@ from test_upw_interface import KratosGeoMechanicsUPwInterfaceTests
 from test_building_pit import KratosGeoMechanicsBuildingPit
 from test_CROW_case import KratosGeoMechanicsCrowValidation
 from test_udsm_serialization import KratosGeoMechanicsUDSMSerializationTest
+from test_Muskat import KratosGeoMechanicsMuskatTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -132,6 +133,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsInterfacePreStressTests,
                         KratosGeoMechanicsUPwInterfaceTests,
                         KratosGeoMechanicsUDSMSerializationTest,
+                        KratosGeoMechanicsMuskatTests,
                         ]
 
     night_test_cases = [
