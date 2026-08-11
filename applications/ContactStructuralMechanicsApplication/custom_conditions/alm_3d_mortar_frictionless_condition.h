@@ -363,6 +363,23 @@ public:
         return dN_dAs;
     }
 
+    /**
+     * @brief Project a point over a line/plane following an arbitrary direction
+     * @tparam TGeometryType The type of the geometry
+     * @param rGeom The geometry where to be projected
+     * @param rPointToProject The point to be projected
+     * @param rPointProjected The point pojected over the plane
+     * @param rNormal The normal of the geometry
+     * @param rVector The direction to project
+     * @param EchoLevel If we want debugging info we should consider greater than 0
+     * @return if the projection falls inside the destination geometry or not.
+     */
+    bool FastProjectDirection(
+        const GeometryType &rGeometryToProject,
+        const PointType &rPointToProject,
+        PointType &rPointProjected,
+        const array_1d<double, 3> &rNormal);
+
     ///@}
     ///@name Access
     ///@{

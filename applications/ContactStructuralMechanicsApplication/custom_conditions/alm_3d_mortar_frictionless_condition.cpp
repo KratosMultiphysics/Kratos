@@ -238,6 +238,55 @@ void ALM3dMortarFrictionlessCondition::GetValuesVector(
     // todo....
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool ALM3dMortarFrictionlessCondition::FastProjectDirection(
+    const GeometryType& rGeometryToProject,
+    const PointType& rPointToProject,
+    PointType& rPointProjected,
+    const array_1d<double,3>& rNormal
+    )
+{
+    KRATOS_TRY
+    const double zero_tolerance = CheckThresholdCoefficient;
+    const double slave_normal_norm = norm_2(rNormal);
+    KRATOS_ERROR_IF(slave_normal_norm <= zero_tolerance)
+        << "The projection normal is null in ALM3dMortarFrictionlessCondition.";
+
+    const array_1d<double, 3> edge_01 = rGeometryToProject[1].Coordinates() - rGeometryToProject[0].Coordinates();
+    const array_1d<double, 3> edge_02 = rGeometryToProject[2].Coordinates() - rGeometryToProject[0].Coordinates();
+    array_1d<double, 3> master_normal;
+    MathUtils<double>::CrossProduct(master_normal, edge_01, edge_02);
+
+    const double edge_scale = std::max({norm_2(edge_01), norm_2(edge_02),
+        norm_2(rGeometryToProject[2].Coordinates() - rGeometryToProject[1].Coordinates())});
+    const double master_normal_norm = norm_2(master_normal);
+    KRATOS_ERROR_IF(edge_scale <= zero_tolerance ||
+                    master_normal_norm <= zero_tolerance * edge_scale * edge_scale)
+        << "The projected geometry is a degenerate triangle in "
+        << "ALM3dMortarFrictionlessCondition.";
+
+    // The projection travels from the slave towards the master. Orient the
+    // master normal consistently so both interface normals point away from
+    // the interface and the returned distance is positive in that direction.
+    array_1d<double, 3> projection_direction = rNormal / slave_normal_norm;
+
+    const array_1d<double, 3> point_to_plane = rGeometryToProject[0].Coordinates() - rPointToProject.Coordinates();
+    const double distance = inner_prod(point_to_plane, projection_direction);
+    noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + distance * projection_direction;
+
+    array_1d<double, 3> aux_local_coords;
+    if (!rGeometryToProject.IsInside(rPointProjected.Coordinates(), aux_local_coords)) {
+        noalias(rPointProjected.Coordinates()) = rGeometryToProject.Center().Coordinates();
+        return false;
+    }
+
+    return true;
+
+    KRATOS_CATCH("ALM3dMortarFrictionlessCondition::FastProjectDirection")
+}
+
 
 /***********************************************************************************/
 /***********************************************************************************/
