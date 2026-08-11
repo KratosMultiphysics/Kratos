@@ -62,23 +62,24 @@ void InterfacePreprocessCondition::GenerateInterfacePart(
     } else if (rInterfacePart.Geometries().size() > 0)  { // current approach
 
         std::vector<std::size_t> condition_ids(rInterfacePart.Geometries().size());
-        // const auto p_prop = mrMainModelPart.Elements()[0].pGetProperties();
-        Properties::Pointer p_prop = mrMainModelPart.Elements()[0].pGetProperties();
+        std::unordered_map<IndexType, Properties::Pointer> new_properties;
+        new_properties = CreateNewProperties();
+        Properties::Pointer p_prop = new_properties[2];
 
         IndexType cond_id = ReorderConditions();
 
-        // IndexType counter = 0;
         for (auto& r_geometry : rInterfacePart.Geometries()) {
             const IndexType number_of_points = r_geometry.PointsNumber();
             const std::string condition_name = (number_of_points == 3) ? "SurfaceCondition3D3N" : (number_of_points == 4) ? "SurfaceCondition3D4N" : (number_of_points == 6) ? "SurfaceCondition3D6N" : (number_of_points == 8) ? "SurfaceCondition3D8N" : "SurfaceCondition3D9N";
             const auto& r_condition = KratosComponents<Condition>::Get(condition_name);
-            cond_counter++;
             cond_id++;
             auto p_condition = CreateNewCondition(p_prop, r_geometry, cond_id, r_condition);
             p_condition->Set(INTERFACE, true);
             condition_ids[cond_counter] = cond_id;
+            cond_counter++;
         }
-        mrMainModelPart.AddConditions(condition_ids);
+        rInterfacePart.AddConditions(condition_ids);
+
     } else if (rInterfacePart.Nodes().size() > 0) { // Only in case we have assigned the flag directly to nodes (no conditions)
         // We reorder the conditions
         IndexType cond_id = ReorderConditions();
