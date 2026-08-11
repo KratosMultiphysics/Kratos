@@ -36,7 +36,10 @@
             }
         },
         {
-            "model_part_name_list": ["PorousDomain.Soil_Bottom_Left", "PorousDomain.Soil_Bottom_Right"],
+            "model_part_name_list": [
+                "PorousDomain.Soil_Bottom_Left",
+                "PorousDomain.Soil_Bottom_Right"
+            ],
             "properties_id": 2,
             "Material": {
                 "constitutive_law": {
