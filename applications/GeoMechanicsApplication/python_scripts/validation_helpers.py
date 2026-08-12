@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 
-def _enforce_base_boundary(resolved_path: Path, base_dir: Path) -> None:
+def _enforce_base_boundary(resolved_path, base_dir):
     """Ensures resolved_path stays within base_dir or raises TypeError."""
     try:
         resolved_path.relative_to(base_dir)
@@ -11,11 +11,11 @@ def _enforce_base_boundary(resolved_path: Path, base_dir: Path) -> None:
         ) from exc
 
 def _resolve_safe_path(
-    user_input: str | Path, 
-    base_dir: Path | None = None,
+    user_input, 
+    base_dir = None,
     *,
-    strict: bool = False
-) -> Path:
+    strict = False
+):
     """
     Expands user shortcuts and resolves paths safely against an optional base.
     """
@@ -25,11 +25,11 @@ def _resolve_safe_path(
     return candidate.resolve(strict=strict)
 
 def validated_stage_file_paths(
-    input_path: str | Path,
-    n_stages: int,
-    filename_pattern: str,
-    base_path: str | Path | None = None
-) -> List[Path]:
+    input_path,
+    n_stages,
+    filename_pattern,
+    base_path = None
+):
     """
     Build stage file paths and ensure they stay within the configured input directory.
     Accepts both string and Path objects for flexibility.
@@ -48,7 +48,7 @@ def validated_stage_file_paths(
 
     return result
 
-def validated_parameter_path(filename: str | Path) -> Path:
+def validated_parameter_path(filename):
     """
     Validates that 'filename' resolves within the current working directory 
     and has a .json extension.
