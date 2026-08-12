@@ -343,16 +343,14 @@ void TransientCSVDatabaseIO::WriteHeaders(std::ofstream& rOutputFile) const
         rOutputFile << "# Timestamp     : not_specified\n";
     }
     rOutputFile << "# --------------- End of Kratos information -----------------\n";
-    rOutputFile << "# ------------------- Header information --------------------\n";
-    for (auto part : mHeaderInformation | std::views::split('\n')) {
-        rOutputFile << "# " << std::string_view(part.begin(), part.end()) << "\n";
-    }
-    rOutputFile << "# --------------- End of header information -----------------\n";
     rOutputFile << "# ------------------ <Column information> -------------------\n";
     for (IndexType i = 0; i < mWritingData.size(); ++i) {
         rOutputFile << "#         " << mWritingData[i].first.GetHeader() << ": " << TransientCSVDatabaseIOUtils::GetType(mWritingData[i].second) << "\n";
     }
     rOutputFile << "# --------------- End of column information -----------------\n";
+    for (auto part : mHeaderInformation | std::views::split('\n')) {
+        rOutputFile << "# " << std::string_view(part.begin(), part.end()) << "\n";
+    }
 
     rOutputFile << mWritingData.front().first.GetFormattedHeader();
     for (IndexType i = 1; i < mWritingData.size(); ++i) {
