@@ -240,7 +240,6 @@ void ALM3dMortarFrictionlessCondition::GetValuesVector(
 
 /***********************************************************************************/
 /***********************************************************************************/
-
 bool ALM3dMortarFrictionlessCondition::FastProjectDirection(
     const GeometryType& rGeometryToProject,
     const PointType& rPointToProject,
@@ -249,40 +248,51 @@ bool ALM3dMortarFrictionlessCondition::FastProjectDirection(
     )
 {
     KRATOS_TRY
+
     const double zero_tolerance = CheckThresholdCoefficient;
     const double slave_normal_norm = norm_2(rNormal);
+
     KRATOS_ERROR_IF(slave_normal_norm <= zero_tolerance)
         << "The projection normal is null in ALM3dMortarFrictionlessCondition.";
 
+    // 1. Compute master triangle face normal
     const array_1d<double, 3> edge_01 = rGeometryToProject[1].Coordinates() - rGeometryToProject[0].Coordinates();
     const array_1d<double, 3> edge_02 = rGeometryToProject[2].Coordinates() - rGeometryToProject[0].Coordinates();
     array_1d<double, 3> master_normal;
     MathUtils<double>::CrossProduct(master_normal, edge_01, edge_02);
 
+    const double master_normal_norm = norm_2(master_normal);
     const double edge_scale = std::max({norm_2(edge_01), norm_2(edge_02),
         norm_2(rGeometryToProject[2].Coordinates() - rGeometryToProject[1].Coordinates())});
-    const double master_normal_norm = norm_2(master_normal);
-    KRATOS_ERROR_IF(edge_scale <= zero_tolerance ||
-                    master_normal_norm <= zero_tolerance * edge_scale * edge_scale)
-        << "The projected geometry is a degenerate triangle in "
-        << "ALM3dMortarFrictionlessCondition.";
 
-    // The projection travels from the slave towards the master. Orient the
-    // master normal consistently so both interface normals point away from
-    // the interface and the returned distance is positive in that direction.
-    array_1d<double, 3> projection_direction = rNormal / slave_normal_norm;
+    KRATOS_ERROR_IF(edge_scale <= zero_tolerance || master_normal_norm <= zero_tolerance * edge_scale * edge_scale)
+        << "The projected geometry is a degenerate triangle in ALM3dMortarFrictionlessCondition.";
 
-    const array_1d<double, 3> point_to_plane = rGeometryToProject[0].Coordinates() - rPointToProject.Coordinates();
-    const double distance = inner_prod(point_to_plane, projection_direction);
-    noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + distance * projection_direction;
+    // 2. Normalized projection direction (along slave normal)
+    const array_1d<double, 3> proj_dir = rNormal / slave_normal_norm;
 
-    array_1d<double, 3> aux_local_coords;
-    if (!rGeometryToProject.IsInside(rPointProjected.Coordinates(), aux_local_coords, 1.0e-8)) {
-        // noalias(rPointProjected.Coordinates()) = rGeometryToProject.Center().Coordinates();
+    // 3. Ray-plane intersection denominator check
+    const double denom = inner_prod(proj_dir, master_normal);
+
+    // Fail projection if ray and master face are parallel
+    if (std::abs(denom) <= zero_tolerance * master_normal_norm) {
+        noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates();
         return false;
     }
 
-    return true;
+    // 4. Compute exact ray distance alpha to master plane
+    const array_1d<double, 3> point_to_plane = rGeometryToProject[0].Coordinates() - rPointToProject.Coordinates();
+    const double alpha = inner_prod(point_to_plane, master_normal) / denom;
+
+    // Set exact projected point on master surface
+    noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + alpha * proj_dir;
+
+    // 5. Verify if projected point lies inside master triangle boundaries
+    array_1d<double, 3> aux_local_coords;
+    const double tol = rGeometryToProject.Area() * 1.0e-8;
+    const bool is_inside_master = rGeometryToProject.IsInside(rPointProjected.Coordinates(), aux_local_coords, tol);
+
+    return is_inside_master;
 
     KRATOS_CATCH("ALM3dMortarFrictionlessCondition::FastProjectDirection")
 }
@@ -326,16 +336,6 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     noalias(slave_normal) = r_slave_geometry.UnitNormal(0);
     noalias(master_normal) = r_master_geometry.UnitNormal(0);
 
-    // VectorType nodal_normal(3);
-    // nodal_normal.clear();
-    // for (IndexType node = 0; node < r_slave_geometry.PointsNumber(); ++node) {
-    //     noalias(nodal_normal) += r_slave_geometry[node].FastGetSolutionStepValue(NORMAL);
-    // }
-    // nodal_normal /= (double)(r_slave_geometry.PointsNumber());
-    // if (inner_prod(slave_normal, nodal_normal) < 1.0e-8) {
-    //     slave_normal *= -1.0;
-    // }
-
     const auto &r_properties = this->GetProperties();
 
     const IndexType integration_order = 5;
@@ -348,13 +348,12 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
 
     ConditionArrayListType conditions_points_slave;
     // This fills the conditions_points_slave, which are LOCAL coordinates on the slave geometry
-    // const bool is_inside = true;
-    integration_utility.GetExactIntegration(r_slave_geometry, slave_normal, r_master_geometry, master_normal, conditions_points_slave);
+    const bool is_segmentation_inside = integration_utility.GetExactIntegration(r_slave_geometry, slave_normal, r_master_geometry, master_normal, conditions_points_slave);
 
     double integration_area;
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
 
-    if (((integration_area / r_slave_geometry.Area()) > MinIntegrationAreaRatioTolerance)) {
+    if (((integration_area / r_slave_geometry.Area()) > MinIntegrationAreaRatioTolerance) && is_segmentation_inside) {
 
         PointType global_point; // aux variable to store the global coordinates of the integration points
         PointerVector<PointType> points_array(3); // aux variable to store the global coordinates of the clipping points
@@ -427,28 +426,44 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double augmented_lm = scale_factor * interpolated_LM + penalty_factor * gap_n; // contact pressure at the integration point
 
                     const bool active_contact = (augmented_lm < 0.0); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
-
-                    KRATOS_WATCH("*******************************")
-                    // KRATOS_WATCH(Id())
-                    // KRATOS_WATCH(r_slave_geometry[0].Coordinates())
-                    // KRATOS_WATCH(r_slave_geometry[0].Id())
-                    // KRATOS_WATCH(r_slave_geometry[1].Id())
-                    // KRATOS_WATCH(r_slave_geometry[2].Id())
-                    // KRATOS_WATCH(r_master_geometry[0].Id())
-                    // KRATOS_WATCH(r_master_geometry[1].Id())
-                    // KRATOS_WATCH(r_master_geometry[2].Id())
-                    // KRATOS_WATCH(segmented_GP_global_point)
-                    // KRATOS_WATCH(master_GP_global_point)
-                    // KRATOS_WATCH(active_contact)
-                    // KRATOS_WATCH(successful_projection)
-                    // KRATOS_WATCH(slave_normal)
-                    // KRATOS_WATCH(master_normal)
-                    KRATOS_WATCH(gap_n)
-                    // KRATOS_WATCH(active_contact)
-                    // KRATOS_WATCH(master_GP_local_point)
-                    // KRATOS_WATCH(segmented_GP_global_point)
-                    // KRATOS_WATCH(augmented_lm)
-                    KRATOS_WATCH("*******************************")
+                    
+                    if (gap_n < 0.0) {
+                    //     KRATOS_WATCH("*******************************")
+                        // KRATOS_WATCH(Id())
+                        // KRATOS_WATCH(r_slave_geometry[0].Coordinates())
+                        // KRATOS_WATCH(r_slave_geometry[0].Id())
+                        // KRATOS_WATCH(r_slave_geometry[1].Id())
+                        // KRATOS_WATCH(r_slave_geometry[2].Id())
+                        // KRATOS_WATCH(r_master_geometry[0].Id())
+                        // KRATOS_WATCH(r_master_geometry[1].Id())
+                        // KRATOS_WATCH(r_master_geometry[2].Id())
+                        // KRATOS_WATCH(r_slave_geometry[0].Coordinates())
+                        // KRATOS_WATCH(r_slave_geometry[1].Coordinates())
+                        // KRATOS_WATCH(r_slave_geometry[2].Coordinates())
+                        // KRATOS_WATCH(r_master_geometry[0].Coordinates())
+                        // KRATOS_WATCH(r_master_geometry[1].Coordinates())
+                        // KRATOS_WATCH(r_master_geometry[2].Coordinates())
+                        // KRATOS_WATCH(segmented_GP_global_point)
+                        // KRATOS_WATCH(master_GP_global_point)
+                        // KRATOS_WATCH(is_segmentation_inside)
+                        // KRATOS_WATCH(successful_projection)
+                        // KRATOS_WATCH(integration_area / r_slave_geometry.Area())
+                        // KRATOS_WATCH(slave_normal)
+                        // KRATOS_WATCH(master_normal)
+                        // KRATOS_WATCH(gap_n)
+                        // KRATOS_WATCH(active_contact)
+                        // KRATOS_WATCH(master_GP_local_point)
+                        // KRATOS_WATCH(segmented_GP_global_point)
+                        // KRATOS_WATCH(augmented_lm)
+                        // KRATOS_WATCH("*******************************")
+                        // KRATOS_ERROR << "" << std::endl;
+                    }
+                    else
+                    {
+                        // KRATOS_WATCH(is_segmentation_inside)
+                        // KRATOS_WATCH(successful_projection)
+                        // KRATOS_WATCH(integration_area)
+                    }
 
                     if (ComputeRHS) {
                         AddRightHandSideContribution(rRightHandSideVector, scale_factor, penalty_factor, gap_n, interpolated_LM,
