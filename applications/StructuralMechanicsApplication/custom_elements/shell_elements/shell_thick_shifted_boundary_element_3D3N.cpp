@@ -23,6 +23,7 @@
 
 // Application includes
 #include "shell_thick_shifted_boundary_element_3D3N.hpp"
+#include "structural_mechanics_application_variables.h"
 
 
 namespace Kratos
@@ -72,7 +73,40 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
         Matrix left_hand_side_taylor_penalty = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
 
         Matrix left_hand_side_gap_SBM = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
-        Matrix left_hand_side_gap_SBM_Neumann = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
+
+        // Per-DOF constrained mask (ux,uy,uz,rx,ry,rz)
+        array_1d<double, 6> constrained_dofs;
+        if (this->GetProperties().Has(SBM_CONSTRAINED_DOFS)) {
+            const auto& r_constrained_dofs = this->GetProperties()[SBM_CONSTRAINED_DOFS];
+            KRATOS_ERROR_IF(r_constrained_dofs.size() != 6)
+                << "SBM_CONSTRAINED_DOFS must have size 6 (ux,uy,uz,rx,ry,rz) in Properties " << this->GetProperties().Id() << std::endl;
+            for (std::size_t d = 0; d < 6; ++d) {
+                constrained_dofs[d] = r_constrained_dofs[d];
+            }
+        } else {
+            for (std::size_t d = 0; d < 6; ++d) {
+                constrained_dofs[d] = 1.0;
+            }
+        }
+
+        // Surrogate-boundary flux formulation choice: 0 = MLS (default), 1 = Taylor
+        const int sbm_formulation_type = this->GetProperties().Has(SBM_FORMULATION_TYPE)
+            ? this->GetProperties()[SBM_FORMULATION_TYPE]
+            : 0;
+
+        // Current nodal state, needed for the Taylor/Gap SBM penalty residual correction below.
+        Vector unknown_values = ZeroVector(LocalSize);
+        {
+            const auto& r_geom_outer = this->GetGeometry();
+            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+                const auto& r_disp = r_geom_outer[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+                const auto& r_rot = r_geom_outer[i_node].FastGetSolutionStepValue(ROTATION);
+                for (std::size_t d = 0; d < 3; ++d) {
+                    unknown_values(i_node*BlockSize + d) = r_disp[d];
+                    unknown_values(i_node*BlockSize + d + 3) = r_rot[d];
+                }
+            }
+        }
 
         // KRATOS_WATCH("Is interface");
 
@@ -136,6 +170,15 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                 // CalculateKinematicVariables(kinematic_variables, 0, GeometryData::IntegrationMethod::GI_GAUSS_1);
                 // CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, 0, r_int_pts, this->GetStressMeasure(), this->IsElementRotated());
 
+                // Prescribed Dirichlet target (u0, theta0)
+                const auto& r_penalty_bc_val = this->GetValue(DISPLACEMENT);
+                const auto& r_penalty_bc_val_rot = this->GetValue(ROTATION);
+                array_1d<double,6> penalty_bc_values;
+                for (std::size_t d = 0; d < 3; ++d) {
+                    penalty_bc_values[d] = r_penalty_bc_val[d];
+                    penalty_bc_values[d + 3] = r_penalty_bc_val_rot[d];
+                }
+
                 // Loop the surrogate faces
                 // Note that there is the chance that the surrogate face is not unique
                 for (std::size_t sur_bd_id : sur_bd_ids_vect) {
@@ -157,9 +200,7 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     // Calculate the required projections
                     array_1d<double,6> cauchy_traction;
                     BoundedMatrix<double,6,LocalSize> aux_CB_projection;
-                    BoundedMatrix<double,6,LocalSize> aux_CB_projection_Neumann;
                     aux_CB_projection = ZeroMatrix(6, LocalSize);
-                    aux_CB_projection_Neumann = ZeroMatrix(6, LocalSize);
 
                     const auto &r_stress = data.generalizedStresses; //cons_law_values.GetStressVector();
                     const auto &r_C = data.D; //cons_law_values.GetConstitutiveMatrix();
@@ -228,7 +269,6 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     // exit(0);
 
                     CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, aux_CB_projection);
-                    CalculateCBProjectionLinearisationRotation(D, B_parent, n_sur_bd, aux_CB_projection_Neumann);
                     CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
     
                     // Add the surrogate boundary flux contribution
@@ -244,6 +284,9 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         aux_val = aux_w * r_sur_bd_N(0,i_node);
                         i_loc_id = sur_bd_local_ids[i_node + 1];
                         for (std::size_t d = 0; d < 6; ++d) { //3 or 6
+                            if (constrained_dofs[d] == 0.0) {
+                                continue;
+                            }
                             right_hand_side(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
                             // for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
                             for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) { //TO DO
@@ -253,10 +296,10 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         }
                     }
 
-                    ///////// Hard coded taylor expansion for testing purposes
-
-                    double distance_2 = -(h_sur_bd-0.08);
-                    double distance = -r_geom[2][0];
+                    ///////// Taylor expansion from the surrogate boundary to the true boundary
+                    const double distance = -0.5 * (
+                        r_geom[sur_bd_local_ids[1]].FastGetSolutionStepValue(DISTANCE)
+                        + r_geom[sur_bd_local_ids[2]].FastGetSolutionStepValue(DISTANCE));
 
                     Matrix aux_N_taylor = ZeroMatrix(6, 18);
                     array_1d<double,3> r_sur_bd_N_taylor = ZeroVector(3);
@@ -281,7 +324,10 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         aux_val = aux_w * r_sur_bd_N_taylor[i_node];
                         i_loc_id = sur_bd_local_ids[i_node];
                         for (std::size_t d = 0; d < 6; ++d) { //3 or 6
-                            for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) { 
+                            if (constrained_dofs[d] == 0.0) {
+                                continue;
+                            }
+                            for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) {
                                 left_hand_side_taylor(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
                             }
                         }
@@ -297,8 +343,6 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                      // Penalty
                     double aux_val_penalty;
                     const double penalty_parameter = this->GetProperties()[PENALTY_COEFFICIENT];
-
-                    KRATOS_WATCH(penalty_parameter) 
 
                     // KRATOS_WATCH(aux_w)
                     // exit(0);
@@ -327,6 +371,9 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 
                     for (IndexType i_node = 0; i_node < 3; ++i_node) {
                         for (IndexType d = 0; d < 5; ++d) {  //3 or 6
+                            if (constrained_dofs[d] == 0.0) {
+                                continue;
+                            }
                             rAuxMat(d, i_node*6 + d) = r_sur_bd_N_taylor[i_node];
                             trans_rAuxMat(d, i_node*6 + d) = r_sur_bd_N_[i_node];
                         }
@@ -335,29 +382,22 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     // KRATOS_WATCH(rAuxMat)
                     // KRATOS_WATCH(trans_rAuxMat)
 
-                    left_hand_side_taylor_penalty = prod(trans(rAuxMat), rAuxMat)* penalty_parameter*aux_w/ h_sur_bd; 
+                    left_hand_side_taylor_penalty = prod(trans(rAuxMat), rAuxMat)* penalty_parameter*aux_w/ h_sur_bd;
+
+                    // Taylor penalty forcing/residual 
+                    if (sbm_formulation_type == 1) {
+                        array_1d<double,6> penalty_bc_values_5 = penalty_bc_values;
+                        penalty_bc_values_5[5] = 0.0; // rz row of rAuxMat is always zero, keep it inert
+                        right_hand_side += (penalty_parameter*aux_w/h_sur_bd) * prod(trans(rAuxMat), penalty_bc_values_5);
+                        right_hand_side -= prod(left_hand_side_taylor_penalty, unknown_values);
+                    }
 
                     // exit(0);
                     
-                    ///////// Hard coded Gap SBM  for testing purposes
+                    // Gap SBM domain term
                     Matrix BTD = Matrix(18, 8, 0.0);
                     BTD = prod(trans(B_parent), D);
-                    left_hand_side_gap_SBM += prod(BTD, B_parent)*std::abs(distance) * aux_w; 
-
-
-                    // for (std::size_t i_node = 0; i_node < 3; ++i_node) { 
-                    //     aux_val = aux_w * r_sur_bd_N_taylor[i_node];
-                    //     i_loc_id = sur_bd_local_ids[i_node];
-                    //     for (std::size_t d = 0; d < 3; ++d) { //3 or 6
-                    //         for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) { 
-                    //             left_hand_side_gap_SBM_Neumann(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
-                    //         }
-                    //     }
-                    // } TO DO: remove this
-                    left_hand_side_gap_SBM_Neumann -= prod(trans(rAuxMat), aux_CB_projection_Neumann) * aux_w; 
-
-
-
+                    left_hand_side_gap_SBM += prod(BTD, B_parent) * std::abs(distance) * aux_w;
 
                     // KRATOS_WATCH(left_hand_side)
                     // KRATOS_WATCH(aux_CB_projection)
@@ -375,24 +415,24 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
             // }
         }
 
-        // Assemble contributions MLS SBM
-        // rLeftHandSideMatrix += left_hand_side;
-        // rRightHandSideVector += right_hand_side;
-
-        // Assemble contributions Taylor SBM
-        rLeftHandSideMatrix += left_hand_side;
-        rLeftHandSideMatrix -= trans(left_hand_side_taylor);
-        // rLeftHandSideMatrix += left_hand_side_taylor_penalty;
-        rRightHandSideVector += right_hand_side;
-        
-
-        // Assemble contributions Gap SBM
-        // rLeftHandSideMatrix += left_hand_side_gap_SBM; // term 2, OK
-        // rLeftHandSideMatrix += left_hand_side_gap_SBM_Neumann; // term 3, TO DO, the hardest part
-        // rLeftHandSideMatrix += left_hand_side_taylor; // term 4, OK, noted this is different in the gap SBM
-        // rLeftHandSideMatrix -= trans(left_hand_side_taylor); // term 5 , OK
-        // // rLeftHandSideMatrix += left_hand_side_taylor_penalty; // term 6 , OK
-        // rRightHandSideVector += right_hand_side;
+        // Assemble contributions according to the selected surrogate-boundary flux formulation.
+        if (sbm_formulation_type == 0) {
+            // MLS SBM: primal-consistency flux term 
+            rLeftHandSideMatrix += left_hand_side;
+            rRightHandSideVector += right_hand_side;
+        } else if (sbm_formulation_type == 1) {
+            // Taylor SBM
+            rLeftHandSideMatrix += left_hand_side;
+            rLeftHandSideMatrix -= trans(left_hand_side_taylor);
+            rLeftHandSideMatrix += left_hand_side_taylor_penalty;
+            rRightHandSideVector += right_hand_side;
+        } else {
+            // Gap SBM 
+            Matrix left_hand_side_gap_sbm_total = left_hand_side_gap_SBM + left_hand_side_taylor
+                + trans(left_hand_side_taylor) + left_hand_side_taylor_penalty;
+            rLeftHandSideMatrix += left_hand_side_gap_sbm_total;
+            rRightHandSideVector -= prod(left_hand_side_gap_sbm_total, unknown_values);
+        }
     }
 
     KRATOS_CATCH("")
@@ -687,54 +727,6 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLin
         // // TO DO: shear and drilling part
         for (std::size_t j = 0; j < LocalSize; ++j) {
             rAuxMat(2,j) = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
-        }
-
-
-    // } else {
-    //     for (std::size_t j = 0; j < LocalSize; ++j) {
-    //         rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(3,j) + rUnitNormal[2]*aux_CB(5,j);
-    //     }
-    //     for (std::size_t j = 0; j < LocalSize; ++j) {
-    //         rAuxMat(1,j) = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(1,j) + rUnitNormal[2]*aux_CB(4,j);
-    //     }
-    //     for (std::size_t j = 0; j < LocalSize; ++j) {
-    //         rAuxMat(2,j) = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j) + rUnitNormal[2]*aux_CB(2,j);
-    //     }
-    // }
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLinearisationRotation(
-    const Matrix& rC,
-    const BoundedMatrix<double,8,LocalSize>& rB,
-    const array_1d<double,2>& rUnitNormal,
-    BoundedMatrix<double,6,LocalSize>& rAuxMat)
-{
-
-    Matrix aux_CB = ZeroMatrix(8, LocalSize);
-    aux_CB = prod(rC, rB);
-
-    // if constexpr (TDim == 2) {
-    
-        // membrane part
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(0,j) = (rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j))*0;
-        }
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(1,j) = (rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j))*0;
-        }
-
-        // bending part    
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(4,j) = (rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j))*1;
-        }
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(3,j) = (rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j))*1;
-        }
-
-        // // TO DO: shear and drilling part
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(2,j) = (rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j))*0;
         }
 
 
