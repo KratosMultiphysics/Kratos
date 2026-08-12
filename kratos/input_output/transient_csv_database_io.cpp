@@ -128,7 +128,11 @@ std::string TransientCSVDatabaseIO::Column::GetFormattedValue(const ValueType& r
 }
 
 TransientCSVDatabaseIO::TransientCSVDatabaseIO(
-    Parameters Settings,
+    const std::string& rFilename,
+    const bool WriteKratosVersion,
+    const bool WriteTimeStamp,
+    const IndexType EchoLevel,
+    Parameters FormatParameters,
     const DataCommunicator& rDataCommunicator)
     : mrDataCommunicator(rDataCommunicator),
       mFileAccessMode(NOT_INITIALIZED)
@@ -137,30 +141,24 @@ TransientCSVDatabaseIO::TransientCSVDatabaseIO(
 
     Parameters default_parameters = Parameters(R"(
     {
-        "file_name"           : "",
-        "write_kratos_version": true,
-        "write_time_stamp"    : true,
-        "echo_level"          : 0,
-        "format_settings"     : {
-            "int_length"     : 7,
-            "float_precision": 9,
-            "bool_values"    : ["0", "1"],
-            "string_length"  : 10
-        }
+        "int_length"     : 7,
+        "float_precision": 9,
+        "bool_values"    : ["0", "1"],
+        "string_length"  : 10
     })" );
 
-    Settings.RecursivelyAddMissingParameters(default_parameters);
+    FormatParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mFileName = Settings["file_name"].GetString();
-    mWriteKratosVersion = Settings["write_kratos_version"].GetBool();
-    mWriteTimeStamp = Settings["write_time_stamp"].GetBool();
-    mEchoLevel = Settings["echo_level"].GetInt();
+    mFileName = rFilename;
+    mWriteKratosVersion = WriteKratosVersion;
+    mWriteTimeStamp = WriteTimeStamp;
+    mEchoLevel = EchoLevel;
 
     mpFormatSettings = std::make_shared<FormatSettings>(
-                            Settings["format_settings"]["int_length"].GetInt(),
-                            Settings["format_settings"]["float_precision"].GetInt(),
-                            Settings["format_settings"]["string_length"].GetInt(),
-                            Settings["format_settings"]["bool_values"].GetStringArray());
+                            FormatParameters["int_length"].GetInt(),
+                            FormatParameters["float_precision"].GetInt(),
+                            FormatParameters["string_length"].GetInt(),
+                            FormatParameters["bool_values"].GetStringArray());
 
     // Adding the step column
     mWritingData.push_back(std::make_pair(Column("STEP", 0, mpFormatSettings), 0));

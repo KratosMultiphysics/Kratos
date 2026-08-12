@@ -21,18 +21,12 @@ class TestTransientCSVDatabaseIO(KratosUnittest.TestCase):
 
     def test_Read1(self):
         params = Kratos.Parameters("""{
-            "file_name"           : "transient_csv_database_ref.csv",
-            "write_kratos_version": true,
-            "write_time_stamp"    : true,
-            "echo_level"          : 0,
-            "format_settings"     : {
-                "int_length"     : 7,
-                "float_precision": 9,
-                "bool_values"    : ["no", "yes"],
-                "string_length"  : 30
-            }
+            "int_length"     : 7,
+            "float_precision": 9,
+            "bool_values"    : ["no", "yes"],
+            "string_length"  : 30
         }""")
-        transient_csv_database_io = Kratos.TransientCSVDatabaseIO(params, Kratos.Testing.GetDefaultDataCommunicator())
+        transient_csv_database_io = Kratos.TransientCSVDatabaseIO("transient_csv_database_ref.csv", False, False, 0, params, Kratos.Testing.GetDefaultDataCommunicator())
         transient_csv_database_io.Initialize()
 
         for step in range(self.n):
@@ -54,18 +48,12 @@ class TestTransientCSVDatabaseIO(KratosUnittest.TestCase):
 
     def test_Read2(self):
         params = Kratos.Parameters("""{
-            "file_name"           : "transient_csv_database_no_column_info_ref.csv",
-            "write_kratos_version": true,
-            "write_time_stamp"    : true,
-            "echo_level"          : 0,
-            "format_settings"     : {
-                "int_length"     : 7,
-                "float_precision": 9,
-                "bool_values"    : ["no", "yes"],
-                "string_length"  : 30
-            }
+            "int_length"     : 7,
+            "float_precision": 9,
+            "bool_values"    : ["no", "yes"],
+            "string_length"  : 30
         }""")
-        transient_csv_database_io = Kratos.TransientCSVDatabaseIO(params, Kratos.Testing.GetDefaultDataCommunicator())
+        transient_csv_database_io = Kratos.TransientCSVDatabaseIO("transient_csv_database_no_column_info_ref.csv", False, False, 0, params, Kratos.Testing.GetDefaultDataCommunicator())
         transient_csv_database_io.Initialize()
 
         for step in range(self.n):
@@ -87,17 +75,12 @@ class TestTransientCSVDatabaseIO(KratosUnittest.TestCase):
 
     def test_Write1(self):
         params = Kratos.Parameters("""{
-            "file_name"           : "transient_csv_database.csv",
-            "write_kratos_version": false,
-            "write_time_stamp"    : false,
-            "format_settings"     : {
-                "int_length"     : 7,
-                "float_precision": 9,
-                "bool_values"    : ["no", "yes"],
-                "string_length"  : 30
-            }
+            "int_length"     : 7,
+            "float_precision": 9,
+            "bool_values"    : ["no", "yes"],
+            "string_length"  : 30
         }""")
-        transient_csv_database_io = Kratos.TransientCSVDatabaseIO(params, Kratos.Testing.GetDefaultDataCommunicator())
+        transient_csv_database_io = Kratos.TransientCSVDatabaseIO("transient_csv_database.csv", False, False, 0, params, Kratos.Testing.GetDefaultDataCommunicator())
         transient_csv_database_io.Initialize()
         transient_csv_database_io.SetHeaderInformation("Testing header information\nSecond line of testing information")
 
@@ -120,17 +103,12 @@ class TestTransientCSVDatabaseIO(KratosUnittest.TestCase):
 
     def test_ReadWrite1(self):
         params = Kratos.Parameters("""{
-            "file_name"           : "transient_csv_database.csv",
-            "write_kratos_version": false,
-            "write_time_stamp"    : false,
-            "format_settings"     : {
-                "int_length"     : 7,
-                "float_precision": 9,
-                "bool_values"    : ["no", "yes"],
-                "string_length"  : 30
-            }
+            "int_length"     : 7,
+            "float_precision": 9,
+            "bool_values"    : ["no", "yes"],
+            "string_length"  : 30
         }""")
-        transient_csv_database_io = Kratos.TransientCSVDatabaseIO(params, Kratos.Testing.GetDefaultDataCommunicator())
+        transient_csv_database_io = Kratos.TransientCSVDatabaseIO("transient_csv_database.csv", False, False, 0, params, Kratos.Testing.GetDefaultDataCommunicator())
         transient_csv_database_io.Initialize()
         transient_csv_database_io.SetHeaderInformation("Testing header information\nSecond line of testing information")
 

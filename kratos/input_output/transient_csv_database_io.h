@@ -50,7 +50,11 @@ public:
     ///@{
 
     TransientCSVDatabaseIO(
-        Parameters Settings,
+        const std::string& rFilename,
+        const bool WriteKratosVersion,
+        const bool WriteTimeStamp,
+        const IndexType EchoLevel,
+        Parameters FormatParameters,
         const DataCommunicator& rDataCommunicator);
 
     ~TransientCSVDatabaseIO() override = default;

@@ -277,7 +277,7 @@ void  AddIOToPython(pybind11::module& m)
         ;
 
     py::class_<TransientCSVDatabaseIO, TransientCSVDatabaseIO::Pointer, TransientDatabaseIO>(m, "TransientCSVDatabaseIO")
-        .def(py::init<Parameters, const DataCommunicator&>(), py::arg("parameters"), py::arg("data_communicator"))
+        .def(py::init<const std::string&, const bool, const bool, const std::size_t, Parameters, const DataCommunicator&>(), py::arg("file_name"), py::arg("write_kratos_version"), py::arg("write_time_stamp"), py::arg("echo_level"), py::arg("parameters"), py::arg("data_communicator"))
         .def("SetHeaderInformation", &TransientCSVDatabaseIO::SetHeaderInformation, py::arg("header_information"))
         ;
 }
