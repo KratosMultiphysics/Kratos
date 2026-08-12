@@ -38,7 +38,7 @@ Some symbols used for the Kratos variables are not inline with symbols used in t
 | $\theta_s$      | `SATURATED_SATURATION`             | $S_s = \theta_s$        |
 | $\theta_r$      | `RESIDUAL_SATURATION`              | $S_r = \theta_r$        |
 | $\alpha$        | -                                  | $\alpha = 1/p_b$        |
-| $h_a$ or GA     | `VAN_GENUCHTEN_AIR_ENTRY_PRESSURE` | $\p_b=\rho_w g h_a$     |
+| $h_a$ or GA     | `VAN_GENUCHTEN_AIR_ENTRY_PRESSURE` | $p_b=\rho_w g h_a$      |
 | $n$             | `VAN_GENUCHTEN_GN`                 | $n = \mathtt{gn}$       |
 | $m$ (derived)   | —                                  | $m = 1 - 1/n$ (hardcoded) |
 | $l$             | `VAN_GENUCHTEN_GL`                 | $l = \mathtt{gl}$       |
