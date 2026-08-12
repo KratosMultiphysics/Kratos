@@ -279,12 +279,6 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateRightHandSide(
 template <ShellKinematics TKinematics>
 int ShellThickNitscheBoundaryElement3D3N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    // Check that only simplicial geometries are used
-    const auto geom_type = this->GetGeometry().GetGeometryType();
-    // KRATOS_ERROR_IF_NOT(geom_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || geom_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) <<
-    //     "ShellThickNitscheBoundaryElement3D3N only supports simplicial geometries (linear triangles and tetrahedra)." << std::endl;
-
-    // Base SmallDisplacement element check
     return BaseType::Check(rCurrentProcessInfo);
 }
 
@@ -308,14 +302,8 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateCauchyTractionV
     const array_1d<double,2>& rUnitNormal,
     array_1d<double,6>& rCauchyTraction)
 {
-    // if constexpr (TDim == 2) {
-        rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
-        rCauchyTraction[1] = rVoigtStress[2]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1];
-    // } else {
-    //     rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[3]*rUnitNormal[1] + rVoigtStress[5]*rUnitNormal[2];
-    //     rCauchyTraction[1] = rVoigtStress[3]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1] + rVoigtStress[4]*rUnitNormal[2];
-    //     rCauchyTraction[2] = rVoigtStress[5]*rUnitNormal[0] + rVoigtStress[4]*rUnitNormal[1] + rVoigtStress[2]*rUnitNormal[2];
-    // }
+    rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
+    rCauchyTraction[1] = rVoigtStress[2]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1];
 }
 
 template <ShellKinematics TKinematics>
@@ -329,41 +317,26 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLin
     Matrix aux_CB = ZeroMatrix(8, LocalSize);
     aux_CB = prod(rC, rB);
 
-    // if constexpr (TDim == 2) {
-    
-        // membrane part
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j);
-        }
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(1,j) = rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j);
-        }
+    // membrane part
+    for (std::size_t j = 0; j < LocalSize; ++j) {
+        rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j);
+    }
+    for (std::size_t j = 0; j < LocalSize; ++j) {
+        rAuxMat(1,j) = rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j);
+    }
 
-        // bending part
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(4,j) = (rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j));
-        }
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(3,j) = (rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j));
-        }
+    // bending part
+    for (std::size_t j = 0; j < LocalSize; ++j) {
+        rAuxMat(4,j) = (rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j));
+    }
+    for (std::size_t j = 0; j < LocalSize; ++j) {
+        rAuxMat(3,j) = (rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j));
+    }
 
-        // // TO DO: shear and drilling part
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(2,j) = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
-        }
-
-
-    // } else {
-    //     for (std::size_t j = 0; j < LocalSize; ++j) {
-    //         rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(3,j) + rUnitNormal[2]*aux_CB(5,j);
-    //     }
-    //     for (std::size_t j = 0; j < LocalSize; ++j) {
-    //         rAuxMat(1,j) = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(1,j) + rUnitNormal[2]*aux_CB(4,j);
-    //     }
-    //     for (std::size_t j = 0; j < LocalSize; ++j) {
-    //         rAuxMat(2,j) = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j) + rUnitNormal[2]*aux_CB(2,j);
-    //     }
-    // }
+    // shear part
+    for (std::size_t j = 0; j < LocalSize; ++j) {
+        rAuxMat(2,j) = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
+    }
 }
 
 // template class ShellThickNitscheBoundaryElement3D3N<ShellKinematics::LINEAR>;

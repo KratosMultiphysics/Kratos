@@ -81,9 +81,8 @@ void DisplacementShellShiftedBoundaryCondition::EquationIdVector(
     // Resize the equation ids. vector
     const auto &r_geometry = this->GetGeometry();
     const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType n_dim = 6;//rCurrentProcessInfo[DOMAIN_SIZE];
+    const SizeType n_dim = 6;
     const SizeType local_size = n_dim * n_nodes;
-
 
     if (rResult.size() != local_size) {
         rResult.resize(local_size, false);
@@ -91,22 +90,14 @@ void DisplacementShellShiftedBoundaryCondition::EquationIdVector(
 
     // Fill the equation ids. vector from the condition DOFs
     const SizeType disp_x_pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
-    // if (n_dim == 2) {
-        for (std::size_t i = 0; i < n_nodes; ++i){
-            rResult[i*n_dim] = r_geometry[i].GetDof(DISPLACEMENT_X, disp_x_pos).EquationId();
-            rResult[i*n_dim +1] = r_geometry[i].GetDof(DISPLACEMENT_Y, disp_x_pos + 1).EquationId();
-            rResult[i*n_dim +2] = r_geometry[i].GetDof(DISPLACEMENT_Z, disp_x_pos + 2).EquationId();
-            rResult[i*n_dim +3] = r_geometry[i].GetDof(ROTATION_X, disp_x_pos + 3).EquationId();
-            rResult[i*n_dim +4] = r_geometry[i].GetDof(ROTATION_Y, disp_x_pos + 4).EquationId();
-            rResult[i*n_dim +5] = r_geometry[i].GetDof(ROTATION_Z, disp_x_pos + 5).EquationId();
-        }
-    // } else {
-    //     for (std::size_t i = 0; i < n_nodes; ++i){
-    //         rResult[i*n_dim] = r_geometry[i].GetDof(DISPLACEMENT_X, disp_x_pos).EquationId();
-    //         rResult[i*n_dim + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y, disp_x_pos + 1).EquationId();
-    //         rResult[i*n_dim + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z, disp_x_pos + 2).EquationId();
-    //     }
-    // }
+    for (std::size_t i = 0; i < n_nodes; ++i){
+        rResult[i*n_dim] = r_geometry[i].GetDof(DISPLACEMENT_X, disp_x_pos).EquationId();
+        rResult[i*n_dim +1] = r_geometry[i].GetDof(DISPLACEMENT_Y, disp_x_pos + 1).EquationId();
+        rResult[i*n_dim +2] = r_geometry[i].GetDof(DISPLACEMENT_Z, disp_x_pos + 2).EquationId();
+        rResult[i*n_dim +3] = r_geometry[i].GetDof(ROTATION_X, disp_x_pos + 3).EquationId();
+        rResult[i*n_dim +4] = r_geometry[i].GetDof(ROTATION_Y, disp_x_pos + 4).EquationId();
+        rResult[i*n_dim +5] = r_geometry[i].GetDof(ROTATION_Z, disp_x_pos + 5).EquationId();
+    }
 
     KRATOS_CATCH("")
 }
@@ -120,32 +111,24 @@ void DisplacementShellShiftedBoundaryCondition::GetDofList(
     // Resize the DOFs vector
     const auto& r_geometry = this->GetGeometry();
     const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType n_dim = 6; //rCurrentProcessInfo[DOMAIN_SIZE];
+    const SizeType n_dim = 6;
     const SizeType local_size = n_dim * n_nodes;
     if (rConditionalDofList.size() != local_size){
         rConditionalDofList.resize(local_size);
     }
 
     // Fill the DOFs vector from the condition nodes
-    // if (n_dim == 2) {
-        for (std::size_t i = 0; i < n_nodes; ++i) {
-            rConditionalDofList[i*n_dim] = r_geometry[i].pGetDof(DISPLACEMENT_X);
-            rConditionalDofList[i*n_dim + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
-            rConditionalDofList[i*n_dim + 2] = r_geometry[i].pGetDof(DISPLACEMENT_Z);
-            rConditionalDofList[i*n_dim + 3] = r_geometry[i].pGetDof(ROTATION_X);
-            rConditionalDofList[i*n_dim + 4] = r_geometry[i].pGetDof(ROTATION_Y);
-            rConditionalDofList[i*n_dim + 5] = r_geometry[i].pGetDof(ROTATION_Z);
-        }
-    // } else {
-    //     for (std::size_t i = 0; i < n_nodes; ++i) {
-    //         rConditionalDofList[i*n_dim] = r_geometry[i].pGetDof(DISPLACEMENT_X);
-    //         rConditionalDofList[i*n_dim + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
-    //         rConditionalDofList[i*n_dim + 2] = r_geometry[i].pGetDof(DISPLACEMENT_Z);
-    //     }
-    // }
-
-        KRATOS_CATCH("")
+    for (std::size_t i = 0; i < n_nodes; ++i) {
+        rConditionalDofList[i*n_dim] = r_geometry[i].pGetDof(DISPLACEMENT_X);
+        rConditionalDofList[i*n_dim + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
+        rConditionalDofList[i*n_dim + 2] = r_geometry[i].pGetDof(DISPLACEMENT_Z);
+        rConditionalDofList[i*n_dim + 3] = r_geometry[i].pGetDof(ROTATION_X);
+        rConditionalDofList[i*n_dim + 4] = r_geometry[i].pGetDof(ROTATION_Y);
+        rConditionalDofList[i*n_dim + 5] = r_geometry[i].pGetDof(ROTATION_Z);
     }
+
+    KRATOS_CATCH("")
+}
 
 void DisplacementShellShiftedBoundaryCondition::Initialize(const ProcessInfo &rCurrentProcessInfo)
 {
@@ -170,7 +153,7 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     KRATOS_TRY
 
     // Get problem dimensions
-    const SizeType n_dim = 6; // rCurrentProcessInfo[DOMAIN_SIZE]; //wrong, should be 6 for shells
+    const SizeType n_dim = 6;
 
     // Check (and resize) LHS and RHS matrix
     const auto& r_geometry = this->GetGeometry();
@@ -230,7 +213,7 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     cons_law_values.SetStressVector(stress_vect);
     cons_law_values.SetStrainVector(strain_vect);
 
-    cons_law_values.SetConstitutiveMatrix(C_mat); //simple hack is okay in this case .. to be continued.. team viewer!!
+    cons_law_values.SetConstitutiveMatrix(C_mat);
 
     auto& r_cons_law_options = cons_law_values.GetOptions();
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
@@ -246,7 +229,7 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         for(std::size_t j = 0; j < C_mat.size1(); ++j)
         {
             D(i,j) = C_mat(i,j) * thickness;
-            D(i + 3,j +3) = C_mat(i,j) / 12.0 * thickness * thickness * thickness;// * this->GetProperties()[THICKNESS] * this->GetProperties()[THICKNESS]; 
+            D(i + 3,j +3) = C_mat(i,j) / 12.0 * thickness * thickness * thickness;
         }
     }
 
@@ -282,11 +265,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         B_mat_shell(2, initial_index    ) = r_DN_DX(i, 1);
         B_mat_shell(2, initial_index + 1) = r_DN_DX(i, 0);
 
-        // B_mat_shell(3, initial_index + 3) = r_DN_DX(i, 0);
-        // B_mat_shell(4, initial_index + 4) = r_DN_DX(i, 1);
-        // B_mat_shell(5, initial_index + 3) = r_DN_DX(i, 1);
-        // B_mat_shell(5, initial_index + 4) = r_DN_DX(i, 0);
-
         B_mat_shell(3, initial_index + 4) = r_DN_DX(i, 0);
         B_mat_shell(4, initial_index + 3) = -r_DN_DX(i, 1);
         B_mat_shell(5, initial_index + 3) = -r_DN_DX(i, 0);
@@ -295,12 +273,7 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         B_mat_shell(6, initial_index + 2) = r_DN_DX(i, 0);
         B_mat_shell(6, initial_index + 4) = r_N[i];
         B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 1);
-        B_mat_shell(7, initial_index + 2) = -r_N[i];
-
-        // B_mat_shell(6, initial_index + 2) = -r_DN_DX(i, 1);
-        // B_mat_shell(6, initial_index + 3) = r_N[i];
-        // B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 0);
-        // B_mat_shell(7, initial_index + 4) = r_N[i];
+        B_mat_shell(7, initial_index + 3) = -r_N[i];
     }
 
     // Get Dirichlet BC imposition data
@@ -376,9 +349,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     rLeftHandSideMatrix -= w * stab_lhs * mls_only_flag; 
     rRightHandSideVector += w * stab_rhs_bc * mls_only_flag;
     rRightHandSideVector += w * stab_rhs_unk * mls_only_flag;
-
-    // KRATOS_WATCH(rLeftHandSideMatrix)
-    // exit(0);
 
     KRATOS_CATCH("")
 }

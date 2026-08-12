@@ -54,8 +54,6 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 {
     KRATOS_TRY
 
-    // KRATOS_WATCH("HOW MANY?")
-
     // Add base Laplacian contribution
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
@@ -108,90 +106,54 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
             }
         }
 
-        // KRATOS_WATCH("Is interface");
-
         if (sur_bd_ids_vect.size() != 0) {
-
-            // #define OPT_1_POINT_INTEGRATION
             typename BaseType::CalculationData data(this->mpCoordinateTransformation, rCurrentProcessInfo);
-            data.CalculateLHS = true; //TO DO
-            data.CalculateRHS = true; //TO DO
+            data.CalculateLHS = true;
+            data.CalculateRHS = true;
 
             BaseType::InitializeCalculationData(data);
 
-            // for (SizeType i = 0; i < 3; ++i) {
-            //     data.gpIndex = i;
-                
-                array_1d<double,3>& gp0 = data.gpLocations[0]; //TO DO
-                gp0[0] = 1.0/3.0;
-                gp0[1] = 1.0/3.0;
-                gp0[2] = 1.0/3.0;
+            array_1d<double,3>& gp0 = data.gpLocations[0];
+            gp0[0] = 1.0/3.0;
+            gp0[1] = 1.0/3.0;
+            gp0[2] = 1.0/3.0;
 
-                data.gpIndex = 0;
+            data.gpIndex = 0;
 
-                // calculate the total strain displ. matrix
-                // BaseType::CalculateBMatrix(data);
+            BaseType::CalculateSectionResponse(data);
 
-                // // compute generalized strains
-                // noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
+            // Get the parent geometry data
+            double dom_size_parent;
+            const auto& r_geom = this->GetGeometry();
 
-                // calculate section response
-                BaseType::CalculateSectionResponse(data);
-                // #undef OPT_1_POINT_INTEGRATION
-                // Get the parent geometry data
-                double dom_size_parent;
-                const auto& r_geom = this->GetGeometry();
+            array_1d<double, NumNodes> N_parent;
+            BoundedMatrix<double, NumNodes, 2> DN_DX_parent;
+            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, dom_size_parent);
+            BoundedMatrix<double,8,LocalSize> B;
+            const auto &r_boundaries = r_geom.GenerateBoundariesEntities();
+            DenseMatrix<unsigned int> nodes_in_faces;
+            r_geom.NodesInFaces(nodes_in_faces);
 
-                // KRATOS_WATCH(r_geom)
+            // Prescribed Dirichlet target (u0, theta0)
+            const auto& r_penalty_bc_val = this->GetValue(DISPLACEMENT);
+            const auto& r_penalty_bc_val_rot = this->GetValue(ROTATION);
+            array_1d<double,6> penalty_bc_values;
+            for (std::size_t d = 0; d < 3; ++d) {
+                penalty_bc_values[d] = r_penalty_bc_val[d];
+                penalty_bc_values[d + 3] = r_penalty_bc_val_rot[d];
+            }
 
-                array_1d<double, NumNodes> N_parent;
-                BoundedMatrix<double, NumNodes, 2> DN_DX_parent;
-                GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, dom_size_parent);
-                BoundedMatrix<double,8,LocalSize> B;
-                // StructuralMechanicsElementUtilities::CalculateB(*this, DN_DX_parent, B); //I obtained B in the parent class
-                const auto &r_boundaries = r_geom.GenerateBoundariesEntities();
-                DenseMatrix<unsigned int> nodes_in_faces;
-                r_geom.NodesInFaces(nodes_in_faces);
-
-                // Calculate the stress at the element midpoint
-                // Note that in here we are assuming constant strain kinematics
-                // KinematicVariables kinematic_variables(StrainSize, 2, NumNodes);
-                // ConstitutiveVariables constitutive_variables(StrainSize);
-                // // const auto &r_int_pts = this->IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
-                // ConstitutiveLaw::Parameters cons_law_values(r_geom, this->GetProperties(), rCurrentProcessInfo);
-                // auto& r_cons_law_options = cons_law_values.GetOptions();
-                // // r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
-                // // r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-                // // r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-                // cons_law_values.SetStrainVector(constitutive_variables.StrainVector);
-                // cons_law_values.SetStressVector(constitutive_variables.StressVector); //additional
-                // cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
-
-                // CalculateKinematicVariables(kinematic_variables, 0, GeometryData::IntegrationMethod::GI_GAUSS_1);
-                // CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, 0, r_int_pts, this->GetStressMeasure(), this->IsElementRotated());
-
-                // Prescribed Dirichlet target (u0, theta0)
-                const auto& r_penalty_bc_val = this->GetValue(DISPLACEMENT);
-                const auto& r_penalty_bc_val_rot = this->GetValue(ROTATION);
-                array_1d<double,6> penalty_bc_values;
-                for (std::size_t d = 0; d < 3; ++d) {
-                    penalty_bc_values[d] = r_penalty_bc_val[d];
-                    penalty_bc_values[d + 3] = r_penalty_bc_val_rot[d];
-                }
-
-                // Loop the surrogate faces
-                // Note that there is the chance that the surrogate face is not unique
-                for (std::size_t sur_bd_id : sur_bd_ids_vect) {
+            // Loop the surrogate faces
+            // Note that there is the chance that the surrogate face is not unique
+            for (std::size_t sur_bd_id : sur_bd_ids_vect) {
                     // Get the current surrogate face geometry information
                     const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                     const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
                     const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
                     const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
-                    const auto& r_sur_bd_dN = r_sur_bd_geom.ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                     // Get the gradient of the node contrary to the surrogate face
                     // Note that this is used to calculate the normal as n = - DN_DX_cont_node / norm_2(DN_DX_cont_node)
-                    // const BoundedVector<double,2> DN_DX_cont_node = row(DN_DX_parent, sur_bd_local_ids[0]);
                     BoundedVector<double,2> n_sur_bd = row(DN_DX_parent, sur_bd_local_ids[0]);
 
                     const double h_sur_bd = 1.0 / norm_2(n_sur_bd);
@@ -215,11 +177,6 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         B(2, initial_index    ) = DN_DX_parent(i, 1);
                         B(2, initial_index + 1) = DN_DX_parent(i, 0);
 
-                        // B(3, initial_index + 3) = DN_DX_parent(i, 0);
-                        // B(4, initial_index + 4) = DN_DX_parent(i, 1);
-                        // B(5, initial_index + 3) = DN_DX_parent(i, 1);
-                        // B(5, initial_index + 4) = DN_DX_parent(i, 0);
-
                         B(3, initial_index + 4) = DN_DX_parent(i, 0);
                         B(4, initial_index + 3) = -DN_DX_parent(i, 1);
                         B(5, initial_index + 3) = -DN_DX_parent(i, 0);
@@ -229,11 +186,6 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         B(6, initial_index + 4) = N_parent[i];
                         B(7, initial_index + 2) = DN_DX_parent(i, 1);
                         B(7, initial_index + 3) = -N_parent[i];
-
-                        // B(6, initial_index + 2) = -DN_DX_parent(i, 1);
-                        // B(6, initial_index + 3) = N_parent[i];
-                        // B(7, initial_index + 2) = DN_DX_parent(i, 0);
-                        // B(7, initial_index + 4) = N_parent[i];
                     }
 
                     Matrix D(8, 8);
@@ -262,12 +214,6 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 
                     B_parent = prod(R, B_temp);
 
-                    // KRATOS_WATCH(R)
-                    // KRATOS_WATCH(B_parent)
-                    // KRATOS_WATCH(B)
-                    // KRATOS_WATCH(-(this->mSections[0]->GetOrientationAngle()))
-                    // exit(0);
-
                     CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, aux_CB_projection);
                     CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
     
@@ -276,22 +222,18 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     // Note that the integration weight is calculated as 2 * Parent domain size * norm(DN_DX_cont_node)
                     double aux_val;
                     std::size_t i_loc_id;
-                    const double aux_w = 2 * dom_size_parent / h_sur_bd;// * data.dA; //TO DO Check
+                    const double aux_w = 2 * dom_size_parent / h_sur_bd;
 
-
-                    //This loop is the problem
                     for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
                         aux_val = aux_w * r_sur_bd_N(0,i_node);
                         i_loc_id = sur_bd_local_ids[i_node + 1];
-                        for (std::size_t d = 0; d < 6; ++d) { //3 or 6
+                        for (std::size_t d = 0; d < 6; ++d) {
                             if (constrained_dofs[d] == 0.0) {
                                 continue;
                             }
                             right_hand_side(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
-                            // for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
-                            for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) { //TO DO
+                            for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) {
                                 left_hand_side(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
-                                // rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
                             }
                         }
                     }
@@ -307,23 +249,10 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     r_sur_bd_N_taylor[1] = r_sur_bd_N(0,0)+ (distance * DN_DX_parent(1,0));
                     r_sur_bd_N_taylor[2] = r_sur_bd_N(0,1)+ (distance * DN_DX_parent(2,0));
 
-                    // KRATOS_WATCH(r_sur_bd_N)
-                    // KRATOS_WATCH(N_parent)
-                    // KRATOS_WATCH(DN_DX_parent)
-                    // // KRATOS_WATCH(r_geom)
-                    // KRATOS_WATCH(sur_bd_local_ids)
-                    // KRATOS_WATCH(r_sur_bd_N_taylor)
-                    // KRATOS_WATCH(h_sur_bd)
-                    // KRATOS_WATCH(distance)
-                    // KRATOS_WATCH(distance_2)
-
-                    // exit(0);
-
-                    //This loop is for the sbm with taylor expansion.
                     for (std::size_t i_node = 0; i_node < 3; ++i_node) {
                         aux_val = aux_w * r_sur_bd_N_taylor[i_node];
                         i_loc_id = sur_bd_local_ids[i_node];
-                        for (std::size_t d = 0; d < 6; ++d) { //3 or 6
+                        for (std::size_t d = 0; d < 6; ++d) {
                             if (constrained_dofs[d] == 0.0) {
                                 continue;
                             }
@@ -333,58 +262,22 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         }
                     }
 
-                    // KRATOS_WATCH(aux_val)
-                    // KRATOS_WATCH(aux_CB_projection)
-                    // KRATOS_WATCH(left_hand_side_taylor)
-                    // KRATOS_WATCH(left_hand_side)
-                    // exit(0);    
-
-
-                     // Penalty
-                    double aux_val_penalty;
+                    // Penalty
                     const double penalty_parameter = this->GetProperties()[PENALTY_COEFFICIENT];
 
-                    // KRATOS_WATCH(aux_w)
-                    // exit(0);
-                    // array_1d<double,3> r_sur_bd_N_penalty = ZeroVector(3);
-                    // r_sur_bd_N_penalty[0] = 0.0 ;
-                    // r_sur_bd_N_penalty[1] = r_sur_bd_N(0,0);
-                    // r_sur_bd_N_penalty[2] = r_sur_bd_N(0,1);
-
-                    // for (std::size_t i_node = 0; i_node < 3; ++i_node) {
-                    //     aux_val_penalty = aux_w * r_sur_bd_N_penalty[i_node] / h_sur_bd; // different than Nitsche
-                    //     i_loc_id = sur_bd_local_ids[i_node ];
-                    //     for (std::size_t d = 0; d < 5; ++d) { //HACK! if I put 6, it will affect the solution. 5: fixed, 3: SS
-                    //         for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) { //HACK!
-                    //             left_hand_side_taylor_penalty(i_loc_id*BlockSize+d, j_node*BlockSize+d) += r_sur_bd_N_penalty[i_node] * aux_val_penalty * penalty_parameter; //Penalty
-                    //         }
-                    //     }
-                    // }
-
                     Matrix rAuxMat = ZeroMatrix(6, 18); //Taylor
-                    Matrix trans_rAuxMat = ZeroMatrix(6, 18);
-
-                    array_1d<double,3> r_sur_bd_N_= ZeroVector(3);
-                    r_sur_bd_N_[0] = 0.0;;
-                    r_sur_bd_N_[1] = r_sur_bd_N(0,0);
-                    r_sur_bd_N_[2] = r_sur_bd_N(0,1);
-
                     for (IndexType i_node = 0; i_node < 3; ++i_node) {
-                        for (IndexType d = 0; d < 5; ++d) {  //3 or 6
+                        for (IndexType d = 0; d < 5; ++d) {
                             if (constrained_dofs[d] == 0.0) {
                                 continue;
                             }
                             rAuxMat(d, i_node*6 + d) = r_sur_bd_N_taylor[i_node];
-                            trans_rAuxMat(d, i_node*6 + d) = r_sur_bd_N_[i_node];
                         }
                     }
 
-                    // KRATOS_WATCH(rAuxMat)
-                    // KRATOS_WATCH(trans_rAuxMat)
-
                     left_hand_side_taylor_penalty = prod(trans(rAuxMat), rAuxMat)* penalty_parameter*aux_w/ h_sur_bd;
 
-                    // Taylor penalty forcing/residual 
+                    // Taylor penalty forcing/residual
                     if (sbm_formulation_type == 1) {
                         array_1d<double,6> penalty_bc_values_5 = penalty_bc_values;
                         penalty_bc_values_5[5] = 0.0; // rz row of rAuxMat is always zero, keep it inert
@@ -392,27 +285,11 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         right_hand_side -= prod(left_hand_side_taylor_penalty, unknown_values);
                     }
 
-                    // exit(0);
-                    
                     // Gap SBM domain term
                     Matrix BTD = Matrix(18, 8, 0.0);
                     BTD = prod(trans(B_parent), D);
                     left_hand_side_gap_SBM += prod(BTD, B_parent) * std::abs(distance) * aux_w;
-
-                    // KRATOS_WATCH(left_hand_side)
-                    // KRATOS_WATCH(aux_CB_projection)
-                    // exit(0);
-                                
-                    // // KRATOS_WATCH(n_sur_bd)
-                    // KRATOS_WATCH(aux_CB_projection)        
-                    // // KRATOS_WATCH(sur_bd_ids_vect.size())
-                    // KRATOS_WATCH(aux_w)
-                    // KRATOS_WATCH(left_hand_side)
-                    // // KRATOS_WATCH(r_sur_bd_N)
-                    // // KRATOS_WATCH(n_bd_points)
-                    // exit(0);
                 }
-            // }
         }
 
         // Assemble contributions according to the selected surrogate-boundary flux formulation.
@@ -465,12 +342,6 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateRightHandSide(
 template <ShellKinematics TKinematics>
 int ShellThickShiftedBoundaryElement3D3N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    // Check that only simplicial geometries are used
-    const auto geom_type = this->GetGeometry().GetGeometryType();
-    // KRATOS_ERROR_IF_NOT(geom_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || geom_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) <<
-    //     "ShellThickShiftedBoundaryElement3D3N only supports simplicial geometries (linear triangles and tetrahedra)." << std::endl;
-
-    // Base SmallDisplacement element check
     return BaseType::Check(rCurrentProcessInfo);
 }
 
@@ -499,14 +370,8 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateCauchyTractionV
     const array_1d<double,2>& rUnitNormal,
     array_1d<double,6>& rCauchyTraction)
 {
-    // if constexpr (TDim == 2) {
-        rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
-        rCauchyTraction[1] = rVoigtStress[2]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1];
-    // } else {
-    //     rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[3]*rUnitNormal[1] + rVoigtStress[5]*rUnitNormal[2];
-    //     rCauchyTraction[1] = rVoigtStress[3]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1] + rVoigtStress[4]*rUnitNormal[2];
-    //     rCauchyTraction[2] = rVoigtStress[5]*rUnitNormal[0] + rVoigtStress[4]*rUnitNormal[1] + rVoigtStress[2]*rUnitNormal[2];
-    // }
+    rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
+    rCauchyTraction[1] = rVoigtStress[2]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1];
 }
 
 template <ShellKinematics TKinematics>
@@ -516,45 +381,29 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLin
     const array_1d<double,2>& rUnitNormal,
     BoundedMatrix<double,6,LocalSize>& rAuxMat)
 {
-
     Matrix aux_CB = ZeroMatrix(8, LocalSize);
     aux_CB = prod(rC, rB);
 
-    // if constexpr (TDim == 2) {
-    
-        // membrane part
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j)*1;
-        }
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(1,j) = rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j)*1;
-        }
+    // membrane part
+    for (std::size_t j = 0; j < LocalSize; ++j) {
+        rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j);
+    }
+    for (std::size_t j = 0; j < LocalSize; ++j) {
+        rAuxMat(1,j) = rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j);
+    }
 
-        // bending part    
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(4,j) = (rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j))*1;
-        }
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(3,j) = (rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j))*1;
-        }
+    // bending part
+    for (std::size_t j = 0; j < LocalSize; ++j) {
+        rAuxMat(4,j) = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j);
+    }
+    for (std::size_t j = 0; j < LocalSize; ++j) {
+        rAuxMat(3,j) = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j);
+    }
 
-        // // TO DO: shear and drilling part
-        for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(2,j) = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
-        }
-
-
-    // } else {
-    //     for (std::size_t j = 0; j < LocalSize; ++j) {
-    //         rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(3,j) + rUnitNormal[2]*aux_CB(5,j);
-    //     }
-    //     for (std::size_t j = 0; j < LocalSize; ++j) {
-    //         rAuxMat(1,j) = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(1,j) + rUnitNormal[2]*aux_CB(4,j);
-    //     }
-    //     for (std::size_t j = 0; j < LocalSize; ++j) {
-    //         rAuxMat(2,j) = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j) + rUnitNormal[2]*aux_CB(2,j);
-    //     }
-    // }
+    // shear part
+    for (std::size_t j = 0; j < LocalSize; ++j) {
+        rAuxMat(2,j) = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
+    }
 }
 
 // template class ShellThickShiftedBoundaryElement3D3N<ShellKinematics::LINEAR>;
