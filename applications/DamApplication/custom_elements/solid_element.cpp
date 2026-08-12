@@ -2118,9 +2118,33 @@ void SolidElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariabl
     }
     else
     {
+        // Generic constitutive-law path: variables advertised by the law are
+        // provided through GetValue; otherwise the parameter-aware
+        // CalculateValue path (which reconstructs the current element
+        // kinematics) is used. This is what provides the specialized
+        // thermo-mechanical outputs on the Dam elements.
+        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        Flags &ConstitutiveLawOptions = Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
+
         for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
         {
-            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
+            if ( mConstitutiveLawVector[ii]->Has( rVariable ) )
+            {
+                rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
+            }
+            else
+            {
+                this->CalculateKinematics(Variables, ii);
+                this->SetElementData(Variables, Values, ii);
+
+                if ( rOutput[ii].size() != Variables.StrainVector.size() )
+                    rOutput[ii].resize( Variables.StrainVector.size(), false );
+
+                mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+            }
         }
     }
 
@@ -2254,9 +2278,30 @@ void SolidElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariab
     }
     else
     {
+        // Generic constitutive-law path: variables advertised by the law are
+        // provided through GetValue; otherwise the parameter-aware
+        // CalculateValue path (which reconstructs the current element
+        // kinematics) is used. This is what provides the specialized
+        // thermo-mechanical outputs on the Dam elements.
+        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        Flags &ConstitutiveLawOptions = Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables, rCurrentProcessInfo);
+
         for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
         {
-            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
+            if ( mConstitutiveLawVector[ii]->Has( rVariable ) )
+            {
+                rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
+            }
+            else
+            {
+                this->CalculateKinematics(Variables, ii);
+                this->SetElementData(Variables, Values, ii);
+
+                mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+            }
         }
     }
 

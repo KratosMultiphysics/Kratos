@@ -98,6 +98,31 @@ public:
 
     double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
 
+    /**
+     * Computes the specialized thermo-mechanical vector outputs from the current
+     * NONLOCAL constitutive state driven by mNonlocalEquivalentStrain:
+     *   THERMAL_STRAIN_VECTOR    = epsilon_th
+     *   THERMAL_STRESS_VECTOR    = damage_factor * C * epsilon_th
+     *   MECHANICAL_STRESS_VECTOR = damage_factor * C * epsilon_total
+     * where damage_factor is the SAME current (1 - d) factor that governs the
+     * current total nonlocal response, so that
+     *   stress == MECHANICAL_STRESS_VECTOR - THERMAL_STRESS_VECTOR.
+     * The evaluation is read-only: it does NOT recompute the LOCAL equivalent
+     * strain, does NOT call the LOCAL-selector path, does NOT change
+     * LOCAL_EQUIVALENT_STRAIN or NONLOCAL_EQUIVALENT_STRAIN and never commits
+     * damage/history.
+     */
+    Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue) override;
+
+    /**
+     * Computes the specialized thermo-mechanical tensor outputs
+     * (THERMAL_STRAIN_TENSOR, THERMAL_STRESS_TENSOR, MECHANICAL_STRESS_TENSOR)
+     * as the tensor representations of the corresponding vector outputs,
+     * obtained by reusing the vector CalculateValue as the single source of
+     * truth.
+     */
+    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:

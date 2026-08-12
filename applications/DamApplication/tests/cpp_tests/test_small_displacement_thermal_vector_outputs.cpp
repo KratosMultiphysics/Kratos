@@ -604,9 +604,10 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalVectorOutputs_Hexahedra3D8, KratosDamFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(ThermalVectorOutputs_ThermalStrainBugFix, KratosDamFastSuite)
 {
-    // The legacy element returns the mechanical (element) strain for
-    // THERMAL_STRAIN_VECTOR; the new constitutive-law output returns the actual
-    // thermal strain. This is an intentional bug fix, documented here.
+    // The legacy element used to return the mechanical (element) strain for
+    // THERMAL_STRAIN_VECTOR; since Phase 5B.2 BOTH the constitutive-law output
+    // and the legacy element return the actual thermal strain. This is an
+    // intentional bug fix, documented here.
     Model model;
     ModelPart& r_legacy = CreateVectorModelPart(
         model, "BugFixLegacy", "SmallDisplacementThermoMechanicElement3D8N",
@@ -634,17 +635,20 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalVectorOutputs_ThermalStrainBugFix, KratosDamFas
         InterpolateScalarAtGP(r_geometry, NODAL_REFERENCE_TEMPERATURE, 0, integration_method);
     const Vector expected_epsilon_th = AnalyticalThermalStrain("ThermalLinearElastic3DLaw", delta_temperature);
 
-    // The candidate returns the actual thermal strain.
+    // Both the candidate and the (migrated) legacy element return the actual
+    // thermal strain (intentional bug fix; the legacy element no longer returns
+    // the mechanical strain).
     ExpectVectorComponentsNear(
         candidate_thermal_strain[0], expected_epsilon_th,
         "thermal strain bug fix: candidate == analytical epsilon_th");
-    // The legacy element returns the mechanical strain (documented legacy bug),
-    // which differs from the thermal strain in this mixed scenario.
-    KRATOS_EXPECT_TRUE(legacy_thermal_strain[0][0] != expected_epsilon_th[0]);
+    ExpectVectorComponentsNear(
+        legacy_thermal_strain[0], expected_epsilon_th,
+        "thermal strain bug fix: legacy == analytical epsilon_th");
     std::cout << "[CHARACTERIZATION] legacy THERMAL_STRAIN_VECTOR[0] = "
               << legacy_thermal_strain[0][0]
-              << " (mechanical strain, documented legacy bug) vs candidate epsilon_th[0] = "
-              << expected_epsilon_th[0] << std::endl;
+              << " == analytical epsilon_th[0] = "
+              << expected_epsilon_th[0]
+              << " (intentional bug fix applied to the legacy element)" << std::endl;
 }
 
 //************************************************************************************

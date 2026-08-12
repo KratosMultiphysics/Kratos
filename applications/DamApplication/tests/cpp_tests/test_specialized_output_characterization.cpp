@@ -222,16 +222,17 @@ KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_LinearReference, KratosDamFastSuite
     for (std::size_t i = 0; i < 6; ++i)
         KRATOS_EXPECT_TRUE(NearComponent(out[0](i), therm_stress[i]));
 
-    // THERMAL_STRAIN_VECTOR: legacy BUG - returns the TOTAL strain (the law
-    // response is invoked without COMPUTE_STRESS / COMPUTE_CONSTITUTIVE_TENSOR /
-    // VOLUMETRIC_TENSOR_ONLY, so it does nothing and the strain buffer keeps the
-    // element-provided total strain). The intended value is epsilon_th.
+    // THERMAL_STRAIN_VECTOR: intentional bug fix (Phase 5B.2). The legacy
+    // element used to return the TOTAL strain (the law response was invoked
+    // without COMPUTE_STRESS / COMPUTE_CONSTITUTIVE_TENSOR / VOLUMETRIC_TENSOR_ONLY,
+    // so the strain buffer kept the element-provided total strain). The
+    // constitutive-law output now returns the actual thermal strain epsilon_th.
     p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_VECTOR, out, r_mp.GetProcessInfo());
     for (std::size_t i = 0; i < 6; ++i)
-        KRATOS_EXPECT_NEAR(out[0](i), e_total[i], 1.0e-12);  // returns total strain (documented bug)
+        KRATOS_EXPECT_TRUE(NearComponent(out[0](i), e_th[i]));  // returns epsilon_th (bug fixed)
     std::cout << "[5B.1] linear reference: total==mech-therm="
               << (std::abs((mech_stress[0]-therm_stress[0])-total_stress[0]) < 1.0e-8)
-              << " THERMAL_STRAIN returns total strain (bug)" << std::endl;
+              << " THERMAL_STRAIN returns epsilon_th (bug fixed)" << std::endl;
 }
 
 //************************************************************************************
@@ -258,12 +259,15 @@ KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_NodalLinear, KratosDamFastSuite)
     KRATOS_EXPECT_EQ(out[0].size(), 6);
     p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_VECTOR, out, r_mp.GetProcessInfo());
     KRATOS_EXPECT_EQ(out[0].size(), 6);
-    // THERMAL_STRAIN_VECTOR returns the total strain (same legacy bug path).
+    // THERMAL_STRAIN_VECTOR returns the actual thermal strain (intentional bug
+    // fix; the legacy element used to return the total strain).
     p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_VECTOR, out, r_mp.GetProcessInfo());
     KRATOS_EXPECT_EQ(out[0].size(), 6);
-    for (std::size_t i = 0; i < 6; ++i)
-        KRATOS_EXPECT_NEAR(out[0](i), TotalStrain3D(eps)[i], 1.0e-12);
-    std::cout << "[5B.1] nodal linear: legacy outputs follow the linear path; THERMAL_STRAIN bug present" << std::endl;
+    for (std::size_t i = 0; i < 3; ++i)
+        KRATOS_EXPECT_NEAR(out[0](i), test_thermal_expansion * 40.0, 1.0e-12);
+    for (std::size_t i = 3; i < 6; ++i)
+        KRATOS_EXPECT_NEAR(out[0](i), 0.0, 1.0e-12);
+    std::cout << "[5B.1] nodal linear: legacy outputs follow the linear path; THERMAL_STRAIN bug fixed" << std::endl;
 }
 
 //************************************************************************************
@@ -399,9 +403,9 @@ KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_NonlocalDamage, KratosDamFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_SMABehavior, KratosDamFastSuite)
 {
     // For the SMA element, the specialized outputs go through
-    // CalculateOnConstitutiveLaw -> CalculateValue. Only the non-nodal linear law
-    // implements CalculateValue for these variables; the others return the base
-    // default (zero).
+    // CalculateOnConstitutiveLaw -> CalculateValue. Both the non-nodal linear
+    // law and (since Phase 5B.2) the damage laws implement CalculateValue for
+    // these variables, so both return the correct epsilon_th.
     for (bool linear : {true, false}) {
         Model model;
         auto p_law = linear
@@ -416,15 +420,11 @@ KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_SMABehavior, KratosDamFastSuite)
         std::vector<Vector> out;
         p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_VECTOR, out, r_mp.GetProcessInfo());
         KRATOS_EXPECT_EQ(out.size(), 8);
-        if (linear) {
-            // The non-nodal linear law implements CalculateValue: correct eps_th.
-            KRATOS_EXPECT_NEAR(out[0][0], test_thermal_expansion * 40.0, 1.0e-15);
-        } else {
-            // The damage law does not implement CalculateValue for this variable:
-            // returns zero (base GetValue default).
-            KRATOS_EXPECT_NEAR(out[0][0], 0.0, 1.0e-15);
-        }
-        std::cout << "[5B.1] SMA specialized output " << (linear ? "linear=correct" : "damage=zero") << std::endl;
+        // Both laws implement the parameter-aware CalculateValue path and return
+        // the physically correct epsilon_th (Phase 5B.2).
+        KRATOS_EXPECT_NEAR(out[0][0], test_thermal_expansion * 40.0, 1.0e-12);
+        std::cout << "[5B.1] SMA specialized output "
+                  << (linear ? "linear=correct" : "damage=correct (Phase 5B.2)") << std::endl;
     }
 }
 

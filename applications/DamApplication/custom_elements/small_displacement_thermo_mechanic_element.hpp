@@ -57,24 +57,6 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * Calculate a Vector Variable on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Calculate a Matrix Variable on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-                                      std::vector< Matrix >& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
 
     // Member Variables

@@ -7,6 +7,7 @@
 
 // Application includes
 #include "custom_constitutive/thermal_local_damage_3D_law.hpp"
+#include "custom_constitutive/thermal_output_utilities.hpp"
 
 namespace Kratos
 {
@@ -389,6 +390,123 @@ void ThermalLocalDamage3DLaw::CalculateThermalStrain(Vector& rThermalStrainVecto
     //Thermal strain vector
     for(unsigned int i = 0; i < 6; i++)
         rThermalStrainVector[i] *= ElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Vector& ThermalLocalDamage3DLaw::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue)
+{
+    KRATOS_TRY
+
+    if (rThisVariable == THERMAL_STRAIN_VECTOR ||
+        rThisVariable == THERMAL_STRESS_VECTOR ||
+        rThisVariable == MECHANICAL_STRESS_VECTOR) {
+
+        // These outputs are computed from the current state carried by the
+        // Parameters (element-provided total strain, shape functions, geometry),
+        // so they reach the law through CalculateOnConstitutiveLaw. Has() is
+        // intentionally left false so that the parameter-dependent CalculateValue
+        // path is used instead of GetValue.
+        const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
+        const double& r_young_modulus = r_material_properties[YOUNG_MODULUS];
+        const double& r_poisson_ratio = r_material_properties[POISSON_RATIO];
+        const Vector& r_total_strain = rParameterValues.GetStrainVector();
+        const std::size_t voigt_size = r_total_strain.size();
+
+        // Constitutive matrix (dimensional specialization via virtual dispatch).
+        Matrix constitutive_matrix(voigt_size, voigt_size);
+        noalias(constitutive_matrix) = ZeroMatrix(voigt_size, voigt_size);
+        this->CalculateLinearElasticMatrix(constitutive_matrix, r_young_modulus, r_poisson_ratio);
+
+        // Thermal strain (dimensional specialization via virtual dispatch).
+        MaterialResponseVariables elastic_variables;
+        elastic_variables.SetShapeFunctionsValues(rParameterValues.GetShapeFunctionsValues());
+        elastic_variables.SetElementGeometry(rParameterValues.GetElementGeometry());
+        elastic_variables.LameMu = 1.0 + r_poisson_ratio;
+        elastic_variables.ThermalExpansionCoefficient = r_material_properties[THERMAL_EXPANSION];
+
+        double reference_temperature;
+        this->CalculateNodalReferenceTemperature(elastic_variables, reference_temperature);
+
+        Vector thermal_strain_vector(voigt_size);
+        this->CalculateThermalStrain(thermal_strain_vector, elastic_variables, reference_temperature);
+
+        // CURRENT damage factor (1 - d) from the committed maximum equivalent
+        // strain, exactly as the trial response computes it for the current
+        // mechanical strain. The evaluation is read-only and never commits.
+        double characteristic_size = 1.0;
+        this->CalculateCharacteristicSize(characteristic_size, rParameterValues.GetElementGeometry());
+        const double damage_factor = ThermalOutputUtilities::CalculateCurrentDamageFactor(
+            *mpFlowRule, *mpYieldCriterion, characteristic_size);
+
+        // Assemble the three outputs from the SAME damage factor.
+        Vector thermal_strain_out, thermal_stress_out, mechanical_stress_out;
+        ThermalOutputUtilities::AssembleOutputs(thermal_strain_out, thermal_stress_out, mechanical_stress_out,
+                                                r_total_strain, thermal_strain_vector, constitutive_matrix, damage_factor);
+
+        if (rThisVariable == THERMAL_STRAIN_VECTOR) {
+            if (rValue.size() != voigt_size)
+                rValue.resize(voigt_size, false);
+            noalias(rValue) = thermal_strain_out;
+            return rValue;
+        }
+        if (rThisVariable == THERMAL_STRESS_VECTOR) {
+            if (rValue.size() != voigt_size)
+                rValue.resize(voigt_size, false);
+            noalias(rValue) = thermal_stress_out;
+            return rValue;
+        }
+        // MECHANICAL_STRESS_VECTOR
+        if (rValue.size() != voigt_size)
+            rValue.resize(voigt_size, false);
+        noalias(rValue) = mechanical_stress_out;
+        return rValue;
+    }
+
+    // Not one of the specialized outputs: keep the base behaviour.
+    return rValue;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Matrix& ThermalLocalDamage3DLaw::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<Matrix>& rThisVariable,
+    Matrix& rValue)
+{
+    KRATOS_TRY
+
+    if (rThisVariable == THERMAL_STRAIN_TENSOR) {
+        // Reuse the validated vector output as the single source of truth.
+        Vector strain_vector = ZeroVector(this->GetStrainSize());
+        this->CalculateValue(rParameterValues, THERMAL_STRAIN_VECTOR, strain_vector);
+        ThermalOutputUtilities::AssignStrainTensor(rValue, strain_vector);
+        return rValue;
+    }
+
+    if (rThisVariable == THERMAL_STRESS_TENSOR) {
+        Vector stress_vector = ZeroVector(this->GetStrainSize());
+        this->CalculateValue(rParameterValues, THERMAL_STRESS_VECTOR, stress_vector);
+        ThermalOutputUtilities::AssignStressTensor(rValue, stress_vector);
+        return rValue;
+    }
+
+    if (rThisVariable == MECHANICAL_STRESS_TENSOR) {
+        Vector stress_vector = ZeroVector(this->GetStrainSize());
+        this->CalculateValue(rParameterValues, MECHANICAL_STRESS_VECTOR, stress_vector);
+        ThermalOutputUtilities::AssignStressTensor(rValue, stress_vector);
+        return rValue;
+    }
+
+    // Not one of the specialized outputs: keep the base behaviour.
+    return rValue;
 
     KRATOS_CATCH( "" )
 }

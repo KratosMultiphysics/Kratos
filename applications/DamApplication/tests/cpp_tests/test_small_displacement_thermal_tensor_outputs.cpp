@@ -630,10 +630,10 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalTensorOutputs_Hexahedra3D8, KratosDamFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(ThermalTensorOutputs_ThermalStrainTensorBugFix, KratosDamFastSuite)
 {
-    // Tensor-level continuation of the phase-3A bug fix: the candidate
-    // THERMAL_STRAIN_TENSOR is the tensor of the physically correct thermal
-    // strain, whereas the legacy THERMAL_STRAIN_TENSOR is derived from the
-    // broken legacy vector and returns the mechanical-strain tensor instead.
+    // Tensor-level continuation of the phase-3A/5B.2 bug fix: since Phase 5B.2
+    // BOTH the candidate and the legacy element derive THERMAL_STRAIN_TENSOR
+    // from the physically correct thermal-strain vector (the legacy element no
+    // longer returns the mechanical-strain tensor).
     Model model;
     ModelPart& r_legacy = CreateTensorModelPart(
         model, "TensorBugFixLegacy", "SmallDisplacementThermoMechanicElement3D8N",
@@ -665,12 +665,14 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalTensorOutputs_ThermalStrainTensorBugFix, Kratos
     ExpectMatrixComponentsNear(
         candidate_thermal_strain_tensor[0], expected_tensor,
         "thermal strain tensor bug fix: candidate == analytical tensor");
-    // The legacy returns the mechanical-strain tensor (documented bug).
-    KRATOS_EXPECT_TRUE(legacy_thermal_strain_tensor[0](0, 0) != expected_tensor(0, 0));
+    ExpectMatrixComponentsNear(
+        legacy_thermal_strain_tensor[0], expected_tensor,
+        "thermal strain tensor bug fix: legacy == analytical tensor");
     std::cout << "[CHARACTERIZATION] legacy THERMAL_STRAIN_TENSOR[0](0,0) = "
               << legacy_thermal_strain_tensor[0](0, 0)
-              << " (mechanical strain tensor, documented legacy bug) vs candidate epsilon_th tensor (0,0) = "
-              << expected_tensor(0, 0) << std::endl;
+              << " == analytical epsilon_th tensor (0,0) = "
+              << expected_tensor(0, 0)
+              << " (intentional bug fix applied to the legacy element)" << std::endl;
 }
 
 //************************************************************************************

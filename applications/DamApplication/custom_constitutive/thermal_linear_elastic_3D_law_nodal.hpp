@@ -58,10 +58,40 @@ public:
      */
     void CalculateMaterialResponsePK2 (Parameters & rValues) override;
 
+    /**
+     * Computes the material response: Cauchy. For this infinitesimal-strain
+     * formulation the Cauchy stress coincides with the Kirchhoff/PK2 stress
+     * (the inherited finite-deformation 1/detF transformation is not applied).
+     */
+    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
+
     /// Stateless: no material-response initialization/finalization is required.
     bool RequiresInitializeMaterialResponse() override;
 
     bool RequiresFinalizeMaterialResponse() override;
+
+    /**
+     * Computes the specialized thermo-mechanical vector outputs from the current
+     * state carried by the Parameters, using the interpolated NODAL Young
+     * modulus at every Gauss point:
+     *   THERMAL_STRAIN_VECTOR    = epsilon_th
+     *   THERMAL_STRESS_VECTOR    = C * epsilon_th
+     *   MECHANICAL_STRESS_VECTOR = C * epsilon
+     * so that the total constitutive stress satisfies
+     *   stress = MECHANICAL_STRESS_VECTOR - THERMAL_STRESS_VECTOR.
+     * The output is read-only with respect to the constitutive state and no GP
+     * material parameter is cached as persistent state.
+     */
+    Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue) override;
+
+    /**
+     * Computes the specialized thermo-mechanical tensor outputs
+     * (THERMAL_STRAIN_TENSOR, THERMAL_STRESS_TENSOR, MECHANICAL_STRESS_TENSOR)
+     * as the tensor representations of the corresponding vector outputs,
+     * obtained by reusing the vector CalculateValue as the single source of
+     * truth.
+     */
+    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
