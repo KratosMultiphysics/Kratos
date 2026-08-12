@@ -37,8 +37,8 @@ Some symbols used for the Kratos variables are not inline with symbols used in t
 |-----------------|------------------------------------|-------------------------|
 | $\theta_s$      | `SATURATED_SATURATION`             | $S_s = \theta_s$        |
 | $\theta_r$      | `RESIDUAL_SATURATION`              | $S_r = \theta_r$        |
-| $\alpha$        | -                                  | $\alpha = 1/p_b$        |
-| $h_a$ or GA     | `VAN_GENUCHTEN_AIR_ENTRY_PRESSURE` | $p_b=\rho_w g h_a$      |
+| $\alpha$        | -                                  | $\alpha = \rho g/p_b$   |
+| GA              | `VAN_GENUCHTEN_AIR_ENTRY_PRESSURE` | $p_b=\rho_w g GA$       |
 | $n$             | `VAN_GENUCHTEN_GN`                 | $n = \mathtt{gn}$       |
 | $m$ (derived)   | —                                  | $m = 1 - 1/n$ (hardcoded) |
 | $l$             | `VAN_GENUCHTEN_GL`                 | $l = \mathtt{gl}$       |
@@ -110,7 +110,7 @@ This is the simplest (and most common) choice for Bishop's parameter.
 Van Genuchten (1980) defined the soil water characteristic curve (SWCC) as:
 
 $$\Theta \equiv \frac{\theta - \theta_r}{\theta_s - \theta_r}
-  = \Bigl[1 + \bigl(\alpha\,|h|\bigr)^n\Bigr]^{-m}$$
+  = \Bigl[1 + \bigl(\alpha|h|\bigr)^n\Bigr]^{-m}$$
 
 with the Mualem constraint $m = 1 - 1/n$, $\alpha$ [1/length], $h$ = matric suction head (positive).
 
@@ -125,14 +125,14 @@ The Kratos formula is **mathematically identical** to the standard MVG model:
 $$S = S_r + (S_s - S_r)\cdot\Theta, \qquad
   k_r = S_e^l\bigl[1-(1-S_e^{1/m})^m\bigr]^2$$
 
-with $\Theta = S_e$ evaluated at $p = \alpha^{-1}\,|h|$.
+with $\Theta = S_e$ evaluated at $p_b = \rho g /\alpha$.
 
 #### Differences from the standard publication
 
 | Aspect | Standard VG (1980) | Kratos `VanGenuchtenLaw` |
 |--------|--------------------|--------------------------|
 | Input variable | Matric suction head $h$ [m] | Fluid pressure $p$ [Pa or kPa] |
-| Scale parameter | $\alpha = 1/p_b$ | $p_b$ directly |
+| Scale parameter | $\alpha = \rho g/p_b$ | $p_b$ directly |
 | $m$ independent? | Optional (some software) | No — $m = 1 - 1/n$ is hardcoded |
 | Saturated branch | Not defined separately | $S = S_s$ for $p \le 0$ |
 | $S_s$ value | Usually $\theta_s = 1$ | Any value $\in (0,1]$ |
