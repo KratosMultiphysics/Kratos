@@ -49,7 +49,6 @@
 // Application includes
 #include "dam_application_variables.h"
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
-#include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
 #include "custom_processes/dam_nodal_cauchy_stress_extrapolation_process.hpp"
 #include "custom_strategies/schemes/incrementalupdate_static_smoothing_scheme.hpp"
 #include "custom_strategies/schemes/incrementalupdate_static_damped_smoothing_scheme.hpp"

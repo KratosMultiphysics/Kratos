@@ -44,7 +44,6 @@
 #include "dam_application_variables.h"
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_strain.hpp"
-#include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
 #include "custom_processes/dam_nodal_cauchy_stress_extrapolation_process.hpp"
 
 namespace Kratos

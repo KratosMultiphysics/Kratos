@@ -42,7 +42,6 @@
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_stress_nodal.hpp"
 #include "custom_constitutive/thermal_simo_ju_local_damage_3D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_nonlocal_damage_3D_law.hpp"
-#include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
 #include "custom_strategies/schemes/incrementalupdate_static_smoothing_scheme.hpp"
 
 // StructuralMechanicsApplication small-displacement element
@@ -72,11 +71,11 @@ using StaticSmoothingScheme =
     IncrementalUpdateStaticSmoothingScheme<SparseSpaceType, LocalSpaceType>;
 
 /// Test-only element subclasses exposing the constitutive-law vector.
-class TestThermoMechanicElement : public SmallDisplacementThermoMechanicElement
+class TestThermoMechanicElement : public SmallDisplacement
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TestThermoMechanicElement);
-    using BaseType = SmallDisplacementThermoMechanicElement;
+    using BaseType = SmallDisplacement;
     TestThermoMechanicElement(IndexType NewId, GeometryType::Pointer pGeometry,
                               PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties) {}
@@ -588,7 +587,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNodalLaw_FinalizationEquivalence, KratosDamFast
             n.X() = x0[0] + u[0]; n.Y() = x0[1] + u[1]; n.Z() = x0[2] + u[2];
         }
         r_pi2[IS_CONVERGED] = true;
-        static_cast<SolidElement&>(*p_elem2).FinalizeSolutionStep(r_pi2);
+        p_elem2->FinalizeSolutionStep(r_pi2);
         double threshold_inherited = 0.0;
         p_elem2->GetConstitutiveLaw(0).GetValue(STATE_VARIABLE, threshold_inherited);
 

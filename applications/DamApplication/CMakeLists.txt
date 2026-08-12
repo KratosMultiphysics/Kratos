@@ -52,11 +52,8 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.cpp
 
     # Elements
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_thermo_mechanic_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_interface_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/wave_equation_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
 
     # Conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/UP_condition.cpp

@@ -43,7 +43,6 @@
 #include "dam_application_variables.h"
 #include "custom_constitutive/thermal_simo_ju_nonlocal_damage_3D_law.hpp"
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
-#include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
 #include "custom_strategies/schemes/incrementalupdate_static_smoothing_scheme.hpp"
 #include "custom_strategies/schemes/incrementalupdate_static_damped_smoothing_scheme.hpp"
 #include "custom_strategies/schemes/bossak_displacement_smoothing_scheme.hpp"
@@ -146,11 +145,11 @@ public:
 };
 
 /// Test-only element subclasses exposing the constitutive-law vector.
-class TestThermoMechanicElement : public SmallDisplacementThermoMechanicElement
+class TestThermoMechanicElement : public SmallDisplacement
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TestThermoMechanicElement);
-    using BaseType = SmallDisplacementThermoMechanicElement;
+    using BaseType = SmallDisplacement;
     TestThermoMechanicElement(IndexType NewId, GeometryType::Pointer pGeometry,
                               PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties) {}

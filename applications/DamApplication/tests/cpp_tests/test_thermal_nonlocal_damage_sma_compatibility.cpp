@@ -45,7 +45,6 @@
 #include "custom_constitutive/thermal_simo_ju_nonlocal_damage_plane_stress_2D_law.hpp"
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
-#include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
 #include "custom_utilities/dam_nonlocal_damage_utilities.hpp"
 
 // StructuralMechanicsApplication small-displacement element
@@ -123,11 +122,11 @@ public:
     ConstitutiveLaw::Pointer GetConstitutiveLawPointer(std::size_t i) { return mConstitutiveLawVector[i]; }
 };
 
-class TestThermoMechanicElement : public SmallDisplacementThermoMechanicElement
+class TestThermoMechanicElement : public SmallDisplacement
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TestThermoMechanicElement);
-    using BaseType = SmallDisplacementThermoMechanicElement;
+    using BaseType = SmallDisplacement;
 
     TestThermoMechanicElement(IndexType NewId, GeometryType::Pointer pGeometry,
                               PropertiesType::Pointer pProperties)

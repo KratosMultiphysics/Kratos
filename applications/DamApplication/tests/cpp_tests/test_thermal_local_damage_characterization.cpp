@@ -48,7 +48,6 @@
 #include "custom_constitutive/thermal_simo_ju_local_damage_3D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_local_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_local_damage_plane_stress_2D_law.hpp"
-#include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
 
 namespace Kratos
 {
