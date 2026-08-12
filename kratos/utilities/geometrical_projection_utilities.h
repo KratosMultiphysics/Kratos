@@ -72,49 +72,58 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Project a point over a line/plane following an arbitrary direction
-     * @tparam TGeometryType The type of the geometry
-     * @param rGeom The geometry where to be projected
-     * @param rPointToProject The point to be projected
-     * @param rPointProjected The point pojected over the plane
-     * @param rNormal The normal of the geometry
-     * @param rVector The direction to project
-     * @param EchoLevel If we want debugging info we should consider greater than 0
-     * @return Distance The distance between surfaces
-     */
-    template<class TGeometryType>
-    static inline double FastProjectDirection(
-        const TGeometryType& rGeom,
-        const Point& rPointToProject,
-        Point& rPointProjected,
-        const array_1d<double,3>& rNormal,
-        const array_1d<double,3>& rVector,
-        const SizeType EchoLevel = 0
-        )
-    {
-        // Zero tolerance
-        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+/**
+ * @brief Project a point over a line/plane following an arbitrary direction
+ * @tparam TGeometryType The type of the geometry
+ * @param rGeom The geometry where to be projected (Master geometry)
+ * @param rPointToProject The point to be projected (Slave point)
+ * @param rPointProjected The point projected over the plane (Output)
+ * @param rNormal The normal of the slave geometry (Projection ray direction)
+ * @param rVector The normal of the master geometry (Target plane normal)
+ * @param EchoLevel If we want debugging info we should consider greater than 0
+ * @return Distance The physical distance between surfaces along the ray
+ */
+template<class TGeometryType>
+static inline double FastProjectDirection(
+    const TGeometryType& rGeometryToProject,
+    const Point& rPointToProject,
+    Point& rPointProjected,
+    const array_1d<double,3>& rNormal, // slave normal
+    const array_1d<double,3>& rVector, // master normal
+    const SizeType EchoLevel = 0
+    )
+{
 
-        // We define the distance
-        double distance = 0.0;
+    const double zero_tolerance = 1.0e-8;
+    const double slave_normal_norm = norm_2(rNormal);
 
-        const array_1d<double,3> vector_points = rGeom[0].Coordinates() - rPointToProject.Coordinates();
+    KRATOS_ERROR_IF(slave_normal_norm <= zero_tolerance)
+        << "The projection normal is null in ALM3dMortarFrictionlessCondition.";
 
-        if( norm_2( rVector ) < zero_tolerance && norm_2( rNormal ) > zero_tolerance ) {
-            distance = inner_prod(vector_points, rNormal)/norm_2(rNormal);
-            noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + rVector * distance;
-            KRATOS_WARNING_IF("GeometricalProjectionUtilities", EchoLevel > 0) << "WARNING:: Zero projection vector. Projection using the condition vector instead." << std::endl;
-        } else if (std::abs(inner_prod(rVector, rNormal) ) > zero_tolerance) {
-            distance = inner_prod(vector_points, rNormal)/inner_prod(rVector, rNormal);
-            noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + rVector * distance;
-        } else {
-            noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates();
-            KRATOS_WARNING_IF("GeometricalProjectionUtilities", EchoLevel > 0) << "WARNING:: The line and the plane are coplanar. Something wrong happened " << std::endl;
-        }
 
-        return distance;
+    const double master_normal_norm = norm_2(rVector);
+
+    // Normalized projection direction (along slave normal)
+    const array_1d<double, 3> proj_dir = rNormal / slave_normal_norm;
+
+    // Ray-plane intersection denominator check
+    const double denom = inner_prod(proj_dir, rVector);
+
+    // Fail projection if ray and master face are parallel
+    if (std::abs(denom) <= zero_tolerance * master_normal_norm) {
+        noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates();
+        return 0.0;
     }
+
+    // 4. Compute exact ray distance alpha to master plane
+    const array_1d<double, 3> point_to_plane = rGeometryToProject[0].Coordinates() - rPointToProject.Coordinates();
+    const double alpha = inner_prod(point_to_plane, rVector) / denom;
+
+    // Set exact projected point on master surface
+    noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + alpha * proj_dir;
+
+    return alpha;
+}
 
     /**
      * @brief Project a point over a plane (avoiding some steps)

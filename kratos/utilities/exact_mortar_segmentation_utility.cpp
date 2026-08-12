@@ -659,6 +659,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         points_array_slave(i_node) = Kratos::make_shared<Point>(aux_point);
 
         aux_point = GeometricalProjectionUtilities::FastProject(slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        // GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master(i_node) = Kratos::make_shared<Point>(aux_point);
     }
@@ -682,18 +683,13 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         Point point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
             aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            // GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
             rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = PointBelong<3>(point.Coordinates(), static_cast<PointBelongsTriangle3D3N>(i_node + 3));
         }
 
         return true;
     } else {
-        // KRATOS_WATCH(rOriginalSlaveGeometry.Area())
-        // KRATOS_WATCH(master_geometry.Area())
-        // KRATOS_WATCH(slave_geometry.Area())
-
-        // KRATOS_WATCH(rOriginalMasterGeometry)
-        // KRATOS_WATCH(rOriginalSlaveGeometry)
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, master_geometry, PointBelongs::Master);
@@ -704,9 +700,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);
 
-        auto a = TriangleIntersections<GeometryType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
-
-        return a;
+        return TriangleIntersections<GeometryType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
     }
 
     return false;
