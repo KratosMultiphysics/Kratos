@@ -55,18 +55,14 @@ void ShiftedBoundaryWallCondition<TDim>::EquationIdVector(
         rResult.resize(local_size, false);
     }
 
-    // Get position of DOF for first velocity component and pressure
-    const std::size_t ux_pos = r_geometry[0].GetDofPosition(VELOCITY_X);
-    const std::size_t p_pos = r_geometry[0].GetDofPosition(PRESSURE);
-
     // Fill the equation IDs vector from the condition DOFs
     std::size_t i_local = 0;
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node)
     {
-        rResult[i_local++] = r_geometry[i_node].GetDof(VELOCITY_X, ux_pos).EquationId();
-        rResult[i_local++] = r_geometry[i_node].GetDof(VELOCITY_Y, ux_pos+1).EquationId();
-        if (TDim == 3) rResult[i_local++] = r_geometry[i_node].GetDof(VELOCITY_Z, ux_pos+2).EquationId();
-        rResult[i_local++] = r_geometry[i_node].GetDof(PRESSURE, p_pos).EquationId();
+        rResult[i_local++] = r_geometry[i_node].GetDof(VELOCITY_X).EquationId();
+        rResult[i_local++] = r_geometry[i_node].GetDof(VELOCITY_Y).EquationId();
+        if (TDim == 3) rResult[i_local++] = r_geometry[i_node].GetDof(VELOCITY_Z).EquationId();
+        rResult[i_local++] = r_geometry[i_node].GetDof(PRESSURE).EquationId();
     }
 
     KRATOS_CATCH("")
@@ -87,18 +83,14 @@ void ShiftedBoundaryWallCondition<TDim>::GetDofList(
         rConditionalDofList.resize(local_size);
     }
 
-    // Get position of DOF for first velocity component and pressure
-    const std::size_t ux_pos = r_geometry[0].GetDofPosition(VELOCITY_X);
-    const std::size_t p_pos = r_geometry[0].GetDofPosition(PRESSURE);
-
     // Fill the DOFs vector from the condition nodes
     std::size_t i_local = 0;
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node)
     {
-        rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(VELOCITY_X, ux_pos);
-        rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(VELOCITY_Y, ux_pos+1);
-        if (TDim == 3) rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(VELOCITY_Z, ux_pos+2);
-        rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(PRESSURE, p_pos);
+        rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(VELOCITY_X);
+        rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(VELOCITY_Y);
+        if (TDim == 3) rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(VELOCITY_Z);
+        rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(PRESSURE);
     }
 
     KRATOS_CATCH("")
