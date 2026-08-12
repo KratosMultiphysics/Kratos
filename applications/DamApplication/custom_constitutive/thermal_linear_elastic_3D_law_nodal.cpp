@@ -7,7 +7,7 @@
 
 /* Project includes */
 #include "custom_constitutive/thermal_linear_elastic_3D_law_nodal.hpp"
-#include "custom_constitutive/thermal_output_utilities.hpp"
+#include "custom_utilities/thermal_output_utilities.hpp"
 #include "utilities/math_utils.h"
 
 

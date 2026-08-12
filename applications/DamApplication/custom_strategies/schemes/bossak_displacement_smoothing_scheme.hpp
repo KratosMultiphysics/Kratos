@@ -10,7 +10,7 @@
 
 // Application includes
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
-#include "custom_strategies/schemes/dam_nodal_stress_smoothing_utilities.hpp"
+#include "custom_utilities/dam_nodal_stress_smoothing_utilities.hpp"
 #include "custom_utilities/dam_nonlocal_damage_utilities.hpp"
 #include "dam_application_variables.h"
 

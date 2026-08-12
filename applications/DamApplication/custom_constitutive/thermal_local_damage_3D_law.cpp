@@ -7,7 +7,7 @@
 
 // Application includes
 #include "custom_constitutive/thermal_local_damage_3D_law.hpp"
-#include "custom_constitutive/thermal_output_utilities.hpp"
+#include "custom_utilities/thermal_output_utilities.hpp"
 
 namespace Kratos
 {
