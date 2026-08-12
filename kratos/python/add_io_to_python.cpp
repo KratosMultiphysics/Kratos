@@ -31,6 +31,8 @@
 #include "input_output/cad_json_input.h"
 #include "input_output/vtu_output.h"
 #include "input_output/ensight_output.h"
+#include "input_output/transient_database_io.h"
+#include "input_output/transient_csv_database_io.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
@@ -259,6 +261,25 @@ void  AddIOToPython(pybind11::module& m)
     .def("PrintOutput", &EnSightOutput::PrintOutput, py::arg("output_filename")="")
     .def_static("GetDefaultParameters", &EnSightOutput::GetDefaultParameters)
     ;
+
+    py::class_<TransientDatabaseIO, TransientDatabaseIO::Pointer>(m, "TransientDatabaseIO")
+        .def("Initialize", &TransientDatabaseIO::Initialize)
+        .def("Finalize", &TransientDatabaseIO::Finalize)
+        .def("ReadBool", [](TransientDatabaseIO& rSelf, const IndexType Step, const std::string& rKey) { bool value; rSelf.Read(value, Step, rKey); return value; }, py::arg("step"), py::arg("key"))
+        .def("ReadInt", [](TransientDatabaseIO& rSelf, const IndexType Step, const std::string& rKey) { int value; rSelf.Read(value, Step, rKey); return value; }, py::arg("step"), py::arg("key"))
+        .def("ReadFloat", [](TransientDatabaseIO& rSelf, const IndexType Step, const std::string& rKey) { double value; rSelf.Read(value, Step, rKey); return value; }, py::arg("step"), py::arg("key"))
+        .def("ReadString", [](TransientDatabaseIO& rSelf, const IndexType Step, const std::string& rKey) { std::string value; rSelf.Read(value, Step, rKey); return value; }, py::arg("step"), py::arg("key"))
+        .def("Write", py::overload_cast<const bool, const int, const std::string&>(&TransientDatabaseIO::Write), py::arg("value"), py::arg("step"), py::arg("key"))
+        .def("Write", py::overload_cast<const int, const int, const std::string&>(&TransientDatabaseIO::Write), py::arg("value"), py::arg("step"), py::arg("key"))
+        .def("Write", py::overload_cast<const double, const int, const std::string&>(&TransientDatabaseIO::Write), py::arg("value"), py::arg("step"), py::arg("key"))
+        .def("Write", py::overload_cast<const std::string&, const int, const std::string&>(&TransientDatabaseIO::Write), py::arg("value"), py::arg("step"), py::arg("key"))
+        .def("__str__", PrintObject<TransientDatabaseIO>)
+        ;
+
+    py::class_<TransientCSVDatabaseIO, TransientCSVDatabaseIO::Pointer, TransientDatabaseIO>(m, "TransientCSVDatabaseIO")
+        .def(py::init<Parameters, const DataCommunicator&>(), py::arg("parameters"), py::arg("data_communicator"))
+        .def("SetHeaderInformation", &TransientCSVDatabaseIO::SetHeaderInformation, py::arg("header_information"))
+        ;
 }
 }  // namespace Kratos::Python.
 
