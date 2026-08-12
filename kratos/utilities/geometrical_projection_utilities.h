@@ -114,6 +114,7 @@ static inline double FastProjectDirection(
 
     // Set exact projected point on master surface
     noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + alpha * proj_dir;
+    return alpha;
 }
 
     /**

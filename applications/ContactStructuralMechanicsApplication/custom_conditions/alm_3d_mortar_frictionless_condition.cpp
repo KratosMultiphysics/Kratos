@@ -401,8 +401,8 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     segmented_GP_local_point = PointType(r_integration_points_slave[point_number].Coordinates());
                     segmented_geom.GlobalCoordinates(segmented_GP_global_point, segmented_GP_local_point); // from local to global coordinates in the segmented
                     r_slave_geometry.PointLocalCoordinates(slave_GP_local_point, segmented_GP_global_point); // from global to local coordinates in the slave
-                    // const bool successful_projection = FastProjectDirection(r_master_geometry, segmented_GP_global_point, master_GP_global_point, slave_normal);
-                    GeometricalProjectionUtilities::FastProjectDirection(r_master_geometry, segmented_GP_global_point, master_GP_local_point, slave_normal, master_normal);
+                    const bool successful_projection = FastProjectDirection(r_master_geometry, segmented_GP_global_point, master_GP_global_point, slave_normal);
+                    // GeometricalProjectionUtilities::FastProjectDirection(r_master_geometry, segmented_GP_global_point, master_GP_local_point, slave_normal, master_normal);
                     r_master_geometry.PointLocalCoordinates(master_GP_local_point, master_GP_global_point); // from global to local coordinates in the master
 
                     r_slave_geometry.ShapeFunctionsLocalGradients(slave_local_gradients, slave_GP_local_point);
