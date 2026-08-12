@@ -79,7 +79,7 @@ TransientCSVDatabaseIO::Column::Column(
         }
         case 3: {
             mColumnWidth = std::max(rHeaderName.size(), pFormatSettings->mFloatPrecision + 7);
-            mFormatString = "{: 0." + std::to_string(mColumnWidth - 7) + "e}";
+            mFormatString = "{: " + std::to_string(mColumnWidth) + "." + std::to_string(pFormatSettings->mFloatPrecision) + "e}";
             break;
         }
         case 4: {
@@ -364,6 +364,7 @@ void TransientCSVDatabaseIO::WriteData(std::ofstream& rOutputFile)
     rOutputFile << mWritingData.front().first.GetFormattedValue(mWritingData.front().second);
     for (IndexType i = 1; i < mWritingData.size(); ++i) {
         rOutputFile << ", " << mWritingData[i].first.GetFormattedValue(mWritingData[i].second);
+        // KRATOS_WATCH(mWritingData[i].first)
         mWritingData[i].second = ValueType();
     }
     rOutputFile << "\n";
