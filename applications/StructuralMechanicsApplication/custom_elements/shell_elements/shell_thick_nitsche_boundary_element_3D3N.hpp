@@ -296,17 +296,6 @@ private:
     ///@name Private Operators
     ///@{
 
-    /**
-     * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param PointNumber The integration point considered
-     */
-    void CalculateKinematicVariables(
-        KinematicVariables& rThisKinematicVariables,
-        const IndexType PointNumber,
-        const typename GeometryType::IntegrationMethod& rIntegrationMethod
-        );
-
 
     ///@}
     ///@name Private Operations
