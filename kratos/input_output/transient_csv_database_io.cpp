@@ -334,9 +334,13 @@ void TransientCSVDatabaseIO::WriteHeaders(std::ofstream& rOutputFile) const
     rOutputFile << "# ------------------- Kratos information --------------------\n";
     if (mWriteKratosVersion) {
         rOutputFile << "# Kratos version: " << Kernel::Version() << "\n";
+    } else {
+        rOutputFile << "# Kratos version: not_given\n";
     }
     if (mWriteTimeStamp) {
         rOutputFile << "# Timestamp     : " << std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::system_clock::now()) << "\n";
+    } else {
+        rOutputFile << "# Timestamp     : not_specified\n";
     }
     rOutputFile << "# --------------- End of Kratos information -----------------\n";
     rOutputFile << "# ------------------- Header information --------------------\n";
