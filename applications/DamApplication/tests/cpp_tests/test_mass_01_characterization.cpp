@@ -323,18 +323,11 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T3_Consistent, KratosDamFastSuite)
 
     // SMA default (3-point) == analytical exact.
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_sma_default, M_exact), 0.0, exact_tolerance);
-    // Dam default (1-point) == uniform lumped-like 1/9 distribution.
-    Matrix M_uniform(6, 6);
-    noalias(M_uniform) = ZeroMatrix(6, 6);
-    for (std::size_t i = 0; i < 3; ++i)
-        for (std::size_t j = 0; j < 3; ++j) {
-            const double value = physical_mass / 9.0;
-            M_uniform(i * 2, j * 2) = value;
-            M_uniform(i * 2 + 1, j * 2 + 1) = value;
-        }
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_uniform), 0.0, exact_tolerance);
-    // The two defaults genuinely differ.
-    KRATOS_EXPECT_TRUE(MaxAbsDiff(M_dam_default, M_sma_default) > 1.0e-12);
+    // Phase 6A (M1): the HISTORICAL Dam name now creates an SMA runtime element,
+    // so its default consistent mass is the SMA exact simplex mass. The legacy
+    // no-flag uniform 1/9 subintegrated mass is INTENTIONALLY replaced (M1).
+    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_sma_default), 0.0, exact_tolerance);
+    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_exact), 0.0, exact_tolerance);
 
     // Total mass conserved in both.
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_default, 2), physical_mass, exact_tolerance);
@@ -362,8 +355,9 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T3_Consistent, KratosDamFastSuite)
                 KRATOS_EXPECT_NEAR(M_dam_lumped(i, j), 0.0, exact_tolerance);
 
     PrintMassMetrics("T3 default", M_dam_default, M_sma_default, 2);
-    std::cout << "[5C.1] T3: SMA default == exact simplex consistent (1/6,1/12); "
-              << "Dam default == uniform 1/9 (1-point); Dam+flag == SMA default" << std::endl;
+    std::cout << "[6A][M1] T3: historical Dam name -> SMA exact consistent mass "
+              << "(legacy no-flag uniform 1/9 intentionally replaced); "
+              << "lumped remains compatible" << std::endl;
 }
 
 //************************************************************************************
@@ -404,15 +398,11 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T4_Consistent, KratosDamFastSuite)
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_sma_default, M_ind_t4), 0.0, exact_tolerance);
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_sma_default, M_exact), 0.0, 1.0e-5);
 
-    // Dam default (1-point) uniform 1/16 distribution.
-    Matrix M_uniform(12, 12);
-    noalias(M_uniform) = ZeroMatrix(12, 12);
-    for (std::size_t i = 0; i < 4; ++i)
-        for (std::size_t j = 0; j < 4; ++j)
-            for (std::size_t k = 0; k < 3; ++k)
-                M_uniform(i * 3 + k, j * 3 + k) = physical_mass / 16.0;
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_uniform), 0.0, exact_tolerance);
-    KRATOS_EXPECT_TRUE(MaxAbsDiff(M_dam_default, M_sma_default) > 1.0e-12);
+    // Phase 6A (M1): the HISTORICAL Dam name now creates an SMA runtime element,
+    // so its default consistent mass is the SMA exact simplex mass. The legacy
+    // no-flag uniform 1/16 subintegrated mass is INTENTIONALLY replaced (M1).
+    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_sma_default), 0.0, exact_tolerance);
+    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_exact), 0.0, 1.0e-5);
 
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_default, 3), physical_mass, exact_tolerance);
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_sma_default, 3), physical_mass, exact_tolerance);
@@ -434,7 +424,8 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T4_Consistent, KratosDamFastSuite)
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_lumped, 3), physical_mass, exact_tolerance);
 
     PrintMassMetrics("T4 default", M_dam_default, M_sma_default, 3);
-    std::cout << "[5C.1] T4: SMA default == exact (1/10,1/20); Dam default == uniform 1/16; Dam+flag == SMA" << std::endl;
+    std::cout << "[6A][M1] T4: historical Dam name -> SMA exact consistent mass "
+              << "(legacy no-flag uniform 1/16 intentionally replaced)" << std::endl;
 }
 
 //************************************************************************************
@@ -824,7 +815,10 @@ void VerifyDampingAndInertia(const std::string& rLabel, const ElementNamePair& r
     const Vector f_sma = prod(M_sma, a);
     const Vector f_flag = prod(M_flag, a);
     KRATOS_EXPECT_NEAR(norm_2(f_flag - f_sma), 0.0, 1.0e-9);
-    KRATOS_EXPECT_TRUE(norm_2(f_dam - f_sma) > 1.0e-12);
+    // Phase 6A (M1): the historical Dam name now creates the SMA element, so the
+    // inertial force is IDENTICAL to the direct SMA path (no legacy subintegrated
+    // simplex mass remains).
+    KRATOS_EXPECT_NEAR(norm_2(f_dam - f_sma), 0.0, 1.0e-9);
 
     // Damping force C*v.
     const Vector v = a;
@@ -895,12 +889,14 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_RayleighQuotient, KratosDamFastSuite)
     const double omega_sma = rayleigh(M_sma);
     const double omega_flag = rayleigh(M_flag);
     KRATOS_EXPECT_NEAR(omega_flag, omega_sma, 1.0e-9);
-    KRATOS_EXPECT_TRUE(std::abs(omega_dam - omega_sma) / omega_sma > 1.0e-4);
+    // Phase 6A (M1): the historical Dam name now creates the SMA element, so the
+    // characteristic frequency equals the SMA one (the legacy no-flag simplex
+    // mass is intentionally gone).
+    KRATOS_EXPECT_NEAR(omega_dam, omega_sma, 1.0e-9);
 
-    std::cout << "[5C.1] Rayleigh quotient (T4): omega_dam_default=" << omega_dam
-              << " omega_sma=" << omega_sma
-              << " omega_dam_flag=" << omega_flag
-              << " rel_diff(default)=" << std::abs(omega_dam - omega_sma) / omega_sma << std::endl;
+    std::cout << "[6A][M1] Rayleigh quotient (T4): historical-name omega=" << omega_dam
+              << " == SMA omega=" << omega_sma
+              << " (legacy no-flag simplex mass intentionally replaced)" << std::endl;
 }
 
 //************************************************************************************

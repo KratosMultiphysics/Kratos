@@ -58,30 +58,20 @@ KratosDamApplication::KratosDamApplication()
         mSmallDisplacementInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
         mSmallDisplacementInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
 
-        mSmallDisplacementThermoMechanicElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType(3)))),
-        mSmallDisplacementThermoMechanicElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node >( Element::GeometryType::PointsArrayType(6)))),
-        mSmallDisplacementThermoMechanicElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-        mSmallDisplacementThermoMechanicElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
-        mSmallDisplacementThermoMechanicElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node >( Element::GeometryType::PointsArrayType(9)))),
-
-        mSmallDisplacementThermoMechanicElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType(4)))),
-        mSmallDisplacementThermoMechanicElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node >( Element::GeometryType::PointsArrayType(10)))),
-        mSmallDisplacementThermoMechanicElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
-        mSmallDisplacementThermoMechanicElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node >( Element::GeometryType::PointsArrayType(20)))),
-        mSmallDisplacementThermoMechanicElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node >( Element::GeometryType::PointsArrayType(27)))),
-
         mSmallDisplacementElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
-        mSmallDisplacementElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
         mSmallDisplacementElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
+        mSmallDisplacementElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
         mSmallDisplacementElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node >(Element::GeometryType::PointsArrayType(8)))),
         mSmallDisplacementElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node >(Element::GeometryType::PointsArrayType(9)))),
+
         mSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
-        mSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node >(Element::GeometryType::PointsArrayType(6)))),
-        mSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
         mSmallDisplacementElement3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
-        mSmallDisplacementElement3D15N(0, Element::GeometryType::Pointer(new Prism3D15<Node >(Element::GeometryType::PointsArrayType(15)))),
+        mSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
         mSmallDisplacementElement3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20<Node >(Element::GeometryType::PointsArrayType(20)))),
         mSmallDisplacementElement3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node >(Element::GeometryType::PointsArrayType(27)))),
+
+        mSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node >(Element::GeometryType::PointsArrayType(6)))),
+        mSmallDisplacementElement3D15N(0, Element::GeometryType::Pointer(new Prism3D15<Node >(Element::GeometryType::PointsArrayType(15)))),
 
 	    mFreeSurfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
         mFreeSurfaceCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
@@ -115,17 +105,22 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement3D6N", mSmallDisplacementInterfaceElement3D6N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement3D8N", mSmallDisplacementInterfaceElement3D8N )
 
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D3N", mSmallDisplacementThermoMechanicElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D4N", mSmallDisplacementThermoMechanicElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D4N", mSmallDisplacementThermoMechanicElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D8N", mSmallDisplacementThermoMechanicElement3D8N )
+    // Phase 6A: the historical thermo-mechanical names are registered against the
+    // SAME StructuralMechanicsApplication SmallDisplacement prototypes as the
+    // mechanical names (one prototype per geometry). Thermal behavior lives in
+    // the constitutive law, so the two historical families converge to one
+    // runtime implementation.
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D3N", mSmallDisplacementElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D4N", mSmallDisplacementElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D4N", mSmallDisplacementElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D8N", mSmallDisplacementElement3D8N )
 
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D6N", mSmallDisplacementThermoMechanicElement2D6N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D8N", mSmallDisplacementThermoMechanicElement2D8N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D9N", mSmallDisplacementThermoMechanicElement2D9N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D10N", mSmallDisplacementThermoMechanicElement3D10N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D20N", mSmallDisplacementThermoMechanicElement3D20N )
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D27N", mSmallDisplacementThermoMechanicElement3D27N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D6N", mSmallDisplacementElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D8N", mSmallDisplacementElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D9N", mSmallDisplacementElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D10N", mSmallDisplacementElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D20N", mSmallDisplacementElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D27N", mSmallDisplacementElement3D27N )
 
     //Register small displacement elements
     KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement2D3N", mSmallDisplacementElement2D3N)

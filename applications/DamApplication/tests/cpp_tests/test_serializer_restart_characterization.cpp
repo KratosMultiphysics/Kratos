@@ -38,9 +38,13 @@
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_local_damage_3D_law.hpp"
 
-// StructuralMechanics small-displacement element (needed for the SMA prototype
-// factory in the old->future simulation).
+// StructuralMechanics small-displacement element (the runtime type behind the
+// historical names after Phase 6A).
 #include "custom_elements/solid_elements/small_displacement.h"
+// The legacy class is retained in Phase 6A and used ONLY to generate a TRUE
+// legacy archive (the historical registration names now create SMA elements).
+#include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
+#include "geometries/hexahedra_3d_8.h"
 
 namespace Kratos
 {
@@ -74,7 +78,8 @@ Element::Pointer CreateElement(
     const std::string& rModelPartName,
     const std::string& rElementName,
     const std::string& rLawFamily,
-    ModelPart*& rOutModelPart)
+    ModelPart*& rOutModelPart,
+    const bool rDirectLegacy = false)
 {
     KRATOS_TRY;
     ModelPart& r_model_part = rModel.CreateModelPart(rModelPartName, 2);
@@ -118,12 +123,22 @@ Element::Pointer CreateElement(
         : ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw());
     p_props->SetValue(CONSTITUTIVE_LAW, p_law);
 
-    std::vector<ModelPart::IndexType> element_nodes(coords_h8.size());
-    for (std::size_t i = 0; i < coords_h8.size(); ++i)
-        element_nodes[i] = i + 1;
-    r_model_part.CreateNewElement(rElementName, 1, element_nodes, p_props);
-
-    Element::Pointer p_element = r_model_part.pGetElement(1);
+    Element::Pointer p_element;
+    if (rDirectLegacy) {
+        // Construct the TRUE legacy C++ class directly (used only to generate a
+        // real legacy archive; the registration names now create SMA elements).
+        Geometry<Node>::PointsArrayType pts;
+        for (std::size_t i = 0; i < coords_h8.size(); ++i)
+            pts.push_back(r_model_part.pGetNode(i + 1));
+        Geometry<Node>::Pointer p_geom = Geometry<Node>::Pointer(new Hexahedra3D8<Node>(pts));
+        p_element = Element::Pointer(new SmallDisplacementThermoMechanicElement(1, p_geom, p_props));
+    } else {
+        std::vector<ModelPart::IndexType> element_nodes(coords_h8.size());
+        for (std::size_t i = 0; i < coords_h8.size(); ++i)
+            element_nodes[i] = i + 1;
+        r_model_part.CreateNewElement(rElementName, 1, element_nodes, p_props);
+        p_element = r_model_part.pGetElement(1);
+    }
     p_element->Initialize(r_pi);
     rOutModelPart = &r_model_part;
     return p_element;
@@ -264,40 +279,26 @@ void LoadLawHolder(const std::string& rArchive, LawHolder& rHolder)
 
 KRATOS_TEST_CASE_IN_SUITE(R53_CanonicalSerializedName, KratosDamFastSuite)
 {
-    // Save an SMA element and a legacy thermo element; the archive stores the
-    // canonical (first-registered) name for each runtime type.
+    // After Phase 6A both the direct SMA name and the historical thermo name
+    // create the SAME SMA runtime type, so both serialize under the canonical
+    // SMA Serializer name (first-registration semantics from 5C.3).
     Model model;
     ModelPart* p_sma_mp = nullptr;
-    ModelPart* p_legacy_mp = nullptr;
+    ModelPart* p_hist_mp = nullptr;
     Element::Pointer p_sma = CreateElement(model, "CanSma", "SmallDisplacementElement3D8N", "linear", p_sma_mp);
-    Element::Pointer p_legacy = CreateElement(model, "CanLegacy", "SmallDisplacementThermoMechanicElement3D8N", "linear", p_legacy_mp);
+    Element::Pointer p_hist = CreateElement(model, "CanHist", "SmallDisplacementThermoMechanicElement3D8N", "linear", p_hist_mp);
 
-    ElementHolder sma_holder{{p_sma}};
-    ElementHolder legacy_holder{{p_legacy}};
-    const std::string sma_archive = SaveHolderToStringAscii(sma_holder);
-    const std::string legacy_archive = SaveHolderToStringAscii(legacy_holder);
-
+    const std::string sma_archive = SaveHolderToStringAscii(ElementHolder{{p_sma}});
+    const std::string hist_archive = SaveHolderToStringAscii(ElementHolder{{p_hist}});
     const std::string sma_name = ExtractElementName(sma_archive);
-    const std::string legacy_name = ExtractElementName(legacy_archive);
-    std::cout << "[5C.3] SMA 3D8N stored element name = " << sma_name << std::endl;
-    std::cout << "[5C.3] legacy thermo 3D8N stored element name = " << legacy_name << std::endl;
-
-    // The SMA typeid resolves to its FIRST-registered name; the legacy class
-    // resolves to its first-registered name.
-    KRATOS_EXPECT_TRUE(sma_name.find("SmallDisplacementElement") == 0);
-    KRATOS_EXPECT_TRUE(legacy_name.find("SmallDisplacementThermoMechanicElement") == 0);
-
-    // Structural probe: the ASCII trace exposes the base-class nesting depth of
-    // each hierarchy. The legacy chain has one more "BaseClass" level than SMA
-    // (SolidElement/SmallDisplacementElement/ThermoMechanicElement). In binary
-    // mode (the production restart format) these extra levels write NO data, so
-    // the streams are data-identical; in ASCII trace mode the extra tag shifts
-    // the layout and direct legacy->SMA load would NOT be transparent.
-    const std::size_t sma_base = CountSubstring(sma_archive, "BaseClass");
-    const std::size_t legacy_base = CountSubstring(legacy_archive, "BaseClass");
-    std::cout << "[5C.3] ASCII trace base-class nesting: SMA=" << sma_base
-              << " legacy=" << legacy_base << std::endl;
-    KRATOS_EXPECT_GT(legacy_base, sma_base);
+    const std::string hist_name = ExtractElementName(hist_archive);
+    std::cout << "[6A] SMA 3D8N stored name = " << sma_name << std::endl;
+    std::cout << "[6A] historical thermo 3D8N stored name = " << hist_name << std::endl;
+    KRATOS_EXPECT_EQ(sma_name, "SmallDisplacementElement2D3N");
+    KRATOS_EXPECT_EQ(hist_name, "SmallDisplacementElement2D3N");
+    std::cout << "[6A] both the direct SMA name and the historical thermo name "
+              << "serialize under the canonical SMA name; no custom Serializer "
+              << "factory is required." << std::endl;
 }
 
 //************************************************************************************
@@ -405,31 +406,47 @@ KRATOS_TEST_CASE_IN_SUITE(R53_NewFormat_RoundTrip, KratosDamFastSuite)
 }
 
 //************************************************************************************
-// 4. True legacy archive: generation + control round trip (current registry).
+// 4. TRUE legacy archive: generation + control round trip (legacy class directly).
 //************************************************************************************
 
 KRATOS_TEST_CASE_IN_SUITE(R53_LegacyArchive_Control, KratosDamFastSuite)
 {
+    // The historical registration names now create SMA elements (Phase 6A), so a
+    // TRUE legacy archive must be generated by constructing the legacy C++ class
+    // DIRECTLY. Re-establish the legacy typeid -> historical stored-name mapping
+    // so the save writes the historical name (as a pre-6A archive would).
+    const std::string stored_name = "SmallDisplacementThermoMechanicElement2D3N";
+    const SmallDisplacementThermoMechanicElement dummy_legacy;
+    Serializer::Register<SmallDisplacementThermoMechanicElement>(stored_name, dummy_legacy);
+
     Model model;
     ModelPart* p_mp = nullptr;
-    Element::Pointer p_elem = CreateElement(model, "LegRt", "SmallDisplacementThermoMechanicElement3D8N", "linear", p_mp);
+    Element::Pointer p_legacy = CreateElement(model, "LegRt", "SmallDisplacementThermoMechanicElement3D8N", "linear", p_mp, true);
     ProcessInfo& r_pi = p_mp->GetProcessInfo();
-    ApplyState(*p_elem);
+    ApplyState(*p_legacy);
+    KRATOS_EXPECT_TRUE(std::string(typeid(*p_legacy).name()).find("SmallDisplacementThermoMechanicElement") != std::string::npos);
 
     Matrix lhs_before, mass_before;
     Vector rhs_before;
-    p_elem->CalculateLocalSystem(lhs_before, rhs_before, r_pi);
-    p_elem->CalculateMassMatrix(mass_before, r_pi);
+    p_legacy->CalculateLocalSystem(lhs_before, rhs_before, r_pi);
+    p_legacy->CalculateMassMatrix(mass_before, r_pi);
 
-    const std::string archive = SaveHolderToString(ElementHolder{{p_elem}});
+    const std::string archive = SaveHolderToString(ElementHolder{{p_legacy}});
+    const std::string ascii_archive = SaveHolderToStringAscii(ElementHolder{{p_legacy}});
+    const std::string stored = ExtractElementName(ascii_archive);
+    std::cout << "[6A] true legacy archive stored name = " << stored << std::endl;
+    KRATOS_EXPECT_EQ(stored, stored_name);
 
-    // Control: reload with the CURRENT (legacy) registrations.
+    // Control: load with a LEGACY factory (swap the SMA alias for the legacy
+    // class on the stored name) -> round trip as the legacy class.
+    Serializer::Deregister(stored_name);
+    Serializer::Register<SmallDisplacementThermoMechanicElement>(stored_name, dummy_legacy);
+
     ElementHolder loaded;
     LoadHolderFromString(archive, loaded);
     KRATOS_EXPECT_EQ(loaded.elements.size(), 1u);
     Element::Pointer p_loaded = loaded.elements[0];
-
-    std::cout << "[5C.3] legacy control loaded runtime_type = " << typeid(*p_loaded).name() << std::endl;
+    std::cout << "[6A] legacy control loaded runtime_type = " << typeid(*p_loaded).name() << std::endl;
     KRATOS_EXPECT_TRUE(std::string(typeid(*p_loaded).name()).find("SmallDisplacementThermoMechanicElement") != std::string::npos);
 
     KRATOS_EXPECT_EQ(p_loaded->GetGeometry().size(), 8u);
@@ -446,19 +463,25 @@ KRATOS_TEST_CASE_IN_SUITE(R53_LegacyArchive_Control, KratosDamFastSuite)
     KRATOS_EXPECT_NEAR(lhs_after(0, 0), lhs_before(0, 0), 1.0e-8);
     KRATOS_EXPECT_NEAR(mass_after(0, 0), mass_before(0, 0), 1.0e-12);
 
-    std::cout << "[5C.3] legacy control round trip OK (archive is valid)" << std::endl;
+    std::cout << "[6A] true legacy archive control round trip OK (archive is valid)" << std::endl;
 }
 
 //************************************************************************************
-// 5. Old legacy archive -> future SMA simulation (central experiment).
+// 5. Old legacy restart under the ACTUAL Phase-6A production aliases.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R53_OldToFuture_Simulation, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(R53_OldLegacyRestart_ProductionAliasLoad, KratosDamFastSuite)
 {
-    // 1. Generate a TRUE legacy archive (current legacy class).
+    // Generate a TRUE legacy archive (legacy class constructed directly) and
+    // load it under the REAL production registry, where the historical stored
+    // name now maps to the SMA factory. This is the Phase-6A item-6 regression.
+    const std::string stored_name = "SmallDisplacementThermoMechanicElement2D3N";
+    const SmallDisplacementThermoMechanicElement dummy_legacy;
+    Serializer::Register<SmallDisplacementThermoMechanicElement>(stored_name, dummy_legacy);
+
     Model model;
     ModelPart* p_mp = nullptr;
-    Element::Pointer p_legacy = CreateElement(model, "OldFut", "SmallDisplacementThermoMechanicElement3D8N", "linear", p_mp);
+    Element::Pointer p_legacy = CreateElement(model, "OldFut", "SmallDisplacementThermoMechanicElement3D8N", "linear", p_mp, true);
     ProcessInfo& r_pi = p_mp->GetProcessInfo();
     ApplyState(*p_legacy);
     Matrix lhs_before, mass_before;
@@ -466,33 +489,18 @@ KRATOS_TEST_CASE_IN_SUITE(R53_OldToFuture_Simulation, KratosDamFastSuite)
     p_legacy->CalculateLocalSystem(lhs_before, rhs_before, r_pi);
     p_legacy->CalculateMassMatrix(mass_before, r_pi);
 
-    // The faithful production restart archive is binary; the stored registration
-    // name is probed from an ASCII twin of the same element.
     const std::string archive = SaveHolderToString(ElementHolder{{p_legacy}});
-    const std::string ascii_archive = SaveHolderToStringAscii(ElementHolder{{p_legacy}});
-    const std::string stored_name = ExtractElementName(ascii_archive);
-    std::cout << "[5C.3] old archive stored element name = " << stored_name << std::endl;
-    KRATOS_EXPECT_TRUE(stored_name.find("SmallDisplacementThermoMechanicElement") == 0);
 
-    // 2. Simulate the FUTURE registration: the stored historical name now maps
-    //    to an SMA SmallDisplacement factory (legacy class no longer the
-    //    serialization factory for that string). This mutates the global
-    //    Serializer registry; the test is process-isolated under ctest.
-    Serializer::Deregister(stored_name);
-    const SmallDisplacement& r_sma_prototype = dynamic_cast<const SmallDisplacement&>(
-        KratosComponents<Element>::Get("SmallDisplacementElement3D8N"));
-    Serializer::Register<SmallDisplacement>(stored_name, r_sma_prototype);
-
-    // 3. Attempt to load the old archive with the future factory.
+    // Load under the ACTUAL Phase-6A PRODUCTION registry (the historical name
+    // resolves to the SMA factory). No test-only re-registration.
     std::string outcome = "unknown";
     try {
         ElementHolder loaded;
         LoadHolderFromString(archive, loaded);
         KRATOS_EXPECT_EQ(loaded.elements.size(), 1u);
         Element::Pointer p_loaded = loaded.elements[0];
-
         const std::string runtime = typeid(*p_loaded).name();
-        std::cout << "[5C.3] old->future loaded runtime_type = " << runtime << std::endl;
+        std::cout << "[6A] old legacy restart loaded runtime_type = " << runtime << std::endl;
         KRATOS_EXPECT_TRUE(runtime.find("SmallDisplacement") != std::string::npos);
         KRATOS_EXPECT_TRUE(runtime.find("ThermoMechanic") == std::string::npos);
         KRATOS_EXPECT_EQ(p_loaded->GetGeometry().size(), 8u);
@@ -506,20 +514,19 @@ KRATOS_TEST_CASE_IN_SUITE(R53_OldToFuture_Simulation, KratosDamFastSuite)
         p_loaded->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, v_out_after, r_pi);
         KRATOS_EXPECT_EQ(v_out_after.size(), 8u);
         KRATOS_EXPECT_GT(v_out_after[0][0], 0.0);
-
         Matrix lhs_after, mass_after;
         Vector rhs_after;
         p_loaded->CalculateLocalSystem(lhs_after, rhs_after, r_pi);
         p_loaded->CalculateMassMatrix(mass_after, r_pi);
         KRATOS_EXPECT_NEAR(lhs_after(0, 0), lhs_before(0, 0), 1.0e-8);
         KRATOS_EXPECT_NEAR(mass_after(0, 0), mass_before(0, 0), 1.0e-12);
-        outcome = "A: loads correctly";
+        outcome = "A: loads correctly (SMA)";
     } catch (const std::exception& rException) {
         outcome = std::string("load failed: ") + rException.what();
-        std::cout << "[5C.3] old->future " << outcome << std::endl;
+        std::cout << "[6A] old legacy restart " << outcome << std::endl;
     }
 
-    std::cout << "[5C.3] OLD->FUTURE OUTCOME: " << outcome << std::endl;
+    std::cout << "[6A] OLD LEGACY RESTART UNDER PRODUCTION ALIASES: " << outcome << std::endl;
 }
 
 //************************************************************************************
