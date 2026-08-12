@@ -123,6 +123,10 @@ Vector& ThermalNonlocalDamage3DLaw::CalculateValue(
         const Vector& r_total_strain = rParameterValues.GetStrainVector();
         const std::size_t voigt_size = r_total_strain.size();
 
+        // Automatic transient rebinding before the damage-factor evaluation
+        // (required after restart; the hardening-law Properties are transient).
+        this->ReinitializeMaterialProperties(r_material_properties);
+
         // Constitutive matrix (dimensional specialization via virtual dispatch).
         Matrix constitutive_matrix(voigt_size, voigt_size);
         noalias(constitutive_matrix) = ZeroMatrix(voigt_size, voigt_size);
@@ -285,6 +289,9 @@ void ThermalNonlocalDamage3DLaw::CalculateLocalEquivalentStrain(
     // no F/detF requirement).
     this->CheckThermalNonlocalDamageParameters(rValues);
 
+    // Automatic transient rebinding (idempotent; required after restart).
+    this->ReinitializeMaterialProperties(rValues.GetMaterialProperties());
+
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
     const Vector& rTotalStrainVector = rValues.GetStrainVector();
     const unsigned int VoigtSize = rTotalStrainVector.size();
@@ -347,6 +354,9 @@ void ThermalNonlocalDamage3DLaw::CalculateThermalNonlocalDamageResponse(Paramete
 {
     // Validate only the parameters genuinely consumed by this law.
     this->CheckThermalNonlocalDamageParameters(rValues);
+
+    // Automatic transient rebinding (idempotent; required after restart).
+    this->ReinitializeMaterialProperties(rValues.GetMaterialProperties());
 
     // Get values for the constitutive law
     Flags& Options = rValues.GetOptions();
@@ -494,6 +504,9 @@ void ThermalNonlocalDamage3DLaw::FinalizeThermalNonlocalDamageResponse(Parameter
 {
     // Validate only the parameters genuinely consumed by this law.
     this->CheckThermalNonlocalDamageParameters(rValues);
+
+    // Automatic transient rebinding (idempotent; required after restart).
+    this->ReinitializeMaterialProperties(rValues.GetMaterialProperties());
 
     // Get values for the constitutive law
     const Properties& MaterialProperties = rValues.GetMaterialProperties();

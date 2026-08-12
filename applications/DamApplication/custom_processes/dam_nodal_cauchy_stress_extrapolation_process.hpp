@@ -32,8 +32,9 @@ namespace Kratos
  * @class DamNodalCauchyStressExtrapolationProcess
  * @ingroup DamApplication
  * @brief Extrapolates the Gauss-point Cauchy stress tensor to the nodes,
- * reproducing exactly the element-level accumulation currently embedded in
- * SmallDisplacementThermoMechanicElement::FinalizeSolutionStep.
+ * reproducing exactly the historical element-level accumulation that used to
+ * be embedded in the (now removed) legacy Dam thermo-mechanical element's
+ * FinalizeSolutionStep.
  *
  * The process works with any element that provides CAUCHY_STRESS_TENSOR at its
  * integration points through the standard

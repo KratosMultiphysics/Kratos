@@ -87,7 +87,6 @@ Element::Pointer CreateElement(
     const double rDensity,
     const bool rSetThickness,
     const double rThickness,
-    const bool rSetConsistentFlag,
     const bool rSetLumpedFlag,
     ModelPart*& rOutModelPart)
 {
@@ -99,8 +98,6 @@ Element::Pointer CreateElement(
     r_pi[IS_RESTARTED] = false;
     r_pi[DELTA_TIME] = 1.0;
     r_pi[IS_CONVERGED] = true;
-    if (rSetConsistentFlag)
-        r_pi[COMPUTE_CONSISTENT_MASS_MATRIX] = true;
     if (rSetLumpedFlag)
         r_pi[COMPUTE_LUMPED_MASS_MATRIX] = true;
 
@@ -261,10 +258,9 @@ void PrintMassMetrics(
 
 KRATOS_TEST_CASE_IN_SUITE(Mass01_IntegrationRuleProbe, KratosDamFastSuite)
 {
-    // For the reference geometries, report the number of Gauss points used by
-    // the Dam default consistent mass (geometry default), the SMA consistent
-    // mass (geometry default + 1) and the Dam COMPUTE_CONSISTENT_MASS_MATRIX
-    // path (geometry default + 1). This confirms the Phase-1 observation.
+    // For the reference geometries, report the number of Gauss points of the
+    // geometry-default rule vs the elevated (geometry_default + 1) rule used by
+    // the SMA consistent mass.
     struct GeoInfo { std::string name; std::string dam_name; };
     const std::vector<GeoInfo> geos = {
         {"2D3N", "SmallDisplacementSolidElement2D3N"},
@@ -287,9 +283,8 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_IntegrationRuleProbe, KratosDamFastSuite)
                   << " (npoints=" << proto_geom.IntegrationPoints(elevated_method).size()
                   << ")" << std::endl;
     }
-    std::cout << "[5C.1] Phase-1 observation confirmed: SMA consistent mass always uses the "
-              << "elevated (geometry_default+1) rule; Dam uses geometry_default unless "
-              << "COMPUTE_CONSISTENT_MASS_MATRIX is set." << std::endl;
+    std::cout << "[6C.2] SMA consistent mass uses the elevated (geometry_default+1) rule "
+              << "for every geometry (permanent M1 behavior)." << std::endl;
 }
 
 //************************************************************************************
@@ -306,8 +301,8 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T3_Consistent, KratosDamFastSuite)
     Model model;
     ModelPart* p_dam_mp = nullptr;
     ModelPart* p_sma_mp = nullptr;
-    Element::Pointer p_dam = CreateElement(model, "T3Dam", names.dam, coords, true, test_density, true, test_thickness, false, false, p_dam_mp);
-    Element::Pointer p_sma = CreateElement(model, "T3Sma", names.sma, coords, true, test_density, true, test_thickness, false, false, p_sma_mp);
+    Element::Pointer p_dam = CreateElement(model, "T3Dam", names.dam, coords, true, test_density, true, test_thickness, false, p_dam_mp);
+    Element::Pointer p_sma = CreateElement(model, "T3Sma", names.sma, coords, true, test_density, true, test_thickness, false, p_sma_mp);
     const Matrix M_dam_default = ElementMass(*p_dam, p_dam_mp->GetProcessInfo());
     const Matrix M_sma_default = ElementMass(*p_sma, p_sma_mp->GetProcessInfo());
 
@@ -333,17 +328,11 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T3_Consistent, KratosDamFastSuite)
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_default, 2), physical_mass, exact_tolerance);
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_sma_default, 2), physical_mass, exact_tolerance);
 
-    // Dam + COMPUTE_CONSISTENT_MASS_MATRIX (elevated 3-point) == SMA default.
-    ModelPart* p_flag_mp = nullptr;
-    Element::Pointer p_dam_flag = CreateElement(model, "T3DamFlag", names.dam, coords, true, test_density, true, test_thickness, true, false, p_flag_mp);
-    const Matrix M_dam_flag = ElementMass(*p_dam_flag, p_flag_mp->GetProcessInfo());
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_flag, M_sma_default), 0.0, exact_tolerance);
-
     // Lumped: Dam == SMA (both use geometry LumpingFactors * total mass).
     ModelPart* p_dl_mp = nullptr;
     ModelPart* p_sl_mp = nullptr;
-    Element::Pointer p_dam_lump = CreateElement(model, "T3DamLump", names.dam, coords, true, test_density, true, test_thickness, false, true, p_dl_mp);
-    Element::Pointer p_sma_lump = CreateElement(model, "T3SmaLump", names.sma, coords, true, test_density, true, test_thickness, false, true, p_sl_mp);
+    Element::Pointer p_dam_lump = CreateElement(model, "T3DamLump", names.dam, coords, true, test_density, true, test_thickness, true, p_dl_mp);
+    Element::Pointer p_sma_lump = CreateElement(model, "T3SmaLump", names.sma, coords, true, test_density, true, test_thickness, true, p_sl_mp);
     const Matrix M_dam_lumped = ElementMass(*p_dam_lump, p_dl_mp->GetProcessInfo());
     const Matrix M_sma_lumped = ElementMass(*p_sma_lump, p_sl_mp->GetProcessInfo());
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_lumped, M_sma_lumped), 0.0, exact_tolerance);
@@ -374,8 +363,8 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T4_Consistent, KratosDamFastSuite)
     Model model;
     ModelPart* p_dam_mp = nullptr;
     ModelPart* p_sma_mp = nullptr;
-    Element::Pointer p_dam = CreateElement(model, "T4Dam", names.dam, coords, false, test_density, false, 0.0, false, false, p_dam_mp);
-    Element::Pointer p_sma = CreateElement(model, "T4Sma", names.sma, coords, false, test_density, false, 0.0, false, false, p_sma_mp);
+    Element::Pointer p_dam = CreateElement(model, "T4Dam", names.dam, coords, false, test_density, false, 0.0, false, p_dam_mp);
+    Element::Pointer p_sma = CreateElement(model, "T4Sma", names.sma, coords, false, test_density, false, 0.0, false, p_sma_mp);
     const Matrix M_dam_default = ElementMass(*p_dam, p_dam_mp->GetProcessInfo());
     const Matrix M_sma_default = ElementMass(*p_sma, p_sma_mp->GetProcessInfo());
 
@@ -407,17 +396,11 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T4_Consistent, KratosDamFastSuite)
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_default, 3), physical_mass, exact_tolerance);
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_sma_default, 3), physical_mass, exact_tolerance);
 
-    // Dam + flag == SMA.
-    ModelPart* p_flag_mp = nullptr;
-    Element::Pointer p_dam_flag = CreateElement(model, "T4DamFlag", names.dam, coords, false, test_density, false, 0.0, true, false, p_flag_mp);
-    const Matrix M_dam_flag = ElementMass(*p_dam_flag, p_flag_mp->GetProcessInfo());
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_flag, M_sma_default), 0.0, exact_tolerance);
-
     // Lumped Dam == SMA.
     ModelPart* p_dl_mp = nullptr;
     ModelPart* p_sl_mp = nullptr;
-    Element::Pointer p_dam_lump = CreateElement(model, "T4DamLump", names.dam, coords, false, test_density, false, 0.0, false, true, p_dl_mp);
-    Element::Pointer p_sma_lump = CreateElement(model, "T4SmaLump", names.sma, coords, false, test_density, false, 0.0, false, true, p_sl_mp);
+    Element::Pointer p_dam_lump = CreateElement(model, "T4DamLump", names.dam, coords, false, test_density, false, 0.0, true, p_dl_mp);
+    Element::Pointer p_sma_lump = CreateElement(model, "T4SmaLump", names.sma, coords, false, test_density, false, 0.0, true, p_sl_mp);
     const Matrix M_dam_lumped = ElementMass(*p_dam_lump, p_dl_mp->GetProcessInfo());
     const Matrix M_sma_lumped = ElementMass(*p_sma_lump, p_sl_mp->GetProcessInfo());
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_lumped, M_sma_lumped), 0.0, exact_tolerance);
@@ -444,8 +427,8 @@ void VerifyAffineConsistent(
     Model model;
     ModelPart* p_dam_mp = nullptr;
     ModelPart* p_sma_mp = nullptr;
-    Element::Pointer p_dam = CreateElement(model, rLabel + "Dam", rNames.dam, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, false, p_dam_mp);
-    Element::Pointer p_sma = CreateElement(model, rLabel + "Sma", rNames.sma, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, false, p_sma_mp);
+    Element::Pointer p_dam = CreateElement(model, rLabel + "Dam", rNames.dam, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, p_dam_mp);
+    Element::Pointer p_sma = CreateElement(model, rLabel + "Sma", rNames.sma, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, p_sma_mp);
     const Matrix M_dam = ElementMass(*p_dam, p_dam_mp->GetProcessInfo());
     const Matrix M_sma = ElementMass(*p_sma, p_sma_mp->GetProcessInfo());
 
@@ -528,10 +511,8 @@ void VerifyDistortedSensitivity(
     Model model;
     ModelPart* p_dam_mp = nullptr;
     ModelPart* p_sma_mp = nullptr;
-    ModelPart* p_flag_mp = nullptr;
-    Element::Pointer p_dam = CreateElement(model, rLabel + "Dam", rNames.dam, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, false, p_dam_mp);
-    Element::Pointer p_sma = CreateElement(model, rLabel + "Sma", rNames.sma, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, false, p_sma_mp);
-    Element::Pointer p_dam_flag = CreateElement(model, rLabel + "DamFlag", rNames.dam, rCoords, rIs2d, test_density, rIs2d, test_thickness, true, false, p_flag_mp);
+    Element::Pointer p_dam = CreateElement(model, rLabel + "Dam", rNames.dam, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, p_dam_mp);
+    Element::Pointer p_sma = CreateElement(model, rLabel + "Sma", rNames.sma, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, p_sma_mp);
 
     // Non-degenerate check on the actual (distorted) geometry.
     const auto& r_geom = p_sma->GetGeometry();
@@ -540,18 +521,16 @@ void VerifyDistortedSensitivity(
 
     const Matrix M_dam = ElementMass(*p_dam, p_dam_mp->GetProcessInfo());
     const Matrix M_sma = ElementMass(*p_sma, p_sma_mp->GetProcessInfo());
-    const Matrix M_dam_flag = ElementMass(*p_dam_flag, p_flag_mp->GetProcessInfo());
 
     const auto default_method = r_geom.GetDefaultIntegrationMethod();
     const Matrix M_ind_default = IndependentConsistentMass(r_geom, test_density, test_thickness, default_method, rIs2d);
     const Matrix M_ind_elevated = IndependentConsistentMass(r_geom, test_density, test_thickness, elevated, rIs2d);
 
-    // Dam default == independent default rule; SMA default == independent
-    // elevated rule; Dam+flag == SMA default == independent elevated rule.
+    // Both the historical Dam alias and the direct SMA element use the SMA
+    // runtime: their masses coincide with the independent references.
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam, M_ind_default), 0.0, exact_tolerance);
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_sma, M_ind_elevated), 0.0, exact_tolerance);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_flag, M_ind_elevated), 0.0, exact_tolerance);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_flag, M_sma), 0.0, exact_tolerance);
+    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam, M_sma), 0.0, exact_tolerance);
 
     // For the quad/hex families the bilinear/trilinear Jacobian makes the mass
     // integrand of total degree <= 3 per direction, which the DEFAULT rule
@@ -563,11 +542,10 @@ void VerifyDistortedSensitivity(
                                        TotalDirectionalMass(M_sma, rIs2d ? 2 : 3));
     KRATOS_EXPECT_NEAR(max_abs, 0.0, exact_tolerance);
 
-    std::cout << "[5C.1] " << rLabel << " distorted: Dam_default vs SMA_default "
+    std::cout << "[6C.2] " << rLabel << " distorted: historical-alias vs SMA "
               << "max_abs_diff=" << max_abs
               << " frob_rel_diff=" << frob_rel
               << " total_mass_diff=" << total_diff
-              << " | Dam+flag vs SMA max_abs_diff=" << MaxAbsDiff(M_dam_flag, M_sma)
               << " -> default quadrature already exact for this family" << std::endl;
     PrintMassMetrics(rLabel + " distorted default", M_dam, M_sma, rIs2d ? 2 : 3);
 }
@@ -606,10 +584,10 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_Thickness, KratosDamFastSuite)
     Model model;
     ModelPart* p_mp1 = nullptr; ModelPart* p_mp2 = nullptr; ModelPart* p_mp3 = nullptr;
     ModelPart* p_mp4 = nullptr; ModelPart* p_mp5 = nullptr; ModelPart* p_mp6 = nullptr;
-    Element::Pointer p_dam_t1 = CreateElement(model, "ThDamT1", names.dam, coords, true, test_density, true, t1, false, false, p_mp1);
-    Element::Pointer p_dam_t2 = CreateElement(model, "ThDamT2", names.dam, coords, true, test_density, true, t2, false, false, p_mp2);
-    Element::Pointer p_sma_t1 = CreateElement(model, "ThSmaT1", names.sma, coords, true, test_density, true, t1, false, false, p_mp3);
-    Element::Pointer p_sma_t2 = CreateElement(model, "ThSmaT2", names.sma, coords, true, test_density, true, t2, false, false, p_mp4);
+    Element::Pointer p_dam_t1 = CreateElement(model, "ThDamT1", names.dam, coords, true, test_density, true, t1, false, p_mp1);
+    Element::Pointer p_dam_t2 = CreateElement(model, "ThDamT2", names.dam, coords, true, test_density, true, t2, false, p_mp2);
+    Element::Pointer p_sma_t1 = CreateElement(model, "ThSmaT1", names.sma, coords, true, test_density, true, t1, false, p_mp3);
+    Element::Pointer p_sma_t2 = CreateElement(model, "ThSmaT2", names.sma, coords, true, test_density, true, t2, false, p_mp4);
     const Matrix M_dam_1 = ElementMass(*p_dam_t1, p_mp1->GetProcessInfo());
     const Matrix M_dam_2 = ElementMass(*p_dam_t2, p_mp2->GetProcessInfo());
     const Matrix M_sma_1 = ElementMass(*p_sma_t1, p_mp3->GetProcessInfo());
@@ -623,8 +601,8 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_Thickness, KratosDamFastSuite)
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_2, 2), test_density * t2 * 2.0, 1.0e-9);
 
     // Absent THICKNESS: both behave as unit thickness.
-    Element::Pointer p_dam_no = CreateElement(model, "ThDamNo", names.dam, coords, true, test_density, false, 0.0, false, false, p_mp5);
-    Element::Pointer p_sma_no = CreateElement(model, "ThSmaNo", names.sma, coords, true, test_density, false, 0.0, false, false, p_mp6);
+    Element::Pointer p_dam_no = CreateElement(model, "ThDamNo", names.dam, coords, true, test_density, false, 0.0, false, p_mp5);
+    Element::Pointer p_sma_no = CreateElement(model, "ThSmaNo", names.sma, coords, true, test_density, false, 0.0, false, p_mp6);
     const Matrix M_dam_no = ElementMass(*p_dam_no, p_mp5->GetProcessInfo());
     const Matrix M_sma_no = ElementMass(*p_sma_no, p_mp6->GetProcessInfo());
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_no, 2), test_density * 2.0, 1.0e-9);
@@ -647,16 +625,16 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_Density, KratosDamFastSuite)
     const double rho_nonunit = 3141.5926;
     Model model;
     ModelPart* p_mp1 = nullptr; ModelPart* p_mp2 = nullptr; ModelPart* p_mp3 = nullptr; ModelPart* p_mp4 = nullptr;
-    Element::Pointer p_dam = CreateElement(model, "DensDam", names.dam, coords, false, rho_nonunit, false, 0.0, false, false, p_mp1);
-    Element::Pointer p_sma = CreateElement(model, "DensSma", names.sma, coords, false, rho_nonunit, false, 0.0, false, false, p_mp2);
+    Element::Pointer p_dam = CreateElement(model, "DensDam", names.dam, coords, false, rho_nonunit, false, 0.0, false, p_mp1);
+    Element::Pointer p_sma = CreateElement(model, "DensSma", names.sma, coords, false, rho_nonunit, false, 0.0, false, p_mp2);
     const Matrix M_dam = ElementMass(*p_dam, p_mp1->GetProcessInfo());
     const Matrix M_sma = ElementMass(*p_sma, p_mp2->GetProcessInfo());
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam, 3), rho_nonunit * 4.0, 1.0e-9);
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam, M_sma), 0.0, exact_tolerance);
 
     // Zero density: zero mass matrix on both.
-    Element::Pointer p_dam_z = CreateElement(model, "DensDamZ", names.dam, coords, false, 0.0, false, 0.0, false, false, p_mp3);
-    Element::Pointer p_sma_z = CreateElement(model, "DensSmaZ", names.sma, coords, false, 0.0, false, 0.0, false, false, p_mp4);
+    Element::Pointer p_dam_z = CreateElement(model, "DensDamZ", names.dam, coords, false, 0.0, false, 0.0, false, p_mp3);
+    Element::Pointer p_sma_z = CreateElement(model, "DensSmaZ", names.sma, coords, false, 0.0, false, 0.0, false, p_mp4);
     const Matrix M_dam_z = ElementMass(*p_dam_z, p_mp3->GetProcessInfo());
     const Matrix M_sma_z = ElementMass(*p_sma_z, p_mp4->GetProcessInfo());
     const Matrix zero = ZeroMatrix(M_dam_z.size1(), M_dam_z.size2());
@@ -665,28 +643,6 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_Density, KratosDamFastSuite)
 
     std::cout << "[5C.1] density: non-unit and zero density behave identically on Dam and SMA "
               << "(both read Properties[DENSITY]; missing DENSITY is an error on both)" << std::endl;
-}
-
-//************************************************************************************
-// 8. COMPUTE_CONSISTENT_MASS_MATRIX contract on the SMA element.
-//************************************************************************************
-
-KRATOS_TEST_CASE_IN_SUITE(Mass01_ConsistentFlagOnSMA, KratosDamFastSuite)
-{
-    // COMPUTE_CONSISTENT_MASS_MATRIX is a DamApplication variable. SMA does not
-    // read it: setting it has no effect on the SMA element (which always uses
-    // the elevated rule). Verify SMA default == SMA with flag on a distorted Q4.
-    const std::vector<std::vector<double>> coords = {{0,0,0},{2.0,0,0},{2.3,1.4,0},{0.2,1.1,0}};
-    Model model;
-    ModelPart* p_mp1 = nullptr; ModelPart* p_mp2 = nullptr;
-    Element::Pointer p_sma_def = CreateElement(model, "CfSmaDef", "SmallDisplacementElement2D4N", coords, true, test_density, true, test_thickness, false, false, p_mp1);
-    Element::Pointer p_sma_flag = CreateElement(model, "CfSmaFlag", "SmallDisplacementElement2D4N", coords, true, test_density, true, test_thickness, true, false, p_mp2);
-    const Matrix M_def = ElementMass(*p_sma_def, p_mp1->GetProcessInfo());
-    const Matrix M_flag = ElementMass(*p_sma_flag, p_mp2->GetProcessInfo());
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_def, M_flag), 0.0, exact_tolerance);
-    std::cout << "[5C.1] COMPUTE_CONSISTENT_MASS_MATRIX on SMA has NO effect (SMA does not read it). "
-              << "The flag is the Dam-side switch that makes Dam use the elevated rule SMA always uses."
-              << std::endl;
 }
 
 //************************************************************************************
@@ -730,31 +686,28 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_HigherOrder_FlagContract, KratosDamFastSuite)
         }
 
         Model model;
-        ModelPart* p_flag_mp = nullptr;
+        ModelPart* p_dam_mp = nullptr;
         ModelPart* p_sma_mp = nullptr;
-        ModelPart* p_def_mp = nullptr;
-        Element::Pointer p_dam_flag = CreateElement(model, "HO" + names.dam, names.dam, coords, is2d, test_density, is2d, test_thickness, true, false, p_flag_mp);
-        Element::Pointer p_sma = CreateElement(model, "HO" + names.sma, names.sma, coords, is2d, test_density, is2d, test_thickness, false, false, p_sma_mp);
-        Element::Pointer p_dam_def = CreateElement(model, "HOdef" + names.dam, names.dam, coords, is2d, test_density, is2d, test_thickness, false, false, p_def_mp);
-        const Matrix M_dam_flag = ElementMass(*p_dam_flag, p_flag_mp->GetProcessInfo());
+        Element::Pointer p_dam = CreateElement(model, "HO" + names.dam, names.dam, coords, is2d, test_density, is2d, test_thickness, false, p_dam_mp);
+        Element::Pointer p_sma = CreateElement(model, "HO" + names.sma, names.sma, coords, is2d, test_density, is2d, test_thickness, false, p_sma_mp);
+        const Matrix M_dam = ElementMass(*p_dam, p_dam_mp->GetProcessInfo());
         const Matrix M_sma = ElementMass(*p_sma, p_sma_mp->GetProcessInfo());
-        const Matrix M_dam_def = ElementMass(*p_dam_def, p_def_mp->GetProcessInfo());
 
-        // Dam+flag == SMA default (identical elevated quadrature).
-        KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_flag, M_sma), 0.0, MassTolerance(M_sma));
+        // The historical Dam alias and the direct SMA name produce the SAME
+        // (SMA) mass matrix for every higher-order geometry.
+        KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam, M_sma), 0.0, MassTolerance(M_sma));
 
-        const double max_abs = MaxAbsDiff(M_dam_def, M_sma);
-        const double frob_rel = FrobeniusRelDiff(M_dam_def, M_sma);
+        const double max_abs = MaxAbsDiff(M_dam, M_sma);
+        const double frob_rel = FrobeniusRelDiff(M_dam, M_sma);
 
-        std::cout << "[5C.1] " << names.dam.substr(28)
+        std::cout << "[6C.2] " << names.dam.substr(28)
                   << " (" << (is2d ? "2D" : "3D") << ")"
                   << " npoints=" << M_sma.size1()
-                  << ": Dam+flag == SMA max_abs_diff=" << MaxAbsDiff(M_dam_flag, M_sma)
-                  << " | Dam_default vs SMA max_abs_diff=" << max_abs
+                  << ": historical-alias vs SMA max_abs_diff=" << max_abs
                   << " frob_rel_diff=" << frob_rel << std::endl;
     }
-    std::cout << "[5C.1] Higher-order contract: for every direct SMA counterpart, "
-              << "Dam+COMPUTE_CONSISTENT_MASS_MATRIX reproduces SMA exactly." << std::endl;
+    std::cout << "[6C.2] Higher-order contract: every historical Dam alias yields the "
+              << "same SMA mass matrix as the direct SMA name." << std::endl;
 }
 
 //************************************************************************************
@@ -769,68 +722,54 @@ void VerifyDampingAndInertia(const std::string& rLabel, const ElementNamePair& r
     Model model;
     ModelPart* p_dam_mp = nullptr;
     ModelPart* p_sma_mp = nullptr;
-    ModelPart* p_flag_mp = nullptr;
-    Element::Pointer p_dam = CreateElement(model, rLabel + "Dam", rNames.dam, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, false, p_dam_mp);
-    Element::Pointer p_sma = CreateElement(model, rLabel + "Sma", rNames.sma, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, false, p_sma_mp);
-    Element::Pointer p_dam_flag = CreateElement(model, rLabel + "DamFlag", rNames.dam, rCoords, rIs2d, test_density, rIs2d, test_thickness, true, false, p_flag_mp);
+    Element::Pointer p_dam = CreateElement(model, rLabel + "Dam", rNames.dam, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, p_dam_mp);
+    Element::Pointer p_sma = CreateElement(model, rLabel + "Sma", rNames.sma, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, p_sma_mp);
     ProcessInfo& r_dam_pi = p_dam_mp->GetProcessInfo();
     ProcessInfo& r_sma_pi = p_sma_mp->GetProcessInfo();
-    ProcessInfo& r_flag_pi = p_flag_mp->GetProcessInfo();
 
     const double alpha = 0.02, beta = 0.03;
-    for (auto& p_prop : std::vector<Properties::Pointer>{p_dam->pGetProperties(), p_sma->pGetProperties(), p_dam_flag->pGetProperties()}) {
+    for (auto& p_prop : std::vector<Properties::Pointer>{p_dam->pGetProperties(), p_sma->pGetProperties()}) {
         (*p_prop)[RAYLEIGH_ALPHA] = alpha;
         (*p_prop)[RAYLEIGH_BETA] = beta;
     }
 
-    Matrix C_dam, C_sma, C_flag, K_dam, K_sma, M_dam, M_sma, M_flag;
+    Matrix C_dam, C_sma, K_dam, K_sma, M_dam, M_sma;
     p_dam->CalculateDampingMatrix(C_dam, r_dam_pi);
     p_sma->CalculateDampingMatrix(C_sma, r_sma_pi);
-    p_dam_flag->CalculateDampingMatrix(C_flag, r_flag_pi);
     p_dam->CalculateLeftHandSide(K_dam, r_dam_pi);
     p_sma->CalculateLeftHandSide(K_sma, r_sma_pi);
     p_dam->CalculateMassMatrix(M_dam, r_dam_pi);
     p_sma->CalculateMassMatrix(M_sma, r_sma_pi);
-    p_dam_flag->CalculateMassMatrix(M_flag, r_flag_pi);
 
     // Stiffness identical (validated in earlier phases).
     KRATOS_EXPECT_NEAR(MaxAbsDiff(K_dam, K_sma), 0.0, exact_tolerance);
 
-    // Damping: Dam+flag == SMA (mass part matches); Dam default differs by
-    // alpha * (M_dam - M_sma).
-    const double damping_default_diff = MaxAbsDiff(C_dam, C_sma);
-    const double damping_flag_diff = MaxAbsDiff(C_flag, C_sma);
-    KRATOS_EXPECT_NEAR(damping_flag_diff, 0.0, 1.0e-9);
+    // Damping is alpha*M + beta*K; under M1 the historical alias and the direct
+    // SMA path share the same mass, so the damping matrices coincide.
+    const double damping_diff = MaxAbsDiff(C_dam, C_sma);
     KRATOS_EXPECT_NEAR(MaxAbsDiff(C_dam, alpha * M_dam + beta * K_dam), 0.0, 1.0e-9);
     KRATOS_EXPECT_NEAR(MaxAbsDiff(C_sma, alpha * M_sma + beta * K_sma), 0.0, 1.0e-9);
-    const double mass_diff = MaxAbsDiff(M_dam, M_sma);
-    KRATOS_EXPECT_NEAR(damping_default_diff, alpha * mass_diff, 1.0e-9);
+    KRATOS_EXPECT_NEAR(damping_diff, 0.0, 1.0e-9);
 
-    // Inertial force M*a with a prescribed, node-varying acceleration vector
-    // (a uniform-per-node field would collapse to the total mass for both).
+    // Inertial force M*a with a prescribed, node-varying acceleration vector.
     Vector a(M_dam.size1());
     for (std::size_t i = 0; i < a.size(); ++i)
         a[i] = 0.5 + 0.01 * i;
     const Vector f_dam = prod(M_dam, a);
     const Vector f_sma = prod(M_sma, a);
-    const Vector f_flag = prod(M_flag, a);
-    KRATOS_EXPECT_NEAR(norm_2(f_flag - f_sma), 0.0, 1.0e-9);
-    // Phase 6A (M1): the historical Dam name now creates the SMA element, so the
-    // inertial force is IDENTICAL to the direct SMA path (no legacy subintegrated
-    // simplex mass remains).
+    // M1: the historical Dam name creates the SMA element, so the inertial force
+    // is identical to the direct SMA path.
     KRATOS_EXPECT_NEAR(norm_2(f_dam - f_sma), 0.0, 1.0e-9);
 
     // Damping force C*v.
     const Vector v = a;
     const Vector cv_dam = prod(C_dam, v);
     const Vector cv_sma = prod(C_sma, v);
-    const Vector cv_flag = prod(C_flag, v);
-    KRATOS_EXPECT_NEAR(norm_2(cv_flag - cv_sma), 0.0, 1.0e-9);
+    KRATOS_EXPECT_NEAR(norm_2(cv_dam - cv_sma), 0.0, 1.0e-9);
 
-    std::cout << "[5C.1] " << rLabel << " distorted: damping_default_diff=" << damping_default_diff
-              << " damping_flag_diff=" << damping_flag_diff
-              << " |M*a|_dam_default=" << norm_2(f_dam) << " |M*a|_sma=" << norm_2(f_sma)
-              << " |M*a|_dam_flag=" << norm_2(f_flag) << std::endl;
+    std::cout << "[6C.2] " << rLabel << " damping: historical-alias vs SMA "
+              << "damping_diff=" << damping_diff
+              << " |M*a|=" << norm_2(f_dam) << std::endl;
 }
 } // namespace
 
@@ -860,16 +799,13 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_RayleighQuotient, KratosDamFastSuite)
     Model model;
     ModelPart* p_dam_mp = nullptr;
     ModelPart* p_sma_mp = nullptr;
-    ModelPart* p_flag_mp = nullptr;
-    Element::Pointer p_dam = CreateElement(model, "RQDam", "SmallDisplacementSolidElement3D4N", coords, false, test_density, false, 0.0, false, false, p_dam_mp);
-    Element::Pointer p_sma = CreateElement(model, "RQSma", "SmallDisplacementElement3D4N", coords, false, test_density, false, 0.0, false, false, p_sma_mp);
-    Element::Pointer p_dam_flag = CreateElement(model, "RQDamFlag", "SmallDisplacementSolidElement3D4N", coords, false, test_density, false, 0.0, true, false, p_flag_mp);
+    Element::Pointer p_dam = CreateElement(model, "RQDam", "SmallDisplacementSolidElement3D4N", coords, false, test_density, false, 0.0, false, p_dam_mp);
+    Element::Pointer p_sma = CreateElement(model, "RQSma", "SmallDisplacementElement3D4N", coords, false, test_density, false, 0.0, false, p_sma_mp);
 
-    Matrix K, M_dam, M_sma, M_flag;
+    Matrix K, M_dam, M_sma;
     p_sma->CalculateLeftHandSide(K, p_sma_mp->GetProcessInfo());
     p_dam->CalculateMassMatrix(M_dam, p_dam_mp->GetProcessInfo());
     p_sma->CalculateMassMatrix(M_sma, p_sma_mp->GetProcessInfo());
-    p_dam_flag->CalculateMassMatrix(M_flag, p_flag_mp->GetProcessInfo());
 
     // Mode: affine expansion phi = (x, y, z) per node (a non-rigid mode).
     Vector phi(M_dam.size1());
@@ -887,16 +823,12 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_RayleighQuotient, KratosDamFastSuite)
 
     const double omega_dam = rayleigh(M_dam);
     const double omega_sma = rayleigh(M_sma);
-    const double omega_flag = rayleigh(M_flag);
-    KRATOS_EXPECT_NEAR(omega_flag, omega_sma, 1.0e-9);
-    // Phase 6A (M1): the historical Dam name now creates the SMA element, so the
-    // characteristic frequency equals the SMA one (the legacy no-flag simplex
-    // mass is intentionally gone).
+    // M1: the historical Dam name creates the SMA element, so the characteristic
+    // frequency equals the SMA one (the legacy no-flag simplex mass is gone).
     KRATOS_EXPECT_NEAR(omega_dam, omega_sma, 1.0e-9);
 
-    std::cout << "[6A][M1] Rayleigh quotient (T4): historical-name omega=" << omega_dam
-              << " == SMA omega=" << omega_sma
-              << " (legacy no-flag simplex mass intentionally replaced)" << std::endl;
+    std::cout << "[6C.2][M1] Rayleigh quotient (T4): historical-name omega=" << omega_dam
+              << " == SMA omega=" << omega_sma << std::endl;
 }
 
 //************************************************************************************
@@ -928,8 +860,8 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_ThermoMechanicalNeutrality, KratosDamFastSuite)
         Model model;
         ModelPart* p_mp1 = nullptr;
         ModelPart* p_mp2 = nullptr;
-        Element::Pointer p_mech = CreateElement(model, "NeutMech" + solid_name, solid_name, c.second, is2d, test_density, is2d, test_thickness, false, false, p_mp1);
-        Element::Pointer p_thermo = CreateElement(model, "NeutThermo" + thermo_name, thermo_name, c.second, is2d, test_density, is2d, test_thickness, false, false, p_mp2);
+        Element::Pointer p_mech = CreateElement(model, "NeutMech" + solid_name, solid_name, c.second, is2d, test_density, is2d, test_thickness, false, p_mp1);
+        Element::Pointer p_thermo = CreateElement(model, "NeutThermo" + thermo_name, thermo_name, c.second, is2d, test_density, is2d, test_thickness, false, p_mp2);
         const Matrix M_mech = ElementMass(*p_mech, p_mp1->GetProcessInfo());
         const Matrix M_thermo = ElementMass(*p_thermo, p_mp2->GetProcessInfo());
         KRATOS_EXPECT_EQ(M_mech.size1(), M_thermo.size1());
@@ -1007,8 +939,8 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_Determinism, KratosDamFastSuite)
         {0,0,0},{2.0,0,0},{2.0,1.0,0},{0,1.0,0},{0,0,2.0},{2.0,0,2.0},{2.4,1.2,2.2},{0,1.0,2.0}};
     Model model;
     ModelPart* p_mp1 = nullptr; ModelPart* p_mp2 = nullptr;
-    Element::Pointer p_dam = CreateElement(model, "DetDam", "SmallDisplacementSolidElement3D8N", coords, false, test_density, false, 0.0, false, false, p_mp1);
-    Element::Pointer p_sma = CreateElement(model, "DetSma", "SmallDisplacementElement3D8N", coords, false, test_density, false, 0.0, false, false, p_mp2);
+    Element::Pointer p_dam = CreateElement(model, "DetDam", "SmallDisplacementSolidElement3D8N", coords, false, test_density, false, 0.0, false, p_mp1);
+    Element::Pointer p_sma = CreateElement(model, "DetSma", "SmallDisplacementElement3D8N", coords, false, test_density, false, 0.0, false, p_mp2);
 
     const Matrix M_dam_first = ElementMass(*p_dam, p_mp1->GetProcessInfo());
     const Matrix M_sma_first = ElementMass(*p_sma, p_mp2->GetProcessInfo());

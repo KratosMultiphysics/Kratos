@@ -81,6 +81,18 @@ public:
 
     bool RequiresInitializeMaterialResponse() override;
 
+    /**
+     * @brief Re-establishes the transient material Properties on the flow-rule
+     * hardening law from the given current Properties. The hardening-law
+     * Properties reference is deliberately NOT serialized (serializer.h:
+     * HardeningLaw::save), so after a restart it is NULL until re-established.
+     * This method is automatically invoked by every entry point that enters the
+     * damage hierarchy (material response, finalization, parameter-aware
+     * CalculateValue), so restarted evolution works without any manual repair.
+     * Does NOT modify the committed damage/history state.
+     */
+    void ReinitializeMaterialProperties(const Properties& rMaterialProperties);
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**

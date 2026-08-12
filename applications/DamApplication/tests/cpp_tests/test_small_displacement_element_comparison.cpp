@@ -9,37 +9,32 @@
 //  Main authors:    DamApplication developers
 //
 
-// Characterization tests comparing the duplicated small-displacement solid
-// element of DamApplication (Kratos::SmallDisplacementElement, registered as
-// "SmallDisplacementSolidElement<geom>") with the corresponding element of
-// StructuralMechanicsApplication (Kratos::SmallDisplacement, registered as
-// "SmallDisplacementElement<geom>").
+// Permanent registration-equivalence suite: the historical Dam alias
+// "SmallDisplacementSolidElement<geom>" and the direct StructuralMechanics
+// "SmallDisplacementElement<geom>" name both resolve to the same
+// StructuralMechanicsApplication SmallDisplacement runtime element. This file
+// verifies that the mechanical response surface (LHS, independent LHS, RHS,
+// mass, damping, strain, Cauchy, PK2, body force, thickness) is identical
+// through both registration paths.
 //
-// Both elements are exercised with numerically identical ModelParts (same
+// Both sides are exercised with numerically identical ModelParts (same
 // geometry, nodal values, properties, ProcessInfo, constitutive law,
 // integration method and loading) and their responses are compared against
-// each other. No hard-coded reference matrices are used for the main
-// comparisons: the output of one implementation is the reference of the other.
+// each other; the output of one registration path is the reference of the
+// other.
 //
 // Setup notes:
 // - Each ModelPart gets its own Properties and its own constitutive law
 //   instance; each element clones the law of its own property during
 //   Initialize, so no mutable constitutive-law state is shared between the
-//   two implementations.
+//   two registration paths.
 // - A non-zero displacement field u = A*X0 + t is prescribed and the current
-//   nodal coordinates are updated to X = X0 + u. This is required because the
-//   DamApplication element computes the reference configuration as
-//   (current position - total displacement), while the
-//   StructuralMechanicsApplication element uses the initial configuration
-//   directly. With updated coordinates both reference configurations are X0.
+//   nodal coordinates are updated to X = X0 + u (both paths use the initial
+//   configuration as reference).
 // - A non-zero nodal VOLUME_ACCELERATION field is prescribed so that the
 //   body-force (external force) contribution to the RHS is also compared.
 // - THICKNESS is set for the 2D cases; all 2D comparisons (LHS, RHS, mass,
-//   damping) therefore exercise the 2D thickness handling of both elements.
-// - COMPUTE_CONSISTENT_MASS_MATRIX is set to true so that the DamApplication
-//   element integrates the consistent mass matrix with the same increased
-//   quadrature order that the StructuralMechanicsApplication element always
-//   uses (IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation).
+//   damping) therefore exercise the 2D thickness handling.
 
 // System includes
 #include <algorithm>
@@ -122,9 +117,6 @@ ModelPart& CreateComparisonModelPart(
     r_process_info[DOMAIN_SIZE] = rDimension;
     r_process_info[SPACE_DIMENSION] = rDimension;
     r_process_info[IS_RESTARTED] = false;
-    // Both implementations integrate the consistent mass matrix with the
-    // same (increased) quadrature order when this flag is set.
-    r_process_info[COMPUTE_CONSISTENT_MASS_MATRIX] = true;
 
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);

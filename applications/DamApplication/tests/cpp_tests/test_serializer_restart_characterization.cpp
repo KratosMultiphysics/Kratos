@@ -483,19 +483,25 @@ KRATOS_TEST_CASE_IN_SUITE(R6B_FrozenLegacyRestart_ProductionAliasLoad, KratosDam
             n.AddDof(DISPLACEMENT_Y);
             n.AddDof(DISPLACEMENT_Z);
         }
-        // Committed damage preserved (read-only; does not trigger a material
-        // response, so the known law-level hardening Properties rebinding issue
-        // is not exercised here - documented Phase-6C item).
+        // Committed damage preserved.
         const double damage = ElementDamage(*p_loaded, pi);
         KRATOS_EXPECT_GT(damage, 0.0);
         std::cout << "[6B] frozen legacy restart committed damage = " << damage << std::endl;
 
-        // Mass matrix (no material response required).
+        // Phase 6C.1: the FIRST real material response after load works WITHOUT
+        // any manual material-properties repair (automatic transient rebinding).
+        std::vector<Vector> stress;
+        p_loaded->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress, pi);
+        KRATOS_EXPECT_EQ(stress.size(), 8u);
+        KRATOS_EXPECT_TRUE(std::isfinite(stress[0][0]));
+
+        // Mass matrix.
         Matrix mass;
         p_loaded->CalculateMassMatrix(mass, pi);
         KRATOS_EXPECT_EQ(mass.size1(), 24u);
         KRATOS_EXPECT_GT(mass(0, 0), 0.0);
-        outcome = "A: frozen legacy binary restart loads correctly into SMA (state preserved)";
+        outcome = "A: frozen legacy binary restart loads into SMA and responds "
+                  "without manual material repair";
     } catch (const std::exception& rException) {
         outcome = std::string("load failed: ") + rException.what();
     }

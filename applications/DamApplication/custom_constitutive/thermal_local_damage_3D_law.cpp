@@ -63,6 +63,21 @@ bool ThermalLocalDamage3DLaw::RequiresInitializeMaterialResponse()
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ThermalLocalDamage3DLaw::ReinitializeMaterialProperties(const Properties& rMaterialProperties)
+{
+    // After a serialization/restart the transient Properties on the hardening
+    // law are not restored by the Serializer; re-establish them so that the
+    // flow/yield/hardening hierarchy can respond. The committed damage/history
+    // state is untouched. This is idempotent and called automatically before
+    // every entry into the damage hierarchy.
+    if (mpHardeningLaw)
+    {
+        mpHardeningLaw->SetProperties(rMaterialProperties);
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // Material response entry points
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -127,6 +142,11 @@ void ThermalLocalDamage3DLaw::CalculateThermalDamageResponse(Parameters& rValues
 {
     // Check only the parameters genuinely consumed by this law.
     this->CheckThermalDamageParameters(rValues);
+
+    // Automatic transient rebinding: the hardening-law Properties are not
+    // serialized, so they must be re-established from the CURRENT parameters
+    // before entering the damage hierarchy (required after restart).
+    this->ReinitializeMaterialProperties(rValues.GetMaterialProperties());
 
     // Get values for the constitutive law
     Flags& Options = rValues.GetOptions();
@@ -268,6 +288,9 @@ void ThermalLocalDamage3DLaw::FinalizeThermalDamageResponse(Parameters& rValues)
 {
     // Check only the parameters genuinely consumed by this law.
     this->CheckThermalDamageParameters(rValues);
+
+    // Automatic transient rebinding (idempotent; required after restart).
+    this->ReinitializeMaterialProperties(rValues.GetMaterialProperties());
 
     // Get values for the constitutive law
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
@@ -417,6 +440,10 @@ Vector& ThermalLocalDamage3DLaw::CalculateValue(
         const double& r_poisson_ratio = r_material_properties[POISSON_RATIO];
         const Vector& r_total_strain = rParameterValues.GetStrainVector();
         const std::size_t voigt_size = r_total_strain.size();
+
+        // Automatic transient rebinding before the damage-factor evaluation
+        // (required after restart; the hardening-law Properties are transient).
+        this->ReinitializeMaterialProperties(r_material_properties);
 
         // Constitutive matrix (dimensional specialization via virtual dispatch).
         Matrix constitutive_matrix(voigt_size, voigt_size);

@@ -209,7 +209,6 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_VARIABLE( PLACEMENT_TEMPERATURE )
 
     //From Solid
-    KRATOS_REGISTER_VARIABLE(COMPUTE_CONSISTENT_MASS_MATRIX)
 }
 
 }// namespace Kratos.
