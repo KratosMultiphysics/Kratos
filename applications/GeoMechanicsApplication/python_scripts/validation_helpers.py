@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List
 
 def _enforce_base_boundary(resolved_path, base_dir):
     """Ensures resolved_path stays within base_dir or raises TypeError."""

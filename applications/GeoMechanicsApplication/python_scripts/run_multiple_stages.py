@@ -1,5 +1,4 @@
 import sys
-from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
