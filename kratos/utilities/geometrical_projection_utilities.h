@@ -88,41 +88,32 @@ static inline double FastProjectDirection(
     const TGeometryType& rGeometryToProject,
     const Point& rPointToProject,
     Point& rPointProjected,
-    const array_1d<double,3>& rNormal, // slave normal
-    const array_1d<double,3>& rVector, // master normal
+    const array_1d<double,3>& rSlaveNormal, // slave normal
+    const array_1d<double,3>& rMasterNormal, // master normal
     const SizeType EchoLevel = 0
     )
 {
-
     const double zero_tolerance = 1.0e-8;
-    const double slave_normal_norm = norm_2(rNormal);
-
+    const double slave_normal_norm = norm_2(rSlaveNormal);
     KRATOS_ERROR_IF(slave_normal_norm <= zero_tolerance)
         << "The projection normal is null in ALM3dMortarFrictionlessCondition.";
 
-
-    const double master_normal_norm = norm_2(rVector);
-
-    // Normalized projection direction (along slave normal)
-    const array_1d<double, 3> proj_dir = rNormal / slave_normal_norm;
+    const double master_normal_norm = norm_2(rMasterNormal);
+    const array_1d<double, 3> proj_dir = rSlaveNormal / slave_normal_norm;
 
     // Ray-plane intersection denominator check
-    const double denom = inner_prod(proj_dir, rVector);
+    const double denom = inner_prod(proj_dir, rMasterNormal);
 
-    // Fail projection if ray and master face are parallel
-    if (std::abs(denom) <= zero_tolerance * master_normal_norm) {
+    if (std::abs(denom) <= zero_tolerance) {
         noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates();
-        return 0.0;
+        return 1.0e24;
     }
 
-    // 4. Compute exact ray distance alpha to master plane
     const array_1d<double, 3> point_to_plane = rGeometryToProject[0].Coordinates() - rPointToProject.Coordinates();
-    const double alpha = inner_prod(point_to_plane, rVector) / denom;
+    const double alpha = inner_prod(point_to_plane, rMasterNormal) / denom;
 
     // Set exact projected point on master surface
     noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + alpha * proj_dir;
-
-    return alpha;
 }
 
     /**
