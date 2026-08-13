@@ -551,6 +551,8 @@ void CSVDatabaseIO::WriteHeaders(std::ofstream& rOutputFile) const
     }
     rOutputFile << "# --------------- End of column information -----------------" << std::endl;
 
+    rOutputFile << "# Headers:" << std::endl;
+
     rOutputFile << mWritingData.front().first.GetFormattedHeader();
     for (IndexType i = 1; i < mWritingData.size(); ++i) {
         rOutputFile << ", " << mWritingData[i].first.GetFormattedHeader();
