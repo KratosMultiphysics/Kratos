@@ -20,6 +20,7 @@
 #         float_3: float
 #         float_4: float
 # --------------- End of column information -----------------
+# Headers:
 CUSTOM_STEP, bool_1, bool_2,   int_1,   int_2,          float_1,          float_2,      str_1,      str_2,          float_3,          float_4
           0,    yes,     no,       1,      10,  1.000000000e+01,  1.000000000e+01,      test1,      test6,  1.000000000e+01,  1.000000000e+01
           1,     no,    yes,      -2,    -200, -2.000000000e+00, -2.000000000e+00,      test2,      test7, -2.000000000e+00,              n/a

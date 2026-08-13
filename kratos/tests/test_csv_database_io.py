@@ -1,5 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 class TestCSVDatabaseIO(KratosUnittest.TestCase):
@@ -18,6 +19,11 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
             "float_3": [ 10.0,  -2.00, -5.0, -11.0, 50.0],
             "float_4": [ 10.0,  None, -5.0, None, 50.0],
         }
+
+    @classmethod
+    def tearDownClass(cls):
+        kratos_utils.DeleteFileIfExisting("csv_database.csv")
+        kratos_utils.DeleteFileIfExisting("csv_database_test.csv")
 
     def test_Read1(self):
         csv_database_io = Kratos.CSVDatabaseIO(
@@ -71,7 +77,7 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
 
     def test_Write1(self):
         csv_database_io = Kratos.CSVDatabaseIO(
-                                "csv_database.csv",
+                                "csv_database_test.csv",
                                 Kratos.Testing.GetDefaultDataCommunicator(),
                                 "Testing output",
                                 "# Testing header information \n# New line header\n",
@@ -93,7 +99,7 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
         CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "csv_database_ref.csv",
-                "output_file_name"      : "csv_database.csv",
+                "output_file_name"      : "csv_database_test.csv",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()
