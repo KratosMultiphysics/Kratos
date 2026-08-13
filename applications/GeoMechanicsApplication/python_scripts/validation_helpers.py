@@ -50,7 +50,7 @@ def validated_stage_file_paths(
 def validated_parameter_path(filename):
     """
     Validates that 'filename' resolves within the current working directory 
-    and has a .json extension.
+    and has a .json extension. If this is the case, the full file path is returned.
     """
     safe_base = Path.cwd().resolve()
     candidate = _resolve_safe_path(filename, base_dir=safe_base, strict=False)
