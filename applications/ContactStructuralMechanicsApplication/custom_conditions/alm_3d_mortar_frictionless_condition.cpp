@@ -329,8 +329,6 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
 
     const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : 1.0e11;
     const double penalty_factor = rCurrentProcessInfo.Has(INITIAL_PENALTY) ? rCurrentProcessInfo[INITIAL_PENALTY] : 1.0e12;
-    // const double scale_factor = 1e13;
-    // const double penalty_factor = 1e13;
 
     VectorType slave_normal(3);
     VectorType master_normal(3);
