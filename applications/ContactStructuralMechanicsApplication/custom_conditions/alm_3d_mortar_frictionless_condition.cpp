@@ -289,7 +289,7 @@ bool ALM3dMortarFrictionlessCondition::FastProjectDirection(
 
     // 5. Verify if projected point lies inside master triangle boundaries
     array_1d<double, 3> aux_local_coords;
-    const double tol = rGeometryToProject.Area() * 1.0e-8;
+    const double tol = rGeometryToProject.Length() * 1.0e-8;
     const bool is_inside_master = rGeometryToProject.IsInside(rPointProjected.Coordinates(), aux_local_coords, tol);
 
     return is_inside_master;
@@ -338,7 +338,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
 
     const auto &r_properties = this->GetProperties();
 
-    const IndexType integration_order = 5;
+    const IndexType integration_order = 2;
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e-12;
     const bool consider_tessellation = rCurrentProcessInfo.Has(CONSIDER_TESSELLATION) ? rCurrentProcessInfo[CONSIDER_TESSELLATION] : false;

@@ -558,7 +558,7 @@ protected:
      */
     IntegrationMethod GetIntegrationMethod() const override
     {
-        return GeometryData::IntegrationMethod::GI_GAUSS_5;
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
     ///@}
