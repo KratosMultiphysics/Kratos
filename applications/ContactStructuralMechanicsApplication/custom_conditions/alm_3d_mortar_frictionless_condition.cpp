@@ -416,11 +416,11 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double gap_n = -inner_prod(segmented_GP_global_point - master_GP_global_point, slave_normal); // open contact if gap_n > 0, closed contact if gap_n < 0
 
                     r_slave_geometry.ShapeFunctionsValues(shape_functions_slave, slave_GP_local_point);
-                    r_slave_geometry.ShapeFunctionsValues(dual_shape_functions, slave_GP_local_point); // NOTE: for now we do not use DUAL shape functions
-                    // dual_shape_functions.resize(3);
-                    // dual_shape_functions[0] = 3.0 - 4.0 * slave_GP_local_point[0] - 4.0 * slave_GP_local_point[1];
-                    // dual_shape_functions[1] = 4.0 * slave_GP_local_point[0] - 1.0;
-                    // dual_shape_functions[2] = 4.0 * slave_GP_local_point[1] - 1.0;
+                    // r_slave_geometry.ShapeFunctionsValues(dual_shape_functions, slave_GP_local_point); // NOTE: for now we do not use DUAL shape functions
+                    dual_shape_functions.resize(3);
+                    dual_shape_functions[0] = 3.0 - 4.0 * slave_GP_local_point[0] - 4.0 * slave_GP_local_point[1];
+                    dual_shape_functions[1] = 4.0 * slave_GP_local_point[0] - 1.0;
+                    dual_shape_functions[2] = 4.0 * slave_GP_local_point[1] - 1.0;
 
                     r_master_geometry.ShapeFunctionsValues(shape_functions_master, master_GP_local_point);
 
