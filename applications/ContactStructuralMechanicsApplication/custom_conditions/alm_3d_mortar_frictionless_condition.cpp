@@ -23,6 +23,7 @@
 #include "utilities/geometrical_projection_utilities.h"
 // #include "utilities/math_utils.h"
 #include "custom_utilities/mortar_explicit_contribution_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -448,6 +449,115 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     }
 
     KRATOS_CATCH("CalculateConditionSystem");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ALM3dMortarFrictionlessCondition::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
+{
+    // This method computes the weighted gap to be used later on for the active set convergence check
+    KRATOS_TRY
+
+    auto& r_slave_geometry = GetParentGeometry(); // where we perform the integration
+    const auto& r_master_geometry = GetPairedGeometry();
+
+    VectorType weighted_gap(r_slave_geometry.PointsNumber());
+    weighted_gap.clear();
+
+    VectorType slave_normal(3);
+    VectorType master_normal(3);
+    noalias(slave_normal) = r_slave_geometry.UnitNormal(0);
+    noalias(master_normal) = r_master_geometry.UnitNormal(0);
+
+    const auto &r_properties = this->GetProperties();
+
+    const IndexType integration_order = 2;
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
+    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e-6;
+    const bool consider_tessellation = false;
+
+    // The utility that performs the local clipping of the projected master to the slave plane
+    IntegrationUtility integration_utility = IntegrationUtility(integration_order, distance_threshold, 0,
+        zero_tolerance_factor, consider_tessellation);
+
+    ConditionArrayListType conditions_points_slave;
+    // This fills the conditions_points_slave, which are LOCAL coordinates on the slave geometry
+    const bool is_segmentation_inside = integration_utility.GetExactIntegration(r_slave_geometry, slave_normal,
+        r_master_geometry, master_normal, conditions_points_slave);
+
+    double integration_area;
+    integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
+
+    if (((integration_area / r_slave_geometry.Area()) > MinIntegrationAreaRatioTolerance) && is_segmentation_inside) {
+
+        PointType global_point; // aux variable to store the global coordinates of the integration points
+        PointerVector<PointType> points_array(3); // aux variable to store the global coordinates of the clipping points
+        for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) { // Segmented surfaces
+            for (IndexType i_node = 0; i_node < conditions_points_slave[i_geom].size(); ++i_node) {
+                // Here we tranform the local coordinates to global coordinates
+                r_slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
+            }
+
+            DecompositionType segmented_geom(points_array);
+
+            bool bad_shape = MortarUtilities::HeronCheck(segmented_geom);
+
+            if (!bad_shape) { // The segmented geometry is valid
+                // We perform the integration over the segmented geometry
+                const auto &r_integration_points_slave = segmented_geom.IntegrationPoints(GetIntegrationMethod());
+
+                VectorType dual_shape_functions; // LM slave shape functions evaluated at the integration point
+                VectorType slave_shape_functions; // classical slave shape functions evaluated at the integration point
+                PointType segmented_GP_global_point; // Global coordinates of the integration point of the segmented geometry
+                PointType segmented_GP_local_point; // Local coordinates of the integration point of the segmented geometry
+                PointType slave_GP_local_point; // Local coordinates of the integration point of the segmented geometry on the slave element
+                PointType master_GP_global_point; // Global coordinates of the integration point of the segmented geometry on the master element
+                PointType master_GP_local_point; // Local coordinates of the integration point of the segmented geometry on the master element
+
+                // Loop over the integration points of the segmented geometry
+                for (IndexType point_number = 0; point_number < r_integration_points_slave.size(); ++point_number) {
+                    segmented_GP_local_point = PointType(r_integration_points_slave[point_number].Coordinates());
+                    segmented_geom.GlobalCoordinates(segmented_GP_global_point, segmented_GP_local_point); // from local to global coordinates in the segmented
+                    r_slave_geometry.PointLocalCoordinates(slave_GP_local_point, segmented_GP_global_point); // from global to local coordinates in the slave
+                    const bool successful_projection = GeometricalProjectionUtilities::RobustProjectDirection(r_master_geometry, segmented_GP_global_point,
+                        master_GP_global_point, slave_normal, master_normal, 1.0e-12);
+
+                    const double detJ_segmented = segmented_geom.DeterminantOfJacobian(segmented_GP_local_point);
+                    const double integration_weight = r_integration_points_slave[point_number].Weight() * detJ_segmented;
+
+                    // VectorType delta_x = segmented_GP_global_point - master_GP_global_point;
+                    const double gap_n = -inner_prod(segmented_GP_global_point - master_GP_global_point, slave_normal); // open contact if gap_n > 0, closed contact if gap_n < 0
+
+                    dual_shape_functions.resize(3);
+                    r_slave_geometry.ShapeFunctionsValues(slave_shape_functions, slave_GP_local_point);
+                    dual_shape_functions[0] = 3.0 - 4.0 * slave_GP_local_point[0] - 4.0 * slave_GP_local_point[1];
+                    dual_shape_functions[1] = 4.0 * slave_GP_local_point[0] - 1.0;
+                    dual_shape_functions[2] = 4.0 * slave_GP_local_point[1] - 1.0;
+
+                    // VectorType averaged_normal(3);
+                    // for (IndexType i_node = 0; i_node < r_slave_geometry.PointsNumber(); ++i_node)
+                    //     noalias(averaged_normal) += slave_shape_functions[i_node] * r_slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
+
+                    // if (successful_projection) {
+                    //     weighted_gap[0] -= integration_weight * dual_shape_functions[0] * inner_prod(averaged_normal, delta_x);
+                    //     weighted_gap[1] -= integration_weight * dual_shape_functions[1] * inner_prod(averaged_normal, delta_x);
+                    //     weighted_gap[2] -= integration_weight * dual_shape_functions[2] * inner_prod(averaged_normal, delta_x);
+                    // }
+                    if (successful_projection)
+                        noalias(weighted_gap) += integration_weight * dual_shape_functions * gap_n;
+
+                } // loop over the integration points of the segmented geometry
+            } // if valid segmented geometry
+        } // loop over segmented surfaces
+        // Assign weighted gap contribution to nodes
+        for (IndexType i_node = 0; i_node < r_slave_geometry.PointsNumber(); ++i_node) {
+            auto &r_nodal_weigted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
+            AtomicAdd(r_nodal_weigted_gap, weighted_gap[i_node]);
+        }
+    } // valid segment size
+    KRATOS_CATCH("AddExplicitContribution-->Calculating weighted GAP")
 }
 
 /***********************************************************************************/

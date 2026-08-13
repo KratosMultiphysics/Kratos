@@ -286,6 +286,14 @@ public:
     /******************************************************************/
 
     /**
+     * @brief This is called during the assembling process in order to calculate the condition contribution in explicit calculation.
+     * @details NodalData is modified Inside the function, so the "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rCurrentProcessInfo the current process info instance
+     * In this context, it serves as a way to compute the WEIGHTED_GAP
+     */
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The result vector with the ID's of the DOF
      * @param rCurrentProcessInfo the current process info instance
