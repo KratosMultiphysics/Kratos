@@ -38,9 +38,11 @@ void  AddCustomSensorsToPython(pybind11::module& m)
 
     // Add sensor specifications
     py::class_<Sensor, Sensor::Pointer, AdjointResponseFunction>(sensor_module, "Sensor")
+        .def_readonly_static("DefaultErrorThreshold", &Sensor::DefaultErrorThreshold)
         .def("GetName", &Sensor::GetName)
         .def("GetNode", &Sensor::GetNode)
         .def("GetWeight", &Sensor::GetWeight)
+        .def("GetErrorThreshold", &Sensor::GetErrorThreshold)
         .def("GetSensorValue", &Sensor::GetSensorValue)
         .def("SetSensorValue", &Sensor::SetSensorValue)
         .def("GetSensorParameters", &Sensor::GetSensorParameters)
@@ -63,12 +65,13 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         ;
 
     py::class_<DisplacementSensor, DisplacementSensor::Pointer, Sensor>(sensor_module, "DisplacementSensor")
-        .def(py::init<const std::string&,Node::Pointer,const array_1d<double, 3>&,const Element&,const double>(),
+        .def(py::init<const std::string&,Node::Pointer,const array_1d<double, 3>&,const Element&,const double,const double>(),
             py::arg("name"),
             py::arg("node"),
             py::arg("direction"),
             py::arg("element"),
-            py::arg("weight"))
+            py::arg("weight"),
+            py::arg("error_threshold") = Sensor::DefaultErrorThreshold)
         .def_static("GetDefaultParameters", &DisplacementSensor::GetDefaultParameters)
         .def_static("Create", &DisplacementSensor::Create, py::arg("domain_model_part"), py::arg("sensor_model_part"), py::arg("sensor_id"), py::arg("sensor_parameters"))
         ;
@@ -83,13 +86,14 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .value("STRAIN_YZ", StrainSensor::StrainType::STRAIN_YZ)
         .export_values();
     strain_sensor
-        .def(py::init<const std::string&,Node::Pointer, const Variable<Matrix>&, const StrainSensor::StrainType&, const Element&,const double>(),
+        .def(py::init<const std::string&,Node::Pointer, const Variable<Matrix>&, const StrainSensor::StrainType&, const Element&,const double,const double>(),
             py::arg("name"),
             py::arg("node"),
             py::arg("strain_variable"),
             py::arg("strain_type"),
             py::arg("element"),
-            py::arg("weight"))
+            py::arg("weight"),
+            py::arg("error_threshold") = Sensor::DefaultErrorThreshold)
         .def_static("GetDefaultParameters", &StrainSensor::GetDefaultParameters)
         .def_static("Create", &StrainSensor::Create, py::arg("domain_model_part"), py::arg("sensor_model_part"), py::arg("sensor_id"), py::arg("sensor_parameters"))
         ;

@@ -94,7 +94,7 @@ where:
 This criterion represents a linear envelope in the Mohr stress space, approximating the shear strength of a material under different stress states. For $`F_{MC} \le 0`$ we have elastic behavior, while $`F_{MC} \gt 0`$ corresponds to plastic behavior.
 
 
-Since the Mohr-Coulomb criterion primarily accounts for shear failure, it does not limit tensile stresses. In geomechanical applications, materials such as rocks and soils have a limited tensile strength . A tension cutoff is imposed as:
+Since the Mohr-Coulomb criterion primarily accounts for shear failure, it does not limit tensile stresses. In geomechanical applications, materials such as rocks and soils have a limited tensile strength . Therefore, the Mohr-Coulomb model in the geomechanics application supports an optional tension cutoff, which is imposed as:
 
 ```math
     F_{tc}(\sigma) = \sigma_1 - t_c = 0
@@ -105,6 +105,8 @@ where $`t_c`$ is the tensile strength. If $`\sigma_1`$ exceeds $`t_c`$, failure 
 The combination of these two, yields to the following figure:
 
 <img src="documentation_data/mohr-coulomb-with-tension-cutoff-zones.svg" alt="Mohr-Coulomb with tension cutoff" title="Mohr-Coulomb with tension cutoff" width="800">
+
+If the tension cutoff is not active, the figure can be simplified. In that case, the corner return coincides with the apex, resulting in the regular failure zone and the adjacent apex return zone, bound by the $\frac{\partial G_{MC}}{\partial \sigma}$ line and the horizontal $\sigma$ axis.
 
 
 ### 2.2 Implementation Mohr-Coulomb with tension cutoff
@@ -123,16 +125,16 @@ To incorporate the Mohr-Coulomb model with tension cutoff in numerical simulatio
 
 4. Evaluate the condition and mapping  
         4.1. If the trial stress falls in the elastic zone, it stays unchanged. No mapping is applied.  
-        4.2. If the trial stress falls in the tensile apex return zone. The trial stress then needs to be mapped back to the apex.  
-        4.3. If the trial stress falls in the tension cutoff zone. The trial stress then needs to be mapped back to the tension cutoff yield surface.  
-        4.4. If it falls in the tensile corner return zone, then it needs to be mapped to the corner point.  
+        4.2. If the trial stress falls in the (tensile) apex return zone. The trial stress then needs to be mapped back to the apex.  
+        4.3. If the trial stress falls in the tension cutoff zone. The trial stress then needs to be mapped back to the tension cutoff yield surface (optional).  
+        4.4. If it falls in the tensile corner return zone, then it needs to be mapped to the corner point (optional).  
         4.5. In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb yield surface along the normal direction of flow function. The flow function is defined by  
 ```math
     G_{MC}(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\psi}
 ```
   where $`\psi`$ is the dilatancy angle.
 
-5. If after mapping, the condidition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is not valid, average the principal stresses of stage 2 and the direction of the mapping and map the principal stresses again.
+5. If after mapping, the condition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is not valid, average the principal stresses of stage 2 and the direction of the mapping and map the principal stresses again.
 
 - If $`\sigma_1 \le \sigma_2`$ set:
 ```math

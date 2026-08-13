@@ -107,12 +107,12 @@
 // constitutive models
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
-#include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
+#include "custom_constitutive/interface_coulomb_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-#include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
+#include "custom_constitutive/mohr_coulomb_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.h"
@@ -258,6 +258,12 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
+
+    // Custom geometries
+    const InterfaceGeometry<Line2D2<NodeType>> mLineInterfaceGeometryInPlaneStrain2Plus2N{
+        0, Element::GeometryType::PointsArrayType(4)};
+    const InterfaceGeometry<Line2D3<NodeType>> mLineInterfaceGeometryInPlaneStrain3Plus3N{
+        0, Element::GeometryType::PointsArrayType(6)};
 
     // elements
     // transient one-phase flow elements:
@@ -961,11 +967,10 @@ private:
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterface3DSurfaceLaw{
         std::make_unique<InterfaceThreeDimensionalSurface>()};
 
-    const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
-    const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
+    const MohrCoulombLaw mMohrCoulombLawPlaneStrain{std::make_unique<PlaneStrain>()};
+    const MohrCoulombLaw mMohrCoulombLaw3D{std::make_unique<ThreeDimensional>()};
 
-    const InterfaceCoulombWithTensionCutOff mInterfaceCoulombWithTensionCutOff{
-        std::make_unique<InterfacePlaneStrain>()};
+    const InterfaceCoulombLaw mInterfaceCoulombLawPlaneStrain{std::make_unique<InterfacePlaneStrain>()};
 
     ///@}
 

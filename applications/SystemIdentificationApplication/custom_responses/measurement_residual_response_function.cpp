@@ -101,6 +101,12 @@ void MeasurementResidualResponseFunction::AddSensor(Sensor::Pointer pSensor)
     KRATOS_ERROR_IF_NOT(pSensor->GetNode()->Has(SENSOR_MEASURED_VALUE))
         << pSensor->GetName() << " does not have the SENSOR_MEASURED_VALUE defined.\n";
 
+    KRATOS_ERROR_IF_NOT(pSensor->GetNode()->Has(SENSOR_NORMALIZATION_FACTOR))
+        << pSensor->GetName() << " does not have the SENSOR_NORMALIZATION_FACTOR defined.\n";
+
+    KRATOS_ERROR_IF(pSensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR) < std::numeric_limits<double>::epsilon())
+        << pSensor->GetName() << " has SENSOR_NORMALIZATION_FACTOR < 0.\n";
+
     mpSensorsList.push_back(pSensor);
 
     KRATOS_CATCH("");
@@ -150,16 +156,15 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
 
     for (auto& p_sensor : mpSensorsList) {
         const double sensor_value = p_sensor->CalculateValue(rModelPart);
-        const double current_sensor_error = sensor_value - p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE);
+        const double raw_sensor_error = sensor_value - p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE);
+        const double current_sensor_error = std::abs(raw_sensor_error) < p_sensor->GetErrorThreshold() ? 0.0 : raw_sensor_error;
+        const double normalized_sensor_error = current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR);
 
         p_sensor->SetSensorValue(sensor_value);
         p_sensor->GetNode()->SetValue(SENSOR_ERROR, current_sensor_error);
         p_sensor->GetNode()->SetValue(SENSOR_RELATIVE_ERROR, current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE));
 
-        // unnormalized
-        sum += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
-        // normalized
-        //sum += ( std::pow( 0.5 * pow(current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR), 2) * p_sensor->GetWeight(), mPCoefficient ) );
+        sum += ( std::pow( 0.5 * pow(normalized_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
     }
 
     mC1 = std::pow( sum, 1 / mPCoefficient - 1 ) / std::pow(2, mPCoefficient - 1);
@@ -187,11 +192,8 @@ void MeasurementResidualResponseFunction::CalculateDerivative(
 
     for (auto& p_sensor : mpSensorsList) {
         TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
-        // unnormalized
-        noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * std::pow(p_sensor->GetNode()->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
-        // normalized
-        //noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * (1 / std::pow( p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR), 2 * mPCoefficient )) * std::pow(p_sensor->GetNode()->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
-        //KRATOS_WATCH(p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR))
+        const double normalization_term = 1 / std::pow( p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR), 2 * mPCoefficient );
+        noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * normalization_term * std::pow(p_sensor->GetNode()->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
     }
 
     KRATOS_CATCH("");

@@ -105,8 +105,12 @@ namespace Kratos::MaterialPointGeneratorUtility
                     // Set element type
                     std::string element_type_name = "MPMUpdatedLagrangian";
                     if (IsMixedFormulation) {
-                        if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "MPMUpdatedLagrangianUP";
-                        else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
+                        if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 ||
+                            background_geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) {
+                            element_type_name = "MPMUpdatedLagrangianUP";
+                        } else {
+                            KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle and Quadrilateral Elements." << std::endl;
+                        }
                     }
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
                     else if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM)) {
@@ -622,9 +626,6 @@ namespace Kratos::MaterialPointGeneratorUtility
             case 3:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
-            case 4:
-                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
-                break;
             case 6:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
@@ -635,7 +636,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                 std::string err_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT ";
                 err_msg += "(" + std::to_string(MaterialPointsPerElement) + ")";
                 err_msg += " is not available for Triangular elements\n";
-                err_msg += "Available options are: 1, 3, 4, 6, 12.\n";
+                err_msg += "Available options are: 1, 3, 6, 12.\n";
                 KRATOS_ERROR <<  err_msg << std::endl;
                 break;
             }
