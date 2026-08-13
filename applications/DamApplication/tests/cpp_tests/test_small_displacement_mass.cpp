@@ -294,9 +294,9 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalTriangleAliasUsesConsistentMass, KratosDamFa
     // Lumped is diagonal.
     for (std::size_t i = 0; i < 6; ++i)
         for (std::size_t j = 0; j < 6; ++j)
-            if (i != j)
+            if (i != j) {
                 KRATOS_EXPECT_NEAR(M_dam_lumped(i, j), 0.0, exact_tolerance);
-
+            }
     PrintMassMetrics("T3 default", M_dam_default, M_sma_default, 2);
     std::cout << "[mass] T3: historical Dam alias -> SMA exact consistent mass; "
               << "lumped remains compatible" << std::endl;

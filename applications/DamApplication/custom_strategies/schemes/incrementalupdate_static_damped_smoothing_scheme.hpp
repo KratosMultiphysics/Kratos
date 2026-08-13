@@ -128,10 +128,6 @@ public:
         //const double DeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
-        OpenMPUtils::PartitionVector NodePartition;
-        OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
-
         const int nnodes = static_cast<int>( rModelPart.Nodes().size() );
         NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
@@ -171,8 +167,6 @@ public:
     {
         KRATOS_TRY;
 
-        int NumThreads = ParallelUtilities::GetNumThreads();
-
         // Initialize
         block_for_each(rDofSet, [&Dx](auto& dof)
             {
@@ -185,9 +179,6 @@ public:
         );
 
         // Updating time derivatives (nodally for efficiency)
-        OpenMPUtils::PartitionVector NodePartition;
-        OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
-
         const int nnodes = static_cast<int>(rModelPart.Nodes().size());
         NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 

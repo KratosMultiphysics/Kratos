@@ -49,59 +49,38 @@ public:
     /// Resets the historical nodal accumulators used by the smoothing workflow.
     static void ResetNodalSmoothingVariables(ModelPart& rModelPart, const unsigned int Dim)
     {
-        #pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+        block_for_each(rModelPart.Nodes(), [Dim](Node& rNode)
             {
-                itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-                Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                if(rNodalStress.size1() != Dim)
-                    rNodalStress.resize(Dim,Dim,false);
-                noalias(rNodalStress) = ZeroMatrix(Dim,Dim);
-                itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
-                itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
-            }
-        }
+                rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+                Matrix& rNodalStress = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+                if (rNodalStress.size1() != Dim)
+                    rNodalStress.resize(Dim, Dim, false);
+                noalias(rNodalStress) = ZeroMatrix(Dim, Dim);
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
+            });
     }
 
     /// Normalizes the historical nodal stress using NODAL_AREA.
     static void NormalizeNodalSmoothingVariables(ModelPart& rModelPart, const unsigned int Dim)
     {
-        // Compute smoothed nodal variables
-        #pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+        block_for_each(rModelPart.Nodes(), [Dim](Node& rNode)
             {
-                const double& NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if (NodalArea>1.0e-15)
-                {
-                    const double InvNodalArea = 1.0/(NodalArea);
-                    Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                    for(unsigned int i = 0; i<Dim; i++)
-                    {
-                        for(unsigned int j = 0; j<Dim; j++)
-                        {
-                            rNodalStress(i,j) *= InvNodalArea;
-                        }
-                    }
+                const double& rNodalArea = rNode.FastGetSolutionStepValue(NODAL_AREA);
+                if (rNodalArea > 1.0e-15) {
+                    const double inv_nodal_area = 1.0 / rNodalArea;
+                    Matrix& rNodalStress = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+                    for (unsigned int i = 0; i < Dim; ++i)
+                        for (unsigned int j = 0; j < Dim; ++j)
+                            rNodalStress(i, j) *= inv_nodal_area;
                 }
 
-                const double& NodalJointArea = itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                if (NodalJointArea>1.0e-15)
-                {
-                    double& NodalJointWidth = itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH);
-                    NodalJointWidth = NodalJointWidth/NodalJointArea;
+                const double& rNodalJointArea = rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA);
+                if (rNodalJointArea > 1.0e-15) {
+                    double& rNodalJointWidth = rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH);
+                    rNodalJointWidth = rNodalJointWidth / rNodalJointArea;
                 }
-            }
-        }
+            });
     }
 
     /**
