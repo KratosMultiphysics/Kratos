@@ -23,17 +23,15 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsCorrectResults, KratosGeo
 {
     const std::vector<Matrix> matrices = {ScalarMatrix(1, 1, 3.0), ZeroMatrix(3, 3), IdentityMatrix(3) * 2.0};
 
-    const std::vector<double> results = GeoMechanicsMathUtilities::CalculateDeterminants(matrices);
-
+    const auto results          = GeoMechanicsMathUtilities::CalculateDeterminants(matrices);
     const auto expected_results = std::vector{3.0, 0.0, 8.0};
     KRATOS_CHECK_VECTOR_NEAR(results, expected_results, 1.0e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsEmptyVectorForEmptyInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const std::vector<Matrix> matrices = {};
-
-    const std::vector<double> results = GeoMechanicsMathUtilities::CalculateDeterminants(matrices);
+    const auto matrices = std::vector<Matrix>{};
+    const auto results  = GeoMechanicsMathUtilities::CalculateDeterminants(matrices);
 
     KRATOS_EXPECT_TRUE(results.empty())
 }
