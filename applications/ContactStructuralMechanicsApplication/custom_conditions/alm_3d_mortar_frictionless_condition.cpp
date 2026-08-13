@@ -329,7 +329,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     rRightHandSideVector.clear();
 
     const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : 1.0e11;
-    const double penalty_factor = rCurrentProcessInfo.Has(INITIAL_PENALTY) ? rCurrentProcessInfo[INITIAL_PENALTY] : 1.0e12;
+    const double penalty_factor = rCurrentProcessInfo.Has(INITIAL_PENALTY) ? 10.0 * rCurrentProcessInfo[INITIAL_PENALTY] : 1.0e12;
 
     VectorType slave_normal(3);
     VectorType master_normal(3);
@@ -413,12 +413,6 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double integration_weight = r_integration_points_slave[point_number].Weight() * detJ_segmented;
 
                     const double gap_n = -inner_prod(segmented_GP_global_point - master_GP_global_point, slave_normal); // open contact if gap_n > 0, closed contact if gap_n < 0
-                    
-                    // if (rCurrentProcessInfo[STEP] == 56) {
-                    //     KRATOS_WATCH(gap_n)
-                    //     KRATOS_WATCH(detJ_segmented)
-                    //     KRATOS_WATCH(successful_projection)
-                    // }
 
                     r_slave_geometry.ShapeFunctionsValues(shape_functions_slave, slave_GP_local_point);
                     // r_slave_geometry.ShapeFunctionsValues(dual_shape_functions, slave_GP_local_point); // NOTE: for now we do not use DUAL shape functions
