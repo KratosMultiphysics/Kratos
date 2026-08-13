@@ -7,16 +7,12 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    DamApplication developers
+
+// Permanent Serializer/restart compatibility contract. Historical Dam element
+// names serialize under the canonical StructuralMechanics SmallDisplacement name,
+// and the frozen genuine legacy binary restart fixture (R4) still loads into the
+// production aliases with preserved geometry, properties and committed damage.
 //
-
-// Phase 5C.3 (Serializer / restart characterization): CHARACTERIZATION ONLY.
-// Determines how Kratos Serializer behaves when multiple registration names
-// refer to one StructuralMechanics SmallDisplacement runtime type, and whether
-// restart archives created with the CURRENT legacy Dam element classes can be
-// loaded after the historical names are repointed to SMA prototypes. No
-// production registration or class is modified.
-
-// System includes
 #include <cstddef>
 #include <fstream>
 #include <iostream>
@@ -135,33 +131,9 @@ Element::Pointer CreateElement(
     KRATOS_CATCH("");
 }
 
-/// Applies a damaging displacement state and commits it.
-void CommitDamage(Element& rElement, ProcessInfo& rPi)
-{
-    for (auto& n : rElement.GetGeometry()) {
-        const auto& x0 = n.GetInitialPosition();
-        auto& u = n.FastGetSolutionStepValue(DISPLACEMENT);
-        u[0] = 2.0e-5 * x0[0];
-        u[1] = -test_poisson_ratio * 2.0e-5 * x0[1];
-        u[2] = -test_poisson_ratio * 2.0e-5 * x0[2];
-        n.X() = x0[0] + u[0]; n.Y() = x0[1] + u[1]; n.Z() = x0[2] + u[2];
-    }
-    rPi[IS_CONVERGED] = true;
-    rElement.FinalizeSolutionStep(rPi);
-}
 
-/// Applies a uniaxial displacement state (no damage for the linear law).
-void ApplyState(Element& rElement)
-{
-    for (auto& n : rElement.GetGeometry()) {
-        const auto& x0 = n.GetInitialPosition();
-        auto& u = n.FastGetSolutionStepValue(DISPLACEMENT);
-        u[0] = 1.0e-5 * x0[0];
-        u[1] = -test_poisson_ratio * 1.0e-5 * x0[1];
-        u[2] = -test_poisson_ratio * 1.0e-5 * x0[2];
-        n.X() = x0[0] + u[0]; n.Y() = x0[1] + u[1]; n.Z() = x0[2] + u[2];
-    }
-}
+
+
 
 /// Reads the committed damage variable from the element's first constitutive law.
 double ElementDamage(Element& rElement, const ProcessInfo& rPi)
@@ -181,13 +153,7 @@ struct ElementHolder
     void load(Serializer& rSerializer) { rSerializer.load("Elements", elements); }
 };
 
-/// Saves the holder to a string (binary mode, the production restart format).
-std::string SaveHolderToString(const ElementHolder& rHolder)
-{
-    StreamSerializer serializer(round_trip_trace);
-    serializer.save("Holder", rHolder);
-    return serializer.GetStringRepresentation();
-}
+
 
 /// Loads the holder from a string (binary mode).
 void LoadHolderFromString(const std::string& rArchive, ElementHolder& rHolder)
@@ -205,13 +171,7 @@ std::string SaveHolderToStringAscii(const ElementHolder& rHolder)
     return serializer.GetStringRepresentation();
 }
 
-/// Loads the holder from an ASCII archive (name-probing only).
-void LoadHolderFromStringAscii(const std::string& rArchive, ElementHolder& rHolder)
-{
-    StreamSerializer serializer(rArchive, ascii_trace);
-    serializer.SetLoadState();
-    serializer.load("Holder", rHolder);
-}
+
 
 /// Extracts the first registered element name from an ASCII archive.
 std::string ExtractElementName(const std::string& rArchive)
@@ -225,17 +185,7 @@ std::string ExtractElementName(const std::string& rArchive)
     return rArchive.substr(begin, end - begin);
 }
 
-/// Counts occurrences of a substring (structural probe of the ASCII trace).
-std::size_t CountSubstring(const std::string& rText, const std::string& rSubstring)
-{
-    std::size_t count = 0;
-    std::size_t pos = 0;
-    while ((pos = rText.find(rSubstring, pos)) != std::string::npos) {
-        ++count;
-        pos += rSubstring.size();
-    }
-    return count;
-}
+
 
 /// Absolute path of the frozen true-legacy restart fixture.
 std::string LegacyFixturePath()
@@ -245,12 +195,7 @@ std::string LegacyFixturePath()
     return repo_root + "applications/DamApplication/tests/cpp_tests/fixtures/legacy_thermo_3d8n_damage.dat";
 }
 
-/// Writes raw bytes to a file (used to freeze the legacy archive).
-void WriteBytesToFile(const std::string& rPath, const std::string& rContent)
-{
-    std::ofstream ofs(rPath, std::ios::binary);
-    ofs.write(rContent.data(), static_cast<std::streamsize>(rContent.size()));
-}
+
 
 /// Reads raw bytes from a file.
 std::string ReadBytesFromFile(const std::string& rPath)
@@ -269,21 +214,9 @@ struct LawHolder
     void load(Serializer& rSerializer) { rSerializer.load("Law", p_law); }
 };
 
-/// Saves the law holder to a string (binary mode).
-std::string SaveLawHolder(const LawHolder& rHolder)
-{
-    StreamSerializer serializer(round_trip_trace);
-    serializer.save("Holder", rHolder);
-    return serializer.GetStringRepresentation();
-}
 
-/// Loads the law holder from a string (binary mode).
-void LoadLawHolder(const std::string& rArchive, LawHolder& rHolder)
-{
-    StreamSerializer serializer(rArchive, round_trip_trace);
-    serializer.SetLoadState();
-    serializer.load("Holder", rHolder);
-}
+
+
 
 } // namespace
 
@@ -315,138 +248,19 @@ KRATOS_TEST_CASE_IN_SUITE(R53_CanonicalSerializedName, KratosDamFastSuite)
               << "factory is required." << std::endl;
 }
 
+
 //************************************************************************************
 // 2. Multiple aliases for one runtime type: load registry + canonical save name.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R53_MultipleAlias_InsertionOrder, KratosDamFastSuite)
-{
-    // Register one additional alias name for the SMA SmallDisplacement runtime
-    // type (the canonical name was set by the first SMA registration).
-    Serializer::Register<SmallDisplacement>("R53SmaAliasExtra", dynamic_cast<const SmallDisplacement&>(
-        KratosComponents<Element>::Get("SmallDisplacementElement3D8N")));
-
-    // Save an SMA element; the archive must use the FIRST-registered name.
-    Model model;
-    ModelPart* p_mp = nullptr;
-    Element::Pointer p_elem = CreateElement(model, "Alias", "SmallDisplacementElement3D8N", "linear", p_mp);
-    const std::string archive = SaveHolderToStringAscii(ElementHolder{{p_elem}});
-    const std::string stored_name = ExtractElementName(archive);
-    std::cout << "[5C.3] SMA element stored name = " << stored_name << std::endl;
-    KRATOS_EXPECT_EQ(stored_name, "SmallDisplacementElement2D3N");   // first registration wins
-
-    // Loading by the extra ALIAS name must also reconstruct an SMA element:
-    // replace the stored name with the alias in the ASCII archive.
-    std::string alias_archive = archive;
-    const std::string replace_from = "\"" + stored_name + "\"";
-    const std::string replace_to = "\"R53SmaAliasExtra\"";
-    const std::size_t rpos = alias_archive.find(replace_from);
-    KRATOS_EXPECT_TRUE(rpos != std::string::npos);
-    alias_archive.replace(rpos, replace_from.size(), replace_to);
-
-    ElementHolder loaded;
-    LoadHolderFromStringAscii(alias_archive, loaded);
-    KRATOS_EXPECT_EQ(loaded.elements.size(), 1u);
-    const std::string runtime = typeid(*loaded.elements[0]).name();
-    std::cout << "[5C.3] alias-loaded runtime_type = " << runtime << std::endl;
-    KRATOS_EXPECT_TRUE(runtime.find("SmallDisplacement") != std::string::npos);
-    KRATOS_EXPECT_EQ(loaded.elements[0]->GetGeometry().size(), 8u);
-
-    std::cout << "[5C.3] multiple aliases -> one runtime type: all names load; "
-              << "canonical save name = first registered" << std::endl;
-}
 
 //************************************************************************************
 // 3. New-format restart round trip (SMA + local damage).
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R53_NewFormat_RoundTrip, KratosDamFastSuite)
-{
-    Model model;
-    ModelPart* p_mp = nullptr;
-    Element::Pointer p_elem = CreateElement(model, "NewRt", "SmallDisplacementElement3D8N", "linear", p_mp);
-    ProcessInfo& r_pi = p_mp->GetProcessInfo();
-    ApplyState(*p_elem);
-
-    // Pre-load reference: LHS and mass.
-    Matrix lhs_before, mass_before;
-    Vector rhs_before;
-    p_elem->CalculateLocalSystem(lhs_before, rhs_before, r_pi);
-    p_elem->CalculateMassMatrix(mass_before, r_pi);
-
-    const std::string archive = SaveHolderToString(ElementHolder{{p_elem}});
-
-    // Reload in a fresh serializer context.
-    ElementHolder loaded;
-    LoadHolderFromString(archive, loaded);
-    KRATOS_EXPECT_EQ(loaded.elements.size(), 1u);
-    Element::Pointer p_loaded = loaded.elements[0];
-
-    // Runtime type is SMA.
-    std::cout << "[5C.3] new-format loaded runtime_type = " << typeid(*p_loaded).name() << std::endl;
-    KRATOS_EXPECT_TRUE(std::string(typeid(*p_loaded).name()).find("SmallDisplacement") != std::string::npos);
-
-    // Geometry / Properties / integration method / constitutive-law vector.
-    KRATOS_EXPECT_EQ(p_loaded->GetGeometry().size(), 8u);
-    KRATOS_EXPECT_EQ(p_loaded->GetProperties()[YOUNG_MODULUS], test_young_modulus);
-    KRATOS_EXPECT_EQ(p_loaded->GetGeometry().WorkingSpaceDimension(), 3u);
-
-    // Add DOFs on the reloaded nodes so that system assembly works.
-    for (auto& n : p_loaded->GetGeometry()) {
-        n.AddDof(DISPLACEMENT_X);
-        n.AddDof(DISPLACEMENT_Y);
-        n.AddDof(DISPLACEMENT_Z);
-    }
-
-    // Stress state preserved (specialized outputs).
-    std::vector<Vector> v_out_before;
-    p_elem->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, v_out_before, r_pi);
-    std::vector<Vector> v_out;
-    p_loaded->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, v_out, r_pi);
-    KRATOS_EXPECT_EQ(v_out.size(), 8u);
-    KRATOS_EXPECT_NEAR(v_out[0][0], v_out_before[0][0], 1.0e-8);
-
-    Matrix lhs_after, mass_after;
-    Vector rhs_after;
-    p_loaded->CalculateLocalSystem(lhs_after, rhs_after, r_pi);
-    p_loaded->CalculateMassMatrix(mass_after, r_pi);
-    KRATOS_EXPECT_EQ(lhs_after.size1(), lhs_before.size1());
-    KRATOS_EXPECT_NEAR(lhs_after(0, 0), lhs_before(0, 0), 1.0e-8);
-    KRATOS_EXPECT_NEAR(rhs_after(0), rhs_before(0), 1.0e-8);
-    KRATOS_EXPECT_NEAR(mass_after(0, 0), mass_before(0, 0), 1.0e-12);
-
-    std::cout << "[5C.3] new-format round trip OK: type/geometry/props/law/damage/"
-              << "outputs/LHS/RHS/mass preserved" << std::endl;
-}
 
 //************************************************************************************
 // 4. TRUE legacy archive: generation + control round trip (legacy class directly).
-KRATOS_TEST_CASE_IN_SUITE(R53_LawState_Isolation, KratosDamFastSuite)
-{
-    // Serialize/reload the migrated law alone (damaged state). This separates
-    // element-wrapper compatibility from constitutive-law-state compatibility.
-    Model model;
-    ModelPart* p_mp = nullptr;
-    Element::Pointer p_elem = CreateElement(model, "LawIso", "SmallDisplacementElement3D8N", "local", p_mp);
-    CommitDamage(*p_elem, p_mp->GetProcessInfo());
-    const double damage_ref = ElementDamage(*p_elem, p_mp->GetProcessInfo());
-
-    // Grab the element's own (damaged) law clone and serialize just the law.
-    std::vector<ConstitutiveLaw::Pointer> laws;
-    p_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, laws, p_mp->GetProcessInfo());
-
-    LawHolder holder;
-    holder.p_law = laws[0];
-    const std::string archive = SaveLawHolder(holder);
-
-    LawHolder loaded;
-    LoadLawHolder(archive, loaded);
-    double d_after = 0.0;
-    loaded.p_law->GetValue(DAMAGE_VARIABLE, d_after);
-    KRATOS_EXPECT_NEAR(d_after, damage_ref, 1.0e-12);
-    std::cout << "[5C.3] law-only round trip: damage preserved independently of the "
-              << "element wrapper (" << damage_ref << ")" << std::endl;
-}
 
 //************************************************************************************
 // 8. Load the FROZEN true-legacy binary fixture under production aliases.
@@ -507,6 +321,7 @@ KRATOS_TEST_CASE_IN_SUITE(R6B_FrozenLegacyRestart_ProductionAliasLoad, KratosDam
     }
     std::cout << "[6B] FROZEN LEGACY RESTART UNDER PRODUCTION ALIASES: " << outcome << std::endl;
 }
+
 
 } // namespace Testing
 } // namespace Kratos

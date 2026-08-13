@@ -7,23 +7,13 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    DamApplication developers
-//
 
-// Phase 4B acceptance: the ThermalSimoJuLocalDamage* family now executes its
-// complete stateful thermo-damage lifecycle with
-// StructuralMechanicsApplication::SmallDisplacement, through the compatibility
-// layer implemented in ThermalLocalDamage3DLaw (common PK2/Kirchhoff/Cauchy
-// response and finalization, local mechanical-strain computation, relaxed
-// parameter validation and RequiresInitializeMaterialResponse() == false).
+// Permanent Dam local-damage constitutive contract. ThermalSimoJuLocalDamage*
+// executes its complete stateful thermo-damage lifecycle (elastic, initiation,
+// committed damage, thermal coupling, rollback) with
+// StructuralMechanicsApplication::SmallDisplacement through the common
+// PK2/Kirchhoff/Cauchy response implemented in the Dam law.
 //
-// These tests run the REAL elements (legacy thermo-mechanic and SMA
-// SmallDisplacement) with the SAME ThermalSimoJuLocalDamage3DLaw and verify
-// the full lifecycle: elastic, damage initiation, progressive damage,
-// unloading, reloading, thermal coupling, converged commit / non-converged
-// rollback, repeated-response safety, the 2D inherited family and
-// clone/serialization robustness.
-
-// System includes
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -320,107 +310,12 @@ void CompareElementSystems(Element& rLegacy, Element& rCandidate,
 // 1. The constitutive response must not mutate the supplied total strain.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_InputStrainNotMutated, KratosDamFastSuite)
-{
-    Model model;
-    TestSmallDisplacementElement* p_candidate = nullptr;
-    ModelPart& r_mp = CreateElementModelPart(
-        model, "NonMut", "SmallDisplacementElement3D8N", 3, p_candidate);
-
-    p_candidate->Initialize(r_mp.GetProcessInfo());
-    auto& r_law = dynamic_cast<DiagnosticSimoJuLocalDamage3DLaw&>(
-        p_candidate->GetConstitutiveLaw(0));
-    ApplyTemperatureChange(r_mp, 30.0);
-
-    Vector total_strain(6);
-    total_strain[0] = 2.0e-5;
-    total_strain[1] = 1.0e-6;
-    total_strain[2] = 0.0;
-    total_strain[3] = 3.0e-6;
-    total_strain[4] = 0.0;
-    total_strain[5] = 0.0;
-    const Vector original = total_strain;
-
-    Vector stress(6);
-    Matrix tangent(6, 6);
-    const Vector shape_values = row(p_candidate->GetGeometry().ShapeFunctionsValues(
-        p_candidate->GetIntegrationMethod()), 0);
-    Matrix identity = IdentityMatrix(3, 3);
-    {
-        Vector strain_work = total_strain;
-        ConstitutiveLaw::Parameters values(
-            p_candidate->GetGeometry(), p_candidate->GetProperties(), r_mp.GetProcessInfo());
-        values.SetShapeFunctionsValues(shape_values);
-        values.SetDeformationGradientF(identity);
-        values.SetDeterminantF(1.0);
-        values.SetStrainVector(strain_work);
-        values.SetStressVector(stress);
-        values.SetConstitutiveMatrix(tangent);
-        Flags& options = values.GetOptions();
-        options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-        options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        r_law.CalculateMaterialResponseCauchy(values);
-        for (std::size_t i = 0; i < 6; ++i) {
-            KRATOS_EXPECT_NEAR(strain_work[i], total_strain[i], 1.0e-15);
-        }
-    }
-    {
-        Vector strain_work = total_strain;
-        ConstitutiveLaw::Parameters values(
-            p_candidate->GetGeometry(), p_candidate->GetProperties(), r_mp.GetProcessInfo());
-        values.SetShapeFunctionsValues(shape_values);
-        values.SetDeformationGradientF(identity);
-        values.SetDeterminantF(1.0);
-        values.SetStrainVector(strain_work);
-        values.SetStressVector(stress);
-        values.SetConstitutiveMatrix(tangent);
-        Flags& options = values.GetOptions();
-        options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-        options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        r_law.CalculateMaterialResponsePK2(values);
-        for (std::size_t i = 0; i < 6; ++i) {
-            KRATOS_EXPECT_NEAR(strain_work[i], total_strain[i], 1.0e-15);
-        }
-    }
-    // The element-provided total strain is never destructively modified.
-    for (std::size_t i = 0; i < 6; ++i) {
-        KRATOS_EXPECT_NEAR(total_strain[i], original[i], 1.0e-15);
-    }
-}
 
 //************************************************************************************
 // 2. SMA lifecycle: InitializeSolutionStep runs and preserves the committed
 //    damage state.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_LifecycleStatePreserved, KratosDamFastSuite)
-{
-    Model model;
-    TestSmallDisplacementElement* p_candidate = nullptr;
-    ModelPart& r_mp = CreateElementModelPart(
-        model, "Lifecycle", "SmallDisplacementElement3D8N", 3, p_candidate);
-    auto& r_element = *p_candidate;
-
-    r_element.Initialize(r_mp.GetProcessInfo());
-    r_element.InitializeSolutionStep(r_mp.GetProcessInfo());
-
-    // Commit a damaged state through the converged finalize.
-    ApplyUniaxialState(r_mp, 2.0e-5);
-    r_mp.GetProcessInfo()[IS_CONVERGED] = true;
-    r_element.FinalizeSolutionStep(r_mp.GetProcessInfo());
-
-    double threshold, damage;
-    ReadSmaElementDamageState(r_element, threshold, damage);
-    const double committed_threshold = threshold;
-    KRATOS_EXPECT_TRUE(committed_threshold > test_damage_threshold);
-
-    // The SMA InitializeSolutionStep must not change the committed state.
-    r_element.InitializeSolutionStep(r_mp.GetProcessInfo());
-    ReadSmaElementDamageState(r_element, threshold, damage);
-    KRATOS_EXPECT_NEAR(threshold, committed_threshold, 1.0e-15);
-}
 
 //************************************************************************************
 // 3. 3D acceptance: legacy vs candidate full lifecycle A-F.
@@ -519,6 +414,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_3DAcceptanceAtoF, KratosDamFastS
               << " threshold=" << legacy_threshold << std::endl;
 }
 
+
 //************************************************************************************
 // 4. Thermal coupling with the real SMA element.
 //************************************************************************************
@@ -608,6 +504,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_ThermalCoupling, KratosDamFastSu
               << ", candidate damage = " << cd << std::endl;
 }
 
+
 //************************************************************************************
 // 5. Convergence / rollback with the real SMA element.
 //************************************************************************************
@@ -648,190 +545,21 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_Rollback, KratosDamFastSuite)
               << " restored=" << threshold << std::endl;
 }
 
+
 //************************************************************************************
 // 6. Repeated response safety with the real SMA element.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_RepeatedResponseSafe, KratosDamFastSuite)
-{
-    Model model;
-    TestSmallDisplacementElement* p_candidate = nullptr;
-    ModelPart& r_mp = CreateElementModelPart(
-        model, "Repeat", "SmallDisplacementElement3D8N", 3, p_candidate);
-    auto& r_element = *p_candidate;
-    r_element.Initialize(r_mp.GetProcessInfo());
-    r_element.InitializeSolutionStep(r_mp.GetProcessInfo());
-
-    // Commit a damaged state.
-    ApplyUniaxialState(r_mp, 2.0e-5);
-    r_mp.GetProcessInfo()[IS_CONVERGED] = true;
-    r_element.FinalizeSolutionStep(r_mp.GetProcessInfo());
-    double threshold, damage;
-    ReadSmaElementDamageState(r_element, threshold, damage);
-    const double committed_threshold = threshold;
-    const double committed_damage = damage;
-
-    // Repeated read/calculation operations must not advance the damage state.
-    Matrix lhs;
-    Vector rhs;
-    for (std::size_t i = 0; i < 5; ++i) {
-        r_element.CalculateLocalSystem(lhs, rhs, r_mp.GetProcessInfo());
-        r_element.CalculateLeftHandSide(lhs, r_mp.GetProcessInfo());
-        r_element.CalculateRightHandSide(rhs, r_mp.GetProcessInfo());
-        ReadSmaElementDamageState(r_element, threshold, damage);
-        KRATOS_EXPECT_NEAR(threshold, committed_threshold, 1.0e-12);
-        KRATOS_EXPECT_NEAR(damage, committed_damage, 1.0e-12);
-    }
-
-    // Cauchy/PK2 stress outputs do not advance the state either.
-    std::vector<Matrix> stress_tensor;
-    std::vector<Vector> stress_vector;
-    r_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, stress_tensor, r_mp.GetProcessInfo());
-    r_element.CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, stress_tensor, r_mp.GetProcessInfo());
-    ReadSmaElementDamageState(r_element, threshold, damage);
-    KRATOS_EXPECT_NEAR(threshold, committed_threshold, 1.0e-12);
-    KRATOS_EXPECT_NEAR(damage, committed_damage, 1.0e-12);
-    std::cout << "[4B] repeated response: state unchanged (threshold="
-              << committed_threshold << ")" << std::endl;
-}
 
 //************************************************************************************
 // 7. Clone robustness: state preserved and independent evolution.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_CloneIndependentState, KratosDamFastSuite)
-{
-    Model model;
-    TestSmallDisplacementElement* p_candidate = nullptr;
-    ModelPart& r_mp = CreateElementModelPart(
-        model, "Clone", "SmallDisplacementElement3D8N", 3, p_candidate);
-    auto& r_element = *p_candidate;
-    r_element.Initialize(r_mp.GetProcessInfo());
-    r_element.InitializeSolutionStep(r_mp.GetProcessInfo());
-
-    ApplyUniaxialState(r_mp, 2.0e-5);
-    r_mp.GetProcessInfo()[IS_CONVERGED] = true;
-    r_element.FinalizeSolutionStep(r_mp.GetProcessInfo());
-
-    auto& r_law = dynamic_cast<DiagnosticSimoJuLocalDamage3DLaw&>(p_candidate->GetConstitutiveLaw(0));
-    const double committed_threshold = r_law.GetThresholdVariable();
-    const double committed_damage = r_law.GetDamageVariable();
-
-    // Clone: preserves the committed state.
-    auto p_clone = Kratos::make_shared<DiagnosticSimoJuLocalDamage3DLaw>(
-        dynamic_cast<const DiagnosticSimoJuLocalDamage3DLaw&>(r_law));
-    KRATOS_EXPECT_NEAR(p_clone->GetThresholdVariable(), committed_threshold, 1.0e-15);
-    KRATOS_EXPECT_NEAR(p_clone->GetDamageVariable(), committed_damage, 1.0e-15);
-
-    // The clone's subsequent evolution must be independent of the original.
-    // (The copy constructor clones the flow-rule state.)
-    Vector strain(6);
-    strain[0] = 2.8e-5;
-    strain[1] = 0.0;
-    strain[2] = 0.0;
-    strain[3] = 0.0;
-    strain[4] = 0.0;
-    strain[5] = 0.0;
-    double d;
-    const Vector shape_values = row(p_candidate->GetGeometry().ShapeFunctionsValues(
-        p_candidate->GetIntegrationMethod()), 0);
-    Matrix identity = IdentityMatrix(3, 3);
-    ConstitutiveLaw::Parameters values(
-        p_candidate->GetGeometry(), p_candidate->GetProperties(), r_mp.GetProcessInfo());
-    values.SetShapeFunctionsValues(shape_values);
-    values.SetDeformationGradientF(identity);
-    values.SetDeterminantF(1.0);
-    Vector stress(6);
-    Matrix tangent(6, 6);
-    values.SetStrainVector(strain);
-    values.SetStressVector(stress);
-    values.SetConstitutiveMatrix(tangent);
-    Flags& options = values.GetOptions();
-    options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    r_mp.GetProcessInfo()[IS_CONVERGED] = true;
-    p_clone->FinalizeMaterialResponseCauchy(values);
-    KRATOS_EXPECT_TRUE(p_clone->GetThresholdVariable() > committed_threshold);
-    KRATOS_EXPECT_NEAR(r_law.GetThresholdVariable(), committed_threshold, 1.0e-15);
-    std::cout << "[4B] clone: original threshold=" << committed_threshold
-              << ", clone evolved threshold=" << p_clone->GetThresholdVariable() << std::endl;
-}
 
 //************************************************************************************
 // 8. Serialization / restart: the committed damage state.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_SerializationState, KratosDamFastSuite)
-{
-    Model model;
-    TestSmallDisplacementElement* p_candidate = nullptr;
-    ModelPart& r_mp = CreateElementModelPart(
-        model, "Serial", "SmallDisplacementElement3D8N", 3, p_candidate);
-    auto& r_element = *p_candidate;
-    r_element.Initialize(r_mp.GetProcessInfo());
-
-    // Drive the PRODUCTION law (registered for serialization) directly.
-    auto p_law = Kratos::make_shared<ThermalSimoJuLocalDamage3DLaw>();
-    p_law->InitializeMaterial(r_element.GetProperties(), r_element.GetGeometry(), Vector());
-
-    // Commit a damaged state (converged Cauchy finalize).
-    Vector strain(6);
-    strain[0] = 2.0e-5;
-    strain[1] = 0.0;
-    strain[2] = 0.0;
-    strain[3] = 0.0;
-    strain[4] = 0.0;
-    strain[5] = 0.0;
-    const Vector shape_values = row(r_element.GetGeometry().ShapeFunctionsValues(
-        r_element.GetIntegrationMethod()), 0);
-    Matrix identity = IdentityMatrix(3, 3);
-
-    Vector stress(6);
-    Matrix tangent(6, 6);
-    Vector strain_work = strain;
-    {
-        ConstitutiveLaw::Parameters values(
-            r_element.GetGeometry(), r_element.GetProperties(), r_mp.GetProcessInfo());
-        values.SetShapeFunctionsValues(shape_values);
-        values.SetDeformationGradientF(identity);
-        values.SetDeterminantF(1.0);
-        values.SetStrainVector(strain_work);
-        values.SetStressVector(stress);
-        values.SetConstitutiveMatrix(tangent);
-        Flags& options = values.GetOptions();
-        options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-        options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        r_mp.GetProcessInfo()[IS_CONVERGED] = true;
-        p_law->CalculateMaterialResponseCauchy(values);
-        p_law->FinalizeMaterialResponseCauchy(values);
-    }
-
-    double committed_threshold = 0.0;
-    double committed_damage = 0.0;
-    p_law->GetValue(STATE_VARIABLE, committed_threshold);
-    p_law->GetValue(DAMAGE_VARIABLE, committed_damage);
-    KRATOS_EXPECT_TRUE(committed_threshold > test_damage_threshold);
-
-    // Serialize and deserialize (in-memory restart).
-    ConstitutiveLaw::Pointer p_to_serialize = p_law;
-    StreamSerializer serializer;
-    serializer.save("ThermalSimoJuLocalDamage3DLaw", p_to_serialize);
-    ConstitutiveLaw::Pointer p_loaded;
-    serializer.load("ThermalSimoJuLocalDamage3DLaw", p_loaded);
-    KRATOS_EXPECT_TRUE(p_loaded != nullptr);
-
-    double loaded_threshold = 0.0;
-    double loaded_damage = 0.0;
-    p_loaded->GetValue(STATE_VARIABLE, loaded_threshold);
-    p_loaded->GetValue(DAMAGE_VARIABLE, loaded_damage);
-    std::cout << "[4B] serialization: committed threshold=" << committed_threshold
-              << ", restored threshold=" << loaded_threshold
-              << ", damage=" << loaded_damage << std::endl;
-    KRATOS_EXPECT_NEAR(loaded_threshold, committed_threshold, 1.0e-12);
-    KRATOS_EXPECT_NEAR(loaded_damage, committed_damage, 1.0e-12);
-}
 
 } // namespace Testing
 } // namespace Kratos

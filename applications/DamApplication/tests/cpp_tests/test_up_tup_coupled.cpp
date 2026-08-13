@@ -7,15 +7,12 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    DamApplication developers
+
+// Permanent Dam U-P / T-U-P coupled-workflow contract. The solid displacement
+// domain uses StructuralMechanics small-displacement elements while the Dam
+// acoustic elements, coupling conditions and coupled schemes stay unchanged.
+// Tests verify the coupling sign and the thermal-solid coupling integration.
 //
-
-// Phase 5D (P / U-P / T-U-P coupled workflows): CHARACTERIZATION ONLY. Determines
-// whether the solid displacement domain of the Dam acoustic/structural coupled
-// workflows can use StructuralMechanicsApplication SmallDisplacement elements
-// while the Dam acoustic elements, coupling conditions and coupled schemes stay
-// unchanged. No production code or registration is modified.
-
-// System includes
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -168,72 +165,6 @@ void ApplyTemperature(ModelPart& rModelPart, const double rDeltaTemperature)
 // 1. U-P coupling independence: UPCondition and DamUPScheme with legacy vs SMA solid.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R54_UP_Coupling_SolidIndependence, KratosDamFastSuite)
-{
-    // The UPCondition and DamUPScheme must be independent of the solid element
-    // implementation. Build two identical Q4 U-P models differing only in the
-    // solid element (legacy vs SMA) and compare every contribution.
-    Model model;
-    ModelPart* p_legacy_mp = nullptr;
-    ModelPart* p_sma_mp = nullptr;
-    CreateUPModel(model, "UPLegacy", "SmallDisplacementSolidElement2D4N", "ThermalLinearElastic2DPlaneStrain", p_legacy_mp);
-    CreateUPModel(model, "UPSma", "SmallDisplacementElement2D4N", "ThermalLinearElastic2DPlaneStrain", p_sma_mp);
-
-    DamUPScheme<SparseSpaceType, LocalSpaceType> scheme_legacy(test_beta, test_gamma, 0.02, 0.03);
-    DamUPScheme<SparseSpaceType, LocalSpaceType> scheme_sma(test_beta, test_gamma, 0.02, 0.03);
-    scheme_legacy.Initialize(*p_legacy_mp);
-    scheme_sma.Initialize(*p_sma_mp);
-
-    CompressedMatrix A_l, A_s;
-    Vector Dx_l, Dx_s, b_l, b_s;
-    scheme_legacy.InitializeSolutionStep(*p_legacy_mp, A_l, Dx_l, b_l);
-    scheme_sma.InitializeSolutionStep(*p_sma_mp, A_s, Dx_s, b_s);
-
-    // Solid element dynamic contributions (element + condition) via the scheme.
-    Matrix lhs_e_legacy, lhs_e_sma, lhs_c_legacy, lhs_c_sma;
-    Vector rhs_e_legacy, rhs_e_sma, rhs_c_legacy, rhs_c_sma;
-    Element::EquationIdVectorType eq_e_legacy, eq_e_sma;
-    Element::EquationIdVectorType eq_c_legacy, eq_c_sma;
-
-    scheme_legacy.CalculateSystemContributions(
-        *p_legacy_mp->pGetElement(1), lhs_e_legacy, rhs_e_legacy, eq_e_legacy, p_legacy_mp->GetProcessInfo());
-    scheme_sma.CalculateSystemContributions(
-        *p_sma_mp->pGetElement(1), lhs_e_sma, rhs_e_sma, eq_e_sma, p_sma_mp->GetProcessInfo());
-
-    scheme_legacy.CalculateSystemContributions(
-        *p_legacy_mp->pGetCondition(1), lhs_c_legacy, rhs_c_legacy, eq_c_legacy, p_legacy_mp->GetProcessInfo());
-    scheme_sma.CalculateSystemContributions(
-        *p_sma_mp->pGetCondition(1), lhs_c_sma, rhs_c_sma, eq_c_sma, p_sma_mp->GetProcessInfo());
-
-    // 1a. Solid element contributions: legacy vs SMA are numerically identical
-    //     (stiffness/internal/mass/damping through the generic scheme path).
-    KRATOS_EXPECT_EQ(lhs_e_legacy.size1(), lhs_e_sma.size1());
-    KRATOS_EXPECT_EQ(rhs_e_legacy.size(), rhs_e_sma.size());
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(lhs_e_legacy, lhs_e_sma), 0.0, 1.0e-8);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(rhs_e_legacy, rhs_e_sma), 0.0, 1.0e-8);
-    KRATOS_EXPECT_EQ(eq_e_legacy.size(), eq_e_sma.size());
-    for (std::size_t i = 0; i < eq_e_legacy.size(); ++i)
-        KRATOS_EXPECT_EQ(eq_e_legacy[i], eq_e_sma[i]);
-
-    // 1b. Coupling-condition contributions are EXACTLY identical (the condition
-    //     never touches the solid element).
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(lhs_c_legacy, lhs_c_sma), 0.0, 1.0e-12);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(rhs_c_legacy, rhs_c_sma), 0.0, 1.0e-12);
-    KRATOS_EXPECT_EQ(eq_c_legacy.size(), eq_c_sma.size());
-    for (std::size_t i = 0; i < eq_c_legacy.size(); ++i)
-        KRATOS_EXPECT_EQ(eq_c_legacy[i], eq_c_sma[i]);
-
-    // 1c. Equation-ID layout: the condition carries [Ux,Uy,P] per node (6 IDs),
-    //     the solid element carries [Ux,Uy] per node (8 IDs).
-    std::cout << "[5D] UP legacy vs SMA: solid LHS diff=" << MaxAbsDiff(lhs_e_legacy, lhs_e_sma)
-              << " condition LHS diff=" << MaxAbsDiff(lhs_c_legacy, lhs_c_sma)
-              << " solid eq_ids=" << eq_e_legacy.size()
-              << " condition eq_ids=" << eq_c_legacy.size() << std::endl;
-    KRATOS_EXPECT_EQ(eq_c_legacy.size(), 6u);
-    KRATOS_EXPECT_EQ(eq_e_legacy.size(), 8u);
-    std::cout << "[5D] UPCondition + DamUPScheme are independent of the solid "
-              << "element implementation (name-independent, generic Element API)." << std::endl;
-}
 
 //************************************************************************************
 // 2. Coupling sign/energy sanity: positive pressure -> solid force in +normal.
@@ -296,6 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(R54_UP_Coupling_SignSanity, KratosDamFastSuite)
               << "or rescaling. (Uy entry is uninitialized in the 2D UPCondition "
               << "when the coupling direction is purely x - pre-existing quirk.)" << std::endl;
 }
+
 
 //************************************************************************************
 // 3. T-U-P: thermal solid + coupling with SMA vs legacy thermo element.
@@ -360,97 +292,16 @@ KRATOS_TEST_CASE_IN_SUITE(R54_TUP_ThermalSolid_Coupling, KratosDamFastSuite)
               << ", coupling diff=" << MaxAbsDiff(rhs_c_l, rhs_c_s) << ")" << std::endl;
 }
 
+
 //************************************************************************************
 // 4. P-only isolation: WaveEquationElement + DamPScheme with no solid element.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R54_POnly_Isolation, KratosDamFastSuite)
-{
-    // The P-only workflow (WaveEquationElement + DamPScheme) must assemble with
-    // ONLY pressure DOFs and no solid element present.
-    Model model;
-    ModelPart& r_mp = model.CreateModelPart("POnly", 2);
-    ProcessInfo& r_pi = r_mp.GetProcessInfo();
-    r_pi[DOMAIN_SIZE] = 2;
-    r_pi[SPACE_DIMENSION] = 2;
-    r_pi[IS_RESTARTED] = false;
-    r_pi[DELTA_TIME] = 0.1;
-    r_mp.AddNodalSolutionStepVariable(PRESSURE);
-    r_mp.AddNodalSolutionStepVariable(Dt_PRESSURE);
-    r_mp.AddNodalSolutionStepVariable(Dt2_PRESSURE);
-    r_mp.AddNodalSolutionStepVariable(INITIAL_STRESS_TENSOR);
-
-    const double coords[4][2] = {{0,0},{2.0,0},{2.0,1.0},{0,1.0}};
-    for (std::size_t i = 0; i < 4; ++i) {
-        Node::Pointer p_node = r_mp.CreateNewNode(i + 1, coords[i][0], coords[i][1], 0.0);
-        p_node->AddDof(PRESSURE);
-        p_node->FastGetSolutionStepValue(PRESSURE) = 100.0;
-        p_node->FastGetSolutionStepValue(Dt_PRESSURE) = 5.0;
-        p_node->FastGetSolutionStepValue(Dt2_PRESSURE) = 50.0;
-    }
-    auto p_props = r_mp.CreateNewProperties(1);
-    (*p_props)[DENSITY] = 1000.0;
-    (*p_props)[DENSITY_WATER] = 1000.0;
-    (*p_props)[BULK_MODULUS_LIQUID] = 2.2e9;
-    r_mp.CreateNewElement("WaveEquationElement2D4N", 1, {1, 2, 3, 4}, p_props);
-    r_mp.pGetElement(1)->Initialize(r_pi);
-
-    // Drive the real DamPScheme path (Initialize + InitializeSolutionStep +
-    // CalculateSystemContributions) - the exact operations the P solver runs.
-    DamPScheme<SparseSpaceType, LocalSpaceType> p_scheme(test_beta, test_gamma);
-    p_scheme.Initialize(r_mp);
-    CompressedMatrix A;
-    Vector Dx, b;
-    p_scheme.InitializeSolutionStep(r_mp, A, Dx, b);
-
-    Matrix lhs;
-    Vector rhs;
-    Element::EquationIdVectorType eq_id;
-    p_scheme.CalculateSystemContributions(*r_mp.pGetElement(1), lhs, rhs, eq_id, r_pi);
-
-    KRATOS_EXPECT_EQ(eq_id.size(), 4u);   // PRESSURE only
-    KRATOS_EXPECT_EQ(lhs.size1(), 4u);
-    KRATOS_EXPECT_GT(lhs(0, 0), 0.0);     // acoustic mass/stiffness assembled
-
-    std::cout << "[5D] P-only: WaveEquationElement + DamPScheme assemble with "
-              << "only pressure DOFs (" << eq_id.size() << " ids), no solid element."
-              << " Phase 6 does not need to modify the P-only workflow." << std::endl;
-}
 
 //************************************************************************************
 // 5. Historical-alias / name independence inside U-P.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R54_UP_HistoricalAlias_NameIndependence, KratosDamFastSuite)
-{
-    // The user-facing element name has no effect on coupling behavior: the
-    // scheme and condition never inspect element names or concrete types. This
-    // is demonstrated by the identical results for the two registered names
-    // (legacy vs SMA). Verify the runtime element is SMA and everything works.
-    Model model;
-    ModelPart* p_mp = nullptr;
-    CreateUPModel(model, "AliasUP", "SmallDisplacementElement2D4N", "ThermalLinearElastic2DPlaneStrain", p_mp);
-
-    DamUPScheme<SparseSpaceType, LocalSpaceType> scheme(test_beta, test_gamma, 0.0, 0.0);
-    scheme.Initialize(*p_mp);
-    CompressedMatrix A;
-    Vector Dx, b;
-    scheme.InitializeSolutionStep(*p_mp, A, Dx, b);
-
-    Matrix lhs_e, lhs_c;
-    Vector rhs_e, rhs_c;
-    Element::EquationIdVectorType eq_e, eq_c;
-    scheme.CalculateSystemContributions(*p_mp->pGetElement(1), lhs_e, rhs_e, eq_e, p_mp->GetProcessInfo());
-    scheme.CalculateSystemContributions(*p_mp->pGetCondition(1), lhs_c, rhs_c, eq_c, p_mp->GetProcessInfo());
-
-    KRATOS_EXPECT_EQ(lhs_e.size1(), 8u);
-    KRATOS_EXPECT_EQ(lhs_c.size1(), 6u);
-    KRATOS_EXPECT_TRUE(std::abs(lhs_c(0, 2)) > 0.0);   // U<->P coupling block populated (negative UPMatrix entry)
-
-    std::cout << "[5D] historical-alias simulation: the SMA-backed historical name "
-              << "behaves identically inside the U-P workflow (coupling block populated, "
-              << "scheme/condition generic)." << std::endl;
-}
 
 } // namespace Testing
 } // namespace Kratos

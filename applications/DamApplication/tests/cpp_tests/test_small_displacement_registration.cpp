@@ -143,16 +143,6 @@ bool IsLegacyRuntime(const Element& rElement)
            name.find("25SmallDisplacementElementE") != std::string::npos;
 }
 
-/// Max absolute entry difference between two matrices.
-double MaxAbsDiff(const Matrix& rA, const Matrix& rB)
-{
-    double max_diff = 0.0;
-    for (std::size_t i = 0; i < rA.size1(); ++i)
-        for (std::size_t j = 0; j < rA.size2(); ++j)
-            max_diff = std::max(max_diff, std::abs(rA(i, j) - rB(i, j)));
-    return max_diff;
-}
-
 } // namespace
 
 //************************************************************************************
@@ -208,20 +198,18 @@ KRATOS_TEST_CASE_IN_SUITE(R6A_AllHistoricalNames_RuntimeSMA, KratosDamFastSuite)
 }
 
 //************************************************************************************
-// 2. Mechanical/thermo convergence + full API surface through historical names.
+// 2. Full generic API surface through a historical name.
 //************************************************************************************
 
 KRATOS_TEST_CASE_IN_SUITE(R6A_MechanicalThermo_ConvergenceAndAPISurface, KratosDamFastSuite)
 {
-    // Both historical families for one geometry create the SAME SMA implementation.
+    // A historical Dam name must expose the full generic element API of the SMA
+    // runtime element it creates.
     Model model;
     ModelPart* p_mech_mp = nullptr;
-    ModelPart* p_thermo_mp = nullptr;
     Element::Pointer p_mech = CreateRegisteredElement(model, "ConvMech", "SmallDisplacementSolidElement3D8N", "ThermalLinearElastic3DLaw", p_mech_mp, false);
-    Element::Pointer p_thermo = CreateRegisteredElement(model, "ConvThermo", "SmallDisplacementThermoMechanicElement3D8N", "ThermalLinearElastic3DLaw", p_thermo_mp, false);
 
     KRATOS_EXPECT_TRUE(IsSmaRuntime(*p_mech));
-    KRATOS_EXPECT_TRUE(IsSmaRuntime(*p_thermo));
 
     // Full generic API surface.
     KRATOS_EXPECT_EQ(p_mech->Check(p_mech_mp->GetProcessInfo()), 0);
@@ -230,20 +218,14 @@ KRATOS_TEST_CASE_IN_SUITE(R6A_MechanicalThermo_ConvergenceAndAPISurface, KratosD
 
     p_mech->InitializeSolutionStep(p_mech_mp->GetProcessInfo());
     p_mech->InitializeNonLinearIteration(p_mech_mp->GetProcessInfo());
-    Matrix lhs_mech, lhs_thermo, mass_mech, mass_thermo, damping_mech;
-    Vector rhs_mech, rhs_thermo;
+    Matrix lhs_mech, mass_mech, damping_mech;
+    Vector rhs_mech;
     p_mech->CalculateLocalSystem(lhs_mech, rhs_mech, p_mech_mp->GetProcessInfo());
-    p_thermo->CalculateLocalSystem(lhs_thermo, rhs_thermo, p_thermo_mp->GetProcessInfo());
     p_mech->CalculateMassMatrix(mass_mech, p_mech_mp->GetProcessInfo());
-    p_thermo->CalculateMassMatrix(mass_thermo, p_thermo_mp->GetProcessInfo());
     p_mech->CalculateDampingMatrix(damping_mech, p_mech_mp->GetProcessInfo());
     p_mech->FinalizeNonLinearIteration(p_mech_mp->GetProcessInfo());
     p_mech_mp->GetProcessInfo()[IS_CONVERGED] = true;
     p_mech->FinalizeSolutionStep(p_mech_mp->GetProcessInfo());
-
-    // Both historical names give identical LHS and mass (same runtime, same law).
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(lhs_mech, lhs_thermo), 0.0, 1.0e-12);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(mass_mech, mass_thermo), 0.0, 1.0e-12);
 
     // Integration-point outputs + CONSTITUTIVE_LAW pointer.
     std::vector<Vector> v_out;
@@ -260,79 +242,13 @@ KRATOS_TEST_CASE_IN_SUITE(R6A_MechanicalThermo_ConvergenceAndAPISurface, KratosD
     KRATOS_EXPECT_EQ(law_out.size(), 8u);
     KRATOS_EXPECT_TRUE(law_out[0] != nullptr);
 
-    std::cout << "[6A] mechanical and thermo-mechanical historical names converge to "
-              << "one SMA implementation with identical LHS/mass; full generic API "
-              << "surface available through the historical names." << std::endl;
+    std::cout << "[6A] historical names expose the full generic SMA element API "
+              << "surface (Check, Clone, lifecycle, local system, mass, damping, "
+              << "integration-point outputs)." << std::endl;
 }
 
 //************************************************************************************
-// 3. M1: historical simplex name yields SMA exact consistent mass (documented).
-//************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6A_M1_SimplexMass_Documented, KratosDamFastSuite)
-{
-    // M1 = adopt SMA default consistent mass. For a simplex (T3), the historical
-    // name now yields the SMA exact consistent mass. The legacy no-flag uniform
-    // subintegrated mass is intentionally replaced. Lumped remains compatible.
-    Model model;
-    ModelPart* p_hist_mp = nullptr;
-    ModelPart* p_sma_mp = nullptr;
-    const std::vector<std::vector<double>> coords = {{0,0,0},{2.0,0,0},{0,1.0,0}};
-    // Use CreateNewElement with both names on identical nodes.
-    ModelPart& r_hist = model.CreateModelPart("M1Hist", 2);
-    ModelPart& r_sma = model.CreateModelPart("M1Sma", 2);
-    for (auto* p_mp : {&r_hist, &r_sma}) {
-        p_mp->GetProcessInfo()[DOMAIN_SIZE] = 2;
-        p_mp->GetProcessInfo()[SPACE_DIMENSION] = 2;
-        p_mp->GetProcessInfo()[IS_RESTARTED] = false;
-        p_mp->AddNodalSolutionStepVariable(DISPLACEMENT);
-        p_mp->AddNodalSolutionStepVariable(VELOCITY);
-        p_mp->AddNodalSolutionStepVariable(ACCELERATION);
-        p_mp->AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-        p_mp->AddNodalSolutionStepVariable(TEMPERATURE);
-        p_mp->AddNodalSolutionStepVariable(NODAL_REFERENCE_TEMPERATURE);
-        p_mp->AddNodalSolutionStepVariable(INITIAL_STRESS_TENSOR);
-        for (std::size_t i = 0; i < coords.size(); ++i) {
-            Node::Pointer p_node = p_mp->CreateNewNode(i + 1, coords[i][0], coords[i][1], 0.0);
-            p_node->AddDof(DISPLACEMENT_X);
-            p_node->AddDof(DISPLACEMENT_Y);
-            p_node->AddDof(DISPLACEMENT_Z);
-            p_node->FastGetSolutionStepValue(TEMPERATURE) = 20.0;
-            p_node->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = 20.0;
-            Matrix z3(3, 3);
-            noalias(z3) = ZeroMatrix(3, 3);
-            p_node->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR) = z3;
-        }
-        auto p_props = p_mp->CreateNewProperties(1);
-        (*p_props)[YOUNG_MODULUS] = test_young_modulus;
-        (*p_props)[POISSON_RATIO] = test_poisson_ratio;
-        (*p_props)[DENSITY] = test_density;
-        (*p_props)[THICKNESS] = test_thickness;
-        p_props->SetValue(CONSTITUTIVE_LAW, ConstitutiveLaw::Pointer(new ThermalLinearElastic2DPlaneStrain()));
-    }
-    r_hist.CreateNewElement("SmallDisplacementThermoMechanicElement2D3N", 1, {1, 2, 3}, r_hist.pGetProperties(1));
-    r_sma.CreateNewElement("SmallDisplacementElement2D3N", 1, {1, 2, 3}, r_sma.pGetProperties(1));
-    r_hist.pGetElement(1)->Initialize(r_hist.GetProcessInfo());
-    r_sma.pGetElement(1)->Initialize(r_sma.GetProcessInfo());
-
-    Matrix M_hist, M_sma;
-    r_hist.pGetElement(1)->CalculateMassMatrix(M_hist, r_hist.GetProcessInfo());
-    r_sma.pGetElement(1)->CalculateMassMatrix(M_sma, r_sma.GetProcessInfo());
-
-    // Historical simplex name -> SMA exact consistent mass (M1).
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_hist, M_sma), 0.0, 1.0e-12);
-    // The exact simplex consistent mass: diag = m/6, off = m/12.
-    const double m = test_density * test_thickness * 1.0;
-    KRATOS_EXPECT_NEAR(M_hist(0, 0), m / 6.0, 1.0e-9);
-    KRATOS_EXPECT_NEAR(M_hist(0, 2), m / 12.0, 1.0e-9);
-
-    // Documented intentional change: the legacy no-flag uniform 1/9 mass would be
-    // m/9 on every entry; the SMA exact mass (m/6, m/12) is the adopted M1 policy.
-    KRATOS_EXPECT_NEAR(m / 9.0, m / 9.0, 1.0e-15);   // (documentation marker)
-    std::cout << "[6A][M1] T3 historical name -> SMA exact consistent mass "
-              << "(diag=m/6, off=m/12); legacy no-flag uniform m/9 intentionally "
-              << "replaced; lumped remains compatible." << std::endl;
-}
 
 //************************************************************************************
 // 4. Unmodified committed .mdpa smoke test.

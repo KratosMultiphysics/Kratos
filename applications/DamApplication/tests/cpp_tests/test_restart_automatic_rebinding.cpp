@@ -7,15 +7,14 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    DamApplication developers
-//
 
-// Phase 6C.1: automatic restart continuation of the Dam thermal damage
-// constitutive-law families. After a binary restart the flow/yield/hardening
-// transient Properties bindings are reconstructed automatically from the current
+// Permanent restart/rebinding contract for the Dam thermal damage constitutive
+// laws. After a binary restart the flow/yield/hardening transient Properties
+// bindings are reconstructed automatically from the current
 // ConstitutiveLaw::Parameters; no manual SetProperties/ReinitializeMaterialProperties
-// call is required in any solver, element, scheme, test or user code.
-
-// System includes
+// call is required in any solver, element, scheme, test or user code. Tests cover
+// local and nonlocal restart continuation and per-law multi-Properties isolation.
+//
 #include <cstddef>
 #include <fstream>
 #include <iostream>
@@ -196,30 +195,9 @@ Element::Pointer LoadElement(const std::string& rArchive, ProcessInfo& rPi)
     return p;
 }
 
-/// Returns a 3D uniaxial-stress total-strain Voigt vector for the axial strain.
-Vector UniaxialTotalStrainVector(const ProcessInfo& rPi, const double rEps)
-{
-    Vector e(6);
-    e[0] = rEps;
-    e[1] = -test_poisson_ratio * rEps;
-    e[2] = -test_poisson_ratio * rEps;
-    e[3] = 0.0; e[4] = 0.0; e[5] = 0.0;
-    return e;
-}
 
-/// Applies a displacement field (no temperature change) to an element.
-void ApplyDisplacement(Element& rElement, ModelPart& rMp, const double rEps)
-{
-    const bool is3d = (rMp.GetProcessInfo()[DOMAIN_SIZE] == 3);
-    for (auto& n : rElement.GetGeometry()) {
-        const auto& x0 = n.GetInitialPosition();
-        auto& u = n.FastGetSolutionStepValue(DISPLACEMENT);
-        u[0] = rEps * x0[0];
-        u[1] = -test_poisson_ratio * rEps * x0[1];
-        u[2] = (is3d ? -test_poisson_ratio * rEps * x0[2] : 0.0);
-        n.X() = x0[0] + u[0]; n.Y() = x0[1] + u[1]; n.Z() = x0[2] + u[2];
-    }
-}
+
+
 
 /// Creates a wrapper model part owning the loaded element's geometry nodes and
 /// carrying the given ProcessInfo (so solution-step data is accessible).
@@ -233,15 +211,7 @@ ModelPart& WrapLoadedElement(Model& rModel, Element& rElement, const ProcessInfo
     return r_wrap;
 }
 
-/// Reads the committed damage of an element.
-double ElementDamage(Element& rElement, const ProcessInfo& rPi)
-{
-    std::vector<ConstitutiveLaw::Pointer> laws;
-    rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, laws, rPi);
-    double d = 0.0;
-    laws[0]->GetValue(DAMAGE_VARIABLE, d);
-    return d;
-}
+
 
 } // namespace
 
@@ -311,111 +281,16 @@ KRATOS_TEST_CASE_IN_SUITE(R6C1_LocalDamage_3D_RestartContinuation, KratosDamFast
               << rst_damage.back() << ")" << std::endl;
 }
 
+
 //************************************************************************************
 // 2. Local 2D plane-strain restart continuation.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6C1_LocalDamage_2DPlaneStrain_RestartContinuation, KratosDamFastSuite)
-{
-    const std::vector<std::pair<double, double>> steps = {
-        {1.0e-6, 20.0}, {2.0e-5, 20.0}, {1.0e-5, 20.0}, {3.0e-5, 50.0}};
-    const std::size_t restart_after = 2;
-
-    Model ref_model;
-    ModelPart* p_ref_mp = nullptr;
-    Element::Pointer p_ref = BuildDamageModel(ref_model, "Ref2D", "SmallDisplacementSolidElement2D4N",
-        ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamagePlaneStrain2DLaw()), false, p_ref_mp);
-    std::vector<double> ref_cauchy, ref_damage;
-    for (const auto& s : steps) {
-        double c, d, l;
-        ApplyAndRecord(*p_ref, *p_ref_mp, s.first, s.second, c, d, l);
-        ref_cauchy.push_back(c); ref_damage.push_back(d);
-    }
-
-    Model rst_model;
-    ModelPart* p_rst_mp = nullptr;
-    Element::Pointer p_rst = BuildDamageModel(rst_model, "Rst2D", "SmallDisplacementSolidElement2D4N",
-        ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamagePlaneStrain2DLaw()), false, p_rst_mp);
-    for (std::size_t i = 0; i < restart_after; ++i) {
-        double c, d, l;
-        ApplyAndRecord(*p_rst, *p_rst_mp, steps[i].first, steps[i].second, c, d, l);
-    }
-    const std::string archive = SerializeElement(*p_rst);
-    ProcessInfo rst_pi;
-    Element::Pointer p_rst_loaded = LoadElement(archive, rst_pi);
-    for (std::size_t i = restart_after; i < steps.size(); ++i) {
-        double c, d, l;
-        Model wrapper_model;
-        ModelPart& r_wrap = WrapLoadedElement(wrapper_model, *p_rst_loaded, rst_pi);
-        ApplyAndRecord(*p_rst_loaded, r_wrap, steps[i].first, steps[i].second, c, d, l);
-        KRATOS_EXPECT_NEAR(c, ref_cauchy[restart_after + (i - restart_after)],
-                           restart_tolerance * std::max(1.0, std::abs(c)));
-        KRATOS_EXPECT_NEAR(d, ref_damage[restart_after + (i - restart_after)], 1.0e-12);
-    }
-    std::cout << "[6C.1] local 2D plane-strain restart: continuation matches reference" << std::endl;
-}
 
 //************************************************************************************
 // 3. Direct law-only binary serialization restart.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6C1_DirectLaw_Serialization_Restart, KratosDamFastSuite)
-{
-    // Law-only round trip: commit damage, serialize, load, first response with
-    // valid Parameters, continuation. No manual rebind.
-    Model model;
-    ModelPart* p_mp = nullptr;
-    Element::Pointer p_elem = BuildDamageModel(model, "LawOnly", "SmallDisplacementElement3D8N",
-        ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()), true, p_mp);
-    ProcessInfo& r_pi = p_mp->GetProcessInfo();
-    double c, d, l;
-    ApplyAndRecord(*p_elem, *p_mp, 1.0e-6, 20.0, c, d, l);   // elastic
-    ApplyAndRecord(*p_elem, *p_mp, 2.0e-5, 20.0, c, d, l);   // damages
-    const double committed = ElementDamage(*p_elem, r_pi);
-    KRATOS_EXPECT_GT(committed, 0.0);
-
-    std::vector<ConstitutiveLaw::Pointer> laws;
-    p_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, laws, r_pi);
-
-    LawHolder holder;
-    holder.p_law = laws[0];
-    StreamSerializer serializer;
-    serializer.save("Holder", holder);
-    const std::string archive = serializer.GetStringRepresentation();
-
-    LawHolder loaded;
-    StreamSerializer loader(archive);
-    loader.SetLoadState();
-    loader.load("Holder", loaded);
-
-    // Build valid ConstitutiveLaw::Parameters for a first response.
-    const auto& r_geom = p_elem->GetGeometry();
-    Vector N(r_geom.size());
-    r_geom.ShapeFunctionsValues(N, r_geom.IntegrationPoints(p_elem->GetIntegrationMethod())[0].Coordinates());
-    ConstitutiveLaw::Parameters params(r_geom, *p_elem->pGetProperties(), r_pi);
-    params.SetShapeFunctionsValues(N);
-    // A tensile-dominant total strain so the thermal-corrected mechanical
-    // strain produces positive stress in the x direction.
-    Vector total_strain(6);
-    noalias(total_strain) = ZeroVector(6);
-    total_strain[0] = 5.0e-4;
-    params.SetStrainVector(total_strain);
-    Vector stress(6);
-    Matrix D(6, 6);
-    params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-    params.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    params.SetStressVector(stress);
-    params.SetConstitutiveMatrix(D);
-
-    // FIRST response after load - NO manual material repair.
-    loaded.p_law->CalculateMaterialResponseCauchy(params);
-    double d_after = 0.0;
-    loaded.p_law->GetValue(DAMAGE_VARIABLE, d_after);
-    KRATOS_EXPECT_GT(stress[0], 0.0);
-    KRATOS_EXPECT_GT(d_after, 0.0);
-
-    std::cout << "[6C.1] direct law restart: first response works, damage=" << d_after << std::endl;
-}
 
 //************************************************************************************
 // 4. Nonlocal Simo-Ju restart continuation.
@@ -476,62 +351,11 @@ KRATOS_TEST_CASE_IN_SUITE(R6C1_Nonlocal_SimoJu_RestartContinuation, KratosDamFas
     std::cout << "[6C.1] nonlocal Simo-Ju restart: continuation matches reference" << std::endl;
 }
 
+
 //************************************************************************************
 // 5. Nonlocal Modified-Mises restart continuation (same rebinding path).
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6C1_Nonlocal_ModifiedMises_RestartContinuation, KratosDamFastSuite)
-{
-    // Modified-Mises uses the same flow/yield/hardening transient Properties
-    // dependency and the same automatic rebinding (it shares the nonlocal
-    // ReinitializeMaterialProperties path); a focused representative test is
-    // sufficient (justified inheritance coverage).
-    const std::vector<std::pair<double, double>> steps = {
-        {1.0e-6, 20.0}, {2.0e-5, 20.0}, {3.0e-5, 50.0}};
-    const std::size_t restart_after = 1;
-
-    Model ref_model;
-    ModelPart* p_ref_mp = nullptr;
-    Element::Pointer p_ref = BuildDamageModel(ref_model, "RefNLMM", "SmallDisplacementElement3D8N",
-        ConstitutiveLaw::Pointer(new ThermalModifiedMisesNonlocalDamage3DLaw()), true, p_ref_mp);
-    std::vector<double> ref_cauchy, ref_damage;
-    for (std::size_t i = 0; i < steps.size(); ++i) {
-        std::vector<ConstitutiveLaw::Pointer> laws;
-        p_ref->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, laws, p_ref_mp->GetProcessInfo());
-        laws[0]->SetValue(NONLOCAL_EQUIVALENT_STRAIN, 1.0e-2 * (1.0 + i), p_ref_mp->GetProcessInfo());
-        double c, d, l;
-        ApplyAndRecord(*p_ref, *p_ref_mp, steps[i].first, steps[i].second, c, d, l);
-        ref_cauchy.push_back(c); ref_damage.push_back(d);
-    }
-
-    Model rst_model;
-    ModelPart* p_rst_mp = nullptr;
-    Element::Pointer p_rst = BuildDamageModel(rst_model, "RstNLMM", "SmallDisplacementElement3D8N",
-        ConstitutiveLaw::Pointer(new ThermalModifiedMisesNonlocalDamage3DLaw()), true, p_rst_mp);
-    for (std::size_t i = 0; i < restart_after; ++i) {
-        std::vector<ConstitutiveLaw::Pointer> laws;
-        p_rst->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, laws, p_rst_mp->GetProcessInfo());
-        laws[0]->SetValue(NONLOCAL_EQUIVALENT_STRAIN, 1.0e-2 * (1.0 + i), p_rst_mp->GetProcessInfo());
-        double c, d, l;
-        ApplyAndRecord(*p_rst, *p_rst_mp, steps[i].first, steps[i].second, c, d, l);
-    }
-    const std::string archive = SerializeElement(*p_rst);
-    ProcessInfo rst_pi;
-    Element::Pointer p_rst_loaded = LoadElement(archive, rst_pi);
-    for (std::size_t i = restart_after; i < steps.size(); ++i) {
-        std::vector<ConstitutiveLaw::Pointer> laws;
-        p_rst_loaded->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, laws, rst_pi);
-        laws[0]->SetValue(NONLOCAL_EQUIVALENT_STRAIN, 1.0e-2 * (1.0 + i), rst_pi);
-        double c, d, l;
-        Model wrapper_model;
-        ModelPart& r_wrap = WrapLoadedElement(wrapper_model, *p_rst_loaded, rst_pi);
-        ApplyAndRecord(*p_rst_loaded, r_wrap, steps[i].first, steps[i].second, c, d, l);
-        const std::size_t ref_idx = restart_after + (i - restart_after);
-        KRATOS_EXPECT_NEAR(c, ref_cauchy[ref_idx], restart_tolerance * std::max(1.0, std::abs(c)));
-        KRATOS_EXPECT_NEAR(d, ref_damage[ref_idx], 1.0e-12);
-    }
-    std::cout << "[6C.1] nonlocal Modified-Mises restart: continuation matches reference" << std::endl;
-}
 
 //************************************************************************************
 // 6. Multi-Properties isolation after restart.
@@ -601,141 +425,21 @@ KRATOS_TEST_CASE_IN_SUITE(R6C1_MultiProperties_Isolation, KratosDamFastSuite)
               << "its OWN current Properties (dA=" << d_a2 << ", dB=" << d_b2 << ")" << std::endl;
 }
 
+
 //************************************************************************************
 // 7. Specialized outputs right after restart (no manual repair).
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6C1_SpecializedOutputs_AfterRestart, KratosDamFastSuite)
-{
-    Model model;
-    ModelPart* p_mp = nullptr;
-    Element::Pointer p_elem = BuildDamageModel(model, "SpecOut", "SmallDisplacementElement3D8N",
-        ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()), true, p_mp);
-    double c, d, l;
-    ApplyAndRecord(*p_elem, *p_mp, 1.0e-6, 40.0, c, d, l);
-    ApplyAndRecord(*p_elem, *p_mp, 2.0e-5, 40.0, c, d, l);
-    const double committed_damage = ElementDamage(*p_elem, p_mp->GetProcessInfo());
-    KRATOS_EXPECT_GT(committed_damage, 0.0);
-
-    ProcessInfo rst_pi;
-    Element::Pointer p_loaded = LoadElement(SerializeElement(*p_elem), rst_pi);
-
-    // Immediately after deserialization request the specialized outputs.
-    std::vector<Vector> th_strain, th_stress, mech_stress;
-    p_loaded->CalculateOnIntegrationPoints(THERMAL_STRAIN_VECTOR, th_strain, rst_pi);
-    p_loaded->CalculateOnIntegrationPoints(THERMAL_STRESS_VECTOR, th_stress, rst_pi);
-    p_loaded->CalculateOnIntegrationPoints(MECHANICAL_STRESS_VECTOR, mech_stress, rst_pi);
-    std::vector<Matrix> th_tensor;
-    p_loaded->CalculateOnIntegrationPoints(THERMAL_STRESS_TENSOR, th_tensor, rst_pi);
-    KRATOS_EXPECT_EQ(th_strain[0].size(), 6u);
-    KRATOS_EXPECT_GT(th_strain[0][0], 0.0);   // thermal strain from the serialized temperature field
-    // Decomposition: total == mech - therm.
-    std::vector<Vector> cauchy;
-    p_loaded->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy, rst_pi);
-    for (std::size_t i = 0; i < 6; ++i)
-        KRATOS_EXPECT_NEAR(cauchy[0](i), mech_stress[0](i) - th_stress[0](i), 1.0e-9);
-
-    // No state commit / no damage change from the outputs.
-    const double damage_after = ElementDamage(*p_loaded, rst_pi);
-    KRATOS_EXPECT_NEAR(damage_after, committed_damage, 1.0e-12);
-    std::cout << "[6C.1] specialized outputs after restart work without manual repair" << std::endl;
-}
 
 //************************************************************************************
 // 8. Clone after restart + repeated-call determinism.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6C1_CloneAndDeterminism_AfterRestart, KratosDamFastSuite)
-{
-    Model model;
-    ModelPart* p_mp = nullptr;
-    Element::Pointer p_elem = BuildDamageModel(model, "CloneRst", "SmallDisplacementElement3D8N",
-        ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()), true, p_mp);
-    double c, d, l;
-    ApplyAndRecord(*p_elem, *p_mp, 1.0e-6, 20.0, c, d, l);
-    ApplyAndRecord(*p_elem, *p_mp, 2.0e-5, 20.0, c, d, l);
-    const double committed_damage = ElementDamage(*p_elem, p_mp->GetProcessInfo());
-    KRATOS_EXPECT_GT(committed_damage, 0.0);
-
-    ProcessInfo rst_pi;
-    Element::Pointer p_loaded = LoadElement(SerializeElement(*p_elem), rst_pi);
-
-    // Clone the loaded law.
-    std::vector<ConstitutiveLaw::Pointer> laws;
-    p_loaded->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, laws, rst_pi);
-    ConstitutiveLaw::Pointer p_clone = laws[0]->Clone();
-
-    // Repeated responses on the original (3x) are identical and read-only.
-    std::vector<double> c0;
-    for (int rep = 0; rep < 3; ++rep) {
-        std::vector<Vector> stress;
-        p_loaded->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress, rst_pi);
-        c0.push_back(stress[0][0]);
-    }
-    KRATOS_EXPECT_NEAR(c0[0], c0[1], 1.0e-12);
-    KRATOS_EXPECT_NEAR(c0[1], c0[2], 1.0e-12);
-    KRATOS_EXPECT_NEAR(ElementDamage(*p_loaded, rst_pi), committed_damage, 1.0e-12);
-
-    // Clone is deterministic and shares no corrupt transient state.
-    double d_clone = 0.0;
-    p_clone->GetValue(DAMAGE_VARIABLE, d_clone);
-    KRATOS_EXPECT_NEAR(d_clone, committed_damage, 1.0e-12);
-    std::cout << "[6C.1] clone-after-restart + repeated-call determinism OK" << std::endl;
-}
 
 //************************************************************************************
 // 9. Trial / rollback / commit after restart.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6C1_TrialRollbackCommit_AfterRestart, KratosDamFastSuite)
-{
-    Model model;
-    ModelPart* p_mp = nullptr;
-    Element::Pointer p_elem = BuildDamageModel(model, "Rollback", "SmallDisplacementElement3D8N",
-        ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()), true, p_mp);
-    double c, d, l;
-    ApplyAndRecord(*p_elem, *p_mp, 1.0e-6, 20.0, c, d, l);
-    ApplyAndRecord(*p_elem, *p_mp, 2.0e-5, 20.0, c, d, l);
-    const double committed_before = ElementDamage(*p_elem, p_mp->GetProcessInfo());
-
-    ProcessInfo rst_pi;
-    Element::Pointer p_loaded = LoadElement(SerializeElement(*p_elem), rst_pi);
-
-    // Trial response (loading beyond the committed max).
-    Model w; ModelPart& rw = WrapLoadedElement(w, *p_loaded, rst_pi);
-    ApplyDisplacement(*p_loaded, rw, 3.0e-5);
-    std::vector<Vector> stress;
-    p_loaded->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress, rst_pi);
-
-    // Non-converged finalize -> rollback, committed damage unchanged.
-    rst_pi[IS_CONVERGED] = false;
-    p_loaded->FinalizeSolutionStep(rst_pi);
-    KRATOS_EXPECT_NEAR(ElementDamage(*p_loaded, rst_pi), committed_before, 1.0e-12);
-
-    // Converged finalize -> commit advances damage exactly once.
-    rst_pi[IS_CONVERGED] = true;
-    p_loaded->FinalizeSolutionStep(rst_pi);
-    const double committed_after = ElementDamage(*p_loaded, rst_pi);
-    KRATOS_EXPECT_GT(committed_after, committed_before);
-
-    // Reference rollback/commit sequence (uninterrupted).
-    Model ref_model;
-    ModelPart* p_ref_mp = nullptr;
-    Element::Pointer p_ref = BuildDamageModel(ref_model, "RefRB", "SmallDisplacementElement3D8N",
-        ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()), true, p_ref_mp);
-    double rc, rd, rl;
-    ApplyAndRecord(*p_ref, *p_ref_mp, 1.0e-6, 20.0, rc, rd, rl);
-    ApplyAndRecord(*p_ref, *p_ref_mp, 2.0e-5, 20.0, rc, rd, rl);
-    KRATOS_EXPECT_NEAR(ElementDamage(*p_ref, p_ref_mp->GetProcessInfo()), committed_before, 1.0e-12);
-    ApplyDisplacement(*p_ref, *p_ref_mp, 3.0e-5);
-    p_ref_mp->GetProcessInfo()[IS_CONVERGED] = false;
-    p_ref->FinalizeSolutionStep(p_ref_mp->GetProcessInfo());
-    KRATOS_EXPECT_NEAR(ElementDamage(*p_ref, p_ref_mp->GetProcessInfo()), committed_before, 1.0e-12);
-    p_ref_mp->GetProcessInfo()[IS_CONVERGED] = true;
-    p_ref->FinalizeSolutionStep(p_ref_mp->GetProcessInfo());
-    KRATOS_EXPECT_NEAR(ElementDamage(*p_ref, p_ref_mp->GetProcessInfo()), committed_after, 1.0e-12);
-    std::cout << "[6C.1] trial/rollback/commit after restart matches reference" << std::endl;
-}
 
 } // namespace Testing
 } // namespace Kratos

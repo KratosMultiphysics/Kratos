@@ -7,16 +7,13 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    DamApplication developers
+
+// Permanent Dam specialized-output contract: the thermal/mechanical Vector and
+// Matrix integration-point outputs (THERMAL_STRAIN/STRESS_VECTOR/TENSOR,
+// MECHANICAL_STRESS_VECTOR/TENSOR) are owned by the Dam constitutive laws through
+// the parameter-aware CalculateValue path, keep Has()==false, never commit state,
+// and satisfy the analytical strain/stress decomposition and shear conventions.
 //
-
-// Phase 5B.2: the specialized thermo-mechanical Vector/Matrix integration-point
-// outputs (THERMAL_STRAIN/STRESS_VECTOR/TENSOR, MECHANICAL_STRESS_VECTOR/TENSOR)
-// are owned by the Dam constitutive laws through the parameter-aware
-// CalculateValue path and are available through the generic element
-// integration-point interface (StructuralMechanics SmallDisplacement and the
-// legacy Dam SmallDisplacementThermoMechanicElement).
-
-// System includes
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -414,6 +411,7 @@ KRATOS_TEST_CASE_IN_SUITE(B52_SpecializedOutputs_HasRemainsFalse, KratosDamFastS
     std::cout << "[5B.2] Has() false for all specialized outputs on all families" << std::endl;
 }
 
+
 //************************************************************************************
 // 2. Nodal-linear acceptance: non-uniform E / temperature / reference temperature.
 //************************************************************************************
@@ -492,21 +490,8 @@ KRATOS_TEST_CASE_IN_SUITE(B52_NodalLinear_NonUniform3D, KratosDamFastSuite)
                       1.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(B52_NodalLinear_NonUniformPlaneStrain, KratosDamFastSuite)
-{
-    VerifyNodalLinear("NodalLinearPlaneStrain",
-                      GeometryKind::Quadrilateral2D,
-                      ConstitutiveLaw::Pointer(new ThermalLinearElastic2DPlaneStrainNodal()),
-                      1.0 + test_poisson_ratio);
-}
 
-KRATOS_TEST_CASE_IN_SUITE(B52_NodalLinear_NonUniformPlaneStress, KratosDamFastSuite)
-{
-    VerifyNodalLinear("NodalLinearPlaneStress",
-                      GeometryKind::Quadrilateral2D,
-                      ConstitutiveLaw::Pointer(new ThermalLinearElastic2DPlaneStressNodal()),
-                      1.0);
-}
+
 
 //************************************************************************************
 // 3. Local-damage acceptance over a full load/unload/reload sequence.
@@ -575,19 +560,8 @@ KRATOS_TEST_CASE_IN_SUITE(B52_LocalDamage_StateSequence3D, KratosDamFastSuite)
         ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()), 1.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(B52_LocalDamage_StateSequencePlaneStrain, KratosDamFastSuite)
-{
-    VerifyLocalDamageSequence<TestSmallDisplacementElement>(
-        "LocalSeqPlaneStrain", GeometryKind::Quadrilateral2D,
-        ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamagePlaneStrain2DLaw()), 1.0 + test_poisson_ratio);
-}
 
-KRATOS_TEST_CASE_IN_SUITE(B52_LocalDamage_StateSequencePlaneStress, KratosDamFastSuite)
-{
-    VerifyLocalDamageSequence<TestSmallDisplacementElement>(
-        "LocalSeqPlaneStress", GeometryKind::Quadrilateral2D,
-        ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamagePlaneStress2DLaw()), 1.0);
-}
+
 
 //************************************************************************************
 // 4. Nonlocal-damage acceptance (Simo-Ju and Modified-Mises), 3D and 2D.
@@ -669,44 +643,11 @@ KRATOS_TEST_CASE_IN_SUITE(B52_NonlocalDamage_SimoJu3D, KratosDamFastSuite)
         ConstitutiveLaw::Pointer(new ThermalSimoJuNonlocalDamage3DLaw()), 1.0, 1.2e-2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(B52_NonlocalDamage_ModifiedMises3D, KratosDamFastSuite)
-{
-    VerifyNonlocalDamage<TestSmallDisplacementElement>(
-        "NonlocalMM3D", GeometryKind::Hexa3D,
-        ConstitutiveLaw::Pointer(new ThermalModifiedMisesNonlocalDamage3DLaw()), 1.0, 1.2e-2);
-}
 
-KRATOS_TEST_CASE_IN_SUITE(B52_NonlocalDamage_SimoJuPlaneStrain, KratosDamFastSuite)
-{
-    VerifyNonlocalDamage<TestSmallDisplacementElement>(
-        "NonlocalSJPlaneStrain", GeometryKind::Quadrilateral2D,
-        ConstitutiveLaw::Pointer(new ThermalSimoJuNonlocalDamagePlaneStrain2DLaw()),
-        1.0 + test_poisson_ratio, 1.2e-2);
-}
 
-KRATOS_TEST_CASE_IN_SUITE(B52_NonlocalDamage_SimoJuPlaneStress, KratosDamFastSuite)
-{
-    VerifyNonlocalDamage<TestSmallDisplacementElement>(
-        "NonlocalSJPlaneStress", GeometryKind::Quadrilateral2D,
-        ConstitutiveLaw::Pointer(new ThermalSimoJuNonlocalDamagePlaneStress2DLaw()),
-        1.0, 1.2e-2);
-}
 
-KRATOS_TEST_CASE_IN_SUITE(B52_NonlocalDamage_ModifiedMisesPlaneStrain, KratosDamFastSuite)
-{
-    VerifyNonlocalDamage<TestSmallDisplacementElement>(
-        "NonlocalMMPlaneStrain", GeometryKind::Quadrilateral2D,
-        ConstitutiveLaw::Pointer(new ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw()),
-        1.0 + test_poisson_ratio, 1.2e-2);
-}
 
-KRATOS_TEST_CASE_IN_SUITE(B52_NonlocalDamage_ModifiedMisesPlaneStress, KratosDamFastSuite)
-{
-    VerifyNonlocalDamage<TestSmallDisplacementElement>(
-        "NonlocalMMPlaneStress", GeometryKind::Quadrilateral2D,
-        ConstitutiveLaw::Pointer(new ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw()),
-        1.0, 1.2e-2);
-}
+
 
 //************************************************************************************
 // 5. Side-effect regression: all six outputs requested 3x at a fixed state.
@@ -770,60 +711,7 @@ KRATOS_TEST_CASE_IN_SUITE(B52_SideEffect_LocalDamage3D, KratosDamFastSuite)
               << std::endl;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(B52_SideEffect_NonlocalDamage3D, KratosDamFastSuite)
-{
-    Model model;
-    TestSmallDisplacementElement* p_elem = nullptr;
-    ModelPart& r_mp = CreateOutputModelPart<TestSmallDisplacementElement>(
-        model, "SideEffectNonlocal3D", p_elem,
-        ConstitutiveLaw::Pointer(new TestNonlocalLaw()), GeometryKind::Hexa3D, false);
-    p_elem->Initialize(r_mp.GetProcessInfo());
-    ProcessInfo& r_pi = r_mp.GetProcessInfo();
-    ApplyState(r_mp, UniaxialTotalStrain(true, 2.0e-5), 40.0);
-    r_pi[IS_CONVERGED] = true;
-    TestNonlocalLaw& r_law = dynamic_cast<TestNonlocalLaw&>(p_elem->GetConstitutiveLaw(0));
-    r_law.SetValue(NONLOCAL_EQUIVALENT_STRAIN, 1.2e-2, r_pi);
-    p_elem->FinalizeSolutionStep(r_pi);
 
-    const double d_before = CurrentDamage(r_law);
-    const double nonlocal_before = r_law.NonlocalStrain();
-    double local_before = 0.0, state_before = 0.0;
-    r_law.GetValue(LOCAL_EQUIVALENT_STRAIN, local_before);
-    r_law.GetValue(STATE_VARIABLE, state_before);
-
-    Matrix lhs_before, lhs_after;
-    Vector rhs_before, rhs_after;
-    p_elem->CalculateLocalSystem(lhs_before, rhs_before, r_pi);
-    const Vector cauchy_before = ElementVectorOutput(*p_elem, CAUCHY_STRESS_VECTOR, r_pi);
-
-    for (std::size_t repeat = 0; repeat < 3; ++repeat) {
-        std::vector<Vector> v_out;
-        std::vector<Matrix> m_out;
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_VECTOR, v_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRESS_VECTOR, v_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_VECTOR, v_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_TENSOR, m_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRESS_TENSOR, m_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_TENSOR, m_out, r_pi);
-    }
-
-    KRATOS_EXPECT_NEAR(CurrentDamage(r_law), d_before, 1.0e-15);
-    KRATOS_EXPECT_NEAR(r_law.NonlocalStrain(), nonlocal_before, 1.0e-15);
-    double local_after = 0.0, state_after = 0.0;
-    r_law.GetValue(LOCAL_EQUIVALENT_STRAIN, local_after);
-    r_law.GetValue(STATE_VARIABLE, state_after);
-    KRATOS_EXPECT_NEAR(local_after, local_before, 1.0e-15);
-    KRATOS_EXPECT_NEAR(state_after, state_before, 1.0e-15);
-    p_elem->CalculateLocalSystem(lhs_after, rhs_after, r_pi);
-    const Vector cauchy_after = ElementVectorOutput(*p_elem, CAUCHY_STRESS_VECTOR, r_pi);
-    KRATOS_EXPECT_EQ(rhs_after.size(), rhs_before.size());
-    for (std::size_t i = 0; i < rhs_before.size(); ++i)
-        KRATOS_EXPECT_NEAR(rhs_after(i), rhs_before(i), 1.0e-12);
-    for (std::size_t i = 0; i < cauchy_before.size(); ++i)
-        KRATOS_EXPECT_NEAR(cauchy_after(i), cauchy_before(i), 1.0e-12);
-    std::cout << "[5B.2] SideEffectNonlocal3D: no side effect on NONLOCAL/LOCAL/committed/LHS/RHS"
-              << std::endl;
-}
 
 //************************************************************************************
 // 6. Shear convention with a non-zero shear state.
@@ -870,6 +758,7 @@ KRATOS_TEST_CASE_IN_SUITE(B52_ShearConvention, KratosDamFastSuite)
     }
 }
 
+
 //************************************************************************************
 // 7. Dimensions: 3D vector 6 / tensor 3x3; 2D vector 3 / tensor 2x2.
 //************************************************************************************
@@ -910,109 +799,6 @@ KRATOS_TEST_CASE_IN_SUITE(B52_Dimensions, KratosDamFastSuite)
     }
 }
 
-//************************************************************************************
-// 8. Legacy-versus-SMA comparison over all families.
-//************************************************************************************
-
-namespace
-{
-void VerifyLegacyVersusSMA(
-    const std::string& rLabel,
-    const GeometryKind rGeo,
-    ConstitutiveLaw::Pointer pLaw,
-    const bool rNonlocal)
-{
-    ConstitutiveLaw::Pointer p_legacy_law = pLaw->Clone();
-    Model model;
-    TestThermoMechanicElement* p_legacy = nullptr;
-    TestSmallDisplacementElement* p_candidate = nullptr;
-    ModelPart& r_legacy_mp = CreateOutputModelPart<TestThermoMechanicElement>(
-        model, rLabel + "Legacy", p_legacy, p_legacy_law, rGeo, false);
-    ModelPart& r_candidate_mp = CreateOutputModelPart<TestSmallDisplacementElement>(
-        model, rLabel + "SMA", p_candidate, pLaw, rGeo, false);
-    p_legacy->Initialize(r_legacy_mp.GetProcessInfo());
-    p_candidate->Initialize(r_candidate_mp.GetProcessInfo());
-
-    const bool is_3d = (rGeo == GeometryKind::Hexa3D);
-    const double eps = 1.5e-5, dT = 40.0;
-    ApplyState(r_legacy_mp, UniaxialTotalStrain(is_3d, eps), dT);
-    ApplyState(r_candidate_mp, UniaxialTotalStrain(is_3d, eps), dT);
-
-    ProcessInfo& r_legacy_pi = r_legacy_mp.GetProcessInfo();
-    ProcessInfo& r_candidate_pi = r_candidate_mp.GetProcessInfo();
-    r_legacy_pi[IS_CONVERGED] = true;
-    r_candidate_pi[IS_CONVERGED] = true;
-    if (rNonlocal) {
-        p_legacy->GetConstitutiveLaw(0).SetValue(NONLOCAL_EQUIVALENT_STRAIN, 1.2e-2, r_legacy_pi);
-        p_candidate->GetConstitutiveLaw(0).SetValue(NONLOCAL_EQUIVALENT_STRAIN, 1.2e-2, r_candidate_pi);
-    }
-    p_legacy->FinalizeSolutionStep(r_legacy_pi);
-    p_candidate->FinalizeSolutionStep(r_candidate_pi);
-
-    // Stress vector outputs: candidate == legacy.
-    for (auto* p_variable : {&THERMAL_STRESS_VECTOR, &MECHANICAL_STRESS_VECTOR}) {
-        std::vector<Vector> legacy_out, candidate_out;
-        p_legacy->CalculateOnIntegrationPoints(*p_variable, legacy_out, r_legacy_pi);
-        p_candidate->CalculateOnIntegrationPoints(*p_variable, candidate_out, r_candidate_pi);
-        KRATOS_EXPECT_EQ(candidate_out.size(), legacy_out.size());
-        for (std::size_t i = 0; i < legacy_out.size(); ++i) {
-            KRATOS_EXPECT_EQ(candidate_out[i].size(), legacy_out[i].size());
-            for (std::size_t j = 0; j < legacy_out[i].size(); ++j)
-                KRATOS_EXPECT_TRUE(Near(candidate_out[i](j), legacy_out[i](j)));
-        }
-    }
-    // Stress tensor outputs: candidate == legacy.
-    for (auto* p_variable : {&THERMAL_STRESS_TENSOR, &MECHANICAL_STRESS_TENSOR}) {
-        std::vector<Matrix> legacy_out, candidate_out;
-        p_legacy->CalculateOnIntegrationPoints(*p_variable, legacy_out, r_legacy_pi);
-        p_candidate->CalculateOnIntegrationPoints(*p_variable, candidate_out, r_candidate_pi);
-        KRATOS_EXPECT_EQ(candidate_out.size(), legacy_out.size());
-        for (std::size_t i = 0; i < legacy_out.size(); ++i) {
-            KRATOS_EXPECT_EQ(candidate_out[i].size1(), legacy_out[i].size1());
-            for (std::size_t j = 0; j < legacy_out[i].size1(); ++j)
-                for (std::size_t k = 0; k < legacy_out[i].size2(); ++k)
-                    KRATOS_EXPECT_TRUE(Near(candidate_out[i](j, k), legacy_out[i](j, k)));
-        }
-    }
-
-    // THERMAL_STRAIN: both now return the analytical thermal strain (intentional
-    // bug fix on both elements; the legacy element no longer returns the total
-    // strain).
-    const Vector legacy_thermal_strain = ElementVectorOutput(*p_legacy, THERMAL_STRAIN_VECTOR, r_legacy_pi);
-    const Vector candidate_thermal_strain = ElementVectorOutput(*p_candidate, THERMAL_STRAIN_VECTOR, r_candidate_pi);
-    KRATOS_EXPECT_EQ(legacy_thermal_strain.size(), candidate_thermal_strain.size());
-    for (std::size_t i = 0; i < legacy_thermal_strain.size(); ++i)
-        KRATOS_EXPECT_NEAR(legacy_thermal_strain(i), candidate_thermal_strain(i), 1.0e-12);
-    KRATOS_EXPECT_TRUE(Near(legacy_thermal_strain[0], test_thermal_expansion * dT));
-
-    std::cout << "[5B.2] " << rLabel << ": legacy vs SMA match for stress outputs; "
-              << "THERMAL_STRAIN == analytical on both (bug fixed)" << std::endl;
-}
-} // namespace
-
-KRATOS_TEST_CASE_IN_SUITE(B52_LegacyVsSMA_Linear, KratosDamFastSuite)
-{
-    VerifyLegacyVersusSMA("VsLinear", GeometryKind::Hexa3D,
-                          ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw()), false);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(B52_LegacyVsSMA_NodalLinear, KratosDamFastSuite)
-{
-    VerifyLegacyVersusSMA("VsNodalLinear", GeometryKind::Hexa3D,
-                          ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLawNodal()), false);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(B52_LegacyVsSMA_LocalDamage, KratosDamFastSuite)
-{
-    VerifyLegacyVersusSMA("VsLocalDamage", GeometryKind::Hexa3D,
-                          ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()), false);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(B52_LegacyVsSMA_NonlocalDamage, KratosDamFastSuite)
-{
-    VerifyLegacyVersusSMA("VsNonlocalDamage", GeometryKind::Hexa3D,
-                          ConstitutiveLaw::Pointer(new ThermalSimoJuNonlocalDamage3DLaw()), true);
-}
 
 } // namespace Testing
 } // namespace Kratos

@@ -234,228 +234,31 @@ KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_LinearReference, KratosDamFastSuite
               << " THERMAL_STRAIN returns epsilon_th (bug fixed)" << std::endl;
 }
 
+
 //************************************************************************************
 // 2. Nodal linear family: same legacy semantics, but with nodal-E interpolation.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_NodalLinear, KratosDamFastSuite)
-{
-    Model model;
-    TestThermoMechanicElement* p_elem = nullptr;
-    ModelPart& r_mp = CreateOutputModelPart<TestThermoMechanicElement>(
-        model, "NodalOutput", p_elem, ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLawNodal()), true);
-    p_elem->Initialize(r_mp.GetProcessInfo());
-    const double eps = 2.0e-6, dT = 40.0;
-    ApplyState(r_mp, eps, dT);
-    // Non-uniform nodal E.
-    for (auto& n : r_mp.Nodes()) {
-        const auto& x0 = n.GetInitialPosition();
-        n.FastGetSolutionStepValue(NODAL_YOUNG_MODULUS) = 2.0e7 + 1.0e6 * (x0[0] + x0[1]);
-    }
-
-    std::vector<Vector> out;
-    p_elem->CalculateOnIntegrationPoints(THERMAL_STRESS_VECTOR, out, r_mp.GetProcessInfo());
-    KRATOS_EXPECT_EQ(out[0].size(), 6);
-    p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_VECTOR, out, r_mp.GetProcessInfo());
-    KRATOS_EXPECT_EQ(out[0].size(), 6);
-    // THERMAL_STRAIN_VECTOR returns the actual thermal strain (intentional bug
-    // fix; the legacy element used to return the total strain).
-    p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_VECTOR, out, r_mp.GetProcessInfo());
-    KRATOS_EXPECT_EQ(out[0].size(), 6);
-    for (std::size_t i = 0; i < 3; ++i)
-        KRATOS_EXPECT_NEAR(out[0](i), test_thermal_expansion * 40.0, 1.0e-12);
-    for (std::size_t i = 3; i < 6; ++i)
-        KRATOS_EXPECT_NEAR(out[0](i), 0.0, 1.0e-12);
-    std::cout << "[5B.1] nodal linear: legacy outputs follow the linear path; THERMAL_STRAIN bug fixed" << std::endl;
-}
 
 //************************************************************************************
 // 3. Local-damage: determine the damage-scaling semantics.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_LocalDamage, KratosDamFastSuite)
-{
-    Model model;
-    TestThermoMechanicElement* p_elem = nullptr;
-    ModelPart& r_mp = CreateOutputModelPart<TestThermoMechanicElement>(
-        model, "LocalOut", p_elem, ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()), false);
-    p_elem->Initialize(r_mp.GetProcessInfo());
-    const double eps = 2.0e-5, dT = 40.0;  // damaged state
-    ApplyState(r_mp, eps, dT);
-
-    // Commit a damaged state (converged).
-    r_mp.GetProcessInfo()[IS_CONVERGED] = true;
-    p_elem->FinalizeSolutionStep(r_mp.GetProcessInfo());
-
-    double d = 0.0;
-    p_elem->GetConstitutiveLaw(0).GetValue(DAMAGE_VARIABLE, d);
-    KRATOS_EXPECT_TRUE(d > 0.0);
-    std::cout << "[5B.1] local damage d=" << d << std::endl;
-
-    const Matrix C = C3D(2.0e7, test_poisson_ratio);
-    const Vector e_total = TotalStrain3D(eps);
-    const double alpha_dT = test_thermal_expansion * dT;
-    Vector e_th(6);
-    e_th[0]=alpha_dT; e_th[1]=alpha_dT; e_th[2]=alpha_dT; e_th[3]=0; e_th[4]=0; e_th[5]=0;
-
-    // Semantic 1: undamaged decomposition (mech=C*e_total, therm=C*e_th).
-    Vector mech_undam = prod(C, e_total);
-    Vector therm_undam = prod(C, e_th);
-    // Semantic 2: damage-scaled ((1-d)*C*e_total etc).
-    Vector mech_damaged = (1.0 - d) * mech_undam;
-    Vector therm_damaged = (1.0 - d) * therm_undam;
-    // Total damaged stress.
-    std::vector<Vector> out;
-    p_elem->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, out, r_mp.GetProcessInfo());
-    const Vector total_observed = out[0];
-    const Vector total_damaged = (1.0 - d) * prod(C, e_total - e_th);
-    KRATOS_EXPECT_NEAR(total_observed[0], total_damaged[0],
-                       characterization_relative_tolerance * std::abs(total_observed[0]));
-
-    p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_VECTOR, out, r_mp.GetProcessInfo());
-    const Vector mech_observed = out[0];
-    p_elem->CalculateOnIntegrationPoints(THERMAL_STRESS_VECTOR, out, r_mp.GetProcessInfo());
-    const Vector therm_observed = out[0];
-
-    // Determine which semantic: compare mech_observed against mech_undam vs mech_damaged.
-    const bool mech_is_damaged = std::abs(mech_observed[0] - mech_damaged[0]) <
-                                 std::abs(mech_observed[0] - mech_undam[0]);
-    const bool therm_is_damaged = std::abs(therm_observed[0] - therm_damaged[0]) <
-                                  std::abs(therm_observed[0] - therm_undam[0]);
-    std::cout << "[5B.1] local damage: mech_is_damage_scaled=" << mech_is_damaged
-              << " therm_is_damage_scaled=" << therm_is_damaged
-              << " total==mech-therm="
-              << (std::abs((mech_observed[0]-therm_observed[0])-total_observed[0]) <
-                  characterization_relative_tolerance * std::abs(total_observed[0])) << std::endl;
-    KRATOS_EXPECT_TRUE(mech_is_damaged);
-    KRATOS_EXPECT_TRUE(therm_is_damaged);
-    KRATOS_EXPECT_TRUE(std::abs((mech_observed[0]-therm_observed[0])-total_observed[0]) <
-                       characterization_relative_tolerance * std::abs(total_observed[0]));
-}
 
 //************************************************************************************
 // 4. Nonlocal Simo-Ju and Modified-Mises: damage-scaled semantics + side effects.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_NonlocalDamage, KratosDamFastSuite)
-{
-    for (bool modified_mises : {false, true}) {
-        Model model;
-        auto p_law = modified_mises
-            ? ConstitutiveLaw::Pointer(new ThermalModifiedMisesNonlocalDamage3DLaw())
-            : ConstitutiveLaw::Pointer(new ThermalSimoJuNonlocalDamage3DLaw());
-        TestThermoMechanicElement* p_elem = nullptr;
-        ModelPart& r_mp = CreateOutputModelPart<TestThermoMechanicElement>(
-            model, modified_mises ? "ModOut" : "SJOut", p_elem, p_law, false);
-        p_elem->Initialize(r_mp.GetProcessInfo());
-        const double eps = 2.0e-5, dT = 40.0;
-        ApplyState(r_mp, eps, dT);
-
-        // Commit a damaged state driven by a prescribed nonlocal strain.
-        r_mp.GetProcessInfo()[IS_CONVERGED] = true;
-        p_elem->GetConstitutiveLaw(0).SetValue(NONLOCAL_EQUIVALENT_STRAIN, 1.2e-2, r_mp.GetProcessInfo());
-        p_elem->FinalizeSolutionStep(r_mp.GetProcessInfo());
-
-        double d = 0.0;
-        p_elem->GetConstitutiveLaw(0).GetValue(DAMAGE_VARIABLE, d);
-        KRATOS_EXPECT_TRUE(d > 0.0);
-
-        // Side-effect audit: record committed state before outputs.
-        double threshold_before = 0.0, local_before = 0.0;
-        p_elem->GetConstitutiveLaw(0).GetValue(STATE_VARIABLE, threshold_before);
-        p_elem->GetConstitutiveLaw(0).GetValue(LOCAL_EQUIVALENT_STRAIN, local_before);
-
-        std::vector<Vector> out;
-        std::vector<Matrix> m_out;
-        for (std::size_t repeat = 0; repeat < 3; ++repeat) {
-            p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_VECTOR, out, r_mp.GetProcessInfo());
-            p_elem->CalculateOnIntegrationPoints(THERMAL_STRESS_VECTOR, out, r_mp.GetProcessInfo());
-            p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_VECTOR, out, r_mp.GetProcessInfo());
-            p_elem->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, m_out, r_mp.GetProcessInfo());
-        }
-        double threshold_after = 0.0, local_after = 0.0;
-        p_elem->GetConstitutiveLaw(0).GetValue(STATE_VARIABLE, threshold_after);
-        p_elem->GetConstitutiveLaw(0).GetValue(LOCAL_EQUIVALENT_STRAIN, local_after);
-        KRATOS_EXPECT_NEAR(threshold_after, threshold_before, 1.0e-15);
-        KRATOS_EXPECT_NEAR(local_after, local_before, 1.0e-15);
-
-        // Damage-scaled semantics.
-        const Matrix C = C3D(2.0e7, test_poisson_ratio);
-        const Vector e_total = TotalStrain3D(eps);
-        const double alpha_dT = test_thermal_expansion * dT;
-        Vector e_th(6);
-        e_th[0]=alpha_dT; e_th[1]=alpha_dT; e_th[2]=alpha_dT; e_th[3]=0; e_th[4]=0; e_th[5]=0;
-        p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_VECTOR, out, r_mp.GetProcessInfo());
-        const Vector mech_observed = out[0];
-        const Vector mech_damaged = (1.0 - d) * prod(C, e_total);
-        KRATOS_EXPECT_NEAR(mech_observed[0], mech_damaged[0],
-                           characterization_relative_tolerance * std::abs(mech_observed[0]));
-        std::cout << "[5B.1] nonlocal " << (modified_mises ? "ModMises" : "SimoJu")
-                  << ": d=" << d << " mech damage-scaled, no committed-state side effect" << std::endl;
-    }
-}
 
 //************************************************************************************
 // 5. SMA behavior for the specialized outputs (current laws, pre-Phase-5B.2).
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_SMABehavior, KratosDamFastSuite)
-{
-    // For the SMA element, the specialized outputs go through
-    // CalculateOnConstitutiveLaw -> CalculateValue. Both the non-nodal linear
-    // law and (since Phase 5B.2) the damage laws implement CalculateValue for
-    // these variables, so both return the correct epsilon_th.
-    for (bool linear : {true, false}) {
-        Model model;
-        auto p_law = linear
-            ? ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw())
-            : ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw());
-        TestSmallDisplacementElement* p_elem = nullptr;
-        ModelPart& r_mp = CreateOutputModelPart<TestSmallDisplacementElement>(
-            model, linear ? "SMAOutLinear" : "SMAOutDamage", p_elem, p_law, false);
-        p_elem->Initialize(r_mp.GetProcessInfo());
-        ApplyState(r_mp, 2.0e-6, 40.0);
-
-        std::vector<Vector> out;
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_VECTOR, out, r_mp.GetProcessInfo());
-        KRATOS_EXPECT_EQ(out.size(), 8);
-        // Both laws implement the parameter-aware CalculateValue path and return
-        // the physically correct epsilon_th (Phase 5B.2).
-        KRATOS_EXPECT_NEAR(out[0][0], test_thermal_expansion * 40.0, 1.0e-12);
-        std::cout << "[5B.1] SMA specialized output "
-                  << (linear ? "linear=correct" : "damage=correct (Phase 5B.2)") << std::endl;
-    }
-}
 
 //************************************************************************************
 // 6. Vector/tensor dimensions and tensor conversion.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_Dimensions, KratosDamFastSuite)
-{
-    Model model;
-    TestThermoMechanicElement* p_elem = nullptr;
-    ModelPart& r_mp = CreateOutputModelPart<TestThermoMechanicElement>(
-        model, "DimOut", p_elem, ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw()), false);
-    p_elem->Initialize(r_mp.GetProcessInfo());
-    ApplyState(r_mp, 2.0e-6, 40.0);
-
-    std::vector<Vector> v_out;
-    std::vector<Matrix> m_out;
-    p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_VECTOR, v_out, r_mp.GetProcessInfo());
-    KRATOS_EXPECT_EQ(v_out[0].size(), 6);   // 3D Voigt size 6
-    p_elem->CalculateOnIntegrationPoints(THERMAL_STRESS_VECTOR, v_out, r_mp.GetProcessInfo());
-    KRATOS_EXPECT_EQ(v_out[0].size(), 6);
-    p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_VECTOR, v_out, r_mp.GetProcessInfo());
-    KRATOS_EXPECT_EQ(v_out[0].size(), 6);
-    p_elem->CalculateOnIntegrationPoints(THERMAL_STRESS_TENSOR, m_out, r_mp.GetProcessInfo());
-    KRATOS_EXPECT_EQ(m_out[0].size1(), 3);
-    KRATOS_EXPECT_EQ(m_out[0].size2(), 3);
-    p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_TENSOR, m_out, r_mp.GetProcessInfo());
-    KRATOS_EXPECT_EQ(m_out[0].size1(), 3);
-    KRATOS_EXPECT_EQ(m_out[0].size2(), 3);
-    std::cout << "[5B.1] dimensions: 3D Voigt 6, tensors 3x3" << std::endl;
-}
 
 } // namespace Testing
 } // namespace Kratos

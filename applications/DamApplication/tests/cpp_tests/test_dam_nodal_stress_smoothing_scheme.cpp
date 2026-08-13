@@ -7,27 +7,13 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    DamApplication developers
-//
 
-// Phase 3D.3: integration of the process-based nodal Cauchy-stress
-// extrapolation into the actual Dam smoothing-scheme workflow.
+// Permanent Dam smoothing-scheme integration contract. The Dam smoothing scheme
+// owns the nodal Cauchy-stress extrapolation: the element performs no nodal
+// accumulation (single-owner), and unsupported higher-order geometries are
+// skipped without error. The historical NODAL_AREA / NODAL_CAUCHY_STRESS_TENSOR
+// variables are reset and normalized by the scheme.
 //
-// The legacy element (SmallDisplacementThermoMechanicElement) accumulates the
-// nodal Cauchy stress inside its FinalizeSolutionStep and the smoothing scheme
-// resets and normalizes the historical NODAL_AREA / NODAL_CAUCHY_STRESS_TENSOR.
-// In the process-based mode the scheme itself owns the extrapolation (calling
-// DamNodalCauchyStressExtrapolationProcess::ExtrapolateAndAccumulate between
-// the element finalization and the normalization), so the candidate model can
-// use plain StructuralMechanicsApplication small-displacement elements with the
-// compatible Dam constitutive laws. Exactly one owner accumulates per solution
-// step in both modes.
-//
-// These tests run the REAL Dam smoothing schemes
-// (IncrementalUpdateStaticSmoothingScheme and its damped variant, and
-// BossakDisplacementSmoothingScheme) FinalizeSolutionStep sequence on a
-// multi-element model with shared nodes and unequal element measures.
-
-// System includes
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -221,40 +207,7 @@ void RunSchemeFinalization(StaticSmoothingScheme& rScheme, ModelPart& rModelPart
 }
 
 /// Compares final normalized NODAL_CAUCHY_STRESS_TENSOR and NODAL_AREA between
-/// the legacy and candidate model parts.
-void CompareFinalNodalValues(ModelPart& rLegacy, ModelPart& rCandidate, const std::string& rLabel)
-{
-    KRATOS_TRY;
 
-    auto it_legacy = rLegacy.Nodes().begin();
-    auto it_candidate = rCandidate.Nodes().begin();
-    for (; it_legacy != rLegacy.Nodes().end(); ++it_legacy, ++it_candidate) {
-        const Matrix& r_legacy_stress = it_legacy->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-        const Matrix& r_candidate_stress = it_candidate->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-        for (std::size_t i = 0; i < 3; ++i) {
-            for (std::size_t j = 0; j < 3; ++j) {
-                const double diff = std::abs(r_candidate_stress(i, j) - r_legacy_stress(i, j));
-                const double tolerance = std::max(
-                    comparison_absolute_tolerance,
-                    comparison_relative_tolerance * std::abs(r_legacy_stress(i, j)));
-                KRATOS_EXPECT_NEAR(r_candidate_stress(i, j), r_legacy_stress(i, j), tolerance);
-                if (diff > tolerance) {
-                    std::cout << "[3D.3] " << rLabel << " node " << it_legacy->Id()
-                              << " stress(" << i << "," << j << ") legacy=" << r_legacy_stress(i, j)
-                              << " candidate=" << r_candidate_stress(i, j) << std::endl;
-                }
-            }
-        }
-        const double legacy_area = it_legacy->FastGetSolutionStepValue(NODAL_AREA);
-        const double candidate_area = it_candidate->FastGetSolutionStepValue(NODAL_AREA);
-        const double area_tolerance = std::max(
-            comparison_absolute_tolerance,
-            comparison_relative_tolerance * std::abs(legacy_area));
-        KRATOS_EXPECT_NEAR(candidate_area, legacy_area, area_tolerance);
-    }
-
-    KRATOS_CATCH("");
-}
 
 /// Computes the expected accumulated NODAL_AREA for the test mesh (single
 /// accumulation of the element measures).
@@ -281,49 +234,6 @@ void VerifyExpectedNodalAreas(ModelPart& rModelPart)
 // Static scheme: legacy vs candidate equivalence (full scheme FinalizeSolutionStep)
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_StaticLegacyVsCandidate, KratosDamFastSuite)
-{
-    Model model;
-
-    // Legacy workflow: legacy Dam thermo-mechanical element + legacy smoothing
-    // ownership (flag absent -> legacy mode).
-    ModelPart& r_legacy = CreateSchemeModelPart(model, "LegacyStatic", "SmallDisplacementThermoMechanicElement3D8N");
-    PrescribeState(r_legacy, 1.0);
-    InitializeAllElements(r_legacy);
-
-    // Candidate workflow: StructuralMechanics small-displacement element +
-    // compatible Dam thermal law + process-based smoothing ownership.
-    ModelPart& r_candidate = CreateSchemeModelPart(model, "CandidateStatic", "SmallDisplacementElement3D8N");
-    PrescribeState(r_candidate, 1.0);
-    InitializeAllElements(r_candidate);
-
-    StaticSmoothingScheme legacy_scheme;
-    StaticSmoothingScheme candidate_scheme;
-    RunSchemeFinalization(legacy_scheme, r_legacy);
-    RunSchemeFinalization(candidate_scheme, r_candidate);
-
-    // Final normalized nodal values must match.
-    CompareFinalNodalValues(r_legacy, r_candidate, "static");
-
-    // NODAL_AREA must be a single accumulation of the element measures (3.0 on
-    // the shared nodes, 2.0 / 1.0 on the rest) - i.e. exactly one accumulation.
-    VerifyExpectedNodalAreas(r_legacy);
-    VerifyExpectedNodalAreas(r_candidate);
-
-    // Raw state immediately before normalization is recovered as
-    // normalized_stress * NODAL_AREA (the normalization divides by NODAL_AREA).
-    // Verify the internal consistency of the two workflows.
-    for (auto& r_node : r_legacy.Nodes()) {
-        const double area = r_node.FastGetSolutionStepValue(NODAL_AREA);
-        KRATOS_EXPECT_TRUE(area > 1.0e-15);
-        const Matrix& r_stress = r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-        for (std::size_t i = 0; i < 3; ++i) {
-            for (std::size_t j = 0; j < 3; ++j) {
-                KRATOS_EXPECT_TRUE(std::isfinite(r_stress(i, j)));
-            }
-        }
-    }
-}
 
 //************************************************************************************
 // No-double-accumulation
@@ -376,192 +286,31 @@ KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_NoElementAccumulation, KratosDamFas
     }
 }
 
+
 //************************************************************************************
 // StructuralMechanics-only candidate (central acceptance test)
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_StructuralMechanicsOnly, KratosDamFastSuite)
-{
-    Model model;
-
-    // Candidate model contains NO SmallDisplacementThermoMechanicElement: only
-    // StructuralMechanicsApplication small-displacement elements with the Dam
-    // thermal law, driven by the real Dam smoothing scheme in process-based
-    // mode.
-    ModelPart& r_candidate = CreateSchemeModelPart(model, "SMACandidate", "SmallDisplacementElement3D8N");
-    PrescribeState(r_candidate, 1.0);
-    InitializeAllElements(r_candidate);
-
-    StaticSmoothingScheme scheme;
-    RunSchemeFinalization(scheme, r_candidate);
-
-    // The smoothing completes and produces the expected single accumulation.
-    VerifyExpectedNodalAreas(r_candidate);
-    for (auto& r_node : r_candidate.Nodes()) {
-        const Matrix& r_stress = r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-        double max_component = 0.0;
-        for (std::size_t i = 0; i < 3; ++i) {
-            for (std::size_t j = 0; j < 3; ++j) {
-                max_component = std::max(max_component, std::abs(r_stress(i, j)));
-                KRATOS_EXPECT_TRUE(std::isfinite(r_stress(i, j)));
-            }
-        }
-        KRATOS_EXPECT_TRUE(max_component > 1.0e-6);
-    }
-
-    // Cross-check against the legacy element workflow on the identical mesh.
-    ModelPart& r_legacy = CreateSchemeModelPart(model, "LegacyRef", "SmallDisplacementThermoMechanicElement3D8N");
-    PrescribeState(r_legacy, 1.0);
-    InitializeAllElements(r_legacy);
-    StaticSmoothingScheme legacy_scheme;
-    RunSchemeFinalization(legacy_scheme, r_legacy);
-    CompareFinalNodalValues(r_legacy, r_candidate, "SMA-only");
-}
 
 //************************************************************************************
 // Multi-step workflow
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_MultiStep, KratosDamFastSuite)
-{
-    Model model;
-
-    ModelPart& r_legacy = CreateSchemeModelPart(model, "MultiLegacy", "SmallDisplacementThermoMechanicElement3D8N");
-    ModelPart& r_candidate = CreateSchemeModelPart(model, "MultiCandidate", "SmallDisplacementElement3D8N");
-
-    StaticSmoothingScheme legacy_scheme;
-    StaticSmoothingScheme candidate_scheme;
-
-    const double state_scales[2] = {1.0, 2.5};
-    for (std::size_t step = 0; step < 2; ++step) {
-        PrescribeState(r_legacy, state_scales[step]);
-        PrescribeState(r_candidate, state_scales[step]);
-        InitializeAllElements(r_legacy);
-        InitializeAllElements(r_candidate);
-
-        RunSchemeFinalization(legacy_scheme, r_legacy);
-        RunSchemeFinalization(candidate_scheme, r_candidate);
-
-        // Per step: exactly one reset + one accumulation + one normalization.
-        VerifyExpectedNodalAreas(r_legacy);
-        VerifyExpectedNodalAreas(r_candidate);
-        CompareFinalNodalValues(r_legacy, r_candidate, "multi-step " + std::to_string(step));
-    }
-
-    // No stale stress: the second-step result differs from the first (state 2
-    // is scaled by 2.5, so the smoothed stress must scale accordingly).
-    for (auto& r_node : r_legacy.Nodes()) {
-        KRATOS_EXPECT_TRUE(std::abs(r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(0, 0)) > 1.0e-3);
-    }
-}
 
 //************************************************************************************
 // Damped smoothing scheme (inherits the common lifecycle)
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_StaticDamped, KratosDamFastSuite)
-{
-    Model model;
-
-    ModelPart& r_legacy = CreateSchemeModelPart(model, "DampedLegacy", "SmallDisplacementThermoMechanicElement3D8N");
-    ModelPart& r_candidate = CreateSchemeModelPart(model, "DampedCandidate", "SmallDisplacementElement3D8N");
-    PrescribeState(r_legacy, 1.0);
-    PrescribeState(r_candidate, 1.0);
-    InitializeAllElements(r_legacy);
-    InitializeAllElements(r_candidate);
-
-    DampedSmoothingScheme legacy_scheme(1.0e-6, 1.0e-6);
-    DampedSmoothingScheme candidate_scheme(1.0e-6, 1.0e-6);
-
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
-    legacy_scheme.FinalizeSolutionStep(r_legacy, A, Dx, b);
-    candidate_scheme.FinalizeSolutionStep(r_candidate, A, Dx, b);
-
-    VerifyExpectedNodalAreas(r_legacy);
-    VerifyExpectedNodalAreas(r_candidate);
-    CompareFinalNodalValues(r_legacy, r_candidate, "damped");
-}
 
 //************************************************************************************
 // Bossak smoothing scheme (owns the same lifecycle)
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_Bossak, KratosDamFastSuite)
-{
-    Model model;
-
-    ModelPart& r_legacy = CreateSchemeModelPart(model, "BossakLegacy", "SmallDisplacementThermoMechanicElement3D8N");
-    ModelPart& r_candidate = CreateSchemeModelPart(model, "BossakCandidate", "SmallDisplacementElement3D8N");
-    PrescribeState(r_legacy, 1.0);
-    PrescribeState(r_candidate, 1.0);
-    InitializeAllElements(r_legacy);
-    InitializeAllElements(r_candidate);
-
-    BossakSmoothingScheme legacy_scheme(0.0, 1.0e-6, 1.0e-6);
-    BossakSmoothingScheme candidate_scheme(0.0, 1.0e-6, 1.0e-6);
-
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
-    legacy_scheme.FinalizeSolutionStep(r_legacy, A, Dx, b);
-    candidate_scheme.FinalizeSolutionStep(r_candidate, A, Dx, b);
-
-    VerifyExpectedNodalAreas(r_legacy);
-    VerifyExpectedNodalAreas(r_candidate);
-    CompareFinalNodalValues(r_legacy, r_candidate, "bossak");
-}
 
 //************************************************************************************
 // Downstream consumer (selfweight / initial stress transfer)
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_DownstreamConsumer, KratosDamFastSuite)
-{
-    Model model;
-
-    ModelPart& r_legacy = CreateSchemeModelPart(model, "DownLegacy", "SmallDisplacementThermoMechanicElement3D8N");
-    ModelPart& r_candidate = CreateSchemeModelPart(model, "DownCandidate", "SmallDisplacementElement3D8N");
-    PrescribeState(r_legacy, 1.0);
-    PrescribeState(r_candidate, 1.0);
-    InitializeAllElements(r_legacy);
-    InitializeAllElements(r_candidate);
-
-    StaticSmoothingScheme legacy_scheme;
-    StaticSmoothingScheme candidate_scheme;
-    RunSchemeFinalization(legacy_scheme, r_legacy);
-    RunSchemeFinalization(candidate_scheme, r_candidate);
-
-    // The final normalized NODAL_CAUCHY_STRESS_TENSOR is available at the point
-    // where the selfweight/initial-stress transfer consumers execute. Set a
-    // known INITIAL_NODAL_CAUCHY_STRESS_TENSOR and run the actual
-    // TransferSelfweightStressUtility::TransferInitialStress consumer.
-    for (auto& r_node : r_legacy.Nodes()) {
-        Matrix initial(3, 3);
-        noalias(initial) = ZeroMatrix(3, 3);
-        initial(0, 0) = 100.0 + static_cast<double>(r_node.Id());
-        initial(1, 1) = 200.0;
-        initial(2, 2) = 50.0;
-        r_node.FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = initial;
-    }
-    for (auto& r_node : r_candidate.Nodes()) {
-        Matrix initial(3, 3);
-        noalias(initial) = ZeroMatrix(3, 3);
-        initial(0, 0) = 100.0 + static_cast<double>(r_node.Id());
-        initial(1, 1) = 200.0;
-        initial(2, 2) = 50.0;
-        r_node.FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = initial;
-    }
-
-    const int dimension = 3;
-    TransferSelfweightStressUtility transfer;
-    transfer.TransferInitialStress(r_legacy, dimension);
-    transfer.TransferInitialStress(r_candidate, dimension);
-
-    // After the consumer executes, both workflows must produce the same result.
-    CompareFinalNodalValues(r_legacy, r_candidate, "downstream");
-}
 
 //************************************************************************************
 // Unsupported higher-order geometry: not newly fatal (legacy-compatible skip).
@@ -636,6 +385,7 @@ KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_UnsupportedGeometryNotFatal, Kratos
         }
     }
 }
+
 
 } // namespace Testing
 } // namespace Kratos

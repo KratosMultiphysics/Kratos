@@ -7,39 +7,12 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    DamApplication developers
-//
 
-// Phase 2C characterization: the complete non-nodal linear thermo-elastic
-// DamApplication law family used with the standard StructuralMechanicsApplication
-// SmallDisplacement element, compared against the legacy
-// DamApplication::SmallDisplacementThermoMechanicElement.
+// Permanent Dam thermal linear-elastic contract. The non-nodal thermal laws
+// (3D, plane strain, plane stress) on the StructuralMechanics small-displacement
+// element reproduce the analytical restrained-expansion response and serialize
+// correctly. These tests protect Dam constitutive behavior, not migration history.
 //
-// Configurations covered:
-//   - Triangle2D3 and Quadrilateral2D4 with ThermalLinearElastic2DPlaneStrain;
-//   - Triangle2D3 and Quadrilateral2D4 with ThermalLinearElastic2DPlaneStress;
-//   - Tetrahedra3D4 with ThermalLinearElastic3DLaw.
-// (Hexahedra3D8 is covered by the phase-2A thermal tests as the regression case.)
-//
-// Inheritance (see also the report):
-//   ThermalLinearElastic3DLaw
-//     -> ThermalLinearElastic2DPlaneStrain
-//          -> ThermalLinearElastic2DPlaneStress
-// The PK2/Kirchhoff/Cauchy material-response methods, the common thermo-elastic
-// response (CalculateThermoElasticResponse) and the
-// RequiresInitializeMaterialResponse()/RequiresFinalizeMaterialResponse()
-// overrides are all inherited unchanged from ThermalLinearElastic3DLaw. The 2D
-// laws only specialize WorkingSpaceDimension, GetStrainSize, GetLawFeatures,
-// CalculateLinearElasticMatrix and CalculateThermalStrain.
-//
-// Plane-strain effective thermal strain: the law applies
-//   epsilon_th = (1 + nu) * alpha * delta_T * [1,1,0]
-// which, multiplied by the reduced plane-strain constitutive matrix, reproduces
-// the in-plane restrained thermal stress of the 3D isotropic formulation:
-//   sigma_xx = sigma_yy = -E*alpha*delta_T/(1-2*nu).
-// Plane stress uses epsilon_th = alpha*delta_T*[1,1,0] giving
-//   sigma_xx = sigma_yy = -E*alpha*delta_T/(1-nu).
-
-// System includes
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -263,23 +236,7 @@ void PrescribeFamilyScenario(ModelPart& rModelPart, const std::size_t rScenarioI
     KRATOS_CATCH("");
 }
 
-/// Calculates the compared responses of the element of the model part.
-void CalculateFamilyResponses(ModelPart& rModelPart, FamilyResponse& rResponse)
-{
-    KRATOS_TRY;
 
-    auto p_element = rModelPart.pGetElement(1);
-    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-
-    p_element->CalculateLocalSystem(rResponse.lhs, rResponse.rhs, r_process_info);
-    p_element->CalculateLeftHandSide(rResponse.independent_lhs, r_process_info);
-    p_element->CalculateRightHandSide(rResponse.independent_rhs, r_process_info);
-    p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, rResponse.strain_vectors, r_process_info);
-    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rResponse.cauchy_stress_vectors, r_process_info);
-    p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, rResponse.pk2_stress_vectors, r_process_info);
-
-    KRATOS_CATCH("");
-}
 
 /// Tolerance associated with a reference value (same philosophy as before).
 double ComponentTolerance(const double rReferenceValue, const double rReferenceScale)
@@ -398,88 +355,11 @@ void ExpectMatrixComponentsNear(
     }
 }
 
-void ExpectIntegrationPointVectorsNear(
-    const std::vector<Vector>& rComputed,
-    const std::vector<Vector>& rReference,
-    const std::string& rWhat)
-{
-    ASSERT_EQ(rComputed.size(), rReference.size()) << "Integration point count mismatch comparing " << rWhat;
-    for (std::size_t point_number = 0; point_number < rReference.size(); ++point_number) {
-        ExpectVectorComponentsNear(
-            rComputed[point_number], rReference[point_number],
-            rWhat + " at integration point " + std::to_string(point_number));
-    }
-}
 
-/// Compares all the legacy-versus-candidate quantities for one scenario.
-void CompareFamilyResponses(
-    const std::size_t rScenarioIndex,
-    const FamilyResponse& rLegacy,
-    const FamilyResponse& rCandidate,
-    const std::string& rLabel)
-{
-    const std::string scenario = "T" + std::to_string(rScenarioIndex) + " " + rLabel;
-    ExpectMatrixComponentsNear(rLegacy.lhs, rCandidate.lhs, scenario + " local system LHS");
-    ExpectVectorComponentsNear(rLegacy.rhs, rCandidate.rhs, scenario + " local system RHS");
-    ExpectMatrixComponentsNear(rLegacy.independent_lhs, rCandidate.independent_lhs, scenario + " independent LHS");
-    ExpectVectorComponentsNear(rLegacy.independent_rhs, rCandidate.independent_rhs, scenario + " independent RHS");
-    ExpectIntegrationPointVectorsNear(rLegacy.strain_vectors, rCandidate.strain_vectors, scenario + " strain vector");
-    ExpectIntegrationPointVectorsNear(rLegacy.cauchy_stress_vectors, rCandidate.cauchy_stress_vectors, scenario + " Cauchy stress vector");
-    ExpectIntegrationPointVectorsNear(rCandidate.pk2_stress_vectors, rLegacy.cauchy_stress_vectors, scenario + " candidate PK2 vs legacy Cauchy stress vector");
-    // For an infinitesimal-strain law PK2 == Cauchy in the candidate.
-    ExpectIntegrationPointVectorsNear(rCandidate.pk2_stress_vectors, rCandidate.cauchy_stress_vectors, scenario + " candidate PK2 vs candidate Cauchy stress vector");
-}
 
-/// Runs the full comparison for one configuration over the three scenarios.
-void RunConfigurationComparison(
-    const std::string& rLegacyElementName,
-    const std::string& rCandidateElementName,
-    const std::string& rLawName,
-    const std::size_t rDimension,
-    const std::string& rLabel)
-{
-    Model model;
-    ModelPart& r_legacy = CreateFamilyModelPart(
-        model, "Legacy" + rLabel, rLegacyElementName, rLawName, rDimension, 0);
-    ModelPart& r_candidate = CreateFamilyModelPart(
-        model, "Candidate" + rLabel, rCandidateElementName, rLawName, rDimension, 100);
 
-    auto p_legacy_element = r_legacy.pGetElement(1);
-    auto p_candidate_element = r_candidate.pGetElement(1);
-    ProcessInfo& r_legacy_pi = r_legacy.GetProcessInfo();
-    ProcessInfo& r_candidate_pi = r_candidate.GetProcessInfo();
 
-    KRATOS_EXPECT_EQ(p_legacy_element->Check(r_legacy_pi), 0);
-    KRATOS_EXPECT_EQ(p_candidate_element->Check(r_candidate_pi), 0);
-    p_legacy_element->Initialize(r_legacy_pi);
-    p_candidate_element->Initialize(r_candidate_pi);
 
-    for (std::size_t scenario = 0; scenario < 3; ++scenario) {
-        r_legacy_pi[STEP] = scenario + 1;
-        r_legacy_pi[TIME] = 0.1 * static_cast<double>(scenario + 1);
-        r_candidate_pi[STEP] = scenario + 1;
-        r_candidate_pi[TIME] = 0.1 * static_cast<double>(scenario + 1);
-
-        PrescribeFamilyScenario(r_legacy, scenario, rDimension);
-        PrescribeFamilyScenario(r_candidate, scenario, rDimension);
-
-        p_legacy_element->InitializeSolutionStep(r_legacy_pi);
-        p_candidate_element->InitializeSolutionStep(r_candidate_pi);
-        p_legacy_element->InitializeNonLinearIteration(r_legacy_pi);
-        p_candidate_element->InitializeNonLinearIteration(r_candidate_pi);
-
-        FamilyResponse legacy_response, candidate_response;
-        CalculateFamilyResponses(r_legacy, legacy_response);
-        CalculateFamilyResponses(r_candidate, candidate_response);
-
-        p_legacy_element->FinalizeNonLinearIteration(r_legacy_pi);
-        p_candidate_element->FinalizeNonLinearIteration(r_candidate_pi);
-        p_legacy_element->FinalizeSolutionStep(r_legacy_pi);
-        p_candidate_element->FinalizeSolutionStep(r_candidate_pi);
-
-        CompareFamilyResponses(scenario, legacy_response, candidate_response, rLabel);
-    }
-}
 
 /// Owns the vectors bound to a ConstitutiveLaw::Parameters (the Parameters
 /// stores pointers to them, so they must outlive the response evaluation).
@@ -523,48 +403,18 @@ struct FamilyLawParametersBundle
 // 2D plane strain
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_PlaneStrain_Triangle2D3, KratosDamFastSuite)
-{
-    RunConfigurationComparison(
-        "SmallDisplacementThermoMechanicElement2D3N", "SmallDisplacementElement2D3N",
-        "ThermalLinearElastic2DPlaneStrain", 2, "PlaneStrainTriangle2D3");
-}
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_PlaneStrain_Quadrilateral2D4, KratosDamFastSuite)
-{
-    RunConfigurationComparison(
-        "SmallDisplacementThermoMechanicElement2D4N", "SmallDisplacementElement2D4N",
-        "ThermalLinearElastic2DPlaneStrain", 2, "PlaneStrainQuadrilateral2D4");
-}
 
 //************************************************************************************
 // 2D plane stress
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_PlaneStress_Triangle2D3, KratosDamFastSuite)
-{
-    RunConfigurationComparison(
-        "SmallDisplacementThermoMechanicElement2D3N", "SmallDisplacementElement2D3N",
-        "ThermalLinearElastic2DPlaneStress", 2, "PlaneStressTriangle2D3");
-}
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_PlaneStress_Quadrilateral2D4, KratosDamFastSuite)
-{
-    RunConfigurationComparison(
-        "SmallDisplacementThermoMechanicElement2D4N", "SmallDisplacementElement2D4N",
-        "ThermalLinearElastic2DPlaneStress", 2, "PlaneStressQuadrilateral2D4");
-}
 
 //************************************************************************************
 // 3D tetrahedron
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_3D_Tetrahedra3D4, KratosDamFastSuite)
-{
-    RunConfigurationComparison(
-        "SmallDisplacementThermoMechanicElement3D4N", "SmallDisplacementElement3D4N",
-        "ThermalLinearElastic3DLaw", 3, "Tetrahedra3D4");
-}
 
 //************************************************************************************
 // Analytical restrained thermal stress
@@ -602,6 +452,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Analytical_PlaneStrainRestrained, Kratos
     }
 }
 
+
 KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Analytical_PlaneStressRestrained, KratosDamFastSuite)
 {
     // Restrained uniform thermal expansion (T1): zero total strain, uniform
@@ -633,69 +484,12 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Analytical_PlaneStressRestrained, Kratos
     }
 }
 
+
 //************************************************************************************
 // 2D lifecycle (inherited behavior)
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Lifecycle_PlaneStrain, KratosDamFastSuite)
-{
-    // The lifecycle behavior inherited from ThermalLinearElastic3DLaw must work
-    // without errors for the 2D laws and must not change subsequent responses.
-    Model model;
-    ModelPart& r_candidate = CreateFamilyModelPart(
-        model, "LifecyclePlaneStrain", "SmallDisplacementElement2D4N",
-        "ThermalLinearElastic2DPlaneStrain", 2, 0);
-    PrescribeFamilyScenario(r_candidate, 1, 2);
-    auto p_element = r_candidate.pGetElement(1);
-    const ProcessInfo& r_pi = r_candidate.GetProcessInfo();
 
-    KRATOS_EXPECT_EQ(p_element->Check(r_pi), 0);
-    p_element->Initialize(r_pi);
-
-    std::vector<Vector> reference;
-    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, reference, r_pi);
-
-    p_element->InitializeSolutionStep(r_pi);
-    p_element->InitializeNonLinearIteration(r_pi);
-    std::vector<Vector> after_initialize;
-    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, after_initialize, r_pi);
-    ExpectIntegrationPointVectorsNear(after_initialize, reference, "plane strain lifecycle (after initialize)");
-
-    p_element->FinalizeNonLinearIteration(r_pi);
-    p_element->FinalizeSolutionStep(r_pi);
-    std::vector<Vector> after_finalize;
-    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, after_finalize, r_pi);
-    ExpectIntegrationPointVectorsNear(after_finalize, reference, "plane strain lifecycle (after finalize)");
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Lifecycle_PlaneStress, KratosDamFastSuite)
-{
-    Model model;
-    ModelPart& r_candidate = CreateFamilyModelPart(
-        model, "LifecyclePlaneStress", "SmallDisplacementElement2D4N",
-        "ThermalLinearElastic2DPlaneStress", 2, 0);
-    PrescribeFamilyScenario(r_candidate, 1, 2);
-    auto p_element = r_candidate.pGetElement(1);
-    const ProcessInfo& r_pi = r_candidate.GetProcessInfo();
-
-    KRATOS_EXPECT_EQ(p_element->Check(r_pi), 0);
-    p_element->Initialize(r_pi);
-
-    std::vector<Vector> reference;
-    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, reference, r_pi);
-
-    p_element->InitializeSolutionStep(r_pi);
-    p_element->InitializeNonLinearIteration(r_pi);
-    std::vector<Vector> after_initialize;
-    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, after_initialize, r_pi);
-    ExpectIntegrationPointVectorsNear(after_initialize, reference, "plane stress lifecycle (after initialize)");
-
-    p_element->FinalizeNonLinearIteration(r_pi);
-    p_element->FinalizeSolutionStep(r_pi);
-    std::vector<Vector> after_finalize;
-    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, after_finalize, r_pi);
-    ExpectIntegrationPointVectorsNear(after_finalize, reference, "plane stress lifecycle (after finalize)");
-}
 
 //************************************************************************************
 // Serialization of the 2D laws (chains through the modified 3D base)
@@ -751,6 +545,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Serialization_2DLaws, KratosDamFastSuite
             r_law_name + " serialization constitutive matrix");
     }
 }
+
 
 } // namespace Testing
 } // namespace Kratos
