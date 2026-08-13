@@ -22,56 +22,101 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kratos_parameters.h"
 #include "includes/data_communicator.h"
-#include "input_output/transient_database_io.h"
+#include "input_output/tabular_database_io.h"
 
 namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(KRATOS_CORE) TransientCSVDatabaseIO: public TransientDatabaseIO
+class KRATOS_API(KRATOS_CORE) CSVDatabaseIO: public TabularDatabaseIO
 {
 public:
     ///@name Type definitions
     ///@{
 
-    using BaseType = TransientDatabaseIO;
+    using BaseType = TabularDatabaseIO;
 
     using IndexType = std::size_t;
 
     using ValueType = std::variant<std::monostate, bool, int, double, std::string>;
 
-    KRATOS_CLASS_POINTER_DEFINITION(TransientCSVDatabaseIO);
+    KRATOS_CLASS_POINTER_DEFINITION(CSVDatabaseIO);
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    TransientCSVDatabaseIO(
-        const std::string& rFilename,
-        const bool WriteKratosVersion,
-        const bool WriteTimeStamp,
-        const IndexType EchoLevel,
-        Parameters FormatParameters,
-        const DataCommunicator& rDataCommunicator);
+    /**
+     * @brief Construct a new CSVDatabaseIO object for reading csv data file
+     * @details This constructor is used to construct a CSV database IO for
+     *          reading only. All the method related to writing will throw errors.
+     *
+     *          The first column should have the column header which is equal to the @p rRowIdName
+     *          having integer values in the column. This first column is always used to identify the row
+     *          when reading data.
+     *
+     * @param rInputFileName        Input CSV filename for reading.
+     * @param rRowIdName            Column header for row identifier.
+     * @param rDataCommunicator     Data communicator.
+     * @param rBooleanTrueValue     The string to be checked if the boolean column values are true. If the boolean column has some other value then it will be treated as false.
+     * @param EchoLevel             Echo level.
+     */
+    explicit CSVDatabaseIO(
+        const std::string& rInputFileName,
+        const DataCommunicator& rDataCommunicator,
+        const std::string& rRowIdName = "STEP",
+        const std::string& rBooleanTrueValue = "1",
+        const IndexType EchoLevel = 0);
 
-    ~TransientCSVDatabaseIO() override = default;
+    /**
+     * @brief Construct a new CSVDatabaseIO object for writing data to a CSV file
+     * @details This constructor is used to construct a CSV database IO for
+     *          writing only. All the methods related to reading will throw errors.
+     *
+     *          The first column will be with the column header name @p rRowIdName
+     *          having integer values in the column.
+     *
+     *          @p rTitle , Kratos version (if @p WriteKratosVersion is true), time stamp (if @p WriteTimeStamp is true)
+     *          @p rHeaderInformation will be written to the csv file at the construction of the object.
+     *
+     * @param rOutputFileName           Output csv file name.
+     * @param rDataCommunicator         Data communicator.
+     * @param rTitle                    Title of the CSV file.
+     * @param rHeaderInformation        Header information.
+     * @param rRowIdName                Column header for row identifier.
+     * @param WriteKratosVersion        If true, then the kratos version will be written in the header.
+     * @param WriteTimeStamp            If true, then the construction time at the header and destruction time at the footer will be written.
+     * @param IntLength                 Length of the ints (maximum of this or length of the column header will be used for formatting the csv data.)
+     * @param FloatPrecision            Precision of the floats written to the csv (number of decimal places.)
+     * @param StringLength              Maximum length of the strings to be expected in data (maximum of this or length of the column header will be used for formatting the csv data.)
+     * @param rBooleanFalseValue        The string to be written if the boolean data is true.
+     * @param rBooleanTrueValue         The string to be written if the boolean data is false.
+     * @param EchoLevel                 Echo level.
+     */
+    explicit CSVDatabaseIO(
+        const std::string& rOutputFileName,
+        const DataCommunicator& rDataCommunicator,
+        const std::string& rTitle,
+        const std::string& rHeaderInformation,
+        const std::string& rRowIdName = "STEP",
+        const bool WriteKratosVersion = true,
+        const bool WriteTimeStamp = true,
+        const IndexType IntLength = 7,
+        const IndexType FloatPrecision = 9,
+        const IndexType StringLength = 10,
+        const std::string& rBooleanFalseValue = "0",
+        const std::string& rBooleanTrueValue = "1",
+        const IndexType EchoLevel = 0);
 
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    void Initialize() override;
-
-    void Finalize() override;
-
-    void SetHeaderInformation(const std::string& rHeaderInformation);
+    ~CSVDatabaseIO() override;
 
     ///@}
     ///@name Input / output
     ///@{
+
+    std::vector<int> GetRowIds() const override;
 
     void Read(
         bool& rValue,
@@ -128,13 +173,6 @@ private:
     ///@name Private class definitions
     ///@{
 
-    enum FileAccessMode
-    {
-        NOT_INITIALIZED = 0,
-        READ_ONLY = 1,
-        WRITE_ONLY = 2
-    };
-
     struct FormatSettings
     {
         IndexType mIntLength;
@@ -157,6 +195,8 @@ private:
         ///@}
         ///@name Public operations
         ///@{
+
+        ValueType GetDummyValue() const;
 
         std::string GetHeader() const;
 
@@ -187,13 +227,13 @@ private:
     ///@name Private common member variables
     ///@{
 
-    IndexType mEchoLevel;
+    const std::string mFileName;
 
-    std::string mFileName;
+    const bool mIsReadOnly;
 
     const DataCommunicator& mrDataCommunicator;
 
-    FileAccessMode mFileAccessMode;
+    const IndexType mEchoLevel;
 
     ///@}
     ///@name Private member variables for writing
@@ -202,10 +242,6 @@ private:
     std::vector<std::pair<Column, ValueType>> mWritingData;
 
     std::shared_ptr<FormatSettings> mpFormatSettings;
-
-    std::string mHeaderInformation;
-
-    bool mWriteKratosVersion;
 
     bool mWriteTimeStamp;
 
@@ -234,8 +270,6 @@ private:
         TDataType& rValue,
         const int Step,
         const std::string& rKey);
-
-    void ReadDataFromCSVFile();
 
     ///@}
     ///@name Private operations for writing
