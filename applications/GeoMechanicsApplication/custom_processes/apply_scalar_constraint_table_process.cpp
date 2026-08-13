@@ -125,7 +125,7 @@ void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticLine(ModelPart& rM
 
     ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
                                                      NamesOfSettingsToCopy);
- 
+
     InstantiateProcessByTablePresence<ApplyPhreaticLinePressureTableProcess, ApplyConstantPhreaticLinePressureProcess>(
         rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
 }
@@ -140,7 +140,7 @@ void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticMultiLine(ModelPar
 
     ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
                                                      NamesOfSettingsToCopy);
- 
+
     InstantiateProcessByTablePresence<ApplyPhreaticMultiLinePressureTableProcess, ApplyConstantPhreaticMultiLinePressureProcess>(
         rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
 }
@@ -155,7 +155,7 @@ void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticSurface(ModelPart&
 
     ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
                                                      NamesOfSettingsToCopy);
- 
+
     InstantiateProcessByTablePresence<ApplyPhreaticSurfacePressureTableProcess, ApplyConstantPhreaticSurfacePressureProcess>(
         rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
 }
@@ -172,7 +172,7 @@ void ApplyScalarConstraintTableProcess::MakeProcessForInterpolatedLine(ModelPart
 
     ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
                                                      NamesOfSettingsToCopy);
- 
+
     mProcesses.emplace_back(std::make_unique<ApplyConstantInterpolateLinePressureProcess>(
         rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, NamesOfSettingsToCopy)));
 }
