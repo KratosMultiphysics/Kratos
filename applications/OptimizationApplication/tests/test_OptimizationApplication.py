@@ -33,6 +33,7 @@ import test_model_part_utils
 import test_model_part_controllers
 import test_connectivity_preserving_model_part_controller
 import test_sigmoidal_projection
+import test_smooth_clamper
 import test_buffered_dict
 import control.test_master_control
 import control.material.test_material_properties_control
@@ -103,6 +104,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_external_response_function.TestExternalResponseFunction]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sigmoidal_projection.TestSigmoidalProjection]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_smooth_clamper.TestSmoothClamper]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_controllers.TestMdpaModelPartController]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserving_model_part_controller.TestConnectivityPreservingModelPartController]))
