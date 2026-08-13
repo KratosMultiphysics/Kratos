@@ -117,35 +117,79 @@ static inline double FastProjectDirection(
     return alpha;
 }
 
-    /**
-     * @brief Project a point over a plane (avoiding some steps)
-     * @tparam TPointClass1 The type of point (I)
-     * @tparam TPointClass2 The type of point (II)
-     * @tparam TPointClass2 The type of point (III)
-     * @param rPointOrigin A point in the plane
-     * @param rPointToProject The point to be projected
-     * @param rNormal The normal of the plane
-     * @param rDistance The distance to the projection
-     * @return PointProjected The point pojected over the plane
-     */
-    template<class TPointClass1, class TPointClass2 = TPointClass1, class TPointClass3 = Point>
-    static inline TPointClass3 FastProject(
-        const TPointClass1& rPointOrigin,
-        const TPointClass2& rPointToProject,
-        const array_1d<double,3>& rNormal,
-        double& rDistance
-        )
-    {
-        const array_1d<double,3> vector_points = rPointToProject - rPointOrigin;
+/**
+ * @brief Project a point over a line/plane following an arbitrary direction
+ * @tparam TGeometryType The type of the geometry
+ * @param rGeom The geometry where to be projected (Master geometry)
+ * @param rPointToProject The point to be projected (Slave point)
+ * @param rPointProjected The point projected over the plane (Output)
+ * @param rNormal The normal of the slave geometry (Projection ray direction)
+ * @param rVector The normal of the master geometry (Target plane normal)
+ * @param Tolerance Tolerance for checking IsInside the objective
+ * @return True if there is a successful projection and falls within the objective geometry
+ */
+template <class TGeometryType>
+static inline bool RobustProjectDirection(
+    const TGeometryType &rGeometryToProject,
+    const Point &rPointToProject,
+    Point &rPointProjected,
+    const array_1d<double, 3> &rSlaveNormal,  // slave normal
+    const array_1d<double, 3> &rMasterNormal, // master normal
+    const double Tolerance = 1.0e-8)
+{
+    const double slave_normal_norm = norm_2(rSlaveNormal);
+    const double master_normal_norm = norm_2(rMasterNormal);
+    if (slave_normal_norm <= Tolerance || master_normal_norm <= Tolerance) // null area surfaces
+        return false;
 
-        rDistance = inner_prod(vector_points, rNormal);
+    const array_1d<double, 3> proj_dir = rSlaveNormal / slave_normal_norm;
 
-        TPointClass3 point_projected;
+    // Ray-plane intersection denominator check
+    const double denom = inner_prod(proj_dir, rMasterNormal);
 
-        noalias(point_projected) = rPointToProject - rNormal * rDistance;
-
-        return point_projected;
+    if (std::abs(denom) <= Tolerance) { // They are orthogonal to each other
+        noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates();
+        return false;
     }
+
+    const array_1d<double, 3> point_to_plane = rGeometryToProject[0].Coordinates() - rPointToProject.Coordinates();
+    const double alpha = inner_prod(point_to_plane, rMasterNormal) / denom;
+
+    // Set exact projected point on master surface
+    noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + alpha * proj_dir;
+
+    array_1d<double, 3> aux_point_coords;
+    return rGeometryToProject.IsInside(rPointProjected.Coordinates(), aux_point_coords, rGeometryToProject.Length() * Tolerance); // We ensure that we fall inside the objective surface
+}
+
+/**
+ * @brief Project a point over a plane (avoiding some steps)
+ * @tparam TPointClass1 The type of point (I)
+ * @tparam TPointClass2 The type of point (II)
+ * @tparam TPointClass2 The type of point (III)
+ * @param rPointOrigin A point in the plane
+ * @param rPointToProject The point to be projected
+ * @param rNormal The normal of the plane
+ * @param rDistance The distance to the projection
+ * @return PointProjected The point pojected over the plane
+ */
+template <class TPointClass1, class TPointClass2 = TPointClass1, class TPointClass3 = Point>
+static inline TPointClass3 FastProject(
+    const TPointClass1 &rPointOrigin,
+    const TPointClass2 &rPointToProject,
+    const array_1d<double, 3> &rNormal,
+    double &rDistance)
+{
+    const array_1d<double, 3> vector_points = rPointToProject - rPointOrigin;
+
+    rDistance = inner_prod(vector_points, rNormal);
+
+    TPointClass3 point_projected;
+
+    noalias(point_projected) = rPointToProject - rNormal * rDistance;
+
+    return point_projected;
+}
 
     /**
      * @brief Project a point over a line/plane (simplified since using the normal in the center)

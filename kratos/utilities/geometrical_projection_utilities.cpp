@@ -21,6 +21,7 @@
 
 namespace Kratos
 {
+
 GeometricalProjectionUtilities::DistanceComputed GeometricalProjectionUtilities::FastMinimalDistanceOnLineWithRadius(
     double& rDistance,
     const Geometry<Node>& rSegment,
