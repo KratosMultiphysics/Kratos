@@ -59,19 +59,18 @@ KratosDamApplication::KratosDamApplication()
         mSmallDisplacementInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node >( Element::GeometryType::PointsArrayType(8)))),
 
         mSmallDisplacementElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
-        mSmallDisplacementElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
         mSmallDisplacementElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+        mSmallDisplacementElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
         mSmallDisplacementElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node >(Element::GeometryType::PointsArrayType(8)))),
         mSmallDisplacementElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node >(Element::GeometryType::PointsArrayType(9)))),
 
         mSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
-        mSmallDisplacementElement3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
+        mSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node >(Element::GeometryType::PointsArrayType(6)))),
         mSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
+        mSmallDisplacementElement3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
+        mSmallDisplacementElement3D15N(0, Element::GeometryType::Pointer(new Prism3D15<Node >(Element::GeometryType::PointsArrayType(15)))),
         mSmallDisplacementElement3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20<Node >(Element::GeometryType::PointsArrayType(20)))),
         mSmallDisplacementElement3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node >(Element::GeometryType::PointsArrayType(27)))),
-
-        mSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node >(Element::GeometryType::PointsArrayType(6)))),
-        mSmallDisplacementElement3D15N(0, Element::GeometryType::Pointer(new Prism3D15<Node >(Element::GeometryType::PointsArrayType(15)))),
 
 	    mFreeSurfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
         mFreeSurfaceCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
