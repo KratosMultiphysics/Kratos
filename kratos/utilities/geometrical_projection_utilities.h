@@ -106,7 +106,7 @@ static inline double FastProjectDirection(
 
     if (std::abs(denom) <= zero_tolerance) {
         noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates();
-        return 1.0e24;
+        return std::numeric_limits<double>::max();
     }
 
     const array_1d<double, 3> point_to_plane = rGeometryToProject[0].Coordinates() - rPointToProject.Coordinates();

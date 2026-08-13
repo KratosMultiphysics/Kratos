@@ -158,7 +158,7 @@ public:
 
     // The threshold coefficient considered for checking
     static constexpr double CheckThresholdCoefficient = 1.0e-12;
-    static constexpr double MinIntegrationAreaRatioTolerance = 1.0e-8;
+    static constexpr double MinIntegrationAreaRatioTolerance = 1.0e-5;
     static constexpr double AugmentedLMtolerance = 1.0e-12;
 
     ///@}

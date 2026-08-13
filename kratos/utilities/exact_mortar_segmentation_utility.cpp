@@ -168,7 +168,8 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_slave(i_node) = Kratos::make_shared<Point>(aux_point);
 
-        aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        GeometricalProjectionUtilities::FastProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master(i_node)= Kratos::make_shared<Point>(aux_point);
 
@@ -200,7 +201,8 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
 
         Point point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            GeometricalProjectionUtilities::FastProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
             rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = point;
         }
@@ -658,8 +660,8 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_slave(i_node) = Kratos::make_shared<Point>(aux_point);
 
-        aux_point = GeometricalProjectionUtilities::FastProject(slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
-        // GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
+        // aux_point = GeometricalProjectionUtilities::FastProject(slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        GeometricalProjectionUtilities::FastProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master(i_node) = Kratos::make_shared<Point>(aux_point);
     }
@@ -682,12 +684,11 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
 
         Point point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
-            // GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
-            rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
+            // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            GeometricalProjectionUtilities::FastProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
+            rOriginalSlaveGeometry.PointLocalCoordinates(point, aux_point);
             rConditionsPointsSlave[0][i_node] = PointBelong<3>(point.Coordinates(), static_cast<PointBelongsTriangle3D3N>(i_node + 3));
         }
-
         return true;
     } else {
 
@@ -695,7 +696,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry, PointBelongs::Master);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, slave_geometry.Length() * 1.0e-8);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);

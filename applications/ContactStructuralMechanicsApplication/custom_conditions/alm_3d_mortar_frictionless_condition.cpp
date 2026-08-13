@@ -326,10 +326,10 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     }
     rRightHandSideVector.clear();
 
-    // const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : 1.0e12;
-    // const double penalty_factor = rCurrentProcessInfo.Has(INITIAL_PENALTY) ? rCurrentProcessInfo[INITIAL_PENALTY] : 1.0e12;
-    const double scale_factor = 1E11;
-    const double penalty_factor = 1E12;
+    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : 1.0e12;
+    const double penalty_factor = rCurrentProcessInfo.Has(INITIAL_PENALTY) ? rCurrentProcessInfo[INITIAL_PENALTY] : 1.0e12;
+    // const double scale_factor = 1E11;
+    // const double penalty_factor = 1E12;
 
     VectorType slave_normal(3);
     VectorType master_normal(3);
@@ -341,7 +341,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
     const IndexType integration_order = 5;
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e-12;
-    const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
+    const bool consider_tessellation = rCurrentProcessInfo.Has(CONSIDER_TESSELLATION) ? rCurrentProcessInfo[CONSIDER_TESSELLATION] : false;
 
     // The utility that performs the local clipping of the projected master to the slave plane
     IntegrationUtility integration_utility = IntegrationUtility(integration_order, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
@@ -426,7 +426,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double interpolated_LM = inner_prod(N_LM, lm_values); // interpolated Lagrange multiplier at the integration point
                     const double augmented_lm = scale_factor * interpolated_LM + penalty_factor * gap_n; // contact pressure at the integration point
 
-                    const bool active_contact = (augmented_lm < 0.0); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
+                    const bool active_contact = (augmented_lm <= 0.0); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
                     
                     if (gap_n < 0.0) {
                     //     KRATOS_WATCH("*******************************")
@@ -466,11 +466,11 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                         // KRATOS_WATCH(integration_area)
                     }
 
-                    if (ComputeRHS) {
+                    if (ComputeRHS && successful_projection) {
                         AddRightHandSideContribution(rRightHandSideVector, scale_factor, penalty_factor, gap_n, interpolated_LM,
                             integration_weight, Ns, Nm, N_LM, slave_normal, active_contact);
                     }
-                    if (ComputeLHS) {
+                    if (ComputeLHS && successful_projection) {
                         AddLeftHandSideContribution(rLeftHandSideMatrix, scale_factor, penalty_factor, integration_weight,
                             augmented_lm, Ns, Nm, N_LM, slave_normal,  segmented_GP_global_point - master_GP_global_point, active_contact, d_n_dslave_displacements);
                     }
