@@ -190,7 +190,7 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
     const double thickness = GetProperties()[THICKNESS];
     double A_element = GetGeometry().Area();
     // Stabilization factor for transverse shear
-    double sqrt_f_s = thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element));
+    double f_s = thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element));
 
     array_1d<Vector,3> akovr;
     array_1d<Vector,3> gkovr;
@@ -369,7 +369,7 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
         ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
         if (ansq) {
         CalculateANSTransverseShearShapeFunctions(N13_ansq, N23_ansq, r, s);
-        BOperatorANSTransverseShearmodification(Bop,N13_ansq,N23_ansq,akovc_ans,DN_ans,N_ans,number_of_nodes,sqrt_f_s);
+        BOperatorANSTransverseShearmodification(Bop,N13_ansq,N23_ansq,akovc_ans,DN_ans,N_ans,number_of_nodes,f_s);
         }
         ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
 
@@ -396,9 +396,18 @@ void Shell7pElement::CalculateInternalForces(VectorType& rInternalForceVector, c
 
             double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
 
-            CalculateMaterialLaw(Dmatrix, gmkonr, thickness, ConstitutiveLawType::gStVenantKirchhoff, Theta3, scalefactor, PK2_stress, GL_strain, stress_resultants, sqrt_f_s);
+            CalculateMaterialLaw(Dmatrix, gmkonr, thickness, ConstitutiveLawType::gStVenantKirchhoff, Theta3, scalefactor, PK2_stress, GL_strain, stress_resultants, f_s);
         }
 
+        // shear correction factor betta=0.7 for betta_13 and betta_23
+        Dmatrix(8,8) *= 6.0/5.0 * 0.7;
+        Dmatrix(8,10) *= 6.0/5.0 * 0.7;
+        Dmatrix(10,8) *= 6.0/5.0 * 0.7;
+        Dmatrix(10,10) *= 6.0/5.0 * 0.7;
+
+        // shear correction factor betta=0.7 for stress resultants m_13 and m_23
+        stress_resultants[8] *= 6.0/5.0 * 0.7;
+        stress_resultants[10] *= 6.0/5.0 * 0.7;
         // Dmatrix(2,2) *= 5.0/6.0;
         // Dmatrix(2,4) *= 5.0/6.0;
         // Dmatrix(4,2) *= 5.0/6.0;
@@ -474,7 +483,7 @@ void Shell7pElement::CalculateLeftHandSide(
     const double thickness = GetProperties()[THICKNESS];                // All nodes of the element share the same thickness value, since GetProperties() returns the Properties object assigned to the element, not to individual nodes
     double A_element = GetGeometry().Area();
     // Stabilization factor for transverse shear
-    double sqrt_f_s = thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element));
+    double f_s = thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element));
 
     array_1d<Vector,3> akovr;
     array_1d<Vector,3> gkovr;
@@ -670,7 +679,7 @@ void Shell7pElement::CalculateLeftHandSide(
         ////////////////////////////////////////////////////////////////BEGIN ANS TRANSVERSE SHEAR ELIMINATION STUFF////////////////////////////////////////////////////////////////
         if (ansq) {
         CalculateANSTransverseShearShapeFunctions(N13_ansq, N23_ansq, r, s);
-        BOperatorANSTransverseShearmodification(Bop,N13_ansq,N23_ansq,akovc_ans,DN_ans,N_ans,number_of_nodes,sqrt_f_s);
+        BOperatorANSTransverseShearmodification(Bop,N13_ansq,N23_ansq,akovc_ans,DN_ans,N_ans,number_of_nodes,f_s);
         }
         ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
         
@@ -700,9 +709,18 @@ void Shell7pElement::CalculateLeftHandSide(
 
             double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
 
-            CalculateMaterialLaw(Dmatrix, gmkonr, thickness, ConstitutiveLawType::gStVenantKirchhoff, Theta3, scalefactor, PK2_stress, GL_strain, stress_resultants, sqrt_f_s);
+            CalculateMaterialLaw(Dmatrix, gmkonr, thickness, ConstitutiveLawType::gStVenantKirchhoff, Theta3, scalefactor, PK2_stress, GL_strain, stress_resultants, f_s);
         }
 
+        // shear correction factor betta=0.7 for betta_13 and betta_23
+        Dmatrix(8,8) *= 6.0/5.0 * 0.7;
+        Dmatrix(8,10) *= 6.0/5.0 * 0.7;
+        Dmatrix(10,8) *= 6.0/5.0 * 0.7;
+        Dmatrix(10,10) *= 6.0/5.0 * 0.7;
+
+        // shear correction factor betta=0.7 for stress resultants m_13 and m_23
+        stress_resultants[8] *= 6.0/5.0 * 0.7;
+        stress_resultants[10] *= 6.0/5.0 * 0.7;
         // double f_s = 1.0; // thickness*thickness/(thickness*thickness + 0.12*std::sqrt(A_element));
         // Dmatrix(2,2) *= 5.0/6.0 * f_s; 
         // Dmatrix(2,4) *= 5.0/6.0 * f_s; 
@@ -751,7 +769,7 @@ void Shell7pElement::CalculateLeftHandSide(
     //===================================================================//
     Matrix temp = ZeroMatrix(num_eas_modes, number_dofs);
     noalias(temp) = prod(Dtild_inv, Lt);                    // check order of multiplication
-    // rLeftHandSideMatrix -= prod(trans(Lt), temp);       
+    // rLeftHandSideMatrix -= prod(trans(Lt), temp);
 }
 
 void Shell7pElement::GetValuesVector(Vector& rValues, int Step) const
@@ -979,7 +997,7 @@ void Shell7pElement::CovariantBaseVectorsShellBody(array_1d<Vector,3>& gkovr,
 }
 
 void Shell7pElement::CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& gmkonr, const double& thickness,
-const ConstitutiveLawType& option, const double& Theta3, const double& fact, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants, const double& sqrt_f_s) const
+const ConstitutiveLawType& option, const double& Theta3, const double& fact, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants, const double& f_s) const
 {
     const auto& r_properties = GetProperties();
     const double E = r_properties[YOUNG_MODULUS];
@@ -1019,9 +1037,9 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact, arr
 
         CC(2,0) = C[2][0][0][0];
         CC(2,1) = C[2][0][1][0];
-        CC(2,2) = C[2][0][2][0] * 5.0/6.0 * sqrt_f_s;     // sigma 13 with shear correction factor alpha=5/6 for E13 and E23
+        CC(2,2) = C[2][0][2][0] * 5.0/6.0 * f_s;     // sigma 13 with shear correction factor alpha=5/6 for E13 and E23
         CC(2,3) = C[2][0][1][1];
-        CC(2,4) = C[2][0][2][1] * 5.0/6.0 * sqrt_f_s;
+        CC(2,4) = C[2][0][2][1] * 5.0/6.0 * f_s;
         CC(2,5) = C[2][0][2][2];
 
         CC(3,0) = C[1][1][0][0];
@@ -1033,9 +1051,9 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact, arr
 
         CC(4,0) = C[2][1][0][0];
         CC(4,1) = C[2][1][1][0];
-        CC(4,2) = C[2][1][2][0] * 5.0/6.0 * sqrt_f_s;    // sigma 23 with shear correction factor alpha=5/6 for E13 and E23
+        CC(4,2) = C[2][1][2][0] * 5.0/6.0 * f_s;    // sigma 23 with shear correction factor alpha=5/6 for E13 and E23
         CC(4,3) = C[2][1][1][1];
-        CC(4,4) = C[2][1][2][1] * 5.0/6.0 * sqrt_f_s;
+        CC(4,4) = C[2][1][2][1] * 5.0/6.0 * f_s;
         CC(4,5) = C[2][1][2][2];
 
         CC(5,0) = C[2][2][0][0];
@@ -1250,7 +1268,7 @@ void Shell7pElement::CalculateANSTransverseShearShapeFunctions(array_1d<double,2
 
 void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq,
     const array_1d<array_1d<Vector,3>,4>& akovc_ans, const array_1d<Matrix,4>& DN_ans,
-    const Matrix& N_ans, const SizeType& number_of_nodes, const double sqrt_f_s) const
+    const Matrix& N_ans, const SizeType& number_of_nodes, const double f_s) const
 {
     for (SizeType inode = 0; inode < number_of_nodes; ++inode)
   {
@@ -1295,19 +1313,19 @@ void Shell7pElement::BOperatorANSTransverseShearmodification(Matrix& Bop, const 
       const double N13_gp = N13_ansq[isamp];
       const double N23_gp = N23_ansq[isamp];
 /*--------------------------------------------------E13(CONST)-------- */
-      Bop(2,node_start+0) += N13_gp*a3x_c1*dNd1_c1; // *sqrt_f_s;
-      Bop(2,node_start+1) += N13_gp*a3y_c1*dNd1_c1; // *sqrt_f_s;
-      Bop(2,node_start+2) += N13_gp*a3z_c1*dNd1_c1; // *sqrt_f_s;
-      Bop(2,node_start+3) += N13_gp*a1x_c1*N_c1;   //*sqrt_f_s;
-      Bop(2,node_start+4) += N13_gp*a1y_c1*N_c1;   //*sqrt_f_s;
-      Bop(2,node_start+5) += N13_gp*a1z_c1*N_c1;   //*sqrt_f_s;
+      Bop(2,node_start+0) += N13_gp*a3x_c1*dNd1_c1; // *f_s;
+      Bop(2,node_start+1) += N13_gp*a3y_c1*dNd1_c1; // *f_s;
+      Bop(2,node_start+2) += N13_gp*a3z_c1*dNd1_c1; // *f_s;
+      Bop(2,node_start+3) += N13_gp*a1x_c1*N_c1;   //*f_s;
+      Bop(2,node_start+4) += N13_gp*a1y_c1*N_c1;   //*f_s;
+      Bop(2,node_start+5) += N13_gp*a1z_c1*N_c1;   //*f_s;
 /*----------------------- --------------------------E23(CONST)-------- */
-      Bop(4,node_start+0) += N23_gp*a3x_c2*dNd2_c2; //*sqrt_f_s;
-      Bop(4,node_start+1) += N23_gp*a3y_c2*dNd2_c2; //*sqrt_f_s;
-      Bop(4,node_start+2) += N23_gp*a3z_c2*dNd2_c2; //*sqrt_f_s;
-      Bop(4,node_start+3) += N23_gp*a2x_c2*N_c2;   //*sqrt_f_s;
-      Bop(4,node_start+4) += N23_gp*a2y_c2*N_c2;   //*sqrt_f_s;
-      Bop(4,node_start+5) += N23_gp*a2z_c2*N_c2;   //*sqrt_f_s;
+      Bop(4,node_start+0) += N23_gp*a3x_c2*dNd2_c2; //*f_s;
+      Bop(4,node_start+1) += N23_gp*a3y_c2*dNd2_c2; //*f_s;
+      Bop(4,node_start+2) += N23_gp*a3z_c2*dNd2_c2; //*f_s;
+      Bop(4,node_start+3) += N23_gp*a2x_c2*N_c2;   //*f_s;
+      Bop(4,node_start+4) += N23_gp*a2y_c2*N_c2;   //*f_s;
+      Bop(4,node_start+5) += N23_gp*a2z_c2*N_c2;   //*f_s;
     }
   }
 

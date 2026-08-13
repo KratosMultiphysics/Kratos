@@ -113,7 +113,7 @@ private:
     const Vector& rNshape, const ConfigurationType& rConfiguration, const double& Theta3, const double& thickness) const;
 
     void CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& gmkonr, const double& thickness,
-    const ConstitutiveLawType& option, const double& Theta3, const double& fact, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants, const double& sqrt_f_s) const;
+    const ConstitutiveLawType& option, const double& Theta3, const double& fact, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants, const double& f_s) const;
 
     void StressPreintegration(const BoundedMatrix<double, 6, 6>& CC, array_1d<double,6>& PK2_stress, array_1d<double,6>& GL_strain, array_1d<double,12>& stress_resultants, 
     const Matrix& gmkonr, const ConstitutiveLawType& option, const double& Theta3, const double& fact) const;
@@ -125,7 +125,7 @@ private:
 
     void BOperatorANSTransverseShearmodification(Matrix& Bop, const array_1d<double,2>& N13_ansq, const array_1d<double,2>& N23_ansq,
     const array_1d<array_1d<Vector,3>,4>& akovc_ans, const array_1d<Matrix,4>& DN_ans,
-    const Matrix& N_ans, const SizeType& number_of_nodes, const double sqrt_f_s) const;
+    const Matrix& N_ans, const SizeType& number_of_nodes, const double f_s) const;
 
     void BOperatorANSCurvatureThicknessModification(Matrix& Bop, const array_1d<array_1d<Vector,3>,4>& akovr_ct_ans, 
     const Matrix& N_ct_ans, const double r, const double s, const Vector& Np, const SizeType& number_of_nodes) const;
