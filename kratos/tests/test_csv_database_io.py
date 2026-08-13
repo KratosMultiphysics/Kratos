@@ -22,8 +22,9 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        kratos_utils.DeleteFileIfExisting("csv_database.csv")
-        kratos_utils.DeleteFileIfExisting("csv_database_test.csv")
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            kratos_utils.DeleteFileIfExisting("csv_database.csv")
+            kratos_utils.DeleteFileIfExisting("csv_database_test.csv")
 
     def test_Read1(self):
         csv_database_io = Kratos.CSVDatabaseIO(
