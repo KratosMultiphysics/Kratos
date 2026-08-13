@@ -41,4 +41,6 @@ class AlgorithmDataManager:
             return ComponentDataView("algorithm", self.__optimization_problem).GetUnBufferedData()
 
     def __str__(self) -> str:
-        return f"Buffered dict:\n{ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()}\nUnbuffered dict:\n{ComponentDataView("algorithm", self.__optimization_problem).GetUnBufferedData()}"
+        component_view = ComponentDataView("algorithm", self.__optimization_problem)
+        return f"Buffered dict:\n{component_view.GetBufferedData()}\nUnbuffered dict:\n{component_view.GetUnBufferedData()}"
+    
