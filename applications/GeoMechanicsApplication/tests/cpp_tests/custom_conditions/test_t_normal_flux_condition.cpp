@@ -93,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D2N, KratosGeoMechanicsFastSui
 
     GenerateGeoTnormalFluxCondition2D2N(model_part);
 
-    const std::vector<double> expected_right_hand_side{5.0, 5.0};
+    const auto expected_right_hand_side = std::vector{5.0, 5.0};
     TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -122,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D3N, KratosGeoMechanicsFastSui
 
     GenerateGeoTnormalFluxCondition2D3N(model_part);
 
-    const std::vector<double> expected_right_hand_side{5.77898, 3.3428, 18.24365};
+    const auto expected_right_hand_side = std::vector{5.77898, 3.3428, 18.24365};
     TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -152,7 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D4N, KratosGeoMechanicsFastSui
 
     GenerateGeoTnormalFluxCondition2D4N(model_part);
 
-    const std::vector<double> expected_right_hand_side{7.33331, 2.60131, 16.89195, 5.27702};
+    const auto expected_right_hand_side = std::vector{7.33331, 2.60131, 16.89195, 5.27702};
     TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -183,7 +183,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D5N, KratosGeoMechanicsFastSui
 
     GenerateGeoTnormalFluxCondition2D5N(model_part);
 
-    const std::vector<double> expected_right_hand_side{9.11795, 3.92042, 27.99155, 1.3485, 18.8636};
+    const auto expected_right_hand_side = std::vector{9.11795, 3.92042, 27.99155, 1.3485, 18.8636};
     TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -213,7 +213,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D4N, KratosGeoMechanicsFastSui
 
     GenerateGeoTnormalFluxCondition3D4N(model_part);
 
-    const std::vector<double> expected_right_hand_side{0.569177, 1.29087, 0.985844, 0.569177};
+    const auto expected_right_hand_side = std::vector{0.569177, 1.29087, 0.985844, 0.569177};
     TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -245,8 +245,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D6N, KratosGeoMechanicsFastSui
 
     GenerateGeoTnormalFluxCondition3D6N(model_part);
 
-    const std::vector<double> expected_right_hand_side{3.60822e-16, -2.77556e-16, -1.66533e-16,
-                                                       1.66667,     1.66667,      1.66667};
+    const auto expected_right_hand_side =
+        std::vector{3.60822e-16, -2.77556e-16, -1.66533e-16, 1.66667, 1.66667, 1.66667};
     TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -280,8 +280,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D8N, KratosGeoMechanicsFastSui
 
     GenerateGeoTnormalFluxCondition3D8N(model_part);
 
-    const std::vector<double> expected_right_hand_side{0.133919, 0.635973, -0.403995, -0.117107,
-                                                       1.86947,  1.53697,  0.721923,  1.09723};
+    const auto expected_right_hand_side =
+        std::vector{0.133919, 0.635973, -0.403995, -0.117107, 1.86947, 1.53697, 0.721923, 1.09723};
     TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
 
@@ -316,7 +316,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D9N, KratosGeoMechanicsFastSui
 
     GenerateGeoTnormalFluxCondition3D9N(model_part);
 
-    const std::vector<double> expected_right_hand_side{
+    const auto expected_right_hand_side = std::vector{
         0.325617, 0.741605, -0.0401643, 0.160657, 0.785555, 0.467627, 0.228477, 0.324183, 0.676021};
     TestGeoTnormalFluxCondition(model_part, expected_right_hand_side);
 }
