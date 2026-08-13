@@ -86,47 +86,26 @@ public:
     }
 };
 
-/// Test-only element subclasses exposing the constitutive-law vector (protected
+/// Test-only element subclass exposing the constitutive-law vector (protected
 /// in the Element base class) for non-invasive diagnostic access.
-class TestThermoMechanicElement : public SmallDisplacement
+class TestElement : public SmallDisplacement
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(TestThermoMechanicElement);
+    KRATOS_CLASS_POINTER_DEFINITION(TestElement);
     using BaseType = SmallDisplacement;
 
-    TestThermoMechanicElement(IndexType NewId, GeometryType::Pointer pGeometry,
-                              PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties) {}
-
-    ConstitutiveLaw& GetConstitutiveLaw(std::size_t i) { return *mConstitutiveLawVector[i]; }
-};
-
-class TestSmallDisplacementElement : public SmallDisplacement
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(TestSmallDisplacementElement);
-    using BaseType = SmallDisplacement;
-
-    TestSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry,
-                                 PropertiesType::Pointer pProperties)
+    TestElement(IndexType NewId, GeometryType::Pointer pGeometry,
+                PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties) {}
 
     ConstitutiveLaw& GetConstitutiveLaw(std::size_t i) { return *mConstitutiveLawVector[i]; }
 };
 
 /// Reads the committed threshold (kappa) and damage (d) of an element.
-void ReadElementDamageState(Element& rElement, double& rThreshold, double& rDamage)
+void ReadDamageState(Element& rElement, double& rThreshold, double& rDamage)
 {
     const auto& r_diagnostic = dynamic_cast<DiagnosticSimoJuLocalDamage3DLaw&>(
-        static_cast<TestThermoMechanicElement&>(rElement).GetConstitutiveLaw(0));
-    rThreshold = r_diagnostic.GetThresholdVariable();
-    rDamage = r_diagnostic.GetDamageVariable();
-}
-
-void ReadSmaElementDamageState(Element& rElement, double& rThreshold, double& rDamage)
-{
-    const auto& r_diagnostic = dynamic_cast<DiagnosticSimoJuLocalDamage3DLaw&>(
-        static_cast<TestSmallDisplacementElement&>(rElement).GetConstitutiveLaw(0));
+        static_cast<TestElement&>(rElement).GetConstitutiveLaw(0));
     rThreshold = r_diagnostic.GetThresholdVariable();
     rDamage = r_diagnostic.GetDamageVariable();
 }
@@ -280,26 +259,26 @@ void ApplyNonUniformTemperature(ModelPart& rModelPart)
     }
 }
 
-/// Compares the LHS/RHS of the legacy and candidate elements.
-void CompareElementSystems(Element& rLegacy, Element& rCandidate,
-                           ModelPart& rLegacyMp, ModelPart& rCandidateMp)
+/// Compares the LHS/RHS of the historical thermo alias and the direct SMA name.
+void CompareElementSystems(Element& rHistAlias, Element& rDirectSma,
+                           ModelPart& rHistAliasMp, ModelPart& rDirectSmaMp)
 {
-    Matrix lhs_legacy, lhs_candidate;
-    Vector rhs_legacy, rhs_candidate;
-    rLegacy.CalculateLocalSystem(lhs_legacy, rhs_legacy, rLegacyMp.GetProcessInfo());
-    rCandidate.CalculateLocalSystem(lhs_candidate, rhs_candidate, rCandidateMp.GetProcessInfo());
-    KRATOS_EXPECT_EQ(lhs_legacy.size1(), lhs_candidate.size1());
-    KRATOS_EXPECT_EQ(rhs_legacy.size(), rhs_candidate.size());
-    for (std::size_t i = 0; i < rhs_legacy.size(); ++i) {
-        KRATOS_EXPECT_NEAR(rhs_candidate[i], rhs_legacy[i],
+    Matrix lhs_hist_alias, lhs_direct_sma;
+    Vector rhs_hist_alias, rhs_direct_sma;
+    rHistAlias.CalculateLocalSystem(lhs_hist_alias, rhs_hist_alias, rHistAliasMp.GetProcessInfo());
+    rDirectSma.CalculateLocalSystem(lhs_direct_sma, rhs_direct_sma, rDirectSmaMp.GetProcessInfo());
+    KRATOS_EXPECT_EQ(lhs_hist_alias.size1(), lhs_direct_sma.size1());
+    KRATOS_EXPECT_EQ(rhs_hist_alias.size(), rhs_direct_sma.size());
+    for (std::size_t i = 0; i < rhs_hist_alias.size(); ++i) {
+        KRATOS_EXPECT_NEAR(rhs_direct_sma[i], rhs_hist_alias[i],
                            std::max(1.0e-9,
-                                    comparison_relative_tolerance * std::abs(rhs_legacy[i])));
+                                    comparison_relative_tolerance * std::abs(rhs_hist_alias[i])));
     }
-    for (std::size_t i = 0; i < lhs_legacy.size1(); ++i) {
-        for (std::size_t j = 0; j < lhs_legacy.size2(); ++j) {
-            KRATOS_EXPECT_NEAR(lhs_candidate(i, j), lhs_legacy(i, j),
+    for (std::size_t i = 0; i < lhs_hist_alias.size1(); ++i) {
+        for (std::size_t j = 0; j < lhs_hist_alias.size2(); ++j) {
+            KRATOS_EXPECT_NEAR(lhs_direct_sma(i, j), lhs_hist_alias(i, j),
                                std::max(comparison_absolute_tolerance,
-                                        comparison_relative_tolerance * std::abs(lhs_legacy(i, j))));
+                                        comparison_relative_tolerance * std::abs(lhs_hist_alias(i, j))));
         }
     }
 }
@@ -307,41 +286,30 @@ void CompareElementSystems(Element& rLegacy, Element& rCandidate,
 } // namespace
 
 //************************************************************************************
-// 1. The constitutive response must not mutate the supplied total strain.
+// 3D lifecycle A-F: historical alias and direct SMA agree.
 //************************************************************************************
 
-
-//************************************************************************************
-// 2. SMA lifecycle: InitializeSolutionStep runs and preserves the committed
-//    damage state.
-//************************************************************************************
-
-
-//************************************************************************************
-// 3. 3D acceptance: legacy vs candidate full lifecycle A-F.
-//************************************************************************************
-
-KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_3DAcceptanceAtoF, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamage3DLifecycle, KratosDamFastSuite)
 {
     Model model;
-    TestThermoMechanicElement* p_legacy = nullptr;
-    TestSmallDisplacementElement* p_candidate = nullptr;
-    ModelPart& r_legacy_mp = CreateElementModelPart(
-        model, "AccLegacy", "SmallDisplacementThermoMechanicElement3D8N", 3, p_legacy);
-    ModelPart& r_candidate_mp = CreateElementModelPart(
-        model, "AccCandidate", "SmallDisplacementElement3D8N", 3, p_candidate);
+    TestElement* p_hist_alias = nullptr;
+    TestElement* p_direct_sma = nullptr;
+    ModelPart& r_hist_alias_mp = CreateElementModelPart(
+        model, "HistAlias", "SmallDisplacementThermoMechanicElement3D8N", 3, p_hist_alias);
+    ModelPart& r_direct_sma_mp = CreateElementModelPart(
+        model, "DirectSma", "SmallDisplacementElement3D8N", 3, p_direct_sma);
 
-    auto& r_legacy_element = *p_legacy;
-    auto& r_candidate_element = *p_candidate;
-    r_legacy_element.Initialize(r_legacy_mp.GetProcessInfo());
-    r_legacy_element.InitializeSolutionStep(r_legacy_mp.GetProcessInfo());
-    r_candidate_element.Initialize(r_candidate_mp.GetProcessInfo());
-    r_candidate_element.InitializeSolutionStep(r_candidate_mp.GetProcessInfo());
+    auto& r_hist_alias_element = *p_hist_alias;
+    auto& r_direct_sma_element = *p_direct_sma;
+    r_hist_alias_element.Initialize(r_hist_alias_mp.GetProcessInfo());
+    r_hist_alias_element.InitializeSolutionStep(r_hist_alias_mp.GetProcessInfo());
+    r_direct_sma_element.Initialize(r_direct_sma_mp.GetProcessInfo());
+    r_direct_sma_element.InitializeSolutionStep(r_direct_sma_mp.GetProcessInfo());
 
-    double legacy_threshold = 0.0, legacy_damage = 0.0;
-    double candidate_threshold = 0.0, candidate_damage = 0.0;
-    double last_legacy_threshold = test_damage_threshold;
-    double last_legacy_damage = 0.0;
+    double hist_alias_threshold = 0.0, hist_alias_damage = 0.0;
+    double direct_sma_threshold = 0.0, direct_sma_damage = 0.0;
+    double last_hist_alias_threshold = test_damage_threshold;
+    double last_hist_alias_damage = 0.0;
 
     // The element-level driving quantity for the applied uniaxial-STRESS field
     // is kappa = sqrt(E)*epsilon (k0 = 5e-3 -> epsilon_init ~= 1.12e-6).
@@ -358,208 +326,175 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_3DAcceptanceAtoF, KratosDamFastS
 
     for (std::size_t step = 0; step < 8; ++step) {
         const double eps = steps[step][0];
-        ApplyUniaxialState(r_legacy_mp, eps);
-        ApplyUniaxialState(r_candidate_mp, eps);
+        ApplyUniaxialState(r_hist_alias_mp, eps);
+        ApplyUniaxialState(r_direct_sma_mp, eps);
 
-        // Trial LHS/RHS must agree between legacy and candidate.
-        CompareElementSystems(r_legacy_element, r_candidate_element, r_legacy_mp, r_candidate_mp);
+        // Trial LHS/RHS must agree between the historical alias and the direct SMA name.
+        CompareElementSystems(r_hist_alias_element, r_direct_sma_element, r_hist_alias_mp, r_direct_sma_mp);
 
         // Converged finalize commits the trial state.
-        r_legacy_mp.GetProcessInfo()[IS_CONVERGED] = true;
-        r_candidate_mp.GetProcessInfo()[IS_CONVERGED] = true;
-        r_legacy_element.FinalizeSolutionStep(r_legacy_mp.GetProcessInfo());
-        r_candidate_element.FinalizeSolutionStep(r_candidate_mp.GetProcessInfo());
+        r_hist_alias_mp.GetProcessInfo()[IS_CONVERGED] = true;
+        r_direct_sma_mp.GetProcessInfo()[IS_CONVERGED] = true;
+        r_hist_alias_element.FinalizeSolutionStep(r_hist_alias_mp.GetProcessInfo());
+        r_direct_sma_element.FinalizeSolutionStep(r_direct_sma_mp.GetProcessInfo());
 
-        ReadElementDamageState(r_legacy_element, legacy_threshold, legacy_damage);
-        ReadSmaElementDamageState(r_candidate_element, candidate_threshold, candidate_damage);
+        ReadDamageState(r_hist_alias_element, hist_alias_threshold, hist_alias_damage);
+        ReadDamageState(r_direct_sma_element, direct_sma_threshold, direct_sma_damage);
 
-        KRATOS_EXPECT_NEAR(candidate_threshold, legacy_threshold,
+        KRATOS_EXPECT_NEAR(direct_sma_threshold, hist_alias_threshold,
                            std::max(comparison_absolute_tolerance,
-                                    comparison_relative_tolerance * std::abs(legacy_threshold)));
-        KRATOS_EXPECT_NEAR(candidate_damage, legacy_damage,
+                                    comparison_relative_tolerance * std::abs(hist_alias_threshold)));
+        KRATOS_EXPECT_NEAR(direct_sma_damage, hist_alias_damage,
                            std::max(comparison_absolute_tolerance,
-                                    comparison_relative_tolerance * std::abs(legacy_damage)));
+                                    comparison_relative_tolerance * std::abs(hist_alias_damage)));
 
         if (step == 0) {
             // A: elastic, no damage.
-            KRATOS_EXPECT_NEAR(legacy_threshold, test_damage_threshold, 1.0e-12);
-            KRATOS_EXPECT_NEAR(legacy_damage, 0.0, 1.0e-12);
+            KRATOS_EXPECT_NEAR(hist_alias_threshold, test_damage_threshold, 1.0e-12);
+            KRATOS_EXPECT_NEAR(hist_alias_damage, 0.0, 1.0e-12);
         } else if (step == 1) {
             // B: damage initiation.
-            KRATOS_EXPECT_TRUE(legacy_threshold > test_damage_threshold);
-            KRATOS_EXPECT_TRUE(legacy_damage > 0.0);
+            KRATOS_EXPECT_TRUE(hist_alias_threshold > test_damage_threshold);
+            KRATOS_EXPECT_TRUE(hist_alias_damage > 0.0);
         } else if (step >= 2 && step <= 4) {
             // C: progressive damage growth.
-            KRATOS_EXPECT_TRUE(legacy_damage >= last_legacy_damage);
-            KRATOS_EXPECT_TRUE(legacy_threshold >= last_legacy_threshold);
+            KRATOS_EXPECT_TRUE(hist_alias_damage >= last_hist_alias_damage);
+            KRATOS_EXPECT_TRUE(hist_alias_threshold >= last_hist_alias_threshold);
         } else if (step == 5) {
             // D: unload - irreversible damage.
-            KRATOS_EXPECT_NEAR(legacy_threshold, last_legacy_threshold, 1.0e-12);
-            KRATOS_EXPECT_NEAR(legacy_damage, last_legacy_damage, 1.0e-12);
+            KRATOS_EXPECT_NEAR(hist_alias_threshold, last_hist_alias_threshold, 1.0e-12);
+            KRATOS_EXPECT_NEAR(hist_alias_damage, last_hist_alias_damage, 1.0e-12);
         } else if (step == 6) {
             // E: reload below maximum - no growth.
-            KRATOS_EXPECT_NEAR(legacy_threshold, last_legacy_threshold, 1.0e-12);
-            KRATOS_EXPECT_NEAR(legacy_damage, last_legacy_damage, 1.0e-12);
+            KRATOS_EXPECT_NEAR(hist_alias_threshold, last_hist_alias_threshold, 1.0e-12);
+            KRATOS_EXPECT_NEAR(hist_alias_damage, last_hist_alias_damage, 1.0e-12);
         } else {
             // F: reload beyond maximum - growth.
-            KRATOS_EXPECT_TRUE(legacy_threshold > last_legacy_threshold);
-            KRATOS_EXPECT_TRUE(legacy_damage >= last_legacy_damage);
+            KRATOS_EXPECT_TRUE(hist_alias_threshold > last_hist_alias_threshold);
+            KRATOS_EXPECT_TRUE(hist_alias_damage >= last_hist_alias_damage);
         }
-        last_legacy_threshold = legacy_threshold;
-        last_legacy_damage = legacy_damage;
+        last_hist_alias_threshold = hist_alias_threshold;
+        last_hist_alias_damage = hist_alias_damage;
     }
 
-    std::cout << "[4B] 3D acceptance: legacy dC=" << legacy_damage
-              << " candidate dC=" << candidate_damage
-              << " threshold=" << legacy_threshold << std::endl;
+    // Rollback: a rejected larger trial must preserve the committed state, and
+    // a converged larger trial must commit a new (higher) state.
+    const double committed_alias_threshold = hist_alias_threshold;
+    ApplyUniaxialState(r_hist_alias_mp, 3.0e-6);
+    ApplyUniaxialState(r_direct_sma_mp, 3.0e-6);
+    r_hist_alias_mp.GetProcessInfo()[IS_CONVERGED] = false;
+    r_direct_sma_mp.GetProcessInfo()[IS_CONVERGED] = false;
+    r_hist_alias_element.FinalizeSolutionStep(r_hist_alias_mp.GetProcessInfo());
+    r_direct_sma_element.FinalizeSolutionStep(r_direct_sma_mp.GetProcessInfo());
+    ReadDamageState(r_hist_alias_element, hist_alias_threshold, hist_alias_damage);
+    ReadDamageState(r_direct_sma_element, direct_sma_threshold, direct_sma_damage);
+    KRATOS_EXPECT_NEAR(hist_alias_threshold, committed_alias_threshold, 1.0e-12);
+    KRATOS_EXPECT_NEAR(direct_sma_threshold, committed_alias_threshold, 1.0e-12);
+
+    r_hist_alias_mp.GetProcessInfo()[IS_CONVERGED] = true;
+    r_direct_sma_mp.GetProcessInfo()[IS_CONVERGED] = true;
+    r_hist_alias_element.FinalizeSolutionStep(r_hist_alias_mp.GetProcessInfo());
+    r_direct_sma_element.FinalizeSolutionStep(r_direct_sma_mp.GetProcessInfo());
+    ReadDamageState(r_hist_alias_element, hist_alias_threshold, hist_alias_damage);
+    ReadDamageState(r_direct_sma_element, direct_sma_threshold, direct_sma_damage);
+    KRATOS_EXPECT_TRUE(hist_alias_threshold > committed_alias_threshold);
+    KRATOS_EXPECT_NEAR(direct_sma_threshold, hist_alias_threshold,
+                       std::max(comparison_absolute_tolerance,
+                                comparison_relative_tolerance * std::abs(hist_alias_threshold)));
+
+    std::cout << "[damage] 3D lifecycle: alias damage=" << hist_alias_damage
+              << " direct damage=" << direct_sma_damage
+              << " threshold=" << hist_alias_threshold << std::endl;
 }
 
-
 //************************************************************************************
-// 4. Thermal coupling with the real SMA element.
+// Thermal coupling.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_ThermalCoupling, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageThermalCoupling, KratosDamFastSuite)
 {
     Model model;
-    TestThermoMechanicElement* p_legacy = nullptr;
-    TestSmallDisplacementElement* p_candidate = nullptr;
-    ModelPart& r_legacy_mp = CreateElementModelPart(
-        model, "ThermLegacy", "SmallDisplacementThermoMechanicElement3D8N", 3, p_legacy);
-    ModelPart& r_candidate_mp = CreateElementModelPart(
-        model, "ThermCandidate", "SmallDisplacementElement3D8N", 3, p_candidate);
-    auto& r_legacy_element = *p_legacy;
-    auto& r_candidate_element = *p_candidate;
-    r_legacy_element.Initialize(r_legacy_mp.GetProcessInfo());
-    r_legacy_element.InitializeSolutionStep(r_legacy_mp.GetProcessInfo());
-    r_candidate_element.Initialize(r_candidate_mp.GetProcessInfo());
-    r_candidate_element.InitializeSolutionStep(r_candidate_mp.GetProcessInfo());
+    TestElement* p_hist_alias = nullptr;
+    TestElement* p_direct_sma = nullptr;
+    ModelPart& r_hist_alias_mp = CreateElementModelPart(
+        model, "ThermHistAlias", "SmallDisplacementThermoMechanicElement3D8N", 3, p_hist_alias);
+    ModelPart& r_direct_sma_mp = CreateElementModelPart(
+        model, "ThermDirectSma", "SmallDisplacementElement3D8N", 3, p_direct_sma);
+    auto& r_hist_alias_element = *p_hist_alias;
+    auto& r_direct_sma_element = *p_direct_sma;
+    r_hist_alias_element.Initialize(r_hist_alias_mp.GetProcessInfo());
+    r_hist_alias_element.InitializeSolutionStep(r_hist_alias_mp.GetProcessInfo());
+    r_direct_sma_element.Initialize(r_direct_sma_mp.GetProcessInfo());
+    r_direct_sma_element.InitializeSolutionStep(r_direct_sma_mp.GetProcessInfo());
 
     double lt, ld, ct, cd;
 
     // Case 1: free thermal expansion from the pristine state (displacement =
     // alpha*dT*x, DeltaT = 50). The mechanical strain is zero, so NO artificial
     // local damage may be generated in either element.
-    ApplyFreeThermalExpansion(r_legacy_mp, 50.0);
-    ApplyFreeThermalExpansion(r_candidate_mp, 50.0);
-    CompareElementSystems(r_legacy_element, r_candidate_element, r_legacy_mp, r_candidate_mp);
-    r_legacy_mp.GetProcessInfo()[IS_CONVERGED] = true;
-    r_candidate_mp.GetProcessInfo()[IS_CONVERGED] = true;
-    r_legacy_element.FinalizeSolutionStep(r_legacy_mp.GetProcessInfo());
-    r_candidate_element.FinalizeSolutionStep(r_candidate_mp.GetProcessInfo());
-    ReadElementDamageState(r_legacy_element, lt, ld);
-    ReadSmaElementDamageState(r_candidate_element, ct, cd);
+    ApplyFreeThermalExpansion(r_hist_alias_mp, 50.0);
+    ApplyFreeThermalExpansion(r_direct_sma_mp, 50.0);
+    CompareElementSystems(r_hist_alias_element, r_direct_sma_element, r_hist_alias_mp, r_direct_sma_mp);
+    r_hist_alias_mp.GetProcessInfo()[IS_CONVERGED] = true;
+    r_direct_sma_mp.GetProcessInfo()[IS_CONVERGED] = true;
+    r_hist_alias_element.FinalizeSolutionStep(r_hist_alias_mp.GetProcessInfo());
+    r_direct_sma_element.FinalizeSolutionStep(r_direct_sma_mp.GetProcessInfo());
+    ReadDamageState(r_hist_alias_element, lt, ld);
+    ReadDamageState(r_direct_sma_element, ct, cd);
     KRATOS_EXPECT_NEAR(ld, 0.0, 1.0e-15);  // no artificial damage
     KRATOS_EXPECT_NEAR(cd, 0.0, 1.0e-15);
     KRATOS_EXPECT_NEAR(ct, lt, 1.0e-12);
 
     // Case 2: restrained uniform heating (no displacement, DeltaT = 50). In the
-    // Simo-Ju model compressive restraint drives damage; legacy and candidate
-    // must produce the identical damaged state.
-    ApplyUniaxialState(r_legacy_mp, 0.0);
-    ApplyUniaxialState(r_candidate_mp, 0.0);
-    ApplyTemperatureChange(r_legacy_mp, 50.0);
-    ApplyTemperatureChange(r_candidate_mp, 50.0);
-    CompareElementSystems(r_legacy_element, r_candidate_element, r_legacy_mp, r_candidate_mp);
-    r_legacy_element.FinalizeSolutionStep(r_legacy_mp.GetProcessInfo());
-    r_candidate_element.FinalizeSolutionStep(r_candidate_mp.GetProcessInfo());
-    ReadElementDamageState(r_legacy_element, lt, ld);
-    ReadSmaElementDamageState(r_candidate_element, ct, cd);
+    // Simo-Ju model compressive restraint drives damage; the historical alias
+    // and the direct SMA name must produce the identical damaged state.
+    ApplyUniaxialState(r_hist_alias_mp, 0.0);
+    ApplyUniaxialState(r_direct_sma_mp, 0.0);
+    ApplyTemperatureChange(r_hist_alias_mp, 50.0);
+    ApplyTemperatureChange(r_direct_sma_mp, 50.0);
+    CompareElementSystems(r_hist_alias_element, r_direct_sma_element, r_hist_alias_mp, r_direct_sma_mp);
+    r_hist_alias_element.FinalizeSolutionStep(r_hist_alias_mp.GetProcessInfo());
+    r_direct_sma_element.FinalizeSolutionStep(r_direct_sma_mp.GetProcessInfo());
+    ReadDamageState(r_hist_alias_element, lt, ld);
+    ReadDamageState(r_direct_sma_element, ct, cd);
     KRATOS_EXPECT_NEAR(ct, lt, std::max(comparison_absolute_tolerance,
                                         comparison_relative_tolerance * std::abs(lt)));
     KRATOS_EXPECT_NEAR(cd, ld, std::max(comparison_absolute_tolerance,
                                         comparison_relative_tolerance * std::abs(ld)));
 
     // Case 3: combined mechanical + thermal loading.
-    ApplyUniaxialState(r_legacy_mp, 2.0e-6);
-    ApplyUniaxialState(r_candidate_mp, 2.0e-6);
-    ApplyTemperatureChange(r_legacy_mp, 50.0);
-    ApplyTemperatureChange(r_candidate_mp, 50.0);
-    CompareElementSystems(r_legacy_element, r_candidate_element, r_legacy_mp, r_candidate_mp);
-    r_legacy_element.FinalizeSolutionStep(r_legacy_mp.GetProcessInfo());
-    r_candidate_element.FinalizeSolutionStep(r_candidate_mp.GetProcessInfo());
-    ReadElementDamageState(r_legacy_element, lt, ld);
-    ReadSmaElementDamageState(r_candidate_element, ct, cd);
+    ApplyUniaxialState(r_hist_alias_mp, 2.0e-6);
+    ApplyUniaxialState(r_direct_sma_mp, 2.0e-6);
+    ApplyTemperatureChange(r_hist_alias_mp, 50.0);
+    ApplyTemperatureChange(r_direct_sma_mp, 50.0);
+    CompareElementSystems(r_hist_alias_element, r_direct_sma_element, r_hist_alias_mp, r_direct_sma_mp);
+    r_hist_alias_element.FinalizeSolutionStep(r_hist_alias_mp.GetProcessInfo());
+    r_direct_sma_element.FinalizeSolutionStep(r_direct_sma_mp.GetProcessInfo());
+    ReadDamageState(r_hist_alias_element, lt, ld);
+    ReadDamageState(r_direct_sma_element, ct, cd);
     KRATOS_EXPECT_NEAR(ct, lt, std::max(comparison_absolute_tolerance,
                                         comparison_relative_tolerance * std::abs(lt)));
     KRATOS_EXPECT_NEAR(cd, ld, std::max(comparison_absolute_tolerance,
                                         comparison_relative_tolerance * std::abs(ld)));
 
     // Case 4: spatially non-uniform temperature.
-    ApplyUniaxialState(r_legacy_mp, 2.0e-6);
-    ApplyUniaxialState(r_candidate_mp, 2.0e-6);
-    ApplyNonUniformTemperature(r_legacy_mp);
-    ApplyNonUniformTemperature(r_candidate_mp);
-    CompareElementSystems(r_legacy_element, r_candidate_element, r_legacy_mp, r_candidate_mp);
-    r_legacy_element.FinalizeSolutionStep(r_legacy_mp.GetProcessInfo());
-    r_candidate_element.FinalizeSolutionStep(r_candidate_mp.GetProcessInfo());
-    ReadElementDamageState(r_legacy_element, lt, ld);
-    ReadSmaElementDamageState(r_candidate_element, ct, cd);
+    ApplyUniaxialState(r_hist_alias_mp, 2.0e-6);
+    ApplyUniaxialState(r_direct_sma_mp, 2.0e-6);
+    ApplyNonUniformTemperature(r_hist_alias_mp);
+    ApplyNonUniformTemperature(r_direct_sma_mp);
+    CompareElementSystems(r_hist_alias_element, r_direct_sma_element, r_hist_alias_mp, r_direct_sma_mp);
+    r_hist_alias_element.FinalizeSolutionStep(r_hist_alias_mp.GetProcessInfo());
+    r_direct_sma_element.FinalizeSolutionStep(r_direct_sma_mp.GetProcessInfo());
+    ReadDamageState(r_hist_alias_element, lt, ld);
+    ReadDamageState(r_direct_sma_element, ct, cd);
     KRATOS_EXPECT_NEAR(ct, lt, std::max(comparison_absolute_tolerance,
                                         comparison_relative_tolerance * std::abs(lt)));
     KRATOS_EXPECT_NEAR(cd, ld, std::max(comparison_absolute_tolerance,
                                         comparison_relative_tolerance * std::abs(ld)));
 
-    std::cout << "[4B] thermal coupling: legacy damage = " << ld
-              << ", candidate damage = " << cd << std::endl;
+    std::cout << "[damage] thermal coupling: alias damage = " << ld
+              << ", direct damage = " << cd << std::endl;
 }
-
-
-//************************************************************************************
-// 5. Convergence / rollback with the real SMA element.
-//************************************************************************************
-
-KRATOS_TEST_CASE_IN_SUITE(ThermalLocalDamageSMA_Rollback, KratosDamFastSuite)
-{
-    Model model;
-    TestSmallDisplacementElement* p_candidate = nullptr;
-    ModelPart& r_mp = CreateElementModelPart(
-        model, "Rollback", "SmallDisplacementElement3D8N", 3, p_candidate);
-    auto& r_element = *p_candidate;
-    r_element.Initialize(r_mp.GetProcessInfo());
-    r_element.InitializeSolutionStep(r_mp.GetProcessInfo());
-
-    // Converged damaged state.
-    ApplyUniaxialState(r_mp, 2.0e-5);
-    r_mp.GetProcessInfo()[IS_CONVERGED] = true;
-    r_element.FinalizeSolutionStep(r_mp.GetProcessInfo());
-    double threshold, damage;
-    ReadSmaElementDamageState(r_element, threshold, damage);
-    const double committed_threshold = threshold;
-    KRATOS_EXPECT_TRUE(committed_threshold > test_damage_threshold);
-
-    // Rejected trial step: larger load, IS_CONVERGED = false. The committed
-    // state must be preserved (rollback).
-    ApplyUniaxialState(r_mp, 3.0e-5);
-    r_mp.GetProcessInfo()[IS_CONVERGED] = false;
-    r_element.FinalizeSolutionStep(r_mp.GetProcessInfo());
-    ReadSmaElementDamageState(r_element, threshold, damage);
-    KRATOS_EXPECT_NEAR(threshold, committed_threshold, 1.0e-12);
-
-    // Repeat with convergence: the new state is committed.
-    r_mp.GetProcessInfo()[IS_CONVERGED] = true;
-    r_element.FinalizeSolutionStep(r_mp.GetProcessInfo());
-    ReadSmaElementDamageState(r_element, threshold, damage);
-    KRATOS_EXPECT_TRUE(threshold > committed_threshold);
-    std::cout << "[4B] rollback: committed=" << committed_threshold
-              << " restored=" << threshold << std::endl;
-}
-
-
-//************************************************************************************
-// 6. Repeated response safety with the real SMA element.
-//************************************************************************************
-
-
-//************************************************************************************
-// 7. Clone robustness: state preserved and independent evolution.
-//************************************************************************************
-
-
-//************************************************************************************
-// 8. Serialization / restart: the committed damage state.
-//************************************************************************************
-
 
 } // namespace Testing
 } // namespace Kratos

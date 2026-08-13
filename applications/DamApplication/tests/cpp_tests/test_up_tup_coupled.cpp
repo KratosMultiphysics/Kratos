@@ -162,43 +162,38 @@ void ApplyTemperature(ModelPart& rModelPart, const double rDeltaTemperature)
 } // namespace
 
 //************************************************************************************
-// 1. U-P coupling independence: UPCondition and DamUPScheme with legacy vs SMA solid.
+// Coupling sign/energy sanity: positive pressure -> solid force in +normal.
 //************************************************************************************
 
-
-//************************************************************************************
-// 2. Coupling sign/energy sanity: positive pressure -> solid force in +normal.
-//************************************************************************************
-
-KRATOS_TEST_CASE_IN_SUITE(R54_UP_Coupling_SignSanity, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(UPCouplingPreservesExpectedSign, KratosDamFastSuite)
 {
     // With a positive uniform pressure, the UPCondition must produce a solid
-    // traction in the +normal direction, identical for legacy and SMA solids.
+    // traction in the +normal direction, identical for the historical alias and the direct SMA solid.
     // Bottom edge of the Q4 spans (0,0)-(2,0); the element interior is above, so
     // the outward edge normal is (0,-1). The condition computes
     //   UPMatrix = -Nu^T (n outer Np),  UVector = -UPMatrix * P
     // so UVector = Nu^T n * P * (edge length). With n=(0,-1), P>0 the solid
     // traction is along -n = (0,+1) on the U block.
     Model model;
-    ModelPart* p_legacy_mp = nullptr;
-    ModelPart* p_sma_mp = nullptr;
-    CreateUPModel(model, "SignLegacy", "SmallDisplacementSolidElement2D4N", "ThermalLinearElastic2DPlaneStrain", p_legacy_mp);
-    CreateUPModel(model, "SignSma", "SmallDisplacementElement2D4N", "ThermalLinearElastic2DPlaneStrain", p_sma_mp);
+    ModelPart* p_hist_alias_mp = nullptr;
+    ModelPart* p_direct_sma_mp = nullptr;
+    CreateUPModel(model, "SignHistAlias", "SmallDisplacementSolidElement2D4N", "ThermalLinearElastic2DPlaneStrain", p_hist_alias_mp);
+    CreateUPModel(model, "SignDirectSma", "SmallDisplacementElement2D4N", "ThermalLinearElastic2DPlaneStrain", p_direct_sma_mp);
 
     DamUPScheme<SparseSpaceType, LocalSpaceType> scheme(test_beta, test_gamma, 0.0, 0.0);
-    scheme.Initialize(*p_legacy_mp);
-    scheme.Initialize(*p_sma_mp);
+    scheme.Initialize(*p_hist_alias_mp);
+    scheme.Initialize(*p_direct_sma_mp);
     CompressedMatrix A;
     Vector Dx, b;
-    scheme.InitializeSolutionStep(*p_legacy_mp, A, Dx, b);
-    scheme.InitializeSolutionStep(*p_sma_mp, A, Dx, b);
+    scheme.InitializeSolutionStep(*p_hist_alias_mp, A, Dx, b);
+    scheme.InitializeSolutionStep(*p_direct_sma_mp, A, Dx, b);
 
     // Isolate the coupling condition RHS (pressure -> U traction).
-    Vector rhs_l, rhs_s;
-    Element::EquationIdVectorType eq_l, eq_s;
-    Matrix lhs_l, lhs_s;
-    scheme.CalculateSystemContributions(*p_legacy_mp->pGetCondition(1), lhs_l, rhs_l, eq_l, p_legacy_mp->GetProcessInfo());
-    scheme.CalculateSystemContributions(*p_sma_mp->pGetCondition(1), lhs_s, rhs_s, eq_s, p_sma_mp->GetProcessInfo());
+    Vector rhs_hist_alias, rhs_direct_sma;
+    Element::EquationIdVectorType eq_hist_alias, eq_direct_sma;
+    Matrix lhs_hist_alias, lhs_direct_sma;
+    scheme.CalculateSystemContributions(*p_hist_alias_mp->pGetCondition(1), lhs_hist_alias, rhs_hist_alias, eq_hist_alias, p_hist_alias_mp->GetProcessInfo());
+    scheme.CalculateSystemContributions(*p_direct_sma_mp->pGetCondition(1), lhs_direct_sma, rhs_direct_sma, eq_direct_sma, p_direct_sma_mp->GetProcessInfo());
 
     // Condition DOF order per node: [Ux, Uy, P]. The Dam 2D UPCondition
     // (CalculateNormalVector<2,2>) uses the edge Jacobian as the coupling
@@ -207,45 +202,46 @@ KRATOS_TEST_CASE_IN_SUITE(R54_UP_Coupling_SignSanity, KratosDamFastSuite)
     // P*L/2 = 1000. The Uy entry stays uninitialized when the coupling direction
     // has no y component (a pre-existing UPCondition quirk, identical for both
     // implementations).
-    std::cout << "[5D] legacy condition RHS = [" << rhs_l[0] << ", " << rhs_l[1] << ", " << rhs_l[2]
-              << ", " << rhs_l[3] << ", " << rhs_l[4] << ", " << rhs_l[5] << "]" << std::endl;
+    std::cout << "[coupled] alias condition RHS = [" << rhs_hist_alias[0] << ", " << rhs_hist_alias[1] << ", " << rhs_hist_alias[2]
+              << ", " << rhs_hist_alias[3] << ", " << rhs_hist_alias[4] << ", " << rhs_hist_alias[5] << "]" << std::endl;
 
-    // THE key migration result: the coupling contributions are IDENTICAL for the
-    // legacy and SMA solids (the condition never touches the solid element).
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(rhs_l, rhs_s), 0.0, 1.0e-12);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(lhs_l, lhs_s), 0.0, 1.0e-12);
+    // The coupling contributions are identical for the historical alias and the
+    // direct SMA solid (the condition never touches the solid element).
+    KRATOS_EXPECT_NEAR(MaxAbsDiff(rhs_hist_alias, rhs_direct_sma), 0.0, 1.0e-12);
+    KRATOS_EXPECT_NEAR(MaxAbsDiff(lhs_hist_alias, lhs_direct_sma), 0.0, 1.0e-12);
 
     // Sign convention preserved: positive P -> solid traction +P*L/2 along the
     // coupling (tangent) direction; P-block RHS = -P*L/2 (per node).
-    KRATOS_EXPECT_NEAR(rhs_l[0], 1000.0, 1.0e-9);    // node0 Ux traction
-    KRATOS_EXPECT_NEAR(rhs_l[3], 1000.0, 1.0e-9);    // node1 Ux traction
-    KRATOS_EXPECT_NEAR(rhs_l[2], -500.0, 1.0e-9);    // node0 P block
-    KRATOS_EXPECT_NEAR(rhs_l[5], -500.0, 1.0e-9);    // node1 P block
+    KRATOS_EXPECT_NEAR(rhs_hist_alias[0], 1000.0, 1.0e-9);    // node0 Ux traction
+    KRATOS_EXPECT_NEAR(rhs_hist_alias[3], 1000.0, 1.0e-9);    // node1 Ux traction
+    KRATOS_EXPECT_NEAR(rhs_hist_alias[2], -500.0, 1.0e-9);    // node0 P block
+    KRATOS_EXPECT_NEAR(rhs_hist_alias[5], -500.0, 1.0e-9);    // node1 P block
 
-    std::cout << "[5D] coupling sign/energy: positive P gives the same +tangent "
-              << "traction and same P-block RHS for legacy and SMA; no reversal "
-              << "or rescaling. (Uy entry is uninitialized in the 2D UPCondition "
-              << "when the coupling direction is purely x - pre-existing quirk.)" << std::endl;
+    std::cout << "[coupled] coupling sign/energy: positive P gives the same +tangent "
+              << "traction and same P-block RHS for the alias and direct SMA; no "
+              << "reversal or rescaling. (Uy entry is uninitialized in the 2D "
+              << "UPCondition when the coupling direction is purely x - pre-existing "
+              << "quirk.)" << std::endl;
 }
 
 
 //************************************************************************************
-// 3. T-U-P: thermal solid + coupling with SMA vs legacy thermo element.
+// T-U-P: thermal solid + coupling.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R54_TUP_ThermalSolid_Coupling, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TUPCouplingWithThermalSolid, KratosDamFastSuite)
 {
     // T-U-P thermal stage: a temperature increment must generate the same solid
-    // thermal stress/force with the SMA solid as with the legacy thermo element,
-    // and the U-P coupling must remain identical.
+    // thermal stress/force with the historical thermo alias as with the direct
+    // SMA solid, and the U-P coupling must remain identical.
     Model model;
-    ModelPart* p_legacy_mp = nullptr;
-    ModelPart* p_sma_mp = nullptr;
-    CreateUPModel(model, "TUPLegacy", "SmallDisplacementThermoMechanicElement2D4N", "ThermalLinearElastic2DPlaneStrain", p_legacy_mp);
-    CreateUPModel(model, "TUPSma", "SmallDisplacementElement2D4N", "ThermalLinearElastic2DPlaneStrain", p_sma_mp);
+    ModelPart* p_hist_alias_mp = nullptr;
+    ModelPart* p_direct_sma_mp = nullptr;
+    CreateUPModel(model, "TUPhistalias", "SmallDisplacementThermoMechanicElement2D4N", "ThermalLinearElastic2DPlaneStrain", p_hist_alias_mp);
+    CreateUPModel(model, "TUPdirectsma", "SmallDisplacementElement2D4N", "ThermalLinearElastic2DPlaneStrain", p_direct_sma_mp);
 
     // Reset the pressure/acceleration so the comparison isolates thermal force.
-    for (auto* p_mp : {p_legacy_mp, p_sma_mp}) {
+    for (auto* p_mp : {p_hist_alias_mp, p_direct_sma_mp}) {
         for (auto& n : p_mp->Nodes()) {
             n.FastGetSolutionStepValue(PRESSURE) = 0.0;
             auto& a = n.FastGetSolutionStepValue(ACCELERATION);
@@ -256,46 +252,41 @@ KRATOS_TEST_CASE_IN_SUITE(R54_TUP_ThermalSolid_Coupling, KratosDamFastSuite)
             n.FastGetSolutionStepValue(Dt2_PRESSURE) = 0.0;
         }
     }
-    ApplyTemperature(*p_legacy_mp, 25.0);
-    ApplyTemperature(*p_sma_mp, 25.0);
+    ApplyTemperature(*p_hist_alias_mp, 25.0);
+    ApplyTemperature(*p_direct_sma_mp, 25.0);
 
     DamUPScheme<SparseSpaceType, LocalSpaceType> scheme(test_beta, test_gamma, 0.0, 0.0);
-    scheme.Initialize(*p_legacy_mp);
-    scheme.Initialize(*p_sma_mp);
+    scheme.Initialize(*p_hist_alias_mp);
+    scheme.Initialize(*p_direct_sma_mp);
     CompressedMatrix A;
     Vector Dx, b;
-    scheme.InitializeSolutionStep(*p_legacy_mp, A, Dx, b);
-    scheme.InitializeSolutionStep(*p_sma_mp, A, Dx, b);
+    scheme.InitializeSolutionStep(*p_hist_alias_mp, A, Dx, b);
+    scheme.InitializeSolutionStep(*p_direct_sma_mp, A, Dx, b);
 
     // Solid thermal internal force via the scheme contributions.
-    Matrix lhs_l, lhs_s;
-    Vector rhs_l, rhs_s;
-    Element::EquationIdVectorType eq_l, eq_s;
-    scheme.CalculateSystemContributions(*p_legacy_mp->pGetElement(1), lhs_l, rhs_l, eq_l, p_legacy_mp->GetProcessInfo());
-    scheme.CalculateSystemContributions(*p_sma_mp->pGetElement(1), lhs_s, rhs_s, eq_s, p_sma_mp->GetProcessInfo());
+    Matrix lhs_hist_alias, lhs_direct_sma;
+    Vector rhs_hist_alias, rhs_direct_sma;
+    Element::EquationIdVectorType eq_hist_alias, eq_direct_sma;
+    scheme.CalculateSystemContributions(*p_hist_alias_mp->pGetElement(1), lhs_hist_alias, rhs_hist_alias, eq_hist_alias, p_hist_alias_mp->GetProcessInfo());
+    scheme.CalculateSystemContributions(*p_direct_sma_mp->pGetElement(1), lhs_direct_sma, rhs_direct_sma, eq_direct_sma, p_direct_sma_mp->GetProcessInfo());
 
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(lhs_l, lhs_s), 0.0, 1.0e-8);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(rhs_l, rhs_s), 0.0, 1.0e-8);
+    KRATOS_EXPECT_NEAR(MaxAbsDiff(lhs_hist_alias, lhs_direct_sma), 0.0, 1.0e-8);
+    KRATOS_EXPECT_NEAR(MaxAbsDiff(rhs_hist_alias, rhs_direct_sma), 0.0, 1.0e-8);
     // The thermal expansion must produce a non-trivial internal force.
-    KRATOS_EXPECT_GT(MaxAbsDiff(rhs_l, ZeroVector(rhs_l.size())), 1.0);
+    KRATOS_EXPECT_GT(MaxAbsDiff(rhs_hist_alias, ZeroVector(rhs_hist_alias.size())), 1.0);
 
     // Coupling condition remains identical.
     Vector rhs_c_l, rhs_c_s;
     Element::EquationIdVectorType eq_c_l, eq_c_s;
     Matrix lhs_c_l, lhs_c_s;
-    scheme.CalculateSystemContributions(*p_legacy_mp->pGetCondition(1), lhs_c_l, rhs_c_l, eq_c_l, p_legacy_mp->GetProcessInfo());
-    scheme.CalculateSystemContributions(*p_sma_mp->pGetCondition(1), lhs_c_s, rhs_c_s, eq_c_s, p_sma_mp->GetProcessInfo());
+    scheme.CalculateSystemContributions(*p_hist_alias_mp->pGetCondition(1), lhs_c_l, rhs_c_l, eq_c_l, p_hist_alias_mp->GetProcessInfo());
+    scheme.CalculateSystemContributions(*p_direct_sma_mp->pGetCondition(1), lhs_c_s, rhs_c_s, eq_c_s, p_direct_sma_mp->GetProcessInfo());
     KRATOS_EXPECT_NEAR(MaxAbsDiff(rhs_c_l, rhs_c_s), 0.0, 1.0e-12);
 
-    std::cout << "[5D] T-U-P: SMA solid thermal force == legacy thermo element "
-              << "(solid RHS diff=" << MaxAbsDiff(rhs_l, rhs_s)
+    std::cout << "[coupled] T-U-P: thermal force == alias thermo force "
+              << "(solid RHS diff=" << MaxAbsDiff(rhs_hist_alias, rhs_direct_sma)
               << ", coupling diff=" << MaxAbsDiff(rhs_c_l, rhs_c_s) << ")" << std::endl;
 }
-
-
-//************************************************************************************
-// 4. P-only isolation: WaveEquationElement + DamPScheme with no solid element.
-//************************************************************************************
 
 
 //************************************************************************************

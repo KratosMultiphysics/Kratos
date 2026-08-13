@@ -105,8 +105,8 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement3D6N", mSmallDisplacementInterfaceElement3D6N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement3D8N", mSmallDisplacementInterfaceElement3D8N )
 
-    // Phase 6A: the historical thermo-mechanical names are registered against the
-    // SAME StructuralMechanicsApplication SmallDisplacement prototypes as the
+    // Historical thermo-mechanical names are registered against the SAME
+    // StructuralMechanicsApplication SmallDisplacement prototypes as the
     // mechanical names (one prototype per geometry). Thermal behavior lives in
     // the constitutive law, so the two historical families converge to one
     // runtime implementation.

@@ -39,10 +39,8 @@ namespace Kratos
 class DamNonlocalDamageUtilities
 {
 public:
-    /// Determines whether the scheme-based LOCAL ownership is active for this
-    /// model part. The decision is explicit and deterministic: it comes from the
-    /// internal Dam ProcessInfo flag USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN,
-    /// which the Dam solvers set from the existing 'nonlocal_damage' setting.
+    /// True when the scheme-based LOCAL ownership is active (set by the Dam
+    /// solvers from the 'nonlocal_damage' setting).
     static bool IsProcessBasedLocalOwnership(const ModelPart& rModelPart)
     {
         return rModelPart.GetProcessInfo().Has(USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN)

@@ -49,7 +49,7 @@ namespace Testing
 namespace
 {
 
-/// Comparison tolerances (same philosophy as the previous characterization).
+/// Comparison tolerances.
 constexpr double comparison_absolute_tolerance = 1.0e-12;
 constexpr double comparison_relative_tolerance = 1.0e-10;
 
@@ -231,11 +231,6 @@ void VerifyExpectedNodalAreas(ModelPart& rModelPart)
 } // namespace
 
 //************************************************************************************
-// Static scheme: legacy vs candidate equivalence (full scheme FinalizeSolutionStep)
-//************************************************************************************
-
-
-//************************************************************************************
 // No-double-accumulation
 //************************************************************************************
 
@@ -243,25 +238,25 @@ KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_NoElementAccumulation, KratosDamFas
 {
     Model model;
 
-    // After Phase 3D.4B the legacy element itself performs NO nodal
-    // accumulation: calling its FinalizeSolutionStep alone leaves NODAL_AREA and
+    // The element itself performs NO nodal accumulation: calling its
+    // FinalizeSolutionStep alone leaves NODAL_AREA and
     // NODAL_CAUCHY_STRESS_TENSOR untouched.
-    ModelPart& r_legacy = CreateSchemeModelPart(model, "LegacyNoAccum", "SmallDisplacementThermoMechanicElement3D8N");
-    PrescribeState(r_legacy, 1.0);
-    InitializeAllElements(r_legacy);
+    ModelPart& r_mp = CreateSchemeModelPart(model, "NoAccum", "SmallDisplacementThermoMechanicElement3D8N");
+    PrescribeState(r_mp, 1.0);
+    InitializeAllElements(r_mp);
 
-    for (auto& r_node : r_legacy.Nodes()) {
+    for (auto& r_node : r_mp.Nodes()) {
         r_node.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
         Matrix zero_stress_tensor(3, 3);
         noalias(zero_stress_tensor) = ZeroMatrix(3, 3);
         r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = zero_stress_tensor;
     }
 
-    for (auto& r_element : r_legacy.Elements()) {
-        r_element.FinalizeSolutionStep(r_legacy.GetProcessInfo());
+    for (auto& r_element : r_mp.Elements()) {
+        r_element.FinalizeSolutionStep(r_mp.GetProcessInfo());
     }
 
-    for (auto& r_node : r_legacy.Nodes()) {
+    for (auto& r_node : r_mp.Nodes()) {
         KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(NODAL_AREA), 0.0, 1.0e-15);
         const Matrix& r_stress = r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
         for (std::size_t i = 0; i < 3; ++i) {
@@ -274,9 +269,9 @@ KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_NoElementAccumulation, KratosDamFas
     // The full Dam smoothing scheme then performs exactly ONE process-based
     // accumulation (NODAL_AREA equals the analytical element-measure sum).
     StaticSmoothingScheme scheme;
-    RunSchemeFinalization(scheme, r_legacy);
-    VerifyExpectedNodalAreas(r_legacy);
-    for (auto& r_node : r_legacy.Nodes()) {
+    RunSchemeFinalization(scheme, r_mp);
+    VerifyExpectedNodalAreas(r_mp);
+    for (auto& r_node : r_mp.Nodes()) {
         const Matrix& r_stress = r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
         for (std::size_t i = 0; i < 3; ++i) {
             for (std::size_t j = 0; j < 3; ++j) {
@@ -287,57 +282,40 @@ KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_NoElementAccumulation, KratosDamFas
 }
 
 
-//************************************************************************************
-// StructuralMechanics-only candidate (central acceptance test)
-//************************************************************************************
+
+
+
+
+
+
+
+
 
 
 //************************************************************************************
-// Multi-step workflow
-//************************************************************************************
-
-
-//************************************************************************************
-// Damped smoothing scheme (inherits the common lifecycle)
-//************************************************************************************
-
-
-//************************************************************************************
-// Bossak smoothing scheme (owns the same lifecycle)
-//************************************************************************************
-
-
-//************************************************************************************
-// Downstream consumer (selfweight / initial stress transfer)
-//************************************************************************************
-
-
-//************************************************************************************
-// Unsupported higher-order geometry: not newly fatal (legacy-compatible skip).
+// Unsupported higher-order geometry is skipped without error.
 //************************************************************************************
 
 KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_UnsupportedGeometryNotFatal, KratosDamFastSuite)
 {
-    // The legacy ExtrapolateGPStress only supported T3/Q4/T4/H8; higher-order
-    // geometries performed no nodal Cauchy-stress extrapolation. After Phase
-    // 3D.4B the process preserves that policy: an unsupported higher-order
+    // Extrapolation supports only T3/Q4/T4/H8; an unsupported higher-order
     // geometry is skipped (no accumulation, no error), while the scheme still
     // runs the reset/normalize lifecycle.
     Model model;
-    ModelPart& r_candidate = model.CreateModelPart("UnsupportedH20", 2);
-    ProcessInfo& r_pi = r_candidate.GetProcessInfo();
+    ModelPart& r_mp = model.CreateModelPart("UnsupportedH20", 2);
+    ProcessInfo& r_pi = r_mp.GetProcessInfo();
     r_pi[DOMAIN_SIZE] = 3;
     r_pi[SPACE_DIMENSION] = 3;
     r_pi[IS_RESTARTED] = false;
-    r_candidate.AddNodalSolutionStepVariable(DISPLACEMENT);
-    r_candidate.AddNodalSolutionStepVariable(VELOCITY);
-    r_candidate.AddNodalSolutionStepVariable(ACCELERATION);
-    r_candidate.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-    r_candidate.AddNodalSolutionStepVariable(TEMPERATURE);
-    r_candidate.AddNodalSolutionStepVariable(NODAL_REFERENCE_TEMPERATURE);
-    r_candidate.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
-    r_candidate.AddNodalSolutionStepVariable(NODAL_AREA);
-    r_candidate.AddNodalSolutionStepVariable(INITIAL_STRESS_TENSOR);
+    r_mp.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_mp.AddNodalSolutionStepVariable(VELOCITY);
+    r_mp.AddNodalSolutionStepVariable(ACCELERATION);
+    r_mp.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+    r_mp.AddNodalSolutionStepVariable(TEMPERATURE);
+    r_mp.AddNodalSolutionStepVariable(NODAL_REFERENCE_TEMPERATURE);
+    r_mp.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
+    r_mp.AddNodalSolutionStepVariable(NODAL_AREA);
+    r_mp.AddNodalSolutionStepVariable(INITIAL_STRESS_TENSOR);
     const Element& r_proto = KratosComponents<Element>::Get("SmallDisplacementElement3D20N");
     const auto& r_geom = r_proto.GetGeometry();
     Matrix lc;
@@ -346,9 +324,9 @@ KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_UnsupportedGeometryNotFatal, Kratos
     array_1d<double, 3> off;
     off[0] = 0.75; off[1] = 1.25; off[2] = 0.5;
     for (std::size_t i = 0; i < 20; ++i) {
-        r_candidate.CreateNewNode(i + 1, gs * lc(i, 0) + off[0], gs * lc(i, 1) + off[1], gs * lc(i, 2) + off[2]);
+        r_mp.CreateNewNode(i + 1, gs * lc(i, 0) + off[0], gs * lc(i, 1) + off[1], gs * lc(i, 2) + off[2]);
     }
-    auto p_prop = r_candidate.CreateNewProperties(1);
+    auto p_prop = r_mp.CreateNewProperties(1);
     (*p_prop)[YOUNG_MODULUS] = test_young_modulus;
     (*p_prop)[POISSON_RATIO] = test_poisson_ratio;
     (*p_prop)[DENSITY] = 2400.0;
@@ -356,8 +334,8 @@ KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_UnsupportedGeometryNotFatal, Kratos
     p_prop->SetValue(CONSTITUTIVE_LAW, ThermalLinearElastic3DLaw().Clone());
     std::vector<ModelPart::IndexType> elem_nodes(20);
     for (std::size_t i = 0; i < 20; ++i) elem_nodes[i] = i + 1;
-    r_candidate.CreateNewElement("SmallDisplacementElement3D20N", 1, elem_nodes, p_prop);
-    for (auto& r_node : r_candidate.Nodes()) {
+    r_mp.CreateNewElement("SmallDisplacementElement3D20N", 1, elem_nodes, p_prop);
+    for (auto& r_node : r_mp.Nodes()) {
         r_node.AddDof(DISPLACEMENT_X);
         r_node.AddDof(DISPLACEMENT_Y);
         r_node.AddDof(DISPLACEMENT_Z);
@@ -367,15 +345,15 @@ KRATOS_TEST_CASE_IN_SUITE(DamSmoothingScheme_UnsupportedGeometryNotFatal, Kratos
         noalias(zero_stress_tensor) = ZeroMatrix(3, 3);
         r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = zero_stress_tensor;
     }
-    r_candidate.pGetElement(1)->Initialize(r_pi);
+    r_mp.pGetElement(1)->Initialize(r_pi);
 
-    PrescribeState(r_candidate, 1.0);
+    PrescribeState(r_mp, 1.0);
 
     StaticSmoothingScheme scheme;
-    RunSchemeFinalization(scheme, r_candidate);
+    RunSchemeFinalization(scheme, r_mp);
 
     // The unsupported element is skipped: no nodal accumulation occurs.
-    for (auto& r_node : r_candidate.Nodes()) {
+    for (auto& r_node : r_mp.Nodes()) {
         KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(NODAL_AREA), 0.0, 1.0e-15);
         const Matrix& r_stress = r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
         for (std::size_t i = 0; i < 3; ++i) {

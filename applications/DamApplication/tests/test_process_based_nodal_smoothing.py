@@ -11,7 +11,7 @@ from KratosMultiphysics.DamApplication.dam_analysis import DamAnalysis
 
 def _load_construction_parameters():
     """Loads the old-style construction ProjectParameters file (an existing/older
-    user ProjectParameters file with no migration-specific setting)."""
+    user ProjectParameters file."""
     parameters_file = os.path.join(
         os.path.dirname(__file__), "construction", "construction_parameters.json")
     with open(parameters_file) as f:
@@ -28,8 +28,7 @@ def _run_construction():
 
 
 def _mechanical_solver_settings():
-    """An old-style mechanical solver settings dict (no migration-specific
-    setting)."""
+    """An old-style mechanical solver settings dict."""
     return KM.Parameters(json.dumps({
         "solver_type": "dam_mechanical_solver",
         "model_import_settings": {"input_type": "mdpa", "input_filename": "x", "input_file_label": 0},
@@ -106,9 +105,9 @@ def _extract_results(model):
 class DamProcessBasedNodalSmoothingTest(KratosUnittest.TestCase):
 
     def test_old_project_parameters_without_setting(self):
-        """An old ProjectParameters file (with no migration-specific setting)
-        must run normally and produce the smoothed nodal Cauchy stress through
-        the single scheme/process implementation, with a single accumulation."""
+        """An old ProjectParameters file must run normally and produce the
+        smoothed nodal Cauchy stress through the single scheme/process
+        implementation, with a single accumulation."""
         with KratosUnittest.WorkFolderScope(".", __file__):
             model = _run_construction()
             node_data = _extract_results(model)
@@ -126,9 +125,9 @@ class DamProcessBasedNodalSmoothingTest(KratosUnittest.TestCase):
                 max_stress = max(max_stress, max(abs(s) for s in node["stress"]))
             self.assertGreater(max_stress, 1.0e-6)
 
-    def test_mechanical_solver_without_migration_setting(self):
-        """The Dam mechanical solver constructs without any migration-specific
-        setting (an old-style ProjectParameters mechanical settings block)."""
+    def test_mechanical_solver_construction(self):
+        """The Dam mechanical solver constructs from an old-style
+        ProjectParameters mechanical settings block."""
         from KratosMultiphysics.DamApplication import dam_mechanical_solver
 
         model = KM.Model()
@@ -139,7 +138,7 @@ class DamProcessBasedNodalSmoothingTest(KratosUnittest.TestCase):
 
     def test_smoothing_scheme_construction_all_schemes(self):
         """All three Dam smoothing schemes construct through the solver without
-        any migration-specific setting (single process implementation)."""
+        without any Dam-specific options (single process implementation)."""
         from KratosMultiphysics.DamApplication import dam_mechanical_solver
 
         def make_params(rayleigh):

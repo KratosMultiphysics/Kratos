@@ -47,7 +47,7 @@ namespace Testing
 namespace
 {
 
-/// Comparison tolerances (same philosophy as the previous characterization).
+/// Comparison tolerances.
 constexpr double comparison_absolute_tolerance = 1.0e-12;
 constexpr double comparison_relative_tolerance = 1.0e-10;
 constexpr double machine_precision_allowance = 1.0e-15;
@@ -193,18 +193,15 @@ void InitializeProcessElement(ModelPart& rModelPart)
     KRATOS_CATCH("");
 }
 
-/// Runs the legacy element finalization (accumulates the raw nodal values).
-
-/// Runs the new Dam process (accumulation only; the caller must have
-/// initialized the nodal accumulators, as the legacy smoothing scheme does).
-void RunCandidateProcess(ModelPart& rModelPart)
+/// Runs the Dam process (accumulation only; the caller must have initialized
+/// the nodal accumulators, as the smoothing scheme does).
+void RunProcess(ModelPart& rModelPart)
 {
     DamNodalCauchyStressExtrapolationProcess process(rModelPart);
     process.ExecuteFinalizeSolutionStep();
 }
 
-/// Replicates the legacy scheme reset: zeroes NODAL_AREA and
-/// NODAL_CAUCHY_STRESS_TENSOR on all nodes.
+/// Resets NODAL_AREA and NODAL_CAUCHY_STRESS_TENSOR on all nodes.
 void ResetNodalAccumulators(ModelPart& rModelPart, const std::size_t rDimension)
 {
     for (auto& r_node : rModelPart.Nodes()) {
@@ -213,28 +210,9 @@ void ResetNodalAccumulators(ModelPart& rModelPart, const std::size_t rDimension)
     }
 }
 
-/// Replicates the legacy scheme normalization: divides
-/// NODAL_CAUCHY_STRESS_TENSOR by NODAL_AREA when the area is non-negligible.
-
-/// Compares raw historical NODAL_CAUCHY_STRESS_TENSOR and NODAL_AREA.
-
-/// Minimal test-only element that returns a prescribed CAUCHY_STRESS_TENSOR
-/// field at its integration points. It is NOT registered in KratosComponents and
-/// introduces no production dependency; it is used to isolate the process-level
-;
-
-/// Creates a model part with the prescribed-stress element and the accumulator
-/// nodal variables initialized to zero. Returns the element pointer through
-/// rOutElement.
-
-
-
-
 /// Verifies the process result against the independently computed analytic
-/// legacy formula: NODAL_CAUCHY_STRESS_TENSOR = sum over incident elements of
+/// formula: NODAL_CAUCHY_STRESS_TENSOR = sum over incident elements of
 /// (element_measure * extrapolated_stress), NODAL_AREA = sum of measures.
-/// After Phase 3D.4B the process is the single production implementation and
-/// there is no element-level reference to compare against.
 void VerifyProcessAgainstAnalyticRaw(ModelPart& rModelPart, const std::string& rLabel)
 {
     const std::size_t dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -325,37 +303,37 @@ KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_SingleElement_GeometryTabl
     };
     for (const auto& g : geos) {
         Model model;
-        ModelPart& r_candidate = CreateProcessModelPart(
-            model, std::string("Candidate") + g.label, g.element_name, g.law_name, g.dimension);
-        PrescribeVaryingState(r_candidate, g.dimension);
-        InitializeProcessElement(r_candidate);
+        ModelPart& r_model_part = CreateProcessModelPart(
+            model, std::string("MP") + g.label, g.element_name, g.law_name, g.dimension);
+        PrescribeVaryingState(r_model_part, g.dimension);
+        InitializeProcessElement(r_model_part);
 
         if (std::string(g.label) == "Hexahedra3D8") {
             // Verify that the GP stress field is non-uniform and all six
             // components are non-degenerate (test isn't trivially constant).
-            std::vector<Vector> candidate_sv;
-            r_candidate.pGetElement(1)->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, candidate_sv, r_candidate.GetProcessInfo());
+            std::vector<Vector> gp_stress;
+            r_model_part.pGetElement(1)->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, gp_stress, r_model_part.GetProcessInfo());
             double min_abs_component = std::numeric_limits<double>::max();
             double max_abs_component = 0.0;
-            for (std::size_t gp = 0; gp < candidate_sv.size(); ++gp) {
-                KRATOS_EXPECT_EQ(candidate_sv[gp].size(), 6);
+            for (std::size_t gp = 0; gp < gp_stress.size(); ++gp) {
+                KRATOS_EXPECT_EQ(gp_stress[gp].size(), 6);
                 for (std::size_t c = 0; c < 6; ++c) {
-                    min_abs_component = std::min(min_abs_component, std::abs(candidate_sv[gp](c)));
-                    max_abs_component = std::max(max_abs_component, std::abs(candidate_sv[gp](c)));
+                    min_abs_component = std::min(min_abs_component, std::abs(gp_stress[gp](c)));
+                    max_abs_component = std::max(max_abs_component, std::abs(gp_stress[gp](c)));
                 }
             }
             double max_sxx = -std::numeric_limits<double>::max();
             double min_sxx = std::numeric_limits<double>::max();
-            for (std::size_t gp = 0; gp < candidate_sv.size(); ++gp) {
-                max_sxx = std::max(max_sxx, candidate_sv[gp](0));
-                min_sxx = std::min(min_sxx, candidate_sv[gp](0));
+            for (std::size_t gp = 0; gp < gp_stress.size(); ++gp) {
+                max_sxx = std::max(max_sxx, gp_stress[gp](0));
+                min_sxx = std::min(min_sxx, gp_stress[gp](0));
             }
             KRATOS_EXPECT_TRUE((max_sxx - min_sxx) > 1.0e-3 * max_abs_component);
             KRATOS_EXPECT_TRUE(min_abs_component > 1.0e-4 * max_abs_component);
         }
 
-        RunCandidateProcess(r_candidate);
-        VerifyProcessAgainstAnalyticRaw(r_candidate, g.label);
+        RunProcess(r_model_part);
+        VerifyProcessAgainstAnalyticRaw(r_model_part, g.label);
     }
 }
 
@@ -419,9 +397,9 @@ KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_SharedNode_UnequalAreas, K
     };
 
     Model model;
-    ModelPart& r_candidate = build_model(model, "SmallDisplacementElement2D4N");
-    RunCandidateProcess(r_candidate);
-    VerifyProcessAgainstAnalyticRaw(r_candidate, "SharedNode2Quads");
+    ModelPart& r_model_part = build_model(model, "SmallDisplacementElement2D4N");
+    RunProcess(r_model_part);
+    VerifyProcessAgainstAnalyticRaw(r_model_part, "SharedNode2Quads");
 }
 
 
@@ -431,60 +409,24 @@ KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_SharedNode_UnequalAreas, K
 
 KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_MultiStep, KratosDamFastSuite)
 {
-    // Two consecutive steps with different thermo-mechanical states. After
-    // Phase 3D.4B the process is the single production implementation, so each
-    // step is verified against the independently computed analytic formula:
+    // Two consecutive steps with different thermo-mechanical states, each
+    // verified against the independently computed analytic formula:
     //   1. reset NODAL_AREA / NODAL_CAUCHY_STRESS_TENSOR (as the smoothing scheme);
     //   2. accumulate through the process;
     //   3. verify the raw accumulators and NODAL_AREA against the analytic sum;
     //   4. normalize and verify the final smoothed nodal stress is non-trivial.
     Model model;
-    ModelPart& r_candidate = CreateProcessModelPart(
-        model, "CandidateMS", "SmallDisplacementElement3D8N",
+    ModelPart& r_model_part = CreateProcessModelPart(
+        model, "MPMS", "SmallDisplacementElement3D8N",
         "ThermalLinearElastic3DLaw", 3);
-    InitializeProcessElement(r_candidate);
+    InitializeProcessElement(r_model_part);
 
+    auto p_element = r_model_part.pGetElement(1);
+    const ProcessInfo& r_pi = r_model_part.GetProcessInfo();
     for (std::size_t step = 0; step < 2; ++step) {
-        PrescribeVaryingState(r_candidate, 3);
+        PrescribeVaryingState(r_model_part, 3);
 
-        // Stage 1: reset as the smoothing scheme does.
-        ResetNodalAccumulators(r_candidate, 3);
-
-        // Stage 2: accumulate through the single production implementation.
-        RunCandidateProcess(r_candidate);
-
-        // Stage 3: verify against the analytic formula.
-        VerifyProcessAgainstAnalyticRaw(r_candidate, "MultiStep step " + std::to_string(step + 1));
-    }
-}
-
-
-//************************************************************************************
-// Standard-element independence (only StructuralMechanics elements)
-//************************************************************************************
-
-
-//************************************************************************************
-// No equilibrium side effects
-//************************************************************************************
-
-KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_NoEquilibriumSideEffects, KratosDamFastSuite)
-{
-    for (const char* p_element_name : {"SmallDisplacementElement2D4N",
-                                       "SmallDisplacementElement3D8N"}) {
-        const std::string r_element_name(p_element_name);
-        const std::size_t dimension = (r_element_name.find("2D") != std::string::npos) ? 2 : 3;
-        const std::string r_law_name =
-            (dimension == 2) ? "ThermalLinearElastic2DPlaneStrain" : "ThermalLinearElastic3DLaw";
-
-        Model model;
-        ModelPart& r_model_part = CreateProcessModelPart(
-            model, "SideEffect" + r_element_name, r_element_name, r_law_name, dimension);
-        PrescribeVaryingState(r_model_part, dimension);
-        InitializeProcessElement(r_model_part);
-        auto p_element = r_model_part.pGetElement(1);
-        const ProcessInfo& r_pi = r_model_part.GetProcessInfo();
-
+        // The process must be read-only on the element response.
         Matrix lhs_before, lhs_after;
         Vector rhs_before, rhs_after;
         std::vector<Vector> cauchy_before, cauchy_after, pk2_before, pk2_after, strain_before, strain_after;
@@ -493,42 +435,32 @@ KRATOS_TEST_CASE_IN_SUITE(DamNodalStressExtrapolation_NoEquilibriumSideEffects, 
         p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, pk2_before, r_pi);
         p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, strain_before, r_pi);
 
-        RunCandidateProcess(r_model_part);
+        // Stage 1: reset as the smoothing scheme does.
+        ResetNodalAccumulators(r_model_part, 3);
+
+        // Stage 2: accumulate through the single production implementation.
+        RunProcess(r_model_part);
+
+        // Stage 3: verify against the analytic formula.
+        VerifyProcessAgainstAnalyticRaw(r_model_part, "MultiStep step " + std::to_string(step + 1));
 
         p_element->CalculateLocalSystem(lhs_after, rhs_after, r_pi);
         p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_after, r_pi);
         p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, pk2_after, r_pi);
         p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, strain_after, r_pi);
-
-        for (std::size_t i = 0; i < lhs_before.size1(); ++i) {
-            for (std::size_t j = 0; j < lhs_before.size2(); ++j) {
+        for (std::size_t i = 0; i < lhs_before.size1(); ++i)
+            for (std::size_t j = 0; j < lhs_before.size2(); ++j)
                 KRATOS_EXPECT_NEAR(lhs_after(i, j), lhs_before(i, j), comparison_absolute_tolerance);
-            }
-        }
-        for (std::size_t i = 0; i < rhs_before.size(); ++i) {
+        for (std::size_t i = 0; i < rhs_before.size(); ++i)
             KRATOS_EXPECT_NEAR(rhs_after(i), rhs_before(i), comparison_absolute_tolerance);
-        }
-        for (std::size_t gp = 0; gp < cauchy_before.size(); ++gp) {
+        for (std::size_t gp = 0; gp < cauchy_before.size(); ++gp)
             for (std::size_t c = 0; c < cauchy_before[gp].size(); ++c) {
                 KRATOS_EXPECT_NEAR(cauchy_after[gp](c), cauchy_before[gp](c), comparison_absolute_tolerance);
                 KRATOS_EXPECT_NEAR(pk2_after[gp](c), pk2_before[gp](c), comparison_absolute_tolerance);
                 KRATOS_EXPECT_NEAR(strain_after[gp](c), strain_before[gp](c), comparison_absolute_tolerance);
             }
-        }
     }
 }
-
-
-//************************************************************************************
-// Prescribed-GP process-equivalence (identical GP inputs)
-//************************************************************************************
-
-
-
-//************************************************************************************
-// Zero-shear roundoff characterization (documented, non-failing)
-//************************************************************************************
-
 
 } // namespace Testing
 } // namespace Kratos

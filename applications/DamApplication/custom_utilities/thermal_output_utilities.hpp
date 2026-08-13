@@ -1,12 +1,12 @@
 //
 //   Project Name:                  KratosDamApplication $
 //   Last Modified by:    $Author:    DamApplication developers $
-//   Date:                $Date:            Phase 5B.2 $
+//   Date:                $Date:                           $
 //   Revision:            $Revision:                 1.0 $
 //
 
-// Phase 5B.2: small Dam-only helpers shared by the thermal constitutive
-// families when they provide the specialized thermo-mechanical outputs
+// Small Dam-only helpers shared by the thermal constitutive families when they
+// provide the specialized thermo-mechanical outputs
 // (THERMAL_STRAIN/STRESS_VECTOR/TENSOR, MECHANICAL_STRESS_VECTOR/TENSOR)
 // through the parameter-aware CalculateValue path. No base hierarchy is
 // introduced: these are free inline functions on top of the existing

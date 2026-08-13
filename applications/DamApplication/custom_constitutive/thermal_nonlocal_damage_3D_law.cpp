@@ -71,9 +71,8 @@ bool ThermalNonlocalDamage3DLaw::RequiresInitializeMaterialResponse()
 
 void ThermalNonlocalDamage3DLaw::ReinitializeMaterialProperties(const Properties& rMaterialProperties)
 {
-    // After a serialization/restart the transient Properties on the hardening
-    // law are not restored by the Serializer; re-establish them so that a
-    // subsequent material response works. The committed damage/history state is
+    // The hardening-law Properties pointer is not serialized; re-establish it
+    // from the current material parameters. Committed damage/history state is
     // untouched.
     if (mpHardeningLaw)
     {
@@ -123,8 +122,8 @@ Vector& ThermalNonlocalDamage3DLaw::CalculateValue(
         const Vector& r_total_strain = rParameterValues.GetStrainVector();
         const std::size_t voigt_size = r_total_strain.size();
 
-        // Automatic transient rebinding before the damage-factor evaluation
-        // (required after restart; the hardening-law Properties are transient).
+        // Hardening-law Properties are transient; rebind before the
+        // damage-factor evaluation.
         this->ReinitializeMaterialProperties(r_material_properties);
 
         // Constitutive matrix (dimensional specialization via virtual dispatch).

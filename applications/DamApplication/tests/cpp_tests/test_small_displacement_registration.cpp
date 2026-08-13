@@ -9,11 +9,9 @@
 //  Main authors:    DamApplication developers
 //
 
-// Phase 6A: the production registration switch. Every historical Dam
-// small-displacement registration name now creates a StructuralMechanicsApplication
-// SmallDisplacement runtime element, while the legacy Dam classes remain compiled
-// (temporary rollback checkpoint). Old .mdpa inputs and binary restarts keep
-// working. No production registration is modified by these tests.
+// Every historical Dam small-displacement registration name creates a
+// StructuralMechanicsApplication SmallDisplacement runtime element, so old .mdpa
+// inputs and binary restarts keep working unchanged.
 
 // System includes
 #include <algorithm>
@@ -135,7 +133,8 @@ bool IsSmaRuntime(const Element& rElement)
     return name.find("17SmallDisplacementE") != std::string::npos;
 }
 
-/// True if the runtime type is one of the LEGACY Dam classes.
+/// True if the runtime type is one of the removed Dam legacy classes (must
+/// never appear in production runs).
 bool IsLegacyRuntime(const Element& rElement)
 {
     const std::string name = typeid(rElement).name();
@@ -149,7 +148,7 @@ bool IsLegacyRuntime(const Element& rElement)
 // 1. All 22 historical names create SMA runtime elements.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6A_AllHistoricalNames_RuntimeSMA, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(HistoricalSmallDisplacementAliasesCreateSMAElements, KratosDamFastSuite)
 {
     // (name, 2D flag)
     const std::vector<std::pair<std::string, bool>> names = {
@@ -183,7 +182,7 @@ KRATOS_TEST_CASE_IN_SUITE(R6A_AllHistoricalNames_RuntimeSMA, KratosDamFastSuite)
         Model model;
         ModelPart* p_mp = nullptr;
         Element::Pointer p_elem = CreateRegisteredElement(
-            model, "R6A" + name, name, is2d ? "ThermalLinearElastic2DPlaneStrain" : "ThermalLinearElastic3DLaw", p_mp, is2d);
+            model, name, name, is2d ? "ThermalLinearElastic2DPlaneStrain" : "ThermalLinearElastic3DLaw", p_mp, is2d);
 
         const std::size_t expected_nodes = p_elem->GetGeometry().PointsNumber();
         KRATOS_EXPECT_TRUE(IsSmaRuntime(*p_elem));
@@ -191,17 +190,17 @@ KRATOS_TEST_CASE_IN_SUITE(R6A_AllHistoricalNames_RuntimeSMA, KratosDamFastSuite)
         KRATOS_EXPECT_EQ(expected_nodes,
                          KratosComponents<Element>::Get(name).GetGeometry().PointsNumber());
         KRATOS_EXPECT_EQ(p_elem->GetProperties()[YOUNG_MODULUS], test_young_modulus);
-        std::cout << "[6A] " << name << " -> runtime=" << typeid(*p_elem).name()
+        std::cout << "[registration] " << name << " -> runtime=" << typeid(*p_elem).name()
                   << " npoints=" << expected_nodes << std::endl;
     }
-    std::cout << "[6A] All 22 historical registrations create SMA runtime elements." << std::endl;
+    std::cout << "[registration] All 22 historical registrations create SMA runtime elements." << std::endl;
 }
 
 //************************************************************************************
 // 2. Full generic API surface through a historical name.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6A_MechanicalThermo_ConvergenceAndAPISurface, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(HistoricalAliasExposesFullElementAPISurface, KratosDamFastSuite)
 {
     // A historical Dam name must expose the full generic element API of the SMA
     // runtime element it creates.
@@ -242,7 +241,7 @@ KRATOS_TEST_CASE_IN_SUITE(R6A_MechanicalThermo_ConvergenceAndAPISurface, KratosD
     KRATOS_EXPECT_EQ(law_out.size(), 8u);
     KRATOS_EXPECT_TRUE(law_out[0] != nullptr);
 
-    std::cout << "[6A] historical names expose the full generic SMA element API "
+    std::cout << "[registration] historical names expose the full generic SMA element API "
               << "surface (Check, Clone, lifecycle, local system, mass, damping, "
               << "integration-point outputs)." << std::endl;
 }
@@ -254,7 +253,7 @@ KRATOS_TEST_CASE_IN_SUITE(R6A_MechanicalThermo_ConvergenceAndAPISurface, KratosD
 // 4. Unmodified committed .mdpa smoke test.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6A_UnmodifiedMdpa_Smoke, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(HistoricalSmallDisplacementMdpaLoadsWithSMAElements, KratosDamFastSuite)
 {
     // Load a committed Dam .mdpa unchanged: the historical
     // SmallDisplacementThermoMechanicElement2D3N elements must now be SMA at
@@ -291,14 +290,14 @@ KRATOS_TEST_CASE_IN_SUITE(R6A_UnmodifiedMdpa_Smoke, KratosDamFastSuite)
         else if (IsLegacyRuntime(r_elem))
             ++legacy_count;
     }
-    std::cout << "[6A] unmodified .mdpa: SMA elements=" << sma_count
+    std::cout << "[registration] unmodified .mdpa: SMA elements=" << sma_count
               << " interface=" << interface_count
               << " legacy=" << legacy_count << std::endl;
     KRATOS_EXPECT_EQ(sma_count, 20u);
     KRATOS_EXPECT_EQ(interface_count, 5u);
     KRATOS_EXPECT_EQ(legacy_count, 0u);
-    std::cout << "[6A] committed .mdpa loads unchanged; historical solid elements "
-              << "are now SMA at runtime." << std::endl;
+    std::cout << "[registration] committed .mdpa loads unchanged; historical solid "
+              << "elements resolve to the SMA runtime." << std::endl;
 }
 
 } // namespace Testing

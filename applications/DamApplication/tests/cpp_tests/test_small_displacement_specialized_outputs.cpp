@@ -61,8 +61,8 @@ namespace
 {
 
 /// Comparison tolerance (relative agreement with an absolute floor).
-constexpr double characterization_relative_tolerance = 1.0e-6;
-constexpr double characterization_absolute_floor = 1.0e-10;
+constexpr double comparison_relative_tolerance = 1.0e-6;
+constexpr double comparison_absolute_floor = 1.0e-10;
 
 /// Material data.
 constexpr double test_poisson_ratio = 0.2;
@@ -74,22 +74,11 @@ constexpr double test_damage_threshold = 5.0e-3;
 bool Near(const double rValue, const double rReference)
 {
     return std::abs(rValue - rReference) <=
-           std::max(characterization_relative_tolerance * std::abs(rReference),
-                    characterization_absolute_floor);
+           std::max(comparison_relative_tolerance * std::abs(rReference),
+                    comparison_absolute_floor);
 }
 
-/// Test-only element subclasses exposing the constitutive-law vector.
-class TestThermoMechanicElement : public SmallDisplacement
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(TestThermoMechanicElement);
-    using BaseType = SmallDisplacement;
-    TestThermoMechanicElement(IndexType NewId, GeometryType::Pointer pGeometry,
-                              PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties) {}
-    ConstitutiveLaw& GetConstitutiveLaw(std::size_t i) { return *mConstitutiveLawVector[i]; }
-};
-
+/// Test-only element subclass exposing the constitutive-law vector.
 class TestSmallDisplacementElement : public SmallDisplacement
 {
 public:
@@ -99,20 +88,6 @@ public:
                                  PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties) {}
     ConstitutiveLaw& GetConstitutiveLaw(std::size_t i) { return *mConstitutiveLawVector[i]; }
-};
-
-/// Test-only nonlocal law subclass exposing mNonlocalEquivalentStrain so the
-/// tests can verify that the specialized outputs do not change it.
-class TestNonlocalLaw : public ThermalSimoJuNonlocalDamage3DLaw
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(TestNonlocalLaw);
-    using BaseType = ThermalSimoJuNonlocalDamage3DLaw;
-    ConstitutiveLaw::Pointer Clone() const override
-    {
-        return ConstitutiveLaw::Pointer(new TestNonlocalLaw(*this));
-    }
-    double NonlocalStrain() const { return mNonlocalEquivalentStrain; }
 };
 
 /// Geometry kind used by the tests.
@@ -334,8 +309,8 @@ void VerifyVectorOutputs(
     const Vector expected_thermal_stress = rDamageFactor * prod(rC, rEpsilonTh);
     const Vector expected_mechanical_stress = rDamageFactor * prod(rC, r_epsilon_total);
 
-    // THERMAL_STRAIN_VECTOR == epsilon_th (intentional bug fix; the legacy
-    // element used to return the total strain).
+    // THERMAL_STRAIN_VECTOR == epsilon_th (actual thermal strain, not the
+    // total strain).
     for (std::size_t i = 0; i < rEpsilonTh.size(); ++i)
         KRATOS_EXPECT_TRUE(Near(thermal_strain(i), rEpsilonTh(i)));
     // THERMAL_STRESS_VECTOR / MECHANICAL_STRESS_VECTOR damage-scaled.
@@ -346,7 +321,7 @@ void VerifyVectorOutputs(
     // Decomposition: total == mechanical - thermal.
     for (std::size_t i = 0; i < rEpsilonTh.size(); ++i)
         KRATOS_EXPECT_TRUE(Near(cauchy(i), mechanical_stress(i) - thermal_stress(i)));
-    std::cout << "[5B.2] " << rLabel << ": e_th/mech/therm/decomp OK" << std::endl;
+    std::cout << "[outputs] " << rLabel << ": e_th/mech/therm/decomp OK" << std::endl;
 }
 
 /// Verifies vector/tensor consistency (including the shear convention).
@@ -383,16 +358,16 @@ void VerifyTensorConsistency(
     KRATOS_EXPECT_TRUE(Near(thermal_strain_tensor(0, 1), 0.5 * thermal_strain(shear_index)));
     KRATOS_EXPECT_TRUE(Near(thermal_stress_tensor(0, 1), thermal_stress(shear_index)));
     KRATOS_EXPECT_TRUE(Near(mechanical_stress_tensor(0, 1), mechanical_stress(shear_index)));
-    std::cout << "[5B.2] " << rLabel << ": tensor consistency + shear convention OK" << std::endl;
+    std::cout << "[outputs] " << rLabel << ": tensor consistency + shear convention OK" << std::endl;
 }
 
 } // namespace
 
 //************************************************************************************
-// 1. Has() stays false: the specialized outputs keep the parameter-aware dispatch.
+// Has() stays false so the specialized outputs keep the parameter-aware dispatch.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(B52_SpecializedOutputs_HasRemainsFalse, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputsKeepHasFalse, KratosDamFastSuite)
 {
     const std::vector<ConstitutiveLaw::Pointer> laws = {
         ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw()),
@@ -408,12 +383,12 @@ KRATOS_TEST_CASE_IN_SUITE(B52_SpecializedOutputs_HasRemainsFalse, KratosDamFastS
             KRATOS_EXPECT_FALSE(p_law->Has(*p_variable));
         }
     }
-    std::cout << "[5B.2] Has() false for all specialized outputs on all families" << std::endl;
+    std::cout << "[outputs] Has() false for all specialized outputs on all families" << std::endl;
 }
 
 
 //************************************************************************************
-// 2. Nodal-linear acceptance: non-uniform E / temperature / reference temperature.
+// Nodal-linear acceptance: non-uniform E / temperature / reference temperature.
 //************************************************************************************
 
 namespace
@@ -477,12 +452,12 @@ void VerifyNodalLinear(
     }
     // Tensor consistency.
     VerifyTensorConsistency(rLabel, *p_elem, r_pi);
-    std::cout << "[5B.2] " << rLabel << ": nodal linear acceptance OK (E_interp="
+    std::cout << "[outputs] " << rLabel << ": nodal linear acceptance OK (E_interp="
               << e_interp << ")" << std::endl;
 }
 } // namespace
 
-KRATOS_TEST_CASE_IN_SUITE(B52_NodalLinear_NonUniform3D, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NodalThermalLinearOutputsWithNonUniformProperties3D, KratosDamFastSuite)
 {
     VerifyNodalLinear("NodalLinear3D",
                       GeometryKind::Hexa3D,
@@ -490,11 +465,8 @@ KRATOS_TEST_CASE_IN_SUITE(B52_NodalLinear_NonUniform3D, KratosDamFastSuite)
                       1.0);
 }
 
-
-
-
 //************************************************************************************
-// 3. Local-damage acceptance over a full load/unload/reload sequence.
+// Local-damage acceptance over a full load/unload/reload sequence.
 //************************************************************************************
 
 namespace
@@ -541,30 +513,46 @@ void VerifyLocalDamageSequence(
         Vector e_th_cur = ThermalStrainBase(rGeo, dT);
         if (rPlaneFactor > 1.0) { e_th_cur[0] *= rPlaneFactor; e_th_cur[1] *= rPlaneFactor; }
 
+        // Output requests must be read-only: system quantities and committed
+        // damage/state must be unchanged after requesting the six outputs.
+        Matrix lhs_before, lhs_after;
+        Vector rhs_before, rhs_after;
+        p_elem->CalculateLocalSystem(lhs_before, rhs_before, r_pi);
+        const Vector cauchy_before = ElementVectorOutput(*p_elem, CAUCHY_STRESS_VECTOR, r_pi);
+        const Vector pk2_before = ElementVectorOutput(*p_elem, PK2_STRESS_VECTOR, r_pi);
+
         VerifyVectorOutputs(rLabel + "_state" + std::to_string(s),
                             *p_elem, r_pi, C, e_th_cur, damage_factor);
         VerifyTensorConsistency(rLabel + "_state" + std::to_string(s), *p_elem, r_pi);
 
-        // Committed state unchanged by the output calls.
         const double d_after = CurrentDamage(p_elem->GetConstitutiveLaw(0));
         KRATOS_EXPECT_NEAR(d_after, d, 1.0e-15);
+        p_elem->CalculateLocalSystem(lhs_after, rhs_after, r_pi);
+        const Vector cauchy_after = ElementVectorOutput(*p_elem, CAUCHY_STRESS_VECTOR, r_pi);
+        const Vector pk2_after = ElementVectorOutput(*p_elem, PK2_STRESS_VECTOR, r_pi);
+        for (std::size_t i = 0; i < lhs_before.size1(); ++i)
+            for (std::size_t j = 0; j < lhs_before.size2(); ++j)
+                KRATOS_EXPECT_NEAR(lhs_after(i, j), lhs_before(i, j), 1.0e-12);
+        for (std::size_t i = 0; i < rhs_before.size(); ++i)
+            KRATOS_EXPECT_NEAR(rhs_after(i), rhs_before(i), 1.0e-12);
+        for (std::size_t i = 0; i < cauchy_before.size(); ++i) {
+            KRATOS_EXPECT_NEAR(cauchy_after(i), cauchy_before(i), 1.0e-12);
+            KRATOS_EXPECT_NEAR(pk2_after(i), pk2_before(i), 1.0e-12);
+        }
     }
-    std::cout << "[5B.2] " << rLabel << ": local-damage sequence OK" << std::endl;
+    std::cout << "[outputs] " << rLabel << ": local-damage sequence OK" << std::endl;
 }
 } // namespace
 
-KRATOS_TEST_CASE_IN_SUITE(B52_LocalDamage_StateSequence3D, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(LocalDamageOutputsFollowStateSequence3D, KratosDamFastSuite)
 {
     VerifyLocalDamageSequence<TestSmallDisplacementElement>(
         "LocalSeq3D", GeometryKind::Hexa3D,
         ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()), 1.0);
 }
 
-
-
-
 //************************************************************************************
-// 4. Nonlocal-damage acceptance (Simo-Ju and Modified-Mises), 3D and 2D.
+// Nonlocal-damage acceptance.
 //************************************************************************************
 
 namespace
@@ -631,93 +619,23 @@ void VerifyNonlocalDamage(
     // Damage-scaled outputs + decomposition.
     VerifyVectorOutputs(rLabel, *p_elem, r_pi, C, e_th_cur, damage_factor);
     VerifyTensorConsistency(rLabel, *p_elem, r_pi);
-    std::cout << "[5B.2] " << rLabel << ": d=" << d << " no local/committed side effect"
+    std::cout << "[outputs] " << rLabel << ": d=" << d << " no local/committed side effect"
               << std::endl;
 }
 } // namespace
 
-KRATOS_TEST_CASE_IN_SUITE(B52_NonlocalDamage_SimoJu3D, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NonlocalDamageOutputsSimoJu3D, KratosDamFastSuite)
 {
     VerifyNonlocalDamage<TestSmallDisplacementElement>(
         "NonlocalSJ3D", GeometryKind::Hexa3D,
         ConstitutiveLaw::Pointer(new ThermalSimoJuNonlocalDamage3DLaw()), 1.0, 1.2e-2);
 }
 
-
-
-
-
-
-
 //************************************************************************************
-// 5. Side-effect regression: all six outputs requested 3x at a fixed state.
+// Shear convention with a non-zero shear state.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(B52_SideEffect_LocalDamage3D, KratosDamFastSuite)
-{
-    Model model;
-    TestSmallDisplacementElement* p_elem = nullptr;
-    ModelPart& r_mp = CreateOutputModelPart<TestSmallDisplacementElement>(
-        model, "SideEffectLocal3D", p_elem,
-        ConstitutiveLaw::Pointer(new ThermalSimoJuLocalDamage3DLaw()), GeometryKind::Hexa3D, false);
-    p_elem->Initialize(r_mp.GetProcessInfo());
-    ProcessInfo& r_pi = r_mp.GetProcessInfo();
-    ApplyState(r_mp, UniaxialTotalStrain(true, 2.0e-5), 40.0);
-    r_pi[IS_CONVERGED] = true;
-    p_elem->FinalizeSolutionStep(r_pi);
-
-    ConstitutiveLaw& r_law = p_elem->GetConstitutiveLaw(0);
-    const double d_before = CurrentDamage(r_law);
-    double state_before = 0.0;
-    r_law.GetValue(STATE_VARIABLE, state_before);
-
-    Matrix lhs_before, lhs_after;
-    Vector rhs_before, rhs_after;
-    p_elem->CalculateLocalSystem(lhs_before, rhs_before, r_pi);
-    const Vector total_strain_before = ElementTotalStrain(*p_elem, r_pi);
-    const Vector cauchy_before = ElementVectorOutput(*p_elem, CAUCHY_STRESS_VECTOR, r_pi);
-    const Vector pk2_before = ElementVectorOutput(*p_elem, PK2_STRESS_VECTOR, r_pi);
-
-    for (std::size_t repeat = 0; repeat < 3; ++repeat) {
-        std::vector<Vector> v_out;
-        std::vector<Matrix> m_out;
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_VECTOR, v_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRESS_VECTOR, v_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_VECTOR, v_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_TENSOR, m_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRESS_TENSOR, m_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_TENSOR, m_out, r_pi);
-    }
-
-    KRATOS_EXPECT_NEAR(CurrentDamage(r_law), d_before, 1.0e-15);
-    double state_after = 0.0;
-    r_law.GetValue(STATE_VARIABLE, state_after);
-    KRATOS_EXPECT_NEAR(state_after, state_before, 1.0e-15);
-    p_elem->CalculateLocalSystem(lhs_after, rhs_after, r_pi);
-    const Vector total_strain_after = ElementTotalStrain(*p_elem, r_pi);
-    const Vector cauchy_after = ElementVectorOutput(*p_elem, CAUCHY_STRESS_VECTOR, r_pi);
-    const Vector pk2_after = ElementVectorOutput(*p_elem, PK2_STRESS_VECTOR, r_pi);
-    KRATOS_EXPECT_EQ(total_strain_after.size(), total_strain_before.size());
-    for (std::size_t i = 0; i < total_strain_before.size(); ++i)
-        KRATOS_EXPECT_NEAR(total_strain_after(i), total_strain_before(i), 1.0e-15);
-    for (std::size_t i = 0; i < cauchy_before.size(); ++i) {
-        KRATOS_EXPECT_NEAR(cauchy_after(i), cauchy_before(i), 1.0e-12);
-        KRATOS_EXPECT_NEAR(pk2_after(i), pk2_before(i), 1.0e-12);
-    }
-    KRATOS_EXPECT_EQ(rhs_after.size(), rhs_before.size());
-    for (std::size_t i = 0; i < rhs_before.size(); ++i)
-        KRATOS_EXPECT_NEAR(rhs_after(i), rhs_before(i), 1.0e-12);
-    std::cout << "[5B.2] SideEffectLocal3D: no side effect on committed/strain/Cauchy/PK2/LHS/RHS"
-              << std::endl;
-}
-
-
-
-//************************************************************************************
-// 6. Shear convention with a non-zero shear state.
-//************************************************************************************
-
-KRATOS_TEST_CASE_IN_SUITE(B52_ShearConvention, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputsShearConvention, KratosDamFastSuite)
 {
     for (bool is_3d : {true, false}) {
         Model model;
@@ -753,52 +671,51 @@ KRATOS_TEST_CASE_IN_SUITE(B52_ShearConvention, KratosDamFastSuite)
         // Exact Vector/Tensor consistency.
         KRATOS_EXPECT_TRUE(Near(thermal_strain_tensor(0, 1),
                                 0.5 * ElementVectorOutput(*p_elem, THERMAL_STRAIN_VECTOR, r_pi)(shear_index)));
-        std::cout << "[5B.2] shear " << (is_3d ? "3D" : "2D")
+        std::cout << "[outputs] shear " << (is_3d ? "3D" : "2D")
                   << ": strain xy = gamma/2, stress xy = tau" << std::endl;
     }
 }
 
 
 //************************************************************************************
-// 7. Dimensions: 3D vector 6 / tensor 3x3; 2D vector 3 / tensor 2x2.
+// Non-nodal linear reference: THERMAL_STRAIN == epsilon_th, stress decomposition.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(B52_Dimensions, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpecializedOutputs_LinearReference, KratosDamFastSuite)
 {
-    for (bool is_3d : {true, false}) {
-        Model model;
-        TestSmallDisplacementElement* p_elem = nullptr;
-        const GeometryKind geo = is_3d ? GeometryKind::Hexa3D : GeometryKind::Quadrilateral2D;
-        ConstitutiveLaw::Pointer p_law;
-        if (is_3d)
-            p_law = ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw());
-        else
-            p_law = ConstitutiveLaw::Pointer(new ThermalLinearElastic2DPlaneStressNodal());
-        ModelPart& r_mp = CreateOutputModelPart<TestSmallDisplacementElement>(
-            model, is_3d ? "Dim3D" : "Dim2D", p_elem, p_law, geo, false);
-        p_elem->Initialize(r_mp.GetProcessInfo());
-        ApplyState(r_mp, UniaxialTotalStrain(is_3d, 1.0e-6), 25.0);
+    Model model;
+    TestSmallDisplacementElement* p_elem = nullptr;
+    ModelPart& r_mp = CreateOutputModelPart<TestSmallDisplacementElement>(
+        model, "RefLinear", p_elem,
+        ConstitutiveLaw::Pointer(new ThermalLinearElastic3DLaw()), GeometryKind::Hexa3D, false);
+    p_elem->Initialize(r_mp.GetProcessInfo());
+    const double eps = 2.0e-6, dT = 40.0;
+    ApplyState(r_mp, UniaxialTotalStrain(true, eps), dT);
 
-        const ProcessInfo& r_pi = r_mp.GetProcessInfo();
-        std::vector<Vector> v_out;
-        std::vector<Matrix> m_out;
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_VECTOR, v_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRESS_VECTOR, v_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_VECTOR, v_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRAIN_TENSOR, m_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(THERMAL_STRESS_TENSOR, m_out, r_pi);
-        p_elem->CalculateOnIntegrationPoints(MECHANICAL_STRESS_TENSOR, m_out, r_pi);
+    const double E = 2.0e7;
+    const Matrix C = C3D(E, test_poisson_ratio);
+    const Vector e_total = UniaxialTotalStrain(true, eps);
+    const double alpha_dT = test_thermal_expansion * dT;
+    Vector e_th(6);
+    e_th[0] = alpha_dT; e_th[1] = alpha_dT; e_th[2] = alpha_dT; e_th[3] = 0; e_th[4] = 0; e_th[5] = 0;
+    const Vector mech_stress = prod(C, e_total);
+    const Vector therm_stress = prod(C, e_th);
+    const Vector total_stress = prod(C, e_total - e_th);
 
-        const std::size_t expected_voigt = is_3d ? 6 : 3;
-        const std::size_t expected_dim = is_3d ? 3 : 2;
-        KRATOS_EXPECT_EQ(v_out[0].size(), expected_voigt);
-        KRATOS_EXPECT_EQ(m_out[0].size1(), expected_dim);
-        KRATOS_EXPECT_EQ(m_out[0].size2(), expected_dim);
-        std::cout << "[5B.2] dimensions " << (is_3d ? "3D" : "2D")
-                  << ": voigt " << expected_voigt << ", tensor " << expected_dim << "x" << expected_dim << std::endl;
+    const ProcessInfo& r_pi = r_mp.GetProcessInfo();
+    const Vector cauchy = ElementVectorOutput(*p_elem, CAUCHY_STRESS_VECTOR, r_pi);
+    const Vector mechanical_stress = ElementVectorOutput(*p_elem, MECHANICAL_STRESS_VECTOR, r_pi);
+    const Vector thermal_stress = ElementVectorOutput(*p_elem, THERMAL_STRESS_VECTOR, r_pi);
+    const Vector thermal_strain = ElementVectorOutput(*p_elem, THERMAL_STRAIN_VECTOR, r_pi);
+    for (std::size_t i = 0; i < 6; ++i) {
+        KRATOS_EXPECT_TRUE(Near(cauchy(i), total_stress[i]));
+        KRATOS_EXPECT_TRUE(Near(mechanical_stress(i), mech_stress[i]));
+        KRATOS_EXPECT_TRUE(Near(thermal_stress(i), therm_stress[i]));
+        // THERMAL_STRAIN_VECTOR returns the actual thermal strain epsilon_th
+        // (not the total strain).
+        KRATOS_EXPECT_TRUE(Near(thermal_strain(i), e_th[i]));
     }
 }
-
 
 } // namespace Testing
 } // namespace Kratos

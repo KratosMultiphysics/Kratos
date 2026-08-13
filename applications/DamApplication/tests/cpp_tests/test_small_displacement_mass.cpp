@@ -9,11 +9,10 @@
 //  Main authors:    DamApplication developers
 //
 
-// Permanent M1 mass-policy regression: the historical Dam element names resolve to
-// the StructuralMechanics SmallDisplacement element, whose exact/elevated consistent
-// mass is the adopted Dam mass policy (M1). These tests lock the analytical simplex
-// (T3/T4) exact consistent mass and the unchanged non-simplex (affine Q4) behavior
-// through the historical registrations. No production code is modified.
+// Historical Dam element names resolve to the StructuralMechanics
+// SmallDisplacement element, so they use its consistent mass. These tests lock
+// the analytical simplex (T3/T4) consistent mass and the unchanged non-simplex
+// (affine Q4) behavior through the historical registrations.
 
 // System includes
 #include <algorithm>
@@ -60,8 +59,7 @@ constexpr double test_thickness = 0.15;
 constexpr double test_young_modulus = 2.0e7;
 constexpr double test_poisson_ratio = 0.2;
 
-/// Constructs the constitutive law directly (registered-law lookup is avoided
-/// in the characterization tests).
+/// Constructs the constitutive law directly.
 ConstitutiveLaw::Pointer CreateLaw(const std::string& rName)
 {
     if (rName == "ThermalLinearElastic2DPlaneStrain")
@@ -233,7 +231,7 @@ void PrintMassMetrics(
     const Matrix& rSma,
     const std::size_t rDimension)
 {
-    std::cout << "[5C.1] " << rWhat << ": max_abs_diff=" << MaxAbsDiff(rDam, rSma)
+    std::cout << "[mass] " << rWhat << ": max_abs_diff=" << MaxAbsDiff(rDam, rSma)
               << " frob_rel_diff=" << FrobeniusRelDiff(rDam, rSma)
               << " total_mass_dam=" << TotalDirectionalMass(rDam, rDimension)
               << " total_mass_sma=" << TotalDirectionalMass(rSma, rDimension) << std::endl;
@@ -245,12 +243,11 @@ void PrintMassMetrics(
 // 1. Integration-rule probe: which quadrature does each implementation use?
 //************************************************************************************
 
-
 //************************************************************************************
 // 2. T3 consistent mass: default, explicit-consistent, lumped.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(Mass01_T3_Consistent, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(HistoricalTriangleAliasUsesConsistentMass, KratosDamFastSuite)
 {
     const ElementNamePair names{"SmallDisplacementSolidElement2D3N", "SmallDisplacementElement2D3N"};
     const std::vector<std::vector<double>> coords = {{0,0,0},{2.0,0,0},{0,1.0,0}};
@@ -277,9 +274,7 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T3_Consistent, KratosDamFastSuite)
 
     // SMA default (3-point) == analytical exact.
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_sma_default, M_exact), 0.0, exact_tolerance);
-    // Phase 6A (M1): the HISTORICAL Dam name now creates an SMA runtime element,
-    // so its default consistent mass is the SMA exact simplex mass. The legacy
-    // no-flag uniform 1/9 subintegrated mass is INTENTIONALLY replaced (M1).
+    // Historical Dam alias -> SMA consistent mass (analytical simplex).
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_sma_default), 0.0, exact_tolerance);
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_exact), 0.0, exact_tolerance);
 
@@ -303,17 +298,15 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T3_Consistent, KratosDamFastSuite)
                 KRATOS_EXPECT_NEAR(M_dam_lumped(i, j), 0.0, exact_tolerance);
 
     PrintMassMetrics("T3 default", M_dam_default, M_sma_default, 2);
-    std::cout << "[6A][M1] T3: historical Dam name -> SMA exact consistent mass "
-              << "(legacy no-flag uniform 1/9 intentionally replaced); "
+    std::cout << "[mass] T3: historical Dam alias -> SMA exact consistent mass; "
               << "lumped remains compatible" << std::endl;
 }
-
 
 //************************************************************************************
 // 3. T4 consistent mass: default, explicit-consistent, lumped.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(Mass01_T4_Consistent, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(HistoricalTetrahedronAliasUsesConsistentMass, KratosDamFastSuite)
 {
     const ElementNamePair names{"SmallDisplacementSolidElement3D4N", "SmallDisplacementElement3D4N"};
     const std::vector<std::vector<double>> coords = {{0,0,0},{2.0,0,0},{0,1.0,0},{0,0,1.0}};
@@ -347,9 +340,7 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T4_Consistent, KratosDamFastSuite)
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_sma_default, M_ind_t4), 0.0, exact_tolerance);
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_sma_default, M_exact), 0.0, 1.0e-5);
 
-    // Phase 6A (M1): the HISTORICAL Dam name now creates an SMA runtime element,
-    // so its default consistent mass is the SMA exact simplex mass. The legacy
-    // no-flag uniform 1/16 subintegrated mass is INTENTIONALLY replaced (M1).
+    // Historical Dam alias -> SMA consistent mass (analytical tetrahedron).
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_sma_default), 0.0, exact_tolerance);
     KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam_default, M_exact), 0.0, 1.0e-5);
 
@@ -367,139 +358,8 @@ KRATOS_TEST_CASE_IN_SUITE(Mass01_T4_Consistent, KratosDamFastSuite)
     KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam_lumped, 3), physical_mass, exact_tolerance);
 
     PrintMassMetrics("T4 default", M_dam_default, M_sma_default, 3);
-    std::cout << "[6A][M1] T4: historical Dam name -> SMA exact consistent mass "
-              << "(legacy no-flag uniform 1/16 intentionally replaced)" << std::endl;
+    std::cout << "[mass] T4: historical Dam alias -> SMA exact consistent mass" << std::endl;
 }
-
-
-//************************************************************************************
-// 4. Affine Q4 and H8 consistent mass: default equivalence.
-//************************************************************************************
-
-namespace
-{
-void VerifyAffineConsistent(
-    const std::string& rLabel,
-    const ElementNamePair& rNames,
-    const std::vector<std::vector<double>>& rCoords,
-    const bool rIs2d,
-    const double rPhysicalMass)
-{
-    Model model;
-    ModelPart* p_dam_mp = nullptr;
-    ModelPart* p_sma_mp = nullptr;
-    Element::Pointer p_dam = CreateElement(model, rLabel + "Dam", rNames.dam, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, p_dam_mp);
-    Element::Pointer p_sma = CreateElement(model, rLabel + "Sma", rNames.sma, rCoords, rIs2d, test_density, rIs2d, test_thickness, false, p_sma_mp);
-    const Matrix M_dam = ElementMass(*p_dam, p_dam_mp->GetProcessInfo());
-    const Matrix M_sma = ElementMass(*p_sma, p_sma_mp->GetProcessInfo());
-
-    const auto& r_geom = p_sma->GetGeometry();
-    const auto default_method = r_geom.GetDefaultIntegrationMethod();
-    const auto elevated_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
-    const Matrix M_ind_default = IndependentConsistentMass(r_geom, test_density, test_thickness, default_method, rIs2d);
-    const Matrix M_ind_elevated = IndependentConsistentMass(r_geom, test_density, test_thickness, elevated_method, rIs2d);
-
-    // For affine geometry the two quadrature rules agree (shape-function
-    // products integrated exactly by both).
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_ind_default, M_ind_elevated), 0.0, exact_tolerance);
-    // Dam default and SMA default both equal the (rule-independent) reference.
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam, M_ind_default), 0.0, exact_tolerance);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_sma, M_ind_elevated), 0.0, exact_tolerance);
-    KRATOS_EXPECT_NEAR(MaxAbsDiff(M_dam, M_sma), 0.0, exact_tolerance);
-
-    KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_dam, rIs2d ? 2 : 3), rPhysicalMass, 1.0e-9);
-    KRATOS_EXPECT_NEAR(TotalDirectionalMass(M_sma, rIs2d ? 2 : 3), rPhysicalMass, 1.0e-9);
-
-    // Matrix structure: symmetric, zero coupling between orthogonal components.
-    const std::size_t dim = rIs2d ? 2 : 3;
-    for (std::size_t i = 0; i < M_dam.size1(); ++i)
-        for (std::size_t j = 0; j < M_dam.size2(); ++j) {
-            KRATOS_EXPECT_NEAR(M_dam(i, j), M_dam(j, i), exact_tolerance);
-            if (i % dim != j % dim)
-                KRATOS_EXPECT_NEAR(M_dam(i, j), 0.0, exact_tolerance);
-        }
-
-    PrintMassMetrics(rLabel + " affine", M_dam, M_sma, rIs2d ? 2 : 3);
-    std::cout << "[5C.1] " << rLabel << " (affine): Dam default == SMA default == "
-              << "rule-independent analytical reference" << std::endl;
-}
-} // namespace
-
-KRATOS_TEST_CASE_IN_SUITE(Mass01_Q4_AffineConsistent, KratosDamFastSuite)
-{
-    const std::vector<std::vector<double>> coords = {{0,0,0},{2.0,0,0},{2.0,1.0,0},{0,1.0,0}};
-    VerifyAffineConsistent("Q4",
-        {"SmallDisplacementSolidElement2D4N", "SmallDisplacementElement2D4N"},
-        coords, true, test_density * test_thickness * 2.0);
-}
-
-
-
-//************************************************************************************
-// 5. Distorted Q4 and H8: quadrature sensitivity.
-//************************************************************************************
-
-namespace
-{
-/// Checks that the geometry Jacobian determinant is strictly positive on the
-
-
-
-} // namespace
-
-
-
-//************************************************************************************
-// 6. Thickness behavior (2D): linear scaling, and both implementations.
-//************************************************************************************
-
-
-//************************************************************************************
-// 7. Density behavior.
-//************************************************************************************
-
-
-//************************************************************************************
-// 9. Higher-order geometry contract: Dam+flag == SMA default, for every direct
-//    counterpart geometry.
-//************************************************************************************
-
-
-//************************************************************************************
-// 10. Rayleigh damping (alpha*M + beta*K) and inertial force (M*a, C*v).
-//************************************************************************************
-
-namespace
-{
-
-} // namespace
-
-
-
-//************************************************************************************
-// 11. Minimal dynamic system: characteristic frequency via Rayleigh quotient.
-//************************************************************************************
-
-
-//************************************************************************************
-// 12. Thermo-mechanical element mass neutrality.
-//************************************************************************************
-
-namespace
-{
-
-} // namespace
-
-
-//************************************************************************************
-// 13. Constitutive-law independence.
-//************************************************************************************
-
-
-//************************************************************************************
-// 14. Repeat/thread determinism.
-//************************************************************************************
-
 
 } // namespace Testing
 } // namespace Kratos

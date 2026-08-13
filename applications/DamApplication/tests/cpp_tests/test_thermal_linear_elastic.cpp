@@ -8,10 +8,10 @@
 //
 //  Main authors:    DamApplication developers
 
-// Permanent Dam thermal linear-elastic contract. The non-nodal thermal laws
-// (3D, plane strain, plane stress) on the StructuralMechanics small-displacement
-// element reproduce the analytical restrained-expansion response and serialize
-// correctly. These tests protect Dam constitutive behavior, not migration history.
+// Dam thermal linear-elastic contract. The non-nodal thermal laws (3D, plane
+// strain, plane stress) on the StructuralMechanics small-displacement element
+// reproduce the analytical restrained-expansion response and serialize
+// correctly.
 //
 #include <algorithm>
 #include <cmath>
@@ -44,7 +44,7 @@ namespace Testing
 namespace
 {
 
-/// Comparison tolerances (same philosophy as the previous characterization).
+/// Comparison tolerances.
 constexpr double comparison_absolute_tolerance = 1.0e-12;
 constexpr double comparison_relative_tolerance = 1.0e-10;
 constexpr double machine_precision_allowance = 1.0e-15;
@@ -107,8 +107,6 @@ ModelPart& CreateFamilyModelPart(
     r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     r_model_part.AddNodalSolutionStepVariable(NODAL_REFERENCE_TEMPERATURE);
-    // Required by the legacy element FinalizeSolutionStep (nodal stress
-    // extrapolation).
     r_model_part.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
     r_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
 
@@ -434,12 +432,12 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Analytical_PlaneStrainRestrained, Kratos
     expected[2] = 0.0;
 
     Model model;
-    ModelPart& r_candidate = CreateFamilyModelPart(
+    ModelPart& r_model_part = CreateFamilyModelPart(
         model, "AnalyticalPlaneStrain", "SmallDisplacementElement2D3N",
         "ThermalLinearElastic2DPlaneStrain", 2, 0);
-    PrescribeFamilyScenario(r_candidate, 1, 2);
-    auto p_element = r_candidate.pGetElement(1);
-    const ProcessInfo& r_pi = r_candidate.GetProcessInfo();
+    PrescribeFamilyScenario(r_model_part, 1, 2);
+    auto p_element = r_model_part.pGetElement(1);
+    const ProcessInfo& r_pi = r_model_part.GetProcessInfo();
     KRATOS_EXPECT_EQ(p_element->Check(r_pi), 0);
     p_element->Initialize(r_pi);
     p_element->InitializeSolutionStep(r_pi);
@@ -466,12 +464,12 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalFamily_Analytical_PlaneStressRestrained, Kratos
     expected[2] = 0.0;
 
     Model model;
-    ModelPart& r_candidate = CreateFamilyModelPart(
+    ModelPart& r_model_part = CreateFamilyModelPart(
         model, "AnalyticalPlaneStress", "SmallDisplacementElement2D3N",
         "ThermalLinearElastic2DPlaneStress", 2, 0);
-    PrescribeFamilyScenario(r_candidate, 1, 2);
-    auto p_element = r_candidate.pGetElement(1);
-    const ProcessInfo& r_pi = r_candidate.GetProcessInfo();
+    PrescribeFamilyScenario(r_model_part, 1, 2);
+    auto p_element = r_model_part.pGetElement(1);
+    const ProcessInfo& r_pi = r_model_part.GetProcessInfo();
     KRATOS_EXPECT_EQ(p_element->Check(r_pi), 0);
     p_element->Initialize(r_pi);
     p_element->InitializeSolutionStep(r_pi);

@@ -30,10 +30,8 @@
 #include "custom_elements/wave_equation_element.hpp"
 #include "custom_elements/small_displacement_interface_element.hpp"
 
-// Phase 6A: the historical Dam small-displacement registration names are backed
-// by the StructuralMechanicsApplication SmallDisplacement runtime element. The
-// legacy Dam element classes remain compiled (temporary rollback checkpoint) but
-// are no longer used by the production registrations.
+// Historical Dam small-displacement registration names are backed by the
+// StructuralMechanicsApplication SmallDisplacement runtime element.
 #include "custom_elements/solid_elements/small_displacement.h"
 
 //Constitutive Laws

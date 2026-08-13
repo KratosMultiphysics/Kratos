@@ -24,10 +24,8 @@ public:
 
 private:
   KratosStructuralMechanicsApplication::Pointer mpStructuralMechanicsApp;
-  // Required by the thermo-mechanical lifecycle tests: the legacy
-  // SmallDisplacementThermoMechanicElement extrapolates Gauss-point stresses to
-  // the nodal variable NODAL_CAUCHY_STRESS_TENSOR (a PoromechanicsApplication
-  // variable) inside FinalizeSolutionStep.
+  // PoromechanicsApplication provides the nodal NODAL_CAUCHY_STRESS_TENSOR
+  // variable used by the Dam smoothing workflow.
   KratosPoromechanicsApplication::Pointer mpPoromechanicsApp;
   KratosDamApplication::Pointer mpDamApp;
 };

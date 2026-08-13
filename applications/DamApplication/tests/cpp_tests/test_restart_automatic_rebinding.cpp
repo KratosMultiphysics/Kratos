@@ -219,7 +219,7 @@ ModelPart& WrapLoadedElement(Model& rModel, Element& rElement, const ProcessInfo
 // 1. Local 3D damage restart continuation (reference vs restart branches).
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6C1_LocalDamage_3D_RestartContinuation, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RestartLocalDamage3DContinuation, KratosDamFastSuite)
 {
     // Steps: elastic, damage, unload, reload-below-max, reload-beyond-max,
     // further damage with temperature.
@@ -276,7 +276,7 @@ KRATOS_TEST_CASE_IN_SUITE(R6C1_LocalDamage_3D_RestartContinuation, KratosDamFast
         KRATOS_EXPECT_NEAR(rst_lhs[i], ref_lhs[ref_idx],
                            restart_tolerance * std::max(1.0, std::abs(ref_lhs[ref_idx])));
     }
-    std::cout << "[6C.1] local 3D restart: continuation matches reference ("
+    std::cout << "[restart] local 3D restart: continuation matches reference ("
               << rst_cauchy.size() << " steps, damage after restart = "
               << rst_damage.back() << ")" << std::endl;
 }
@@ -296,7 +296,7 @@ KRATOS_TEST_CASE_IN_SUITE(R6C1_LocalDamage_3D_RestartContinuation, KratosDamFast
 // 4. Nonlocal Simo-Ju restart continuation.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6C1_Nonlocal_SimoJu_RestartContinuation, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RestartNonlocalSimoJuContinuation, KratosDamFastSuite)
 {
     const std::vector<std::pair<double, double>> steps = {
         {1.0e-6, 20.0}, {2.0e-5, 20.0}, {1.0e-5, 20.0}, {3.0e-5, 50.0}};
@@ -348,7 +348,7 @@ KRATOS_TEST_CASE_IN_SUITE(R6C1_Nonlocal_SimoJu_RestartContinuation, KratosDamFas
         KRATOS_EXPECT_NEAR(c, ref.first[ref_idx], restart_tolerance * std::max(1.0, std::abs(c)));
         KRATOS_EXPECT_NEAR(d, ref.second[ref_idx], 1.0e-12);
     }
-    std::cout << "[6C.1] nonlocal Simo-Ju restart: continuation matches reference" << std::endl;
+    std::cout << "[restart] nonlocal Simo-Ju restart: continuation matches reference" << std::endl;
 }
 
 
@@ -361,7 +361,7 @@ KRATOS_TEST_CASE_IN_SUITE(R6C1_Nonlocal_SimoJu_RestartContinuation, KratosDamFas
 // 6. Multi-Properties isolation after restart.
 //************************************************************************************
 
-KRATOS_TEST_CASE_IN_SUITE(R6C1_MultiProperties_Isolation, KratosDamFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RestartRebindsEachDamageLawToItsOwnProperties, KratosDamFastSuite)
 {
     // Two laws with materially different Properties must be rebound to their OWN
     // current Properties after restart (no cross-binding).
@@ -421,7 +421,7 @@ KRATOS_TEST_CASE_IN_SUITE(R6C1_MultiProperties_Isolation, KratosDamFastSuite)
     KRATOS_EXPECT_NEAR(c_b2, rb_c, restart_tolerance * std::max(1.0, std::abs(rb_c)));
     KRATOS_EXPECT_NEAR(d_b2, rb_d, 1.0e-12);
     KRATOS_EXPECT_NE(d_a2, d_b2);   // the two materials remain distinct after restart
-    std::cout << "[6C.1] multi-Properties isolation: each restarted law rebound to "
+    std::cout << "[restart] multi-Properties isolation: each restarted law rebound to "
               << "its OWN current Properties (dA=" << d_a2 << ", dB=" << d_b2 << ")" << std::endl;
 }
 

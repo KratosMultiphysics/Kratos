@@ -388,16 +388,11 @@ class DamThermoMechanicSolver(object):
         rayleigh_m = self.settings["mechanical_solver_settings"]["rayleigh_m"].GetDouble()
         rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()
 
-        # Explicit, deterministic nodal smoothing ownership. Default (false)
-        # keeps the legacy element-based extrapolation. When true, the Dam
-        # smoothing scheme owns the nodal Cauchy-stress extrapolation and the
-        # legacy element performs no nodal accumulation.
-        # Internal nonlocal-damage ownership: when the existing user setting
-        # 'nonlocal_damage' is true, the Dam smoothing scheme owns the
-        # per-nonlinear-iteration LOCAL_EQUIVALENT_STRAIN production (through
-        # Element::CalculateOnIntegrationPoints) and the legacy element's
-        # INITIALIZE_MATERIAL_RESPONSE LOCAL path is gated off. This is an
-        # internal architectural flag, not a new user configuration option.
+        # The Dam smoothing scheme owns both the nodal Cauchy-stress extrapolation
+        # and, when 'nonlocal_damage' is enabled, the per-nonlinear-iteration
+        # LOCAL_EQUIVALENT_STRAIN production. The historical user setting
+        # 'nonlocal_damage' selects the latter; the internal ownership flag is not
+        # a user-facing option.
         nonlocal_damage = False
         if self.settings["mechanical_solver_settings"].Has("nonlocal_damage"):
             nonlocal_damage = self.settings["mechanical_solver_settings"]["nonlocal_damage"].GetBool()

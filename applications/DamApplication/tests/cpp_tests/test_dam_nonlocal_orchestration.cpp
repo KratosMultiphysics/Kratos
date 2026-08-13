@@ -135,7 +135,7 @@ public:
     void CalculateMaterialResponseCauchy(Parameters& rValues) override
     {
         if (rValues.GetOptions().Is(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE)) {
-            (*mInitializeFlagCount)++;  // the legacy flag LOCAL path
+            (*mInitializeFlagCount)++;  // INITIALIZE-flag LOCAL path
         }
         ThermalSimoJuNonlocalDamage3DLaw::CalculateMaterialResponseCauchy(rValues);
     }
@@ -144,18 +144,6 @@ public:
 };
 
 /// Test-only element subclasses exposing the constitutive-law vector.
-class TestThermoMechanicElement : public SmallDisplacement
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(TestThermoMechanicElement);
-    using BaseType = SmallDisplacement;
-    TestThermoMechanicElement(IndexType NewId, GeometryType::Pointer pGeometry,
-                              PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties) {}
-    ConstitutiveLaw& GetConstitutiveLaw(std::size_t i) { return *mConstitutiveLawVector[i]; }
-    ConstitutiveLaw::Pointer GetConstitutiveLawPointer(std::size_t i) { return mConstitutiveLawVector[i]; }
-};
-
 class TestSmallDisplacementElement : public SmallDisplacement
 {
 public:
@@ -285,20 +273,10 @@ void RunSchemeFinalizeNonLinIteration(TScheme& rScheme, ModelPart& rModelPart)
 
 } // namespace
 
-//************************************************************************************
-// 1. Single-ownership: with process-based ownership the scheme performs exactly
-//    one LOCAL calculation per GP and the legacy INITIALIZE path is not invoked.
-//************************************************************************************
 
 
-//************************************************************************************
-// 2. Scheme before/after-update LOCAL (SMA + legacy transition).
-//************************************************************************************
 
 
-//************************************************************************************
-// 3. Two-element Poro averaging integration (SMA + legacy transition).
-//************************************************************************************
 
 KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_TwoElementAveraging, KratosDamFastSuite)
 {
@@ -398,7 +376,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_TwoElementAveraging, Krat
     double la, na, ta, da, lb, nb, tb, db;
     ReadNonlocalState<TestSmallDisplacementElement>(*p_sma_a, la, na, ta, da);
     ReadNonlocalState<TestSmallDisplacementElement>(*p_sma_b, lb, nb, tb, db);
-    std::cout << "[4D.2] averaging: LOCAL A=" << la << " B=" << lb
+    std::cout << "[orchestration] averaging: LOCAL A=" << la << " B=" << lb
               << " NONLOCAL A=" << na << " B=" << nb << std::endl;
     KRATOS_EXPECT_TRUE(la > 0.0 && lb > 0.0);
     // Neighbour interaction: NONLOCAL differs from LOCAL.
@@ -407,37 +385,16 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_TwoElementAveraging, Krat
 }
 
 
-//************************************************************************************
-// 4. Thermal workflow: free thermal expansion produces no LOCAL/NONLOCAL and no
-//    artificial damage through the real scheme orchestration.
-//************************************************************************************
 
 
-//************************************************************************************
-// 5. Multi-step / rollback through the scheme + committed IS_CONVERGED history.
-//************************************************************************************
 
 
-//************************************************************************************
-// 6. Mixed-element robustness: unrelated elements and inactive elements are
-//    ignored; interface/zero-GP entities must not fail.
-//************************************************************************************
 
 
-//************************************************************************************
-// 7. No side effects outside LOCAL: displacement, NONLOCAL, damage/history and
-//    LHS/RHS are unchanged by the scheme LOCAL update.
-//************************************************************************************
 
 
-//************************************************************************************
-// 8. Static / damped / Bossak scheme coverage.
-//************************************************************************************
 
 
-//************************************************************************************
-// 9. Full SMA Newton nonlocal strategy acceptance (central Phase-4D.2 test).
-//************************************************************************************
 
 KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_NewtonStrategy, KratosDamFastSuite)
 {
@@ -542,7 +499,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_NewtonStrategy, KratosDam
     double la, na, ta, da, lb, nb, tb, db;
     ReadNonlocalState<TestSmallDisplacementElement>(*p_elem_a, la, na, ta, da);
     ReadNonlocalState<TestSmallDisplacementElement>(*p_elem_b, lb, nb, tb, db);
-    std::cout << "[4D.2] Newton strategy: converged=" << converged
+    std::cout << "[orchestration] Newton strategy: converged=" << converged
               << " LOCAL A=" << la << " B=" << lb
               << " NONLOCAL A=" << na << " B=" << nb << std::endl;
     KRATOS_EXPECT_TRUE(converged);
@@ -558,14 +515,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalNonlocalOrchestration_NewtonStrategy, KratosDam
 }
 
 
-//************************************************************************************
-// 10. Arc-Length nonlocal strategy lifecycle placement.
-//************************************************************************************
 
 
-//************************************************************************************
-// 11. Legacy-element Newton nonlocal strategy regression (transition workflow).
-//************************************************************************************
 
 
 } // namespace Testing

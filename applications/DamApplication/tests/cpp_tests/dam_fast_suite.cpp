@@ -22,10 +22,8 @@ KratosDamFastSuite::KratosDamFastSuite()
     : KratosCoreFastSuite() {
   mpStructuralMechanicsApp = std::make_shared<KratosStructuralMechanicsApplication>();
   this->ImportApplicationIntoKernel(mpStructuralMechanicsApp);
-  // Required by the thermo-mechanical lifecycle tests: the legacy
-  // SmallDisplacementThermoMechanicElement extrapolates Gauss-point stresses to
-  // the nodal variable NODAL_CAUCHY_STRESS_TENSOR (a PoromechanicsApplication
-  // variable) inside FinalizeSolutionStep.
+  // PoromechanicsApplication provides the nodal NODAL_CAUCHY_STRESS_TENSOR
+  // variable used by the Dam smoothing workflow.
   mpPoromechanicsApp = std::make_shared<KratosPoromechanicsApplication>();
   this->ImportApplicationIntoKernel(mpPoromechanicsApp);
   mpDamApp = std::make_shared<KratosDamApplication>();

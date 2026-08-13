@@ -119,9 +119,8 @@ public:
     {
         KRATOS_TRY
 
-        // Single-owner nodal Cauchy-stress smoothing lifecycle:
-        // reset -> element/condition finalization -> (process-based
-        // accumulation when enabled) -> normalization. See
+        // Single-owner nodal Cauchy-stress smoothing lifecycle
+        // (reset -> finalization -> accumulation -> normalization); see
         // DamNodalStressSmoothingUtilities.
         DamNodalStressSmoothingUtilities::FinalizeSolutionStep(*this, rModelPart, A, Dx, b);
 

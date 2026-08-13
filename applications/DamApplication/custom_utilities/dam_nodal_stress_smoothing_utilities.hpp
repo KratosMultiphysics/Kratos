@@ -31,13 +31,13 @@ namespace Kratos
  * Cauchy-stress extrapolation per solution step.
  *
  * The canonical sequence is:
- *   1. reset historical NODAL_AREA and NODAL_CAUCHY_STRESS_TENSOR (and the
- *      legacy joint accumulators);
+ *   1. reset the historical nodal NODAL_AREA and NODAL_CAUCHY_STRESS_TENSOR
+ *      accumulators (and the joint accumulators);
  *   2. perform the standard element/condition finalization required by the
  *      scheme;
  *   3. invoke
  *      DamNodalCauchyStressExtrapolationProcess::ExtrapolateAndAccumulate();
- *   4. normalize the historical nodal stress with the legacy rule
+ *   4. normalize the nodal stress
  *      (NODAL_CAUCHY_STRESS_TENSOR /= NODAL_AREA when NODAL_AREA > 1.0e-15).
  *
  * The normalization is intentionally NOT moved into the extrapolation process,
@@ -49,7 +49,6 @@ public:
     /// Resets the historical nodal accumulators used by the smoothing workflow.
     static void ResetNodalSmoothingVariables(ModelPart& rModelPart, const unsigned int Dim)
     {
-        // Clear nodal variables
         #pragma omp parallel
         {
             ModelPart::NodeIterator NodesBegin;
@@ -69,7 +68,7 @@ public:
         }
     }
 
-    /// Normalizes the historical nodal stress with the legacy rule.
+    /// Normalizes the historical nodal stress using NODAL_AREA.
     static void NormalizeNodalSmoothingVariables(ModelPart& rModelPart, const unsigned int Dim)
     {
         // Compute smoothed nodal variables
@@ -143,7 +142,7 @@ public:
             process.ExtrapolateAndAccumulate();
         }
 
-        // 4. Normalize historical nodal stress using the existing legacy rule.
+        // 4. Normalize the accumulated nodal stress.
         NormalizeNodalSmoothingVariables(rModelPart, Dim);
     }
 

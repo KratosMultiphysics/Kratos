@@ -54,13 +54,9 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE(DAM_APPLICATION, Matrix, INITIAL_NODAL_CAUCHY_STRESS_TENSOR )
     KRATOS_DEFINE_APPLICATION_VARIABLE(DAM_APPLICATION, double, PLACEMENT_TEMPERATURE )
 
-    // LOCAL equivalent-strain activation (internal architectural flag, not a
-    // user configuration option). When true, the Dam smoothing scheme recomputes
-    // LOCAL_EQUIVALENT_STRAIN during each nonlinear iteration (through
-    // Element::CalculateOnIntegrationPoints). It is activated by the Dam
-    // solvers when the existing 'nonlocal_damage' setting is true. It is NOT an
-    // ownership selector between element-based and scheme-based production:
-    // the element no longer produces LOCAL.
+    // Activates per-nonlinear-iteration LOCAL_EQUIVALENT_STRAIN recomputation in
+    // the Dam smoothing scheme. Set by the Dam solvers from the existing
+    // 'nonlocal_damage' setting.
     KRATOS_DEFINE_APPLICATION_VARIABLE( DAM_APPLICATION, bool, USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN )
 
     // From Solid

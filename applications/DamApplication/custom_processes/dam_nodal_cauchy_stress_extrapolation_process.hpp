@@ -31,30 +31,22 @@ namespace Kratos
 /**
  * @class DamNodalCauchyStressExtrapolationProcess
  * @ingroup DamApplication
- * @brief Extrapolates the Gauss-point Cauchy stress tensor to the nodes,
- * reproducing exactly the historical element-level accumulation that used to
- * be embedded in the (now removed) legacy Dam thermo-mechanical element's
- * FinalizeSolutionStep.
+ * @brief Extrapolates Gauss-point Cauchy stress to the nodes, reproducing the
+ * historical Dam element-level accumulation so nodal results remain unchanged.
  *
- * The process works with any element that provides CAUCHY_STRESS_TENSOR at its
- * integration points through the standard
- * Element::CalculateOnIntegrationPoints interface (e.g. the
- * StructuralMechanicsApplication small-displacement elements). It reproduces the
- * legacy element-level extrapolation operator:
- *   Triangle2D3 (1 GP) and Tetrahedra3D4 (1 GP): the single Gauss-point stress
- *   is copied to every node;
- *   Quadrilateral2D4 (4 GP): E_Q4 * sigma  (PoroElementUtilities::Calculate2DExtrapolationMatrix);
- *   Hexahedra3D8 (8 GP):  E_H8 * sigma  (PoroElementUtilities::Calculate3DExtrapolationMatrix);
- * following exactly the legacy arithmetic path: the Gauss-point stress tensors
- * are stored in a Voigt stress container with the legacy component ordering, the
- * element extrapolation is computed as
- *   prod(ExtrapolationMatrix, StressContainer)
- * (the same ublas operation used by the legacy element), and every extrapolated
- * nodal row is converted back to a tensor with
- *   MathUtils<double>::StressVectorToTensor.
+ * Works with any element providing CAUCHY_STRESS_TENSOR through
+ * Element::CalculateOnIntegrationPoints (e.g. StructuralMechanics small-
+ * displacement elements). The extrapolation operator is:
+ *   Triangle2D3 / Tetrahedra3D4 (1 GP): the single Gauss-point stress is copied
+ *   to every node;
+ *   Quadrilateral2D4 (4 GP): E_Q4 * sigma (PoroElementUtilities::Calculate2DExtrapolationMatrix);
+ *   Hexahedra3D8 (8 GP):  E_H8 * sigma (PoroElementUtilities::Calculate3DExtrapolationMatrix);
+ * The Voigt stress container follows the historical component ordering and the
+ * nodal rows are converted back to tensors with
+ * MathUtils<double>::StressVectorToTensor.
  *
- * The raw area-weighted accumulation is then performed with the element measure
- * (Geometry::Area(), which returns the volume for 3D solids):
+ * The raw area-weighted accumulation uses the element measure
+ * (Geometry::Area(), the volume for 3D solids):
  *   NODAL_CAUCHY_STRESS_TENSOR += element_measure * extrapolated_stress
  *   NODAL_AREA                 += element_measure
  * using historical nodal storage (FastGetSolutionStepValue).
@@ -62,19 +54,13 @@ namespace Kratos
  * Responsibility boundaries:
  * - The process only EXTRAPOLATES AND ACCUMULATES (see ExtrapolateAndAccumulate).
  *   It does NOT reset NODAL_AREA / NODAL_CAUCHY_STRESS_TENSOR and it does NOT
- *   normalize them. In the legacy workflow the reset and the normalization are
- *   owned by IncrementalUpdateStaticSmoothingScheme::FinalizeSolutionStep, and
- *   the caller is responsible for initializing the accumulators before invoking
- *   ExtrapolateAndAccumulate.
- * - ExecuteFinalizeSolutionStep is provided only as a Process API entry point
- *   for standalone/manual use (and for the characterization tests). A standard
- *   AnalysisStage calls process ExecuteFinalizeSolutionStep AFTER
- *   Solver::FinalizeSolutionStep, whereas the legacy extrapolation runs inside
- *   the solver/scheme finalization sequence between the nodal reset and the
- *   nodal normalization. It is therefore NOT yet the definitive production
- *   execution point; the phase-3D.3 integration is expected to invoke the
- *   extrapolation from the Dam smoothing workflow at the same logical position
- *   previously occupied by the element-based accumulation.
+ *   normalize them. The reset and the normalization are owned by
+ *   IncrementalUpdateStaticSmoothingScheme::FinalizeSolutionStep, so the caller
+ *   must initialize the accumulators before invoking ExtrapolateAndAccumulate.
+ * - ExecuteFinalizeSolutionStep is only a Process API entry point for
+ *   standalone/manual use; the Dam smoothing workflow invokes the extrapolation
+ *   at the same logical position (between the nodal reset and the nodal
+ *   normalization) inside the solver/scheme finalization sequence.
  */
 class DamNodalCauchyStressExtrapolationProcess : public Process
 {
@@ -124,15 +110,13 @@ public:
             const std::size_t number_of_gps = gauss_stress.size();
 
             // Skip elements that do not provide a Gauss-point Cauchy stress
-            // (e.g. interface elements). This mirrors the legacy workflow, in
-            // which only the small-displacement thermo-mechanical elements
-            // accumulate the nodal stress and every other element does not
-            // participate in the nodal smoothing.
+            // (e.g. interface elements); only solid elements participate in the
+            // nodal smoothing.
             if (number_of_gps == 0) {
                 return;
             }
 
-            // Element-level extrapolation operator (matching the legacy element).
+            // Element-level extrapolation operator.
             bool single_gp = false;
             bool unsupported_geometry = false;
             Matrix extrapolation_matrix;
@@ -160,28 +144,26 @@ public:
                 unsupported_geometry = true;
             }
 
-            // Legacy-compatible policy: the legacy ExtrapolateGPStress only
-            // supported Triangle2D3, Quadrilateral2D4, Tetrahedra3D4 and
-            // Hexahedra3D8; higher-order geometries performed no nodal
-            // Cauchy-stress extrapolation. Preserve that behaviour by skipping
-            // unsupported geometries silently (they are not new fatal errors).
+            // Historical compatibility: extrapolation supports only Triangle2D3,
+            // Quadrilateral2D4, Tetrahedra3D4 and Hexahedra3D8; higher-order
+            // geometries performed no nodal Cauchy-stress extrapolation, so they
+            // are skipped silently (not treated as fatal errors).
             if (unsupported_geometry) {
                 return;
             }
 
-            // Verify that the element integration scheme matches the legacy one.
+            // The extrapolation operator requires the historical integration scheme.
             const std::size_t expected_number_of_gps =
                 single_gp ? 1 : extrapolation_matrix.size2();
             KRATOS_ERROR_IF_NOT(number_of_gps == expected_number_of_gps)
                 << "DamNodalCauchyStressExtrapolationProcess: element " << rElement.Id()
                 << " provides " << number_of_gps
-                << " integration points but the legacy extrapolation expects "
+                << " integration points but the extrapolation expects "
                 << expected_number_of_gps
                 << " for this geometry (incompatible integration scheme)." << std::endl;
 
-            // Build the Gauss-point Voigt stress container with the historical
-            // Dam component ordering (2D: [sxx, syy, sxy]; 3D: [sxx, syy, szz,
-            // sxy, syz, sxz]).
+            // Historical Dam Voigt component ordering (2D: [sxx, syy, sxy];
+            // 3D: [sxx, syy, szz, sxy, syz, sxz]).
             const std::size_t voigt_size = (dimension == 2) ? 3 : 6;
             Matrix stress_container(number_of_gps, voigt_size);
             noalias(stress_container) = ZeroMatrix(number_of_gps, voigt_size);
@@ -198,9 +180,8 @@ public:
                 }
             }
 
-            // Element-level extrapolation using the same ublas operation as the
-            // legacy element (for single-GP geometries every node receives the
-            // single Gauss-point stress).
+            // Element-level extrapolation; for single-GP geometries every node
+            // receives the single Gauss-point stress.
             Matrix aux_nodal_stress;
             if (single_gp) {
                 aux_nodal_stress = ZeroMatrix(number_of_nodes, voigt_size);
@@ -213,8 +194,7 @@ public:
                 aux_nodal_stress = prod(extrapolation_matrix, stress_container);
             }
 
-            // Element measure used by the legacy element (Geometry::Area(); the
-            // volume for 3D solids).
+            // Element measure (Geometry::Area(); the volume for 3D solids).
             const double element_measure = r_geometry.Area();
 
             // Convert every extrapolated nodal row back to a tensor and accumulate
