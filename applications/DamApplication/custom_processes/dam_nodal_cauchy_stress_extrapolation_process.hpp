@@ -179,9 +179,9 @@ public:
                 << expected_number_of_gps
                 << " for this geometry (incompatible integration scheme)." << std::endl;
 
-            // Build the Gauss-point Voigt stress container with the legacy
-            // component ordering, exactly as SmallDisplacementThermoMechanicElement
-            // does (2D: [sxx, syy, sxy]; 3D: [sxx, syy, szz, sxy, syz, sxz]).
+            // Build the Gauss-point Voigt stress container with the historical
+            // Dam component ordering (2D: [sxx, syy, sxy]; 3D: [sxx, syy, szz,
+            // sxy, syz, sxz]).
             const std::size_t voigt_size = (dimension == 2) ? 3 : 6;
             Matrix stress_container(number_of_gps, voigt_size);
             noalias(stress_container) = ZeroMatrix(number_of_gps, voigt_size);

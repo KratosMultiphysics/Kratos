@@ -179,6 +179,10 @@ class DamMechanicalSolver(object):
         # Check if everything is assigned correctly
         self.Solver.Check()
 
+        # Initialize the strategy (elements, scheme, convergence criterion) now, so
+        # that the constitutive laws are ready before the first gauss-point output
+        self.Solver.Initialize()
+
         print ("Initialization of DamMechanicalSolver finished")
 
     def GetComputingModelPart(self):
