@@ -622,12 +622,14 @@ private:
                     else
                         p_local_surface->AddLevelByHRefinement(1, rModelPart);
                 else if (level_method[lv] == "k")
-                    KRATOS_ERROR << "ReadLocalRefinement: unsupported refinement method \"k\" for brep_id " << brep_id
-                        << ", level " << lv << ". k-refinement is not yet implemented." << std::endl;
+                    if (first_addlevel)
+                        p_local_surface->AddLevelByKRefinement(rModelPart, NextNodeIdHint);
+                    else
+                        p_local_surface->AddLevelByKRefinement(rModelPart);
                 else
                     KRATOS_ERROR << "ReadLocalRefinement: unsupported refinement method \""
                         << level_method[lv] << "\" for brep_id " << brep_id
-                        << ", level " << lv << ". Currently supported: \"h\", \"p\"." << std::endl;
+                        << ", level " << lv << ". Currently supported: \"h\", \"p\", \"k\"." << std::endl;
             }
 
             auto shift_to_nearest_knot = [](double value, const Vector& knots) -> double {

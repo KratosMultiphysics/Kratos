@@ -253,6 +253,54 @@ public:
     }
 
     /**
+     * @brief Adds one k-refined level (degree elevation + uniform knot bisection in one step).
+     *
+     * K-refinement elevates both polynomial degrees by 1 and inserts the midpoint of every
+     * unique knot span in U and V simultaneously. The combined refinement matrix
+     * M_k = (M_hV ⊗ M_hU) * M_p maps directly from the base-level CPs to the k-refined CPs,
+     * giving maximum C^{p} continuity at all interior knots of the new level.
+     *
+     * Nodes are created without a ModelPart; use AddLevelByKRefinement(ModelPart&) to register them.
+     */
+    void AddLevelByKRefinement()
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::AddLevelByKRefinement: no base level defined." << std::endl;
+        AddLevelKRefinementImpl(
+            [](IndexType id, double x, double y, double z) {
+                return Kratos::make_intrusive<NodeType>(id, x, y, z);
+            });
+    }
+
+    /// Adds one k-refined level; new nodes are registered in rModelPart.
+    void AddLevelByKRefinement(ModelPart& rModelPart)
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::AddLevelByKRefinement: no base level defined." << std::endl;
+        AddLevelKRefinementImpl(
+            [&rModelPart](IndexType id, double x, double y, double z)
+                -> typename NodeType::Pointer {
+                return rModelPart.CreateNewNode(id, x, y, z);
+            });
+    }
+
+    /// Like AddLevelByKRefinement(rModelPart) but the first new node starts at StartingId.
+    void AddLevelByKRefinement(ModelPart& rModelPart, IndexType StartingId)
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::AddLevelByKRefinement: no base level defined." << std::endl;
+        IndexType effective_start = StartingId;
+        for (const auto& node : rModelPart.GetRootModelPart().Nodes())
+            effective_start = std::max(effective_start, node.Id() + IndexType(1));
+        AddLevelKRefinementImpl(
+            [&rModelPart](IndexType id, double x, double y, double z)
+                -> typename NodeType::Pointer {
+                return rModelPart.CreateNewNode(id, x, y, z);
+            },
+            effective_start);
+    }
+
+    /**
      * @brief Adds a refinement region on an existing level.
      *
      * Can be called multiple times for the same level to register
@@ -1633,6 +1681,83 @@ private:
 
         mLevels.push_back(THBLevel{p_u + 1, p_v + 1, fine_knots_u, fine_knots_v, {}});
         mLevels.back().CoordsSnapshot = std::move(fine_coords_snapshot_p);
+        mActiveFunctions.push_back(
+            std::vector<bool>(num_cps_u_fine * num_cps_v_fine, true));
+    }
+
+    /// Private implementation for k-refinement: degree elevation + knot bisection in one step.
+    template<typename TNodeFactory>
+    void AddLevelKRefinementImpl(TNodeFactory CreateNode, IndexType NextNodeId = 0)
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::AddLevelByKRefinement: no base level defined." << std::endl;
+        KRATOS_ERROR_IF(mIsEliminated)
+            << "THBSurfaceGeometry::AddLevelByKRefinement: cannot add levels after EliminateInactiveFunctions." << std::endl;
+
+        const SizeType last_index      = mLevels.size() - 1;
+        const THBLevel& previous_level = mLevels[last_index];
+        const SizeType p_u = previous_level.DegreeU;
+        const SizeType p_v = previous_level.DegreeV;
+
+        // Step 1: degree-elevation matrices for U and V directions.
+        const auto [elevated_knots_u, M_p_u] = ComputeDegreeElevationMatrix1D(previous_level.KnotsU, p_u);
+        const auto [elevated_knots_v, M_p_v] = ComputeDegreeElevationMatrix1D(previous_level.KnotsV, p_v);
+        const SizeType num_cps_u_coarse   = previous_level.KnotsU.size() - p_u + 1;
+        const SizeType num_cps_v_coarse   = previous_level.KnotsV.size() - p_v + 1;
+        const SizeType num_cps_u_elevated = M_p_u.size1();
+        const SizeType num_cps_v_elevated = M_p_v.size1();
+
+        // Step 2: bisect the elevated knot vectors.
+        const Vector bisected_knots_u = BisectKnots(elevated_knots_u);
+        const Vector bisected_knots_v = BisectKnots(elevated_knots_v);
+
+        // Step 3: h-refinement matrices from elevated to bisected, at elevated degrees.
+        const Matrix M_h_u = ComputeRefinementMatrix1D(elevated_knots_u, bisected_knots_u, p_u + 1);
+        const Matrix M_h_v = ComputeRefinementMatrix1D(elevated_knots_v, bisected_knots_v, p_v + 1);
+        const SizeType num_cps_u_fine = M_h_u.size1();
+        const SizeType num_cps_v_fine = M_h_v.size1();
+
+        // Step 4: combined k-refinement matrices M_k_u = M_h_u * M_p_u, M_k_v = M_h_v * M_p_v.
+        Matrix M_k_u(num_cps_u_fine, num_cps_u_coarse, 0.0);
+        noalias(M_k_u) = prod(M_h_u, M_p_u);
+        Matrix M_k_v(num_cps_v_fine, num_cps_v_coarse, 0.0);
+        noalias(M_k_v) = prod(M_h_v, M_p_v);
+
+        const SizeType coarse_cp_offset = ControlPointOffset(last_index);
+
+        IndexType next_node_id = NextNodeId;
+        if (next_node_id == 0) {
+            next_node_id = 1;
+            for (SizeType i = 0; i < this->PointsNumber(); ++i)
+                next_node_id = std::max(next_node_id, this->GetPoint(i).Id() + IndexType(1));
+        }
+
+        std::vector<std::array<double, 3>> fine_coords_snapshot;
+        fine_coords_snapshot.reserve(num_cps_u_fine * num_cps_v_fine);
+
+        for (SizeType j_v = 0; j_v < num_cps_v_fine; ++j_v) {
+            for (SizeType j_u = 0; j_u < num_cps_u_fine; ++j_u) {
+                double x = 0.0, y = 0.0, z = 0.0;
+                for (SizeType i_v = 0; i_v < num_cps_v_coarse; ++i_v) {
+                    const double coeff_v = M_k_v(j_v, i_v);
+                    if (std::abs(coeff_v) < 1e-15) continue;
+                    for (SizeType i_u = 0; i_u < num_cps_u_coarse; ++i_u) {
+                        const double coeff = coeff_v * M_k_u(j_u, i_u);
+                        if (std::abs(coeff) < 1e-15) continue;
+                        const auto& pt = this->GetPoint(
+                            coarse_cp_offset + i_v * num_cps_u_coarse + i_u);
+                        x += coeff * pt.X();
+                        y += coeff * pt.Y();
+                        z += coeff * pt.Z();
+                    }
+                }
+                this->Points().push_back(CreateNode(next_node_id++, x, y, z));
+                fine_coords_snapshot.push_back({x, y, z});
+            }
+        }
+
+        mLevels.push_back(THBLevel{p_u + 1, p_v + 1, bisected_knots_u, bisected_knots_v, {}});
+        mLevels.back().CoordsSnapshot = std::move(fine_coords_snapshot);
         mActiveFunctions.push_back(
             std::vector<bool>(num_cps_u_fine * num_cps_v_fine, true));
     }

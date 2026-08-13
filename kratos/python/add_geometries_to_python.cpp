@@ -710,6 +710,14 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("AddLevelByDegreeElevation",
              py::overload_cast<ModelPart&, IndexType>(&THBCurveGeometry3DType::AddLevelByDegreeElevation),
              py::arg("model_part"), py::arg("starting_id"))
+        .def("AddLevelByKRefinement",
+             py::overload_cast<>(&THBCurveGeometry3DType::AddLevelByKRefinement))
+        .def("AddLevelByKRefinement",
+             py::overload_cast<ModelPart&>(&THBCurveGeometry3DType::AddLevelByKRefinement),
+             py::arg("model_part"))
+        .def("AddLevelByKRefinement",
+             py::overload_cast<ModelPart&, IndexType>(&THBCurveGeometry3DType::AddLevelByKRefinement),
+             py::arg("model_part"), py::arg("starting_id"))
         .def("AddRefinementDomain", &THBCurveGeometry3DType::AddRefinementDomain,
              py::arg("level"), py::arg("min_t"), py::arg("max_t"))
         .def("NumberOfLevels",      &THBCurveGeometry3DType::NumberOfLevels)
@@ -726,6 +734,9 @@ void  AddGeometriesToPython(pybind11::module& m)
         }, py::arg("level"))
         .def("NumberOfActiveFunctions", &THBCurveGeometry3DType::NumberOfActiveFunctions,
              py::arg("level"))
+        .def("IsTruncated", [](const THBCurveGeometry3DType& self, SizeType level, SizeType flat_index) {
+            return !self.GetTruncationData(level, flat_index).empty();
+        }, py::arg("level"), py::arg("flat_index"))
         .def("EliminateInactiveFunctions", &THBCurveGeometry3DType::EliminateInactiveFunctions,
              py::arg("model_part"))
         .def("GetDefaultIntegrationInfo", &THBCurveGeometry3DType::GetDefaultIntegrationInfo)
