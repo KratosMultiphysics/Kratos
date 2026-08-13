@@ -34,7 +34,6 @@ void AppendOptionalFluidParameters(const Parameters& rProcessSettings, std::vect
 {
     ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
                                                      rNamesOfSettingsToCopy);
-    ParametersUtilities::AppendParameterNameIfExists("is_seepage", rProcessSettings, rNamesOfSettingsToCopy);
 }
 
 Parameters PrepareProcessParameters(const ModelPart&                rModelPart,
