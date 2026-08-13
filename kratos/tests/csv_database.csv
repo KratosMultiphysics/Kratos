@@ -1,0 +1,17 @@
+# ===========================================================
+# ===================== Testing output ======================
+# ===========================================================
+# ------------------- Kratos information --------------------
+# Kratos version: not_given
+# Timestamp     : not_specified
+# --------------- End of Kratos information -----------------
+# Testing header information 
+# New line header
+# ------------------ <Column information> -------------------
+#         CUSTOM_STEP: integer
+#         hello: float
+# --------------- End of column information -----------------
+CUSTOM_STEP,            hello
+          0,  3.000000000e+00
+          2,              n/a
+# End of File
