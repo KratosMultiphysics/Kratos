@@ -30,12 +30,6 @@ namespace
 using namespace Kratos;
 using namespace std::string_literals;
 
-void AppendOptionalFluidParameters(const Parameters& rProcessSettings, std::vector<std::string>& rNamesOfSettingsToCopy)
-{
-    ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
-                                                     rNamesOfSettingsToCopy);
-}
-
 Parameters PrepareProcessParameters(const ModelPart&                rModelPart,
                                     const Parameters&               rProcessSettings,
                                     const std::vector<std::string>& rNamesOfSettingsToCopy)
@@ -113,7 +107,9 @@ void ApplyScalarConstraintTableProcess::MakeProcessForHydrostaticFluidPressure(
 {
     NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(),
                                  {"gravity_direction", "reference_coordinate", "specific_weight"});
-    AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
+
+    ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
+                                                     NamesOfSettingsToCopy);
 
     InstantiateProcessByTablePresence<ApplyHydrostaticPressureTableProcess, ApplyConstantHydrostaticPressureProcess>(
         rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
@@ -127,8 +123,9 @@ void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticLine(ModelPart& rM
                                  {"gravity_direction", "out_of_plane_direction", "first_reference_coordinate",
                                   "second_reference_coordinate", "specific_weight"});
 
-    AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
-
+    ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
+                                                     NamesOfSettingsToCopy);
+ 
     InstantiateProcessByTablePresence<ApplyPhreaticLinePressureTableProcess, ApplyConstantPhreaticLinePressureProcess>(
         rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
 }
@@ -141,8 +138,9 @@ void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticMultiLine(ModelPar
                                  {"gravity_direction", "out_of_plane_direction", "x_coordinates",
                                   "y_coordinates", "z_coordinates", "specific_weight"});
 
-    AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
-
+    ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
+                                                     NamesOfSettingsToCopy);
+ 
     InstantiateProcessByTablePresence<ApplyPhreaticMultiLinePressureTableProcess, ApplyConstantPhreaticMultiLinePressureProcess>(
         rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
 }
@@ -155,8 +153,9 @@ void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticSurface(ModelPart&
                                  {"gravity_direction", "first_reference_coordinate", "second_reference_coordinate",
                                   "third_reference_coordinate", "specific_weight"});
 
-    AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
-
+    ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
+                                                     NamesOfSettingsToCopy);
+ 
     InstantiateProcessByTablePresence<ApplyPhreaticSurfacePressureTableProcess, ApplyConstantPhreaticSurfacePressureProcess>(
         rModelPart, rProcessSettings, std::move(NamesOfSettingsToCopy));
 }
@@ -171,8 +170,9 @@ void ApplyScalarConstraintTableProcess::MakeProcessForInterpolatedLine(ModelPart
     NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(),
                                  {"gravity_direction", "out_of_plane_direction"});
 
-    AppendOptionalFluidParameters(rProcessSettings, NamesOfSettingsToCopy);
-
+    ParametersUtilities::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings,
+                                                     NamesOfSettingsToCopy);
+ 
     mProcesses.emplace_back(std::make_unique<ApplyConstantInterpolateLinePressureProcess>(
         rModelPart, PrepareProcessParameters(rModelPart, rProcessSettings, NamesOfSettingsToCopy)));
 }
