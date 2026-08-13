@@ -43,12 +43,20 @@ public:
     ///@name Input / output
     ///@{
 
+    /**
+     * @brief Get the Row Ids which are read.
+     *
+     * @return std::vector<int>  List of row ids.
+     */
     virtual std::vector<int> GetRowIds() const
     {
         KRATOS_ERROR << "Please implement this method in the derived class.";
         return std::vector<int>{};
     }
 
+    /**
+     * @brief Reads the value on the row @p RowId and column given by @p rKey.
+     */
     virtual void Read(
         bool& rValue,
         const int RowId,
@@ -57,6 +65,9 @@ public:
         KRATOS_ERROR << "Please implement this method in the derived class.";
     }
 
+    /**
+     * @brief Reads the value on the row @p RowId and column given by @p rKey.
+     */
     virtual void Read(
         int& rValue,
         const int RowId,
@@ -65,6 +76,9 @@ public:
         KRATOS_ERROR << "Please implement this method in the derived class.";
     }
 
+    /**
+     * @brief Reads the value on the row @p RowId and column given by @p rKey.
+     */
     virtual void Read(
         double& rValue,
         const int RowId,
@@ -73,6 +87,9 @@ public:
         KRATOS_ERROR << "Please implement this method in the derived class.";
     }
 
+    /**
+     * @brief Reads the value on the row @p RowId and column given by @p rKey.
+     */
     virtual void Read(
         std::string& rValue,
         const int RowId,
@@ -81,6 +98,9 @@ public:
         KRATOS_ERROR << "Please implement this method in the derived class.";
     }
 
+    /**
+     * @brief Write the value to the row @p RowId and column given by @p rKey.
+     */
     virtual void Write(
         const bool Value,
         const int RowId,
@@ -89,6 +109,9 @@ public:
         KRATOS_ERROR << "Please implement this method in the derived class.";
     }
 
+    /**
+     * @brief Write the value to the row @p RowId and column given by @p rKey.
+     */
     virtual void Write(
         const int Value,
         const int RowId,
@@ -97,6 +120,9 @@ public:
         KRATOS_ERROR << "Please implement this method in the derived class.";
     }
 
+    /**
+     * @brief Write the value to the row @p RowId and column given by @p rKey.
+     */
     virtual void Write(
         const double Value,
         const int RowId,
@@ -105,6 +131,9 @@ public:
         KRATOS_ERROR << "Please implement this method in the derived class.";
     }
 
+    /**
+     * @brief Write the value to the row @p RowId and column given by @p rKey.
+     */
     virtual void Write(
         const std::string& rValue,
         const int RowId,
