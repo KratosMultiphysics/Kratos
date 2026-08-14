@@ -24,6 +24,7 @@
 #include "includes/element.h"
 #include "includes/key_hash.h"
 #include <cstddef>
+#include <vector>
 
 namespace Kratos
 {
@@ -231,6 +232,7 @@ public:
     using SkinPointsToElementsMapType = std::unordered_map<ElementType::Pointer, SkinPointsDataVectorType, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
     using SidesVectorToElementsMapType = std::unordered_map<ElementType::Pointer, Vector, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
     using AverageSkinToElementsMapType = std::unordered_map<ElementType::Pointer, std::pair<array_1d<double,3>, array_1d<double,3>>, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
+    using NodesWeightsMapType = std::unordered_map<NodeType::Pointer, Vector, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
     using NodesCloudMapType = std::unordered_map<NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
 
     ///@}
@@ -373,6 +375,7 @@ protected:
 
     SidesVectorToElementsMapType mSidesVectorMap;
     NodesCloudMapType mExtensionOperatorMap;
+    NodesCloudMapType mExtensionOperatorSameSideMap;
 
     ExtensionOperator mExtensionOperator;
     std::size_t mMLSExtensionOperatorOrder;
@@ -381,6 +384,7 @@ protected:
 
     bool mPositiveSideIsEnclosed = false;
     bool mNegativeSideIsEnclosed = false;
+    bool mEnclosedPressureIsSet = false;
     std::size_t mEnclosedNodeId = 0;
 
     /// @brief Protected empty constructor for derived classes
@@ -468,23 +472,19 @@ protected:
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesSetType& SupportNodesSet);
 
-    /**
-     * @brief Create a pointer vector of pointers to all the nodes affecting the respective side of a split element's boundary.
-     * Create vectors to pointers of cloud nodes for a split element using all the nodes affecting the element.
-     * Pointer Vectors are sorted by ID to properly get the extension operator data
-     *
-     * @param rElement
-     * @param rSidesVector
-     * @param rExtensionOperatorMap
-     * @param rCloudNodeVectorPositiveSide
-     * @param rCloudNodeVectorNegativeSide
-     */
+    /* TODO */
+    // collect support nodes and their weights for both sides and all nodes of the element
+    // also determine whether extension of the element is valid for each side independently
     void CreateCloudVectorsForSkinPointElement(
         const ElementType& rElement,
         const Vector& rSidesVector,
         NodesCloudMapType& rExtensionOperatorMap,
         PointerVector<NodeType>& rCloudNodeVectorPositiveSide,
-        PointerVector<NodeType>& rCloudNodeVectorNegativeSide);
+        PointerVector<NodeType>& rCloudNodeVectorNegativeSide,
+        NodesWeightsMapType& rCloudWeightsMapPositiveSide,
+        NodesWeightsMapType& rCloudWeightsMapNegativeSide,
+        bool& rPositiveExtensionValid,
+        bool& rNegativeExtensionValid);
 
     /* TODO */
     void GetDataForSkinPointInElement(
@@ -493,20 +493,21 @@ protected:
         Vector& rSkinPtShapeFunctionValues,
         Matrix& rSkinPtShapeFunctionDerivatives);
 
+    void CalculateExtendedValuesAndAddSkinPointConditions(
+        SidesVectorToElementsMapType& rSidesVectorMap,
+        NodesCloudMapType& rExtensionOperatorMap);
+
     /* TODO */
     bool AddSkinPointCondition(
         const ElementType& rElement,
-        const Vector& rSidesVector,
         const double ElementSize,
         const array_1d<double,3>& rSkinPtCoordinates,
         const array_1d<double,3>& rSkinPtAreaNormal,
-        NodesCloudMapType& rExtensionOperatorMap,
-        const PointerVector<NodeType>& rCloudNodeVector,
-        const Vector& rSkinPtShapeFunctionValues,
-        const Matrix& rSkinPtShapeFunctionDerivatives,
         const array_1d<double,3>& rSkinPtVelocity,
-        std::size_t& r_ConditionId,
-        const bool ConsiderPositiveSide);
+        const PointerVector<NodeType>& rCloudNodeVector,
+        const Vector& rSkinPtShapeFunctionValuesExtended,
+        const Matrix& rSkinPtShapeFunctionDerivativesExtended,
+        std::size_t& r_ConditionId);
 
     // TODO
     bool FixPressureOfEnclosedNode(

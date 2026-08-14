@@ -414,8 +414,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
         # Free nodes that were fixed for enclosed volumes by the shifted-boundary utility
-        for sbm_utility in self.sbm_utilities:
-            sbm_utility.FreePressureOfEnclosedNode()
+        if self.__IsFmAleStep():
+            for sbm_utility in self.sbm_utilities:
+                sbm_utility.FreePressureOfEnclosedNode()
 
         if self.__IsFmAleStep():
             # Set the virtual mesh values (VELOCITY and PRESSURE) from the background fluid mesh
