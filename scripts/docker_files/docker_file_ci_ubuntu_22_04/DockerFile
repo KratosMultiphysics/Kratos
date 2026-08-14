@@ -4,25 +4,34 @@ ENV HOME=/root
 
 # Update and install necessary packages
 RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get -y install --no-install-recommends gnupg2 software-properties-common wget
+RUN apt-get -y install --no-install-recommends gnupg2 software-properties-common wget ca-certificates
 
-# Adding intel ppa and installing packages
+# Adding Intel PPA and installing packages
 RUN wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB -P/tmp && \
     apt-key add /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB && \
     rm /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB && \
     echo deb https://apt.repos.intel.com/oneapi all main > /etc/apt/sources.list.d/oneAPI.list
 
-# Update again with the new ppa
+# Update again with the new PPA
 RUN add-apt-repository ppa:git-core/ppa && \
     apt-get -y update
 
-# Install packages
+# Install LLVM APT repository for newer Clang versions (>=17 for full C++20 support)
+RUN apt-get update -y && apt-get install -y --no-install-recommends curl && \
+    curl -fsSL https://apt.llvm.sh -o /opt/apt.llvm.sh && \
+    chmod +x /opt/apt.llvm.sh && \
+    /opt/apt.llvm.sh 18 19
+
+# Install packages (includes newer compilers for full C++20 support)
 RUN apt-get install -y --no-install-recommends \
     sudo \
     build-essential \
-    g++-12 \
-    gfortran-12 \
-    clang-14 \
+    g++-13 \
+    g++-14 \
+    gfortran-13 \
+    gfortran-14 \
+    clang-18 \
+    clang-19 \
     libomp-dev \
     cmake \
     gfortran \
@@ -80,7 +89,7 @@ RUN git clone https://github.com/MmgTools/ParMmg /tmp/ParMmg_5ffc6ad && \
     rm -r /tmp/ParMmg_5ffc6ad && \
     cd /
 
-# Install Boost (form zip)
+# Install Boost (from zip)
 RUN mkdir -p /workspace/boost && \
     wget -P /workspace/boost https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz && \
     tar -C /workspace/boost -xzf /workspace/boost/boost_1_87_0.tar.gz && \
