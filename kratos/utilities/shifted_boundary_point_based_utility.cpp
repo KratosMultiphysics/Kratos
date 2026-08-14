@@ -1081,8 +1081,6 @@ namespace Kratos
         SidesVectorToElementsMapType& rSidesVectorMap,
         AverageSkinToElementsMapType& rAvgSkinMap)
     {
-        //TODO SPEED UP
-
         // Set DISTANCE values for all nodes to zero as variable will be used to have a majority vote on the definition of the positive and negative side
         //TODO faster than looping through the nodes of elements with skin points without parallelization?
         VariableUtils().SetVariable(DISTANCE, 0.0, mpModelPart->Nodes());
@@ -1091,13 +1089,13 @@ namespace Kratos
         // Note that unique geometry in the mesh is assumed
         const auto p_element_size_func = GetElementSizeFunction(mpModelPart->ElementsBegin()->GetGeometry());
 
-        LockObject mutex_1;
-        LockObject mutex_2;
-        //TODO is parallelization really faster here?
-        std::for_each(rSkinPointsMap.begin(), rSkinPointsMap.end(), [&rAvgSkinMap, &mutex_1, &mutex_2, &p_element_size_func](const std::pair<ElementType::Pointer, SkinPointsDataVectorType>& rKeyData){
-            const auto p_element = rKeyData.first;
-            const auto& skin_points_data_vector = rKeyData.second;
+        // Set for nodes of elements with skin points
+        NodesSetType boundary_nodes_set;
 
+        // Calculate a value "side_voting", stored in DISTANCE, for each node of an element with skin points,
+        // based on the all skin points located in the elements around that node and their distances to the node
+        // (as well as the area they are representing and the element's size).
+        for (const auto& [p_element, skin_points_data_vector]: rSkinPointsMap) {
             // Get access to the nodes of the element and an estimate of the element's size
             auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
@@ -1118,12 +1116,13 @@ namespace Kratos
                 // NOTE that for a positive dot product the node is saved as being on the positive side of the boundary, negative dot product equals negative side
                 for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                     auto& r_node = r_geom[i_node];
+                    boundary_nodes_set.insert(&r_node);
                     const array_1d<double,3> skin_pt_to_node = r_node.Coordinates() - skin_pt_position;  // Should never be zero because of node modifications
                     const double dot_product = inner_prod(skin_pt_to_node, skin_pt_area_normal);
                     double& side_voting = r_node.FastGetSolutionStepValue(DISTANCE);
                     {
                         const double vote_weighting = skin_pt_area * h / std::pow(norm_2(skin_pt_to_node), 4);
-                        std::scoped_lock<LockObject> lock(mutex_1);
+                        //std::scoped_lock<LockObject> lock(mutex_1);
                         if (dot_product > 0.0) {
                             side_voting += vote_weighting;
                         } else {
@@ -1142,77 +1141,86 @@ namespace Kratos
             avg_normal /= norm_2(avg_normal);
             avg_position /= n_skin_points;
             const auto avg_position_and_normal = std::make_pair(avg_position, avg_normal);
-            {
-                std::scoped_lock<LockObject> lock(mutex_2);
-                rAvgSkinMap.insert(std::make_pair(p_element, avg_position_and_normal));
-            }
-        });
+            rAvgSkinMap.insert(std::make_pair(p_element, avg_position_and_normal));
+            // {
+            //     std::scoped_lock<LockObject> lock(mutex_2);
+            //     rAvgSkinMap.insert(std::make_pair(p_element, avg_position_and_normal));
+            // }
+        }
 
-        //TODO Correct sides of boundary nodes based on surrounding nodes
-        for (const auto& [p_element, skin_points_data_vector]: rSkinPointsMap) {
-            auto& r_geom = p_element->GetGeometry();
-            const std::size_t n_nodes = r_geom.PointsNumber();
+        // Correct sides of boundary nodes based on surrounding nodes
+        std::size_t n_second_layer_checks = 0;
+        //for (NodeType::Pointer p_node : boundary_nodes_set) {
+        std::for_each(boundary_nodes_set.begin(), boundary_nodes_set.end(), [&](NodeType::Pointer p_node){
 
-            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                auto& r_node = r_geom[i_node];
-                auto& r_elem_neigh_vect = r_node.GetValue(NEIGHBOUR_ELEMENTS);
-                double& side_voting = r_node.FastGetSolutionStepValue(DISTANCE);
+            double& side_voting = p_node->FastGetSolutionStepValue(DISTANCE);
+            auto& r_elem_neigh_vect = p_node->GetValue(NEIGHBOUR_ELEMENTS);
 
-                std::unordered_set<std::size_t> node_neigh_ids;
-                node_neigh_ids.insert(r_node.Id());
-                std::size_t n_pos_neigh = 0;
-                std::size_t n_neg_neigh = 0;
+            std::unordered_set<std::size_t> node_neigh_ids;
+            node_neigh_ids.insert(p_node->Id());
+            std::size_t n_pos_neigh = 0;
+            std::size_t n_neg_neigh = 0;
 
-                // For each node of a boundary element count the number of positive and negative sided nodes surrounding it on its side of the boundary
-                for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
-                    auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
-                    if (p_elem_neigh != nullptr) {
-                        if (!p_elem_neigh->Is(SBM_BOUNDARY)) {
-                            const auto& r_geom = p_elem_neigh->GetGeometry();
-                            for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
-                                NodeType::Pointer p_neigh = r_geom(i_neigh_node);
+            // For each boundary node count the number of positive and negative sided nodes surrounding it on its side of the boundary
+            for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                if (p_elem_neigh != nullptr) {
+                    if (!p_elem_neigh->Is(SBM_BOUNDARY)) {
+                        const auto& r_geom = p_elem_neigh->GetGeometry();
+                        for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
+                            NodeType::Pointer p_neigh = r_geom(i_neigh_node);
 
-                                // Add the neighboring node to the set of neighboring node IDs to avoid double counting
-                                auto [it, inserted] = node_neigh_ids.insert(p_neigh->Id());
-                                if (inserted) {
-                                    // Add node of neighboring element to the support node set if it is active and located on the search side
-                                    if (p_neigh->FastGetSolutionStepValue(DISTANCE) < -1e-10) {
-                                        n_neg_neigh++;
-                                    } else if (p_neigh->FastGetSolutionStepValue(DISTANCE) > 1e-10) {
-                                        n_pos_neigh++;
-                                    }
+                            // Add the neighboring node to the set of neighboring node IDs to avoid double counting
+                            auto [it, inserted] = node_neigh_ids.insert(p_neigh->Id());
+                            // Only check nodes of boundary elements containing skin points
+                            if ( inserted && (boundary_nodes_set.find(p_neigh) != boundary_nodes_set.end()) ) {
+                                // Add node of neighboring element to the support node set if it is active and located on the search side
+                                if (p_neigh->FastGetSolutionStepValue(DISTANCE) < 0.0) {
+                                    n_neg_neigh++;
+                                } else {
+                                    n_pos_neigh++;
                                 }
                             }
                         }
                     }
                 }
-                // Use a second layer of nodes on the same side of the boundary if unclear
-                bool check_second_layer = false;
-                if (n_neg_neigh > n_pos_neigh && n_pos_neigh > 0) check_second_layer = true;
-                else if (n_pos_neigh > n_neg_neigh && n_neg_neigh > 0) check_second_layer = true;
-                if (n_pos_neigh > 3 && n_neg_neigh > 3) check_second_layer = false;
+            }
 
-                if (check_second_layer) {
-                    for (auto& neigh_id : node_neigh_ids) {
-                        auto p_neigh = mpModelPart->pGetNode(neigh_id);
-                        auto& r_elem_neigh_vect_2 = p_neigh->GetValue(NEIGHBOUR_ELEMENTS);
-                        for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect_2.size(); ++i_neigh) {
-                            auto p_elem_neigh = r_elem_neigh_vect_2(i_neigh).get();
-                            if (p_elem_neigh != nullptr) {
-                                if (!p_elem_neigh->Is(SBM_BOUNDARY)) {
-                                    const auto& r_geom = p_elem_neigh->GetGeometry();
-                                    for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
-                                        NodeType::Pointer p_neigh = r_geom(i_neigh_node);
+            //TODO THIS IS TAKING TOO LONG
+            //TODO better if statements for lesser number of second layer checks?!?
+            //TODO instead create adjacency graph for nodes using all boundary elements and delete connections
+            // Use a second layer of nodes on the same side of the boundary if unclear
+            bool check_second_layer = false;
+            // Unclear if there is more than one neighbor from the other side
+            if (side_voting > 0 && n_neg_neigh > 1) check_second_layer = true;
+            if (side_voting < 0 && n_pos_neigh > 1) check_second_layer = true;
+            // Many positive and negative neighbors indicate an edge of a thin structure, so we do not want to check the second layer
+            if (n_pos_neigh > 3 && n_neg_neigh > 3) check_second_layer = false;
+            // Do not check the second layer if there is a clear majority of neighbors on one side
+            if (n_pos_neigh > n_neg_neigh*2 || n_neg_neigh > n_pos_neigh*2) check_second_layer = false;
 
-                                        // Add the neighboring node to the set of neighboring node IDs to avoid double counting
-                                        auto [it, inserted] = node_neigh_ids.insert(p_neigh->Id());
-                                        if (inserted) {
-                                            // Add node of neighboring element to the support node set if it is active and located on the search side
-                                            if (p_neigh->FastGetSolutionStepValue(DISTANCE) < -1e-10) {
-                                                n_neg_neigh++;
-                                            } else if (p_neigh->FastGetSolutionStepValue(DISTANCE) > 1e-10) {
-                                                n_pos_neigh++;
-                                            }
+            if (check_second_layer) {
+                n_second_layer_checks++;
+                for (auto& neigh_id : node_neigh_ids) {
+                    auto p_neigh = mpModelPart->pGetNode(neigh_id);
+                    auto& r_elem_neigh_vect_2 = p_neigh->GetValue(NEIGHBOUR_ELEMENTS);
+                    for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect_2.size(); ++i_neigh) {
+                        auto p_elem_neigh = r_elem_neigh_vect_2(i_neigh).get();
+                        if (p_elem_neigh != nullptr) {
+                            if (!p_elem_neigh->Is(SBM_BOUNDARY)) {
+                                const auto& r_geom = p_elem_neigh->GetGeometry();
+                                for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
+                                    NodeType::Pointer p_neigh = r_geom(i_neigh_node);
+
+                                    // Add the neighboring node to the set of neighboring node IDs to avoid double counting
+                                    auto [it, inserted] = node_neigh_ids.insert(p_neigh->Id());
+                                    // Only check nodes of boundary elements containing skin points
+                                    if ( inserted && (boundary_nodes_set.find(p_neigh) != boundary_nodes_set.end()) ) {
+                                        // Add node of neighboring element to the support node set if it is active and located on the search side
+                                        if (p_neigh->FastGetSolutionStepValue(DISTANCE) < 0.0) {
+                                            n_neg_neigh++;
+                                        } else {
+                                            n_pos_neigh++;
                                         }
                                     }
                                 }
@@ -1220,20 +1228,17 @@ namespace Kratos
                         }
                     }
                 }
-
-                if (side_voting > 0.0 && n_neg_neigh > n_pos_neigh*2) {
-                    side_voting = -1.0;
-                    KRATOS_WATCH(n_neg_neigh);
-                    KRATOS_WATCH(n_pos_neigh);
-                    r_node.Set(MODIFIED, true);
-                } else if (side_voting < 0.0 && n_pos_neigh > n_neg_neigh*2) {
-                    side_voting = 1.0;
-                    KRATOS_WATCH(n_neg_neigh);
-                    KRATOS_WATCH(n_pos_neigh);
-                    r_node.Set(MODIFIED, true);
-                }
             }
-        }
+
+            if (side_voting > 0.0 && n_neg_neigh > n_pos_neigh*2) {
+                side_voting = -1.0;
+                p_node->Set(MODIFIED, true);
+            } else if (side_voting < 0.0 && n_pos_neigh > n_neg_neigh*2) {
+                side_voting = 1.0;
+                p_node->Set(MODIFIED, true);
+            }
+        });
+        KRATOS_WATCH(n_second_layer_checks);
 
         // Decide on positive and negative side of an element based on the voting of all skin points in the surrounding elements
         for (const auto& [p_element, skin_points_data_vector]: rSkinPointsMap) {
@@ -1244,7 +1249,6 @@ namespace Kratos
             // NOTE that the positive side of the boundary equals a positive inwards skin normal, negative dot product equals a negative inward skin normal
             // NOTE that it is necessary to define the side of points of gamma_tilde here for the search of the support clouds afterwards (SetLateralSupportCloud)
             // NOTE that this will cause troubles if inverted elements exist as opposed to having a local definition of sides
-            //TODO NOTE that it is necessary here to set the other side's flag to false because it might have been set to true by another skin geometry immersed previously.
             Vector sides_vector(n_nodes);
             for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                 auto& r_node = r_geom[i_node];
