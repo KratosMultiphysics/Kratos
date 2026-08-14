@@ -189,12 +189,12 @@ CSVDatabaseIO::CSVDatabaseIO(
 
 void CSVDatabaseIO::Initialize(const int TableId)
 {
-    const std::string& current_file_name = std::regex_replace(mFileName, std::regex(mTableIdTag), std::to_string(TableId));
+    mCurrentFileName = std::regex_replace(mFileName, std::regex(mTableIdTag), std::to_string(TableId));
 
     if (mIsReadOnly) {
-        ReadCSVFile(current_file_name);
+        ReadCSVFile();
     } else {
-        WriteTitleBlock(current_file_name, TableId);
+        WriteTitleBlock(TableId);
     }
 
     mCurrentTableId = TableId;
@@ -203,13 +203,12 @@ void CSVDatabaseIO::Initialize(const int TableId)
 void CSVDatabaseIO::Finalize(const int TableId)
 {
     if (!mIsReadOnly) {
-        const std::string& current_file_name = std::regex_replace(mFileName, std::regex(mTableIdTag), std::to_string(TableId));
-
         KRATOS_ERROR_IF_NOT(mCurrentTableId == TableId)
-            << "The table with id = " << TableId << " for file name \"" << current_file_name
-            << "\" is not initialized. Currently initialized table id = " << mCurrentTableId << ".\n" << *this;
+            << "The table with id = " << TableId << " is not initialized. "
+            << "Currently initialized table id = " << mCurrentTableId << " for file name \""
+            << mCurrentFileName << "\".\n" << *this;
 
-        std::ofstream output_file(current_file_name, std::ios::out | std::ios::app | std::ios::binary);
+        std::ofstream output_file(mCurrentFileName, std::ios::out | std::ios::app | std::ios::binary);
 
         WriteData(output_file);
 
@@ -222,6 +221,7 @@ void CSVDatabaseIO::Finalize(const int TableId)
         output_file.close();
 
         mCurrentTableId = std::numeric_limits<int>::min();
+        mCurrentFileName = "";
     }
 }
 
@@ -306,7 +306,7 @@ void CSVDatabaseIO::Write(
     GenericWrite(rValue, Step, rKey);
 }
 
-void CSVDatabaseIO::ReadCSVFile(const std::string& rFileName)
+void CSVDatabaseIO::ReadCSVFile()
 {
     KRATOS_TRY
 
@@ -314,9 +314,11 @@ void CSVDatabaseIO::ReadCSVFile(const std::string& rFileName)
         return;
     }
 
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) <<"Reading CSV data from \"" << rFileName << "\"...\n";
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) <<"Reading CSV data from \"" << mCurrentFileName << "\"...\n";
 
-    std::ifstream input_file(rFileName);
+    std::ifstream input_file(mCurrentFileName);
+
+    mReadData.clear();
 
     std::string line;
     bool found_column_information_block{false};
@@ -440,9 +442,7 @@ void CSVDatabaseIO::ReadCSVFile(const std::string& rFileName)
     KRATOS_CATCH("")
 }
 
-void CSVDatabaseIO::WriteTitleBlock(
-    const std::string& rFileName,
-    const int TableId)
+void CSVDatabaseIO::WriteTitleBlock(const int TableId)
 {
     KRATOS_TRY
 
@@ -450,14 +450,16 @@ void CSVDatabaseIO::WriteTitleBlock(
         return;
     }
 
+    mCurrentStep = -1;
+    mLastWrittenStep = -1;
     mWritingData.clear();
 
     // Adding the step column
     mWritingData.push_back(std::make_pair(Column(mRowIdName, 0, mFormatSettings), 0));
 
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) <<"Writing CSV header information to \"" << rFileName << "\"...\n";
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) <<"Writing CSV header information to \"" << mCurrentFileName << "\"...\n";
 
-    std::ofstream output_file(rFileName, std::ios::out | std::ios::trunc | std::ios::binary);
+    std::ofstream output_file(mCurrentFileName, std::ios::out | std::ios::trunc | std::ios::binary);
 
     output_file << "# ===========================================================" << std::endl;
     output_file << "# ";
@@ -499,7 +501,7 @@ void CSVDatabaseIO::WriteTitleBlock(
 
     output_file.close();
 
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Header block is written to file \"" << rFileName << "\".\n";
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Header block is written to file \"" << mCurrentFileName << "\".\n";
 
     KRATOS_CATCH("");
 }
@@ -521,6 +523,7 @@ void CSVDatabaseIO::PrintData(std::ostream& rOStream) const
     rOStream << "\t Row id name: " << mRowIdName << std::endl;
     rOStream << "\t Table id tag: " << mTableIdTag << std::endl;
     rOStream << "\t Current table id: " << mCurrentTableId << std::endl;
+    rOStream << "\t Current file name: " << mCurrentFileName << std::endl;
 
     if (mIsReadOnly) {
         rOStream << "\t Columns: " << std::endl;
@@ -573,7 +576,7 @@ void CSVDatabaseIO::WriteData(std::ofstream& rOutputFile)
     }
     rOutputFile << std::endl;
 
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 1) << "Data for " << mWritingData[0].first.GetHeader() << " = " << std::get<int>(mWritingData.front().second) << " is written to file \"" << mFileName << "\".\n";
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 1) << "Data for " << mWritingData[0].first.GetHeader() << " = " << std::get<int>(mWritingData.front().second) << " is written to file \"" << mCurrentFileName << "\".\n";
 
     KRATOS_CATCH("");
 }
@@ -595,7 +598,7 @@ void CSVDatabaseIO::GenericRead(
         << "The table is not initialized.\n" << *this;
 
     KRATOS_ERROR_IF_NOT(mIsReadOnly)
-        << "The file \"" << mFileName << "\" is opened for write only access. Hence cannot read.\n" << *this;
+        << "The file \"" << mCurrentFileName << "\" is opened for write only access. Hence cannot read.\n" << *this;
 
     for (const auto& r_pair : mReadData) {
         if (r_pair.first == rKey) {
@@ -631,7 +634,7 @@ void CSVDatabaseIO::WriteHeaders(std::ofstream& rOutputFile) const
     }
     rOutputFile << std::endl;
 
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Header names are written to file \"" << mFileName << "\".\n";
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Header names are written to file \"" << mCurrentFileName << "\".\n";
 }
 
 template<class TDataType>
@@ -646,7 +649,7 @@ void CSVDatabaseIO::GenericWrite(
         << "The table is not initialized.\n" << *this;
 
     KRATOS_ERROR_IF(mIsReadOnly)
-        << "The file \"" << mFileName << "\" is opened for read only access. Hence cannot write.\n" << *this;
+        << "The file \"" << mCurrentFileName << "\" is opened for read only access. Hence cannot write.\n" << *this;
 
     if (!IsMasterRank()) {
         return;
@@ -694,7 +697,7 @@ void CSVDatabaseIO::GenericWrite(
         }
     } else {
         // now information with new Step is given.
-        std::ofstream output_file(mFileName, std::ios::out | std::ios::app | std::ios::binary);
+        std::ofstream output_file(mCurrentFileName, std::ios::out | std::ios::app | std::ios::binary);
 
         // so we first need to check if the headers are written.
         if (mLastWrittenStep == -1) {
