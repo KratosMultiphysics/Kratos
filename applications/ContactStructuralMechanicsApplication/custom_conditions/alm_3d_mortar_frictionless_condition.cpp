@@ -450,7 +450,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
 
     const IndexType integration_order = 2;
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
-    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e-6;
+    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
     const bool consider_tessellation = false;
 
     // The utility that performs the local clipping of the projected master to the slave plane
@@ -536,7 +536,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double interpolated_LM = inner_prod(dual_shape_functions, lm_values); // interpolated Lagrange multiplier at the integration point
                     const double augmented_lm = scale_factor * interpolated_LM + penalty_factor * gap_n; // contact pressure at the integration point
 
-                    const bool active_contact = (augmented_lm < -AugmentedLMtolerance); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
+                    const bool active_contact = (augmented_lm < 0.0); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
 
                     if (ComputeRHS && successful_projection) {
                         AddRightHandSideContribution(rRightHandSideVector, scale_factor, penalty_factor, gap_n, interpolated_LM,
@@ -629,26 +629,26 @@ void ALM3dMortarFrictionlessCondition::AddExplicitContribution(const ProcessInfo
                     const double detJ_segmented = segmented_geom.DeterminantOfJacobian(segmented_GP_local_point);
                     const double integration_weight = r_integration_points_slave[point_number].Weight() * detJ_segmented;
 
-                    // VectorType delta_x = segmented_GP_global_point - master_GP_global_point;
                     const double gap_n = -inner_prod(segmented_GP_global_point - master_GP_global_point, slave_normal); // open contact if gap_n > 0, closed contact if gap_n < 0
-
+                    
                     dual_shape_functions.resize(Dimension);
-                    // r_slave_geometry.ShapeFunctionsValues(slave_shape_functions, slave_GP_local_point);
                     dual_shape_functions[0] = 3.0 - 4.0 * slave_GP_local_point[0] - 4.0 * slave_GP_local_point[1];
                     dual_shape_functions[1] = 4.0 * slave_GP_local_point[0] - 1.0;
                     dual_shape_functions[2] = 4.0 * slave_GP_local_point[1] - 1.0;
+                    
+                    VectorType delta_x = segmented_GP_global_point - master_GP_global_point;
+                    r_slave_geometry.ShapeFunctionsValues(slave_shape_functions, slave_GP_local_point);
+                    VectorType averaged_normal(3);
+                    for (IndexType i_node = 0; i_node < r_slave_geometry.PointsNumber(); ++i_node)
+                        noalias(averaged_normal) += slave_shape_functions[i_node] * r_slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
 
-                    // VectorType averaged_normal(3);
-                    // for (IndexType i_node = 0; i_node < r_slave_geometry.PointsNumber(); ++i_node)
-                    //     noalias(averaged_normal) += slave_shape_functions[i_node] * r_slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
-
-                    // if (successful_projection) {
-                    //     weighted_gap[0] -= integration_weight * dual_shape_functions[0] * inner_prod(averaged_normal, delta_x);
-                    //     weighted_gap[1] -= integration_weight * dual_shape_functions[1] * inner_prod(averaged_normal, delta_x);
-                    //     weighted_gap[2] -= integration_weight * dual_shape_functions[2] * inner_prod(averaged_normal, delta_x);
-                    // }
-                    if (successful_projection)
-                        noalias(weighted_gap) += integration_weight * dual_shape_functions * gap_n;
+                    if (successful_projection) {
+                        weighted_gap[0] -= integration_weight * dual_shape_functions[0] * inner_prod(averaged_normal, delta_x);
+                        weighted_gap[1] -= integration_weight * dual_shape_functions[1] * inner_prod(averaged_normal, delta_x);
+                        weighted_gap[2] -= integration_weight * dual_shape_functions[2] * inner_prod(averaged_normal, delta_x);
+                    }
+                    // if (successful_projection)
+                    //     noalias(weighted_gap) += integration_weight * dual_shape_functions * gap_n;
 
                 } // loop over the integration points of the segmented geometry
             } // if valid segmented geometry
