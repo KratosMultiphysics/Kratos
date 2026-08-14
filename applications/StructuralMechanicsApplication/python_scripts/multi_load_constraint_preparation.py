@@ -3,6 +3,7 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.process_factory import KratosProcessFactory
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.scipy_conversion_tools #just for debugging
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 class MultiLoadConstraintPreparation(AnalysisStage):
     """This stage prepares the LHS of the model and the right hand sides (one for each load process defined in the parameters)"""
@@ -201,50 +202,7 @@ class MultiLoadConstraintPreparation(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "DOF's ADDED")
 
     def _AddVariables(self):
-        #copied from structural_mechanics_solver.py
-        #TODO: Implement a reusable version of this function and use it here and in structural_mechanics_solver.py
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
-        if self.settings["rotation_dofs"].GetBool():
-            # Add specific variables for the problem (rotation dofs).
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
-        if self.settings["volumetric_strain_dofs"].GetBool():
-            # Add specific variables for the problem (volumetric strain dofs).
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
-            #TODO: These are not required in the standard ASGS case
-            #TODO: We can get rid of this overhead once we move to the specification-based variables and DOFs addition
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION_REACTION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION_REACTION)
-        if self.settings["strain_dofs"].GetBool():
-            # Add specific variables for the problem (strain Voigt notation components dofs).
-            dim = self.settings["domain_size"].GetInt()
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XX)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XX)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_YY)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_YY)
-            if dim == 3:
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_ZZ)
-                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_ZZ)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XY)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XY)
-            if dim == 3:
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_YZ)
-                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_YZ)
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XZ)
-                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XZ)
-        if self.settings["displacement_control"].GetBool():
-            # Add displacement-control variables
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOAD_FACTOR)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESCRIBED_DISPLACEMENT)
-        # Add variables that the user defined in the ProjectParameters
-        #auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
+        MechanicalSolver.AddVariablesToModelPart(self.main_model_part, self.settings)
         KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "Variables ADDED")
 
     def _PrepareModelPart(self):
