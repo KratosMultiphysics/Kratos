@@ -190,7 +190,7 @@ private:
         Column(
             const std::string& rHeaderName,
             const ValueType& rValue,
-            std::shared_ptr<FormatSettings> pFormatSettings);
+            const FormatSettings& rFormatSettings);
 
         ///@}
         ///@name Public operations
@@ -210,15 +210,15 @@ private:
         ///@name Private member variables
         ///@{
 
-        std::string mHeader;
+        const std::string mHeader;
+
+        const ValueType mDummyValue;
+
+        const FormatSettings& mrFormatSettings;
 
         IndexType mColumnWidth;
 
         std::string mFormatString;
-
-        ValueType mDummyValue;
-
-        std::shared_ptr<FormatSettings> mpFormatSettings;
 
         ///@}
     };
@@ -235,19 +235,27 @@ private:
 
     const IndexType mEchoLevel;
 
+    const std::string mRowIdName;
+
+    const FormatSettings mFormatSettings;
+
     ///@}
     ///@name Private member variables for writing
     ///@{
 
-    std::vector<std::pair<Column, ValueType>> mWritingData;
+    const std::string mTitle;
 
-    std::shared_ptr<FormatSettings> mpFormatSettings;
+    const std::string mHeader;
 
-    bool mWriteTimeStamp;
+    const bool mWriteKratosVersion;
+
+    const bool mWriteTimeStamp;
 
     int mCurrentStep = -1;
 
     int mLastWrittenStep = -1;
+
+    std::vector<std::pair<Column, ValueType>> mWritingData;
 
     ///@}
     ///@name Private member variables for reading
@@ -265,6 +273,8 @@ private:
     ///@name Private operations for reading
     ///@{
 
+    void ReadCSVFile(const std::string& rFileName);
+
     template<class TDataType>
     void GenericRead(
         TDataType& rValue,
@@ -281,6 +291,7 @@ private:
         const int Step,
         const std::string& rKey);
 
+    void WriteTitleBlock(const std::string& rFileName);
 
     void WriteHeaders(std::ofstream& rOutputFile) const;
 
