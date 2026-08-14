@@ -259,8 +259,8 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_ComputeCo
     auto expected_constitutive_matrix = UblasUtilities::CreateMatrix({{83.333333333333343, 0, 0, 0, 0},
                                                                       {0, 0, 0, 0, 0},
                                                                       {0, 0, 33.333333333333336, 0, 0},
-                                                                      {0, 0, 0, 0, 0},
-                                                                      {0, 0, 0, 0, 0}});
+                                                                      {0, 0, 0, 16.666666666666, 0},
+                                                                      {0, 0, 0, 0, 1.388888888888}});
 
     KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, Defaults::absolute_tolerance);
 }

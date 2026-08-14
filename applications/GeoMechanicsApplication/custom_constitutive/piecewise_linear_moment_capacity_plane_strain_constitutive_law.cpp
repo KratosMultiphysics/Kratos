@@ -71,9 +71,10 @@ void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateMaterialR
     const auto curvature    = r_strain_vector[1]; // Kappa
     const auto shear_strain = r_strain_vector[2]; // Gamma_xy
 
-    const auto E  = r_material_properties[YOUNG_MODULUS];
-    const auto A  = r_material_properties[THICKNESS];
-    const auto nu = r_material_properties[POISSON_RATIO];
+    const auto   E  = r_material_properties[YOUNG_MODULUS];
+    const auto   A  = r_material_properties[THICKNESS];
+    const double I  = std::pow(A, 3) / 12.0; // Per unit length
+    const auto   nu = r_material_properties[POISSON_RATIO];
 
     const auto G   = E / (2.0 * (1.0 + nu));
     const auto A_s = r_material_properties[THICKNESS_EFFECTIVE_Y];
@@ -82,15 +83,19 @@ void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateMaterialR
         auto& r_generalized_stress_vector = rParameters.GetStressVector();
         r_generalized_stress_vector.resize(strain_size, false);
 
-        const auto one_minus_nu_squared = 1.0 - nu * nu;
-        const auto EA_nu                = E * A / one_minus_nu_squared;
-        const auto GAs                  = G * A_s;
+        const auto   one_minus_nu_squared = 1.0 - nu * nu;
+        const auto   EA_nu                = E * A / one_minus_nu_squared;
+        const double EI_nu                = E * I / one_minus_nu_squared;
+        const auto   GAs                  = G * A_s;
 
         const auto [moment, tangent_modulus] = CalculateMomentAndTangentModulus(curvature);
 
         r_generalized_stress_vector[0] = EA_nu * axial_strain; // Nx
         r_generalized_stress_vector[1] = moment;               // Mz
         r_generalized_stress_vector[2] = GAs * shear_strain;   // Vxy
+        // Plane strain generalized stress components
+        r_generalized_stress_vector[3] = nu * r_generalized_stress_vector[0]; // Nz
+        r_generalized_stress_vector[4] = nu * r_generalized_stress_vector[1]; // Mx
 
         if (r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             auto& r_stress_derivatives = rParameters.GetConstitutiveMatrix();
@@ -100,6 +105,8 @@ void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateMaterialR
             r_stress_derivatives(0, 0)    = EA_nu;           // dN_dEl
             r_stress_derivatives(1, 1)    = tangent_modulus; // dM_dkappa
             r_stress_derivatives(2, 2)    = GAs;             // dV_dGamma_xy
+            r_stress_derivatives(3, 3)    = nu * EA_nu;      // dNz_dEl
+            r_stress_derivatives(4, 4)    = nu * EI_nu;      // dMx_dkappa
         }
     }
 }
@@ -145,12 +152,12 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
         << ") does not match GEO_MOMENT_PIECEWISE_LINEAR_LAW (" << r_moments.size() << ")" << std::endl;
 
     // First provided point must be non-zero since (0,0) is implicitly added
-    constexpr auto tolerance      = std::numeric_limits<double>::min();
-    const auto     first_kappa    = r_kappa[0];
-    const auto     first_momentum = r_moments[0];
-    KRATOS_ERROR_IF(std::abs(first_kappa) < tolerance || std::abs(first_momentum) < tolerance)
+    constexpr auto tolerance    = std::numeric_limits<double>::min();
+    const auto     first_kappa  = r_kappa[0];
+    const auto     first_moment = r_moments[0];
+    KRATOS_ERROR_IF(std::abs(first_kappa) < tolerance || std::abs(first_moment) < tolerance)
         << "First provided point must be non-zero when assuming implicit (0,0). Got ("
-        << first_kappa << ", " << first_momentum << ")" << std::endl;
+        << first_kappa << ", " << first_moment << ")" << std::endl;
 
     CheckUtilities::CheckValuesAreAscending(r_kappa, "GEO_KAPPA_PIECEWISE_LINEAR_LAW");
     constexpr auto allow_equal = true;
