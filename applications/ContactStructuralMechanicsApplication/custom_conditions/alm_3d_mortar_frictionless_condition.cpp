@@ -715,41 +715,44 @@ void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
     KRATOS_TRY
 
 if (active_contact) {
-    const Matrix n_n = outer_prod(rNormal, rNormal); // normal matrix
-    const double integration_k = integration_weight * k;
-    const double integration_penalty = integration_weight * penalty;
 
-    // LM - slave [range(0, 3), range(3, 12)]
-    noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNs)));
-    noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_k * outer_prod(rN_LM, Vector(prod(trans(rDeltaX), rDnda_slave)));
+        const Matrix n_n = outer_prod(rNormal, rNormal); // normal matrix
 
-    // LM - master [range(0, 3), range(12, 21)]
-    noalias(project(rLeftHandSideMatrix, range(0, 3), range(12, 21))) += integration_k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNm)));
+        const double integration_k = integration_weight * k;
 
-    // slave - LM [range(3, 12), range(0, 3)]
-    noalias(project(rLeftHandSideMatrix, range(3, 12), range(0, 3))) -= integration_k * outer_prod(Vector(prod(trans(rNs), rNormal)), rN_LM);
+        const double integration_penalty = integration_weight * penalty;
 
-    // slave - slave [range(3, 12), range(3, 12)]
-    noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_penalty * prod(trans(rNs), Matrix(prod(n_n, rNs)));
-    noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) -= integration_weight * AugmentedLM * prod(trans(rNs), rDnda_slave);
-    noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_penalty * outer_prod(Vector(prod(trans(rNs), rNormal)), Vector(prod(trans(rDeltaX), rDnda_slave)));
-    // slave - master [range(3, 12), range(12, 21)]
-    noalias(project(rLeftHandSideMatrix, range(3, 12), range(12, 21))) -= integration_penalty * prod(trans(rNs), Matrix(prod(n_n, rNm)));
+        //
+        noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNs))); // LM - slave
+        noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_k * outer_prod(rN_LM, Vector(prod(trans(rDeltaX), rDnda_slave))); // LM - slave
 
-    // master - LM [range(12, 21), range(0, 3)]
-    noalias(project(rLeftHandSideMatrix, range(12, 21), range(0, 3))) += integration_k * outer_prod(Vector(prod(trans(rNm), rNormal)), rN_LM);
+        //
+        noalias(project(rLeftHandSideMatrix, range(0, 3), range(12, 21))) += integration_k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNm))); // LM - master
 
-    // master - slave [range(12, 21), range(3, 12)]
-    noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_penalty * prod(trans(rNm), Matrix(prod(n_n, rNs)));
-    noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_penalty * outer_prod(Vector(prod(trans(rNm), rNormal)), Vector(prod(trans(rDeltaX), rDnda_slave)));
-    noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) += integration_weight * AugmentedLM * prod(trans(rNm), rDnda_slave);
+        //
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(0, 3))) -= integration_k * outer_prod(Vector(prod(trans(rNs), rNormal)), rN_LM); // slave - LM
 
-    // master - master [range(12, 21), range(12, 21)]
-    noalias(project(rLeftHandSideMatrix, range(12, 21), range(12, 21))) += integration_penalty * prod(trans(rNm), Matrix(prod(n_n, rNm)));
+        //
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_penalty * prod(trans(rNs), Matrix(prod(n_n, rNs))); // slave - slave
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) -= integration_weight * AugmentedLM * prod(trans(rNs), rDnda_slave); // slave - slave
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_penalty * outer_prod(Vector(prod(trans(rDeltaX), rDnda_slave)), Vector(prod(trans(rNs), rNormal))); // slave - slave
 
-} else { // Inactive (Gap state)
-    noalias(project(rLeftHandSideMatrix, range(0, 3), range(0, 3))) -= integration_weight * (k * k / penalty) * outer_prod(rN_LM, rN_LM);
-}
+        //
+        noalias(project(rLeftHandSideMatrix, range(3, 12), range(12, 21))) -= integration_penalty * prod(trans(rNs), Matrix(prod(n_n, rNm))); // slave - master
+
+        //
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(0, 3))) += integration_k * outer_prod(Vector(prod(trans(rNm), rNormal)), rN_LM); // master - LM
+
+        //
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_penalty * prod(trans(rNm), Matrix(prod(n_n, rNs))); // master - slave
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_penalty * outer_prod(Vector(prod(trans(rDeltaX), rDnda_slave)), Vector(prod(trans(rNm), rNormal))); // master - slave
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) += integration_weight * AugmentedLM * prod(trans(rNm), rDnda_slave); // master - slave
+
+        //
+        noalias(project(rLeftHandSideMatrix, range(12, 21), range(12, 21))) += integration_penalty * prod(trans(rNm), Matrix(prod(n_n, rNm))); // master - master
+    } else { // Inactive
+        noalias(project(rLeftHandSideMatrix, range(0, 3), range(0, 3))) -= integration_weight * (k * k / penalty) * outer_prod(rN_LM, rN_LM); // LM dofs
+    } 
 
     KRATOS_CATCH("AddLeftHandSideContribution");
 }
