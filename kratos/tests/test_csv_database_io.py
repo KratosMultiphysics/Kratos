@@ -34,6 +34,8 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
                 boolean_true_value="yes",
                 echo_level=0)
 
+        csv_database_io.Initialize()
+
         self.assertEqual(csv_database_io.GetRowIds(), [0,1,2,3,4])
 
         for step in range(self.n):
@@ -51,6 +53,8 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
                 else:
                     self.assertEqual(value, 0)
 
+        csv_database_io.Finalize()
+
     def test_Read2(self):
         csv_database_io = Kratos.CSVDatabaseIO(
                 "csv_database_no_column_info_ref.csv",
@@ -58,6 +62,8 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
                 row_id_name="CUSTOM_STEP",
                 boolean_true_value="yes",
                 echo_level=0)
+
+        csv_database_io.Initialize()
 
         self.assertEqual(csv_database_io.GetRowIds(), [0,1,2,3,4])
 
@@ -76,6 +82,8 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
                     else:
                         self.assertEqual(value, 0)
 
+        csv_database_io.Finalize()
+
     def test_Write1(self):
         csv_database_io = Kratos.CSVDatabaseIO(
                                 "csv_database_test.csv",
@@ -89,13 +97,14 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
                                 boolean_true_value="yes",
                                 echo_level=0)
 
+        csv_database_io.Initialize()
+
         for step in range(self.n):
             for k, values in self.database.items():
                 if (values[step] is not None):
                     csv_database_io.Write(values[step], step, k)
 
-        # force the last row to be written
-        del csv_database_io
+        csv_database_io.Finalize()
 
         CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
@@ -108,6 +117,8 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
     def test_ReadWrite1(self):
         csv_database_io = Kratos.CSVDatabaseIO("csv_database_ref.csv", Kratos.Testing.GetDefaultDataCommunicator(), row_id_name="CUSTOM_STEP")
 
+        csv_database_io.Initialize()
+
         with self.assertRaises(RuntimeError):
             csv_database_io.Write(1, 1, "test")
 
@@ -116,6 +127,8 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             csv_database_io.ReadInt(10, "CUSTOM_STEP")
+
+        csv_database_io.Finalize()
 
     def test_WriteRead(self):
         csv_database_io = Kratos.CSVDatabaseIO(
@@ -130,6 +143,8 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
                                 boolean_true_value="yes",
                                 echo_level=0)
 
+        csv_database_io.Initialize()
+
         csv_database_io.Write(3.0, 1, "hello")
         with self.assertRaises(RuntimeError):
             csv_database_io.ReadInt(1, "test")
@@ -142,6 +157,8 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             csv_database_io.Write(True, 2, "NEW_KEY")
+
+        csv_database_io.Finalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()

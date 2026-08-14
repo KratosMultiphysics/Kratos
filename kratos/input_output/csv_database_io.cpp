@@ -11,12 +11,14 @@
 //
 
 // System includes
-#include <sstream>
-#include <fstream>
-#include <format>
 #include <chrono>
-#include <string_view>
+#include <format>
+#include <fstream>
+#include <numeric>
 #include <ranges>
+#include <regex>
+#include <sstream>
+#include <string_view>
 
 // External includes
 
@@ -136,25 +138,23 @@ std::string CSVDatabaseIO::Column::GetFormattedValue(const ValueType& rValue) co
 CSVDatabaseIO::CSVDatabaseIO(
     const std::string& rInputFileName,
     const DataCommunicator& rDataCommunicator,
+    const std::string& rTableIdTag ,
     const std::string& rRowIdName,
     const std::string& rBooleanTrueValue,
     const IndexType EchoLevel)
     : mFileName(rInputFileName),
+      mTableIdTag(rTableIdTag),
       mIsReadOnly(true),
       mrDataCommunicator(rDataCommunicator),
       mEchoLevel(EchoLevel),
       mRowIdName(rRowIdName),
       mFormatSettings(9, 9, 9, std::vector<std::string>{"0", rBooleanTrueValue}),
+      mCurrentTableId(std::numeric_limits<int>::min()),
       mTitle(""),
       mHeader(""),
       mWriteKratosVersion(false),
       mWriteTimeStamp(false)
 {
-    KRATOS_TRY
-
-    ReadCSVFile(mFileName);
-
-    KRATOS_CATCH("")
 }
 
 CSVDatabaseIO::CSVDatabaseIO(
@@ -162,6 +162,7 @@ CSVDatabaseIO::CSVDatabaseIO(
     const DataCommunicator& rDataCommunicator,
     const std::string& rTitle,
     const std::string& rHeaderInformation,
+    const std::string& rTableIdTag,
     const std::string& rRowIdName,
     const bool WriteKratosVersion,
     const bool WriteTimeStamp,
@@ -172,28 +173,44 @@ CSVDatabaseIO::CSVDatabaseIO(
     const std::string& rBooleanTrueValue,
     const IndexType EchoLevel)
     : mFileName(rOutputFileName),
+      mTableIdTag(rTableIdTag),
       mIsReadOnly(false),
       mrDataCommunicator(rDataCommunicator),
       mEchoLevel(EchoLevel),
       mRowIdName(rRowIdName),
       mFormatSettings(IntLength, FloatPrecision, StringLength, std::vector<std::string>{rBooleanFalseValue, rBooleanTrueValue}),
+      mCurrentTableId(std::numeric_limits<int>::min()),
       mTitle(rTitle),
       mHeader(rHeaderInformation),
       mWriteKratosVersion(WriteKratosVersion),
       mWriteTimeStamp(WriteTimeStamp)
 {
-    KRATOS_TRY
-
-    WriteTitleBlock(mFileName);
-
-    KRATOS_CATCH("");
 }
 
-CSVDatabaseIO::~CSVDatabaseIO()
+void CSVDatabaseIO::Initialize(const int TableId)
+{
+    const std::string& current_file_name = std::regex_replace(mFileName, std::regex(mTableIdTag), std::to_string(TableId));
+
+    if (mIsReadOnly) {
+        ReadCSVFile(current_file_name);
+    } else {
+        WriteTitleBlock(current_file_name, TableId);
+    }
+
+    mCurrentTableId = TableId;
+}
+
+void CSVDatabaseIO::Finalize(const int TableId)
 {
     if (!mIsReadOnly) {
+        const std::string& current_file_name = std::regex_replace(mFileName, std::regex(mTableIdTag), std::to_string(TableId));
 
-        std::ofstream output_file(mFileName, std::ios::out | std::ios::app | std::ios::binary);
+        KRATOS_ERROR_IF_NOT(mCurrentTableId == TableId)
+            << "The table with id = " << TableId << " for file name \"" << current_file_name
+            << "\" is not initialized. Currently initialized table id = " << mCurrentTableId << ".\n" << *this;
+
+        std::ofstream output_file(current_file_name, std::ios::out | std::ios::app | std::ios::binary);
+
         WriteData(output_file);
 
         if (mWriteTimeStamp) {
@@ -203,12 +220,26 @@ CSVDatabaseIO::~CSVDatabaseIO()
         }
 
         output_file.close();
+
+        mCurrentTableId = std::numeric_limits<int>::min();
     }
 }
 
 std::vector<int> CSVDatabaseIO::GetRowIds() const
 {
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(mReadData.empty())
+        << "Table is not initialized.\n" << *this;
+
     return std::get<std::vector<int>>(mReadData[0].second);
+
+    KRATOS_CATCH("")
+}
+
+int CSVDatabaseIO::GetTableId() const
+{
+    return mCurrentTableId;
 }
 
 void CSVDatabaseIO::Read(
@@ -409,7 +440,9 @@ void CSVDatabaseIO::ReadCSVFile(const std::string& rFileName)
     KRATOS_CATCH("")
 }
 
-void CSVDatabaseIO::WriteTitleBlock(const std::string& rFileName)
+void CSVDatabaseIO::WriteTitleBlock(
+    const std::string& rFileName,
+    const int TableId)
 {
     KRATOS_TRY
 
@@ -462,7 +495,7 @@ void CSVDatabaseIO::WriteTitleBlock(const std::string& rFileName)
     }
     output_file << "# --------------- End of Kratos information -----------------" << std::endl;
 
-    output_file << mHeader;
+    output_file << std::regex_replace(mHeader, std::regex(mTableIdTag), std::to_string(TableId));;
 
     output_file.close();
 
@@ -486,6 +519,8 @@ void CSVDatabaseIO::PrintData(std::ostream& rOStream) const
     rOStream << "\t Filename: " << mFileName << std::endl;
     rOStream << "\t File access mode: " << (mIsReadOnly ? "read_only" : "write_only") << "\n";
     rOStream << "\t Row id name: " << mRowIdName << std::endl;
+    rOStream << "\t Table id tag: " << mTableIdTag << std::endl;
+    rOStream << "\t Current table id: " << mCurrentTableId << std::endl;
 
     if (mIsReadOnly) {
         rOStream << "\t Columns: " << std::endl;
@@ -556,6 +591,9 @@ void CSVDatabaseIO::GenericRead(
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF(mCurrentTableId == std::numeric_limits<int>::min())
+        << "The table is not initialized.\n" << *this;
+
     KRATOS_ERROR_IF_NOT(mIsReadOnly)
         << "The file \"" << mFileName << "\" is opened for write only access. Hence cannot read.\n" << *this;
 
@@ -603,6 +641,9 @@ void CSVDatabaseIO::GenericWrite(
     const std::string& rKey)
 {
     KRATOS_TRY
+
+    KRATOS_ERROR_IF(mCurrentTableId == std::numeric_limits<int>::min())
+        << "The table is not initialized.\n" << *this;
 
     KRATOS_ERROR_IF(mIsReadOnly)
         << "The file \"" << mFileName << "\" is opened for read only access. Hence cannot write.\n" << *this;

@@ -66,6 +66,7 @@ public:
     explicit CSVDatabaseIO(
         const std::string& rInputFileName,
         const DataCommunicator& rDataCommunicator,
+        const std::string& rTableIdTag = "<TABLE_ID>",
         const std::string& rRowIdName = "STEP",
         const std::string& rBooleanTrueValue = "1",
         const IndexType EchoLevel = 0);
@@ -100,6 +101,7 @@ public:
         const DataCommunicator& rDataCommunicator,
         const std::string& rTitle,
         const std::string& rHeaderInformation,
+        const std::string& rTableIdTag = "<TABLE_ID>",
         const std::string& rRowIdName = "STEP",
         const bool WriteKratosVersion = true,
         const bool WriteTimeStamp = true,
@@ -110,13 +112,23 @@ public:
         const std::string& rBooleanTrueValue = "1",
         const IndexType EchoLevel = 0);
 
-    ~CSVDatabaseIO() override;
+    ~CSVDatabaseIO() override = default;
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    void Initialize(const int TableId = 0) override;
+
+    void Finalize(const int TableId = 0) override;
 
     ///@}
     ///@name Input / output
     ///@{
 
     std::vector<int> GetRowIds() const override;
+
+    int GetTableId() const override;
 
     void Read(
         bool& rValue,
@@ -229,6 +241,8 @@ private:
 
     const std::string mFileName;
 
+    const std::string mTableIdTag;
+
     const bool mIsReadOnly;
 
     const DataCommunicator& mrDataCommunicator;
@@ -238,6 +252,8 @@ private:
     const std::string mRowIdName;
 
     const FormatSettings mFormatSettings;
+
+    int mCurrentTableId;
 
     ///@}
     ///@name Private member variables for writing
@@ -291,7 +307,9 @@ private:
         const int Step,
         const std::string& rKey);
 
-    void WriteTitleBlock(const std::string& rFileName);
+    void WriteTitleBlock(
+        const std::string& rFileName,
+        const int TableId);
 
     void WriteHeaders(std::ofstream& rOutputFile) const;
 
