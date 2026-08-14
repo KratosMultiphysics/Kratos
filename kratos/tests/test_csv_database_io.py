@@ -28,7 +28,7 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
 
     def test_Read1(self):
         csv_database_io = Kratos.CSVDatabaseIO(
-                "csv_database_ref.csv",
+                "csv_database_ref_0.csv",
                 Kratos.Testing.GetDefaultDataCommunicator(),
                 row_id_name="CUSTOM_STEP",
                 boolean_true_value="yes",
@@ -89,7 +89,7 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
                                 "csv_database_test.csv",
                                 Kratos.Testing.GetDefaultDataCommunicator(),
                                 "Testing output",
-                                "# Testing header information \n# New line header\n",
+                                "# Testing header information \n# New line header with id = <TABLE_ID>\n",
                                 row_id_name="CUSTOM_STEP",
                                 write_kratos_version=False,
                                 write_time_stamp=False,
@@ -108,14 +108,14 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
 
         CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
-                "reference_file_name"   : "csv_database_ref.csv",
+                "reference_file_name"   : "csv_database_ref_0.csv",
                 "output_file_name"      : "csv_database_test.csv",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()
 
     def test_ReadWrite1(self):
-        csv_database_io = Kratos.CSVDatabaseIO("csv_database_ref.csv", Kratos.Testing.GetDefaultDataCommunicator(), row_id_name="CUSTOM_STEP")
+        csv_database_io = Kratos.CSVDatabaseIO("csv_database_ref_0.csv", Kratos.Testing.GetDefaultDataCommunicator(), row_id_name="CUSTOM_STEP")
 
         csv_database_io.Initialize()
 
@@ -135,7 +135,7 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
                                 "csv_database.csv",
                                 Kratos.Testing.GetDefaultDataCommunicator(),
                                 "Testing output",
-                                "# Testing header information \n# New line header\n",
+                                "# Testing header information \n# New line header with id = <TABLE_ID>\n",
                                 row_id_name="CUSTOM_STEP",
                                 write_kratos_version=False,
                                 write_time_stamp=False,
@@ -159,6 +159,75 @@ class TestCSVDatabaseIO(KratosUnittest.TestCase):
             csv_database_io.Write(True, 2, "NEW_KEY")
 
         csv_database_io.Finalize()
+
+    def test_WriteTables(self):
+        csv_database_io = Kratos.CSVDatabaseIO(
+                                "csv_database_test_<ID>.csv",
+                                Kratos.Testing.GetDefaultDataCommunicator(),
+                                "Testing output",
+                                "# Testing header information \n# New line header with id = <ID>\n",
+                                row_id_name="CUSTOM_STEP",
+                                table_id_tag="<ID>",
+                                write_kratos_version=False,
+                                write_time_stamp=False,
+                                boolean_false_value="no",
+                                boolean_true_value="yes",
+                                echo_level=0)
+
+        for i in range(4):
+            csv_database_io.Initialize(i)
+
+            for step in range(self.n):
+                for k, values in self.database.items():
+                    if (values[step] is not None):
+                        if isinstance(values[step], bool):
+                            csv_database_io.Write(bool((values[step] * (i+1))) , step, k)
+                        else:
+                            csv_database_io.Write(values[step] * (i + 1), step, k)
+
+            csv_database_io.Finalize(i)
+
+            CompareTwoFilesCheckProcess(Kratos.Parameters("""
+                {
+                    "reference_file_name"   : "csv_database_ref_""" + str(i) + """.csv",
+                    "output_file_name"      : "csv_database_test_""" + str(i) + """.csv",
+                    "remove_output_file"    : true,
+                    "comparison_type"       : "deterministic"
+                }""")).Execute()
+
+    def test_ReadTables(self):
+
+        csv_database_io = Kratos.CSVDatabaseIO(
+                "csv_database_ref_<TABLE_ID>.csv",
+                Kratos.Testing.GetDefaultDataCommunicator(),
+                row_id_name="CUSTOM_STEP",
+                boolean_true_value="yes",
+                echo_level=0)
+
+        for i in range(4):
+            csv_database_io.Initialize(i)
+
+            self.assertEqual(csv_database_io.GetRowIds(), [0,1,2,3,4])
+
+            for step in range(self.n):
+                for k, values in self.database.items():
+                    if k.startswith("bool"):
+                        value = csv_database_io.ReadBool(step, k)
+                    elif k.startswith("int"):
+                        value = csv_database_io.ReadInt(step, k)
+                    elif k.startswith("float"):
+                        value = csv_database_io.ReadFloat(step, k)
+                    elif k.startswith("str"):
+                        value = csv_database_io.ReadString(step, k)
+                    if (values[step] is not None):
+                        if isinstance(value, bool):
+                            self.assertEqual(value, bool((values[step] * (i+1))))
+                        else:
+                            self.assertEqual(value, values[step] * (i + 1))
+                    else:
+                        self.assertEqual(value, 0)
+
+            csv_database_io.Finalize(i)
 
 if __name__ == '__main__':
     KratosUnittest.main()
