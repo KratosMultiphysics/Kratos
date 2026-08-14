@@ -1,0 +1,173 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Properties 1
+DENSITY 2400.0
+YOUNG_MODULUS 26000000000.0
+POISSON_RATIO 0.20
+THERMAL_EXPANSION 1e-05
+CONSTITUTIVE_LAW_NAME ThermalLinearElastic2DPlaneStrain
+End Properties
+
+Begin Nodes
+1 0.0 20.0 0.0
+2 5.0 20.0 0.0
+3 10.0 20.0 0.0
+4 0.0 16.0 0.0
+5 5.0 16.0 0.0
+6 10.0 16.0 0.0
+7 0.0 12.0 0.0
+8 5.0 12.0 0.0
+9 10.0 12.0 0.0
+10 0.0 8.0 0.0
+11 5.0 8.0 0.0
+12 10.0 8.0 0.0
+13 0.0 4.0 0.0
+14 5.0 4.0 0.0
+15 10.0 4.0 0.0
+16 0.0 0.0 0.0
+17 5.0 0.0 0.0
+18 10.0 0.0 0.0
+End Nodes
+
+Begin Elements SmallDisplacementThermoMechanicElement2D4N// GUI group identifier: Parts Auto1
+1 1 16 17 14 13
+2 1 17 18 15 14
+3 1 13 14 11 10
+4 1 14 15 12 11
+5 1 10 11 8 7
+6 1 11 12 9 8
+7 1 7 8 5 4
+8 1 8 9 6 5
+9 1 4 5 2 1
+10 1 5 6 3 2
+End Elements
+
+Begin Elements EulerianConvDiff2D4N// GUI group identifier: Parts Auto1
+11 0 16 17 14 13
+12 0 17 18 15 14
+13 0 13 14 11 10
+14 0 14 15 12 11
+15 0 10 11 8 7
+16 0 11 12 9 8
+17 0 7 8 5 4
+18 0 8 9 6 5
+19 0 4 5 2 1
+20 0 5 6 3 2
+End Elements
+
+Begin SubModelPart Parts_Parts_Auto1
+    Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart Thermal_Parts_Auto1
+    Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1
+    Begin SubModelPartNodes
+    16
+    17
+    18
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart BOFANGTEMPERATURE_Reservoir_Auto1
+    Begin SubModelPartNodes
+    1
+    4
+    7
+    10
+    13
+    16
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart ThermalParameters2D_Thermal_Parameters_Parts_Auto1
+    Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    End SubModelPartNodes
+End SubModelPart
