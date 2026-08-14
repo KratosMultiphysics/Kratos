@@ -6,7 +6,7 @@
 # Timestamp     : not_specified
 # --------------- End of Kratos information -----------------
 # Testing header information 
-# New line header
+# New line header with id = 0
 # ------------------ <Column information> -------------------
 #         CUSTOM_STEP: integer
 #         bool_1: boolean
