@@ -158,7 +158,7 @@ public:
 
     // The threshold coefficient considered for checking
     static constexpr double CheckThresholdCoefficient = 1.0e-8;
-    static constexpr double MinIntegrationAreaRatioTolerance = 1.0e-4;
+    static constexpr double MinIntegrationAreaRatioTolerance = 1.0e-6;
     static constexpr double AugmentedLMtolerance = 1.0e-8;
     static constexpr SizeType Dimension = 3;
 
@@ -484,6 +484,18 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
+
+    /**
+     * @brief This calculates the condition left hand side matrix using finite difference approximation
+     * by perturbing each DOF and computing the RHS difference to build the Jacobian matrix
+     * for comparison against the implicit analytical formulation to identify numerical errors
+     * @param rLeftHandSideMatrix the condition left hand side matrix computed via finite differences
+     * @param rCurrentProcessInfo the current process info instance (DISTANCE_THRESHOLD sets epsilon magnitude)
+     */
+    void CalculateLHSForwardEuler(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+        );
 
     /**
      * @brief Calculates the condition contribution

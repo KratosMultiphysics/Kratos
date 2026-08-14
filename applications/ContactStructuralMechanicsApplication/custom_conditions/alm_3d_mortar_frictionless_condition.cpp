@@ -169,6 +169,116 @@ void ALM3dMortarFrictionlessCondition::CalculateLeftHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void ALM3dMortarFrictionlessCondition::CalculateLHSForwardEuler(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY
+
+    const SizeType system_size = GetSystemSize();
+    auto &r_slave_geometry = GetParentGeometry();
+    auto &r_master_geometry = GetPairedGeometry();
+
+    if (rLeftHandSideMatrix.size1() != system_size || rLeftHandSideMatrix.size2() != system_size) {
+        rLeftHandSideMatrix.resize(system_size, system_size, false);
+    }
+    rLeftHandSideMatrix.clear();
+
+    // Finite difference step size
+    const double epsilon = 1.0e-8;
+
+    // Compute baseline RHS with current configuration
+    VectorType rhs_baseline(system_size);
+    CalculateRightHandSide(rhs_baseline, rCurrentProcessInfo);
+
+    std::vector<double*> p_dof_vector(system_size);
+    // LM
+    p_dof_vector[0] = &r_slave_geometry[0].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+    p_dof_vector[1] = &r_slave_geometry[1].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+    p_dof_vector[2] = &r_slave_geometry[2].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+
+    // SLAVE
+    p_dof_vector[3] = &r_slave_geometry[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+    p_dof_vector[4] = &r_slave_geometry[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    p_dof_vector[5] = &r_slave_geometry[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+    p_dof_vector[6] = &r_slave_geometry[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+    p_dof_vector[7] = &r_slave_geometry[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    p_dof_vector[8] = &r_slave_geometry[1].FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+    p_dof_vector[9] = &r_slave_geometry[2].FastGetSolutionStepValue(DISPLACEMENT_X);
+    p_dof_vector[10] = &r_slave_geometry[2].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    p_dof_vector[11] = &r_slave_geometry[2].FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+    // MASTER
+    p_dof_vector[12] = &r_master_geometry[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+    p_dof_vector[13] = &r_master_geometry[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    p_dof_vector[14] = &r_master_geometry[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+    p_dof_vector[15] = &r_master_geometry[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+    p_dof_vector[16] = &r_master_geometry[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    p_dof_vector[17] = &r_master_geometry[1].FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+    p_dof_vector[18] =  &r_master_geometry[2].FastGetSolutionStepValue(DISPLACEMENT_X);
+    p_dof_vector[19] = &r_master_geometry[2].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    p_dof_vector[20] = &r_master_geometry[2].FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+    std::vector<double*> p_coords_vector(3*6);
+    p_coords_vector[0] = &r_slave_geometry[0].X();
+    p_coords_vector[1] = &r_slave_geometry[0].Y();
+    p_coords_vector[2] = &r_slave_geometry[0].Z();
+
+    p_coords_vector[3] = &r_slave_geometry[1].X();
+    p_coords_vector[4] = &r_slave_geometry[1].Y();
+    p_coords_vector[5] = &r_slave_geometry[1].Z();
+
+    p_coords_vector[6] = &r_slave_geometry[2].X();
+    p_coords_vector[7] = &r_slave_geometry[2].Y();
+    p_coords_vector[8] = &r_slave_geometry[2].Z();
+
+    p_coords_vector[9] = &r_master_geometry[0].X();
+    p_coords_vector[10] = &r_master_geometry[0].Y();
+    p_coords_vector[11] = &r_master_geometry[0].Z();
+
+    p_coords_vector[12] = &r_master_geometry[1].X();
+    p_coords_vector[13] = &r_master_geometry[1].Y();
+    p_coords_vector[14] = &r_master_geometry[1].Z();
+
+    p_coords_vector[15] = &r_master_geometry[2].X();
+    p_coords_vector[16] = &r_master_geometry[2].Y();
+    p_coords_vector[17] = &r_master_geometry[2].Z();
+
+    // Perturb each DOF and compute RHS difference
+    for (SizeType j = 0; j < system_size; ++j) {
+        *(p_dof_vector[j]) += epsilon;
+
+        if (j >= 3) {
+            *(p_coords_vector[j - 3]) += epsilon;
+        }
+
+        // Compute perturbed RHS
+        VectorType rhs_perturbed(system_size);
+        CalculateRightHandSide(rhs_perturbed, rCurrentProcessInfo);
+
+        *(p_dof_vector[j]) -= epsilon;
+
+        if (j >= 3) {
+            *(p_coords_vector[j - 3]) -= epsilon;
+        }
+
+        // Fill column j of LHS with finite difference: dF/du_j = (F(u+eps*e_j) - F(u)) / eps
+        for (SizeType i = 0; i < system_size; ++i) {
+            rLeftHandSideMatrix(i, j) = (rhs_perturbed[i] - rhs_baseline[i]) / epsilon;
+        }
+    }
+
+    KRATOS_CATCH("CalculateLHSForwardEuler");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ALM3dMortarFrictionlessCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
@@ -426,7 +536,7 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double interpolated_LM = inner_prod(dual_shape_functions, lm_values); // interpolated Lagrange multiplier at the integration point
                     const double augmented_lm = scale_factor * interpolated_LM + penalty_factor * gap_n; // contact pressure at the integration point
 
-                    const bool active_contact = (augmented_lm < AugmentedLMtolerance); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
+                    const bool active_contact = (augmented_lm < -AugmentedLMtolerance); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
 
                     if (ComputeRHS && successful_projection) {
                         AddRightHandSideContribution(rRightHandSideVector, scale_factor, penalty_factor, gap_n, interpolated_LM,
@@ -440,7 +550,6 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
             } // if valid segmented geometry
         } // loop over segmented surfaces
     }
-
     KRATOS_CATCH("CalculateConditionSystem");
 }
 
@@ -605,36 +714,42 @@ void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
 {
     KRATOS_TRY
 
-    if (active_contact) {
-        const Matrix n_n = outer_prod(rNormal, rNormal); // normal matrix
-        const double integration_k = integration_weight * k;
-        const double integration_penalty = integration_weight * penalty;
+if (active_contact) {
+    const Matrix n_n = outer_prod(rNormal, rNormal); // normal matrix
+    const double integration_k = integration_weight * k;
+    const double integration_penalty = integration_weight * penalty;
 
-        //
-        noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNs))); // LM - slave
-        noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_k * outer_prod(rN_LM, Vector(prod(trans(rDeltaX), rDnda_slave))); // LM - slave
-        //
-        noalias(project(rLeftHandSideMatrix, range(0, 3), range(12, 21))) += integration_k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNm))); // LM - master
-        //
-        noalias(project(rLeftHandSideMatrix, range(3, 12), range(0, 3))) -= integration_k * outer_prod(Vector(prod(trans(rNs), rNormal)), rN_LM); // slave - LM
-        //
-        noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_penalty * prod(trans(rNs), Matrix(prod(n_n, rNs))); // slave - slave
-        noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) -= integration_weight * AugmentedLM * prod(trans(rNs), rDnda_slave); // slave - slave
-        noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_penalty * outer_prod(Vector(prod(trans(rDeltaX), rDnda_slave)), Vector(prod(trans(rNs), rNormal))); // slave - slave
-        //
-        noalias(project(rLeftHandSideMatrix, range(3, 12), range(12, 21))) -= integration_penalty * prod(trans(rNs), Matrix(prod(n_n, rNm))); // slave - master
-        //
-        noalias(project(rLeftHandSideMatrix, range(12, 21), range(0, 3))) += integration_k * outer_prod(Vector(prod(trans(rNm), rNormal)), rN_LM); // master - LM
-        //
-        noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_penalty * prod(trans(rNm), Matrix(prod(n_n, rNs))); // master - slave
-        noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_penalty * outer_prod(Vector(prod(trans(rDeltaX), rDnda_slave)), Vector(prod(trans(rNm), rNormal))); // master - slave
-        noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) += integration_weight * AugmentedLM * prod(trans(rNm), rDnda_slave); // master - slave
-        //
-        noalias(project(rLeftHandSideMatrix, range(12, 21), range(12, 21))) += integration_penalty * prod(trans(rNm), Matrix(prod(n_n, rNm))); // master - master
+    // LM - slave [range(0, 3), range(3, 12)]
+    noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNs)));
+    noalias(project(rLeftHandSideMatrix, range(0, 3), range(3, 12))) -= integration_k * outer_prod(rN_LM, Vector(prod(trans(rDeltaX), rDnda_slave)));
 
-    } else { // Inactive
-        noalias(project(rLeftHandSideMatrix, range(0, 3), range(0, 3))) -= integration_weight * (k * k / penalty) * outer_prod(rN_LM, rN_LM); // LM dofs
-    }
+    // LM - master [range(0, 3), range(12, 21)]
+    noalias(project(rLeftHandSideMatrix, range(0, 3), range(12, 21))) += integration_k * outer_prod(rN_LM, Vector(prod(trans(rNormal), rNm)));
+
+    // slave - LM [range(3, 12), range(0, 3)]
+    noalias(project(rLeftHandSideMatrix, range(3, 12), range(0, 3))) -= integration_k * outer_prod(Vector(prod(trans(rNs), rNormal)), rN_LM);
+
+    // slave - slave [range(3, 12), range(3, 12)]
+    noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_penalty * prod(trans(rNs), Matrix(prod(n_n, rNs)));
+    noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) -= integration_weight * AugmentedLM * prod(trans(rNs), rDnda_slave);
+    noalias(project(rLeftHandSideMatrix, range(3, 12), range(3, 12))) += integration_penalty * outer_prod(Vector(prod(trans(rNs), rNormal)), Vector(prod(trans(rDeltaX), rDnda_slave)));
+    // slave - master [range(3, 12), range(12, 21)]
+    noalias(project(rLeftHandSideMatrix, range(3, 12), range(12, 21))) -= integration_penalty * prod(trans(rNs), Matrix(prod(n_n, rNm)));
+
+    // master - LM [range(12, 21), range(0, 3)]
+    noalias(project(rLeftHandSideMatrix, range(12, 21), range(0, 3))) += integration_k * outer_prod(Vector(prod(trans(rNm), rNormal)), rN_LM);
+
+    // master - slave [range(12, 21), range(3, 12)]
+    noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_penalty * prod(trans(rNm), Matrix(prod(n_n, rNs)));
+    noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) -= integration_penalty * outer_prod(Vector(prod(trans(rNm), rNormal)), Vector(prod(trans(rDeltaX), rDnda_slave)));
+    noalias(project(rLeftHandSideMatrix, range(12, 21), range(3, 12))) += integration_weight * AugmentedLM * prod(trans(rNm), rDnda_slave);
+
+    // master - master [range(12, 21), range(12, 21)]
+    noalias(project(rLeftHandSideMatrix, range(12, 21), range(12, 21))) += integration_penalty * prod(trans(rNm), Matrix(prod(n_n, rNm)));
+
+} else { // Inactive (Gap state)
+    noalias(project(rLeftHandSideMatrix, range(0, 3), range(0, 3))) -= integration_weight * (k * k / penalty) * outer_prod(rN_LM, rN_LM);
+}
 
     KRATOS_CATCH("AddLeftHandSideContribution");
 }
