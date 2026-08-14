@@ -344,7 +344,8 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
 
     // Iterate over master geometry
     for (IndexType i_node = 0; i_node < 4; ++i_node) {
-        aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        GeometricalProjectionUtilities::RobustProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master(i_node)= Kratos::make_shared<Point>(aux_point);
 
@@ -372,12 +373,14 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
 
         Point point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            GeometricalProjectionUtilities::RobustProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
             rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = point;
         }
         for (IndexType i_node = 1; i_node < 4; ++i_node) {
-            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            GeometricalProjectionUtilities::RobustProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
             rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[1][i_node - 1] = point;
         }
@@ -445,7 +448,8 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
 
     // Iterate over master geometry
     for (IndexType i_node = 0; i_node < 3; ++i_node) {
-        aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        GeometricalProjectionUtilities::RobustProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master(i_node) = Kratos::make_shared<Point>(aux_point);
 
@@ -474,7 +478,8 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
 
         Point point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            GeometricalProjectionUtilities::RobustProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
             rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = point;
         }
@@ -827,7 +832,8 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
 
     // Iterate over master geometries
     for (IndexType i_node = 0; i_node < 4; ++i_node) {
-        aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        GeometricalProjectionUtilities::RobustProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master(i_node)= Kratos::make_shared<Point>(aux_point);
 
@@ -855,12 +861,14 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
 
         Point point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            GeometricalProjectionUtilities::RobustProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
             rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = PointBelong<3, 4>(point.Coordinates(), static_cast<PointBelongsTriangle3D3NQuadrilateral3D4N>(i_node + 3));
         }
         for (IndexType i_node = 1; i_node < 4; ++i_node) {
-            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            GeometricalProjectionUtilities::RobustProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
             rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[1][i_node - 1] = PointBelong<3, 4>(point.Coordinates(), static_cast<PointBelongsTriangle3D3NQuadrilateral3D4N>(i_node + 3));
         }
@@ -928,7 +936,8 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
 
     // Iterate over master geometries
     for (IndexType i_node = 0; i_node < 3; ++i_node) {
-        aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+        GeometricalProjectionUtilities::RobustProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master(i_node) = Kratos::make_shared<Point>(aux_point);
 
@@ -957,7 +966,8 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
 
         Point point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            // aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            GeometricalProjectionUtilities::RobustProjectDirection(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_node], aux_point, rSlaveNormal, rOriginalMasterGeometry.UnitNormal(0));
             rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = PointBelong<4, 3>(point.Coordinates(), static_cast<PointBelongsQuadrilateral3D4NTriangle3D3N>(i_node + 4));;
         }

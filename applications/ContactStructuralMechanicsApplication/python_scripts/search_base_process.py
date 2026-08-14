@@ -690,6 +690,8 @@ class SearchBaseProcess(KM.Process):
             sub_search_model_part.AddProperties(self.main_model_part.GetProperties(id_prop))
         else:
             sub_prop = self._get_properties_pair(key)
+            base_prop = self.main_model_part.GetProperties()[1]
+
             if partial_model_part.NumberOfConditions() == 0:
                 for elem in self.main_model_part.Elements:
                     base_prop = elem.Properties
@@ -699,6 +701,7 @@ class SearchBaseProcess(KM.Process):
                     base_prop = cond.Properties
                     break
             KM.PropertiesUtilities.CopyPropertiesValues(base_prop, sub_prop)
+
         if self.preprocess:
             # We transfer the list of submodelparts to the contact model part
             for i in range(0, param.size()):
