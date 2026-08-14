@@ -2,9 +2,10 @@
 
 ## Table of Contents
 
+- Fully saturated law
+- Saturated below phreatic level law
 - [Van Genuchten Retention Law](#Van-Genuchten-Retention-Law)
-- [Chapter 2](#chapter-2)
-- [Chapter 3](#chapter-3)
+
   
 ## Van Genuchten Retention Law 
 
@@ -48,10 +49,10 @@ Some symbols used for the Kratos variables are not inline with symbols used in t
 
 ### Sign Convention for Fluid Pressure
 
-Kratos uses the **soil mechanics sign convention** for fluid pressure $p$:
+Kratos uses the **tension positive sign convention** for fluid pressure $p$:
 
 - $p > 0$  → suction (above phreatic level, unsaturated regime)  
-- $p \le 0$ → compression pore water pressure (fully saturated; includes zero-pressure transition at the phreatic level).
+- $p \le 0$ → compressive pore water pressure (fully saturated; includes zero-pressure transition at the phreatic level).
 
 This is equivalent to the standard hydraulic head formulation where $h = -p/(\rho_w g)$ is the matric suction head in metres.
 
@@ -140,7 +141,7 @@ with $\Theta = S_e$ evaluated at $p_b = \rho g /\alpha$.
 
 ### Known Limitations and Potential Issues
 
-1. **Discontinuous derivative at $p = 0$**: `CalculateDerivativeOfSaturation` returns 0    for $p \le 0$ but is non-zero just above $p = 0$. This C⁰ discontinuity may hinder quadratic convergence of Newton iterations near the phreatic surface.
+1. **Discontinuous derivative at $p = 0$**: `CalculateDerivativeOfSaturation` returns 0    for $p \le 0$ but is non-zero just above $p = 0$. As the base saturation function remains continuous (𝐶0) but fails to be differentiable (𝐶1), this may hinder quadratic convergence of Newton iterations near the phreatic surface. Moreover, a too low tangent may lead to divergence.
 
 2. **No independent $m$ parameter**: Soils whose measured SWCC cannot be captured by the MVG constraint $m = 1 - 1/n$ cannot be represented. This is a restriction compared to some literature variants.
 
@@ -154,11 +155,7 @@ with $\Theta = S_e$ evaluated at $p_b = \rho g /\alpha$.
 
 - Van Genuchten, M. Th. (1980). *A closed-form equation for predicting the hydraulic conductivity of unsaturated soils.* Soil Sci. Soc. Am. J., 44(5):892–898.
 - Mualem, Y. (1976). *A new model for predicting the hydraulic conductivity of unsaturated porous media.* Water Resour. Res., 12(3):513–522.
-- Brinkgreve, R. B. J. et al. (2006). *PLAXIS Geotechnical Code for Soil and Rock Analyses.* Delft, Netherlands.
 - Khalili, N. & Khabbaz, M. H. (1998). *A unique relationship for χ for the determination of the shear strength of unsaturated soils.* Géotechnique, 48(5):681–687.
-- Bishop, A. W. (1959). *The principle of effective stress.* Teknisk Ukeblad, 106(39):859–863.
-- Thom, C. S., Springman, S. M., Rouainia, M., van Esch, J. M. et al. (2017). *Numerical modelling of slope–vegetation–atmosphere interaction: an overview.* Quarterly Journal of Engineering Geology and Hydrogeology, 50(3):249–270. DOI: 10.1144/qjegh2016-079
-- van Esch, J. M. (2012). *Modeling groundwater flow through dikes for real time stability assessment.* Proc. Computational Water Resources (CMWR), Urbana-Champaign, Illinois.
 - Schaap, M. G. & Leij, F. J. (2000). *Improved prediction of unsaturated hydraulic conductivity with the Mualem–van Genuchten model.* Soil Sci. Soc. Am. J., 64(3):843–851.
   DOI: 10.2136/sssaj2000.643843x — reports optimised $l$ values ranging from $\approx -4$ to $+4$ across the UNSODA database; many fine-textured soils have $l < 0$.
 - Šimůnek, J., van Genuchten, M. Th., & Šejna, M. (2022). *The HYDRUS Software Package for Simulating the One-, Two-, and Three-Dimensional Movement of Water, Heat, and Multiple Solutes in Variably-Saturated Media, Technical Manual I, Version 5.0.* PC Progress, Prague — treats $l$ as an unconstrained real-valued fitting parameter.
