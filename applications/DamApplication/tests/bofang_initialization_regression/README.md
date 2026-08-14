@@ -46,14 +46,26 @@ member read) and `ExecuteInitialize()` -> `ExecuteBeforeSolutionLoop()`.
 `DamAnalysis::Initialize()` is driven by `dam_analysis.py`. Before #13472 it
 called `process.ExecuteInitialize()` on the processes *before*
 `solver.Initialize()`; after #13472 it calls `process.ExecuteBeforeSolutionLoop()`.
-The PR changed **both** the analysis call site and the Bofang process. Variant B
-reverts only the process (literal reading of the task), which makes Bofang's
-`ExecuteInitialize()` dead code under the new analysis (temperature is then only
-assigned at `ExecuteInitializeSolutionStep`). Variant B2 reverts process **and**
-analysis call site, reproducing the exact pre-PR lifecycle.
+The PR changed **both** the analysis call site and the Bofang process.
 
-The A vs B2 comparison is the faithful isolation of the lifecycle change; A vs B
-shows what happens if only the process is reverted.
+* **Variant B** is the *incorrect process-only revert* on the current
+  `dam_analysis.py`. Because the current analysis never calls
+  `ExecuteInitialize()` on its processes, Bofang's reverted `ExecuteInitialize()`
+  becomes dead code and the temperature is only assigned at
+  `ExecuteInitializeSolutionStep`. B is a **deliberate negative control**: it
+  demonstrates the dead-callback failure mode and the coupling between the
+  analysis and the process, but it does **not** reproduce any behaviour that
+  existed before the PR.
+* **Variant B2** is the *faithful legacy lifecycle* reproduced on the current
+  code: it reverts the Bofang process callback **and** the `dam_analysis.py`
+  pre-solver-initialize process call back to `ExecuteInitialize()` together,
+  so the effective execution point relative to `solver.Initialize()` matches the
+  pre-#13472 behaviour exactly.
+
+**A vs B2 is the causal lifecycle comparison** (the only difference between A
+and B2 is the callback name and the analysis driving call, with identical
+effective timing). A vs B is documented only as the dead-callback negative
+control and must not be interpreted as the effect of the merged change.
 
 ## Case
 
@@ -199,8 +211,15 @@ Max absolute differences:
   bit-identical. The June 2025 change does **not** modify the results or the
   initialization state of the thermomechanical simulation.
 * **A vs C** (current master vs the actual pre-PR Kratos at `ece5cfe`) is
-  bit-identical: the Dam elements/constitutive laws/strategies are unchanged
-  between the two commits, so the whole thermomechanical response is identical.
+  bit-identical. Scope of that statement (literally demonstrated with
+  `git diff ece5cfed146..HEAD`): for the DamApplication subsystems actually
+  exercised by this case — `custom_elements`, `custom_constitutive`,
+  `custom_strategies`, and the `dam_thermo_mechanic_solver.py` /
+  `dam_P_solver.py` Python scripts — the diff is empty; `dam_analysis.py`
+  differs only in the two `ExecuteInitialize()` -> `ExecuteBeforeSolutionLoop()`
+  process calls; the PR's process files, Python wrappers and test files differ.
+  Given those identical building blocks plus an identical deterministic solver,
+  the bit-identical thermomechanical response follows directly.
 * **A vs B** (reverting only the C++ process to `ExecuteInitialize()` while
   keeping the post-PR `dam_analysis.py`) *does* differ: the current analysis
   never calls `ExecuteInitialize()` on its processes, so Bofang's assignment
@@ -214,6 +233,39 @@ Max absolute differences:
 The Bofang expression implemented in the C++ process matches the analytical
 reproduction exactly (abs error 0) for A, B2 and C; variant B fails because the
 assignment is skipped during initialization. See `analytical_verification.py`.
+
+### Production wrapper integration
+
+The Bofang experiment itself drives the raw C++ process via `bofang_factory.py`
+so that the C++ lifecycle is directly observable. The production chain is
+different and is covered by a complementary test
+(`test_bofang_initialization.py::test_production_wrapper_integration`):
+
+```
+DamAnalysis (dam_analysis.py)
+  -> process_factory
+  -> impose_reservoir_temperature_condition_process.py   (Python wrapper)
+  -> DamBofangConditionTemperatureProcess                (C++)
+```
+
+Key production facts (from source + test):
+
+* The wrapper forwards only `ExecuteBeforeSolutionLoop`,
+  `ExecuteInitializeSolutionStep` and `ExecuteFinalizeSolutionStep` to the C++
+  process — it does **not** forward `ExecuteInitialize()`. This is why the
+  process-only revert (variant B) is dead code under the current analysis.
+* The wrapper unconditionally executes
+  `settings.AddEmptyValue("constrained").SetBool(True)` in its constructor
+  (`kratos_parameters.cpp:471` returns the existing entry, then `SetBool(True)`
+  overwrites it). Therefore, through the production chain, `constrained` is
+  **always `true`** regardless of the JSON value: the water-covered reservoir
+  nodes get their `TEMPERATURE` DOF **fixed** during the solution step and freed
+  again at `ExecuteFinalizeSolutionStep`.
+
+The production-wrapper test asserts, at the post-initialization checkpoint:
+analytical Bofang temperatures on the water-covered reservoir nodes, 0 on
+above-water / non-reservoir nodes, and the correct fixity pattern
+(`lifecycle_fixity.csv`).
 
 ### Classification
 

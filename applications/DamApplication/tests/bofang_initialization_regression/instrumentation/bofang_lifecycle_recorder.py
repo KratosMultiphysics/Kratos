@@ -11,12 +11,14 @@ class BofangLifecycleRecorder:
     All files are written as CSV so that variants can be compared robustly.
     """
 
-    def __init__(self, output_dir, variant, model, model_part_name, monitored_node_ids):
+    def __init__(self, output_dir, variant, model, model_part_name, monitored_node_ids,
+                 record_fixity=False):
         self.output_dir = output_dir
         self.variant = variant
         self.model = model
         self.model_part_name = model_part_name
         self.monitored_node_ids = sorted(monitored_node_ids)
+        self.record_fixity = record_fixity
         os.makedirs(output_dir, exist_ok=True)
 
         self.lifecycle_file = os.path.join(output_dir, "lifecycle_temperatures.csv")
@@ -39,6 +41,14 @@ class BofangLifecycleRecorder:
             writer.writerow([
                 "variant", "time", "node_id", "stress_xx", "stress_yy", "stress_xy"
             ])
+
+        if record_fixity:
+            self.fixity_file = os.path.join(output_dir, "lifecycle_fixity.csv")
+            with open(self.fixity_file, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    "variant", "lifecycle_stage", "node_id", "x", "y", "is_fixed_temperature"
+                ])
 
     def _temperature(self, node, step=0):
         return node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, step)
@@ -63,6 +73,15 @@ class BofangLifecycleRecorder:
                     self.variant, stage, nid, node.X, node.Y,
                     self._temperature(node)
                 ])
+        if self.record_fixity:
+            with open(self.fixity_file, "a", newline="") as f:
+                writer = csv.writer(f)
+                for nid in self.monitored_node_ids:
+                    node = model_part.GetNode(nid)
+                    writer.writerow([
+                        self.variant, stage, nid, node.X, node.Y,
+                        int(node.IsFixed(KratosMultiphysics.TEMPERATURE))
+                    ])
 
     def record_step(self):
         model_part = self.model[self.model_part_name]

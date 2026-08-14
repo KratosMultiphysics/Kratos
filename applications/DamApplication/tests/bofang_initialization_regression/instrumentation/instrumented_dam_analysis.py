@@ -286,7 +286,8 @@ class InstrumentedDamAnalysis(DamAnalysis):
 
 
 def RunInstrumentedAnalysis(project_parameters_file, output_dir, variant,
-                            monitored_node_ids, legacy_process_initialize=False):
+                            monitored_node_ids, legacy_process_initialize=False,
+                            record_fixity=False):
     project_parameters_file = os.path.abspath(project_parameters_file)
     case_dir = os.path.dirname(project_parameters_file)
     sys.path.insert(0, case_dir)
@@ -299,7 +300,8 @@ def RunInstrumentedAnalysis(project_parameters_file, output_dir, variant,
 
     model_part_name = parameters["problem_data"]["model_part_name"].GetString()
     from instrumentation.bofang_lifecycle_recorder import BofangLifecycleRecorder
-    recorder = BofangLifecycleRecorder(output_dir, variant, model, model_part_name, monitored_node_ids)
+    recorder = BofangLifecycleRecorder(output_dir, variant, model, model_part_name,
+                                       monitored_node_ids, record_fixity=record_fixity)
 
     simulation = InstrumentedDamAnalysis(model, parameters, recorder,
                                          legacy_process_initialize=legacy_process_initialize)
