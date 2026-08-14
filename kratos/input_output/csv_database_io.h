@@ -255,6 +255,8 @@ private:
 
     int mCurrentTableId;
 
+    std::string mCurrentFileName;
+
     ///@}
     ///@name Private member variables for writing
     ///@{
@@ -289,7 +291,7 @@ private:
     ///@name Private operations for reading
     ///@{
 
-    void ReadCSVFile(const std::string& rFileName);
+    void ReadCSVFile();
 
     template<class TDataType>
     void GenericRead(
@@ -307,9 +309,7 @@ private:
         const int Step,
         const std::string& rKey);
 
-    void WriteTitleBlock(
-        const std::string& rFileName,
-        const int TableId);
+    void WriteTitleBlock(const int TableId);
 
     void WriteHeaders(std::ofstream& rOutputFile) const;
 
