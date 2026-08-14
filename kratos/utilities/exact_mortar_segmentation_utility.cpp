@@ -34,6 +34,7 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
+    KRATOS_ERROR << "ddd" << std::endl;
     // We take the geometry GP from the core
     const double tolerance = 1.0e3 * mZeroToleranceFactor * ZeroTolerance;
 
@@ -145,6 +146,7 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
+
     // Firt we create an auxiliar plane based in the condition center and its normal
     const Point slave_center = rOriginalSlaveGeometry.Center();
 
@@ -236,6 +238,7 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
+    KRATOS_ERROR << "ddd" << std::endl;
     // Firt we create an auxiliar plane based in the condition center and its normal
     const Point slave_center = rOriginalSlaveGeometry.Center();
 
@@ -318,6 +321,7 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
+    KRATOS_ERROR << "ddd" << std::endl;
     // Firt we create an auxiliar plane based in the condition center and its normal
     const Point slave_center = rOriginalSlaveGeometry.Center();
 
@@ -415,6 +419,7 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
+    KRATOS_ERROR << "ddd" << std::endl;
     // Firt we create an auxiliar plane based in the condition center and its normal
     const Point slave_center = rOriginalSlaveGeometry.Center();
 
@@ -516,6 +521,7 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
+    KRATOS_ERROR << "ddd" << std::endl;
     // We take the geometry GP from the core
     const double tolerance = 1.0e3 * mZeroToleranceFactor * ZeroTolerance;
 
@@ -701,7 +707,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry, PointBelongs::Master);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, slave_geometry.Length() * 1.0e-8);
+        CheckInside(all_inside, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);
@@ -724,6 +730,7 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
+    KRATOS_ERROR << "ddd" << std::endl;
     // Firt we create an auxiliar plane based in the condition center and its normal
     const Point slave_center = rOriginalSlaveGeometry.Center();
 
@@ -806,6 +813,7 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
+    KRATOS_ERROR << "" << std::endl;
     // Firt we create an auxiliar plane based in the condition center and its normal
     const Point slave_center = rOriginalSlaveGeometry.Center();
 
@@ -903,6 +911,7 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
+    KRATOS_ERROR << "ddd" << std::endl;
     // Firt we create an auxiliar plane based in the condition center and its normal
     const Point slave_center = rOriginalSlaveGeometry.Center();
 
@@ -1002,6 +1011,7 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::G
     IntegrationPointsType& rIntegrationPointsSlave
     )
 {
+    KRATOS_ERROR << "ddd" << std::endl;
     ConditionArrayListType conditions_points_slave;
 
     const bool is_inside = GetExactIntegration(rOriginalSlaveGeometry, rSlaveNormal, rOriginalMasterGeometry, rMasterNormal, conditions_points_slave);

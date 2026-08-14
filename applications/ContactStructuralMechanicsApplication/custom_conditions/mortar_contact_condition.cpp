@@ -340,7 +340,6 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
 
     double integration_area;
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
-    // KRATOS_WATCH(integration_area) # here it is the small one!!!!!!!!!
 
     const double geometry_area = r_slave_geometry.Area();
     if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {

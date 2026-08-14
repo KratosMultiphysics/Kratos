@@ -75,10 +75,10 @@ void ALM3dMortarFrictionlessCondition::Initialize(const ProcessInfo& rCurrentPro
 {
     KRATOS_TRY
 
-    BaseType::Initialize(rCurrentProcessInfo);
+    // BaseType::Initialize(rCurrentProcessInfo);
 
     // We reset the ISOLATED flag
-    this->Set(ISOLATED, false);
+    // this->Set(ISOLATED, false);
 
     mSlaveNormal.resize(3, false);
     noalias(mSlaveNormal) = GetParentGeometry().UnitNormal(0);
@@ -93,7 +93,7 @@ void ALM3dMortarFrictionlessCondition::InitializeSolutionStep(const ProcessInfo&
 {
     KRATOS_TRY
 
-    BaseType::InitializeSolutionStep(rCurrentProcessInfo);
+    // BaseType::InitializeSolutionStep(rCurrentProcessInfo);
 
     KRATOS_CATCH("InitializeSolutionStep");
 }
@@ -105,7 +105,7 @@ void ALM3dMortarFrictionlessCondition::InitializeNonLinearIteration(const Proces
 {
     KRATOS_TRY
 
-    BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
+    // BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
 
     KRATOS_CATCH("InitializeNonLinearIteration");
 }
@@ -117,9 +117,10 @@ void ALM3dMortarFrictionlessCondition::FinalizeSolutionStep(const ProcessInfo& r
 {
     KRATOS_TRY
 
-    BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
+    // BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
 
-    noalias(mSlaveNormal) = GetParentGeometry().UnitNormal(0);
+    // noalias(mSlaveNormal) = GetParentGeometry().UnitNormal(0);
+    // noalias(mMasterNormal) = GetPairedGeometry().UnitNormal(0);
 
     KRATOS_CATCH("FinalizeSolutionStep");
 }
@@ -131,7 +132,7 @@ void ALM3dMortarFrictionlessCondition::FinalizeNonLinearIteration(const ProcessI
 {
     KRATOS_TRY
 
-    BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
+    // BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
 
     KRATOS_CATCH("FinalizeNonLinearIteration");
 }
@@ -537,6 +538,19 @@ void ALM3dMortarFrictionlessCondition::CalculateConditionSystem(
                     const double augmented_lm = scale_factor * interpolated_LM + penalty_factor * gap_n; // contact pressure at the integration point
 
                     const bool active_contact = (augmented_lm < 0.0); // active contact if augmented_lm < 0, inactive contact if augmented_lm > 0
+                    
+                    // if (rCurrentProcessInfo[STEP] == 42) {
+                    //     KRATOS_WATCH("**************************")
+                    //     KRATOS_WATCH(gap_n)
+                    //     KRATOS_WATCH(augmented_lm)
+    
+                    //     KRATOS_WATCH(segmented_GP_global_point)
+                    //     KRATOS_WATCH(master_GP_global_point)
+                    //     KRATOS_WATCH(r_slave_geometry)
+                    //     KRATOS_WATCH(r_master_geometry)
+                    //     KRATOS_WATCH(slave_normal)
+                    //     KRATOS_WATCH("**************************")
+                    // }
 
                     if (ComputeRHS && successful_projection) {
                         AddRightHandSideContribution(rRightHandSideVector, scale_factor, penalty_factor, gap_n, interpolated_LM,
@@ -636,19 +650,19 @@ void ALM3dMortarFrictionlessCondition::AddExplicitContribution(const ProcessInfo
                     dual_shape_functions[1] = 4.0 * slave_GP_local_point[0] - 1.0;
                     dual_shape_functions[2] = 4.0 * slave_GP_local_point[1] - 1.0;
                     
-                    VectorType delta_x = segmented_GP_global_point - master_GP_global_point;
-                    r_slave_geometry.ShapeFunctionsValues(slave_shape_functions, slave_GP_local_point);
-                    VectorType averaged_normal(3);
-                    for (IndexType i_node = 0; i_node < r_slave_geometry.PointsNumber(); ++i_node)
-                        noalias(averaged_normal) += slave_shape_functions[i_node] * r_slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
+                    // VectorType delta_x = segmented_GP_global_point - master_GP_global_point;
+                    // r_slave_geometry.ShapeFunctionsValues(slave_shape_functions, slave_GP_local_point);
+                    // VectorType averaged_normal(3);
+                    // for (IndexType i_node = 0; i_node < r_slave_geometry.PointsNumber(); ++i_node)
+                    //     noalias(averaged_normal) += slave_shape_functions[i_node] * r_slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
 
-                    if (successful_projection) {
-                        weighted_gap[0] -= integration_weight * dual_shape_functions[0] * inner_prod(averaged_normal, delta_x);
-                        weighted_gap[1] -= integration_weight * dual_shape_functions[1] * inner_prod(averaged_normal, delta_x);
-                        weighted_gap[2] -= integration_weight * dual_shape_functions[2] * inner_prod(averaged_normal, delta_x);
-                    }
-                    // if (successful_projection)
-                    //     noalias(weighted_gap) += integration_weight * dual_shape_functions * gap_n;
+                    // if (successful_projection) {
+                    //     weighted_gap[0] -= integration_weight * dual_shape_functions[0] * inner_prod(averaged_normal, delta_x);
+                    //     weighted_gap[1] -= integration_weight * dual_shape_functions[1] * inner_prod(averaged_normal, delta_x);
+                    //     weighted_gap[2] -= integration_weight * dual_shape_functions[2] * inner_prod(averaged_normal, delta_x);
+                    // }
+                    if (successful_projection)
+                        noalias(weighted_gap) += integration_weight * dual_shape_functions * gap_n;
 
                 } // loop over the integration points of the segmented geometry
             } // if valid segmented geometry
@@ -714,12 +728,10 @@ void ALM3dMortarFrictionlessCondition::AddLeftHandSideContribution(
 {
     KRATOS_TRY
 
-if (active_contact) {
+    if (active_contact) {
 
         const Matrix n_n = outer_prod(rNormal, rNormal); // normal matrix
-
         const double integration_k = integration_weight * k;
-
         const double integration_penalty = integration_weight * penalty;
 
         //
