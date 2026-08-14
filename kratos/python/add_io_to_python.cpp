@@ -264,6 +264,9 @@ void  AddIOToPython(pybind11::module& m)
 
     py::class_<TabularDatabaseIO, TabularDatabaseIO::Pointer>(m, "TabularDatabaseIO")
         .def("GetRowIds", &TabularDatabaseIO::GetRowIds)
+        .def("GetTableId", &TabularDatabaseIO::GetTableId)
+        .def("Initialize", &TabularDatabaseIO::Initialize, py::arg("table_id") = 0)
+        .def("Finalize", &TabularDatabaseIO::Finalize, py::arg("table_id") = 0)
         .def("ReadBool", [](TabularDatabaseIO& rSelf, const IndexType RowId, const std::string& rKey) { bool value; rSelf.Read(value, RowId, rKey); return value; }, py::arg("row_id"), py::arg("key"))
         .def("ReadInt", [](TabularDatabaseIO& rSelf, const IndexType RowId, const std::string& rKey) { int value; rSelf.Read(value, RowId, rKey); return value; }, py::arg("row_id"), py::arg("key"))
         .def("ReadFloat", [](TabularDatabaseIO& rSelf, const IndexType RowId, const std::string& rKey) { double value; rSelf.Read(value, RowId, rKey); return value; }, py::arg("row_id"), py::arg("key"))
@@ -276,17 +279,19 @@ void  AddIOToPython(pybind11::module& m)
         ;
 
     py::class_<CSVDatabaseIO, CSVDatabaseIO::Pointer, TabularDatabaseIO>(m, "CSVDatabaseIO")
-        .def(py::init<const std::string&, const DataCommunicator&, const std::string&, const std::string&, const IndexType>(),
+        .def(py::init<const std::string&, const DataCommunicator&, const std::string&, const std::string&, const std::string&, const IndexType>(),
             py::arg("input_csv_file_name"),
             py::arg("data_communicator"),
+            py::arg("table_id_tag") = "<TABLE_ID>",
             py::arg("row_id_name") = "STEP",
             py::arg("boolean_true_value") = "1",
             py::arg("echo_level") = 0)
-        .def(py::init<const std::string&, const DataCommunicator&, const std::string&, const std::string&, const std::string&, const bool, const bool, const IndexType, const IndexType, const IndexType, const std::string&, const std::string&, const IndexType>(),
+        .def(py::init<const std::string&, const DataCommunicator&, const std::string&, const std::string&, const std::string&, const std::string&, const bool, const bool, const IndexType, const IndexType, const IndexType, const std::string&, const std::string&, const IndexType>(),
             py::arg("output_csv_file_name"),
             py::arg("data_communicator"),
             py::arg("title"),
             py::arg("header_information"),
+            py::arg("table_id_tag") = "<TABLE_ID>",
             py::arg("row_id_name") = "STEP",
             py::arg("write_kratos_version") = true,
             py::arg("write_time_stamp") = true,

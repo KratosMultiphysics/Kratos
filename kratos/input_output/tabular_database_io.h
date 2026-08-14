@@ -40,6 +40,20 @@ public:
     virtual ~TabularDatabaseIO() = default;
 
     ///@}
+    ///@name Public operations
+    ///@{
+
+    virtual void Initialize(const int TableId = 0)
+    {
+        KRATOS_ERROR << "Please implement this method in the derived class.";
+    }
+
+    virtual void Finalize(const int TableId = 0)
+    {
+        KRATOS_ERROR << "Please implement this method in the derived class.";
+    }
+
+    ///@}
     ///@name Input / output
     ///@{
 
@@ -47,6 +61,11 @@ public:
     {
         KRATOS_ERROR << "Please implement this method in the derived class.";
         return std::vector<int>{};
+    }
+
+    virtual int GetTableId() const
+    {
+        KRATOS_ERROR << "Please implement this method in the derived class.";
     }
 
     virtual void Read(
