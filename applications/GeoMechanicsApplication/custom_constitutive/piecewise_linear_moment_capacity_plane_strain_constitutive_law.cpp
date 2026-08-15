@@ -167,6 +167,8 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
     check_properties.Check(THICKNESS);
     check_properties.Check(THICKNESS_EFFECTIVE_Y);
     check_properties.Check(POISSON_RATIO, -1.0, 0.5);
+    if (rMaterialProperties.Has(GEO_UNLOADING_RELOADING_MODULUS))
+        check_properties.Check(GEO_UNLOADING_RELOADING_MODULUS);
 
     const auto nu = rMaterialProperties[POISSON_RATIO];
     const auto elastic_EI =
@@ -180,12 +182,15 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
         KRATOS_ERROR_IF(dM_dKappa >= elastic_EI)
             << "Derivative dM/dKappa must be smaller than elastic EI. Segment " << i
             << " has dM/dKappa = " << dM_dKappa << ", elastic EI = " << elastic_EI << std::endl;
+        if (rMaterialProperties.Has(GEO_UNLOADING_RELOADING_MODULUS)) {
+            KRATOS_ERROR_IF(dM_dKappa >= rMaterialProperties[GEO_UNLOADING_RELOADING_MODULUS])
+                << "Derivative dM/dKappa must be smaller than unloading/reloading modulus. Segment "
+                << i << " has dM/dKappa = " << dM_dKappa << ", unloading/reloading modulus = "
+                << rMaterialProperties[GEO_UNLOADING_RELOADING_MODULUS] << std::endl;
+        }
         prev_kappa  = r_kappa[i];
         prev_moment = r_moments[i];
     }
-
-    if (rMaterialProperties.Has(GEO_UNLOADING_RELOADING_MODULUS))
-        check_properties.Check(GEO_UNLOADING_RELOADING_MODULUS);
 
     return 0;
 }
