@@ -105,7 +105,7 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
                     component = GetComponentHavingDataByFullName(component_name, self.optimization_problem)
                     value = GetComponentValueByFullName(ComponentDataView(component, self.optimization_problem), value_name)
 
-                    h5_path = f"/{component_name.replace(".", "/")}"
+                    h5_path = f"""/{component_name.replace(".", "/")}"""
                     h5_file.AddPath(h5_path)
                     h5_value_name = value_name.split(":")[0]
                     if isinstance(value, int):
