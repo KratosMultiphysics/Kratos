@@ -69,7 +69,9 @@ def AssembleTestSuites():
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             KratosDamGeneralTests,
-            TestApplyLoadVectorDamProcesses
+            TestApplyLoadVectorDamProcesses,
+            TestBofangInitializationRegression,
+            TestDamProcessLifecycle
         ])
     )
 
