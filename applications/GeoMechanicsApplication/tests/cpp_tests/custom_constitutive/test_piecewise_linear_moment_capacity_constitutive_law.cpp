@@ -239,7 +239,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_ComputeCo
     law.InitializeMaterial(properties, geometry, dummy_vector);
 
     auto parameters          = ConstitutiveLaw::Parameters{};
-    auto strain_vector       = UblasUtilities::CreateVector({0.01, 0.02, 0.03});
+    auto strain_vector       = UblasUtilities::CreateVector({0.01, 0.04, 0.03});
     auto stress_vector       = Vector(3, 0.0);
     auto constitutive_matrix = Matrix(1, 1, 0.0);
     parameters.SetStrainVector(strain_vector);
@@ -256,11 +256,12 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_ComputeCo
     ASSERT_EQ(constitutive_matrix.size1(), 5);
     ASSERT_EQ(constitutive_matrix.size2(), 5);
 
-    auto expected_constitutive_matrix = UblasUtilities::CreateMatrix({{83.333333333333343, 0, 0, 0, 0},
-                                                                      {0, 0, 0, 0, 0},
-                                                                      {0, 0, 33.333333333333336, 0, 0},
-                                                                      {0, 0, 0, 16.666666666666, 0},
-                                                                      {0, 0, 0, 0, 1.388888888888}});
+    auto expected_constitutive_matrix =
+        UblasUtilities::CreateMatrix({{83.333333333333343, 0.0, 0.0, 0.0, 0.0},
+                                      {0.0, 2400.0, 0.0, 0.0, 0.0},
+                                      {0.0, 0.0, 33.333333333333336, 0.0, 0.0},
+                                      {0.0, 0.0, 0.0, 16.666666666666, 0.0},
+                                      {0.0, 0.0, 0.0, 0.0, 1.388888888888}});
 
     KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, Defaults::absolute_tolerance);
 }
