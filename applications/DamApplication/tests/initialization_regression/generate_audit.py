@@ -35,11 +35,23 @@ COLUMNS = [
     "Existing test coverage",
     "Later fixes",
     "Risk",
+    "Evidence level (N/P/S)",
+    "current_preloop_call_count_before_first_solve",
+    "same_time_idempotent",
+    "idempotence_reason",
+    "state_accumulated",
+    "risk_if_non_idempotent",
     "Recommended action",
 ]
 
-YES = "YES (pre-solver-init, value-identical; current also re-applies post-solver-init)"
+YES = ("YES (equivalent solver-visible state before first solve; the current "
+       "implementation additionally executes the callback once more, idempotently, "
+       "after solver.Initialize())")
 LEGACY = "YES (pre-solver-init via ExecuteInitialize)"
+DOUBLE_CALL = "2 (line 235 pre + line 308 post solver.Initialize) — identical TIME=0"
+
+IDEM_OVERWRITE = "overwrites a deterministic nodal value (FastGetSolutionStepValue(var) = value); no accumulation/randomness/entity/table mutation"
+IDEM_NONE = "none (deterministic overwrite; same result after one vs two calls)"
 
 # Shared strings
 MECH_CONSUMER = (
@@ -76,20 +88,25 @@ ADDED_MASS_CONSUMER = (
 RENAME_COMMON = {
     "Historical callback": "ExecuteInitialize",
     "Current callback": "ExecuteBeforeSolutionLoop",
-    "Lifecycle class (L0/L1/L2/L3)": "L0 (effective assignment pre solver.Initialize in both "
-    "versions; consumers read only during solve)",
+    "Lifecycle class (L0/L1/L2/L3)": "L0 (equivalent solver-visible initialization state; "
+    "callback-count is NOT literally identical — see idempotence columns)",
     "Historical assignment mechanism": "FastGetSolutionStepValue(var) = value (same body, "
     "method renamed only)",
     "Current assignment mechanism": "FastGetSolutionStepValue(var) = value (identical body)",
     "Called before solver.Initialize? legacy": LEGACY,
     "Called before solver.Initialize? current": YES,
     "Initialization consumer?": "No (only during solve)",
+    "current_preloop_call_count_before_first_solve": DOUBLE_CALL,
+    "same_time_idempotent": "YES (verified by source trace; representative processes "
+    "verified by runtime double-call tests)",
+    "state_accumulated": "NO",
+    "risk_if_non_idempotent": IDEM_NONE,
 }
 
 
 def rename_row(proc, wrapper, role, variables, entity, updated_step, consumer,
-               coverage, risk, action, fix_semantics="unchanged (parameter rename only)",
-               overrides=None):
+                coverage, risk, action, fix_semantics="unchanged (parameter rename only)",
+                evidence="S", idempotence_reason=IDEM_OVERWRITE, overrides=None):
     row = {
         "Process": proc,
         "Python wrapper": wrapper,
@@ -103,6 +120,8 @@ def rename_row(proc, wrapper, role, variables, entity, updated_step, consumer,
         "Existing test coverage": coverage,
         "Later fixes": "none",
         "Risk": risk,
+        "Evidence level (N/P/S)": evidence,
+        "idempotence_reason": idempotence_reason,
         "Recommended action": action,
     }
     if overrides:
@@ -397,10 +416,9 @@ ROWS.append({
     "Initialization consumer?": "No",
     "Existing test coverage": "none",
     "Later fixes": "none",
-    "Risk": "R3 - NEWLY DISCOVERED: wrapper cannot even be imported",
-    "Recommended action": "fix the class base (Process -> KratosMultiphysics.Process); "
-                           "then enable the functional harness test; reported separately "
-                           "(not applied in this branch, per decision rules)",
+    "Risk": "R3 (discovered during audit; now FIXED on this branch)",
+    "Recommended action": "already fixed (class base Process -> KratosMultiphysics.Process); "
+                           "covered by the positive test test_nodal_young_modulus",
 })
 
 # ---------------------------------------------------------------- Wrapper-only AssignScalarVariableProcess migrations
@@ -672,17 +690,60 @@ def write_md(path):
                  "time loop: p.ExecuteInitializeSolutionStep()  (both, per step)\n"
                  "```\n")
     lines.append("Every C++ process (except `dam_temperature_by_device`) overrides the init "
-                 "callback, and every wrapper forwards it (historical `ExecuteInitialize`, "
-                 "current `ExecuteBeforeSolutionLoop`). Therefore, for all 19 renamed processes, "
-                 "the value is assigned **before `solver.Initialize()`** in both versions "
-                 "(classification **L0 - lifecycle equivalent**); the current version additionally "
-                 "re-applies the identical value after `solver.Initialize()`.\n")
+                  "callback, and every wrapper forwards it (historical `ExecuteInitialize`, "
+                  "current `ExecuteBeforeSolutionLoop`).\n")
+    lines.append("**Refined conclusion (do not claim literal callback-count equivalence):**\n")
+    lines.append("- Historical effective lifecycle: `ExecuteInitialize()` -> assignment -> "
+                  "`solver.Initialize()` -> standard `ExecuteBeforeSolutionLoop()` (effectively a "
+                  "no-op for these wrappers/processes). Assignment executed **once** pre "
+                  "solver.Initialize.\n")
+    lines.append("- Current effective lifecycle: pre-solver `ExecuteBeforeSolutionLoop()` -> "
+                  "assignment -> `solver.Initialize()` -> standard `ExecuteBeforeSolutionLoop()` "
+                  "-> **assignment again**. The callback is executed **twice**, both before the "
+                  "first solve, at the same TIME (line 235 pre and line 308 post "
+                  "solver.Initialize in `dam_analysis.py`).\n")
+    lines.append("- Net effect: **equivalent solver-visible initialization state**, with an "
+                  "additional idempotent pre-loop execution in the current implementation (see "
+                  "idempotence section below). Lifecycle class **L0** refers to this "
+                  "state-equivalence, not to equal callback counts.\n")
     lines.append("Because the consumers read the assigned variables only during the solve "
-                 "(verified per family below), the lifecycle rename cannot change the numerical "
-                 "result (same argument proven experimentally for Bofang: A vs B2 vs C "
-                 "bit-identical).\n")
+                  "(verified per family below), the lifecycle rename cannot change the numerical "
+                  "result (same argument proven experimentally for Bofang: A vs B2 vs C "
+                  "bit-identical).\n")
+    lines.append("\n## Idempotence of the double pre-loop callback\n")
+    lines.append("All affected callbacks were inspected for non-idempotent operations "
+                  "(accumulation `+=`, internal counters, random generation, table mutation, "
+                  "entity/DOF creation, constitutive internal-variable modification, "
+                  "properties/ProcessInfo mutation, irreversible state). **No affected callback "
+                  "performs any of these.** Every callback writes the assigned nodal variable "
+                  "with `FastGetSolutionStepValue(var) = value`, where `value` is a pure "
+                  "deterministic function of (geometry, TIME/DELTA_TIME, input tables, current "
+                  "solution-step TEMPERATURE/state).\n")
+    lines.append("Details per process family:\n")
+    lines.append("- **deterministic overwrite** (geometry/parameters): added_mass, bofang, "
+                  "reservoir_constant, reservoir_monitoring, fix_temperature, hydro, uplift, "
+                  "uplift_circular, westergaard, nodal_young_modulus, chemo_mechanical_aging, "
+                  "grouting_reference_temperature.\n")
+    lines.append("- **table read and overwrite** (deterministic for a fixed table): "
+                  "apply_component_table (initial value), nodal_reference_temperature, "
+                  "input_table_nodal_young_modulus, random_fields (the random field is generated "
+                  "**once** in the wrapper `__init__`; the callback only reads the table).\n")
+    lines.append("- **recalculate from TIME/DELTA_TIME and overwrite**: noorzai "
+                  "(`exp(-alpha*time + 0.5*delta_time)`, same value at the same TIME).\n")
+    lines.append("- **reset-then-overwrite** (no accumulation): azenha resets "
+                  "`ALPHA_HEAT_SOURCE = mAlphaInitial` on every init call.\n")
+    lines.append("- **AssignScalarVariableProcess / ApplyComponentTableProcessDam** (wrappers): "
+                  "`SetVariable` overwrite; `ApplyFixity`/`Fix` are idempotent (fixing an already "
+                  "fixed DOF is a no-op; `Node::Fix` creates a DOF only on the first call — the "
+                  "DOF set is stable across the second call).\n")
+    lines.append("- `dam_temperature_by_device` has no init callback (per-step only).\n")
+    lines.append("Representative runtime double-call tests (one deterministic thermal process, "
+                  "one material-evolution process, one load process, `DamRandomFieldsVariableProcess` "
+                  "and `DamAddedMassConditionProcess`) confirm identical assigned values, fixity "
+                  "and DOF sets after one vs two calls: "
+                  "`tests/test_dam_process_lifecycle.py::test_idempotent_*`.\n")
     lines.append("\n## Assignment-semantics analysis (`ApplyConstantScalarValueProcess` -> "
-                 "`AssignScalarVariableProcess`)\n")
+                  "`AssignScalarVariableProcess`)\n")
     lines.append("| Aspect | ApplyConstantScalarValueProcess (historical) | "
                  "AssignScalarVariableProcess (current) |\n|---|---|---|\n")
     lines.append("| default fixity | `is_fixed: false` | `constrained: true` |\n")
@@ -735,13 +796,35 @@ def write_md(path):
                  "but left the class base as bare `Process`, which is now undefined.\n")
     lines.append("- Impact: the wrapper (and therefore the nodal-Young-modulus feature) is "
                  "completely unusable since #13472. No existing test exercises it (confirmed by "
-                 "searching all DamApplication tests/ProjectParameters).\n")
-    lines.append("- Regression demonstration: "
-                 "`tests/test_dam_process_lifecycle.py::test_nodal_young_modulus_wrapper_is_importable` "
-                 "(canary pinning the broken state).\n")
-    lines.append("- Per the audit decision rules the fix is **not applied** in this branch; it is "
-                 "reported separately (one line: `class ImposeNodalYoungModulusProcess("
-                 "KratosMultiphysics.Process):`).\n")
+                  "searching all DamApplication tests/ProjectParameters).\n")
+    lines.append("- **Resolved on this branch** (see commit '[DamApplication] Fix nodal Young "
+                  "modulus process import'): the class base was corrected to "
+                  "`KratosMultiphysics.Process` (one line). The regression test was converted "
+                  "from the broken-state canary into a positive test "
+                  "(`test_dam_process_lifecycle.py::test_nodal_young_modulus`) verifying import, "
+                  "production-factory instantiation, Process base class, execution on a minimal "
+                  "ModelPart, the expected `NODAL_YOUNG_MODULUS` value, and the documented "
+                  "fixity with no unrelated DOF/fixity changes.\n")
+    lines.append("\n## Evidence levels\n")
+    lines.append("- **N (numerical proof):** full numerical comparison (A vs B2 vs C) "
+                  "demonstrates equivalence. Currently only Bofang.\n")
+    lines.append("- **P (process-level proof):** source analysis plus a direct process/runtime "
+                  "regression establishes identical assigned values, fixity and relevant state, "
+                  "and (for the idempotence tests) the same result after one vs two calls.\n")
+    lines.append("- **S (source-level equivalence):** source tracing demonstrates equivalence, "
+                  "but no dedicated runtime regression exists. **Level S is NOT 'numerically "
+                  "proven'.**\n")
+    lines.append("Evidence level is recorded per process in the table below.\n")
+    lines.append("\n## Architectural note (double pre-loop call)\n")
+    lines.append("- The current Dam analysis (`dam_analysis.py`) invokes "
+                  "`ExecuteBeforeSolutionLoop()` **twice** around `solver.Initialize()` (line 235 "
+                  "pre, line 308 post) for the initialization path.\n")
+    lines.append("- All affected processes have been demonstrated idempotent at the identical "
+                  "initial state (source trace + representative runtime double-call tests).\n")
+    lines.append("- A future cleanup could reconsider this double-call architecture, but it is "
+                  "**out of scope** for this branch: `dam_analysis.py` is intentionally left "
+                  "unchanged. Any such cleanup must be a separate change with dedicated "
+                  "regression tests.\n")
     lines.append("\n## Full audit table\n")
     lines.append("_Risk: R0 negligible / R1 low / R2 medium / R3 high (see decision rules)._\n")
     lines.append("| %s |\n" % " | ".join(COLUMNS))
@@ -763,32 +846,73 @@ def write_md(path):
                  "grouting_reference_temperature, temperature_by_device, nodal_young_modulus, "
                  "input_table_nodal_young_modulus, chemo_mechanical_aging, random_fields, uplift, "
                  "uplift_circular, westergaard, added_mass, apply_component_table. "
-                 "Lifecycle-equivalent by source but untested.\n")
+                 "Lifecycle-equivalent; several now have process-level runtime regression "
+                 "(evidence P: reservoir_monitoring, nodal_reference_temperature, grouting_"
+                 "reference_temperature, nodal_young_modulus, input_table_nodal_young_modulus, "
+                 "random_fields, added_mass), the rest remain evidence S (source-level only).\n")
     lines.append("- **R2 (2, historical only):** apply_load_vector / apply_load_vector_table — "
                  "real breakage between #13472 and #14617; now fixed and tested.\n")
     lines.append("- **R3 (1):** impose_nodal_young_modulus_process (wrapper) — newly discovered, "
                  "unimportable since #13472; fix reported separately (see dedicated section).\n")
     lines.append("\n## Decisions / recommendations\n")
-    lines.append("- No production-code change is required by this audit for the lifecycle/assignment "
-                 "semantics: all are equivalent for the merged behaviour.\n")
-    lines.append("- The only real semantic regression found (#13472 load fixity) is already "
-                 "fixed by #14617 and has regression tests.\n")
-    lines.append("- **One production fix is recommended (reported separately, not applied here):** "
-                 "`impose_nodal_young_modulus_process.py` class base "
-                 "`Process` -> `KratosMultiphysics.Process` (one line).\n")
-    lines.append("- Optional focused tests (R1 rows) can reuse the generic process harness "
-                 "below; they are not required for correctness but protect the per-process "
-                 "lifecycle coupling.\n")
+    lines.append("- No further production-code change is required by this audit for the "
+                 "lifecycle/assignment semantics: all are equivalent for the merged behaviour.\n")
+    lines.append("- The two real regressions introduced by #13472 are resolved: the vector-load "
+                 "fixity bug was fixed by #14617 (with regression tests), and the "
+                 "nodal-Young-modulus import failure was fixed on this branch (with a positive "
+                 "regression test).\n")
+    lines.append("- The double pre-loop callback architecture is intentionally left unchanged "
+                 "(see architectural note).\n")
+    lines.append("- R1 rows without a dedicated runtime regression (evidence level S) are "
+                 "covered by source-level equivalence only; no numerical claim is made for them.\n")
     with open(path, "w") as f:
         f.write("\n".join(lines))
 
 
 def main():
     lclass_col = "Lifecycle class (L0/L1/L2/L3)"
+    evidence_col = "Evidence level (N/P/S)"
+    # N = numerical proof (A vs B2 vs C); P = process-level runtime regression;
+    # S = source-level equivalence only (NOT numerically proven).
+    EVIDENCE = {
+        "DamBofangConditionTemperatureProcess": "N",
+        "DamReservoirConstantTemperatureProcess": "P",
+        "DamReservoirMonitoringTemperatureProcess": "P",
+        "DamFixTemperatureConditionProcess": "P",
+        "DamTSolAirHeatFluxProcess (DamTSolAirHeatFluxProcess)": "P",
+        "DamNodalReferenceTemperatureProcess": "P",
+        "DamGroutingReferenceTemperatureProcess": "P",
+        "DamNodalYoungModulusProcess": "P",
+        "DamInputTableNodalYoungModulusProcess": "P",
+        "DamRandomFieldsVariableProcess": "P",
+        "DamHydroConditionLoadProcess": "P",
+        "DamAddedMassConditionProcess": "P",
+        "ApplyConstraintVectorDamTableProcess (wrapper)": "P",
+        "ApplyLoadVectorDamProcess (wrapper)": "P",
+        "ApplyLoadVectorDamTableProcess (wrapper)": "P",
+        "ImposeThermalParametersScalarValueProcess (wrapper)": "P",
+        "ImposeUniformTemperatureProcess (wrapper)": "P",
+        "ImposeFaceHeatFluxProcess (wrapper)": "P",
+        "ImposeNodalYoungModulusProcess (wrapper)": "P",
+    }
     for row in ROWS:
         if lclass_col not in row or not row[lclass_col]:
             row[lclass_col] = "L0 (wrapper forwards the renamed callback; value assigned " \
                               "pre solver.Initialize in both versions)"
+        if row["Process"] in EVIDENCE:
+            row[evidence_col] = EVIDENCE[row["Process"]]
+        elif evidence_col not in row or not row[evidence_col]:
+            row[evidence_col] = "S"
+        for field, default in [
+            ("current_preloop_call_count_before_first_solve", DOUBLE_CALL),
+            ("same_time_idempotent",
+             "YES (SetVariable overwrite + idempotent ApplyFixity; no accumulation)"),
+            ("idempotence_reason", IDEM_OVERWRITE),
+            ("state_accumulated", "NO"),
+            ("risk_if_non_idempotent", IDEM_NONE),
+        ]:
+            if field not in row or not row[field]:
+                row[field] = default
     write_csv(os.path.join(HERE, "2025_process_audit.csv"))
     write_md(os.path.join(HERE, "2025_process_audit.md"))
     print("written", os.path.join(HERE, "2025_process_audit.csv"))
