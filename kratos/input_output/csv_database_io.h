@@ -15,6 +15,7 @@
 // System includes
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -275,11 +276,17 @@ private:
 
     std::vector<std::pair<Column, ValueType>> mWritingData;
 
+    std::unordered_map<std::string, IndexType> mWritingColumnIndices;
+
     ///@}
     ///@name Private member variables for reading
     ///@{
 
     std::vector<std::pair<std::string, std::variant<std::vector<bool>, std::vector<int>, std::vector<double>, std::vector<std::string>>>> mReadData;
+
+    std::unordered_map<std::string, IndexType> mReadColumnIndices;
+
+    std::unordered_map<int, IndexType> mReadRowIndices;
 
     ///@}
     ///@name Private operations for both reading and writing

@@ -319,6 +319,8 @@ void CSVDatabaseIO::ReadCSVFile()
     std::ifstream input_file(mCurrentFileName);
 
     mReadData.clear();
+    mReadColumnIndices.clear();
+    mReadRowIndices.clear();
 
     std::string line;
     bool found_column_information_block{false};
@@ -439,6 +441,15 @@ void CSVDatabaseIO::ReadCSVFile()
 
     input_file.close();
 
+    for (IndexType i = 0; i < mReadData.size(); ++i) {
+        mReadColumnIndices.emplace(mReadData[i].first, i);
+    }
+
+    const auto& row_ids = std::get<std::vector<int>>(mReadData[0].second);
+    for (IndexType i = 0; i < row_ids.size(); ++i) {
+        mReadRowIndices.emplace(row_ids[i], i);
+    }
+
     KRATOS_CATCH("")
 }
 
@@ -453,9 +464,11 @@ void CSVDatabaseIO::WriteTitleBlock(const int TableId)
     mCurrentStep = -1;
     mLastWrittenStep = -1;
     mWritingData.clear();
+    mWritingColumnIndices.clear();
 
     // Adding the step column
     mWritingData.push_back(std::make_pair(Column(mRowIdName, 0, mFormatSettings), 0));
+    mWritingColumnIndices.emplace(mRowIdName, 0);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) <<"Writing CSV header information to \"" << mCurrentFileName << "\"...\n";
 
@@ -600,20 +613,19 @@ void CSVDatabaseIO::GenericRead(
     KRATOS_ERROR_IF_NOT(mIsReadOnly)
         << "The file \"" << mCurrentFileName << "\" is opened for write only access. Hence cannot read.\n" << *this;
 
-    for (const auto& r_pair : mReadData) {
-        if (r_pair.first == rKey) {
-            KRATOS_ERROR_IF(!std::holds_alternative<std::vector<TDataType>>(r_pair.second))
-                << "Type mismatch for key = \"" << rKey << "\".\n" << *this << std::endl;
+    const auto column_index = mReadColumnIndices.find(rKey);
+    KRATOS_ERROR_IF(column_index == mReadColumnIndices.end())
+        << "The key = \"" << rKey << "\" was not found in the list of columns.\n" << *this;
 
-            const auto& row_ids = std::get<std::vector<int>>(mReadData[0].second);
-            const IndexType index = std::distance(row_ids.begin(), std::find(row_ids.begin(), row_ids.end(), RowId));
-            KRATOS_ERROR_IF(index == row_ids.size())
-                << "The row id = " << RowId << " not found in the list of row ids.\n" << *this;
+    const auto& column = mReadData[column_index->second].second;
+    KRATOS_ERROR_IF(!std::holds_alternative<std::vector<TDataType>>(column))
+        << "Type mismatch for key = \"" << rKey << "\".\n" << *this << std::endl;
 
-            rValue = std::get<std::vector<TDataType>>(r_pair.second)[index];
-            break;
-        }
-    }
+    const auto row_index = mReadRowIndices.find(RowId);
+    KRATOS_ERROR_IF(row_index == mReadRowIndices.end())
+        << "The row id = " << RowId << " not found in the list of row ids.\n" << *this;
+
+    rValue = std::get<std::vector<TDataType>>(column)[row_index->second];
 
     KRATOS_CATCH("")
 }
@@ -665,11 +677,12 @@ void CSVDatabaseIO::GenericWrite(
         // 1. At the first most step where we collect the headers
         // 2. At a sub sequent step where we need to cross check with the existing headers
 
-        auto p_itr = std::find_if(mWritingData.begin(), mWritingData.end(), [&rKey](const auto rColumnValuePair) { return rKey == rColumnValuePair.first.GetHeader(); });
+        const auto column_index = mWritingColumnIndices.find(rKey);
         if (mLastWrittenStep == -1) {
             // No headers have been written yet. So this is the first step.
-            if (mWritingData.end() == p_itr) {
+            if (column_index == mWritingColumnIndices.end()) {
                 mWritingData.push_back(std::make_pair(Column(rKey, rValue, mFormatSettings), rValue));
+                mWritingColumnIndices.emplace(rKey, mWritingData.size() - 1);
             } else {
                 // rKey should be unique
                 KRATOS_ERROR << "The keys should be unique."
@@ -678,7 +691,7 @@ void CSVDatabaseIO::GenericWrite(
             }
         } else {
             // Headers are already written. So now we have to check if the rKey is there on the list of headers written
-            if (p_itr == mWritingData.end()) {
+            if (column_index == mWritingColumnIndices.end()) {
                 std::stringstream msg;
                 msg << "The header was not found for key = \"" << rKey << "\". Following headers are available:";
                 for (const auto& r_column_value_pair : mWritingData) {
@@ -687,13 +700,14 @@ void CSVDatabaseIO::GenericWrite(
                 KRATOS_ERROR << msg.str() << "\n" << *this;
             }
 
-            KRATOS_ERROR_IF_NOT(std::holds_alternative<TDataType>(p_itr->first.GetDummyValue()))
+            auto& column = mWritingData[column_index->second];
+            KRATOS_ERROR_IF_NOT(std::holds_alternative<TDataType>(column.first.GetDummyValue()))
                 << "Type mismatch for the key = \"" << rKey << "\"."
-                << "\n\t header (key) type = " << CSVDatabaseIOUtils::GetType(p_itr->first.GetDummyValue())
+                << "\n\t header (key) type = " << CSVDatabaseIOUtils::GetType(column.first.GetDummyValue())
                 << "\n\t given data = " << rValue
                 << "\n\t given data type = " << CSVDatabaseIOUtils::GetType(ValueType(rValue)) << std::endl << *this;
 
-            p_itr->second = rValue;
+            column.second = rValue;
         }
     } else {
         // now information with new Step is given.
