@@ -60,7 +60,123 @@ class TestDamProcessLifecycle(KratosUnittest.TestCase):
         self.assertAlmostEqual(model_part.GetNode(node_id).GetSolutionStepValue(variable),
                                expected, delta=tol)
 
-    # ------------------------------------------------------------------ T
+    def _double_call_compare(self, process, model_part, variables):
+        """ExecuteBeforeSolutionLoop() twice at the same TIME and compare the
+        observable state (assigned values, fixity, DOF set) after each call."""
+        def snapshot():
+            snap = {}
+            for node in model_part.Nodes:
+                nid = node.Id
+                snap[nid] = {
+                    "values": {v.Name(): node.GetSolutionStepValue(v) for v in variables},
+                    "fixed": {v.Name(): node.IsFixed(v) for v in variables},
+                    "has_dof": {v.Name(): node.HasDofFor(v) for v in variables},
+                }
+            return snap
+
+        process.ExecuteBeforeSolutionLoop()
+        after_first = snapshot()
+        process.ExecuteBeforeSolutionLoop()
+        after_second = snapshot()
+        self.assertEqual(after_first, after_second,
+                         "state changed between the two pre-loop calls")
+        return after_first
+
+    # ------------------------------------------------------------------
+    # Idempotence of the double pre-loop callback (ExecuteBeforeSolutionLoop
+    # is invoked twice around solver.Initialize in dam_analysis.py; see the
+    # audit's architectural note). Each test calls it twice at the same TIME
+    # and asserts the observable state is unchanged.
+    # ------------------------------------------------------------------
+    def test_idempotent_thermal_process(self):
+        # deterministic thermal/reference process (table-driven overwrite)
+        model, mp = self._make_model([KratosDam.NODAL_REFERENCE_TEMPERATURE])
+        settings = self._make_wrapper_settings(
+            "main.target", r"""
+            {
+                "model_part_name": "",
+                "variable_name": "NODAL_REFERENCE_TEMPERATURE",
+                "initial_value": 8.3
+            }""")
+        process = self._factory("impose_nodal_reference_temperature_process", settings, model)
+        self._double_call_compare(process, mp, [KratosDam.NODAL_REFERENCE_TEMPERATURE])
+
+    def test_idempotent_material_process(self):
+        # material-evolution process (Young modulus from parameters, fixed)
+        model, mp = self._make_model([KratosDam.NODAL_YOUNG_MODULUS])
+        settings = self._make_wrapper_settings(
+            "main.target", r"""
+            {
+                "model_part_name": "",
+                "variable_name": "NODAL_YOUNG_MODULUS",
+                "Young_Modulus_1": 20.0,
+                "Young_Modulus_2": 30.0,
+                "Young_Modulus_3": 40.0,
+                "Young_Modulus_4": 50.0
+            }""")
+        process = self._factory("impose_nodal_young_modulus_process", settings, model)
+        snap = self._double_call_compare(process, mp, [KratosDam.NODAL_YOUNG_MODULUS])
+        # the wrapper documents that the scalar is automatically fixed; the DOF
+        # set must be stable across both calls
+        self.assertTrue(snap[1]["has_dof"]["NODAL_YOUNG_MODULUS"])
+
+    def test_idempotent_load_process(self):
+        # hydrostatic load (depth-derived pressure overwrite)
+        model, mp = self._make_model(
+            [KratosMultiphysics.POSITIVE_FACE_PRESSURE],
+            target_submodel_name="HydroLinePressure2D_target")
+        settings = self._make_wrapper_settings(
+            "main.HydroLinePressure2D_target", r"""
+            {
+                "model_part_name": "",
+                "variable_name": "POSITIVE_FACE_PRESSURE",
+                "Gravity_Direction": "Y",
+                "Reservoir_Bottom_Coordinate_in_Gravity_Direction": 0.0,
+                "Spe_weight": 10000.0,
+                "Water_level": 10.0,
+                "Water_Table": 0
+            }""")
+        process = self._factory("impose_water_loads_condition_process", settings, model)
+        snap = self._double_call_compare(process, mp, [KratosMultiphysics.POSITIVE_FACE_PRESSURE])
+        # node 1 at y=0 below water level 10 -> nonzero pressure
+        self.assertGreater(snap[1]["values"]["POSITIVE_FACE_PRESSURE"], 0.0)
+
+    def test_idempotent_random_fields(self):
+        # random field: the table is generated ONCE by the wrapper (gstools);
+        # the C++ process only reads the table by node id. Here the process is
+        # exercised directly with a pre-built table (gstools is not required).
+        model, mp = self._make_model([KratosDam.NODAL_YOUNG_MODULUS])
+        table = KratosMultiphysics.PiecewiseLinearTable()
+        table.AddRow(1, 3.5)
+        table.AddRow(2, 7.2)
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name": "main.target",
+            "variable_name": "NODAL_YOUNG_MODULUS",
+            "mean_value": 0.0, "min_value": 0.0, "max_value": 10.0,
+            "variance": 1.0, "corr_length": 1
+        }""")
+        process = KratosDam.DamRandomFieldsVariableProcess(
+            mp.GetSubModelPart("target"), table, settings)
+        snap = self._double_call_compare(process, mp, [KratosDam.NODAL_YOUNG_MODULUS])
+        self.assertEqual(snap[1]["values"]["NODAL_YOUNG_MODULUS"], 3.5)
+        self.assertEqual(snap[2]["values"]["NODAL_YOUNG_MODULUS"], 0.0)  # outside model part
+
+    def test_idempotent_added_mass(self):
+        # added-mass contribution (deterministic function of node coordinates)
+        model, mp = self._make_model([KratosDam.ADDED_MASS])
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name": "main.target",
+            "variable_name": "ADDED_MASS",
+            "Gravity_Direction": "Y",
+            "Reservoir_Bottom_Coordinate_in_Gravity_Direction": 0.0,
+            "Spe_weight": 10000.0,
+            "Water_level": 10.0
+        }""")
+        process = KratosDam.DamAddedMassConditionProcess(
+            mp.GetSubModelPart("target"), settings)
+        snap = self._double_call_compare(process, mp, [KratosDam.ADDED_MASS])
+        self.assertGreater(snap[1]["values"]["ADDED_MASS"], 0.0)
+
     def test_nodal_reference_temperature(self):
         model, mp = self._make_model([KratosDam.NODAL_REFERENCE_TEMPERATURE])
         settings = self._make_wrapper_settings(
