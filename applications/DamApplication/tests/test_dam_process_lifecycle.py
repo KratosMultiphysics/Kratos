@@ -134,25 +134,68 @@ class TestDamProcessLifecycle(KratosUnittest.TestCase):
         self.assertNotEqual(mp.GetNode(1).GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 0.0)
 
     # ------------------------------------------------------------------ M
-    def test_nodal_young_modulus_wrapper_is_importable(self):
-        """Canary for the OPEN PR #13472 wrapper bug.
+    def test_nodal_young_modulus(self):
+        """Positive regression for the PR #13472 nodal-Young-modulus wrapper bug.
 
         PR #13472 removed ``from KratosMultiphysics import *`` from
         ``impose_nodal_young_modulus_process.py`` but left the class base as the
-        bare ``Process``, which is now undefined. The module therefore cannot be
-        imported (``NameError``) and the process is unusable. This test pins the
-        current broken behaviour (reproduction); it must be replaced by the
-        functional value-assignment test once the wrapper is fixed.
-
-        Root cause: one-line omission in #13472 — the class base was not updated
-        to ``KratosMultiphysics.Process`` when the star import was removed.
-        Proposed fix (reported separately, not applied here):
-        ``class ImposeNodalYoungModulusProcess(KratosMultiphysics.Process):``
+        bare ``Process`` (now undefined), which made the module unimportable
+        (``NameError``). This test verifies the one-line fix
+        (``class ...(KratosMultiphysics.Process)``) end to end:
+        1. module imports,
+        2. factory instantiates the production wrapper,
+        3. the wrapper is a valid ``KratosMultiphysics.Process``,
+        4. the underlying C++ process executes on a minimal ModelPart,
+        5. the expected ``NODAL_YOUNG_MODULUS`` value is assigned,
+        6. fixity is exactly the documented production behaviour (the scalar is
+           "automatically fixed", matching the historical ``Node::Fix``
+           semantics) and no unrelated DOF/fixity changes occur.
         """
-        with self.assertRaises(NameError):
-            __import__(
-                "KratosMultiphysics.DamApplication.impose_nodal_young_modulus_process",
-                fromlist=["Factory"])
+        from KratosMultiphysics.DamApplication.impose_nodal_young_modulus_process import (
+            Factory as NodalYoungFactory,
+        )
+
+        model, mp = self._make_model([KratosDam.NODAL_YOUNG_MODULUS])
+        settings = self._make_wrapper_settings(
+            "main.target", r"""
+            {
+                "model_part_name": "",
+                "variable_name": "NODAL_YOUNG_MODULUS",
+                "Young_Modulus_1": 20.0,
+                "Young_Modulus_2": 30.0,
+                "Young_Modulus_3": 40.0,
+                "Young_Modulus_4": 50.0
+            }""")
+        # the module import above already proves (1); (2) factory instantiation
+        process = NodalYoungFactory(settings, model)
+        self.assertIsInstance(process, KratosMultiphysics.Process)  # (3)
+
+        # (4) the underlying process executes at the init and per-step callbacks
+        process.ExecuteBeforeSolutionLoop()
+        self.assertNotEqual(
+            mp.GetNode(1).GetSolutionStepValue(KratosDam.NODAL_YOUNG_MODULUS), 0.0)
+        mp.CloneTimeStep(1.0)
+        process.ExecuteInitializeSolutionStep()
+        self.assertNotEqual(
+            mp.GetNode(1).GetSolutionStepValue(KratosDam.NODAL_YOUNG_MODULUS), 0.0)
+
+        # (5) expected value on the target node (Young_Modulus_1)
+        self._assert_node_value(mp, 1, KratosDam.NODAL_YOUNG_MODULUS, 20.0)
+        # node outside the process model part untouched
+        self._assert_node_value(mp, 2, KratosDam.NODAL_YOUNG_MODULUS, 0.0)
+
+        # (6) documented fixity: NODAL_YOUNG_MODULUS is fixed (wrapper comment:
+        # "the scalar value is automatically fixed", Node::Fix semantics, same
+        # pre/post #13472); unrelated variables must not be fixed / get DOFs.
+        node = mp.GetNode(1)
+        self.assertTrue(node.IsFixed(KratosDam.NODAL_YOUNG_MODULUS))
+        for unrelated in (KratosMultiphysics.DISPLACEMENT_X,
+                          KratosMultiphysics.DISPLACEMENT_Y,
+                          KratosMultiphysics.TEMPERATURE):
+            self.assertFalse(node.HasDofFor(unrelated),
+                             msg="unintended DOF for %s" % unrelated.Name())
+            self.assertFalse(node.IsFixed(unrelated),
+                             msg="unintended fixity for %s" % unrelated.Name())
 
     def test_input_table_nodal_young_modulus(self):
         model, mp = self._make_model([KratosDam.NODAL_YOUNG_MODULUS])

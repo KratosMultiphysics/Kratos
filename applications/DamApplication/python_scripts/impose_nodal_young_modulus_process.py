@@ -8,7 +8,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ImposeNodalYoungModulusProcess(Model, settings["Parameters"])
 
-class ImposeNodalYoungModulusProcess(Process):
+class ImposeNodalYoungModulusProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings ):
 
