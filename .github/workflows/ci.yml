@@ -49,7 +49,7 @@ jobs:
       OMPI_MCA_btl_vader_single_copy_mechanism: none  # Suppressing some annoying OpenMPI messages
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:stable
       options: --user 1001
 
     steps:
@@ -343,7 +343,7 @@ jobs:
         if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
-        /usr/local/bin/python3.10 kratos/python_scripts/testing/run_python_tests.py -l nightly -c /usr/local/bin/python3.10 
+        /usr/local/bin/python3.10 kratos/python_scripts/testing/run_python_tests.py -l nightly -c /usr/local/bin/python3.10
 
 
   ubuntu-core-without-unity:
@@ -356,7 +356,7 @@ jobs:
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:stable
       options: --user 1001
 
     steps:
@@ -558,7 +558,7 @@ jobs:
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:stable
       options: --user 1001
 
     steps:
