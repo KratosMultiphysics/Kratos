@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <cstdint>
 
 // External includes
 
@@ -41,7 +42,7 @@ StlIO::StlIO(const std::filesystem::path& rFilename, Parameters ThisParameters)
     const std::string open_mode_str = mParameters["open_mode"].GetString();
     // handle other mode options
     if (open_mode_str == "read") {
-        open_mode = std::fstream::in;
+        open_mode = std::fstream::in | std::fstream::binary;
     } else if (open_mode_str == "append") {
         open_mode = std::fstream::in | std::fstream::app;
     } else if (open_mode_str == "write") {
@@ -81,6 +82,83 @@ Parameters StlIO::GetDefaultParameters()
         "open_mode"       : "read",
         "new_entity_type" : "geometry"
     })" );
+}
+
+bool StlIO::IsBinaryStl()
+{
+    auto& r_stream = *mpInputStream;
+
+    // Save current position
+    const auto initial_pos = r_stream.tellg();
+
+    // Get file size
+    r_stream.seekg(0, std::ios::end);
+    const auto file_size = r_stream.tellg();
+    r_stream.seekg(0, std::ios::beg);
+
+    // Binary STL requires at least 84 bytes (80 header + 4 triangle count)
+    if (file_size < 84) {
+        r_stream.seekg(initial_pos);
+        return false;
+    }
+
+    // Skip 80-byte header
+    r_stream.seekg(80, std::ios::beg);
+
+    // Read triangle count
+    std::uint32_t num_triangles = 0;
+    r_stream.read(reinterpret_cast<char*>(&num_triangles), sizeof(std::uint32_t));
+
+    // Restore position
+    r_stream.seekg(initial_pos);
+
+    // Binary STL: 80 bytes header + 4 bytes count + 50 bytes per triangle
+    const auto expected_size = static_cast<std::streamsize>(84 + 50 * static_cast<std::streamsize>(num_triangles));
+    return (expected_size == file_size);
+}
+
+void StlIO::ReadBinaryModelPart(
+    ModelPart& rThisModelPart,
+    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+    )
+{
+    auto& r_stream = *mpInputStream;
+
+    // Skip 80-byte header
+    char header[80];
+    r_stream.read(header, 80);
+
+    // Read number of triangles
+    std::uint32_t num_triangles = 0;
+    r_stream.read(reinterpret_cast<char*>(&num_triangles), sizeof(std::uint32_t));
+
+    // All triangles in a binary STL belong to a single solid named "main"
+    auto& sub_model_part = rThisModelPart.CreateSubModelPart("main");
+
+    for (std::uint32_t i = 0; i < num_triangles; ++i) {
+        // Read and discard the normal vector (3 x float32)
+        float normal[3];
+        r_stream.read(reinterpret_cast<char*>(normal), 3 * sizeof(float));
+
+        // Read 3 vertices (3 x float32 each)
+        NodesArrayType temp_geom_nodes;
+        for (int v = 0; v < 3; ++v) {
+            float coords[3];
+            r_stream.read(reinterpret_cast<char*>(coords), 3 * sizeof(float));
+            temp_geom_nodes.push_back(sub_model_part.CreateNewNode(
+                mNextNodeId++,
+                static_cast<double>(coords[0]),
+                static_cast<double>(coords[1]),
+                static_cast<double>(coords[2])
+            ));
+        }
+
+        // Skip attribute byte count (2 bytes)
+        std::uint16_t attr = 0;
+        r_stream.read(reinterpret_cast<char*>(&attr), sizeof(std::uint16_t));
+
+        rCreateEntityFunctor(sub_model_part, temp_geom_nodes);
+    }
 }
 
 void StlIO::ReadModelPart(ModelPart& rThisModelPart)
@@ -125,8 +203,12 @@ void StlIO::ReadModelPart(ModelPart& rThisModelPart)
         KRATOS_ERROR << "Invalid new entity type " << new_entity_type << std::endl;
     }
 
-    while(!mpInputStream->eof()) {
-        ReadSolid(rThisModelPart,create_entity_func);
+    if (IsBinaryStl()) {
+        ReadBinaryModelPart(rThisModelPart, create_entity_func);
+    } else {
+        while(!mpInputStream->eof()) {
+            ReadSolid(rThisModelPart, create_entity_func);
+        }
     }
 }
 
