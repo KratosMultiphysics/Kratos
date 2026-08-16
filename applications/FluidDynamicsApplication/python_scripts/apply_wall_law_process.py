@@ -39,6 +39,9 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
                         node.SetValue(KratosCFD.SLIP_LENGTH, slip_length)
                 ModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.SLIP_LENGTH)
 
+                # Also store the slip length in the ProcessInfo container
+                ModelPart.ProcessInfo[KratosCFD.SLIP_LENGTH] = slip_length
+
     class linear_log_monolithic_helper():
         @classmethod
         def GetConditionName(self):
@@ -65,6 +68,9 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
                     for node in condition.GetNodes():
                         node.SetValue(KratosCFD.Y_WALL, y_wall)
                 ModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.Y_WALL)
+
+                # Also store the y_wall in the ProcessInfo container
+                ModelPart.ProcessInfo[KratosCFD.Y_WALL] = y_wall
 
     def __init__(self, Model, Settings):
         # Call base class constructor
@@ -129,8 +135,9 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(model_part, domain_size) #FIXME: This may interact with the nodal normals of slip boundaries (e.g. floor-wall in a 3D channel)
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, True, model_part.Nodes)
 
-        # Set the WALL flag in the wall model part new conditions
+        # Set the WALL flag in the wall model part new conditions and nodes
         # This is required in order to add the wall model contribution within the condition implementation
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.WALL, True, model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.WALL, True, model_part.Conditions)
 
         # Initialize the corresponding wall model values using the wall model helper class (see above)
