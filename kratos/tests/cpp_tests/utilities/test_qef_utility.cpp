@@ -8,8 +8,9 @@
 //                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Ariadna Cortes
+//                  Vicente Mataix Ferrandiz
 //
-//
+
 // System includes
 
 // External includes
@@ -106,11 +107,13 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dof, KratosCoreFastSuite)
     array1.push_back(p_triangle2);
     array1.push_back(p_triangle3);
 
-    const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
+    array_1d<double,3> point;
+    const double error = QuadraticErrorFunction::QuadraticErrorFunctionValue(*p_voxel, array1, point);
 
     KRATOS_EXPECT_NEAR(point[0], 0.75, 1e-8);
     KRATOS_EXPECT_NEAR(point[1], 0.5, 1e-8);
     KRATOS_EXPECT_NEAR(point[2], 0.0, 1e-8);
+    KRATOS_EXPECT_NEAR(error, 0.0, 1e-8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction1dof, KratosCoreFastSuite)
@@ -136,11 +139,13 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction1dof, KratosCoreFastSuite)
     array1.push_back(p_triangle3);
     array1.push_back(p_triangle4);
 
-    const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
+    array_1d<double,3> point;
+    const double error = QuadraticErrorFunction::QuadraticErrorFunctionValue(*p_voxel, array1, point);
 
     KRATOS_EXPECT_NEAR(point[0], 0.0, 1e-8);
     KRATOS_EXPECT_NEAR(point[1], 0.5, 1e-8);
     KRATOS_EXPECT_NEAR(point[2], 0.0, 1e-8);
+    KRATOS_EXPECT_NEAR(error, 0.0, 1e-8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dofExtremeCase, KratosCoreFastSuite)
@@ -159,15 +164,17 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dofExtremeCase, KratosCoreFastS
     GeometryPtrType p_triangle3 = QuadraticErrorFunctionGenerateTriangle3D3(triangle3);
 
     GeometryArrayType array1;
-    array1.push_back(p_triangle1); 
+    array1.push_back(p_triangle1);
     array1.push_back(p_triangle2);
     array1.push_back(p_triangle3);
 
-    const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
+    array_1d<double,3> point;
+    const double error = QuadraticErrorFunction::QuadraticErrorFunctionValue(*p_voxel, array1, point);
 
     KRATOS_EXPECT_NEAR(point[0], 0.9999, 1e-8);
     KRATOS_EXPECT_NEAR(point[1], 0.5, 1e-8);
     KRATOS_EXPECT_NEAR(point[2], 0.0, 1e-8);
+    KRATOS_EXPECT_NEAR(error, 0.0, 1e-8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction1dofExtremeCase, KratosCoreFastSuite)
@@ -193,11 +200,13 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction1dofExtremeCase, KratosCoreFastS
     array1.push_back(p_triangle3);
     array1.push_back(p_triangle4);
 
-    const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
+    array_1d<double,3> point;
+    const double error = QuadraticErrorFunction::QuadraticErrorFunctionValue(*p_voxel, array1, point);
 
     KRATOS_EXPECT_NEAR(point[0], 0.0, 1e-8);
     KRATOS_EXPECT_NEAR(point[1], 0.5, 1e-8);
     KRATOS_EXPECT_NEAR(point[2], 0.9999, 1e-8);
+    KRATOS_EXPECT_NEAR(error, 0.0, 1e-8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction2dof, KratosCoreFastSuite)
@@ -223,11 +232,13 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction2dof, KratosCoreFastSuite)
     array1.push_back(p_triangle3);
     array1.push_back(p_triangle4);
 
-    const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
+    array_1d<double,3> point;
+    const double error = QuadraticErrorFunction::QuadraticErrorFunctionValue(*p_voxel, array1, point);
 
     KRATOS_EXPECT_NEAR(point[0], 0.0, 1e-8);
     KRATOS_EXPECT_NEAR(point[1], 0.5, 1e-8);
     KRATOS_EXPECT_NEAR(point[2], 0.0, 1e-8);
+    KRATOS_EXPECT_NEAR(error, 0.0, 1e-8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunctiondoublePlain, KratosCoreFastSuite)
@@ -266,11 +277,13 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunctiondoublePlain, KratosCoreFastSuite
     array1.push_back(p_triangle8);
 
     // Call the point utility
-    const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
+    array_1d<double,3> point;
+    const double error = QuadraticErrorFunction::QuadraticErrorFunctionValue(*p_voxel, array1, point);
 
     KRATOS_EXPECT_NEAR(point[0], 0.0, 1e-8);
     KRATOS_EXPECT_NEAR(point[1], 0.0, 1e-8);
     KRATOS_EXPECT_NEAR(point[2], 0.0, 1e-8);
+    KRATOS_EXPECT_NEAR(error, 5.0e-5, 1e-8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dofmovedCenter, KratosCoreFastSuite)
@@ -292,11 +305,13 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dofmovedCenter, KratosCoreFastS
     array1.push_back(p_triangle2);
     array1.push_back(p_triangle3);
 
-    const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
+    array_1d<double,3> point;
+    const double error = QuadraticErrorFunction::QuadraticErrorFunctionValue(*p_voxel, array1, point);
 
     KRATOS_EXPECT_NEAR(point[0], 1.75, 1e-8);
     KRATOS_EXPECT_NEAR(point[1], 1.5, 1e-8);
     KRATOS_EXPECT_NEAR(point[2], 1.0, 1e-8);
+    KRATOS_EXPECT_NEAR(error, 0.0, 1e-8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction2dofMovedCenter, KratosCoreFastSuite)
@@ -320,11 +335,13 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction2dofMovedCenter, KratosCoreFastS
     array1.push_back(p_triangle3);
     array1.push_back(p_triangle4);
 
-    const array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
+    array_1d<double,3> point;
+    const double error = QuadraticErrorFunction::QuadraticErrorFunctionValue(*p_voxel, array1, point);
 
     KRATOS_EXPECT_NEAR(point[0], 1.0, 1e-8);
     KRATOS_EXPECT_NEAR(point[1], 1.5, 1e-8);
     KRATOS_EXPECT_NEAR(point[2], 1.0, 1e-8);
+    KRATOS_EXPECT_NEAR(error, 0.0, 1e-8);
 }
 
 }  // namespace Kratos::Testing.
