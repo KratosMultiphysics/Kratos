@@ -39,7 +39,7 @@ namespace Kratos
 
    }
 
-   //********* ASSIGMENT OPERATOR
+   //********* ASSIGNMENT OPERATOR
    J2ExplicitFlowRule& J2ExplicitFlowRule::operator=(J2ExplicitFlowRule const& rOther)
    {
       NonAssociativeExplicitPlasticFlowRule::operator=(rOther);

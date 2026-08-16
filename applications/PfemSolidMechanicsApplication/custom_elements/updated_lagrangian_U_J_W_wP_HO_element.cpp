@@ -57,7 +57,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    UpdatedLagrangianUJWwPHOElement&  UpdatedLagrangianUJWwPHOElement::operator=(UpdatedLagrangianUJWwPHOElement const& rOther)
@@ -186,7 +186,7 @@ namespace Kratos
    }
 
    //************************************************************************************
-   //         Matrix due to the the water pressure stabilization contribution to the internal forces   
+   //         Matrix due to the water pressure stabilization contribution to the internal forces   
    void UpdatedLagrangianUJWwPHOElement::CalculateAndAddHighOrderKPP( MatrixType & rLeftHandSide, ElementDataType & rVariables, double & rIntegrationWeight)
    {
 
