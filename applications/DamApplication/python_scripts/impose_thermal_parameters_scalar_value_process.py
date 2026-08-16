@@ -23,6 +23,12 @@ class ImposeThemalParametersScalarValueProcess(KratosMultiphysics.Process):
             thermal_density.AddValue("value", settings["ThermalDensity"])
             thermal_density.AddEmptyValue("constrained").SetBool(False)
             thermal_density.AddEmptyValue("variable_name").SetString("DENSITY")
+            # Initial-only interval: pre-#13472 ApplyConstantScalarValueProcess
+            # applied these thermal parameters once at initialization. Without
+            # an explicit interval, AssignScalarVariableProcess defaults to an
+            # always-active interval and would overwrite later updates of the
+            # parameters at every solution step.
+            thermal_density.AddValue("interval", KratosMultiphysics.Parameters("[0.0, 0.0]"))
 
             self.components_process_list.append(AssignScalarVariableProcess(Model, thermal_density))
 
@@ -33,6 +39,7 @@ class ImposeThemalParametersScalarValueProcess(KratosMultiphysics.Process):
             conductivity.AddValue("value", settings["Conductivity"])
             conductivity.AddEmptyValue("constrained").SetBool(False)
             conductivity.AddEmptyValue("variable_name").SetString("CONDUCTIVITY")
+            conductivity.AddValue("interval", KratosMultiphysics.Parameters("[0.0, 0.0]"))
 
             self.components_process_list.append(AssignScalarVariableProcess(Model, conductivity))
 
@@ -43,6 +50,7 @@ class ImposeThemalParametersScalarValueProcess(KratosMultiphysics.Process):
             specific_heat.AddValue("value", settings["SpecificHeat"])
             specific_heat.AddEmptyValue("constrained").SetBool(False)
             specific_heat.AddEmptyValue("variable_name").SetString("SPECIFIC_HEAT")
+            specific_heat.AddValue("interval", KratosMultiphysics.Parameters("[0.0, 0.0]"))
 
             self.components_process_list.append(AssignScalarVariableProcess(Model, specific_heat))
 

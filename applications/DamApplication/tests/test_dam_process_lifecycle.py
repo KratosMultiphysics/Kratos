@@ -56,9 +56,9 @@ class TestDamProcessLifecycle(KratosUnittest.TestCase):
         full["Parameters"] = params
         return full
 
-    def _assert_node_value(self, model_part, node_id, variable, expected, tol=1.0e-9):
+    def _assert_node_value(self, model_part, node_id, variable, expected, tol=1.0e-9, msg=""):
         self.assertAlmostEqual(model_part.GetNode(node_id).GetSolutionStepValue(variable),
-                               expected, delta=tol)
+                               expected, delta=tol, msg=msg)
 
     def _double_call_compare(self, process, model_part, variables):
         """ExecuteBeforeSolutionLoop() twice at the same TIME and compare the
@@ -81,6 +81,104 @@ class TestDamProcessLifecycle(KratosUnittest.TestCase):
         self.assertEqual(after_first, after_second,
                          "state changed between the two pre-loop calls")
         return after_first
+
+    def test_uniform_initial_temperature_is_initial_condition_only(self):
+        """Regression for the PR #13472 uniform-initial-temperature lifetime bug
+        (causally identified with the La Baells case).
+
+        Pre-#13472, `impose_uniform_temperature_process` applied the constant
+        initial temperature ONCE (via `ApplyConstantScalarValueProcess` at
+        `ExecuteInitialize`). After #13472 the wrapper constructs
+        `AssignScalarVariableProcess` WITHOUT forwarding an interval, so the
+        generic process uses its default interval [0,1e30] (always active) and
+        re-applies the initial temperature at EVERY `ExecuteInitializeSolutionStep`,
+        overwriting the thermally evolved field from day 2 onward.
+
+        The intended semantics is an INITIAL CONDITION, not a persistent
+        boundary condition: after the initial assignment, later solution steps
+        must NOT overwrite the evolved temperature.
+        """
+        from KratosMultiphysics.DamApplication.impose_uniform_temperature_process import (
+            Factory as UniformTemperatureFactory,
+        )
+
+        model, mp = self._make_model([KratosMultiphysics.TEMPERATURE],
+                                     target_submodel_name="INITIALTEMPERATURE_target")
+        settings = self._make_wrapper_settings(
+            "main.INITIALTEMPERATURE_target", r"""
+            {
+                "model_part_name": "",
+                "variable_name": "TEMPERATURE",
+                "interval": [0.0, 0.0],
+                "constrained": false,
+                "value": 12.712,
+                "table": 0
+            }""")
+        process = UniformTemperatureFactory(settings, model)
+
+        # intended initialization point: initial temperature assigned
+        process.ExecuteBeforeSolutionLoop()
+        self._assert_node_value(mp, 1, KratosMultiphysics.TEMPERATURE, 12.712)
+
+        # emulate thermal evolution (solved field)
+        node = mp.GetNode(1)
+        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 8.0)
+
+        # advance time to a later solution step
+        mp.ProcessInfo[KratosMultiphysics.TIME] = 2.0
+        mp.CloneTimeStep(2.0)
+        process.ExecuteInitializeSolutionStep()
+
+        # the later step must NOT overwrite the evolved temperature
+        self._assert_node_value(mp, 1, KratosMultiphysics.TEMPERATURE, 8.0,
+                                msg="initial temperature was re-applied in a later step "
+                                    "(persistent override instead of initial condition)")
+
+    def test_thermal_parameters_are_initial_condition_only(self):
+        """Regression for the same interval-omission pattern in
+        impose_thermal_parameters_scalar_value_process.py.
+
+        Pre-#13472 these thermal parameters (DENSITY / CONDUCTIVITY /
+        SPECIFIC_HEAT) were applied once at initialization by
+        ApplyConstantScalarValueProcess. The migrated AssignScalarVariableProcess
+        did not receive an interval and therefore re-applied the constant values
+        at every solution step, silently overwriting any later update. The fix
+        forwards an initial-only interval [0,0]; a later step must not restore
+        the initialized value.
+        """
+        from KratosMultiphysics.DamApplication.impose_thermal_parameters_scalar_value_process import (
+            Factory as ThermalParametersFactory,
+        )
+
+        model, mp = self._make_model(
+            [KratosMultiphysics.CONDUCTIVITY, KratosMultiphysics.SPECIFIC_HEAT,
+             KratosMultiphysics.DENSITY],
+            target_submodel_name="ThermalParameters_target")
+        settings = self._make_wrapper_settings(
+            "main.ThermalParameters_target", r"""
+            {
+                "model_part_name": "",
+                "variable_name": "THERMAL_PARAMETERS",
+                "interval": [0.0, 0.0],
+                "ThermalDensity": 2400,
+                "Conductivity": 2.2,
+                "SpecificHeat": 1000.0
+            }""")
+        process = ThermalParametersFactory(settings, model)
+
+        process.ExecuteBeforeSolutionLoop()
+        self._assert_node_value(mp, 1, KratosMultiphysics.CONDUCTIVITY, 2.2)
+
+        # emulate a later update of the conductivity by another process/model
+        node = mp.GetNode(1)
+        node.SetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY, 5.0)
+        mp.ProcessInfo[KratosMultiphysics.TIME] = 2.0
+        mp.CloneTimeStep(2.0)
+        process.ExecuteInitializeSolutionStep()
+
+        # the later step must NOT overwrite the updated conductivity
+        self._assert_node_value(mp, 1, KratosMultiphysics.CONDUCTIVITY, 5.0,
+                                msg="thermal parameter was re-applied in a later step")
 
     # ------------------------------------------------------------------
     # Idempotence of the double pre-loop callback (ExecuteBeforeSolutionLoop
