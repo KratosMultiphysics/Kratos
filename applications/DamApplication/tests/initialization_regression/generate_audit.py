@@ -36,6 +36,13 @@ COLUMNS = [
     "Later fixes",
     "Risk",
     "Evidence level (N/P/S)",
+    "historical_value_lifetime",
+    "current_value_lifetime",
+    "interval_forwarded",
+    "default_interval",
+    "per_step_reassignment",
+    "lifetime_semantics_equivalent",
+    "interval_regression_risk",
     "current_preloop_call_count_before_first_solve",
     "same_time_idempotent",
     "idempotence_reason",
@@ -512,44 +519,69 @@ ROWS.append({
     "Historical callback": "ExecuteInitialize",
     "Current callback": "ExecuteBeforeSolutionLoop",
     "Historical assignment mechanism": "ApplyConstantScalarValueProcess(model_part, params) "
-                                       "(is_fixed not set -> false)",
+                                       "(is_fixed not set -> false, applied once)",
     "Current assignment mechanism": "AssignScalarVariableProcess(Model, params) with explicit "
-                                    "constrained=false",
+                                    "constrained=false and interval [0,0] forwarded by fix",
     "is_fixed/constrained semantics": "explicit false (not DOFs); equivalent",
     "Called before solver.Initialize? legacy": LEGACY,
     "Called before solver.Initialize? current": YES,
-    "Updated each solution step?": "YES",
+    "Updated each solution step?": "NO (initial-only after fix); was YES before fix "
+                                   "(interval omission -> always-active re-application)",
     "Consumer of value": "thermal elements read nodal CONDUCTIVITY/SPECIFIC_HEAT/DENSITY in "
                          "CalculateLocalSystem (solve)",
     "Initialization consumer?": "No",
-    "Existing test coverage": "construction test",
-    "Later fixes": "none",
-    "Risk": "R0",
-    "Recommended action": "none",
+    "Existing test coverage": "construction test + "
+                              "test_dam_process_lifecycle::test_thermal_parameters_are_initial_condition_only",
+    "Later fixes": "FIXED on dam/initialization-regression (forward interval [0,0]); same "
+                   "interval-omission pattern as impose_uniform_temperature_process",
+    "Risk": "R2 semantic regression (same interval pattern; numerically idempotent for constant "
+            "values) -- FIXED on dam/initialization-regression",
+    "Recommended action": "keep regression test; constant values make the pre-fix re-application "
+                          "numerically idempotent, but it silently overwrote later updates",
+    "historical_value_lifetime": "initial-only (applied once)",
+    "current_value_lifetime": "initial-only (after fix)",
+    "interval_forwarded": "YES ([0,0]) after fix",
+    "default_interval": "[0,1e30] (always active) if omitted",
+    "per_step_reassignment": "NO after fix (was YES before fix)",
+    "lifetime_semantics_equivalent": "YES after fix",
+    "interval_regression_risk": "R2 (same pattern as uniform temp; numerically idempotent for "
+                                "constant values); FIXED",
 })
 
 ROWS.append({
     "Process": "ImposeUniformTemperatureProcess (wrapper)",
     "Python wrapper": "impose_uniform_temperature_process.py",
-    "Physical role": "thermal boundary condition (uniform temperature)",
+    "Physical role": "thermal boundary condition (uniform initial temperature)",
     "Variable(s) written": "TEMPERATURE",
     "Entity": "nodes",
     "Historical callback": "ExecuteInitialize",
     "Current callback": "ExecuteBeforeSolutionLoop",
-    "Historical assignment mechanism": "ApplyConstantScalarValueProcess / DamFixTemperatureConditionProcess",
+    "Historical assignment mechanism": "ApplyConstantScalarValueProcess (applied once) / DamFixTemperatureConditionProcess",
     "Current assignment mechanism": "constrained from settings: true -> "
                                     "DamFixTemperatureConditionProcess; false -> "
-                                    "AssignScalarVariableProcess(constrained from settings)",
+                                    "AssignScalarVariableProcess(constrained from settings, "
+                                    "interval [0,0] forwarded by fix)",
     "is_fixed/constrained semantics": "passed through; equivalent",
     "Called before solver.Initialize? legacy": LEGACY,
     "Called before solver.Initialize? current": YES,
-    "Updated each solution step?": "YES",
+    "Updated each solution step?": "NO (initial-only after fix); was YES before the fix "
+                                   "(interval omission -> always-active re-application)",
     "Consumer of value": "thermal elements + thermo CL (solve)",
     "Initialization consumer?": "No",
-    "Existing test coverage": "construction test",
-    "Later fixes": "none",
-    "Risk": "R0",
-    "Recommended action": "none",
+    "Existing test coverage": "construction test + "
+                              "test_dam_process_lifecycle::test_uniform_initial_temperature_is_initial_condition_only",
+    "Later fixes": "FIXED on dam/initialization-regression (forward interval [0,0]); "
+                   "historical interval had no effect (ApplyConstantScalarValueProcess applied once)",
+    "Risk": "R3 historical causal regression (La Baells) -- FIXED on dam/initialization-regression",
+    "Recommended action": "keep regression test; La Baells validation shows fixed branch == pre-#13472 "
+                          "(max diff ~1e-12)",
+    "historical_value_lifetime": "initial-only (applied once)",
+    "current_value_lifetime": "initial-only (after fix)",
+    "interval_forwarded": "YES ([0,0]) after fix",
+    "default_interval": "[0,1e30] (always active) if omitted",
+    "per_step_reassignment": "NO after fix (was YES before fix)",
+    "lifetime_semantics_equivalent": "YES after fix",
+    "interval_regression_risk": "R3 causal (PR #13472); FIXED",
 })
 
 ROWS.append({
@@ -560,20 +592,30 @@ ROWS.append({
     "Entity": "nodes",
     "Historical callback": "ExecuteInitialize",
     "Current callback": "ExecuteBeforeSolutionLoop",
-    "Historical assignment mechanism": "ApplyConstantScalarValueProcess (is_fixed=false) + "
+    "Historical assignment mechanism": "ApplyConstantScalarValueProcess (is_fixed=false, applied once) + "
                                        "DamFixTemperatureConditionProcess + DamTSolAirHeatFluxProcess",
-    "Current assignment mechanism": "AssignScalarVariableProcess (constrained=false) + "
-                                    "DamFixTemperatureConditionProcess + DamTSolAirHeatFluxProcess",
+    "Current assignment mechanism": "AssignScalarVariableProcess (constrained=false, interval [0,0] "
+                                    "forwarded by fix) + DamFixTemperatureConditionProcess + "
+                                    "DamTSolAirHeatFluxProcess",
     "is_fixed/constrained semantics": "explicit false for the uniform-T component; equivalent",
     "Called before solver.Initialize? legacy": LEGACY,
     "Called before solver.Initialize? current": YES,
-    "Updated each solution step?": "YES",
+    "Updated each solution step?": "NO (UniformFlux branch initial-only after fix); "
+                                   "T-sol-air branch recomputes per step (intended)",
     "Consumer of value": "thermal elements + thermal face condition (solve)",
     "Initialization consumer?": "No",
-    "Existing test coverage": "construction test",
-    "Later fixes": "none",
-    "Risk": "R0",
-    "Recommended action": "none",
+    "Existing test coverage": "construction test (T-sol-air path)",
+    "Later fixes": "UniformFlux branch FIXED on dam/initialization-regression "
+                   "(forward interval [0,0]); T-sol-air path unchanged (per-step recompute intended)",
+    "Risk": "R1 (UniformFlux branch same latent interval pattern; constant value, now fixed)",
+    "Recommended action": "keep construction test; UniformFlux branch covered by pattern regression tests",
+    "historical_value_lifetime": "initial-only (UniformFlux applied once)",
+    "current_value_lifetime": "initial-only (UniformFlux, after fix)",
+    "interval_forwarded": "YES ([0,0]) after fix (UniformFlux branch)",
+    "default_interval": "[0,1e30] (always active) if omitted",
+    "per_step_reassignment": "NO after fix (UniformFlux); T-sol-air recomputes per step (intended)",
+    "lifetime_semantics_equivalent": "YES after fix (UniformFlux)",
+    "interval_regression_risk": "LOW (constant flux; same latent pattern, now fixed)",
 })
 
 
@@ -831,6 +873,22 @@ def write_md(path):
     lines.append("|%s|\n" % "|".join(["---"] * len(COLUMNS)))
     for row in ROWS:
         lines.append("| %s |\n" % " | ".join(_md_escape(row.get(c, "")) for c in COLUMNS))
+    lines.append("\n## La Baells causal regression (PR #13472 value-lifetime)\n")
+    lines.append("A real historical investigation with the La Baells thermomechanical dam model "
+                 "established, with CAUSAL evidence, that PR #13472 introduced a physical "
+                 "regression in `impose_uniform_temperature_process.py`: migrating from "
+                 "`ApplyConstantScalarValueProcess` (applied once) to `AssignScalarVariableProcess` "
+                 "without forwarding an interval made the generic process re-apply the initial "
+                 "uniform temperature at every solution step (default interval [0,1e30]).\n")
+    lines.append("- First divergent step in La Baells: **day 2** (day 1 identical).\n")
+    lines.append("- Root cause: initial-only value lifetime became persistent override.\n")
+    lines.append("- Causal evidence: pre-#13472 + #13472 change -> BAD; current + interval [0,0] "
+                 "restoration -> GOOD (== pre-#13472).\n")
+    lines.append("- **FIX applied on dam/initialization-regression** (forward interval [0,0]); "
+                 "La Baells 5-step validation: fixed branch == ece5cfe (max diff ~1e-12).\n")
+    lines.append("- Same interval-omission pattern fixed in "
+                 "`impose_thermal_parameters_scalar_value_process.py` and the UniformFlux branch "
+                 "of `impose_face_heat_flux_process.py`.\n")
     lines.append("\n## Risk summary\n")
     counts = {}
     for row in ROWS:
@@ -839,28 +897,27 @@ def write_md(path):
     lines.append("| Risk | count |\n|---|---|\n")
     for r in ["R0", "R1", "R2", "R3"]:
         lines.append("| %s | %d |\n" % (r, counts.get(r, 0)))
-    lines.append("\n- **R0 (9):** Bofang, reservoir_constant, fix_temperature, TSolAir, hydro, "
-                 "apply_constraint_vector (wrapper), impose_thermal_parameters (wrapper), "
-                 "impose_uniform_temperature (wrapper), impose_face_heat_flux (wrapper).\n")
-    lines.append("- **R1 (15):** reservoir_monitoring, azenha, noorzai, nodal_reference_temperature, "
+    lines.append("\n- **R0 (6):** Bofang, reservoir_constant, fix_temperature, TSolAir, hydro, "
+                 "apply_constraint_vector (wrapper).\n")
+    lines.append("- **R1 (16):** reservoir_monitoring, azenha, noorzai, nodal_reference_temperature, "
                  "grouting_reference_temperature, temperature_by_device, nodal_young_modulus, "
                  "input_table_nodal_young_modulus, chemo_mechanical_aging, random_fields, uplift, "
-                 "uplift_circular, westergaard, added_mass, apply_component_table. "
-                 "Lifecycle-equivalent; several now have process-level runtime regression "
-                 "(evidence P: reservoir_monitoring, nodal_reference_temperature, grouting_"
-                 "reference_temperature, nodal_young_modulus, input_table_nodal_young_modulus, "
-                 "random_fields, added_mass), the rest remain evidence S (source-level only).\n")
-    lines.append("- **R2 (2, historical only):** apply_load_vector / apply_load_vector_table — "
-                 "real breakage between #13472 and #14617; now fixed and tested.\n")
-    lines.append("- **R3 (1):** impose_nodal_young_modulus_process (wrapper) — newly discovered, "
-                 "unimportable since #13472; fix reported separately (see dedicated section).\n")
+                 "uplift_circular, westergaard, added_mass, apply_component_table, "
+                 "impose_face_heat_flux (wrapper, UniformFlux branch).\n")
+    lines.append("- **R2 (3):** apply_load_vector / apply_load_vector_table (historical #14617 "
+                 "breakage, fixed) and impose_thermal_parameters_scalar_value_process (semantic "
+                 "interval regression, numerically idempotent for constant values, FIXED on this "
+                 "branch).\n")
+    lines.append("- **R3 (2):** impose_nodal_young_modulus_process (wrapper, unimportable since "
+                 "#13472, FIXED on this branch) and impose_uniform_temperature_process (wrapper, "
+                 "CAUSAL La Baells regression, FIXED on this branch).\n")
     lines.append("\n## Decisions / recommendations\n")
-    lines.append("- No further production-code change is required by this audit for the "
-                 "lifecycle/assignment semantics: all are equivalent for the merged behaviour.\n")
-    lines.append("- The two real regressions introduced by #13472 are resolved: the vector-load "
-                 "fixity bug was fixed by #14617 (with regression tests), and the "
-                 "nodal-Young-modulus import failure was fixed on this branch (with a positive "
-                 "regression test).\n")
+    lines.append("- All #13472 regressions are now resolved on this branch: vector-load fixity "
+                 "(#14617), nodal-Young-modulus import, and the uniform-initial-temperature "
+                 "value-lifetime regression (this branch).\n")
+    lines.append("- The value-lifetime semantics (interval forwarding) are now explicitly "
+                 "audited alongside the fixity semantics (constrained); they must not be "
+                 "conflated.\n")
     lines.append("- The double pre-loop callback architecture is intentionally left unchanged "
                  "(see architectural note).\n")
     lines.append("- R1 rows without a dedicated runtime regression (evidence level S) are "
@@ -891,7 +948,7 @@ def main():
         "ApplyLoadVectorDamProcess (wrapper)": "P",
         "ApplyLoadVectorDamTableProcess (wrapper)": "P",
         "ImposeThermalParametersScalarValueProcess (wrapper)": "P",
-        "ImposeUniformTemperatureProcess (wrapper)": "P",
+        "ImposeUniformTemperatureProcess (wrapper)": "N",
         "ImposeFaceHeatFluxProcess (wrapper)": "P",
         "ImposeNodalYoungModulusProcess (wrapper)": "P",
     }
@@ -903,7 +960,47 @@ def main():
             row[evidence_col] = EVIDENCE[row["Process"]]
         elif evidence_col not in row or not row[evidence_col]:
             row[evidence_col] = "S"
+        # value-lifetime metadata for the AssignScalarVariableProcess wrappers
+        LIFETIME = {
+            "ApplyConstraintVectorDamTableProcess (wrapper)": dict(
+                historical_value_lifetime="persistent (constant constraint value)",
+                current_value_lifetime="persistent (always-active re-application of the constant)",
+                interval_forwarded="NO",
+                default_interval="[0,1e30] (always active)",
+                per_step_reassignment="YES (re-applies the constant constraint value)",
+                lifetime_semantics_equivalent="YES (constant value; persistent constraint is intended)",
+                interval_regression_risk="LOW (constant value; fixity is the intended mechanism; "
+                                         "tables use ApplyComponentTableProcessDam)"),
+            "ApplyLoadVectorDamProcess (wrapper)": dict(
+                historical_value_lifetime="initial-only (applied once)",
+                current_value_lifetime="persistent (always-active re-application of the constant load)",
+                interval_forwarded="NO",
+                default_interval="[0,1e30] (always active)",
+                per_step_reassignment="YES (re-applies the constant load)",
+                lifetime_semantics_equivalent="YES (numerically idempotent constant load; tables use "
+                                              "ApplyComponentTableProcessDam)",
+                interval_regression_risk="LOW (constant load; no evolving quantity overwritten)"),
+            "ApplyLoadVectorDamTableProcess (wrapper)": dict(
+                historical_value_lifetime="initial-only (constant) / per-step (tables)",
+                current_value_lifetime="persistent (constant via AssignScalarVariableProcess); "
+                                       "tables via ApplyComponentTableProcessDam per-step",
+                interval_forwarded="NO",
+                default_interval="[0,1e30] (always active)",
+                per_step_reassignment="YES (constant branch)",
+                lifetime_semantics_equivalent="YES (numerically idempotent constant load)",
+                interval_regression_risk="LOW (constant load; tables handled by C++ per-step)"),
+        }
+        for field, value in LIFETIME.get(row["Process"], {}).items():
+            if field not in row or not row[field]:
+                row[field] = value
         for field, default in [
+            ("historical_value_lifetime", "n/a (C++ process; not AssignScalarVariableProcess)"),
+            ("current_value_lifetime", "n/a (C++ process; not AssignScalarVariableProcess)"),
+            ("interval_forwarded", "n/a"),
+            ("default_interval", "n/a"),
+            ("per_step_reassignment", "see 'Updated each solution step?'"),
+            ("lifetime_semantics_equivalent", "n/a"),
+            ("interval_regression_risk", "n/a"),
             ("current_preloop_call_count_before_first_solve", DOUBLE_CALL),
             ("same_time_idempotent",
              "YES (SetVariable overwrite + idempotent ApplyFixity; no accumulation)"),
