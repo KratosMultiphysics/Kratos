@@ -27,6 +27,7 @@ public:
     using BaseType          = Scheme<TSparseSpace, TDenseSpace>;
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
     using TSystemVectorType = typename BaseType::TSystemVectorType;
+    using DofsArrayType     = typename BaseType::DofsArrayType;
 
     GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
                              const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables,
@@ -63,6 +64,17 @@ public:
     void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
         this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
+    }
+
+    void Predict(ModelPart& rModelPart, DofsArrayType& rDofSet, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        PredictVariables(rModelPart);
+        // Update (Angular) Acceleration, (Angular) Velocity and DtPressure
+        this->UpdateVariablesDerivatives(rModelPart);
+
+        KRATOS_CATCH("")
     }
 
 protected:
@@ -158,7 +170,87 @@ protected:
         }
     }
 
-private:
+    void PredictVariables(const ModelPart& rModelPart)
+    {
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) { PredictVariablesForNode(rNode); });
+    }
+
+    virtual void PredictVariablesForNode(Node& rNode)
+    {
+        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
+            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
+            this->PredictSecondOrderVectorVariableForNode(rNode, r_second_order_vector_variable);
+        }
+
+        for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+            if (!rNode.SolutionStepsDataHas(r_first_order_scalar_variable.instance)) continue;
+            this->PredictFirstOrderScalarVariableForNode(rNode, r_first_order_scalar_variable);
+        }
+    }
+
+    void PredictFirstOrderScalarVariableForNode(Node& rNode, const FirstOrderScalarVariable& rFirstOrderScalarVariable)
+    {
+        const double previous_variable =
+            rNode.FastGetSolutionStepValue(rFirstOrderScalarVariable.instance, 1);
+        const double previous_first_time_derivative =
+            rNode.FastGetSolutionStepValue(rFirstOrderScalarVariable.first_time_derivative, 1);
+        const double current_first_time_derivative =
+            rNode.FastGetSolutionStepValue(rFirstOrderScalarVariable.first_time_derivative, 0);
+
+        if (rNode.IsFixed(rFirstOrderScalarVariable.first_time_derivative)) {
+            rNode.FastGetSolutionStepValue(rFirstOrderScalarVariable.instance) =
+                previous_variable + (1 - this->GetTheta()) * this->GetDeltaTime() * previous_first_time_derivative +
+                current_first_time_derivative * this->GetTheta() * this->GetDeltaTime();
+        } else if (!rNode.IsFixed(rFirstOrderScalarVariable.instance)) {
+            rNode.FastGetSolutionStepValue(rFirstOrderScalarVariable.instance) =
+                previous_variable + this->GetDeltaTime() * previous_first_time_derivative;
+        }
+    }
+
+    void PredictSecondOrderVectorVariableForNode(Node& rNode, const SecondOrderVectorVariable& rSecondOrderVectorVariable)
+    {
+        const std::vector<std::string> components = {"X", "Y", "Z"};
+
+        for (const auto& component : components) {
+            const auto& instance_component = VariablesUtilities::GetComponentFromVectorVariable(
+                rSecondOrderVectorVariable.instance.Name(), component);
+
+            if (!rNode.HasDofFor(instance_component)) continue;
+
+            const auto& first_time_derivative_component = VariablesUtilities::GetComponentFromVectorVariable(
+                rSecondOrderVectorVariable.first_time_derivative.Name(), component);
+            const auto& second_time_derivative_component = VariablesUtilities::GetComponentFromVectorVariable(
+                rSecondOrderVectorVariable.second_time_derivative.Name(), component);
+
+            const double previous_variable = rNode.FastGetSolutionStepValue(instance_component, 1);
+            const double current_first_time_derivative =
+                rNode.FastGetSolutionStepValue(first_time_derivative_component, 0);
+            const double previous_first_time_derivative =
+                rNode.FastGetSolutionStepValue(first_time_derivative_component, 1);
+            const double current_second_time_derivative =
+                rNode.FastGetSolutionStepValue(second_time_derivative_component, 0);
+            const double previous_second_time_derivative =
+                rNode.FastGetSolutionStepValue(second_time_derivative_component, 1);
+            if (rNode.IsFixed(second_time_derivative_component)) {
+                rNode.FastGetSolutionStepValue(instance_component) =
+                    previous_variable + this->GetDeltaTime() * previous_first_time_derivative +
+                    this->GetDeltaTime() * this->GetDeltaTime() *
+                        ((0.5 - this->GetBeta()) * previous_second_time_derivative +
+                         this->GetBeta() * current_second_time_derivative);
+            } else if (rNode.IsFixed(first_time_derivative_component)) {
+                rNode.FastGetSolutionStepValue(instance_component) =
+                    previous_variable +
+                    this->GetDeltaTime() * ((this->GetBeta() / this->GetGamma()) *
+                                                (current_first_time_derivative - previous_first_time_derivative) +
+                                            previous_first_time_derivative);
+            } else if (!rNode.IsFixed(instance_component)) {
+                rNode.FastGetSolutionStepValue(instance_component) =
+                    previous_variable + this->GetDeltaTime() * previous_first_time_derivative +
+                    0.5 * this->GetDeltaTime() * this->GetDeltaTime() * previous_second_time_derivative;
+            }
+        }
+    }
+
     std::optional<double> mBeta;
     std::optional<double> mGamma;
     std::optional<double> mTheta;
