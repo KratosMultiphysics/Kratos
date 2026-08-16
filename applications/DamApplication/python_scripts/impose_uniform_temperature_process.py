@@ -26,13 +26,7 @@ class ImposeUniformTemperatureProcess(KratosMultiphysics.Process):
             if settings["constrained"].GetBool():
                 self.process = KratosDam.DamFixTemperatureConditionProcess(model_part, settings)
             else:
-                # The uniform temperature is an INITIAL CONDITION: it must be
-                # applied only at initialization and never re-applied during
-                # later solution steps. Pre-#13472 this was the behaviour of
-                # ApplyConstantScalarValueProcess (applied once at
-                # ExecuteInitialize). AssignScalarVariableProcess defaults to an
-                # always-active interval, so an initial-only interval [0,0] must
-                # be forwarded explicitly to preserve that apply-once semantics.
+                # Preserve the legacy apply-once behavior of ApplyConstantScalarValueProcess.
                 param.AddValue("interval", KratosMultiphysics.Parameters("[0.0, 0.0]"))
                 self.process = AssignScalarVariableProcess(Model, param)
         else:

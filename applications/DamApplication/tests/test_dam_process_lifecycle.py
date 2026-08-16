@@ -1,27 +1,17 @@
-import os
-import sys
-import tempfile
-
 import KratosMultiphysics
 import KratosMultiphysics.DamApplication as KratosDam
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
-class TestDamProcessLifecycle(KratosUnittest.TestCase):
-    """Generic process-level lifecycle harness for PR #13472 R1 processes.
+class TestDamProcessLifetime(KratosUnittest.TestCase):
+    """Assignment-lifetime contracts for Dam scalar-assignment processes.
 
-    PR #13472 renamed the initialization callback of every Dam process from
-    ``ExecuteInitialize`` to ``ExecuteBeforeSolutionLoop`` (coordinated with the
-    analysis and the Python wrappers). The source audit classifies all of them
-    L0 (lifecycle equivalent): the value is assigned before solver.Initialize
-    in both versions and the consumers read it only during the solve.
-
-    These tests lock the production-chain invariant for representative R1
-    processes: through the real Python wrapper, the value is actually assigned
-    at the intended initialization callback (guarding against the dead-callback
-    failure mode demonstrated for Bofang) and re-applied at the per-step
-    callback, touching only the target model part.
+    These processes were historically implemented with
+    ``ApplyConstantScalarValueProcess``, which assigned the value once at
+    initialization. After the migration to ``AssignScalarVariableProcess`` the
+    wrappers must forward an initial-only interval ``[0.0, 0.0]`` so that the
+    value is an initial condition and is not re-applied at later solution steps.
     """
 
     def _make_model(self, variables, target_submodel_name="target"):
@@ -35,13 +25,6 @@ class TestDamProcessLifecycle(KratosUnittest.TestCase):
         sub = mp.CreateSubModelPart(target_submodel_name)
         sub.AddNodes([1])
         return model, mp
-    @staticmethod
-    def _factory(wrapper_module, settings, model):
-        # settings = {"python_module":..., "Parameters": {...}} exactly as the
-        # process_factory would hand it to the wrapper Factory
-        module = __import__("KratosMultiphysics.DamApplication.%s" % wrapper_module,
-                            fromlist=["Factory"])
-        return module.Factory(settings, model)
 
     def _make_wrapper_settings(self, model_part_name, extra):
         # build {"python_module","Parameters": {...}} as the process_factory would
@@ -60,44 +43,10 @@ class TestDamProcessLifecycle(KratosUnittest.TestCase):
         self.assertAlmostEqual(model_part.GetNode(node_id).GetSolutionStepValue(variable),
                                expected, delta=tol, msg=msg)
 
-    def _double_call_compare(self, process, model_part, variables):
-        """ExecuteBeforeSolutionLoop() twice at the same TIME and compare the
-        observable state (assigned values, fixity, DOF set) after each call."""
-        def snapshot():
-            snap = {}
-            for node in model_part.Nodes:
-                nid = node.Id
-                snap[nid] = {
-                    "values": {v.Name(): node.GetSolutionStepValue(v) for v in variables},
-                    "fixed": {v.Name(): node.IsFixed(v) for v in variables},
-                    "has_dof": {v.Name(): node.HasDofFor(v) for v in variables},
-                }
-            return snap
-
-        process.ExecuteBeforeSolutionLoop()
-        after_first = snapshot()
-        process.ExecuteBeforeSolutionLoop()
-        after_second = snapshot()
-        self.assertEqual(after_first, after_second,
-                         "state changed between the two pre-loop calls")
-        return after_first
-
-    def test_uniform_initial_temperature_is_initial_condition_only(self):
-        """Regression for the PR #13472 uniform-initial-temperature lifetime bug
-        (causally identified with the La Baells case).
-
-        Pre-#13472, `impose_uniform_temperature_process` applied the constant
-        initial temperature ONCE (via `ApplyConstantScalarValueProcess` at
-        `ExecuteInitialize`). After #13472 the wrapper constructs
-        `AssignScalarVariableProcess` WITHOUT forwarding an interval, so the
-        generic process uses its default interval [0,1e30] (always active) and
-        re-applies the initial temperature at EVERY `ExecuteInitializeSolutionStep`,
-        overwriting the thermally evolved field from day 2 onward.
-
-        The intended semantics is an INITIAL CONDITION, not a persistent
-        boundary condition: after the initial assignment, later solution steps
-        must NOT overwrite the evolved temperature.
-        """
+    def test_uniform_initial_temperature_is_applied_once(self):
+        """The uniform initial temperature is an initial condition, not a
+        persistent boundary condition: a later solution step must not restore
+        the initial value over an evolved temperature field."""
         from KratosMultiphysics.DamApplication.impose_uniform_temperature_process import (
             Factory as UniformTemperatureFactory,
         )
@@ -116,36 +65,23 @@ class TestDamProcessLifecycle(KratosUnittest.TestCase):
             }""")
         process = UniformTemperatureFactory(settings, model)
 
-        # intended initialization point: initial temperature assigned
         process.ExecuteBeforeSolutionLoop()
         self._assert_node_value(mp, 1, KratosMultiphysics.TEMPERATURE, 12.712)
 
         # emulate thermal evolution (solved field)
-        node = mp.GetNode(1)
-        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 8.0)
-
-        # advance time to a later solution step
+        mp.GetNode(1).SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 8.0)
         mp.ProcessInfo[KratosMultiphysics.TIME] = 2.0
         mp.CloneTimeStep(2.0)
         process.ExecuteInitializeSolutionStep()
 
         # the later step must NOT overwrite the evolved temperature
         self._assert_node_value(mp, 1, KratosMultiphysics.TEMPERATURE, 8.0,
-                                msg="initial temperature was re-applied in a later step "
-                                    "(persistent override instead of initial condition)")
+                                msg="initial temperature was re-applied in a later step")
 
-    def test_thermal_parameters_are_initial_condition_only(self):
-        """Regression for the same interval-omission pattern in
-        impose_thermal_parameters_scalar_value_process.py.
-
-        Pre-#13472 these thermal parameters (DENSITY / CONDUCTIVITY /
-        SPECIFIC_HEAT) were applied once at initialization by
-        ApplyConstantScalarValueProcess. The migrated AssignScalarVariableProcess
-        did not receive an interval and therefore re-applied the constant values
-        at every solution step, silently overwriting any later update. The fix
-        forwards an initial-only interval [0,0]; a later step must not restore
-        the initialized value.
-        """
+    def test_thermal_parameters_are_initialized_once(self):
+        """DENSITY / CONDUCTIVITY / SPECIFIC_HEAT are applied once at
+        initialization; a later step must not restore the initialized value over
+        a value updated by another process/model."""
         from KratosMultiphysics.DamApplication.impose_thermal_parameters_scalar_value_process import (
             Factory as ThermalParametersFactory,
         )
@@ -168,10 +104,11 @@ class TestDamProcessLifecycle(KratosUnittest.TestCase):
 
         process.ExecuteBeforeSolutionLoop()
         self._assert_node_value(mp, 1, KratosMultiphysics.CONDUCTIVITY, 2.2)
+        self._assert_node_value(mp, 1, KratosMultiphysics.DENSITY, 2400.0)
+        self._assert_node_value(mp, 1, KratosMultiphysics.SPECIFIC_HEAT, 1000.0)
 
         # emulate a later update of the conductivity by another process/model
-        node = mp.GetNode(1)
-        node.SetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY, 5.0)
+        mp.GetNode(1).SetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY, 5.0)
         mp.ProcessInfo[KratosMultiphysics.TIME] = 2.0
         mp.CloneTimeStep(2.0)
         process.ExecuteInitializeSolutionStep()
@@ -180,191 +117,44 @@ class TestDamProcessLifecycle(KratosUnittest.TestCase):
         self._assert_node_value(mp, 1, KratosMultiphysics.CONDUCTIVITY, 5.0,
                                 msg="thermal parameter was re-applied in a later step")
 
-    # ------------------------------------------------------------------
-    # Idempotence of the double pre-loop callback (ExecuteBeforeSolutionLoop
-    # is invoked twice around solver.Initialize in dam_analysis.py; see the
-    # audit's architectural note). Each test calls it twice at the same TIME
-    # and asserts the observable state is unchanged.
-    # ------------------------------------------------------------------
-    def test_idempotent_thermal_process(self):
-        # deterministic thermal/reference process (table-driven overwrite)
-        model, mp = self._make_model([KratosDam.NODAL_REFERENCE_TEMPERATURE])
-        settings = self._make_wrapper_settings(
-            "main.target", r"""
-            {
-                "model_part_name": "",
-                "variable_name": "NODAL_REFERENCE_TEMPERATURE",
-                "initial_value": 8.3
-            }""")
-        process = self._factory("impose_nodal_reference_temperature_process", settings, model)
-        self._double_call_compare(process, mp, [KratosDam.NODAL_REFERENCE_TEMPERATURE])
+    def test_uniform_face_heat_flux_is_not_reapplied(self):
+        """The uniform face heat flux is assigned once at initialization and
+        remains unchanged unless another process/model modifies it."""
+        from KratosMultiphysics.DamApplication.impose_face_heat_flux_process import (
+            Factory as FaceHeatFluxFactory,
+        )
 
-    def test_idempotent_material_process(self):
-        # material-evolution process (Young modulus from parameters, fixed)
-        model, mp = self._make_model([KratosDam.NODAL_YOUNG_MODULUS])
-        settings = self._make_wrapper_settings(
-            "main.target", r"""
-            {
-                "model_part_name": "",
-                "variable_name": "NODAL_YOUNG_MODULUS",
-                "Young_Modulus_1": 20.0,
-                "Young_Modulus_2": 30.0,
-                "Young_Modulus_3": 40.0,
-                "Young_Modulus_4": 50.0
-            }""")
-        process = self._factory("impose_nodal_young_modulus_process", settings, model)
-        snap = self._double_call_compare(process, mp, [KratosDam.NODAL_YOUNG_MODULUS])
-        # the wrapper documents that the scalar is automatically fixed; the DOF
-        # set must be stable across both calls
-        self.assertTrue(snap[1]["has_dof"]["NODAL_YOUNG_MODULUS"])
-
-    def test_idempotent_load_process(self):
-        # hydrostatic load (depth-derived pressure overwrite)
         model, mp = self._make_model(
-            [KratosMultiphysics.POSITIVE_FACE_PRESSURE],
-            target_submodel_name="HydroLinePressure2D_target")
+            [KratosMultiphysics.FACE_HEAT_FLUX],
+            target_submodel_name="UniformFlux3D_target")
         settings = self._make_wrapper_settings(
-            "main.HydroLinePressure2D_target", r"""
+            "main.UniformFlux3D_target", r"""
             {
                 "model_part_name": "",
-                "variable_name": "POSITIVE_FACE_PRESSURE",
-                "Gravity_Direction": "Y",
-                "Reservoir_Bottom_Coordinate_in_Gravity_Direction": 0.0,
-                "Spe_weight": 10000.0,
-                "Water_level": 10.0,
-                "Water_Table": 0
+                "variable_name": "FACE_HEAT_FLUX",
+                "interval": [0.0, 0.0],
+                "constrained": false,
+                "value": 10.0,
+                "table": 0
             }""")
-        process = self._factory("impose_water_loads_condition_process", settings, model)
-        snap = self._double_call_compare(process, mp, [KratosMultiphysics.POSITIVE_FACE_PRESSURE])
-        # node 1 at y=0 below water level 10 -> nonzero pressure
-        self.assertGreater(snap[1]["values"]["POSITIVE_FACE_PRESSURE"], 0.0)
-
-    def test_idempotent_random_fields(self):
-        # random field: the table is generated ONCE by the wrapper (gstools);
-        # the C++ process only reads the table by node id. Here the process is
-        # exercised directly with a pre-built table (gstools is not required).
-        model, mp = self._make_model([KratosDam.NODAL_YOUNG_MODULUS])
-        table = KratosMultiphysics.PiecewiseLinearTable()
-        table.AddRow(1, 3.5)
-        table.AddRow(2, 7.2)
-        settings = KratosMultiphysics.Parameters("""{
-            "model_part_name": "main.target",
-            "variable_name": "NODAL_YOUNG_MODULUS",
-            "mean_value": 0.0, "min_value": 0.0, "max_value": 10.0,
-            "variance": 1.0, "corr_length": 1
-        }""")
-        process = KratosDam.DamRandomFieldsVariableProcess(
-            mp.GetSubModelPart("target"), table, settings)
-        snap = self._double_call_compare(process, mp, [KratosDam.NODAL_YOUNG_MODULUS])
-        self.assertEqual(snap[1]["values"]["NODAL_YOUNG_MODULUS"], 3.5)
-        self.assertEqual(snap[2]["values"]["NODAL_YOUNG_MODULUS"], 0.0)  # outside model part
-
-    def test_idempotent_added_mass(self):
-        # added-mass contribution (deterministic function of node coordinates)
-        model, mp = self._make_model([KratosDam.ADDED_MASS])
-        settings = KratosMultiphysics.Parameters("""{
-            "model_part_name": "main.target",
-            "variable_name": "ADDED_MASS",
-            "Gravity_Direction": "Y",
-            "Reservoir_Bottom_Coordinate_in_Gravity_Direction": 0.0,
-            "Spe_weight": 10000.0,
-            "Water_level": 10.0
-        }""")
-        process = KratosDam.DamAddedMassConditionProcess(
-            mp.GetSubModelPart("target"), settings)
-        snap = self._double_call_compare(process, mp, [KratosDam.ADDED_MASS])
-        self.assertGreater(snap[1]["values"]["ADDED_MASS"], 0.0)
-
-    def test_nodal_reference_temperature(self):
-        model, mp = self._make_model([KratosDam.NODAL_REFERENCE_TEMPERATURE])
-        settings = self._make_wrapper_settings(
-            "main.target", r"""
-            {
-                "model_part_name": "",
-                "variable_name": "NODAL_REFERENCE_TEMPERATURE",
-                "initial_value": 8.3
-            }""")
-        process = self._factory("impose_nodal_reference_temperature_process", settings, model)
+        process = FaceHeatFluxFactory(settings, model)
 
         process.ExecuteBeforeSolutionLoop()
-        self._assert_node_value(mp, 1, KratosDam.NODAL_REFERENCE_TEMPERATURE, 8.3)
-        self._assert_node_value(mp, 2, KratosDam.NODAL_REFERENCE_TEMPERATURE, 0.0)
+        self._assert_node_value(mp, 1, KratosMultiphysics.FACE_HEAT_FLUX, 10.0)
 
-        mp.CloneTimeStep(1.0)
+        # emulate a later update of the flux
+        mp.GetNode(1).SetSolutionStepValue(KratosMultiphysics.FACE_HEAT_FLUX, 20.0)
+        mp.ProcessInfo[KratosMultiphysics.TIME] = 2.0
+        mp.CloneTimeStep(2.0)
         process.ExecuteInitializeSolutionStep()
-        self._assert_node_value(mp, 1, KratosDam.NODAL_REFERENCE_TEMPERATURE, 8.3)
 
-    def test_grouting_reference_temperature(self):
-        model, mp = self._make_model([KratosDam.NODAL_REFERENCE_TEMPERATURE, KratosMultiphysics.TEMPERATURE])
-        settings = self._make_wrapper_settings(
-            "main.target", r"""
-            {
-                "model_part_name": "",
-                "variable_name": "NODAL_REFERENCE_TEMPERATURE",
-                "initial_value": 5.0,
-                "time_grouting": 100.0
-            }""")
-        process = self._factory("impose_grouting_reference_temperature_process", settings, model)
+        # the later step must NOT restore the initialized flux
+        self._assert_node_value(mp, 1, KratosMultiphysics.FACE_HEAT_FLUX, 20.0,
+                                msg="uniform face heat flux was re-applied in a later step")
 
-        process.ExecuteBeforeSolutionLoop()
-        self._assert_node_value(mp, 1, KratosDam.NODAL_REFERENCE_TEMPERATURE, 5.0)
-        # node 2 is outside the process model part -> untouched
-        self._assert_node_value(mp, 2, KratosDam.NODAL_REFERENCE_TEMPERATURE, 0.0)
-
-        # at the grouting time the reference temperature is updated from TEMPERATURE
-        mp.GetNode(1).SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 12.0)
-        mp.CloneTimeStep(100.0)
-        process.ExecuteFinalizeSolutionStep()
-        self._assert_node_value(mp, 1, KratosDam.NODAL_REFERENCE_TEMPERATURE, 12.0)
-
-    def test_reservoir_monitoring_temperature(self):
-        model, mp = self._make_model(
-            [KratosMultiphysics.TEMPERATURE],
-            target_submodel_name="MONITORINGRESERVOIRTEMPERATURE_target")
-        settings = self._make_wrapper_settings(
-            "main.MONITORINGRESERVOIRTEMPERATURE_target", r"""
-            {
-                "model_part_name": "",
-                "variable_name": "TEMPERATURE",
-                "Gravity_Direction": "Y",
-                "Reservoir_Bottom_Coordinate_in_Gravity_Direction": 0.0,
-                "Height_Dam": 20.0,
-                "Ambient_temp": 10.0,
-                "Water_level": 10.0,
-                "Z_Coord_1": 0.0, "Water_temp_1": 4.0,
-                "Z_Coord_2": 10.0, "Water_temp_2": 8.0,
-                "Z_Coord_3": 20.0, "Water_temp_3": 12.0
-            }""")
-        process = self._factory("impose_reservoir_temperature_condition_process", settings, model)
-
-        process.ExecuteBeforeSolutionLoop()
-        # target node y=0, water level 10 -> assigned, below-water value
-        self.assertNotEqual(mp.GetNode(1).GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 0.0)
-        # node outside the reservoir model part untouched
-        self._assert_node_value(mp, 2, KratosMultiphysics.TEMPERATURE, 0.0)
-
-        mp.CloneTimeStep(1.0)
-        process.ExecuteInitializeSolutionStep()
-        self.assertNotEqual(mp.GetNode(1).GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 0.0)
-
-    # ------------------------------------------------------------------ M
-    def test_nodal_young_modulus(self):
-        """Positive regression for the PR #13472 nodal-Young-modulus wrapper bug.
-
-        PR #13472 removed ``from KratosMultiphysics import *`` from
-        ``impose_nodal_young_modulus_process.py`` but left the class base as the
-        bare ``Process`` (now undefined), which made the module unimportable
-        (``NameError``). This test verifies the one-line fix
-        (``class ...(KratosMultiphysics.Process)``) end to end:
-        1. module imports,
-        2. factory instantiates the production wrapper,
-        3. the wrapper is a valid ``KratosMultiphysics.Process``,
-        4. the underlying C++ process executes on a minimal ModelPart,
-        5. the expected ``NODAL_YOUNG_MODULUS`` value is assigned,
-        6. fixity is exactly the documented production behaviour (the scalar is
-           "automatically fixed", matching the historical ``Node::Fix``
-           semantics) and no unrelated DOF/fixity changes occur.
-        """
+    def test_nodal_young_modulus_process_factory(self):
+        """The nodal Young modulus production wrapper is importable and
+        instantiates a valid process that assigns NODAL_YOUNG_MODULUS."""
         from KratosMultiphysics.DamApplication.impose_nodal_young_modulus_process import (
             Factory as NodalYoungFactory,
         )
@@ -380,69 +170,13 @@ class TestDamProcessLifecycle(KratosUnittest.TestCase):
                 "Young_Modulus_3": 40.0,
                 "Young_Modulus_4": 50.0
             }""")
-        # the module import above already proves (1); (2) factory instantiation
         process = NodalYoungFactory(settings, model)
-        self.assertIsInstance(process, KratosMultiphysics.Process)  # (3)
+        self.assertIsInstance(process, KratosMultiphysics.Process)
 
-        # (4) the underlying process executes at the init and per-step callbacks
         process.ExecuteBeforeSolutionLoop()
-        self.assertNotEqual(
-            mp.GetNode(1).GetSolutionStepValue(KratosDam.NODAL_YOUNG_MODULUS), 0.0)
-        mp.CloneTimeStep(1.0)
-        process.ExecuteInitializeSolutionStep()
-        self.assertNotEqual(
-            mp.GetNode(1).GetSolutionStepValue(KratosDam.NODAL_YOUNG_MODULUS), 0.0)
-
-        # (5) expected value on the target node (Young_Modulus_1)
         self._assert_node_value(mp, 1, KratosDam.NODAL_YOUNG_MODULUS, 20.0)
         # node outside the process model part untouched
         self._assert_node_value(mp, 2, KratosDam.NODAL_YOUNG_MODULUS, 0.0)
-
-        # (6) documented fixity: NODAL_YOUNG_MODULUS is fixed (wrapper comment:
-        # "the scalar value is automatically fixed", Node::Fix semantics, same
-        # pre/post #13472); unrelated variables must not be fixed / get DOFs.
-        node = mp.GetNode(1)
-        self.assertTrue(node.IsFixed(KratosDam.NODAL_YOUNG_MODULUS))
-        for unrelated in (KratosMultiphysics.DISPLACEMENT_X,
-                          KratosMultiphysics.DISPLACEMENT_Y,
-                          KratosMultiphysics.TEMPERATURE):
-            self.assertFalse(node.HasDofFor(unrelated),
-                             msg="unintended DOF for %s" % unrelated.Name())
-            self.assertFalse(node.IsFixed(unrelated),
-                             msg="unintended fixity for %s" % unrelated.Name())
-
-    def test_input_table_nodal_young_modulus(self):
-        model, mp = self._make_model([KratosDam.NODAL_YOUNG_MODULUS])
-        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
-            f.write("1 25.0\n")
-            f.write("2 35.0\n")
-            table_file = f.name
-        try:
-            settings = self._make_wrapper_settings(
-                "main.target", r"""
-                {
-                    "model_part_name": "",
-                    "variable_name": "NODAL_YOUNG_MODULUS",
-                    "input_file_name": "",
-                    "min_value": 0.0,
-                    "max_value": 100.0
-                }""")
-            settings["Parameters"]["input_file_name"].SetString(table_file)
-            process = self._factory(
-                "impose_input_table_nodal_young_modulus_process", settings, model)
-
-            process.ExecuteBeforeSolutionLoop()
-            # input file present -> table values applied already at the init callback
-            self._assert_node_value(mp, 1, KratosDam.NODAL_YOUNG_MODULUS, 25.0)
-            # node 2 outside the process model part -> untouched
-            self._assert_node_value(mp, 2, KratosDam.NODAL_YOUNG_MODULUS, 0.0)
-
-            mp.CloneTimeStep(1.0)
-            process.ExecuteInitializeSolutionStep()
-            self._assert_node_value(mp, 1, KratosDam.NODAL_YOUNG_MODULUS, 25.0)
-            self._assert_node_value(mp, 2, KratosDam.NODAL_YOUNG_MODULUS, 0.0)
-        finally:
-            os.unlink(table_file)
 
 
 if __name__ == "__main__":

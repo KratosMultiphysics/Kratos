@@ -25,8 +25,7 @@ class ImposeFaceHeatFluxProcess(KratosMultiphysics.Process):
                 t_uniform.AddEmptyValue("constrained").SetBool(False)
                 t_uniform.AddValue("variable_name",settings["variable_name"])
                 t_uniform.AddValue("value",settings["value"])
-                # Initial-only interval: pre-#13472 ApplyConstantScalarValueProcess
-                # applied the uniform flux once at initialization.
+                # Preserve the legacy apply-once behavior of ApplyConstantScalarValueProcess.
                 t_uniform.AddValue("interval", KratosMultiphysics.Parameters("[0.0, 0.0]"))
                 self.components_process_list.append(AssignScalarVariableProcess(Model, t_uniform))
             else:

@@ -23,11 +23,7 @@ class ImposeThemalParametersScalarValueProcess(KratosMultiphysics.Process):
             thermal_density.AddValue("value", settings["ThermalDensity"])
             thermal_density.AddEmptyValue("constrained").SetBool(False)
             thermal_density.AddEmptyValue("variable_name").SetString("DENSITY")
-            # Initial-only interval: pre-#13472 ApplyConstantScalarValueProcess
-            # applied these thermal parameters once at initialization. Without
-            # an explicit interval, AssignScalarVariableProcess defaults to an
-            # always-active interval and would overwrite later updates of the
-            # parameters at every solution step.
+            # Preserve the legacy apply-once behavior of ApplyConstantScalarValueProcess.
             thermal_density.AddValue("interval", KratosMultiphysics.Parameters("[0.0, 0.0]"))
 
             self.components_process_list.append(AssignScalarVariableProcess(Model, thermal_density))

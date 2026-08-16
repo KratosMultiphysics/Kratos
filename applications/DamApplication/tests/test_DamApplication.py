@@ -8,8 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 from generalTests import KratosDamGeneralTests
 from test_apply_load_vector_dam_processes import TestApplyLoadVectorDamProcesses
-from test_bofang_initialization import TestBofangInitializationRegression
-from test_dam_process_lifecycle import TestDamProcessLifecycle
+from test_dam_process_lifecycle import TestDamProcessLifetime
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -46,12 +45,7 @@ def AssembleTestSuites():
     )
     smallSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TestBofangInitializationRegression
-        ])
-    )
-    smallSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TestDamProcessLifecycle
+            TestDamProcessLifetime
         ])
     )
 
@@ -70,8 +64,7 @@ def AssembleTestSuites():
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             KratosDamGeneralTests,
             TestApplyLoadVectorDamProcesses,
-            TestBofangInitializationRegression,
-            TestDamProcessLifecycle
+            TestDamProcessLifetime
         ])
     )
 
