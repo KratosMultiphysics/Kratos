@@ -20,9 +20,9 @@ RUN add-apt-repository ppa:git-core/ppa && \
 RUN apt-get install -y --no-install-recommends \
     sudo \
     build-essential \
-    g++-12 \
-    gfortran-12 \
-    clang-14 \
+    g++-14 \
+    gfortran-14 \
+    clang-17 \
     libomp-dev \
     cmake \
     gfortran \
