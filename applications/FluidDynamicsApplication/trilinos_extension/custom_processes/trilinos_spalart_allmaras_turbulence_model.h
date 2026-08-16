@@ -153,7 +153,7 @@ public:
         for (ModelPart::ElementsContainerType::iterator iii = BaseSpAlType::mr_model_part.ElementsBegin(); iii != BaseSpAlType::mr_model_part.ElementsEnd(); iii++)
         {
             Properties::Pointer properties = iii->pGetProperties();
-            Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
+            Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry().Points(), properties);
             BaseSpAlType::mrSpalartModelPart.Elements().push_back(p_element);
         }
 
@@ -167,7 +167,7 @@ public:
         for (ModelPart::ConditionsContainerType::iterator iii = BaseSpAlType::mr_model_part.ConditionsBegin(); iii != BaseSpAlType::mr_model_part.ConditionsEnd(); iii++)
         {
             Properties::Pointer properties = iii->pGetProperties();
-            Condition::Pointer p_condition = rReferenceCondition.Create(iii->Id(), iii->GetGeometry(), properties);
+            Condition::Pointer p_condition = rReferenceCondition.Create(iii->Id(), iii->GetGeometry().Points(), properties);
             BaseSpAlType::mrSpalartModelPart.Conditions().push_back(p_condition);
         }
 
