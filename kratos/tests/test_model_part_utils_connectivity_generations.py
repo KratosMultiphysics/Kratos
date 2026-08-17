@@ -1,5 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import gc
 import os
 
 def GetFilePath(fileName):
@@ -103,6 +104,20 @@ class TestModelPartUtilsConnectivityGenerations(KratosUnittest.TestCase):
         for cond in self.main_model_part.Conditions:
             ref = [node.Id for node in cond.GetGeometry()]
             self.assertTrue(ref in self.connectivities)
+
+    def test_ModelPartUtils_GetModelPartPythonLifetime(self):
+        sub_model_part = self.main_model_part.CreateSubModelPart("sub")
+        sub_model_part.AddConditions([1, 2])
+        sub_model_part.AddNodes([1, 2, 4, 5])
+
+        found_model_part = KratosMultiphysics.ModelPartUtils.GetModelPart(self.model, sub_model_part.Conditions)
+        self.assertEqual(found_model_part.FullName(), sub_model_part.FullName())
+
+        del found_model_part
+        gc.collect()
+
+        self.assertEqual(sub_model_part.NumberOfConditions(), 2)
+        self.assertEqual(self.main_model_part.GetSubModelPart("sub").FullName(), sub_model_part.FullName())
 
 if __name__ == '__main__':
     # Set logging severity to warning to minimize log output during tests
