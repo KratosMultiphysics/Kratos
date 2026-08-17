@@ -14,7 +14,6 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
-#include <unordered_set>
 
 // External includes
 
@@ -23,21 +22,22 @@
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "containers/sparse_contiguous_row_graph.h"
 
 namespace Kratos {
 
 namespace {
 
-typedef typename MapperDefinitions::SparseSpaceType MappingSparseSpaceType;
-typedef typename MapperDefinitions::DenseSpaceType  DenseSpaceType;
+using MappingSparseSpaceType = typename MapperDefinitions::SparseSpaceType;
+using DenseSpaceType = typename MapperDefinitions::DenseSpaceType;
 
-typedef MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType> MappingMatrixUtilitiesType;
+using MappingMatrixUtilitiesType = MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType>;
 
-typedef typename MapperLocalSystem::MatrixType MatrixType;
-typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
+using MatrixType = typename MapperLocalSystem::MatrixType;
+using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
 
-typedef std::size_t IndexType;
-typedef std::size_t SizeType;
+using IndexType = std::size_t;
+using SizeType = std::size_t;
 
 /***********************************************************************************/
 /* Functions for internal use in this file */
@@ -48,8 +48,10 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
                               const SizeType NumNodesOrigin,
                               const SizeType NumNodesDestination)
 {
-   // one set for each row storing the corresponding col-IDs
-    using indices_type = std::vector<std::unordered_set<IndexType>>;
+    // Single shared graph with per-row locks — one unordered_set per destination
+    // row, locked independently. Memory is O(NumNodesDestination + nnz) regardless
+    // of thread count or number of local systems.
+    SparseContiguousRowGraph<IndexType> graph(NumNodesDestination);
 
     struct TLSData
     {
@@ -57,87 +59,50 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         EquationIdVectorType DestinationIds;
     };
 
-    const auto result = block_for_each<AccumReduction<indices_type>>(
-        rMapperLocalSystems.begin(),
-        rMapperLocalSystems.end(),
-        TLSData(),
-        [NumNodesDestination](auto& rpLocalSys, TLSData& rTLS) -> indices_type
-        {
-            indices_type local_indices(NumNodesDestination);
-
+    block_for_each(rMapperLocalSystems.begin(), rMapperLocalSystems.end(), TLSData(),
+        [&graph](auto& rpLocalSys, TLSData& rTLS) {
             rTLS.OriginIds.clear();
             rTLS.DestinationIds.clear();
 
-            rpLocalSys->EquationIdVectors(
-                rTLS.OriginIds,
-                rTLS.DestinationIds);
+            rpLocalSys->EquationIdVectors(rTLS.OriginIds, rTLS.DestinationIds);
 
             for (const auto id_dest : rTLS.DestinationIds) {
-                auto& r_indices = local_indices[id_dest];
-
-                for (const auto id_origin : rTLS.OriginIds) {
-                    r_indices.insert(id_origin);
-                }
+                graph.AddEntries(id_dest, rTLS.OriginIds);
             }
-
-            return local_indices;
         }
     );
 
-    indices_type indices(NumNodesDestination);
+    // Export sorted CSR arrays (column indices are sorted per row by ExportCSRArrays).
+    // ExportCSRArrays allocates with new[] and transfers ownership to the caller.
+    IndexType* p_row_data = nullptr;
+    IndexType row_data_size = 0;
+    IndexType* p_col_data = nullptr;
+    IndexType col_data_size = 0;
+    graph.ExportCSRArrays(p_row_data, row_data_size, p_col_data, col_data_size);
 
-    for (auto& r_indices : indices) {
-        r_indices.reserve(3);
-    }
-
-    for (const auto& r_local_indices : result) {
-        for (IndexType i = 0; i < NumNodesDestination; ++i) {
-            indices[i].insert(
-                r_local_indices[i].begin(),
-                r_local_indices[i].end());
-        }
-    }
-
-    // computing the number of non-zero entries
-    SizeType num_non_zero_entries = 0;
-    for (const auto& r_row_indices : indices) { // looping the indices per row
-        num_non_zero_entries += r_row_indices.size(); // adding the number of col-indices
-    }
+    const SizeType num_non_zero_entries = col_data_size;
 
     auto p_Mdo = Kratos::make_unique<typename MappingSparseSpaceType::MatrixType>(
         NumNodesDestination,
         NumNodesOrigin,
         num_non_zero_entries);
 
-    double* p_matrix_values = p_Mdo->value_data().begin();
     IndexType* p_matrix_row_indices = p_Mdo->index1_data().begin();
     IndexType* p_matrix_col_indices = p_Mdo->index2_data().begin();
+    double*    p_matrix_values       = p_Mdo->value_data().begin();
 
-    // filling the index1 vector - do NOT make parallel!
-    p_matrix_row_indices[0] = 0;
-    for (IndexType i=0; i<NumNodesDestination; ++i) {
-        p_matrix_row_indices[i+1] = p_matrix_row_indices[i] + indices[i].size();
-    }
-    
-    IndexPartition<IndexType>(NumNodesDestination).for_each(
-        [&](IndexType i) {
-            const IndexType row_begin = p_matrix_row_indices[i];
-            const IndexType row_end = p_matrix_row_indices[i + 1];
+    IndexPartition<IndexType>(NumNodesDestination + 1).for_each([&](IndexType i) {
+        p_matrix_row_indices[i] = p_row_data[i];
+    });
+    IndexPartition<IndexType>(num_non_zero_entries).for_each([&](IndexType i) {
+        p_matrix_col_indices[i] = p_col_data[i];
+        p_matrix_values[i] = 0.0;
+    });
 
-            IndexType j = row_begin;
-            for (const auto index : indices[i]) {
-                p_matrix_col_indices[j] = index;
-                p_matrix_values[j] = 0.0;
-                ++j;
-            }
+    delete[] p_row_data;
+    delete[] p_col_data;
 
-            indices[i].clear();
-
-            std::sort(&p_matrix_col_indices[row_begin], &p_matrix_col_indices[row_end]);
-        }
-    );  
-
-    p_Mdo->set_filled(indices.size()+1, num_non_zero_entries);
+    p_Mdo->set_filled(NumNodesDestination + 1, num_non_zero_entries);
 
     rpMdo.swap(p_Mdo);
 }

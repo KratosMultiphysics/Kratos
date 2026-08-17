@@ -29,6 +29,7 @@ NewmarkQuasistaticUPwScheme = KratosGeo.NewmarkQuasistaticUPwScheme
 # Strategies
 GeoMechanicsNewtonRaphsonStrategy = KratosGeo.GeoMechanicsNewtonRaphsonStrategy
 GeoMechanicsNewtonRaphsonErosionProcessStrategy = KratosGeo.GeoMechanicsNewtonRaphsonErosionProcessStrategy
+GeoMechanicsQuasiNewtonStrategy = KratosGeo.GeoMechanicsQuasiNewtonStrategy
 
 # Processes
 ApplyCPhiReductionProcess = KratosGeo.ApplyCPhiReductionProcess
@@ -66,6 +67,7 @@ DT_PRESSURE_COEFFICIENT = KratosGeo.DT_PRESSURE_COEFFICIENT
 DT_TEMPERATURE = KratosGeo.DT_TEMPERATURE
 DT_TEMPERATURE_COEFFICIENT = KratosGeo.DT_TEMPERATURE_COEFFICIENT
 DT_WATER_PRESSURE = KratosGeo.DT_WATER_PRESSURE
+EFFECTIVE_SATURATION = KratosGeo.EFFECTIVE_SATURATION
 FLUID_FLUX_VECTOR = KratosGeo.FLUID_FLUX_VECTOR
 GEO_PLASTICITY_STATUS = KratosGeo.GEO_PLASTICITY_STATUS
 HYDRAULIC_DISCHARGE = KratosGeo.HYDRAULIC_DISCHARGE

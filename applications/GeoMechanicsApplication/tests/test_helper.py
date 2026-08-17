@@ -1,6 +1,7 @@
 from typing import Dict, Any
 import sys,os
 import math
+import csv
 
 sys.path.append(os.path.join('..','..','..'))
 
@@ -55,6 +56,32 @@ def run_kratos(file_path, model=None):
     os.chdir(cwd)
     return simulation
 
+def _make_key(row, key_field_names):
+    if len(key_field_names) == 1:
+        return int(row[key_field_names[0]])
+    return tuple(int(row[field_name]) for field_name in key_field_names)
+
+def get_values_from_csv(csv_filepath, key_field_names, value_field_names):
+    with open(csv_filepath, newline = "") as csv_file:
+        reader = csv.DictReader(csv_file)
+        return {
+            _make_key(row, key_field_names):
+                {field_name: float(row[field_name]) for field_name in value_field_names}
+            for row in reader
+        }
+
+def get_values_from_csv_as_vectors(csv_filepath, key_field_names, value_field_names):
+    return {key: [row[field_name] for field_name in value_field_names]
+            for key, row in get_values_from_csv(csv_filepath, key_field_names, value_field_names).items()}
+
+def get_values_from_csv_grouped(csv_filepath, grouping_key_field_name, entry_key_field_names, value_field_names):
+    grouped_results = {}
+    combined = get_values_from_csv(csv_filepath, grouping_key_field_name + entry_key_field_names, value_field_names)
+    for key, values in combined.items():
+        group_key = key[0] if isinstance(key, tuple) else key
+        entry_key = key[1:] if isinstance(key, tuple) else ()
+        grouped_results.setdefault(group_key, {})[entry_key] = [values[v] for v in value_field_names]
+    return grouped_results
 
 def get_displacement(simulation):
     """

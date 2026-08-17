@@ -259,6 +259,12 @@ private:
     ///@name Un accessible methods
     ///@{
 
+    // Custom geometries
+    const InterfaceGeometry<Line2D2<NodeType>> mLineInterfaceGeometryInPlaneStrain2Plus2N{
+        0, Element::GeometryType::PointsArrayType(4)};
+    const InterfaceGeometry<Line2D3<NodeType>> mLineInterfaceGeometryInPlaneStrain3Plus3N{
+        0, Element::GeometryType::PointsArrayType(6)};
+
     // elements
     // transient one-phase flow elements:
     const TransientPwElement<2, 3> mTransientPwElement2D3N{
