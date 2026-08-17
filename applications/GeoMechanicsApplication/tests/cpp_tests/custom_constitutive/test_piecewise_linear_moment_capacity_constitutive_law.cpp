@@ -26,11 +26,9 @@ namespace
 
 Properties CreateValidProperties()
 {
-    auto       properties    = Properties{};
-    const auto kappa_moments = std::vector{UblasUtilities::CreateVector({0.01, 80.0}),
-                                           UblasUtilities::CreateVector({0.03, 80.0}),
-                                           UblasUtilities::CreateVector({0.05, 128.0})};
-    properties.SetValue(GEO_PIECEWISE_LINEAR_MOMENT_LAW, kappa_moments);
+    auto properties = Properties{};
+    properties.SetValue(GEO_KAPPA_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({0.01, 0.03, 0.05}));
+    properties.SetValue(GEO_MOMENT_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 80.0, 128.0}));
     properties.SetValue(YOUNG_MODULUS, 80.0);
     properties.SetValue(POISSON_RATIO, 0.2);
     properties.SetValue(THICKNESS, 1.0);
@@ -148,6 +146,12 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckVali
         (void)law.Check(properties, geometry, process_info),
         "GEO_UNLOADING_RELOADING_MODULUS in the material properties with Id 0 has "
         "an invalid value: 0 is out of the range (0, -).")
+
+    properties.SetValue(GEO_UNLOADING_RELOADING_MODULUS, 1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (void)law.Check(properties, geometry, process_info),
+        "Derivative dM/dKappa must be smaller than unloading/reloading modulus. Segment 2 has "
+        "dM/dKappa = 2400, unloading/reloading modulus = 1")
 
     properties = CreateValidProperties();
     properties.SetValue(YOUNG_MODULUS, 3000.0);
@@ -391,10 +395,8 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SequenceL
     auto law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto properties = CreateValidProperties();
     properties.SetValue(GEO_UNLOADING_RELOADING_MODULUS, 8000.0);
-    const auto kappa_moments = std::vector{UblasUtilities::CreateVector({0.01, 80.0}),
-                                           UblasUtilities::CreateVector({0.03, 100.0}),
-                                           UblasUtilities::CreateVector({0.05, 128.0})};
-    properties.SetValue(GEO_PIECEWISE_LINEAR_MOMENT_LAW, kappa_moments);
+    properties.SetValue(GEO_KAPPA_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({0.01, 0.03, 0.05}));
+    properties.SetValue(GEO_MOMENT_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 100.0, 128.0}));
 
     const auto geometry = Geometry<Node>{};
     Vector     dummy_vector;
