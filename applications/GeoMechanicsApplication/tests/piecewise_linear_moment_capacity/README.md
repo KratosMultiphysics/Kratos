@@ -31,6 +31,10 @@ There are two Python tests:
 - `test_piecewise_linear_moment_capacity`: backbone-only response (no `GEO_UNLOADING_RELOADING_MODULUS`).
 - `test_piecewise_linear_moment_capacity_with_unreload`: same input files, but adds `GEO_UNLOADING_RELOADING_MODULUS` in-flight before running.
 
+The following picture shows a moment-curvature behaviour for the second test.
+<img src="test_piecewise_linear_moment.svg">
+Circles represent values at each time steps. The red line shows the backbone curve and the green line shows the mirrored backbone curve.
+
 Both tests compare results at times:
 
 - 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.50

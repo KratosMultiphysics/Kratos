@@ -686,7 +686,7 @@ $$
 The bending tangent modulus (slope) is constant inside each segment:
 
 $$
-B_t(\kappa)=\dfrac{dM_b}{d\kappa}=\frac{M_{i+1}-M_i}{\kappa_{i+1}-\kappa_i}.
+EI_t(\kappa)=\dfrac{dM_b}{d\kappa}=\frac{M_{i+1}-M_i}{\kappa_{i+1}-\kappa_i}.
 $$
 
 Signed moment: the law stores and uses a signed curvature $\kappa$ (positive/negative). The signed bending moment is obtained by applying the backbone to the absolute curvature and reapplying sign:
@@ -715,13 +715,15 @@ $$
 
 and the signed moment is recovered from the backbone: $M(\kappa)=\mathrm{sign}(\kappa-\kappa_c)\,M_b(\kappa_{eff})$. 
 
-The following picture shows a moment-curvature behaviour for piecewise_linear_moment_capacity test.
-<img src="documentation_data/test_piecewise_linear_moment.svg">
-Circles represent values at each time steps. The red line shows the backbone curve and the green line shows the mirrored backbone curve.
+If the unloading process is not enabled then the moment follows the backbone curve. This is illustrated with dashed lines on the following picture
+<img src="documentation_data/pwlmc1.svg">
+If the curvature goes to negative values, then the backbone is mirrored against the coordinate origin. 
 
-If the unloading process is not enabled then the moment follows the backbone curve. If the curvature goes to negative values, then the backbone is mirrored against the coordinate origin. 
+When the unloading process is enabled and the curvature is reduced then the moment follows the unloading curve. This case is shown on this figure. 
+<img src="documentation_data/pwlmc2.svg">
+When the curvature is increased, the moment increases back to the backbone curve by following the unloading curve. In case of the further increase of the curvatue, the moment follows the backbobe curve. 
 
-When the unloading process is enabled, a curvature decrease leads to moment values along line B-C. This line depicts the unloading window [$\kappa_c$-$a_{ur}$;$\kappa_c$+$a_{ur}$]. If a curvature does not reach point C, returns back to point B and increases further, then the moment returns to the backbone curve.
-If the curvature decreases below point C, then the moment follows the backbone branch, which is mirrored against $\kappa_c$.
+If the curvature is reduced significantly like it is shown on this picture
+<img src="documentation_data/pwlmc3.svg">
+then the moment is decreased until point B, which is mirrored point A, then the  moment follows the mirrored backbone curve.
 
-The picture shows that there are unloading windows for the negative curvature values but they do not lead to switch to the positive moment curves.
