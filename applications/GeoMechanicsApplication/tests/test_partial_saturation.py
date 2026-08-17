@@ -294,6 +294,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 file_path,
                 output_data,
                 plot_times=expected_results_at_times.keys(),
+                test_name="O6"
             )
             self.create_saturation_depth_plots(
                 depth_by_id_for_left_boundary_nodes,
@@ -402,9 +403,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         file_path,
         output_data,
         plot_times,
+        test_name = None
     ):
         data_series_collection = []
-        for time in plot_times:
+        colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
+        for time,color in zip(plot_times, colors):
             water_pressures = GiDOutputFileReader.nodal_values_at_time(
                 "WATER_PRESSURE",
                 time,
@@ -423,21 +426,21 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             data = zip(sorted_pressures, sorted_depth)
             data_series_collection.append(
                 plot_utils.DataSeries(
-                    data, label=f"Time = {int(time)}s", line_style="-", marker=""
+                    data, label=f"Time = {int(time)}s", line_style="-", marker="", color=color
                 )
             )
 
         file_name = "expected_water_pressures_internal_reference.csv"
         expected_pressures_file = os.path.join(file_path, file_name)
         if os.path.exists(expected_pressures_file):
-            for time in [0.0, 3600.0, 7200.0, 10800.0, 14400.0]:
+            for time, color in zip([0.0, 3600.0, 7200.0, 10800.0, 14400.0], colors):
                 with open(
                         expected_pressures_file,
                         newline="",
                 ) as csv_file:
                     reader = csv.DictReader(csv_file, skipinitialspace=True)
                     data_points = [
-                        (-1.0 * float(row[f"t={int(time)}"]), 2.0 - float(row["d"])) for row in reader
+                        (-1.0 * float(row[f"t={int(time)}"]), -1.0 * float(row["d"])) for row in reader
                     ]
                     data_series_collection.append(
                         plot_utils.DataSeries(
@@ -450,7 +453,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         file_name = "expected_water_pressures_hydrus_reference.csv"
         expected_pressures_file = os.path.join(file_path, file_name)
         if os.path.exists(expected_pressures_file):
-            for time in [0.0, 3600.0, 7200.0, 10800.0, 14400.0]:
+            for time, color in zip([0.0, 3600.0, 7200.0, 10800.0, 14400.0], colors):
                 with open(
                         expected_pressures_file,
                         newline="",
@@ -464,6 +467,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                             data_points,
                             label=f"Hydrus Reference t = {time}",
                             line_style=":",
+                            color = color,
                         )
                     )
 
@@ -487,6 +491,26 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 color="r",
             )
         )
+        expected_water_pressures = os.path.join(file_path, "expected_water_pressures.csv")
+
+        if os.path.exists(expected_water_pressures) and test_name:
+            for time, color in zip(["3605", "7219","10,20*10^3" , "14,40*10^3"], colors[1:]):
+                with open(
+                        expected_water_pressures,
+                        newline="",
+                ) as csv_file:
+                    reader = csv.DictReader(csv_file, skipinitialspace=True)
+                    data_points = [
+                        (float(row[f"{test_name}_{time}s"]), -1.0 * float(row["Y"])) for row in reader
+                    ]
+                    data_series_collection.append(
+                        plot_utils.DataSeries(
+                            data_points,
+                            label=f"External Reference t = {time}",
+                            line_style="-.",
+                            color=color
+                        )
+                    )
         plot_utils._make_plot(
             data_series_collection,
             os.path.join(file_path, "infiltration_from_top_boundary.svg"),
@@ -505,7 +529,9 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         test_name=None
     ):
         data_series_collection = []
-        for time in plot_times:
+        colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
+
+        for time, color in zip(plot_times, colors):
             saturations = GiDOutputFileReader.nodal_values_at_time(
                 "EFFECTIVE_SATURATION",
                 time,
@@ -550,7 +576,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         expected_saturations_file = os.path.join(file_path, "expected_saturations.csv")
 
         if os.path.exists(expected_saturations_file) and test_name:
-            for time in [782, 3782.0, 7382.0, 10982.0, 14400.0]:
+            for time,color in zip([3782.0, 7382.0, 10982.0, 14400.0], colors[1:]):
                 with open(
                         expected_saturations_file,
                         newline="",
@@ -564,6 +590,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                             data_points,
                             label=f"External Reference t = {time}",
                             line_style="--",
+                            color = color
                         )
                     )
         plot_utils._make_plot(
