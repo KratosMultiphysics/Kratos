@@ -7,7 +7,7 @@
    version="1.1"
    id="svg108"
    sodipodi:docname="test_piecewise_linear_moment.svg"
-   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -22,11 +22,11 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="0.38356766"
      inkscape:cx="1509.512"
-     inkscape:cy="1138"
+     inkscape:cy="989.3952"
      inkscape:window-width="1920"
-     inkscape:window-height="1111"
-     inkscape:window-x="-9"
-     inkscape:window-y="-9"
+     inkscape:window-height="974"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
      inkscape:window-maximized="1"
      inkscape:current-layer="g107" /><defs
      id="defs3"><clipPath
@@ -812,7 +812,7 @@
          font-stretch="semi-condensed"
          font-size="64px"
          transform="translate(3090.82,193)"
-         id="text106">moment</text><text
+         id="text106">moment, Nm</text><text
          fill="#595959"
          font-family="'Aptos Narrow', 'Aptos Narrow_MSFontService', sans-serif"
          font-weight="400"
@@ -824,7 +824,7 @@
            sodipodi:role="line"
            id="tspan112"
            x="3974.2188"
-           y="741.9375">curvature</tspan></text></g><rect
+           y="741.9375">kappa, 1/m</tspan></text></g><rect
        x="1715.5"
        y="98.5002"
        width="3015"
