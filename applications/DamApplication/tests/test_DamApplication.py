@@ -8,6 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 from generalTests import KratosDamGeneralTests
 from test_apply_load_vector_dam_processes import TestApplyLoadVectorDamProcesses
+from test_dam_process_lifecycle import TestDamProcessLifetime
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -42,6 +43,11 @@ def AssembleTestSuites():
             TestApplyLoadVectorDamProcesses
         ])
     )
+    smallSuite.addTests(
+        KratosUnittest.TestLoader().loadTestsFromTestCases([
+            TestDamProcessLifetime
+        ])
+    )
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -57,7 +63,8 @@ def AssembleTestSuites():
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             KratosDamGeneralTests,
-            TestApplyLoadVectorDamProcesses
+            TestApplyLoadVectorDamProcesses,
+            TestDamProcessLifetime
         ])
     )
 
