@@ -429,8 +429,8 @@ namespace Kratos
         mBoundaryElementsSet.reserve(n_intersected_elements_estimated);
 
         const std::size_t num_threads = ParallelUtilities::GetNumThreads();
-        std::vector< std::vector<ElementType::Pointer> > local_intersected_elements(num_threads);
-        for (auto& vec : local_intersected_elements) vec.reserve(n_intersected_elements_estimated/num_threads);
+        std::vector< std::vector<ElementType::Pointer> > thread_intersected_elements(num_threads);
+        for (auto& vec : thread_intersected_elements) vec.reserve(n_intersected_elements_estimated/num_threads);
 
         // Parallel search over background mesh for elements, which are intersected by the discretized skin geometry
         // NOTE that we already treat elements as intersected if one of their nodes coincides with the discretized skin geometry
@@ -446,14 +446,14 @@ namespace Kratos
                 const ElementType::Pointer p_skin_elem = mBVHIdxToSkinElementVector[idx];
                 auto& r_skin_geom = p_skin_elem->GetGeometry();
                 if (r_background_geom.HasIntersection(r_skin_geom)) {
-                    local_intersected_elements[omp_get_thread_num()].push_back(&rElement);
+                    thread_intersected_elements[omp_get_thread_num()].push_back(&rElement);
                     break;
                 }
             }
         });
 
         // Merge intersected background elements that were found by each thread
-        for (auto& vec : local_intersected_elements) {
+        for (auto& vec : thread_intersected_elements) {
             mBoundaryElementsSet.insert(vec.begin(), vec.end());
         }
         // Free space, which was previously allocated by reserve
@@ -484,8 +484,8 @@ namespace Kratos
         mBoundaryElementsSet.reserve(n_intersected_elements_estimated);
 
         const std::size_t num_threads = ParallelUtilities::GetNumThreads();
-        std::vector< std::vector<ElementType::Pointer> > local_intersected_elements(num_threads);
-        for (auto& vec : local_intersected_elements) vec.reserve(n_intersected_elements_estimated/num_threads);
+        std::vector< std::vector<ElementType::Pointer> > thread_intersected_elements(num_threads);
+        for (auto& vec : thread_intersected_elements) vec.reserve(n_intersected_elements_estimated/num_threads);
 
         // Parallel search over background mesh candidates for elements, which are intersected by the discretized skin geometry
         // NOTE that we already treat elements as intersected if one of their nodes coincides with the discretized skin geometry
@@ -501,14 +501,14 @@ namespace Kratos
                 const ElementType::Pointer p_skin_elem = mBVHIdxToSkinElementVector[idx];
                 auto& r_skin_geom = p_skin_elem->GetGeometry();
                 if (r_background_geom.HasIntersection(r_skin_geom)) {
-                    local_intersected_elements[omp_get_thread_num()].push_back(&rElement);
+                    thread_intersected_elements[omp_get_thread_num()].push_back(&rElement);
                     break;
                 }
             }
         });
 
         // Merge intersected background elements that were found by each thread
-        for (auto& vec : local_intersected_elements) {
+        for (auto& vec : thread_intersected_elements) {
             mBoundaryElementsSet.insert(vec.begin(), vec.end());
         }
         // Free space, which was previously allocated by reserve
@@ -621,7 +621,7 @@ namespace Kratos
 
     void ShiftedBoundaryPointBasedUtility::CalculateAndAddSkinIntegrationPointConditions()
     {
-        // Nodes are reset here to not be disturbed by other skin model parts - TODO rethink this
+        // Nodes are reset here to not have the side definitions disturbed by other skin model parts
         for (auto& p_elem : mBoundaryElementsSet) {
             for (auto& r_node : p_elem->GetGeometry()) {
                 r_node.Set(SBM_BOUNDARY, false);
@@ -629,23 +629,23 @@ namespace Kratos
             }
         }
 
-        KRATOS_WATCH("setting sides ...");
+        // Build a node CSR from elements surrounding the boundary excluding deactivated elements
+        ShiftedBoundaryUtilityInternals::NodeCSR surrounding_nodes_csr;
+        surrounding_nodes_csr.build(mSurroundingElementsVector);
+
         // Iterate over the elements which contain skin integration points to create a vector for each element defining both sides.
         // The resulting vector is as long as the number of nodes of the element and a positive value stands for the positive side of the boundary, a negative one for the negative side.
         // Also store the average position and average normal of the skin points located in the element
         // Nodes on the positive side will be declared SBM_BOUNDARY and nodes on the negative side SBM_INTERFACE which is used in the creation of the extension with support clouds
         mSidesVectorMap.clear();
         AverageSkinToElementsMapType avg_skin_map;
-        SetSidesForSkinPointElements(mSkinPointsMap, mSidesVectorMap, avg_skin_map);
-        KRATOS_WATCH("... sides set");
+        SetSidesForSkinPointElements(surrounding_nodes_csr, avg_skin_map);
 
-        KRATOS_WATCH("setting extension operators ...");
         // Iterate over the elements which contain skin integration points to create an extension basis for each node of the element (MLS shape functions values for support cloud of node)
         // NOTE that no extension will be calculated and added for a node for which not a sufficient number of support nodes were found
         mExtensionOperatorMap.clear();
         mExtensionOperatorSameSideMap.clear();
-        SetExtensionForSkinPointElements(mSidesVectorMap, avg_skin_map, mExtensionOperatorMap);
-        KRATOS_WATCH("... extension operators set");
+        SetExtensionForSkinPointElements(surrounding_nodes_csr, avg_skin_map);
 
         // Set the pressure of the first node of an enclosed volume to zero if one side is enclosed.
         auto skin_pt_element_iter = mSkinPointsMap.begin();
@@ -660,9 +660,8 @@ namespace Kratos
             }
         }
 
-        KRATOS_WATCH("calculating extended values and adding skin point conditions ...");
         // Calculate shape functions and derivatives for each skin point and side and add the boundary conditions to the model part.
-        CalculateExtendedValuesAndAddSkinPointConditions(mSidesVectorMap, mExtensionOperatorMap);
+        CalculateExtendedValuesAndAddSkinPointConditions();
 
         KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "'" << mSkinModelPartName << "' skin point conditions were added." << std::endl;
     }
@@ -721,18 +720,50 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(n_boundary_elements_found)
             << "There are no elements in mBoundaryElementsSet. Maybe FindElementsAtTessellatedBoundary() was not called." << std::endl;
 
-        // Create a set of background mesh candidates for the skin point search
+        // Create a set of background mesh candidates for the skin point search.
+        const std::size_t n_layers = 2;
         ElementsSetType bg_candidates;
-        bg_candidates.reserve(n_boundary_elements_found * 2 * TDim);
-        // Add elements, in which the skin boundary was already found and their immediate neighbors to the search candidates
-        const std::size_t n_faces = mBoundaryElementsSet.begin()->get()->GetGeometry().FacesNumber();
+        bg_candidates.reserve(n_boundary_elements_found * 2 * n_layers * TDim);
+        mSurroundingElementsVector.clear();
+        mSurroundingElementsVector.reserve(n_boundary_elements_found * n_layers * TDim);
+        std::vector<ElementType::Pointer> current_layer;
+        current_layer.reserve(n_boundary_elements_found);
+        // Add all BOUNDARY elements
         for (auto p_elem : mBoundaryElementsSet) {
             bg_candidates.emplace(p_elem);
-            auto& r_neigh_elems = p_elem->GetValue(NEIGHBOUR_ELEMENTS);
-            for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
-                auto p_neigh_elem = r_neigh_elems(i_face).get();
-                if (p_neigh_elem != nullptr) {
-                    bg_candidates.emplace(p_neigh_elem);
+            current_layer.push_back(p_elem);
+        }
+        // Add two layers of neighbors to the search candidates for locating skin points.
+        const std::size_t n_faces = mBoundaryElementsSet.begin()->get()->GetGeometry().FacesNumber();
+        for (std::size_t i_layer = 0; i_layer < n_layers; ++i_layer) {
+            std::vector<ElementType::Pointer> next_layer;
+            next_layer.reserve(current_layer.size() * 2);
+            for (auto p_elem : current_layer) {
+                auto& r_neigh_elems = p_elem->GetValue(NEIGHBOUR_ELEMENTS);
+                for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
+                    auto p_neigh_elem = r_neigh_elems(i_face).get();
+                    if (p_neigh_elem != nullptr) {
+                        auto [it, inserted] = bg_candidates.emplace(p_neigh_elem);
+                        if (inserted) {
+                            next_layer.push_back(p_neigh_elem);
+                            mSurroundingElementsVector.push_back(p_neigh_elem);
+                        }
+                    }
+                }
+            }
+            current_layer = std::move(next_layer);
+        }
+        //Add an additional layer for quadratic MLS extension
+        if (mMLSExtensionOperatorOrder == 2) {
+            for (auto p_elem : current_layer) {
+                auto& r_neigh_elems = p_elem->GetValue(NEIGHBOUR_ELEMENTS);
+                for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
+                    auto p_neigh_elem = r_neigh_elems(i_face).get();
+                    if (p_neigh_elem != nullptr) {
+                        if (!bg_candidates.count(p_neigh_elem)) {
+                            mSurroundingElementsVector.push_back(p_neigh_elem);
+                        }
+                    }
                 }
             }
         }
@@ -750,22 +781,22 @@ namespace Kratos
         ShiftedBoundaryUtilityInternals::ElementBVH candidate_bvh;
         candidate_bvh.build(candidate_boxes);
 
-// Create vectors for skin point data and sums for parallelization
+        // Create vectors for skin point data and sums for parallelization
         const std::size_t num_threads = ParallelUtilities::GetNumThreads();
         const std::size_t n_skin_pts_expected = mpSkinPointsSubModelPart->NumberOfNodes();
-        const std::size_t n_local_skin_pts_expected = n_skin_pts_expected/num_threads;
-        std::vector< std::vector<Element::Pointer> > local_skin_point_located_elements(num_threads);
-        std::vector< std::vector<array_1d<double,3>> > local_skin_point_positions(num_threads);
-        std::vector< std::vector<array_1d<double,3>> > local_skin_point_normals(num_threads);
-        std::vector< std::vector<std::size_t> > local_skin_point_ids(num_threads);
-        std::vector< std::size_t > local_n_skin_points_not_found(num_threads, 0);
-        std::vector< std::size_t > local_n_skin_points_found(num_threads, 0);
+        const std::size_t n_thread_skin_pts_expected = n_skin_pts_expected/num_threads;
+        std::vector< std::vector<Element::Pointer> > thread_skin_point_located_elements(num_threads);
+        std::vector< std::vector<array_1d<double,3>> > thread_skin_point_positions(num_threads);
+        std::vector< std::vector<array_1d<double,3>> > thread_skin_point_normals(num_threads);
+        std::vector< std::vector<std::size_t> > thread_skin_point_ids(num_threads);
+        std::vector< std::size_t > thread_n_skin_points_not_found(num_threads, 0);
+        std::vector< std::size_t > thread_n_skin_points_found(num_threads, 0);
 
         for (std::size_t i = 0; i < num_threads; ++i) {
-            local_skin_point_located_elements[i].reserve(n_local_skin_pts_expected);
-            local_skin_point_positions[i].reserve(n_local_skin_pts_expected);
-            local_skin_point_normals[i].reserve(n_local_skin_pts_expected);
-            local_skin_point_ids[i].reserve(n_local_skin_pts_expected);
+            thread_skin_point_located_elements[i].reserve(n_thread_skin_pts_expected);
+            thread_skin_point_positions[i].reserve(n_thread_skin_pts_expected);
+            thread_skin_point_normals[i].reserve(n_thread_skin_pts_expected);
+            thread_skin_point_ids[i].reserve(n_thread_skin_pts_expected);
         }
 
         // Search the skin points in the volume mesh elements
@@ -782,13 +813,13 @@ namespace Kratos
             // Add data to local vectors
             const std::size_t thread_num = omp_get_thread_num();
             if (is_found) {
-                local_skin_point_located_elements[thread_num].emplace_back(p_element);
-                local_skin_point_positions[thread_num].emplace_back(skin_pt_position);
-                local_skin_point_normals[thread_num].emplace_back(skin_pt_area_normal);
-                local_skin_point_ids[thread_num].emplace_back(rSkinPoint.Id());
-                local_n_skin_points_found[thread_num]++;
+                thread_skin_point_located_elements[thread_num].emplace_back(p_element);
+                thread_skin_point_positions[thread_num].emplace_back(skin_pt_position);
+                thread_skin_point_normals[thread_num].emplace_back(skin_pt_area_normal);
+                thread_skin_point_ids[thread_num].emplace_back(rSkinPoint.Id());
+                thread_n_skin_points_found[thread_num]++;
             } else {
-                local_n_skin_points_not_found[thread_num]++;
+                thread_n_skin_points_not_found[thread_num]++;
             }
         });
 
@@ -807,15 +838,15 @@ namespace Kratos
         std::size_t n_skin_points_not_found = 0;
         for (std::size_t i = 0; i < num_threads; ++i) {
             skin_point_located_elements.insert(skin_point_located_elements.end(),
-                local_skin_point_located_elements[i].begin(), local_skin_point_located_elements[i].end());
+                thread_skin_point_located_elements[i].begin(), thread_skin_point_located_elements[i].end());
             skin_point_positions.insert(skin_point_positions.end(),
-                local_skin_point_positions[i].begin(),  local_skin_point_positions[i].end());
+                thread_skin_point_positions[i].begin(),  thread_skin_point_positions[i].end());
             skin_point_normals.insert(skin_point_normals.end(),
-                local_skin_point_normals[i].begin(), local_skin_point_normals[i].end());
+                thread_skin_point_normals[i].begin(), thread_skin_point_normals[i].end());
             skin_point_ids.insert(skin_point_ids.end(),
-                local_skin_point_ids[i].begin(), local_skin_point_ids[i].end());
-            n_skin_points_found += local_n_skin_points_found[i];
-            n_skin_points_not_found += local_n_skin_points_not_found[i];
+                thread_skin_point_ids[i].begin(), thread_skin_point_ids[i].end());
+            n_skin_points_found += thread_n_skin_points_found[i];
+            n_skin_points_not_found += thread_n_skin_points_not_found[i];
         }
 
         if (n_skin_points_not_found > 0) {
@@ -1020,8 +1051,7 @@ namespace Kratos
     }
 
     void ShiftedBoundaryPointBasedUtility::SetSidesForSkinPointElements(
-        const SkinPointsToElementsMapType& rSkinPointsMap,
-        SidesVectorToElementsMapType& rSidesVectorMap,
+        const ShiftedBoundaryUtilityInternals::NodeCSR& rSurroundingNodesCSR,
         AverageSkinToElementsMapType& rAvgSkinMap)
     {
         // Set DISTANCE values for all nodes to zero as variable will be used to have a majority vote on the definition of the positive and negative side
@@ -1037,7 +1067,7 @@ namespace Kratos
         // Calculate a value "side_voting", stored in DISTANCE, for each node of an element with skin points,
         // based on the all skin points located in the elements around that node and their distances to the node
         // (as well as the area they are representing and the element's size).
-        for (const auto& [p_element, skin_points_data_vector]: rSkinPointsMap) {
+        for (const auto& [p_element, skin_points_data_vector]: mSkinPointsMap) {
             // Get access to the nodes of the element and an estimate of the element's size
             auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
@@ -1059,12 +1089,15 @@ namespace Kratos
                 for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                     auto& r_node = r_geom[i_node];
                     boundary_nodes_set.insert(&r_node);
-                    const array_1d<double,3> skin_pt_to_node = r_node.Coordinates() - skin_pt_position;  // Should never be zero because of node modifications
+                    const array_1d<double,3> skin_pt_to_node = r_node.Coordinates() - skin_pt_position;
+                    double dist = norm_2(skin_pt_to_node);
+                    // Make the distance between node and skin point bigger than numerical zero for the weighting
+                    if (dist < 1e-6) {dist = 1e-6;}
+                    // Get the side of the boundary by calculating the dot product and weigh the vote
                     const double dot_product = inner_prod(skin_pt_to_node, skin_pt_area_normal);
                     double& side_voting = r_node.FastGetSolutionStepValue(DISTANCE);
                     {
-                        const double vote_weighting = skin_pt_area * h / std::pow(norm_2(skin_pt_to_node), 4);
-                        //std::scoped_lock<LockObject> lock(mutex_1);
+                        const double vote_weighting = skin_pt_area * h / std::pow(dist, 4);
                         if (dot_product > 0.0) {
                             side_voting += vote_weighting;
                         } else {
@@ -1127,9 +1160,6 @@ namespace Kratos
                 }
             }
 
-            //TODO THIS IS TAKING TOO LONG
-            // --> better if statements for lesser number of second layer checks?!?
-            // --> instead create adjacency graph for nodes using all boundary elements and delete connections?
             // Use a second layer of nodes on the same side of the boundary if unclear
             bool check_second_layer = false;
             // Unclear if there is more than one neighbor from the other side
@@ -1138,7 +1168,7 @@ namespace Kratos
             // Many positive and negative neighbors indicate an edge of a thin structure, so we do not want to check the second layer
             if (n_pos_neigh > 3 && n_neg_neigh > 3) check_second_layer = false;
             // Do not check the second layer if there is a clear majority of neighbors on one side
-            if (n_pos_neigh > n_neg_neigh*2 || n_neg_neigh > n_pos_neigh*2) check_second_layer = false;
+            if (n_pos_neigh > (n_neg_neigh+1)*2 || n_neg_neigh > (n_pos_neigh+1)*2) check_second_layer = false;
 
             if (check_second_layer) {
                 n_second_layer_checks++;
@@ -1173,16 +1203,16 @@ namespace Kratos
 
             if (side_voting > 0.0 && n_neg_neigh > n_pos_neigh*2) {
                 side_voting = -1.0;
-                pNode->Set(MODIFIED, true);
+                //pNode->Set(MODIFIED, true);
             } else if (side_voting < 0.0 && n_pos_neigh > n_neg_neigh*2) {
                 side_voting = 1.0;
-                pNode->Set(MODIFIED, true);
+                //pNode->Set(MODIFIED, true);
             }
         });
         KRATOS_WATCH(n_second_layer_checks);
 
-        // Decide on positive and negative side of an element based on the voting of all skin points in the surrounding elements
-        for (const auto& [p_element, skin_points_data_vector]: rSkinPointsMap) {
+        // Decide on positive and negative side of an element based on the voting
+        for (const auto& [p_element, skin_points_data_vector]: mSkinPointsMap) {
             auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
 
@@ -1202,17 +1232,14 @@ namespace Kratos
                     r_node.Set(SBM_INTERFACE, true);
                 }
             }
-            rSidesVectorMap.insert(std::make_pair(p_element, sides_vector));
+            mSidesVectorMap.insert(std::make_pair(p_element, sides_vector));
         }
     }
 
     void ShiftedBoundaryPointBasedUtility::SetExtensionForSkinPointElements(
-        const SidesVectorToElementsMapType& rSidesVectorMap,
-        AverageSkinToElementsMapType& rAvgSkinMap,
-        NodesCloudMapType& rExtensionOperatorMap)
+        const ShiftedBoundaryUtilityInternals::NodeCSR& rSurroundingNodesCSR,
+        AverageSkinToElementsMapType& rAvgSkinMap)
     {
-        //TODO create same side extension for inactive nodes
-
         // Get the extension operator shape functions function
         auto p_meshless_sh_func = mExtensionOperator == ExtensionOperator::MLS ? GetMLSShapeFunctionsFunction() : GetRBFShapeFunctionsFunction();
 
@@ -1221,12 +1248,11 @@ namespace Kratos
 
         // Get support node clouds for all nodes of all elements which contain skin integration points and calculate their extension operators
         // NOTE that only extension operators are calculated and added to the map if a sufficient number of support nodes was found
-        //TODO make parallel
         LockObject mutex_1;
         LockObject mutex_2;
         LockObject mutex_3;
-        //for (const auto& [p_element, sides_vector]: rSidesVectorMap) {
-        std::for_each(rSidesVectorMap.begin(), rSidesVectorMap.end(), [&](const std::pair<ElementType::Pointer, Vector>& rKeyData){
+        //for (const auto& [p_element, sides_vector]: mSidesVectorMap) {
+        std::for_each(mSidesVectorMap.begin(), mSidesVectorMap.end(), [&](const std::pair<ElementType::Pointer, Vector>& rKeyData){
             const auto p_element = rKeyData.first;
             const auto& sides_vector = rKeyData.second;
 
@@ -1288,11 +1314,12 @@ namespace Kratos
                             const auto ext_op_key_data = std::make_pair(p_node, cloud_data_vector);
                             {
                                 std::scoped_lock<LockObject> lock(mutex_2);
-                                rExtensionOperatorMap.insert(ext_op_key_data);
+                                mExtensionOperatorMap.insert(ext_op_key_data);
                             }
                         // } else {
-                        //     KRATOS_WARNING("ShiftedBoundaryPointBasedUtility")
-                        //     << "Not enough support nodes were found for node " << p_node->Id() << ". Extension basis can not be calculated." << std::endl;
+                            // KRATOS_WARNING("ShiftedBoundaryPointBasedUtility")
+                            // << "Not enough support nodes were found for node " << p_node->Id() << ". Extension basis can not be calculated." << std::endl;
+                            // p_node->Set(MODIFIED, true);
                         }
                     }
 
@@ -1338,8 +1365,9 @@ namespace Kratos
                                 }
                                 //KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Extension basis for inactive node " << p_node->Id() << " on its own side of the boundary was calculated." << std::endl;
                             // } else {
-                            //     KRATOS_WARNING("ShiftedBoundaryPointBasedUtility")
-                            //     << "Not enough support nodes were found for inactive node " << p_node->Id() << ". Same side extension basis can not be calculated." << std::endl;
+                                // KRATOS_WARNING("ShiftedBoundaryPointBasedUtility")
+                                // << "Not enough support nodes were found for inactive node " << p_node->Id() << ". Same side extension basis can not be calculated." << std::endl;
+                                // p_node->Set(MODIFIED, true);
                             }
                         }
                     }
@@ -1358,12 +1386,11 @@ namespace Kratos
         Matrix& rCloudCoordinates,
         const Kratos::Flags& rSearchSideFlag)
     {
-        //TODO SPEED UP
-
         // Find the support cloud of nodes on the search side (other side as the given node)
         // NOTE that we use an unordered_set to ensure that these are unique
         // NOTE that we check the order of the MLS interpolation to add nodes from enough layers
         NodesSetType aux_set;
+        std::vector<NodeType::Pointer> start_nodes;
         std::vector<NodeType::Pointer> cur_layer_nodes;
         std::vector<NodeType::Pointer> prev_layer_nodes;
         const std::size_t n_layers = mMLSExtensionOperatorOrder + 1;
@@ -1382,17 +1409,20 @@ namespace Kratos
                     NodeType::Pointer p_neigh = r_geom(i_neigh_node);
 
                     // Add node of neighboring element to the support node set if it is active and located on the search side
-                    if (p_neigh->Is(ACTIVE) && p_neigh->Is(rSearchSideFlag)) {
-                        aux_set.insert(p_neigh);
-                        prev_layer_nodes.push_back(p_neigh);
+                    if (p_neigh->Is(rSearchSideFlag)) {
+                        start_nodes.push_back(p_neigh);
+                        if (p_neigh->Is(ACTIVE)) {
+                            aux_set.insert(p_neigh);
+                            prev_layer_nodes.push_back(p_neigh);
+                        }
                     }
                 }
             }
         }
         // Check number of first layer points
-        if (aux_set.size() == 0) {
-            // KRATOS_WARNING("ShiftedBoundaryPointBasedUtility")
-            //     << "No nodal neighbors on the other side were found for node " << pOtherSideNode->Id() << ". Extension basis can not be calculated." << std::endl;
+        if (start_nodes.size() == 0) {
+            KRATOS_WARNING("ShiftedBoundaryPointBasedUtility")
+                << "No nodal neighbors on the other side were found for node " << pOtherSideNode->Id() << ". Extension basis can not be calculated." << std::endl;
             return;
         }
 
@@ -1405,10 +1435,12 @@ namespace Kratos
             cur_layer_nodes.clear();
         }
 
-        // If there are not enough active support nodes to perform the MLS calculation add another layer of neighboring nodes
+        // If there are not enough active support nodes to perform the MLS calculation add another layer of neighboring nodes.
+        // Also, add the start nodes to the nodes to search from, even though they might not be active.
         // Add maximal three extra layers, these do not have to be in normal direction away from the averaged skin geometry anymore
         std::size_t n_cloud_nodes = aux_set.size();
         std::size_t n_extra_layers = 0;
+        prev_layer_nodes.insert(prev_layer_nodes.end(), start_nodes.begin(), start_nodes.end());
         while (n_cloud_nodes <= GetRequiredNumberOfPoints() && n_extra_layers < 3) {
             AddLateralSupportLayer(prev_layer_nodes, cur_layer_nodes, aux_set);
             n_extra_layers++;
@@ -1421,7 +1453,6 @@ namespace Kratos
         // }
 
         // Add obtained cloud nodes to the cloud node vector and sort them by id
-        //TODO sorting really necessary or helpful??
         rCloudNodes.resize(n_cloud_nodes);
         std::size_t aux_i = 0;
         for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
@@ -1429,6 +1460,7 @@ namespace Kratos
             // Mark support node for visualization
             //(*it_set)->Set(rSearchSideFlag, true);  //TODO make threadsafe/ put somewhere else for parallelization
         }
+        //TODO sorting really necessary or helpful??
         //std::sort(rCloudNodes.ptr_begin(), rCloudNodes.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
 
         // Fill the coordinates matrix
@@ -1446,8 +1478,6 @@ namespace Kratos
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesSetType& SupportNodesSet)
     {
-        //TODO adjacency graph for speed up?
-
         // Find elemental neighbors of the nodes of the previous layer and add their nodes
         // NOTE that taking the nodes of neighboring elements is the same as adding the nodal neighbors directly for triangles and tetrahedra
         for (auto& p_node : PreviousLayerNodes) {
@@ -1484,8 +1514,6 @@ namespace Kratos
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesSetType& SupportNodesSet)
     {
-        //TODO adjacency graph for speed up?
-
         // Find elemental neighbors of the nodes of the previous layer
         // NOTE that taking the nodes of neighboring elements is the same as adding the nodal neighbors directly for triangles and tetrahedra
         for (auto& p_node : PreviousLayerNodes) {
@@ -1520,9 +1548,7 @@ namespace Kratos
         }
     }
 
-    void ShiftedBoundaryPointBasedUtility::CalculateExtendedValuesAndAddSkinPointConditions(
-        SidesVectorToElementsMapType& rSidesVectorMap,
-        NodesCloudMapType& rExtensionOperatorMap)
+    void ShiftedBoundaryPointBasedUtility::CalculateExtendedValuesAndAddSkinPointConditions()
     {
         // Get the element size calculation function (assuming unique geometry type in the mesh)
         const auto p_element_size_func = GetElementSizeFunction(mpModelPart->ElementsBegin()->GetGeometry());
@@ -1555,8 +1581,9 @@ namespace Kratos
             NodesWeightsMapType cloud_weights_map_neg;
             bool pos_extension_valid = true;
             bool neg_extension_valid = true;
-            CreateCloudVectorsForSkinPointElement(*p_element, rSidesVectorMap[p_element], rExtensionOperatorMap,
-                cloud_nodes_vector_pos, cloud_nodes_vector_neg, cloud_weights_map_pos, cloud_weights_map_neg, pos_extension_valid, neg_extension_valid);
+            CreateCloudVectorsForSkinPointElement(*p_element, mSidesVectorMap[p_element],
+                cloud_nodes_vector_pos, cloud_nodes_vector_neg, cloud_weights_map_pos, cloud_weights_map_neg,
+                pos_extension_valid, neg_extension_valid);
 
             if (!pos_extension_valid && !neg_extension_valid) {
                 return;
@@ -1751,7 +1778,6 @@ namespace Kratos
     void ShiftedBoundaryPointBasedUtility::CreateCloudVectorsForSkinPointElement(
         const ElementType& rElement,
         const Vector& rSidesVector,
-        NodesCloudMapType& rExtensionOperatorMap,
         PointerVector<NodeType>& rCloudNodeVectorPositiveSide,
         PointerVector<NodeType>& rCloudNodeVectorNegativeSide,
         NodesWeightsMapType& rCloudWeightsMapPositiveSide,
@@ -1785,14 +1811,13 @@ namespace Kratos
                         }
                     } else {
                         rPositiveExtensionValid = false;
-                        //KRATOS_WATCH("positive same side extension is not found for inactive node " << p_node->Id());
                     }
                 }
 
                 // Add positive side's node's cloud nodes to cloud nodes set of negative side of the boundary
-                const std::size_t found = rExtensionOperatorMap.count(p_node);
+                const std::size_t found = mExtensionOperatorMap.count(p_node);
                 if (found) {
-                    auto& r_ext_op_data = rExtensionOperatorMap[p_node];
+                    auto& r_ext_op_data = mExtensionOperatorMap[p_node];
                     for (auto it_data = r_ext_op_data.begin(); it_data != r_ext_op_data.end(); ++it_data) {
                         auto& p_cl_node = std::get<0>(*it_data);
                         rCloudWeightsMapNegativeSide.try_emplace(p_cl_node, ZeroVector(n_nodes));
@@ -1823,9 +1848,9 @@ namespace Kratos
                 }
 
                 // Add negative side's node's cloud nodes to cloud nodes set of positive side of the boundary
-                const std::size_t found = rExtensionOperatorMap.count(p_node);
+                const std::size_t found = mExtensionOperatorMap.count(p_node);
                 if (found) {
-                    auto& r_ext_op_data = rExtensionOperatorMap[p_node];
+                    auto& r_ext_op_data = mExtensionOperatorMap[p_node];
                     for (auto it_data = r_ext_op_data.begin(); it_data != r_ext_op_data.end(); ++it_data) {
                         auto& p_cl_node = std::get<0>(*it_data);
                         rCloudWeightsMapPositiveSide.try_emplace(p_cl_node, ZeroVector(n_nodes));
@@ -1833,7 +1858,6 @@ namespace Kratos
                     }
                 } else {
                     rPositiveExtensionValid = false;
-                    //KRATOS_WATCH("positive extension is not found for negative node " << p_node->Id());
                 }
             }
         }
@@ -2074,9 +2098,7 @@ namespace Kratos
             dict_sum_weights[r_skin_node.Id()] = 0.0;
         }
 
-        //TODO faster to store the skin points element and shape function values once?!?
         // Loop over all skin points and locate them in the skin model part to add their contribution to the skin nodes
-        //TODO use local vectors and index instead of mutex!
         LockObject mutex;
         block_for_each(mpSkinPointsSubModelPart->Nodes(), [&](NodeType& rSkinPoint){
             // Search for the skin point in the skin mesh to get the element containing the point and the shape function values
@@ -2200,7 +2222,7 @@ namespace Kratos
                         u_node_pos += weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
                         p_node_pos += weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
                     }
-                }
+                } else if (!mPositiveSideIsEnclosed) { element_is_without_extension = true; }
 
                 // Calculate nodal velocity and pressure using the extension operator of the node for the negative side
                 if (extension_found) {
@@ -2212,7 +2234,7 @@ namespace Kratos
                         u_node_neg += weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
                         p_node_neg += weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
                     }
-                } else if (!mPositiveSideIsEnclosed) { element_is_without_extension = true; }
+                } else if (!mNegativeSideIsEnclosed) { element_is_without_extension = true; }
 
             } else {
 
@@ -2230,7 +2252,7 @@ namespace Kratos
                         u_node_neg += weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
                         p_node_neg += weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
                     }
-                }
+                } else if (!mNegativeSideIsEnclosed) { element_is_without_extension = true; }
 
                 // Calculate nodal velocity and pressure using the extension operator of the node for the positive side
                 if (extension_found) {
@@ -2242,7 +2264,7 @@ namespace Kratos
                         u_node_pos += weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
                         p_node_pos += weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
                     }
-                } else if (!mNegativeSideIsEnclosed) { element_is_without_extension = true; }
+                } else if (!mPositiveSideIsEnclosed) { element_is_without_extension = true; }
             }
 
             // Store positive and negative side unknowns at the node

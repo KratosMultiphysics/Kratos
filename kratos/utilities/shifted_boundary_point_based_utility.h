@@ -23,7 +23,10 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/key_hash.h"
+#include "includes/model_part.h"
 #include <cstddef>
+#include <span>
+#include <string>
 #include <vector>
 
 namespace Kratos
@@ -141,7 +144,7 @@ namespace ShiftedBoundaryUtilityInternals {
     };
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // Surface-mesh BVH  (built once, queried read-only)
+    // Mesh BVH  (built once, queried read-only) - BVH: Bounding Volume Hierarchy
     // ─────────────────────────────────────────────────────────────────────────────
     class ElementBVH {
     public:
@@ -185,6 +188,76 @@ namespace ShiftedBoundaryUtilityInternals {
          * @param idx
          */
         void refit_node(int idx);
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Node CSR  (built once, queried read-only) - CSR: Compressed Sparse Row
+    // ─────────────────────────────────────────────────────────────────────────────
+    struct NodeCSR {
+        // maps global node Id → local index (0..n_local_nodes-1)
+        std::unordered_map<std::size_t,std::size_t> global_to_local;
+        // maps local index → node pointer
+        std::vector<ModelPart::NodeType::Pointer> local_nodes;
+
+        // CSR arrays
+        std::vector<std::size_t> neighbors; // flat neighbor list (local indices)
+        std::vector<std::size_t> offset;    // offset[i]..offset[i+1] = neighbors of local node i
+
+        void build(const std::vector<ModelPart::ElementType::Pointer>& rElements)
+        {
+            // Temporary adjacency list
+            std::vector<std::unordered_set<std::size_t>> adj;
+
+            // Collect unique nodes and add their adjacency, omitting deactivated elements
+            for (auto p_elem : rElements) {
+                if (!p_elem->Is(ACTIVE)) { continue; }
+
+                const auto& r_geom  = p_elem->GetGeometry();
+                const std::size_t n_pts = r_geom.PointsNumber();
+                std::array<std::size_t, 4> local_indices;  // max 4 for tet
+
+                for (std::size_t i = 0; i < n_pts; ++i) {
+                    auto p_node = r_geom(i);
+                    auto [it, inserted] = global_to_local.emplace(p_node->Id(), local_nodes.size());
+                    if (inserted) {
+                        local_nodes.push_back(p_node);
+                        adj.emplace_back();   // add empty neighbor list for this node
+                    }
+                    local_indices[i] = it->second;
+                }
+
+                // Add edges between all pairs of nodes in this element
+                for (std::size_t i = 0; i < n_pts; ++i) {
+                    for (std::size_t j = i+1; j < n_pts; ++j) {
+                        adj[local_indices[i]].insert(local_indices[j]);
+                        adj[local_indices[j]].insert(local_indices[i]);
+                    }
+                }
+            }
+            // Pack into CSR
+            const std::size_t n_nodes = local_nodes.size();
+            offset.resize(n_nodes + 1, 0);
+            for (std::size_t i = 0; i < n_nodes; ++i) {
+                offset[i + 1] = offset[i] + adj[i].size();
+            }
+            neighbors.resize(offset[n_nodes]);
+            for (std::size_t i = 0; i < n_nodes; ++i) {
+                std::copy(adj[i].begin(), adj[i].end(), neighbors.begin() + offset[i]);
+            }
+        }
+
+        bool get_neighbors(const std::size_t node_id, std::vector<ModelPart::NodeType::Pointer>& neighboring_nodes) {
+            // Get local index of the node if it is in the CSR
+            auto it = global_to_local.find(node_id);
+            if (it == global_to_local.end()) { return false; }
+            const std::size_t local_idx = it-> second;
+
+            // Get all neighboring node pointers of the given node
+            for (std::size_t neigh_idx : std::span<const std::size_t>(neighbors.data() + offset[local_idx], offset[local_idx+1] - offset[local_idx])) {
+                neighboring_nodes.push_back(local_nodes[neigh_idx]);
+            }
+            return true;
+        }
     };
 
 }  // namespace ShiftedBoundaryUtilityInternals
@@ -371,6 +444,7 @@ protected:
     std::vector<ElementType::Pointer> mBVHIdxToSkinElementVector;
 
     ElementsSetType mBoundaryElementsSet;
+    std::vector<ElementType::Pointer> mSurroundingElementsVector;
     SkinPointsToElementsMapType mSkinPointsMap;
 
     SidesVectorToElementsMapType mSidesVectorMap;
@@ -424,20 +498,19 @@ protected:
     EdgesVectorType GetActiveAdjacencyGraph();
 
     /**TODO*/
+    // needs mSkinPointsMap and sets mSidesVectorMap
     void SetSidesForSkinPointElements(
-        const SkinPointsToElementsMapType& rSkinPointsMap,
-        SidesVectorToElementsMapType& rSidesVectorMap,
+        const ShiftedBoundaryUtilityInternals::NodeCSR& rSurroundingNodesCSR,
         AverageSkinToElementsMapType& rAvgSkinMap);
 
     /** TODO
      * @brief Set the Extension Operators For Split Element Nodes object selecting a support cloud for each node of each split element and using MLS shape functions
-     *
-     * @param rExtensionOperatorMap
+     * needs mSidesVectorMap and sets mExtensionOperatorMap
+     * @param
      */
     void SetExtensionForSkinPointElements(
-        const SidesVectorToElementsMapType& rSidesVectorMap,
-        AverageSkinToElementsMapType& rAvgSkinMap,
-        NodesCloudMapType& rExtensionOperatorMap);
+        const ShiftedBoundaryUtilityInternals::NodeCSR& rSurroundingNodesCSR,
+        AverageSkinToElementsMapType& rAvgSkinMap);
 
     //TODO
     /**
@@ -472,13 +545,18 @@ protected:
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesSetType& SupportNodesSet);
 
+    //TODO
+    // needs mSidesVectorMap
+    void CalculateExtendedValuesAndAddSkinPointConditions();
+
     /* TODO */
     // collect support nodes and their weights for both sides and all nodes of the element
     // also determine whether extension of the element is valid for each side independently
+    // called from CalculateExtendedValuesAndAddSkinPointConditions
+    // needs mExtensionOperatorMap
     void CreateCloudVectorsForSkinPointElement(
         const ElementType& rElement,
         const Vector& rSidesVector,
-        NodesCloudMapType& rExtensionOperatorMap,
         PointerVector<NodeType>& rCloudNodeVectorPositiveSide,
         PointerVector<NodeType>& rCloudNodeVectorNegativeSide,
         NodesWeightsMapType& rCloudWeightsMapPositiveSide,
@@ -492,10 +570,6 @@ protected:
         const array_1d<double,3>& rSkinPtCoordinates,
         Vector& rSkinPtShapeFunctionValues,
         Matrix& rSkinPtShapeFunctionDerivatives);
-
-    void CalculateExtendedValuesAndAddSkinPointConditions(
-        SidesVectorToElementsMapType& rSidesVectorMap,
-        NodesCloudMapType& rExtensionOperatorMap);
 
     /* TODO */
     bool AddSkinPointCondition(
