@@ -298,8 +298,9 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
                 rProperty.SetValue(r_variable, value.GetString());
             } else if(KratosComponents<Variable<std::vector<Vector>> >::Has(variable_name)) {
                 const Variable<std::vector<Vector>>& r_variable = KratosComponents<Variable<std::vector<Vector>>>().Get(variable_name);
-                CheckIfOverwritingValue(rProperty, r_variable, value.GetVectorArray());
-                rProperty.SetValue(r_variable, value.GetVectorArray());
+                const auto vector_array = value.GetVectorArray();
+                CheckIfOverwritingValue(rProperty, r_variable, vector_array);
+                rProperty.SetValue(r_variable, vector_array);
             } else {
                 KRATOS_ERROR << "Value type for \"" << variable_name << "\" not defined";
             }
