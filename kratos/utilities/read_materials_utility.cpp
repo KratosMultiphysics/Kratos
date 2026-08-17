@@ -253,7 +253,7 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
             std::string variable_name = iter.name();
             TrimComponentName(variable_name);
 
-            // We don't just copy the values, we do some tyransformation depending of the destination variable
+            // We don't just copy the values, we do some transformation depending of the destination variable
             if (KratosComponents<Variable<double> >::Has(variable_name)) {
                 const Variable<double>& r_variable = KratosComponents<Variable<double>>().Get(variable_name);
                 CheckIfOverwritingValue(rProperty, r_variable, value.GetDouble());
@@ -296,6 +296,10 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
                 const Variable<std::string>& r_variable = KratosComponents<Variable<std::string>>().Get(variable_name);
                 CheckIfOverwritingValue(rProperty, r_variable, value.GetString());
                 rProperty.SetValue(r_variable, value.GetString());
+            } else if(KratosComponents<Variable<std::vector<Vector>> >::Has(variable_name)) {
+                const Variable<std::vector<Vector>>& r_variable = KratosComponents<Variable<std::vector<Vector>>>().Get(variable_name);
+                CheckIfOverwritingValue(rProperty, r_variable, value.GetVectorArray());
+                rProperty.SetValue(r_variable, value.GetVectorArray());
             } else {
                 KRATOS_ERROR << "Value type for \"" << variable_name << "\" not defined";
             }
