@@ -362,7 +362,56 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_times=expected_results_at_times.keys(),
                 test_name="O10",
             )
+    def test_infiltration_from_top_boundary_B10(self):
+        file_path = test_helper.get_file_path(
+            os.path.join(
+                "test_partially_saturated",
+                "infiltration",
+                "test_infiltration_pw_caseB10",
+            )
+        )
+        simulation = test_helper.run_kratos(file_path)
 
+        reader = GiDOutputFileReader()
+        output_data = reader.read_output_from(
+            os.path.join(file_path, "run1sim5_map_hydro.post.res")
+        )
+
+        depth_by_id_for_left_boundary_nodes = self._calculate_depth_for_boundary_nodes(
+            simulation
+        )
+
+        @dataclass
+        class ExpectedResult:
+            node_id: int
+            value: float
+
+        expected_results_at_times = {
+            60.0: [],
+            3600.0: [],
+            7200.0: [],
+            10800.0: [],
+            14400.0: [],
+        }
+
+        if test_helper.want_test_plots():
+            self.create_pressure_depth_plots(
+                depth_by_id_for_left_boundary_nodes,
+                expected_results_at_times,
+                file_path,
+                output_data,
+                plot_times=expected_results_at_times.keys(),
+                test_name="B10",
+                time_strings=["3617", "7231", "10,81*10\^3", "14,40*10\^3"],
+            )
+            self.create_saturation_depth_plots(
+                depth_by_id_for_left_boundary_nodes,
+                expected_results_at_times,
+                file_path,
+                output_data,
+                plot_times=expected_results_at_times.keys(),
+                test_name="B10",
+            )
     def test_infiltration_from_top_boundary_B06(self):
         file_path = test_helper.get_file_path(
             os.path.join(
