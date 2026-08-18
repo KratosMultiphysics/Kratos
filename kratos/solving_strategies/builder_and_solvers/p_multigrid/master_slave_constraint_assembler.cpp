@@ -508,7 +508,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Finalize(
             r_dof.SetEquationId(i_dependent_dof++);
 
         // Release the independent system.
-        mpImpl->mDependentSystem.reset();
+        //mpImpl->mDependentSystem.reset();
 }
 
 
