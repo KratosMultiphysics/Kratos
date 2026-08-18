@@ -165,3 +165,19 @@ $$ P_a^{j+1} = P_p^{j+1}$$
 $$ E_a^{j+1} = E_p^{j+1}$$
 
 The maximum storage capacity $S_{max}$ is a user defined parameter. The potential precipitation $P_p$ is also given by the user, usually in the form of time-precipitation table in the MPDA file. 
+
+# The Seepage Boundary Condition
+
+The seepage boundary is defined as a mixed boundary condition. It switches from a Dirichlet to a Neumann boundary condition based on the pressure and flux values. In short, a zero-pressure is applied when outflow is present, while a zero-flux boundary is applied in case of suction ($p > 0$). The formulations are as follows:
+
+$$ p = 0 \text{ if } \phi_n \ge 0 $$
+$$ \phi_n = 0 \text{ if } p > 0 $$
+
+where $p$ is the pore water pressure, defined negative if water is present (and positive in case of suction). $\phi_n$ is the normal flux, defined positive for outflow. Since this 
+functionality acts on the number of degrees of freedom (DoF) and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann Boundary for every node on the boundary.
+
+## Validation
+The following validation cases will be considered for this functionality:
+- A test case where a fluid flux is imposed on the left boundary, leading to outflow on the right seepage boundary. This should lead to a full Dirichlet condition ($p=0$)
+- A test case where suction is imposed, leading to a the seepage boundary exhibiting the behavior of a pure zero-flux Neumann boundary
+- The Muskat case, which has a seepage boundary for which both Dirichlet and Neumann behavior is exhibited on the same seepage boundary.
