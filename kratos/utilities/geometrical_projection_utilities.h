@@ -95,7 +95,7 @@ static inline double FastProjectDirection(
     const SizeType EchoLevel = 0
     )
 {
-    const double zero_tolerance = 1.0e-8;
+    const double zero_tolerance = 1.0e-12;
     const double slave_normal_norm = norm_2(rSlaveNormal);
 
     const array_1d<double, 3> proj_dir = rSlaveNormal / slave_normal_norm;

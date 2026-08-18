@@ -337,7 +337,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
 
     const double geometry_area = r_slave_geometry.Area();
-    if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
+    if (is_inside && ((integration_area / geometry_area) > 1.0e-12)) {
         const IntegrationMethod this_integration_method = GetIntegrationMethod();
 
         // Initialize general variables for the current master element
