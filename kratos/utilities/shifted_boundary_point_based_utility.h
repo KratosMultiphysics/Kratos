@@ -234,6 +234,7 @@ namespace ShiftedBoundaryUtilityInternals {
                     }
                 }
             }
+
             // Pack into CSR
             const std::size_t n_nodes = local_nodes.size();
             offset.resize(n_nodes + 1, 0);
@@ -246,7 +247,7 @@ namespace ShiftedBoundaryUtilityInternals {
             }
         }
 
-        bool get_neighbors(const std::size_t node_id, std::vector<ModelPart::NodeType::Pointer>& neighboring_nodes) {
+        bool get_neighbors(const std::size_t node_id, std::vector<ModelPart::NodeType::Pointer>& neighboring_nodes) const {
             // Get local index of the node if it is in the CSR
             auto it = global_to_local.find(node_id);
             if (it == global_to_local.end()) { return false; }
@@ -514,9 +515,10 @@ protected:
 
     //TODO
     /**
-     * @brief Set the support cloud for the same side of the boundary of which the first nodes nodes are given.
-     * For given nodes on one side of the boundary, this function creates a cloud of nodes around them on the same side of the boundary.
-     * These first nodes could be the positive nodes of a BOUNDARY element in order to get a support cloud and extension basis for one of the element's negative nodes and vice versa.
+     * @brief Set the support cloud for the side of the boundary which is given by rSearchSideFlag.
+     * For a given node (pBaseNode), this function collects a cloud of nodes neighboring it from the specified side of the boundary.
+     * The base node could be a positive side node of a BOUNDARY element in order to get a support cloud and extension basis for the negative side collecting support nodes on the negative side and vice versa.
+     * It could also be a positive inactive node of a BOUNDARY element in order to get a support cloud for the positive side collecting support nodes on the positive side.
      * The support cloud created by this function is to be used for calculating the MLS-based extension operator.
      * @param rSameSideNodes Pointer to the first nodes of the support cloud
      * TODO
@@ -524,9 +526,10 @@ protected:
      * @param rCloudCoordinates Matrix containing the coordinates of the nodes of the cloud
      */
     void SetLateralSupportCloud(
-        const NodeType::Pointer pOtherSideNode,
+        const NodeType::Pointer pBaseNode,
         const array_1d<double,3>& rAvgSkinPosition,
         const array_1d<double,3>& rAvgSkinNormal,
+        const ShiftedBoundaryUtilityInternals::NodeCSR& rSurroundingNodesCSR,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates,
         const Kratos::Flags& rSearchSideFlag);
@@ -541,6 +544,7 @@ protected:
     void AddLateralSupportLayer(
         const array_1d<double,3>& rAvgSkinPosition,
         const array_1d<double,3>& rAvgSkinNormal,
+        const ShiftedBoundaryUtilityInternals::NodeCSR& rSurroundingNodesCSR,
         const std::vector<NodeType::Pointer>& PreviousLayerNodes,
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesSetType& SupportNodesSet);
