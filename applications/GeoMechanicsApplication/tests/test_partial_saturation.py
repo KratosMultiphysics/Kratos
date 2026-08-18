@@ -261,12 +261,12 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
     #             plot_times=expected_results_at_times.keys(),
     #         )
 
-    def test_infiltration_from_top_boundary_O06(self):
+    def test_infiltration_from_top_boundary_O6(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
                 "infiltration",
-                "test_infiltration_pw_caseO06",
+                "test_infiltration_pw_caseO6",
             )
         )
         simulation = test_helper.run_kratos(file_path)
@@ -465,12 +465,12 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 test_name="B10",
             )
 
-    def test_infiltration_from_top_boundary_B06(self):
+    def test_infiltration_from_top_boundary_B6(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
                 "infiltration",
-                "test_infiltration_pw_caseB06",
+                "test_infiltration_pw_caseB6",
             )
         )
         simulation = test_helper.run_kratos(file_path)
@@ -574,12 +574,12 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             if node.X == 0.0
         }
 
-    def test_infiltration_from_top_boundary_B09(self):
+    def test_infiltration_from_top_boundary_B9(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
                 "infiltration",
-                "test_infiltration_pw_caseB09",
+                "test_infiltration_pw_caseB9",
             )
         )
         simulation = test_helper.run_kratos(file_path)
