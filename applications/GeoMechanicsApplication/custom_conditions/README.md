@@ -177,7 +177,7 @@ where $p$ is the pore water pressure, defined negative if water is present (and 
 functionality acts on the number of degrees of freedom (DoF) and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann Boundary for every node on the boundary.
 
 ## Validation
-The following validation cases will be considered for this functionality:
+The following validation cases will be considered for this functionality (links to be added when the validation cases are added to the test suite):
 - A test case where a fluid flux is imposed on the left boundary, leading to outflow on the right seepage boundary. This should lead to a full Dirichlet condition ($p=0$)
 - A test case where suction is imposed, leading to a the seepage boundary exhibiting the behavior of a pure zero-flux Neumann boundary
 - The Muskat case, which has a seepage boundary for which both Dirichlet and Neumann behavior is exhibited on the same seepage boundary.
