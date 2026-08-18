@@ -212,9 +212,9 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self._assert_average_stress_component(reader, stage_1_output, 1.0, 1, -46.667766, 4)
         self._assert_average_stress_component(reader, stage_2_output, 2.0, 1, -100.01745, 4)
 
-        self._assert_y_displacements_at_time(stage_1_output, 1.0, [1, 2, 6],
+        self.assert_uniform_y_displacement_at_time(stage_1_output, 1.0, [1, 2, 6],
                            [ 5.81174e-06, 5.44455e-06, 3.85041e-06], 8)
-        self._assert_y_displacements_at_time(stage_2_output, 2.0, [1, 2, 6],
+        self.assert_uniform_y_displacement_at_time(stage_2_output, 2.0, [1, 2, 6],
                            [ -5.82745e-06, -5.4599e-06, -3.8529e-06], 8)
 
     def _assert_average_stress_component(self, reader, output_data, time, component_index, expected_value, places):
