@@ -99,6 +99,21 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedWorking
     KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLaw_ReturnsTrueForStenbergShearStabilizationSuitability,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto law         = CreateIncrementalLinearElastic3DLaw();
+    auto is_suitable = false;
+
+    // Act
+    auto& r_value = law.GetValue(STENBERG_SHEAR_STABILIZATION_SUITABLE, is_suitable);
+
+    // Assert
+    KRATOS_EXPECT_EQ(&r_value, &is_suitable);
+    KRATOS_EXPECT_TRUE(is_suitable)
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law = CreateIncrementalLinearElastic3DLaw();
