@@ -376,7 +376,7 @@ class SearchBaseProcess(KM.Process):
         self.interface_preprocess = CSMA.InterfacePreprocessCondition(self.main_model_part)
 
         # It should create the conditions automatically
-        interface_parameters = KM.Parameters("""{"simplify_geometry": false, "contact_property_id": 0}""")
+        interface_parameters = KM.Parameters("""{"simplify_geometry": true, "contact_property_id": 0}""")
         interface_parameters["contact_property_id"].SetInt(self.settings["search_property_ids"][key].GetInt())
         self.interface_preprocess.GenerateInterfacePart(partial_model_part, interface_parameters)
 
