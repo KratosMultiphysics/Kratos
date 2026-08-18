@@ -86,7 +86,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
             1.0, precision_places_stress)
 
         for time, expected_y in zip(displacement_times, expected_y_displacements):
-            self.assert_y_displacements_at_time(result, top_nodes, expected_y, time, precision_places_displacement)
+            self.assert_uniform_y_displacement_at_time(result, top_nodes, expected_y, time, precision_places_displacement)
 
     def test_dss_drained(self):
         """Regression test for the direct simple shear experiment with constant pore water pressure."""
@@ -245,9 +245,9 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(output_file)
 
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0099, 0.1, 4)
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0654, 0.7, 4)
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0909, 1.0, 4)
+        self.assert_uniform_y_displacement_at_time(result, top_node_nbrs, -0.0099, 0.1, 4)
+        self.assert_uniform_y_displacement_at_time(result, top_node_nbrs, -0.0654, 0.7, 4)
+        self.assert_uniform_y_displacement_at_time(result, top_node_nbrs, -0.0909, 1.0, 4)
 
     def test_oedometer_ULFEM_diff_order(self):
         """
@@ -263,7 +263,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(output_file)
         top_node_nbrs = [1]
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -1e-4, 1.0, 6)
+        self.assert_uniform_y_displacement_at_time(result, top_node_nbrs, -1e-4, 1.0, 6)
 
     def _assert_oedometer_effective_stresses(self, effective_stresses, expected_yy, places_yy):
         for element in effective_stresses:
