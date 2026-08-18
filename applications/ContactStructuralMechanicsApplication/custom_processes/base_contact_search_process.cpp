@@ -1038,14 +1038,11 @@ inline bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckNor
     //   dot > 0  => angle < 90°  => normals point in similar directions => REJECT
     //   dot = 0  => angle = 90°  => normals are perpendicular            => borderline
     //   dot < 0  => angle > 90°  => normals point in opposite directions  => ACCEPT
-    //
-    // The threshold allows a configurable tolerance:
-    //   threshold =  0.0 => reject if angle <= 90° (strict)
-    //   threshold =  0.5 => reject if angle <= 60° (more permissive)
-    //   threshold = -1.0 => always accept (no filtering)
-    if (dot_product >= NormalOrientationThreshold) {
-        return false; // Normals not properly opposed - surfaces not facing each other
-    }
+
+    if (dot_product <= -NormalOrientationThreshold)
+        return true;
+    else
+        return false;
 
     return true; // Normals properly opposed - surfaces facing each other
 
