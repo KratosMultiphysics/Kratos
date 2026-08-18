@@ -108,11 +108,11 @@ void SPHElementUtilities::Calculate2DB(
     const int domain_size = 2; 
     for (IndexType i =0; i < NumberOfNeighbours; ++i){
         const IndexType index = i * domain_size;
-        rB(0, index + 0) = rF(0, 0) * rDW_DX(i, 0);
+        rB(0, index    ) = rF(0, 0) * rDW_DX(i, 0);
         rB(0, index + 1) = rF(1, 0) * rDW_DX(i, 0);
-        rB(1, index + 0) = rF(0, 1) * rDW_DX(i, 1);
+        rB(1, index    ) = rF(0, 1) * rDW_DX(i, 1);
         rB(1, index + 1) = rF(1, 1) * rDW_DX(i, 1);
-        rB(2, index + 0) = rF(0, 0) * rDW_DX(i, 1) + rF(0, 1) * rDW_DX(i, 0);
+        rB(2, index    ) = rF(0, 0) * rDW_DX(i, 1) + rF(0, 1) * rDW_DX(i, 0);
         rB(2, index + 1) = rF(1, 0) * rDW_DX(i, 1) + rF(1, 1) * rDW_DX(i, 0);
     }
 }
@@ -127,22 +127,22 @@ void SPHElementUtilities::Calculate3DB(
     const int domain_size = 3; 
     for (IndexType i =0; i < NumberOfNeighbours; ++i){
         const IndexType index = i * domain_size;
-        rB(0, index + 0) = rF(0, 0) * rDW_DX(i, 0);
+        rB(0, index    ) = rF(0, 0) * rDW_DX(i, 0);
         rB(0, index + 1) = rF(1, 0) * rDW_DX(i, 0);
         rB(0, index + 2) = rF(2, 0) * rDW_DX(i, 0);
-        rB(1, index + 0) = rF(0, 1) * rDW_DX(i, 1);
+        rB(1, index    ) = rF(0, 1) * rDW_DX(i, 1);
         rB(1, index + 1) = rF(1, 1) * rDW_DX(i, 1);
         rB(1, index + 2) = rF(2, 1) * rDW_DX(i, 1);
-        rB(2, index + 0) = rF(0, 2) * rDW_DX(i, 2);
+        rB(2, index    ) = rF(0, 2) * rDW_DX(i, 2);
         rB(2, index + 1) = rF(1, 2) * rDW_DX(i, 2);
         rB(2, index + 2) = rF(2, 2) * rDW_DX(i, 2);
-        rB(3, index + 0) = rF(0, 0) * rDW_DX(i, 1) + rF(0, 1) * rDW_DX(i, 0);
+        rB(3, index    ) = rF(0, 0) * rDW_DX(i, 1) + rF(0, 1) * rDW_DX(i, 0);
         rB(3, index + 1) = rF(1, 0) * rDW_DX(i, 1) + rF(1, 1) * rDW_DX(i, 0);
         rB(3, index + 2) = rF(2, 0) * rDW_DX(i, 1) + rF(2, 1) * rDW_DX(i, 0);
-        rB(4, index + 0) = rF(0, 1) * rDW_DX(i, 2) + rF(0, 2) * rDW_DX(i, 1);
+        rB(4, index    ) = rF(0, 1) * rDW_DX(i, 2) + rF(0, 2) * rDW_DX(i, 1);
         rB(4, index + 1) = rF(1, 1) * rDW_DX(i, 2) + rF(1, 2) * rDW_DX(i, 1);
         rB(4, index + 2) = rF(2, 1) * rDW_DX(i, 2) + rF(2, 2) * rDW_DX(i, 1);
-        rB(5, index + 0) = rF(0, 2) * rDW_DX(i, 0) + rF(0, 0) * rDW_DX(i, 2);
+        rB(5, index    ) = rF(0, 2) * rDW_DX(i, 0) + rF(0, 0) * rDW_DX(i, 2);
         rB(5, index + 1) = rF(1, 2) * rDW_DX(i, 0) + rF(1, 0) * rDW_DX(i, 2);
         rB(5, index + 2) = rF(2, 2) * rDW_DX(i, 0) + rF(2, 0) * rDW_DX(i, 2);
     }

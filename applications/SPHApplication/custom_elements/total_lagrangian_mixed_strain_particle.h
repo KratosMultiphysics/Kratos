@@ -12,80 +12,34 @@
 
 #pragma once
 
-#include "includes/element.h"
-#include "sph_application_variables.h"
-#include "custom_utilities/custom_kernels/kernel_factory.h"
-#include "custom_utilities/compute_kernel_correction_utilities.h"
-#include "custom_utilities/sph_element_utilities.h"
+#include "custom_elements/total_lagrangian_particle.h"
 
 namespace Kratos
 {
     
 using SizeType = std::size_t;
 
-template<class TKernelType>
-class KRATOS_API(SPH_APPLICATION) TotalLagrangianMixedStrainParticle: public Element
+template<class TKernelType, std::size_t TDim>
+class KRATOS_API(SPH_APPLICATION) TotalLagrangianMixedStrainParticle : public TotalLagrangianDisplacementParticle<TKernelType, TDim>
 {
-
-protected:
-    
-    /**
-     * Internal variables used in the kinematic calculations
-     */
-    struct KinematicVariables
-    {
-        VectorType W;
-        MatrixType DW_DX;
-        MatrixType B;
-        double detF;
-        MatrixType F;
-
-        /**
-         * @brief Default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         * @param DomainSize The size of the problem domain
-         * @param NumberOfNeighbours The number of neighbours of the particle
-         */
-        KinematicVariables(
-            const SizeType StrainSize,
-            const SizeType DomainSize,
-            const SizeType NumberOfNeighbours
-        )
-        {
-            W = ZeroVector(NumberOfNeighbours);
-            DW_DX = ZeroMatrix(NumberOfNeighbours, DomainSize);
-            B = ZeroMatrix(StrainSize, DomainSize * NumberOfNeighbours);
-            detF = 1.0; 
-            F = IdentityMatrix(DomainSize);
-        }
-    };
-    
-    struct ConstitutiveVariables
-    {
-        ConstitutiveLaw::StrainVectorType StrainVector;
-        ConstitutiveLaw::StressVectorType StressVector;
-        ConstitutiveLaw::VoigtSizeMatrixType C;
-
-        /**
-         * @brief Default constructor
-         */
-        ConstitutiveVariables(const SizeType StrainSize)
-        {
-            if (StrainVector.size() != StrainSize) StrainVector.resize(StrainSize);
-            if (StressVector.size() != StrainSize) StressVector.resize(StrainSize);
-            if (C.size1() != StrainSize || C.size2() != StrainSize) C.resize(StrainSize, StrainSize);
-
-            noalias(StrainVector) = ZeroVector(StrainSize);
-            noalias(StressVector) = ZeroVector(StrainSize);
-            noalias(C) = ZeroMatrix(StrainSize, StrainSize);
-        }
-    };
 
 public:
 
-    using BaseType = Element;
+    using BaseType = TotalLagrangianDisplacementParticle<TKernelType, TDim>;
 
-    typedef GeometryData::IntegrationMethod IntegrationMethod; 
+    using GeometryType = typename BaseType::GeometryType;
+    using PropertiesType = typename BaseType::PropertiesType;
+    using IndexType = typename BaseType::IndexType;
+    using MatrixType = typename BaseType::MatrixType;
+    using VectorType = typename BaseType::VectorType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
+    using EquationIdVectorType = typename BaseType::EquationIdVectorType;
+    using DofsVectorType = typename BaseType::DofsVectorType;
+    
+    using KinematicVariables = typename BaseType::KinematicVariables;
+    using ConstitutiveVariables = typename BaseType::ConstitutiveVariables;
+
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangianMixedStrainParticle);
 
@@ -103,14 +57,11 @@ public:
     TotalLagrangianMixedStrainParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
     {
-        mThisIntegrationMethod =  GeometryData::IntegrationMethod::GI_GAUSS_1;  ///
     }
 
     // Copy constructor
     TotalLagrangianMixedStrainParticle(TotalLagrangianMixedStrainParticle const& rOther)
-        : BaseType(rOther),
-        mThisConstitutiveLaw(rOther.mThisConstitutiveLaw),
-        mThisIntegrationMethod(rOther.mThisIntegrationMethod)  ////
+        : BaseType(rOther)
     {
     }
 
@@ -127,31 +78,16 @@ public:
     }
 
     /**
-     * @brief It creates a new element pointer and clones the previous element data
-     */
-    Element::Pointer Clone( IndexType NewId, NodesArrayType const& rThisNodes) const override;
-
-    /**
-     * @brief Called to initialize the element
-     */
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief Called at the beginning of each solution step
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * @brief Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
+     * @details Adds the position update to the base class method
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    IntegrationMethod GetIntegrationMethod() const override
-    {
-        return mThisIntegrationMethod;   ////
-    }
+    /**
+     * @brief It creates a new element pointer and clones the previous element data
+     */
+    Element::Pointer Clone( IndexType NewId, NodesArrayType const& rThisNodes) const override;
 
     /**
      * @brief This function tells the position of the particle in the list of neighbours
@@ -160,7 +96,7 @@ public:
     {
         int i = 0; 
         
-        while (i<rNeighbours.size() && this->Id() != rNeighbours[i]->Id()) i++;
+        while (i < rNeighbours.size() && this->Id() != rNeighbours[i]->Id()) i++;
 
         return i;
     }
@@ -183,42 +119,14 @@ public:
         ) const override;
     
     /**
-     * @brief
+     * @brief Sets on rValues the nodal velocities and the nodal deformation gradient components
      */
     void GetValuesVector(Vector& rValues, int step = 0) const override; 
     
     /**
-     * @brief Sets on rValues the nodal velocities
+     * @brief Sets on rValues the nodal acellerations and the nodal deformation gradient rate components
      */
     void GetFirstDerivativesVector(VectorType& rValues, int step = 0) const override;
-
-    /**
-     * @brief This is called during the assembling process in order to calculate the local system
-     * @param rLeftHandSideMatrix the elemental left hand side matrix
-     * @param rRightHandSideVector the elemental right hand side vector
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
-     * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
-     */
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
-     * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
-     */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
 
     /**
      * @brief This functions calculates both the RHS and the LHS
@@ -237,32 +145,29 @@ public:
     );
 
     /**
-      * @brief Calculation of the Geometric Stiffness Matrix. Kg = dB * S
+      * @brief Calculation of the Geometric Stiffness Matrix component.
       * @param StressVector The vector containing the stress components
       */
     void CalculateAndAddKg(
-        MatrixType& rK,
+        MatrixType& rK12,
         const MatrixType& rDW_DX,
         const VectorType& rStressVector,
         const double IntegrationWeight
     ) const;
 
     /**
-      * @brief Calculation of the Material Stiffness Matrix. Km = B^T * D *B
-      * @param rLeftHandSideMatrix The local LHS of the element
-      * @param B The deformation matrix (Total Lagrangian Framework)
-      * @param D The constitutive matrix
-      * @param IntegrationWeight The integration weight of the corresponding Gauss point
+      * @brief Calculation of the Material Stiffness Matrix component.
+      * @param StressVector The vector containing the stress components
       */
     void CalculateAndAddKm(
-        MatrixType& rK,
-        const Matrix& B,
-        const Matrix& rConstitutiveMatrix,
+        MatrixType& rK12,
+        const KinematicVariables& rThisKinematicVariables,
+        const MatrixType& rConstitutiveMatrix,
         const double IntegrationWeight
-    ) const; 
+    ) const;
 
     /**
-     * @brief
+     * @brief This function calculates the linear momentum residual vector
      */
     virtual void CalculateLinearMomentumResidualVector(
         VectorType& rRHSv,
@@ -272,24 +177,25 @@ public:
         const double weight
     );
 
+   /**
+    * @brief This function calculates the K21 block of the LHS matrix
+    * @details correspond to the derivative of the geometrical governing law for F with respect to the velocity DOFs
+    */
+   virtual void CalculateGeometricalTangentMatrix(
+        MatrixType& rK21,
+        const KinematicVariables& rThisKinematicVariables,
+        const double weight
+    );
+
     /**
-     * @brief
+     * @brief This function calculates the geometrical residual vector
+     * @details correspond to the governing law for F
     */
    virtual void CalculateGeometricalResidualVector(
         VectorType& rRHSF,
         KinematicVariables& rThisKinematicVariables,
         const double weight
    );
-
-   /**
-    * @brief This function calculates the K21 block of the LHS matrix
-    * @details correspond to the derivative of the geometrical governing law for F with respect to the velocity DOFs
-    */
-   virtual void CalculateLeftHandSideK21Block(
-        MatrixType& rK21,
-        const KinematicVariables& rThisKinematicVariables,
-        const double weight
-    );
 
     /**
       * @brief This is called during the assembling process in order to calculate the elemental mass matrix
@@ -301,54 +207,10 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /**
-     * @brief These functions calculates the values of variables in the integrations points.
-     * In SPH case coincide with the neighbouring particles 
-     * @details These functions expect a std::vector of values for the specified variable type
-     * @param rVariable This parameter selects the output 
-     * @param SPH_KERNEL The function computes the kernel values in the neighbours  
-     * @param SPH_KERNEL_GRADIENT The function computes the kernel gradient values in the neighbours  
-     */
-
-    void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
 protected:
 
-    ConstitutiveLaw::Pointer mThisConstitutiveLaw;
-    IntegrationMethod mThisIntegrationMethod;
-
     /**
-     * @brief This function sets the used constitutive laws
-     */
-    void SetConstitutiveLaw(const ConstitutiveLaw::Pointer rThisConstitutiveLaw)
-    {
-        mThisConstitutiveLaw = rThisConstitutiveLaw;
-    }
-
-    /**
-     * @brief Sets the used integration method
-     * @details In SPH the inetgration points are the particles themselves,
-     * this method is implement to maintain compatibility and display the results on the integration points 
-    */
-    void SetIntegrationMethod(const IntegrationMethod ThisIntegrationMethod)
-    {
-        mThisIntegrationMethod = ThisIntegrationMethod; ////
-    }
-
-    /**
-     * @brief
+     * @brief This function assembles the LHS matrix of the element block by block 
      */
     virtual void AssembleLHS(
         MatrixType& rLHS,
@@ -359,7 +221,7 @@ protected:
     );
 
     /**
-     * @brief 
+     * @brief This function assembles the RHS matrix of the element block by block 
      */
     virtual void AssembleRHS(
         VectorType& rRHS,
@@ -367,32 +229,6 @@ protected:
         const VectorType& rRHSF
     );
 
-    /**
-     * @brief This functions updates the data structure passed to the CL
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     */
-    virtual void SetConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues
-        ) const;
-
-    /**
-     * @brief This functions updates the constitutive variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     * @param ThisStressMeasure The stress measure considered
-     */
-    virtual void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK1
-        ) const;
-    
     /**
      * @brief Calculate the kinematics
      * @details This method calculates the kinematics of the element for a given integration point
@@ -424,13 +260,7 @@ protected:
         MatrixType& rF
     );
 
-    /**
-     * @brief It initializes the material 
-     */
-    void InitializeMaterial();
-
 private:
-
 
 
 };

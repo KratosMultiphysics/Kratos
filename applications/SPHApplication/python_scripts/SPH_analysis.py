@@ -1,3 +1,5 @@
+import json
+
 import KratosMultiphysics as KM 
 import KratosMultiphysics.SPHApplication as SPH
 
@@ -24,6 +26,13 @@ class SPHAnalysis(AnalysisStage):
 		if not solver_settings.Has("domain_size"):
 			raise Exception("SPHAnalysis: Using the old way to pass the domain_size, this was removed!")
 
+		try:
+			with open("SPHProcesses.json", "r") as process_file:
+				process_data = process_file.read()
+				self.sph_process_parameters = KM.Parameters(process_data)
+		except FileNotFoundError as exc:
+			raise Exception("SPHProcesses.json not found") from exc
+
 		solver_settings = project_parameters["solver_settings"]
         
 		super().__init__(model, project_parameters)
@@ -41,39 +50,14 @@ class SPHAnalysis(AnalysisStage):
 		if parameter_name != "processes":
 			return list_of_processes
 
-		params = KM.Parameters("""
-		{
-			"model_part_name" : "Structure",
-			"coefficient"     : 0.5
-		}
-		""");
-		neighbours_process = SPH.NeighboursSearchProcess(model_part, params)
+		# Adding SPH specific processes (to change parameters, see SPHProcesses.json)
+		neighbours_search_process = SPH.NeighboursSearchProcess(model_part, self.sph_process_parameters["neighbours_search"])
+		kernel_correction_process = SPH.ComputeKernelCorrectionProcess(model_part, self.sph_process_parameters["kernel_correction"])
+		volume_process = SPH.ComputeVolumeProcess(self.model["Structure.Triangulation"], self.sph_process_parameters["volume"])
 
-		params = KM.Parameters("""
-		{
-			"model_part_name" : "Structure",
-			"controls"     : true,
-			"tol" : 1e-10
-		}
-		""");
-		kernel_correction_process = SPH.ComputeKernelCorrectionProcess(model_part, params)
+		custom_processes = [neighbours_search_process, kernel_correction_process, volume_process]
 
-		params = KM.Parameters("""
-		{
-			"model_part_name" : "set_model_part_name",
-			"structured_mesh" : false
-		}
-		""");
-		volume_process = SPH.ComputeVolumeProcess(self.model["Structure.Triangulation"], params)
-
-		## Il problema al momento è scrivere in modo più compatto questi input e assegnare quelli di default,
-		## default non assegato perchè non viene richiamata la factory
-
-		list_of_processes.insert(0, volume_process)
-		list_of_processes.insert(1, neighbours_process)
-		list_of_processes.insert(2, kernel_correction_process)
-
-		return list_of_processes
+		return custom_processes + list_of_processes
 
 	def _GetSimulationName(self):
 		return "::[SPH Simulation]:: "

@@ -1,15 +1,14 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
-//
+//  ____  ____  _   _                   _ _           _   _             
+// / ___||  _ \| | | | __ _ _ __  _ __ | (_) ___ __ _| |_(_) ___  _ __  
+// \___ \| |_) | |_| |/ _` | '_ \| '_ \| | |/ __/ _` | __| |/ _ \| '_ \ 
+//  ___) |  __/|  _  | (_| | |_) | |_) | | | (_| (_| | |_| | (_) | | | |
+// |____/|_|   |_| |_|\__,_| .__/| .__/|_|_|\___\__,_|\__|_|\___/|_| |_|
+//                         |_|   |_|                                    
+
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
-//
-//  Main authors:    @{KRATOS_APP_AUTHOR}
-//
 
+//  Main authors:    Marco Pilotto
 
 // System includes
 
@@ -60,6 +59,39 @@ void KratosSPHApplication::Register()
     KRATOS_REGISTER_ELEMENT("TotalLagrangianDisplacementCubicParticle3D", mTotalLagrangianDisplacementCubicParticle3D)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedStrainCubicParticle2D", mTotalLagrangianMixedStrainCubicParticle2D)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedStrainCubicParticle3D", mTotalLagrangianMixedStrainCubicParticle3D)
+
+
+
+    // VARIABLES
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_XX)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_XY)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_XZ)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_YX)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_YY)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_YZ)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_ZX)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_ZY)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_ZZ)
+    
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_DOT_XX)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_DOT_XY)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_DOT_XZ)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_DOT_YX)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_DOT_YY)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_DOT_YZ)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_DOT_ZX)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_DOT_ZY)
+    KRATOS_REGISTER_VARIABLE(DEFORMATION_GRADIENT_DOT_ZZ)
+    
+    KRATOS_REGISTER_VARIABLE(REACTION_DEFORMATION_GRADIENT_XX)
+    KRATOS_REGISTER_VARIABLE(REACTION_DEFORMATION_GRADIENT_XY)
+    KRATOS_REGISTER_VARIABLE(REACTION_DEFORMATION_GRADIENT_XZ)
+    KRATOS_REGISTER_VARIABLE(REACTION_DEFORMATION_GRADIENT_YX)
+    KRATOS_REGISTER_VARIABLE(REACTION_DEFORMATION_GRADIENT_YY)
+    KRATOS_REGISTER_VARIABLE(REACTION_DEFORMATION_GRADIENT_YZ)
+    KRATOS_REGISTER_VARIABLE(REACTION_DEFORMATION_GRADIENT_ZX)
+    KRATOS_REGISTER_VARIABLE(REACTION_DEFORMATION_GRADIENT_ZY)
+    KRATOS_REGISTER_VARIABLE(REACTION_DEFORMATION_GRADIENT_ZZ)
 
 
 }

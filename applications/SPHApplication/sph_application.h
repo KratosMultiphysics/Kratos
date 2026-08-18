@@ -186,13 +186,14 @@ private:
 
     // Adding the particle elements
 
-    const SmallDisplacementParticle<CubicKernel2D> mSmallDisplacementCubicParticle2D;
-    const SmallDisplacementParticle<CubicKernel3D> mSmallDisplacementCubicParticle3D;
+    const SmallDisplacementParticle<CubicKernel2D, 2> mSmallDisplacementCubicParticle2D;
+    const SmallDisplacementParticle<CubicKernel3D, 3> mSmallDisplacementCubicParticle3D;
 
-    const TotalLagrangianDisplacementParticle<CubicKernel2D> mTotalLagrangianDisplacementCubicParticle2D;
-    const TotalLagrangianDisplacementParticle<CubicKernel3D> mTotalLagrangianDisplacementCubicParticle3D;
-    const TotalLagrangianMixedStrainParticle<CubicKernel2D> mTotalLagrangianMixedStrainCubicParticle2D;
-    const TotalLagrangianMixedStrainParticle<CubicKernel3D> mTotalLagrangianMixedStrainCubicParticle3D;
+    const TotalLagrangianDisplacementParticle<CubicKernel2D, 2> mTotalLagrangianDisplacementCubicParticle2D;
+    const TotalLagrangianDisplacementParticle<CubicKernel3D, 3> mTotalLagrangianDisplacementCubicParticle3D;
+    
+    const TotalLagrangianMixedStrainParticle<CubicKernel2D, 2> mTotalLagrangianMixedStrainCubicParticle2D;
+    const TotalLagrangianMixedStrainParticle<CubicKernel3D, 3> mTotalLagrangianMixedStrainCubicParticle3D;
 
     /* CONSTITUTIVE LAWS */ 
 

@@ -25,9 +25,10 @@ namespace Kratos
 
 using SizeType = std::size_t;
 
-template<class TKernelType>
+template<class TKernelType, std::size_t TDim>
 class KRATOS_API(SPH_APPLICATION) SmallDisplacementParticle : public Element
 {
+    
 protected:
     /**
      * Internal variables used in the kinematic calculations
@@ -56,7 +57,7 @@ protected:
             W = ZeroVector(NumberOfNeighbours);
             DW_DX = ZeroMatrix(NumberOfNeighbours, DomainSize);
             B = ZeroMatrix(StrainSize, DomainSize * NumberOfNeighbours);
-            double detF = 1.0;
+            detF = 1.0;
             F = IdentityMatrix(DomainSize);
             Displacement = ZeroVector(DomainSize * NumberOfNeighbours);
         }
@@ -216,15 +217,15 @@ public:
         );
 
     /**
-     * @brief
+     * @brief This function is called to initialize the kinematic variables
      */
-    virtual void CalculateKineamaticVariables(
+    virtual void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
         const ProcessInfo& rProcessInfo
     );
 
     /**
-     * @brief
+     * @brief This function computes the deformation matrix B for 2D simulations 
      */
     virtual void Calculate2DB(
         MatrixType& rB,
@@ -232,7 +233,7 @@ public:
     );
 
     /**
-     * @brief
+     * @brief This function computes the deformation matrix B for 3D simulations 
      */
     virtual void Calculate3DB(
         MatrixType& rB,
@@ -240,7 +241,8 @@ public:
     );
 
     /**
-     * @brief
+     * @brief This function calculates the external forces contribution
+     * @param rBodyForce The Body force vector 
      */
     virtual void CalculateAndAddExternalForcesContribution(
         const VectorType& rW,
@@ -251,7 +253,8 @@ public:
     ) const;
 
     /**
-     * @brief
+     * @brief This function is called to initialize the constitutive variables
+     * @param ThisStressMeasure The stress measure to be used in the constitutive law
     */
     virtual void CalculateConstitutiveVariables(
         ConstitutiveVariables& rThisConstitutiveVariables,

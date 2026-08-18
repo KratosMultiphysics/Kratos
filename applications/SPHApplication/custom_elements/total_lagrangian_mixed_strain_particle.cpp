@@ -1,160 +1,55 @@
 #include "custom_elements/total_lagrangian_mixed_strain_particle.h"
-
 #include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
-    if (rCurrentProcessInfo[IS_RESTARTED]){
-        InitializeMaterial();
-    }
-
-    KRATOS_CATCH("")
+    BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
+    // Calcolare la posizione
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::InitializeMaterial()
-{
-    KRATOS_TRY
-
-    if (GetProperties()[CONSTITUTIVE_LAW] != nullptr){
-        const auto& r_geom = GetGeometry();
-        const auto& r_prop = GetProperties();
-
-        mThisConstitutiveLaw = r_prop[CONSTITUTIVE_LAW]->Clone();
-        mThisConstitutiveLaw->InitializeMaterial(r_prop, r_geom, Vector());
-
-    } else {
-        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID" << this->Id() << std::endl;
-    }
-
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::InitializeSolutionStep(const ProcessInfo& rProcessInfo)
-{
-    KRATOS_TRY
-
-    bool required = false;
-    if (mThisConstitutiveLaw->RequiresInitializeMaterialResponse()) required = true;
-
-    if (required){
-        const auto& r_geom = GetGeometry();
-        const auto& r_prop = GetProperties();
-        const SizeType dimension = r_geom.WorkingSpaceDimension();
-        const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
-        const SizeType number_of_neighbours = GetValue(NEIGHBOURS).size();
-
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_neighbours);
-        ConstitutiveVariables this_constitutive_variables(strain_size);
-
-        ConstitutiveLaw::Parameters cl_values(r_geom, r_prop, rProcessInfo);
-        // Set constitutive law flags
-        Flags& cl_options = cl_values.GetOptions(); 
-        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
-        CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
-
-        SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values);
-        cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
-
-        // Call the constitutive law to update material variables 
-        mThisConstitutiveLaw->InitializeMaterialResponse(cl_values, ConstitutiveLaw::StressMeasure_PK2);
-    }
-
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::FinalizeSolutionStep(const ProcessInfo& rProcessInfo)
-{
-    KRATOS_TRY
-
-    bool required = false;
-    if (mThisConstitutiveLaw->RequiresInitializeMaterialResponse()) required = true;
-
-    if (required){
-        const auto& r_geom = GetGeometry();
-        const auto& r_prop = GetProperties();
-        const SizeType dimension = r_geom.WorkingSpaceDimension();
-        const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
-        const SizeType number_of_neighbours = GetValue(NEIGHBOURS).size();
-
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_neighbours);
-        ConstitutiveVariables this_constitutive_variables(strain_size);
-
-        ConstitutiveLaw::Parameters cl_values(r_geom, r_prop, rProcessInfo);
-        // Set constitutive law flags
-        Flags& cl_options = cl_values.GetOptions(); 
-        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
-        CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
-
-        SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values);
-        cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
-
-        // Call the constitutive law to update material variables 
-        mThisConstitutiveLaw->FinalizeMaterialResponse(cl_values, ConstitutiveLaw::StressMeasure_PK2);
-    }
-
-    // Forse qui devi aggiornare posizione
-
-    KRATOS_CATCH("")
-}
-
-
-template<class TKernelType>
-Element::Pointer TotalLagrangianMixedStrainParticle<TKernelType>::Clone(
+template<class TKernelType, std::size_t TDim>
+Element::Pointer TotalLagrangianMixedStrainParticle<TKernelType, TDim>::Clone(
     IndexType NewId,
     NodesArrayType const& rThisNodes
 ) const
 {
     KRATOS_TRY
     
-    TotalLagrangianMixedStrainParticle<TKernelType>::Pointer p_new_elem = Kratos::make_intrusive<TotalLagrangianMixedStrainParticle<TKernelType>>
-        (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    TotalLagrangianMixedStrainParticle<TKernelType, TDim>::Pointer p_new_elem = Kratos::make_intrusive<TotalLagrangianMixedStrainParticle<TKernelType, TDim>>
+        (NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
-    p_new_elem->SetConstitutiveLaw(mThisConstitutiveLaw);
+    p_new_elem->SetConstitutiveLaw(this->mThisConstitutiveLaw);
 
     return p_new_elem;
 
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::EquationIdVector(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
     KRATOS_TRY
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
     const SizeType number_of_neighbours = r_neighbours.size();
-
-    const SizeType dofs_per_node = dimension + (dimension * dimension);
+    const SizeType dofs_per_node = TDim + (TDim * TDim);
 
     if (rResult.size() != dofs_per_node * number_of_neighbours)
         rResult.resize(dofs_per_node * number_of_neighbours, false);
 
-    if (dimension == 2){
+    if constexpr (TDim == 2){
         for (IndexType i = 0; i < number_of_neighbours; ++i){
             const auto& r_geom = r_neighbours[i]->GetGeometry();
-            const SizeType v_block = i * dimension;
-            const SizeType F_block = i * dimension * dimension + dimension * number_of_neighbours;
+            const SizeType v_block = i * TDim;
+            const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const IndexType vpos = r_geom[0].GetDofPosition(VELOCITY_X);
             const IndexType Fpos = r_geom[0].GetDofPosition(DEFORMATION_GRADIENT_XX);
@@ -169,8 +64,8 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::EquationIdVector(
     } else {
         for (IndexType i = 0; i < number_of_neighbours; ++i){
             const auto& r_geom = r_neighbours[i]->GetGeometry();
-            const SizeType v_block = i * dimension;
-            const SizeType F_block = i * dimension * dimension + dimension * number_of_neighbours;
+            const SizeType v_block = i * TDim;
+            const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const IndexType vpos = r_geom[0].GetDofPosition(VELOCITY_X);
             const IndexType Fpos = r_geom[0].GetDofPosition(DEFORMATION_GRADIENT_XX);
@@ -192,28 +87,25 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::EquationIdVector(
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::GetDofList(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
     KRATOS_TRY
-    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
-
     const auto& r_neighbours = this->GetValue(NEIGHBOURS);
     const SizeType number_of_neighbours = r_neighbours.size();
-
-    const SizeType dofs_per_node = dimension + (dimension * dimension);
+    const SizeType dofs_per_node = TDim + (TDim * TDim);
 
     if(rElementalDofList.size() != dofs_per_node * number_of_neighbours)
         rElementalDofList.resize(dofs_per_node * number_of_neighbours);
     
-    if (dimension == 2){
+    if constexpr (TDim == 2){
         for (IndexType i = 0; i < number_of_neighbours; ++i){
             const auto& r_geom = r_neighbours[i]->GetGeometry();
-            const SizeType v_block = i * dimension;
-            const SizeType F_block = i * dimension * dimension + dimension * number_of_neighbours;
+            const SizeType v_block = i * TDim;
+            const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             rElementalDofList[v_block    ] = r_geom[0].pGetDof(VELOCITY_X);
             rElementalDofList[v_block + 1] = r_geom[0].pGetDof(VELOCITY_Y);
@@ -225,8 +117,8 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::GetDofList(
     } else {
         for (IndexType i = 0; i < number_of_neighbours; ++i){
             const auto& r_geom = r_neighbours[i]->GetGeometry();
-            const SizeType v_block = i * dimension;
-            const SizeType F_block = i * dimension * dimension + dimension * number_of_neighbours;
+            const SizeType v_block = i * TDim;
+            const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             rElementalDofList[v_block    ] = r_geom[0].pGetDof(VELOCITY_X);
             rElementalDofList[v_block + 1] = r_geom[0].pGetDof(VELOCITY_Y);
@@ -245,27 +137,26 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::GetDofList(
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::GetValuesVector(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::GetValuesVector(
     Vector& rValues,
     int Step
     ) const
 {
     KRATOS_TRY
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
     const SizeType number_of_neighbours = r_neighbours.size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType dofs_per_node = dimension + (dimension * dimension);
+    const SizeType dofs_per_node = TDim + (TDim * TDim);
     const SizeType mat_size = dofs_per_node * number_of_neighbours;
 
     if (rValues.size() != mat_size) 
         rValues.resize(mat_size, false);
 
-    if (dimension == 2){
+    if constexpr (TDim == 2){
         for (IndexType i = 0; i < number_of_neighbours; ++i){
             const auto& r_geom = r_neighbours[i]->GetGeometry();
-            const SizeType v_block = i * dimension;
-            const SizeType F_block = i * dimension * dimension + dimension * number_of_neighbours;
+            const SizeType v_block = i * TDim;
+            const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const array_1d<double, 3>& velocity = r_geom[0].FastGetSolutionStepValue(VELOCITY, Step);
             
@@ -279,8 +170,8 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::GetValuesVector(
     } else {
         for (IndexType i = 0; i < number_of_neighbours; ++i){
             const auto& r_geom = r_neighbours[i]->GetGeometry();
-            const SizeType v_block = i * dimension;
-            const SizeType F_block = i * dimension * dimension + dimension * number_of_neighbours;
+            const SizeType v_block = i * TDim;
+            const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const array_1d<double, 3>& velocity = r_geom[0].FastGetSolutionStepValue(VELOCITY, Step);
 
@@ -301,23 +192,22 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::GetValuesVector(
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::GetFirstDerivativesVector(VectorType& rValues, int step) const
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::GetFirstDerivativesVector(VectorType& rValues, int step) const
 {
     KRATOS_TRY
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
     const SizeType number_of_neighbours = r_neighbours.size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType dofs_per_node = dimension + (dimension * dimension);
+    const SizeType dofs_per_node = TDim + (TDim * TDim);
     const SizeType mat_size = dofs_per_node * number_of_neighbours;
 
     if (rValues.size() != mat_size) rValues.resize(mat_size, false);
 
-    if (dimension == 2){
+    if constexpr (TDim == 2){
         for (IndexType i = 0; i < number_of_neighbours; ++i){
             const auto& r_geom = r_neighbours[i]->GetGeometry();
-            const SizeType v_block = i * dimension;
-            const SizeType F_block = i * dimension * dimension + dimension * number_of_neighbours;
+            const SizeType v_block = i * TDim;
+            const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const array_1d<double, 3>& acceleration = r_geom[0].FastGetSolutionStepValue(ACCELERATION, step);
             
@@ -331,8 +221,8 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::GetFirstDerivativesVector(
     } else {
         for(IndexType i = 0; i < number_of_neighbours; ++i){
             const auto& r_geom = r_neighbours[i]->GetGeometry();
-            const SizeType v_block = i * dimension;
-            const SizeType F_block = i * dimension * dimension + dimension * number_of_neighbours;
+            const SizeType v_block = i * TDim;
+            const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
 
             const array_1d<double, 3>& acceleration = r_geom[0].FastGetSolutionStepValue(ACCELERATION, step);
 
@@ -353,56 +243,8 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::GetFirstDerivativesVector(
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateLocalSystem(
-    MatrixType& rLHS,
-    VectorType& rRHS,
-    const ProcessInfo& rProcessInfo
-    )
-{
-    KRATOS_TRY
-    const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag = true;
-    
-    CalculateAll(rLHS, rRHS, rProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-    
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateLeftHandSide(
-    MatrixType& rLHS,
-    const ProcessInfo& rProcessInfo
-    )
-{
-    KRATOS_TRY
-    const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag = false;
-    VectorType RHS;
-     
-    CalculateAll(rLHS, RHS, rProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-    
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateRightHandSide(
-    VectorType& rRHS,
-    const ProcessInfo& rProcessInfo
-    )
-{
-    KRATOS_TRY
-    const bool CalculateStiffnessMatrixFlag = false;
-    const bool CalculateResidualVectorFlag = true;
-    MatrixType temp = Matrix();
-     
-    CalculateAll(temp, rRHS, rProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-    
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateAll(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAll(
     MatrixType& rLHS, 
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo,
@@ -412,13 +254,12 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateAll(
 {
     KRATOS_TRY
 
-    const auto& r_geom = GetGeometry(); 
-    const auto& r_prop = GetProperties();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const auto& r_geom = this->GetGeometry(); 
+    const auto& r_prop = this->GetProperties();
+    const SizeType strain_size = this->mThisConstitutiveLaw->GetStrainSize();
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
     const SizeType number_of_neighbours = r_neighbours.size();
-    const SizeType block_size = dimension + dimension * dimension; 
+    const SizeType block_size = TDim + TDim * TDim; 
     const SizeType mat_size = block_size * number_of_neighbours;
 
     if (CalculateStiffnessMatrixFlag){
@@ -431,7 +272,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateAll(
         noalias(rRHS) = ZeroVector(mat_size);
     }
 
-    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_neighbours);
+    KinematicVariables this_kinematic_variables(strain_size, TDim, number_of_neighbours);
     ConstitutiveVariables this_constitutive_variables(strain_size);
 
     ConstitutiveLaw::Parameters cl_values(r_geom, r_prop, rProcessInfo); 
@@ -448,27 +289,27 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateAll(
     const double gauss_weight = r_geom[0].GetValue(VOLUME);
 
     CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
-    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, ConstitutiveLaw::StressMeasure_PK2);
+    this->CalculateConstitutiveVariables(this_constitutive_variables, this_kinematic_variables, cl_values, ConstitutiveLaw::StressMeasure_PK2);
 
     if (CalculateStiffnessMatrixFlag){
         // Initializing the blocks
-        MatrixType K11(dimension * number_of_neighbours, dimension * number_of_neighbours); K11.clear(); 
-        MatrixType K12(dimension * number_of_neighbours, dimension * dimension * number_of_neighbours); K12.clear();
-        MatrixType K21(dimension * dimension * number_of_neighbours, dimension * number_of_neighbours); K21.clear();
-        MatrixType K22(dimension * dimension * number_of_neighbours, dimension * dimension * number_of_neighbours); K22.clear();
+        MatrixType K11(TDim * number_of_neighbours, TDim * number_of_neighbours); K11.clear(); 
+        MatrixType K12(TDim * number_of_neighbours, TDim * TDim * number_of_neighbours); K12.clear();
+        MatrixType K21(TDim * TDim * number_of_neighbours, TDim * number_of_neighbours); K21.clear();
+        MatrixType K22(TDim * TDim * number_of_neighbours, TDim * TDim * number_of_neighbours); K22.clear();
 
-        /* Geometric stiffness matrix */
+        
         CalculateAndAddKg(K12, this_kinematic_variables.DW_DX, this_constitutive_variables.StressVector, gauss_weight);
+        CalculateAndAddKm(K12, this_kinematic_variables, this_constitutive_variables.C, gauss_weight);
 
-        /* Material stiffness matrix */
-        //CalculateAndAddKm(K12, this_kinematic_variables.B, this_constitutive_variables.C, gauss_weight); 
+        CalculateGeometricalTangentMatrix(K21, this_kinematic_variables, gauss_weight);
 
         AssembleLHS(rLHS, K11, K12, K21, K22);
     }
 
     if (CalculateResidualVectorFlag){
-        VectorType RHSv(dimension * number_of_neighbours); RHSv.clear();
-        VectorType RHSF(dimension * dimension * number_of_neighbours); RHSF.clear();
+        VectorType RHSv(TDim * number_of_neighbours); RHSv.clear();
+        VectorType RHSF(TDim * TDim * number_of_neighbours); RHSF.clear();
 
         CalculateLinearMomentumResidualVector(RHSv, this_kinematic_variables, rProcessInfo, this_constitutive_variables.StressVector, gauss_weight);
 
@@ -480,29 +321,29 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateAll(
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateAndAddKg(
-    MatrixType& rK, 
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddKg(
+    MatrixType& rK12, 
     const Matrix& rDW_DX, 
     const Vector& rStressVector, 
     const double weight
     ) const 
 {
     KRATOS_TRY
-
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    // This should be okay, check if it is correct to use A to derive all the entries of the matrix 
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
 
     int self_index = GetNeighbourPosition(r_neighbours);
-    int column_start = dimension * dimension * self_index; 
+    const SizeType column_start = TDim * TDim * self_index;
 
-    VectorType A = ZeroVector(dimension); 
+    VectorType A = ZeroVector(TDim);
+    SizeType F_index;
 
     for (IndexType i = 0; i < r_neighbours.size(); ++i){
 
-        int row_start = dimension * i; 
+        const SizeType row_start = TDim * i;
 
-        if (dimension == 2){
+        if constexpr (TDim == 2){
 
             A[0] = rStressVector[0] * rDW_DX(i, 0) + rStressVector[2] * rDW_DX(i, 1);
             A[1] = rStressVector[2] * rDW_DX(i, 0) + rStressVector[1] * rDW_DX(i, 1);
@@ -517,32 +358,68 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateAndAddKg(
 
         }
 
-        for (SizeType row = 0; row < dimension; ++row){
-            for (SizeType col = 0; col < dimension; ++col){
-                rK(row_start + row, column_start + row * dimension + col) += A[col];
+        for (SizeType row = 0; row < TDim; ++row){
+            for (SizeType col = 0; col < TDim; ++col){
+
+                if constexpr (TDim == 2) {
+                    constexpr SizeType indices[2][2] = {{0, 2}, {3, 1}};
+                    F_index = indices[row][col];
+                } else {
+                    constexpr SizeType indices[3][3] = {{0, 3, 4}, {5, 1, 6}, {7, 8, 2}};
+                    F_index = indices[row][col];
+                }
+                rK12(row_start + row, column_start + F_index) += A[col];
             }
         }
-
     }
 
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateAndAddKm(
-    MatrixType& rK, 
-    const Matrix& rB,
-    const Matrix& rConstitutiveMatrix, 
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddKm(
+    MatrixType& rK12,
+    const KinematicVariables& rThisKinematicVariables,
+    const MatrixType& rConstitutiveMatrix,
     const double weight
     ) const 
 {
     KRATOS_TRY
-    noalias(rK) += weight * prod(trans(rB), Matrix(prod(rConstitutiveMatrix, rB)));
+    // This is okay, only thing to check is the correcteness of the L matrix (also in case someday I change variable order)
+
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
+    const int self_index = GetNeighbourPosition(r_neighbours);
+
+    MatrixType L;
+    const MatrixType& rF = rThisKinematicVariables.F;
+    if constexpr (TDim == 2) {
+        L = ZeroMatrix(3, 4);
+        L(0, 0) = rF(0, 0); L(0, 3) = rF(1, 0);
+        L(1, 1) = rF(1, 1); L(1, 2) = rF(0, 1);
+        L(2, 0) = rF(0, 1); L(2, 1) = rF(1, 0);
+        L(2, 2) = rF(0, 0); L(2, 3) = rF(1, 1);
+    } else {
+        L = ZeroMatrix(6, 9);
+        L(0, 0) = rF(0, 0); L(0, 5) = rF(1, 0); L(0, 7) = rF(2, 0);
+        L(1, 3) = rF(0, 1); L(1, 1) = rF(1, 1); L(1, 8) = rF(2, 1);
+        L(2, 4) = rF(0, 2); L(2, 6) = rF(1, 2); L(2, 2) = rF(2, 2);
+        L(3, 0) = rF(0, 1); L(3, 3) = rF(0, 0); L(3, 5) = rF(1, 1);
+        L(3, 1) = rF(1, 0); L(3, 7) = rF(2, 1); L(3, 8) = rF(2, 0);
+        L(4, 3) = rF(0, 2); L(4, 4) = rF(0, 1); L(4, 1) = rF(1, 2);
+        L(4, 6) = rF(1, 1); L(4, 8) = rF(2, 2); L(4, 2) = rF(2, 1);
+        L(5, 0) = rF(0, 2); L(5, 4) = rF(0, 0); L(5, 5) = rF(1, 2);
+        L(5, 6) = rF(1, 0); L(5, 7) = rF(2, 2); L(5, 2) = rF(2, 0);
+    }
+
+    const MatrixType material_tangent = weight * prod(trans(rThisKinematicVariables.B), Matrix(prod(rConstitutiveMatrix, L)));
+    const SizeType column_start = self_index * TDim * TDim;
+    noalias(project(rK12, range(0, rK12.size1()), range(column_start, column_start + TDim * TDim))) += material_tangent;
+
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateLinearMomentumResidualVector(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateLinearMomentumResidualVector(
     VectorType& rRHSv,
     const KinematicVariables& rThisKinematicVariables,
     const ProcessInfo& rProcessInfo,
@@ -552,15 +429,15 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateLinearMomentumRes
 {
     KRATOS_TRY
 
-    const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
-    const SizeType domain_size = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_neigh = this->GetValue(NEIGHBOURS).size();
     
     // Only external forces contributions are taken into account at the moment 
-    VectorType body_force(domain_size); SPHElementUtilities::GetLocalBodyForces(*this, body_force);
+    VectorType body_force(TDim); 
+    SPHElementUtilities::GetLocalBodyForces(*this, body_force);
 
     for (IndexType i = 0; i < number_of_neigh; ++i){
-        const SizeType index = i * domain_size;
-        for (IndexType d = 0; d < domain_size; ++d)
+        const SizeType index = i * TDim;
+        for (IndexType d = 0; d < TDim; ++d)
             rRHSv[index + d] += weight * rThisKinematicVariables.W[i] * body_force[d];
     }
 
@@ -570,72 +447,35 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateLinearMomentumRes
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateGeometricalResidualVector(
-    VectorType& rRHSF,
-    KinematicVariables& rThisKinematicVariables,
-    const double weight
-)
-{
-    KRATOS_TRY
-
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
-    const SizeType number_of_neigh = r_neighbours.size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-    VectorType temp_residual(dimension * dimension), vel_aux(dimension);
-    MatrixType temp = ZeroMatrix(dimension, dimension); 
-
-    for (IndexType i = 0; i < number_of_neigh; ++i){
-        
-        const array_1d<double, 3>& velocity = r_neighbours[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-        for (IndexType d = 0; d < dimension; ++d) vel_aux[d] = velocity[d];
-
-        temp += outer_prod(vel_aux, row(rThisKinematicVariables.DW_DX, i));
-    }
-
-    temp_residual = SPHElementUtilities::NonSymmetricTensorToVector(temp); 
-
-    for (IndexType i = 0; i < number_of_neigh; ++i){
-        noalias(project(rRHSF, range(dimension * dimension * i, dimension * dimension * (i + 1)))) += temp_residual * rThisKinematicVariables.W[i];
-    }
-
-    rRHSF *= weight;
-
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateLeftHandSideK21Block(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateGeometricalTangentMatrix(
     MatrixType& rK21,
     const KinematicVariables& rThisKinematicVariables,
     const double weight
 )
 {
     KRATOS_TRY
-
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
     const SizeType number_of_neigh = r_neighbours.size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-    const MatrixType E = IdentityMatrix(dimension);
-    VectorType e(dimension), temp_vec(dimension * dimension);
-    MatrixType temp(dimension, dimension);
+    const MatrixType E = IdentityMatrix(TDim);
+    VectorType e(TDim), temp_vec(TDim * TDim);
+    MatrixType temp(TDim, TDim);
 
     for (IndexType i = 0; i < number_of_neigh; ++i){
-        for (IndexType d = 0; d < dimension; ++d){
+        for (IndexType d = 0; d < TDim; ++d){
             
             e = column(E, d); 
             temp = outer_prod(e, row(rThisKinematicVariables.DW_DX, i));
             temp_vec = SPHElementUtilities::NonSymmetricTensorToVector(temp);
             
-            const SizeType col_index = i * dimension + d;
+            const SizeType col_index = i * TDim + d;
             
             for (IndexType ii = 0; ii < number_of_neigh; ++ii){
                 
-                const SizeType row_start = dimension * dimension * ii;
+                const SizeType row_start = TDim * TDim * ii;
                 
-                for (IndexType k = 0; k < dimension * dimension; ++k){
+                for (IndexType k = 0; k < TDim * TDim; ++k){
                     rK21(row_start + k, col_index) += weight * rThisKinematicVariables.W[ii] * temp_vec[k];
                 }
             }
@@ -645,22 +485,52 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateLeftHandSideK21Bl
     KRATOS_CATCH("")   
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::AssembleLHS(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateGeometricalResidualVector(
+    VectorType& rRHSF,
+    KinematicVariables& rThisKinematicVariables,
+    const double weight
+)
+{
+    KRATOS_TRY
+
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
+    const SizeType number_of_neigh = r_neighbours.size();
+
+    VectorType temp_residual(TDim * TDim), vel_aux(TDim);
+    MatrixType temp = ZeroMatrix(TDim, TDim); 
+
+    for (IndexType i = 0; i < number_of_neigh; ++i){
+        
+        const array_1d<double, 3>& velocity = r_neighbours[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        for (IndexType d = 0; d < TDim; ++d) vel_aux[d] = velocity[d];
+
+        temp += outer_prod(vel_aux, row(rThisKinematicVariables.DW_DX, i));
+    }
+
+    temp_residual = SPHElementUtilities::NonSymmetricTensorToVector(temp); 
+
+    for (IndexType i = 0; i < number_of_neigh; ++i){
+        noalias(project(rRHSF, range(TDim * TDim * i, TDim * TDim * (i + 1)))) += temp_residual * rThisKinematicVariables.W[i];
+    }
+
+    rRHSF *= weight;
+
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::AssembleLHS(
     MatrixType& rLHS,
     const MatrixType& rK11,
-    const MatrixType& rK21,
     const MatrixType& rK12,
+    const MatrixType& rK21,
     const MatrixType& rK22
     )
 {
     KRATOS_TRY
-
-    const auto& r_geom = GetGeometry();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType number_of_neighbours = GetValue(NEIGHBOURS).size();
-
-    const SizeType first_equation_dofs = number_of_neighbours * dimension;
+    const SizeType number_of_neighbours = this->GetValue(NEIGHBOURS).size();
+    const SizeType first_equation_dofs = number_of_neighbours * TDim;
 
     for (IndexType i = 0; i < rK11.size1(); ++i)
         for (IndexType j = 0; j < rK11.size2(); ++j)
@@ -681,20 +551,16 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::AssembleLHS(
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::AssembleRHS(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::AssembleRHS(
     VectorType& rRHS,
     const VectorType& rRHSv,
     const VectorType& rRHSF
     )
 {
     KRATOS_TRY
-
-    const auto& r_geom = GetGeometry();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType number_of_neighbours = GetValue(NEIGHBOURS).size();
-
-    const SizeType first_equation_dofs = number_of_neighbours * dimension;
+    const SizeType number_of_neighbours = this->GetValue(NEIGHBOURS).size();
+    const SizeType first_equation_dofs = number_of_neighbours * TDim;
     
     for (IndexType i = 0; i < rRHSv.size(); ++i)
         rRHS[i] = rRHSv[i];
@@ -705,20 +571,19 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::AssembleRHS(
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateMassMatrix(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rProcessInfo
     )
 {
     KRATOS_TRY
-    const auto& r_geom = GetGeometry();
-    const auto& r_prop = GetProperties();
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
+    const auto& r_geom = this->GetGeometry();
+    const auto& r_prop = this->GetProperties();
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
     const SizeType number_of_neighbours = r_neighbours.size();
 
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType block_size = dimension + dimension * dimension;
+    const SizeType block_size = TDim + TDim * TDim;
     const SizeType mat_size = block_size * number_of_neighbours;
     const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
 
@@ -729,7 +594,8 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateMassMatrix(
     KRATOS_ERROR_IF(r_prop.Has(DENSITY) == false) << "DENSITY not provided for element " << this->Id() << std::endl;
 
     const double density = r_prop[DENSITY];
-    const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+    double thickness = 1.0;
+    if constexpr (TDim == 2) thickness = r_prop.Has(THICKNESS) ? r_prop[THICKNESS] : 1.0;
 
     const auto& GPcoords = r_geom[0].GetInitialPosition();
     const double gauss_weight = r_geom[0].GetValue(VOLUME);
@@ -741,13 +607,13 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateMassMatrix(
         int this_id = this->Id();
         for (IndexType i = 0; i < number_of_neighbours; ++i){
             if (r_neighbours[i]->Id() == this_id){
-                const SizeType v_block = i * dimension;
-                const SizeType F_block = i * dimension * dimension + dimension * number_of_neighbours;
+                const SizeType v_block = i * TDim;
+                const SizeType F_block = i * TDim * TDim + TDim * number_of_neighbours;
                 
-                for (IndexType d = 0; d < dimension; ++d)
+                for (IndexType d = 0; d < TDim; ++d)
                     rMassMatrix(v_block + d, v_block + d) = factor;
 
-                for (IndexType d = 0; d < dimension * dimension; ++d)
+                for (IndexType d = 0; d < TDim * TDim; ++d)
                     rMassMatrix(F_block + d, F_block + d) = gauss_weight;
             }
         }
@@ -756,7 +622,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateMassMatrix(
         MatrixType vBlock(mat_size, block_size); vBlock.clear();
         MatrixType FBlock(mat_size, block_size); FBlock.clear();
         
-        VectorType X_AB_target(dimension);
+        VectorType X_AB_target(TDim);
         double kernel;
 
         for (IndexType i = 0; i < number_of_neighbours; ++i){
@@ -764,65 +630,32 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateMassMatrix(
             const auto& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
             const double volume = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
 
-            for (IndexType d = 0; d < dimension; d++){
+            for (IndexType d = 0; d < TDim; d++)
                 X_AB_target[d] = GPcoords[d] - JPcoords[d];
-            }
 
             TKernelType::ComputeKernelValue(kernel, h, X_AB_target); 
             ComputeKernelCorrectionUtilities::ApplyKernelCorrection(*this, kernel);
 
-            for (IndexType d = 0; d < dimension; ++d){
-                vBlock(dimension * i + d, d) = kernel * volume;
-            }
+            for (IndexType d = 0; d < TDim; ++d)
+                vBlock(TDim * i + d, d) = kernel * volume;
 
-            for (IndexType d = 0; d < dimension * dimension; ++d){
-                FBlock(dimension * dimension * i + d, d) = kernel * volume;
-            }
+            for (IndexType d = 0; d < TDim * TDim; ++d)
+                FBlock(TDim * TDim * i + d, d) = kernel * volume;
+        
         }
 
-        // Aseembling the mass matrix
-        int v_size = dimension * number_of_neighbours;
-        int F_size = dimension * dimension * number_of_neighbours;
+        int v_size = TDim * number_of_neighbours;
+        int F_size = TDim * TDim * number_of_neighbours;
 
         noalias(project(rMassMatrix, range(0, v_size), range(0, v_size))) += factor * prod(vBlock, trans(vBlock));
         noalias(project(rMassMatrix, range(v_size, v_size + F_size), range(v_size, v_size + F_size))) += gauss_weight * prod(FBlock, trans(FBlock));
     }
+
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::SetConstitutiveVariables(
-    KinematicVariables& rThisKinematicVariables,
-    ConstitutiveVariables& rThisConstitutiveVariables,
-    ConstitutiveLaw::Parameters& rValues
-    ) const
-{
-    // Essential input parameters for the constitutive law
-    rValues.SetDeterminantF(rThisKinematicVariables.detF);
-    rValues.SetDeformationGradientF(rThisKinematicVariables.F);
-
-    // Space in which the resulta shall be saved
-    rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.C);
-    rValues.SetStressVector(rThisConstitutiveVariables.StressVector);
-}
-
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateConstitutiveVariables(
-    KinematicVariables& rThisKinematicVariables,
-    ConstitutiveVariables& rThisConstitutiveVariables,
-    ConstitutiveLaw::Parameters& rValues,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    ) const
-{
-    // Set the constitutive variables
-    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues);
-
-    // Actually do the computations in the ConstitutiveLaw
-    mThisConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
-}
-    
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateKinematicVariables(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
     const ProcessInfo& rProcessInfo
     )
@@ -833,9 +666,9 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateKinematicVariable
     AssembleDeformationGradient(rThisKinematicVariables.F);
     rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 
-    const SizeType number_of_neighbours = GetValue(NEIGHBOURS).size();
+    const SizeType number_of_neighbours = this->GetValue(NEIGHBOURS).size();
 
-    if (GetGeometry().WorkingSpaceDimension() == 2){
+    if constexpr (TDim == 2){
         SPHElementUtilities::Calculate2DB(rThisKinematicVariables.B, rThisKinematicVariables.F, rThisKinematicVariables.DW_DX, number_of_neighbours);
     } else {
         SPHElementUtilities::Calculate3DB(rThisKinematicVariables.B, rThisKinematicVariables.F, rThisKinematicVariables.DW_DX, number_of_neighbours);
@@ -844,8 +677,8 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateKinematicVariable
     KRATOS_CATCH("")
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateKernelsAndKernelGradients(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateKernelsAndKernelGradients(
     MatrixType& rDW_DX,
     VectorType& rW,
     const ProcessInfo& rProcessInfo
@@ -853,12 +686,11 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateKernelsAndKernelG
 {
     const auto& r_neighbours = this->GetValue(NEIGHBOURS);
     const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
-    const int domain_size = GetGeometry().WorkingSpaceDimension();
-    const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
+    const auto& IPcoords = this->GetGeometry()[0].GetInitialPosition();
 
     // Initialization of variables
     double kernel;
-    VectorType dkernel(domain_size), X_AB_target(domain_size);
+    VectorType dkernel(TDim), X_AB_target(TDim);
 
     for (IndexType i = 0; i < r_neighbours.size(); ++i){
         
@@ -867,29 +699,28 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateKernelsAndKernelG
         
         const double weight = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
 
-        for (IndexType d = 0; d < domain_size; d++) 
+        for (IndexType d = 0; d < TDim; d++) 
             X_AB_target[d] = IPcoords[d] - JPcoords[d];
 
         TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
         TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
         ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel);
             
-        for (IndexType d = 0; d < domain_size; d++) 
+        for (IndexType d = 0; d < TDim; d++) 
             rDW_DX(i, d) = weight * dkernel[d];
 
         rW[i] = weight * kernel;
     }
 }
 
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::AssembleDeformationGradient(
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::AssembleDeformationGradient(
     MatrixType& rF
 )
 {
-    const auto& r_geom = GetGeometry();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const auto& r_geom = this->GetGeometry();
     
-    if (dimension == 2){
+    if constexpr (TDim == 2){
         rF(0,0) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XX);
         rF(1,1) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_YY);
         rF(0,1) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_XY);
@@ -906,94 +737,8 @@ void TotalLagrangianMixedStrainParticle<TKernelType>::AssembleDeformationGradien
         rF(2,1) = r_geom[0].FastGetSolutionStepValue(DEFORMATION_GRADIENT_ZY);
     }
 }
-
-template<class TKernelType>
-int TotalLagrangianMixedStrainParticle<TKernelType>::Check(const ProcessInfo& rProcessInfo) const 
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF(this->Id() < 1)<<"Particle element with invalid Id"<< this->Id() << std::endl;
-    KRATOS_ERROR_IF(this->GetGeometry().size() != 1) << "Particle element" << this->Id() << "must have exactly 1 node, found " << this->GetGeometry().size() << std::endl;
-
-    const auto& r_prop = GetProperties();
-
-    if (r_prop[CONSTITUTIVE_LAW] != nullptr) mThisConstitutiveLaw->Check( r_prop, GetGeometry(), rProcessInfo );
-
-    return 0; 
-    KRATOS_CATCH("")
-}
-
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable, 
-    std::vector<Vector>& rOutput, 
-    const ProcessInfo& rProcessInfo
-)
-{
-    if (rVariable == SPH_KERNEL_GRADIENT){
-        const auto& r_neighbours = this->GetValue(NEIGHBOURS);
-        const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
-
-        const int domain_size = GetGeometry().WorkingSpaceDimension();
-        const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
-
-        IndexType index = 0;
-        rOutput.resize(r_neighbours.size());
-
-        for (auto& JP : r_neighbours){
-            const auto& JPcoords = JP->GetGeometry()[0].GetInitialPosition();
-
-            VectorType X_AB_target(domain_size);
-            for (IndexType d = 0; d < domain_size; d++){
-                X_AB_target[d] = IPcoords[d] - JPcoords[d];
-            }
-
-            VectorType dkernel(domain_size);
-            TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
-            rOutput[index] = dkernel;
-            ++index;
-        }
-    } else if (mThisConstitutiveLaw->Has(rVariable)){  // At the moment this funtion is never called because the Point2D/Point3D geometries does not have an integration point
-        const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
-        rOutput.resize(1, ZeroVector(strain_size));
-        mThisConstitutiveLaw->GetValue(rVariable, rOutput[0]);
-    }
-}
-
-template<class TKernelType>
-void TotalLagrangianMixedStrainParticle<TKernelType>::CalculateOnIntegrationPoints(
-    const Variable<double>& rVariable, 
-    std::vector<double>& rOutput, 
-    const ProcessInfo& rProcessInfo
-)
-{
-    if (rVariable == SPH_KERNEL){
-        const auto& r_neighbours = this->GetValue(NEIGHBOURS);
-        const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
-
-        const int domain_size = GetGeometry().WorkingSpaceDimension();
-        const auto& IPcoords = GetGeometry()[0].GetInitialPosition();
-
-        IndexType index = 0;
-        rOutput.resize(r_neighbours.size());
-
-        for (auto& JP : r_neighbours){
-            const auto& JPcoords = JP->GetGeometry()[0].GetInitialPosition();
-
-            VectorType X_AB_target(domain_size);
-            for (IndexType d = 0; d < domain_size; d++){
-                X_AB_target[d] = IPcoords[d] - JPcoords[d];
-            }
-
-            double kernel;
-            TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
-            rOutput[index] = kernel;
-            ++index;
-        }
-    }
-}
     
-template class TotalLagrangianMixedStrainParticle<CubicKernel2D>; 
-template class TotalLagrangianMixedStrainParticle<CubicKernel3D>;
+template class TotalLagrangianMixedStrainParticle<CubicKernel2D, 2>;
+template class TotalLagrangianMixedStrainParticle<CubicKernel3D, 3>;
 
 }
