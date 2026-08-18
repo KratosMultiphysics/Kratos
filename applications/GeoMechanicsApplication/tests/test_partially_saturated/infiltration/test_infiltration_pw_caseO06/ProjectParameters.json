@@ -77,8 +77,8 @@
                             "skin_output": false,
                             "nodal_results": ["WATER_PRESSURE", "EFFECTIVE_SATURATION"],
                             "gauss_point_results": ["DEGREE_OF_SATURATION"]
+                        }
                     }
-                }
                 }
             }
         ]

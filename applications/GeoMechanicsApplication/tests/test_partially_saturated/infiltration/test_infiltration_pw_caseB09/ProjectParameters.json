@@ -1,8 +1,8 @@
 {
     "problem_data": {
         "problem_name": "run1sim5_hydro",
-        "start_time": 0,
-        "end_time": 54000,
+        "start_time": 0.0,
+        "end_time": 5.4e+04,
         "echo_level": 0,
         "parallel_type": "OpenMP",
         "number_of_threads": 1
@@ -19,7 +19,7 @@
             "materials_filename": "MaterialParameters_hydro.json"
         },
         "time_stepping": {
-            "time_step": 150,
+            "time_step": 150.0,
             "max_delta_time_factor": 1
         },
         "buffer_size": 2,
@@ -77,8 +77,8 @@
                             "skin_output": false,
                             "nodal_results": ["WATER_PRESSURE", "EFFECTIVE_SATURATION"],
                             "gauss_point_results": ["DEGREE_OF_SATURATION"]
+                        }
                     }
-                }
                 }
             }
         ]
