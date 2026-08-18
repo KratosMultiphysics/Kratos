@@ -22,7 +22,6 @@
 // Application includes
 #include "custom_utilities/control_utils.h"
 #include "custom_utilities/mask_utils.h"
-#include "custom_utilities/smooth_clamper.h"
 #include "custom_utilities/sensor_utils.h"
 #include "custom_utilities/distance_matrix.h"
 
@@ -38,13 +37,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     auto control_utils = m.def_submodule("ControlUtils");
     control_utils.def("AssignEquivalentProperties", &ControlUtils::AssignEquivalentProperties<ModelPart::ConditionsContainerType>, py::arg("source_conditions"), py::arg("destination_conditions"));
     control_utils.def("AssignEquivalentProperties", &ControlUtils::AssignEquivalentProperties<ModelPart::ElementsContainerType>, py::arg("source_elements"), py::arg("destination_elements"));
-
-    py::class_<SmoothClamper, typename SmoothClamper::Pointer>(m, "SmoothClamper")
-        .def(py::init<const double, const double>(), py::arg("min"), py::arg("max"))
-        .def("ProjectForward", py::overload_cast<const TensorAdaptor<double>&>(&SmoothClamper::ProjectForward, py::const_), py::arg("x_tensor_adaptor"))
-        .def("CalculateForwardProjectionGradient", py::overload_cast<const TensorAdaptor<double>&>(&SmoothClamper::CalculateForwardProjectionGradient, py::const_), py::arg("x_tensor_adaptor"))
-        .def("ProjectBackward", py::overload_cast<const TensorAdaptor<double>&>(&SmoothClamper::ProjectBackward, py::const_), py::arg("y_tensor_adaptor"))
-        ;
 
     auto mask_utils = m.def_submodule("MaskUtils");
     mask_utils.def("GetMaskSize", &MaskUtils::GetMaskSize, py::arg("mask_tensor_adaptor"), py::arg("required_minimum_redundancy") = 1);
