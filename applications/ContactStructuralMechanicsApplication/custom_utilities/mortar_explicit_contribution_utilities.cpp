@@ -70,7 +70,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     bool dual_LM = false;
 
     const double geometry_area = r_slave_geometry.Area();
-    if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
+    if (is_inside && ((integration_area/geometry_area) > 1.0e-12)) {
         IntegrationMethod this_integration_method = pCondition->GetIntegrationMethod();
 
         // Initialize general variables for the current master element
