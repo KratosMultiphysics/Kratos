@@ -461,10 +461,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedCap
     KRATOS_EXPECT_TRUE(law.IsIncremental())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDiagonalEntryForMultipleScenarios,
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDiagonalEntryForScenario1,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Scenario 1: at reference pressure the modulus should equal YOUNG_MODULUS
+    // at reference pressure the modulus should equal YOUNG_MODULUS
     auto law        = CreateDefaultIncrementalLinearElastic3DLaw();
     auto properties = CreateMaterialPropertiesForEurElasticLaw();
 
@@ -481,37 +481,52 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDia
     Matrix constitutive_matrix;
     law.CalculateValue(parameters, CONSTITUTIVE_MATRIX, constitutive_matrix);
 
-    auto expected_value =
+    const auto expected_value =
         CalculateExpectedNormalDiagonal(properties[POISSON_RATIO], properties[YOUNG_MODULUS]);
     KRATOS_EXPECT_NEAR(constitutive_matrix(0, 0), expected_value, Defaults::relative_tolerance);
+}
 
-    // Scenario 2: diagonal entry scales with confinement level
-    law    = CreateDefaultIncrementalLinearElastic3DLaw();
-    stress = UblasUtilities::CreateVector({-500.0, -300.0, -100.0, 0.0, 0.0, 0.0});
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDiagonalEntryForScenario2,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // diagonal entry scales with confinement level
+    auto law        = CreateDefaultIncrementalLinearElastic3DLaw();
+    auto properties = CreateMaterialPropertiesForEurElasticLaw();
+    auto stress     = UblasUtilities::CreateVector({-500.0, -300.0, -100.0, 0.0, 0.0, 0.0});
     InitializeEurLawWithFinalizedStress(law, properties, stress);
 
-    auto diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
-    expected_value      = CalculateExpectedNormalDiagonal(properties, stress);
+    const auto diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
+    const auto expected_value = CalculateExpectedNormalDiagonal(properties, stress);
     KRATOS_EXPECT_NEAR(diagonal_entry, expected_value, Defaults::relative_tolerance);
+}
 
-    // Scenario 3: low confinement uses the production formula directly
-    law    = CreateDefaultIncrementalLinearElastic3DLaw();
-    stress = UblasUtilities::CreateVector({-20.0, -20.0, -20.0, 0.0, 0.0, 0.0});
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDiagonalEntryForScenario3,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // low confinement uses the production formula directly
+    auto       law        = CreateDefaultIncrementalLinearElastic3DLaw();
+    const auto properties = CreateMaterialPropertiesForEurElasticLaw();
+    auto       stress     = UblasUtilities::CreateVector({-20.0, -20.0, -20.0, 0.0, 0.0, 0.0});
     InitializeEurLawWithFinalizedStress(law, properties, stress);
 
-    diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
-    expected_value = CalculateExpectedNormalDiagonal(properties, stress);
+    const auto diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
+    const auto expected_value = CalculateExpectedNormalDiagonal(properties, stress);
     KRATOS_EXPECT_NEAR(diagonal_entry, expected_value, Defaults::relative_tolerance);
+}
 
-    // Scenario 4: stress-shift term impact through cohesion and friction angle
-    law = CreateDefaultIncrementalLinearElastic3DLaw();
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDiagonalEntryForScenario4,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // stress-shift term impact through cohesion and friction angle
+    auto law        = CreateDefaultIncrementalLinearElastic3DLaw();
+    auto properties = CreateMaterialPropertiesForEurElasticLaw();
     properties.SetValue(GEO_COHESION, 20.0);
     properties.SetValue(GEO_FRICTION_ANGLE, 45.0);
-    stress = UblasUtilities::CreateVector({-250.0, -150.0, -100.0, 0.0, 0.0, 0.0});
+    auto stress = UblasUtilities::CreateVector({-250.0, -150.0, -100.0, 0.0, 0.0, 0.0});
     InitializeEurLawWithFinalizedStress(law, properties, stress);
 
-    diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
-    expected_value = CalculateExpectedNormalDiagonal(properties, stress);
+    const auto diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
+    const auto expected_value = CalculateExpectedNormalDiagonal(properties, stress);
     KRATOS_EXPECT_NEAR(diagonal_entry, expected_value, Defaults::relative_tolerance);
 }
 
