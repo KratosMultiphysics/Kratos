@@ -20,7 +20,6 @@
                     "PERMEABILITY_YY": 1.157e-12,
                     "PERMEABILITY_XY": 0.0,
                     "DYNAMIC_VISCOSITY": 1.0e-03,
-                    "THICKNESS": 1.0,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "VanGenuchtenLaw",
                     "SATURATED_SATURATION": 1,

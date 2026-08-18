@@ -20,12 +20,11 @@
                     "PERMEABILITY_YY": 1.157e-12,
                     "PERMEABILITY_XY": 0.0,
                     "DYNAMIC_VISCOSITY": 1.0e-03,
-                    "THICKNESS": 1.0,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "VanGenuchtenLaw",
                     "SATURATED_SATURATION": 1,
                     "RESIDUAL_SATURATION": 0,
-                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 4541.667,
+                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 4.541667e+03,
                     "VAN_GENUCHTEN_GN": 1.54,
                     "VAN_GENUCHTEN_GL": -0.52,
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
