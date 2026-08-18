@@ -61,16 +61,16 @@ Where:
 * $`C`$: The elastic constitutive tensor.
 * $`\Delta \Delta u`$: The incremental relative displacement vector.
 
-### 1.2 Incremental linear elastic E_ur law
+### 1.2 Stress-dependent Young's modulus formulation
 
-This law is an incremental linear elastic continuum model with stress-dependent stiffness. It is an option in the linear elastic material model. To activate it, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to material properties. It has to have `Eur` value. This option is implemented using `std::variant` that combines the flexibility of Strategy with the performance of stack allocation. It avoids both deep inheritance trees and virtual calls during simulation. Another benefit is an easy extension with other formulations like `E50` and `Eoed`.
+The linear elastic law has an option with a stress-dependent Young's modulus. To activate this option, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to material properties. By now unloading/reloading Stiffness formulation is implemented and the keyword can have only one value `Eur`. This feature is implemented using `std::variant` that combines the flexibility of Strategy with the performance of stack allocation. It avoids both deep inheritance trees and virtual calls during simulation. Another benefit is an easy extension with other formulations like Secant Stiffness at 50% Strength and Oedometer Modulus.
 
 #### 1.2.1 Purpose
 
-Compared to the standard incremental linear elastic law, this model updates Young's modulus at each increment using
+Compared to the standard incremental linear elastic law, this law updates Young's modulus at each increment using
 an $E_{ur}$-type expression. This allows stiffer behavior at higher confinement while keeping a simple elastic incremental formulation.
 
-#### 1.2.2 Required and optional inputs
+#### 1.2.2 Required inputs
 
 Required material parameters:
 
@@ -102,7 +102,7 @@ with:
 - $m$: stiffness exponent (`GEO_STRESS_DEPENDENCY_EXPONENT`)
 - $s$: optional stress shift term
 
-When cohesion and friction angle are provided, the shift term is:
+The shift term is:
 
 ```math
 s = c \cot(\phi)
@@ -110,7 +110,6 @@ s = c \cot(\phi)
 
 where $c$ is `GEO_COHESION` and $\phi$ is `GEO_FRICTION_ANGLE`.
 
-For numerical robustness, the implemented formulation applies lower bounds to the confinement terms.
 
 ## 2. Mohr-Coulomb with tension cutoff
 
