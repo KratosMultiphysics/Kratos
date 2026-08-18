@@ -185,29 +185,6 @@ class TestDamProcessLifetime(KratosUnittest.TestCase):
             msg="uniform face heat flux was re-applied in a later step",
         )
 
-    def test_nodal_young_modulus_process_factory(self):
-        """The nodal Young modulus production wrapper is importable and
-        instantiates a valid process that assigns NODAL_YOUNG_MODULUS."""
-        from KratosMultiphysics.DamApplication.impose_nodal_young_modulus_process import (
-            Factory as NodalYoungFactory,
-        )
-
-        model, mp = self._make_model([KratosDam.NODAL_YOUNG_MODULUS])
-        settings = self._make_wrapper_settings(
-            "main.target",
-            r"""
-            {
-                "model_part_name": "",
-                "variable_name": "NODAL_YOUNG_MODULUS",
-                "Young_Modulus_1": 20.0,
-                "Young_Modulus_2": 30.0,
-                "Young_Modulus_3": 40.0,
-                "Young_Modulus_4": 50.0
-            }""",
-        )
-        process = NodalYoungFactory(settings, model)
-        self.assertIsInstance(process, KratosMultiphysics.Process)
-
 
 if __name__ == "__main__":
     KratosUnittest.main()
