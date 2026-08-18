@@ -27,20 +27,27 @@
 
 namespace Kratos
 {
-///@}
 ///@name Kratos Classes
 ///@{
-/**
- * @class Shell6pElement
- * @ingroup IgaApplication
- * @brief This class defines a Reissner–Mindlin shell element for isogeometric analysis based on degenerated solid theory.
- * Theory behind this implementation can be found in Benson et al. "Isogeometric shell analysis: The Reissner–Mindlin shell" (2010),
- * DOI:10.1016/j.cma.2009.05.011 
- * 
- * @details The element uses a curvilinear geometry representation from the IGA framework and employing six kinematic parameters per control point (three translational and three rotational degrees of freedom). 
- * The present implementation is modified by the formulations in Benson et al, in terms of using displacements as the primal variable, instead of velocities.
- * Moreover, it is enhanced for geometrically nonlinear analysis by applying co-rotational method.
- */
+/// Short class definition.
+/** Reissner–Mindlin shell element for isogeometric B-Rep analysis based on degenerated solid theory.
+    The element uses a curvilinear geometry representation from the IGA framework.
+    Employing six kinematic parameters per control point (three translational and three rotational degrees of freedom).
+
+    The present implementation is inspired by the formulations in Benson et al. and Du et al. , but does not follow any
+    single reference verbatim; the kinematic assumptions, strain measures and numerical integration are adapted to the
+    Kratos IGA framework and to geometrically nonlinear analysis of thin to moderately thick CAD-based shell structures.
+
+    For further details, see:
+     [1] Benson, D.J., Bazilevs, Y., Hsu, M.C., & Hughes, T.J.R. (2010).
+     "Isogeometric shell analysis: The Reissner–Mindlin shell."
+     Computer Methods in Applied Mechanics and Engineering, 199, 276-289
+
+     [2] Du, X., Li, J., Wang, W., Zhao, G., Liu, Y., & Zhang, P. (2024).
+     "Isogeometric Shape Optimization of Reissner–Mindlin Shell with Analytical Sensitivity
+      and Application to Cellular Sandwich Structures."
+     Composite Structures, Elsevier.
+*/
 
 class Shell6pElement
     : public Element
@@ -50,20 +57,32 @@ protected:
     /// @brief Internal structs
     struct KinematicVariables
     {
-        array_1d<double, 3> BaseVector1;
-        array_1d<double, 3> BaseVector2;
-        array_1d<double, 3> NormalVector;
-        array_1d<double, 3> NormalVectorTilde;
-        double DifferentialArea;
-        KinematicVariables(IndexType Dimension);
+        array_1d<double, 3> a_ab_covariant;
+        array_1d<double, 3> b_ab_covariant;
+        array_1d<double, 3> a1;
+        array_1d<double, 3> a2;
+        array_1d<double, 3> a3;
+        array_1d<double, 3> a3_tilde;
+        double dA;
+        KinematicVariables(std::size_t Dimension);
     };
+
 
     struct ConstitutiveVariables
     {
         Vector StrainVector;
         Vector StressVector;
         Matrix ConstitutiveMatrix;
-        ConstitutiveVariables(IndexType StrainSize);
+        ConstitutiveVariables(std::size_t StrainSize);
+    };
+
+
+    struct SecondVariations
+    {
+        Matrix B11;
+        Matrix B22;
+        Matrix B12;
+        SecondVariations(const int& mat_size);
     };
 
 public:
@@ -83,36 +102,95 @@ public:
     /// Constructor using an array of nodes
     Shell6pElement(
         IndexType NewId,
-        GeometryType::Pointer pGeometry);
+        GeometryType::Pointer pGeometry)
+        : Element(NewId, pGeometry)
+    {};
 
     /// Constructor using an array of nodes with properties
     Shell6pElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties);
+        PropertiesType::Pointer pProperties)
+        : Element(NewId, pGeometry, pProperties)
+    {};
 
     /// Default constructor necessary for serialization
     Shell6pElement() = default;
+
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /// Create with Id, pointer to geometry and pointer to property
     Element::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-    ) const override;
+    ) const override
+    {
+        return Kratos::make_intrusive<Shell6pElement>(
+            NewId, pGeom, pProperties);
+    };
 
     /// Create with Id, pointer to geometry and pointer to property
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
-    ) const override;
+    ) const override
+    {
+        return Kratos::make_intrusive< Shell6pElement >(
+            NewId, GetGeometry().Create(ThisNodes), pProperties);
+    };
 
     ///@}
-    ///@name Operations
+    ///@name Obligatory KRATOS Operations
     ///@{
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+    * @brief This is called during the assembling process in order
+    *        to calculate the condition right hand side matrix
+    * @param rLeftHandSideMatrix the condition right hand side matrix
+    * @param rCurrentProcessInfo the current process info
+    */
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        const std::size_t number_of_nodes = GetGeometry().size();
+        const std::size_t mat_size = number_of_nodes * 6;
+
+        if (rRightHandSideVector.size() != mat_size)
+            rRightHandSideVector.resize(mat_size);
+        noalias(rRightHandSideVector) = ZeroVector(mat_size);
+
+        MatrixType left_hand_side_matrix;
+
+        CalculateAll(left_hand_side_matrix, rRightHandSideVector,
+            rCurrentProcessInfo, false, true);
+    }
+
+    /**
+    * @brief This is called during the assembling process in order
+    *        to calculate the condition left hand side matrix
+    * @param rLeftHandSideMatrix the condition left hand side matrix
+    * @param rCurrentProcessInfo the current process info
+    */
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        const std::size_t mat_size = GetGeometry().size() * 6;
+
+        if (rLeftHandSideMatrix.size1() != mat_size)
+            rLeftHandSideMatrix.resize(mat_size, mat_size);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+        VectorType right_hand_side_vector;
+        CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
+            rCurrentProcessInfo, true, false);
+    }
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -125,27 +203,21 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        const std::size_t mat_size = GetGeometry().size() * 6;
 
-    /**
-    * @brief This is called during the assembling process in order
-    *        to calculate the condition left hand side matrix
-    * @param rLeftHandSideMatrix the condition left hand side matrix
-    * @param rCurrentProcessInfo the current process info
-    */
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        if (rRightHandSideVector.size() != mat_size)
+            rRightHandSideVector.resize(mat_size);
+        noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
-    /**
-    * @brief This is called during the assembling process in order
-    *        to calculate the condition right hand side matrix
-    * @param rLeftHandSideMatrix the condition right hand side matrix
-    * @param rCurrentProcessInfo the current process info
-    */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        if (rLeftHandSideMatrix.size1() != mat_size)
+            rLeftHandSideMatrix.resize(mat_size, mat_size);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+            rCurrentProcessInfo, true, true);
+    }
 
     /**
     * @brief This is called during the assembling process in order to calculate the elemental mass matrix
@@ -157,6 +229,21 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
+    ///@}
+    ///@name Explicit dynamic functions
+    ///@{
+
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void AddExplicitContribution(
+        const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double, 3>>& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
     * @brief This is called during the assembling process in order to calculate the elemental damping matrix
     * @param rDampingMatrix The elemental damping matrix
@@ -167,17 +254,12 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
-    /**
-    * @brief Calculate a double Variable on the Element Constitutive Law
-    * @param rVariable The variable we want to get
-    * @param rValues The values obtained int the integration points
-    * @param rCurrentProcessInfo the current process info instance
-    */
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
+    /// Calculates lumped mass vector
+    void CalculateLumpedMassVector(
+        VectorType &rLumpedMassVector,
+        const ProcessInfo &rCurrentProcessInfo) const override;
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
@@ -199,11 +281,47 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) const override;
 
+    ///@}
+    ///@name Base Class Operations
+    ///@{
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     void GetValuesVector(
         Vector& rValues,
         int Step) const override;
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step) const override;
+
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step) const override;
+
+    /**
+    * @brief Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rValues The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief Calculate a Vector Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rValues The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     ///@}
     ///@name Check
@@ -248,38 +366,36 @@ private:
     ///@name Member Variables
     ///@{
 
-    // The differential area determined by determinant of the geometrical Jacobian.
-    Vector mDifferentialAreaVector;
+    // Components of the metric coefficient tensor on the contravariant basis
+    std::vector<array_1d<double, 3>> m_A_ab_covariant_vector;
+    // Components of the curvature coefficient tensor on the contravariant basis
+    std::vector<array_1d<double, 3>> m_B_ab_covariant_vector;
 
-    // The derivatives of the normal vector with respect to the local coordinates
-    std::vector<Matrix> mNormalVectorDerivatives;
+    // Determinant of the geometrical Jacobian.
+    Vector m_dA_vector;
 
-    // The normal vector at each integration point
-    std::vector<Vector> mNormalVector;
-
-    // The thickness Jacobian determinant for each thickness gauss point.
-    std::vector<array_1d<double, 2>> mJacobianThicknessDeterminant;
-
-    // The inverse of the Jacobian matrix at each integration point and for each thickness gauss point
-    std::vector<array_1d<Matrix, 2>> mJacobianInv;
-
-    // Transformation matrix from local to global cartesian coordinates
-    std::vector<Matrix> mTransformationMatrix;
+    /* Transformation the strain tensor from the curvilinear system
+    *  to the local cartesian in voigt notation including a 2 in the
+    *  shear part. */
+    std::vector<Matrix> m_T_vector;
 
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
+    // curvilinear coordinate zeta (theta3)
+    double mZeta;
+
     /// @brief Informations regarding the Gauss-quadrature in thickness direction
     struct GaussQuadratureThickness
     {
-        IndexType num_GP_thickness;
+        unsigned int num_GP_thickness;
         Vector integration_weight_thickness;
         Vector zeta;
 
         // The default constructor
         GaussQuadratureThickness(){}
         // constructor
-        GaussQuadratureThickness(const IndexType& rNumGPThickness)
+        GaussQuadratureThickness(const unsigned int& rNumGPThickness)
         {
             num_GP_thickness = rNumGPThickness;
             integration_weight_thickness = ZeroVector(rNumGPThickness);
@@ -296,7 +412,7 @@ private:
             {
                 integration_weight_thickness(0) = 5.0 / 9.0;
                 zeta(0) = -sqrt(3.0 / 5.0);
-                integration_weight_thickness(1) = 8.0/ 9.0;
+                integration_weight_thickness(1) = 8.0/9.0;
                 zeta(1) = 0.0;
                 integration_weight_thickness(2) = 5.0 / 9.0;
                 zeta(2) = sqrt(3.0 / 5.0);
@@ -304,67 +420,86 @@ private:
             else
             {
                 KRATOS_ERROR << "Desired number of Gauss-Points unlogical or not implemented. You can choose 3 Gauss-Points." << std::endl;
-            }   
+            }
         }
     };
 
-    // TO DO: for now we support two Gauss points in thickness direction, and later to be defined dynamically based on the user input
+    // Specified the number of Gauss-Points over the thickness
     GaussQuadratureThickness mGaussIntegrationThickness = GaussQuadratureThickness(2);
 
     ///@}
     ///@name Operations
     ///@{
 
+    /// Calculates LHS and RHS dependent on flags
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag);
+        const bool CalculateResidualVectorFlag
+    );
 
+    /// Initialize Operations
     void InitializeMaterial();
 
     void CalculateKinematics(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables) const;
-    
-    void CalculateNormalVectorDerivatives(
-        const IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables,
-        Matrix& DerivativeNormalMatrix) const;
 
-    void CalculateTransformationFromLocalToGlobalCartesian(
+    // Computes transformation
+    void CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
-        Matrix& rTransformationMatrix) const; 
-    
-    void CalculateBOperator(
-        const IndexType IntegrationPointIndex,
-        Matrix& rBOperator,
-        const double zeta,
-        const Matrix& rJacobianInv,
-        const Matrix& rNormalVectorDerivatives) const;
+        Matrix& rT) const;
 
-    void CalculateBNonlinearOperator(
-        const Matrix& rBGeometric,
-        const Vector& rGeometricStrain,  
-        Matrix& rBNonlinearOperator) const;
-    
-    void CalculateBDrilling(
+    // Computes transformation for the stress tensor
+    void CalculateTransformationFromCovariantToCartesian(
+        const KinematicVariables& rKinematicVariables,
+        Matrix& rTCovToCar) const;
+
+    void CalculateB(
         const IndexType IntegrationPointIndex,
-        Matrix& rBDrilling,
-        const Matrix& rJacobianInv) const;
+        Matrix& rB,
+        double zeta,
+        Matrix& DN_De_Jn,
+        Matrix& J_inv,
+        Matrix& dn,
+        const KinematicVariables& rActualKinematic) const;
 
     void CalculateBGeometric(
         const IndexType IntegrationPointIndex,
-        Matrix& rBGeometric,
-        const double zeta,
-        const Matrix& rJacobianInv,
-        const Matrix& rNormalVectorDerivatives,
+        Matrix& rB,
+        double zeta,
+        Matrix& DN_De_Jn,
+        Matrix& J_inv,
+        Matrix& dn,
+        const KinematicVariables& rActualKinematic) const;
+
+    void CalculateJn(
+        const IndexType IntegrationPointIndex,
+        KinematicVariables& rKinematicVariables,
+        double zeta,
+        Matrix& DN_De_Jn,
+        Matrix& J_inv,
+        Matrix& dn,
+        double& area) const;
+
+    void CalculateBDrill(
+        const IndexType IntegrationPointIndex,
+        Matrix& rBd,
+        Matrix& DN_De_Jn,
         const KinematicVariables& rActualKinematic) const;
 
     void CalculateStressMatrix(
-        const array_1d<double, 6>& rStressVector,
-        Matrix& rStressMatrix) const;
+        array_1d<double, 6> stress_vector,
+        Matrix& stress_matrix
+    ) const;
+
+    void CalculateSecondVariationStrainCurvature(
+        const IndexType IntegrationPointIndex,
+        SecondVariations& rSecondVariationsStrain,
+        SecondVariations& rSecondVariationsCurvature,
+        const KinematicVariables& rActualKinematic) const;
 
     /**
     * This functions updates the constitutive variables
@@ -380,6 +515,68 @@ private:
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const;
+
+     void CalculateAndAddK(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& rKm,
+        const Matrix& rKd,
+        const double IntegrationWeight,
+        const double IntegrationWeight_zeta) const;
+
+     void CalculateAndAddKm(
+        MatrixType& rKm,
+        const Matrix& rB,
+        const Matrix& rD) const;
+
+     void CalculateAndAddKmBd(
+        MatrixType& rKd,
+        const MatrixType& rBd) const;
+
+     void CalculateAndAddNonlinearKm(
+        Matrix& rLeftHandSideMatrix,
+        const Matrix& rB,
+        const Matrix& rD,
+        const double IntegrationWeight,
+        const double IntegrationWeight_zeta) const;
+
+    // Calculation of the PK2 stress
+    void CalculatePK2Stress(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rPK2MembraneStressCartesian,
+        array_1d<double, 3>& rPK2BendingStressCartesian,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    // Calculation of the Cauchy stress by transforming the PK2 stress
+    void CalculateCauchyStress(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rCauchyMembraneStressesCartesian,
+        array_1d<double, 3>& rCauchyBendingStressesCartesian,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    // Calculation of the shear force, shear force = derivative of moment
+    void CalculateShearForce(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 2>& rq,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    void CalculateDerivativeOfCurvatureInitial(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rDCurvature_D1,
+        array_1d<double, 3>& rDCurvature_D2,
+        const Matrix& rHessian) const;
+
+    void CalculateDerivativeOfCurvatureActual(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rDCurvature_D1,
+        array_1d<double, 3>& rDCurvature_D2,
+        const Matrix& rHessian,
+        const KinematicVariables& rKinematicVariables) const;
+
+    void CalculateDerivativeTransformationMatrices(
+        const IndexType IntegrationPointIndex,
+        std::vector<Matrix>& rDQ_Dalpha_init,
+        std::vector<Matrix>& rDTransCartToCov_Dalpha_init,
+        const Matrix& rHessian) const;
 
     /**
      * @brief This method gets a value directly from the CL
@@ -405,6 +602,17 @@ private:
     ///@name Geometrical Functions
     ///@{
 
+    // void CalculateHessian(
+    //     Matrix& Hessian,
+    //     const Matrix& rDDN_DDe) const;
+
+    // void CalculateSecondDerivativesOfBaseVectors(
+    //     const Matrix& rDDDN_DDDe,
+    //     array_1d<double, 3>& rDDa1_DD11,
+    //     array_1d<double, 3>& rDDa1_DD12,
+    //     array_1d<double, 3>& rDDa2_DD21,
+    //     array_1d<double, 3>& rDDa2_DD22) const;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -414,25 +622,21 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-        rSerializer.save("DifferentialAreaVector", mDifferentialAreaVector);
-        rSerializer.save("NormalVectorDerivatives", mNormalVectorDerivatives);
-        rSerializer.save("NormalVector", mNormalVector);
-        rSerializer.save("JacobianInv", mJacobianInv);
-        rSerializer.save("JacobianThicknessDeterminant", mJacobianThicknessDeterminant);
-        rSerializer.save("TransformationMatrix", mTransformationMatrix);
-        rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+        rSerializer.save("A_ab_covariant_vector", m_A_ab_covariant_vector);
+        rSerializer.save("B_ab_covariant_vector", m_B_ab_covariant_vector);
+        rSerializer.save("dA_vector", m_dA_vector);
+        rSerializer.save("T_vector", m_T_vector);
+        rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        rSerializer.load("DifferentialAreaVector", mDifferentialAreaVector);
-        rSerializer.load("NormalVectorDerivatives", mNormalVectorDerivatives);
-        rSerializer.load("NormalVector", mNormalVector);
-        rSerializer.load("JacobianInv", mJacobianInv);
-        rSerializer.load("JacobianThicknessDeterminant", mJacobianThicknessDeterminant);
-        rSerializer.load("TransformationMatrix", mTransformationMatrix);
-        rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+        rSerializer.load("A_ab_covariant_vector", m_A_ab_covariant_vector);
+        rSerializer.load("B_ab_covariant_vector", m_B_ab_covariant_vector);
+        rSerializer.load("dA_vector", m_dA_vector);
+        rSerializer.load("T_vector", m_T_vector);
+        rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
     }
 
     ///@}
