@@ -532,7 +532,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         time_strings=None,
     ):
         data_series_collection = []
-        colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple"]
+        colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray"]
         for time, color in zip(plot_times, colors):
             water_pressures = GiDOutputFileReader.nodal_values_at_time(
                 "WATER_PRESSURE",
