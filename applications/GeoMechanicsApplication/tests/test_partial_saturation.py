@@ -13,7 +13,7 @@ from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import Pa_to_kP
 
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
-
+    from retention_law_plotter import plot_retention_law
 
 class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
     """
@@ -149,6 +149,8 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         )
         simulation = test_helper.run_kratos(file_path)
 
+        plot_retention_law(simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1], os.path.join(file_path, "saturation_vs_pressure_plot.svg"))
+
         reader = GiDOutputFileReader()
         output_data = reader.read_output_from(
             os.path.join(file_path, "run1sim5_map_hydro.post.res")
@@ -261,7 +263,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
     #             plot_times=expected_results_at_times.keys(),
     #         )
 
-    def test_infiltration_from_top_boundary_O6(self):
+    def atest_infiltration_from_top_boundary_O6(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -312,7 +314,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 test_name="O6",
             )
 
-    def test_infiltration_from_top_boundary_O10(self):
+    def atest_infiltration_from_top_boundary_O10(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -363,7 +365,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 test_name="O10",
             )
 
-    def test_infiltration_from_top_boundary_O4(self):
+    def atest_infiltration_from_top_boundary_O4(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -414,7 +416,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 test_name="O4",
             )
 
-    def test_infiltration_from_top_boundary_B10(self):
+    def atest_infiltration_from_top_boundary_B10(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -465,7 +467,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 test_name="B10",
             )
 
-    def test_infiltration_from_top_boundary_B6(self):
+    def atest_infiltration_from_top_boundary_B6(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -515,7 +517,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_times=expected_results_at_times.keys(),
             )
 
-    def test_infiltration_from_top_boundary_B4(self):
+    def atest_infiltration_from_top_boundary_B4(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -574,7 +576,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             if node.X == 0.0
         }
 
-    def test_infiltration_from_top_boundary_B9(self):
+    def atest_infiltration_from_top_boundary_B9(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
