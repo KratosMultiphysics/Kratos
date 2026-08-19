@@ -4,7 +4,7 @@ import KratosMultiphysics
 from KratosMultiphysics.project import Project
 from KratosMultiphysics.orchestrators.orchestrator import Orchestrator
 
-class CustomSequentialOrchestrator(Orchestrator):
+class StructuralSequentialOrchestrator(Orchestrator):
     '''Multistage orchestrator to sequentially execute a collection of stages.
 
     This multistage orchestrator executes the different stages sequentially (i.e. one after the other).

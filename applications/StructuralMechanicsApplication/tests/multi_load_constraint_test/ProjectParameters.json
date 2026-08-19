@@ -1,6 +1,6 @@
 {
 "orchestrator" : {
-    "name" : "Orchestrators.KratosMultiphysics.custom_sequential_orchestrator",
+    "name" : "KratosMultiphysics.StructuralMechanicsApplication.structural_sequential_orchestrator",
     "settings" : {
         "echo_level" : 0,
         "execution_list" : ["prepare_lhs_and_rhss","solve_fixity_set_1", "solve_fixity_set_2"],
