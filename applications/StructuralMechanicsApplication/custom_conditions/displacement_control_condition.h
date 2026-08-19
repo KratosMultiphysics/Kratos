@@ -327,8 +327,8 @@ private:
     ///@name Private Operations
     ///@{
 
-    Variable<double>* GetDisplacementInDirection() const;
-    Variable<double>* GetPointLoadInDirection() const;
+    const Variable<double>* GetDisplacementInDirection() const;
+    const Variable<double>* GetPointLoadInDirection() const;
 
     ///@}
     ///@name Private  Access

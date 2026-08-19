@@ -19,7 +19,6 @@
 //Trilinos includes
 
 // Project includes
-#include "includes/define.h"
 #include "trilinos_space.h"
 #include "custom_python/trilinos_pointer_wrapper.h"
 #include "custom_python/add_trilinos_space_to_python.h"
@@ -55,6 +54,10 @@ std::string ErrorCleaner(std::string const& Input)
 
     return output;
 }
+
+namespace // Anonymous namespace: internal-linkage helpers for pybind11 bindings.
+{        // This avoids name clashes with identically-named helpers in other
+         // translation units that may be merged via unity builds.
 
 double Dot(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& rX, TrilinosSparseSpaceType::VectorType& rY)
 {
@@ -320,10 +323,12 @@ void CopyMatrixValuesHelper(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceT
     TrilinosSparseSpaceType::CopyMatrixValues(rA, rB);
 }
 
-double GetValue(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::VectorType& rX, std::size_t I)
-{
-    return TrilinosSparseSpaceType::GetValue(rX, I);
-}
+// double GetValue(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::VectorType& rX, std::size_t I)
+// {
+//     return TrilinosSparseSpaceType::GetValue(rX, I);
+// }
+
+} // anonymous namespace
 
 void  AddBasicOperations(pybind11::module& m)
 {

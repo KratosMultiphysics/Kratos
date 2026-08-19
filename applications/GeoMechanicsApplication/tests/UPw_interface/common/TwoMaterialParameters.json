@@ -8,7 +8,7 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": false,
+                    "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "K0_MAIN_DIRECTION": 1,
                     "K0_VALUE_XX": 0.5,
                     "K0_VALUE_YY": 1.0,
@@ -23,8 +23,7 @@
                     "PERMEABILITY_XX": 4.5e-09,
                     "PERMEABILITY_YY": 4.5e-09,
                     "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 1.0e-03,
-                    "THICKNESS": 1.0
+                    "DYNAMIC_VISCOSITY": 1.0e-03
                 }
             }
         },
@@ -36,7 +35,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": false,
+                    "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "INTERFACE_NORMAL_STIFFNESS": 6.4e+10,
                     "INTERFACE_SHEAR_STIFFNESS": 2.6000869565e+10,
                     "TRANSVERSAL_PERMEABILITY": 5.0e-04,

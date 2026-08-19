@@ -256,4 +256,60 @@ namespace Kratos::Testing
         KRATOS_EXPECT_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(EulerianConvDiff2D3NCrossWindStabilization, KratosConvectionDiffusionFastSuite)
+    {
+        // Create the test element
+        Model model;
+        auto &r_test_model_part = model.CreateModelPart("TestModelPart");
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
+
+        // Fill the process info container
+        auto &r_process_info = r_test_model_part.GetProcessInfo();
+        r_process_info.SetValue(CROSS_WIND_STABILIZATION_FACTOR, 0.7);
+        r_process_info.SetValue(TIME_INTEGRATION_THETA, 1.0);
+        r_process_info.SetValue(DELTA_TIME, 0.1);
+        r_process_info.SetValue(DYNAMIC_TAU, 0.001);
+
+        // Element creation
+        r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        r_test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3};
+        r_test_model_part.CreateNewElement("EulerianConvDiff2D", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+
+        // Set the nodal values
+        for (auto &i_node : r_test_model_part.Nodes()) {
+            i_node.FastGetSolutionStepValue(DENSITY) = 1.0;
+            i_node.FastGetSolutionStepValue(CONDUCTIVITY) = 1.0;
+            i_node.FastGetSolutionStepValue(SPECIFIC_HEAT) = 1.0;
+            array_1d<double,3> aux_vel = ZeroVector(3);
+            aux_vel[0] = i_node.X();
+            aux_vel[1] = i_node.Y();
+            i_node.FastGetSolutionStepValue(VELOCITY) = aux_vel;
+        }
+
+        // Test element
+        auto p_element = r_test_model_part.pGetElement(1);
+        Vector RHS = ZeroVector(3);
+        Matrix LHS = ZeroMatrix(3,3);
+        const auto& rConstProcessInfoRef = r_test_model_part.GetProcessInfo();
+        p_element->CalculateLocalSystem(LHS, RHS, rConstProcessInfoRef);
+
+        std::vector<double> expected_RHS = {0.0, 0.0, 0.0};
+        Matrix expected_LHS(3, 3);
+        expected_LHS(0, 0) = 1.71340;
+        expected_LHS(0, 1) = -0.12313;
+        expected_LHS(0, 2) = -0.12313;
+        expected_LHS(1, 0) = -0.19003;
+        expected_LHS(1, 1) = 1.47086;
+        expected_LHS(1, 2) = 0.48560;
+        expected_LHS(2, 0) = -0.19003;
+        expected_LHS(2, 1) = 0.48560;
+        expected_LHS(2, 2) = 1.47086;
+
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
+        KRATOS_EXPECT_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+
+    }
+
 } // namespace Kratos::Testing.

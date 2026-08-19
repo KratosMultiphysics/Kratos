@@ -22,6 +22,10 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
 namespace Kratos
 {
 
@@ -106,7 +110,6 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& 
         GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
     const auto conductivity_matrix = CalculateConductivityMatrix(dN_dX_container, integration_coefficients);
     const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
-
     AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
                                 rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
     AddContributionsToRhsVector(rRightHandSideVector, conductivity_matrix, capacity_matrix);
@@ -151,13 +154,15 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     check_properties.Check(DENSITY_SOLID);
     check_properties.Check(SPECIFIC_HEAT_CAPACITY_WATER);
     check_properties.Check(SPECIFIC_HEAT_CAPACITY_SOLID);
-    check_properties.Check(THERMAL_CONDUCTIVITY_WATER);
-    check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XX);
-    check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_YY);
-    check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XY);
-
-    if constexpr (TDim == 3) {
-        check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_ZZ);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_WATER);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_SOLID_XX);
+    const auto local_space_dimension = this->GetGeometry().LocalSpaceDimension();
+    if (local_space_dimension > 1) {
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_SOLID_YY);
+        check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XY);
+    }
+    if (local_space_dimension > 2) {
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_SOLID_ZZ);
         check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_YZ);
         check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XZ);
     }
@@ -165,8 +170,8 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(GetGeometry());
 
     check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "SaturatedLaw");
-    return RetentionLawFactory::Clone(r_properties)->Check(r_properties, rCurrentProcessInfo);
 
+    return RetentionLawFactory::Clone(r_properties)->Check(r_properties, rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
 

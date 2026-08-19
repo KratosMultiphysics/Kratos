@@ -75,11 +75,11 @@ class ExplicitFilter(Filter):
         elif self.data_location == Kratos.Globals.DataLocation.Condition:
             if node_cloud_mesh:
                 raise RuntimeError("\"node_cloud_mesh\" flag can be only used for filtering meshes with nodes.")
-            self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level, store_filter_matrix)
+            self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level, store_filter_matrix=store_filter_matrix)
         elif self.data_location == Kratos.Globals.DataLocation.Element:
             if node_cloud_mesh:
                 raise RuntimeError("\"node_cloud_mesh\" flag can be only used for filtering meshes with nodes.")
-            self.filter_utils = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level, store_filter_matrix)
+            self.filter_utils = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level, store_filter_matrix=store_filter_matrix)
 
         self.Update()
 

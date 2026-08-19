@@ -119,7 +119,7 @@ public:
     typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
     typedef Element::EquationIdVectorType EquationIdVectorType;
     typedef Element::DofsVectorType DofsVectorType;
-    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
+    typedef typename TSparseSpace::MatrixType CompressedMatrixType;
 
     /// DoF types definition
     typedef typename Node::DofType DofType;
@@ -223,11 +223,15 @@ public:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
             # pragma omp for  schedule(guided, 512) nowait
-            for (int k = 0; k < nelements; k++) {
-                auto it_elem = el_begin + k;
+            for (int i = 0; i < nelements; i++) {
+                KRATOS_TRY
+
+                auto it_elem = el_begin + i;
 
                 if (it_elem->IsActive()) {
                     // Calculate elemental contribution
@@ -237,11 +241,14 @@ public:
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
 
+                KRATOS_CATCH_THREAD_EXCEPTION(GetCurrentThreadId())
             }
 
             #pragma omp for  schedule(guided, 512)
-            for (int k = 0; k < nconditions; k++) {
-                auto it_cond = cond_begin + k;
+            for (int i = 0; i < nconditions; i++) {
+                KRATOS_TRY
+
+                auto it_cond = cond_begin + i;
 
                 if (it_cond->IsActive()) {
                     // Calculate elemental contribution
@@ -250,8 +257,12 @@ public:
                     // Assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
+                KRATOS_CATCH_THREAD_EXCEPTION(GetCurrentThreadId())
+
             }
         }
+
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer << std::endl;
 
@@ -297,11 +308,15 @@ public:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         #pragma omp parallel firstprivate(nelements, nconditions, lhs_contribution, equation_id )
         {
             # pragma omp for  schedule(guided, 512) nowait
-            for (int k = 0; k < nelements; ++k) {
-                auto it_elem = it_elem_begin + k;
+            for (int i = 0; i < nelements; ++i) {
+                KRATOS_TRY
+
+                auto it_elem = it_elem_begin + i;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 if (it_elem->IsActive()) {
@@ -311,11 +326,15 @@ public:
                     // Assemble the elemental contribution
                     AssembleLHS(rA, lhs_contribution, equation_id);
                 }
+
+                KRATOS_CATCH_THREAD_EXCEPTION(GetCurrentThreadId())
             }
 
             #pragma omp for  schedule(guided, 512)
-            for (int k = 0; k < nconditions; ++k) {
-                auto it_cond = it_cond_begin + k;
+            for (int i = 0; i < nconditions; ++i) {
+                KRATOS_TRY
+
+                auto it_cond = it_cond_begin + i;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 if (it_cond->IsActive()) {
@@ -325,8 +344,12 @@ public:
                     // Assemble the elemental contribution
                     AssembleLHS(rA, lhs_contribution, equation_id);
                 }
+
+                KRATOS_CATCH_THREAD_EXCEPTION(GetCurrentThreadId())
             }
         }
+
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << timer << std::endl;
 
@@ -859,9 +882,9 @@ public:
         // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
         mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
-        double* Avalues = rA.value_data().begin();
-        std::size_t* Arow_indices = rA.index1_data().begin();
-        std::size_t* Acol_indices = rA.index2_data().begin();
+        auto* Avalues = rA.value_data().begin();
+        auto* Arow_indices = rA.index1_data().begin();
+        auto* Acol_indices = rA.index2_data().begin();
 
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
             const std::size_t col_begin = Arow_indices[Index];
@@ -1195,7 +1218,7 @@ protected:
                     AssembleRHS(b, RHS_Contribution, EquationId);
                 }
 
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(GetCurrentThreadId())
             }
 
             LHS_Contribution.resize(0, 0, false);
@@ -1217,7 +1240,7 @@ protected:
                     AssembleRHS(b, RHS_Contribution, EquationId);
                 }
 
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(GetCurrentThreadId())
             }
         }
 
@@ -1239,6 +1262,8 @@ protected:
 
             std::vector<LockObject> lock_array(indices.size());
 
+            KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
             #pragma omp parallel
             {
                 Element::EquationIdVectorType slave_ids(3);
@@ -1246,14 +1271,18 @@ protected:
                 std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
 
                 #pragma omp for schedule(guided, 512) nowait
-                for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
-                    auto it_const = it_const_begin + i_const;
+                for (int i = 0; i < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
+                    KRATOS_TRY
+
+                    auto it_const = it_const_begin + i;
                     it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
 
                     // Slave DoFs
                     for (auto &id_i : slave_ids) {
                         temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
                     }
+
+                    KRATOS_CATCH_THREAD_EXCEPTION(GetCurrentThreadId())
                 }
 
                 // Merging all the temporal indexes
@@ -1263,6 +1292,8 @@ protected:
                     lock_array[pair_temp_indices.first].unlock();
                 }
             }
+
+            KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
 
             mSlaveIds.clear();
             mMasterIds.clear();
@@ -1280,9 +1311,9 @@ protected:
             mT = TSystemMatrixType(indices.size(), indices.size(), nnz);
             mConstantVector.resize(indices.size(), false);
 
-            double *Tvalues = mT.value_data().begin();
-            IndexType *Trow_indices = mT.index1_data().begin();
-            IndexType *Tcol_indices = mT.index2_data().begin();
+            auto* Tvalues = mT.value_data().begin();
+            auto* Trow_indices = mT.index1_data().begin();
+            auto* Tcol_indices = mT.index2_data().begin();
 
             // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
             Trow_indices[0] = 0;
@@ -1337,13 +1368,17 @@ protected:
             // We clear the set
             mInactiveSlaveDofs.clear();
 
+            KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
             #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
             {
                 std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
 
                 #pragma omp for schedule(guided, 512)
-                for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-                    auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+                for (int i = 0; i < number_of_constraints; ++i) {
+                    KRATOS_TRY
+
+                    auto it_const = rModelPart.MasterSlaveConstraints().begin() + i;
                     it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
                     // If the constraint is active
@@ -1364,6 +1399,8 @@ protected:
                     } else { // Taking into account inactive constraints
                         auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                     }
+
+                    KRATOS_CATCH_THREAD_EXCEPTION(GetCurrentThreadId())
                 }
 
                 // We merge all the sets in one thread
@@ -1372,6 +1409,8 @@ protected:
                     mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
                 }
             }
+
+            KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
 
             // Setting the master dofs into the T and C system
             for (auto eq_id : mMasterIds) {
@@ -1470,9 +1509,9 @@ protected:
 
         A = CompressedMatrixType(indices.size(), indices.size(), nnz);
 
-        double* Avalues = A.value_data().begin();
-        std::size_t* Arow_indices = A.index1_data().begin();
-        std::size_t* Acol_indices = A.index2_data().begin();
+        auto* Avalues = A.value_data().begin();
+        auto* Arow_indices = A.index1_data().begin();
+        auto* Acol_indices = A.index2_data().begin();
 
         //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
@@ -1561,9 +1600,9 @@ protected:
 
     inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const unsigned int i, const unsigned int i_local, Element::EquationIdVectorType& EquationId)
     {
-        double* values_vector = A.value_data().begin();
-        std::size_t* index1_vector = A.index1_data().begin();
-        std::size_t* index2_vector = A.index2_data().begin();
+        auto* values_vector = A.value_data().begin();
+        auto* index1_vector = A.index1_data().begin();
+        auto* index2_vector = A.index2_data().begin();
 
         size_t left_limit = index1_vector[i];
 //    size_t right_limit = index1_vector[i+1];
@@ -1687,22 +1726,35 @@ private:
         }
     }
 
+    // The index pointer type is deduced so that this works with any sparse
+    // space matrix (e.g. uBLAS uses std::size_t indices, Eigen signed ones)
+    template<class TIndexPointerType>
     inline unsigned int ForwardFind(const unsigned int id_to_find,
                                     const unsigned int start,
-                                    const size_t* index_vector)
+                                    const TIndexPointerType index_vector)
     {
         unsigned int pos = start;
-        while(id_to_find != index_vector[pos]) pos++;
+        while(static_cast<std::size_t>(id_to_find) != static_cast<std::size_t>(index_vector[pos])) pos++;
         return pos;
     }
 
+    template<class TIndexPointerType>
     inline unsigned int BackwardFind(const unsigned int id_to_find,
                                      const unsigned int start,
-                                     const size_t* index_vector)
+                                     const TIndexPointerType index_vector)
     {
         unsigned int pos = start;
-        while(id_to_find != index_vector[pos]) pos--;
+        while(static_cast<std::size_t>(id_to_find) != static_cast<std::size_t>(index_vector[pos])) pos--;
         return pos;
+    }
+
+    int GetCurrentThreadId() const
+    {
+#ifdef KRATOS_SMP_OPENMP
+        return omp_get_thread_num();
+#else
+        return 0;
+#endif
     }
 
     ///@}

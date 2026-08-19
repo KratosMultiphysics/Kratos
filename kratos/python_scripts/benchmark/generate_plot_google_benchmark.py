@@ -8,6 +8,8 @@ import os
 import sys
 from datetime import datetime
 
+plt.style.use("seaborn-v0_8-whitegrid")
+
 # ─────────────────────────────────────────────
 #  Color palette (colorblind-friendly)
 # ─────────────────────────────────────────────
@@ -128,24 +130,28 @@ def print_summary_table(df: pd.DataFrame, contexts: dict, divisor: float, unit: 
 
     print("═" * 70 + "\n")
 
-def plot_benchmarks(
-    df: pd.DataFrame,
-    filenames: list[str],
-    contexts: dict,
-    divisor: float,
-    unit: str,
-    output: str | None = None,
-    legend_loc: str = "upper right",
-    context_pos: tuple[float, float] = (0.01, 0.01),
-):
+def _truncate(name: str, max_len: int = 30) -> str:
+    """Truncate a benchmark name with ellipsis if too long."""
+    return name if len(name) <= max_len else name[:max_len - 1] + "…"
+
+
+def plot_benchmarks(df: pd.DataFrame, filenames: list[str],
+                    contexts: dict, divisor: float, unit: str,
+                    output: str | None = None):
     """
     Render a grouped bar chart with:
       - CPU Time & Real Time bars per file
-      - Value labels on top of each bar
+      - Value labels on top of each bar (green = fastest, red = slowest)
+      - Bar shadows for depth
+      - Log-scale Y-axis
+      - Benchmarks sorted by average CPU time (descending)
+      - Minimum-value reference line per group
+      - Iteration count annotation below each group
       - A context info box
-      - Grid lines for readability
     """
-    benchmark_names = df["name"].unique()
+    # ── Sort benchmarks by mean cpu_time descending (slowest first) ────
+    mean_cpu = df.groupby("name")["cpu_time"].mean()
+    benchmark_names = mean_cpu.sort_values(ascending=False).index.tolist()
     n_benchmarks    = len(benchmark_names)
     n_files         = len(filenames)
 
@@ -153,18 +159,23 @@ def plot_benchmarks(
     bar_width       = min(0.8 / bars_per_group, 0.25)
     group_centers   = np.arange(n_benchmarks)
 
-    fig, ax = plt.subplots(figsize=(max(12, n_benchmarks * 2.5), 7))
+    fig_height = max(7, 5 + n_files * 0.4)
+    fig, ax = plt.subplots(figsize=(max(18, n_benchmarks * 3.0), fig_height))
     fig.patch.set_facecolor("#F8F9FA")
     ax.set_facecolor("#F8F9FA")
 
+    # Pre-collect all bar heights per benchmark group to color-code labels
+    all_heights: dict[str, list[float]] = {name: [] for name in benchmark_names}
+
     bar_index = 0
+    # Store (bar_container, x_positions) for label coloring in second pass
+    bar_records: list[tuple] = []
 
     for f_idx, filename in enumerate(filenames):
         color_cpu  = PALETTE[f_idx * 2 % len(PALETTE)]
         color_real = PALETTE[(f_idx * 2 + 1) % len(PALETTE)]
         subset     = df[df["source"] == filename]
 
-        # Align subset to benchmark_names order
         subset_indexed = (
             subset.set_index("name")
                   .reindex(benchmark_names)
@@ -172,73 +183,128 @@ def plot_benchmarks(
 
         cpu_vals  = subset_indexed["cpu_time"].values  / divisor
         real_vals = subset_indexed["real_time"].values / divisor
+        iters     = subset_indexed["iterations"].values
 
         short_name = os.path.basename(filename)
 
         # ── CPU Time bars ──────────────────────────────────────────────
         offset_cpu = (bar_index - bars_per_group / 2 + 0.5) * bar_width
-        bars_cpu   = ax.bar(
-            group_centers + offset_cpu,
-            cpu_vals,
-            bar_width,
+        x_cpu      = group_centers + offset_cpu
+        # Shadow
+        ax.bar(x_cpu + 0.008, cpu_vals, bar_width,
+               color="#000000", alpha=0.08, zorder=2)
+        bars_cpu = ax.bar(
+            x_cpu, cpu_vals, bar_width,
             label=f"{short_name} — CPU Time",
-            color=color_cpu,
-            alpha=0.85,
-            edgecolor="white",
-            linewidth=0.6,
-            zorder=3,
+            color=color_cpu, alpha=0.88,
+            edgecolor="white", linewidth=0.6, zorder=3,
         )
         bar_index += 1
 
         # ── Real Time bars ─────────────────────────────────────────────
         offset_real = (bar_index - bars_per_group / 2 + 0.5) * bar_width
-        bars_real   = ax.bar(
-            group_centers + offset_real,
-            real_vals,
-            bar_width,
+        x_real      = group_centers + offset_real
+        ax.bar(x_real + 0.008, real_vals, bar_width,
+               color="#000000", alpha=0.08, zorder=2)
+        bars_real = ax.bar(
+            x_real, real_vals, bar_width,
             label=f"{short_name} — Real Time",
-            color=color_real,
-            alpha=0.85,
-            edgecolor="white",
-            linewidth=0.6,
-            zorder=3,
-            hatch="//",
+            color=color_real, alpha=0.88,
+            edgecolor="white", linewidth=0.6, zorder=3, hatch="//",
         )
         bar_index += 1
 
-        # ── Value labels on top of each bar ───────────────────────────
-        for bars in (bars_cpu, bars_real):
-            for bar in bars:
-                h = bar.get_height()
+        # Accumulate heights per benchmark for min/max detection
+        for i, name in enumerate(benchmark_names):
+            for h in (cpu_vals[i], real_vals[i]):
                 if not np.isnan(h) and h > 0:
-                    ax.text(
-                        bar.get_x() + bar.get_width() / 2,
-                        h * 1.015,
-                        f"{h:.2f}",
-                        ha="center", va="bottom",
-                        fontsize=7, color="#333333",
-                        rotation=45,
-                    )
+                    all_heights[name].append(h)
+
+        bar_records.append((bars_cpu,  cpu_vals))
+        bar_records.append((bars_real, real_vals))
+
+        # ── Iteration count annotation (below group, once per file) ───
+        for i, (name, it) in enumerate(zip(benchmark_names, iters)):
+            if not np.isnan(it):
+                ax.text(
+                    group_centers[i], -0.06, f"{int(it):,} iters",
+                    transform=ax.get_xaxis_transform(),
+                    ha="center", va="top",
+                    fontsize=5.5, color="#888888",
+                )
+
+    # ── Color-coded value labels (green=fastest, red=slowest) ──────────
+    global_min = min(v for vals in all_heights.values() for v in vals) if all_heights else 0
+    global_max = max(v for vals in all_heights.values() for v in vals) if all_heights else 1
+
+    for bars_container, vals in bar_records:
+        for bar, h in zip(bars_container, vals):
+            if np.isnan(h) or h <= 0:
+                continue
+            if h == global_min:
+                lbl_color = "#2ca02c"   # green  — fastest
+            elif h == global_max:
+                lbl_color = "#d62728"   # red    — slowest
+            else:
+                lbl_color = "#444444"   # neutral
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                h * 1.015,
+                f"{h:.2f}",
+                ha="center", va="bottom",
+                fontsize=7, color=lbl_color,
+                fontweight="bold" if lbl_color != "#444444" else "normal",
+                rotation=45, zorder=5,
+            )
+
+    # ── Minimum reference line per benchmark group ─────────────────────
+    for i, name in enumerate(benchmark_names):
+        if all_heights[name]:
+            min_h = min(all_heights[name])
+            half  = bar_width * bars_per_group / 2
+            ax.hlines(min_h,
+                      group_centers[i] - half - 0.02,
+                      group_centers[i] + half + 0.02,
+                      colors="#2ca02c", linewidths=1.2,
+                      linestyles="dashed", zorder=4, alpha=0.7)
+
+    # ── Log scale Y-axis ───────────────────────────────────────────────
+    pos_vals = [h for vals in all_heights.values() for h in vals if h > 0]
+    if pos_vals and max(pos_vals) / max(min(pos_vals), 1e-12) > 10:
+        ax.set_yscale("log")
+        ax.yaxis.set_major_formatter(
+            mticker.FuncFormatter(lambda x, _: f"{x:.3g} {unit}")
+        )
+    else:
+        ax.yaxis.set_major_formatter(mticker.FormatStrFormatter(f"%.2f {unit}"))
 
     # ── Axes formatting ────────────────────────────────────────────────
     ax.set_title(
         "Google Benchmark — Performance Comparison",
-        fontsize=15, fontweight="bold", pad=18, color="#1A1A2E"
+        fontsize=15, fontweight="bold", pad=22, color="#1A1A2E"
     )
-    ax.set_xlabel("Benchmark Name", fontsize=11, labelpad=10, color="#333333")
+    # Accent underline beneath title
+    ax.annotate("", xy=(1, 1.038), xytext=(0, 1.038),
+                xycoords="axes fraction", textcoords="axes fraction",
+                arrowprops=dict(arrowstyle="-", color="#4C72B0",
+                                lw=2, alpha=0.35))
+
+    ax.set_xlabel("Benchmark Name", fontsize=11, labelpad=14, color="#333333")
     ax.set_ylabel(f"Time ({unit})",  fontsize=11, labelpad=10, color="#333333")
 
+    truncated = [_truncate(n) for n in benchmark_names]
     ax.set_xticks(group_centers)
-    ax.set_xticklabels(benchmark_names, rotation=40, ha="right", fontsize=9)
-    ax.yaxis.set_major_formatter(mticker.FormatStrFormatter(f"%.2f {unit}"))
+    ax.set_xticklabels(truncated, rotation=40, ha="right", fontsize=9)
 
-    ax.grid(axis="y", linestyle="--", linewidth=0.6, alpha=0.7, zorder=0)
+    ax.grid(axis="y", linestyle="--", linewidth=0.5, alpha=0.6, zorder=0)
     ax.set_axisbelow(True)
     ax.spines[["top", "right"]].set_visible(False)
 
-    # ── Legend ─────────────────────────────────────────────────────────
+    # ── Legend (outside the plot, to the right) ──────────────────────
     ax.legend(
-        loc=legend_loc,
+        loc="upper left",
+        bbox_to_anchor=(1.01, 1.0),
+        borderaxespad=0,
         fontsize=8,
         framealpha=0.9,
         edgecolor="#CCCCCC",
@@ -246,35 +312,28 @@ def plot_benchmarks(
         title_fontsize=8,
     )
 
-    # ── Context info box  ──────────────────────────────────────────────
+    # ── Context info box (right side, below the legend) ────────────────
     info_lines = [f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"]
     for filename, ctx in contexts.items():
         short = os.path.basename(filename)
         info_lines.append(
-            f"{short}: {ctx['num_cpus']} CPUs @ {ctx['mhz_per_cpu']} MHz | "
-            f"Host: {ctx['host']} | Build: {ctx['library_build']}"
+            f"{short}:  {ctx['num_cpus']} CPUs @ {ctx['mhz_per_cpu']} MHz  |  "
+            f"Host: {ctx['host']}  |  Build: {ctx['library_build']}"
         )
 
-    cx, cy = context_pos
     ax.text(
-        cx, cy, "\n".join(info_lines),
+        1.01, 0.30, "\n\n".join(info_lines),
         transform=ax.transAxes,
-        fontsize=6.5, color="#555555",
-        verticalalignment="bottom",
-        bbox=dict(boxstyle="round,pad=0.4", facecolor="white",
+        fontsize=5.0, color="#555555",
+        verticalalignment="top",
+        horizontalalignment="left",
+        wrap=False,
+        bbox=dict(boxstyle="round,pad=0.5", facecolor="white",
                   edgecolor="#CCCCCC", alpha=0.8),
     )
 
-    ax.text(
-        0.01, 0.01, "\n".join(info_lines),
-        transform=ax.transAxes,
-        fontsize=6.5, color="#555555",
-        verticalalignment="bottom",
-        bbox=dict(boxstyle="round,pad=0.4", facecolor="white",
-                  edgecolor="#CCCCCC", alpha=0.8),
-    )
 
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 0.78, 1])
 
     if output:
         fig.savefig(output, dpi=180, bbox_inches="tight")
@@ -282,12 +341,7 @@ def plot_benchmarks(
     else:
         plt.show()
 
-def main(
-    filenames: list[str],
-    output: str | None = None,
-    legend_loc: str = "upper right",
-    context_pos: tuple[float, float] = (0.01, 0.01),
-):
+def main(filenames: list[str], output: str | None = None):
     """
     Orchestrate loading, processing, reporting, and plotting
     of Google Benchmark JSON results.
@@ -299,13 +353,9 @@ def main(
     divisor, unit = smart_time_unit(max_ns)
 
     print_summary_table(df, contexts, divisor, unit)
-    plot_benchmarks(
-        df, filenames, contexts, divisor, unit,
-        output=output,
-        legend_loc=legend_loc,
-        context_pos=context_pos,
-    )
+    plot_benchmarks(df, filenames, contexts, divisor, unit, output)
 
+# ─────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     """
     Example usage:
@@ -333,26 +383,5 @@ if __name__ == "__main__":
         help="Optional path to save the plot (e.g. chart.png). "
              "If omitted, the plot is displayed interactively."
     )
-    parser.add_argument(
-        "--legend-loc", type=str, default="upper right",
-        help=(
-            "Legend location (matplotlib style), e.g. "
-            "'upper right', 'upper left', 'lower right', 'best'."
-        ),
-    )
-    parser.add_argument(
-        "--context-pos", nargs=2, type=float, metavar=("X", "Y"),
-        default=[0.01, 0.01],
-        help=(
-            "Context info box position in axes coordinates (0..1, 0..1). "
-            "Example: --context-pos 0.02 0.95"
-        ),
-    )
-
     args = parser.parse_args()
-    main(
-        args.filenames,
-        args.output,
-        args.legend_loc,
-        (args.context_pos[0], args.context_pos[1]),
-    )
+    main(args.filenames, args.output)

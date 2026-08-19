@@ -176,12 +176,12 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         elem_csr_indices = A.GetEquationIdCsrIndices(mp.Elements, mp.ProcessInfo)
 
         # Check results
-        shape = elem_csr_indices.to_numpy().shape
+        shape = elem_csr_indices.shape
         self.assertEqual(shape[0], 2)
         self.assertEqual(shape[1], 3)
         self.assertEqual(shape[2], 3)
 
-        data = elem_csr_indices.to_numpy().flatten()
+        data = elem_csr_indices.flatten()
         expected_data = [0, 1, 2, 3, 4, 5, 7, 8, 9,
                          4, 6, 5, 11, 13, 12, 8, 10, 9]
         for i, j in zip(data, expected_data):
@@ -189,10 +189,10 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
 
     def test_get_equation_id_csr_indices_2(self):
         # Create elements connectivities
-        connectivities = KratosMultiphysics.IntNDData(np.array([[0,1,2],[1,3,2]]))
+        connectivities = np.array([[0,1,2],[1,3,2]], dtype=np.int32)
 
         # Build sparse matrix graph
-        connectivities_data = connectivities.to_numpy()
+        connectivities_data = connectivities
         graph = KratosMultiphysics.SparseContiguousRowGraph(4)
         for i in range(connectivities_data.shape[0]):
             graph.AddEntries(connectivities_data[i], connectivities_data[i])
@@ -205,12 +205,12 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         elem_csr_indices = A.GetEquationIdCsrIndices(connectivities)
 
         # Check results
-        shape = elem_csr_indices.to_numpy().shape
+        shape = elem_csr_indices.shape
         self.assertEqual(shape[0], 2)
         self.assertEqual(shape[1], 3)
         self.assertEqual(shape[2], 3)
 
-        data = elem_csr_indices.to_numpy().flatten()
+        data = elem_csr_indices.flatten()
         expected_data = [0, 1, 2, 3, 4, 5, 7, 8, 9,
                          4, 6, 5, 11, 13, 12, 8, 10, 9]
         for i, j in zip(data, expected_data):
@@ -256,8 +256,8 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         elem_csr_indices = A.GetEquationIdCsrIndices(mp.Elements, mp.ProcessInfo)
 
         # Calculate and store the LHS contributions
-        elem_lhs_contributions = KratosMultiphysics.DoubleNDData([mp.NumberOfElements(), 3, 3])
-        aux_data = elem_lhs_contributions.to_numpy()
+        elem_lhs_contributions = np.zeros((mp.NumberOfElements(), 3, 3), dtype=np.double)
+        aux_data = elem_lhs_contributions
         for elem in mp.Elements:
             lhs = KratosMultiphysics.Matrix()
             rhs = KratosMultiphysics.Vector()
@@ -315,11 +315,162 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         for elem in mp.Elements:
             equation_id_vector = elem.EquationIdVector(mp.ProcessInfo)
             equation_ids_data[elem.Id-1, :] = equation_id_vector
-        elem_equation_ids = KratosMultiphysics.IntNDData(equation_ids_data)
+        elem_equation_ids = equation_ids_data
 
         # Calculate and store the LHS contributions
-        elem_lhs_contributions = KratosMultiphysics.DoubleNDData([mp.NumberOfElements(), 3, 3])
-        aux_data = elem_lhs_contributions.to_numpy()
+        elem_lhs_contributions = np.zeros((mp.NumberOfElements(), 3, 3), dtype=np.double)
+        aux_data = elem_lhs_contributions
+        for elem in mp.Elements:
+            lhs = KratosMultiphysics.Matrix()
+            rhs = KratosMultiphysics.Vector()
+            elem.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+            for i in range(3):
+                for j in range(3):
+                    aux_data[(elem.Id-1)][i][j] = lhs[i, j]
+
+        # Assemble the contributions
+        A.AssembleWithEquationIds(elem_lhs_contributions, elem_equation_ids)
+
+        # Check results
+        data = A.value_data()
+        expected_data = [0.1, -0.05, -0.05, -0.05, 0.1, 0.0, -0.05, -0.05, 0.0, 0.1, -0.05, -0.05, -0.05, 0.1]
+        self.assertVectorAlmostEqual(data, expected_data)
+
+    def test_get_equation_id_csr_indices_int64(self):
+        # Create elements connectivities
+        connectivities = np.array([[0,1,2],[1,3,2]], dtype=np.int64)
+
+        # Build sparse matrix graph
+        connectivities_data = connectivities.astype(np.int32)
+        graph = KratosMultiphysics.SparseContiguousRowGraph(4)
+        for i in range(connectivities_data.shape[0]):
+            graph.AddEntries(connectivities_data[i], connectivities_data[i])
+        graph.Finalize()
+
+        # Create Matrix
+        A = KratosMultiphysics.CsrMatrix(graph)
+
+        # Get the elemental contributions CSR indices
+        elem_csr_indices = A.GetEquationIdCsrIndices(connectivities)
+
+        # Check results
+        shape = elem_csr_indices.shape
+        self.assertEqual(shape[0], 2)
+        self.assertEqual(shape[1], 3)
+        self.assertEqual(shape[2], 3)
+        self.assertEqual(elem_csr_indices.dtype, np.int64)
+
+        data = elem_csr_indices.flatten()
+        expected_data = [0, 1, 2, 3, 4, 5, 7, 8, 9,
+                         4, 6, 5, 11, 13, 12, 8, 10, 9]
+        for i, j in zip(data, expected_data):
+            self.assertEqual(i, j)
+
+    def test_assemble_with_csr_indices_int64(self):
+        # Create model part
+        model = KratosMultiphysics.Model()
+        mp = model.CreateModelPart("Main")
+        mp.SetBufferSize(2)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        # Create nodes
+        mp.CreateNewNode(1, 0.0, 0.0, 0.0)
+        mp.CreateNewNode(2, 1.0, 0.0, 0.0)
+        mp.CreateNewNode(3, 0.0, 1.0, 0.0)
+        mp.CreateNewNode(4, 1.0, 1.0, 0.0)
+
+        # Create elements (Element2D3N)
+        prop = mp.CreateNewProperties(1)
+        mp.CreateNewElement("DistanceCalculationElementSimplex2D3N", 1, [1, 2, 3], prop)
+        mp.CreateNewElement("DistanceCalculationElementSimplex2D3N", 2, [2, 4, 3], prop) # Mesh of 2 triangles
+
+        # Add DOFs
+        for node in mp.Nodes:
+            node.AddDof(KratosMultiphysics.DISTANCE)
+
+        # Initialize DOFs (EquationIds)
+        for node in mp.Nodes:
+            node.GetDof(KratosMultiphysics.DISTANCE).EquationId = node.Id - 1
+
+        # Build sparse matrix graph
+        graph = KratosMultiphysics.SparseContiguousRowGraph(mp.NumberOfNodes())
+        for elem in mp.Elements:
+            equation_id_vector = elem.EquationIdVector(mp.ProcessInfo)
+            graph.AddEntries(equation_id_vector, equation_id_vector)
+        graph.Finalize()
+
+        # Create Matrix
+        A = KratosMultiphysics.CsrMatrix(graph)
+
+        # Get the elemental contributions CSR indices
+        elem_csr_indices = A.GetEquationIdCsrIndices(mp.Elements, mp.ProcessInfo)
+        elem_csr_indices_int64 = elem_csr_indices.astype(np.int64)
+
+        # Calculate and store the LHS contributions
+        elem_lhs_contributions = np.zeros((mp.NumberOfElements(), 3, 3), dtype=np.double)
+        aux_data = elem_lhs_contributions
+        for elem in mp.Elements:
+            lhs = KratosMultiphysics.Matrix()
+            rhs = KratosMultiphysics.Vector()
+            elem.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+            for i in range(3):
+                for j in range(3):
+                    aux_data[(elem.Id-1)][i][j] = lhs[i, j]
+
+        # Assemble the contributions
+        A.AssembleWithCsrIndices(elem_lhs_contributions, elem_csr_indices_int64)
+
+        # Check results
+        data = A.value_data()
+        expected_data = [0.1, -0.05, -0.05, -0.05, 0.1, 0.0, -0.05, -0.05, 0.0, 0.1, -0.05, -0.05, -0.05, 0.1]
+        self.assertVectorAlmostEqual(data, expected_data)
+
+    def test_assemble_with_equation_ids_int64(self):
+        # Create model part
+        model = KratosMultiphysics.Model()
+        mp = model.CreateModelPart("Main")
+        mp.SetBufferSize(2)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        # Create nodes
+        mp.CreateNewNode(1, 0.0, 0.0, 0.0)
+        mp.CreateNewNode(2, 1.0, 0.0, 0.0)
+        mp.CreateNewNode(3, 0.0, 1.0, 0.0)
+        mp.CreateNewNode(4, 1.0, 1.0, 0.0)
+
+        # Create elements (Element2D3N)
+        prop = mp.CreateNewProperties(1)
+        mp.CreateNewElement("DistanceCalculationElementSimplex2D3N", 1, [1, 2, 3], prop)
+        mp.CreateNewElement("DistanceCalculationElementSimplex2D3N", 2, [2, 4, 3], prop) # Mesh of 2 triangles
+
+        # Add DOFs
+        for node in mp.Nodes:
+            node.AddDof(KratosMultiphysics.DISTANCE)
+
+        # Initialize DOFs (EquationIds)
+        for node in mp.Nodes:
+            node.GetDof(KratosMultiphysics.DISTANCE).EquationId = node.Id - 1
+
+        # Build sparse matrix graph
+        graph = KratosMultiphysics.SparseContiguousRowGraph(mp.NumberOfNodes())
+        for elem in mp.Elements:
+            equation_id_vector = elem.EquationIdVector(mp.ProcessInfo)
+            graph.AddEntries(equation_id_vector, equation_id_vector)
+        graph.Finalize()
+
+        # Create Matrix
+        A = KratosMultiphysics.CsrMatrix(graph)
+
+        # Get the elemental equation ids matrix
+        equation_ids_data = np.empty((mp.NumberOfElements(), 3), dtype=np.int64)
+        for elem in mp.Elements:
+            equation_id_vector = elem.EquationIdVector(mp.ProcessInfo)
+            equation_ids_data[elem.Id-1, :] = equation_id_vector
+        elem_equation_ids = equation_ids_data
+
+        # Calculate and store the LHS contributions
+        elem_lhs_contributions = np.zeros((mp.NumberOfElements(), 3, 3), dtype=np.double)
+        aux_data = elem_lhs_contributions
         for elem in mp.Elements:
             lhs = KratosMultiphysics.Matrix()
             rhs = KratosMultiphysics.Vector()

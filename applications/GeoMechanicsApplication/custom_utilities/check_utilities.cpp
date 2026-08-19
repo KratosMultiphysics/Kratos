@@ -128,7 +128,7 @@ void CheckUtilities::CheckForNonZeroZCoordinateIn2D(const Geometry<Node>& rGeome
         << "Node with Id: " << pos->Id() << " has non-zero Z coordinate." << std::endl;
 }
 
-std::string CheckProperties::double_to_string(double value) const
+std::string CheckProperties::double_to_string(double value)
 {
     std::ostringstream oss;
     oss << std::defaultfloat << value;

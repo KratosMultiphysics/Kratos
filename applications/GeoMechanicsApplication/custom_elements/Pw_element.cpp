@@ -304,7 +304,6 @@ int PwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) co
     check_properties.Check(BULK_MODULUS_FLUID);
     check_properties.Check(DYNAMIC_VISCOSITY);
     check_properties.Check(BIOT_COEFFICIENT);
-    check_properties.Check(BULK_MODULUS_SOLID);
 
     check_properties.Check(PERMEABILITY_XX);
     if (GetGeometry().LocalSpaceDimension() > 1) {
