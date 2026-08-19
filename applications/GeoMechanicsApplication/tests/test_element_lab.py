@@ -212,9 +212,9 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self._assert_average_stress_component(reader, stage_1_output, 1.0, 1, -46.667766, 4)
         self._assert_average_stress_component(reader, stage_2_output, 2.0, 1, -100.01745, 4)
 
-        self.assert_uniform_y_displacement_at_time(stage_1_output, 1.0, [1, 2, 6],
+        self._assert_y_displacements_at_time(stage_1_output, 1.0, [1, 2, 6],
                            [ 5.81174e-06, 5.44455e-06, 3.85041e-06], 8)
-        self.assert_uniform_y_displacement_at_time(stage_2_output, 2.0, [1, 2, 6],
+        self._assert_y_displacements_at_time(stage_2_output, 2.0, [1, 2, 6],
                            [ -5.82745e-06, -5.4599e-06, -3.8529e-06], 8)
 
     def _assert_average_stress_component(self, reader, output_data, time, component_index, expected_value, places):
@@ -228,7 +228,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
 
     def _assert_y_displacements_at_time(self, output_data, time, node_ids, expected_y_displacements, places):
         for node_id, expected_y_displacement in zip(node_ids, expected_y_displacements):
-            self.assert_y_displacements_at_time(output_data, [node_id], expected_y_displacement, time, places=places)
+            self.assert_uniform_y_displacement_at_time(output_data, [node_id], expected_y_displacement, time, places=places)
 
     def test_oedometer_ULFEM(self):
         """
