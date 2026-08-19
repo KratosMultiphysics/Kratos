@@ -917,6 +917,7 @@ bool DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
     const GeometryType& rSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
     const GeometryType& rMasterGeometry,
+    const array_1d<double, 3>& rMasterNormal,
     DerivativeDataType& rDerivativeData,
     GeneralVariables& rVariables,
     const NormalDerivativesComputation ConsiderNormalVariation,
@@ -986,7 +987,7 @@ bool DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
                 noalias(gp_normal) = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, rSlaveGeometry);
 
                 rSlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
-                GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, Point{slave_gp_global}, projected_gp_global, rSlaveNormal, -gp_normal ); // The opposite direction
+                GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, Point{slave_gp_global}, projected_gp_global, rSlaveNormal, rMasterNormal ); // The opposite direction
 
                 rMasterGeometry.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
