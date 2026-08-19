@@ -31,6 +31,8 @@
 #include "input_output/cad_json_input.h"
 #include "input_output/vtu_output.h"
 #include "input_output/ensight_output.h"
+#include "input_output/tabular_database_io.h"
+#include "input_output/csv_database_io.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
@@ -259,6 +261,47 @@ void  AddIOToPython(pybind11::module& m)
     .def("PrintOutput", &EnSightOutput::PrintOutput, py::arg("output_filename")="")
     .def_static("GetDefaultParameters", &EnSightOutput::GetDefaultParameters)
     ;
+
+    py::class_<TabularDatabaseIO, TabularDatabaseIO::Pointer>(m, "TabularDatabaseIO")
+        .def("GetRowIds", &TabularDatabaseIO::GetRowIds)
+        .def("GetTableId", &TabularDatabaseIO::GetTableId)
+        .def("Initialize", &TabularDatabaseIO::Initialize, py::arg("table_id") = 0)
+        .def("Finalize", &TabularDatabaseIO::Finalize, py::arg("table_id") = 0)
+        .def("ReadBool", [](TabularDatabaseIO& rSelf, const IndexType RowId, const std::string& rKey) { bool value; rSelf.Read(value, RowId, rKey); return value; }, py::arg("row_id"), py::arg("key"))
+        .def("ReadInt", [](TabularDatabaseIO& rSelf, const IndexType RowId, const std::string& rKey) { int value; rSelf.Read(value, RowId, rKey); return value; }, py::arg("row_id"), py::arg("key"))
+        .def("ReadFloat", [](TabularDatabaseIO& rSelf, const IndexType RowId, const std::string& rKey) { double value; rSelf.Read(value, RowId, rKey); return value; }, py::arg("row_id"), py::arg("key"))
+        .def("ReadString", [](TabularDatabaseIO& rSelf, const IndexType RowId, const std::string& rKey) { std::string value; rSelf.Read(value, RowId, rKey); return value; }, py::arg("row_id"), py::arg("key"))
+        .def("Write", py::overload_cast<const bool, const int, const std::string&>(&TabularDatabaseIO::Write), py::arg("value"), py::arg("row_id"), py::arg("key"))
+        .def("Write", py::overload_cast<const int, const int, const std::string&>(&TabularDatabaseIO::Write), py::arg("value"), py::arg("row_id"), py::arg("key"))
+        .def("Write", py::overload_cast<const double, const int, const std::string&>(&TabularDatabaseIO::Write), py::arg("value"), py::arg("row_id"), py::arg("key"))
+        .def("Write", py::overload_cast<const std::string&, const int, const std::string&>(&TabularDatabaseIO::Write), py::arg("value"), py::arg("row_id"), py::arg("key"))
+        .def("__str__", PrintObject<TabularDatabaseIO>)
+        ;
+
+    py::class_<CSVDatabaseIO, CSVDatabaseIO::Pointer, TabularDatabaseIO>(m, "CSVDatabaseIO")
+        .def(py::init<const std::string&, const DataCommunicator&, const std::string&, const std::string&, const std::string&, const IndexType>(),
+            py::arg("input_csv_file_name"),
+            py::arg("data_communicator"),
+            py::arg("table_id_tag") = "<TABLE_ID>",
+            py::arg("row_id_name") = "STEP",
+            py::arg("boolean_true_value") = "1",
+            py::arg("echo_level") = 0)
+        .def(py::init<const std::string&, const DataCommunicator&, const std::string&, const std::string&, const std::string&, const std::string&, const bool, const bool, const IndexType, const IndexType, const IndexType, const std::string&, const std::string&, const IndexType>(),
+            py::arg("output_csv_file_name"),
+            py::arg("data_communicator"),
+            py::arg("title"),
+            py::arg("header_information"),
+            py::arg("table_id_tag") = "<TABLE_ID>",
+            py::arg("row_id_name") = "STEP",
+            py::arg("write_kratos_version") = true,
+            py::arg("write_time_stamp") = true,
+            py::arg("int_length") = 7,
+            py::arg("float_precision") = 9,
+            py::arg("string_length") = 10,
+            py::arg("boolean_false_value") = "0",
+            py::arg("boolean_true_value") = "1",
+            py::arg("echo_level") = 0)
+        ;
 }
 }  // namespace Kratos::Python.
 

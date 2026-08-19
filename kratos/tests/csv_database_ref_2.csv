@@ -1,0 +1,30 @@
+# ===========================================================
+# ===================== Testing output ======================
+# ===========================================================
+# ------------------- Kratos information --------------------
+# Kratos version: not_given
+# Timestamp     : not_specified
+# --------------- End of Kratos information -----------------
+# Testing header information 
+# New line header with id = 2
+# ------------------ <Column information> -------------------
+#         CUSTOM_STEP: integer
+#         bool_1: boolean
+#         bool_2: boolean
+#         int_1: integer
+#         int_2: integer
+#         float_1: float
+#         float_2: float
+#         str_1: string
+#         str_2: string
+#         float_3: float
+#         float_4: float
+# --------------- End of column information -----------------
+# Headers:
+CUSTOM_STEP, bool_1, bool_2,   int_1,   int_2,          float_1,          float_2,      str_1,      str_2,          float_3,          float_4
+          0,    yes,     no,       3,      30,  3.000000000e+01,  3.000000000e+01, test1test1test1, test6test6test6,  3.000000000e+01,  3.000000000e+01
+          1,     no,    yes,      -6,    -600, -6.000000000e+00, -6.000000000e+00, test2test2test2, test7test7test7, -6.000000000e+00,              n/a
+          2,    yes,    yes,      15,     150,  1.500000000e+01, -1.500000000e+01, test3test3test3, test8test8test8, -1.500000000e+01, -1.500000000e+01
+          3,    yes,    yes,      33,     330,  3.300000000e+01, -3.300000000e+01, test4test4test4, test9test9test9, -3.300000000e+01,              n/a
+          4,     no,     no,     -15,    1500,  1.500000000e+02,  1.500000000e+02, test5test5test5, test10test10test10,  1.500000000e+02,  1.500000000e+02
+# End of File
