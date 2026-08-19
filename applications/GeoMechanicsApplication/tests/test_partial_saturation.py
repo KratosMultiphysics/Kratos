@@ -149,7 +149,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         )
         simulation = test_helper.run_kratos(file_path)
 
-        plot_retention_law(simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1], os.path.join(file_path, "saturation_vs_pressure_plot.svg"))
+        plot_retention_law(simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1], plot_file_path=file_path)
 
         reader = GiDOutputFileReader()
         output_data = reader.read_output_from(

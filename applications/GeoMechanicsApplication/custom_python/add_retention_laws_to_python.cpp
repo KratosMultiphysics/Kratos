@@ -34,7 +34,9 @@ void AddRetentionLawsToPython(const pybind11::module& rModule)
     pybind11::class_<VanGenuchtenLaw, VanGenuchtenLaw::Pointer>(rModule,
                                                                 "VanGenuchtenLaw", pybind11::module_local())
     .def(pybind11::init<>())
-    .def("CalculateSaturation", &VanGenuchtenLaw::CalculateSaturation);
+    .def("CalculateSaturation", &VanGenuchtenLaw::CalculateSaturation)
+    .def("CalculateDerivativeOfSaturation", &VanGenuchtenLaw::CalculateDerivativeOfSaturation)
+    .def("CalculateRelativePermeability", &VanGenuchtenLaw::CalculateRelativePermeability);
 
     pybind11::class_<RetentionLaw::Parameters, RetentionLaw::Parameters::Pointer>(rModule,
                                                             "RetentionLawParameters", pybind11::module_local())
