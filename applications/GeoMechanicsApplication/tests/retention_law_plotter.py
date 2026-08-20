@@ -1,14 +1,47 @@
+from dataclasses import dataclass, field
+
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import Pa_to_kPa
 import os
 from pathlib import Path
+import csv
+
+
+@dataclass
+class Characteristics:
+    pressures: list[float] = field(default_factory=list)
+    relative_permeabilities: list[float] = field(default_factory=list)
+    degrees_of_saturation: list[float] = field(default_factory=list)
+    diffusivities: list[float] = field(default_factory=list)
+    capacities: list[float] = field(default_factory=list)
+
+
+def read_characteristics(comparison_data_path: Path) -> Characteristics:
+    with open(
+        comparison_data_path,
+        newline="",
+    ) as csv_file:
+        reader = csv.DictReader(csv_file, skipinitialspace=True)
+        result = Characteristics()
+        for row in reader:
+            result.pressures.append(-1.0 * float(row["pressure"]))
+            result.relative_permeabilities.append(float(row["relative_permeability"]))
+            result.degrees_of_saturation.append(float(row["saturation"]))
+            result.diffusivities.append(float(row["diffusivity"]))
+            result.capacities.append(float(row["capacity"]))
+        return result
 
 
 def plot_van_genuchten_retention_law_characteristics(
-    properties: Kratos.Properties, plot_file_path: Path
+    properties: Kratos.Properties,
+    plot_file_path: Path,
+    comparison_data_path: Path | None = None,
 ) -> None:
+    comparison_characteristics: Characteristics | None = None
+    if comparison_data_path:
+        comparison_characteristics = read_characteristics(comparison_data_path)
 
     law = KratosGeo.VanGenuchtenLaw()
 
@@ -41,76 +74,70 @@ def plot_van_genuchten_retention_law_characteristics(
     data_series_collection.append(
         plot_utils.DataSeries(
             data_points,
-            line_style="-",
-            marker="",
+            "Kratos",
         )
     )
+    if comparison_characteristics:
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                zip(
+                    comparison_characteristics.pressures,
+                    comparison_characteristics.relative_permeabilities,
+                ),
+                "DG-Flow",
+            )
+        )
     data_series_collections.append(data_series_collection)
-
-    # plot_utils._make_plot(
-    #     data_series_collection=data_series_collection,
-    #     plot_file_path=plot_file_path / "relative_permeability_vs_pressure_plot.svg",
-    #     xlabel="water pressure [kPa]",
-    #     ylabel="Relative Permeability [-]",
-    #     logy=True,
-    # )
-
     data_points = zip(
         [Pa_to_kPa(pressure) for pressure in pressures], degrees_of_saturation
     )
     data_series_collection = []
-    data_series_collection.append(
-        plot_utils.DataSeries(
-            data_points,
-            line_style="-",
-            marker="",
+    data_series_collection.append(plot_utils.DataSeries(data_points, "Kratos"))
+
+    if comparison_characteristics:
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                zip(
+                    comparison_characteristics.pressures,
+                    comparison_characteristics.degrees_of_saturation,
+                ),
+                "DG-Flow",
+            )
         )
-    )
 
     data_series_collections.append(data_series_collection)
-    # plot_utils._make_plot(
-    #     data_series_collection=data_series_collection,
-    #     plot_file_path=plot_file_path / "degree_of_saturation_vs_pressure_plot.svg",
-    #     xlabel="water pressure [kPa]",
-    #     ylabel="Saturation [-]",
-    # )
 
     data_points = zip([Pa_to_kPa(pressure) for pressure in pressures], diffusivities)
     data_series_collection = []
-    data_series_collection.append(
-        plot_utils.DataSeries(
-            data_points,
-            line_style="-",
-            marker="",
-        )
-    )
+    data_series_collection.append(plot_utils.DataSeries(data_points, "Kratos"))
 
+    if comparison_characteristics:
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                zip(
+                    comparison_characteristics.pressures,
+                    comparison_characteristics.diffusivities,
+                ),
+                "DG-Flow",
+            )
+        )
     data_series_collections.append(data_series_collection)
-    # plot_utils._make_plot(
-    #     data_series_collection=data_series_collection,
-    #     plot_file_path=plot_file_path / "diffusivity_vs_pressure_plot.svg",
-    #     xlabel="water pressure [kPa]",
-    #     ylabel="Diffusivity [-]",
-    #     logy=True,
-    # )
 
     data_points = zip([Pa_to_kPa(pressure) for pressure in pressures], capacities)
     data_series_collection = []
-    data_series_collection.append(
-        plot_utils.DataSeries(
-            data_points,
-            line_style="-",
-            marker="",
+    data_series_collection.append(plot_utils.DataSeries(data_points, "Kratos"))
+    if comparison_characteristics:
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                zip(
+                    comparison_characteristics.pressures,
+                    comparison_characteristics.capacities,
+                ),
+                "DG-Flow",
+            )
         )
-    )
 
     data_series_collections.append(data_series_collection)
-    # plot_utils._make_plot(
-    #     data_series_collection=data_series_collection,
-    #     plot_file_path=plot_file_path / "capacity_vs_pressure_plot.svg",
-    #     xlabel="water pressure [kPa]",
-    #     ylabel="Capacity [-]",
-    # )
     plot_utils.make_separate_sub_plots(
         data_series_collections=data_series_collections,
         plot_file_path=plot_file_path / "van_genuchten_characteristics.svg",

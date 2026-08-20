@@ -320,6 +320,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             plot_van_genuchten_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
+                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv"
             )
 
 
@@ -432,6 +433,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             plot_van_genuchten_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
+                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv"
             )
 
 
@@ -488,6 +490,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             plot_van_genuchten_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
+                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv"
             )
 
 
@@ -543,6 +546,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             plot_van_genuchten_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
+                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv"
             )
 
 
