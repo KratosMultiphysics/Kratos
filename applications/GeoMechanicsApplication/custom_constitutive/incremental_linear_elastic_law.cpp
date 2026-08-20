@@ -11,7 +11,6 @@
 //                   Richard Faasse
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
-#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
@@ -139,15 +138,7 @@ int GeoIncrementalLinearElasticLaw::Check(const Properties&   rMaterialPropertie
 {
     const auto result = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    if (rMaterialProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) &&
-        rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == Formulations::Eur::Name) {
-        const CheckProperties check_properties(rMaterialProperties, "parameters of material",
-                                               CheckProperties::Bounds::AllExclusive);
-        check_properties.Check(GEO_PRESSURE_REFERENCE);
-        check_properties.Check(GEO_STRESS_DEPENDENCY_EXPONENT);
-        check_properties.Check(GEO_COHESION);
-        check_properties.Check(GEO_FRICTION_ANGLE);
-    }
+    Formulations::CheckInputData(rMaterialProperties);
 
     return result;
 }
