@@ -60,10 +60,9 @@ def plot_van_genuchten_retention_law_characteristics(
 
         relative_permeability = law.CalculateRelativePermeability(parameters)
         relative_permeabilities.append(relative_permeability)
-        degrees_of_saturation.append(law.CalculateSaturation(parameters))
+        degrees_of_saturation.append(law.CalculateEffectiveSaturation(parameters))
         capacity = -1.0 * law.CalculateDerivativeOfSaturation(parameters)
         capacities.append(capacity)
-        capacity = max(capacity, 1e-6)
         diffusivities.append(relative_permeability / capacity)
 
     data_points = zip(

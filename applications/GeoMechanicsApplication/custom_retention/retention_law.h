@@ -34,7 +34,6 @@ public:
 
     class KRATOS_API(GEO_MECHANICS_APPLICATION) Parameters
     {
-
         /**
          * Structure "Parameters" to be used by the element to pass the parameters into the retention law *
          */
