@@ -14,25 +14,11 @@
 
 #include "constitutive_law_dimension.h"
 #include "custom_constitutive/linear_elastic_law.h"
+#include "custom_constitutive/youngs_modulus_formulations.h"
 #include "includes/properties.h"
-
-#include <variant>
 
 namespace Kratos
 {
-
-namespace Formulations
-{
-struct Constant {
-    static constexpr const char* Name = "Constant";
-    double                       operator()(const Properties&, double) const;
-};
-
-struct Eur {
-    static constexpr const char* Name = "Eur";
-    double                       operator()(const Properties&, double) const;
-};
-} // namespace Formulations
 
 /**
  * @class GeoIncrementalLinearElasticLaw
@@ -125,20 +111,13 @@ protected:
     ///@}
 
 private:
-    std::unique_ptr<ConstitutiveLawDimension>               mpConstitutiveDimension;
-    Vector                                                  mStressVector;
-    Vector                                                  mStressVectorFinalized;
-    Vector                                                  mDeltaStrainVector;
-    Vector                                                  mStrainVectorFinalized;
-    bool                                                    mIsModelInitialized = false;
-    std::variant<Formulations::Constant, Formulations::Eur> mFormulation;
-
-    void   InitializeFormulation(const std::string& rFormulation);
-    double GetYoungsModulus(const Properties& rProperties, double YoungsModulus) const;
-    double CalculateYoungsModulusForEur(const Properties& rProperties, double YoungsModulus) const;
-    double CalculateMinorPrincipalEffectiveStress() const;
-    std::string GetYoungsModulusFormulation(const Properties& rProperties) const;
-    std::string GetYoungsModulusFormulation() const;
+    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
+    Vector                                    mStressVector;
+    Vector                                    mStressVectorFinalized;
+    Vector                                    mDeltaStrainVector;
+    Vector                                    mStrainVectorFinalized;
+    bool                                      mIsModelInitialized = false;
+    Formulations::YoungsModulusVariant        mFormulation;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
