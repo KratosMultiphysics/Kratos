@@ -119,7 +119,8 @@
     },
     "output_processes": {
         "gid_output": [],
-        "vtk_output": []
+        "vtk_output": [],
+        "numpy_output": []
     },
     "restart_options": {
         "SaveRestart": "False",
