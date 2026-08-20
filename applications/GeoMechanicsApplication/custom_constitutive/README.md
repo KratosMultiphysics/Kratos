@@ -100,7 +100,7 @@ with:
 - $p$: minor principal effective stress $\sigma_3'$ from the finalized stress state
 - $p_{ref}$: reference pressure (`GEO_PRESSURE_REFERENCE`)
 - $m$: stiffness exponent (`GEO_STRESS_DEPENDENCY_EXPONENT`)
-- $s$: optional stress shift term
+- $s$: stress shift term
 
 The shift term is:
 
