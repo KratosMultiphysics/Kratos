@@ -10,10 +10,11 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
 )
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import Pa_to_kPa
-
+from pathlib import Path
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
     from retention_law_plotter import plot_retention_law
+
 
 class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
     """
@@ -149,8 +150,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         )
         simulation = test_helper.run_kratos(file_path)
 
-        plot_retention_law(simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1], plot_file_path=file_path)
-
         reader = GiDOutputFileReader()
         output_data = reader.read_output_from(
             os.path.join(file_path, "run1sim5_map_hydro.post.res")
@@ -197,6 +196,10 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 file_path,
                 output_data,
                 [12000.0, 24000.0, 36000.0, 48000.0, 72000.0, 96000.0, 192000.0],
+            )
+            plot_retention_law(
+                simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
+                plot_file_path=Path(file_path),
             )
 
         variable_name = "WATER_PRESSURE"

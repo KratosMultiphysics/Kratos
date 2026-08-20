@@ -3,7 +3,10 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import Pa_to_kPa
 import os
-def plot_retention_law(properties : Kratos.Properties, plot_file_path: Path):
+from pathlib import Path
+
+
+def plot_retention_law(properties: Kratos.Properties, plot_file_path: Path):
     parameters = KratosGeo.RetentionLawParameters(properties)
     parameters.SetFluidPressure(7.0)
     print(f"Fluid pressure = {parameters.GetFluidPressure()}")
@@ -11,7 +14,7 @@ def plot_retention_law(properties : Kratos.Properties, plot_file_path: Path):
     law = KratosGeo.VanGenuchtenLaw()
 
     num_points = 250
-    pressures =[]
+    pressures = []
     for i in range(0, num_points):
         pressures.append(-1000 + i * 21000 / num_points)
 
@@ -30,39 +33,40 @@ def plot_retention_law(properties : Kratos.Properties, plot_file_path: Path):
         capacity = max(capacity, 1e-6)
         diffusivities.append(relative_permeability / capacity)
 
-    data_points = zip([Pa_to_kPa(pressure) for pressure in pressures], relative_permeabilities)
+    data_points = zip(
+        [Pa_to_kPa(pressure) for pressure in pressures], relative_permeabilities
+    )
     data_series_collection = []
     data_series_collection.append(
         plot_utils.DataSeries(
             data_points,
             line_style="-",
             marker="",
-            color='blue',
         )
     )
 
     plot_utils._make_plot(
-        data_series_collection= data_series_collection,
-        plot_file_path = os.path.join(plot_file_path, "relative_permeability_vs_pressure_plot.svg"),
+        data_series_collection=data_series_collection,
+        plot_file_path=plot_file_path / "relative_permeability_vs_pressure_plot.svg",
         xlabel="water pressure [kPa]",
         ylabel="Relative Permeability [-]",
     )
 
-
-    data_points = zip([Pa_to_kPa(pressure) for pressure in pressures], degrees_of_saturation)
+    data_points = zip(
+        [Pa_to_kPa(pressure) for pressure in pressures], degrees_of_saturation
+    )
     data_series_collection = []
     data_series_collection.append(
         plot_utils.DataSeries(
             data_points,
             line_style="-",
             marker="",
-            color='blue',
         )
     )
 
     plot_utils._make_plot(
-        data_series_collection= data_series_collection,
-        plot_file_path = os.path.join(plot_file_path, "saturation_vs_pressure_plot.svg"),
+        data_series_collection=data_series_collection,
+        plot_file_path=plot_file_path / "relative_permeability_vs_pressure_plot.svg",
         xlabel="water pressure [kPa]",
         ylabel="Saturation [-]",
     )
@@ -74,13 +78,12 @@ def plot_retention_law(properties : Kratos.Properties, plot_file_path: Path):
             data_points,
             line_style="-",
             marker="",
-            color='blue',
         )
     )
 
     plot_utils._make_plot(
-        data_series_collection= data_series_collection,
-        plot_file_path = os.path.join(plot_file_path, "diffusivity_vs_pressure_plot.svg"),
+        data_series_collection=data_series_collection,
+        plot_file_path=plot_file_path / "relative_permeability_vs_pressure_plot.svg",
         xlabel="water pressure [kPa]",
         ylabel="Diffusivity [?]",
     )
@@ -92,14 +95,12 @@ def plot_retention_law(properties : Kratos.Properties, plot_file_path: Path):
             data_points,
             line_style="-",
             marker="",
-            color='blue',
         )
     )
 
     plot_utils._make_plot(
-        data_series_collection= data_series_collection,
-        plot_file_path = os.path.join(plot_file_path, "capacity_vs_pressure_plot.svg"),
+        data_series_collection=data_series_collection,
+        plot_file_path=plot_file_path / "relative_permeability_vs_pressure_plot.svg",
         xlabel="water pressure [kPa]",
         ylabel="Capacity [-]",
     )
-
