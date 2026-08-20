@@ -15,12 +15,11 @@ The model is a single 1 m, 2-node beam element:
 
 The tests use `MaterialParameters.json` in this folder. Current baseline values are:
 
-- `YOUNG_MODULUS`: 200.0 Pa
-- `POISSON_RATIO`: 0.3
-- `THICKNESS`: 0.1 m
-- `THICKNESS_EFFECTIVE_Y`: 0.1 m
-- `GEO_KAPPA_PIECEWISE_LINEAR_LAW`: [5.0e-03, 1.0e-02, 2.0e-02, 5.0e-02, 0.1] in 1/m
-- `GEO_MOMENT_PIECEWISE_LINEAR_LAW`: [0.1, 0.25, 0.5, 0.8, 1.1] in N/m
+- `YOUNG_MODULUS`: 200.0 [Pa]
+- `POISSON_RATIO`: 0.3 [-]
+- `THICKNESS`: 0.1 [m]
+- `THICKNESS_EFFECTIVE_Y`: 0.1 [m]
+- "GEO_PIECEWISE_LINEAR_MOMENT_LAW": [[8.0e-03, 0.1],[ 4.0e-02, 0.25], [8.0e-02, 0.5],[ 0.1, 0.8],[ 0.2, 1.1]] [1/m, N/m]
 
 Note: `GEO_UNLOADING_RELOADING_MODULUS` is not in the baseline material file; it is injected only in the dedicated unload/reload test.
 

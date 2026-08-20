@@ -142,26 +142,32 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
     CheckProperties check_properties(rMaterialProperties, "material properties",
                                      CheckProperties::Bounds::AllExclusive);
 
-    check_properties.CheckAvailabilityAndNotEmpty(GEO_KAPPA_PIECEWISE_LINEAR_LAW);
-    check_properties.CheckAvailabilityAndNotEmpty(GEO_MOMENT_PIECEWISE_LINEAR_LAW);
-
-    const auto& r_kappa   = rMaterialProperties[GEO_KAPPA_PIECEWISE_LINEAR_LAW];
-    const auto& r_moments = rMaterialProperties[GEO_MOMENT_PIECEWISE_LINEAR_LAW];
-    KRATOS_ERROR_IF(r_kappa.size() != r_moments.size())
-        << "The number of entries in GEO_KAPPA_PIECEWISE_LINEAR_LAW (" << r_kappa.size()
-        << ") does not match GEO_MOMENT_PIECEWISE_LINEAR_LAW (" << r_moments.size() << ")" << std::endl;
+    check_properties.CheckAvailabilityAndNotEmpty(GEO_PIECEWISE_LINEAR_MOMENT_LAW);
 
     // First provided point must be non-zero since (0,0) is implicitly added
-    constexpr auto tolerance    = std::numeric_limits<double>::min();
-    const auto     first_kappa  = r_kappa[0];
-    const auto     first_moment = r_moments[0];
+    const auto& r_kappa_moments = rMaterialProperties[GEO_PIECEWISE_LINEAR_MOMENT_LAW];
+    KRATOS_ERROR_IF_NOT(r_kappa_moments[0].size() == 2)
+        << "GEO_PIECEWISE_LINEAR_MOMENT_LAW has to have two components for material with ID: "
+        << rMaterialProperties.Id() << std::endl;
+
+    const auto& first_point  = r_kappa_moments[0];
+    const auto  first_kappa  = first_point[0];
+    const auto  first_moment = first_point[1];
+
+    constexpr auto tolerance = std::numeric_limits<double>::min();
     KRATOS_ERROR_IF(std::abs(first_kappa) < tolerance || std::abs(first_moment) < tolerance)
         << "First provided point must be non-zero when assuming implicit (0,0). Got ("
         << first_kappa << ", " << first_moment << ")" << std::endl;
 
-    CheckUtilities::CheckValuesAreAscending(r_kappa, "GEO_KAPPA_PIECEWISE_LINEAR_LAW");
+    Vector kappas(r_kappa_moments.size());
+    Vector moments(r_kappa_moments.size());
+    std::transform(r_kappa_moments.begin(), r_kappa_moments.end(), kappas.begin(),
+                   [](const Vector& point) { return point[0]; });
+    std::transform(r_kappa_moments.begin(), r_kappa_moments.end(), moments.begin(),
+                   [](const Vector& point) { return point[1]; });
+    CheckUtilities::CheckValuesAreAscending(kappas, "KAPPA in GEO_PIECEWISE_LINEAR_LAW");
     constexpr auto allow_equal = true;
-    CheckUtilities::CheckValuesAreAscending(r_moments, "GEO_MOMENT_PIECEWISE_LINEAR_LAW", allow_equal);
+    CheckUtilities::CheckValuesAreAscending(moments, "MOMENT in GEO_PIECEWISE_LINEAR_LAW", allow_equal);
 
     check_properties.Check(YOUNG_MODULUS);
     check_properties.Check(THICKNESS);
@@ -173,11 +179,9 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
     const auto nu = rMaterialProperties[POISSON_RATIO];
     const auto elastic_EI =
         rMaterialProperties[YOUNG_MODULUS] * rMaterialProperties[THICKNESS] / (1.0 - nu * nu);
-    auto prev_kappa  = r_kappa[0];
-    auto prev_moment = r_moments[0];
-    for (auto i = std::size_t{1}; i < r_kappa.size(); ++i) {
-        const auto delta_kappa  = r_kappa[i] - prev_kappa;
-        const auto delta_moment = r_moments[i] - prev_moment;
+    for (auto i = std::size_t{1}; i < kappas.size(); ++i) {
+        const auto delta_kappa  = kappas[i] - kappas[i - 1];
+        const auto delta_moment = moments[i] - moments[i - 1];
         const auto dM_dKappa    = delta_moment / delta_kappa;
         KRATOS_ERROR_IF(dM_dKappa >= elastic_EI)
             << "Derivative dM/dKappa must be smaller than elastic EI. Segment " << i
@@ -188,8 +192,6 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
                 << i << " has dM/dKappa = " << dM_dKappa << ", unloading/reloading modulus = "
                 << rMaterialProperties[GEO_UNLOADING_RELOADING_MODULUS] << std::endl;
         }
-        prev_kappa  = r_kappa[i];
-        prev_moment = r_moments[i];
     }
 
     return 0;
@@ -225,19 +227,17 @@ void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::InitializeMaterial
 
     mBendingMomentCurvatureTable.Clear();
 
-    const auto& r_kappa   = rMaterialProperties[GEO_KAPPA_PIECEWISE_LINEAR_LAW];
-    const auto& r_moments = rMaterialProperties[GEO_MOMENT_PIECEWISE_LINEAR_LAW];
+    const auto& r_kappa_moments = rMaterialProperties[GEO_PIECEWISE_LINEAR_MOMENT_LAW];
     // include implicit origin (0,0) as the first table point
     mBendingMomentCurvatureTable.PushBack(0.0, 0.0);
-    for (auto i = std::size_t{0}; i < r_kappa.size(); ++i) {
-        mBendingMomentCurvatureTable.PushBack(r_kappa[i], r_moments[i]);
+    for (auto i = std::size_t{0}; i < r_kappa_moments.size(); ++i) {
+        mBendingMomentCurvatureTable.PushBack(r_kappa_moments[i][0], r_kappa_moments[i][1]);
     }
     // Append a final plateau point beyond the last provided kappa so the
     // piecewise-linear table remains constant for larger curvatures
-    const std::size_t last_index  = r_kappa.size() - 1;
-    const auto        last_kappa  = r_kappa[last_index];
-    const auto        last_moment = r_moments[last_index];
-    mBendingMomentCurvatureTable.PushBack(last_kappa + 1.0, last_moment);
+    const std::size_t last_index = r_kappa_moments.size() - 1;
+    mBendingMomentCurvatureTable.PushBack(r_kappa_moments[last_index][0] + 1.0,
+                                          r_kappa_moments[last_index][1]);
 
     // Reset unload/reload state
     mAccumulatedCurvature = 0.0;

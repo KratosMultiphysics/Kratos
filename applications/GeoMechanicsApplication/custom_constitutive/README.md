@@ -675,7 +675,7 @@ which approximates an undrained − drained bulk modulus difference using an art
 
 ## 3. Piecewise-linear moment–capacity (plane-strain) law
 
-Description: This constitutive law provides a piecewise-linear bending backbone $M_b(\kappa)$ for beam/section behaviour in plane‑strain, combined with linear axial and shear stiffness. The backbone is defined for non‑negative curvature values using the material arrays `GEO_KAPPA_PIECEWISE_LINEAR_LAW` and `GEO_MOMENT_PIECEWISE_LINEAR_LAW`. An implicit origin $(0,0)$ is prepended automatically and, by convention, the backbone is held constant beyond the last provided curvature point.
+Description: This constitutive law provides a piecewise-linear bending backbone $M_b(\kappa)$ for beam/section behaviour in plane‑strain, combined with linear axial and shear stiffness. The backbone is defined for non‑negative curvature values using the list of points $(\kappa,M)$ `GEO_PIECEWISE_LINEAR_MOMENT_LAW`. An implicit origin $(0,0)$ is prepended automatically and, by convention, the backbone is held constant beyond the last provided curvature point.
 
 Backbone interpolation (for $\kappa\ge0$): let the table entries be $(\kappa_i,M_i)$ with $i=0\dots n$ (where $(0,0)$ is included). For $\kappa\in[\kappa_i,\kappa_{i+1}]$ the backbone is piecewise linear:
 
