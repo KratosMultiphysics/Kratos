@@ -2,11 +2,12 @@ import pathlib
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.StructuralMechanicsApplication
 
 from KratosMultiphysics.modelers.import_mdpa_modeler import ImportMDPAModeler
 from KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_preparation import MultiLoadConstraintPreparation
 from KratosMultiphysics.StructuralMechanicsApplication.multi_load_constraint_analysis import MultiLoadConstraintAnalysis
+from KratosMultiphysics.project import Project
+from KratosMultiphysics.StructuralMechanicsApplication.structural_sequential_orchestrator import StructuralSequentialOrchestrator
 
 class TestMultiLoadConstraintStages(KratosUnittest.TestCase):
 
@@ -153,6 +154,45 @@ class TestMultiLoadConstraintStages(KratosUnittest.TestCase):
                         f"{dof.Id()} remained fixed."
                     ),
                 )
+
+    def test_full_project_parameters_with_structural_orchestrator(self):
+        with KratosUnittest.WorkFolderScope("multi_load_constraint_test", __file__):
+            project_parameters = self._ReadParameters("ProjectParameters.json")
+
+            project = Project(project_parameters)
+            orchestrator = StructuralSequentialOrchestrator(project)
+            orchestrator.Run()
+
+            output_data = project.GetOutputData()
+
+            self.assertIn(self._PREPARATION_STAGE_NAME, output_data)
+            self.assertIn(self._FIRST_ANALYSIS_STAGE_NAME, output_data)
+            self.assertIn(self._SECOND_ANALYSIS_STAGE_NAME, output_data)
+
+            preparation_data = output_data[self._PREPARATION_STAGE_NAME]
+            first_solution = output_data[self._FIRST_ANALYSIS_STAGE_NAME]
+            second_solution = output_data[self._SECOND_ANALYSIS_STAGE_NAME]
+
+            dofset = preparation_data["strategy_data"].GetDofSet()
+
+            node_1_x_index = self._FindDofIndex(
+                dofset,
+                node_id=1,
+                variable=KratosMultiphysics.DISPLACEMENT_X,
+            )
+            node_2_x_index = self._FindDofIndex(
+                dofset,
+                node_id=2,
+                variable=KratosMultiphysics.DISPLACEMENT_X,
+            )
+
+            expected_displacement = 10.0 * 1000.0 / (210000.0 * 350.0)
+
+            self.assertAlmostEqual(first_solution[12][node_1_x_index], 0.0, places=12)
+            self.assertAlmostEqual(first_solution[12][node_2_x_index], expected_displacement, places=12)
+
+            self.assertAlmostEqual(second_solution[4][node_1_x_index], expected_displacement, places=12)
+            self.assertAlmostEqual(second_solution[4][node_2_x_index], 0.0, places=12)
 
     def _RunPreparation(self):
         project_parameters = self._ReadParameters("ProjectParameters.json")
