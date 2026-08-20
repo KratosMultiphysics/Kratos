@@ -71,8 +71,8 @@ double GetYoungsModulus(YoungsModulusVariant& rFormulation,
                         double                YoungsModulus,
                         const Vector&         rStressVectorFinalized)
 {
-    return std::visit([&](auto&& policy_functor) -> double {
-        return policy_functor(rProperties, YoungsModulus, rStressVectorFinalized);
+    return std::visit([&](auto&& formulation_functor) {
+        return formulation_functor(rProperties, YoungsModulus, rStressVectorFinalized);
     }, rFormulation);
 }
 
