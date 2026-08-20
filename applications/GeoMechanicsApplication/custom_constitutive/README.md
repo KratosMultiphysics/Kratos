@@ -63,7 +63,7 @@ Where:
 
 ### 1.2 Stress-dependent Young's modulus formulation
 
-The linear elastic law has an option with a stress-dependent Young's modulus. To activate this option, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to material properties. By now unloading/reloading Stiffness formulation is implemented and the keyword can have only one value `Eur`. This feature is implemented using `std::variant` that combines the flexibility of Strategy with the performance of stack allocation. It avoids both deep inheritance trees and virtual calls during simulation. Another benefit is an easy extension with other formulations like Secant Stiffness at 50% Strength and Oedometer Modulus.
+The linear elastic law has an option with a stress-dependent Young's modulus. To activate this option, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to material properties. By now unloading/reloading Stiffness formulation is implemented and the keyword can have only two values:  `Constant` and `Eur`. This feature is implemented using `std::variant` that combines the flexibility of Strategy with the performance of stack allocation. It avoids both deep inheritance trees and virtual calls during simulation. Another benefit is an easy extension with other formulations like Secant Stiffness at 50% Strength and Oedometer Modulus.
 
 #### 1.2.1 Purpose
 
@@ -74,7 +74,7 @@ an $E_{ur}$-type expression. This allows stiffer behavior at higher confinement 
 
 Required material parameters:
 
-- `GEO_YOUNGS_MODULUS_FORMULATION`with "Eur" value
+- `GEO_YOUNGS_MODULUS_FORMULATION` with "Eur" value
 - `YOUNG_MODULUS`: reference unloading-reloading Young's modulus $E_{ur}^{ref}$
 - `POISSON_RATIO`: Poisson's ratio <!--(used if no unloading-reloading Poisson is supplied)-->
 - `GEO_PRESSURE_REFERENCE`: reference pressure $p_{ref}$
