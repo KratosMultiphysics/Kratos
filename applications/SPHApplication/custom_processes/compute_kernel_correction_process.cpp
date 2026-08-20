@@ -21,7 +21,7 @@ namespace Kratos
 
         ComputeKernelCorrectionUtilities::ComputeWeightedSums(mrThisModelPart);
         ComputeKernelCorrectionUtilities::ComputeGradientCorrection(mrThisModelPart);
-        ComputeKernelCorrectionUtilities::ComputeIntegrationCorrection(mrThisModelPart, mrThisParameters, iter);
+        //ComputeKernelCorrectionUtilities::ComputeIntegrationCorrection(mrThisModelPart, mrThisParameters, iter);
         
         if (flag == true){
             bool correction_flag = ComputeKernelCorrectionUtilities::VerifyKernelCorrection(mrThisModelPart, mrThisParameters);
