@@ -24,25 +24,21 @@ namespace Kratos
 
 namespace Formulations
 {
-double Constant::operator()(const Properties&, double YoungsModulus, Vector&) const
+double Constant::operator()(const Properties&, double YoungsModulus, const Vector&) const
 {
     return YoungsModulus;
 }
 
-double Eur::operator()(const Properties& rProperties, double YoungsModulus, Vector& rStressVectorFinalized) const
+double Eur::operator()(const Properties& rProperties, double YoungsModulus, const Vector& rStressVectorFinalized) const
 {
     return Formulations::CalculateYoungsModulusForEur(rProperties, YoungsModulus, rStressVectorFinalized);
 }
 
 YoungsModulusVariant InitializeFormulation(const std::string& rFormulation)
 {
-    if (rFormulation == Constant::Name) {
-        return Constant{};
-    } else if (rFormulation == Eur::Name) {
-        return Eur{};
-    } else {
-        KRATOS_ERROR << "Unknown GEO_YOUNGS_MODULUS_FORMULATION: " << rFormulation;
-    }
+    if (rFormulation == Constant::Name) return Constant{};
+    if (rFormulation == Eur::Name) return Eur{};
+    KRATOS_ERROR << "Unknown GEO_YOUNGS_MODULUS_FORMULATION: " << rFormulation;
 }
 
 std::string GetYoungsModulusFormulation(const Properties& rProperties)
@@ -59,14 +55,14 @@ std::string GetYoungsModulusFormulation(const YoungsModulusVariant& rFormulation
 double GetYoungsModulus(YoungsModulusVariant& rFormulation,
                         const Properties&     rProperties,
                         double                YoungsModulus,
-                        Vector&               rStressVectorFinalized)
+                        const Vector&         rStressVectorFinalized)
 {
     return std::visit([&](auto&& policy_functor) -> double {
         return policy_functor(rProperties, YoungsModulus, rStressVectorFinalized);
     }, rFormulation);
 }
 
-double CalculateYoungsModulusForEur(const Properties& rProperties, double YoungsModulus, Vector& rStressVectorFinalized)
+double CalculateYoungsModulusForEur(const Properties& rProperties, double YoungsModulus, const Vector& rStressVectorFinalized)
 {
     constexpr auto epsilon = std::numeric_limits<double>::epsilon();
 
@@ -89,7 +85,7 @@ double CalculateYoungsModulusForEur(const Properties& rProperties, double Youngs
     return eur_ref * std::pow(base, exponent);
 }
 
-double CalculateMinorPrincipalEffectiveStress(Vector& rStressVectorFinalized)
+double CalculateMinorPrincipalEffectiveStress(const Vector& rStressVectorFinalized)
 {
     auto principal_stresses = Vector{};
     auto eigen_vectors      = Matrix{};
