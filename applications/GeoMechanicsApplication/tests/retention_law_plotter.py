@@ -6,10 +6,11 @@ import os
 from pathlib import Path
 
 
-def plot_retention_law(properties: Kratos.Properties, plot_file_path: Path):
+def plot_van_genuchten_retention_law_characteristics(
+    properties: Kratos.Properties, plot_file_path: Path
+) -> None:
     parameters = KratosGeo.RetentionLawParameters(properties)
     parameters.SetFluidPressure(7.0)
-    print(f"Fluid pressure = {parameters.GetFluidPressure()}")
 
     law = KratosGeo.VanGenuchtenLaw()
 

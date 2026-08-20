@@ -11,9 +11,10 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
 )
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import Pa_to_kPa
 from pathlib import Path
+
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
-    from retention_law_plotter import plot_retention_law
+    from retention_law_plotter import plot_van_genuchten_retention_law_characteristics
 
 
 class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
@@ -197,7 +198,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 [12000.0, 24000.0, 36000.0, 48000.0, 72000.0, 96000.0, 192000.0],
             )
-            plot_retention_law(
+            plot_van_genuchten_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
             )
@@ -266,7 +267,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
     #             plot_times=expected_results_at_times.keys(),
     #         )
 
-    def atest_infiltration_from_top_boundary_O6(self):
+    def test_infiltration_from_top_boundary_O6(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -316,8 +317,13 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_times=expected_results_at_times.keys(),
                 test_name="O6",
             )
+            plot_van_genuchten_retention_law_characteristics(
+                simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
+                plot_file_path=Path(file_path),
+            )
 
-    def atest_infiltration_from_top_boundary_O10(self):
+
+    def test_infiltration_from_top_boundary_O10(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -367,8 +373,13 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_times=expected_results_at_times.keys(),
                 test_name="O10",
             )
+            plot_van_genuchten_retention_law_characteristics(
+                simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
+                plot_file_path=Path(file_path),
+            )
 
-    def atest_infiltration_from_top_boundary_O4(self):
+
+    def test_infiltration_from_top_boundary_O4(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -418,8 +429,13 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_times=expected_results_at_times.keys(),
                 test_name="O4",
             )
+            plot_van_genuchten_retention_law_characteristics(
+                simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
+                plot_file_path=Path(file_path),
+            )
 
-    def atest_infiltration_from_top_boundary_B10(self):
+
+    def test_infiltration_from_top_boundary_B10(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -469,8 +485,13 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_times=expected_results_at_times.keys(),
                 test_name="B10",
             )
+            plot_van_genuchten_retention_law_characteristics(
+                simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
+                plot_file_path=Path(file_path),
+            )
 
-    def atest_infiltration_from_top_boundary_B6(self):
+
+    def test_infiltration_from_top_boundary_B6(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -519,8 +540,13 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
             )
+            plot_van_genuchten_retention_law_characteristics(
+                simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
+                plot_file_path=Path(file_path),
+            )
 
-    def atest_infiltration_from_top_boundary_B4(self):
+
+    def test_infiltration_from_top_boundary_B4(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -569,6 +595,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
             )
+            plot_van_genuchten_retention_law_characteristics(
+                simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
+                plot_file_path=Path(file_path),
+            )
+
 
     def _calculate_depth_for_boundary_nodes(self, simulation):
         return {
@@ -579,7 +610,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             if node.X == 0.0
         }
 
-    def atest_infiltration_from_top_boundary_B9(self):
+    def test_infiltration_from_top_boundary_B9(self):
         file_path = test_helper.get_file_path(
             os.path.join(
                 "test_partially_saturated",
@@ -627,6 +658,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
             )
+            plot_van_genuchten_retention_law_characteristics(
+                simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
+                plot_file_path=Path(file_path),
+            )
+
 
     def create_pressure_depth_plots(
         self,
