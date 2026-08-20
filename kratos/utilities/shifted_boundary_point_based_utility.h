@@ -199,19 +199,20 @@ namespace ShiftedBoundaryUtilityInternals {
         // maps local index → node pointer
         std::vector<ModelPart::NodeType::Pointer> local_nodes;
 
-        // CSR arrays
+        // CSR arrays for neighboring nodes and for active neighboring nodes only
         std::vector<std::size_t> neighbors; // flat neighbor list (local indices)
         std::vector<std::size_t> offset;    // offset[i]..offset[i+1] = neighbors of local node i
+        std::vector<std::size_t> active_neighbors; // flat active neighbor list (local indices)
+        std::vector<std::size_t> active_offset;    // offset[i]..offset[i+1] = active neighbors of local node i
 
         void build(const std::vector<ModelPart::ElementType::Pointer>& rElements)
         {
-            // Temporary adjacency list
+            // Temporary adjacency lists, a set is used to avoid duplicates
             std::vector<std::unordered_set<std::size_t>> adj;
+            std::vector<std::unordered_set<std::size_t>> active_adj;
 
-            // Collect unique nodes and add their adjacency, omitting deactivated elements
+            // Collect unique nodes and add their adjacency, omitting deactivated elements, thus separating both sides
             for (auto p_elem : rElements) {
-                if (!p_elem->Is(ACTIVE)) { continue; }
-
                 const auto& r_geom  = p_elem->GetGeometry();
                 const std::size_t n_pts = r_geom.PointsNumber();
                 std::array<std::size_t, 4> local_indices;  // max 4 for tet
@@ -222,15 +223,27 @@ namespace ShiftedBoundaryUtilityInternals {
                     if (inserted) {
                         local_nodes.push_back(p_node);
                         adj.emplace_back();   // add empty neighbor list for this node
+                        active_adj.emplace_back();   // add empty neighbor list for this node
                     }
                     local_indices[i] = it->second;
                 }
 
                 // Add edges between all pairs of nodes in this element
-                for (std::size_t i = 0; i < n_pts; ++i) {
-                    for (std::size_t j = i+1; j < n_pts; ++j) {
-                        adj[local_indices[i]].insert(local_indices[j]);
-                        adj[local_indices[j]].insert(local_indices[i]);
+                if (p_elem->Is(ACTIVE)) {
+                    for (std::size_t i = 0; i < n_pts; ++i) {
+                        for (std::size_t j = i+1; j < n_pts; ++j) {
+                            adj[local_indices[i]].insert(local_indices[j]);
+                            adj[local_indices[j]].insert(local_indices[i]);
+                            active_adj[local_indices[i]].insert(local_indices[j]);
+                            active_adj[local_indices[j]].insert(local_indices[i]);
+                        }
+                    }
+                } else {
+                    for (std::size_t i = 0; i < n_pts; ++i) {
+                        for (std::size_t j = i+1; j < n_pts; ++j) {
+                            adj[local_indices[i]].insert(local_indices[j]);
+                            adj[local_indices[j]].insert(local_indices[i]);
+                        }
                     }
                 }
             }
@@ -238,12 +251,16 @@ namespace ShiftedBoundaryUtilityInternals {
             // Pack into CSR
             const std::size_t n_nodes = local_nodes.size();
             offset.resize(n_nodes + 1, 0);
+            active_offset.resize(n_nodes + 1, 0);
             for (std::size_t i = 0; i < n_nodes; ++i) {
                 offset[i + 1] = offset[i] + adj[i].size();
+                active_offset[i + 1] = active_offset[i] + active_adj[i].size();
             }
             neighbors.resize(offset[n_nodes]);
+            active_neighbors.resize(active_offset[n_nodes]);
             for (std::size_t i = 0; i < n_nodes; ++i) {
                 std::copy(adj[i].begin(), adj[i].end(), neighbors.begin() + offset[i]);
+                std::copy(active_adj[i].begin(), active_adj[i].end(), active_neighbors.begin() + active_offset[i]);
             }
         }
 
@@ -255,6 +272,19 @@ namespace ShiftedBoundaryUtilityInternals {
 
             // Get all neighboring node pointers of the given node
             for (std::size_t neigh_idx : std::span<const std::size_t>(neighbors.data() + offset[local_idx], offset[local_idx+1] - offset[local_idx])) {
+                neighboring_nodes.push_back(local_nodes[neigh_idx]);
+            }
+            return true;
+        }
+
+        bool get_active_neighbors(const std::size_t node_id, std::vector<ModelPart::NodeType::Pointer>& neighboring_nodes) const {
+            // Get local index of the node if it is in the CSR
+            auto it = global_to_local.find(node_id);
+            if (it == global_to_local.end()) { return false; }
+            const std::size_t local_idx = it-> second;
+
+            // Get all neighboring node pointers of the given node
+            for (std::size_t neigh_idx : std::span<const std::size_t>(active_neighbors.data() + active_offset[local_idx], active_offset[local_idx+1] - active_offset[local_idx])) {
                 neighboring_nodes.push_back(local_nodes[neigh_idx]);
             }
             return true;
@@ -381,7 +411,6 @@ public:
     //TODO
     // Calculate positive and negative side pressure and velocity and traction at the integration points of the skin geometry - for mpSkinPointsSubModelPart.
     // Results are stored in POSITIVE_FACE_PRESSURE, NEGATIVE_FACE_PRESSURE, POSITIVE_FACE_FLUID_VELOCITY, NEGATIVE_FACE_FLUID_VELOCITY, TRACTION_FROM_FLUID_PRESSURE, TRACTION_FROM_FLUID_STRESS, DRAG_FORCE.
-    //TODO
     void CalculateVariablesAtSkinPoints();
 
     //TODO
@@ -521,7 +550,6 @@ protected:
      * It could also be a positive inactive node of a BOUNDARY element in order to get a support cloud for the positive side collecting support nodes on the positive side.
      * The support cloud created by this function is to be used for calculating the MLS-based extension operator.
      * @param rSameSideNodes Pointer to the first nodes of the support cloud
-     * TODO
      * @param rCloudNodes Vector containing pointers to the nodes of the cloud
      * @param rCloudCoordinates Matrix containing the coordinates of the nodes of the cloud
      */
@@ -597,7 +625,6 @@ protected:
     //TODO
     // Calculate positive and negative side pressure at the nodes of the skin model part
     // Result is stored in POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE.
-    //TODO
     template <std::size_t TDim>
     void CalculateVariablesAtSkinPointsTemplated();
 
