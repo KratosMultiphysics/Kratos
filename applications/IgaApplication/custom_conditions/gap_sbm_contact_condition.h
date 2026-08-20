@@ -260,6 +260,8 @@ const Properties& GetSlaveMaterialProperties() const;
 
 double CalculateScaledPenalty() const;
 
+double CalculateScaledNitscheStabilization() const;
+
 void UpdateContactPressure(const Vector& rStressVectorMaster);
 
 
@@ -357,6 +359,7 @@ double ComputeTaylorTerm3D(
     Vector mDistanceVectorSkinReferenceSlave;
     unsigned int mDim;
     double mPenalty;
+    double mNitscheStabilizationFactor;
     double mNitschePenalty;
     IndexType mBasisFunctionsOrderMaster;
     IndexType mBasisFunctionsOrderSlave;

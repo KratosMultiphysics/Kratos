@@ -1199,9 +1199,46 @@ void IgaModelerSbm::CreateConditions(
                 // Add closest projection node
                 NodePointerVector empty_vector;
                 PointTypePointer projection_node = cond1->GetGeometry()(0);
+
+                bool found_projection_node = false;
+                for (SizeType i = 0; i < cond1->GetGeometry().size(); ++i) {
+                    projection_node = cond1->GetGeometry()(i);
+                    auto projection_node_connected_layers = projection_node->GetValue(CONNECTED_LAYERS);
+                    if (projection_node_connected_layers.size() == 1 && projection_node_connected_layers[0] == layer_name) {
+                        found_projection_node = true;
+                        break;
+                    }
+                }
+                if (!found_projection_node) {
+                    for (SizeType i = 0; i < cond2->GetGeometry().size(); ++i) {
+                        projection_node = cond2->GetGeometry()(i);
+                        auto projection_node_connected_layers = projection_node->GetValue(CONNECTED_LAYERS);
+                        if (projection_node_connected_layers.size() == 1 && projection_node_connected_layers[0] == layer_name) {
+                            found_projection_node = true;
+                            break;
+                        }
+                    }            
+                }
+                KRATOS_ERROR_IF(!found_projection_node) << "No projection node found for condition " << cond1->Id() << " or " << cond2->Id() << std::endl;
+                if (rSkinModelPart.HasSubModelPart("interface_vertices")) {
+                    ModelPart& r_interface_model_part = rSkinModelPart.GetSubModelPart("interface_vertices");
+                    bool is_interface_projection_node = false;
+                    for (const auto& r_interface_node : r_interface_model_part.Nodes()) {
+                        if (norm_2(projection_node->Coordinates() - r_interface_node.Coordinates()) < 1e-13) {
+                            is_interface_projection_node = true;
+                            break;
+                        }
+                    }
+                    if (is_interface_projection_node) {
+                        projection_node = cond1->GetGeometry()(0)->Id() == projection_node->Id()
+                            ? cond1->GetGeometry()(1)
+                            : cond1->GetGeometry()(0);
+                    }
+                }
+
                 if (norm_2(projection_node->GetValue(NORMAL)) > 1e-13)
                 {
-                    empty_vector.push_back(cond1->GetGeometry()(0)); // Just it_node-plane neighbours
+                    empty_vector.push_back(projection_node); // Just it_node-plane neighbours
                     (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
                 }
                 

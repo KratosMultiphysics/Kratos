@@ -104,6 +104,11 @@ void GapSbmContactCondition::InitializeMemberVariables()
 
 
     mPenalty = GetProperties()[PENALTY_FACTOR];
+    const auto& r_master_properties = GetMasterMaterialProperties();
+    KRATOS_ERROR_IF_NOT(r_master_properties.Has(NITSCHE_STABILIZATION_FACTOR))
+        << "\"GapSbmContactCondition\" #" << Id()
+        << " missing NITSCHE_STABILIZATION_FACTOR in the master properties." << std::endl;
+    mNitscheStabilizationFactor = r_master_properties[NITSCHE_STABILIZATION_FACTOR];
     UpdateActiveSetCriterionData();
 }
 
@@ -343,11 +348,11 @@ void GapSbmContactCondition::CalculateLeftHandSide(
         h = std::min(h, mesh_size_uv[i]);
     }
     // the /4 is due to the previous multiplication by 2 of the basis function order, which is needed for the enhanced shift operator
-    const double penalty = mPenalty / h * mBasisFunctionsOrderMaster *mBasisFunctionsOrderMaster /4;
+    const double penalty = CalculateScaledNitscheStabilization();
     double penalty_integration = penalty * integration_weight;
 
     mNitschePenalty = -1; //FIXME:
-    if (mPenalty == -1)
+    if (mNitscheStabilizationFactor == -1)
     {
         mNitschePenalty = -1;
         penalty_integration = 0;
@@ -619,11 +624,11 @@ void GapSbmContactCondition::CalculateRightHandSide(
         h = std::min(h, mesh_size_uv[i]);
     }
     // the /4 is due to the previous multiplication by 2 of the basis function order, which is needed for the enhanced shift operator
-    const double penalty = mPenalty / h * mBasisFunctionsOrderMaster *mBasisFunctionsOrderMaster /4;
+    const double penalty = CalculateScaledNitscheStabilization();
     double penalty_integration = penalty * integration_weight;
 
     mNitschePenalty = -1; //FIXME:
-    if (mPenalty == -1)
+    if (mNitscheStabilizationFactor == -1)
     {
         mNitschePenalty = -1;
         penalty_integration = 0;
@@ -898,7 +903,7 @@ void GapSbmContactCondition::SetGap()
 
         SetValue(YOUNG_MODULUS_MASTER, r_master_properties[YOUNG_MODULUS]);
         SetValue(YOUNG_MODULUS_SLAVE, r_slave_properties[YOUNG_MODULUS]);
-        SetValue(PENALTY_FACTOR, CalculateScaledPenalty());
+        SetValue(NITSCHE_STABILIZATION_FACTOR, CalculateScaledNitscheStabilization());
     }
 
     const GapSbmContactCondition::PropertiesType& GapSbmContactCondition::GetMasterMaterialProperties() const
@@ -931,9 +936,19 @@ void GapSbmContactCondition::SetGap()
 
     double GapSbmContactCondition::CalculateScaledPenalty() const
     {
+        return CalculateScaledNitscheStabilization();
+    }
+
+    double GapSbmContactCondition::CalculateScaledNitscheStabilization() const
+    {
         KRATOS_ERROR_IF_NOT(this->Has(KNOT_SPAN_SIZES))
             << "\"GapSbmContactCondition\" #" << Id()
-            << " missing KNOT_SPAN_SIZES required to compute the scaled penalty." << std::endl;
+            << " missing KNOT_SPAN_SIZES required to compute the scaled Nitsche stabilization." << std::endl;
+
+        const auto& r_master_properties = GetMasterMaterialProperties();
+        KRATOS_ERROR_IF_NOT(r_master_properties.Has(NITSCHE_STABILIZATION_FACTOR))
+            << "\"GapSbmContactCondition\" #" << Id()
+            << " missing NITSCHE_STABILIZATION_FACTOR in the master properties." << std::endl;
 
         const Vector& r_mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
         KRATOS_ERROR_IF(r_mesh_size_uv.size() == 0)
@@ -949,7 +964,7 @@ void GapSbmContactCondition::SetGap()
             << "\"GapSbmContactCondition\" #" << Id()
             << " has non-positive characteristic knot span size." << std::endl;
 
-        return mPenalty / h
+        return r_master_properties[NITSCHE_STABILIZATION_FACTOR] / h
             * static_cast<double>(mBasisFunctionsOrderMaster * mBasisFunctionsOrderMaster) / 4.0;
     }
 
@@ -961,9 +976,9 @@ void GapSbmContactCondition::SetGap()
         KRATOS_ERROR_IF_NOT(this->Has(GAP))
             << "\"GapSbmContactCondition\" #" << Id()
             << " requires GAP to compute CONTACT_PRESSURE." << std::endl;
-        KRATOS_ERROR_IF_NOT(this->Has(PENALTY_FACTOR))
+        KRATOS_ERROR_IF_NOT(this->Has(NITSCHE_STABILIZATION_FACTOR))
             << "\"GapSbmContactCondition\" #" << Id()
-            << " requires the scaled PENALTY_FACTOR to compute CONTACT_PRESSURE." << std::endl;
+            << " requires the scaled NITSCHE_STABILIZATION_FACTOR to compute CONTACT_PRESSURE." << std::endl;
 
         const Vector& r_gap = this->GetValue(GAP);
         KRATOS_ERROR_IF(r_gap.size() < 2)
@@ -980,7 +995,7 @@ void GapSbmContactCondition::SetGap()
         const double sigma_nn = sigma_n[0] * mNormalPhysicalSpaceMaster[0]
                               + sigma_n[1] * mNormalPhysicalSpaceMaster[1];
 
-        SetValue(CONTACT_PRESSURE, this->GetValue(PENALTY_FACTOR) * normal_gap - sigma_nn);
+        SetValue(CONTACT_PRESSURE, this->GetValue(NITSCHE_STABILIZATION_FACTOR) * normal_gap - sigma_nn);
     }
 
     void GapSbmContactCondition::CalculateB(
@@ -1036,6 +1051,8 @@ void GapSbmContactCondition::SetGap()
         const auto& r_skin_node_slave = *pGetProjectionNode();
         const auto& r_surrogate_geometry_slave = *r_skin_node_slave.GetValue(NEIGHBOUR_GEOMETRIES)[0];
         const SizeType number_of_control_points_slave = r_surrogate_geometry_slave.size();
+
+        SetValue(PROJECTION_NODE_COORDINATES, r_skin_node_slave.Coordinates());
 
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             r_surrogate_geometry_master, GetProperties(), rCurrentProcessInfo);

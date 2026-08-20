@@ -10,8 +10,18 @@
 
 #pragma once
 
+#define SBM_CONTACT_PENALTY_FORMULATION 0
+#define SBM_CONTACT_NITSCHE_FORMULATION 1
+
+#ifndef SBM_CONTACT_FORMULATION
+// #define SBM_CONTACT_FORMULATION SBM_CONTACT_PENALTY_FORMULATION
+#define SBM_CONTACT_FORMULATION SBM_CONTACT_NITSCHE_FORMULATION
+#endif
+
 
 // System includes
+#include <utility>
+
 #include "includes/define.h"
 #include "includes/condition.h"
 #include "utilities/math_utils.h"
@@ -72,8 +82,7 @@ namespace Kratos
             const int integrationDomain = GetGeometry().GetValue(ACTIVATION_LEVEL);
 
             if (integrationDomain == 1) {
-                mpPropMaster = pPropSlave;
-                mpPropSlave = pPropMaster;
+                std::swap(mpPropMaster, mpPropSlave);
             }
         };
 
@@ -328,6 +337,13 @@ namespace Kratos
     void UpdateActiveSetCriterionData();
 
     double CalculateScaledPenalty() const;
+
+    double CalculateScaledNitscheStabilization() const;
+
+    double CalculateShiftedNormalTractionOperator(
+        const Matrix& rDBSum,
+        const IndexType DofIndex,
+        const Vector& rNormal) const;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 

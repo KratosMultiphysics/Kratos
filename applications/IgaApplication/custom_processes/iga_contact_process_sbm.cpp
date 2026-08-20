@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <sstream>
 
 namespace Kratos
 {
@@ -90,13 +91,24 @@ namespace Kratos
         const IndexType master_property_id = mParameters["contact_parameters"]["master_model_part"]["property_id"].GetInt();
         mpPropMaster = mrMasterModelPart->pGetProperties(master_property_id);
 
-        // Obtain the slave skin model part
+        // Obtain the master initial skin model part
         std::string master_skin_model_part_name = mParameters["contact_parameters"]["master_model_part"]["initial_skin_model_part_name"].GetString();
 
         KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(master_skin_model_part_name)) << "ERROR: MASTER SKIN MODEL PART " 
                                                 << master_skin_model_part_name << "NOT CREATED" << std::endl; 
 
         mrMasterSkinModelPart = &(mpModel->GetModelPart(master_skin_model_part_name));
+
+        if (mParameters["contact_parameters"]["master_model_part"].Has("skin_model_part_name")) {
+            const std::string master_contact_skin_model_part_name =
+                mParameters["contact_parameters"]["master_model_part"]["skin_model_part_name"].GetString();
+
+            KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(master_contact_skin_model_part_name))
+                << "ERROR: MASTER CONTACT SKIN MODEL PART "
+                << master_contact_skin_model_part_name << " NOT CREATED" << std::endl;
+
+            mrMasterContactSkinModelPart = &(mpModel->GetModelPart(master_contact_skin_model_part_name));
+        }
 
         //------------------------------------------------------------------------
         std::string analysis_model_part_name = mParameters["analysis_model_part_name"].GetString();
@@ -205,6 +217,7 @@ namespace Kratos
 
         mrContactModelPart->GetParentModelPart().RemoveConditionsFromAllLevels(TO_ERASE);
         mrContactModelPart->GetParentModelPart().RemoveNodesFromAllLevels(TO_ERASE);
+        mMasterProjectionNodes.clear();
 
         SizeType next_condition_id = 1;
         if (mrContactModelPart->GetRootModelPart().Conditions().size() > 0)
@@ -266,8 +279,16 @@ namespace Kratos
         master_segments.push_back(segment_data);
     }
 
-    const double projection_distance_limit = master_knot_step_uv[0]*1;
+    const double projection_distance_limit = master_knot_step_uv[0]*3;
     const double projection_distance_fallback = master_knot_step_uv[0]/2;
+    const double curve_endpoint_tolerance = 1.0e-8;
+
+    auto is_inside_curve_interval = [](const double parameter, const NurbsCurveGeometryType& rCurve, const double tolerance) {
+        const auto interval = rCurve.DomainInterval();
+        const double interval_min = std::min(interval.GetT0(), interval.GetT1());
+        const double interval_max = std::max(interval.GetT0(), interval.GetT1());
+        return parameter > interval_min + tolerance && parameter < interval_max - tolerance;
+    };
 
     for (NodeType::Pointer p_node : master_nodes) {
         Vector projection_coordinates = ZeroVector(3);
@@ -343,7 +364,9 @@ namespace Kratos
                 1e-9);
             time_newton += std::chrono::duration<double>(Clock::now() - t_newton_begin).count();
 
-            if ((is_converged || distance < projection_distance_fallback) && distance < best_projection_distance) {
+            const bool is_internal_projection = true; //is_inside_curve_interval(local_coords[0], *p_slave_nurbs_curve, curve_endpoint_tolerance);
+
+            if (is_internal_projection && (is_converged || distance < projection_distance_fallback) && distance < best_projection_distance) {
                 best_projection_found = true;
                 best_projection_distance = distance;
                 best_slave_local_coords = local_coords;
@@ -357,15 +380,15 @@ namespace Kratos
         }
 
         if (!best_is_converged) {
-            if (p_node->X() < 0.05) {
-                projection_coordinates[0] = p_node->X();
-                projection_coordinates[1] = p_node->Y();
-                projection_coordinates[2] = p_node->Z();
-                p_node->SetValue(ACTIVATION_LEVEL, 1.0);
-                p_node->SetValue(PROJECTION_NODE_COORDINATES, projection_coordinates);
-            } else {
+            // if (p_node->X() < 0.05) {
+            //     projection_coordinates[0] = p_node->X();
+            //     projection_coordinates[1] = p_node->Y();
+            //     projection_coordinates[2] = p_node->Z();
+            //     p_node->SetValue(ACTIVATION_LEVEL, 1.0);
+            //     p_node->SetValue(PROJECTION_NODE_COORDINATES, projection_coordinates);
+            // } else {
                 p_node->SetValue(ACTIVATION_LEVEL, 0.0);
-            }
+            // }
             continue;
         }
 
@@ -498,15 +521,51 @@ namespace Kratos
     }
 
     std::vector<CoordinatesArrayType> slave_vertices;
+    std::vector<NodeType::Pointer> slave_projected_master_nodes;
     CollectUniqueSlaveVertices(slave_vertices, coordinate_tolerance);
     SplitMasterSegmentsWithSlaveVertices(
         slave_vertices,
         master_segments,
         master_nodes,
+        slave_projected_master_nodes,
         next_node_id,
         coordinate_tolerance,
         master_layer_name,
         slave_layer_name);
+
+    auto is_slave_projected_master_node = [&slave_projected_master_nodes](const NodeType::Pointer pNode) {
+        return std::find(slave_projected_master_nodes.begin(), slave_projected_master_nodes.end(), pNode) != slave_projected_master_nodes.end();
+    };
+
+    auto node_status_string = [&is_slave_projected_master_node](const NodeType::Pointer pNode) {
+        std::ostringstream buffer;
+        buffer << "node_id=" << pNode->Id()
+               << ", coords=(" << pNode->X() << ", " << pNode->Y() << ", " << pNode->Z() << ")"
+               << ", active=" << (pNode->GetValue(ACTIVATION_LEVEL) == 1.0 ? "yes" : "no")
+               << ", activation_level=" << pNode->GetValue(ACTIVATION_LEVEL)
+               << ", origin=" << (is_slave_projected_master_node(pNode) ? "slave_vertex_projected_back_to_master" : "master_brep_endpoint");
+        return buffer.str();
+    };
+
+    // KRATOS_INFO("IgaContactProcessSbm")
+    //     << "\n========== MASTER SEGMENTS BEFORE DEBUG EXIT ==========\n"
+    //     << "Number of slave vertices collected: " << slave_vertices.size() << "\n"
+    //     << "Number of master nodes generated from slave vertices projected back: " << slave_projected_master_nodes.size() << "\n"
+    //     << "Number of master segments after slave-vertex splitting: " << master_segments.size() << "\n";
+
+    // for (IndexType i_segment = 0; i_segment < master_segments.size(); ++i_segment) {
+    //     const auto& r_segment = master_segments[i_segment];
+    //     KRATOS_INFO("IgaContactProcessSbm")
+    //         << "MASTER SEGMENT " << i_segment
+    //         << " | master_brep_id=" << r_segment.p_brep->Id()
+    //         << " | local_interval=[" << r_segment.local_begin << ", " << r_segment.local_end << "]\n"
+    //         << "  begin: " << node_status_string(r_segment.p_node_begin) << "\n"
+    //         << "  end:   " << node_status_string(r_segment.p_node_end) << "\n";
+    // }
+
+    // KRATOS_INFO("IgaContactProcessSbm")
+    //     << "========== END MASTER SEGMENTS BEFORE DEBUG EXIT ==========\n";
+    // exit(0);
 
     std::vector<GeometryType::Pointer> contact_geometries;
     std::vector<GeometryType::Pointer> neumann_geometries_master;
@@ -573,8 +632,7 @@ namespace Kratos
                     // }
                 }
 
-                IndexType new_node_id = mrSlaveSkinModelPart->GetRootModelPart().Nodes().size() + 1;
-                auto p_master_skin_node = new Node(new_node_id, master_skin_point);
+                auto p_master_skin_node = CreateMasterSkinProjectionNode(master_skin_point);
                 NodePointerVector neighbour_nodes;
 
                 CoordinatesArrayType tangent_vector = master_curve_derivatives[1];
@@ -658,8 +716,7 @@ namespace Kratos
                 continue;
             }
 
-            IndexType master_skin_node_id = mrSlaveSkinModelPart->GetRootModelPart().Nodes().size() + 1;
-            auto p_master_skin_node = new Node(master_skin_node_id, master_skin_point);
+            auto p_master_skin_node = CreateMasterSkinProjectionNode(master_skin_point);
 
             CoordinatesArrayType master_tangent = master_curve_derivatives[1];
             const double master_tangent_norm = norm_2(master_tangent);
@@ -1016,7 +1073,7 @@ namespace Kratos
 
     (mrContactModelPart->GetSubModelPart("slave")).AddConditions(new_condition_list_slave.begin(), new_condition_list_slave.end());
     
-    EntitiesUtilities::InitializeEntities<Condition>(mrContactModelPart->GetParentModelPart());
+    EntitiesUtilities::InitializeEntities<Condition>(*mrContactModelPart);
 
     KRATOS_ERROR_IF(mrContactModelPart->NumberOfConditions() == 0) << "YOUR CONTACT MODEL PART IS EMPTY" << std::endl;
 
@@ -1101,6 +1158,31 @@ namespace Kratos
 
         rNodes.push_back(p_new_node);
         return p_new_node;
+    }
+
+    IgaContactProcessSbm::NodeType::Pointer IgaContactProcessSbm::CreateMasterSkinProjectionNode(
+        const CoordinatesArrayType& rCoordinates)
+    {
+        ModelPart& r_root_model_part = mrMasterContactSkinModelPart != nullptr
+            ? mrMasterContactSkinModelPart->GetRootModelPart()
+            : mrMasterSkinModelPart->GetRootModelPart();
+        const IndexType new_node_id = r_root_model_part.Nodes().size() + mMasterProjectionNodes.size() + 1;
+
+        if (mrMasterContactSkinModelPart != nullptr) {
+            return mrMasterContactSkinModelPart->CreateNewNode(
+                new_node_id,
+                rCoordinates[0],
+                rCoordinates[1],
+                rCoordinates[2]);
+        }
+
+        auto p_node = NodeType::Pointer(new NodeType(
+            new_node_id,
+            rCoordinates[0],
+            rCoordinates[1],
+            rCoordinates[2]));
+        mMasterProjectionNodes.push_back(p_node);
+        return p_node;
     }
 
 IgaContactProcessSbm::CoordinatesArrayType IgaContactProcessSbm::ConvertVectorToCoordinates(const Vector& rVector)
@@ -1246,6 +1328,7 @@ void IgaContactProcessSbm::SplitMasterSegmentsWithSlaveVertices(
     const std::vector<CoordinatesArrayType>& rSlaveVertices,
     std::vector<MasterSegmentData>& rMasterSegments,
     std::vector<NodeType::Pointer>& rMasterNodes,
+    std::vector<NodeType::Pointer>& rSlaveProjectedMasterNodes,
     IndexType& rNextNodeId,
     double coordinate_tolerance,
     const std::string& master_layer_name,
@@ -1256,7 +1339,7 @@ void IgaContactProcessSbm::SplitMasterSegmentsWithSlaveVertices(
     }
 
     const Vector& master_knot_span_sizes = mrMasterModelPart->GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
-    const double projection_distance_limit = master_knot_span_sizes[0]*1;
+    const double projection_distance_limit = master_knot_span_sizes[0]*3;
     const double projection_distance_fallback = master_knot_span_sizes[0]/2;
 
     for (const auto& r_slave_vertex : rSlaveVertices) {
@@ -1400,11 +1483,15 @@ void IgaContactProcessSbm::SplitMasterSegmentsWithSlaveVertices(
 
         NodeType::Pointer p_split_node = CreateOrRetrieveContactNode(split_global_coords, rMasterNodes, rNextNodeId, coordinate_tolerance);
 
-        SplitMasterSegment(master_brep_id, master_brep_local_parameter, p_split_node, rMasterSegments, coordinate_tolerance);
+        if (SplitMasterSegment(master_brep_id, master_brep_local_parameter, p_split_node, rMasterSegments, coordinate_tolerance)) {
+            if (std::find(rSlaveProjectedMasterNodes.begin(), rSlaveProjectedMasterNodes.end(), p_split_node) == rSlaveProjectedMasterNodes.end()) {
+                rSlaveProjectedMasterNodes.push_back(p_split_node);
+            }
+        }
     }
 }
 
-void IgaContactProcessSbm::SplitMasterSegment(
+bool IgaContactProcessSbm::SplitMasterSegment(
     IndexType brep_id,
     double split_parameter,
     NodeType::Pointer p_split_node,
@@ -1429,9 +1516,7 @@ void IgaContactProcessSbm::SplitMasterSegment(
             continue;
         }
 
-        // FIXME: NEW TO CHECK
-        if (r_segment.p_node_begin->GetValue(ACTIVATION_LEVEL)== 0 || r_segment.p_node_end->GetValue(ACTIVATION_LEVEL)== 0) return;
-        p_split_node ->SetValue(ACTIVATION_LEVEL, 1);
+        p_split_node->SetValue(ACTIVATION_LEVEL, 1);
 
         MasterSegmentData new_segment = r_segment;
         NodeType::Pointer p_original_end = r_segment.p_node_end;
@@ -1446,8 +1531,10 @@ void IgaContactProcessSbm::SplitMasterSegment(
         new_segment.p_node_end = p_original_end;
 
         rMasterSegments.insert(rMasterSegments.begin() + i + 1, new_segment);
-        break;
+        return true;
     }
+
+    return false;
 }
 
 void IgaContactProcessSbm::AppendUniqueVertex(

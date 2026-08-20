@@ -191,8 +191,12 @@ private:
     ModelPart* mrMasterModelPart = nullptr; 
     ModelPart* mrSlaveSkinModelPart = nullptr; 
     ModelPart* mrMasterSkinModelPart = nullptr; 
+    ModelPart* mrMasterContactSkinModelPart = nullptr;
     
     ModelPart* mrContactModelPart = nullptr; 
+
+    // Keeps projection nodes alive when no dedicated contact skin model part is provided.
+    std::vector<NodeType::Pointer> mMasterProjectionNodes;
 
     SparseMatrixType mSparseBrepMatrixSlave;
     SparseMatrixType mSparseBrepMatrixMaster;
@@ -321,6 +325,9 @@ private:
         IndexType& rNextNodeId,
         double tolerance);
 
+    NodeType::Pointer CreateMasterSkinProjectionNode(
+        const CoordinatesArrayType& rCoordinates);
+
     static CoordinatesArrayType ConvertVectorToCoordinates(const Vector& rVector);
 
     static bool IsPointOnAxisAlignedSegment(
@@ -342,12 +349,13 @@ private:
         const std::vector<CoordinatesArrayType>& rSlaveVertices,
         std::vector<MasterSegmentData>& rMasterSegments,
         std::vector<NodeType::Pointer>& rMasterNodes,
+        std::vector<NodeType::Pointer>& rSlaveProjectedMasterNodes,
         IndexType& rNextNodeId,
         double coordinate_tolerance,
         const std::string& master_layer_name,
         const std::string& slave_layer_name);
 
-    void SplitMasterSegment(
+    bool SplitMasterSegment(
         IndexType brep_id,
         double split_parameter,
         NodeType::Pointer p_split_node,

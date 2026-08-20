@@ -127,6 +127,15 @@ void SetOrAddDoubleValue(Parameters& rParams, const std::string& rKey, const dou
     }
 }
 
+void SetOrAddStringValue(Parameters& rParams, const std::string& rKey, const std::string& rValue)
+{
+    if (rParams.Has(rKey)) {
+        rParams[rKey].SetString(rValue);
+    } else {
+        rParams.AddEmptyValue(rKey).SetString(rValue);
+    }
+}
+
 int GetMinimumDegree(const Vector& rDegrees)
 {
     KRATOS_ERROR_IF(rDegrees.size() == 0)
@@ -914,6 +923,11 @@ void MultipatchModeler::ProcessRefPatch(
                 << "[RefPatch] Overriding polynomial_order from refinement_regions" << std::endl;
         }
         if (use_gap_sbm_geometry_modeler) {
+            // Refinement patches always use the interpolation GAP-SBM construction.
+            // This deliberately overrides the value inherited from
+            // geometry_parameters (e.g. "default" or "sbm").
+            SetOrAddStringValue(patch_geometry, "gap_sbm_type", "interpolation");
+
             const int gap_approximation_order = reg.HasPolynomialOrder && !reg.PolynomialOrder.empty()
                 ? GetMinimumDegree(reg.PolynomialOrder)
                 : GetMinimumDegree(patch_geometry["polynomial_order"].GetVector());

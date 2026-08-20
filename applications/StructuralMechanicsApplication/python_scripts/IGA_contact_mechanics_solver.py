@@ -405,4 +405,4 @@ class IgaContactMechanicsSolver(MechanicalSolver):
         # ax.grid(True, linestyle='--', linewidth=0.5)
         # ax.gca().set_aspect('equal', adjustable='box')
 
-        plt.show()
+        # plt.show()
