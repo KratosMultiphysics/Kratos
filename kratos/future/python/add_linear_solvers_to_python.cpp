@@ -36,11 +36,12 @@ namespace py = pybind11;
 
 void AddLinearSolversToPython(py::module& m)
 {
+    using LinearSystemType = Future::LinearSystem<SerialLinearAlgebraTraits>;
 
     using LinearSolverType = Future::LinearSolver<SerialLinearAlgebraTraits>;
     py::class_<LinearSolverType, typename LinearSolverType::Pointer>(m, "LinearSolver")
         .def(py::init<>())
-        .def("Initialize", &LinearSolverType::Initialize)
+        .def("Initialize", py::overload_cast<LinearSystemType&>(&LinearSolverType::Initialize))
         .def("InitializeSolutionStep", &LinearSolverType::InitializeSolutionStep)
         .def("PerformSolutionStep", &LinearSolverType::PerformSolutionStep)
         .def("FinalizeSolutionStep", &LinearSolverType::FinalizeSolutionStep)
