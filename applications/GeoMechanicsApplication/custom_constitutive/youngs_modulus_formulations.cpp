@@ -24,6 +24,15 @@ namespace Kratos
 
 namespace Formulations
 {
+double Constant::operator()(const Properties&, double YoungsModulus, Vector&) const
+{
+    return YoungsModulus;
+}
+
+double Eur::operator()(const Properties& rProperties, double YoungsModulus, Vector& rStressVectorFinalized) const
+{
+    return Formulations::CalculateYoungsModulusForEur(rProperties, YoungsModulus, rStressVectorFinalized);
+}
 
 YoungsModulusVariant InitializeFormulation(const std::string& rFormulation)
 {
@@ -52,14 +61,8 @@ double GetYoungsModulus(YoungsModulusVariant& rFormulation,
                         double                YoungsModulus,
                         Vector&               rStressVectorFinalized)
 {
-    return std::visit(
-        [&rProperties, YoungsModulus, &rStressVectorFinalized]<typename TFormulation>(const TFormulation&) {
-        if constexpr (std::is_same_v<std::decay_t<TFormulation>, Formulations::Constant>) {
-            return YoungsModulus;
-
-        } else if constexpr (std::is_same_v<std::decay_t<TFormulation>, Formulations::Eur>) {
-            return Formulations::CalculateYoungsModulusForEur(rProperties, YoungsModulus, rStressVectorFinalized);
-        }
+    return std::visit([&](auto&& policy_functor) -> double {
+        return policy_functor(rProperties, YoungsModulus, rStressVectorFinalized);
     }, rFormulation);
 }
 

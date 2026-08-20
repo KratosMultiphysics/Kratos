@@ -24,12 +24,12 @@ namespace Formulations
 {
 struct Constant {
     static constexpr const char* Name = "Constant";
-    double                       operator()(const Properties&, double) const;
+    double                       operator()(const Properties&, double, Vector&) const;
 };
 
 struct Eur {
     static constexpr const char* Name = "Eur";
-    double                       operator()(const Properties&, double) const;
+    double                       operator()(const Properties&, double, Vector&) const;
 };
 
 using YoungsModulusVariant = std::variant<Constant, Eur>;
