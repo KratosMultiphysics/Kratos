@@ -34,6 +34,7 @@ struct Eur {
 
 using YoungsModulusVariant = std::variant<Constant, Eur>;
 
+void                 CheckInputData(const Properties& rMaterialProperties);
 YoungsModulusVariant InitializeFormulation(const std::string& rFormulation);
 std::string          GetYoungsModulusFormulation(const Properties& rProperties);
 std::string          GetYoungsModulusFormulation(const YoungsModulusVariant& rFormulation);
