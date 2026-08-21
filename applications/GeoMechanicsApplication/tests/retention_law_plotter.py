@@ -1,30 +1,50 @@
-from dataclasses import dataclass, field
-
-import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
-import KratosMultiphysics as Kratos
-import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
-from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import Pa_to_kPa
-import os
-from pathlib import Path
 import csv
+import os
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Callable
+
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
+import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import \
+    Pa_to_kPa
 
 
 @dataclass
-class Characteristics:
+class RetentionCharacteristics:
     pressures: list[float] = field(default_factory=list)
     relative_permeabilities: list[float] = field(default_factory=list)
     degrees_of_saturation: list[float] = field(default_factory=list)
     diffusivities: list[float] = field(default_factory=list)
     capacities: list[float] = field(default_factory=list)
 
+    @property
+    def relative_permeability_vs_pressure_data(self) -> list[tuple[float, float]]:
+        return list(zip(self.pressures, self.relative_permeabilities))
 
-def read_characteristics(comparison_data_path: Path) -> Characteristics:
+    @property
+    def degrees_of_saturation_vs_pressure_data(self) -> list[tuple[float, float]]:
+        return list(zip(self.pressures, self.degrees_of_saturation))
+
+    @property
+    def diffusivities_vs_pressure_data(self) -> list[tuple[float, float]]:
+        return list(zip(self.pressures, self.diffusivities))
+
+    @property
+    def capacities_vs_pressure_data(self) -> list[tuple[float, float]]:
+        return list(zip(self.pressures, self.capacities))
+
+
+def _read_reference_characteristics(
+    comparison_data_path: Path,
+) -> RetentionCharacteristics:
     with open(
         comparison_data_path,
         newline="",
     ) as csv_file:
         reader = csv.DictReader(csv_file, skipinitialspace=True)
-        result = Characteristics()
+        result = RetentionCharacteristics()
         for row in reader:
             result.pressures.append(-1.0 * float(row["pressure"]))
             result.relative_permeabilities.append(float(row["relative_permeability"]))
@@ -34,23 +54,15 @@ def read_characteristics(comparison_data_path: Path) -> Characteristics:
         return result
 
 
-def plot_van_genuchten_retention_law_characteristics(
-    properties: Kratos.Properties,
-    plot_file_path: Path,
-    comparison_data_path: Path | None = None,
-) -> None:
-    comparison_characteristics: Characteristics | None = None
-    if comparison_data_path:
-        comparison_characteristics = read_characteristics(comparison_data_path)
-
-    law = KratosGeo.VanGenuchtenLaw()
-
+def _obtain_kratos_characteristics(
+    retention_law, parameters
+) -> RetentionCharacteristics:
+    result = RetentionCharacteristics()
     num_points = 250
     pressures = []
     for i in range(0, num_points):
         pressures.append(-1000 + i * 21000 / num_points)
 
-    parameters = KratosGeo.RetentionLawParameters(properties)
     relative_permeabilities = []
     degrees_of_saturation = []
     diffusivities = []
@@ -58,85 +70,85 @@ def plot_van_genuchten_retention_law_characteristics(
     for pressure in pressures:
         parameters.SetFluidPressure(pressure)
 
-        relative_permeability = law.CalculateRelativePermeability(parameters)
-        relative_permeabilities.append(relative_permeability)
-        degrees_of_saturation.append(law.CalculateEffectiveSaturation(parameters))
-        capacity = -1.0 * law.CalculateDerivativeOfSaturation(parameters)
-        capacities.append(capacity)
-        diffusivities.append(relative_permeability / capacity)
+        relative_permeability = retention_law.CalculateRelativePermeability(parameters)
+        result.relative_permeabilities.append(relative_permeability)
+        result.degrees_of_saturation.append(
+            retention_law.CalculateEffectiveSaturation(parameters)
+        )
+        capacity = -1.0 * retention_law.CalculateDerivativeOfSaturation(parameters)
+        result.capacities.append(capacity)
+        result.diffusivities.append(relative_permeability / capacity)
 
-    data_points = zip(
-        [Pa_to_kPa(pressure) for pressure in pressures], relative_permeabilities
-    )
-    data_series_collections = []
+    result.pressures = [Pa_to_kPa(pressure) for pressure in pressures]
+    return result
+
+
+def _create_characteristic_data_series(
+    kratos_characteristics: RetentionCharacteristics,
+    comparison_characteristics: RetentionCharacteristics | None,
+    data_getter: Callable[[RetentionCharacteristics], list[tuple[float, float]]],
+):
     data_series_collection = []
     data_series_collection.append(
         plot_utils.DataSeries(
-            data_points,
+            data_getter(kratos_characteristics),
             "Kratos",
         )
     )
     if comparison_characteristics:
         data_series_collection.append(
             plot_utils.DataSeries(
-                zip(
-                    comparison_characteristics.pressures,
-                    comparison_characteristics.relative_permeabilities,
-                ),
+                data_getter(comparison_characteristics),
                 "DG-Flow",
             )
         )
-    data_series_collections.append(data_series_collection)
-    data_points = zip(
-        [Pa_to_kPa(pressure) for pressure in pressures], degrees_of_saturation
+
+    return data_series_collection
+
+
+def plot_van_genuchten_retention_law_characteristics(
+    properties: Kratos.Properties,
+    plot_file_path: Path,
+    comparison_data_path: Path | None = None,
+) -> None:
+    comparison_characteristics: RetentionCharacteristics | None = None
+    if comparison_data_path:
+        comparison_characteristics = _read_reference_characteristics(
+            comparison_data_path
+        )
+
+    kratos_characteristics = _obtain_kratos_characteristics(
+        KratosGeo.VanGenuchtenLaw(), KratosGeo.RetentionLawParameters(properties)
     )
-    data_series_collection = []
-    data_series_collection.append(plot_utils.DataSeries(data_points, "Kratos"))
-
-    if comparison_characteristics:
-        data_series_collection.append(
-            plot_utils.DataSeries(
-                zip(
-                    comparison_characteristics.pressures,
-                    comparison_characteristics.degrees_of_saturation,
-                ),
-                "DG-Flow",
-            )
+    data_series_collections = []
+    data_series_collections.append(
+        _create_characteristic_data_series(
+            kratos_characteristics=kratos_characteristics,
+            comparison_characteristics=comparison_characteristics,
+            data_getter=lambda p: p.relative_permeability_vs_pressure_data,
         )
-
-    data_series_collections.append(data_series_collection)
-
-    data_points = zip([Pa_to_kPa(pressure) for pressure in pressures], diffusivities)
-    data_series_collection = []
-    data_series_collection.append(plot_utils.DataSeries(data_points, "Kratos"))
-
-    if comparison_characteristics:
-        data_series_collection.append(
-            plot_utils.DataSeries(
-                zip(
-                    comparison_characteristics.pressures,
-                    comparison_characteristics.diffusivities,
-                ),
-                "DG-Flow",
-            )
+    )
+    data_series_collections.append(
+        _create_characteristic_data_series(
+            kratos_characteristics=kratos_characteristics,
+            comparison_characteristics=comparison_characteristics,
+            data_getter=lambda p: p.degrees_of_saturation_vs_pressure_data,
         )
-    data_series_collections.append(data_series_collection)
-
-    data_points = zip([Pa_to_kPa(pressure) for pressure in pressures], capacities)
-    data_series_collection = []
-    data_series_collection.append(plot_utils.DataSeries(data_points, "Kratos"))
-    if comparison_characteristics:
-        data_series_collection.append(
-            plot_utils.DataSeries(
-                zip(
-                    comparison_characteristics.pressures,
-                    comparison_characteristics.capacities,
-                ),
-                "DG-Flow",
-            )
+    )
+    data_series_collections.append(
+        _create_characteristic_data_series(
+            kratos_characteristics=kratos_characteristics,
+            comparison_characteristics=comparison_characteristics,
+            data_getter=lambda p: p.diffusivities_vs_pressure_data,
         )
-
-    data_series_collections.append(data_series_collection)
+    )
+    data_series_collections.append(
+        _create_characteristic_data_series(
+            kratos_characteristics=kratos_characteristics,
+            comparison_characteristics=comparison_characteristics,
+            data_getter=lambda p: p.capacities_vs_pressure_data,
+        )
+    )
     plot_utils.make_separate_sub_plots(
         data_series_collections=data_series_collections,
         plot_file_path=plot_file_path / "van_genuchten_characteristics.svg",
