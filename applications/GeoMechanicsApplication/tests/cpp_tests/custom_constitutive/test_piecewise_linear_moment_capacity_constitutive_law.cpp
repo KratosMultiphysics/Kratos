@@ -112,7 +112,6 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckVali
     const auto process_info = ProcessInfo{};
     auto       properties   = CreateValidProperties();
 
-    properties = CreateValidProperties();
     properties.Erase(YOUNG_MODULUS);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (void)law.Check(properties, geometry, process_info),
@@ -160,6 +159,39 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckVali
     EXPECT_NO_THROW((void)law.Check(properties, geometry, process_info));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckLinearMomentInput,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
+    const auto geometry     = Geometry<Node>{};
+    const auto process_info = ProcessInfo{};
+    auto       properties   = CreateValidProperties();
+
+    auto kappa_moments =
+        std::vector{UblasUtilities::CreateVector({0.01}), UblasUtilities::CreateVector({0.03}),
+                    UblasUtilities::CreateVector({0.05})};
+    properties.SetValue(GEO_PIECEWISE_LINEAR_MOMENT_LAW, kappa_moments);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (void)law.Check(properties, geometry, process_info),
+        "GEO_PIECEWISE_LINEAR_MOMENT_LAW has to have two components for material with ID: 0")
+
+    kappa_moments = std::vector{UblasUtilities::CreateVector({0.0, 40.0}),
+                                UblasUtilities::CreateVector({0.03, 80.0}),
+                                UblasUtilities::CreateVector({0.05, 128.0})};
+    properties.SetValue(GEO_PIECEWISE_LINEAR_MOMENT_LAW, kappa_moments);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (void)law.Check(properties, geometry, process_info),
+        "First provided point must be non-zero when assuming implicit (0,0). Got (0, 40)")
+
+    kappa_moments = std::vector{UblasUtilities::CreateVector({0.01, 0.0}),
+                                UblasUtilities::CreateVector({0.03, 80.0}),
+                                UblasUtilities::CreateVector({0.05, 128.0})};
+    properties.SetValue(GEO_PIECEWISE_LINEAR_MOMENT_LAW, kappa_moments);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (void)law.Check(properties, geometry, process_info),
+        "First provided point must be non-zero when assuming implicit (0,0). Got (0.01, 0)")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_RequiresFinalizeMaterialResponseReturnsTrue,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -198,6 +230,53 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CloneCrea
     KRATOS_EXPECT_NE(
         dynamic_cast<PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw*>(p_clone.get()), nullptr);
     KRATOS_EXPECT_EQ(p_clone->Info(), law.Info());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CopyOperatorCreatesEquivalentLaw,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
+    auto       properties = CreateValidProperties();
+    const auto geometry   = Geometry<Node>{};
+    Vector     dummy_vector;
+    law.InitializeMaterial(properties, geometry, dummy_vector);
+
+    // Act
+    auto copied_law = law;
+
+    // Assert
+    KRATOS_EXPECT_EQ(copied_law, law);
+    auto* p_derived_check = dynamic_cast<PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw*>(&copied_law);
+    KRATOS_EXPECT_NE(p_derived_check, nullptr);
+    KRATOS_EXPECT_EQ(copied_law.Info(), law.Info());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_MoveAssigment, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
+    auto       properties = CreateValidProperties();
+    const auto geometry   = Geometry<Node>{};
+    Vector     dummy_vector;
+    law.InitializeMaterial(properties, geometry, dummy_vector);
+    FinalizeForCurvature(law, properties, 0.04);
+    const auto check_curvature = -0.06;
+    const auto moment          = CalculateMomentForCurvature(law, properties, check_curvature);
+    const auto tangent         = CalculateTangentForCurvature(law, properties, check_curvature);
+
+    auto moved_law = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
+
+    // Act
+    moved_law = std::move(law);
+
+    // Assert
+    auto* p_derived_check = dynamic_cast<PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw*>(&moved_law);
+    KRATOS_EXPECT_NE(p_derived_check, nullptr);
+    const auto moment_moved_law = CalculateMomentForCurvature(moved_law, properties, check_curvature);
+    const auto tangent_moved_law = CalculateTangentForCurvature(moved_law, properties, check_curvature);
+    KRATOS_EXPECT_EQ(moment_moved_law, moment);
+    KRATOS_EXPECT_EQ(tangent_moved_law, tangent);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_InfoReturnsClassName,
