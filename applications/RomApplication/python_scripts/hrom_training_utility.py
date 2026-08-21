@@ -20,6 +20,7 @@ class HRomTrainingUtility(object):
 
     def __init__(self, solver, custom_settings):
         # Validate and assign the HROM training settings
+        self.pseudo_time = 1
         settings = custom_settings["hrom_settings"]
         settings.ValidateAndAssignDefaults(self.__GetHRomTrainingDefaultSettings())
 
@@ -151,6 +152,36 @@ class HRomTrainingUtility(object):
         return np.array(kratos_indexes) #FIXME -1
 
 
+    def SaveCurrentResidualsProjected(self, path_to_store_npys='rom_data/Residuals'):
+
+        Path(path_to_store_npys).mkdir(parents=True, exist_ok=True)
+
+        computing_model_part = self.solver.GetComputingModelPart()
+        if not hasattr(self, '__rom_residuals_utility'):
+            self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
+                computing_model_part,
+                self.rom_settings,
+                self.solver._GetScheme())
+            if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
+
+        if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
+        if (self.projection_strategy=="galerkin"):
+                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+        elif (self.projection_strategy=="lspg"):
+                jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
+                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
+        elif (self.projection_strategy=="petrov_galerkin"):
+                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
+        else:
+            err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
+            raise Exception(err_msg)
+
+        file_path = (Path(path_to_store_npys) / f"Residual{self.pseudo_time}")
+        np.save(file_path, np.asarray(res_mat))
+        self.pseudo_time += 1
+
+
+
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -160,6 +191,7 @@ class HRomTrainingUtility(object):
         # Note that this ensures that the residuals utility is created in the first residuals append call
         # If not, it might happen that the solver scheme is created by the ROM residuals call rather than by the solver one
         if not hasattr(self, '__rom_residuals_utility'):
+
             self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
                 computing_model_part,
                 self.rom_settings,
@@ -507,5 +539,3 @@ class HRomTrainingUtility(object):
         unique_condition_ids_list = unique_condition_ids.astype(int).tolist()
 
         return unique_element_ids_list, unique_condition_ids_list
-
-

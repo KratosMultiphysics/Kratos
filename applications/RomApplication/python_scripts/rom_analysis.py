@@ -261,13 +261,35 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
 
             # Check for HROM stages
             if self.train_hrom:
-                # Pass the name of the Rom Parameters file and folder
-                self.rom_parameters.AddString("rom_basis_output_name", str(self.rom_basis_output_name))
-                self.rom_parameters.AddString("rom_basis_output_folder", str(self.rom_basis_output_folder))
-                # Create the training utility to calculate the HROM weights
-                self.__hrom_training_utility = HRomTrainingUtility(
-                    self._GetSolver(),
-                    self.rom_parameters)
+                solver_type = self.project_parameters["solver_settings"]["solver_type"].GetString()
+                if solver_type =="ThermallyCoupled":
+
+                    #setting up fluid solver residuals
+                    self.rom_parameters.AddString("rom_basis_output_name", str(self.rom_basis_output_name))
+                    self.rom_parameters.AddString("rom_basis_output_folder", str(self.rom_basis_output_folder))
+                    # Create the training utility to calculate the HROM weights
+                    self.fluid_hrom_training_utility = HRomTrainingUtility(
+                        self._GetSolver().fluid_solver,
+                        self.rom_parameters)
+
+                    #setting up thermal solver residuals
+                    self.thermal_hrom_training_utility = HRomTrainingUtility(
+                        self._GetSolver().thermal_solver,
+                        self.rom_parameters)
+
+
+                else:
+                    #regular simulation, single solve. This is starting to get too convoluted.
+                    #Porbably, better to simply go CoSimulation from the begining
+                    # Pass the name of the Rom Parameters file and folder
+                    self.rom_parameters.AddString("rom_basis_output_name", str(self.rom_basis_output_name))
+                    self.rom_parameters.AddString("rom_basis_output_folder", str(self.rom_basis_output_folder))
+                    # Create the training utility to calculate the HROM weights
+                    self.__hrom_training_utility = HRomTrainingUtility(
+                        self._GetSolver(),
+                        self.rom_parameters)
+
+
             elif self.run_hrom:
                 if self.hrom_format == "json":
                     # Set the HROM weights in elements and conditions
@@ -366,7 +388,12 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             # Call the HROM training utility to append the current step residuals
             # Note that this needs to be done prior to the other processes to avoid unfixing the BCs
             if self.train_hrom:
-                self.__hrom_training_utility.AppendCurrentStepResiduals()
+                solver_type = self.project_parameters["solver_settings"]["solver_type"].GetString()
+                if solver_type =="ThermallyCoupled":
+                    self.fluid_hrom_training_utility.SaveCurrentResidualsProjected(path_to_store_npys ="rom_data/ResidualsFluid")
+                    self.thermal_hrom_training_utility.SaveCurrentResidualsProjected(path_to_store_npys="rom_data/ResidualsThermal")
+                else:
+                    self.__hrom_training_utility.AppendCurrentStepResiduals()
 
             # #FIXME: Make this optional. This must be a process
             # # Project the ROM solution onto the visualization modelparts
