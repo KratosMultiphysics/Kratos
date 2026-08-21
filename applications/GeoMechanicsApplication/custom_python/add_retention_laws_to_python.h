@@ -7,8 +7,8 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Ignasi de Pouplana,
-//                   Vahid Galavi
+//  Main authors:    Wijtze Pieter Kikstra,
+//                   Richard Faasse 
 //
 
 #pragma once
