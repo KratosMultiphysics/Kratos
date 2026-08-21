@@ -10,7 +10,7 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "custom_constitutive/incremental_linear_elastic_law.h"
+#include "custom_constitutive/youngs_modulus_formulations.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
@@ -68,7 +68,7 @@ double GetYoungsModulus(YoungsModulusVariant& rFormulation,
                         double                YoungsModulus,
                         const Vector&         rStressVectorFinalized)
 {
-    return std::visit([&](auto&& formulation_functor) {
+    return std::visit([&](const auto& formulation_functor) {
         return formulation_functor(rProperties, YoungsModulus, rStressVectorFinalized);
     }, rFormulation);
 }
