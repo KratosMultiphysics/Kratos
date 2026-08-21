@@ -11,6 +11,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_conve
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities.array_backend import HostArrayBoundary
 
 # Other imports
 import numpy as np
@@ -44,6 +45,7 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
+    @HostArrayBoundary
     def UpdateSolution( self, r, x ):
         self.R.appendleft( deepcopy(r) )
 
@@ -57,9 +59,11 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
         else:
             r_diff = self.R[0] - self.R[1]
-            numerator = np.inner( self.R[1], r_diff )
-            denominator = np.inner( r_diff, r_diff )
-            alpha = -self.alpha_old * numerator/denominator
+            numerator = self.xp.inner( self.R[1], r_diff )
+            denominator = self.xp.inner( r_diff, r_diff )
+            # casting to plain python floats here: on the cupy backend "numerator"/"denominator" are
+            # 0-d device arrays, and "alpha" is subsequently compared/formatted as a scalar
+            alpha = -self.alpha_old * float(numerator) / float(denominator)
             if self.echo_level > 3:
                 cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation with factor = {}".format(alpha))
             if alpha > self.alpha_max:
