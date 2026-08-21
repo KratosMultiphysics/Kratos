@@ -23,13 +23,10 @@ def _make_plot(
     yaxis_inverted=False,
     xscale=None,
     title=None,
-    logy=False,
 ):
     figure, axes = plt.subplots(layout="constrained")
     if xscale is not None:
         axes.set_xscale(xscale)
-    if logy == True:
-        axes.set_yscale("log", base=10)
     _plot_data_series_on_axis(axes, data_series_collection)
     axes.yaxis.set_inverted(yaxis_inverted)
     if xlabel is not None:
@@ -53,8 +50,6 @@ def _plot_data_series_on_axis(axes, data_series_collection):
     for series in data_series_collection:
         # Unpack the data from pairs into two lists. See
         # https://stackoverflow.com/questions/21519203/plotting-a-list-of-x-y-coordinates for details.
-        # for x, y in series.data_points:
-        #     print(f"x = {x}, y = {y}")
         result.extend(
             axes.plot(
                 *zip(*series.data_points),

@@ -7,7 +7,8 @@ from typing import Callable
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
-from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import Pa_to_kPa
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import \
+    Pa_to_kPa
 
 
 @dataclass
