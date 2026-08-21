@@ -7,8 +7,8 @@ from typing import Callable
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
-from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import \
-    Pa_to_kPa
+import numpy as np
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import Pa_to_kPa
 
 
 @dataclass
@@ -59,9 +59,7 @@ def _obtain_kratos_characteristics(
 ) -> RetentionCharacteristics:
     result = RetentionCharacteristics()
     num_points = 250
-    pressures = []
-    for i in range(0, num_points):
-        pressures.append(-1000 + i * 21000 / num_points)
+    pressures = np.linspace(-1000, 20000, num_points)
 
     relative_permeabilities = []
     degrees_of_saturation = []
@@ -178,4 +176,5 @@ def plot_van_genuchten_retention_law_characteristics(
             ),
         ],
         max_plots_per_row=2,
+        figsize=(6, 6),
     )

@@ -131,11 +131,12 @@ def make_separate_sub_plots(
     plot_file_path: Path,
     subplot_options: list[SubPlotOptions],
     max_plots_per_row: int = 5,
+    figsize: tuple[int, int] = (20, 6),
 ):
     num_rows = math.ceil(len(data_series_collections) / max_plots_per_row)
     num_cols = math.ceil(len(data_series_collections) / num_rows)
     figure, axes = plt.subplots(
-        num_rows, num_cols, figsize=(6, 6), layout="constrained"
+        num_rows, num_cols, figsize=figsize, layout="constrained"
     )
     axes = np.ravel(axes)
 
