@@ -219,6 +219,21 @@ void DisplacementShiftedBoundaryCondition::CalculateLocalSystem(
     const auto& r_bc_val = GetValue(DISPLACEMENT);
     const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT];
 
+    Vector N_left_part = ZeroVector(r_N.size());
+    // N_left_part = r_N;
+    // BIG HACK
+    for(SizeType i = 0; i < r_geometry.PointsNumber(); ++i)
+    {
+        // KRATOS_WATCH(i)
+        // KRATOS_WATCH(r_geometry[i].Is(BOUNDARY))
+        if(r_geometry[i].Is(BOUNDARY))
+        {
+            N_left_part[i] = 1.0;
+        }
+    }
+
+    // KRATOS_WATCH(r_geometry)
+
     // Calculate the Nitsche BC imposition contribution
     // 1. Add Nitsche penalty term
     double aux_1;
@@ -226,6 +241,7 @@ void DisplacementShiftedBoundaryCondition::CalculateLocalSystem(
     const double rho_C = norm_frobenius(C_mat); //TODO: GS uses the spectral radius in here
     const double aux_weight = w * gamma * rho_C / h;
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        // aux_1 = aux_weight * N_left_part[i_node]; //new approach : to do proof
         aux_1 = aux_weight * r_N[i_node];
         for (std::size_t d = 0; d < n_dim; ++d) {
             for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
@@ -250,9 +266,9 @@ void DisplacementShiftedBoundaryCondition::CalculateLocalSystem(
         }
     }
     const Vector stab_rhs_unk = prod(stab_lhs, unknown_values);
-    rLeftHandSideMatrix += w * stab_lhs;
-    rRightHandSideVector += w * stab_rhs_bc;
-    rRightHandSideVector -= w * stab_rhs_unk;
+    rLeftHandSideMatrix -= w * stab_lhs;
+    rRightHandSideVector -= w * stab_rhs_bc;
+    rRightHandSideVector += w * stab_rhs_unk;
 
     KRATOS_CATCH("")
 }
@@ -342,7 +358,7 @@ void DisplacementShiftedBoundaryCondition::CalculateLeftHandSide(
     CalculateAuxShapeFunctionsMatrix(r_N, aux_N);
     CalculateBtransCProjectionLinearisation(C_mat, B_mat, normal, transB_C_proj);
     const Matrix stab_lhs = prod(transB_C_proj, aux_N);
-    rLeftHandSideMatrix += w * stab_lhs;
+    rLeftHandSideMatrix -= w * stab_lhs;
 
     KRATOS_CATCH("")
 }
@@ -441,8 +457,8 @@ void DisplacementShiftedBoundaryCondition::CalculateRightHandSide(
         }
     }
     const Vector stab_rhs_unk = prod(stab_lhs, unknown_values);
-    rRightHandSideVector += w * stab_rhs_bc;
-    rRightHandSideVector -= w * stab_rhs_unk;
+    rRightHandSideVector -= w * stab_rhs_bc;
+    rRightHandSideVector += w * stab_rhs_unk;
     KRATOS_CATCH("")
 }
 

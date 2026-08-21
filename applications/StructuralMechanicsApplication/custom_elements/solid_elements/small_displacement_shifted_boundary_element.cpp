@@ -131,6 +131,8 @@ void SmallDisplacementShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                 CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
                 CalculateCBProjectionLinearisation(r_C, B, n_sur_bd, aux_CB_projection);
 
+                // Matrix left_hand_side = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
+
                 // Add the surrogate boundary flux contribution
                 // Note that the local face ids. are already taken into account in the assembly
                 // Note that the integration weight is calculated as TDim * Parent domain size * norm(DN_DX_cont_node)
@@ -142,8 +144,8 @@ void SmallDisplacementShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                     i_loc_id = sur_bd_local_ids[i_node + 1];
                     for (std::size_t d = 0; d < TDim; ++d) {
                         rRightHandSideVector(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
-                        for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
-                            rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
+                        for (std::size_t j_node = 0; j_node < LocalSize; ++j_node) {
+                            rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
                         }
                     }
                 }
@@ -231,8 +233,8 @@ void SmallDisplacementShiftedBoundaryElement<TDim>::CalculateLeftHandSide(
                     aux_val = aux_w * r_sur_bd_N(0,i_node);
                     i_loc_id = sur_bd_local_ids[i_node + 1];
                     for (std::size_t d = 0; d < TDim; ++d) {
-                        for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
-                            rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
+                        for (std::size_t j_node = 0; j_node < LocalSize; ++j_node) {
+                            rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
                         }
                     }
                 }
