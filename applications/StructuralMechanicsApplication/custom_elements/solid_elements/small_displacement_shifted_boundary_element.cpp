@@ -131,8 +131,6 @@ void SmallDisplacementShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                 CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
                 CalculateCBProjectionLinearisation(r_C, B, n_sur_bd, aux_CB_projection);
 
-                // Matrix left_hand_side = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
-
                 // Add the surrogate boundary flux contribution
                 // Note that the local face ids. are already taken into account in the assembly
                 // Note that the integration weight is calculated as TDim * Parent domain size * norm(DN_DX_cont_node)
