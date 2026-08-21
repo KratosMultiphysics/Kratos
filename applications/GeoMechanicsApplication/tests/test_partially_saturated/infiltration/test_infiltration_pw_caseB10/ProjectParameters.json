@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name": "run1sim5_hydro",
         "start_time": 0.0,
-        "end_time": 2.16e+04,
+        "end_time": 14400.0,
         "echo_level": 0,
         "parallel_type": "OpenMP",
         "number_of_threads": 1
@@ -13,13 +13,13 @@
         "domain_size": 2,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "../common/run1sim5_hydro"
+            "input_filename": "../common/run1sim5"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters_hydro.json"
         },
         "time_stepping": {
-            "time_step": 60.0,
+            "time_step": 10.0,
             "max_delta_time_factor": 1
         },
         "buffer_size": 2,
@@ -87,7 +87,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyScalarConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Start",
+                    "model_part_name": "PorousDomain.sandfine",
                     "variable_name": "WATER_PRESSURE",
                     "is_fixed": false,
                     "fluid_pressure_type": "Hydrostatic",
@@ -114,22 +114,11 @@
         ],
         "loads_process_list": [
             {
-                "python_module": "apply_scalar_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyScalarConstraintTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.botF",
-                    "variable_name": "NORMAL_FLUID_FLUX",
-                    "value": 0.0,
-                    "table": 0
-                }
-            },
-            {
                 "python_module": "apply_vector_constraint_table_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Gravity",
+                    "model_part_name": "PorousDomain.sandfine",
                     "variable_name": "VOLUME_ACCELERATION",
                     "active": [false, true, false],
                     "value": [0.0, -10.0, 0.0],
