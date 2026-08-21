@@ -14,6 +14,7 @@ DeactivateConditionsOnInactiveElements = KratosGeo.DeactivateConditionsOnInactiv
 ResidualBasedBlockBuilderAndSolverWithMassAndDamping = KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping
 FindNeighbourElementsOfConditionsProcess = KratosGeo.FindNeighbourElementsOfConditionsProcess
 
+
 # Schemes
 BackwardEulerQuasistaticPwScheme = KratosGeo.BackwardEulerQuasistaticPwScheme
 BackwardEulerQuasistaticUPwScheme = KratosGeo.BackwardEulerQuasistaticUPwScheme
@@ -47,6 +48,12 @@ GeoExtrapolateIntegrationPointValuesToNodesProcess = KratosGeo.GeoExtrapolateInt
 SetAbsorbingBoundaryParametersProcess = KratosGeo.SetAbsorbingBoundaryParametersProcess
 SetMultipleMovingLoadsProcess = KratosGeo.SetMultipleMovingLoadsProcess
 SetParameterFieldProcess = KratosGeo.SetParameterFieldProcess
+
+# Retention laws
+RetentionLawFactory = KratosGeo.RetentionLawFactory
+VanGenuchtenLaw = KratosGeo.VanGenuchtenLaw
+RetentionLawParameters = KratosGeo.RetentionLawParameters
+
 
 # Callback functions
 KratosExecuteCallBackFunctions = KratosGeo.KratosExecuteCallBackFunctions
@@ -85,6 +92,7 @@ TOTAL_STRESS_TENSOR = KratosGeo.TOTAL_STRESS_TENSOR
 TOTAL_DISPLACEMENT_Y = KratosGeo.TOTAL_DISPLACEMENT_Y
 UMAT_PARAMETERS = KratosGeo.UMAT_PARAMETERS
 WIND_SPEED = KratosGeo.WIND_SPEED
+RETENTION_LAW = KratosGeo.RETENTION_LAW
 
 # Try to import component variables from the base C++ module
 _component_vars = ['TOTAL_DISPLACEMENT_X', 'TOTAL_DISPLACEMENT_Z',
