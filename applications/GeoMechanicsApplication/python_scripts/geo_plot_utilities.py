@@ -1,6 +1,7 @@
-from dataclasses import dataclass
 import math
 import pathlib
+from dataclasses import dataclass
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -126,10 +127,10 @@ class SubPlotOptions:
 
 
 def make_separate_sub_plots(
-    data_series_collections,
-    plot_file_path,
+    data_series_collections: list[list[DataSeries]],
+    plot_file_path: Path,
     subplot_options: list[SubPlotOptions],
-    max_plots_per_row=5,
+    max_plots_per_row: int = 5,
 ):
     num_rows = math.ceil(len(data_series_collections) / max_plots_per_row)
     num_cols = math.ceil(len(data_series_collections) / num_rows)
@@ -149,9 +150,6 @@ def make_separate_sub_plots(
         ax.set_xlabel(options.xlabel)
         ax.set_ylabel(options.ylabel)
 
-    for ax in axes[len(data_series_collections) :]:
-        ax.set_axis_off()
-
     lines_with_unique_labels = []
     unique_labels = set()
     for line in lines:
@@ -163,9 +161,7 @@ def make_separate_sub_plots(
         loc="upper center", bbox_to_anchor=(0.5, 0.0), handles=lines_with_unique_labels
     )
 
-    if isinstance(plot_file_path, pathlib.Path):
-        plot_file_path = str(plot_file_path.resolve())
-    print(f"Saving plot to {plot_file_path}")
+    print(f"Saving plot to {str(plot_file_path.resolve())}")
     plt.savefig(plot_file_path, bbox_inches="tight")
     plt.close(figure)
 

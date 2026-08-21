@@ -16,10 +16,9 @@
 // Project includes
 #include "custom_python/add_retention_laws_to_python.h"
 
-#include "../custom_retention/retention_law.h"
-#include "../custom_retention/van_genuchten_law.h"
 #include "custom_retention/retention_law.h"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_retention/van_genuchten_law.h"
 
 namespace Kratos::Python
 {
