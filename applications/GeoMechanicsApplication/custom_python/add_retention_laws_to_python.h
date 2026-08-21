@@ -8,7 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Wijtze Pieter Kikstra,
-//                   Richard Faasse 
+//                   Richard Faasse
 //
 
 #pragma once
