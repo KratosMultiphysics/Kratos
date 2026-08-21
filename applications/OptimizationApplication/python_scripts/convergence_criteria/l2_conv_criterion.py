@@ -1,6 +1,6 @@
-import typing
-import numpy
+import typing, numpy
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentHavingDataByFullName
@@ -52,12 +52,12 @@ class L2ConvCriterion(ConvergenceCriterion):
 
     @time_decorator()
     def IsConverged(self) -> bool:
-        field = GetComponentValueByFullName(self.__component_data_view, self.__field_name)
+        field: Kratos.TensorAdaptors.DoubleTensorAdaptor = GetComponentValueByFullName(self.__component_data_view, self.__field_name)
 
-        if not hasattr(field, "Evaluate"):
+        if not hasattr(field, "data"):
             raise RuntimeError(f"The value represented by {self.__field_name} is not a field.")
 
-        self.__norm = numpy.linalg.norm(field.Evaluate().flatten())
+        self.__norm = numpy.linalg.norm(field.data)
         self.__conv = self.__norm <= self.__tolerance
         self.__component_data_view.GetBufferedData().SetValue(self.__field_name.split(':')[0] + "_l2_norm", self.__norm)
         return self.__conv

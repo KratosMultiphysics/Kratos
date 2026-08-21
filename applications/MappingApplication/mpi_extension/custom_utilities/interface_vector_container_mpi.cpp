@@ -36,20 +36,66 @@ template<>
 void VectorContainerType::UpdateSystemVectorFromModelPart(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
-    constexpr bool in_parallel = false; // accessing the trilinos vectors is not threadsafe in the default configuration!
-    MapperUtilities::UpdateSystemVectorFromModelPart((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions, in_parallel);
+    constexpr bool in_parallel = false; // accessing the Trilinos vectors is not threadsafe in the default configuration!
+
+    auto& r_vector = (*mpInterfaceVector)[0];
+
+    switch (mInterfaceEntityType) {
+        case InterfaceEntityType::NODES:
+            MapperUtilities::UpdateSystemVectorFromModelPartNodes(
+                r_vector, mrModelPart, rVariable, rMappingOptions, in_parallel);
+            break;
+
+        case InterfaceEntityType::ELEMENTS:
+            MapperUtilities::UpdateSystemVectorFromModelPartElements(
+                r_vector, mrModelPart, rVariable, rMappingOptions, in_parallel);
+            break;
+
+        case InterfaceEntityType::CONDITIONS:
+            MapperUtilities::UpdateSystemVectorFromModelPartConditions(
+                r_vector, mrModelPart, rVariable, rMappingOptions, in_parallel);
+            break;
+
+        case InterfaceEntityType::GEOMETRIES:
+            MapperUtilities::UpdateSystemVectorFromModelPartGeometries(
+                r_vector, mrModelPart, rVariable, rMappingOptions, in_parallel);
+            break;
+    }
 }
 
 template<>
 void VectorContainerType::UpdateModelPartFromSystemVector(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
-    constexpr bool in_parallel = false; // accessing the trilinos vectors is not threadsafe in the default configuration!
-    MapperUtilities::UpdateModelPartFromSystemVector((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions, in_parallel);
+    constexpr bool in_parallel = false; // accessing the Trilinos vectors is not threadsafe in the default configuration!
+
+    const auto& r_vector = (*mpInterfaceVector)[0];
+
+    switch (mInterfaceEntityType) {
+        case InterfaceEntityType::NODES:
+            MapperUtilities::UpdateModelPartNodesFromSystemVector(
+                r_vector, mrModelPart, rVariable, rMappingOptions, in_parallel);
+            break;
+
+        case InterfaceEntityType::ELEMENTS:
+            MapperUtilities::UpdateModelPartElementsFromSystemVector(
+                r_vector, mrModelPart, rVariable, rMappingOptions, in_parallel);
+            break;
+
+        case InterfaceEntityType::CONDITIONS:
+            MapperUtilities::UpdateModelPartConditionsFromSystemVector(
+                r_vector, mrModelPart, rVariable, rMappingOptions, in_parallel);
+            break;
+
+        case InterfaceEntityType::GEOMETRIES:
+            MapperUtilities::UpdateModelPartGeometriesFromSystemVector(
+                r_vector, mrModelPart, rVariable, rMappingOptions, in_parallel);
+            break;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class InterfaceVectorContainer< SparseSpaceType, DenseSpaceType >;
+template class InterfaceVectorContainer<SparseSpaceType, DenseSpaceType>;
 
-}  // namespace Kratos.
+}  // namespace Kratos

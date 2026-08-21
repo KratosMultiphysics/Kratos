@@ -13,15 +13,11 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 #include <cstddef>
-#include <vector>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "containers/variable.h"
 #include "includes/kratos_components.h"
 #include "includes/exception.h"
@@ -277,6 +273,65 @@ public:
         mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
 
         return *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex());
+    }
+
+    /**
+     * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
+     * @details This method returns a reference to a value represented by @p rThisVariable from the
+     *          database. If the @p rThisVariable is not found, then a new value is created using
+     *          @p rThisVariable::Zero() method and then reference to new value is returned.
+     *
+     * @warning Multiple Emplace functions can be run concurrently OVER DIFFERENT DATABASES.
+     *          Concurrent Emplaces onto the same database ARE NOT THREADSAFE.
+     *
+     * @param rThisVariable     Variable representing the value.
+     * @return TDataType&       Reference to the value.
+     */
+    template<class TDataType>
+    TDataType& Emplace(const Variable<TDataType>& rThisVariable)
+    {
+        auto i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()));
+
+        if (i != mData.end()) {
+            return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
+        } else {
+            auto p_source_variable = &rThisVariable.GetSourceVariable();
+            auto& r_new_value = mData.emplace_back(p_source_variable,p_source_variable->Clone(p_source_variable->pZero()));
+            return *(static_cast<TDataType*>(r_new_value.second) + rThisVariable.GetComponentIndex());
+        }
+    }
+
+    /**
+     * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
+     * @details This method returns a reference to a value represented by @p rThisVariable from the
+     *          database. If the @p rThisVariable is not found, then a new value is created using
+     *          @p rInitValue and then reference to new value is returned.
+     *
+     *          In the case if @p rThisVariable is a component, then first a new value representing
+     *          the source variable is created with @p Zero() method, and then @p rInitValue
+     *          is used to initialize the component referred by @p rThisVariable.
+     *
+     * @warning Multiple Emplace functions can be run concurrently OVER DIFFERENT DATABASES.
+     *          Concurrent Emplaces onto the same database ARE NOT THREADSAFE.
+     *
+     * @param rThisVariable     Variable representing the value.
+     * @param rInitValue        Initialization value in case the @p rThisVariable is not found in the database.
+     * @return TDataType&       Reference to the value.
+     */
+    template<class TDataType>
+    TDataType& Emplace(const Variable<TDataType>& rThisVariable, const TDataType& rInitValue)
+    {
+        auto i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()));
+
+        if (i != mData.end()) {
+            return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
+        } else {
+            auto p_source_variable = &rThisVariable.GetSourceVariable();
+            auto& r_new_value = mData.emplace_back(p_source_variable, p_source_variable->Clone(p_source_variable->pZero()));
+            auto p_value = static_cast<TDataType*>(r_new_value.second) + rThisVariable.GetComponentIndex();
+            *p_value = rInitValue;
+            return *p_value;
+        }
     }
 
     /**

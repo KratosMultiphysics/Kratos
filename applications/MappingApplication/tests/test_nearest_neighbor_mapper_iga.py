@@ -6,6 +6,7 @@ import basic_mapper_tests
 data_comm = KM.Testing.GetDefaultDataCommunicator()
 if data_comm.IsDistributed():
     from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 # Additional imports
 import mapper_test_case
@@ -16,10 +17,11 @@ from pathlib import Path
 def GetFilePath(file_name):
     return Path(__file__).resolve().parent / "mdpa_files" / file_name
 
-@KratosUnittest.skipIfApplicationsNotAvailable("IgaApplication")
 class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
+        if not CheckIfApplicationsAvailable("IgaApplication"):
+            raise KratosUnittest.SkipTest("The IgaApplication is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor_iga",
@@ -161,10 +163,11 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     def test_Map_USE_TRANSPOSE_constant_scalar_both_non_historical(self):
         self.skipTest("Not implemented for this mapper")
 
-@KratosUnittest.skipIfApplicationsNotAvailable("IgaApplication")
 class BasicTestsSurfaceMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
+        if not CheckIfApplicationsAvailable("IgaApplication"):
+            raise KratosUnittest.SkipTest("The IgaApplication is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor_iga",

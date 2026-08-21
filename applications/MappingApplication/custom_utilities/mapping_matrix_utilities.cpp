@@ -14,7 +14,6 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
-#include <unordered_set>
 
 // External includes
 
@@ -22,21 +21,23 @@
 #include "mapping_matrix_utilities.h"
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "utilities/parallel_utilities.h"
+#include "containers/sparse_contiguous_row_graph.h"
 
 namespace Kratos {
 
 namespace {
 
-typedef typename MapperDefinitions::SparseSpaceType MappingSparseSpaceType;
-typedef typename MapperDefinitions::DenseSpaceType  DenseSpaceType;
+using MappingSparseSpaceType = typename MapperDefinitions::SparseSpaceType;
+using DenseSpaceType = typename MapperDefinitions::DenseSpaceType;
 
-typedef MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType> MappingMatrixUtilitiesType;
+using MappingMatrixUtilitiesType = MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType>;
 
-typedef typename MapperLocalSystem::MatrixType MatrixType;
-typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
+using MatrixType = typename MapperLocalSystem::MatrixType;
+using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
 
-typedef std::size_t IndexType;
-typedef std::size_t SizeType;
+using IndexType = std::size_t;
+using SizeType = std::size_t;
 
 /***********************************************************************************/
 /* Functions for internal use in this file */
@@ -47,65 +48,61 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
                               const SizeType NumNodesOrigin,
                               const SizeType NumNodesDestination)
 {
-    // one set for each row storing the corresponding col-IDs
-    std::vector<std::unordered_set<IndexType> > indices(NumNodesDestination);
+    // Single shared graph with per-row locks — one unordered_set per destination
+    // row, locked independently. Memory is O(NumNodesDestination + nnz) regardless
+    // of thread count or number of local systems.
+    SparseContiguousRowGraph<IndexType> graph(NumNodesDestination);
 
-    // preallocate memory for the column indices
-    for (IndexType i=0; i<NumNodesDestination; ++i) {
-        // TODO I guess this can be optimized...
-        // this highly depends on the used mapper => same goes for the Graph in Trilinos
-        indices[i].reserve(3);
-    }
+    struct TLSData
+    {
+        EquationIdVectorType OriginIds;
+        EquationIdVectorType DestinationIds;
+    };
 
-    EquationIdVectorType origin_ids;
-    EquationIdVectorType destination_ids;
+    block_for_each(rMapperLocalSystems.begin(), rMapperLocalSystems.end(), TLSData(),
+        [&graph](auto& rpLocalSys, TLSData& rTLS) {
+            rTLS.OriginIds.clear();
+            rTLS.DestinationIds.clear();
 
-    // Looping the local-systems to get the entries for the matrix
-    // TODO omp
-    for (/*const*/auto& r_local_sys : rMapperLocalSystems) { // TODO I think this can be const bcs it is the ptr
-        r_local_sys->EquationIdVectors(origin_ids, destination_ids);
-        for (const auto dest_idx : destination_ids) {
-            indices[dest_idx].insert(origin_ids.begin(), origin_ids.end());
+            rpLocalSys->EquationIdVectors(rTLS.OriginIds, rTLS.DestinationIds);
+
+            for (const auto id_dest : rTLS.DestinationIds) {
+                graph.AddEntries(id_dest, rTLS.OriginIds);
+            }
         }
-    }
+    );
 
-    // computing the number of non-zero entries
-    SizeType num_non_zero_entries = 0;
-    for (const auto& r_row_indices : indices) { // looping the indices per row
-        num_non_zero_entries += r_row_indices.size(); // adding the number of col-indices
-    }
+    // Export sorted CSR arrays (column indices are sorted per row by ExportCSRArrays).
+    // ExportCSRArrays allocates with new[] and transfers ownership to the caller.
+    IndexType* p_row_data = nullptr;
+    IndexType row_data_size = 0;
+    IndexType* p_col_data = nullptr;
+    IndexType col_data_size = 0;
+    graph.ExportCSRArrays(p_row_data, row_data_size, p_col_data, col_data_size);
+
+    const SizeType num_non_zero_entries = col_data_size;
 
     auto p_Mdo = Kratos::make_unique<typename MappingSparseSpaceType::MatrixType>(
         NumNodesDestination,
         NumNodesOrigin,
         num_non_zero_entries);
 
-    double* p_matrix_values = p_Mdo->value_data().begin();
     IndexType* p_matrix_row_indices = p_Mdo->index1_data().begin();
     IndexType* p_matrix_col_indices = p_Mdo->index2_data().begin();
+    double*    p_matrix_values       = p_Mdo->value_data().begin();
 
-    // filling the index1 vector - do NOT make parallel!
-    p_matrix_row_indices[0] = 0;
-    for (IndexType i=0; i<NumNodesDestination; ++i) {
-        p_matrix_row_indices[i+1] = p_matrix_row_indices[i] + indices[i].size();
-    }
+    IndexPartition<IndexType>(NumNodesDestination + 1).for_each([&](IndexType i) {
+        p_matrix_row_indices[i] = p_row_data[i];
+    });
+    IndexPartition<IndexType>(num_non_zero_entries).for_each([&](IndexType i) {
+        p_matrix_col_indices[i] = p_col_data[i];
+        p_matrix_values[i] = 0.0;
+    });
 
-    for (IndexType i=0; i<NumNodesDestination; ++i) {
-        const IndexType row_begin = p_matrix_row_indices[i];
-        const IndexType row_end = p_matrix_row_indices[i+1];
-        IndexType j = row_begin;
-        for (const auto index : indices[i]) {
-            p_matrix_col_indices[j] = index;
-            p_matrix_values[j] = 0.0;
-            ++j;
-        }
+    delete[] p_row_data;
+    delete[] p_col_data;
 
-        indices[i].clear(); //deallocating the memory // TODO necessary?
-
-        std::sort(&p_matrix_col_indices[row_begin], &p_matrix_col_indices[row_end]);
-    }
-
-    p_Mdo->set_filled(indices.size()+1, num_non_zero_entries);
+    p_Mdo->set_filled(NumNodesDestination + 1, num_non_zero_entries);
 
     rpMdo.swap(p_Mdo);
 }
@@ -113,27 +110,29 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
 void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMdo,
                  std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems)
 {
-    MatrixType local_mapping_matrix;
-    EquationIdVectorType origin_ids;
-    EquationIdVectorType destination_ids;
+    struct TLS {
+        MatrixType local_mapping_matrix;
+        EquationIdVectorType origin_ids;
+        EquationIdVectorType destination_ids;
+    };
 
-    for (auto& r_local_sys : rMapperLocalSystems) { // TODO omp
+    block_for_each(rMapperLocalSystems, TLS(), [&rpMdo] (auto& r_local_sys, TLS& rTls){
 
-        r_local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
+        r_local_sys->CalculateLocalSystem(rTls.local_mapping_matrix, rTls.origin_ids, rTls.destination_ids);
 
-        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << local_mapping_matrix.size1() << " | DestinationIDs-size: " << destination_ids.size() << std::endl;
-        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << local_mapping_matrix.size2() << " | OriginIDs-size: " << origin_ids.size() << std::endl;
+        KRATOS_DEBUG_ERROR_IF(rTls.local_mapping_matrix.size1() != rTls.destination_ids.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << rTls.local_mapping_matrix.size1() << " | DestinationIDs-size: " << rTls.destination_ids.size() << std::endl;
+        KRATOS_DEBUG_ERROR_IF(rTls.local_mapping_matrix.size2() != rTls.origin_ids.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << rTls.local_mapping_matrix.size2() << " | OriginIDs-size: " << rTls.origin_ids.size() << std::endl;
 
-        for (IndexType i=0; i<destination_ids.size(); ++i) {
-            for (IndexType j=0; j<origin_ids.size(); ++j) {
-                // #pragma omp atomic
-                (*rpMdo)(destination_ids[i], origin_ids[j]) += local_mapping_matrix(i,j);
+        for (IndexType i = 0; i < rTls.destination_ids.size(); ++i) {
+            for (IndexType j = 0; j < rTls.origin_ids.size(); ++j) {
+                AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]).ref(), rTls.local_mapping_matrix(i,j));
             }
         }
 
         r_local_sys->Clear();
-    }
-}
+    });
+
+} 
 
 } // anonymous namespace
 
@@ -206,12 +205,59 @@ void MappingMatrixUtilitiesType::BuildMappingMatrix(
 
     BuildMatrix(rpMappingMatrix, rMapperLocalSystems);
 
-    // refactor to be used from the mapper directly
-    // if (EchoLevel > 2) {
-    //     const std::string base_file_name = "O_" + rModelPartOrigin.Name() + "__D_" + rModelPartDestination.Name() +".mm";
-    //     MappingSparseSpaceType::WriteMatrixMarketMatrix(("MappingMatrix_"+base_file_name).c_str(), *rpMappingMatrix, false);
-    //     CheckRowSum<MappingSparseSpaceType, DenseSpaceType>(*rpMappingMatrix, base_file_name);
-    // }
+    MappingMatrixUtilitiesType::InitializeSystemVector(rpInterfaceVectorOrigin, num_nodes_origin);
+    MappingMatrixUtilitiesType::InitializeSystemVector(rpInterfaceVectorDestination, num_nodes_destination);
+
+    KRATOS_CATCH("")
+}
+
+template<>
+void MappingMatrixUtilitiesType::BuildMappingMatrixRBFMapper(
+    Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMappingMatrix,
+    Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType>& rpInterfaceVectorOrigin,
+    Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType>& rpInterfaceVectorDestination,
+    const ModelPart& rModelPartOrigin,
+    const ModelPart& rModelPartDestination,
+    std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
+    const IndexType NumberOfPolynomialTerms,
+    const bool BuildOriginInterpolationMatrix,
+    const bool OriginIsIga,
+    const int EchoLevel)
+{
+    KRATOS_TRY
+
+    static_assert(!MappingSparseSpaceType::IsDistributed(), "Using a distributed Space!");
+
+    const SizeType num_nodes_origin = rModelPartOrigin.NumberOfNodes();
+    const SizeType num_conditions_origin = rModelPartOrigin.NumberOfConditions();
+    const SizeType num_nodes_destination = rModelPartDestination.NumberOfNodes();
+    const SizeType num_conditions_destination = rModelPartDestination.NumberOfConditions();
+
+    IndexType origin_size;
+    IndexType destination_size;
+
+    if (!OriginIsIga){
+        origin_size = num_nodes_origin;
+        destination_size = num_nodes_destination;
+    } else if (OriginIsIga && BuildOriginInterpolationMatrix) {
+        origin_size = num_conditions_origin;
+        destination_size = num_conditions_destination;
+    } else if (OriginIsIga && !BuildOriginInterpolationMatrix) {
+        origin_size = num_conditions_origin;
+        destination_size = num_nodes_destination;
+    }
+    
+    // Initialize the Matrix
+    // This has to be done always since the Graph has changed if the Interface is updated!
+    if (BuildOriginInterpolationMatrix){
+        ConstructMatrixStructure(rpMappingMatrix, rMapperLocalSystems,
+                                origin_size + NumberOfPolynomialTerms, destination_size + NumberOfPolynomialTerms);
+    } else {
+        ConstructMatrixStructure(rpMappingMatrix, rMapperLocalSystems,
+                                origin_size + NumberOfPolynomialTerms, destination_size);
+    }
+
+    BuildMatrix(rpMappingMatrix, rMapperLocalSystems);
 
     MappingMatrixUtilitiesType::InitializeSystemVector(rpInterfaceVectorOrigin, num_nodes_origin);
     MappingMatrixUtilitiesType::InitializeSystemVector(rpInterfaceVectorDestination, num_nodes_destination);

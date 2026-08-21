@@ -13,10 +13,30 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_normal_flux_interface_condition.hpp"
+#include "custom_conditions/U_Pw_normal_flux_interface_condition.h"
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::UPwNormalFluxInterfaceCondition()
+    : UPwFaceLoadInterfaceCondition<TDim, TNumNodes>()
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::UPwNormalFluxInterfaceCondition(IndexType NewId,
+                                                                                  GeometryType::Pointer pGeometry)
+    : UPwFaceLoadInterfaceCondition<TDim, TNumNodes>(NewId, pGeometry)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::UPwNormalFluxInterfaceCondition(
+    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : UPwFaceLoadInterfaceCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::Create(IndexType NewId,
@@ -97,6 +117,17 @@ std::string UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::Info() const
     return "UPwNormalFluxInterfaceCondition";
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+}
 template class UPwNormalFluxInterfaceCondition<2, 2>;
 template class UPwNormalFluxInterfaceCondition<3, 4>;
 

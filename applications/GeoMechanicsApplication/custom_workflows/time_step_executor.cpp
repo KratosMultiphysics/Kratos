@@ -30,14 +30,13 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
 {
     KRATOS_INFO("TimeStepExecutor") << "Running time step at time " << Time << std::endl;
 
+    mStrategyWrapper->Predict();
     mStrategyWrapper->InitializeSolutionStep();
 
     for (const auto& process_observable : mProcessObservables) {
         auto process = process_observable.lock();
         if (process) process->ExecuteInitializeSolutionStep();
     }
-
-    mStrategyWrapper->Predict();
 
     // Here we directly use the SolveSolutionStep() method of the strategy wrapper
     // to get the convergence state, instead of the IsConverged method of the strategy.

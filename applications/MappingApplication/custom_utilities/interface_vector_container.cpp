@@ -36,14 +36,46 @@ template<>
 void VectorContainerType::UpdateSystemVectorFromModelPart(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
-    MapperUtilities::UpdateSystemVectorFromModelPart(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+    switch (mInterfaceEntityType) {
+        case InterfaceEntityType::NODES:
+            MapperUtilities::UpdateSystemVectorFromModelPartNodes(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+            break;
+
+        case InterfaceEntityType::ELEMENTS:
+            MapperUtilities::UpdateSystemVectorFromModelPartElements(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+            break;
+
+        case InterfaceEntityType::CONDITIONS:
+            MapperUtilities::UpdateSystemVectorFromModelPartConditions(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+            break;
+
+        case InterfaceEntityType::GEOMETRIES:
+            MapperUtilities::UpdateSystemVectorFromModelPartGeometries(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+            break;
+    }
 }
 
 template<>
 void VectorContainerType::UpdateModelPartFromSystemVector(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
-    MapperUtilities::UpdateModelPartFromSystemVector(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+    switch (mInterfaceEntityType) {
+        case InterfaceEntityType::NODES:
+            MapperUtilities::UpdateModelPartNodesFromSystemVector(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+            break;
+
+        case InterfaceEntityType::ELEMENTS:
+            MapperUtilities::UpdateModelPartElementsFromSystemVector(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+            break;
+
+        case InterfaceEntityType::CONDITIONS:
+            MapperUtilities::UpdateModelPartConditionsFromSystemVector(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+            break;
+
+        case InterfaceEntityType::GEOMETRIES:
+            MapperUtilities::UpdateModelPartGeometriesFromSystemVector(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+            break;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

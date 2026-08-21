@@ -45,13 +45,13 @@ namespace HDF5
  *
  * @param[in] rInfo Information returned by file after writing a data set.
  */
-void WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo);
+void KRATOS_API(HDF5_APPLICATION) WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo);
 
 // Check if a path has a data set partition.
-bool HasPartitionTable(File& rFile, std::string const& rPath);
+bool KRATOS_API(HDF5_APPLICATION) HasPartitionTable(File& rFile, std::string const& rPath);
 
 // Get the start index and block size from an existing partition for this PID.
-std::tuple<unsigned, unsigned> StartIndexAndBlockSize(File& rFile, std::string const& rPath);
+std::tuple<unsigned, unsigned> KRATOS_API(HDF5_APPLICATION) StartIndexAndBlockSize(File& rFile, std::string const& rPath);
 
 ///@} addtogroup
 } // namespace HDF5.

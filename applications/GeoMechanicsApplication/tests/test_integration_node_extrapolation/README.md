@@ -1,9 +1,9 @@
 # Integration Point to Node Extrapolation Tests
 
-This folder contains a series of tests to test the process that extrapolates integration point values to nodes. The functionality is found in `GeoExtrapolateIntegrationPointValuesToNodesProcess`. The meshes used are simple rectangular domains, built up using either a single 4- or 8-noded quadrilateral, or four 3- or 6-noded triangles.
+This folder contains a series of tests to test the process that extrapolates integration point values to nodes. The functionality is found in `GeoExtrapolateIntegrationPointValuesToNodesProcess`. The meshes used are simple rectangular domains, built up using either a single 4- or 8-noded quadrilateral, four 3- or 6-noded triangles or mixed elements (8-noded quad + 6-noded triangles).
 
 ### 3-, 4-, 6-noded test cases
-For these testcases the SteadyStatePwElement is used, in 2D3N, 2D6N or 2D4N configurations.
+For these testcases the SteadyStatePwElement is used, in 2D3N, 2D6N, 2D4N or (2D6N + 2D8N) configurations.
 
 -   Constraints:
     -   The X, Y and Z displacements are fixed in the entire domain (the focus is on water pressure)

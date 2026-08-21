@@ -20,6 +20,9 @@
 #include "custom_solvers/eigen_sparse_lu_solver.h"
 #include "custom_solvers/eigen_sparse_qr_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
+#include "custom_solvers/eigen_cholmod_solver.hpp" // EigenCholmodSolver
+#include "custom_solvers/eigen_spqr_solver.hpp" // EigenSPQRSolver
+#include "custom_solvers/eigen_umfpack_solver.hpp" // EigenUmfPackSolver
 
 #if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
@@ -75,7 +78,7 @@ void KratosLinearSolversApplication::Register()
     static auto SparseCGFactory = SparseCGType::Factory();
     KRATOS_REGISTER_LINEAR_SOLVER("sparse_cg", SparseCGFactory);
 
-#if defined USE_EIGEN_MKL
+#ifdef USE_EIGEN_MKL
 
     {
         MKLVersion mkl_version;
@@ -141,6 +144,38 @@ void KratosLinearSolversApplication::Register()
         TUblasDenseSpace<double>>>::Add("mkl_ilut", mkl_ilut_factory);
 
 #endif // defined USE_EIGEN_MKL
+
+#ifdef KRATOS_USE_EIGEN_SUITESPARSE
+    // Real CHOLMOD.
+    {
+        static auto factory = EigenDirectSolver<EigenCholmodSolver<double>>::Factory();
+        KRATOS_REGISTER_LINEAR_SOLVER("cholmod", factory);
+    }
+
+    // Real SPQR.
+    {
+        static auto factory = EigenDirectSolver<EigenSPQRSolver<double>>::Factory();
+        KRATOS_REGISTER_LINEAR_SOLVER("spqr", factory);
+    }
+
+    // Complex SPQR.
+    {
+        static auto factory = EigenDirectSolver<EigenSPQRSolver<complex>>::Factory();
+        KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("spqr_complex", factory);
+    }
+
+    // Real UMFPACK.
+    {
+        static auto factory = EigenDirectSolver<EigenUmfPackSolver<double>>::Factory();
+        KRATOS_REGISTER_LINEAR_SOLVER("umfpack", factory);
+    }
+
+    // Complex UMFPACK.
+    {
+        static auto factory = EigenDirectSolver<EigenUmfPackSolver<complex>>::Factory();
+        KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("umfpack_complex", factory);
+    }
+#endif // KRATOS_USE_EIGEN_SUITESPARSE
 }
 
 } // namespace Kratos

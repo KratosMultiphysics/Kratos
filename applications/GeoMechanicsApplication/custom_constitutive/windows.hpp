@@ -1,8 +1,8 @@
-// including windows.h adds some undesirable macros. Here, min and max macros are deactivated.
+// including Windows.h adds some undesirable macros. Here, min and max macros are deactivated.
 #ifdef NOMINMAX
-#include <windows.h>
+#include <Windows.h>
 #else
 #define NOMINMAX
-#include <windows.h>
+#include <Windows.h>
 #undef NOMINMAX
 #endif

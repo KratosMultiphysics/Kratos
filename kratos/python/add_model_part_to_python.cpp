@@ -484,6 +484,11 @@ void ModelPartRemoveConditionsFromAllLevels(ModelPart& rModelPart, Flags identif
 
 // Geometries
 
+ModelPart::SizeType ModelPartNumberOfGeometries1(ModelPart& rModelPart)
+{
+    return rModelPart.NumberOfGeometries();
+}
+
 void ModelPartAddGeometry1(ModelPart& rModelPart, ModelPart::GeometryType::Pointer pNewGeometry)
 {
     rModelPart.AddGeometry(pNewGeometry);
@@ -791,6 +796,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfElements", &ModelPart::NumberOfElements)
         .def("NumberOfConditions", ModelPartNumberOfConditions1)
         .def("NumberOfConditions", &ModelPart::NumberOfConditions)
+        .def("NumberOfGeometries", ModelPartNumberOfGeometries1)
         .def("NumberOfGeometries", &ModelPart::NumberOfGeometries)
         .def("NumberOfMasterSlaveConstraints", ModelPartNumberOfMasterSlaveConstraints1)
         .def("NumberOfMasterSlaveConstraints", &ModelPart::NumberOfMasterSlaveConstraints)

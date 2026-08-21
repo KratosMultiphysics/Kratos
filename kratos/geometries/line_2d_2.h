@@ -69,95 +69,95 @@ public:
     ///@{
 
     /// Geometry as base class.
-    typedef Geometry<TPointType> BaseType;
+    using BaseType = Geometry<TPointType>;
     using Geometry<TPointType>::ShapeFunctionsValues;
 
     /// Pointer definition of Line2D2
     KRATOS_CLASS_POINTER_DEFINITION( Line2D2 );
 
     /// Type of edge geometry
-    typedef Line2D2<TPointType> EdgeType;
+    using EdgeType = Line2D2<TPointType>;
 
     /** Integration methods implemented in geometry.
     */
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     /** A Vector of counted pointers to Geometries. Used for
     returning edges of the geometry.
      */
-    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
+    using GeometriesArrayType = typename BaseType::GeometriesArrayType;
 
     /** Redefinition of template parameter TPointType.
      */
-    typedef TPointType PointType;
+    using PointType = TPointType;
 
     /** Type used for indexing in geometry class.std::size_t used for indexing
     point or integration point access methods and also all other
     methods which need point or integration point index.
     */
-    typedef typename BaseType::IndexType IndexType;
+    using IndexType = typename BaseType::IndexType;
 
 
     /** This typed used to return size or dimension in
     geometry. Dimension, WorkingDimension, PointsNumber and
     ... return this type as their results.
     */
-    typedef typename BaseType::SizeType SizeType;
+    using SizeType = typename BaseType::SizeType;
 
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
     */
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
+    using PointsArrayType = typename BaseType::PointsArrayType;
 
     /** This type used for representing an integration point in
     geometry. This integration point is a point with an
     additional weight component.
     */
-    typedef typename BaseType::IntegrationPointType IntegrationPointType;
+    using IntegrationPointType = typename BaseType::IntegrationPointType;
 
     /** A Vector of IntegrationPointType which used to hold
     integration points related to an integration
     method. IntegrationPoints functions used this type to return
     their results.
     */
-    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = typename BaseType::IntegrationPointsArrayType;
 
     /** A Vector of IntegrationPointsArrayType which used to hold
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef typename BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
+    using IntegrationPointsContainerType = typename BaseType::IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
     container.
     */
-    typedef typename BaseType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
+    using ShapeFunctionsValuesContainerType = typename BaseType::ShapeFunctionsValuesContainerType;
 
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry.
     */
-    typedef typename BaseType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+    using ShapeFunctionsLocalGradientsContainerType = typename BaseType::ShapeFunctionsLocalGradientsContainerType;
 
     /** A third order tensor to hold jacobian matrices evaluated at
     integration points. Jacobian and InverseOfJacobian functions
     return this type as their result.
     */
-    typedef typename BaseType::JacobiansType JacobiansType;
+    using JacobiansType = typename BaseType::JacobiansType;
 
     /** A third order tensor to hold shape functions' local
     gradients. ShapefunctionsLocalGradients function return this
     type as its result.
     */
-    typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    using ShapeFunctionsGradientsType = typename BaseType::ShapeFunctionsGradientsType;
 
     /** Type of the normal vector used for normal to edges in geometry.
      */
-    typedef typename BaseType::NormalType NormalType;
+    using NormalType = typename BaseType::NormalType;
 
     /**
      * Type of coordinates array
      */
-    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    using CoordinatesArrayType = typename BaseType::CoordinatesArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -675,30 +675,13 @@ public:
     ///@name Edge
     ///@{
 
-    /**
-     * @brief This method gives you number of all edges of this geometry.
-     * @details For example, for a hexahedron, this would be 12
-     * @return SizeType contains number of this geometry edges.
-     * @see EdgesNumber()
-     * @see Edges()
-     * @see GenerateEdges()
-     * @see FacesNumber()
-     * @see Faces()
-     * @see GenerateFaces()
-     */
+    /// @copydoc Geometry::EdgesNumber
     SizeType EdgesNumber() const override
     {
         return 1;
     }
 
-    /**
-     * @brief This method gives you all edges of this geometry.
-     * @details This method will gives you all the edges with one dimension less than this geometry.
-     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType contains this geometry edges.
-     * @see EdgesNumber()
-     * @see Edge()
-     */
+    /// @copydoc Geometry::GenerateEdges
     GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();

@@ -84,19 +84,30 @@ namespace Testing {
     }
 
     /** Checks if the number of edges is correct.
-    * Checks if the number of edges is correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D4EdgesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D4();
-        KRATOS_EXPECT_EQ(p_geometry->EdgesNumber(), 2);
+        KRATOS_EXPECT_EQ(p_geometry->EdgesNumber(), 1);
+    }
+
+    /** Checks if the edges are correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D4Edges, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GeneratePointsUnitXDirectionLine2D4();
+
+        const auto& r_edges = p_geom->GenerateEdges();
+        ASSERT_EQ(r_edges.size(), 1);
+        for (std::size_t i = 0; i < r_edges.front().PointsNumber(); ++i) {
+            KRATOS_EXPECT_NEAR(r_edges.front()[i].X(), (p_geom->pGetPoint(i))->X(), TOLERANCE);
+            KRATOS_EXPECT_NEAR(r_edges.front()[i].Y(), (p_geom->pGetPoint(i))->Y(), TOLERANCE);
+        }
     }
 
     /** Checks if the number of faces is correct.
-    * Checks if the number of faces is correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D4FacesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D4();
-        KRATOS_EXPECT_EQ(p_geometry->FacesNumber(), 2);
+        KRATOS_EXPECT_EQ(p_geometry->FacesNumber(), 0);
     }
 
     /** Checks if the length of the line is calculated correctly.

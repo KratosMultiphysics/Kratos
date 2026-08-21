@@ -27,7 +27,7 @@ In the following it is shown how to add processes from different locations (Krat
         }
     }],
     "from_kratos_application" : [{
-        "python_module" : "compute_body_fitted_drag_process",
+        "python_module" : "compute_body_fitted_flow_forces_and_moments_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "Parameters"    : {
             # ...

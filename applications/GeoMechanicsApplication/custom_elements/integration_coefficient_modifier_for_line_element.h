@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "integration_coefficients_calculator.h"
+#include "integration_coefficients_calculator.hpp"
 
 namespace Kratos
 {

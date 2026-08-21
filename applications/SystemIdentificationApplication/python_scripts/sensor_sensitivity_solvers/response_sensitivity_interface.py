@@ -1,7 +1,5 @@
 import abc
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionUnionType
 
 class ResponseSensitivityInterface(abc.ABC):
     @abc.abstractmethod

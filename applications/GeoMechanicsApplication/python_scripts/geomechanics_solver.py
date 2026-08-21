@@ -77,7 +77,7 @@ class GeoMechanicalSolver(PythonSolver):
             "clear_storage": false,
             "compute_reactions": false,
             "move_mesh_flag": false,
-            "reset_displacements":  false,
+            "reset_totals":  false,
             "solution_type": "quasi_static",
             "scheme_type": "Newmark",
             "newmark_beta": 0.25,
@@ -86,6 +86,9 @@ class GeoMechanicalSolver(PythonSolver):
             "rayleigh_m": 0.0,
             "rayleigh_k": 0.0,
             "strategy_type": "newton_raphson",
+            "quasi_newton_type": "lbfgs",
+            "quasi_newton_restart_interval": 100,
+            "quasi_newton_max_rank": 10,  
             "max_piping_iterations": 50,
             "convergence_criterion": "Displacement_criterion",
             "water_pressure_relative_tolerance": 1.0e-4,
@@ -102,7 +105,6 @@ class GeoMechanicalSolver(PythonSolver):
             "number_cycles"              : 5,
             "increase_factor"            : 2.0,
             "reduction_factor"           : 0.5,
-            "calculate_reactions"        : true,
             "max_line_search_iterations" : 5,
             "first_alpha_value"          : 0.5,
             "second_alpha_value"         : 1.0,
@@ -135,6 +137,17 @@ class GeoMechanicalSolver(PythonSolver):
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
+
+        # Since `ValidateSettings` of the base class enforces that defaults must exist for all given input parameters,
+        # we first check for any deprecated input parameters, and if we find them, we'll remove them.
+        from KratosMultiphysics import kratos_utilities
+        if self.settings.Has("calculate_reactions"):
+            kratos_utilities.IssueDeprecationWarning('GeoMechanicsApplication', 'Use of calculate_reactions is deprecated, please change to compute_reactions')
+            self.settings.RemoveValue("calculate_reactions")
+        if self.settings.Has("reset_displacements"):
+            kratos_utilities.IssueDeprecationWarning('GeoMechanicsApplication', 'Use of reset_displacements is deprecated, please change to reset_totals')
+            self.settings.AddValue("reset_totals", self.settings["reset_displacements"])
+            self.settings.RemoveValue("reset_displacements")
 
         super().ValidateSettings()
 
@@ -324,6 +337,8 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TANGENTIAL_CONTACT_STRESS)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.GEO_RELATIVE_DISPLACEMENT_VECTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.GEO_EFFECTIVE_TRACTION_VECTOR)
 
     def _add_rotational_variables(self):
         if (self.settings.Has("rotation_dofs")):
@@ -351,8 +366,13 @@ class GeoMechanicalSolver(PythonSolver):
         # Add integration \ gauss point values that will likely need extrapolating to node
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_HEAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.TOTAL_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.FLUID_FLUX_VECTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.AXIAL_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.BENDING_MOMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SHEAR_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.EFFECTIVE_SATURATION)
 
     def _add_temperature_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -471,6 +491,20 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                          compute_reactions,
                                                                                          reform_step_dofs,
                                                                                          move_mesh_flag)
+        elif strategy_type.lower() == "quasi_newton":
+            self.strategy_params = KratosMultiphysics.Parameters("{}")
+            self.strategy_params.AddValue("quasi_newton_type", self.settings["quasi_newton_type"])
+            self.strategy_params.AddValue("quasi_newton_restart_interval", self.settings["quasi_newton_restart_interval"])
+            self.strategy_params.AddValue("quasi_newton_max_rank", self.settings["quasi_newton_max_rank"])
+            solving_strategy = GeoMechanicsApplication.GeoMechanicsQuasiNewtonStrategy(self.computing_model_part,
+                                                                                       self.scheme,
+                                                                                       self.convergence_criterion,
+                                                                                       builder_and_solver,
+                                                                                       self.strategy_params,
+                                                                                       max_iterations,
+                                                                                       compute_reactions,
+                                                                                       reform_step_dofs,
+                                                                                       move_mesh_flag)
         elif strategy_type.lower() == "newton_raphson_with_piping":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("max_piping_iterations", self.settings["max_piping_iterations"])

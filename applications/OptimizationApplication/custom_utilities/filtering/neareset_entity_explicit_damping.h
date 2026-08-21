@@ -15,15 +15,18 @@
 // System includes
 #include <vector>
 
+// External includes
+#include "nanoflann/include/nanoflann.hpp"
+
 // Project includes
 #include "containers/model.h"
-#include "expression/container_expression.h"
-#include "expression/expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 #include "includes/define.h"
 #include "spatial_containers/spatial_containers.h"
 
 // Application includes
 #include "filter_function.h"
+#include "filter_utils.h"
 #include "explicit_damping.h"
 
 namespace Kratos
@@ -43,14 +46,17 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) NearestEntityExplicitDamping: public 
 
     using EntityType = typename BaseType::EntityType;
 
-    using EntityPointType = typename BaseType::EntityPointType;
-
     using EntityPointVector = typename BaseType::EntityPointVector;
 
-    // Type definitions for tree-search
-    using BucketType = Bucket<3, EntityPointType, EntityPointVector>;
+    using PositionAdapter = NanoFlannMultipleModelPartPositionAdapter<TContainerType>;
 
-    using KDTree = Tree<KDTreePartition<BucketType>>;
+    using ResultVectorType = typename PositionAdapter::ResultVectorType;
+
+    using PointerVectorType = typename PositionAdapter::PointerVectorType;
+
+    using DistanceMetricType = typename nanoflann::metric_L2_Simple::traits<double, PositionAdapter>::distance_t;
+
+    using KDTreeIndexType = nanoflann::KDTreeSingleIndexAdaptor<DistanceMetricType, PositionAdapter, 3>;
 
     /// Pointer definition of ContainerMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestEntityExplicitDamping);
@@ -71,9 +77,9 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) NearestEntityExplicitDamping: public 
     ///@name Operations
     ///@{
 
-    void SetRadius(const ContainerExpression<TContainerType>& rDampingRadiusExpression) override;
+    void SetRadius(TensorAdaptor<double>::Pointer pDampingRadiusTensorAdaptor) override;
 
-    typename ContainerExpression<TContainerType>::Pointer GetRadius() const override;
+    TensorAdaptor<double>::Pointer GetRadius() const override;
 
     IndexType GetStride() const override;
 
@@ -100,13 +106,13 @@ private:
 
     IndexType mStride;
 
-    IndexType mBucketSize = 100;
+    IndexType mLeafMaxSize;
 
     FilterFunction::UniquePointer mpKernelFunction;
 
-    Expression::ConstPointer mpDampingCoefficients;
+    Matrix mDampingCoefficients;
 
-    typename ContainerExpression<TContainerType>::Pointer mpDampingRadius;
+    TensorAdaptor<double>::Pointer mpDampingRadius;
 
     std::vector<std::vector<ModelPart*>> mComponentWiseDampedModelParts;
 

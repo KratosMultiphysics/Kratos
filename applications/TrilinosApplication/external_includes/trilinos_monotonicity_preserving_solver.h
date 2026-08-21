@@ -1,24 +1,22 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Daniel Diez
 //
 
-#if !defined(KRATOS_TRILINOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED )
-#define  KRATOS_TRILINOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "factories/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 #include "utilities/parallel_utilities.h"
@@ -47,9 +45,23 @@ namespace Kratos
 
 /**
  * @class TrilinosMonotonicityPreservingSolver
- * @ingroup KratosCore
- * @brief
- * @details
+ * @ingroup TrilinosApplication
+ * @brief A linear solver wrapper (Trilinos compatible) that ensures monotonicity by modifying the system matrix and right-hand side.
+ * @details This class wraps another linear solver (the "inner solver").
+ * Before calling the inner solver's Solve() method, this class pre-processes the system matrix 'A' and the right-hand side 'B' within the ProvideAdditionalData() method.
+ * The pre-processing ensures that the matrix 'A' has non-positive off-diagonal entries.
+ * It iterates over all entries A(i,j) of the matrix. If a positive off-diagonal
+ * entry is found (A(i,j) > 0 with i != j), this positive value is:
+ * 1. Subtracted from the off-diagonal entries A(i,j) and A(j,i).
+ * 2. Added to the diagonal entries A(i,i) and A(j,j).
+ * To keep the system solution unchanged, the right-hand side vector 'B' is also
+ * modified based on the current solution values (dofs_values) associated with
+ * the degrees of freedom:
+ * B[i] += A(i,j)_original * (dofs_values[j] - dofs_values[i])
+ * B[j] += A(i,j)_original * (dofs_values[i] - dofs_values[j])
+ * This transformation enforces a condition required for monotonicity (Discrete Maximum Principle) often needed in transport or convection-diffusion problems, without altering the final solution of the linear system. The modified system is then passed to the inner solver.
+ * The standard, linear conforming FEM, while robust, may not guarantee the DMP on general or distorted meshes for anisotropic diffusion. The DMP is a desirable qualitative property stating that if the source term is non-negative, the solution should attain its minimum on the boundary and be everywhere non-negative.
+ * A key requirement for a scheme to satisfy the DMP is for the LHS matrix A to be an M-matrix. An M-matrix has non-positive off-diagonal entries and a non-negative inverse. For standard FEM, the off-diagonal entries of the LHS matrix are generally not guaranteed to be non-positive, leading to a loss of monotonicity.
  * @author Daniel Diex
  * @tparam TSparseSpaceType The sparse space definition
  * @tparam TDenseSpaceType The dense space definition
@@ -68,19 +80,19 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosMonotonicityPreservingSolver);
 
     /// Definition of the base type
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    using BaseType = LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>;
 
     /// The definition of the spaces (sparse matrix)
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+    using SparseMatrixType = typename TSparseSpaceType::MatrixType;
 
     /// The definition of the spaces (vector)
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    using VectorType = typename TSparseSpaceType::VectorType;
 
     /// The definition of the spaces (dense matrix)
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    using DenseMatrixType = typename TDenseSpaceType::MatrixType;
 
     /// The definition of the linear solver factory type
-    typedef LinearSolverFactory<TSparseSpaceType,TDenseSpaceType> LinearSolverFactoryType;
+    using LinearSolverFactoryType = LinearSolverFactory<TSparseSpaceType,TDenseSpaceType>;
 
     ///@}
     ///@name Life Cycle
@@ -410,6 +422,3 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TRILINOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED  defined
-

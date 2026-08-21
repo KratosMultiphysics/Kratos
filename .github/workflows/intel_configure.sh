@@ -26,7 +26,6 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # add_app ${KRATOS_APP_DIR}/FluidDynamicsBiomedicalApplication;
 # add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 # add_app ${KRATOS_APP_DIR}/DEMApplication;
-# add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 # add_app ${KRATOS_APP_DIR}/MetisApplication;
 # add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 # add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
@@ -60,6 +59,8 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DUSE_MPI=ON \
 -DPYTHON_EXECUTABLE="/usr/bin/python3.10" \
+-DBOOST_ROOT="/workspace/boost/boost_1_87_0" \
+-DBoost_NO_SYSTEM_PATHS=ON \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O3 -Wall -Werror-all -diag-disable 1478 -diag-disable 1786" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \

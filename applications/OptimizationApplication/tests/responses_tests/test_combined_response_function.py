@@ -1,3 +1,4 @@
+import numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as kratos_unittest
@@ -132,18 +133,18 @@ class TestCombinedResponseFunction(kratos_unittest.TestCase):
 
     def test_CalculateGradient(self):
         def get_data(add_density_physical_var = True):
-            elem_exp = Kratos.Expression.ElementExpression(self.model_part)
-            nodal_exp = Kratos.Expression.NodalExpression(self.model_part)
+            elem_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)
+            nodal_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, KratosOA.SHAPE)
             if add_density_physical_var:
                 data = {
-                    Kratos.DENSITY: KratosOA.CollectiveExpression([elem_exp]),
-                    KratosOA.SHAPE: KratosOA.CollectiveExpression([nodal_exp])
+                    Kratos.DENSITY: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([elem_ta], copy=False),
+                    KratosOA.SHAPE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([nodal_ta], copy=False)
                 }
             else:
                 data = {
-                    KratosOA.SHAPE: KratosOA.CollectiveExpression([nodal_exp])
+                    KratosOA.SHAPE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([nodal_ta], copy=False)
                 }
-            return nodal_exp, elem_exp, data
+            return nodal_ta, elem_ta, data
 
         # calculate all the values first
         self.resp_8.CalculateValue()
@@ -164,18 +165,17 @@ class TestCombinedResponseFunction(kratos_unittest.TestCase):
         v7_shape, v7_rho, data = get_data()
         self.resp_7.CalculateGradient(data)
 
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(v6_shape - v1_shape * 2.1 - v2_shape * 3.1 - v3_shape * 4.1), 0.0)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(v6_rho - v1_rho * 2.1 - v2_rho * 3.1 - v3_rho * 4.1), 0.0)
+        self.assertVectorAlmostEqual(v6_shape.data.ravel(),  (v1_shape.data[:] * 2.1 + v2_shape.data[:] * 3.1 + v3_shape.data[:] * 4.1).ravel())
+        self.assertVectorAlmostEqual(v6_rho.data.ravel(), (v1_rho.data * 2.1 + v2_rho.data * 3.1 + v3_rho.data * 4.1).ravel())
 
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(v7_shape - v4_shape * 5.1 - v5_shape * 6.1), 0.0)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(v7_rho - v4_rho * 5.1), 0.0)
+        self.assertVectorAlmostEqual(v7_shape.data.ravel(), (v4_shape.data * 5.1 + v5_shape.data * 6.1).ravel())
+        self.assertVectorAlmostEqual(v7_rho.data.ravel(), (v4_rho.data * 5.1).ravel())
 
         v8_shape, v8_rho, data = get_data()
         self.resp_8.CalculateGradient(data)
 
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(v8_shape - v6_shape * 7.1 - v7_shape * 8.1), 0.0)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(v8_rho - v6_rho * 7.1 - v7_rho * 8.1), 0.0)
+        self.assertVectorAlmostEqual(v8_shape.data.ravel(), (v6_shape.data * 7.1 + v7_shape.data * 8.1).ravel())
+        self.assertVectorAlmostEqual(v8_rho.data.ravel(), (v6_rho.data * 7.1 + v7_rho.data * 8.1).ravel())
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

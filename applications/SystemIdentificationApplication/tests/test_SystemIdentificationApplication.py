@@ -12,6 +12,8 @@ import test_smooth_clamper
 import test_mask_utils
 import test_distance_matrix
 import test_sensor_utils
+import test_sensor_generator_analysis
+import test_convergence_criterion
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
@@ -25,6 +27,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mask_utils.TestMaskUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_distance_matrix.TestDistanceMatrix]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensor_utils.TestSensorUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensor_generator_analysis.TestSensorGeneratorAnalysis]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_system_identification.TestSystemIdentification]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_damage_response.TestDamageDetectionAdjointResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_damage_response.TestDamageDetectionResponse]))
@@ -37,6 +40,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_pressure_response.TestPressureDetectionResponseStrainSensor]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_data_values_control.TestDataValuesControl_nodal_historical]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_data_values_control.TestDataValuesControl_condition]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_convergence_criterion.TestSensorErrorConvCriterion]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)

@@ -12,7 +12,7 @@
 //
 
 #include "custom_retention/van_genuchten_law.h"
-#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 #include <string>
@@ -118,7 +118,7 @@ int VanGenuchtenLaw::Check(const Properties& rMaterialProperties, const ProcessI
     check_properties.Check(MINIMUM_RELATIVE_PERMEABILITY, max_value);
     check_properties.SingleUseBounds(AllExclusive).Check(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE);
     check_properties.SingleUseBounds(AllExclusive).Check(VAN_GENUCHTEN_GN);
-    check_properties.Check(VAN_GENUCHTEN_GL);
+    check_properties.CheckAvailability(VAN_GENUCHTEN_GL);
 
     return 0;
 }

@@ -156,6 +156,16 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
+        void Predict() override
+        {
+            DofsArrayType dummy_r_dof_set = DofsArrayType();
+            TSystemMatrixType dummyA = TSystemMatrixType();
+            TSystemVectorType dummyDx = TSystemVectorType();
+            TSystemVectorType dummyb = TSystemVectorType();
+
+            GetScheme()->Predict(BaseType::GetModelPart(), dummy_r_dof_set, dummyA, dummyDx, dummyb);
+        }
+
         void InitializeSolutionStep() override
         {
             KRATOS_TRY

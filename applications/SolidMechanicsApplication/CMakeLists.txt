@@ -7,7 +7,7 @@ include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConstitutiveModelsApplication)
+# kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConstitutiveModelsApplication)
 
 ## Generate variables with the sources
 set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE

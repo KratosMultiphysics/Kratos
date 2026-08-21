@@ -43,6 +43,15 @@ GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition(IndexType     
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer GeoTNormalFluxCondition<TDim, TNumNodes>::Create(IndexType NewId,
+                                                                    NodesArrayType const& rThisNodes,
+                                                                    PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive<GeoTNormalFluxCondition>(
+        NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRightHandSideVector,
                                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -59,8 +68,7 @@ void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            r
     }
     r_geom.Jacobian(j_container, this->GetIntegrationMethod());
 
-    Vector normal_flux_vector(TNumNodes);
-    VariablesUtilities::GetNodalValues(r_geom, NORMAL_HEAT_FLUX, normal_flux_vector.begin());
+    const auto normal_flux_vector = VariablesUtilities::GetNodalValues(r_geom, NORMAL_HEAT_FLUX);
 
     for (unsigned int integration_point = 0; integration_point < num_integration_points; ++integration_point) {
         const auto N = row(r_N_container, integration_point);
@@ -81,6 +89,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::string GeoTNormalFluxCondition<TDim, TNumNodes>::Info() const
 {
     return "GeoTNormalFluxCondition";
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void GeoTNormalFluxCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void GeoTNormalFluxCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 }
 
 template class GeoTNormalFluxCondition<2, 2>;

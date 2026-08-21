@@ -119,15 +119,14 @@ public:
         Vector& rN,
         Vector& rY);
 
+    static double CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints);
+
     ///@}
 private:
     ///@name Unaccessible methods
     ///@{
 
     RBFShapeFunctionsUtility(){};
-
-    static double CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints);
-
     ///@}
 };
 

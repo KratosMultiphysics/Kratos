@@ -548,5 +548,12 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static BoundedMatrix<double, 3, 3> CalculatePOperator();
 
+    /**
+     * @brief This method computes the maximum edge length of
+     * a shell of 3 and 4 nodes
+     */
+    static double GetMaxReferenceEdgeLengthForShell(
+        const GeometryType &rGeometry);
+
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos

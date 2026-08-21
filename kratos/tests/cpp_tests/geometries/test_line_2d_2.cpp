@@ -66,7 +66,6 @@ namespace Testing {
     }
 
     /** Checks if the number of edges is correct.
-    * Checks if the number of edges is correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D2EdgesNumber, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitXDirectionLine2D2();
@@ -74,7 +73,6 @@ namespace Testing {
     }
 
     /** Checks if the edges are correct.
-    * Checks if the edges are correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D2Edges, KratosCoreGeometriesFastSuite) {
         auto p_geom = GeneratePointsUnitXDirectionLine2D2();
@@ -87,7 +85,6 @@ namespace Testing {
     }
 
     /** Checks if the number of faces is correct.
-    * Checks if the number of faces is correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D2FacesNumber, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitXDirectionLine2D2();

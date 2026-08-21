@@ -11,7 +11,7 @@
 //                   Richard Faasse
 //
 
-#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
