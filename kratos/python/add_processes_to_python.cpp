@@ -686,6 +686,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteModelPartSolidExact", &GaussPointErrorProcess::ExecuteModelPartSolidExact)
     .def("ExecuteModelPartSolidThinExact", &GaussPointErrorProcess::ExecuteModelPartSolidThinExact)
     .def("ExecuteModelPartGradientSolid", &GaussPointErrorProcess::ExecuteModelPartGradientSolid)
+    .def("ExecuteModelPartGradientSolidExact", &GaussPointErrorProcess::ExecuteModelPartGradientSolidExact)
     ;
 
     py::class_<SplitInternalInterfacesProcess, SplitInternalInterfacesProcess::Pointer, Process>(m, "SplitInternalInterfacesProcess")
