@@ -239,10 +239,8 @@ protected:
         // These should all be FALSE unless you are testing, or
         // investigating the effects of element enhancements!
 
-        int shearFormulation = 0; // Runtime shear formulation choice, read from
-        // Properties[SHELL_SHEAR_FORMULATION] in InitializeCalculationData:
+        int shearFormulation = 0; // Runtime shear formulation
         // 0 = DSG (default), 1 = basic CST one-point integration, 2 = basic CST full integration.
-        // Values 1 and 2 are testing-only alternatives to the default DSG formulation.
 
         const bool ignore_shear_stabilization = false; // bool to
         // ignore stabilizing the transverse shear part of the material
