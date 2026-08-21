@@ -197,8 +197,8 @@ static inline void TestDerivatives(
             rDerivativeData0.UpdateMasterPair(MasterCondition0->GetGeometry(), rModelPart.GetProcessInfo());
 
             if (conditions_points_slave.size() == conditions_points_slave0.size()) {// Just in case we have the "same configuration"
-                DerivativesUtilitiesType::CalculateAeAndDeltaAe(r_slave_geometry_1, r_normal_slave_1, MasterCondition1->GetGeometry(), rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method);
-                DerivativesUtilitiesType::CalculateAeAndDeltaAe(r_slave_geometry_0, r_normal_slave_0, MasterCondition0->GetGeometry(), rDerivativeData0, rVariables0, consider_normal_variation, conditions_points_slave0, this_integration_method);
+                DerivativesUtilitiesType::CalculateAeAndDeltaAe(r_slave_geometry_1, r_normal_slave_1, MasterCondition1->GetGeometry(), r_normal_master_1, rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method);
+                DerivativesUtilitiesType::CalculateAeAndDeltaAe(r_slave_geometry_0, r_normal_slave_0, MasterCondition0->GetGeometry(), r_normal_master_0, rDerivativeData0, rVariables0, consider_normal_variation, conditions_points_slave0, this_integration_method);
 
                 for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
                     PointerVector<Point> points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
