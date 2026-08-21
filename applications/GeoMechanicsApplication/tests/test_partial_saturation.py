@@ -1,5 +1,5 @@
 import os
-
+from pathlib import Path
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
@@ -14,6 +14,7 @@ import test_helper
 
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
+    from retention_law_plotter import plot_van_genuchten_retention_law_characteristics
 
 
 class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
@@ -197,6 +198,10 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 expected_results_at_times,
                 file_path,
                 output_data,
+            )
+            plot_van_genuchten_retention_law_characteristics(
+                simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
+                plot_file_path=Path(file_path),
             )
 
         for time, expected_results in expected_results_at_times.items():
