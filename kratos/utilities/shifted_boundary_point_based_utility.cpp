@@ -1149,40 +1149,6 @@ namespace Kratos
             rAvgSkinMap.insert(std::make_pair(p_element, avg_position_and_normal));
         }
 
-        // Add side vote to boundary element nodes without skin points around them based on the votes of their surrounding nodes
-        for (auto p_element : mBoundaryElementsSet) {
-            auto& r_geom = p_element->GetGeometry();
-            for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-                auto p_node = r_geom(i_node);
-                auto [it, inserted] = boundary_nodes_set.emplace(p_node);
-                if (inserted) {
-                    // Count the number of positive and negative sided nodes surrounding the current node
-                    std::size_t n_pos_neigh = 0;
-                    std::size_t n_neg_neigh = 0;
-
-                    // Get the surrounding nodes of the current node and add their votes to the count
-                    std::vector<NodeType::Pointer> neighboring_nodes;
-                    rSurroundingNodesCSR.get_neighbors(p_node->Id(), neighboring_nodes);
-                    for (auto p_neigh : neighboring_nodes) {
-                        const double& neigh_side_voting = p_neigh->FastGetSolutionStepValue(DISTANCE);
-                        if (neigh_side_voting > 1e-10) {
-                            n_pos_neigh++;
-                        } else if (neigh_side_voting < -1e-10) {
-                            n_neg_neigh++;
-                        }
-                    }
-
-                    // Set the side voting of the current node if there are only nodes of one side surrounding it, otherwise leave it at zero
-                    double& side_voting = p_node->FastGetSolutionStepValue(DISTANCE);
-                    if (n_pos_neigh > 0 && n_neg_neigh == 0) {
-                        side_voting = 1.0;
-                    } else if (n_neg_neigh > 0 && n_pos_neigh == 0) {
-                        side_voting = -1.0;
-                    }
-                }
-            }
-        }
-
         // Correct sides of boundary nodes based on surrounding nodes
         std::size_t n_second_layer_checks = 0;
         std::for_each(boundary_nodes_set.begin(), boundary_nodes_set.end(), [&](NodeType::Pointer pNode){
@@ -1218,8 +1184,6 @@ namespace Kratos
             if (side_voting < 0 && n_pos_neigh > 1) check_second_layer = true;
             // Many positive and negative neighbors indicate an edge of a thin structure, so we do not want to check the second layer
             if (n_pos_neigh > 3 && n_neg_neigh > 3) check_second_layer = false;
-            // Do not check the second layer if there is a clear majority of neighbors on one side
-            if (n_pos_neigh > (n_neg_neigh+1)*2 || n_neg_neigh > (n_pos_neigh+1)*2) check_second_layer = false;
 
             if (check_second_layer) {
                 n_second_layer_checks++;
@@ -1244,13 +1208,52 @@ namespace Kratos
 
             if (side_voting > 0.0 && n_neg_neigh > n_pos_neigh*2) {
                 side_voting = -1.0;
-                //pNode->Set(MODIFIED, true);
+                pNode->Set(MODIFIED, true);
             } else if (side_voting < 0.0 && n_pos_neigh > n_neg_neigh*2) {
                 side_voting = 1.0;
-                //pNode->Set(MODIFIED, true);
+                pNode->Set(MODIFIED, true);
             }
         });
-        //KRATOS_WATCH(n_second_layer_checks);
+        KRATOS_WATCH(n_second_layer_checks);
+
+        // Add side vote to boundary element nodes without skin points around them based on the votes of their surrounding nodes
+        //TODO slower, but better: get skin points of two layers of surrounding elements and choose side based on dot products
+        for (auto p_element : mBoundaryElementsSet) {
+            auto& r_geom = p_element->GetGeometry();
+            for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                auto p_node = r_geom(i_node);
+                if (p_node->Is(ACTIVE)) {
+                    auto [it, inserted] = boundary_nodes_set.emplace(p_node);
+                    if (inserted) {
+                        // Count the number of positive and negative sided nodes surrounding the current node
+                        std::size_t n_pos_neigh = 0;
+                        std::size_t n_neg_neigh = 0;
+
+                        // Get the surrounding nodes of the current node and add their votes to the count
+                        std::vector<NodeType::Pointer> neighboring_nodes;
+                        rSurroundingNodesCSR.get_active_neighbors(p_node->Id(), neighboring_nodes);
+                        for (auto p_neigh : neighboring_nodes) {
+                            const double& neigh_side_voting = p_neigh->FastGetSolutionStepValue(DISTANCE);
+                            if (neigh_side_voting > 1e-10) {
+                                n_pos_neigh++;
+                            } else if (neigh_side_voting < -1e-10) {
+                                n_neg_neigh++;
+                            }
+                        }
+
+                        // Set the side voting of the current node if there are only nodes of one side surrounding it, otherwise leave it at zero
+                        double& side_voting = p_node->FastGetSolutionStepValue(DISTANCE);
+                        if (n_pos_neigh > 0 && n_neg_neigh == 0) {
+                            side_voting = 1.0;
+                            //p_node->Set(MODIFIED, true);
+                        } else if (n_neg_neigh > 0 && n_pos_neigh == 0) {
+                            side_voting = -1.0;
+                            //p_node->Set(MODIFIED, true);
+                        }
+                    }
+                }
+            }
+        }
 
         // Decide on positive and negative side of an element based on the voting
         for (const auto& [p_element, skin_points_data_vector]: mSkinPointsMap) {
@@ -1369,7 +1372,7 @@ namespace Kratos
                         } else {
                             KRATOS_WARNING("ShiftedBoundaryPointBasedUtility")
                             << "Not enough support nodes were found for node " << p_node->Id() << ". Extension basis can not be calculated." << std::endl;
-                            p_node->Set(MODIFIED, true);
+                            //p_node->Set(MODIFIED, true);
                         }
                     }
 
@@ -1415,11 +1418,11 @@ namespace Kratos
                                     std::scoped_lock<LockObject> lock(mutex_3);
                                     mExtensionOperatorSameSideMap.insert(ext_op_key_data);
                                 }
-                                KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Extension basis for inactive node " << p_node->Id() << " on its own side of the boundary was calculated." << std::endl;
+                                //KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Extension basis for inactive node " << p_node->Id() << " on its own side of the boundary was calculated." << std::endl;
                             } else {
                                 KRATOS_WARNING("ShiftedBoundaryPointBasedUtility")
                                 << "Not enough support nodes were found for inactive node " << p_node->Id() << ". Same side extension basis can not be calculated." << std::endl;
-                                p_node->Set(MODIFIED, true);
+                                //p_node->Set(MODIFIED, true);
                             }
                         }
                     }
@@ -1518,9 +1521,6 @@ namespace Kratos
             n_cloud_nodes = aux_set.size();
             prev_layer_nodes = cur_layer_nodes;
             cur_layer_nodes.clear();
-        }
-        if (n_extra_layers > 0) {
-           KRATOS_WARNING("ShiftedBoundaryPointBasedUtility") << n_extra_layers << " extra layers of points needed for MLS calculation for node " << pBaseNode->Id() << "." << std::endl;
         }
 
         // Add obtained cloud nodes to the cloud node vector
