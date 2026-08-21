@@ -19,7 +19,6 @@
 
 namespace Kratos
 {
-using VectorArray = std::vector<Vector>;
 
 /* Variables from GeoMechanicsApplication */
 KRATOS_DEFINE_APPLICATION_VARIABLE(GEO_MECHANICS_APPLICATION, double, VELOCITY_COEFFICIENT)
