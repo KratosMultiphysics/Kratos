@@ -17,10 +17,7 @@
 #include <string>
 #include <variant>
 
-namespace Kratos
-{
-
-namespace Formulations
+namespace Kratos::Formulations
 {
 struct Constant {
     static constexpr const char* Name = "Constant";
@@ -44,5 +41,4 @@ double               GetYoungsModulus(YoungsModulusVariant& rFormulation,
                                       const Vector&         rStressVectorFinalized);
 double CalculateYoungsModulusForEur(const Properties& rProperties, double YoungsModulus, const Vector& rStressVectorFinalized);
 double CalculateMinorPrincipalEffectiveStress(const Vector& rStressVectorFinalized);
-} // namespace Formulations
-} // namespace Kratos
+} // namespace Kratos::Formulations

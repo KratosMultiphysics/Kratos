@@ -20,10 +20,7 @@
 #include <limits>
 #include <type_traits>
 
-namespace Kratos
-{
-
-namespace Formulations
+namespace Kratos::Formulations
 {
 double Constant::operator()(const Properties&, double YoungsModulus, const Vector&) const
 {
@@ -113,5 +110,4 @@ double CalculateMinorPrincipalEffectiveStress(const Vector& rStressVectorFinaliz
     return principal_stresses[2];
 }
 
-} // namespace Formulations
-} // namespace Kratos
+} // namespace Kratos::Formulations
