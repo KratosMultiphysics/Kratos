@@ -13,6 +13,7 @@
 #include "shell_thick_element_3D3N.hpp"
 
 #include "custom_utilities/shell_utilities.h"
+#include "structural_mechanics_application_variables.h"
 
 #include <string>
 #include <iomanip>
@@ -700,11 +701,11 @@ void ShellThickElement3D3N<TKinematics>::CalculateSectionResponse(CalculationDat
     data.SectionParameters.SetShapeFunctionsValues(data.N);
     data.SectionParameters.SetMaterialProperties(GetProperties());
 
-    if (data.ignore_shear_stabilization || data.basicTriCST) {
+    if (data.ignore_shear_stabilization || data.shearFormulation != 0) {
         //remove already added shear stabilization
         data.shearStabilisation = 1.0;
         data.SectionParameters.SetStenbergShearStabilization(data.shearStabilisation);
-        std::cout << "Not applying shear stabilisation to shear part of material matrix!" << std::endl;
+        // std::cout << "Not applying shear stabilisation to shear part of material matrix!" << std::endl;
     }
 
     section->CalculateSectionResponse(data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2);
@@ -746,6 +747,15 @@ void ShellThickElement3D3N<TKinematics>::InitializeCalculationData(CalculationDa
     data.hMean = h;
     data.TotalArea = A;
     data.dA = A;
+
+    data.shearFormulation = GetProperties().Has(SHELL_SHEAR_FORMULATION)
+        ? GetProperties()[SHELL_SHEAR_FORMULATION]
+        : 0; // Default to DSG if not specified
+
+    // Elements flagged INTERFACE
+    if (this->Is(INTERFACE) && data.shearFormulation == 0) {
+        data.shearFormulation = 1;
+    }
 
     // create the integration point locations
     if (data.gpLocations.size() != 0) {
@@ -850,7 +860,7 @@ void ShellThickElement3D3N<TKinematics>::InitializeCalculationData(CalculationDa
         // Use smoothed DSG formulation according to [Nguyen-Thoi et al., 2013]
         std::cout << "Using smoothed DSG" << std::endl;
         CalculateSmoothedDSGBMatrix(data);
-    } else if (data.basicTriCST == false) {
+    } else if (data.shearFormulation == 0) {
         // Use DSG method as per Bletzinger (2000)
         // Entries denoted "altered by -1" are multiplied by -1
 
@@ -888,30 +898,30 @@ void ShellThickElement3D3N<TKinematics>::InitializeCalculationData(CalculationDa
         // Basic CST displacement derived shear
         // strain displacement matrix.
         // Only for testing!
-        std::cout << "Using basic CST shear formulation!" << std::endl;
+        // std::cout << "Using basic CST shear formulation!" << std::endl;
         const Matrix& shapeFunctions =
             GetGeometry().ShapeFunctionsValues(this->mIntegrationMethod);
 
         //node 1
         data.B(6, 2) = y23;
-        data.B(6, 3) = shapeFunctions(0, 0);
+        data.B(6, 4) = 1.0/3.0 * (A2);
 
         data.B(7, 2) = x32;
-        data.B(7, 4) = shapeFunctions(0, 0);
+        data.B(7, 3) = -1.0/3.0 * (A2);
 
         //node 2
         data.B(6, 8) = y31;
-        data.B(6, 9) = shapeFunctions(0, 1);
+        data.B(6, 10) = 1.0/3.0 * (A2);
 
         data.B(7, 8) = x13;
-        data.B(7, 10) = shapeFunctions(0, 1);
+        data.B(7, 9) = -1.0/3.0 * (A2);
 
         //node 3
         data.B(6, 14) = y12;
-        data.B(6, 15) = shapeFunctions(0, 2);
+        data.B(6, 16) = 1.0/3.0 * (A2);
 
         data.B(7, 14) = x21;
-        data.B(7, 16) = shapeFunctions(0, 2);
+        data.B(7, 15) = -1.0/3.0 * (A2);
     }
 
     //Final multiplication
@@ -1437,26 +1447,83 @@ void ShellThickElement3D3N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
     InitializeCalculationData(data);
     CalculateSectionResponse(data);
 
-    // Calculate element stiffness
-    Matrix BTD = Matrix(18, 8, 0.0);
-    data.D *= data.TotalArea;
-    BTD = prod(trans(data.B), data.D);
-    noalias(rLeftHandSideMatrix) += prod(BTD, data.B);
+    if (data.shearFormulation == 0)
+    {
+        // DSG method 
+        // Calculate element stiffness
+        Matrix BTD = Matrix(18, 8, 0.0);
+        data.D *= data.TotalArea;
+        BTD = prod(trans(data.B), data.D);
+        noalias(rLeftHandSideMatrix) += prod(BTD, data.B);
+    }
+    else if (data.shearFormulation == 1)
+    {
+        // Basic CST shear, one-point (centroid) integration
+        // Calculate element stiffness
+        Matrix BTD = Matrix(18, 8, 0.0);
+        data.D *= data.TotalArea;
+        BTD = prod(trans(data.B), data.D);
+        noalias(rLeftHandSideMatrix) += prod(BTD, data.B);
+    }
+    else
+    {
+        // Basic CST shear, full (3-point) integration
+        const Matrix& shapeFunctions =
+        GetGeometry().ShapeFunctionsValues(this->mIntegrationMethod);
+
+        data.D *= (data.TotalArea/3.0);
+
+        for (SizeType i = 0; i < 3; i++) {
+            // Calculate element stiffness
+            Matrix BTD = Matrix(18, 8, 0.0);
+
+            data.B(6, 4) = shapeFunctions(i, 0);
+            data.B(7, 3) = -shapeFunctions(i, 0);
+
+            data.B(6, 10) = shapeFunctions(i, 1);
+            data.B(7, 9) = -shapeFunctions(i, 1);
+
+            data.B(6, 16) = shapeFunctions(i, 2);
+            data.B(7, 15) = -shapeFunctions(i, 2);
+
+            BTD = prod(trans(data.B), data.D);
+            noalias(rLeftHandSideMatrix) += prod(BTD, data.B);
+        }
+    }
+
     if (data.specialDSGc3) {
         CalculateDSGc3Contribution(data, rLeftHandSideMatrix);
     }
 
-    //add in z_rot artificial stiffness
-    double z_rot_multiplier = 0.001;
-    double max_stiff = 0.0; //max diagonal stiffness
-    for (int i = 0; i < 18; i++) {
-        if (rLeftHandSideMatrix(i, i) > max_stiff) {
-            max_stiff = rLeftHandSideMatrix(i, i);
+    MatrixType T(18, 18);
+    data.LCS.ComputeTotalRotationMatrix(T);
+
+    // Add in the drilling DOF stiffness using a physically-derived Allman-type drilling
+    // strain, matching ShellThickElement3D4N::CalculateAll. 
+    {
+        const double Ddrilling = this->mSections[0]->GetDrillingStiffness();
+        double p[3], q[3];
+        for (int i = 0; i < 3; i++) {
+            p[i] = -0.5 * data.dNxy(i, 1);
+            q[i] =  0.5 * data.dNxy(i, 0);
         }
-    }
-    for (int i = 0; i < 3; i++) {
-        rLeftHandSideMatrix(6 * i + 5, 6 * i + 5) =
-            z_rot_multiplier*max_stiff;
+        const double A = data.TotalArea;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                const double Nij = (A / 12.0) * (i == j ? 2.0 : 1.0);
+                rLeftHandSideMatrix(6 * i + 0, 6 * j + 0) += Ddrilling * A * p[i] * p[j];
+                rLeftHandSideMatrix(6 * i + 0, 6 * j + 1) += Ddrilling * A * p[i] * q[j];
+                rLeftHandSideMatrix(6 * i + 1, 6 * j + 0) += Ddrilling * A * q[i] * p[j];
+                rLeftHandSideMatrix(6 * i + 1, 6 * j + 1) += Ddrilling * A * q[i] * q[j];
+
+                rLeftHandSideMatrix(6 * i + 0, 6 * j + 5) += -Ddrilling * p[i] * (A / 3.0);
+                rLeftHandSideMatrix(6 * i + 5, 6 * j + 0) += -Ddrilling * p[j] * (A / 3.0);
+                rLeftHandSideMatrix(6 * i + 1, 6 * j + 5) += -Ddrilling * q[i] * (A / 3.0);
+                rLeftHandSideMatrix(6 * i + 5, 6 * j + 1) += -Ddrilling * q[j] * (A / 3.0);
+
+                rLeftHandSideMatrix(6 * i + 5, 6 * j + 5) += Ddrilling * Nij;
+            }
+        }
     }
 
     // Add RHS term

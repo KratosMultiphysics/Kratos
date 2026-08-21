@@ -181,20 +181,6 @@ protected:
     ///@name Protected Lyfe Cycle
     ///@{
 
-    /**
-     * Protected empty constructor
-     */
-    ShellThinElement3D3N() : BaseType()
-    {
-    }
-
-    ///@}
-
-private:
-
-    ///@name Private Classes
-    ///@{
-
     class CalculationData
     {
 
@@ -284,6 +270,26 @@ private:
                         const ProcessInfo& rCurrentProcessInfo);
 
     };
+    
+    void InitializeCalculationData(CalculationData& data);
+
+    void CalculateSectionResponse(CalculationData& data);
+    
+    void CalculateBMatrix(CalculationData& data);
+
+    /**
+     * Protected empty constructor
+     */
+    ShellThinElement3D3N() : BaseType()
+    {
+    }
+
+    ///@}
+
+private:
+
+    ///@name Private Classes
+    ///@{
 
     ///@}
 
@@ -303,13 +309,7 @@ private:
 
     void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
 
-    void InitializeCalculationData(CalculationData& data);
-
-    void CalculateBMatrix(CalculationData& data);
-
     void CalculateBeta0(CalculationData& data);
-
-    void CalculateSectionResponse(CalculationData& data);
 
     void CalculateGaussPointContribution(CalculationData& data, MatrixType& LHS, VectorType& RHS);
 

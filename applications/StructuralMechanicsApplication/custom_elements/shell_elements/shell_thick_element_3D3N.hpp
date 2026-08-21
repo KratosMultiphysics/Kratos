@@ -199,8 +199,6 @@ protected:
 
     ///@}
 
-private:
-
     ///@name Private Classes
     ///@{
 
@@ -241,9 +239,10 @@ private:
         // These should all be FALSE unless you are testing, or
         // investigating the effects of element enhancements!
 
-        const bool basicTriCST = false;    // bool to use basic CST
-        // displacement-based shear formulation. This should be FALSE unless
-        // you are testing
+        int shearFormulation = 0; // Runtime shear formulation choice, read from
+        // Properties[SHELL_SHEAR_FORMULATION] in InitializeCalculationData:
+        // 0 = DSG (default), 1 = basic CST one-point integration, 2 = basic CST full integration.
+        // Values 1 and 2 are testing-only alternatives to the default DSG formulation.
 
         const bool ignore_shear_stabilization = false; // bool to
         // ignore stabilizing the transverse shear part of the material
@@ -305,6 +304,12 @@ private:
 
     ///@}
 
+    void CalculateSectionResponse(CalculationData& data);
+
+    void InitializeCalculationData(CalculationData& data);
+
+private:
+
     ///@name Private Operations
     ///@{
     void CalculateStressesFromForceResultants
@@ -322,10 +327,6 @@ private:
     void CalculateShellElementEnergy(const CalculationData& data, const Variable<double>& rVariable, double& rEnergy_Result);
 
     void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& iJob, bool& bGlobal);
-
-    void CalculateSectionResponse(CalculationData& data);
-
-    void InitializeCalculationData(CalculationData& data);
 
     void CalculateDSGc3Contribution(CalculationData& data, MatrixType& rLeftHandSideMatrix);
 
