@@ -111,13 +111,13 @@ protected:
     ///@}
 
 private:
-    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
-    Vector                                    mStressVector;
-    Vector                                    mStressVectorFinalized;
-    Vector                                    mDeltaStrainVector;
-    Vector                                    mStrainVectorFinalized;
-    bool                                      mIsModelInitialized = false;
-    Formulations::YoungsModulusVariant        mFormulation;
+    std::unique_ptr<ConstitutiveLawDimension>          mpConstitutiveDimension;
+    Vector                                             mStressVector;
+    Vector                                             mStressVectorFinalized;
+    Vector                                             mDeltaStrainVector;
+    Vector                                             mStrainVectorFinalized;
+    bool                                               mIsModelInitialized = false;
+    GeoYoungsModulusFormulations::YoungsModulusVariant mFormulation;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
