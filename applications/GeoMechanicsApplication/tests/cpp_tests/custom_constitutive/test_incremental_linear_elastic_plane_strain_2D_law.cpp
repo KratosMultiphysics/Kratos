@@ -240,6 +240,9 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawChecksYoungModulusAndP
         "invalid value: 0.7 is out of the range (-1, 0.5).")
     properties.SetValue(POISSON_RATIO, 0.25);
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
+
+    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, "Constant"s);
+    KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
 } // namespace Kratos::Testing
