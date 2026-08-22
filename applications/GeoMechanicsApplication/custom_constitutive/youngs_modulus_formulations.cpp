@@ -20,22 +20,25 @@
 #include <limits>
 #include <type_traits>
 
-namespace Kratos::Formulations
+namespace Kratos
 {
-double Constant::operator()(const Properties&, double YoungsModulus, const Vector&) const
+double GeoYoungsModulusFormulations::Constant::operator()(const Properties&, double YoungsModulus, const Vector&) const
 {
     return YoungsModulus;
 }
 
-double Eur::operator()(const Properties& rProperties, double YoungsModulus, const Vector& rStressVectorFinalized) const
+double GeoYoungsModulusFormulations::Eur::operator()(const Properties& rProperties,
+                                                     double            YoungsModulus,
+                                                     const Vector&     rStressVectorFinalized) const
 {
-    return Formulations::CalculateYoungsModulusForEur(rProperties, YoungsModulus, rStressVectorFinalized);
+    return GeoYoungsModulusFormulations::CalculateYoungsModulusForEur(rProperties, YoungsModulus,
+                                                                      rStressVectorFinalized);
 }
 
-void CheckInputData(const Properties& rMaterialProperties)
+void GeoYoungsModulusFormulations::CheckInputData(const Properties& rMaterialProperties)
 {
     if (rMaterialProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) &&
-        rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == Formulations::Eur::Name) {
+        rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == GeoYoungsModulusFormulations::Eur::Name) {
         const CheckProperties check_properties(rMaterialProperties, "parameters of material",
                                                CheckProperties::Bounds::AllExclusive);
         check_properties.Check(GEO_PRESSURE_REFERENCE);
@@ -45,35 +48,37 @@ void CheckInputData(const Properties& rMaterialProperties)
     }
 }
 
-YoungsModulusVariant InitializeFormulation(const std::string& rFormulation)
+GeoYoungsModulusFormulations::YoungsModulusVariant GeoYoungsModulusFormulations::InitializeFormulation(const std::string& rFormulation)
 {
     if (rFormulation == Constant::Name) return Constant{};
     if (rFormulation == Eur::Name) return Eur{};
     KRATOS_ERROR << "Unknown GEO_YOUNGS_MODULUS_FORMULATION: " << rFormulation;
 }
 
-std::string GetYoungsModulusFormulation(const Properties& rProperties)
+std::string GeoYoungsModulusFormulations::GetYoungsModulusFormulation(const Properties& rProperties)
 {
     return rProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) ? rProperties[GEO_YOUNGS_MODULUS_FORMULATION]
-                                                           : Formulations::Constant::Name;
+                                                           : GeoYoungsModulusFormulations::Constant::Name;
 }
 
-std::string GetYoungsModulusFormulation(const YoungsModulusVariant& rFormulation)
+std::string GeoYoungsModulusFormulations::GetYoungsModulusFormulation(const YoungsModulusVariant& rFormulation)
 {
     return std::visit([](const auto& Formulation) -> std::string { return Formulation.Name; }, rFormulation);
 }
 
-double GetYoungsModulus(YoungsModulusVariant& rFormulation,
-                        const Properties&     rProperties,
-                        double                YoungsModulus,
-                        const Vector&         rStressVectorFinalized)
+double GeoYoungsModulusFormulations::GetYoungsModulus(YoungsModulusVariant& rFormulation,
+                                                      const Properties&     rProperties,
+                                                      double                YoungsModulus,
+                                                      const Vector&         rStressVectorFinalized)
 {
     return std::visit([&](const auto& formulation_functor) {
         return formulation_functor(rProperties, YoungsModulus, rStressVectorFinalized);
     }, rFormulation);
 }
 
-double CalculateYoungsModulusForEur(const Properties& rProperties, double YoungsModulus, const Vector& rStressVectorFinalized)
+double GeoYoungsModulusFormulations::CalculateYoungsModulusForEur(const Properties& rProperties,
+                                                                  double            YoungsModulus,
+                                                                  const Vector& rStressVectorFinalized)
 {
     constexpr auto epsilon = std::numeric_limits<double>::epsilon();
 
@@ -86,7 +91,7 @@ double CalculateYoungsModulusForEur(const Properties& rProperties, double Youngs
         rProperties[GEO_COHESION] * std::cos(friction_angle_rad) / std::sin(friction_angle_rad);
 
     const auto base =
-        (stress_shift - Formulations::CalculateMinorPrincipalEffectiveStress(rStressVectorFinalized)) /
+        (stress_shift - GeoYoungsModulusFormulations::CalculateMinorPrincipalEffectiveStress(rStressVectorFinalized)) /
         (stress_shift + reference_pressure);
 
     KRATOS_ERROR_IF_NOT(base > epsilon)
@@ -96,7 +101,7 @@ double CalculateYoungsModulusForEur(const Properties& rProperties, double Youngs
     return eur_ref * std::pow(base, exponent);
 }
 
-double CalculateMinorPrincipalEffectiveStress(const Vector& rStressVectorFinalized)
+double GeoYoungsModulusFormulations::CalculateMinorPrincipalEffectiveStress(const Vector& rStressVectorFinalized)
 {
     auto principal_stresses = Vector{};
     auto eigen_vectors      = Matrix{};
@@ -110,4 +115,4 @@ double CalculateMinorPrincipalEffectiveStress(const Vector& rStressVectorFinaliz
     return principal_stresses[2];
 }
 
-} // namespace Kratos::Formulations
+} // namespace Kratos
