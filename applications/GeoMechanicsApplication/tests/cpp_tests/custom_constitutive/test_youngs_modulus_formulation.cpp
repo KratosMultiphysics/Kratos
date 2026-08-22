@@ -16,13 +16,14 @@
 #include "includes/properties.h"
 #include "testing/testing.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Constant, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto formulation =
+    const auto formulation =
         GeoYoungsModulusFormulations::InitializeFormulation(GeoYoungsModulusFormulations::Constant::Name);
 
     KRATOS_EXPECT_TRUE(std::holds_alternative<GeoYoungsModulusFormulations::Constant>(formulation));
@@ -30,7 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Con
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Eur, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto formulation =
+    const auto formulation =
         GeoYoungsModulusFormulations::InitializeFormulation(GeoYoungsModulusFormulations::Eur::Name);
 
     KRATOS_EXPECT_TRUE(std::holds_alternative<GeoYoungsModulusFormulations::Eur>(formulation));
@@ -40,7 +41,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Err
 {
     const std::string invalid_name = "InvalidModel";
 
-    // Expect an exception to be thrown
     KRATOS_CHECK_EXCEPTION_IS_THROWN(GeoYoungsModulusFormulations::InitializeFormulation(invalid_name),
                                      "Unknown GEO_YOUNGS_MODULUS_FORMULATION: InvalidModel");
 }
@@ -58,7 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulusFormulati
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulusFormulation_FromProperties_NoValue,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Properties properties; // Empty properties
+    const Properties properties;
 
     KRATOS_EXPECT_EQ(GeoYoungsModulusFormulations::GetYoungsModulusFormulation(properties),
                      GeoYoungsModulusFormulations::Constant::Name);
@@ -67,9 +67,9 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulusFormulati
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulusFormulation_FromVariant,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    GeoYoungsModulusFormulations::YoungsModulusVariant var = GeoYoungsModulusFormulations::Eur{};
+    const GeoYoungsModulusFormulations::YoungsModulusVariant variant = GeoYoungsModulusFormulations::Eur{};
 
-    KRATOS_EXPECT_EQ(GeoYoungsModulusFormulations::GetYoungsModulusFormulation(var),
+    KRATOS_EXPECT_EQ(GeoYoungsModulusFormulations::GetYoungsModulusFormulation(variant),
                      GeoYoungsModulusFormulations::Eur::Name);
 }
 
@@ -78,15 +78,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateMinorPrincipalEf
 {
     const auto stress_vector_finalized = UblasUtilities::CreateVector({-10.0, 5.0, 20.0, 0.0, 0.0, 0.0});
 
-    double result = GeoYoungsModulusFormulations::CalculateMinorPrincipalEffectiveStress(stress_vector_finalized);
-
-    KRATOS_EXPECT_DOUBLE_EQ(result, -10.0);
+    const auto result =
+        GeoYoungsModulusFormulations::CalculateMinorPrincipalEffectiveStress(stress_vector_finalized);
+    constexpr auto expected_value = -10.0;
+    KRATOS_EXPECT_DOUBLE_EQ(result, expected_value);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateMinorPrincipalEffectiveStress_TooSmallVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto stress_vector_finalized = Vector(3, 0.0);
+    const auto stress_vector_finalized = Vector(3, 0.0);
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         GeoYoungsModulusFormulations::CalculateMinorPrincipalEffectiveStress(stress_vector_finalized), "Could not compute principal stresses from stress vector with size 3. Expected at least 3 principal stresses, got 2");
@@ -101,23 +102,13 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusFor
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
 
-    auto stress_vector_finalized = UblasUtilities::CreateVector({0.0, 0.0, 50.0, 0.0, 0.0, 0.0});
+    constexpr auto youngs_input = 20000.0;
+    const auto stress_vector_finalized = UblasUtilities::CreateVector({0.0, 0.0, 5.0, 0.0, 0.0, 0.0});
 
-    double youngs_input = 20000.0;
-    double result       = GeoYoungsModulusFormulations::CalculateYoungsModulusForEur(
+    const auto result = GeoYoungsModulusFormulations::CalculateYoungsModulusForEur(
         properties, youngs_input, stress_vector_finalized);
-
-    // Manual calculation check:
-    // friction_angle = 30 -> sin=0.5, cos=sqrt(3)/2
-    // stress_shift = 10 * (sqrt(3)/2) / 0.5 = 10 * sqrt(3) ~ 17.32
-    // base = (17.32 - 50) / (17.32 + 100) -> This will be negative! Should throw.
-
-    // Let's use values that yield a positive base
-    stress_vector_finalized[2] = 5.0; // Lower minor stress
-    result = GeoYoungsModulusFormulations::CalculateYoungsModulusForEur(properties, youngs_input,
-                                                                        stress_vector_finalized);
-
-    KRATOS_EXPECT_GT(result, 0.0);
+    constexpr auto expected_value = 7684.64;
+    KRATOS_EXPECT_RELATIVE_NEAR(result, expected_value, Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusForEur_NegativeBaseError,
@@ -128,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusFor
     properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 0.5);
     properties.SetValue(GEO_COHESION, 1.0);
     properties.SetValue(GEO_FRICTION_ANGLE, 5.0);
-    double reference_youngs_modulus = 20000.0;
+    constexpr auto reference_youngs_modulus = 20000.0;
     const auto stress_vector_finalized = UblasUtilities::CreateVector({500.0, 200.0, 500.0, 0.0, 0.0, 0.0});
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(GeoYoungsModulusFormulations::CalculateYoungsModulusForEur(
@@ -141,10 +132,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulus_Dispatch
 {
     GeoYoungsModulusFormulations::YoungsModulusVariant variant = GeoYoungsModulusFormulations::Constant{};
     Properties properties;
-    Vector     dummy_stress = ZeroVector(6);
+    const auto dummy_stress = Vector(6, 0.0);
 
-    double reference_youngs_modulus = 15000.0;
-    double result                   = GeoYoungsModulusFormulations::GetYoungsModulus(
+    constexpr auto reference_youngs_modulus = 15000.0;
+    const auto     result                   = GeoYoungsModulusFormulations::GetYoungsModulus(
         variant, properties, reference_youngs_modulus, dummy_stress);
 
     KRATOS_EXPECT_DOUBLE_EQ(result, reference_youngs_modulus);
@@ -160,16 +151,15 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulus_Dispatch
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
 
-    Vector stress_vector_finalized(6);
-    stress_vector_finalized[2] = 5.0;
+    const auto stress_vector_finalized = UblasUtilities::CreateVector({0.0, 0.0, 5.0, 0.0, 0.0, 0.0});
 
-    double reference_youngs_modulus = 20000.0;
-    double result                   = GeoYoungsModulusFormulations::GetYoungsModulus(
+    constexpr auto reference_youngs_modulus = 20000.0;
+    const auto     result                   = GeoYoungsModulusFormulations::GetYoungsModulus(
         variant, properties, reference_youngs_modulus, stress_vector_finalized);
 
-    // Just ensure it runs without throwing and returns something plausible
-    KRATOS_EXPECT_NE(result, reference_youngs_modulus); // Eur should degrade modulus based on strain/pressure logic
-    KRATOS_EXPECT_GT(result, 0.0);
+    KRATOS_EXPECT_NE(result, reference_youngs_modulus);
+    constexpr auto expected_value = 7684.64;
+    KRATOS_EXPECT_RELATIVE_NEAR(result, expected_value, Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CheckInputData_PassesForConstant,
