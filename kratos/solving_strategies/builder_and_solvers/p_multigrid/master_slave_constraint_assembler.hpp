@@ -21,8 +21,7 @@ namespace Kratos {
 
 
 template <class TSparse, class TDense>
-class MasterSlaveConstraintAssembler final : public ConstraintAssembler<TSparse,TDense>
-{
+class MasterSlaveConstraintAssembler final : public ConstraintAssembler<TSparse,TDense> {
 public:
     using Base = ConstraintAssembler<TSparse,TDense>;
     using DofSetType = typename Base::DofSet;
@@ -37,45 +36,58 @@ public:
     ~MasterSlaveConstraintAssembler();
 
     /// @copydoc Base::AllocateConstraints
-    void AllocateConstraints(PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintBegin,
-                             PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintEnd,
-                             const ProcessInfo& rProcessInfo,
-                             typename Base::DofSet::const_iterator itDofBegin,
-                             typename Base::DofSet::const_iterator itDofEnd) override;
+    void AllocateConstraints(
+        PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintBegin,
+        PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintEnd,
+        const ProcessInfo& rProcessInfo,
+        typename Base::DofSet::const_iterator itDofBegin,
+        typename Base::DofSet::const_iterator itDofEnd) override;
 
     /// @copydoc Base::Assemble
-    void Assemble(const typename Base::ConstraintArray& rConstraints,
-                  const ProcessInfo& rProcessInfo,
-                  typename Base::DofSet::const_iterator itDofBegin,
-                  typename Base::DofSet::const_iterator itDofEnd,
-                  const bool AssembleLhs,
-                  const bool AssembleRhs) override;
+    void Assemble(
+        const typename Base::ConstraintArray& rConstraints,
+        const ProcessInfo& rProcessInfo,
+        typename Base::DofSet::const_iterator itDofBegin,
+        typename Base::DofSet::const_iterator itDofEnd,
+        const bool AssembleLhs,
+        const bool AssembleRhs) override;
 
     /// @copydoc Base::Initialize
-    void Initialize(typename TSparse::MatrixType& rLhs,
-                    typename TSparse::VectorType& rSolution,
-                    typename TSparse::VectorType& rRhs,
-                    typename Base::DofSet& rDofs) override;
+    void Initialize(
+        typename TSparse::MatrixType& rLhs,
+        typename TSparse::VectorType& rSolution,
+        typename TSparse::VectorType& rRhs,
+        typename Base::DofSet& rDofs) override;
 
     /// @copydoc Base::FinalizeSolutionStep
-    bool FinalizeConstraintIteration(typename TSparse::MatrixType& rLhs,
-                                     typename TSparse::VectorType& rSolution,
-                                     typename TSparse::VectorType& rRhs,
-                                     typename Base::DofSet::iterator itDofBegin,
-                                     typename Base::DofSet::iterator itDofEnd,
-                                     PMGStatusStream::Report& rReport,
-                                     PMGStatusStream& rStream) override;
+    bool FinalizeConstraintIteration(
+        typename TSparse::MatrixType& rLhs,
+        typename TSparse::VectorType& rSolution,
+        typename TSparse::VectorType& rRhs,
+        typename Base::DofSet::iterator itDofBegin,
+        typename Base::DofSet::iterator itDofEnd,
+        PMGStatusStream::Report& rReport,
+        PMGStatusStream& rStream) override;
 
     /// @copydoc Base::Finalize
-    void Finalize(typename TSparse::MatrixType& rLhs,
-                  typename TSparse::VectorType& rSolution,
-                  typename TSparse::VectorType& rRhs,
-                  typename Base::DofSet& rDofSet) override;
+    void Finalize(
+        typename TSparse::MatrixType& rLhs,
+        typename TSparse::VectorType& rSolution,
+        typename TSparse::VectorType& rRhs,
+        typename Base::DofSet& rDofSet) override;
 
     /// @copydoc Base::ComputeDependentResidual
     void ComputeIndependentResidual(typename TSparse::VectorType& rResidual) const override;
 
     /// @copydoc Base::ComputeDependentResidual
+    /// @details Given @f$r_v@f$, computes
+    ///          @f[
+    ///             r_u = T (T^T T)^{-1} r_v
+    ///          @f]
+    ///          using the provided linear solver for the action of @f$(T^T T)^{-1}@f$, where
+    ///          - @f$r_v@f$ is the independent residual,
+    ///          - @f$T@f$ is the relation matrix, and
+    ///          - @f$r_u@f$ is the dependent residual.
     void ComputeDependentResidual(typename TSparse::VectorType& rResidual) const override;
 
     /// @copydoc Base::ComputeIndependentSolution
