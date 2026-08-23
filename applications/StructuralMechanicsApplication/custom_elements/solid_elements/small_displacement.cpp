@@ -90,19 +90,6 @@ Element::Pointer SmallDisplacement::Clone (
     KRATOS_CATCH("");
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-
-//void SmallDisplacement::ComputeStiffnessDerivative(
-//        std::span<const IAdjoint::DynamicVariable> Variables,
-//        const ProcessInfo& rProcessInfo,
-//        Matrix& rOutput) const {
-//            KRATOS_TRY
-//
-//            KRATOS_CATCH("")
-//}
-
 
 /***********************************************************************************/
 /***********************************************************************************/
