@@ -80,6 +80,46 @@ public:
 
     double CalculateValue(ModelPart& rModelPart) override;
 
+    /// @copydoc AdjointResponseFunction::GetStateVariables(std::vector<IAdjoint::DynamicVariable>&,const Element&,const ProcessInfo&) const
+    void GetStateVariables(
+        std::vector<IAdjoint::DynamicVariable>& rVariables,
+        const Element& rElement,
+        const ProcessInfo& rProcessInfo) const override;
+
+    /// @copydoc AdjointResponseFunction::GetStateVariables(std::vector<IAdjoint::DynamicVariable>&,const Condition&,const ProcessInfo&) const
+    void GetStateVariables(
+        std::vector<IAdjoint::DynamicVariable>& rVariables,
+        const Condition& rCondition,
+        const ProcessInfo& rProcessInfo) const override;
+
+    /// @copydoc AdjointResponseFunction::GetDesignVariables(std::vector<IAdjoint::DynamicVariable>&,const Element&,const ProcessInfo&) const
+    void GetDesignVariables(
+        std::vector<IAdjoint::DynamicVariable>& rVariables,
+        const Element& rElement,
+        const ProcessInfo& rProcessInfo) const override;
+
+    /// @copydoc AdjointResponseFunction::GetDesignVariables(std::vector<IAdjoint::DynamicVariable>&,const Condition&,const ProcessInfo&) const
+    void GetDesignVariables(
+        std::vector<IAdjoint::DynamicVariable>& rVariables,
+        const Condition& rCondition,
+        const ProcessInfo& rProcessInfo) const override;
+
+    /// @copydoc AdjointResponseFunction::ComputeDerivative(Vector&,const Element&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
+    void ComputeDerivative(
+        Vector& rOutput,
+        const Element& rElement,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer = 0) const override;
+
+    /// @copydoc AdjointResponseFunction::ComputeDerivative(Vector&,const Condition&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
+    void ComputeDerivative(
+        Vector& rOutput,
+        const Condition& rCondition,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer = 0) const override;
+
     void CalculateGradient(
         const Element& rAdjointElement,
         const Matrix& rResidualGradient,
