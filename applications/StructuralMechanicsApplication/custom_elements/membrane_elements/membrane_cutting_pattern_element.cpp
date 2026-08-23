@@ -335,6 +335,9 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
     this->CovariantMetric(current_metric, rCurrentBaseVectors);
     this->ContravariantMetric(rCurrentContravariantMetric, current_metric);
 
+    array_1d<Vector, 2> current_contravariant_base_vectors;
+    this->ContraVariantBaseVectors(current_contravariant_base_vectors, rCurrentContravariantMetric, rCurrentBaseVectors);
+
     this->JacobiDeterminante(rDetJReference, rReferenceBaseVectors);
     this->JacobiDeterminante(rDetJCurrent, rCurrentBaseVectors);
 
@@ -371,7 +374,7 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
       }
     }
 
-    this->PreStress(rSigmaP);
+    this->PreStress(rSigmaP, current_contravariant_base_vectors);
   }
 
 
@@ -1813,7 +1816,7 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
   }
 
 
-  void MembraneCuttingPatternElement::PreStress(Matrix& rPreStress/*, const array_1d<Vector, 2>& rTransformedBaseVectors*/)//TO DO
+  void MembraneCuttingPatternElement::PreStress(Matrix& rPreStress, const array_1d<Vector, 2>& rTransformedBaseVectors)
   {
 
     rPreStress = ZeroMatrix(2);
@@ -1822,9 +1825,7 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
      if (GetProperties().Has(PRESTRESS_VECTOR)) {
        rPreStress_vector = GetProperties()(PRESTRESS_VECTOR);
 
-       rPreStress = MathUtils<double>::StressVectorToTensor(rPreStress_vector);
-
-       /*if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2)) {
+       if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2)) {
 
          array_1d<array_1d<double, 3>, 2> local_prestress_axis;
          local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
@@ -1832,7 +1833,7 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
 
          Matrix transformation_matrix = ZeroMatrix(3);
          InPlaneTransformationMatrix(transformation_matrix, rTransformedBaseVectors, local_prestress_axis);
-         rPreStress = prod(transformation_matrix, rPreStress);
+         rPreStress_vector = prod(transformation_matrix, rPreStress_vector);
 
        }
        else if (Has(LOCAL_PRESTRESS_AXIS_1)) {
@@ -1847,8 +1848,10 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
 
          Matrix transformation_matrix = ZeroMatrix(3);
          InPlaneTransformationMatrix(transformation_matrix, rTransformedBaseVectors, local_prestress_axis);
-         rPreStress = prod(transformation_matrix, rPreStress);
-       }*/
+         rPreStress_vector = prod(transformation_matrix, rPreStress_vector);
+       }
+
+       rPreStress = MathUtils<double>::StressVectorToTensor(rPreStress_vector);
      }
   }
 

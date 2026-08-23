@@ -246,8 +246,9 @@ namespace Kratos
       const double PoissonRatio);
 
     void PreStress(
-      Matrix& rPreStress/*,
-      const array_1d<Vector, 2>& rTransformedBaseVectors*/);
+      Matrix& rPreStress,
+      const array_1d<Vector, 
+      2>& rTransformedBaseVectors);
 
 
   private:
