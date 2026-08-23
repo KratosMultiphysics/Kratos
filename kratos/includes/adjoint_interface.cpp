@@ -22,20 +22,6 @@
 namespace Kratos {
 
 
-void IAdjoint::GetStateVariables(
-    std::vector<IAdjoint::DynamicVariable>&,
-    const ProcessInfo&) const {
-        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
-}
-
-
-void IAdjoint::GetInfluencingVariables(
-    std::vector<IAdjoint::DynamicVariable>&,
-    const ProcessInfo&) const {
-        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
-}
-
-
 void IAdjointElement::GetInfluencingVariables(
     std::vector<IAdjoint::DynamicVariable>& rOutput,
     const ProcessInfo& rProcessInfo) const {

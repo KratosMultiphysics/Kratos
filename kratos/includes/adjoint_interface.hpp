@@ -106,25 +106,6 @@ public:
 
     virtual ~IAdjoint() = default;
 
-    /// @name Variable Query
-    /// @{
-
-    /// @brief Collect all scalar state variables.
-    /// @param[out] rOutput Range of scalar variables this function will populate.
-    /// @param[in] rProcessInfo Current state of the computing model part.
-    virtual void GetStateVariables(
-        std::vector<DynamicVariable>& rOutput,
-        const ProcessInfo& rProcessInfo) const;
-
-    /// @brief Collect all scalar variables the entity depends on.
-    /// @param[out] rOutput Range of scalar variables this function will populate.
-    /// @param[in] rProcessInfo Current state of the computing model part.
-    virtual void GetInfluencingVariables(
-        std::vector<DynamicVariable>& rOutput,
-        const ProcessInfo& rProcessInfo) const;
-
-    /// @}
-
     static constexpr std::string_view TermName(ResidualTerm Term) noexcept {
         switch (Term) {
             case ResidualTerm::Load: return "Load";             break;
@@ -163,7 +144,7 @@ public:
     /// @copydoc IAdjoint::GetInfluencingVariables
     void GetInfluencingVariables(
         std::vector<IAdjoint::DynamicVariable>& rOutput,
-        const ProcessInfo& rProcessInfo) const final override;
+        const ProcessInfo& rProcessInfo) const;
 
     /// @brief Collect all variables influencing a specific term of the residual.
     /// @tparam Term Term of the residual to be queried.

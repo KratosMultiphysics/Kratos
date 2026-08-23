@@ -29,22 +29,6 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
         "IAdjoint");
     adjoint_interface_bindings
         .def(pybind11::init<>())
-        .def(
-            "GetStateVariables",
-            [] (
-                const IAdjoint& rThis,
-                const ProcessInfo& rProcessInfo) {
-                    std::vector<IAdjoint::DynamicVariable> output;
-                    rThis.GetStateVariables(output, rProcessInfo);
-                    return output;})
-        .def(
-            "GetInfluencingVariables",
-            [] (
-                const IAdjoint& rThis,
-                const ProcessInfo& rProcessInfo) {
-                    std::vector<IAdjoint::DynamicVariable> output;
-                    rThis.GetInfluencingVariables(output, rProcessInfo);
-                    return output;})
         .def_static(
             "TermName",
             &IAdjoint::TermName)
