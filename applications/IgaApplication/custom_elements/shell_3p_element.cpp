@@ -1527,138 +1527,138 @@ namespace Kratos
     void Shell3pElement::ComputeStiffnessDerivative(
         Matrix& rOutput,
         std::span<const IAdjoint::DynamicVariable> Variables,
-        const Vector& rValues,
         const ProcessInfo& rProcessInfo,
-        int iBuffer)const
-    {
-        KRATOS_TRY
-            // Define the finite differencing utility
-            // that will be used for approximating derivatives.
-            using Utility = AdjointFiniteDifferenceUtility<
-                IAdjoint::ResidualTerm::Stiffness,
-                Element>;
+        int iBuffer)const {
+            KRATOS_TRY
+                // Define the finite differencing utility
+                // that will be used for approximating derivatives.
+                using Utility = AdjointFiniteDifferenceUtility<
+                    IAdjoint::ResidualTerm::Stiffness,
+                    Element>;
 
-            // Default perturbation
-            double default_perturbation_magnitude = 1e-6;
-            double shape_perturbation_magnitude = default_perturbation_magnitude;
+                // Default perturbation
+                double default_perturbation_magnitude = 1e-6;
+                double shape_perturbation_magnitude = default_perturbation_magnitude;
 
-            if (this->Has(PERTURBATION_SIZE)) {
-                default_perturbation_magnitude = this->GetValue(PERTURBATION_SIZE);
-                shape_perturbation_magnitude = default_perturbation_magnitude;
-            } else if (this->GetProperties().Has(PERTURBATION_SIZE)) {
-                default_perturbation_magnitude = this->GetProperties()[PERTURBATION_SIZE];
-                shape_perturbation_magnitude = default_perturbation_magnitude;
-            } else if (rProcessInfo.Has(PERTURBATION_SIZE)) {
-                default_perturbation_magnitude = rProcessInfo[PERTURBATION_SIZE];
-                shape_perturbation_magnitude = default_perturbation_magnitude;
-            } else {
-                // Assign a default perturbation magnitude for nodal coordinates if necesssary.
-                const bool require_shape_derivatives = std::find_if(
-                    Variables.begin(),
-                    Variables.end(),
-                    [] (const IAdjoint::DynamicVariable& rVariable) -> bool {
-                        return rVariable.SourceKey() == SHAPE.SourceKey()
-                            || rVariable.SourceKey() == DISPLACEMENT.SourceKey();}
-                ) != Variables.end();
-                if (require_shape_derivatives) {
-                    shape_perturbation_magnitude = std::sqrt(default_perturbation_magnitude) * this->GetGeometry().DomainSize();
-                } // if require_shape_derivatives
-            }
+                if (this->Has(PERTURBATION_SIZE)) {
+                    default_perturbation_magnitude = this->GetValue(PERTURBATION_SIZE);
+                    shape_perturbation_magnitude = default_perturbation_magnitude;
+                } else if (this->GetProperties().Has(PERTURBATION_SIZE)) {
+                    default_perturbation_magnitude = this->GetProperties()[PERTURBATION_SIZE];
+                    shape_perturbation_magnitude = default_perturbation_magnitude;
+                } else if (rProcessInfo.Has(PERTURBATION_SIZE)) {
+                    default_perturbation_magnitude = rProcessInfo[PERTURBATION_SIZE];
+                    shape_perturbation_magnitude = default_perturbation_magnitude;
+                } else {
+                    // Assign a default perturbation magnitude for nodal coordinates if necesssary.
+                    const bool require_shape_derivatives = std::find_if(
+                        Variables.begin(),
+                        Variables.end(),
+                        [] (const IAdjoint::DynamicVariable& rVariable) -> bool {
+                            return rVariable.SourceKey() == SHAPE.SourceKey()
+                                || rVariable.SourceKey() == DISPLACEMENT.SourceKey();}
+                    ) != Variables.end();
+                    if (require_shape_derivatives) {
+                        shape_perturbation_magnitude = std::sqrt(default_perturbation_magnitude) * this->GetGeometry().DomainSize();
+                    } // if require_shape_derivatives
+                }
 
-            // Assemble a list of perturbations. These include the
-            // variable to be perturbed, where it is stored (context)
-            // and how big the perturbation should be.
-            std::vector<Utility::Perturbation> perturbations;
-            perturbations.reserve(Variables.size());
-            for (const IAdjoint::DynamicVariable& r_variable : Variables) {
-                bool found_variable = true;
+                // Assemble a list of perturbations. These include the
+                // variable to be perturbed, where it is stored (context)
+                // and how big the perturbation should be.
+                std::vector<Utility::Perturbation> perturbations;
+                perturbations.reserve(Variables.size());
+                for (const IAdjoint::DynamicVariable& r_variable : Variables) {
+                    bool found_variable = true;
 
-                switch (r_variable.Key()) {
-                    // Buffered variables in nodes.
-                    case DISPLACEMENT_X.Key():
-                    case DISPLACEMENT_Y.Key():
-                    case DISPLACEMENT_Z.Key():
-                        perturbations.push_back({
-                            .mVariable = r_variable,
-                            .mContext = Globals::DataLocation::NodeHistorical,
-                            .mMagnitude = shape_perturbation_magnitude});
-                        break;
+                    switch (r_variable.Key()) {
+                        // Buffered variables in nodes.
+                        case DISPLACEMENT_X.Key():
+                        case DISPLACEMENT_Y.Key():
+                        case DISPLACEMENT_Z.Key():
+                            perturbations.push_back({
+                                .mVariable = r_variable,
+                                .mContext = Globals::DataLocation::NodeHistorical,
+                                .mMagnitude = shape_perturbation_magnitude});
+                            break;
 
-                    // Unbuffered variables in nodes.
-                    case SHAPE_X.Key():
-                    case SHAPE_Y.Key():
-                    case SHAPE_Z.Key():
-                        perturbations.push_back({
-                            .mVariable = r_variable,
-                            .mContext = Globals::DataLocation::NodeNonHistorical,
-                            .mMagnitude = shape_perturbation_magnitude});
-                        break;
+                        // Unbuffered variables in nodes.
+                        case SHAPE_X.Key():
+                        case SHAPE_Y.Key():
+                        case SHAPE_Z.Key():
+                            perturbations.push_back({
+                                .mVariable = r_variable,
+                                .mContext = Globals::DataLocation::NodeNonHistorical,
+                                .mMagnitude = shape_perturbation_magnitude});
+                            break;
 
-                    // Variables in Properties (that map to elements):
-                    case THICKNESS.Key(): {
-                        const double perturbation_magnitude = default_perturbation_magnitude * this->GetProperties().Data().template GetValue<double>(r_variable);
-                        perturbations.push_back({
-                            .mVariable = r_variable,
-                            .mContext = Globals::DataLocation::Element,
-                            .mMagnitude = perturbation_magnitude});
-                        break;
-                    }
-
-                    // Unknown variable.
-                    default:
-                        found_variable = false;
-                } // switch r_variable.Key()
-
-                // Try subcomponents if the variable is unknown by the element.
-                if (!found_variable) {
-                    if (this->GetProperties().Has(CONSTITUTIVE_LAW)) {
-                        std::vector<IAdjoint::DynamicVariable> constitutive_law_variables;
-                        this->GetProperties()[CONSTITUTIVE_LAW]->GetInfluencingVariables<IAdjoint::ResidualTerm::Stiffness>(
-                            constitutive_law_variables,
-                            rProcessInfo);
-                        found_variable = std::find(
-                            constitutive_law_variables.begin(),
-                            constitutive_law_variables.end(),
-                            r_variable) != constitutive_law_variables.end();
-                        if (found_variable) {
-                            const double reference_value = this->GetProperties().Data().template GetValue<double>(r_variable);
-                            const double perturbation_magnitude = reference_value
-                                ? reference_value * default_perturbation_magnitude
-                                : default_perturbation_magnitude;
+                        // Variables in Properties (that map to elements):
+                        case THICKNESS.Key(): {
+                            const double perturbation_magnitude = default_perturbation_magnitude * this->GetProperties().Data().template GetValue<double>(r_variable);
                             perturbations.push_back({
                                 .mVariable = r_variable,
                                 .mContext = Globals::DataLocation::Element,
                                 .mMagnitude = perturbation_magnitude});
+                            break;
                         }
-                    }
-                } // if not found_variable
 
-                KRATOS_ERROR_IF_NOT(found_variable)
-                    << "the stiffness term "
-                    << "of element " << this->Id() << " "
-                    << "does not depend on " << r_variable.Name();
-            } // for r_variable in Variables
+                        // Unknown variable.
+                        default:
+                            found_variable = false;
+                    } // switch r_variable.Key()
 
-            // Instantiate the utility and compute finite differences.
-            Utility utility;
-            utility.FiniteDifferenceDerivative(
-                *this,
-                rValues,
-                perturbations,
-                rOutput,
-                iBuffer,
-                rProcessInfo);
+                    // Try subcomponents if the variable is unknown by the element.
+                    if (!found_variable) {
+                        if (this->GetProperties().Has(CONSTITUTIVE_LAW)) {
+                            std::vector<IAdjoint::DynamicVariable> constitutive_law_variables;
+                            this->GetProperties()[CONSTITUTIVE_LAW]->GetInfluencingVariables<IAdjoint::ResidualTerm::Stiffness>(
+                                constitutive_law_variables,
+                                rProcessInfo);
+                            found_variable = std::find(
+                                constitutive_law_variables.begin(),
+                                constitutive_law_variables.end(),
+                                r_variable) != constitutive_law_variables.end();
+                            if (found_variable) {
+                                const double reference_value = this->GetProperties().Data().template GetValue<double>(r_variable);
+                                const double perturbation_magnitude = reference_value
+                                    ? reference_value * default_perturbation_magnitude
+                                    : default_perturbation_magnitude;
+                                perturbations.push_back({
+                                    .mVariable = r_variable,
+                                    .mContext = Globals::DataLocation::Element,
+                                    .mMagnitude = perturbation_magnitude});
+                            }
+                        }
+                    } // if not found_variable
 
-        KRATOS_CATCH("")
+                    KRATOS_ERROR_IF_NOT(found_variable)
+                        << "the stiffness term "
+                        << "of element " << this->Id() << " "
+                        << "does not depend on " << r_variable.Name();
+                } // for r_variable in Variables
+
+                Vector state;
+                this->GetValuesVector(state, iBuffer);
+
+                // Instantiate the utility and compute finite differences.
+                Utility utility;
+                utility.FiniteDifferenceDerivative(
+                    *this,
+                    state,
+                    perturbations,
+                    rOutput,
+                    iBuffer,
+                    rProcessInfo);
+            KRATOS_CATCH("")
     }
 
     void Shell3pElement::ComputeMassDerivative(
         Matrix& rOutput,
         std::span<const IAdjoint::DynamicVariable> Variables,
-        const Vector& rValues,
         const ProcessInfo& rProcessInfo,
-        int iBuffer) const
-    {}
+        int iBuffer) const {
+            KRATOS_ERROR << "not implemented";
+    }
 
     ///@}
     ///@name Dynamic Functions
