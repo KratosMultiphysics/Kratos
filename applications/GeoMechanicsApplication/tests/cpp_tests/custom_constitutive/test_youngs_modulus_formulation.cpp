@@ -9,12 +9,9 @@
 //
 //  Main authors:    Gennady Markelov
 
-#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/youngs_modulus_formulations.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/properties.h"
-#include "testing/testing.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
