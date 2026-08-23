@@ -26,7 +26,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Con
     const auto formulation =
         GeoYoungsModulusFormulations::InitializeFormulation(GeoYoungsModulusFormulations::Constant::Name);
 
-    KRATOS_EXPECT_TRUE(std::holds_alternative<GeoYoungsModulusFormulations::Constant>(formulation));
+    KRATOS_EXPECT_TRUE(std::holds_alternative<GeoYoungsModulusFormulations::Constant>(formulation))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Eur, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -34,7 +34,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Eur
     const auto formulation =
         GeoYoungsModulusFormulations::InitializeFormulation(GeoYoungsModulusFormulations::Eur::Name);
 
-    KRATOS_EXPECT_TRUE(std::holds_alternative<GeoYoungsModulusFormulations::Eur>(formulation));
+    KRATOS_EXPECT_TRUE(std::holds_alternative<GeoYoungsModulusFormulations::Eur>(formulation))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Error, KratosGeoMechanicsFastSuiteWithoutKernel)
