@@ -92,12 +92,12 @@ jobs:
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/bin/gcc-14
-          export CXX=/usr/bin/g++-12
+          export CXX=/usr/bin/g++-14
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=/usr/bin/clang-18
-          export CXX=/usr/bin/clang++-14
+          export CXX=/usr/bin/clang++-18
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/"
         else
@@ -114,12 +114,12 @@ jobs:
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/bin/gcc-14
-          export CXX=/usr/bin/g++-12
+          export CXX=/usr/bin/g++-14
           export KRATOS_CMAKE_OPTIONS_FLAGS=""
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=/usr/bin/clang-18
-          export CXX=/usr/bin/clang++-14
+          export CXX=/usr/bin/clang++-18
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           export KRATOS_CMAKE_OPTIONS_FLAGS=""
         else
@@ -136,12 +136,12 @@ jobs:
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/bin/gcc-14
-          export CXX=/usr/bin/g++-12
+          export CXX=/usr/bin/g++-14
           export KRATOS_CMAKE_OPTIONS_FLAGS=""
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=/usr/bin/clang-18
-          export CXX=/usr/bin/clang++-14
+          export CXX=/usr/bin/clang++-18
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           export KRATOS_CMAKE_OPTIONS_FLAGS=""
         else
@@ -370,7 +370,7 @@ jobs:
       shell: bash
       run: |
         export CC=/usr/bin/clang-18
-        export CXX=/usr/bin/clang++-14
+        export CXX=/usr/bin/clang++-18
 
         export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
         export KRATOS_BUILD="${KRATOS_SOURCE}/build"
