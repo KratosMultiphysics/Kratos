@@ -114,6 +114,34 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLaw_ReturnsTrueForStenber
     KRATOS_EXPECT_TRUE(is_suitable)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLaw_CopyAssignmentCopiesInternalState,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Act
+    auto       law        = CreateIncrementalLinearElastic3DLaw();
+    const auto properties = SetBasicPropertiesFor3D();
+    auto       stress     = Calculate3DStress(law, properties);
+
+    auto assigned_law = law;
+
+    auto initial_parameters = ConstitutiveLaw::Parameters{};
+    auto initial_strain     = Vector{ScalarVector{6, 0.5}};
+    initial_parameters.SetStrainVector(initial_strain);
+    auto initial_stress = Vector{ScalarVector{6, 1e6}};
+    initial_parameters.SetStressVector(initial_stress);
+    initial_parameters.SetMaterialProperties(properties);
+    law.InitializeMaterialResponseCauchy(initial_parameters);
+    const auto stress_after_initialization = Calculate3DStress(law, properties);
+
+    // Act
+    const auto stress_assigned_law = Calculate3DStress(assigned_law, properties);
+
+    // Assert
+    constexpr auto tolerance = 1.0e-4;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(stress, stress_assigned_law, tolerance)
+    KRATOS_EXPECT_FALSE((std::abs((stress_after_initialization[0] - stress[0]) / stress[0]) <= tolerance))
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law = CreateIncrementalLinearElastic3DLaw();
