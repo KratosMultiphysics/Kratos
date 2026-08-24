@@ -15,9 +15,10 @@
 
 #include "custom_retention/retention_law.h"
 #include "custom_retention/retention_law_factory.h"
-#include "custom_retention/van_genuchten_law.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
 #include "custom_retention/saturated_law.h"
+#include "custom_retention/van_genuchten_law.h"
+
 namespace Kratos::Python
 {
 
@@ -29,23 +30,20 @@ void AddRetentionLawsToPython(const pybind11::module& rModule)
         .def("CalculateDerivativeOfSaturation", &RetentionLaw::CalculateDerivativeOfSaturation)
         .def("CalculateRelativePermeability", &RetentionLaw::CalculateRelativePermeability);
 
-
-    pybind11::class_<SaturatedLaw, SaturatedLaw::Pointer>(rModule, "SaturatedLaw",
-                                                                pybind11::module_local())
+    pybind11::class_<SaturatedLaw, SaturatedLaw::Pointer>(rModule, "SaturatedLaw", pybind11::module_local())
         .def(pybind11::init<>())
         .def("CalculateSaturation", &SaturatedLaw::CalculateSaturation)
         .def("CalculateEffectiveSaturation", &SaturatedLaw::CalculateEffectiveSaturation)
         .def("CalculateDerivativeOfSaturation", &SaturatedLaw::CalculateDerivativeOfSaturation)
         .def("CalculateRelativePermeability", &SaturatedLaw::CalculateRelativePermeability);
-    
-    pybind11::class_<SaturatedBelowPhreaticLevelLaw, SaturatedBelowPhreaticLevelLaw::Pointer>(rModule, "SaturatedBelowPhreaticLevelLaw",
-                                                                pybind11::module_local())
+
+    pybind11::class_<SaturatedBelowPhreaticLevelLaw, SaturatedBelowPhreaticLevelLaw::Pointer>(
+        rModule, "SaturatedBelowPhreaticLevelLaw", pybind11::module_local())
         .def(pybind11::init<>())
         .def("CalculateSaturation", &SaturatedBelowPhreaticLevelLaw::CalculateSaturation)
         .def("CalculateEffectiveSaturation", &SaturatedBelowPhreaticLevelLaw::CalculateEffectiveSaturation)
         .def("CalculateDerivativeOfSaturation", &SaturatedBelowPhreaticLevelLaw::CalculateDerivativeOfSaturation)
         .def("CalculateRelativePermeability", &SaturatedBelowPhreaticLevelLaw::CalculateRelativePermeability);
-    
 
     pybind11::class_<VanGenuchtenLaw, VanGenuchtenLaw::Pointer>(rModule, "VanGenuchtenLaw",
                                                                 pybind11::module_local())
