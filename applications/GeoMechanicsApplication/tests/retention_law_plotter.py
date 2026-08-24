@@ -123,9 +123,9 @@ def create_law(properties: Kratos.Properties):
         case "VanGenuchtenLaw":
             return KratosGeo.VanGenuchtenLaw()
         case "SaturatedLaw":
-            return KratosGeo.VanGenuchtenLaw()
+            return KratosGeo.SaturatedLaw()
         case "SaturatedBelowPhreaticLevelLaw":
-            return KratosGeo.VanGenuchtenLaw()
+            return KratosGeo.SaturatedBelowPhreaticLevelLaw()
         case _:
             raise RuntimeError(f"Unknown retention law type {law_name}")
 
