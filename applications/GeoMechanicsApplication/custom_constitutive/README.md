@@ -63,23 +63,23 @@ Where:
 
 ### 1.2 Stress-dependent Young's modulus formulation
 
-The linear elastic law has an option with a stress-dependent Young's modulus. To activate this option, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to material properties. By now unloading/reloading Stiffness formulation is implemented and the keyword can have only two values:  `Constant` and `Eur`. This feature is implemented using `std::variant` that combines the flexibility of Strategy with the performance of stack allocation. It avoids both deep inheritance trees and virtual calls during simulation. Another benefit is an easy extension with other formulations like Secant Stiffness at 50% Strength and Oedometer Modulus.
+The linear elastic law has an option with a stress-dependent Young's modulus. To activate this option, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to material properties. A constant and a stress dependent formulation according to Schanz & Vermeer [[1]](#1) are implemented and the keyword can have only two values:  `CONSTANT` and `SCHANZ_VERMEER`. This feature is implemented using `std::variant` that combines the flexibility of Strategy with the performance of stack allocation. It avoids both deep inheritance trees and virtual calls during simulation. Another benefit is an easy extension with other formulations.
 
 #### 1.2.1 Purpose
 
 Compared to the standard incremental linear elastic law, this law updates Young's modulus at each increment using
-an $E_{ur}$-type expression. This allows stiffer behavior at higher confinement while keeping a simple elastic incremental formulation.
+an $E(\sigma')$-type expression. This allows stiffer behavior at higher confinement while keeping a simple elastic incremental formulation.
 
 #### 1.2.2 Required inputs
 
 Required material parameters:
 
-- `GEO_YOUNGS_MODULUS_FORMULATION` with "Eur" value
-- `YOUNG_MODULUS`: reference unloading-reloading Young's modulus $E_{ur}^{ref}$
+- `GEO_YOUNGS_MODULUS_FORMULATION` with "SCHANZ_VERMER" value
+- `YOUNG_MODULUS`: reference Young's modulus $E^{ref}$
 - `POISSON_RATIO`: Poisson's ratio <!--(used if no unloading-reloading Poisson is supplied)-->
 - `GEO_PRESSURE_REFERENCE`: reference pressure $p_{ref}$
 - `GEO_STRESS_DEPENDENCY_EXPONENT`: stiffness exponent $m$
-- `GEO_COHESION` and `GEO_FRICTION_ANGLE`: used to compute a stress shift term
+- `GEO_COHESION` and `GEO_FRICTION_ANGLE`: used to compute the stress shift term
   
 <!--
 Optional material parameters:
@@ -92,12 +92,12 @@ Optional material parameters:
 The Young's modulus used in the elastic tensor is computed as:
 
 ```math
-E = E_{ur}^{ref} \left(\frac{s - p}{s + p_{ref}}\right)^m
+E = E^{ref} \left(\frac{s - \sigma_3'}{s + p_{ref}}\right)^m
 ```
 
 with:
 
-- $p$: minor principal effective stress $\sigma_3'$ from the finalized stress state
+- $\sigma_3'$: minor principal effective stress from the finalized stress state
 - $p_{ref}$: reference pressure (`GEO_PRESSURE_REFERENCE`)
 - $m$: stiffness exponent (`GEO_STRESS_DEPENDENCY_EXPONENT`)
 - $s$: stress shift term
@@ -776,3 +776,5 @@ If the curvature is reduced significantly like it is shown on this picture
 <img src="documentation_data/pwlmc3.svg">
 then the moment is decreased until point B, which is mirrored point A, then the  moment follows the mirrored backbone curve.
 
+## References
+<a id="1">[1]</a> Schanz, T., Vermeer, P.A., and Bonnier, P.G., 1999. The hardening soil model: formulation and verification. Beyond 2000 in computational geotechnics.

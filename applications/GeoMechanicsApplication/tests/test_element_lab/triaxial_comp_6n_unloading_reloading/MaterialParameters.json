@@ -9,7 +9,7 @@
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
-                    "GEO_YOUNGS_MODULUS_FORMULATION": "Eur",
+                    "GEO_YOUNGS_MODULUS_FORMULATION": "SCHANZ_VERMEER",
                     "YOUNG_MODULUS": 1.0e+07,
                     "POISSON_RATIO": 0.0,
                     "GEO_PRESSURE_REFERENCE": 50.0,
