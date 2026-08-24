@@ -219,6 +219,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 [result.node_id for result in expected_results],
             )
             expected_values = [result.value for result in expected_results]
+            print(f"actual {water_pressures}")
             self.assertVectorAlmostEqual(
                 water_pressures, expected_values, places=None, delta=10.0
             )
@@ -246,9 +247,8 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         class ExpectedResult:
             node_id: int
             value: float
-
         expected_results_at_times = {
-            60.0: [],
+            60.0: [], # Just here for visualization, not for assertion
             3600.0: [],
             7200.0: [],
             10800.0: [],
@@ -358,13 +358,22 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         class ExpectedResult:
             node_id: int
             value: float
-
+        
+        def id_for_depth(wanted_depth):
+            closest_distance = 99999999
+            closest_node = -1
+            for key,value in depth_by_id_for_left_boundary_nodes.items():
+                if abs(wanted_depth - value) < closest_distance:
+                    closest_distance=abs(wanted_depth-value)
+                    closest_node = key
+            return closest_node
+        
         expected_results_at_times = {
             60.0: [],
-            3600.0: [],
+            3600.0: [ExpectedResult(id_for_depth(0.15), -15.7855), ExpectedResult(id_for_depth(0.22), 2241.52), ExpectedResult(id_for_depth(0.30), 16410.0)],
             7200.0: [],
-            10800.0: [],
-            14400.0: [],
+            10800.0: [ExpectedResult(id_for_depth(0.60), -21.7675), ExpectedResult(id_for_depth(0.75), 7577.55), ExpectedResult(id_for_depth(0.80), 11625.1)],
+            14400.0: [ExpectedResult(id_for_depth(0.95), -9.67879), ExpectedResult(id_for_depth(1.00), 1365.77), ExpectedResult(id_for_depth(1.10), 8924.17)],
         }
 
         if test_helper.want_test_plots():
@@ -390,6 +399,10 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_file_path=Path(file_path),
                 comparison_data_path=Path(file_path) / "dgflow_input_curves.csv",
             )
+        variable_name = "WATER_PRESSURE"
+        self._validate_outputs_against_expected_results(
+            reader, output_data, expected_results_at_times, variable_name
+        )
 
     def test_infiltration_from_top_boundary_B6(self):
         file_path = test_helper.get_file_path(
@@ -546,26 +559,6 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                         )
                     )
 
-        asserted_data_points = []
-        for time, expected_results in expected_results_at_times.items():
-            for expected_result in expected_results:
-                water_pressure = Pa_to_kPa(expected_result.value)
-
-                asserted_data_points.append(
-                    (
-                        water_pressure,
-                        depth_by_id_for_left_boundary_nodes[expected_result.node_id],
-                    )
-                )
-        data_series_collection.append(
-            plot_utils.DataSeries(
-                asserted_data_points,
-                label=f"Asserted pressures",
-                line_style="",
-                marker="x",
-                color="r",
-            )
-        )
         expected_water_pressures = os.path.join(
             file_path, "expected_water_pressures.csv"
         )
@@ -592,6 +585,26 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                             color=color,
                         )
                     )
+        asserted_data_points = []
+        for time, expected_results in expected_results_at_times.items():
+            for expected_result in expected_results:
+                water_pressure = Pa_to_kPa(expected_result.value)
+
+                asserted_data_points.append(
+                    (
+                        water_pressure,
+                        depth_by_id_for_left_boundary_nodes[expected_result.node_id],
+                    )
+                )
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                asserted_data_points,
+                label=f"Asserted pressures",
+                line_style="",
+                marker="x",
+                color="r",
+            )
+        )
         plot_utils._make_plot(
             data_series_collection,
             os.path.join(file_path, "infiltration_from_top_boundary.svg"),
