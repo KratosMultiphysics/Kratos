@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "triaxial_comp_6n_unloading_reloading_stage2",
+        "problem_name": "triaxial_comp_6n_schanz_vermeer_stage2",
         "start_time": 1.0,
         "end_time": 2.0,
         "echo_level": 1,
@@ -59,7 +59,7 @@
                 "process_name": "GiDOutputProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "output_name": "triaxial_comp_6n_unloading_reloading_stage2",
+                    "output_name": "triaxial_comp_6n_schanz_vermeer_stage2",
                     "postprocess_parameters": {
                         "result_file_configuration": {
                             "gidpost_flags": {
