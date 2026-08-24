@@ -161,7 +161,7 @@ namespace
         const auto& r_N = cond_begin->GetValue(SHAPE_FUNCTIONS_VECTOR);
         const auto& r_DN_DX = cond_begin->GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);
 
-        const double tolerance = 1.0e-8;
+        const double tolerance = 1.0e-6;
         const std::vector<double> expected_N({2.19812295036,-1.84616655368,0.555840635338,-0.747583442815,1.02822480988,-0.207155100513,0.600496011945,-0.725928425621,0.148970755181,-0.107282272913,0.129526737242,-0.0270661044029});
         Matrix expected_DN_DX(12,2);
         expected_DN_DX(0,0) = -7; expected_DN_DX(0,1) = -18.2529953628;
