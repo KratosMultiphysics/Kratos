@@ -148,7 +148,6 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientThermalTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
                         KratosGeoMechanicsTransientPressurePointFluxTests,
-                        KratosGeoMechanicsPartialSaturation,
                         KratosGeoMechanics1DConsolidation,
                         KratosGeoMechanics1DConsolidationCppRoute,
                         KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine,
@@ -169,6 +168,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDSettlementValidationTests,
                         KratosGeoMechanicsBuildingPit,
                         KratosGeoMechanicsCrowValidation,
+                        KratosGeoMechanicsPartialSaturation,
                         ]
 
     # Create an array that contains all the tests from every testCase

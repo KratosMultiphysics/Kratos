@@ -13,7 +13,7 @@
         "domain_size": 2,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "../common/run1sim5_hydro"
+            "input_filename": "../common/run1sim5"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters_hydro.json"
