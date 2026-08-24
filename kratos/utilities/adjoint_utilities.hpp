@@ -13,7 +13,7 @@
 #pragma once
 
 // --- Kratos Includes ---
-#include "includes/adjoint_interface.hpp"
+#include "adjoint/adjoint_interface.hpp"
 #include "includes/element.h"
 #include "includes/condition.h"
 

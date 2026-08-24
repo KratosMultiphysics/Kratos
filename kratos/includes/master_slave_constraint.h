@@ -22,7 +22,7 @@
 #include "containers/variable.h"
 #include "includes/process_info.h"
 #include "includes/indexed_object.h"
-#include "includes/adjoint_interface.hpp"
+#include "adjoint/adjoint_interface.hpp"
 
 namespace Kratos
 {

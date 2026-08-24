@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <algorithm>
 #include <cmath>
 #include <sstream>
 

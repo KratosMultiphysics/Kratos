@@ -11,7 +11,7 @@
 //
 
 // --- Kratos Core Includes ---
-#include "includes/adjoint_interface.hpp" // IAdjoint, IAdjointElement
+#include "adjoint/adjoint_interface.hpp" // IAdjoint, IAdjointElement
 #include "includes/exception.h" // KRATOS_ERROR
 #include "includes/code_location.h" // KRATOS_CODE_LOCATION
 

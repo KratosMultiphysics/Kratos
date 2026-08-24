@@ -729,12 +729,12 @@ private:
 };
 
 
-class ResponseFunction : public AdjointResponseFunction
+class BossakTestResponseFunction : public AdjointResponseFunction
 {
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(ResponseFunction);
+        KRATOS_CLASS_POINTER_DEFINITION(BossakTestResponseFunction);
 
-        ResponseFunction(ModelPart& rModelPart) : mrModelPart(rModelPart)
+        BossakTestResponseFunction(ModelPart& rModelPart) : mrModelPart(rModelPart)
         {
         }
 
@@ -1003,7 +1003,7 @@ double RunAdjointSensitivityTest(
         solver.Initialize();
         rModelPart.CloneTimeStep(start_time - delta_time);
         rModelPart.CloneTimeStep(start_time);
-        auto p_response_function = Kratos::make_shared<Nlsmd::ResponseFunction>(rModelPart);
+        auto p_response_function = Kratos::make_shared<Nlsmd::BossakTestResponseFunction>(rModelPart);
 
         double response_value = 0.0;
         for (double current_time = start_time; current_time < end_time;)
@@ -1037,7 +1037,7 @@ double RunAdjointSensitivityTest(
 
     Nlsmd::InitializeAdjointModelPart(adjoint_model_part, IsWithConditions);
     auto p_response_function =
-        Kratos::make_shared<Nlsmd::ResponseFunction>(adjoint_model_part);
+        Kratos::make_shared<Nlsmd::BossakTestResponseFunction>(adjoint_model_part);
     Base::AdjointStrategy adjoint_solver(adjoint_model_part, p_results_data, p_response_function);
     adjoint_solver.Initialize();
     SensitivityBuilder sensitivity_builder(

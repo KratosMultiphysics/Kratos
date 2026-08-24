@@ -14,7 +14,7 @@
 #include <pybind11/stl.h>
 
 // --- Core Includes ---
-#include "includes/adjoint_interface.hpp"
+#include "adjoint/adjoint_interface.hpp"
 
 // --- STL Includes ---
 #include <memory>

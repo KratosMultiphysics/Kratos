@@ -20,12 +20,12 @@
 /* External includes */
 
 /* Project includes */
+#include "adjoint/adjoint_interface.hpp"
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/variables.h"
 #include "includes/node.h"
 #include "includes/properties.h"
-#include "includes/adjoint_interface.hpp"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "includes/process_info.h"
