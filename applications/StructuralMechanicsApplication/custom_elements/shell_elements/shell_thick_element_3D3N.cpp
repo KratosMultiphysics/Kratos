@@ -752,10 +752,6 @@ void ShellThickElement3D3N<TKinematics>::InitializeCalculationData(CalculationDa
         ? GetProperties()[SHELL_SHEAR_FORMULATION]
         : 0; // Default to DSG if not specified
 
-    // Elements flagged INTERFACE
-    if (this->Is(INTERFACE) && data.shearFormulation == 0) {
-        data.shearFormulation = 1;
-    }
 
     // create the integration point locations
     if (data.gpLocations.size() != 0) {
