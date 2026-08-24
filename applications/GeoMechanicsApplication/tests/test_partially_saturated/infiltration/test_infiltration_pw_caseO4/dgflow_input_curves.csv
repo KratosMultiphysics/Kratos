@@ -1,4 +1,4 @@
-pressure,capacity,diffusivity,saturation,relative_permeability
+pressure,derivative_of_saturation,diffusivity,saturation,relative_permeability
 -20,1.07E-05,169.9379007,0.438155532,0.0018193
 -19.79,1.09E-05,172.2566488,0.440419686,0.001870409
 -19.58,1.10E-05,174.6329029,0.442716249,0.001923469
