@@ -14,10 +14,9 @@ void TotalLagrangianDisplacementParticle<TKernelType, TDim>::InitializeSolutionS
         const auto& r_geom = this->GetGeometry();
         const auto& r_prop = this->GetProperties();
         const SizeType number_of_neighbours = this->GetValue(NEIGHBOURS).size();
-        const SizeType dimension = r_geom.WorkingSpaceDimension();
         const SizeType strain_size = this->mThisConstitutiveLaw->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_neighbours);
+        KinematicVariables this_kinematic_variables(strain_size, TDim, number_of_neighbours);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         ConstitutiveLaw::Parameters Values(r_geom, r_prop, rProcessInfo);
@@ -46,10 +45,9 @@ void TotalLagrangianDisplacementParticle<TKernelType, TDim>::FinalizeSolutionSte
         auto& r_geom = this->GetGeometry();
         const auto& r_prop = this->GetProperties();
         const SizeType number_of_neighbours = this->GetValue(NEIGHBOURS).size();
-        const SizeType dimension = r_geom.WorkingSpaceDimension();
         const SizeType strain_size = this->mThisConstitutiveLaw->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_neighbours);
+        KinematicVariables this_kinematic_variables(strain_size, TDim, number_of_neighbours);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         ConstitutiveLaw::Parameters Values(r_geom, r_prop, rProcessInfo);

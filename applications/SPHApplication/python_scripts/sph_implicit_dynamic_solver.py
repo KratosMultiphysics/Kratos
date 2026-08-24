@@ -51,10 +51,6 @@ class ImplicitSPHSolver(SPHSolver):
         if process_info[KratosMultiphysics.STEP] == 1 and process_info[StructuralMechanicsApplication.RESET_EQUATION_IDS]:
             # Resetting the global equations ids
             self._GetBuilderAndSolver().SetUpSystem(self.GetComputingModelPart())
-    
-    def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
-        self.ExposeSystemMatrix()
 
     def _CreateScheme(self):
         scheme_type = self.settings["scheme_type"].GetString().strip().lower()

@@ -321,8 +321,9 @@ void SmallDisplacementParticle<TKernelType, TDim>::CalculateAll(
     KRATOS_CATCH("")
 }
 
+
 template<class TKernelType, std::size_t TDim>
-void SmallDisplacementParticle<TKernelType, TDim>::CalculateKinematicVariables(KinematicVariables& rThisKinematicVariables, const ProcessInfo& rProcessInfo)
+void SmallDisplacementParticle<TKernelType, TDim>::CalculateKinematicVariables(KinematicVariables& rThisKinematicVariables, const ProcessInfo& rProcessInfo, int Step)
 {
     KRATOS_TRY
     auto& rW = rThisKinematicVariables.W;
@@ -645,8 +646,3 @@ template class SmallDisplacementParticle<CubicKernel2D, 2>;
 template class SmallDisplacementParticle<CubicKernel3D, 3>;
 
 }
-
-
-
-
-

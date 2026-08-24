@@ -127,7 +127,8 @@ public:
      */
     virtual void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
-        const ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo,
+        int Step = 0
     );
 
     /**

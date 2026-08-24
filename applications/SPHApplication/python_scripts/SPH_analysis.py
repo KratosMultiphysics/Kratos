@@ -1,7 +1,6 @@
 import json
 
 import KratosMultiphysics as KM 
-import KratosMultiphysics.SPHApplication as SPH
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.SPHApplication import python_solvers_wrapper_sph as sph_solvers
@@ -41,23 +40,6 @@ class SPHAnalysis(AnalysisStage):
 		"""Create the solver"""
 		KM.Logger.PrintInfo("::[SPHAnalysis]:: ", "Creating SPH solver")
 		return sph_solvers.CreateSolver(self.model, self.project_parameters)
-
-	def _CreateProcesses(self, parameter_name, initialization_order):
-		list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
-
-		model_part = self.model["Structure"]
-
-		if parameter_name != "processes":
-			return list_of_processes
-
-		# Adding SPH specific processes (to change parameters, see SPHProcesses.json)
-		neighbours_search_process = SPH.NeighboursSearchProcess(model_part, self.sph_process_parameters["neighbours_search"])
-		kernel_correction_process = SPH.ComputeKernelCorrectionProcess(model_part, self.sph_process_parameters["kernel_correction"])
-		volume_process = SPH.ComputeVolumeProcess(self.model["Structure.Triangulation"], self.sph_process_parameters["volume"])
-
-		custom_processes = [neighbours_search_process, kernel_correction_process, volume_process]
-
-		return custom_processes + list_of_processes
 
 	def _GetSimulationName(self):
 		return "::[SPH Simulation]:: "

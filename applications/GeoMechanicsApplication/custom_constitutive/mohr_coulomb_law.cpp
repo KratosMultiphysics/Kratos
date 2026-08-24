@@ -310,8 +310,8 @@ std::size_t MohrCoulombLaw::CalculateAdaptiveNumberOfSubSteps(const Geo::Princip
         rTrialPrincipalStresses, rElasticMatrix, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
     mpCoulombImpl->RestoreKappaOfCoulombYieldSurface();
 
-    const Vector trial_values  = rTrialPrincipalStresses.CopyTo<Vector>();
-    const Vector mapped_values = mapped_principal_stresses.CopyTo<Vector>();
+    const auto trial_values  = rTrialPrincipalStresses.CopyTo<Vector>();
+    const auto mapped_values = mapped_principal_stresses.CopyTo<Vector>();
 
     const auto overshoot          = norm_2(trial_values - mapped_values);
     const auto stress_scale       = std::max(norm_2(trial_values), 1.0e-12);

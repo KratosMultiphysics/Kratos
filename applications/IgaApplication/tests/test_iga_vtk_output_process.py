@@ -72,7 +72,7 @@ class TestIgaVTKHDFOutputProcess(KratosUnittest.TestCase):
             "output_file_name" : "{self.out_file}",
             "brep_surface_ids" : [{self.brep_id}],
             "nodal_solution_step_data_variables" : ["DISPLACEMENT"],
-            "output_refinement" : [3,3],
+            "output_refinement_surface" : [3,3],
             "output_control_type" : "step",
             "output_frequency" : 1
         }}
