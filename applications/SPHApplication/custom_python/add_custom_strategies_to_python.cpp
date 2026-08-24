@@ -23,6 +23,8 @@
 
 //strategies
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "custom_strategies/theta_method_residual_based_newton_raphson_strategy.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -40,7 +42,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
+    typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+    typedef ResidualBasedNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> NewtonRaphsonStrategyType;
+    typedef ThetaResidualBasedNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> MixedSphNewtonRaphsonStrategyType;
 
+    py::class_<MixedSphNewtonRaphsonStrategyType, typename MixedSphNewtonRaphsonStrategyType::Pointer, NewtonRaphsonStrategyType>
+        (m, "MixedSphResidualBasedNewtonRaphsonStrategy")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool>());
 }
 
 } // namespace Kratos::Python

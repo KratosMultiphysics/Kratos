@@ -78,13 +78,6 @@ public:
     }
 
     /**
-     * @brief Called at the end of each solution step
-     * @param rCurrentProcessInfo the current process info instance
-     * @details Adds the position update to the base class method
-     */
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * @brief It creates a new element pointer and clones the previous element data
      */
     Element::Pointer Clone( IndexType NewId, NodesArrayType const& rThisNodes) const override;
@@ -174,7 +167,8 @@ public:
         const KinematicVariables& rThisKinematicVariables,
         const ProcessInfo& rCurrentProcessInfo,
         const VectorType& rStressVector,
-        const double weight
+        const double weight,
+        const int Step = 0
     );
 
    /**
@@ -194,7 +188,8 @@ public:
    virtual void CalculateGeometricalResidualVector(
         VectorType& rRHSF,
         KinematicVariables& rThisKinematicVariables,
-        const double weight
+        const double weight,
+        const int Step = 0
    );
 
     /**
@@ -233,13 +228,12 @@ protected:
      * @brief Calculate the kinematics
      * @details This method calculates the kinematics of the element for a given integration point
      * @param rThisKinematicVariables Integration point kinematics container
-     * @param PointNumber Integration point index
-     * @param rIntegrationMethod Integration rule
      */
     virtual void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
-        const ProcessInfo& rProcessInfo
-        );
+        const ProcessInfo& rProcessInfo,
+        const int Step = 0
+    );
     
     /**
      * @brief This function computes the deformation gradient of the particle
@@ -254,10 +248,11 @@ protected:
     );
 
     /**
-     * @brief
+     * @brief Assemble the deformation gradient of the particle using directly the dofs values of particle itself
      */
     virtual void AssembleDeformationGradient(
-        MatrixType& rF
+        MatrixType& rF,
+        const int Step = 0
     );
 
 private:
