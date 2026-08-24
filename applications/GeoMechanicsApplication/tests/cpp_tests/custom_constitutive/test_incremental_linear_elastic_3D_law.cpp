@@ -185,7 +185,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     ConstitutiveLaw::Parameters final_parameters;
     auto                        final_strain = Vector{ScalarVector{6, 1.3}};
     final_parameters.SetStrainVector(final_strain);
-    law.FinalizeMaterialResponseCauchy(final_parameters);
+    law.FinalizeMaterialResponsePK2(final_parameters);
     stress = Calculate3DStress(law, properties);
 
     const auto expected_stress =
