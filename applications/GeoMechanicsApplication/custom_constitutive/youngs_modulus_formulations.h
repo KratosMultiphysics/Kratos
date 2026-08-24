@@ -23,16 +23,16 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoYoungsModulusFormulations
 {
 public:
     struct Constant {
-        static constexpr const char* Name = "Constant";
+        static constexpr const char* Name = "CONSTANT";
         double                       operator()(const Properties&, double, const Vector&) const;
     };
 
-    struct Eur {
-        static constexpr const char* Name = "Eur";
+    struct SchanzVermeer {
+        static constexpr const char* Name = "SCHANZ_VERMEER";
         double                       operator()(const Properties&, double, const Vector&) const;
     };
 
-    using YoungsModulusVariant = std::variant<Constant, Eur>;
+    using YoungsModulusVariant = std::variant<Constant, SchanzVermeer>;
 
     static void                 CheckInputData(const Properties& rMaterialProperties);
     static YoungsModulusVariant InitializeFormulation(const std::string& rFormulation);
@@ -40,11 +40,11 @@ public:
     static std::string GetYoungsModulusFormulation(const YoungsModulusVariant& rFormulation);
     static double      GetYoungsModulus(YoungsModulusVariant& rFormulation,
                                         const Properties&     rProperties,
-                                        double                YoungsModulus,
+                                        double                ReferenceYoungsModulus,
                                         const Vector&         rStressVectorFinalized);
-    static double      CalculateYoungsModulusForEur(const Properties& rProperties,
-                                                    double            YoungsModulus,
-                                                    const Vector&     rStressVectorFinalized);
+    static double      CalculateYoungsModulusSchanzVermeer(const Properties& rProperties,
+                                                           double            ReferenceYoungsModulus,
+                                                           const Vector&     rStressVectorFinalized);
     static double      CalculateMinorPrincipalEffectiveStress(const Vector& rStressVectorFinalized);
 };
 } // namespace Kratos

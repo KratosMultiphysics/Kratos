@@ -26,12 +26,13 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Con
     KRATOS_EXPECT_TRUE(std::holds_alternative<GeoYoungsModulusFormulations::Constant>(formulation))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Eur, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_SchanzVermeer,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto formulation =
-        GeoYoungsModulusFormulations::InitializeFormulation(GeoYoungsModulusFormulations::Eur::Name);
+    const auto formulation = GeoYoungsModulusFormulations::InitializeFormulation(
+        GeoYoungsModulusFormulations::SchanzVermeer::Name);
 
-    KRATOS_EXPECT_TRUE(std::holds_alternative<GeoYoungsModulusFormulations::Eur>(formulation))
+    KRATOS_EXPECT_TRUE(std::holds_alternative<GeoYoungsModulusFormulations::SchanzVermeer>(formulation))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Error, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -46,10 +47,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulusFormulati
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
-    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, GeoYoungsModulusFormulations::Eur::Name);
+    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, GeoYoungsModulusFormulations::SchanzVermeer::Name);
 
     KRATOS_EXPECT_EQ(GeoYoungsModulusFormulations::GetYoungsModulusFormulation(properties),
-                     GeoYoungsModulusFormulations::Eur::Name);
+                     GeoYoungsModulusFormulations::SchanzVermeer::Name);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulusFormulation_FromProperties_NoValue,
@@ -64,10 +65,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulusFormulati
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulusFormulation_FromVariant,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const GeoYoungsModulusFormulations::YoungsModulusVariant variant = GeoYoungsModulusFormulations::Eur{};
+    const GeoYoungsModulusFormulations::YoungsModulusVariant variant =
+        GeoYoungsModulusFormulations::SchanzVermeer{};
 
     KRATOS_EXPECT_EQ(GeoYoungsModulusFormulations::GetYoungsModulusFormulation(variant),
-                     GeoYoungsModulusFormulations::Eur::Name);
+                     GeoYoungsModulusFormulations::SchanzVermeer::Name);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateMinorPrincipalEffectiveStress_ValidVector,
@@ -87,10 +89,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateMinorPrincipalEf
     const auto stress_vector_finalized = Vector(3, 0.0);
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        GeoYoungsModulusFormulations::CalculateMinorPrincipalEffectiveStress(stress_vector_finalized), "Could not compute principal stresses from stress vector with size 3. Expected at least 3 principal stresses, got 2");
+        GeoYoungsModulusFormulations::CalculateMinorPrincipalEffectiveStress(stress_vector_finalized), "Could not compute principal stresses from stress vector with size 3. Expected 3 principal stresses, got 2.");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusForEur_BaseCase,
+KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusSchanzVermeer_BaseCase,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
@@ -99,16 +101,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusFor
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
 
-    constexpr auto youngs_input = 20000.0;
+    constexpr auto reference_youngs_modulus = 20000.0;
     const auto stress_vector_finalized = UblasUtilities::CreateVector({0.0, 0.0, 5.0, 0.0, 0.0, 0.0});
 
-    const auto result = GeoYoungsModulusFormulations::CalculateYoungsModulusForEur(
-        properties, youngs_input, stress_vector_finalized);
+    const auto result = GeoYoungsModulusFormulations::CalculateYoungsModulusSchanzVermeer(
+        properties, reference_youngs_modulus, stress_vector_finalized);
     constexpr auto expected_value = 7684.64;
     KRATOS_EXPECT_RELATIVE_NEAR(result, expected_value, Defaults::relative_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusForEur_NegativeBaseError,
+KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusSchanzVermeer_NegativeBaseError,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
@@ -119,7 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusFor
     constexpr auto reference_youngs_modulus = 20000.0;
     const auto stress_vector_finalized = UblasUtilities::CreateVector({500.0, 200.0, 500.0, 0.0, 0.0, 0.0});
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(GeoYoungsModulusFormulations::CalculateYoungsModulusForEur(
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(GeoYoungsModulusFormulations::CalculateYoungsModulusSchanzVermeer(
                                          properties, reference_youngs_modulus, stress_vector_finalized),
                                      "Non-positive base for std::pow");
 }
@@ -138,10 +140,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulus_Dispatch
     KRATOS_EXPECT_DOUBLE_EQ(result, reference_youngs_modulus);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulus_Dispatcher_Eur,
+KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulus_Dispatcher_SchanzVermeer,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    GeoYoungsModulusFormulations::YoungsModulusVariant variant = GeoYoungsModulusFormulations::Eur{};
+    GeoYoungsModulusFormulations::YoungsModulusVariant variant =
+        GeoYoungsModulusFormulations::SchanzVermeer{};
     Properties properties;
     properties.SetValue(GEO_PRESSURE_REFERENCE, 100.0);
     properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 0.5);
@@ -172,7 +175,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CheckInputData_FailsMissi
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
-    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, GeoYoungsModulusFormulations::Eur::Name);
+    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, GeoYoungsModulusFormulations::SchanzVermeer::Name);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         GeoYoungsModulusFormulations::CheckInputData(properties),
         "GEO_PRESSURE_REFERENCE does not exist in the parameters of material with Id 0.")

@@ -22,23 +22,24 @@
 
 namespace Kratos
 {
-double GeoYoungsModulusFormulations::Constant::operator()(const Properties&, double YoungsModulus, const Vector&) const
+double GeoYoungsModulusFormulations::Constant::operator()(const Properties&,
+                                                          double ReferenceYoungsModulus,
+                                                          const Vector&) const
 {
-    return YoungsModulus;
+    return ReferenceYoungsModulus;
 }
 
-double GeoYoungsModulusFormulations::Eur::operator()(const Properties& rProperties,
-                                                     double            YoungsModulus,
-                                                     const Vector&     rStressVectorFinalized) const
+double GeoYoungsModulusFormulations::SchanzVermeer::operator()(const Properties& rProperties,
+                                                               double ReferenceYoungsModulus,
+                                                               const Vector& rStressVectorFinalized) const
 {
-    return GeoYoungsModulusFormulations::CalculateYoungsModulusForEur(rProperties, YoungsModulus,
-                                                                      rStressVectorFinalized);
+    return CalculateYoungsModulusSchanzVermeer(rProperties, ReferenceYoungsModulus, rStressVectorFinalized);
 }
 
 void GeoYoungsModulusFormulations::CheckInputData(const Properties& rMaterialProperties)
 {
     if (rMaterialProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) &&
-        rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == GeoYoungsModulusFormulations::Eur::Name) {
+        rMaterialProperties[GEO_YOUNGS_MODULUS_FORMULATION] == SchanzVermeer::Name) {
         const CheckProperties check_properties(rMaterialProperties, "parameters of material",
                                                CheckProperties::Bounds::AllExclusive);
         check_properties.Check(GEO_PRESSURE_REFERENCE);
@@ -51,14 +52,14 @@ void GeoYoungsModulusFormulations::CheckInputData(const Properties& rMaterialPro
 GeoYoungsModulusFormulations::YoungsModulusVariant GeoYoungsModulusFormulations::InitializeFormulation(const std::string& rFormulation)
 {
     if (rFormulation == Constant::Name) return Constant{};
-    if (rFormulation == Eur::Name) return Eur{};
+    if (rFormulation == SchanzVermeer::Name) return SchanzVermeer{};
     KRATOS_ERROR << "Unknown GEO_YOUNGS_MODULUS_FORMULATION: " << rFormulation;
 }
 
 std::string GeoYoungsModulusFormulations::GetYoungsModulusFormulation(const Properties& rProperties)
 {
     return rProperties.Has(GEO_YOUNGS_MODULUS_FORMULATION) ? rProperties[GEO_YOUNGS_MODULUS_FORMULATION]
-                                                           : GeoYoungsModulusFormulations::Constant::Name;
+                                                           : Constant::Name;
 }
 
 std::string GeoYoungsModulusFormulations::GetYoungsModulusFormulation(const YoungsModulusVariant& rFormulation)
@@ -68,37 +69,34 @@ std::string GeoYoungsModulusFormulations::GetYoungsModulusFormulation(const Youn
 
 double GeoYoungsModulusFormulations::GetYoungsModulus(YoungsModulusVariant& rFormulation,
                                                       const Properties&     rProperties,
-                                                      double                YoungsModulus,
+                                                      double                ReferenceYoungsModulus,
                                                       const Vector&         rStressVectorFinalized)
 {
     return std::visit([&](const auto& formulation_functor) {
-        return formulation_functor(rProperties, YoungsModulus, rStressVectorFinalized);
+        return formulation_functor(rProperties, ReferenceYoungsModulus, rStressVectorFinalized);
     }, rFormulation);
 }
 
-double GeoYoungsModulusFormulations::CalculateYoungsModulusForEur(const Properties& rProperties,
-                                                                  double            YoungsModulus,
-                                                                  const Vector& rStressVectorFinalized)
+double GeoYoungsModulusFormulations::CalculateYoungsModulusSchanzVermeer(const Properties& rProperties,
+                                                                         double ReferenceYoungsModulus,
+                                                                         const Vector& rStressVectorFinalized)
 {
     constexpr auto epsilon = std::numeric_limits<double>::epsilon();
 
     const auto reference_pressure = rProperties[GEO_PRESSURE_REFERENCE];
     const auto exponent           = rProperties[GEO_STRESS_DEPENDENCY_EXPONENT];
-    const auto eur_ref            = YoungsModulus;
 
     const auto friction_angle_rad = ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
-    const auto stress_shift =
-        rProperties[GEO_COHESION] * std::cos(friction_angle_rad) / std::sin(friction_angle_rad);
+    const auto stress_shift = rProperties[GEO_COHESION] / std::tan(friction_angle_rad);
 
-    const auto base =
-        (stress_shift - GeoYoungsModulusFormulations::CalculateMinorPrincipalEffectiveStress(rStressVectorFinalized)) /
-        (stress_shift + reference_pressure);
+    const auto base = (stress_shift - CalculateMinorPrincipalEffectiveStress(rStressVectorFinalized)) /
+                      (stress_shift + reference_pressure);
 
     KRATOS_ERROR_IF_NOT(base > epsilon)
         << "Non-positive base for std::pow ("
         << base << "). Check GEO_COHESION, GEO_FRICTION_ANGLE, GEO_PRESSURE_REFERENCE and the finalized stress state.\n";
 
-    return eur_ref * std::pow(base, exponent);
+    return ReferenceYoungsModulus * std::pow(base, exponent);
 }
 
 double GeoYoungsModulusFormulations::CalculateMinorPrincipalEffectiveStress(const Vector& rStressVectorFinalized)
@@ -107,10 +105,10 @@ double GeoYoungsModulusFormulations::CalculateMinorPrincipalEffectiveStress(cons
     auto eigen_vectors      = Matrix{};
     StressStrainUtilities::CalculatePrincipalStresses(rStressVectorFinalized, principal_stresses, eigen_vectors);
 
-    KRATOS_ERROR_IF(principal_stresses.size() < 3)
+    KRATOS_ERROR_IF(principal_stresses.size() != 3)
         << "Could not compute principal stresses from stress vector with size "
-        << rStressVectorFinalized.size() << ". Expected at least 3 principal stresses, got "
-        << principal_stresses.size() << "\n";
+        << rStressVectorFinalized.size() << ". Expected 3 principal stresses, got "
+        << principal_stresses.size() << "." << "\n";
 
     return principal_stresses[2];
 }
