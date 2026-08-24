@@ -139,14 +139,17 @@ def make_separate_sub_plots(
         num_rows, num_cols, figsize=figsize, layout="constrained"
     )
     axes = np.ravel(axes)
+    for ax in axes[len(data_series_collections) :]:
+        ax.set_axis_off()
 
     lines = []
+    assert len(data_series_collections) == len(subplot_options)
     for index, (ax, collection, options) in enumerate(
         zip(axes, data_series_collections, subplot_options)
     ):
         lines.extend(_plot_data_series_on_axis(ax, collection))
         if options.log_y_plot:
-            ax.set_yscale("log", base=10)
+            ax.set_yscale("log", base=10, nonpositive="mask")
         ax.set_title(options.title)
         ax.set_xlabel(options.xlabel)
         ax.set_ylabel(options.ylabel)

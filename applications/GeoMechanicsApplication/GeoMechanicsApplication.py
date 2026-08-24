@@ -61,10 +61,11 @@ SetMultipleMovingLoadsProcess = KratosGeo.SetMultipleMovingLoadsProcess
 SetParameterFieldProcess = KratosGeo.SetParameterFieldProcess
 
 # Retention laws
-RetentionLawFactory = KratosGeo.RetentionLawFactory
 VanGenuchtenLaw = KratosGeo.VanGenuchtenLaw
+SaturatedBelowPhreaticLevelLaw = KratosGeo.SaturatedBelowPhreaticLevelLaw
+SaturatedLaw = KratosGeo.SaturatedLaw
 RetentionLawParameters = KratosGeo.RetentionLawParameters
-
+RetentionLaw = KratosGeo.RetentionLaw
 
 # Callback functions
 KratosExecuteCallBackFunctions = KratosGeo.KratosExecuteCallBackFunctions
@@ -136,4 +137,3 @@ if not KratosMultiphysics.Registry.HasItem(
     python_registry_utilities.RegisterAll(
         "KratosMultiphysics.GeoMechanicsApplication", python_registry_lists
     )
-
