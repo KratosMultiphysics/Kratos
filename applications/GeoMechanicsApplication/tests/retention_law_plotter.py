@@ -130,7 +130,7 @@ def create_law(properties: Kratos.Properties):
             raise RuntimeError(f"Unknown retention law type {law_name}")
 
 
-def plot_van_genuchten_retention_law_characteristics(
+def plot_retention_law_characteristics(
     properties: Kratos.Properties,
     plot_file_path: Path,
     comparison_data_path: Path | None = None,
