@@ -14,3 +14,22 @@ Characteristics:
 For this problem, linear Pw (water pressure) elements (TransientPwElement2D3N) are used (meaning the displacements are not regarded). The pressure profiles at different time steps can be found in the following image. The red markers depict the asserted pressures, chosen at characteristic positions in the curves.
 
 ![Results for Pw elements](test_infiltration_pw/infiltration_from_top_boundary.svg)
+
+### Infiltration tests with 'Staringreeks' materials
+
+
+#### B6
+![infiltration_from_top_boundary_B6](test_infiltration_pw_caseB6/infiltration_from_top_boundary.svg)
+![van_genuchten_characteristics](test_infiltration_pw_caseB6/van_genuchten_characteristics.svg)
+
+#### B10
+![infiltration_from_top_boundary_B10](test_infiltration_pw_caseB10/infiltration_from_top_boundary.svg)
+![van_genuchten_characteristics](test_infiltration_pw_caseB10/van_genuchten_characteristics.svg)
+
+#### O4
+![infiltration_from_top_boundary_O4](test_infiltration_pw_caseO4/infiltration_from_top_boundary.svg)
+![van_genuchten_characteristics](test_infiltration_pw_caseO4/van_genuchten_characteristics.svg)
+
+#### O6
+![infiltration_from_top_boundary_O6](test_infiltration_pw_caseO6/infiltration_from_top_boundary.svg)
+![van_genuchten_characteristics](test_infiltration_pw_caseO6/van_genuchten_characteristics.svg)
