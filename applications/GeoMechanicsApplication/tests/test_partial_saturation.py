@@ -1,20 +1,20 @@
 import csv
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
-from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
-    GiDOutputFileReader,
-)
-from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import Pa_to_kPa
-from pathlib import Path
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import \
+    GiDOutputFileReader
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import \
+    Pa_to_kPa
 
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
-    from retention_law_plotter import plot_van_genuchten_retention_law_characteristics
+    from retention_law_plotter import plot_retention_law_characteristics
 
 
 class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
@@ -198,7 +198,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 [12000.0, 24000.0, 36000.0, 48000.0, 72000.0, 96000.0, 192000.0],
             )
-            plot_van_genuchten_retention_law_characteristics(
+            plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
             )
@@ -317,12 +317,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_times=expected_results_at_times.keys(),
                 test_name="O6",
             )
-            plot_van_genuchten_retention_law_characteristics(
+            plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
-                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv"
+                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv",
             )
-
 
     def test_infiltration_from_top_boundary_O10(self):
         file_path = test_helper.get_file_path(
@@ -374,11 +373,10 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_times=expected_results_at_times.keys(),
                 test_name="O10",
             )
-            plot_van_genuchten_retention_law_characteristics(
+            plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
             )
-
 
     def test_infiltration_from_top_boundary_O4(self):
         file_path = test_helper.get_file_path(
@@ -430,12 +428,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_times=expected_results_at_times.keys(),
                 test_name="O4",
             )
-            plot_van_genuchten_retention_law_characteristics(
+            plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
-                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv"
+                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv",
             )
-
 
     def test_infiltration_from_top_boundary_B10(self):
         file_path = test_helper.get_file_path(
@@ -487,12 +484,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_times=expected_results_at_times.keys(),
                 test_name="B10",
             )
-            plot_van_genuchten_retention_law_characteristics(
+            plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
-                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv"
+                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv",
             )
-
 
     def test_infiltration_from_top_boundary_B6(self):
         file_path = test_helper.get_file_path(
@@ -543,12 +539,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
             )
-            plot_van_genuchten_retention_law_characteristics(
+            plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
-                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv"
+                comparison_data_path=Path(file_path) / "dgflow_input_curves.csv",
             )
-
 
     def test_infiltration_from_top_boundary_B4(self):
         file_path = test_helper.get_file_path(
@@ -599,11 +594,10 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
             )
-            plot_van_genuchten_retention_law_characteristics(
+            plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
             )
-
 
     def _calculate_depth_for_boundary_nodes(self, simulation):
         return {
@@ -662,11 +656,10 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
             )
-            plot_van_genuchten_retention_law_characteristics(
+            plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
                 plot_file_path=Path(file_path),
             )
-
 
     def create_pressure_depth_plots(
         self,

@@ -7,6 +7,7 @@ from typing import Callable
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
+import numpy as np
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import \
     Pa_to_kPa
 
@@ -17,7 +18,7 @@ class RetentionCharacteristics:
     relative_permeabilities: list[float] = field(default_factory=list)
     degrees_of_saturation: list[float] = field(default_factory=list)
     diffusivities: list[float] = field(default_factory=list)
-    capacities: list[float] = field(default_factory=list)
+    derivatives_of_saturation: list[float] = field(default_factory=list)
 
     @property
     def relative_permeability_vs_pressure_data(self) -> list[tuple[float, float]]:
@@ -33,7 +34,7 @@ class RetentionCharacteristics:
 
     @property
     def capacities_vs_pressure_data(self) -> list[tuple[float, float]]:
-        return list(zip(self.pressures, self.capacities))
+        return list(zip(self.pressures, self.derivatives_of_saturation))
 
 
 def _read_reference_characteristics(
@@ -50,18 +51,18 @@ def _read_reference_characteristics(
             result.relative_permeabilities.append(float(row["relative_permeability"]))
             result.degrees_of_saturation.append(float(row["saturation"]))
             result.diffusivities.append(float(row["diffusivity"]))
-            result.capacities.append(float(row["capacity"]))
+            result.derivatives_of_saturation.append(
+                float(row["derivative_of_saturation"])
+            )
         return result
 
 
 def _obtain_kratos_characteristics(
-    retention_law, parameters
+    retention_law, parameters, pressure_unit: str
 ) -> RetentionCharacteristics:
     result = RetentionCharacteristics()
     num_points = 250
-    pressures = []
-    for i in range(0, num_points):
-        pressures.append(-1000 + i * 21000 / num_points)
+    pressures = np.linspace(-1000, 20000, num_points)
 
     relative_permeabilities = []
     degrees_of_saturation = []
@@ -75,11 +76,21 @@ def _obtain_kratos_characteristics(
         result.degrees_of_saturation.append(
             retention_law.CalculateEffectiveSaturation(parameters)
         )
-        capacity = -1.0 * retention_law.CalculateDerivativeOfSaturation(parameters)
-        result.capacities.append(capacity)
-        result.diffusivities.append(relative_permeability / capacity)
+        derivative_of_saturation = -1.0 * retention_law.CalculateDerivativeOfSaturation(
+            parameters
+        )
+        result.derivatives_of_saturation.append(derivative_of_saturation)
+        diffusivity = (
+            relative_permeability / derivative_of_saturation
+            if derivative_of_saturation > 0
+            else np.nan
+        )
+        result.diffusivities.append(diffusivity)
 
-    result.pressures = [Pa_to_kPa(pressure) for pressure in pressures]
+    result.pressures = [
+        Pa_to_kPa(pressure) if pressure_unit == "Pa" else pressure
+        for pressure in pressures
+    ]
     return result
 
 
@@ -106,11 +117,27 @@ def _create_characteristic_data_series(
     return data_series_collection
 
 
-def plot_van_genuchten_retention_law_characteristics(
+def create_law(properties: Kratos.Properties):
+    law_name = properties[KratosGeo.RETENTION_LAW]
+    match law_name:
+        case "VanGenuchtenLaw":
+            return KratosGeo.VanGenuchtenLaw()
+        case "SaturatedLaw":
+            return KratosGeo.SaturatedLaw()
+        case "SaturatedBelowPhreaticLevelLaw":
+            return KratosGeo.SaturatedBelowPhreaticLevelLaw()
+        case _:
+            raise RuntimeError(f"Unknown retention law type {law_name}")
+
+
+def plot_retention_law_characteristics(
     properties: Kratos.Properties,
     plot_file_path: Path,
     comparison_data_path: Path | None = None,
+    pressure_unit: str = "Pa",
 ) -> None:
+    if pressure_unit is not "Pa" and pressure_unit is not "kPa":
+        raise RuntimeError("The pressure unit is unknown, please use Pa or kPa")
     comparison_characteristics: RetentionCharacteristics | None = None
     if comparison_data_path:
         comparison_characteristics = _read_reference_characteristics(
@@ -118,7 +145,9 @@ def plot_van_genuchten_retention_law_characteristics(
         )
 
     kratos_characteristics = _obtain_kratos_characteristics(
-        KratosGeo.VanGenuchtenLaw(), KratosGeo.RetentionLawParameters(properties)
+        retention_law=create_law(properties),
+        parameters=KratosGeo.RetentionLawParameters(properties),
+        pressure_unit=pressure_unit,
     )
     data_series_collections = []
     data_series_collections.append(
@@ -171,10 +200,11 @@ def plot_van_genuchten_retention_law_characteristics(
                 log_y_plot=True,
             ),
             plot_utils.SubPlotOptions(
-                title="Capacity vs Pressure",
+                title="Derivative of Saturation vs Pressure",
                 xlabel="Water pressure [kPa]",
-                ylabel="Capacity [-]",
+                ylabel="Derivative of Saturation [-]",
             ),
         ],
         max_plots_per_row=2,
+        figsize=(6, 6),
     )

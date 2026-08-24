@@ -32,7 +32,6 @@ ApplyConstantHydrostaticPressureProcess::ApplyConstantHydrostaticPressureProcess
             "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
             "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
             "is_fixed": false,
-            "is_seepage" : false,
             "gravity_direction" : 2,
             "reference_coordinate" : 0.0,
             "specific_weight" : 10000.0,
@@ -53,7 +52,6 @@ ApplyConstantHydrostaticPressureProcess::ApplyConstantHydrostaticPressureProcess
     mModelPartName         = rParameters["model_part_name"].GetString();
     mVariableName          = rParameters["variable_name"].GetString();
     mIsFixed               = rParameters["is_fixed"].GetBool();
-    mIsSeepage             = rParameters["is_seepage"].GetBool();
     mGravityDirection      = rParameters["gravity_direction"].GetInt();
     mReferenceCoordinate   = rParameters["reference_coordinate"].GetDouble();
     mSpecificWeight        = rParameters["specific_weight"].GetDouble();
@@ -71,19 +69,10 @@ void ApplyConstantHydrostaticPressureProcess::ExecuteInitialize()
         const double pressure = -PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight *
                                 (mReferenceCoordinate - rNode.Coordinates()[mGravityDirection]);
 
-        if (mIsSeepage) {
-            if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) { // Before 0. was used i.s.o. the tension cut off value -> no effect in any test.
-                rNode.FastGetSolutionStepValue(var) = pressure;
-                if (mIsFixed) rNode.Fix(var);
-            } else {
-                if (mIsFixedProvided) rNode.Free(var);
-            }
-        } else {
-            rNode.FastGetSolutionStepValue(var) =
-                std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
-            if (mIsFixed) rNode.Fix(var);
-            else if (mIsFixedProvided) rNode.Free(var);
-        }
+        rNode.FastGetSolutionStepValue(var) =
+            std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
+        if (mIsFixed) rNode.Fix(var);
+        else if (mIsFixedProvided) rNode.Free(var);
     });
 
     KRATOS_CATCH("")

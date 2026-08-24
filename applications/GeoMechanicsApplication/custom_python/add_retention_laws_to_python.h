@@ -7,20 +7,13 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Ignasi de Pouplana,
-//                   Vahid Galavi
+//  Main authors:    Wijtze Pieter Kikstra,
+//                   Richard Faasse
 //
 
 #pragma once
 
-// System includes
-#include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
-
-// External includes
-
-// Project includes
-#include "includes/define_python.h"
 
 namespace Kratos::Python
 {

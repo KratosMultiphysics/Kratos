@@ -1,6 +1,7 @@
-from dataclasses import dataclass
 import math
 import pathlib
+from dataclasses import dataclass
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,13 +24,10 @@ def _make_plot(
     yaxis_inverted=False,
     xscale=None,
     title=None,
-    logy=False,
 ):
     figure, axes = plt.subplots(layout="constrained")
     if xscale is not None:
         axes.set_xscale(xscale)
-    if logy == True:
-        axes.set_yscale("log", base=10)
     _plot_data_series_on_axis(axes, data_series_collection)
     axes.yaxis.set_inverted(yaxis_inverted)
     if xlabel is not None:
@@ -53,8 +51,6 @@ def _plot_data_series_on_axis(axes, data_series_collection):
     for series in data_series_collection:
         # Unpack the data from pairs into two lists. See
         # https://stackoverflow.com/questions/21519203/plotting-a-list-of-x-y-coordinates for details.
-        # for x, y in series.data_points:
-        #     print(f"x = {x}, y = {y}")
         result.extend(
             axes.plot(
                 *zip(*series.data_points),
@@ -131,31 +127,32 @@ class SubPlotOptions:
 
 
 def make_separate_sub_plots(
-    data_series_collections,
-    plot_file_path,
+    data_series_collections: list[list[DataSeries]],
+    plot_file_path: Path,
     subplot_options: list[SubPlotOptions],
-    max_plots_per_row=5,
+    max_plots_per_row: int = 5,
+    figsize: tuple[int, int] = (20, 6),
 ):
     num_rows = math.ceil(len(data_series_collections) / max_plots_per_row)
     num_cols = math.ceil(len(data_series_collections) / num_rows)
     figure, axes = plt.subplots(
-        num_rows, num_cols, figsize=(6, 6), layout="constrained"
+        num_rows, num_cols, figsize=figsize, layout="constrained"
     )
     axes = np.ravel(axes)
+    for ax in axes[len(data_series_collections) :]:
+        ax.set_axis_off()
 
     lines = []
+    assert len(data_series_collections) == len(subplot_options)
     for index, (ax, collection, options) in enumerate(
         zip(axes, data_series_collections, subplot_options)
     ):
         lines.extend(_plot_data_series_on_axis(ax, collection))
         if options.log_y_plot:
-            ax.set_yscale("log", base=10)
+            ax.set_yscale("log", base=10, nonpositive="mask")
         ax.set_title(options.title)
         ax.set_xlabel(options.xlabel)
         ax.set_ylabel(options.ylabel)
-
-    for ax in axes[len(data_series_collections) :]:
-        ax.set_axis_off()
 
     lines_with_unique_labels = []
     unique_labels = set()
@@ -168,9 +165,7 @@ def make_separate_sub_plots(
         loc="upper center", bbox_to_anchor=(0.5, 0.0), handles=lines_with_unique_labels
     )
 
-    if isinstance(plot_file_path, pathlib.Path):
-        plot_file_path = str(plot_file_path.resolve())
-    print(f"Saving plot to {plot_file_path}")
+    print(f"Saving plot to {str(plot_file_path.resolve())}")
     plt.savefig(plot_file_path, bbox_inches="tight")
     plt.close(figure)
 
