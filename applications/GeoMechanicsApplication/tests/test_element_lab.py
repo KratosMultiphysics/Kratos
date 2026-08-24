@@ -195,19 +195,19 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
             self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=3),
             time=1.25, delta=0.002)
 
-    def test_unloading_reloading(self):
+    def test_schanz_vermeer(self):
         """
-        Regression test for unloading and reloading with the pressure-dependent Eur stiffness law
+        Regression test for unloading and reloading with the pressure-dependent Schanz Vermeer stiffness law
         on the axisymmetric 2D6N triaxial setup.
         """
-        project_path = test_helper.get_file_path(os.path.join('test_element_lab', 'triaxial_comp_6n_unloading_reloading'))
+        project_path = test_helper.get_file_path(os.path.join('test_element_lab', 'triaxial_comp_6n_schanz_vermeer'))
 
         run_multiple_stages.run_stages(project_path, 2)
 
         reader = GiDOutputFileReader()
 
-        stage_1_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_unloading_reloading_stage1.post.res"))
-        stage_2_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_unloading_reloading_stage2.post.res"))
+        stage_1_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_schanz_vermeer_stage1.post.res"))
+        stage_2_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_schanz_vermeer_stage2.post.res"))
 
         self._assert_average_stress_component(reader, stage_1_output, 1.0, 1, -46.667766, 4)
         self._assert_average_stress_component(reader, stage_2_output, 2.0, 1, -100.01745, 4)
