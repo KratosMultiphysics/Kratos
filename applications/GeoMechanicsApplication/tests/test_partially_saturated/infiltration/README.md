@@ -17,7 +17,7 @@ For this problem, linear Pw (water pressure) elements (TransientPwElement2D3N) a
 
 ### Infiltration tests with 'Staringreeks' materials
 
-Very similar to the set-up described above, the following tests are performed with different materials. The results are shown below.
+Very similar to the set-up described above, the following tests are performed with different materials. These materials correspond with the materials in the Staringreeks, except the relative permeability, which is kept constant for each of the tests. The results are shown in the sections below.
 For each test, the Van Genuchten characteristics are shown in the first image with comparisons to DG-Flow. For the second image, the infiltration from the top boundary is shown with comparisons to DG-Flow, HYDRUS and an external reference solution. The asserted pressures (red markers) are chosen at characteristic positions in the curves.
 
 
