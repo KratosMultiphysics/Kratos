@@ -28,5 +28,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionBoundaryTypeVariableHasExpectedName
     KRATOS_EXPECT_EQ(GEO_SEEPAGE_BOUNDARY_TYPE.Name(), "GEO_SEEPAGE_BOUNDARY_TYPE");
 }
 
-} // namespace Kratos::Testing
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionIsRegisteredForBothLineGeometries, KratosGeoMechanicsFastSuite)
+{
+    KRATOS_EXPECT_TRUE(KratosComponents<Condition>::Has("GeoSeepageCondition2D2N"))
+    KRATOS_EXPECT_TRUE(KratosComponents<Condition>::Has("GeoSeepageCondition2D3N"))
+}
 
+} // namespace Kratos::Testing

@@ -31,6 +31,7 @@
 #include "custom_conditions/Pw_normal_flux_condition.h"
 #include "custom_conditions/Pw_point_flux_condition.h"
 #include "custom_conditions/T_microclimate_flux_condition.h"
+#include "custom_conditions/geo_seepage_condition.h"
 #include "custom_conditions/T_normal_flux_condition.h"
 #include "custom_conditions/U_Pw_face_load_condition.h"
 #include "custom_conditions/U_Pw_face_load_interface_condition.h"
@@ -801,6 +802,11 @@ private:
         0, Kratos::make_shared<Point2D<NodeType>>(Condition::GeometryType::PointsArrayType(1))};
     const PwPointFluxCondition<3, 1> mPwPointFluxCondition3D1N{
         0, Kratos::make_shared<Point3D<NodeType>>(Condition::GeometryType::PointsArrayType(1))};
+
+    const GeoSeepageCondition mGeoSeepageCondition2D2N{
+        0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};
+    const GeoSeepageCondition mGeoSeepageCondition2D3N{
+        0, Kratos::make_shared<Line2D3<NodeType>>(Condition::GeometryType::PointsArrayType(3))};
 
     const UPwFaceLoadInterfaceCondition<2, 2> mUPwFaceLoadInterfaceCondition2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};
