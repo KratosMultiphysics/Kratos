@@ -27,6 +27,7 @@ class StaticMechanicalShiftedBoundarySolver(structural_mechanics_static_solver.S
             "conforming_basis" : true,
             "extension_operator_type" : "MLS",
             "mls_extension_operator_order" : 1,
+            "nitsche_flag": false,
             "sbm_interface_condition_name" : "DisplacementShiftedBoundaryCondition"                                    
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
@@ -58,6 +59,7 @@ class StaticMechanicalShiftedBoundarySolver(structural_mechanics_static_solver.S
         settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
         settings.AddEmptyValue("boundary_sub_model_part_name").SetString("shifted_boundary")
         settings.AddEmptyValue("conforming_basis").SetBool(self.settings["conforming_basis"].GetBool())
+        settings.AddEmptyValue("nitsche_flag").SetBool(self.settings["nitsche_flag"].GetBool())
         settings.AddEmptyValue("extension_operator_type").SetString(self.settings["extension_operator_type"].GetString())
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["mls_extension_operator_order"].GetInt())
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.settings["sbm_interface_condition_name"].GetString())

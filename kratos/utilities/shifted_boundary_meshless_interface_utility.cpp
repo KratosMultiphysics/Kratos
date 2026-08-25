@@ -180,10 +180,12 @@ namespace
         KRATOS_ERROR_IF(mExtensionOperator == ExtensionOperator::GradientBased && !mConformingBasis)
             << "'gradient_based' extension operator can only be used with conforming basis." << std::endl;
 
-        // Set the SBD contion prototype to be used in the condition creation
-        std::string interface_condition_name = ThisParameters["sbm_interface_condition_name"].GetString();
-        KRATOS_ERROR_IF(interface_condition_name == "") << "SBM interface condition has not been provided." << std::endl;
-        mpConditionPrototype = &KratosComponents<Condition>::Get(interface_condition_name);
+        // Set the SBM condition prototype to be used in the condition creation
+        if (!mNitscheFlag) {
+            std::string interface_condition_name = ThisParameters["sbm_interface_condition_name"].GetString();
+            KRATOS_ERROR_IF(interface_condition_name == "") << "SBM interface condition has not been provided." << std::endl;
+            mpConditionPrototype = &KratosComponents<Condition>::Get(interface_condition_name);
+        }
     };
 
     void ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator()
@@ -697,40 +699,30 @@ namespace
                         }
                     }
 
-                    // KRATOS_WATCH(N_container)
+                    // Nitsche imposes the BC directly inside the boundary element 
+                    if (!mNitscheFlag) {
+                        // Create a new condition with a geometry made up with the basis nodes
+                        auto p_prop = rElement.pGetProperties();
+                        auto p_cond = mpConditionPrototype->Create(++max_cond_id, cloud_nodes_vector, p_prop);
+                        p_cond->Set(ACTIVE, true);
+                        mpBoundarySubModelPart->AddCondition(p_cond);
 
-                    // Create a new condition with a geometry made up with the basis nodes
-                    auto p_prop = rElement.pGetProperties();
-                    auto p_cond = mpConditionPrototype->Create(++max_cond_id, cloud_nodes_vector, p_prop);
-                    p_cond->Set(ACTIVE, true);
-                    mpBoundarySubModelPart->AddCondition(p_cond);
-
-                    // Store the SBM BC data in the condition database
-                    p_cond->SetValue(ELEMENT_H, h);
-                    const double n_norm = norm_2(pos_int_n[i_g]);
-                    p_cond->SetValue(NORMAL, pos_int_n[i_g] / n_norm);
-                    p_cond->SetValue(INTEGRATION_WEIGHT, pos_int_w[i_g]);
-                    p_cond->SetValue(INTEGRATION_COORDINATES, i_g_coords);
-                    p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
-                    p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
-
-                    // KRATOS_WATCH(i_g_coords)
-                    // KRATOS_WATCH(N_container)
-                    // KRATOS_WATCH(DN_DX_container)
-
-                    // KRATOS_WATCH(pos_int_w[i_g])
-                    // KRATOS_WATCH(pos_int_n[i_g] / n_norm)
-                    // KRATOS_WATCH(i_g_coords)
-                    // KRATOS_WATCH(h)
-                    // exit(0);
+                        // Store the SBM BC data in the condition database
+                        p_cond->SetValue(ELEMENT_H, h);
+                        const double n_norm = norm_2(pos_int_n[i_g]);
+                        p_cond->SetValue(NORMAL, pos_int_n[i_g] / n_norm);
+                        p_cond->SetValue(INTEGRATION_WEIGHT, pos_int_w[i_g]);
+                        p_cond->SetValue(INTEGRATION_COORDINATES, i_g_coords);
+                        p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
+                        p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+                        p_cond->SetValue(LOCAL_AXIS_1, elem_local_e1);
+                        p_cond->SetValue(LOCAL_AXIS_2, elem_local_e2);
+                    }
                 }
             }
         }
-        // KRATOS_WATCH(*mpModelPart)
 
-        // KRATOS_WATCH(mNitscheFlag)
-        if(mNitscheFlag)
-        {
+        if (mNitscheFlag) {
             for (auto& rElement : mpModelPart->Elements()) {
                 rElement.Set(ACTIVE, true);
             }

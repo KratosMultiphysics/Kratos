@@ -193,8 +193,12 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                 R(7,6) = -1.0*R(7,6);
                 B_parent = prod(R, B_temp);
 
-                CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, aux_CB_projection);
-                CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
+                // Smearing basis: -Vx(),-Vy()
+                const array_1d<double,3> local_e1 = -data.LCS.Vx();
+                const array_1d<double,3> local_e2 = -data.LCS.Vy();
+                const array_1d<double,3> local_e3 = data.LCS.Vz();
+                CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, local_e1, local_e2, local_e3, aux_CB_projection);
+                CalculateCauchyTractionVector(r_stress, n_sur_bd, local_e1, local_e2, local_e3, cauchy_traction);
 
                 double aux_val;
                 std::size_t i_loc_id;
@@ -300,10 +304,22 @@ template <ShellKinematics TKinematics>
 void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateCauchyTractionVector(
     const Vector& rVoigtStress,
     const array_1d<double,2>& rUnitNormal,
+    const array_1d<double,3>& rLocalE1,
+    const array_1d<double,3>& rLocalE2,
+    const array_1d<double,3>& rLocalE3,
     array_1d<double,6>& rCauchyTraction)
 {
-    rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
-    rCauchyTraction[1] = rVoigtStress[2]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1];
+    // rUnitNormal is the LOCAL (DN_DX_parent-frame) conormal.
+    const double t1 = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
+    const double t2 = rVoigtStress[2]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1];
+    const double m1 = rVoigtStress[3]*rUnitNormal[0] + rVoigtStress[5]*rUnitNormal[1];
+    const double m2 = rVoigtStress[5]*rUnitNormal[0] + rVoigtStress[4]*rUnitNormal[1];
+    const double q  = rVoigtStress[6]*rUnitNormal[0] + rVoigtStress[7]*rUnitNormal[1];
+
+    for (std::size_t k = 0; k < 3; ++k) {
+        rCauchyTraction[k]     = t1*rLocalE1[k] + t2*rLocalE2[k] + q*rLocalE3[k];
+        rCauchyTraction[3 + k] = m2*rLocalE1[k] + m1*rLocalE2[k];
+    }
 }
 
 template <ShellKinematics TKinematics>
@@ -311,31 +327,26 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLin
     const Matrix& rC,
     const BoundedMatrix<double,8,LocalSize>& rB,
     const array_1d<double,2>& rUnitNormal,
+    const array_1d<double,3>& rLocalE1,
+    const array_1d<double,3>& rLocalE2,
+    const array_1d<double,3>& rLocalE3,
     BoundedMatrix<double,6,LocalSize>& rAuxMat)
 {
 
     Matrix aux_CB = ZeroMatrix(8, LocalSize);
     aux_CB = prod(rC, rB);
 
-    // membrane part
     for (std::size_t j = 0; j < LocalSize; ++j) {
-        rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j);
-    }
-    for (std::size_t j = 0; j < LocalSize; ++j) {
-        rAuxMat(1,j) = rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j);
-    }
+        const double t1 = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j);
+        const double t2 = rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j);
+        const double m1 = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j);
+        const double m2 = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j);
+        const double q  = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
 
-    // bending part
-    for (std::size_t j = 0; j < LocalSize; ++j) {
-        rAuxMat(4,j) = (rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j));
-    }
-    for (std::size_t j = 0; j < LocalSize; ++j) {
-        rAuxMat(3,j) = (rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j));
-    }
-
-    // shear part
-    for (std::size_t j = 0; j < LocalSize; ++j) {
-        rAuxMat(2,j) = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
+        for (std::size_t k = 0; k < 3; ++k) {
+            rAuxMat(k, j)     = t1*rLocalE1[k] + t2*rLocalE2[k] + q*rLocalE3[k];
+            rAuxMat(3 + k, j) = m2*rLocalE1[k] + m1*rLocalE2[k];
+        }
     }
 }
 

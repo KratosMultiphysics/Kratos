@@ -118,7 +118,6 @@
 /* Adding the displacement-based SBM condition */
 #include "custom_conditions/displacement_shifted_boundary_condition.h"
 #include "custom_conditions/displacement_shell_shifted_boundary_condition.h"
-#include "custom_conditions/displacement_shell_nitsche_boundary_condition.h"
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
@@ -548,7 +547,6 @@ private:
     // SBM displacement conditions
     const DisplacementShiftedBoundaryCondition mDisplacementShiftedBoundaryCondition;
     const DisplacementShellShiftedBoundaryCondition mDisplacementShellShiftedBoundaryCondition;
-    const DisplacementShellNitscheBoundaryCondition mDisplacementShellNitscheBoundaryCondition;
 
     // Moving load
     const MovingLoadCondition<2,2> mMovingLoadCondition2D2N;

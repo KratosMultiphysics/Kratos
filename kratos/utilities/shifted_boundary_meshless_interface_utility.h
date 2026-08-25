@@ -174,7 +174,7 @@ private:
 
     std::size_t mMLSExtensionOperatorOrder;
 
-    const Condition* mpConditionPrototype;
+    const Condition* mpConditionPrototype = nullptr;
 
     ///@}
     ///@name Private Operators

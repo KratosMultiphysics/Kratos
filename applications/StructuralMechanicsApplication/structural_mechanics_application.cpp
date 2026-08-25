@@ -303,7 +303,6 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       // Adding the SBM displacement conditions
       mDisplacementShiftedBoundaryCondition(0, Element::GeometryType::Pointer(new Geometry<Node>())),
       mDisplacementShellShiftedBoundaryCondition(0, Element::GeometryType::Pointer(new Geometry<Node>())),
-      mDisplacementShellNitscheBoundaryCondition(0, Element::GeometryType::Pointer(new Geometry<Node>())),
 
       // Adding moving load conditions
       mMovingLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
@@ -847,7 +846,6 @@ void KratosStructuralMechanicsApplication::Register() {
     // SBM displacement conditions
     KRATOS_REGISTER_CONDITION("DisplacementShiftedBoundaryCondition", mDisplacementShiftedBoundaryCondition)
     KRATOS_REGISTER_CONDITION("DisplacementShellShiftedBoundaryCondition", mDisplacementShellShiftedBoundaryCondition)
-    KRATOS_REGISTER_CONDITION("DisplacementShellNitscheBoundaryCondition", mDisplacementShellNitscheBoundaryCondition)
 
     // Moving loads
     KRATOS_REGISTER_CONDITION("MovingLoadCondition2D2N", mMovingLoadCondition2D2N)
