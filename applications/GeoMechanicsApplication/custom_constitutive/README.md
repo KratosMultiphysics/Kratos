@@ -672,3 +672,58 @@ MohrCoulomb64 model uses an ad‑hoc elastic stiffness correction:
 \Delta u = 2G/3 ( \frac{1+\nu_u}{1−2\nu_u} − \frac{1+\nu}{1−2\nu} ) \Delta \epsilon_v,
 ```
 which approximates an undrained − drained bulk modulus difference using an artificial near‑incompressible Poisson ratio $\nu_u = 0.495$. 
+
+## 3. Piecewise-linear moment–capacity (plane-strain) law
+
+Description: This constitutive law provides a piecewise-linear bending backbone $M_b(\kappa)$ for beam/section behaviour in plane‑strain, combined with linear axial and shear stiffness. The backbone is defined for non‑negative curvature values using the list of points $(\kappa,M)$ `GEO_PIECEWISE_LINEAR_MOMENT_LAW`. An implicit origin $(0,0)$ is prepended automatically and, by convention, the backbone is held constant beyond the last provided curvature point.
+
+Backbone interpolation (for $\kappa\ge0$): let the table entries be $(\kappa_i,M_i)$ with $i=0\dots n$ (where $(0,0)$ is included). For $\kappa\in[\kappa_i,\kappa_{i+1}]$ the backbone is piecewise linear:
+
+$$
+M_b(\kappa)=M_i + (M_{i+1}-M_i)\frac{\kappa-\kappa_i}{\kappa_{i+1}-\kappa_i}.
+$$
+
+The bending tangent modulus (slope) is constant inside each segment:
+
+$$
+EI_t(\kappa)=\dfrac{dM_b}{d\kappa}=\frac{M_{i+1}-M_i}{\kappa_{i+1}-\kappa_i}.
+$$
+
+Signed moment: the law stores and uses a signed curvature $\kappa$ (positive/negative). The signed bending moment is obtained by applying the backbone to the absolute curvature and reapplying sign:
+
+$$
+M(\kappa)=\mathrm{sign}(\kappa)\,M_b(|\kappa|).
+$$
+
+Optional unload/reload behaviour: if the property `GEO_UNLOADING_RELOADING_MODULUS` is provided (denoted $E_u$) an elastic window of half‑amplitude $a_{ur}$ is used to model unloading/reloading about a center $\kappa_c$ (internal state). The amplitude is computed from the current accumulated backbone state $\kappa_{acc}$ as:
+
+$$
+a_{ur} = \dfrac{M_b(\kappa_{acc})}{E_u}.
+$$
+
+Inside the elastic window ($|\kappa-\kappa_c|<a_{ur}$) the response is linear elastic about the center:
+
+$$
+M(\kappa)=E_u\,(\kappa-\kappa_c),\qquad |\kappa-\kappa_c|<a_{ur}.
+$$
+
+When loading leaves the elastic window the law resumes the backbone using an effective backbone curvature
+
+$$
+\kappa_{eff}=\kappa_{acc} + (|\kappa-\kappa_c|-a_{ur}),
+$$
+
+and the signed moment is recovered from the backbone: $M(\kappa)=\mathrm{sign}(\kappa-\kappa_c)\,M_b(\kappa_{eff})$. 
+
+If the unloading process is not enabled then the moment follows the backbone curve. This is illustrated with dashed lines on the following picture
+<img src="documentation_data/pwlmc1.svg">
+If the curvature goes to negative values, then the backbone is mirrored against the coordinate origin. 
+
+When the unloading process is enabled and the curvature is reduced then the moment follows the unloading curve. This case is shown on this figure. 
+<img src="documentation_data/pwlmc2.svg">
+When the curvature is increased, the moment increases back to the backbone curve by following the unloading curve. In case of the further increase of the curvatue, the moment follows the backbobe curve. 
+
+If the curvature is reduced significantly like it is shown on this picture
+<img src="documentation_data/pwlmc3.svg">
+then the moment is decreased until point B, which is mirrored point A, then the  moment follows the mirrored backbone curve.
+
