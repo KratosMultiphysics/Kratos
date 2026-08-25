@@ -203,14 +203,13 @@ private:
         std::vector<TSystemVectorType> v_list; // v_i
         std::vector<TSystemVectorType> z_list; // z_i = rA0^{-1} u_i (cached)
 
-        using RankStorage::Clear;
-
         void Clear() override
         {
             u_list.clear();
             v_list.clear();
             z_list.clear();
         }
+        using RankStorage::Clear;
     };
 
     struct LBFGSRankStorage : RankStorage {
@@ -218,14 +217,13 @@ private:
         std::vector<TSystemVectorType> db_list;  // gradient/residual differences
         std::vector<double>            rho_list; // curvature scalars
 
-        using RankStorage::Clear;
-
         void Clear() override
         {
             dx_list.clear();
             db_list.clear();
             rho_list.clear();
         }
+        using RankStorage::Clear;
     };
 
     QuasiNewtonType    mQuasiNewtonType = QuasiNewtonType::Broyden;
