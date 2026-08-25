@@ -116,6 +116,32 @@ void GeoSeepageCondition::Initialize(const ProcessInfo&)
     KRATOS_CATCH("")
 }
 
+void GeoSeepageCondition::InitializeNonLinearIteration(const ProcessInfo&)
+{
+    KRATOS_TRY
+
+    const auto& r_boundary_type = GetBoundaryType();
+    KRATOS_ERROR_IF(r_boundary_type != Geo::SeepageDirichletType && r_boundary_type != Geo::SeepageNeumannType)
+        << "Unknown seepage boundary type '" << r_boundary_type << "' for GeoSeepageCondition "
+        << Id() << ", expected '" << Geo::SeepageDirichletType << "' or '"
+        << Geo::SeepageNeumannType << "'" << std::endl;
+
+    const auto is_dirichlet = r_boundary_type == Geo::SeepageDirichletType;
+    for (auto& r_node : GetGeometry()) {
+        if (is_dirichlet) {
+            // A seepage face lets water out at atmospheric pressure.
+            r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+            r_node.Fix(WATER_PRESSURE);
+        } else {
+            // Zero flux: freeing the degree of freedom is all that is needed, since a zero flux
+            // makes no contribution to the system.
+            r_node.Free(WATER_PRESSURE);
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
 const std::string& GeoSeepageCondition::GetBoundaryType() const
 {
     KRATOS_ERROR_IF_NOT(GetProperties().Has(GEO_SEEPAGE_BOUNDARY_TYPE))
@@ -149,6 +175,7 @@ void GeoSeepageCondition::load(Serializer& rSerializer)
 }
 
 } // namespace Kratos
+
 
 
 

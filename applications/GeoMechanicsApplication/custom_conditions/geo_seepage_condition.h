@@ -66,6 +66,10 @@ public:
     // switched independently of the other conditions that originally shared those Properties.
     void Initialize(const ProcessInfo&) override;
 
+    // Applies the currently configured boundary type to the nodes of this condition. Called once
+    // per non-linear iteration, so that a boundary type switched from outside takes effect here.
+    void InitializeNonLinearIteration(const ProcessInfo&) override;
+
     // Returns the currently configured boundary type. Errors if GEO_SEEPAGE_BOUNDARY_TYPE is absent.
     [[nodiscard]] const std::string& GetBoundaryType() const;
 
@@ -86,6 +90,7 @@ private:
 };
 
 } // namespace Kratos
+
 
 
 
