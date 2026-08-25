@@ -16,26 +16,18 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 
-namespace Kratos::Geo
-{
-
-// The only legal values of GEO_SEEPAGE_BOUNDARY_TYPE.
-inline const std::string SeepageDirichletType = "Dirichlet";
-inline const std::string SeepageNeumannType   = "Neumann";
-
-} // namespace Kratos::Geo
-
 namespace Kratos
 {
 
-// A mixed seepage boundary condition on the WATER_PRESSURE degree of freedom.
+// A seepage boundary condition on the WATER_PRESSURE degree of freedom.
 //
-// The condition acts either as a Dirichlet boundary (WATER_PRESSURE fixed at zero) or as a
-// zero-flux Neumann boundary (WATER_PRESSURE free). The mode is stored in the condition's
-// Properties under GEO_SEEPAGE_BOUNDARY_TYPE and is re-read on every non-linear iteration, so
-// it can be switched from outside the condition while solving.
+// This condition holds no mode of its own. A node's WATER_PRESSURE fixity is the single source of
+// truth for its boundary type: fixed means a Dirichlet boundary at zero pressure, free means a
+// zero-flux Neumann boundary. GeoSeepageNewtonRaphsonStrategy switches individual nodes while
+// iterating; this condition only marks which nodes belong to the seepage face and gives them their
+// initial state.
 //
-// The condition never contributes to the linear system; it only changes the fixity of its nodes.
+// The condition never contributes to the linear system.
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoSeepageCondition : public Condition
 {
 public:
@@ -62,31 +54,16 @@ public:
     void CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    // Gives this condition its own copy of its Properties, so that its boundary type can be
-    // switched independently of the other conditions that originally shared those Properties.
-    void Initialize(const ProcessInfo&) override;
+    // Puts the seepage face into its initial, over-prescribed state: every node is a Dirichlet
+    // boundary at zero pressure. The strategy releases nodes from there, one per iteration.
+    void InitializeSolutionStep(const ProcessInfo&) override;
 
-    // Applies the currently configured boundary type to the nodes of this condition. Called once
-    // per non-linear iteration, so that a boundary type switched from outside takes effect here.
-    void InitializeNonLinearIteration(const ProcessInfo&) override;
-
-    // Validates that this condition can be used: the geometry, the WATER_PRESSURE degrees of
-    // freedom, and a legal GEO_SEEPAGE_BOUNDARY_TYPE.
     [[nodiscard]] int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    // Returns the currently configured boundary type. Errors if GEO_SEEPAGE_BOUNDARY_TYPE is absent.
-    [[nodiscard]] const std::string& GetBoundaryType() const;
-
-    // Sets the boundary type on this condition's Properties. Errors on any value other than
-    // Geo::SeepageDirichletType or Geo::SeepageNeumannType.
-    void SetBoundaryType(const std::string& rBoundaryType);
 
     [[nodiscard]] std::string Info() const override;
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
-
-    bool mHasOwnProperties = false;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
@@ -94,6 +71,8 @@ private:
 };
 
 } // namespace Kratos
+
+
 
 
 

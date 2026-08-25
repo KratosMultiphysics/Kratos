@@ -13,7 +13,6 @@
 // Project includes
 #include "containers/model.h"
 #include "custom_conditions/geo_seepage_condition.h"
-#include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "includes/variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -115,95 +114,19 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCalculateLocalSystemReturnsZeroes, 
     KRATOS_EXPECT_VECTOR_NEAR(right_hand_side, expected_right_hand_side, 1.0e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionSetBoundaryTypeIsReadBackByGetBoundaryType, KratosGeoMechanicsFastSuiteWithoutKernel)
+// The seepage face starts over-prescribed: every node begins as a Dirichlet boundary at zero
+// pressure, and the strategy releases nodes one at a time from there.
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeSolutionStepFixesAllNodesAtZeroPressure, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
     auto  condition    = CreateSeepageCondition(r_model_part);
 
-    condition.SetBoundaryType(Geo::SeepageDirichletType);
-    KRATOS_EXPECT_EQ(condition.GetBoundaryType(), Geo::SeepageDirichletType);
-
-    condition.SetBoundaryType(Geo::SeepageNeumannType);
-    KRATOS_EXPECT_EQ(condition.GetBoundaryType(), Geo::SeepageNeumannType);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionSetBoundaryTypeThrowsOnUnknownValue, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(condition.SetBoundaryType("Robin"),
-                                      "Unknown seepage boundary type 'Robin' for GeoSeepageCondition 1")
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionGetBoundaryTypeThrowsWhenPropertyIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto& r_type = condition.GetBoundaryType(),
-        "GEO_SEEPAGE_BOUNDARY_TYPE is not defined for GeoSeepageCondition 1")
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeGivesEachConditionItsOwnProperties, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-
-    auto p_geometry = std::make_shared<Line2D2<Node>>(r_model_part.pGetNode(1), r_model_part.pGetNode(2));
-    auto p_properties = Kratos::make_shared<Properties>(1);
-    p_properties->SetValue(GEO_SEEPAGE_BOUNDARY_TYPE, Geo::SeepageDirichletType);
-
-    auto first_condition  = GeoSeepageCondition{1, p_geometry, p_properties};
-    auto second_condition = GeoSeepageCondition{2, p_geometry, p_properties};
-
-    first_condition.Initialize(ProcessInfo{});
-    second_condition.Initialize(ProcessInfo{});
-
-    // Switching one condition must not affect the other.
-    first_condition.SetBoundaryType(Geo::SeepageNeumannType);
-
-    KRATOS_EXPECT_EQ(first_condition.GetBoundaryType(), Geo::SeepageNeumannType);
-    KRATOS_EXPECT_EQ(second_condition.GetBoundaryType(), Geo::SeepageDirichletType);
-    KRATOS_EXPECT_EQ((*p_properties)[GEO_SEEPAGE_BOUNDARY_TYPE], Geo::SeepageDirichletType);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionSecondInitializeDoesNotResetTheBoundaryType, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-
-    auto p_geometry = std::make_shared<Line2D2<Node>>(r_model_part.pGetNode(1), r_model_part.pGetNode(2));
-    auto p_properties = Kratos::make_shared<Properties>(1);
-    p_properties->SetValue(GEO_SEEPAGE_BOUNDARY_TYPE, Geo::SeepageDirichletType);
-
-    auto condition = GeoSeepageCondition{1, p_geometry, p_properties};
-
-    condition.Initialize(ProcessInfo{});
-    condition.SetBoundaryType(Geo::SeepageNeumannType);
-    condition.Initialize(ProcessInfo{});
-
-    KRATOS_EXPECT_EQ(condition.GetBoundaryType(), Geo::SeepageNeumannType);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionDirichletFixesWaterPressureAtZero, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    // Give the nodes a non-zero pressure, to prove the condition overwrites it.
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 42.0;
     }
 
-    condition.Initialize(ProcessInfo{});
-    condition.SetBoundaryType(Geo::SeepageDirichletType);
-    condition.InitializeNonLinearIteration(ProcessInfo{});
+    condition.InitializeSolutionStep(ProcessInfo{});
 
     for (const auto& r_node : r_model_part.Nodes()) {
         KRATOS_EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE))
@@ -211,67 +134,19 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionDirichletFixesWaterPressureAtZero, 
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionNeumannFreesWaterPressure, KratosGeoMechanicsFastSuiteWithoutKernel)
+// A node released to Neumann by the strategy must be re-fixed at the start of the next solution
+// step, so each step starts from the same over-prescribed configuration.
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeSolutionStepReFixesAReleasedNode, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
     auto  condition    = CreateSeepageCondition(r_model_part);
 
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.Fix(WATER_PRESSURE);
-    }
+    r_model_part.pGetNode(1)->Free(WATER_PRESSURE);
 
-    condition.Initialize(ProcessInfo{});
-    condition.SetBoundaryType(Geo::SeepageNeumannType);
-    condition.InitializeNonLinearIteration(ProcessInfo{});
+    condition.InitializeSolutionStep(ProcessInfo{});
 
-    for (const auto& r_node : r_model_part.Nodes()) {
-        KRATOS_EXPECT_FALSE(r_node.IsFixed(WATER_PRESSURE))
-    }
-}
-
-// This test plays the role of the Newton-Raphson strategy that will be built in step 2 of the
-// prototype: it switches the boundary type between two non-linear iterations and checks that the
-// condition picks the change up.
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionSwitchesBetweenNonLinearIterations, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    condition.Initialize(ProcessInfo{});
-
-    condition.SetBoundaryType(Geo::SeepageDirichletType);
-    condition.InitializeNonLinearIteration(ProcessInfo{});
-    for (const auto& r_node : r_model_part.Nodes()) {
-        KRATOS_EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE))
-    }
-
-    condition.SetBoundaryType(Geo::SeepageNeumannType);
-    condition.InitializeNonLinearIteration(ProcessInfo{});
-    for (const auto& r_node : r_model_part.Nodes()) {
-        KRATOS_EXPECT_FALSE(r_node.IsFixed(WATER_PRESSURE))
-    }
-
-    condition.SetBoundaryType(Geo::SeepageDirichletType);
-    condition.InitializeNonLinearIteration(ProcessInfo{});
-    for (const auto& r_node : r_model_part.Nodes()) {
-        KRATOS_EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE))
-    }
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeNonLinearIterationThrowsOnUnknownBoundaryType, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    condition.Initialize(ProcessInfo{});
-    // Bypass the validating setter, to mimic a value that came straight from an input file.
-    condition.GetProperties().SetValue(GEO_SEEPAGE_BOUNDARY_TYPE, "Robin");
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(condition.InitializeNonLinearIteration(ProcessInfo{}),
-                                      "Unknown seepage boundary type 'Robin' for GeoSeepageCondition 1")
+    KRATOS_EXPECT_TRUE(r_model_part.pGetNode(1)->IsFixed(WATER_PRESSURE))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckReturnsZeroForValidSetup, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -280,32 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckReturnsZeroForValidSetup, Krat
     auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
     auto  condition    = CreateSeepageCondition(r_model_part);
 
-    condition.Initialize(ProcessInfo{});
-    condition.SetBoundaryType(Geo::SeepageDirichletType);
-
     KRATOS_EXPECT_EQ(condition.Check(ProcessInfo{}), 0);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsWhenBoundaryTypeIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(condition.Check(ProcessInfo{}),
-                                      "GEO_SEEPAGE_BOUNDARY_TYPE is not defined for GeoSeepageCondition 1")
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsOnUnknownBoundaryType, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    condition.GetProperties().SetValue(GEO_SEEPAGE_BOUNDARY_TYPE, "Robin");
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(condition.Check(ProcessInfo{}),
-                                      "Unknown seepage boundary type 'Robin' for GeoSeepageCondition 1")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsWhenNodeHasNoWaterPressureDof, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -318,16 +168,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsWhenNodeHasNoWaterPressu
     // Deliberately do not add the WATER_PRESSURE degree of freedom.
 
     auto condition = CreateSeepageCondition(r_model_part);
-    condition.SetBoundaryType(Geo::SeepageDirichletType);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(condition.Check(ProcessInfo{}),
                                       "Missing degree of freedom for WATER_PRESSURE on node 1")
 }
 
 } // namespace Kratos::Testing
-
-
-
-
-
 
