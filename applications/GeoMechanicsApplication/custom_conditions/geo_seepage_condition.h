@@ -70,6 +70,10 @@ public:
     // per non-linear iteration, so that a boundary type switched from outside takes effect here.
     void InitializeNonLinearIteration(const ProcessInfo&) override;
 
+    // Validates that this condition can be used: the geometry, the WATER_PRESSURE degrees of
+    // freedom, and a legal GEO_SEEPAGE_BOUNDARY_TYPE.
+    [[nodiscard]] int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
     // Returns the currently configured boundary type. Errors if GEO_SEEPAGE_BOUNDARY_TYPE is absent.
     [[nodiscard]] const std::string& GetBoundaryType() const;
 
@@ -90,6 +94,7 @@ private:
 };
 
 } // namespace Kratos
+
 
 
 

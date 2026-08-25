@@ -274,7 +274,58 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeNonLinearIterationThrowsO
                                       "Unknown seepage boundary type 'Robin' for GeoSeepageCondition 1")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckReturnsZeroForValidSetup, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
+    auto  condition    = CreateSeepageCondition(r_model_part);
+
+    condition.Initialize(ProcessInfo{});
+    condition.SetBoundaryType(Geo::SeepageDirichletType);
+
+    KRATOS_EXPECT_EQ(condition.Check(ProcessInfo{}), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsWhenBoundaryTypeIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
+    auto  condition    = CreateSeepageCondition(r_model_part);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(condition.Check(ProcessInfo{}),
+                                      "GEO_SEEPAGE_BOUNDARY_TYPE is not defined for GeoSeepageCondition 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsOnUnknownBoundaryType, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
+    auto  condition    = CreateSeepageCondition(r_model_part);
+
+    condition.GetProperties().SetValue(GEO_SEEPAGE_BOUNDARY_TYPE, "Robin");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(condition.Check(ProcessInfo{}),
+                                      "Unknown seepage boundary type 'Robin' for GeoSeepageCondition 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsWhenNodeHasNoWaterPressureDof, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    // Deliberately do not add the WATER_PRESSURE degree of freedom.
+
+    auto condition = CreateSeepageCondition(r_model_part);
+    condition.SetBoundaryType(Geo::SeepageDirichletType);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(condition.Check(ProcessInfo{}),
+                                      "Missing degree of freedom for WATER_PRESSURE on node 1")
+}
+
 } // namespace Kratos::Testing
+
 
 
 

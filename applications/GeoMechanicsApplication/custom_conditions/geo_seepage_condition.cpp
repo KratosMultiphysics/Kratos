@@ -142,6 +142,34 @@ void GeoSeepageCondition::InitializeNonLinearIteration(const ProcessInfo&)
     KRATOS_CATCH("")
 }
 
+int GeoSeepageCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    const auto base_check_result = Condition::Check(rCurrentProcessInfo);
+
+    KRATOS_ERROR_IF(GetGeometry().PointsNumber() < 2)
+        << "GeoSeepageCondition " << Id() << " needs at least two nodes, but has "
+        << GetGeometry().PointsNumber() << std::endl;
+
+    for (const auto& r_node : GetGeometry()) {
+        KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(WATER_PRESSURE))
+            << "Missing variable WATER_PRESSURE on node " << r_node.Id() << std::endl;
+        KRATOS_ERROR_IF_NOT(r_node.HasDofFor(WATER_PRESSURE))
+            << "Missing degree of freedom for WATER_PRESSURE on node " << r_node.Id() << std::endl;
+    }
+
+    const auto& r_boundary_type = GetBoundaryType();
+    KRATOS_ERROR_IF(r_boundary_type != Geo::SeepageDirichletType && r_boundary_type != Geo::SeepageNeumannType)
+        << "Unknown seepage boundary type '" << r_boundary_type << "' for GeoSeepageCondition "
+        << Id() << ", expected '" << Geo::SeepageDirichletType << "' or '"
+        << Geo::SeepageNeumannType << "'" << std::endl;
+
+    return base_check_result;
+
+    KRATOS_CATCH("")
+}
+
 const std::string& GeoSeepageCondition::GetBoundaryType() const
 {
     KRATOS_ERROR_IF_NOT(GetProperties().Has(GEO_SEEPAGE_BOUNDARY_TYPE))
@@ -175,8 +203,3 @@ void GeoSeepageCondition::load(Serializer& rSerializer)
 }
 
 } // namespace Kratos
-
-
-
-
-
