@@ -101,6 +101,24 @@ Condition::DofsVectorType GeoSeepageCondition::GetDofs() const
     return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
 }
 
+const std::string& GeoSeepageCondition::GetBoundaryType() const
+{
+    KRATOS_ERROR_IF_NOT(GetProperties().Has(GEO_SEEPAGE_BOUNDARY_TYPE))
+        << "GEO_SEEPAGE_BOUNDARY_TYPE is not defined for GeoSeepageCondition " << Id() << std::endl;
+
+    return GetProperties()[GEO_SEEPAGE_BOUNDARY_TYPE];
+}
+
+void GeoSeepageCondition::SetBoundaryType(const std::string& rBoundaryType)
+{
+    KRATOS_ERROR_IF(rBoundaryType != Geo::SeepageDirichletType && rBoundaryType != Geo::SeepageNeumannType)
+        << "Unknown seepage boundary type '" << rBoundaryType << "' for GeoSeepageCondition " << Id()
+        << ", expected '" << Geo::SeepageDirichletType << "' or '" << Geo::SeepageNeumannType << "'"
+        << std::endl;
+
+    GetProperties().SetValue(GEO_SEEPAGE_BOUNDARY_TYPE, rBoundaryType);
+}
+
 std::string GeoSeepageCondition::Info() const { return "GeoSeepageCondition"; }
 
 void GeoSeepageCondition::save(Serializer& rSerializer) const
@@ -114,4 +132,5 @@ void GeoSeepageCondition::load(Serializer& rSerializer)
 }
 
 } // namespace Kratos
+
 

@@ -62,6 +62,13 @@ public:
     void CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
+    // Returns the currently configured boundary type. Errors if GEO_SEEPAGE_BOUNDARY_TYPE is absent.
+    [[nodiscard]] const std::string& GetBoundaryType() const;
+
+    // Sets the boundary type on this condition's Properties. Errors on any value other than
+    // Geo::SeepageDirichletType or Geo::SeepageNeumannType.
+    void SetBoundaryType(const std::string& rBoundaryType);
+
     [[nodiscard]] std::string Info() const override;
 
 private:
@@ -73,4 +80,5 @@ private:
 };
 
 } // namespace Kratos
+
 

@@ -115,6 +115,41 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCalculateLocalSystemReturnsZeroes, 
     KRATOS_EXPECT_VECTOR_NEAR(right_hand_side, expected_right_hand_side, 1.0e-12)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionSetBoundaryTypeIsReadBackByGetBoundaryType, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
+    auto  condition    = CreateSeepageCondition(r_model_part);
+
+    condition.SetBoundaryType(Geo::SeepageDirichletType);
+    KRATOS_EXPECT_EQ(condition.GetBoundaryType(), Geo::SeepageDirichletType);
+
+    condition.SetBoundaryType(Geo::SeepageNeumannType);
+    KRATOS_EXPECT_EQ(condition.GetBoundaryType(), Geo::SeepageNeumannType);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionSetBoundaryTypeThrowsOnUnknownValue, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
+    auto  condition    = CreateSeepageCondition(r_model_part);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(condition.SetBoundaryType("Robin"),
+                                      "Unknown seepage boundary type 'Robin' for GeoSeepageCondition 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionGetBoundaryTypeThrowsWhenPropertyIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
+    auto  condition    = CreateSeepageCondition(r_model_part);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto& r_type = condition.GetBoundaryType(),
+        "GEO_SEEPAGE_BOUNDARY_TYPE is not defined for GeoSeepageCondition 1")
+}
+
 } // namespace Kratos::Testing
+
 
 
