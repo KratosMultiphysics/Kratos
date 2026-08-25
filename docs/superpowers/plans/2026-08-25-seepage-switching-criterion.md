@@ -1,4 +1,5 @@
-# Seepage Switching Criterion — Step 3 — Implementation Plan
+
+ # Seepage Switching Criterion — Step 3 — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -1120,6 +1121,34 @@ Fill this in during implementation:
 - Whether the one-switch-per-iteration rate is sufficient for the Muskat mesh, or whether the iteration budget is exhausted before the exit point settles.
 - Whether any node oscillates between fixed and free on alternating iterations, which would call for a once-per-step switching limit.
 - Above all: whether `ShouldReleaseToNeumann` has the correct sign, judged against the Muskat reference solution.
+
+## Findings Recorded During Implementation
+
+**Status: all five tasks implemented. Full GeoMechanics C++ suite green (1126 tests, no failures). 19 new/rewritten feature tests pass.**
+
+The test total went from 1128 (before step 3) to 1126: three `GEO_SEEPAGE_BOUNDARY_TYPE` tests and five retired mode-machinery tests were removed, and two condition tests plus ten utility tests were added. The pass criterion — zero failures, nothing previously passing now failing — holds.
+
+Deviations from the plan:
+
+- **`CollectSeepageNodes` did NOT need a `const_cast`.** Taking the model part by non-const reference (the plan's own fix to its first draft) was sufficient. `ModelPart::Conditions()` yields mutable conditions, whose `GetGeometry()` yields mutable nodes, so `Node*` came out cleanly.
+- **A file was created with corrupt leading bytes.** `test_seepage_boundary_utilities.cpp` was written with five stray bytes (`It's'`) prepended before the license header, producing a baffling `C4430: missing type specifier` on line 1 — a line that is only a comment. Detected by dumping the raw bytes and comparing against a known-good test file; fixed by stripping the five bytes. Worth checking the first bytes of any newly created file if the compiler complains about line 1.
+- **A test-harness bug, not a production bug.** The first multi-condition test called `CreateNewProperties(0)` once per condition, and Kratos throws on the second creation of the same property id. Fixed by reusing the existing Properties in the test helper. The production code was correct.
+
+Confirmed as designed:
+
+- The interleaved U-Pw dof mapping works: `AccumulateWaterPressureEntries` ignored displacement entries and kept only the `WATER_PRESSURE` ones.
+- The precedence rule (Neumann to Dirichlet wins) and the lowest-node-id tie-break both behave as specified.
+- Making nodal fixity the source of truth cleanly retired the step 1 mode machinery with no dangling references.
+
+## Still Open for #14637 (need a running solver)
+
+- The one-switch-per-iteration migration rate versus the iteration budget on a real mesh.
+- The cost of recomputing every element's RHS each iteration.
+- Whether any node oscillates between fixed and free.
+- Whether `RebuildSystem()` (step 4) is genuinely needed under a block builder and solver.
+- **The sign of `ShouldReleaseToNeumann`** — the central modelling assumption, still to be judged against Muskat.
+
+
 
 
 
