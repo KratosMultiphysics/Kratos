@@ -75,6 +75,69 @@ KRATOS_TEST_CASE_IN_SUITE(CollectSeepageNodesReturnsSharedNodesOnlyOnce, KratosG
     KRATOS_EXPECT_EQ(nodes[2]->Id(), 3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AccumulateWaterPressureEntriesPicksOnlyWaterPressureDofs, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.AddDof(DISPLACEMENT_X);
+        r_node.AddDof(DISPLACEMENT_Y);
+        r_node.AddDof(WATER_PRESSURE);
+    }
+
+    // Mimic a U-Pw ordering: ux, uy, p for node 1, then ux, uy, p for node 2.
+    auto dofs = std::vector<Dof<double>*>{r_model_part.pGetNode(1)->pGetDof(DISPLACEMENT_X),
+                                          r_model_part.pGetNode(1)->pGetDof(DISPLACEMENT_Y),
+                                          r_model_part.pGetNode(1)->pGetDof(WATER_PRESSURE),
+                                          r_model_part.pGetNode(2)->pGetDof(DISPLACEMENT_X),
+                                          r_model_part.pGetNode(2)->pGetDof(DISPLACEMENT_Y),
+                                          r_model_part.pGetNode(2)->pGetDof(WATER_PRESSURE)};
+
+    auto right_hand_side = Vector{6};
+    right_hand_side[0]   = 10.0; // ux node 1, must be ignored
+    right_hand_side[1]   = 20.0; // uy node 1, must be ignored
+    right_hand_side[2]   = 3.0;  // p  node 1
+    right_hand_side[3]   = 30.0; // ux node 2, must be ignored
+    right_hand_side[4]   = 40.0; // uy node 2, must be ignored
+    right_hand_side[5]   = 7.0;  // p  node 2
+
+    auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{};
+    Geo::SeepageBoundaryUtilities::AccumulateWaterPressureEntries(dofs, right_hand_side, nodal_flows);
+
+    KRATOS_EXPECT_EQ(nodal_flows.size(), 2);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flows.at(1), 3.0);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flows.at(2), 7.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AccumulateWaterPressureEntriesSumsContributionsFromSeveralElements, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = CreateModelPartWithNodes(model, 2);
+
+    auto dofs = std::vector<Dof<double>*>{r_model_part.pGetNode(1)->pGetDof(WATER_PRESSURE),
+                                          r_model_part.pGetNode(2)->pGetDof(WATER_PRESSURE)};
+
+    auto first_contribution = Vector{2};
+    first_contribution[0]   = 1.5;
+    first_contribution[1]   = 2.5;
+
+    auto second_contribution = Vector{2};
+    second_contribution[0]   = 0.5;
+    second_contribution[1]   = -2.5;
+
+    auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{};
+    Geo::SeepageBoundaryUtilities::AccumulateWaterPressureEntries(dofs, first_contribution, nodal_flows);
+    Geo::SeepageBoundaryUtilities::AccumulateWaterPressureEntries(dofs, second_contribution, nodal_flows);
+
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flows.at(1), 2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(nodal_flows.at(2), 0.0);
+}
+
 } // namespace Kratos::Testing
+
 
 

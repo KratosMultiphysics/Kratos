@@ -18,6 +18,39 @@
 namespace Kratos::Geo::SeepageBoundaryUtilities
 {
 
+void AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rDofs,
+                                    const Vector&                    rRightHandSide,
+                                    NodalFlowMap&                    rNodalFlows)
+{
+    KRATOS_ERROR_IF(rDofs.size() != rRightHandSide.size())
+        << "Number of degrees of freedom (" << rDofs.size()
+        << ") does not match the size of the right hand side (" << rRightHandSide.size() << ")"
+        << std::endl;
+
+    for (std::size_t i = 0; i < rDofs.size(); ++i) {
+        if (rDofs[i]->GetVariable() != WATER_PRESSURE) continue;
+
+        rNodalFlows[rDofs[i]->Id()] += rRightHandSide[i];
+    }
+}
+
+NodalFlowMap CalculateNodalWaterFlows(ModelPart& rModelPart, const ProcessInfo& rProcessInfo)
+{
+    auto result = NodalFlowMap{};
+
+    auto dofs            = std::vector<Dof<double>*>{};
+    auto right_hand_side = Vector{};
+
+    for (auto& r_element : rModelPart.Elements()) {
+        r_element.GetDofList(dofs, rProcessInfo);
+        r_element.CalculateRightHandSide(right_hand_side, rProcessInfo);
+
+        AccumulateWaterPressureEntries(dofs, right_hand_side, result);
+    }
+
+    return result;
+}
+
 std::vector<Node*> CollectSeepageNodes(ModelPart& rModelPart)
 {
     auto result = std::vector<Node*>{};
@@ -39,4 +72,5 @@ std::vector<Node*> CollectSeepageNodes(ModelPart& rModelPart)
 }
 
 } // namespace Kratos::Geo::SeepageBoundaryUtilities
+
 
