@@ -316,8 +316,7 @@ namespace Kratos
             "boundary_wall_condition_name" : "",
             "extension_operator_type" : "MLS",
             "mls_extension_operator_order" : 1,
-            "enclosed_area" : "none",
-            "use_tessellated_boundary" : true
+            "enclosed_area" : "none"
         })" );
 
         return default_parameters;
@@ -398,8 +397,7 @@ namespace Kratos
             rElement.Set(SBM_BOUNDARY, false);   // Elements in which the skin geometry is located (true boundary gamma) - tessellated skin and skin integration points.
             rElement.Set(SBM_INTERFACE, false);  // Elements owning the surrogate boundary nodes
         });
-
-        KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Boundary and interface flags were reset and all elements and nodes re-activated." << std::endl;
+        //KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Boundary and interface flags were reset and all elements and nodes re-activated." << std::endl;
     }
 
     void ShiftedBoundaryPointBasedUtility::FindElementsAtTessellatedBoundary(double Tolerance)
@@ -569,7 +567,7 @@ namespace Kratos
                 }
             }
         });
-        KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Interface flags were set."  << std::endl;
+        //KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Interface flags were set."  << std::endl;
     }
 
     void ShiftedBoundaryPointBasedUtility::DeactivateElementsAndNodes(
@@ -582,7 +580,7 @@ namespace Kratos
                 rElement.Set(ACTIVE, false);
             }
         });
-        KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Boundary elements were deactivated." << std::endl;
+        //KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Boundary elements were deactivated." << std::endl;
 
         if (DeactivateUnstableClusters) {
             FindAndDeactivateUnstableClusters();
@@ -614,8 +612,7 @@ namespace Kratos
                 }
             }
         });
-
-        KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Single nodes were deactivated." << std::endl;
+        //KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Single nodes were deactivated." << std::endl;
     }
 
     void ShiftedBoundaryPointBasedUtility::CalculateAndAddSkinIntegrationPointConditions()
@@ -640,12 +637,6 @@ namespace Kratos
         AverageSkinToElementsMapType avg_skin_map;
         SetSidesForSkinPointElements(surrounding_nodes_csr, avg_skin_map);
 
-        // Iterate over the elements which contain skin integration points to create an extension basis for each node of the element (MLS shape functions values for support cloud of node)
-        // NOTE that no extension will be calculated and added for a node for which not a sufficient number of support nodes were found
-        mExtensionOperatorMap.clear();
-        mExtensionOperatorSameSideMap.clear();
-        SetExtensionForSkinPointElements(surrounding_nodes_csr, avg_skin_map);
-
         // Set the pressure of the first node of an enclosed volume to zero if one side is enclosed.
         auto skin_pt_element_iter = mSkinPointsMap.begin();
         mEnclosedPressureIsSet = false;
@@ -654,15 +645,21 @@ namespace Kratos
                 auto p_elem = skin_pt_element_iter->first;
                 const array_1d<double,3> avg_skin_position = avg_skin_map[p_elem].first;
                 const array_1d<double,3> avg_skin_normal = avg_skin_map[p_elem].second;
-                mEnclosedPressureIsSet = FixPressureOfEnclosedNode(*p_elem, mSidesVectorMap[p_elem], avg_skin_position, avg_skin_normal);
+                mEnclosedPressureIsSet = FixPressureOfEnclosedNode(*p_elem, mSidesVectorMap[p_elem]);
                 skin_pt_element_iter++;
             }
         }
 
+        // Iterate over the elements which contain skin integration points to create an extension basis for each node of the element (MLS shape functions values for support cloud of node)
+        // NOTE that no extension will be calculated and added for a node for which not a sufficient number of support nodes were found
+        mExtensionOperatorMap.clear();
+        mExtensionOperatorSameSideMap.clear();
+        SetExtensionForSkinPointElements(surrounding_nodes_csr, avg_skin_map);
+
         // Calculate shape functions and derivatives for each skin point and side and add the boundary conditions to the model part.
         CalculateExtendedValuesAndAddSkinPointConditions();
 
-        KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "'" << mSkinModelPartName << "' skin point conditions were added." << std::endl;
+        //KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "'" << mSkinModelPartName << "' skin point conditions were added." << std::endl;
     }
 
     void ShiftedBoundaryPointBasedUtility::FreePressureOfEnclosedNode()
@@ -926,7 +923,6 @@ namespace Kratos
         }
 
         // Deactivate the elements of all clusters except for the elements of the biggest cluster
-        //TODO deactivate only clusters that do not have a fixed DOF?
         for (std::size_t i = 0; i < clusters.size(); ++i) {
             if (i != biggest_cluster_id) {
                 for (auto& p_elem : clusters[i]) {
@@ -1046,13 +1042,13 @@ namespace Kratos
             }
         });
 
-        EdgesVectorType all_edges;
-        all_edges.reserve(num_elem * 3);
+        EdgesVectorType all_active_edges;
+        all_active_edges.reserve(num_elem * 3);
         for (auto& edges : thread_edges) {
-            all_edges.insert(all_edges.end(), edges.begin(), edges.end());
+            all_active_edges.insert(all_active_edges.end(), edges.begin(), edges.end());
         }
 
-        return all_edges;
+        return all_active_edges;
     }
 
     void ShiftedBoundaryPointBasedUtility::SetSidesForSkinPointElements(
@@ -1214,10 +1210,9 @@ namespace Kratos
                 pNode->Set(MODIFIED, true);
             }
         });
-        KRATOS_WATCH(n_second_layer_checks);
 
         // Add side vote to boundary element nodes without skin points around them based on the votes of their surrounding nodes
-        //TODO slower, but better: get skin points of two layers of surrounding elements and choose side based on dot products
+        //TODO slower, but better? get skin points of two layers of surrounding elements and choose side based on dot products
         for (auto p_element : mBoundaryElementsSet) {
             auto& r_geom = p_element->GetGeometry();
             for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
@@ -1286,6 +1281,27 @@ namespace Kratos
                 pNode->Set(SBM_INTERFACE, true);
             }
         });
+    }
+
+    bool ShiftedBoundaryPointBasedUtility::FixPressureOfEnclosedNode(
+        ElementType& rElement,
+        const Vector& rSidesVector)
+    {
+        auto& r_geom = rElement.GetGeometry();
+        const std::size_t n_nodes = r_geom.PointsNumber();
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+
+            if ((mPositiveSideIsEnclosed && rSidesVector[i_node] > 0) or (mNegativeSideIsEnclosed && rSidesVector[i_node] < 0)) {
+                auto& r_node = r_geom[i_node];
+                if (r_node.Is(ACTIVE)) {
+                    mEnclosedNodeId = r_node.Id();
+                    r_node.Fix(PRESSURE);
+                    r_node.FastGetSolutionStepValue(PRESSURE) = 0.0;
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     void ShiftedBoundaryPointBasedUtility::SetExtensionForSkinPointElements(
@@ -1651,162 +1667,67 @@ namespace Kratos
             // Calculate parent element size for the SBM BC imposition
             const double h = p_element_size_func(r_geom);
 
-            if (mNegativeSideIsEnclosed || !neg_extension_valid) {
-                // Iterate over the element's skin points adding a positive side and a negative side condition for each skin point
-                for (std::size_t i_skin_pt = 0; i_skin_pt < skin_points_data_vector.size(); ++i_skin_pt) {
-                    // Get the skin point's position and area normal (integration point of the boundary)
-                    const auto skin_pt_data = skin_points_data_vector[i_skin_pt];
-                    const array_1d<double,3> skin_pt_position = std::get<0>(skin_pt_data);
-                    const array_1d<double,3> skin_pt_area_normal = std::get<1>(skin_pt_data);
-                    const std::size_t skin_pt_id = std::get<2>(skin_pt_data);
+            // Iterate over the element's skin points adding a positive side and a negative side condition for each skin point
+            for (std::size_t i_skin_pt = 0; i_skin_pt < skin_points_data_vector.size(); ++i_skin_pt) {
+                // Get the skin point's position and area normal (integration point of the boundary)
+                const auto skin_pt_data = skin_points_data_vector[i_skin_pt];
+                const array_1d<double,3> skin_pt_position = std::get<0>(skin_pt_data);
+                const array_1d<double,3> skin_pt_area_normal = std::get<1>(skin_pt_data);
+                const std::size_t skin_pt_id = std::get<2>(skin_pt_data);
 
-                    // Get the embedded velocity at the skin point (to be used in the SBM BC imposition)
-                    array_1d<double,3> skin_pt_velocity = mpSkinPointsSubModelPart->GetNode(skin_pt_id).GetValue(EMBEDDED_VELOCITY);
+                // Get the embedded velocity at the skin point (to be used in the SBM BC imposition)
+                array_1d<double,3> skin_pt_velocity = mpSkinPointsSubModelPart->GetNode(skin_pt_id).GetValue(EMBEDDED_VELOCITY);
 
-                    // Get the element's shape function values and derivatives at the skin/ integration point
-                    Vector skin_pt_N(n_nodes);
-                    Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, n_dim);
-                    GetDataForSkinPointInElement(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
+                // Get the element's shape function values and derivatives at the skin/ integration point
+                Vector skin_pt_N(n_nodes);
+                Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, n_dim);
+                GetDataForSkinPointInElement(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
 
-                    // Initialize the shape function values and derivatives for the skin point extended with the elements extension operator data (for both sides of the boundary)
-                    Vector skin_pt_N_extended_pos = ZeroVector(cloud_nodes_vector_pos.size());
-                    Matrix skin_pt_DN_DX_extended_pos = ZeroMatrix(cloud_nodes_vector_pos.size(), n_dim);
+                // Initialize the shape function values and derivatives for the skin point extended with the elements extension operator data (for both sides of the boundary)
+                Vector skin_pt_N_extended_pos = ZeroVector(cloud_nodes_vector_pos.size());
+                Vector skin_pt_N_extended_neg = ZeroVector(cloud_nodes_vector_neg.size());
+                Matrix skin_pt_DN_DX_extended_pos = ZeroMatrix(cloud_nodes_vector_pos.size(), n_dim);
+                Matrix skin_pt_DN_DX_extended_neg = ZeroMatrix(cloud_nodes_vector_neg.size(), n_dim);
 
-                    // Loop the nodes of the current element to calculate extended shape function values and derivatives using the cloud nodes and their weights
-                    for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-                        const auto p_node = r_geom(i_node);
+                // Loop the nodes of the current element to calculate extended shape function values and derivatives using the cloud nodes and their weights
+                for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                    const auto p_node = r_geom(i_node);
 
-                        // Get the shape function value and derivative of the element's node at the position of the skin point
-                        const double i_node_N = skin_pt_N(i_node);
-                        const auto i_node_grad_N = row(skin_pt_DN_DX, i_node);
+                    // Get the shape function value and derivative of the element's node at the position of the skin point
+                    const double i_node_N = skin_pt_N(i_node);
+                    const auto i_node_grad_N = row(skin_pt_DN_DX, i_node);
 
-                        for (std::size_t i_cl = 0; i_cl < cloud_nodes_vector_pos.size(); ++i_cl) {
-                            auto& p_cl_node = cloud_nodes_vector_pos(i_cl);
-                            auto& cl_node_weight = cloud_weights_map_pos[p_cl_node][i_node];
-                            skin_pt_N_extended_pos(i_cl) += i_node_N * cl_node_weight;
-                            for (std::size_t d = 0; d < n_dim; ++d) {
-                                skin_pt_DN_DX_extended_pos(i_cl, d) += i_node_grad_N(d) * cl_node_weight;
-                            }
+                    for (std::size_t i_cl = 0; i_cl < cloud_nodes_vector_pos.size(); ++i_cl) {
+                        auto& p_cl_node = cloud_nodes_vector_pos(i_cl);
+                        auto& cl_node_weight = cloud_weights_map_pos[p_cl_node][i_node];
+                        skin_pt_N_extended_pos(i_cl) += i_node_N * cl_node_weight;
+                        for (std::size_t d = 0; d < n_dim; ++d) {
+                            skin_pt_DN_DX_extended_pos(i_cl, d) += i_node_grad_N(d) * cl_node_weight;
                         }
                     }
 
-                    {
-                        std::scoped_lock<LockObject> lock(mutex);
+                    for (std::size_t i_cl = 0; i_cl < cloud_nodes_vector_neg.size(); ++i_cl) {
+                        auto& p_cl_node = cloud_nodes_vector_neg(i_cl);
+                        auto& cl_node_weight = cloud_weights_map_neg[p_cl_node][i_node];
+                        skin_pt_N_extended_neg(i_cl) += i_node_N * cl_node_weight;
+                        for (std::size_t d = 0; d < n_dim; ++d) {
+                            skin_pt_DN_DX_extended_neg(i_cl, d) += i_node_grad_N(d) * cl_node_weight;
+                        }
+                    }
+                }
 
+                {
+                    std::scoped_lock<LockObject> lock(mutex);
+
+
+                    if (!mPositiveSideIsEnclosed && pos_extension_valid) {
                         // Add skin pt. condition for positive side of boundary - using positive sided nodes as support for negative side nodes and inactive positive nodes
                         // NOTE that the boundary normal is negative in order to point outward (from positive to negative side),
                         // because positive side is where dot product of vector to node with average normal is positive
                         n_skin_pt_conditions_added_pos += AddSkinPointCondition(*p_element, h, skin_pt_position, -skin_pt_area_normal, skin_pt_velocity,
                             cloud_nodes_vector_pos, skin_pt_N_extended_pos, skin_pt_DN_DX_extended_pos, max_cond_id);
                     }
-                }
-            } else if (mPositiveSideIsEnclosed || !pos_extension_valid) {
-                // Iterate over the element's skin points adding a positive side and a negative side condition for each skin point
-                for (std::size_t i_skin_pt = 0; i_skin_pt < skin_points_data_vector.size(); ++i_skin_pt) {
-                    // Get the skin point's position and area normal (integration point of the boundary)
-                    const auto skin_pt_data = skin_points_data_vector[i_skin_pt];
-                    const array_1d<double,3> skin_pt_position = std::get<0>(skin_pt_data);
-                    const array_1d<double,3> skin_pt_area_normal = std::get<1>(skin_pt_data);
-                    const std::size_t skin_pt_id = std::get<2>(skin_pt_data);
-
-                    // Get the embedded velocity at the skin point (to be used in the SBM BC imposition)
-                    array_1d<double,3> skin_pt_velocity = mpSkinPointsSubModelPart->GetNode(skin_pt_id).GetValue(EMBEDDED_VELOCITY);
-
-                    // Get the element's shape function values and derivatives at the skin/ integration point
-                    Vector skin_pt_N(n_nodes);
-                    Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, n_dim);
-                    GetDataForSkinPointInElement(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
-
-                    // Initialize the shape function values and derivatives for the skin point extended with the elements extension operator data (for both sides of the boundary)
-                    Vector skin_pt_N_extended_neg = ZeroVector(cloud_nodes_vector_neg.size());
-                    Matrix skin_pt_DN_DX_extended_neg = ZeroMatrix(cloud_nodes_vector_neg.size(), n_dim);
-
-                    // Loop the nodes of the current element to calculate extended shape function values and derivatives using the cloud nodes and their weights
-                    for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-                        const auto p_node = r_geom(i_node);
-
-                        // Get the shape function value and derivative of the element's node at the position of the skin point
-                        const double i_node_N = skin_pt_N(i_node);
-                        const auto i_node_grad_N = row(skin_pt_DN_DX, i_node);
-
-                        for (std::size_t i_cl = 0; i_cl < cloud_nodes_vector_neg.size(); ++i_cl) {
-                            auto& p_cl_node = cloud_nodes_vector_neg(i_cl);
-                            auto& cl_node_weight = cloud_weights_map_neg[p_cl_node][i_node];
-                            skin_pt_N_extended_neg(i_cl) += i_node_N * cl_node_weight;
-                            for (std::size_t d = 0; d < n_dim; ++d) {
-                                skin_pt_DN_DX_extended_neg(i_cl, d) += i_node_grad_N(d) * cl_node_weight;
-                            }
-                        }
-                    }
-
-                    {
-                        std::scoped_lock<LockObject> lock(mutex);
-
-                        // Add skin pt. condition for negative side of boundary - using negative sided nodes as support for positive nodes and inactive negative nodes
-                        // NOTE that boundary normal is pointing outward (from negative to positive side)
-                        n_skin_pt_conditions_added_neg += AddSkinPointCondition(*p_element, h, skin_pt_position, skin_pt_area_normal, skin_pt_velocity,
-                            cloud_nodes_vector_neg, skin_pt_N_extended_neg, skin_pt_DN_DX_extended_neg, max_cond_id);
-                    }
-                }
-            } else {
-                // Iterate over the element's skin points adding a positive side and a negative side condition for each skin point
-                for (std::size_t i_skin_pt = 0; i_skin_pt < skin_points_data_vector.size(); ++i_skin_pt) {
-                    // Get the skin point's position and area normal (integration point of the boundary)
-                    const auto skin_pt_data = skin_points_data_vector[i_skin_pt];
-                    const array_1d<double,3> skin_pt_position = std::get<0>(skin_pt_data);
-                    const array_1d<double,3> skin_pt_area_normal = std::get<1>(skin_pt_data);
-                    const std::size_t skin_pt_id = std::get<2>(skin_pt_data);
-
-                    // Get the embedded velocity at the skin point (to be used in the SBM BC imposition)
-                    array_1d<double,3> skin_pt_velocity = mpSkinPointsSubModelPart->GetNode(skin_pt_id).GetValue(EMBEDDED_VELOCITY);
-
-                    // Get the element's shape function values and derivatives at the skin/ integration point
-                    Vector skin_pt_N(n_nodes);
-                    Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, n_dim);
-                    GetDataForSkinPointInElement(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
-
-                    // Initialize the shape function values and derivatives for the skin point extended with the elements extension operator data (for both sides of the boundary)
-                    Vector skin_pt_N_extended_pos = ZeroVector(cloud_nodes_vector_pos.size());
-                    Vector skin_pt_N_extended_neg = ZeroVector(cloud_nodes_vector_neg.size());
-                    Matrix skin_pt_DN_DX_extended_pos = ZeroMatrix(cloud_nodes_vector_pos.size(), n_dim);
-                    Matrix skin_pt_DN_DX_extended_neg = ZeroMatrix(cloud_nodes_vector_neg.size(), n_dim);
-
-                    // Loop the nodes of the current element to calculate extended shape function values and derivatives using the cloud nodes and their weights
-                    for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-                        const auto p_node = r_geom(i_node);
-
-                        // Get the shape function value and derivative of the element's node at the position of the skin point
-                        const double i_node_N = skin_pt_N(i_node);
-                        const auto i_node_grad_N = row(skin_pt_DN_DX, i_node);
-
-                        for (std::size_t i_cl = 0; i_cl < cloud_nodes_vector_pos.size(); ++i_cl) {
-                            auto& p_cl_node = cloud_nodes_vector_pos(i_cl);
-                            auto& cl_node_weight = cloud_weights_map_pos[p_cl_node][i_node];
-                            skin_pt_N_extended_pos(i_cl) += i_node_N * cl_node_weight;
-                            for (std::size_t d = 0; d < n_dim; ++d) {
-                                skin_pt_DN_DX_extended_pos(i_cl, d) += i_node_grad_N(d) * cl_node_weight;
-                            }
-                        }
-
-                        for (std::size_t i_cl = 0; i_cl < cloud_nodes_vector_neg.size(); ++i_cl) {
-                            auto& p_cl_node = cloud_nodes_vector_neg(i_cl);
-                            auto& cl_node_weight = cloud_weights_map_neg[p_cl_node][i_node];
-                            skin_pt_N_extended_neg(i_cl) += i_node_N * cl_node_weight;
-                            for (std::size_t d = 0; d < n_dim; ++d) {
-                                skin_pt_DN_DX_extended_neg(i_cl, d) += i_node_grad_N(d) * cl_node_weight;
-                            }
-                        }
-                    }
-
-                    {
-                        std::scoped_lock<LockObject> lock(mutex);
-
-                        // Add skin pt. condition for positive side of boundary - using positive sided nodes as support for negative side nodes and inactive positive nodes
-                        // NOTE that the boundary normal is negative in order to point outward (from positive to negative side),
-                        // because positive side is where dot product of vector to node with average normal is positive
-                        n_skin_pt_conditions_added_pos += AddSkinPointCondition(*p_element, h, skin_pt_position, -skin_pt_area_normal, skin_pt_velocity,
-                            cloud_nodes_vector_pos, skin_pt_N_extended_pos, skin_pt_DN_DX_extended_pos, max_cond_id);
-
+                    if (!mNegativeSideIsEnclosed && neg_extension_valid) {
                         // Add skin pt. condition for negative side of boundary - using negative sided nodes as support for positive nodes and inactive negative nodes
                         // NOTE that boundary normal is pointing outward (from negative to positive side)
                         n_skin_pt_conditions_added_neg += AddSkinPointCondition(*p_element, h, skin_pt_position, skin_pt_area_normal, skin_pt_velocity,
@@ -1818,7 +1739,7 @@ namespace Kratos
 
         if (n_skin_pt_conditions_added_pos != n_skin_points) {
             if (mPositiveSideIsEnclosed) {
-                KRATOS_WARNING("ShiftedBoundaryPointBasedUtility") << "Integration point conditions are NOT added for the positive side as it is enclosed." << std::endl;
+                KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Integration point conditions are NOT added for the positive side as it is enclosed." << std::endl;
             } else {
                 KRATOS_WARNING("ShiftedBoundaryPointBasedUtility") << "Integration point conditions were NOT successfully added for the positive side of "
                     << n_skin_points-n_skin_pt_conditions_added_pos << " skin points." << std::endl;
@@ -1826,7 +1747,7 @@ namespace Kratos
         }
         if (n_skin_pt_conditions_added_neg != n_skin_points) {
             if (mNegativeSideIsEnclosed) {
-                KRATOS_WARNING("ShiftedBoundaryPointBasedUtility") << "Integration point conditions are NOT added for the negative side as it is enclosed." << std::endl;
+                KRATOS_INFO("ShiftedBoundaryPointBasedUtility") << "Integration point conditions are NOT added for the negative side as it is enclosed." << std::endl;
             } else {
                 KRATOS_WARNING("ShiftedBoundaryPointBasedUtility") << "Integration point conditions were NOT successfully added for the negative side of "
                     << n_skin_points-n_skin_pt_conditions_added_neg << " skin points." << std::endl;
@@ -2002,29 +1923,6 @@ namespace Kratos
         p_cond->SetValue(EMBEDDED_VELOCITY, rSkinPtVelocity);
 
         return true;
-    }
-
-    bool ShiftedBoundaryPointBasedUtility::FixPressureOfEnclosedNode(
-        ElementType& rElement,
-        const Vector& rSidesVector,
-        const array_1d<double,3>& rAvgSkinPosition,
-        const array_1d<double,3>& rAvgSkinNormal)
-    {
-        auto& r_geom = rElement.GetGeometry();
-        const std::size_t n_nodes = r_geom.PointsNumber();
-        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-
-            if ((mPositiveSideIsEnclosed && rSidesVector[i_node] > 0) or (mNegativeSideIsEnclosed && rSidesVector[i_node] < 0)) {
-                auto& r_node = r_geom[i_node];
-                if (r_node.Is(ACTIVE)) {
-                    mEnclosedNodeId = r_node.Id();
-                    r_node.Fix(PRESSURE);
-                    r_node.FastGetSolutionStepValue(PRESSURE) = 0.0;
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     template <std::size_t TDim>

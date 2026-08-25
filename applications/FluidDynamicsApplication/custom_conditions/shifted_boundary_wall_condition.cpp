@@ -194,7 +194,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     array_1d<double,3> normal   = GetValue(NORMAL);                             // boundary normal at the integration point
     normal /= norm_2(normal);
 
-    // Get the velocity of the immersed boundary at the integration point (for moving boundaries)
+    // Get the velocity of the immersed boundary at the skin integration point (for moving boundaries)
     const auto& r_embedded_velocity = GetValue(EMBEDDED_VELOCITY);
 
     // Set whether the shear stress term is adjoint consistent (1.0) or adjoint inconsistent (-1.0) for Nitsche imposition
@@ -210,7 +210,6 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     // Obtain the previous iteration velocity and pressure solution for all cloud nodes
     // and the embedded nodal velocity EMBEDDED_VELOCITY to account for a moving boundary (FM-ALE)
-    //TODO get embedded velocity from skin integration point instead of cloud nodes??
     Vector unknown_values(local_size);
     Vector embedded_velocity(local_size);
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
