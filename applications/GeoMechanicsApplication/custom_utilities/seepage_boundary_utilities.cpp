@@ -71,6 +71,75 @@ std::vector<Node*> CollectSeepageNodes(ModelPart& rModelPart)
     return result;
 }
 
+namespace
+{
+
+// Returns the node maximising the given score among the candidates, or nullptr when there are none.
+// Candidates are visited in ascending node id order, and a strict comparison keeps the first of any
+// tie, which makes the choice reproducible.
+template <typename PredicateType, typename ScoreType>
+Node* SelectBestCandidate(const std::vector<Node*>& rNodes, PredicateType IsCandidate, ScoreType Score)
+{
+    Node* p_best     = nullptr;
+    auto  best_score = 0.0;
+
+    for (auto* p_node : rNodes) {
+        if (!IsCandidate(*p_node)) continue;
+
+        const auto score = Score(*p_node);
+        if (p_best == nullptr || score > best_score) {
+            p_best     = p_node;
+            best_score = score;
+        }
+    }
+
+    return p_best;
+}
+
+} // namespace
+
+bool ShouldReleaseToNeumann(double NodalFlow) { return NodalFlow > 0.0; }
+
+bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFlowMap& rNodalFlows)
+{
+    KRATOS_TRY
+
+    // A free node under positive pressure is unsaturated, so it cannot be a draining face. Fixing
+    // takes precedence over releasing.
+    if (auto* p_node = SelectBestCandidate(
+            rSeepageNodes,
+            [](const Node& rNode) {
+                return !rNode.IsFixed(WATER_PRESSURE) &&
+                       rNode.FastGetSolutionStepValue(WATER_PRESSURE) > 0.0;
+            },
+            [](const Node& rNode) { return rNode.FastGetSolutionStepValue(WATER_PRESSURE); })) {
+        p_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+        p_node->Fix(WATER_PRESSURE);
+        return true;
+    }
+
+    // Otherwise release the prescribed node carrying the largest outflow.
+    const auto flow_of = [&rNodalFlows](const Node& rNode) {
+        const auto it = rNodalFlows.find(rNode.Id());
+        return it == rNodalFlows.end() ? 0.0 : it->second;
+    };
+
+    if (auto* p_node = SelectBestCandidate(
+            rSeepageNodes,
+            [&flow_of](const Node& rNode) {
+                return rNode.IsFixed(WATER_PRESSURE) && ShouldReleaseToNeumann(flow_of(rNode));
+            },
+            flow_of)) {
+        p_node->Free(WATER_PRESSURE);
+        return true;
+    }
+
+    return false;
+
+    KRATOS_CATCH("")
+}
+
 } // namespace Kratos::Geo::SeepageBoundaryUtilities
+
 
 
