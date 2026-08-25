@@ -1,6 +1,6 @@
 # Seepage Boundary Prototype — Step 1: Mixed Seepage Condition — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Build a `GeoSeepageCondition` for the GeoMechanicsApplication that acts as either a Dirichlet (fixed `WATER_PRESSURE = 0`) or a zero-flux Neumann boundary, switchable from outside the condition on every non-linear iteration.
 
@@ -59,7 +59,7 @@ kp t --gtest_filter="*GeoSeepageCondition*"
 - Consumes: nothing.
 - Produces: `Kratos::GEO_SEEPAGE_BOUNDARY_TYPE`, a `Variable<std::string>`, registered under the component name `"GEO_SEEPAGE_BOUNDARY_TYPE"`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `applications/GeoMechanicsApplication/tests/cpp_tests/test_geo_seepage_boundary_type_variable.cpp`:
 
@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionBoundaryTypeVariableHasExpectedName
 } // namespace Kratos::Testing
 ```
 
-- [ ] **Step 2: Re-run CMake, build, and verify the test fails**
+- [x] **Step 2: Re-run CMake, build, and verify the test fails**
 
 ```powershell
 cmake C:/checkouts/KratosProjects/dev/build/FullDebug
@@ -105,7 +105,7 @@ cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeo
 
 Expected: compile error, `'GEO_SEEPAGE_BOUNDARY_TYPE': undeclared identifier`.
 
-- [ ] **Step 3: Declare the variable**
+- [x] **Step 3: Declare the variable**
 
 In `geo_mechanics_application_variables.h`, directly below the existing `GEO_DRAINAGE_TYPE` line (line 45):
 
@@ -114,7 +114,7 @@ KRATOS_DEFINE_APPLICATION_VARIABLE(GEO_MECHANICS_APPLICATION, std::string, GEO_D
 KRATOS_DEFINE_APPLICATION_VARIABLE(GEO_MECHANICS_APPLICATION, std::string, GEO_SEEPAGE_BOUNDARY_TYPE)
 ```
 
-- [ ] **Step 4: Create the variable**
+- [x] **Step 4: Create the variable**
 
 In `geo_mechanics_application_variables.cpp`, directly below the existing `GEO_DRAINAGE_TYPE` line (line 86):
 
@@ -123,7 +123,7 @@ KRATOS_CREATE_VARIABLE(std::string, GEO_DRAINAGE_TYPE)
 KRATOS_CREATE_VARIABLE(std::string, GEO_SEEPAGE_BOUNDARY_TYPE)
 ```
 
-- [ ] **Step 5: Register the variable**
+- [x] **Step 5: Register the variable**
 
 In `geo_mechanics_application.cpp`, in `KratosGeoMechanicsApplication::Register()`, directly below the existing `KRATOS_REGISTER_VARIABLE(GEO_DRAINAGE_TYPE)` line (line 442):
 
@@ -132,7 +132,7 @@ In `geo_mechanics_application.cpp`, in `KratosGeoMechanicsApplication::Register(
     KRATOS_REGISTER_VARIABLE(GEO_SEEPAGE_BOUNDARY_TYPE)
 ```
 
-- [ ] **Step 6: Build and verify the tests pass**
+- [x] **Step 6: Build and verify the tests pass**
 
 ```powershell
 cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeoMechanicsCoreTest
@@ -141,7 +141,7 @@ C:/checkouts/KratosProjects/dev/bin/FullDebug/test/KratosGeoMechanicsCoreTest.ex
 
 Expected: `[  PASSED  ] 2 tests.`
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add applications/GeoMechanicsApplication/geo_mechanics_application_variables.h applications/GeoMechanicsApplication/geo_mechanics_application_variables.cpp applications/GeoMechanicsApplication/geo_mechanics_application.cpp applications/GeoMechanicsApplication/tests/cpp_tests/test_geo_seepage_boundary_type_variable.cpp
@@ -176,7 +176,7 @@ Deliverable: a constructible, registered condition that reports its `WATER_PRESS
   - `inline const std::string Kratos::Geo::SeepageNeumannType` = `"Neumann"`
   - Registered condition names `"GeoSeepageCondition2D2N"` and `"GeoSeepageCondition2D3N"`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `applications/GeoMechanicsApplication/tests/cpp_tests/custom_conditions/test_geo_seepage_condition.cpp`:
 
@@ -293,7 +293,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCalculateLocalSystemReturnsZeroes, 
 } // namespace Kratos::Testing
 ```
 
-- [ ] **Step 2: Re-run CMake, build, and verify the test fails**
+- [x] **Step 2: Re-run CMake, build, and verify the test fails**
 
 ```powershell
 cmake C:/checkouts/KratosProjects/dev/build/FullDebug
@@ -302,7 +302,7 @@ cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeo
 
 Expected: compile error, `cannot open source file "custom_conditions/geo_seepage_condition.h"`.
 
-- [ ] **Step 3: Write the header**
+- [x] **Step 3: Write the header**
 
 Create `applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.h`:
 
@@ -384,7 +384,7 @@ private:
 } // namespace Kratos
 ```
 
-- [ ] **Step 4: Write the implementation**
+- [x] **Step 4: Write the implementation**
 
 Create `applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.cpp`:
 
@@ -507,7 +507,7 @@ void GeoSeepageCondition::load(Serializer& rSerializer)
 } // namespace Kratos
 ```
 
-- [ ] **Step 5: Register the condition for both geometries**
+- [x] **Step 5: Register the condition for both geometries**
 
 In `geo_mechanics_application.h`, add the include directly below the existing `#include "custom_conditions/Pw_point_flux_condition.h"` (line 32):
 
@@ -537,7 +537,7 @@ In `geo_mechanics_application.cpp`, in `Register()`, directly below the `PwPoint
     KRATOS_REGISTER_CONDITION("GeoSeepageCondition2D3N", mGeoSeepageCondition2D3N)
 ```
 
-- [ ] **Step 6: Add a registration test**
+- [x] **Step 6: Add a registration test**
 
 Append to `applications/GeoMechanicsApplication/tests/cpp_tests/test_geo_seepage_boundary_type_variable.cpp`, inside `namespace Kratos::Testing`, and add `#include "includes/kratos_components.h"` and `#include "includes/condition.h"` at the top if not already present:
 
@@ -549,7 +549,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionIsRegisteredForBothLineGeometries, 
 }
 ```
 
-- [ ] **Step 7: Build and verify all tests pass**
+- [x] **Step 7: Build and verify all tests pass**
 
 ```powershell
 cmake C:/checkouts/KratosProjects/dev/build/FullDebug
@@ -559,7 +559,7 @@ C:/checkouts/KratosProjects/dev/bin/FullDebug/test/KratosGeoMechanicsCoreTest.ex
 
 Expected: `[  PASSED  ] 8 tests.`
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```powershell
 git add applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.h applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.cpp applications/GeoMechanicsApplication/geo_mechanics_application.h applications/GeoMechanicsApplication/geo_mechanics_application.cpp applications/GeoMechanicsApplication/tests/cpp_tests/custom_conditions/test_geo_seepage_condition.cpp applications/GeoMechanicsApplication/tests/cpp_tests/test_geo_seepage_boundary_type_variable.cpp
@@ -583,7 +583,7 @@ Deliverable: the mode can be read and written through the condition, with invali
   - `const std::string& GeoSeepageCondition::GetBoundaryType() const` — errors if the property is absent.
   - `void GeoSeepageCondition::SetBoundaryType(const std::string& rBoundaryType)` — errors on any value other than the two legal strings, otherwise writes `GEO_SEEPAGE_BOUNDARY_TYPE` into `GetProperties()`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append inside `namespace Kratos::Testing` in `test_geo_seepage_condition.cpp`:
 
@@ -623,7 +623,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionGetBoundaryTypeThrowsWhenPropertyIs
 }
 ```
 
-- [ ] **Step 2: Build and verify the tests fail**
+- [x] **Step 2: Build and verify the tests fail**
 
 ```powershell
 cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeoMechanicsCoreTest
@@ -631,7 +631,7 @@ cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeo
 
 Expected: compile error, `class "Kratos::GeoSeepageCondition" has no member "SetBoundaryType"`.
 
-- [ ] **Step 3: Declare the accessors**
+- [x] **Step 3: Declare the accessors**
 
 In `geo_seepage_condition.h`, add directly above `[[nodiscard]] std::string Info() const override;`:
 
@@ -644,7 +644,7 @@ In `geo_seepage_condition.h`, add directly above `[[nodiscard]] std::string Info
     void SetBoundaryType(const std::string& rBoundaryType);
 ```
 
-- [ ] **Step 4: Implement the accessors**
+- [x] **Step 4: Implement the accessors**
 
 In `geo_seepage_condition.cpp`, add directly above `std::string GeoSeepageCondition::Info() const`:
 
@@ -668,7 +668,7 @@ void GeoSeepageCondition::SetBoundaryType(const std::string& rBoundaryType)
 }
 ```
 
-- [ ] **Step 5: Build and verify the tests pass**
+- [x] **Step 5: Build and verify the tests pass**
 
 ```powershell
 cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeoMechanicsCoreTest
@@ -677,7 +677,7 @@ C:/checkouts/KratosProjects/dev/bin/FullDebug/test/KratosGeoMechanicsCoreTest.ex
 
 Expected: `[  PASSED  ] 11 tests.`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.h applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.cpp applications/GeoMechanicsApplication/tests/cpp_tests/custom_conditions/test_geo_seepage_condition.cpp
@@ -699,7 +699,7 @@ Deliverable: two conditions constructed from one shared `Properties` can hold di
 - Consumes: `GeoSeepageCondition::SetBoundaryType` and `GetBoundaryType` (Task 3).
 - Produces: `void GeoSeepageCondition::Initialize(const ProcessInfo&)` — clones the `Properties` exactly once per condition instance, guarded by the serialized member `bool mHasOwnProperties`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append inside `namespace Kratos::Testing` in `test_geo_seepage_condition.cpp`:
 
@@ -746,7 +746,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionSecondInitializeDoesNotResetTheBoun
 }
 ```
 
-- [ ] **Step 2: Build and verify the tests fail**
+- [x] **Step 2: Build and verify the tests fail**
 
 ```powershell
 cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeoMechanicsCoreTest
@@ -755,7 +755,7 @@ C:/checkouts/KratosProjects/dev/bin/FullDebug/test/KratosGeoMechanicsCoreTest.ex
 
 Expected: FAIL. Without the clone, both conditions share one `Properties`, so `second_condition.GetBoundaryType()` returns `"Neumann"` instead of `"Dirichlet"`.
 
-- [ ] **Step 3: Declare `Initialize` and the ownership guard**
+- [x] **Step 3: Declare `Initialize` and the ownership guard**
 
 In `geo_seepage_condition.h`, add directly above `[[nodiscard]] const std::string& GetBoundaryType() const;`:
 
@@ -771,7 +771,7 @@ And in the `private:` section, directly above `friend class Serializer;`:
     bool mHasOwnProperties = false;
 ```
 
-- [ ] **Step 4: Implement `Initialize` and serialize the guard**
+- [x] **Step 4: Implement `Initialize` and serialize the guard**
 
 In `geo_seepage_condition.cpp`, add directly above `const std::string& GeoSeepageCondition::GetBoundaryType() const`:
 
@@ -808,7 +808,7 @@ void GeoSeepageCondition::load(Serializer& rSerializer)
 }
 ```
 
-- [ ] **Step 5: Build and verify the tests pass**
+- [x] **Step 5: Build and verify the tests pass**
 
 ```powershell
 cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeoMechanicsCoreTest
@@ -817,7 +817,7 @@ C:/checkouts/KratosProjects/dev/bin/FullDebug/test/KratosGeoMechanicsCoreTest.ex
 
 Expected: `[  PASSED  ] 13 tests.`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.h applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.cpp applications/GeoMechanicsApplication/tests/cpp_tests/custom_conditions/test_geo_seepage_condition.cpp
@@ -839,7 +839,7 @@ Deliverable: the behaviour the whole prototype exists for. Dirichlet fixes the n
 - Consumes: `GeoSeepageCondition::Initialize` (Task 4), `GetBoundaryType` / `SetBoundaryType` (Task 3).
 - Produces: `void GeoSeepageCondition::InitializeNonLinearIteration(const ProcessInfo&)` — in Dirichlet mode sets `WATER_PRESSURE` to `0.0` and fixes the degree of freedom on every node; in Neumann mode frees it. Errors on an unknown boundary type.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append inside `namespace Kratos::Testing` in `test_geo_seepage_condition.cpp`:
 
@@ -929,7 +929,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeNonLinearIterationThrowsO
 }
 ```
 
-- [ ] **Step 2: Build and verify the tests fail**
+- [x] **Step 2: Build and verify the tests fail**
 
 ```powershell
 cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeoMechanicsCoreTest
@@ -938,7 +938,7 @@ C:/checkouts/KratosProjects/dev/bin/FullDebug/test/KratosGeoMechanicsCoreTest.ex
 
 Expected: FAIL. `Condition::InitializeNonLinearIteration` does nothing by default, so `IsFixed(WATER_PRESSURE)` is false.
 
-- [ ] **Step 3: Declare `InitializeNonLinearIteration`**
+- [x] **Step 3: Declare `InitializeNonLinearIteration`**
 
 In `geo_seepage_condition.h`, add directly below the `Initialize` declaration:
 
@@ -948,7 +948,7 @@ In `geo_seepage_condition.h`, add directly below the `Initialize` declaration:
     void InitializeNonLinearIteration(const ProcessInfo&) override;
 ```
 
-- [ ] **Step 4: Implement `InitializeNonLinearIteration`**
+- [x] **Step 4: Implement `InitializeNonLinearIteration`**
 
 In `geo_seepage_condition.cpp`, add directly below the `Initialize` implementation:
 
@@ -980,7 +980,7 @@ void GeoSeepageCondition::InitializeNonLinearIteration(const ProcessInfo&)
 }
 ```
 
-- [ ] **Step 5: Build and verify the tests pass**
+- [x] **Step 5: Build and verify the tests pass**
 
 ```powershell
 cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeoMechanicsCoreTest
@@ -989,7 +989,7 @@ C:/checkouts/KratosProjects/dev/bin/FullDebug/test/KratosGeoMechanicsCoreTest.ex
 
 Expected: `[  PASSED  ] 17 tests.`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.h applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.cpp applications/GeoMechanicsApplication/tests/cpp_tests/custom_conditions/test_geo_seepage_condition.cpp
@@ -1011,7 +1011,7 @@ Deliverable: a misconfigured seepage condition fails loudly at startup instead o
 - Consumes: everything from Tasks 1 to 5.
 - Produces: `int GeoSeepageCondition::Check(const ProcessInfo&) const` — returns `0` on a valid setup, otherwise errors.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append inside `namespace Kratos::Testing` in `test_geo_seepage_condition.cpp`:
 
@@ -1067,7 +1067,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsWhenNodeHasNoWaterPressu
 }
 ```
 
-- [ ] **Step 2: Build and verify the tests fail**
+- [x] **Step 2: Build and verify the tests fail**
 
 ```powershell
 cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeoMechanicsCoreTest
@@ -1076,7 +1076,7 @@ C:/checkouts/KratosProjects/dev/bin/FullDebug/test/KratosGeoMechanicsCoreTest.ex
 
 Expected: FAIL. The base `Condition::Check` returns 0 and raises none of the expected messages.
 
-- [ ] **Step 3: Declare `Check`**
+- [x] **Step 3: Declare `Check`**
 
 In `geo_seepage_condition.h`, add directly below the `InitializeNonLinearIteration` declaration:
 
@@ -1086,7 +1086,7 @@ In `geo_seepage_condition.h`, add directly below the `InitializeNonLinearIterati
     [[nodiscard]] int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 ```
 
-- [ ] **Step 4: Implement `Check`**
+- [x] **Step 4: Implement `Check`**
 
 In `geo_seepage_condition.cpp`, add directly below the `InitializeNonLinearIteration` implementation:
 
@@ -1120,7 +1120,7 @@ int GeoSeepageCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
 }
 ```
 
-- [ ] **Step 5: Build and verify the whole feature's tests pass**
+- [x] **Step 5: Build and verify the whole feature's tests pass**
 
 ```powershell
 cmake --build C:/checkouts/KratosProjects/dev/build/FullDebug --target KratosGeoMechanicsCoreTest
@@ -1129,7 +1129,7 @@ C:/checkouts/KratosProjects/dev/bin/FullDebug/test/KratosGeoMechanicsCoreTest.ex
 
 Expected: `[  PASSED  ] 21 tests.`
 
-- [ ] **Step 6: Run the full GeoMechanics C++ test suite to check for regressions**
+- [x] **Step 6: Run the full GeoMechanics C++ test suite to check for regressions**
 
 ```powershell
 C:/checkouts/KratosProjects/dev/bin/FullDebug/test/KratosGeoMechanicsCoreTest.exe
@@ -1137,7 +1137,7 @@ C:/checkouts/KratosProjects/dev/bin/FullDebug/test/KratosGeoMechanicsCoreTest.ex
 
 Expected: no new failures compared to before this plan was started.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.h applications/GeoMechanicsApplication/custom_conditions/geo_seepage_condition.cpp applications/GeoMechanicsApplication/tests/cpp_tests/custom_conditions/test_geo_seepage_condition.cpp
@@ -1146,11 +1146,42 @@ git commit -m "Validate GeoSeepageCondition setup in Check"
 
 ---
 
-## Findings to Record for the Follow-up Issue (#14637)
+## Findings Recorded During Implementation
 
-While implementing, note anything that turned out differently from the spec. In particular, confirm and write down:
+**Status: all six tasks implemented, 21 feature tests green, full GeoMechanics C++ suite green (1128 tests, no regressions).**
 
-- Whether fixing degrees of freedom in `InitializeNonLinearIteration` is honoured by a block builder and solver without a rebuild, and confirmed to be *not* honoured by an elimination builder and solver. This drives step 4 of the prototype.
-- Whether the detached `Properties` clone causes any trouble with output processes or restart, since it is not registered in the `ModelPart`'s properties container.
-- Whether prescribing `WATER_PRESSURE = 0` is sufficient for the Muskat case, or whether an elevation-dependent value is needed.
+Deviations from the plan as written:
+
+- **`KRATOS_EXPECT_VECTOR_NEAR` cannot take a ublas zero-expression.** The plan's test used
+  `KRATOS_EXPECT_VECTOR_NEAR(right_hand_side, ZeroVector(2), 1.0e-12)`. That macro expands to
+  `EXPECT_THAT(a, Pointwise(DoubleNear(tol), b))`, and gmock's `Pointwise` iterates its second
+  argument. Iterating a `zero_vector` throws `"bad index"` from
+  `boost/numeric/ublas/vector.hpp:1813`. Fixed by materializing the expected values into concrete
+  `Matrix` / `Vector` objects first. Worth knowing for any future test in this application.
+- Everything else went as planned. The per-condition `Properties` clone in `Initialize` behaves as
+  designed: the failing test before the fix showed both conditions *and* the shared `Properties`
+  object picking up a switch made on one condition, which is exactly the failure mode the clone
+  exists to prevent.
+
+Confirmed as designed:
+
+- No `CMakeLists.txt` change was needed; the existing globs picked up both new `.cpp` files. But
+  `kp config` had to be re-run each time a new `.cpp` was added, because the globs lack
+  `CONFIGURE_DEPENDS`.
+- `Geo::DofUtilities::ExtractDofsFromNodes` and `ExtractEquationIdsFrom` were reusable as-is.
+
+## Open Questions to Answer in Steps 2 to 4 (feeding #14637)
+
+These could not be settled at the level of a single condition and remain open:
+
+- **Block vs. elimination builder and solver.** Still unverified. The condition changes dof fixity
+  in `InitializeNonLinearIteration`; whether that is honoured without a rebuild depends on the
+  builder and solver in use. This is the central question for step 4 and needs an integration-level
+  test, not a unit test.
+- **The detached `Properties` clone.** It is deliberately not registered in the `ModelPart`'s
+  properties container. No trouble observed in the unit tests, but output processes and restart were
+  not exercised.
+- **Prescribing `WATER_PRESSURE = 0`.** Sufficient for the unit tests by construction, but whether
+  the Muskat case needs an elevation-dependent value is unknown until the validation case is run.
+
 
