@@ -23,6 +23,40 @@ class SPHTransientSolver(SPHSolver):
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction finished")
 
+    def Initialize(self):
+        # The mixed first-order formulation treats F as a primary nodal field. It must start from the identity mapping.
+        self._InitializeMixedDeformationGradient()
+        super().Initialize()
+
+    def _InitializeMixedDeformationGradient(self):
+        if not self.settings["strain_dofs"].GetBool() or self.is_restarted():
+            return
+    
+        dim = self.settings["domain_size"].GetInt()
+        components = [
+            (SPHApplication.DEFORMATION_GRADIENT_XX, 1.0),
+            (SPHApplication.DEFORMATION_GRADIENT_YY, 1.0),
+            (SPHApplication.DEFORMATION_GRADIENT_XY, 0.0),
+            (SPHApplication.DEFORMATION_GRADIENT_YX, 0.0),
+            ]
+        if dim == 3:
+            components.extend([
+                (SPHApplication.DEFORMATION_GRADIENT_ZZ, 1.0),
+                (SPHApplication.DEFORMATION_GRADIENT_XZ, 0.0),
+                (SPHApplication.DEFORMATION_GRADIENT_YZ, 0.0),
+                (SPHApplication.DEFORMATION_GRADIENT_ZX, 0.0),
+                (SPHApplication.DEFORMATION_GRADIENT_ZY, 0.0),
+            ])
+    
+        for node in self.main_model_part.Nodes:
+            for step in range(self.main_model_part.GetBufferSize()):
+                for variable, value in components:
+                    node.SetSolutionStepValue(variable, step, value)
+    
+        KratosMultiphysics.Logger.PrintInfo(
+            "::[SPHSolver]::", "Initialized mixed deformation gradient to identity")
+        
+
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters(r"""{

@@ -254,19 +254,15 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAll(
     const SizeType number_of_neighbours = r_neighbours.size();
     const SizeType block_size = TDim + TDim * TDim; 
     const SizeType mat_size = block_size * number_of_neighbours;
-    const bool is_transient = rProcessInfo.Has(TIME_INTEGRATION_THETA);
 
     double theta = 1.0;
     double inverse_delta_time = 0.0;
     MatrixType mass_matrix;
 
-    if (is_transient) {
-        theta = rProcessInfo[TIME_INTEGRATION_THETA];
-        const double delta_time = rProcessInfo[DELTA_TIME];
-
-        inverse_delta_time = 1.0 / delta_time;
-        CalculateMassMatrix(mass_matrix, rProcessInfo);
-    }
+    theta = rProcessInfo[TIME_INTEGRATION_THETA];
+    const double delta_time = rProcessInfo[DELTA_TIME];
+    inverse_delta_time = 1.0 / delta_time;
+    CalculateMassMatrix(mass_matrix, rProcessInfo);
 
     if (CalculateStiffnessMatrixFlag){
         if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) rLHS.resize(mat_size, mat_size, false);
@@ -282,7 +278,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAll(
     ConstitutiveVariables this_constitutive_variables(strain_size);
 
     ConstitutiveLaw::Pointer p_historical_constitutive_law;
-    if (is_transient && CalculateResidualVectorFlag && theta < 1.0) {
+    if (CalculateResidualVectorFlag && theta < 1.0) {
         p_historical_constitutive_law = this->mThisConstitutiveLaw->Clone();
     }
 
@@ -314,17 +310,15 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAll(
         CalculateAndAddKm(K12, this_kinematic_variables, this_constitutive_variables.C, gauss_weight);
 
         CalculateGeometricalTangentMatrix(K21, this_kinematic_variables, gauss_weight);
+        
+        if (rProcessInfo[PENALIZATION_COEFFICIENT] != 0.0)
+            CalculateAndAddUpwindStabilizationTangent(K11, this_kinematic_variables, rProcessInfo);
 
-        if (is_transient) {
-            K12 *= theta;
-            K21 *= -theta;
-        }
+        K11 *= theta; K12 *= theta; K21 *= -theta;
 
         AssembleLHS(rLHS, K11, K12, K21, K22);
 
-        if (is_transient) {
-            noalias(rLHS) += inverse_delta_time * mass_matrix;
-        }
+        noalias(rLHS) += inverse_delta_time * mass_matrix;
     }
 
     if (CalculateResidualVectorFlag){
@@ -332,53 +326,45 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAll(
         VectorType RHSF(TDim * TDim * number_of_neighbours); RHSF.clear();
 
         CalculateLinearMomentumResidualVector(RHSv, this_kinematic_variables, rProcessInfo, this_constitutive_variables.StressVector, gauss_weight);
-
         CalculateGeometricalResidualVector(RHSF, this_kinematic_variables, gauss_weight);
+        if (rProcessInfo[PENALIZATION_COEFFICIENT] != 0.0) 
+            CalculateAndAddUpwindStabilizationResidual(RHSv, this_kinematic_variables, rProcessInfo);
 
         AssembleRHS(rRHS, RHSv, RHSF);
+        rRHS *= theta;
 
-        if (is_transient) {
-            rRHS *= theta;
+        if (theta < 1.0) {
+            KinematicVariables historical_kinematic_variables(strain_size, TDim, number_of_neighbours);
+            ConstitutiveVariables historical_constitutive_variables(strain_size);
+            ConstitutiveLaw::Parameters historical_cl_values(r_geom, r_prop, rProcessInfo);
+            Flags& r_historical_cl_options = historical_cl_values.GetOptions();
+            r_historical_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+            r_historical_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+            r_historical_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+            historical_cl_values.SetStrainVector(historical_constitutive_variables.StrainVector);
 
-            if (theta < 1.0) {
-                KinematicVariables historical_kinematic_variables(strain_size, TDim, number_of_neighbours);
-                ConstitutiveVariables historical_constitutive_variables(strain_size);
-                ConstitutiveLaw::Parameters historical_cl_values(r_geom, r_prop, rProcessInfo);
-                Flags& r_historical_cl_options = historical_cl_values.GetOptions();
-                r_historical_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-                r_historical_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-                r_historical_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-                historical_cl_values.SetStrainVector(historical_constitutive_variables.StrainVector);
+            CalculateKinematicVariables(historical_kinematic_variables, rProcessInfo, 1);
+            this->SetConstitutiveLawVariables(historical_constitutive_variables, historical_kinematic_variables, historical_cl_values);
+            p_historical_constitutive_law->CalculateMaterialResponse(historical_cl_values, ConstitutiveLaw::StressMeasure_PK2);
 
-                CalculateKinematicVariables(historical_kinematic_variables, rProcessInfo, 1);
-                this->SetConstitutiveLawVariables(historical_constitutive_variables, historical_kinematic_variables, historical_cl_values);
-                p_historical_constitutive_law->CalculateMaterialResponse(historical_cl_values, ConstitutiveLaw::StressMeasure_PK2);
+            VectorType historical_RHSv(TDim * number_of_neighbours); historical_RHSv.clear();
+            VectorType historical_RHSF(TDim * TDim * number_of_neighbours); historical_RHSF.clear();
+            VectorType historical_spatial_rhs(mat_size); historical_spatial_rhs.clear();
 
-                VectorType historical_RHSv(TDim * number_of_neighbours); historical_RHSv.clear();
-                VectorType historical_RHSF(TDim * TDim * number_of_neighbours); historical_RHSF.clear();
-                VectorType historical_spatial_rhs(mat_size); historical_spatial_rhs.clear();
+            CalculateLinearMomentumResidualVector(historical_RHSv, historical_kinematic_variables, rProcessInfo, historical_constitutive_variables.StressVector, gauss_weight, 1);
+            CalculateGeometricalResidualVector(historical_RHSF, historical_kinematic_variables, gauss_weight, 1);
+            if (rProcessInfo[PENALIZATION_COEFFICIENT] != 0.0) 
+                CalculateAndAddUpwindStabilizationResidual(historical_RHSv, historical_kinematic_variables, rProcessInfo, 1);
 
-                CalculateLinearMomentumResidualVector(historical_RHSv, historical_kinematic_variables, rProcessInfo, historical_constitutive_variables.StressVector, gauss_weight, 1);
-                CalculateGeometricalResidualVector(historical_RHSF, historical_kinematic_variables, gauss_weight, 1);
+            AssembleRHS(historical_spatial_rhs, historical_RHSv, historical_RHSF);
 
-                AssembleRHS(historical_spatial_rhs, historical_RHSv, historical_RHSF);
-
-                noalias(rRHS) += (1.0 - theta) * historical_spatial_rhs;
-            }
-
-            VectorType current_values, previous_values;
-            GetValuesVector(current_values, 0);
-            GetValuesVector(previous_values, 1);
-            noalias(rRHS) -= inverse_delta_time * prod(mass_matrix, current_values - previous_values);
+            noalias(rRHS) += (1.0 - theta) * historical_spatial_rhs;
         }
-    }
 
-    if (this->Id() == 1){
-        KRATOS_WATCH(rLHS)
-        KRATOS_WATCH(rRHS)
-        KRATOS_WATCH(this_kinematic_variables.F)
-        KRATOS_WATCH(this_kinematic_variables.W)
-        KRATOS_WATCH(this_kinematic_variables.DW_DX)
+        VectorType current_values, previous_values;
+        GetValuesVector(current_values, 0);
+        GetValuesVector(previous_values, 1);
+        noalias(rRHS) -= inverse_delta_time * prod(mass_matrix, current_values - previous_values);
     }
 
     KRATOS_CATCH("")
@@ -396,7 +382,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddKg(
     // This should be okay, check if it is correct to use A to derive all the entries of the matrix 
     const auto& r_neighbours = this->GetValue(NEIGHBOURS);
 
-    int self_index = GetNeighbourPosition(r_neighbours);
+    int self_index = this->GetNeighbourPosition(r_neighbours);
     const SizeType column_start = TDim * TDim * self_index;
 
     VectorType A = ZeroVector(TDim);
@@ -451,7 +437,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddKm(
     // This is okay, only thing to check is the correcteness of the L matrix (also in case someday I change variable order)
 
     const auto& r_neighbours = this->GetValue(NEIGHBOURS);
-    const int self_index = GetNeighbourPosition(r_neighbours);
+    const int self_index = this->GetNeighbourPosition(r_neighbours);
 
     MatrixType L;
     const MatrixType& rF = rThisKinematicVariables.F;
@@ -719,6 +705,105 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateMassMatrix(
 }
 
 template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddUpwindStabilizationResidual(
+    VectorType& rRHSv,
+    KinematicVariables& rThisKinematicVariables,
+    const ProcessInfo& rProcessInfo, 
+    int Step
+)
+{
+    KRATOS_TRY
+    auto& r_geom = this->GetGeometry();
+    auto& r_props = this->GetProperties();
+    auto& r_neighbours = this->GetValue(NEIGHBOURS);
+
+    VectorType upwind_residual(TDim); upwind_residual.clear();
+    VectorType temp(TDim), X_AB_target(TDim), normal(TDim), velocity_jump(TDim);
+
+    const int self_index = this->GetNeighbourPosition(r_neighbours);
+    VectorType dkernel = row(rThisKinematicVariables.DW_DX, self_index);
+    const double coeff = rProcessInfo.GetValue(PENALIZATION_COEFFICIENT);
+    const double density = r_props[DENSITY];
+
+    const double gauss_weight = r_geom[0].GetValue(VOLUME);
+    const array_1d<double, 3>& IPcoords = r_geom[0].GetInitialPosition();
+    const array_1d<double, 3>& velocity_self = r_geom[0].FastGetSolutionStepValue(VELOCITY, Step);
+
+    double pressure_wave_speed, shear_wave_speed, norm_dist;
+    SPHElementUtilities::ComputeWaveSpeed(pressure_wave_speed, shear_wave_speed, r_props);
+
+    for (IndexType i = 0; i < r_neighbours.size(); ++i){
+        
+        if (i == self_index) continue;
+
+        const double volume = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
+        const array_1d<double, 3>& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
+        const array_1d<double, 3>& velocity_neigh = r_neighbours[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, Step);
+
+        for (IndexType d = 0; d < TDim; ++d) {
+            X_AB_target[d] = IPcoords[d] - JPcoords[d];
+            velocity_jump[d] = velocity_self[d] - velocity_neigh[d];
+        }
+        norm_dist = norm_2(X_AB_target);
+        normal = X_AB_target / norm_dist;
+
+        upwind_residual += coeff * gauss_weight * density * volume * norm_2(dkernel) * prod((pressure_wave_speed * outer_prod(normal, normal) + shear_wave_speed * (IdentityMatrix(TDim) - outer_prod(normal, normal))), velocity_jump); 
+    }
+
+    noalias(project(rRHSv, range(TDim * self_index, TDim * (self_index + 1)))) += upwind_residual;
+
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddUpwindStabilizationTangent(
+    MatrixType& rK11,
+    KinematicVariables& rThisKinematicVariables,
+    const ProcessInfo& rProcessInfo
+)
+{
+    KRATOS_TRY
+    auto& r_geom = this->GetGeometry();
+    auto& r_props = this->GetProperties();
+    auto& r_neighbours = this->GetValue(NEIGHBOURS);
+
+    MatrixType temp(TDim, TDim); temp.clear();
+    VectorType X_AB_target(TDim), normal(TDim);
+
+    const int self_index = this->GetNeighbourPosition(r_neighbours);
+    VectorType dkernel = row(rThisKinematicVariables.DW_DX, self_index);
+    const double coeff = rProcessInfo.GetValue(PENALIZATION_COEFFICIENT);
+    const double density = r_props[DENSITY];
+
+    const double gauss_weight = r_geom[0].GetValue(VOLUME);
+    const array_1d<double, 3>& IPcoords = r_geom[0].GetInitialPosition();
+
+    double pressure_wave_speed, shear_wave_speed, norm_dist;
+    SPHElementUtilities::ComputeWaveSpeed(pressure_wave_speed, shear_wave_speed, r_props);
+
+    for (IndexType i = 0; i < r_neighbours.size(); ++i){
+        
+        if (i == self_index) continue;
+
+        const double volume = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
+        const array_1d<double, 3>& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
+
+        for (IndexType d = 0; d < TDim; ++d){ 
+            X_AB_target[d] = IPcoords[d] - JPcoords[d];
+        }
+
+        norm_dist = norm_2(X_AB_target);
+        normal = X_AB_target / norm_dist;
+
+        temp = coeff *gauss_weight * volume * density * norm_2(dkernel) * (pressure_wave_speed * outer_prod(normal, normal) + shear_wave_speed * (IdentityMatrix(TDim) - outer_prod(normal, normal))); 
+        noalias(project(rK11, range(TDim * self_index, TDim * (self_index + 1)), range(TDim * i, TDim * (i + 1)))) -= temp;
+        noalias(project(rK11, range(TDim * self_index, TDim * (self_index + 1)), range(TDim * self_index, TDim * (self_index + 1)))) += temp;
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
 void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
     const ProcessInfo& rProcessInfo,
@@ -776,7 +861,6 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateKernelsAndK
 
         rW[i] = weight * kernel;
     }
-    KRATOS_WATCH(rDW_DX)
 }
 
 template<class TKernelType, std::size_t TDim>

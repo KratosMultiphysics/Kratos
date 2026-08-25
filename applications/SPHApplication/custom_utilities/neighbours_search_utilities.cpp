@@ -156,9 +156,7 @@ void NeighboursSearchUtilities::SearchNeighbours(
         std::vector<Element::Pointer> neighbours;
         neighbours.reserve(candidate_points.size() + 1);
 
-        // In this way the particle itself is included and its in the first position of the neighbours vector
         const auto p_element = p_point->pGetObject();
-        neighbours.push_back(p_element);
 
         for (const auto& p_candidate_point : candidate_points) {
             neighbours.push_back(p_candidate_point->pGetObject());

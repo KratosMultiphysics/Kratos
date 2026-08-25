@@ -5,7 +5,7 @@
 namespace Kratos
 {
 
-void SPHElementUtilities::GetLocalBodyForces(Element& rElement, VectorType& body_force) 
+void SPHElementUtilities::GetLocalBodyForces(Element& rElement, VectorType& body_force, int Step) 
 {
     array_1d<double, 3> total_body_force;
     for (IndexType i = 0; i < 3; ++i)

@@ -83,18 +83,6 @@ public:
     Element::Pointer Clone( IndexType NewId, NodesArrayType const& rThisNodes) const override;
 
     /**
-     * @brief This function tells the position of the particle in the list of neighbours
-     */
-    int GetNeighbourPosition(const std::vector<Element::Pointer>& rNeighbours) const
-    {
-        int i = 0; 
-        
-        while (i < rNeighbours.size() && this->Id() != rNeighbours[i]->Id()) i++;
-
-        return i;
-    }
-
-    /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The vector containing the equation IDs
      */
@@ -201,6 +189,25 @@ public:
         MatrixType& rMassMatrix,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
+    
+    /**
+     * @brief This function calculates the upwind stabilization residual vector
+     */
+    virtual void CalculateAndAddUpwindStabilizationResidual(
+        VectorType& rRHSv,
+        KinematicVariables& rThisKinematicVariables,
+        const ProcessInfo& rProcessInfo,
+        int Step = 0
+    );
+
+    /**
+     * @brief This function calculates the upwind stabilization tangent matrix
+     */
+    virtual void CalculateAndAddUpwindStabilizationTangent(
+        MatrixType& rK11,
+        KinematicVariables& rThisKinematicVariables,
+        const ProcessInfo& rProcessInfo
+    );
 
 protected:
 

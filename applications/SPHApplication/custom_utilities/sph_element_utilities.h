@@ -22,8 +22,14 @@ public:
     using MatrixType = Matrix;
     using VectorType = Vector;
 
-    static void GetLocalBodyForces(Element& rElement, VectorType& body_force);
+    /**
+     * @brief Computes the body forces acting on the particle, the body is assumed to be constant in time  and equal to the gravity vector. 
+     */
+    static void GetLocalBodyForces(Element& rElement, VectorType& body_force, const int Step = 0);
     
+    /**
+     * @brief The flag is set to true if the lumped mass matrix must be computed.
+     */
     static bool ComputeLumpedMassMatrix(const Properties& rProperties, const ProcessInfo& rProcessInfo);
 
     /**

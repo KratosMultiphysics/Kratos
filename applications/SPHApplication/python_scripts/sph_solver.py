@@ -228,12 +228,6 @@ class SPHSolver(PythonSolver):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         KratosMultiphysics.Logger.PrintInfo("::[SPHSolver]:: Initializing ...")
 
-        # The mixed first-order formulation treats F as a primary nodal field.
-        # It must start from the identity mapping; leaving the registered DOFs
-        # at their default zero value would produce det(F)=0 on the first call
-        # to the constitutive law.
-        self._InitializeMixedDeformationGradient()
-
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -243,34 +237,6 @@ class SPHSolver(PythonSolver):
 
         # Printing that inialization is finished
         KratosMultiphysics.Logger.PrintInfo("::[SPHSolver]:: Finished initialization.")
-
-    def _InitializeMixedDeformationGradient(self):
-        if not self.settings["strain_dofs"].GetBool() or self.is_restarted():
-            return
-
-        dim = self.settings["domain_size"].GetInt()
-        components = [
-            (SPHApplication.DEFORMATION_GRADIENT_XX, 1.0),
-            (SPHApplication.DEFORMATION_GRADIENT_YY, 1.0),
-            (SPHApplication.DEFORMATION_GRADIENT_XY, 0.0),
-            (SPHApplication.DEFORMATION_GRADIENT_YX, 0.0),
-        ]
-        if dim == 3:
-            components.extend([
-                (SPHApplication.DEFORMATION_GRADIENT_ZZ, 1.0),
-                (SPHApplication.DEFORMATION_GRADIENT_XZ, 0.0),
-                (SPHApplication.DEFORMATION_GRADIENT_YZ, 0.0),
-                (SPHApplication.DEFORMATION_GRADIENT_ZX, 0.0),
-                (SPHApplication.DEFORMATION_GRADIENT_ZY, 0.0),
-            ])
-
-        for node in self.main_model_part.Nodes:
-            for step in range(self.main_model_part.GetBufferSize()):
-                for variable, value in components:
-                    node.SetSolutionStepValue(variable, step, value)
-
-        KratosMultiphysics.Logger.PrintInfo(
-            "::[SPHSolver]::", "Initialized mixed deformation gradient to identity")
 
     def InitializeSolutionStep(self):
         if self.settings["clear_storage"].GetBool():

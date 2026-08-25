@@ -25,13 +25,6 @@ class SPHAnalysis(AnalysisStage):
 		if not solver_settings.Has("domain_size"):
 			raise Exception("SPHAnalysis: Using the old way to pass the domain_size, this was removed!")
 
-		try:
-			with open("SPHProcesses.json", "r") as process_file:
-				process_data = process_file.read()
-				self.sph_process_parameters = KM.Parameters(process_data)
-		except FileNotFoundError as exc:
-			raise Exception("SPHProcesses.json not found") from exc
-
 		solver_settings = project_parameters["solver_settings"]
         
 		super().__init__(model, project_parameters)

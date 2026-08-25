@@ -204,7 +204,7 @@ void TotalLagrangianDisplacementParticle<TKernelType, TDim>::CalculateAll(
 }
 
 template<class TKernelType, std::size_t TDim>
-void TotalLagrangianDisplacementParticle<TKernelType, TDim>::CalculateKinematicVariables(KinematicVariables& rThisKinematicVariables, const ProcessInfo& rProcessInfo)
+void TotalLagrangianDisplacementParticle<TKernelType, TDim>::CalculateKinematicVariables(KinematicVariables& rThisKinematicVariables, const ProcessInfo& rProcessInfo, int Step)
 {
     KRATOS_TRY
     CalculateDeformationGradient(rThisKinematicVariables.F, rThisKinematicVariables.DW_DX, rThisKinematicVariables.W, rProcessInfo);
