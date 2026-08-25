@@ -19,6 +19,7 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
 // Application includes
+#include "custom_utilities/seepage_boundary_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -80,6 +81,19 @@ public:
     }
 
     [[nodiscard]] std::string Info() const override { return "GeoSeepageNewtonRaphsonStrategy"; }
+
+    void Initialize() override
+    {
+        KRATOS_TRY
+
+        MotherType::Initialize();
+        mSeepageNodes = Geo::SeepageBoundaryUtilities::CollectSeepageNodes(BaseType::GetModelPart());
+
+        KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+            << "Found " << mSeepageNodes.size() << " seepage nodes" << std::endl;
+
+        KRATOS_CATCH("")
+    }
 
     // NOTE: This is a deliberate copy of
     // ResidualBasedNewtonRaphsonStrategy::SolveSolutionStep
@@ -281,12 +295,22 @@ public:
     }
 
 protected:
-    // Decides whether any seepage condition must change its boundary type, and applies that
-    // decision to the conditions' Properties. Returns true if at least one condition changed.
-    //
-    // Step 3 of the prototype implements this. Until then nothing ever switches, which makes this
-    // strategy behave exactly like its base class.
-    virtual bool UpdateSeepageBoundaryConditions() { return false; }
+    // Decides whether one seepage node must change between a Dirichlet and a zero-flux Neumann
+    // boundary, applies that change, and reports whether anything changed. At most one node
+    // switches per non-linear iteration, across the whole model.
+    virtual bool UpdateSeepageBoundaryConditions()
+    {
+        KRATOS_TRY
+
+        if (mSeepageNodes.empty()) return false;
+
+        const auto nodal_flows = Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(
+            BaseType::GetModelPart(), BaseType::GetModelPart().GetProcessInfo());
+
+        return Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(mSeepageNodes, nodal_flows);
+
+        KRATOS_CATCH("")
+    }
 
     // Re-establishes the degree of freedom set and the system vectors after a switch changed which
     // degrees of freedom are free.
@@ -295,8 +319,16 @@ protected:
     // turn out to be unnecessary, because that builder gives every degree of freedom an equation id
     // and re-applies the Dirichlet conditions on every build.
     virtual void RebuildSystem() {}
+
+private:
+    // Cached once in Initialize. The conditions of a model part do not change during a solve, so
+    // there is no need to rediscover the seepage nodes every iteration.
+    std::vector<Node*> mSeepageNodes;
 }; // Class GeoSeepageNewtonRaphsonStrategy
 
 } // namespace Kratos
+
+
+
 
 
