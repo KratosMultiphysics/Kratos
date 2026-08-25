@@ -2,12 +2,86 @@
 
 ## Table of Contents
 
-- Fully saturated law
-- Saturated below phreatic level law
+- [Retention law selection](#Retention-Law-Selection)
+- [Saturated law](#Saturated-Law)
+- [Saturated below phreatic level law](#Saturated-Below-Phreatic-Level-Law)
 - [Van Genuchten Retention Law](#Van-Genuchten-Retention-Law)
+## Retention law selection
 
-  
-## Van Genuchten Retention Law 
+| Kratos Variable |  Description                 | Constraints                                      |
+|-----------------|------------------------------|--------------------------------------------------|
+| `RETENTION_LAW` |  Selection of retention law  | `SaturatedLaw`,`SaturatedBelowPhreaticLevelLaw`,`VanGenuchtenLaw` |
+
+## Saturated Law
+
+`SaturatedLaw` is a C++ class in the **GeoMechanicsApplication** that implements a
+trivial retention law. This retention law has constant saturation independent of the pore water pressure.  
+It derives from the `RetentionLaw` base class and computes:
+
+- Degree of saturation $S = S_s$
+- Effective saturation $S_e = 1.0$
+- Derivative of saturation with respect to fluid pressure $\partial S / \partial p = 0.0$
+- Relative permeability $k_r = 1.0$
+- Bishop's effective stress coefficient $\chi = 1.0$
+
+### Material Parameters
+
+| Kratos Variable                   | Symbol      | Description                                               | Constraints       |
+|-----------------------------------|-------------|-----------------------------------------------------------|-------------------|
+| `SATURATED_SATURATION`            | $S_s$       | Maximum (fully saturated) degree of saturation            | $[0, 1]$          |
+
+## Saturated Below Phreatic Level Law
+
+`SaturatedBelowPhreaticLevelLaw` is a C++ class in the **GeoMechanicsApplication** that implements a
+stepwise retention law. This retention law has saturation dependent of the sign of the pore water pressure.  
+It derives from the `RetentionLaw` base class and computes:
+
+- Degree of saturation $S$
+- Effective saturation $S_e$
+- Derivative of saturation with respect to fluid pressure $\partial S / \partial p$
+- Relative permeability $k_r$
+- Bishop's effective stress coefficient $\chi$
+
+### Material Parameters
+
+| Kratos Variable                   | Symbol      | Description                                               | Constraints       |
+|-----------------------------------|-------------|-----------------------------------------------------------|-------------------|
+| `SATURATED_SATURATION`            | $S_s$       | Maximum (fully saturated) degree of saturation            | $[0, 1]$          |
+| `RESIDUAL_SATURATION`             | $S_r$       | Residual degree of saturation                             | $[0, S_s)$        |
+| `MINIMUM_RELATIVE_PERMEABILITY`   | $k_{r,min}$ | Lower bound for $k_r$ (prevents zero permeability)        | $[0, 1]$          |
+
+### Mathematical Formulation (as implemented)
+
+#### Degree of Saturation
+
+$$S = \begin{cases}
+S_s & \text{if } p \le 0 \\
+S_r  & \text{if } p > 0
+\end{cases}$$
+
+#### Effective (Normalised) Saturation
+
+$$S_e = \begin{cases}
+1.0 & \text{if } p \le 0 \\
+0.0  & \text{if } p > 0
+\end{cases}$$
+
+#### Relative Permeability
+
+$$ k_r = \begin{cases}
+1.0 & \text{if } p \le 0 \\ 
+k_{r,min} & \text{if } p > 0
+\end{cases}$$
+
+#### Derivative of Saturation with Respect to Fluid Pressure
+
+$$\frac{\partial S}{\partial p} = 0.0$$
+
+#### Bishop Effective Stress Coefficient
+
+$$\chi = S_e$$
+
+## Van Genuchten Law 
 
 `VanGenuchtenLaw` is a C++ class in the **GeoMechanicsApplication** that implements the
 Mualem–Van Genuchten (MVG) unsaturated soil model (Van Genuchten, 1980; Mualem, 1976).
@@ -21,28 +95,25 @@ It derives from the `RetentionLaw` base class and computes:
 
 ### Material Parameters
 
-| Kratos Variable                    | Symbol      | Description                                               | Constraints       |
-|------------------------------------|-------------|-----------------------------------------------------------|-------------------|
+| Kratos Variable                   | Symbol      | Description                                               | Constraints       |
+|-----------------------------------|-------------|-----------------------------------------------------------|-------------------|
 | `SATURATED_SATURATION`             | $S_s$       | Maximum (fully saturated) degree of saturation            | $[0, 1]$          |
-| `RESIDUAL_SATURATION`              | $S_r$       | Residual degree of saturation                             | $[0, S_s)$        |
+| `RESIDUAL_SATURATION`             | $S_r$       | Residual degree of saturation                             | $[0, S_s)$        |
 | `VAN_GENUCHTEN_AIR_ENTRY_PRESSURE` | $p_b$       | Air-entry (bubbling) pressure — inverse of VG scale $\alpha$ | $(0, \infty)$  |
-| `VAN_GENUCHTEN_GN`                 | $n$         | Pore-size distribution index                              | $(0, \infty)$     |
-| `VAN_GENUCHTEN_GL`                 | $l$         | Mualem pore-connectivity exponent                         | $(-\infty, \infty)$ — see note below |
-| `MINIMUM_RELATIVE_PERMEABILITY`    | $k_{r,min}$ | Lower bound for $k_r$ (prevents zero permeability)        | $[0, 1]$          |
-
-As a rule, GA is obtained from experiments that allows one to define $p_b$.
+| `VAN_GENUCHTEN_GN`                | $n$         | Pore-size distribution index                              | $(0, \infty)$     |
+| `VAN_GENUCHTEN_GL`                | $l$         | Mualem pore-connectivity exponent                         | $(-\infty, \infty)$ — see note below |
+| `MINIMUM_RELATIVE_PERMEABILITY`   | $k_{r,min}$ | Lower bound for $k_r$ (prevents zero permeability)        | $[0, 1]$          |
 
 Some symbols used for the Kratos variables are not inline with symbols used in the standard model publication. Here is a mapping table of the symbols.
 
-| Standard symbol | Kratos variable                    | Relationship            |
-|-----------------|------------------------------------|-------------------------|
-| $\theta_s$      | `SATURATED_SATURATION`             | $S_s = \theta_s$        |
-| $\theta_r$      | `RESIDUAL_SATURATION`              | $S_r = \theta_r$        |
-| $\alpha$        | -                                  | $\alpha = \rho g/p_b$   |
-| GA              | `VAN_GENUCHTEN_AIR_ENTRY_PRESSURE` | $p_b=\rho_w g GA$       |
-| $n$             | `VAN_GENUCHTEN_GN`                 | $n = \mathtt{gn}$       |
+| Standard symbol | Kratos variable                    | Relationship              |
+|-----------------|------------------------------------|---------------------------|
+| $\theta_s$      | `SATURATED_SATURATION`             | $S_s = \theta_s$          |
+| $\theta_r$      | `RESIDUAL_SATURATION`              | $S_r = \theta_r$          |
+| $\alpha$        | -                                  | $\alpha = \rho g/p_b$     |
+| $n$             | `VAN_GENUCHTEN_GN`                 | $n = n$          |
 | $m$ (derived)   | —                                  | $m = 1 - 1/n$ (hardcoded) |
-| $l$             | `VAN_GENUCHTEN_GL`                 | $l = \mathtt{gl}$       |
+| $l$             | `VAN_GENUCHTEN_GL`                 | $l = l$         |
 
 
 > **Note on `VAN_GENUCHTEN_GL` ($l$):** Although Mualem (1976) proposed $l = 0.5$ as a  general value, $l$ is a purely empirical pore-connectivity/tortuosity fitting parameter and **can be negative**. Schaap & Leij (2000) fitted the MVG model to hundreds of soils from the UNSODA database and found optimised values of $l$ ranging from approximately $-4$ to $+4$, with many fine-textured soils yielding $l < 0$. The HYDRUS software (Šimůnek, van Genuchten & Šejna, 2022) imposes **no lower bound** on $l$ and treats it as an unconstrained fitting parameter.
@@ -60,7 +131,7 @@ This is equivalent to the standard hydraulic head formulation where $h = -p/(\rh
 
 #### Internal variable
 
-$$m = \frac{n - 1}{n}, \qquad gc = \frac{1-n}{n} = -m$$
+$$m = \frac{n - 1}{n}, \qquad \frac{1-n}{n} = -m$$
 
 The constraint $m = 1 - 1/n$ (Mualem–Van Genuchten closure) is **hardcoded**; there is no independent $m$ parameter.
 
