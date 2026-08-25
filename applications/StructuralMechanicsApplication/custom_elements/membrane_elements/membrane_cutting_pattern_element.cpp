@@ -331,12 +331,14 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
     this->CovariantBaseVectors(rCurrentBaseVectors, rShapeFunctionGradientValues, ConfigurationType::Current);
 
     Matrix current_metric = ZeroMatrix(2);
+    Matrix reference_contravariant_metric = ZeroMatrix(2);
     this->CovariantMetric(rReferenceMetric, rReferenceBaseVectors);
     this->CovariantMetric(current_metric, rCurrentBaseVectors);
     this->ContravariantMetric(rCurrentContravariantMetric, current_metric);
+    this->ContravariantMetric(reference_contravariant_metric, rReferenceMetric);
 
-    array_1d<Vector, 2> current_contravariant_base_vectors;
-    this->ContraVariantBaseVectors(current_contravariant_base_vectors, rCurrentContravariantMetric, rCurrentBaseVectors);
+    array_1d<Vector, 2> reference_contravariant_base_vectors;
+    this->ContraVariantBaseVectors(reference_contravariant_base_vectors, reference_contravariant_metric, rReferenceBaseVectors);
 
     this->JacobiDeterminante(rDetJReference, rReferenceBaseVectors);
     this->JacobiDeterminante(rDetJCurrent, rCurrentBaseVectors);
@@ -374,7 +376,7 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
       }
     }
 
-    this->PreStress(rSigmaP, current_contravariant_base_vectors);
+    this->PreStress(rSigmaP, reference_contravariant_base_vectors);
   }
 
 
@@ -812,7 +814,6 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
   void MembraneCuttingPatternElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix, const IntegrationMethod& ThisMethod,
     const ProcessInfo& rCurrentProcessInfo)
   {
-    KRATOS_WATCH("debug")
     const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType number_of_nodes = r_geom.size();
@@ -1853,6 +1854,47 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
 
        rPreStress = MathUtils<double>::StressVectorToTensor(rPreStress_vector);
      }
+  }
+
+  void MembraneCuttingPatternElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+  {
+    KRATOS_TRY
+
+    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
+        rOutput = ZeroMatrix(3);
+
+        const auto& r_geom = GetGeometry();
+        const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients =
+            r_geom.ShapeFunctionsLocalGradients(integration_method);
+        const GeometryType::IntegrationPointsArrayType& r_integration_points =
+            r_geom.IntegrationPoints(integration_method);
+
+        array_1d<Vector, 2> base_vectors_cov;
+        Vector base_1 = ZeroVector(3);
+        Vector base_2 = ZeroVector(3);
+        Vector base_3 = ZeroVector(3);
+
+        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            const double integration_weight_i = r_integration_points[point_number].Weight();
+            // ConfigurationType::Reference == X0 == the 3D form-found surface, i.e. the surface on
+            // which the fibre / prestress directions are defined. G3 from here feeds Eq. (3.20).
+            this->CovariantBaseVectors(base_vectors_cov,
+                                       r_shape_functions_gradients[point_number],
+                                       ConfigurationType::Reference);
+            base_1 += base_vectors_cov[0] * integration_weight_i;
+            base_2 += base_vectors_cov[1] * integration_weight_i;
+        }
+
+        MathUtils<double>::UnitCrossProduct(base_3, base_1, base_2);
+
+        column(rOutput, 0) = base_1;
+        column(rOutput, 1) = base_2;
+        column(rOutput, 2) = base_3;
+    }
+
+    KRATOS_CATCH("")
+ 
   }
 
 

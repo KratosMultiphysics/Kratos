@@ -141,19 +141,19 @@ namespace Kratos
       const VectorType& rRHSVector,
       const Variable<VectorType>& rRHSVariable,
       const Variable<double >& rDestinationVariable,
-      const ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) override;*/
 
     void Calculate(const Variable<Matrix>& rVariable,
       Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Calculate(const Variable<double>& rVariable,
+    /*void Calculate(const Variable<double>& rVariable,
      double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
 
-    const Parameters GetSpecifications() const override;*/
+    /*const Parameters GetSpecifications() const override;*/
 
     // ---------------------------------------------------------------------
     // functions for cutting-pattern generation
