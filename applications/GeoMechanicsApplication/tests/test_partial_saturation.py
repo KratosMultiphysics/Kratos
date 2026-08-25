@@ -280,6 +280,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 comparison_data_path=Path(file_path) / "dgflow_input_curves.csv",
             )
 
+        variable_name = "WATER_PRESSURE"
+        self._validate_outputs_against_expected_results(
+            reader, output_data, expected_results_at_times, variable_name
+        )
+
     def test_infiltration_from_top_boundary_O4(self):
         file_path = test_helper.get_file_path(
             os.path.join(
@@ -451,10 +456,22 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
 
         expected_results_at_times = {
             60.0: [],
-            3600.0: [],
+            3600.0: [
+                ExpectedResult(47, -14.5083),
+                ExpectedResult(55, 4663.88),
+                ExpectedResult(65, 15693.5),
+            ],
             7200.0: [],
-            10800.0: [],
-            14400.0: [],
+            10800.0: [
+                ExpectedResult(131, 426.075),
+                ExpectedResult(135, 5656.0),
+                ExpectedResult(139, 8197.65),
+            ],
+            14400.0: [
+                ExpectedResult(202, -70.3118),
+                ExpectedResult(212, 1059.01),
+                ExpectedResult(219, 425.021),
+            ],
         }
 
         if test_helper.want_test_plots():
@@ -479,6 +496,11 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 plot_file_path=Path(file_path),
                 comparison_data_path=Path(file_path) / "dgflow_input_curves.csv",
             )
+
+        variable_name = "WATER_PRESSURE"
+        self._validate_outputs_against_expected_results(
+            reader, output_data, expected_results_at_times, variable_name
+        )
 
     def _calculate_depth_for_boundary_nodes(self, simulation):
         return {
