@@ -80,12 +80,19 @@ public:
         Globals::Configuration Configuration,
         const bool Copy = true);
 
+    NodePositionTensorAdaptor(const NodePositionTensorAdaptor& rOther) = default;
+
     // Destructor
     ~NodePositionTensorAdaptor() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    TensorAdaptor::Pointer Clone() const override;
 
     /**
      * @brief Fill the internal data from Kratos data structures

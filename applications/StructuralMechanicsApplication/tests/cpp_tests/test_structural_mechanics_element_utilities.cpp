@@ -108,9 +108,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateElementLength, KratosStructuralMechanicsFastS
     model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
 
     // Set the updated node-position (due to MOVE-MESH)
-    p_node_2->X() = 0.5;
-    p_node_2->Y() = 0.5;
-    p_node_2->Z() = 0.5;
+    p_node_2->X() = 2.0;
+    p_node_2->Y() = 2.0;
+    p_node_2->Z() = 2.0;
 
     // Set the DISPLACEMENT
     p_node_2->FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;

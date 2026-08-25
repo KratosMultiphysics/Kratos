@@ -31,40 +31,36 @@ DistanceMatrix::DistanceMatrix()
 {
 }
 
-void DistanceMatrix::Update(
-    std::variant<
-        ContainerExpression<ModelPart::NodesContainerType>::Pointer,
-        ContainerExpression<ModelPart::ConditionsContainerType>::Pointer,
-        ContainerExpression<ModelPart::ElementsContainerType>::Pointer> pDistancesExpression)
+void DistanceMatrix::Update(const TensorAdaptor<double>& rDistancesTensorAdaptor)
 {
     KRATOS_TRY
 
-    std::visit([&](const auto& pExp) {
-        this->mN = pExp->GetContainer().size();
-        this->mDistances.resize(this->GetEntriesSize());
+    auto shape = rDistancesTensorAdaptor.Shape();
 
-        const auto& r_expression = pExp->GetExpression();
-        const auto dimensionality = r_expression.GetItemComponentCount();
+    this->mN = shape[0];
+    this->mDistances.resize(this->GetEntriesSize());
 
-        IndexPartition<IndexType>(this->mDistances.size()).for_each([&](const auto Index) {
-            const auto& index_pair = GetIndexPair(Index);
+    const auto data_view = rDistancesTensorAdaptor.ViewData();
+    const auto dimensionality = data_view.size() / shape[0];
 
-            const auto i_index = std::get<0>(index_pair);
-            const auto i_data_begin = i_index * dimensionality;
-            const auto j_index = std::get<1>(index_pair);
-            const auto j_data_begin = j_index * dimensionality;
+    IndexPartition<IndexType>(this->mDistances.size()).for_each([&](const auto Index) {
+        const auto& index_pair = GetIndexPair(Index);
 
-            double distance = 0.0;
+        const auto i_index = std::get<0>(index_pair);
+        const auto i_data_begin = i_index * dimensionality;
+        const auto j_index = std::get<1>(index_pair);
+        const auto j_data_begin = j_index * dimensionality;
 
-            for (IndexType i_comp = 0; i_comp < dimensionality; ++i_comp) {
-                const double i_value = r_expression.Evaluate(i_index, i_data_begin, i_comp);
-                const double j_value = r_expression.Evaluate(j_index, j_data_begin, i_comp);
-                distance += std::pow(i_value - j_value, 2.0);
-            }
+        double distance = 0.0;
 
-            mDistances[Index] = std::sqrt(distance);
-        });
-    }, pDistancesExpression);
+        for (IndexType i_comp = 0; i_comp < dimensionality; ++i_comp) {
+            const double i_value = data_view[i_data_begin + i_comp];
+            const double j_value = data_view[j_data_begin + i_comp];
+            distance += std::pow(i_value - j_value, 2.0);
+        }
+
+        mDistances[Index] = std::sqrt(distance);
+    });
 
     KRATOS_CATCH("");
 }

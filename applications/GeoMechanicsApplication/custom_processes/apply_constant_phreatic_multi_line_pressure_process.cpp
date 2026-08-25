@@ -11,10 +11,13 @@
 //                   Jonathan Nuttall
 
 #include "apply_constant_phreatic_multi_line_pressure_process.h"
+#include "geo_mechanics_application_variables.h"
+#include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyConstantPhreaticMultiLinePressureProcess::ApplyConstantPhreaticMultiLinePressureProcess(ModelPart& model_part,
                                                                                              Parameters rParameters)
@@ -27,7 +30,6 @@ ApplyConstantPhreaticMultiLinePressureProcess::ApplyConstantPhreaticMultiLinePre
     mVariableName          = rParameters["variable_name"].GetString();
     mIsFixed               = rParameters["is_fixed"].GetBool();
     mIsFixedProvided       = rParameters.Has("is_fixed");
-    mIsSeepage             = rParameters["is_seepage"].GetBool();
     mSpecificWeight        = rParameters["specific_weight"].GetDouble();
     mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
     mOutOfPlaneDirection   = rParameters["out_of_plane_direction"].GetInt();
@@ -48,7 +50,6 @@ void ApplyConstantPhreaticMultiLinePressureProcess::InitializeParameters(Paramet
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
-                "is_seepage": false,
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2,
                 "x_coordinates":           [0.0, 1.0],
@@ -147,19 +148,10 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ExecuteInitialize()
 
     block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
         const double pressure = CalculatePressure(rNode);
-        if (IsSeepage()) {
-            if (pressure < PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff()) {
-                rNode.FastGetSolutionStepValue(var) = pressure;
-                if (IsFixed()) rNode.Fix(var);
-            } else {
-                if (IsFixedProvided()) rNode.Free(var);
-            }
-        } else {
-            if (IsFixed()) rNode.Fix(var);
-            else if (IsFixedProvided()) rNode.Free(var);
-            rNode.FastGetSolutionStepValue(var) =
-                std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff());
-        }
+        if (IsFixed()) rNode.Fix(var);
+        else if (IsFixedProvided()) rNode.Free(var);
+        rNode.FastGetSolutionStepValue(var) =
+            std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff());
     });
 
     KRATOS_CATCH("")
@@ -167,7 +159,7 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ExecuteInitialize()
 
 std::string ApplyConstantPhreaticMultiLinePressureProcess::Info() const
 {
-    return "ApplyConstantPhreaticMultiLinePressureProcess";
+    return "ApplyConstantPhreaticMultiLinePressureProcess"s;
 }
 
 void ApplyConstantPhreaticMultiLinePressureProcess::PrintInfo(std::ostream& rOStream) const
@@ -186,8 +178,6 @@ bool ApplyConstantPhreaticMultiLinePressureProcess::IsFixedProvided() const
 {
     return mIsFixedProvided;
 }
-
-bool ApplyConstantPhreaticMultiLinePressureProcess::IsSeepage() const { return mIsSeepage; }
 
 unsigned int ApplyConstantPhreaticMultiLinePressureProcess::GravityDirection() const
 {

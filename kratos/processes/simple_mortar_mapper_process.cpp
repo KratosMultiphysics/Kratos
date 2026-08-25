@@ -80,7 +80,7 @@ template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumN
 SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMortarMapperProcess(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
-    TVarType& rThisVariable,
+    const TVarType& rThisVariable,
     Parameters ThisParameters,
     LinearSolverType::Pointer pThisLinearSolver
     ):  mOriginModelPart(rOriginModelPart),

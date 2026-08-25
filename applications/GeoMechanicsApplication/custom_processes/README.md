@@ -85,7 +85,7 @@ When set to true, the material used for the modelpart used for the $K_0$ procedu
 When the stress computation is completed, the original constitutive law is restored.
 
 Depending on the given input parameters, the following scheme is adapted for computation of the $K_0$ value.
-$K_0^{nc}$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS":
+$K_0^{nc}$ is gotten from either "K0_NC" the material input file or by computation from input of "GEO_FRICTION_ANGLE" or "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS":
 
 $$K_0^{nc} = 1.0 - \sin \phi$$
 

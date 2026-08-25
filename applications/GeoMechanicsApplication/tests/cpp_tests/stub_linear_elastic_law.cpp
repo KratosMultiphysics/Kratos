@@ -11,6 +11,8 @@
 //
 #include "stub_linear_elastic_law.h"
 
+using namespace std::string_literals;
+
 namespace Kratos::Testing
 {
 
@@ -26,4 +28,5 @@ void StubLinearElasticLaw::CalculatePK2Stress(const Vector&                rStra
     // Deliberately no implementation (it's a stub, remember?)
 }
 
+std::string StubLinearElasticLaw::Info() const { return "ConstitutiveLawWithUMAT"s; }
 } // namespace Kratos::Testing

@@ -20,7 +20,6 @@ export PYTHON_EXECUTABLE="/usr/bin/python3.10"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
-add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/ChimeraApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;

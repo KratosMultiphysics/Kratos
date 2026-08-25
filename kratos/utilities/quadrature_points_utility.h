@@ -40,6 +40,7 @@ namespace Kratos
 
         typedef Geometry<TPointType> GeometryType;
         typedef typename Geometry<TPointType>::Pointer GeometryPointerType;
+        typedef typename QuadraturePointCurveOnSurfaceGeometry<TPointType>::Pointer QuadraturePointCurveOnSurfaceGeometryPointer;
 
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
@@ -216,6 +217,22 @@ namespace Kratos
                         << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
                         << std::endl;
             }
+        }
+
+        static GeometryPointerType CreateQuadraturePointSurfaceInVolume(
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+            PointsArrayType rPoints,
+            Matrix LocalTangentMatrix,
+            Vector Normal,
+            GeometryType* pGeometryParent)
+        {
+            return Kratos::make_shared<
+                QuadraturePointSurfaceInVolumeGeometry<TPointType>>(
+                    rPoints,
+                    rShapeFunctionContainer,
+                    LocalTangentMatrix,
+                    pGeometryParent,
+                    Normal);
         }
 
         static GeometryPointerType CreateQuadraturePointSurfaceInVolume(

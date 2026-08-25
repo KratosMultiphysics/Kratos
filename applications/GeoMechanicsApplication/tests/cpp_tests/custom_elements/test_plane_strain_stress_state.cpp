@@ -12,14 +12,14 @@
 
 #include "containers/model.h"
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/checks.h"
 #include "includes/stream_serializer.h"
 #include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include <string>
 #include <type_traits>
 
@@ -33,26 +33,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanic
 {
     auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
 
-    Vector Np(3);
-    Np <<= 1.0, 2.0, 3.0;
+    const auto Np = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
 
-    // clang-format off
-    Matrix GradNpT(3, 2);
-    GradNpT <<= 1.0, 2.0,
-                3.0, 4.0,
-                5.0, 6.0;
-    // clang-format on
+    const auto GradNpT = UblasUtilities::CreateMatrix({{1.0, 2.0}, {3.0, 4.0}, {5.0, 6.0}});
 
     const auto calculated_matrix = p_stress_state_policy->CalculateBMatrix(
         GradNpT, Np, ModelSetupUtilities::Create2D3NTriangleGeometry());
 
-    // clang-format off
-    Matrix expected_matrix(4, 6);
-    expected_matrix <<= 1  ,0  ,3  ,0  ,5  ,0, // This row contains the first column of GradNpT on columns 1, 3 and 5
-                        0  ,2  ,0  ,4  ,0  ,6, // This row contains the second column of GradNpT on columns 2, 4 and 6
-                        0  ,0  ,0  ,0  ,0  ,0, // This row is not set, so remains 0.
-                        2  ,1  ,4  ,3  ,6  ,5; // This row contains the first and second columns of GradNpT, swapping x and y
-    // clang-format on
+    const auto expected_matrix = UblasUtilities::CreateMatrix(
+        {{1, 0, 3, 0, 5, 0}, // This row contains the first column of GradNpT on columns 1, 3 and 5
+         {0, 2, 0, 4, 0, 6}, // This row contains the second column of GradNpT on columns 2, 4 and 6
+         {0, 0, 0, 0, 0, 0}, // This row is not set, so remains 0.
+         {2, 1, 4, 3, 6, 5}}); // This row contains the first and second columns of GradNpT, swapping x and y
 
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
 }
@@ -61,16 +53,11 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectGreenLagrangeStra
 {
     const auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
 
-    // clang-format off
-    Matrix deformation_gradient = ZeroMatrix(2, 2);
-    deformation_gradient <<= 1.0, 2.0,
-                             3.0, 4.0;
-    // clang-format on
+    auto deformation_gradient = UblasUtilities::CreateMatrix({{1.0, 2.0}, {3.0, 4.0}});
 
     const auto calculated_strain = p_stress_state_policy->CalculateGreenLagrangeStrain(deformation_gradient);
 
-    Vector expected_vector = ZeroVector(4);
-    expected_vector <<= 4.5, 9.5, 0, 14;
+    auto expected_vector = UblasUtilities::CreateVector({4.5, 9.5, 0, 14});
 
     // The expected strain is calculated as follows:
     // 0.5 * (F^T * F - I) and then converted to a vector
@@ -101,8 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectVoigtVector, Kratos
         std::make_unique<PlaneStrainStressState>();
     Vector voigt_vector = p_stress_state_policy->GetVoigtVector();
 
-    Vector expected_voigt_vector(4);
-    expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0;
+    auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
 }
 
@@ -136,8 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CanBeSavedAndLoadedThroughInter
     // Assert
     ASSERT_NE(p_loaded_policy, nullptr);
     KRATOS_EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_2D_PLANE_STRAIN);
-    auto expected_voigt_vector = Vector{4};
-    expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0;
+    auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 

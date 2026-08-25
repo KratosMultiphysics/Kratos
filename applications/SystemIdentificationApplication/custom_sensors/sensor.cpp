@@ -28,10 +28,12 @@ namespace Kratos
 Sensor::Sensor(
     const std::string& rName,
     Node::Pointer pNode,
-    const double Weight)
+    const double Weight,
+    const double ErrorThreshold)
     : mName(rName),
       mpNode(pNode),
       mWeight(Weight),
+      mErrorThreshold(ErrorThreshold),
       mSensorValue(0.0)
 {
 }
@@ -44,6 +46,7 @@ Parameters Sensor::GetSensorParameters() const
         "value"        : 0.0,
         "location"     : [0.0, 0.0, 0.0],
         "weight"       : 0.0,
+        "error_threshold": 0.0,
         "variable_data": {}
     })" );
 
@@ -51,6 +54,7 @@ Parameters Sensor::GetSensorParameters() const
     parameters["value"].SetDouble(this->GetSensorValue());
     parameters["location"].SetVector(this->GetNode()->Coordinates());
     parameters["weight"].SetDouble(this->GetWeight());
+    parameters["error_threshold"].SetDouble(this->GetErrorThreshold());
 
     // Adding the data value container of the nodes
     const auto& r_node = *(this->GetNode());
@@ -100,6 +104,11 @@ double Sensor::GetWeight() const
     return mWeight;
 }
 
+double Sensor::GetErrorThreshold() const
+{
+    return mErrorThreshold;
+}
+
 double Sensor::GetSensorValue() const
 {
     return mSensorValue;
@@ -110,31 +119,31 @@ void Sensor::SetSensorValue(const double Value)
     mSensorValue = Value;
 }
 
-void Sensor::AddContainerExpression(
-    const std::string& rExpressionName,
-    ContainerExpressionType pContainerExpression)
+void Sensor::AddTensorAdaptor(
+    const std::string& rTensorAdaptorName,
+    TensorAdaptor<double>::Pointer pTensorAdaptor)
 {
     KRATOS_TRY
 
-    const auto p_itr = mContainerExpressions.find(rExpressionName);
-    KRATOS_ERROR_IF_NOT(p_itr == mContainerExpressions.end())
-        << "A container expression named \"" << rExpressionName << " already exists.";
-    mContainerExpressions[rExpressionName] = pContainerExpression;
+    const auto p_itr = mTensorAdaptorsMap.find(rTensorAdaptorName);
+    KRATOS_ERROR_IF_NOT(p_itr == mTensorAdaptorsMap.end())
+        << "A tensor adaptor named \"" << rTensorAdaptorName << " already exists.";
+    mTensorAdaptorsMap[rTensorAdaptorName] = pTensorAdaptor;
 
     KRATOS_CATCH("");
 }
 
-Sensor::ContainerExpressionType Sensor::GetContainerExpression(const std::string& rExpressionName) const
+TensorAdaptor<double>::Pointer Sensor::GetTensorAdaptor(const std::string& rTensorAdaptorName) const
 {
     KRATOS_TRY
 
-    const auto p_itr = mContainerExpressions.find(rExpressionName);
+    const auto p_itr = mTensorAdaptorsMap.find(rTensorAdaptorName);
 
-    if (p_itr == mContainerExpressions.end()) {
+    if (p_itr == mTensorAdaptorsMap.end()) {
         std::stringstream msg;
-        msg << "A container expression named \"" << rExpressionName << "\" not found in "
+        msg << "A tensor adaptor named \"" << rTensorAdaptorName << "\" not found in "
             << "sensor named \"" << this->GetName() << "\". Followings are available:";
-        for (const auto& r_pair : this->GetContainerExpressionsMap()) {
+        for (const auto& r_pair : this->GetTensorAdaptorsMap()) {
             msg << std::endl << "   "  << r_pair.first;
         }
         KRATOS_ERROR << msg.str();
@@ -145,14 +154,14 @@ Sensor::ContainerExpressionType Sensor::GetContainerExpression(const std::string
     KRATOS_CATCH("");
 }
 
-std::unordered_map<std::string, Sensor::ContainerExpressionType> Sensor::GetContainerExpressionsMap() const
+std::unordered_map<std::string, TensorAdaptor<double>::Pointer> Sensor::GetTensorAdaptorsMap() const
 {
-    return mContainerExpressions;
+    return mTensorAdaptorsMap;
 }
 
-void Sensor::ClearContainerExpressions()
+void Sensor::ClearTensorAdaptors()
 {
-    mContainerExpressions.clear();
+    mTensorAdaptorsMap.clear();
 }
 
 std::string Sensor::Info() const
@@ -171,6 +180,7 @@ void Sensor::PrintData(std::ostream& rOStream) const
 {
     rOStream << "    Value: " << this->GetSensorValue() << std::endl;
     rOStream << "    Weight: " << this->GetWeight() << std::endl;
+    rOStream << "    Error threshold: " << this->GetErrorThreshold() << std::endl;
     mpNode->PrintInfo(rOStream);
     mpNode->PrintData(rOStream);
 }

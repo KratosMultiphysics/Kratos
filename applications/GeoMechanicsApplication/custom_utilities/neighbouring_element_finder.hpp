@@ -13,7 +13,7 @@
 #pragma once
 
 #include "boundary_generators.h"
-#include "generic_utilities.h"
+#include "generic_utilities.hpp"
 #include "includes/geometrical_object.h"
 #include "includes/key_hash.h"
 #include "includes/kratos_export_api.h"

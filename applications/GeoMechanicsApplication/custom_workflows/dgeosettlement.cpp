@@ -12,7 +12,7 @@
 
 #include "utilities/variable_utils.h"
 
-#include "dgeosettlement.h"
+#include "dgeosettlement.hpp"
 #include "geo_mechanics_application.h"
 #include "input_output/logger.h"
 #include "linear_solvers_application.h"
@@ -28,10 +28,10 @@
 #include "custom_processes/set_parameter_field_process.hpp"
 
 #include "adaptive_time_incrementor.h"
-#include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
+#include "custom_processes/deactivate_conditions_on_inactive_elements_process.h"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.h"
-#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
-#include "custom_utilities/generic_utilities.h"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.hpp"
+#include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_info_parser.h"
 #include "custom_utilities/process_utilities.h"
@@ -106,9 +106,9 @@ std::size_t GetMaxNumberOfIterationsFrom(const Parameters& rProjectParameters)
     return static_cast<std::size_t>(rProjectParameters["solver_settings"]["max_iterations"].GetInt());
 }
 
-bool GetResetDisplacementsFrom(const Parameters& rProjectParameters)
+bool GetResetTotalsFrom(const Parameters& rProjectParameters)
 {
-    return rProjectParameters["solver_settings"]["reset_displacements"].GetBool();
+    return rProjectParameters["solver_settings"]["reset_totals"].GetBool();
 }
 
 } // namespace
@@ -152,7 +152,7 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility>      pInp
 void KratosGeoSettlement::InitializeProcessFactory()
 {
     mProcessFactory->AddCreator("ApplyScalarConstraintTableProcess",
-                                MakeCreatorFor<ApplyScalarConstraintTableProcess>());
+                                MakeCreatorWithModelFor<ApplyScalarConstraintTableProcess>());
     mProcessFactory->AddCreator("ApplyNormalLoadTableProcess", MakeCreatorFor<ApplyNormalLoadTableProcess>());
     mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
                                 MakeCreatorWithModelFor<ApplyVectorConstraintTableProcess>());
@@ -361,7 +361,7 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     ResetValuesOfNodalVariable(DISPLACEMENT);
     ResetValuesOfNodalVariable(ROTATION);
 
-    if (GetResetDisplacementsFrom(rProjectParameters)) {
+    if (GetResetTotalsFrom(rProjectParameters)) {
         ResetValuesOfNodalVariable(TOTAL_DISPLACEMENT);
 
         VariableUtils{}.UpdateCurrentToInitialConfiguration(GetComputationalModelPart().Nodes());
@@ -376,7 +376,7 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
     return std::make_shared<SolvingStrategyWrapperType>(std::move(solving_strategy),
-                                                        GetResetDisplacementsFrom(rProjectParameters),
+                                                        GetResetTotalsFrom(rProjectParameters),
                                                         rWorkingDirectory, rProjectParameters);
 }
 

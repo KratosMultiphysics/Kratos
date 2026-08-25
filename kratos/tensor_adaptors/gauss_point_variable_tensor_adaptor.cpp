@@ -80,6 +80,11 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<double>::Pointer GaussPointVariableTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<GaussPointVariableTensorAdaptor>(*this);
+}
+
 void GaussPointVariableTensorAdaptor::CollectData()
 {
     std::visit([this](auto pContainer, auto pVariable) {

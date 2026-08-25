@@ -12,7 +12,7 @@
 //
 
 // Project includes
-#include "check_utilities.h"
+#include "check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/exception.h"
 
@@ -20,6 +20,32 @@
 
 namespace Kratos
 {
+
+CheckProperties::CheckProperties(const Properties& rProperties, std::string PrintName, CheckProperties::Bounds RangeBoundsType)
+    : mrProperties{rProperties}, mPrintName{std::move(PrintName)}, mRangeBoundsType{RangeBoundsType}
+{
+}
+
+CheckProperties::CheckProperties(const Properties&       rProperties,
+                                 std::string             PrintName,
+                                 std::size_t             ElementId,
+                                 CheckProperties::Bounds RangeBoundsType)
+    : mrProperties{rProperties}, mPrintName{std::move(PrintName)}, mElementId{ElementId}, mRangeBoundsType{RangeBoundsType}
+{
+}
+
+CheckProperties CheckProperties::SingleUseBounds(CheckProperties::Bounds RangeBoundsType) const
+{
+    if (mElementId) {
+        return {mrProperties, mPrintName, *mElementId, RangeBoundsType};
+    }
+    return {mrProperties, mPrintName, RangeBoundsType};
+}
+
+void CheckProperties::SetNewRangeBounds(CheckProperties::Bounds RangeBoundsType) const
+{
+    mRangeBoundsType = RangeBoundsType;
+}
 
 void CheckUtilities::CheckDomainSize(double DomainSize, std::size_t Id, const std::optional<std::string>& PrintName)
 {
@@ -90,6 +116,26 @@ void CheckProperties::CheckPermeabilityProperties(size_t Dimension) const
     mRangeBoundsType = original_bounds_type;
 }
 
+void CheckUtilities::CheckValuesAreAscending(const Vector& rValues, const std::string& rName, bool AllowEqual)
+{
+    const auto pos = std::ranges::adjacent_find(
+        rValues, [&AllowEqual](double a, double b) { return AllowEqual ? (a > b) : (a >= b); });
+    if (pos == rValues.cend()) return;
+
+    const auto idx            = static_cast<std::size_t>(std::distance(rValues.cbegin(), pos));
+    const auto previous_value = *pos;
+    const auto current_value  = *(pos + 1);
+
+    const auto requirement = AllowEqual ? "non-decreasing (duplicates allowed)" : "strictly increasing";
+
+    const auto relation = AllowEqual ? "less than" : "not greater than";
+
+    KRATOS_ERROR << "Invalid sequence in '" << rName << "': values must be " << requirement
+                 << ". Found " << current_value << " at index " << (idx + 2) << ", which is "
+                 << relation << " the previous value " << previous_value << " at index "
+                 << (idx + 1) << "." << std::endl;
+}
+
 void CheckUtilities::CheckForNonZeroZCoordinateIn2D(const Geometry<Node>& rGeometry)
 {
     auto pos = std::ranges::find_if(rGeometry, [](const auto& node) {
@@ -100,5 +146,26 @@ void CheckUtilities::CheckForNonZeroZCoordinateIn2D(const Geometry<Node>& rGeome
     });
     KRATOS_ERROR_IF_NOT(pos == rGeometry.end())
         << "Node with Id: " << pos->Id() << " has non-zero Z coordinate." << std::endl;
+}
+
+std::string CheckProperties::double_to_string(double value)
+{
+    std::ostringstream oss;
+    oss << std::defaultfloat << value;
+    return oss.str();
+}
+
+std::string CheckProperties::print_property_id() const
+{
+    std::ostringstream oss;
+    oss << " in the " << mPrintName << " with Id " << mrProperties.Id();
+    return oss.str();
+}
+
+std::string CheckProperties::print_element_id() const
+{
+    std::ostringstream oss;
+    if (mElementId) oss << " at element with Id " << *mElementId;
+    return oss.str();
 }
 } /* namespace Kratos.*/

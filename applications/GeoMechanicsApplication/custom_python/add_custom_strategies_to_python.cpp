@@ -21,10 +21,11 @@
 // strategies
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/geo_mechanics_quasi_newton_strategy.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // builders and solvers
-#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.h"
+#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.hpp"
 
 // schemes
 #include "custom_strategies/schemes/backward_euler_T_scheme.hpp"
@@ -75,6 +76,8 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
 
     using GeoMechanicsNewtonRaphsonStrategyType =
         GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using GeoMechanicsQuasiNewtonStrategyType =
+        GeoMechanicsQuasiNewtonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
         GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
@@ -120,6 +123,11 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
 
     py::class_<GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType>(
         m, "GeoMechanicsNewtonRaphsonStrategy")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
+                      BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>());
+
+    py::class_<GeoMechanicsQuasiNewtonStrategyType, typename GeoMechanicsQuasiNewtonStrategyType::Pointer, BaseSolvingStrategyType>(
+        m, "GeoMechanicsQuasiNewtonStrategy")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>());
 

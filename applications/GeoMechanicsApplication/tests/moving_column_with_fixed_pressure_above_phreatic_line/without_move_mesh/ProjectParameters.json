@@ -29,7 +29,7 @@
     "block_builder": true,
     "solution_type": "Quasi-Static",
     "scheme_type": "Backward_Euler",
-    "reset_displacements": false,
+    "reset_totals": false,
     "strategy_type": "newton_raphson",
     "convergence_criterion": "residual_criterion",
     "residual_relative_tolerance": 0.01,
@@ -39,7 +39,6 @@
     "number_cycles": 1,
     "reduction_factor": 1.0,
     "increase_factor": 1.0,
-    "calculate_reactions": true,
     "rotation_dofs": false,
     "linear_solver_settings": {
       "solver_type": "LinearSolversApplication.sparse_lu",

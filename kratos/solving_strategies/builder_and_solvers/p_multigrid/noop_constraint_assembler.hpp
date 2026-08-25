@@ -41,11 +41,14 @@ public:
           mVerbosity(Settings.Has("verbosity") ? Settings["verbosity"].Get<int>() : 1)
     {}
 
-    bool FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
-                              typename TSparse::VectorType& rSolution,
-                              typename TSparse::VectorType& rRhs,
-                              PMGStatusStream::Report& rReport,
-                              PMGStatusStream& rStream) override
+    /// @copydoc Base::FinalizeConstraintIteration
+    bool FinalizeConstraintIteration(typename TSparse::MatrixType& rLhs,
+                                     typename TSparse::VectorType& rSolution,
+                                     typename TSparse::VectorType& rRhs,
+                                     typename Base::DofSet::iterator itDofBegin,
+                                     typename Base::DofSet::iterator itDofEnd,
+                                     PMGStatusStream::Report& rReport,
+                                     PMGStatusStream& rStream) override
     {
         rReport.maybe_constraint_residual = 0;
         rReport.constraints_converged = true;

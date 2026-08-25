@@ -73,7 +73,7 @@ $$D = \alpha_R M + \beta_R K$$
 
 Where $M$ and $K$ are the mass and stiffness  matrices respectively and $\alpha_R$ and $\beta_R$ are the coefficients from the Rayleigh Method.
 
-File equation_of_motion_utilities.h includes 
+File equation_of_motion_utilities.hpp includes 
 -  CalculateMassMatrix function
 -  CalculateStiffnessMatrixGPoint provides a stiffness matrix for a specific integration point
 -  CalculateStiffnessMatrix provides a stiffness matrix for an element
@@ -158,4 +158,15 @@ $$(q_{mc} - q)\frac{3 \sin{\phi}}{\sqrt{3} \cos{\bar{\theta}_s} - \sin{\bar{\the
 This function calculates an extrapolation matrix that is used to extrapolate data from integration points of an element to its nodes. The matrix is used to perform linear interpolation. 
 
 ### CalculateNodalVectors function
-This function uses the extrapolation matrix to extrapolate vector inputs, for example, stress vectors from the integration points to the element nodes that are provided as input. 
+This function uses the extrapolation matrix to extrapolate vector inputs, for example, stress vectors from the integration points to the element nodes that are provided as input.
+
+## String utilities
+
+### `ToLower` function
+This function converts a given string to lowercase.
+
+### `Join` function
+This function joins a vector of strings into a single string, with a specified separator between each element.
+
+## Convergence criterion factory
+Class template `ConvergenceCriteriaFactory` provides a blueprint for factories that produce various kinds of convergence criteria based on the given convergence criterion type. It allows for the creation of different convergence criteria, such as displacement-based, residual-based, or water pressure-based criteria. The factory pattern makes it relatively easy to add new convergence criterion types.

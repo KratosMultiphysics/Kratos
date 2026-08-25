@@ -1,0 +1,393 @@
+{
+    "description": [
+        "This file contains the expected section forces in the diaphragm wall at the following positions:",
+        "  y [m]   Node ID",
+        "  20.0    8988",
+        "  15.0    8351",
+        "  10.0    7597",
+        "   5.0    6867",
+        "   0.0    6173",
+        "  -5.0    5449",
+        " -10.0    4768",
+        "",
+        "The expected values have been taken from the comparison data files (except for the end points,",
+        "which are supposed to be zero)",
+        "",
+        "Units: N, N * m"
+    ],
+    "expected_results": {
+        "wall_installation": {
+            "BENDING_MOMENT": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": 7.09e+03
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": 3.93e+03
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": 678.0
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": -1.61e+03
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": -434.0
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ],
+            "SHEAR_FORCE": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": -228.5
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": 817.0
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": 492.0
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": 404.0
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": -80.0
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ],
+            "AXIAL_FORCE": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": -5.25e+04
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": -1.01e+05
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": -1.44e+05
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": -1.82e+05
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": -1.38e+05
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ]
+        },
+        "first_excavation": {
+            "BENDING_MOMENT": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": -2.81e+04
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": 5.97e+04
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": 5.12e+04
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": -5.13e+04
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": -8.57e+03
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ],
+            "SHEAR_FORCE": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": -1.395e+04
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": -9.35e+03
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": 1.2e+04
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": 2.38e+04
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": -6.8e+03
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ],
+            "AXIAL_FORCE": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": -5.945e+03
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": 3.32e+04
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": 3.88e+04
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": 1.48e+04
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": 1.1e+04
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ]
+        },
+        "strut_installation": {
+            "BENDING_MOMENT": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": -2.81e+04
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": 5.97e+04
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": 5.12e+04
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": -5.13e+04
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": -8.57e+03
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ],
+            "SHEAR_FORCE": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": -1.395e+04
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": -9.35e+03
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": 1.2e+04
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": 2.38e+04
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": -6.8e+03
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ],
+            "AXIAL_FORCE": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": -5.945e+03
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": 3.01283e+04,
+                    "note": "regression value due to local deviation"
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": 3.88e+04
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": 1.48e+04
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": 1.1e+04
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ]
+        },
+        "second_excavation": {
+            "BENDING_MOMENT": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": 3.88e+05
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": 3.56e+05
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": -5.4e+04,
+                    "note": "regression value due to local deviation"
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": -2.61e+05
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": -2.24e+04
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ],
+            "SHEAR_FORCE": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": -5.93e+04
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": 8.87e+04
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": 3.3e+04,
+                    "note": "regression value due to local deviation"
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": 5.37e+04
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": -2.96e+04,
+                    "note": "regression value due to local deviation"
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ],
+            "AXIAL_FORCE": [
+                {
+                    "node": 8.988e+03,
+                    "value": 0.0
+                },
+                {
+                    "node": 8.351e+03,
+                    "value": -4.8e+04
+                },
+                {
+                    "node": 7.597e+03,
+                    "value": -1.13e+05
+                },
+                {
+                    "node": 6.867e+03,
+                    "value": -4.38e+04
+                },
+                {
+                    "node": 6.173e+03,
+                    "value": 2.23e+04,
+                    "note": "regression value due to local deviation"
+                },
+                {
+                    "node": 5.449e+03,
+                    "value": 1.03e+05
+                },
+                {
+                    "node": 4.768e+03,
+                    "value": 0.0
+                }
+            ]
+        }
+    }
+}

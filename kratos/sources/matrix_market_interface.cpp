@@ -1,9 +1,24 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
+
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
 #include "spaces/ublas_space.h"
-
 #include "includes/matrix_market_interface.h"
-#include "spaces/ublas_space.h"
 
 namespace Kratos {
 

@@ -19,6 +19,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyComponentTableProcess::ApplyComponentTableProcess(ModelPart& rModelPart, Parameters ProcessSettings)
     : Process(Flags()), mrModelPart(rModelPart)
@@ -116,6 +117,6 @@ void ApplyComponentTableProcess::ExecuteFinalize()
     }
 }
 
-std::string ApplyComponentTableProcess::Info() const { return "ApplyComponentTableProcess"; }
+std::string ApplyComponentTableProcess::Info() const { return "ApplyComponentTableProcess"s; }
 
 } // namespace Kratos

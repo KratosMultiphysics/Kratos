@@ -37,10 +37,11 @@ using NodeDefinitionVector = std::vector<NodeDefinition>;
 class KRATOS_API(KRATOS_GEO_TEST_UTILS) ModelSetupUtilities
 {
 public:
+    static PointerVector<Node> CreateNodes(const NodeDefinitionVector& rNodeDefinitions);
     static PointerVector<Node> CreateNodes(ModelPart& rModelPart, const NodeDefinitionVector& rNodeDefinitions);
 
-    static ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel,
-                                                            const Geo::ConstVariableRefs& rNodalVariables = {});
+    static ModelPart& CreateModelPartWithASingle2D3NElement(
+        Model& rModel, const Geo::ConstVariableRefs& rNodalVariables = {}, const std::string& rModelPartName = "Main");
 
     static ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel);
 

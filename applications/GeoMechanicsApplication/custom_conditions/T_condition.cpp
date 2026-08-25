@@ -13,7 +13,7 @@
 //
 
 #include "custom_conditions/T_condition.h"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/dof_utilities.hpp"
 
 namespace Kratos
 {

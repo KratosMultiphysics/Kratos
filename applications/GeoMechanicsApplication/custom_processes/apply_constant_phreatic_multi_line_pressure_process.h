@@ -12,12 +12,10 @@
 
 #pragma once
 
-#include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include <algorithm>
 
-#include "geo_mechanics_application_variables.h"
+#include <string>
 
 namespace Kratos
 {
@@ -43,7 +41,6 @@ public:
     void               PrintInfo(std::ostream& rOStream) const override;
     const std::string& VariableName() const;
     bool               IsFixed() const;
-    bool               IsSeepage() const;
     unsigned int       GravityDirection() const;
     double             SpecificWeight() const;
     unsigned int       OutOfPlaneDirection() const;
@@ -65,11 +62,10 @@ private:
     std::string  mVariableName;
     bool         mIsFixed;
     bool         mIsFixedProvided;
-    bool         mIsSeepage;
-    unsigned int mGravityDirection;
+    unsigned int mGravityDirection = 0;
     double       mSpecificWeight;
     unsigned int mOutOfPlaneDirection;
-    unsigned int mHorizontalDirection;
+    unsigned int mHorizontalDirection = 0;
     Vector       mHorizontalDirectionCoordinates;
     Vector       mGravityDirectionCoordinates;
     Vector       mXCoordinates;
@@ -84,18 +80,5 @@ private:
 
     static void InitializeParameters(Parameters& rParameters);
 }; // Class ApplyConstantPhreaticMultiLinePressureProcess
-
-/// input stream function
-inline std::istream& operator>>(std::istream& rIStream, ApplyConstantPhreaticMultiLinePressureProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream, const ApplyConstantPhreaticMultiLinePressureProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 
 } // namespace Kratos.

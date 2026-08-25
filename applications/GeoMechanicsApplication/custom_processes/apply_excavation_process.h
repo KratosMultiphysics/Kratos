@@ -16,8 +16,12 @@
 
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
+class Model;
+class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyExcavationProcess : public Process
 {
@@ -26,7 +30,7 @@ public:
 
     ApplyExcavationProcess(Model& rModel, const Parameters& rProcessSettings);
 
-    ~ApplyExcavationProcess() override;
+    ~ApplyExcavationProcess() override = default;
 
     ApplyExcavationProcess(const ApplyExcavationProcess&)            = delete;
     ApplyExcavationProcess& operator=(const ApplyExcavationProcess&) = delete;

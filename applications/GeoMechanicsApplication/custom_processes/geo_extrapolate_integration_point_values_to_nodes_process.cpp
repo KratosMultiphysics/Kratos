@@ -12,16 +12,60 @@
 //                   Wijtze Pieter Kikstra
 //                   Richard Faasse
 
-#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
-#include "containers/model.h"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/process_utilities.h"
 #include "utilities/atomic_utilities.h"
-#include "utilities/variable_utils.h"
+
+namespace
+{
+
+using namespace Kratos;
+
+void CheckElement(const Element& rElement, const std::string& rModelPartName, const ProcessInfo& rProcessInfo)
+{
+    int check_result = 0;
+    try {
+        check_result = rElement.Check(rProcessInfo);
+    } catch (const std::exception& rException) {
+        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Exception while "
+                        "calling Element::Check "
+                     << "before extrapolation for element id " << rElement.Id() << " in ModelPart='"
+                     << rModelPartName << "'. Original error: " << rException.what()
+                     << " Plausible cause: this modelpart is not activated." << std::endl;
+    } catch (...) {
+        KRATOS_ERROR << "GeoExtrapolateIntegrationPointValuesToNodesProcess: Unknown exception "
+                        "while calling "
+                     << "Element::Check before extrapolation for element id " << rElement.Id()
+                     << " in ModelPart='" << rModelPartName
+                     << "'.  Plausible cause: this modelpart is not activated." << std::endl;
+    }
+
+    KRATOS_ERROR_IF(check_result != 0) << "GeoExtrapolateIntegrationPointValuesToNodesProcess: "
+                                          "Element Check failed before extrapolation for "
+                                       << "element id " << rElement.Id() << " in ModelPart='" << rModelPartName
+                                       << "'. Check returned " << check_result << "." << std::endl;
+}
+} // namespace
+
+namespace
+{
+using namespace Kratos;
+
+std::tuple<GeometryData::KratosGeometryType, std::size_t, int> GetCacheKey(const Element& rElement)
+{
+    // Combine geometry type and number of integration points for unique key
+    const auto& r_geometry = rElement.GetGeometry();
+    auto        geoType    = r_geometry.GetGeometryType();
+    return {geoType, r_geometry.size(), GeoElementUtilities::GetNumberOfIntegrationPointsOf(rElement)};
+}
+} // namespace
 
 namespace Kratos
 {
+using namespace std::string_literals;
+
 GeoExtrapolateIntegrationPointValuesToNodesProcess::GeoExtrapolateIntegrationPointValuesToNodesProcess(
     Model& rModel, Parameters ThisParameters)
 {
@@ -33,8 +77,6 @@ GeoExtrapolateIntegrationPointValuesToNodesProcess::GeoExtrapolateIntegrationPoi
 
     FillVariableLists(ThisParameters);
 }
-
-GeoExtrapolateIntegrationPointValuesToNodesProcess::~GeoExtrapolateIntegrationPointValuesToNodesProcess() = default;
 
 const Parameters GeoExtrapolateIntegrationPointValuesToNodesProcess::GetDefaultParameters() const
 {
@@ -154,6 +196,18 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteFinalizeSolution
     }
 }
 
+int GeoExtrapolateIntegrationPointValuesToNodesProcess::Check()
+{
+    for (const auto& r_model_part : mrModelParts) {
+        const auto& r_process_info = r_model_part.get().GetProcessInfo();
+        for (auto& r_element : r_model_part.get().Elements()) {
+            CheckElement(r_element, r_model_part.get().Name(), r_process_info);
+        }
+    }
+
+    return 0;
+}
+
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatricesForElements()
 {
     for (const auto& r_model_part : mrModelParts) {
@@ -171,18 +225,18 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatri
 
 bool GeoExtrapolateIntegrationPointValuesToNodesProcess::ExtrapolationMatrixIsCachedFor(const Element& rElement) const
 {
-    return mExtrapolationMatrixMap.count(typeid(rElement).hash_code()) > 0;
+    return mExtrapolationMatrixMap.contains(GetCacheKey(rElement));
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatrixFor(const Element& rElement,
                                                                                      const Matrix& rExtrapolationMatrix)
 {
-    mExtrapolationMatrixMap[typeid(rElement).hash_code()] = rExtrapolationMatrix;
+    mExtrapolationMatrixMap[GetCacheKey(rElement)] = rExtrapolationMatrix;
 }
 
 const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtrapolationMatrixFor(const Element& rElement) const
 {
-    return mExtrapolationMatrixMap.at(typeid(rElement).hash_code());
+    return mExtrapolationMatrixMap.at(GetCacheKey(rElement));
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
@@ -232,7 +286,7 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeVariables()
 
 std::string GeoExtrapolateIntegrationPointValuesToNodesProcess::Info() const
 {
-    return "GeoExtrapolateIntegrationPointValuesToNodesProcess";
+    return "GeoExtrapolateIntegrationPointValuesToNodesProcess"s;
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::PrintInfo(std::ostream& rOStream) const

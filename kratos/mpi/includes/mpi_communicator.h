@@ -1530,14 +1530,7 @@ private:
                 serializer_buffer = (std::stringstream *)serializer.pGetBuffer();
                 serializer_buffer->write(message[i], msgRecvSize[i]);
 
-                VariablesList* tmp_mpVariables_list = NULL;
-
-                serializer.load("VariableList",tmp_mpVariables_list);
-
-                if(tmp_mpVariables_list != NULL)
-                  delete tmp_mpVariables_list;
-                tmp_mpVariables_list = mpVariables_list;
-
+                serializer.load("VariableList",mpVariables_list);
                 serializer.load("ObjectList",RecvObjects[i].GetContainer());
             }
 

@@ -306,9 +306,16 @@ private:
                 this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.first_time_derivative);
                 this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.second_time_derivative);
 
-                // We don't check for "Z", since it is optional (in case of a 2D problem)
-                std::vector<std::string> components{"X", "Y"};
-                for (const auto& component : components) {
+                auto components_to_check = std::vector<std::string>{};
+                if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
+                    components_to_check = {"X", "Y", "Z"};
+                } else if (r_second_order_vector_variable.instance.Name() == "ROTATION") {
+                    components_to_check = {"Z"}; // For rotations in 2D, only the Z component is relevant
+                } else {
+                    components_to_check = {"X", "Y"};
+                }
+
+                for (const auto& component : components_to_check) {
                     const auto& variable_component = VariablesUtilities::GetComponentFromVectorVariable(
                         r_second_order_vector_variable.instance.Name(), component);
                     this->CheckDof(r_node, variable_component);
