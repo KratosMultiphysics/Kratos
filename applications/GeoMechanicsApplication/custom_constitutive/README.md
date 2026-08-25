@@ -74,7 +74,7 @@ an $E(\sigma')$-type expression. This allows stiffer behavior at higher confinem
 
 Required material parameters:
 
-- `GEO_YOUNGS_MODULUS_FORMULATION` with "SCHANZ_VERMER" value
+- `GEO_YOUNGS_MODULUS_FORMULATION` with "SCHANZ_VERMEER" value
 - `YOUNG_MODULUS`: reference Young's modulus $E^{ref}$
 - `POISSON_RATIO`: Poisson's ratio <!--(used if no unloading-reloading Poisson is supplied)-->
 - `GEO_PRESSURE_REFERENCE`: reference pressure $p_{ref}$
