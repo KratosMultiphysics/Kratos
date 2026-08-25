@@ -220,9 +220,9 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             )
             expected_values = [result.value for result in expected_results]
             print(f"actual {water_pressures}")
-            # self.assertVectorAlmostEqual(
-            #     water_pressures, expected_values, places=None, delta=10.0
-            # )
+            self.assertVectorAlmostEqual(
+                water_pressures, expected_values, places=None, delta=10.0
+            )
 
     def test_infiltration_from_top_boundary_O6(self):
         file_path = test_helper.get_file_path(
@@ -308,19 +308,19 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             60.0: [],
             3600.0: [
                 ExpectedResult(node_id=1, value=0.0),
-                ExpectedResult(node_id=52, value=0.0),
-                ExpectedResult(node_id=62, value=0.0),
+                ExpectedResult(node_id=52, value=13254.5),
+                ExpectedResult(node_id=62, value=15985.4),
             ],
             7200.0: [],
             10800.0: [
-                ExpectedResult(node_id=68, value=0.0),
-                ExpectedResult(node_id=84, value=0.0),
-                ExpectedResult(node_id=97, value=0.0),
+                ExpectedResult(node_id=68, value=94.5776),
+                ExpectedResult(node_id=84, value=2857.97),
+                ExpectedResult(node_id=97, value=12404.0),
             ],
             14400.0: [
-                ExpectedResult(node_id=88, value=0.0),
-                ExpectedResult(node_id=112, value=0.0),
-                ExpectedResult(node_id=122, value=0.0),
+                ExpectedResult(node_id=88, value=59.1236),
+                ExpectedResult(node_id=112, value=8720.64),
+                ExpectedResult(node_id=122, value=9880.12),
             ],
         }
 
