@@ -101,6 +101,21 @@ Condition::DofsVectorType GeoSeepageCondition::GetDofs() const
     return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
 }
 
+void GeoSeepageCondition::Initialize(const ProcessInfo&)
+{
+    KRATOS_TRY
+
+    // Properties are normally shared by many conditions. Since the boundary type is switched per
+    // condition, each condition needs its own copy. The guard keeps this idempotent, so that a
+    // second Initialize cannot undo a switch that has already been made.
+    if (mHasOwnProperties) return;
+
+    SetProperties(Kratos::make_shared<PropertiesType>(GetProperties()));
+    mHasOwnProperties = true;
+
+    KRATOS_CATCH("")
+}
+
 const std::string& GeoSeepageCondition::GetBoundaryType() const
 {
     KRATOS_ERROR_IF_NOT(GetProperties().Has(GEO_SEEPAGE_BOUNDARY_TYPE))
@@ -124,13 +139,17 @@ std::string GeoSeepageCondition::Info() const { return "GeoSeepageCondition"; }
 void GeoSeepageCondition::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+    rSerializer.save("HasOwnProperties", mHasOwnProperties);
 }
 
 void GeoSeepageCondition::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+    rSerializer.load("HasOwnProperties", mHasOwnProperties);
 }
 
 } // namespace Kratos
+
+
 
 

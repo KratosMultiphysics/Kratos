@@ -62,6 +62,10 @@ public:
     void CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
+    // Gives this condition its own copy of its Properties, so that its boundary type can be
+    // switched independently of the other conditions that originally shared those Properties.
+    void Initialize(const ProcessInfo&) override;
+
     // Returns the currently configured boundary type. Errors if GEO_SEEPAGE_BOUNDARY_TYPE is absent.
     [[nodiscard]] const std::string& GetBoundaryType() const;
 
@@ -74,11 +78,15 @@ public:
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
 
+    bool mHasOwnProperties = false;
+
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 };
 
 } // namespace Kratos
+
+
 
 

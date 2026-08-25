@@ -149,7 +149,49 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionGetBoundaryTypeThrowsWhenPropertyIs
         "GEO_SEEPAGE_BOUNDARY_TYPE is not defined for GeoSeepageCondition 1")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeGivesEachConditionItsOwnProperties, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
+
+    auto p_geometry = std::make_shared<Line2D2<Node>>(r_model_part.pGetNode(1), r_model_part.pGetNode(2));
+    auto p_properties = Kratos::make_shared<Properties>(1);
+    p_properties->SetValue(GEO_SEEPAGE_BOUNDARY_TYPE, Geo::SeepageDirichletType);
+
+    auto first_condition  = GeoSeepageCondition{1, p_geometry, p_properties};
+    auto second_condition = GeoSeepageCondition{2, p_geometry, p_properties};
+
+    first_condition.Initialize(ProcessInfo{});
+    second_condition.Initialize(ProcessInfo{});
+
+    // Switching one condition must not affect the other.
+    first_condition.SetBoundaryType(Geo::SeepageNeumannType);
+
+    KRATOS_EXPECT_EQ(first_condition.GetBoundaryType(), Geo::SeepageNeumannType);
+    KRATOS_EXPECT_EQ(second_condition.GetBoundaryType(), Geo::SeepageDirichletType);
+    KRATOS_EXPECT_EQ((*p_properties)[GEO_SEEPAGE_BOUNDARY_TYPE], Geo::SeepageDirichletType);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionSecondInitializeDoesNotResetTheBoundaryType, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
+
+    auto p_geometry = std::make_shared<Line2D2<Node>>(r_model_part.pGetNode(1), r_model_part.pGetNode(2));
+    auto p_properties = Kratos::make_shared<Properties>(1);
+    p_properties->SetValue(GEO_SEEPAGE_BOUNDARY_TYPE, Geo::SeepageDirichletType);
+
+    auto condition = GeoSeepageCondition{1, p_geometry, p_properties};
+
+    condition.Initialize(ProcessInfo{});
+    condition.SetBoundaryType(Geo::SeepageNeumannType);
+    condition.Initialize(ProcessInfo{});
+
+    KRATOS_EXPECT_EQ(condition.GetBoundaryType(), Geo::SeepageNeumannType);
+}
+
 } // namespace Kratos::Testing
+
 
 
 
