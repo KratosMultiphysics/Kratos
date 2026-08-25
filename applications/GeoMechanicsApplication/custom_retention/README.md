@@ -5,7 +5,8 @@
 - [Retention law selection](#Retention-Law-Selection)
 - [Saturated law](#Saturated-Law)
 - [Saturated below phreatic level law](#Saturated-Below-Phreatic-Level-Law)
-- [Van Genuchten Retention Law](#Van-Genuchten-Retention-Law)
+- [Van Genuchten  Law](#Van-Genuchten-Law)
+
 ## Retention law selection
 
 | Kratos Variable |  Description                 | Constraints                                      |
@@ -95,14 +96,14 @@ It derives from the `RetentionLaw` base class and computes:
 
 ### Material Parameters
 
-| Kratos Variable                   | Symbol      | Description                                               | Constraints       |
-|-----------------------------------|-------------|-----------------------------------------------------------|-------------------|
-| `SATURATED_SATURATION`             | $S_s$       | Maximum (fully saturated) degree of saturation            | $[0, 1]$          |
-| `RESIDUAL_SATURATION`             | $S_r$       | Residual degree of saturation                             | $[0, S_s)$        |
-| `VAN_GENUCHTEN_AIR_ENTRY_PRESSURE` | $p_b$       | Air-entry (bubbling) pressure — inverse of VG scale $\alpha$ | $(0, \infty)$  |
-| `VAN_GENUCHTEN_GN`                | $n$         | Pore-size distribution index                              | $(0, \infty)$     |
-| `VAN_GENUCHTEN_GL`                | $l$         | Mualem pore-connectivity exponent                         | $(-\infty, \infty)$ — see note below |
-| `MINIMUM_RELATIVE_PERMEABILITY`   | $k_{r,min}$ | Lower bound for $k_r$ (prevents zero permeability)        | $[0, 1]$          |
+| Kratos Variable                    | Symbol      | Description                                                  | Constraints                          |
+|------------------------------------|-------------|--------------------------------------------------------------|--------------------------------------|
+| `SATURATED_SATURATION`             | $S_s$       | Maximum (fully saturated) degree of saturation               | $[0, 1]$                             |
+| `RESIDUAL_SATURATION`              | $S_r$       | Residual degree of saturation                                | $[0, S_s)$                           |
+| `VAN_GENUCHTEN_AIR_ENTRY_PRESSURE` | $p_b$       | Air-entry (bubbling) pressure — inverse of VG scale $\alpha$ | $(0, \infty)$                        |
+| `VAN_GENUCHTEN_GN`                 | $n$         | Pore-size distribution index                                 | $(0, \infty)$                        |
+| `VAN_GENUCHTEN_GL`                 | $l$         | Mualem pore-connectivity exponent                            | $(-\infty, \infty)$ — see note below |
+| `MINIMUM_RELATIVE_PERMEABILITY`    | $k_{r,min}$ | Lower bound for $k_r$ (prevents zero permeability)           | $[0, 1]$                             |
 
 Some symbols used for the Kratos variables are not inline with symbols used in the standard model publication. Here is a mapping table of the symbols.
 
@@ -111,9 +112,9 @@ Some symbols used for the Kratos variables are not inline with symbols used in t
 | $\theta_s$      | `SATURATED_SATURATION`             | $S_s = \theta_s$          |
 | $\theta_r$      | `RESIDUAL_SATURATION`              | $S_r = \theta_r$          |
 | $\alpha$        | -                                  | $\alpha = \rho g/p_b$     |
-| $n$             | `VAN_GENUCHTEN_GN`                 | $n = n$          |
+| $n$             | `VAN_GENUCHTEN_GN`                 | $n = n$                   |
 | $m$ (derived)   | —                                  | $m = 1 - 1/n$ (hardcoded) |
-| $l$             | `VAN_GENUCHTEN_GL`                 | $l = l$         |
+| $l$             | `VAN_GENUCHTEN_GL`                 | $l = l$                   |
 
 
 > **Note on `VAN_GENUCHTEN_GL` ($l$):** Although Mualem (1976) proposed $l = 0.5$ as a  general value, $l$ is a purely empirical pore-connectivity/tortuosity fitting parameter and **can be negative**. Schaap & Leij (2000) fitted the MVG model to hundreds of soils from the UNSODA database and found optimised values of $l$ ranging from approximately $-4$ to $+4$, with many fine-textured soils yielding $l < 0$. The HYDRUS software (Šimůnek, van Genuchten & Šejna, 2022) imposes **no lower bound** on $l$ and treats it as an unconstrained fitting parameter.
