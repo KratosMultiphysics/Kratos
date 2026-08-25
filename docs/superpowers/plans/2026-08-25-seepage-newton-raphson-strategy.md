@@ -1,6 +1,6 @@
 # Seepage Newton-Raphson Strategy — Step 2 — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add a `GeoSeepageNewtonRaphsonStrategy` to the GeoMechanicsApplication that reimplements the core Newton-Raphson `SolveSolutionStep` with three seams, so that steps 3 and 4 can decide seepage boundary switches, rebuild the system, and suppress convergence when a switch has just happened.
 
@@ -61,7 +61,7 @@ Deliverable: a compiling, registered-nowhere strategy class that inherits the co
   - `protected virtual void RebuildSystem()` — empty in this step. Step 4 implements it.
   - `[[nodiscard]] std::string Info() const override` returning `"GeoSeepageNewtonRaphsonStrategy"`
 
-- [ ] **Step 1: Create the header file**
+- [x] **Step 1: Create the header file**
 
 Create `applications/GeoMechanicsApplication/custom_strategies/strategies/geo_seepage_newton_raphson_strategy.hpp`:
 
@@ -169,7 +169,7 @@ protected:
 } // namespace Kratos
 ```
 
-- [ ] **Step 2: Build**
+- [x] **Step 2: Build**
 
 ```powershell
 kp build
@@ -177,7 +177,7 @@ kp build
 
 Expected: builds cleanly. Nothing includes the new header yet, so this only proves the file is syntactically valid once it is first included — which happens in Task 3. To get compile feedback now, temporarily add `#include "custom_strategies/strategies/geo_seepage_newton_raphson_strategy.hpp"` to `applications/GeoMechanicsApplication/custom_python/add_custom_strategies_to_python.cpp`, build, then remove it again. Task 3 adds it permanently.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```powershell
 git add applications/GeoMechanicsApplication/custom_strategies/strategies/geo_seepage_newton_raphson_strategy.hpp
@@ -209,7 +209,7 @@ Deliverable: the reimplemented loop. Behaviour is still identical to core, becau
 
 Seams 1, 2 and 3 each appear **twice**: once in the first-iteration block and once in the iteration cycle. Missing the first-iteration copy would let a switch made on iteration 1 be reported as converged.
 
-- [ ] **Step 1: Add the `SolveSolutionStep` override**
+- [x] **Step 1: Add the `SolveSolutionStep` override**
 
 In `geo_seepage_newton_raphson_strategy.hpp`, insert this method into the `public:` section, directly below the `Info()` method:
 
@@ -421,7 +421,7 @@ Note two intentional, harmless deviations from the literal core text, both force
 
 Core's dead `if (residual_is_updated == false) { /* commented-out body */ }` block is omitted, since its body is entirely commented out in core. `residual_is_updated` is still assigned, matching core.
 
-- [ ] **Step 2: Build**
+- [x] **Step 2: Build**
 
 Temporarily add the include to `add_custom_strategies_to_python.cpp` (Task 3 makes it permanent), then:
 
@@ -431,11 +431,11 @@ kp build
 
 Expected: builds cleanly. If you see `'mpA': undeclared identifier` or similar, a `using MotherType::...;` line from Task 1 is missing — re-read the "Critical C++ Note" above.
 
-- [ ] **Step 3: Verify the copy against core**
+- [x] **Step 3: Verify the copy against core**
 
 Open `kratos/solving_strategies/strategies/residualbased_newton_raphson_strategy.h` at line 919 side by side with the new method. Confirm the only differences are the seam blocks and the two deviations listed in Step 1. This manual diff is the substitute for the test we are not writing.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add applications/GeoMechanicsApplication/custom_strategies/strategies/geo_seepage_newton_raphson_strategy.hpp
@@ -457,7 +457,7 @@ Deliverable: `GeoSeepageNewtonRaphsonStrategy` is constructible from Python, whi
 
 Note the deliberate difference from its siblings: **no `Parameters&` argument**, because this strategy derives from the core class rather than from `GeoMechanicsNewtonRaphsonStrategy`.
 
-- [ ] **Step 1: Add the include**
+- [x] **Step 1: Add the include**
 
 In `add_custom_strategies_to_python.cpp`, in the strategies include block (the one containing `geo_mechanics_newton_raphson_strategy.hpp`), add:
 
@@ -465,7 +465,7 @@ In `add_custom_strategies_to_python.cpp`, in the strategies include block (the o
 #include "custom_strategies/strategies/geo_seepage_newton_raphson_strategy.hpp"
 ```
 
-- [ ] **Step 2: Add the type alias**
+- [x] **Step 2: Add the type alias**
 
 Directly below the `GeoMechanicsNewtonRaphsonErosionProcessStrategyType` alias (around line 82):
 
@@ -474,7 +474,7 @@ Directly below the `GeoMechanicsNewtonRaphsonErosionProcessStrategyType` alias (
         GeoSeepageNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 ```
 
-- [ ] **Step 3: Add the registration**
+- [x] **Step 3: Add the registration**
 
 Directly below the `GeoMechanicsNewtonRaphsonErosionProcessStrategy` registration (which ends around line 138):
 
@@ -485,7 +485,7 @@ Directly below the `GeoMechanicsNewtonRaphsonErosionProcessStrategy` registratio
                       BuilderAndSolverType::Pointer, int, bool, bool, bool>());
 ```
 
-- [ ] **Step 4: Build**
+- [x] **Step 4: Build**
 
 ```powershell
 kp build
@@ -493,7 +493,7 @@ kp build
 
 Expected: builds cleanly.
 
-- [ ] **Step 5: Verify the class is importable from Python**
+- [x] **Step 5: Verify the class is importable from Python**
 
 ```powershell
 python -c "import KratosMultiphysics; import KratosMultiphysics.GeoMechanicsApplication as Geo; print(Geo.GeoSeepageNewtonRaphsonStrategy)"
@@ -507,7 +507,7 @@ If Python cannot find `KratosMultiphysics`, the installed package directory is n
 $env:PYTHONPATH = "C:\checkouts\KratosProjects\dev\bin\FullDebug;$env:PYTHONPATH"
 ```
 
-- [ ] **Step 6: Run the full C++ suite to check for regressions**
+- [x] **Step 6: Run the full C++ suite to check for regressions**
 
 ```powershell
 kp test
@@ -515,7 +515,7 @@ kp test
 
 Expected: `[  PASSED  ] 1128 tests.` — the same count as before this plan, since nothing existing changed behaviour.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add applications/GeoMechanicsApplication/custom_python/add_custom_strategies_to_python.cpp
@@ -524,11 +524,63 @@ git commit -m "Register GeoSeepageNewtonRaphsonStrategy with Python"
 
 ---
 
-## Findings to Record for the Follow-up Issue (#14637)
+## Findings Recorded During Implementation
 
-Fill this in during implementation:
+**Status: all three tasks implemented. Full GeoMechanics C++ suite green (1128 tests, no regressions). `GeoSeepageNewtonRaphsonStrategy` is constructible from Python.**
 
-- Whether the copied loop needed any deviation from core beyond the two listed in Task 2. Each extra deviation is a maintenance cost to report.
-- Whether `mStoreNonconvergedSolutionsFlag` and the other protected members were all reachable as expected, or whether any needed a workaround.
-- Confirm the strategy is a drop-in replacement: with both hooks stubbed, a case run with `GeoSeepageNewtonRaphsonStrategy` should produce results identical to `GeoMechanicsNewtonRaphsonStrategy`. Worth spot-checking once step 3 wires it into `geomechanics_solver.py`.
+### Plan gap: the Python package re-exports symbols explicitly
+
+The plan was **wrong** to treat `add_custom_strategies_to_python.cpp` as the only registration point.
+`applications/GeoMechanicsApplication/GeoMechanicsApplication.py` imports the raw C++ module as
+`KratosGeo` and then re-exports each symbol by hand:
+
+```python
+# Strategies
+GeoMechanicsQuasiNewtonStrategy = KratosGeo.GeoMechanicsQuasiNewtonStrategy
+GeoSeepageNewtonRaphsonStrategy = KratosGeo.GeoSeepageNewtonRaphsonStrategy  # <- required
+```
+
+Without that line the class exists on `KratosGeoMechanicsApplication` but **not** on
+`KratosMultiphysics.GeoMechanicsApplication`, which is what user code imports. Any future task that
+exposes a new C++ symbol to Python must edit both files.
+
+This also produced a misleading symptom worth remembering: the `AttributeError` looked exactly like a
+stale build, and was misdiagnosed as one. The decisive diagnostic was querying the **raw** module
+directly:
+
+```powershell
+python -c "import KratosMultiphysics; import KratosGeoMechanicsApplication as KG; print([n for n in dir(KG) if 'Seepage' in n])"
+```
+
+Seeing the class there proved the C++ side was correct and isolated the fault to the re-export.
+
+### Template instantiation makes Task 1's build check weaker than it looks
+
+A class template's member function bodies are not fully type-checked until the template is
+*instantiated*. Merely `#include`-ing the header does not instantiate it. So the builds in Tasks 1
+and 2 only checked syntax and non-dependent constructs. The copied `SolveSolutionStep` was first
+genuinely type-checked in Task 3, where `py::class_<GeoSeepageNewtonRaphsonStrategyType, ...>`
+instantiates the class and, with it, all virtual members. Worth knowing before trusting a green build
+on a header-only template.
+
+### Confirmed as designed
+
+- All nine `using MotherType::...;` declarations were necessary and sufficient. No base member turned
+  out to be unreachable, so no workaround was needed.
+- The copied loop needed exactly the two deviations the plan predicted (`TSparseSpace::Size` instead
+  of `SparseSpaceType::Size`, and `this->` on inherited function calls) and no others.
+- Seam placement verified structurally: seam 0 declared once; seams 1 and 2 immediately after each of
+  the two `UpdateDatabase` calls; seam 3 immediately after each of the two `PostCriteria` blocks.
+
+## Open Questions for #14637
+
+- The strategy is not yet wired into `geomechanics_solver.py`, so the claim that it is a drop-in
+  replacement for `GeoMechanicsNewtonRaphsonStrategy` is still unverified end to end. Confirm this in
+  step 3 by running an existing case through it and comparing results.
+- The copied loop remains untested, by explicit decision. Steps 3 and 4 give it real behaviour, and
+  that is the point at which tests should return.
+- The parallel-condition data race noted in the spec is still latent. It becomes real in step 3, when
+  the switching criterion first lets neighbouring conditions disagree on a shared node.
+
+
 
