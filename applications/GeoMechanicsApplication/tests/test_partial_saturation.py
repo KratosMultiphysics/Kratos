@@ -275,7 +275,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
                 test_name="B6",
-                time_strings=["3608", "7241", "10,82*10\^3", "14,40*10\^3"],
+                time_strings=["3608", "7241", "10,82*10\\^3", "14,40*10\\^3"],
             )
             plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
@@ -340,7 +340,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
                 test_name="B10",
-                time_strings=["3617", "7231", "10,81*10\^3", "14,40*10\^3"],
+                time_strings=["3617", "7231", "10,81*10\\^3", "14,40*10\\^3"],
             )
             plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
@@ -406,7 +406,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
                 test_name="O4",
-                time_strings=["3792", "7295", "10,88*10\^3", "14,40*10\^3"],
+                time_strings=["3792", "7295", "10,88*10\\^3", "14,40*10\\^3"],
             )
             plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
@@ -473,7 +473,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
                 test_name="O6",
-                time_strings=["3622", "7235", "10,81*10\^3", "14,40*10\^3"],
+                time_strings=["3622", "7235", "10,81*10\\^3", "14,40*10\\^3"],
             )
             plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
