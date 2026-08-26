@@ -62,7 +62,7 @@ The application includes tests to check the proper functioning of the applicatio
 
     * *`partition` — SFC or KaHIP domain decomposition, with shared-node ghost layers*
 
-    * *`agglomerate` — group cells into coarser ones, and `undo_green` (`MeshioPlusPlusMeshOperations.UndoGreen`) — take back the green closure a selective `refine` added, which keeps a mesh conforming but carries no refinement information and degrades element quality*
+    * *`subdivide` and `agglomerate` — polyhedral refinement and coarsening. Both emit polyhedral cells, which no Kratos `Element` can hold, so `"simplexify_result"` (on by default) decomposes the result into tetrahedra before it reaches the model part*
 
 - **Remeshing**
 
@@ -207,6 +207,7 @@ print(KratosMeshioPlusPlus.MeshioPlusPlusIO.GetSupportedWriteFormats())
 ## ⚠️ Limitations:
 
 - **Serial only.** meshio++ has no MPI, no distributed reader or writer and no communicator. The intended distributed workflow is `partition` with ghost layers, feeding an MPI assembly.
+- meshio++'s `undo_green` is **not** exposed. It resolves a refinement's green closure through the colon-namespaced `refine:cell_id`/`refine:parent_id` arrays, and the write-back constraint below means those never reach a model part — the hierarchy is already gone by the time a refined mesh is a `ModelPart`, so any wrapper taking one would fail by construction.
 - `remesh` and `decimate` operate on triangle surfaces; `remesh_volume`, `optimize_volume` and `decimate_volume` on tetrahedra. Neither family accepts the other's cells — they are separate operations rather than modes of one, and say so by name when handed the wrong kind.
 - `Matrix`-valued variables are not written, and a `Matrix`-valued `Properties` entry is skipped with a warning — meshio++ has no representation for it.
 - `Properties` entries that are not numeric are left to the materials file: a `Begin Table` curve, and text values such as a constitutive law name (instantiating one needs Kratos's own registry, which meshio++ deliberately does not link). Everything numeric — scalars, integers and vector-valued variables alike — round-trips.
