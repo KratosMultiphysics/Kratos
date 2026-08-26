@@ -244,14 +244,14 @@ Next to specifying a single model part, it is also possible to provide a list of
 
 The `GeoApplyConstantScalarValueProcess` is used internally for setting Dirichlet type boundary conditions on scalar D.o.F. i.e. water pressures. It implements the following steps:
 - GeoApplyConstantScalarValueProcess::ExecuteInitialize() applies a fixity to the scalar D.o.F. indicated by member variable `mVariableName` on the model part indicated by member variable `mrModelPart`, depending on the value of member variable `mIsFixed`.
-- GeoApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep() applies the scalar value stored in member variable `mDoubleValue` to these D.o.F. This happens only during the first call and is saveguarded by member variable `mIsInitialized`.
+- GeoApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep() applies the scalar value stored in member variable `mDoubleValue` to these D.o.F. This happens only during the first call and is safeguarded by member variable `mIsInitialized`.
 - GeoApplyConstantScalarValueProcess::ExecuteFinalize() releases the fixity, if it was set during `ExecuteInitialize`.
 
 For integer and bool type variables only ExecuteInitializeSolutionStep() is implemented, but sofar this is not used in GeoMechanicsApplication.
 
 ## Apply Component Table Process
 
-The `ApplyComponentTableProcess` is used internally for setting Dirichlet type boundary conditions on components of vector D.o.F., i.e. displacements or rotations in X, Y, or Z direction. The values are given in time or space by reference to a table. It implements the following steps:
+The `ApplyComponentTableProcess` is used internally for setting Dirichlet type boundary conditions on components of vector D.o.F., i.e. displacements or rotations in X, Y, or Z direction and on water pressure D.o.F. The values are given in time or space by reference to a table. It implements the following steps:
 - ApplyComponentTableProcess::ExecuteInitialize() applies a fixity to the scalar D.o.F. indicated by member variable `mVariableName` on the model part indicated by member variable `mrModelPart`, depending on the value of member variable `mIsFixed`. It also sets the initial value of the D.o.F. using member variable `mInitialValue` if a time table is attached. For attached spatial tables, the value from spatial table interpolation is set.
 - ApplyComponentTableProcess::ExecuteInitializeSolutionStep() applies the scalar value obtained from time table interpolation to these D.o.F. This happens every time step.
 - ApplyComponentTableProcess::ExecuteFinalize() releases the fixity, if it was set during `ExecuteInitialize`.
