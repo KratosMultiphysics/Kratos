@@ -33,14 +33,27 @@ class OpenFOAMOpenCFDWrapper(CoSimulationSolverWrapper):
             "strong_coupling"          : true               
         }""")
 
-        self.settings["solver_wrapper_settings"].ValidateAndAssignDefaults(settings_defaults)
+        solver_wrapper_settings = self.settings["solver_wrapper_settings"]
+        if not solver_wrapper_settings.Has("time_step"):
+            raise ValueError(
+                '"time_step" must be specified in "solver_wrapper_settings" '
+                'for the OpenFOAM OpenCFD wrapper.'
+            )
+
+        solver_wrapper_settings.ValidateAndAssignDefaults(settings_defaults)
         model_part_utilities.CreateMainModelPartsFromCouplingDataSettings(self.settings["data"], self.model, self.name)
         model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
 
-        self.current_time = settings["solver_wrapper_settings"]["start_time"].GetDouble()
-        self.time_step = settings["solver_wrapper_settings"]["time_step"].GetDouble()
-        self.end_time = settings["solver_wrapper_settings"]["end_time"].GetDouble()
-        self.is_strong_coupling = settings["solver_wrapper_settings"]["strong_coupling"].GetBool()
+        self.current_time = solver_wrapper_settings["start_time"].GetDouble()
+        self.time_step = solver_wrapper_settings["time_step"].GetDouble()
+        self.end_time = solver_wrapper_settings["end_time"].GetDouble()
+        self.is_strong_coupling = solver_wrapper_settings["strong_coupling"].GetBool()
+
+        if self.time_step <= 0.0:
+            raise ValueError(
+                '"time_step" must be greater than zero for the OpenFOAM '
+                'OpenCFD wrapper.'
+            )
         
         self.first_iteration = True
 
