@@ -241,6 +241,14 @@ private:
     std::vector<std::size_t> GetSurrogateFacesIds();
 
     /**
+     * @brief CutFEM-style Nitsche enforcement at the EXACT true boundary (SBM_FORMULATION_TYPE=4)
+     */
+    void CalculateLocalSystemCutFEM(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    /**
      * @brief Calculates the Cauchy traction vector
      * This function computes the Cauchy traction vector from the provided stress
      * vector (in Voigt notation) and the unit normal vector
@@ -251,21 +259,31 @@ private:
     void CalculateCauchyTractionVector(
         const Vector& rVoigtStress,
         const array_1d<double,2>& rUnitNormal,
+        const array_1d<double,3>& rLocalE1,
+        const array_1d<double,3>& rLocalE2,
+        const array_1d<double,3>& rLocalE3,
         array_1d<double,6>& rCauchyTraction);
 
     /**
      * @brief Computes the normal projection of the C times B product
      * This function calculates the normal projection of the standard
-     * C (constitutive tensor) times B (strain matrix) product
+     * C (constitutive tensor) times B (strain matrix) product, projected
+     * from the shell's local (e1,e2,e3) frame onto global DOF slots.
      * @param rC Reference to the constituive tensor
      * @param rB Reference to the strain matrix
-     * @param rUnitNormal Reference to the unit normal vector
+     * @param rUnitNormal Reference to the (local, 2-component) unit normal vector
+     * @param rLocalE1 First local in-plane axis (global-frame components)
+     * @param rLocalE2 Second local in-plane axis (global-frame components)
+     * @param rLocalE3 Local shell normal (global-frame components)
      * @param rAuxMat Output result
      */
     void CalculateCBProjectionLinearisation(
         const Matrix& rC,
         const BoundedMatrix<double,8,LocalSize>& rB,
         const array_1d<double,2>& rUnitNormal,
+        const array_1d<double,3>& rLocalE1,
+        const array_1d<double,3>& rLocalE2,
+        const array_1d<double,3>& rLocalE3,
         BoundedMatrix<double,6,LocalSize>& rAuxMat);
 
     ///@}

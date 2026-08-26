@@ -316,6 +316,272 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 }
 
 template <ShellKinematics TKinematics>
+void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystemCutFEM(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& r_geom = this->GetGeometry();
+    array_1d<double, 3> dist;
+    for (std::size_t i = 0; i < 3; ++i) {
+        dist[i] = r_geom[i].FastGetSolutionStepValue(DISTANCE);
+    }
+    const std::size_t n_pos = (dist[0] > 0.0 ? 1 : 0) + (dist[1] > 0.0 ? 1 : 0) + (dist[2] > 0.0 ? 1 : 0);
+
+    // Full-triangle domain stiffness. 
+    BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+
+    if (n_pos == 0) {
+        // Fully outside: zero everything 
+        rLeftHandSideMatrix = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
+        rRightHandSideVector = ZeroVector(rRightHandSideVector.size());
+        return;
+    }
+    if (n_pos == 3) {
+        // Fully inside: full domain contribution, 
+        return;
+    }
+
+    double full_area;
+    array_1d<double, NumNodes> N_parent;
+    BoundedMatrix<double, NumNodes, 2> DN_DX_parent;
+    GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, full_area);
+
+    // Exact zero-crossing on an edge whose two endpoints have opposite-sign distance.
+    auto edge_intersection = [&](std::size_t a, std::size_t b) -> array_1d<double, 2> {
+        const double t = dist[a] / (dist[a] - dist[b]);
+        array_1d<double, 2> p;
+        p[0] = r_geom[a].X() + t * (r_geom[b].X() - r_geom[a].X());
+        p[1] = r_geom[a].Y() + t * (r_geom[b].Y() - r_geom[a].Y());
+        return p;
+    };
+
+    std::vector<array_1d<double, 2>> cut_points;
+    const std::size_t edges[3][2] = {{0, 1}, {1, 2}, {2, 0}};
+    for (const auto& e : edges) {
+        if ((dist[e[0]] > 0.0) != (dist[e[1]] > 0.0)) {
+            cut_points.push_back(edge_intersection(e[0], e[1]));
+        }
+    }
+    KRATOS_ERROR_IF(cut_points.size() != 2)
+        << "CutFEM SBM: expected exactly 2 cut points, got " << cut_points.size()
+        << " in element " << this->Id() << std::endl;
+
+    const array_1d<double, 2>& P1 = cut_points[0];
+    const array_1d<double, 2>& P2 = cut_points[1];
+
+    auto tri_area = [](double px, double py, double qx, double qy, double rx, double ry) {
+        return 0.5 * std::abs(px * (qy - ry) + qx * (ry - py) + rx * (py - qy));
+    };
+
+    double trimmed_area;
+    if (n_pos == 1) {
+        // Physical region = the small triangle at the single positive node.
+        const std::size_t pos_node = (dist[0] > 0.0) ? 0 : ((dist[1] > 0.0) ? 1 : 2);
+        trimmed_area = tri_area(r_geom[pos_node].X(), r_geom[pos_node].Y(), P1[0], P1[1], P2[0], P2[1]);
+    } else {
+        // n_pos == 2: physical region = full triangle minus the small triangle at the
+        // single negative node.
+        const std::size_t neg_node = (dist[0] < 0.0) ? 0 : ((dist[1] < 0.0) ? 1 : 2);
+        const double cut_off_area = tri_area(r_geom[neg_node].X(), r_geom[neg_node].Y(), P1[0], P1[1], P2[0], P2[1]);
+        trimmed_area = full_area - cut_off_area;
+    }
+
+    const double area_fraction = trimmed_area / full_area;
+    rRightHandSideVector *= area_fraction;
+
+    typename BaseType::CalculationData data(this->mpCoordinateTransformation, rCurrentProcessInfo);
+    data.CalculateLHS = true;
+    data.CalculateRHS = true;
+    BaseType::InitializeCalculationData(data);
+
+    // Plain trimmed-area rescale
+    rLeftHandSideMatrix *= area_fraction;
+
+    // Same shear-consistency override the other formulations use for the boundary/flux
+    // term: DSG's shear rows are an assumed-natural-strain construction 
+    if (data.shearFormulation == 0) {
+        const double x12 = data.LCS0.X1() - data.LCS0.X2();
+        const double x23 = data.LCS0.X2() - data.LCS0.X3();
+        const double x31 = data.LCS0.X3() - data.LCS0.X1();
+        const double x21 = -x12, x32 = -x23, x13 = -x31;
+        const double y12 = data.LCS0.Y1() - data.LCS0.Y2();
+        const double y23 = data.LCS0.Y2() - data.LCS0.Y3();
+        const double y31 = data.LCS0.Y3() - data.LCS0.Y1();
+        const double A2 = 2.0 * data.TotalArea;
+        for (std::size_t j = 0; j < LocalSize; ++j) {
+            data.B(6, j) = 0.0;
+            data.B(7, j) = 0.0;
+        }
+        data.B(6, 2) = y23 / A2;  data.B(6, 4) = 1.0 / 3.0;
+        data.B(7, 2) = x32 / A2;  data.B(7, 3) = -1.0 / 3.0;
+        data.B(6, 8) = y31 / A2;  data.B(6, 10) = 1.0 / 3.0;
+        data.B(7, 8) = x13 / A2;  data.B(7, 9) = -1.0 / 3.0;
+        data.B(6, 14) = y12 / A2; data.B(6, 16) = 1.0 / 3.0;
+        data.B(7, 14) = x21 / A2; data.B(7, 15) = -1.0 / 3.0;
+    }
+
+    array_1d<double, 3>& gp0 = data.gpLocations[0];
+    gp0[0] = 1.0 / 3.0; gp0[1] = 1.0 / 3.0; gp0[2] = 1.0 / 3.0;
+    data.gpIndex = 0;
+    noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
+    BaseType::CalculateSectionResponse(data);
+
+    // Exact outward normal: distance is linear over this flat CST triangle
+    array_1d<double, 2> grad_d;
+    grad_d[0] = dist[0] * DN_DX_parent(0, 0) + dist[1] * DN_DX_parent(1, 0) + dist[2] * DN_DX_parent(2, 0);
+    grad_d[1] = dist[0] * DN_DX_parent(0, 1) + dist[1] * DN_DX_parent(1, 1) + dist[2] * DN_DX_parent(2, 1);
+    const double grad_norm = norm_2(grad_d);
+    array_1d<double, 2> n_cut;
+    n_cut[0] = -grad_d[0] / grad_norm;
+    n_cut[1] = -grad_d[1] / grad_norm;
+
+    const double seg_dx = P2[0] - P1[0];
+    const double seg_dy = P2[1] - P1[1];
+    const double seg_len = std::sqrt(seg_dx * seg_dx + seg_dy * seg_dy);
+    const double mid_x = 0.5 * (P1[0] + P2[0]);
+    const double mid_y = 0.5 * (P1[1] + P2[1]);
+
+    // Shape function values of the ORIGINAL (uncut) triangle at the segment midpoint
+    array_1d<double, 3> N_mid;
+    N_mid[0] = tri_area(mid_x, mid_y, r_geom[1].X(), r_geom[1].Y(), r_geom[2].X(), r_geom[2].Y()) / full_area;
+    N_mid[1] = tri_area(mid_x, mid_y, r_geom[2].X(), r_geom[2].Y(), r_geom[0].X(), r_geom[0].Y()) / full_area;
+    N_mid[2] = 1.0 - N_mid[0] - N_mid[1];
+
+    // aux_CB_projection/cauchy_traction: constant over the whole flat CST triangle 
+    array_1d<double, 6> cauchy_traction;
+    BoundedMatrix<double, 6, LocalSize> aux_CB_projection = ZeroMatrix(6, LocalSize);
+    const auto& r_stress = data.generalizedStresses;
+    const auto& r_C = data.D;
+
+    BoundedMatrix<double, 8, LocalSize> B = ZeroMatrix(8, 18);
+    for (IndexType i = 0; i < 3; ++i) {
+        const IndexType initial_index = i * 6;
+        B(0, initial_index) = DN_DX_parent(i, 0);
+        B(1, initial_index + 1) = DN_DX_parent(i, 1);
+        B(2, initial_index) = DN_DX_parent(i, 1);
+        B(2, initial_index + 1) = DN_DX_parent(i, 0);
+        B(3, initial_index + 4) = DN_DX_parent(i, 0);
+        B(4, initial_index + 3) = -DN_DX_parent(i, 1);
+        B(5, initial_index + 3) = -DN_DX_parent(i, 0);
+        B(5, initial_index + 4) = DN_DX_parent(i, 1);
+        B(6, initial_index + 2) = DN_DX_parent(i, 0);
+        B(6, initial_index + 4) = N_parent[i];
+        B(7, initial_index + 2) = DN_DX_parent(i, 1);
+        B(7, initial_index + 3) = -N_parent[i];
+    }
+
+    Matrix D(8, 8);
+    noalias(D) = ZeroMatrix(8, 8);
+    for (std::size_t i = 0; i < r_C.size1(); ++i) {
+        for (std::size_t j = 0; j < r_C.size1(); ++j) {
+            D(i, j) = r_C(i, j);
+        }
+    }
+
+    BoundedMatrix<double, 8, LocalSize> B_temp = ZeroMatrix(8, 18);
+    BoundedMatrix<double, 8, LocalSize> B_parent = ZeroMatrix(8, 18);
+    MatrixType T(18, 18);
+    data.LCS.ComputeTotalRotationMatrix(T);
+    B_temp = prod(data.B, T);
+    Matrix R(8, 8);
+    this->mSections[0]->GetRotationMatrixForGeneralizedStrains(-(this->mSections[0]->GetOrientationAngle()), R);
+    R(6, 7) = -1.0 * R(6, 7);
+    R(7, 6) = -1.0 * R(7, 6);
+    B_parent = prod(R, B_temp);
+
+    const array_1d<double,3> local_e1 = -data.LCS.Vx();
+    const array_1d<double,3> local_e2 = -data.LCS.Vy();
+    const array_1d<double,3> local_e3 = data.LCS.Vz();
+    CalculateCBProjectionLinearisation(D, B_parent, n_cut, local_e1, local_e2, local_e3, aux_CB_projection);
+    CalculateCauchyTractionVector(r_stress, n_cut, local_e1, local_e2, local_e3, cauchy_traction);
+
+    // Per-DOF constrained mask (ux,uy,uz,rx,ry,rz)
+    array_1d<double, 6> constrained_dofs;
+    if (this->GetProperties().Has(SBM_CONSTRAINED_DOFS)) {
+        const auto& r_constrained_dofs = this->GetProperties()[SBM_CONSTRAINED_DOFS];
+        KRATOS_ERROR_IF(r_constrained_dofs.size() != 6)
+            << "SBM_CONSTRAINED_DOFS must have size 6 (ux,uy,uz,rx,ry,rz) in Properties " << this->GetProperties().Id() << std::endl;
+        for (std::size_t d = 0; d < 6; ++d) {
+            constrained_dofs[d] = r_constrained_dofs[d];
+        }
+    } else {
+        for (std::size_t d = 0; d < 6; ++d) {
+            constrained_dofs[d] = 1.0;
+        }
+    }
+
+    const double penalty_parameter = this->GetProperties().Has(PENALTY_COEFFICIENT)
+        ? this->GetProperties()[PENALTY_COEFFICIENT]
+        : 0.0;
+    const double rho_C = norm_frobenius(D);
+    const double h_e = std::sqrt(full_area);
+    const double aux_weight_penalty = seg_len * penalty_parameter * rho_C / h_e;
+
+    const auto& r_penalty_bc_val = this->GetValue(DISPLACEMENT);
+    const auto& r_penalty_bc_val_rot = this->GetValue(ROTATION);
+    array_1d<double, 6> bc_values;
+    for (std::size_t d = 0; d < 3; ++d) {
+        bc_values[d] = r_penalty_bc_val[d];
+        bc_values[d + 3] = r_penalty_bc_val_rot[d];
+    }
+
+    Vector unknown_values = ZeroVector(LocalSize);
+    for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto& r_disp = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+        const auto& r_rot = r_geom[i_node].FastGetSolutionStepValue(ROTATION);
+        for (std::size_t d = 0; d < 3; ++d) {
+            unknown_values(i_node * BlockSize + d) = r_disp[d];
+            unknown_values(i_node * BlockSize + d + 3) = r_rot[d];
+        }
+    }
+
+    Matrix left_hand_side_cut = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
+    Vector right_hand_side_cut = ZeroVector(rRightHandSideVector.size());
+
+    for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+        const double aux_val = seg_len * N_mid[i_node];
+        for (std::size_t d = 0; d < 6; ++d) {
+            if (constrained_dofs[d] == 0.0) {
+                continue;
+            }
+            for (std::size_t j_node = 0; j_node < LocalSize; ++j_node) {
+                // Term B (primal consistency)
+                left_hand_side_cut(i_node * BlockSize + d, j_node) -= aux_val * aux_CB_projection(d, j_node);
+                // Term C (adjoint consistency)
+                left_hand_side_cut(j_node, i_node * BlockSize + d) -= aux_val * aux_CB_projection(d, j_node);
+                // Term C forcing
+                right_hand_side_cut(j_node) -= aux_val * aux_CB_projection(d, j_node) * bc_values[d];
+            }
+        }
+        // Term D (penalty)
+        for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+            const double aux_2 = aux_weight_penalty * N_mid[i_node] * N_mid[j_node];
+            for (std::size_t d = 0; d < 6; ++d) {
+                if (constrained_dofs[d] == 0.0) {
+                    continue;
+                }
+                left_hand_side_cut(i_node * BlockSize + d, j_node * BlockSize + d) += aux_2;
+            }
+        }
+        for (std::size_t d = 0; d < 6; ++d) {
+            if (constrained_dofs[d] == 0.0) {
+                continue;
+            }
+            right_hand_side_cut(i_node * BlockSize + d) += aux_weight_penalty * N_mid[i_node] * bc_values[d];
+        }
+    }
+    right_hand_side_cut -= prod(left_hand_side_cut, unknown_values);
+
+    rLeftHandSideMatrix += left_hand_side_cut;
+    rRightHandSideVector += right_hand_side_cut;
+
+    KRATOS_CATCH("")
+}
+
+template <ShellKinematics TKinematics>
 void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
@@ -368,10 +634,22 @@ template <ShellKinematics TKinematics>
 void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateCauchyTractionVector(
     const Vector& rVoigtStress,
     const array_1d<double,2>& rUnitNormal,
+    const array_1d<double,3>& rLocalE1,
+    const array_1d<double,3>& rLocalE2,
+    const array_1d<double,3>& rLocalE3,
     array_1d<double,6>& rCauchyTraction)
 {
-    rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
-    rCauchyTraction[1] = rVoigtStress[2]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1];
+    // rUnitNormal is the LOCAL (data.LCS0 in-plane) conormal.
+    const double t1 = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
+    const double t2 = rVoigtStress[2]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1];
+    const double m1 = rVoigtStress[3]*rUnitNormal[0] + rVoigtStress[5]*rUnitNormal[1];
+    const double m2 = rVoigtStress[5]*rUnitNormal[0] + rVoigtStress[4]*rUnitNormal[1];
+    const double q  = rVoigtStress[6]*rUnitNormal[0] + rVoigtStress[7]*rUnitNormal[1];
+
+    for (std::size_t k = 0; k < 3; ++k) {
+        rCauchyTraction[k]     = t1*rLocalE1[k] + t2*rLocalE2[k] + q*rLocalE3[k];
+        rCauchyTraction[3 + k] = m2*rLocalE1[k] + m1*rLocalE2[k];
+    }
 }
 
 template <ShellKinematics TKinematics>
@@ -379,30 +657,25 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLin
     const Matrix& rC,
     const BoundedMatrix<double,8,LocalSize>& rB,
     const array_1d<double,2>& rUnitNormal,
+    const array_1d<double,3>& rLocalE1,
+    const array_1d<double,3>& rLocalE2,
+    const array_1d<double,3>& rLocalE3,
     BoundedMatrix<double,6,LocalSize>& rAuxMat)
 {
     Matrix aux_CB = ZeroMatrix(8, LocalSize);
     aux_CB = prod(rC, rB);
 
-    // membrane part
     for (std::size_t j = 0; j < LocalSize; ++j) {
-        rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j);
-    }
-    for (std::size_t j = 0; j < LocalSize; ++j) {
-        rAuxMat(1,j) = rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j);
-    }
+        const double t1 = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j);
+        const double t2 = rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j);
+        const double m1 = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j);
+        const double m2 = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j);
+        const double q  = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
 
-    // bending part
-    for (std::size_t j = 0; j < LocalSize; ++j) {
-        rAuxMat(4,j) = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j);
-    }
-    for (std::size_t j = 0; j < LocalSize; ++j) {
-        rAuxMat(3,j) = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j);
-    }
-
-    // shear part
-    for (std::size_t j = 0; j < LocalSize; ++j) {
-        rAuxMat(2,j) = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
+        for (std::size_t k = 0; k < 3; ++k) {
+            rAuxMat(k, j)     = t1*rLocalE1[k] + t2*rLocalE2[k] + q*rLocalE3[k];
+            rAuxMat(3 + k, j) = m2*rLocalE1[k] + m1*rLocalE2[k];
+        }
     }
 }
 
