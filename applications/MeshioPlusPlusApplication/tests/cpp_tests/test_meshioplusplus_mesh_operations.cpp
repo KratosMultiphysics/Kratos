@@ -92,6 +92,33 @@ void PopulateTriangulatedSquare(ModelPart& rModelPart)
     rModelPart.CreateNewElement("Element2D3N", 2, {1, 3, 4}, p_properties);
 }
 
+/// The unit cube's closed triangular skin (12 triangles, outward wound) - a watertight surface,
+/// which is what the surface remeshing and volume-generating operations require.
+void PopulateClosedCubeSkin(ModelPart& rModelPart)
+{
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(5, 0.0, 0.0, 1.0);
+    rModelPart.CreateNewNode(6, 1.0, 0.0, 1.0);
+    rModelPart.CreateNewNode(7, 1.0, 1.0, 1.0);
+    rModelPart.CreateNewNode(8, 0.0, 1.0, 1.0);
+
+    auto p_properties = rModelPart.CreateNewProperties(1);
+    const std::vector<std::vector<std::size_t>> connectivities = {
+        {1, 3, 2}, {1, 4, 3},   // z = 0 (outward is -z)
+        {5, 6, 7}, {5, 7, 8},   // z = 1
+        {1, 2, 6}, {1, 6, 5},   // y = 0
+        {3, 4, 8}, {3, 8, 7},   // y = 1
+        {2, 3, 7}, {2, 7, 6},   // x = 1
+        {1, 5, 8}, {1, 8, 4},   // x = 0
+    };
+    for (std::size_t i = 0; i < connectivities.size(); ++i) {
+        rModelPart.CreateNewElement("Element2D3N", i + 1, connectivities[i], p_properties);
+    }
+}
+
 Parameters OperationSettings(const std::string& rOperation, const std::string& rExtraJson = "{}")
 {
     Parameters settings(rExtraJson);
@@ -107,13 +134,16 @@ Parameters OperationSettings(const std::string& rOperation, const std::string& r
 KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsGetSupportedOperations, KratosMeshioPlusPlusFastSuite)
 {
     const auto operations = MeshioPlusPlusMeshOperations::GetSupportedOperations();
-    for (const std::string name : {"attach_quality", "cell_data_to_point_data", "clean",
-                                   "compute_sdf", "convert_cells", "crop_bbox", "crop_halfspace",
-                                   "crop_predicate", "data_calc", "data_condition", "data_info",
-                                   "data_manage", "decimate", "extract_skin", "extract_surface",
-                                   "gradient", "isosurface", "point_data_to_cell_data",
-                                   "partition", "quality", "refine", "reorder", "slice", "smooth",
-                                   "split", "stats", "transform", "voxelize"}) {
+    for (const std::string name : {"agglomerate", "attach_quality", "cell_data_to_point_data",
+                                   "clean", "compute_sdf", "convert_cells", "crop_bbox",
+                                   "crop_halfspace", "crop_predicate", "data_calc",
+                                   "data_condition", "data_info", "data_integrate", "data_manage",
+                                   "decimate", "decimate_volume", "estimate_error", "extract_skin",
+                                   "extract_surface", "gradient", "hessian", "isosurface",
+                                   "optimize_volume", "point_data_to_cell_data", "partition",
+                                   "quality", "refine", "remesh", "remesh_volume", "reorder",
+                                   "slice", "smooth", "split", "stats", "subdivide", "transform",
+                                   "voxelize"}) {
         KRATOS_EXPECT_TRUE(std::find(operations.begin(), operations.end(), name) != operations.end());
     }
     KRATOS_EXPECT_TRUE(std::is_sorted(operations.begin(), operations.end()));
@@ -1632,6 +1662,292 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefineBalancedDoesNotTearT
             KRATOS_EXPECT_GT(dx * dx + dy * dy + dz * dz, 1e-20);
         }
     }
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsSubdivide, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("subdivide"), r_destination);
+
+    // One level of tetrahedral subdivision is eight children per parent, and no cell is left
+    // unsubdivided - this operation has no selector.
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 8 * r_source.NumberOfElements());
+    KRATOS_EXPECT_GT(r_destination.NumberOfNodes(), r_source.NumberOfNodes());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsAgglomerate, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("agglomerate", R"({"target_group_size" : 2})"), r_destination);
+
+    // Grouping cannot invent cells, and the six tetrahedra are all connected, so grouping them
+    // in pairs must leave strictly fewer than it started with.
+    KRATOS_EXPECT_GT(r_destination.NumberOfElements(), 0);
+    KRATOS_EXPECT_LT(r_destination.NumberOfElements(), r_source.NumberOfElements());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefineRecordHierarchy, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // "record_hierarchy" is what makes a refinement undoable later (see UndoGreen): it attaches
+    // "refine:cell_id"/"refine:parent_id". Those are colon-namespaced, so they never reach the
+    // destination model part - the assertion here is that asking for them changes nothing else.
+    MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("refine", R"({"levels" : 1, "record_hierarchy" : true})"),
+        r_destination);
+
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 8 * r_source.NumberOfElements());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsUndoGreen, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_coarse = model.CreateModelPart("coarse");
+    PopulateTriangulatedSquare(r_coarse);
+
+    // A selective refinement of one of the two triangles: the other is green-closed to stay
+    // conforming, and that green closure is exactly what UndoGreen exists to take back.
+    auto& r_fine = model.CreateModelPart("fine");
+    MeshioPlusPlusMeshOperations::Execute(
+        r_coarse,
+        OperationSettings("refine", R"({"levels" : 1, "cells" : [0], "closure" : "redgreen",
+                                        "record_hierarchy" : true})"),
+        r_fine);
+    KRATOS_EXPECT_GT(r_fine.NumberOfElements(), r_coarse.NumberOfElements());
+
+    auto& r_destination = model.CreateModelPart("destination");
+    const Parameters report = MeshioPlusPlusMeshOperations::UndoGreen(r_coarse, r_fine, r_destination);
+
+    // Undoing can only remove cells, never add them, and it must leave the refined half alone.
+    KRATOS_EXPECT_TRUE(report.Has("number_of_groups_undone"));
+    KRATOS_EXPECT_TRUE(report.Has("number_of_cells_removed"));
+    KRATOS_EXPECT_LE(r_destination.NumberOfElements(), r_fine.NumberOfElements());
+    KRATOS_EXPECT_GT(r_destination.NumberOfElements(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRemesh, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("remesh", R"({"num_clusters" : 8})"), r_destination);
+
+    KRATOS_EXPECT_GT(report["number_of_clusters"].GetInt(), 0);
+    KRATOS_EXPECT_TRUE(report.Has("number_of_iterations"));
+    KRATOS_EXPECT_TRUE(report.Has("number_of_non_manifold_vertices"));
+    KRATOS_EXPECT_GT(r_destination.NumberOfElements(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRemeshVolume, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateClosedCubeSkin(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // A closed surface in, a tetrahedral volume out. The lattice settings are the ones
+    // "voxelize"/"compute_sdf" already share, hence "resolution" rather than an own key.
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("remesh_volume", R"({"resolution" : [4, 4, 4]})"), r_destination);
+
+    KRATOS_EXPECT_GT(report["number_of_tets"].GetInt(), 0);
+    KRATOS_EXPECT_TRUE(report["surface_quality"]["watertight"].GetBool());
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), report["number_of_tets"].GetInt());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsOptimizeVolume, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("optimize_volume", R"({"optimize_iterations" : 2})"), r_destination);
+
+    // The contract is monotone worst-element quality: optimizing may do nothing on an already
+    // good mesh, but it must never make the worst element worse.
+    KRATOS_EXPECT_GE(report["min_quality_after"].GetDouble(), report["min_quality_before"].GetDouble());
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), r_source.NumberOfElements());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsDecimateVolume, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    // Two levels of subdivision give it enough tetrahedra to have something to remove.
+    auto& r_refined = model.CreateModelPart("refined");
+    MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("refine", R"({"levels" : 2})"), r_refined);
+
+    auto& r_destination = model.CreateModelPart("destination");
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_refined, OperationSettings("decimate_volume", R"({"target_ratio" : 0.5})"), r_destination);
+
+    KRATOS_EXPECT_TRUE(report.Has("tets_removed"));
+    KRATOS_EXPECT_LE(r_destination.NumberOfElements(), r_refined.NumberOfElements());
+    KRATOS_EXPECT_GT(r_destination.NumberOfElements(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsEstimateError, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    r_source.AddNodalSolutionStepVariable(TEMPERATURE);
+    PopulateCubeOfTetrahedra(r_source);
+    // A field with curvature, so the recovered gradient genuinely differs from the element-wise
+    // one and the indicator is not identically zero.
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = r_node.X() * r_node.X() + r_node.Y();
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // "output" names a registered Variable, which is what makes the indicator readable from
+    // Kratos at all - meshio++ calls it "error:zz", which no Variable can be.
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source,
+        OperationSettings("estimate_error",
+            R"({"array_name" : "TEMPERATURE", "output" : "DISTANCE", "marking" : "fraction",
+                "marking_value" : 0.5, "nodal_solution_step_data_variables" : ["TEMPERATURE"]})"),
+        r_destination);
+
+    KRATOS_EXPECT_GE(report["global_error"].GetDouble(), 0.0);
+    KRATOS_EXPECT_GT(report["number_of_marked"].GetInt(), 0);
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), r_source.NumberOfElements());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsHessian, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    r_source.AddNodalSolutionStepVariable(TEMPERATURE);
+    PopulateCubeOfTetrahedra(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = r_node.X() * r_node.X();
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source,
+        OperationSettings("hessian",
+            R"({"array_name" : "TEMPERATURE", "location" : "cell",
+                "nodal_solution_step_data_variables" : ["TEMPERATURE"]})"),
+        r_destination);
+
+    KRATOS_EXPECT_TRUE(report.Has("number_of_skipped"));
+    KRATOS_EXPECT_TRUE(report.Has("number_of_fallback"));
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), r_source.NumberOfElements());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsDataIntegrate, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    r_source.AddNodalSolutionStepVariable(TEMPERATURE);
+    PopulateCubeOfTetrahedra(r_source);
+    // A constant field: its measure-weighted mean is that constant, whatever the mesh, which is
+    // the one value this operation must reproduce exactly.
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = 2.0;
+    }
+    auto& r_destination = model.CreateModelPart("destination");
+
+    const Parameters report = MeshioPlusPlusMeshOperations::Execute(
+        r_source,
+        OperationSettings("data_integrate",
+            R"({"names" : ["TEMPERATURE"], "nodal_solution_step_data_variables" : ["TEMPERATURE"]})"),
+        r_destination);
+
+    KRATOS_EXPECT_EQ(report["arrays"].size(), 1);
+    const Parameters domain = report["arrays"][0]["domain"];
+    // The unit cube's volume, and the constant back out of the weighted mean.
+    KRATOS_EXPECT_NEAR(domain["domain_measure"].GetVector()[0], 1.0, 1e-10);
+    KRATOS_EXPECT_NEAR(domain["total"].GetVector()[0], 2.0, 1e-10);
+    KRATOS_EXPECT_NEAR(domain["mean"].GetVector()[0], 2.0, 1e-10);
+    // Report-only: the destination is left untouched.
+    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsConservativeInterpolate, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    r_source.AddNodalSolutionStepVariable(TEMPERATURE);
+    PopulateTriangulatedSquare(r_source);
+    for (auto& r_node : r_source.Nodes()) {
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = 3.0;
+    }
+
+    // A refinement of the same square: the geometry is identical, so a conservative transfer of
+    // a constant field must reproduce the constant rather than smear it.
+    auto& r_target = model.CreateModelPart("target");
+    MeshioPlusPlusMeshOperations::Execute(
+        r_source, OperationSettings("refine", R"({"levels" : 1})"), r_target);
+
+    auto& r_destination = model.CreateModelPart("destination");
+    const Parameters report = MeshioPlusPlusMeshOperations::ConservativeInterpolate(
+        r_source, r_target,
+        Parameters(R"({"names" : ["TEMPERATURE"],
+                       "nodal_solution_step_data_variables" : ["TEMPERATURE"]})"),
+        r_destination);
+
+    KRATOS_EXPECT_EQ(report["number_of_elements"].GetInt(),
+                     static_cast<int>(r_target.NumberOfElements()));
+    KRATOS_EXPECT_EQ(r_destination.NumberOfNodes(), r_target.NumberOfNodes());
 }
 
 } // namespace Kratos::Testing

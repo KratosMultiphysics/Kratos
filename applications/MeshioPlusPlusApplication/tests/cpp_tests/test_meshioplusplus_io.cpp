@@ -14,6 +14,7 @@
 //
 
 // System includes
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -1104,6 +1105,211 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOSniffFormat, KratosMeshioPlusPlusFastS
     const std::string unknown = MeshioPlusPlusIO::SniffFormat(opaque_path);
     RemoveIfExists(opaque_path);
     KRATOS_EXPECT_TRUE(unknown.empty());
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOGidFormatIsKnown, KratosMeshioPlusPlusFastSuite)
+{
+    // gid is registered in meshio++'s registry both ways, so it must reach this IO's own enum -
+    // without the entry, resolving a ".post.msh" path throws instead of writing.
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatFromString("gid"), MeshioPlusPlusIO::Format::GID);
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::FormatName(MeshioPlusPlusIO::Format::GID), "gid");
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::ResolveFormat("results.post.msh"), MeshioPlusPlusIO::Format::GID);
+    // The compound extension must beat ".msh"'s own entry, which resolves to gmsh.
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::ResolveFormat("results.msh"), MeshioPlusPlusIO::Format::GMSH);
+
+    const auto read_formats = MeshioPlusPlusIO::GetSupportedReadFormats();
+    KRATOS_EXPECT_TRUE(std::find(read_formats.begin(), read_formats.end(), "gid") != read_formats.end());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOGidRoundTrip, KratosMeshioPlusPlusFastSuite)
+{
+    if (!MeshioPlusPlusIO::IsFormatAvailable(MeshioPlusPlusIO::Format::GID)) {
+        GTEST_SKIP() << "This build has no gidpost (GiD writing needs zlib)";
+    }
+
+    Model model;
+    auto& r_write_model_part = model.CreateModelPart("write");
+    auto& r_read_model_part = model.CreateModelPart("read");
+    PopulateTetrahedraModelPart(r_write_model_part);
+
+    // The ascii flavour writes a .post.msh/.post.res sibling pair.
+    const auto file_path = TestFilePath(".post.msh");
+    const auto results_path = TestFilePath(".post.res");
+    RemoveIfExists(file_path);
+    RemoveIfExists(results_path);
+    {
+        Parameters settings(R"({"time_series" : "single_file", "gid_mode" : "ascii"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_write_model_part);
+    }
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(file_path));
+
+    MeshioPlusPlusIO io_read(file_path);
+    io_read.ReadModelPart(r_read_model_part);
+    KRATOS_EXPECT_EQ(r_read_model_part.NumberOfNodes(), r_write_model_part.NumberOfNodes());
+    KRATOS_EXPECT_GT(r_read_model_part.NumberOfElements(), 0);
+
+    RemoveIfExists(file_path);
+    RemoveIfExists(results_path);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOGidCompoundExtensionFileSeries, KratosMeshioPlusPlusFastSuite)
+{
+    if (!MeshioPlusPlusIO::IsFormatAvailable(MeshioPlusPlusIO::Format::GID)) {
+        GTEST_SKIP() << "This build has no gidpost (GiD writing needs zlib)";
+    }
+
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    PopulateTetrahedraModelPart(r_model_part);
+    r_model_part.GetProcessInfo()[STEP] = 3;
+
+    // std::filesystem splits at the last dot, which would give "TestName.post_3.msh" - a name no
+    // longer resolving to gid at all. The label must land before the compound extension.
+    const auto base_path = TestFilePath(".post.msh");
+    const auto expected = std::filesystem::temp_directory_path() /
+        (std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + "_3.post.msh");
+    RemoveIfExists(expected);
+    {
+        Parameters settings(R"({"time_series" : "file_series", "gid_mode" : "ascii"})");
+        MeshioPlusPlusIO io_write(base_path, settings);
+        io_write.WriteModelPart(r_model_part);
+    }
+
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(expected));
+    KRATOS_EXPECT_EQ(MeshioPlusPlusIO::ResolveFormat(expected), MeshioPlusPlusIO::Format::GID);
+
+    RemoveIfExists(expected);
+    RemoveIfExists(expected.parent_path() / (expected.stem().stem().string() + ".post.res"));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOGidTimeSeries, KratosMeshioPlusPlusFastSuite)
+{
+    if (!MeshioPlusPlusIO::IsFormatAvailable(MeshioPlusPlusIO::Format::GID)) {
+        GTEST_SKIP() << "This build has no gidpost (GiD writing needs zlib)";
+    }
+
+    Model model;
+    auto& r_model_part = model.CreateModelPart("write");
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    PopulateTetrahedraModelPart(r_model_part);
+
+    const auto file_path = TestFilePath(".post.msh");
+    const auto results_path = TestFilePath(".post.res");
+    RemoveIfExists(file_path);
+    RemoveIfExists(results_path);
+
+    constexpr int number_of_steps = 3;
+    {
+        Parameters settings(R"({"gid_mode" : "ascii", "output_control_type" : "time",
+                                "nodal_solution_step_data_variables" : ["TEMPERATURE"]})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        for (int step = 0; step < number_of_steps; ++step) {
+            r_model_part.GetProcessInfo()[TIME] = 0.5 * (step + 1);
+            for (auto& r_node : r_model_part.Nodes()) {
+                r_node.FastGetSolutionStepValue(TEMPERATURE) = step * 10.0 + r_node.X();
+            }
+            io_write.WriteModelPart(r_model_part);
+        }
+        // Nothing is on disk until here: write_gid_series pulls every step at once.
+        KRATOS_EXPECT_FALSE(std::filesystem::exists(file_path));
+        io_write.CloseOutput();
+    }
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(file_path));
+
+    // gid gained a metadata reader in v10.19.0, so the step count comes back without a full read.
+    const MeshioPlusPlusIO io_read(file_path);
+    KRATOS_EXPECT_EQ(io_read.GetNumberOfTimeSteps(), number_of_steps);
+    const std::vector<double> time_values = io_read.GetTimeValues();
+    KRATOS_EXPECT_EQ(time_values.size(), static_cast<std::size_t>(number_of_steps));
+    KRATOS_EXPECT_NEAR(time_values.front(), 0.5, 1e-9);
+    KRATOS_EXPECT_NEAR(time_values.back(), 1.5, 1e-9);
+
+    RemoveIfExists(file_path);
+    RemoveIfExists(results_path);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOGidUnknownModeThrows, KratosMeshioPlusPlusFastSuite)
+{
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusIO(TestFilePath(".post.msh"), Parameters(R"({"gid_mode" : "not_a_mode"})")),
+        "Unknown \"gid_mode\" setting");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOUnknownProvenanceModeThrows, KratosMeshioPlusPlusFastSuite)
+{
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusIO(TestFilePath(".vtu"), Parameters(R"({"provenance" : "sometimes"})")),
+        "Unknown \"provenance\" setting");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOProvenanceRoundTrip, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("MyStructure");
+    PopulateTetrahedraModelPart(r_model_part);
+
+    // vtu carries the block as an XML comment; provenance is on by default upstream, so this is
+    // asserting that the Kratos source line reaches it, not that the block exists at all.
+    const auto file_path = TestFilePath(".vtu");
+    RemoveIfExists(file_path);
+    {
+        Parameters settings(R"({"time_series" : "single_file", "provenance" : "best_effort"})");
+        MeshioPlusPlusIO io_write(file_path, settings);
+        io_write.WriteModelPart(r_model_part);
+    }
+
+    const MeshioPlusPlusIO io_read(file_path);
+    const Parameters provenance = io_read.GetProvenance();
+    KRATOS_EXPECT_TRUE(provenance["recognised"].GetBool());
+    KRATOS_EXPECT_FALSE(provenance["lines"].GetStringArray().empty());
+
+    RemoveIfExists(file_path);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusIOProvenanceNotRecognised, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("read");
+
+    // An mdpa this IO never wrote: the honest answer is "no block of mine", not an empty guess.
+    const auto file_path = TestFilePath(".mdpa");
+    RemoveIfExists(file_path);
+    {
+        std::ofstream file(file_path);
+        file << "Begin Nodes\n1 0.0 0.0 0.0\n2 1.0 0.0 0.0\n3 0.0 1.0 0.0\n4 0.0 0.0 1.0\n"
+             << "End Nodes\n\nBegin Elements Element3D4N\n1 0 1 2 3 4\nEnd Elements\n";
+    }
+
+    const MeshioPlusPlusIO io_read(file_path);
+    KRATOS_EXPECT_FALSE(io_read.GetProvenance()["recognised"].GetBool());
+
+    RemoveIfExists(file_path);
 }
 
 } // namespace Kratos::Testing
