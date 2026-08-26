@@ -88,7 +88,11 @@ public:
 
         MotherType::Initialize();
         mSeepageNodes = Geo::SeepageBoundaryUtilities::CollectSeepageNodes(BaseType::GetModelPart());
-
+        for (auto* p_node : mSeepageNodes)
+        {
+            p_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+            p_node->Fix(WATER_PRESSURE);
+        }
         KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
             << "Found " << mSeepageNodes.size() << " seepage nodes" << std::endl;
 
