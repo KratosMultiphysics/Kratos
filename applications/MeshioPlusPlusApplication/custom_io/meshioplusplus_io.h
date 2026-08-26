@@ -17,8 +17,13 @@
 
 // System includes
 #include <filesystem>
+#include <map>
+#include <memory>
+#include <utility>
+#include <vector>
 
 // External includes
+#include "meshioplusplus/mesh.hpp"
 #include "meshioplusplus/formats/xdmf_time_series.hpp"
 
 // Project includes
@@ -85,6 +90,12 @@ public:
      * data path of XDMF; netCDF: EXODUS) are only available when the build
      * enables them - check with @ref IsFormatAvailable. OPENFOAM is read only;
      * SVG and TIKZ are write only.
+     *
+     * GID is readable in strictly more build configurations than it is writable:
+     * writing goes through gidpost, which is hard-gated on zlib, while reading is
+     * meshio++'s own code needing nothing at all for the ascii flavour, zlib for
+     * binary and HDF5 for hdf5. @ref IsFormatAvailable answers for the *write*
+     * side, as it does for every other format.
      */
     enum class Format
     {
@@ -101,6 +112,7 @@ public:
         FLAC3D,    /// FLAC3D .f3grid
         FLUX,      /// Flux .pf3
         FREEFEM,   /// FreeFEM .msh
+        GID,       /// GiD postprocess .post.msh+.post.res/.post.bin/.post.h5 (writing needs a zlib-enabled build)
         GMSH,      /// Gmsh .msh (4.1 writer)
         GMSH22,    /// Gmsh 2.2 .msh (write only; the only Gmsh writer round-tripping region membership)
         H5M,       /// MOAB .h5m (requires HDF5)
@@ -303,6 +315,20 @@ public:
      */
     int GetTimeStepIndex(double TimeValue) const;
 
+    /**
+     * @brief The provenance block a file carries, if any.
+     * @details meshio++ records how a file was produced (source, target format, encoding, the
+     * operation chain) and every writer emits it, on by default since v10.17.0. This reads it
+     * back through the same header-only metadata path @ref GetTimeValues uses.
+     *
+     * "recognised" distinguishes "meshio++ wrote this block" from "something left a comment at
+     * the top of the file": the lines are reported either way, but only a block whose first
+     * line is meshio++'s own tag format is claimed as its own. A file written by anything else
+     * reports no lines and `false`.
+     * @return `{"recognised" : bool, "lines" : [...]}`.
+     */
+    Parameters GetProvenance() const;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -332,6 +358,14 @@ private:
     /// ("" = the root model part; sub model part suffixes when
     /// "output_sub_model_parts" is enabled)
     std::map<std::string, std::unique_ptr<meshioplusplus::XdmfTimeSeriesWriter>> mXdmfWriters;
+
+    /// Buffered steps for GiD transient output, one entry per output target (the same keys
+    /// @ref mXdmfWriters uses). meshio++'s write_gid_series *pulls* steps through a callback
+    /// while this IO is *pushed* one per @ref WriteModelPart, so the steps are held here and
+    /// the whole series is written in @ref CloseOutput. That costs one staged mesh per step in
+    /// memory, unlike the XDMF writer which streams - "time_series" : "file_series" is the
+    /// streaming alternative for a long run.
+    std::map<std::string, std::vector<std::pair<double, meshioplusplus::Mesh>>> mGidSeries;
 
     /// Extrapolates the "gauss_point_variables_extrapolated_to_nodes" to nodal
     /// data before every write (created lazily at the first WriteModelPart)
@@ -423,6 +457,21 @@ private:
         const ModelPart& rThisModelPart,
         const std::string& rTargetSuffix
         );
+
+    /**
+     * @brief Transient GiD write: buffers one step of the target's series.
+     * @details Nothing reaches disk here - @ref CloseOutput drains the buffer through
+     * meshio++'s write_gid_series, which needs every step up front (see @ref mGidSeries).
+     */
+    void WriteGidSeriesStep(
+        const ModelPart& rThisModelPart,
+        const std::string& rTargetSuffix
+        );
+
+    /**
+     * @brief Writes every buffered GiD series to disk and clears the buffer.
+     */
+    void FlushGidSeries();
 
     /**
      * @brief The @ref Internals::FieldDataSelection this instance's settings describe.

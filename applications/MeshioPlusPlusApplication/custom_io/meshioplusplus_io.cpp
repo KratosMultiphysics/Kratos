@@ -16,14 +16,19 @@
 
 // System includes
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <exception>
+#include <utility>
 
 // External includes
 #include "meshioplusplus/mesh.hpp"
 #include "meshioplusplus/registry.hpp"
+#include "meshioplusplus/detail/provenance.hpp"
 #include "meshioplusplus/formats/ansys.hpp"
 #include "meshioplusplus/formats/ensight.hpp"
 #include "meshioplusplus/formats/flac3d.hpp"
+#include "meshioplusplus/formats/gid.hpp"
 #include "meshioplusplus/formats/gmsh.hpp"
 #include "meshioplusplus/formats/ply.hpp"
 #include "meshioplusplus/formats/stl.hpp"
@@ -65,6 +70,7 @@ using Internals::DataArray;
     X(FLAC3D, "flac3d")                  \
     X(FLUX, "flux")                      \
     X(FREEFEM, "freefem")                \
+    X(GID, "gid")                        \
     X(GMSH, "gmsh")                      \
     X(GMSH22, "gmsh22")                  \
     X(H5M, "h5m")                        \
@@ -106,6 +112,76 @@ const std::unordered_map<std::string, MeshioPlusPlusIO::Format>& GetFormatNameMa
 #undef KRATOS_MESHIOPLUSPLUS_FORMAT_LOOKUP
     };
     return format_map;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// The compound extensions meshio++ registers, longest first. std::filesystem splits at the
+/// *last* dot, which would tear "results.post.msh" into "results.post" + ".msh" - and a labelled
+/// step built from those halves ("results.post_3.msh") no longer resolves to gid at all, since
+/// resolve_format needs the whole ".post.msh" to beat ".msh"'s gmsh entry. Everything that
+/// composes or matches an output name goes through SplitStemAndExtension instead.
+const std::array<const char*, 4>& CompoundExtensions()
+{
+    static const std::array<const char*, 4> extensions = {".post.msh", ".post.res", ".post.bin", ".post.h5"};
+    return extensions;
+}
+
+/// Splits a path into (stem, extension), honoring the compound extensions above and falling
+/// back to std::filesystem's own last-dot split for every other format.
+std::pair<std::string, std::string> SplitStemAndExtension(const std::filesystem::path& rPath)
+{
+    const std::string name = rPath.filename().string();
+    for (const char* p_extension : CompoundExtensions()) {
+        const std::string extension(p_extension);
+        if (name.size() > extension.size() &&
+            name.compare(name.size() - extension.size(), extension.size(), extension) == 0) {
+            return {name.substr(0, name.size() - extension.size()), extension};
+        }
+    }
+    return {rPath.stem().string(), rPath.extension().string()};
+}
+
+/// Resolves the GiD on-disk flavour. "auto" lets meshio++ infer it from the extension, except
+/// that a "file_format" : "binary" - the ascii/binary axis every other format uses - is honored
+/// as a request for the binary flavour rather than silently ignored.
+mio::GidMode ResolveGidMode(
+    const std::string& rGidMode,
+    const std::string& rFileFormat
+    )
+{
+    if (rGidMode != "auto") {
+        return mio::gid_mode_from_name(rGidMode);
+    }
+    if (rFileFormat == "binary") {
+        return mio::GidMode::Binary;
+    }
+    if (rFileFormat == "ascii") {
+        return mio::GidMode::Ascii;
+    }
+    return mio::GidMode::Auto;
+}
+
+/// Reads the "provenance" setting. "default" leaves meshio++'s own default alone, which since
+/// v10.17.0 is BestEffort - so the setting is an override, not the thing that turns the record
+/// on. Anything else names a mode explicitly.
+mio::detail::ProvenanceMode ResolveProvenanceMode(const std::string& rSetting)
+{
+    if (rSetting == "default") {
+        return mio::detail::default_provenance_mode();
+    }
+    if (rSetting == "off") {
+        return mio::detail::ProvenanceMode::Off;
+    }
+    if (rSetting == "best_effort") {
+        return mio::detail::ProvenanceMode::BestEffort;
+    }
+    if (rSetting == "required") {
+        return mio::detail::ProvenanceMode::Required;
+    }
+    KRATOS_ERROR << "Unknown \"provenance\" setting \"" << rSetting
+                 << "\" (use \"default\", \"off\", \"best_effort\" or \"required\")" << std::endl;
 }
 
 /***********************************************************************************/
@@ -203,6 +279,23 @@ MeshioPlusPlusIO::MeshioPlusPlusIO(
         << "Unknown \"file_format\" setting \"" << file_format
         << "\" (use \"default\", \"ascii\" or \"binary\")" << std::endl;
 
+    // Throws by name on an unknown mode, so a typo fails at construction like the rest.
+    ResolveProvenanceMode(mParameters["provenance"].GetString());
+
+    // GiD's flavour axis is four-valued where every other format's is ascii/binary, so it gets
+    // its own setting rather than overloading "file_format". mio::gid_mode_from_name throws on
+    // an unknown name; catching it here keeps the failure at construction like the rest.
+    const std::string gid_mode = mParameters["gid_mode"].GetString();
+    if (gid_mode != "auto") {
+        try {
+            mio::gid_mode_from_name(gid_mode);
+        } catch (const std::exception& r_exception) {
+            KRATOS_ERROR << "Unknown \"gid_mode\" setting \"" << gid_mode
+                         << "\" (use \"auto\", \"ascii\", \"binary\", \"hdf5\" or "
+                         << "\"ascii_zipped\"): " << r_exception.what() << std::endl;
+        }
+    }
+
     // Resolves the format name, throwing a descriptive error for unknown names
     // and formats compiled out of this build.
     FormatFromString(mParameters["format"].GetString());
@@ -239,15 +332,39 @@ void MeshioPlusPlusIO::CloseOutput()
 {
     KRATOS_TRY
 
+    // Both output kinds are drained here, and both must be released even if the other fails -
+    // this is what a caller calls before deleting a run's output, so a writer still holding a
+    // file after a partial failure is the one outcome to avoid. The first exception is
+    // re-thrown once everything has been released.
+    std::exception_ptr first_failure;
+
+    // The GiD series exists only in memory until now, so this is where it becomes a file at all.
+    try {
+        FlushGidSeries();
+    } catch (...) {
+        mGidSeries.clear();
+        first_failure = std::current_exception();
+    }
+
     // Finalize before releasing: the destructor would do it too, but then a failure could
     // only be logged. Clearing the map is what actually hands the file back to the caller,
     // so a later delete is not undone by a writer still holding it.
     for (auto& r_entry : mXdmfWriters) {
         if (r_entry.second != nullptr) {
-            r_entry.second->Finalize();
+            try {
+                r_entry.second->Finalize();
+            } catch (...) {
+                if (!first_failure) {
+                    first_failure = std::current_exception();
+                }
+            }
         }
     }
     mXdmfWriters.clear();
+
+    if (first_failure) {
+        std::rethrow_exception(first_failure);
+    }
 
     KRATOS_CATCH("")
 }
@@ -272,6 +389,9 @@ Parameters MeshioPlusPlusIO::GetDefaultParameters()
         "write_deformed_configuration"                : false,
         "write_ids"                                   : false,
         "write_mdpa_ids"                              : false,
+        "provenance"                                  : "default",
+        "gid_mode"                                    : "auto",
+        "gid_analysis_name"                           : "Kratos",
         "xdmf_data_format"                            : "auto",
         "xdmf_auto_flush"                             : true,
         "xdmf_gzip_level"                             : -1,
@@ -416,6 +536,14 @@ bool MeshioPlusPlusIO::IsFormatAvailable(const Format Value)
         return true;
     }
     const std::string name = FormatName(Value);
+    // meshio++ deliberately keeps "gid" out of registry_compiled_out() so a ".post.msh" path
+    // always resolves to gid's own actionable error instead of falling through to gmsh - which
+    // means the generic check below would call it available in a build with no gidpost. Ask the
+    // format itself instead. Reported for the write side, as for every other format here; the
+    // ascii reader is available even where the writer is not (mio::gid_readable).
+    if (Value == Format::GID) {
+        return mio::gid_available(mio::GidMode::Auto);
+    }
     if (mio::registry_compiled_out(name) != nullptr) {
         return false;
     }
@@ -562,6 +690,30 @@ int MeshioPlusPlusIO::GetNumberOfTimeSteps() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+Parameters MeshioPlusPlusIO::GetProvenance() const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(std::filesystem::exists(mFileName))
+        << "The file " << mFileName << " does not exist" << std::endl;
+
+    const std::string format_name = ResolveEffectiveFormat(false);
+    const mio::MeshMetadata metadata =
+        mio::registry_read_metadata(mFileName.string(), format_name, mio::ReadOptions());
+
+    Parameters result(R"({})");
+    // "recognised" is the honest distinction between "meshio++ wrote this" and "something left
+    // a comment at the top of the file" - the lines are reported either way.
+    result.AddBool("recognised", metadata.mProvenanceRecognised);
+    result.AddStringArray("lines", metadata.mProvenance);
+    return result;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 int MeshioPlusPlusIO::GetTimeStepIndex(const double TimeValue) const
 {
     KRATOS_TRY
@@ -637,6 +789,9 @@ void MeshioPlusPlusIO::WriteTarget(
         if (format_name == "xdmf" && time_series == "automatic") {
             // Transient XDMF: extend the target file's temporal collection in place.
             WriteXdmfStep(rModelPart, rTargetSuffix);
+        } else if (format_name == "gid" && time_series == "automatic") {
+            // Transient GiD: buffer the step; CloseOutput writes the whole series at once.
+            WriteGidSeriesStep(rModelPart, rTargetSuffix);
         } else if (time_series == "single_file") {
             WriteStatic(ComposeOutputPath(rTargetSuffix, ""), format_name, rModelPart);
         } else { // "file_series", or "automatic" for formats without in-file appending
@@ -676,12 +831,13 @@ std::filesystem::path MeshioPlusPlusIO::ComposeOutputPath(
     ) const
 {
     const std::filesystem::path directory = mFileName.parent_path();
+    const auto [stem, extension] = SplitStemAndExtension(mFileName);
     std::string name = mParameters["custom_name_prefix"].GetString()
-        + mFileName.stem().string()
+        + stem
         + rTargetSuffix
         + mParameters["custom_name_postfix"].GetString()
         + (rLabel.empty() ? "" : "_" + rLabel)
-        + mFileName.extension().string();
+        + extension;
     return directory / name;
 }
 
@@ -702,11 +858,12 @@ std::vector<double> MeshioPlusPlusIO::DetectFileSeriesTimeValues() const
 
     // The ComposeOutputPath("", <label>) naming, minus the label itself: every root-target
     // step this IO (or another instance sharing the same prefix/postfix) wrote matches it.
+    const auto [stem, extension] = SplitStemAndExtension(mFileName);
     const std::string required_prefix = mParameters["custom_name_prefix"].GetString()
-        + mFileName.stem().string()
+        + stem
         + mParameters["custom_name_postfix"].GetString()
         + "_";
-    const std::string required_suffix = mFileName.extension().string();
+    const std::string required_suffix = extension;
 
     std::vector<double> time_values;
     for (const auto& r_entry : std::filesystem::directory_iterator(scan_directory, error_code)) {
@@ -823,8 +980,26 @@ void MeshioPlusPlusIO::WriteStatic(
 {
     KRATOS_TRY
 
+    // Names the model part the file came from, so the credit line meshio++ writes anyway also
+    // says *what* was written. Non-copyable and non-movable, hence constructed in place.
+    const mio::detail::ProvenanceScope provenance_scope(
+        ResolveProvenanceMode(mParameters["provenance"].GetString()),
+        mio::detail::current_provenance());
+    mio::detail::provenance_set_source(rThisModelPart.FullName(), "kratos");
+
     mio::Mesh mesh = BuildMeshWithData(rThisModelPart);
 
+    // GiD before the generic ascii/binary override: its flavour axis is four-valued and the
+    // writer also takes an analysis name and a step value, none of which
+    // WriteWithFileFormatOverride's (binary, skin) shape can carry.
+    if (rFormatName == "gid") {
+        mio::write_gid(rPath.string(), mesh,
+                       ResolveGidMode(mParameters["gid_mode"].GetString(),
+                                      mParameters["file_format"].GetString()),
+                       mParameters["gid_analysis_name"].GetString(),
+                       GetOutputTimeValue(rThisModelPart));
+        return;
+    }
 
     // Honor an ascii/binary override where the format supports it
     const std::string file_format = mParameters["file_format"].GetString();
@@ -865,6 +1040,11 @@ void MeshioPlusPlusIO::WriteXdmfStep(
     )
 {
     KRATOS_TRY
+
+    const mio::detail::ProvenanceScope provenance_scope(
+        ResolveProvenanceMode(mParameters["provenance"].GetString()),
+        mio::detail::current_provenance());
+    mio::detail::provenance_set_source(rThisModelPart.FullName(), "kratos");
 
     auto& p_writer = mXdmfWriters[rTargetSuffix];
     if (p_writer == nullptr) {
@@ -910,6 +1090,70 @@ void MeshioPlusPlusIO::WriteXdmfStep(
     // rather than re-staging the whole model part into a Mesh.
     p_writer->WriteData(GetOutputTimeValue(rThisModelPart), CollectPointData(rThisModelPart),
                         CollectCellData(rThisModelPart));
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshioPlusPlusIO::WriteGidSeriesStep(
+    const ModelPart& rThisModelPart,
+    const std::string& rTargetSuffix
+    )
+{
+    KRATOS_TRY
+
+    // meshio++'s write_gid_series pulls: it calls back for step 0, 1, ... until the callback
+    // says stop, which it can only do once every step exists. So the step is staged and kept
+    // rather than written, and CloseOutput does the writing. See mGidSeries on the cost.
+    mGidSeries[rTargetSuffix].emplace_back(GetOutputTimeValue(rThisModelPart),
+                                           BuildMeshWithData(rThisModelPart));
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshioPlusPlusIO::FlushGidSeries()
+{
+    KRATOS_TRY
+
+    if (mGidSeries.empty()) {
+        return;
+    }
+
+    const mio::detail::ProvenanceScope provenance_scope(
+        ResolveProvenanceMode(mParameters["provenance"].GetString()),
+        mio::detail::current_provenance());
+
+    const mio::GidMode mode = ResolveGidMode(mParameters["gid_mode"].GetString(),
+                                             mParameters["file_format"].GetString());
+    const std::string analysis_name = mParameters["gid_analysis_name"].GetString();
+
+    for (auto& r_entry : mGidSeries) {
+        auto& r_steps = r_entry.second;
+        if (r_steps.empty()) {
+            continue;
+        }
+        const std::string path = ComposeOutputPath(r_entry.first, "").string();
+
+        // The mesh is moved out rather than copied: the buffer is cleared right after, and a
+        // staged mesh is the largest thing this class holds.
+        mio::write_gid_series(
+            path,
+            [&r_steps](std::size_t Index, double& rTimeValue, mio::Mesh& rMesh) {
+                if (Index >= r_steps.size()) {
+                    return false;
+                }
+                rTimeValue = r_steps[Index].first;
+                rMesh = std::move(r_steps[Index].second);
+                return true;
+            },
+            mode, analysis_name);
+    }
+    mGidSeries.clear();
 
     KRATOS_CATCH("")
 }
