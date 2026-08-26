@@ -54,6 +54,15 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 {
     KRATOS_TRY
 
+    // CutFEM-style formulation
+    const int sbm_formulation_type_dispatch = this->GetProperties().Has(SBM_FORMULATION_TYPE)
+        ? this->GetProperties()[SBM_FORMULATION_TYPE]
+        : 0;
+    if (sbm_formulation_type_dispatch == 4) {
+        CalculateLocalSystemCutFEM(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        return;
+    }
+
     // Add base Laplacian contribution
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
@@ -71,6 +80,10 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
         Matrix left_hand_side_taylor_penalty = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
 
         Matrix left_hand_side_gap_SBM = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
+
+        // Gap SBM Neumann-consistency term
+        Matrix left_hand_side_gap_neumann = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
+        Vector right_hand_side_shear_neumann = ZeroVector(rRightHandSideVector.size());
 
         // Per-DOF constrained mask (ux,uy,uz,rx,ry,rz)
         array_1d<double, 6> constrained_dofs;
@@ -120,15 +133,28 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 
             data.gpIndex = 0;
 
+            noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
+
             BaseType::CalculateSectionResponse(data);
 
             // Get the parent geometry data
-            double dom_size_parent;
+            const double dom_size_parent = data.TotalArea;
+            const double lcs_x12 = data.LCS0.X1() - data.LCS0.X2();
+            const double lcs_x23 = data.LCS0.X2() - data.LCS0.X3();
+            const double lcs_x31 = data.LCS0.X3() - data.LCS0.X1();
+            const double lcs_y12 = data.LCS0.Y1() - data.LCS0.Y2();
+            const double lcs_y23 = data.LCS0.Y2() - data.LCS0.Y3();
+            const double lcs_y31 = data.LCS0.Y3() - data.LCS0.Y1();
+            const double lcs_A2 = 2.0 * data.TotalArea;
+
             const auto& r_geom = this->GetGeometry();
 
             array_1d<double, NumNodes> N_parent;
+            N_parent[0] = N_parent[1] = N_parent[2] = 1.0 / 3.0;
             BoundedMatrix<double, NumNodes, 2> DN_DX_parent;
-            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, dom_size_parent);
+            DN_DX_parent(0,0) = -lcs_y23 / lcs_A2;  DN_DX_parent(0,1) =  lcs_x23 / lcs_A2;
+            DN_DX_parent(1,0) = -lcs_y31 / lcs_A2;  DN_DX_parent(1,1) =  lcs_x31 / lcs_A2;
+            DN_DX_parent(2,0) = -lcs_y12 / lcs_A2;  DN_DX_parent(2,1) =  lcs_x12 / lcs_A2;
             BoundedMatrix<double,8,LocalSize> B;
             const auto &r_boundaries = r_geom.GenerateBoundariesEntities();
             DenseMatrix<unsigned int> nodes_in_faces;
@@ -214,9 +240,12 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 
                     B_parent = prod(R, B_temp);
 
-                    CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, aux_CB_projection);
-                    CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
-    
+                    const array_1d<double,3> local_e1 = -data.LCS.Vx();
+                    const array_1d<double,3> local_e2 = -data.LCS.Vy();
+                    const array_1d<double,3> local_e3 = data.LCS.Vz();
+                    CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, local_e1, local_e2, local_e3, aux_CB_projection);
+                    CalculateCauchyTractionVector(r_stress, n_sur_bd, local_e1, local_e2, local_e3, cauchy_traction);
+
                     // Add the surrogate boundary flux contribution
                     // Note that the local face ids. are already taken into account in the assembly
                     // Note that the integration weight is calculated as 2 * Parent domain size * norm(DN_DX_cont_node)
@@ -243,11 +272,37 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         r_geom[sur_bd_local_ids[1]].FastGetSolutionStepValue(DISTANCE)
                         + r_geom[sur_bd_local_ids[2]].FastGetSolutionStepValue(DISTANCE));
 
+                    // Shift direction: the level-set's own (CST-reconstructed) gradient
+                    array_1d<double,2> grad_distance = ZeroVector(2);
+                    for (std::size_t i_node = 0; i_node < 3; ++i_node) {
+                        const double dist_i = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+                        grad_distance[0] += dist_i * DN_DX_parent(i_node, 0);
+                        grad_distance[1] += dist_i * DN_DX_parent(i_node, 1);
+                    }
+                    const double grad_distance_norm = norm_2(grad_distance);
+                    const array_1d<double,2> shift_dir = grad_distance / grad_distance_norm;
+
                     Matrix aux_N_taylor = ZeroMatrix(6, 18);
                     array_1d<double,3> r_sur_bd_N_taylor = ZeroVector(3);
-                    r_sur_bd_N_taylor[0] = 0.0 + (distance * DN_DX_parent(0,0));
-                    r_sur_bd_N_taylor[1] = r_sur_bd_N(0,0)+ (distance * DN_DX_parent(1,0));
-                    r_sur_bd_N_taylor[2] = r_sur_bd_N(0,1)+ (distance * DN_DX_parent(2,0));
+                    r_sur_bd_N_taylor[0] = 0.0 + distance * (DN_DX_parent(0,0)*shift_dir[0] + DN_DX_parent(0,1)*shift_dir[1]);
+                    r_sur_bd_N_taylor[1] = r_sur_bd_N(0,0) + distance * (DN_DX_parent(1,0)*shift_dir[0] + DN_DX_parent(1,1)*shift_dir[1]);
+                    r_sur_bd_N_taylor[2] = r_sur_bd_N(0,1) + distance * (DN_DX_parent(2,0)*shift_dir[0] + DN_DX_parent(2,1)*shift_dir[1]);
+
+                    // j_e := |e^ext|/|e~| 
+                    const std::size_t je_n1 = sur_bd_local_ids[1];
+                    const std::size_t je_n2 = sur_bd_local_ids[2];
+                    const double je_dist_n1 = -r_geom[je_n1].FastGetSolutionStepValue(DISTANCE);
+                    const double je_dist_n2 = -r_geom[je_n2].FastGetSolutionStepValue(DISTANCE);
+                    const array_1d<double,3> je_shift_3d_dir = shift_dir[0]*local_e1 + shift_dir[1]*local_e2;
+                    const array_1d<double,3> je_p1 = r_geom[je_n1].Coordinates();
+                    const array_1d<double,3> je_p2 = r_geom[je_n2].Coordinates();
+                    const array_1d<double,3> je_q1 = je_p1 + je_dist_n1 * je_shift_3d_dir;
+                    const array_1d<double,3> je_q2 = je_p2 + je_dist_n2 * je_shift_3d_dir;
+                    const double e_true_len = norm_2(je_q1 - je_q2);
+                    const double e_surrogate_len = norm_2(je_p1 - je_p2);
+                    const double j_e = e_true_len / e_surrogate_len;
+                    const double aux_w_taylor = aux_w * j_e;
+
 
                     for (std::size_t i_node = 0; i_node < 3; ++i_node) {
                         aux_val = aux_w * r_sur_bd_N_taylor[i_node];
@@ -262,8 +317,27 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         }
                     }
 
+                    // Curvature-scaled Neumann-consistency term
+                    BoundedMatrix<double,6,LocalSize> aux_CB_projection_neumann = ZeroMatrix(6, LocalSize);
+                    {
+                        const Matrix aux_CB_local = prod(D, B_parent);
+                        const array_1d<double,2> n_true = shift_dir;
+                        array_1d<double,2> tau;
+                        tau[0] = -n_true[1];
+                        tau[1] = n_true[0];
+                        const double n_tilde_dot_tau = n_sur_bd[0]*tau[0] + n_sur_bd[1]*tau[1];
+                        for (std::size_t j = 0; j < LocalSize; ++j) {
+                            const double m1_tau = tau[0]*aux_CB_local(3,j) + tau[1]*aux_CB_local(5,j);
+                            const double m2_tau = tau[0]*aux_CB_local(5,j) + tau[1]*aux_CB_local(4,j);
+                            aux_CB_projection_neumann(4,j) = n_tilde_dot_tau * m1_tau;
+                            aux_CB_projection_neumann(3,j) = n_tilde_dot_tau * m2_tau;
+                        }
+                    }
+
                     // Penalty
-                    const double penalty_parameter = this->GetProperties()[PENALTY_COEFFICIENT];
+                    const double penalty_parameter = this->GetProperties().Has(PENALTY_COEFFICIENT)
+                        ? this->GetProperties()[PENALTY_COEFFICIENT]
+                        : 0.0;
 
                     Matrix rAuxMat = ZeroMatrix(6, 18); //Taylor
                     for (IndexType i_node = 0; i_node < 3; ++i_node) {
@@ -275,7 +349,15 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         }
                     }
 
-                    left_hand_side_taylor_penalty = prod(trans(rAuxMat), rAuxMat)* penalty_parameter*aux_w/ h_sur_bd;
+                    // Gap SBM Neumann-consistency term
+                    Matrix rAuxMat_neumann_ungated = ZeroMatrix(6, 18);
+                    for (IndexType i_node = 0; i_node < 3; ++i_node) {
+                        for (IndexType d = 0; d < 5; ++d) {
+                            rAuxMat_neumann_ungated(d, i_node*6 + d) = r_sur_bd_N_taylor[i_node];
+                        }
+                    }
+                    left_hand_side_gap_neumann -= prod(trans(rAuxMat_neumann_ungated), aux_CB_projection_neumann) * aux_w_taylor;
+
 
                     // Taylor penalty forcing/residual
                     if (sbm_formulation_type == 1) {
@@ -286,15 +368,36 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     }
 
                     // Gap SBM domain term
+                    const double local_x[3] = {data.LCS0.X1(), data.LCS0.X2(), data.LCS0.X3()};
+                    const double local_y[3] = {data.LCS0.Y1(), data.LCS0.Y2(), data.LCS0.Y3()};
+                    const std::size_t edge_n1 = sur_bd_local_ids[1];
+                    const std::size_t edge_n2 = sur_bd_local_ids[2];
+                    const double dist_n1 = -r_geom[edge_n1].FastGetSolutionStepValue(DISTANCE);
+                    const double dist_n2 = -r_geom[edge_n2].FastGetSolutionStepValue(DISTANCE);
+                    const double p1x = local_x[edge_n1], p1y = local_y[edge_n1];
+                    const double p2x = local_x[edge_n2], p2y = local_y[edge_n2];
+                    const double q1x = p1x + dist_n1 * shift_dir[0];
+                    const double q1y = p1y + dist_n1 * shift_dir[1];
+                    const double q2x = p2x + dist_n2 * shift_dir[0];
+                    const double q2y = p2y + dist_n2 * shift_dir[1];
+                    const double quad_area = 0.5 * std::abs(
+                        p1x*q1y - q1x*p1y +
+                        q1x*q2y - q2x*q1y +
+                        q2x*p2y - p2x*q2y +
+                        p2x*p1y - p1x*p2y);
+                    const double edge_len = std::sqrt((p2x-p1x)*(p2x-p1x) + (p2y-p1y)*(p2y-p1y));
+                    const double H_e = quad_area / edge_len;
+
                     Matrix BTD = Matrix(18, 8, 0.0);
                     BTD = prod(trans(B_parent), D);
-                    left_hand_side_gap_SBM += prod(BTD, B_parent) * std::abs(distance) * aux_w;
+                    Matrix ghost_block = prod(BTD, B_parent);
+                    left_hand_side_gap_SBM += ghost_block * H_e * aux_w;
                 }
         }
 
         // Assemble contributions according to the selected surrogate-boundary flux formulation.
         if (sbm_formulation_type == 0) {
-            // MLS SBM: primal-consistency flux term 
+            // MLS SBM: primal-consistency flux term
             rLeftHandSideMatrix += left_hand_side;
             rRightHandSideVector += right_hand_side;
         } else if (sbm_formulation_type == 1) {
@@ -304,11 +407,12 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
             rLeftHandSideMatrix += left_hand_side_taylor_penalty;
             rRightHandSideVector += right_hand_side;
         } else {
-            // Gap SBM 
+            // Gap SBM
             Matrix left_hand_side_gap_sbm_total = left_hand_side_gap_SBM + left_hand_side_taylor
-                + trans(left_hand_side_taylor) + left_hand_side_taylor_penalty;
+                + trans(left_hand_side_taylor) + left_hand_side_taylor_penalty + left_hand_side_gap_neumann;
             rLeftHandSideMatrix += left_hand_side_gap_sbm_total;
             rRightHandSideVector -= prod(left_hand_side_gap_sbm_total, unknown_values);
+            rRightHandSideVector += right_hand_side_shear_neumann;
         }
     }
 
