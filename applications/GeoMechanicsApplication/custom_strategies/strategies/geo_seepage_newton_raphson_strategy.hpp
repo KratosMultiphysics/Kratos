@@ -136,6 +136,13 @@ public:
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
+        // ---- SEEPAGE SEAM 1: decide the switch, then force a stiffness rebuild ----------------
+        // Deciding before the build means this iteration's BuildAndSolve reassembles with the new
+        // fixity, so the block builder applies the switched node's Dirichlet/Neumann state at once.
+        any_switched = UpdateSeepageBoundaryConditions();
+        if (any_switched) this->SetStiffnessMatrixIsBuilt(false);
+        // --------------------------------------------------------------------------------------
+
         // Function to perform the building and the solving phase.
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
             TSparseSpace::SetToZero(rA);
@@ -161,13 +168,6 @@ public:
         // Updating the results stored in the database
         this->UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
 
-        // ---- SEEPAGE SEAMS 1 AND 2 -----------------------------------------------------------
-        // The solution has just been updated, so pressures and fluxes are current. Decide now; the
-        // next iteration's InitializeNonLinIteration is what applies the new fixity to the nodes.
-        any_switched = UpdateSeepageBoundaryConditions();
-        if (any_switched) RebuildSystem();
-        // --------------------------------------------------------------------------------------
-
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
@@ -188,8 +188,9 @@ public:
         }
 
         // ---- SEEPAGE SEAM 3 ------------------------------------------------------------------
-        // A switch means this iteration's residual describes the OLD boundary configuration, so its
-        // convergence verdict is meaningless. Force at least one more iteration.
+        // A switch was just applied and solved for. The settled solution might itself warrant a
+        // further switch, so convergence may only be declared on an iteration that switches
+        // nothing. Force at least one more iteration here.
         if (any_switched) is_converged = false;
         // --------------------------------------------------------------------------------------
 
@@ -202,6 +203,11 @@ public:
             mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
             is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+
+            // ---- SEEPAGE SEAM 1: decide the switch, then force a stiffness rebuild ------------
+            any_switched = UpdateSeepageBoundaryConditions();
+            if (any_switched) this->SetStiffnessMatrixIsBuilt(false);
+            // ----------------------------------------------------------------------------------
 
             // call the linear system solver to find the correction mDx for the
             // it is not called if there is no system to solve
@@ -235,11 +241,6 @@ public:
 
             // Updating the results stored in the database
             this->UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
-
-            // ---- SEEPAGE SEAMS 1 AND 2 -------------------------------------------------------
-            any_switched = UpdateSeepageBoundaryConditions();
-            if (any_switched) RebuildSystem();
-            // ----------------------------------------------------------------------------------
 
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
@@ -312,13 +313,6 @@ protected:
         KRATOS_CATCH("")
     }
 
-    // Re-establishes the degree of freedom set and the system vectors after a switch changed which
-    // degrees of freedom are free.
-    //
-    // Step 4 of the prototype implements this. Note that under a block builder and solver this may
-    // turn out to be unnecessary, because that builder gives every degree of freedom an equation id
-    // and re-applies the Dirichlet conditions on every build.
-    virtual void RebuildSystem() {}
 
 private:
     // Cached once in Initialize. The conditions of a model part do not change during a solve, so
