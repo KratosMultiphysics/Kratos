@@ -1893,6 +1893,58 @@ void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHan
         column(rOutput, 2) = base_3;
     }
 
+    else if (rVariable == MEMBRANE_PRESTRESS) {
+
+        const auto& r_geom = GetGeometry();
+        const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients =
+            r_geom.ShapeFunctionsLocalGradients(integration_method);
+        const GeometryType::IntegrationPointsArrayType& r_integration_points =
+            r_geom.IntegrationPoints(integration_method);
+
+        rOutput = ZeroMatrix(3, r_integration_points.size());
+
+        const double youngs_modulus = GetProperties()[YOUNG_MODULUS];
+        const double poisson_ratio  = GetProperties()[POISSON_RATIO];
+
+        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+
+            array_1d<Vector, 2> reference_base_vectors, current_base_vectors;
+            Matrix reference_metric = ZeroMatrix(2);
+            Matrix current_contravariant_metric = ZeroMatrix(2);
+            double det_j_reference = 0.0, det_j_current = 0.0;
+            double c_ref[2][2][2][2], c_act[2][2][2][2];
+            Matrix epsilon = ZeroMatrix(2), sigma = ZeroMatrix(2), sigma_p = ZeroMatrix(2);
+
+            this->ComputeLeastSquareBaseState(r_shape_functions_gradients[point_number],
+                reference_base_vectors, current_base_vectors, reference_metric,
+                current_contravariant_metric, det_j_reference, det_j_current,
+                c_ref, c_act, epsilon, sigma, sigma_p, youngs_modulus, poisson_ratio);
+
+            // sigma^{alpha beta} are CONTRAVARIANT components w.r.t. the 3D basis G_alpha.
+            // Back-transform to the local Cartesian frame (inverse of eq. 3.22):
+            //     sigma_hat^{ij} = sigma^{alpha beta} (e_i . G_alpha)(e_j . G_beta)
+            // Contravariant components contract with the COVARIANT base vectors, hence
+            // reference_base_vectors (not the contravariant ones) in the B slot.
+            Matrix reference_contravariant_metric = ZeroMatrix(2);
+            this->ContravariantMetric(reference_contravariant_metric, reference_metric);
+
+            array_1d<Vector, 2> reference_contravariant_base_vectors;
+            this->ContraVariantBaseVectors(reference_contravariant_base_vectors,
+                                           reference_contravariant_metric, reference_base_vectors);
+
+            array_1d<Vector, 2> transformed_base_vectors;
+            this->TransformBaseVectors(transformed_base_vectors, reference_contravariant_base_vectors);
+
+            Matrix back_transformation = ZeroMatrix(3);
+            this->InPlaneTransformationMatrix(back_transformation,
+                                              transformed_base_vectors, reference_base_vectors);
+
+            const Vector sigma_curvilinear = MathUtils<double>::StressTensorToVector(sigma, 3);
+            column(rOutput, point_number) = prod(back_transformation, sigma_curvilinear);
+        }
+    }
+
     KRATOS_CATCH("")
  
   }
