@@ -41,6 +41,13 @@ void KRATOS_API(GEO_MECHANICS_APPLICATION) AccumulateWaterPressureEntries(
 NodalFlowMap KRATOS_API(GEO_MECHANICS_APPLICATION)
     CalculateNodalWaterFlows(ModelPart& rModelPart, const ProcessInfo& rProcessInfo);
 
+// Writes the nodal water flows onto the NODAL_WATER_FLOW solution-step variable of the model part.
+// Every node is set to zero first, so nodes absent from rNodalFlows (e.g. nodes without a
+// WATER_PRESSURE degree of freedom) hold a defined value rather than stale data. This makes the
+// assembled flow visualisable through the normal nodal output path.
+void KRATOS_API(GEO_MECHANICS_APPLICATION)
+    AssignNodalWaterFlows(ModelPart& rModelPart, const NodalFlowMap& rNodalFlows);
+
 // Returns the distinct nodes of every GeoSeepageCondition in the model part, sorted ascending by
 // node id. Nodes shared by adjacent conditions appear exactly once.
 //

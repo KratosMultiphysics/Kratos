@@ -51,6 +51,17 @@ NodalFlowMap CalculateNodalWaterFlows(ModelPart& rModelPart, const ProcessInfo& 
     return result;
 }
 
+void AssignNodalWaterFlows(ModelPart& rModelPart, const NodalFlowMap& rNodalFlows)
+{
+    for (auto& r_node : rModelPart.Nodes()) {
+        r_node.FastGetSolutionStepValue(NODAL_WATER_FLOW) = 0.0;
+    }
+
+    for (const auto& [node_id, flow] : rNodalFlows) {
+        rModelPart.GetNode(node_id).FastGetSolutionStepValue(NODAL_WATER_FLOW) = flow;
+    }
+}
+
 std::vector<Node*> CollectSeepageNodes(ModelPart& rModelPart)
 {
     auto result = std::vector<Node*>{};

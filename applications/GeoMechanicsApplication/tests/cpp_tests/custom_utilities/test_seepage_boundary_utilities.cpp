@@ -250,6 +250,27 @@ KRATOS_TEST_CASE_IN_SUITE(ShouldReleaseToNeumannIsTrueOnlyForPositiveFlow, Krato
     KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::ShouldReleaseToNeumann(-1.0))
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AssignNodalWaterFlowsWritesMappedValuesAndZeroesTheRest, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(NODAL_WATER_FLOW);
+    for (std::size_t i = 1; i <= 3; ++i) {
+        r_model_part.CreateNewNode(static_cast<int>(i), static_cast<double>(i), 0.0, 0.0);
+    }
+    // Pre-seed a stale value on node 3 to prove it gets zeroed.
+    r_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_WATER_FLOW) = 99.0;
+
+    // Node 2 is deliberately absent from the map and must end up at 0.0.
+    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, 4.0}, {3, -2.0}};
+
+    Geo::SeepageBoundaryUtilities::AssignNodalWaterFlows(r_model_part, nodal_flows);
+
+    KRATOS_EXPECT_DOUBLE_EQ(r_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_WATER_FLOW), 4.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_WATER_FLOW), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(r_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_WATER_FLOW), -2.0);
+}
+
 } // namespace Kratos::Testing
 
 
