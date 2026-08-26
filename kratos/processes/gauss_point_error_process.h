@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <functional>
 
 // External includes
 
@@ -513,190 +514,80 @@ public:
         KRATOS_CATCH("");
     }
 
-    double ExecuteModelPartSolidExact() 
+    double ComputeDisplacementL2ErrorExact(
+        const std::function<array_1d<double,3>(double,double)>& rExactSolutionFn,
+        bool CheckActive)
     {
-        KRATOS_TRY
-
-        // Variables initialization
         double total_area = 0.0;
         double total_error_disp_norm = 0.0;
 
-        KRATOS_WATCH("gauss point error solid exact process");
-
-        // Map reference values from reference mesh to analysis mesh
-        // BinBasedFastPointLocator<2> point_locator = BinBasedFastPointLocator<2>(mrReferenceModelPart);
-        // point_locator.UpdateSearchDatabase();
-
-        // Loop the elements to compute the error error in each Gauss pt.
-        for(auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
-        {   
-            // KRATOS_WATCH(it_elem->Is(ACTIVE))
-            // KRATOS_WATCH(it_elem->Is(INTERFACE))
-            // KRATOS_WATCH(it_elem->Is(BOUNDARY))
-            if(it_elem->Is(ACTIVE) == true)
-            {
-                auto &r_geom = it_elem->GetGeometry();
-                const auto elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
-
-                const auto &r_disp_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
-                const auto &r_disp_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
-                const auto &r_disp_2 = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT);
-
-                // Get geometry data
-                Vector jac_vect;
-                jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
-                auto N = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-                // Compute the error in each Gauss pt.
-                for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss){
-                    // Locate the Gauss pt. in the reference mesh
-                    array_1d<double,3> coords = ZeroVector(3);
-                    coords[0] = r_geom[0].X()*N(i_gauss,0) + r_geom[1].X()*N(i_gauss,1) + r_geom[2].X()*N(i_gauss,2);
-                    coords[1] = r_geom[0].Y()*N(i_gauss,0) + r_geom[1].Y()*N(i_gauss,1) + r_geom[2].Y()*N(i_gauss,2);
-                    Vector N_vect;
-                    Element::Pointer p_elem;
-                    // const bool is_found = point_locator.FindPointOnMeshSimplified(coords, N_vect, p_elem);
-                    // KRATOS_WARNING_IF("GaussPointErrorProcess", is_found != true) << "Gauss pt. x: " << coords[0] << " y: " << coords[1] << " not found!" << std::endl;
-
-                    // Compute the body-fitted values in the embedded mesh
-                    // array_1d<double,3> disp_exact = ZeroVector(3);
-
-                    // Exact solution
-                    const double x_coord = coords[0];
-                    const double y_coord = coords[1];
-                    const array_1d<double, 3> disp_exact = this->ComputeDisplacementExactSolution(x_coord, y_coord);
-                    // const array_1d<double, 3> disp_exact = this->ComputeDisplacementExactSolutionSimplySupported(x_coord, y_coord);
-
-
-                    // KRATOS_WATCH(r_disp_0)
-                    // KRATOS_WATCH(r_disp_1)
-                    // KRATOS_WATCH(r_disp_2)
-
-                    // Obtained solution
-                    array_1d<double, 3> disp_solu;
-                    disp_solu[0] = r_disp_0[0]*N(i_gauss,0) + r_disp_1[0]*N(i_gauss,1) + r_disp_2[0]*N(i_gauss,2);
-                    disp_solu[1] = r_disp_0[1]*N(i_gauss,0) + r_disp_1[1]*N(i_gauss,1) + r_disp_2[1]*N(i_gauss,2);
-                    disp_solu[2] = r_disp_0[2]*N(i_gauss,0) + r_disp_1[2]*N(i_gauss,1) + r_disp_2[2]*N(i_gauss,2);
-
-
-                    // KRATOS_WATCH(coords[0])
-                    // KRATOS_WATCH(coords[1])
-                    // KRATOS_WATCH(disp_exact)
-                    // KRATOS_WATCH(disp_solu)
-                    // KRATOS_WATCH(jac_vect[i_gauss])
-
-                    // Displacement error norm
-                    total_error_disp_norm += (jac_vect[i_gauss] / 6.0)*inner_prod(disp_exact - disp_solu, disp_exact - disp_solu);
-
-                    // KRATOS_WATCH(total_error_disp_norm)
-
-                    // Add the local Gauss contribution to the areas
-                    total_area += (jac_vect[i_gauss] / 6.0);
-                }
+        for (auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem) {
+            if (CheckActive && it_elem->Is(ACTIVE) == false) {
+                continue;
             }
-        }
 
-        // Compute the square root of the norms
-        total_error_disp_norm = std::sqrt(total_error_disp_norm);
-
-        // Print the obtained values
-        std::cout << std::endl;
-        std::cout << "Total area: " << total_area << std::endl;
-        std::cout << "Total error disp_norm: " << total_error_disp_norm << std::endl;
-        std::cout << std::endl;
-        
-        return total_error_disp_norm;
-
-        KRATOS_CATCH("");
-    }
-
-    double ExecuteModelPartSolidThinExact() 
-    {
-        KRATOS_TRY
-
-        // Variables initialization
-        double total_area = 0.0;
-        double total_error_disp_norm = 0.0;
-
-        KRATOS_WATCH("gauss point error solid exact process");
-
-        // Map reference values from reference mesh to analysis mesh
-        // BinBasedFastPointLocator<2> point_locator = BinBasedFastPointLocator<2>(mrReferenceModelPart);
-        // point_locator.UpdateSearchDatabase();
-
-        // Loop the elements to compute the error error in each Gauss pt.
-        for(auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
-        {
             auto &r_geom = it_elem->GetGeometry();
-            const auto elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
 
             const auto &r_disp_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
             const auto &r_disp_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
             const auto &r_disp_2 = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT);
 
-            // Get geometry data
             Vector jac_vect;
             jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
             auto N = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-            // Compute the error in each Gauss pt.
-            for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss){
-                // Locate the Gauss pt. in the reference mesh
-                array_1d<double,3> coords = ZeroVector(3);
-                coords[0] = r_geom[0].X()*N(i_gauss,0) + r_geom[1].X()*N(i_gauss,1) + r_geom[2].X()*N(i_gauss,2);
-                coords[1] = r_geom[0].Y()*N(i_gauss,0) + r_geom[1].Y()*N(i_gauss,1) + r_geom[2].Y()*N(i_gauss,2);
-                Vector N_vect;
-                Element::Pointer p_elem;
-                // const bool is_found = point_locator.FindPointOnMeshSimplified(coords, N_vect, p_elem);
-                // KRATOS_WARNING_IF("GaussPointErrorProcess", is_found != true) << "Gauss pt. x: " << coords[0] << " y: " << coords[1] << " not found!" << std::endl;
+            for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss) {
+                const double x_coord = r_geom[0].X0()*N(i_gauss,0) + r_geom[1].X0()*N(i_gauss,1) + r_geom[2].X0()*N(i_gauss,2);
+                const double y_coord = r_geom[0].Y0()*N(i_gauss,0) + r_geom[1].Y0()*N(i_gauss,1) + r_geom[2].Y0()*N(i_gauss,2);
+                const array_1d<double, 3> disp_exact = rExactSolutionFn(x_coord, y_coord);
 
-                // Compute the body-fitted values in the embedded mesh
-                // array_1d<double,3> disp_exact = ZeroVector(3);
-
-                // Exact solution
-                const double x_coord = coords[0];
-                const double y_coord = coords[1];
-                const array_1d<double, 3> disp_exact = this->ComputeDisplacementThinExactSolution(x_coord, y_coord);
-
-
-                // KRATOS_WATCH(r_disp_0)
-                // KRATOS_WATCH(r_disp_1)
-                // KRATOS_WATCH(r_disp_2)
-
-                // Obtained solution
                 array_1d<double, 3> disp_solu;
                 disp_solu[0] = r_disp_0[0]*N(i_gauss,0) + r_disp_1[0]*N(i_gauss,1) + r_disp_2[0]*N(i_gauss,2);
                 disp_solu[1] = r_disp_0[1]*N(i_gauss,0) + r_disp_1[1]*N(i_gauss,1) + r_disp_2[1]*N(i_gauss,2);
                 disp_solu[2] = r_disp_0[2]*N(i_gauss,0) + r_disp_1[2]*N(i_gauss,1) + r_disp_2[2]*N(i_gauss,2);
 
-
-                // KRATOS_WATCH(coords[0])
-                // KRATOS_WATCH(coords[1])
-                // KRATOS_WATCH(disp_exact)
-                // KRATOS_WATCH(disp_solu)
-                // KRATOS_WATCH(jac_vect[i_gauss])
-
-                // Displacement error norm
-                total_error_disp_norm += (jac_vect[i_gauss] / 6.0)*inner_prod(disp_exact - disp_solu, disp_exact - disp_solu);
-
-                // KRATOS_WATCH(total_error_disp_norm)
-
-                // Add the local Gauss contribution to the areas
+                total_error_disp_norm += (jac_vect[i_gauss] / 6.0) * inner_prod(disp_exact - disp_solu, disp_exact - disp_solu);
                 total_area += (jac_vect[i_gauss] / 6.0);
             }
         }
 
-        // Compute the square root of the norms
         total_error_disp_norm = std::sqrt(total_error_disp_norm);
 
-        // Print the obtained values
         std::cout << std::endl;
         std::cout << "Total area: " << total_area << std::endl;
         std::cout << "Total error disp_norm: " << total_error_disp_norm << std::endl;
         std::cout << std::endl;
-        
-        return total_error_disp_norm;
 
+        return total_error_disp_norm;
+    }
+
+    double ExecuteModelPartSolidExact()
+    {
+        KRATOS_TRY
+        KRATOS_WATCH("gauss point error solid exact process");
+        return ComputeDisplacementL2ErrorExact(
+            [this](double x, double y) { return this->ComputeDisplacementExactSolutionSimplySupported(x, y); },
+            /*CheckActive=*/true);
+        KRATOS_CATCH("");
+    }
+
+    double ExecuteModelPartSolidThinExact()
+    {
+        KRATOS_TRY
+        KRATOS_WATCH("gauss point error solid thin exact process");
+        return ComputeDisplacementL2ErrorExact(
+            [this](double x, double y) { return this->ComputeDisplacementThinExactSolution(x, y); },
+            /*CheckActive=*/false);
+        KRATOS_CATCH("");
+    }
+
+    double ExecuteModelPartSolidCantileverExact()
+    {
+        KRATOS_TRY
+        KRATOS_WATCH("gauss point error solid cantilever exact process");
+        return ComputeDisplacementL2ErrorExact(
+            [this](double x, double y) { return this->ComputeDisplacementExactSolution(x, y); },
+            /*CheckActive=*/false);
         KRATOS_CATCH("");
     }
 

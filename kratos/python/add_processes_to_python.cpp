@@ -685,6 +685,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteModelPartSolid", &GaussPointErrorProcess::ExecuteModelPartSolid)
     .def("ExecuteModelPartSolidExact", &GaussPointErrorProcess::ExecuteModelPartSolidExact)
     .def("ExecuteModelPartSolidThinExact", &GaussPointErrorProcess::ExecuteModelPartSolidThinExact)
+    .def("ExecuteModelPartSolidCantileverExact", &GaussPointErrorProcess::ExecuteModelPartSolidCantileverExact)
     .def("ExecuteModelPartGradientSolid", &GaussPointErrorProcess::ExecuteModelPartGradientSolid)
     .def("ExecuteModelPartGradientSolidExact", &GaussPointErrorProcess::ExecuteModelPartGradientSolidExact)
     ;
