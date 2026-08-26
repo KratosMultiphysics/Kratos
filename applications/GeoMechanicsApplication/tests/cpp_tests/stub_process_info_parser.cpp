@@ -44,7 +44,7 @@ const std::string k0_string =
     "variable_name": "CAUCHY_STRESS_TENSOR"
 })";
 
-const std::vector<ProcessParameters> process_list = {
+const auto process_list = std::vector{
     ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{vector_parameter_string}},
     ProcessParameters{"SetParameterFieldProcess", Parameters{parameter_field_string}},
     ProcessParameters{"ApplyExcavationProcess", Parameters{excavation_string}},

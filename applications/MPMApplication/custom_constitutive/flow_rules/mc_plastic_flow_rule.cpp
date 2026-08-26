@@ -476,10 +476,10 @@ void MCPlasticFlowRule::CalculateModificationMatrix(const RadialReturnVariables&
 
 void MCPlasticFlowRule::CalculateDepSurface(BoundedMatrix<double,3,3>& rElasticMatrix, BoundedVector<double,3>& rFNorm, BoundedVector<double,3>& rGNorm, BoundedMatrix<double,3,3>& rAuxDep)
 {
-    BoundedVector<double,3> aux_F = prod(trans(rFNorm), rElasticMatrix);
+    BoundedVector<double,3> aux_F = prod(rFNorm, rElasticMatrix);
 
     BoundedVector<double,3> a = prod(rElasticMatrix, rGNorm);
-    BoundedVector<double,3> b = prod(trans(rFNorm),rElasticMatrix);
+    BoundedVector<double,3> b = prod(rFNorm, rElasticMatrix);
 
     BoundedMatrix<double,3,3> num = ZeroMatrix(3,3);
 

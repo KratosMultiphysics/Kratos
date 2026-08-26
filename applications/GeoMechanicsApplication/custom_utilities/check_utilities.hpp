@@ -39,6 +39,8 @@ public:
 
     static void CheckForNonZeroZCoordinateIn2D(const Geometry<Node>& rGeometry);
 
+    static void CheckValuesAreAscending(const Vector& rValues, const std::string& rName, bool AllowEqual = false);
+
 private:
     static std::string PrintVectorContent(const std::vector<size_t>& rVector);
 }; /* Class CheckUtilities*/
