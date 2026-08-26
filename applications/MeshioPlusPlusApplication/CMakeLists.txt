@@ -16,9 +16,9 @@ include(pybind11Tools)
 #         -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release
 #   cmake --build build && cmake --install build --prefix <prefix>
 #
-# Upgrading from a meshio++ older than v9.20.0 requires relinking this application once: the
+# Upgrading from a meshio++ older than v10.17.0 requires relinking this application once: the
 # C++ variants' SOVERSION is the ABI version, so the library this application needs is
-# libmeshioplusplus_core_kratos.so.6 rather than an earlier .so.N.
+# libmeshioplusplus_core_kratos.so.11 rather than an earlier .so.N.
 #
 # then point this configure at it with -Dmeshioplusplus_DIR=<prefix>/lib/cmake/meshioplusplus
 #
@@ -26,25 +26,32 @@ include(pybind11Tools)
 # MESHIOPLUSPLUS_ABI_VERSION, a binary-compatibility counter that moves only when the installed
 # headers stop being compatible with an already-compiled consumer - so a release that provably
 # cannot affect this application (v9.3.0 added one inline constexpr string) needs no rebuild,
-# where a "X.Y.Z EXACT" pin would have forced one: v10.0.0 is a pure version-number bump over
-# v9.30.0 and holds the ABI at 6.
+# where a "X.Y.Z EXACT" pin would have forced one: v10.20.0 is a pure version-number bump over
+# v10.19.0 and holds the ABI at 11, as v10.0.0 did over v9.30.0 at ABI 6.
+#
+# ABI 6 -> 11 is, unlike 3 -> 6, a run this application genuinely feels. Where ABI 5 and 6 came
+# from format side-channel structs (MedInfo, OpenFoamInfo) it never names, 7 through 11 are all
+# option/metadata structs it now passes by value: RefineOptions gained mRecordHierarchy (7),
+# RemeshOptions grew twice (8, 9), SmoothMethod gained an explicit : std::uint8_t underlying
+# type (10) and MeshMetadata gained the provenance fields (11, sizeof 256 -> 288).
 #
 # A single ABI rather than a window, deliberately. Supporting several meant a
 # MESHIOPLUSPLUS_VERSION_AT_LEAST guard per feature, and the operations this application now
-# exposes (gradient v9.10.0, selective refine v9.5.0, crop_predicate/voxelize/sdf v9.24-9.25)
-# would have needed one each. ABI 6 is v9.20.0 onwards, so everything compiles unconditionally.
+# exposes (remesh v10.10.0, optimize_volume v10.14.0, estimate_error v10.2.0, the gid format
+# v10.18-10.20) would have needed one each. ABI 11 is v10.17.0 onwards, so everything compiles
+# unconditionally.
 #
 # Getting it wrong is not silent: the C++ variants' SOVERSION is the ABI version, and every
 # consumer translation unit carries a link-time sentinel naming it, so a header/library skew is
 # a link error rather than memory corruption. See meshio++'s doc/abi.md for the criterion.
 find_package(meshioplusplus CONFIG REQUIRED COMPONENTS CXX)
 
-if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 6)
+if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 11)
     message(FATAL_ERROR
-        "MeshioPlusPlusApplication needs meshio++ ABI 6, but the install at "
+        "MeshioPlusPlusApplication needs meshio++ ABI 11, but the install at "
         "'${meshioplusplus_DIR}' reports ABI ${MESHIOPLUSPLUS_ABI_VERSION} "
-        "(release ${meshioplusplus_VERSION}). ABI 6 is meshio++ v9.20.0 onwards, "
-        "which includes v10.0.0.")
+        "(release ${meshioplusplus_VERSION}). ABI 11 is meshio++ v10.17.0 onwards, "
+        "which includes v10.20.0.")
 endif()
 
 if(NOT TARGET meshioplusplus::core_kratos)
