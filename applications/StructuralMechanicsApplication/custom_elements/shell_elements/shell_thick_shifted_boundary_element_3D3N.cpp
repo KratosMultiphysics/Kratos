@@ -78,6 +78,8 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 
         Matrix left_hand_side_taylor = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
         Matrix left_hand_side_taylor_penalty = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
+        Matrix left_hand_side_taylor_gap = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
+        Matrix left_hand_side_taylor_penalty_gap = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
 
         Matrix left_hand_side_gap_SBM = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
 
@@ -306,6 +308,7 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 
                     for (std::size_t i_node = 0; i_node < 3; ++i_node) {
                         aux_val = aux_w * r_sur_bd_N_taylor[i_node];
+                        const double aux_val_gap = aux_w_taylor * r_sur_bd_N_taylor[i_node];
                         i_loc_id = sur_bd_local_ids[i_node];
                         for (std::size_t d = 0; d < 6; ++d) {
                             if (constrained_dofs[d] == 0.0) {
@@ -313,6 +316,7 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                             }
                             for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) {
                                 left_hand_side_taylor(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
+                                left_hand_side_taylor_gap(i_loc_id*BlockSize+d, j_node) -= aux_val_gap * aux_CB_projection(d,j_node);
                             }
                         }
                     }
@@ -358,12 +362,44 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     }
                     left_hand_side_gap_neumann -= prod(trans(rAuxMat_neumann_ungated), aux_CB_projection_neumann) * aux_w_taylor;
 
+                    // material-stiffness-norm scaling
+                    const double rho_C = norm_frobenius(D);
+                    double rho_membrane_sq = 0.0, rho_bending_sq = 0.0, rho_shear_sq = 0.0;
+                    for (std::size_t i = 0; i < 3; ++i) {
+                        for (std::size_t j = 0; j < 3; ++j) {
+                            rho_membrane_sq += D(i,j)*D(i,j);
+                        }
+                    }
+                    for (std::size_t i = 3; i < 6; ++i) {
+                        for (std::size_t j = 3; j < 6; ++j) {
+                            rho_bending_sq += D(i,j)*D(i,j);
+                        }
+                    }
+                    for (std::size_t i = 6; i < 8; ++i) {
+                        for (std::size_t j = 6; j < 8; ++j) {
+                            rho_shear_sq += D(i,j)*D(i,j);
+                        }
+                    }
+                    const double rho_membrane = std::sqrt(rho_membrane_sq);
+                    const double rho_bending = std::sqrt(rho_bending_sq);
+                    const double rho_shear = std::sqrt(rho_shear_sq);
+                    Matrix rho_diag = ZeroMatrix(6, 6);
+                    rho_diag(0,0) = rho_membrane;
+                    rho_diag(1,1) = rho_membrane;
+                    rho_diag(2,2) = rho_shear;
+                    rho_diag(3,3) = rho_bending;
+                    rho_diag(4,4) = rho_bending;
+                    rho_diag(5,5) = rho_C; 
+
+                    const Matrix aux_taylor_penalty_base = prod(trans(rAuxMat), Matrix(prod(rho_diag, rAuxMat)));
+                    left_hand_side_taylor_penalty = aux_taylor_penalty_base * penalty_parameter*aux_w/ h_sur_bd;
+                    left_hand_side_taylor_penalty_gap = aux_taylor_penalty_base * penalty_parameter*aux_w_taylor/ h_sur_bd;
 
                     // Taylor penalty forcing/residual
                     if (sbm_formulation_type == 1) {
                         array_1d<double,6> penalty_bc_values_5 = penalty_bc_values;
                         penalty_bc_values_5[5] = 0.0; // rz row of rAuxMat is always zero, keep it inert
-                        right_hand_side += (penalty_parameter*aux_w/h_sur_bd) * prod(trans(rAuxMat), penalty_bc_values_5);
+                        right_hand_side += (penalty_parameter*aux_w/h_sur_bd) * prod(trans(rAuxMat), Vector(prod(rho_diag, penalty_bc_values_5)));
                         right_hand_side -= prod(left_hand_side_taylor_penalty, unknown_values);
                     }
 
@@ -408,8 +444,8 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
             rRightHandSideVector += right_hand_side;
         } else {
             // Gap SBM
-            Matrix left_hand_side_gap_sbm_total = left_hand_side_gap_SBM + left_hand_side_taylor
-                + trans(left_hand_side_taylor) + left_hand_side_taylor_penalty + left_hand_side_gap_neumann;
+            Matrix left_hand_side_gap_sbm_total = left_hand_side_gap_SBM + left_hand_side_taylor_gap
+                + trans(left_hand_side_taylor_gap) + left_hand_side_taylor_penalty_gap + left_hand_side_gap_neumann;
             rLeftHandSideMatrix += left_hand_side_gap_sbm_total;
             rRightHandSideVector -= prod(left_hand_side_gap_sbm_total, unknown_values);
             rRightHandSideVector += right_hand_side_shear_neumann;
