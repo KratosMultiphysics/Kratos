@@ -12,15 +12,12 @@
 #include "sph_application_variables.h"
 
 /**
- * @class ComputeKernelCorrectionProcess
- * @brief This class assign the values for the stabilizations coefficients, 
- * and stores them into ProcessInfo 
+ * @class AssignStabilizationCoefficientsProcess
+ * @brief This class assign the values for the stabilizations coefficients and stores them into ProcessInfo 
  */
 
 namespace Kratos
 {
-
-//class KRATOS_API(SPH_APPLICATION) AssignStabilizationCoefficientsProcess
 
 class AssignStabilizationCoefficientsProcess
     : public Process
@@ -35,7 +32,16 @@ public:
 
     void Execute() override
     {
+        /**
+         * @class TotaLagrangianDisplacementParticle and SmallDisplacementParticle 
+         * @brief This coefficient is used to penalize relative current position of the particles that are inconsistent with the local deformation gradient. 
+         */
         mrThisModelPart.GetProcessInfo().SetValue(PENALIZATION_COEFFICIENT, mrThisParameters["penalization_coeff"].GetDouble());
+
+        /**
+         * @class TotaLagrangianDisplacementParticle, SmallDisplacementParticle and TotaLagrangianMixedStrainParticle
+         * @brief This coefficient is used to penalize shocks or strong discontinuities by introducing an additional localised dissipation. 
+         */
         mrThisModelPart.GetProcessInfo().SetValue(DISSIPATION_COEFFICIENT, mrThisParameters["dissipation_coeff"].GetDouble());
     }
 

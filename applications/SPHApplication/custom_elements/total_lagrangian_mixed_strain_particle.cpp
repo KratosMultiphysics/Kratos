@@ -762,6 +762,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddUpwin
         
         CalculatePairUpwindStabilizationMatrix(stabilization_matrix, *r_neighbours[i], rThisKinematicVariables.F, rProcessInfo);
     
+        // For simplicity, the tanget matrix doesn't consider the dependence of pressure and shear wave speeds on the deformation gradient 
         noalias(project(rK11, range(TDim * self_index, TDim * (self_index + 1)), range(TDim * i, TDim * (i + 1)))) += stabilization_matrix;
         noalias(project(rK11, range(TDim * self_index, TDim * (self_index + 1)), range(TDim * self_index, TDim * (self_index + 1)))) -= stabilization_matrix;
     }
