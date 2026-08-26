@@ -22,7 +22,7 @@ entirely and replaces it with a one-line steer of an existing flag.
 
 - **In scope:** move the switching seam to just before the build-and-solve branch, and on a switch set
   `mStiffnessMatrixIsBuilt = false` so that branch reassembles the stiffness matrix with the new
-  fixity. Remove the `RebuildSystem()` method. Add a focused C++ test.
+  fixity. Remove the `RebuildSystem()` method.
 - **Block builder and solver only.** The GeoMechanics solver defaults to the block builder
   (`block_builder: true` in `geomechanics_solver.py`), and the prototype targets exactly that path.
 - **Out of scope (deferred to #14637):** any support for the elimination builder and solver (which
@@ -128,29 +128,18 @@ nothing switches, convergence stands. Termination stays bounded by the existing
 
 ## Testing
 
-A focused C++ test drives a minimal block-builder Newton-Raphson solve through a small test subclass
-that forces a single, deterministic switch, and checks the switch is honoured. Driving a real solve is
-the honest way to exercise the change, because the seam lives inline in the copied `SolveSolutionStep`
-and is not reachable through a hook.
+**No dedicated C++ test is written for this step, by explicit decision.** The change is a small,
+inline edit to the copied `SolveSolutionStep` (move the seam, set a flag, delete the old seam and
+method), and its only observable effect — a switch being honoured across a full solve — cannot be
+exercised without standing up a complete Newton-Raphson solve (scheme, block builder and solver,
+convergence criterion, linear solver and a real steady-state element). That end-to-end verification is
+the job of the Muskat seepage case, which is **out of scope for this implementation** and belongs to
+#14637.
 
-- **Builder:** `ResidualBasedBlockBuilderAndSolver`, matching the target and the constant-size
-  behaviour the design relies on.
-- **Model:** a minimal model part with a small number of `WATER_PRESSURE` dofs and enough element(s)
-  to assemble a solvable steady-state system, a GeoMechanics scheme, and a residual convergence
-  criterion.
-- **Forced switch:** a test-only subclass overrides `UpdateSeepageBoundaryConditions()` to free a
-  chosen node and return `true` on its first call, then `false` afterwards. This makes exactly one
-  switch happen deterministically, independent of the step-3 criterion (already tested on its own).
-- **Assertions:**
-  - the solve performs at least one extra iteration after the switch (seam 3 suppressed premature
-    convergence); and
-  - the freed node ends the solve as a free dof carrying its free-solve pressure rather than the fixed
-    zero, proving the block builder reassembled with the new fixity.
-- **Optional lower-rebuild-level check:** to show the flag itself matters (not just the default level-2
-  rebuild), a variant may set the rebuild level to 1 and assert the freed node is still honoured — this
-  is the case the `SetStiffnessMatrixIsBuilt(false)` line exists for.
-
-The full suite must show zero failures, with nothing previously passing now failing.
+The risk this accepts is stated plainly: the seam edit is verified here only by building the code, by
+inspection against the core method (a diff must show only the seams), and by confirming the full
+existing suite still passes with no regressions. The switching behaviour itself is proven later, on
+Muskat.
 
 ## Findings to record for #14637
 
@@ -164,9 +153,10 @@ The full suite must show zero failures, with nothing previously passing now fail
 ## Build and test commands
 
 ```powershell
-kp config                                    # only after adding a new .cpp test file
-kp build
-kp test -- --gtest_filter="*Seepage*"
-kp test                                      # full suite
+kp build                                     # header-only change; no new .cpp, so no kp config
+kp test                                      # full suite; must stay green with no regressions
 ```
+
+
+
 
