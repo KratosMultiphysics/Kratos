@@ -39,6 +39,11 @@ class OpenFOAMOpenCFDWrapper(CoSimulationSolverWrapper):
                 '"time_step" must be specified in "solver_wrapper_settings" '
                 'for the OpenFOAM OpenCFD wrapper.'
             )
+        if not solver_wrapper_settings.Has("end_time"):
+            raise ValueError(
+                '"end_time" must be specified in "solver_wrapper_settings" '
+                'for the OpenFOAM OpenCFD wrapper.'
+            )
 
         solver_wrapper_settings.ValidateAndAssignDefaults(settings_defaults)
         model_part_utilities.CreateMainModelPartsFromCouplingDataSettings(self.settings["data"], self.model, self.name)
@@ -53,6 +58,11 @@ class OpenFOAMOpenCFDWrapper(CoSimulationSolverWrapper):
             raise ValueError(
                 '"time_step" must be greater than zero for the OpenFOAM '
                 'OpenCFD wrapper.'
+            )
+        if self.end_time <= self.current_time:
+            raise ValueError(
+                '"end_time" must be greater than "start_time" for the '
+                'OpenFOAM OpenCFD wrapper.'
             )
         
         self.first_iteration = True
