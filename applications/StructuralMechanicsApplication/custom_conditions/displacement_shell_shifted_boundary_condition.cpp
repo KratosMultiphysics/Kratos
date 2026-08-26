@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/constitutive_law.h"
 #include "utilities/integration_utilities.h"
+#include "utilities/math_utils.h"
 
 // Application includes
 #include "displacement_shell_shifted_boundary_condition.h"
@@ -258,22 +259,48 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     D(6,6) = D(2,2) * 5.0 / 6.0 * shearStabilisation; //plane strain!
     D(7,7) = D(2,2) * 5.0 / 6.0 * shearStabilisation; //stenberg is missing
 
+    // Local in-plane orthonormal frame of the parent background element 
+    const array_1d<double,3>& local_e1 = GetValue(LOCAL_AXIS_1);
+    const array_1d<double,3>& local_e2 = GetValue(LOCAL_AXIS_2);
+    array_1d<double,3> local_e3;
+    MathUtils<double>::CrossProduct(local_e3, local_e1, local_e2);
+
     for ( IndexType i = 0; i < n_nodes; ++i ) {
         const IndexType initial_index = i*6;
-        B_mat_shell(0, initial_index    ) = r_DN_DX(i, 0);
-        B_mat_shell(1, initial_index + 1) = r_DN_DX(i, 1);
-        B_mat_shell(2, initial_index    ) = r_DN_DX(i, 1);
-        B_mat_shell(2, initial_index + 1) = r_DN_DX(i, 0);
+        for (std::size_t k = 0; k < 3; ++k) {
+            B_mat_shell(0, initial_index + k) = r_DN_DX(i, 0) * local_e1[k];
+            B_mat_shell(1, initial_index + k) = r_DN_DX(i, 1) * local_e2[k];
+            B_mat_shell(2, initial_index + k) = r_DN_DX(i, 1) * local_e1[k] + r_DN_DX(i, 0) * local_e2[k];
 
-        B_mat_shell(3, initial_index + 4) = r_DN_DX(i, 0);
-        B_mat_shell(4, initial_index + 3) = -r_DN_DX(i, 1);
-        B_mat_shell(5, initial_index + 3) = -r_DN_DX(i, 0);
-        B_mat_shell(5, initial_index + 4) = r_DN_DX(i, 1);
+            B_mat_shell(3, initial_index + 3 + k) = r_DN_DX(i, 0) * local_e2[k];
+            B_mat_shell(4, initial_index + 3 + k) = -r_DN_DX(i, 1) * local_e1[k];
+            B_mat_shell(5, initial_index + 3 + k) = -r_DN_DX(i, 0) * local_e1[k] + r_DN_DX(i, 1) * local_e2[k];
+        }
+    }
 
-        B_mat_shell(6, initial_index + 2) = r_DN_DX(i, 0);
-        B_mat_shell(6, initial_index + 4) = r_N[i];
-        B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 1);
-        B_mat_shell(7, initial_index + 3) = -r_N[i];
+    // Shear rows: match whichever shear formulation the interior element actually uses
+    // (SHELL_SHEAR_FORMULATION, default DSG=0).
+    const int shell_shear_formulation = GetProperties().Has(SHELL_SHEAR_FORMULATION)
+        ? GetProperties()[SHELL_SHEAR_FORMULATION]
+        : 0;
+    if (shell_shear_formulation == 0 && Has(SBM_DSG_SHEAR_OPERATOR)) {
+        const auto& r_dsg_shear = GetValue(SBM_DSG_SHEAR_OPERATOR);
+        for (std::size_t j = 0; j < 6*n_nodes; ++j) {
+            B_mat_shell(6, j) = r_dsg_shear(0, j);
+            B_mat_shell(7, j) = r_dsg_shear(1, j);
+        }
+    } else {
+        // Naive (frame-correct) formula: used whenever SHELL_SHEAR_FORMULATION selects
+        // naive/CST shear instead of DSG
+        for ( IndexType i = 0; i < n_nodes; ++i ) {
+            const IndexType initial_index = i*6;
+            for (std::size_t k = 0; k < 3; ++k) {
+                B_mat_shell(6, initial_index + k)     = r_DN_DX(i, 0) * local_e3[k];
+                B_mat_shell(6, initial_index + 3 + k) = r_N[i] * local_e2[k];
+                B_mat_shell(7, initial_index + k)     = r_DN_DX(i, 1) * local_e3[k];
+                B_mat_shell(7, initial_index + 3 + k) = -r_N[i] * local_e1[k];
+            }
+        }
     }
 
     // Get Dirichlet BC imposition data
@@ -285,7 +312,9 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         bc_values[d] = r_bc_val[d];
         bc_values[d + 3] = r_bc_val_rot[d];
     }
-    const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+    const double gamma = GetProperties().Has(PENALTY_COEFFICIENT)
+        ? GetProperties()[PENALTY_COEFFICIENT]
+        : 0.0;
 
     // Get the per-DOF constrained mask (ux,uy,uz,rx,ry,rz)
     array_1d<double, 6> constrained_dofs;
@@ -312,15 +341,35 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     // 1. Add Nitsche penalty term (translation + rotation)
     double aux_1;
     double aux_2;
-    const double rho_C = norm_frobenius(C_mat); //TODO: GS uses the spectral radius in here
-    const double aux_weight = w * gamma * rho_C / h * mls_only_flag;
+
+    // Per-DOF-type penalty scaling.
+    array_1d<double, 6> rho_dof;
+    for (std::size_t d = 0; d < 6; ++d) {
+        double sum_val = 0.0;
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+            const IndexType j = i_node * n_dim + d;
+            double val = 0.0;
+            for (std::size_t p = 0; p < 8; ++p) {
+                for (std::size_t q = 0; q < 8; ++q) {
+                    val += B_mat_shell(p, j) * D(p, q) * B_mat_shell(q, j);
+                }
+            }
+            sum_val += val;
+        }
+        rho_dof[d] = std::sqrt(std::abs(sum_val) / static_cast<double>(n_nodes));
+    }
+
+    array_1d<double, 6> aux_weight_dof;
+    for (std::size_t d = 0; d < 6; ++d) {
+        aux_weight_dof[d] = w * gamma * rho_dof[d] / h * mls_only_flag;
+    }
 
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-        aux_1 = aux_weight * r_N[i_node];
         for (std::size_t d = 0; d < 6; ++d) {
             if (constrained_dofs[d] == 0.0) {
                 continue;
             }
+            aux_1 = aux_weight_dof[d] * r_N[i_node];
             for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
                 aux_2 = aux_1 * r_N[j_node];
                 rLeftHandSideMatrix(i_node*n_dim + d, j_node*n_dim + d) += aux_2;
@@ -334,7 +383,7 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     Matrix aux_N(6, local_size);
     Matrix transB_C_proj = ZeroMatrix(local_size, 6); //first variation traction
     CalculateAuxShapeFunctionsMatrix(r_N, constrained_dofs, aux_N);
-    CalculateBtransCProjectionLinearisation(D, B_mat_shell, normal, transB_C_proj);
+    CalculateBtransCProjectionLinearisation(D, B_mat_shell, normal, local_e1, local_e2, local_e3, transB_C_proj);
     const Matrix stab_lhs = prod(transB_C_proj, aux_N);
 
     Vector stab_rhs_bc = ZeroVector(local_size);
@@ -346,7 +395,7 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
 
     // Residual correction (current-state piece)
     const Vector stab_rhs_unk = prod(stab_lhs, unknown_values);
-    rLeftHandSideMatrix -= w * stab_lhs * mls_only_flag; 
+    rLeftHandSideMatrix -= w * stab_lhs * mls_only_flag;
     rRightHandSideVector += w * stab_rhs_bc * mls_only_flag;
     rRightHandSideVector += w * stab_rhs_unk * mls_only_flag;
 
@@ -389,28 +438,29 @@ void DisplacementShellShiftedBoundaryCondition::CalculateBtransCProjectionLinear
     const Matrix& rC,
     const Matrix& rB,
     const array_1d<double, 3>& rUnitNormal,
+    const array_1d<double, 3>& rLocalE1,
+    const array_1d<double, 3>& rLocalE2,
+    const array_1d<double, 3>& rLocalE3,
     Matrix& rAuxMat)
 {
     const SizeType local_size = rB.size2();
     const Matrix aux_transBC = prod(trans(rB), rC);
 
-    // membrane part
+    // rUnitNormal is the (global-frame, curvature-aware) in-plane conormal
+    const double normal_e1 = inner_prod(rUnitNormal, rLocalE1);
+    const double normal_e2 = inner_prod(rUnitNormal, rLocalE2);
+
     for (std::size_t j = 0; j < local_size; ++j) {
-        rAuxMat(j,0) = rUnitNormal[0]*aux_transBC(j,0) + rUnitNormal[1]*aux_transBC(j,2);
-    }
-    for (std::size_t j = 0; j < local_size; ++j) {
-        rAuxMat(j,1) = rUnitNormal[0]*aux_transBC(j,2) + rUnitNormal[1]*aux_transBC(j,1);
-    }
-    // bending part
-    for (std::size_t j = 0; j < local_size; ++j) {
-        rAuxMat(j,4) = rUnitNormal[0]*aux_transBC(j,3) + rUnitNormal[1]*aux_transBC(j,5);
-    }
-    for (std::size_t j = 0; j < local_size; ++j) {
-        rAuxMat(j,3) = rUnitNormal[0]*aux_transBC(j,5) + rUnitNormal[1]*aux_transBC(j,4);
-    }
-    // shear part
-    for (std::size_t j = 0; j < local_size; ++j) {
-        rAuxMat(j,2) = rUnitNormal[0]*aux_transBC(j,6) + rUnitNormal[1]*aux_transBC(j,7);
+        const double t1 = normal_e1*aux_transBC(j,0) + normal_e2*aux_transBC(j,2); // membrane traction along e1
+        const double t2 = normal_e1*aux_transBC(j,2) + normal_e2*aux_transBC(j,1); // membrane traction along e2
+        const double m1 = normal_e1*aux_transBC(j,3) + normal_e2*aux_transBC(j,5); // moment, e2-rotation-conjugate
+        const double m2 = normal_e1*aux_transBC(j,5) + normal_e2*aux_transBC(j,4); // moment, e1-rotation-conjugate
+        const double q  = normal_e1*aux_transBC(j,6) + normal_e2*aux_transBC(j,7); // shear traction along e3
+
+        for (std::size_t k = 0; k < 3; ++k) {
+            rAuxMat(j, k)     = t1*rLocalE1[k] + t2*rLocalE2[k] + q*rLocalE3[k];
+            rAuxMat(j, 3 + k) = m2*rLocalE1[k] + m1*rLocalE2[k];
+        }
     }
 }
 

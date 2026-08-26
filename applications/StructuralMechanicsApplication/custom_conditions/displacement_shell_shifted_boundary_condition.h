@@ -149,16 +149,23 @@ private:
     /**
      * @brief Computes the normal projection of the B transpose times C product
      * This function calculates the normal projection of the standard
-     * B transpose (strain matrix tranpose) times C (constitutive tensor) product
+     * B transpose (strain matrix tranpose) times C (constitutive tensor) product,
+     * projected from the shell's local (e1,e2,e3) frame onto global DOF slots.
      * @param rC Reference to the constituive tensor
      * @param rB Reference to the strain matrix
-     * @param rUnitNormal Reference to the unit normal vector
+     * @param rUnitNormal Reference to the (global-frame) in-plane conormal vector
+     * @param rLocalE1 First local in-plane axis
+     * @param rLocalE2 Second local in-plane axis
+     * @param rLocalE3 Local shell normal (e1 x e2)
      * @param rAuxMat Output result
      */
     void CalculateBtransCProjectionLinearisation(
         const Matrix& rC,
         const Matrix& rB,
         const array_1d<double, 3>& rUnitNormal,
+        const array_1d<double, 3>& rLocalE1,
+        const array_1d<double, 3>& rLocalE2,
+        const array_1d<double, 3>& rLocalE3,
         Matrix& rAuxMat);
 
     /**

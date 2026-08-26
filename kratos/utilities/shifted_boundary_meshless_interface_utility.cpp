@@ -533,18 +533,6 @@ namespace
                         const double kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
                         p_meshless_sh_func(cloud_nodes_coordinates, r_coords, kernel_rad, N_container);
 
-                        // KRATOS_WATCH(r_node)
-                        // KRATOS_WATCH(r_coords)
-
-                        
-                        // KRATOS_WATCH(cloud_nodes)
-                        // KRATOS_WATCH(cloud_nodes_coordinates)
-                        // exit(0);
-
-                        // KRATOS_WATCH(kernel_rad)
-                        // KRATOS_WATCH(N_container)
-                        
-
                         // Save the extension operator nodal data
                         std::size_t n_cl_nod = cloud_nodes.size();
                         CloudDataVectorType cloud_data_vector(n_cl_nod);
@@ -573,10 +561,17 @@ namespace
                 Vector nodal_distances(n_nodes);
                 SetNodalDistancesVector(r_geom, *mpLevelSetVariable, nodal_distances);
 
-                // KRATOS_WATCH(*p_geom)
-                // KRATOS_WATCH(nodal_distances)
-
-                
+                // Local in-plane orthonormal frame of the parent (background) element
+                array_1d<double,3> elem_local_e1 = r_geom[1].Coordinates() - r_geom[0].Coordinates();
+                elem_local_e1 /= norm_2(elem_local_e1);
+                array_1d<double,3> elem_local_normal;
+                MathUtils<double>::CrossProduct(
+                    elem_local_normal,
+                    array_1d<double,3>(r_geom[1].Coordinates() - r_geom[0].Coordinates()),
+                    array_1d<double,3>(r_geom[2].Coordinates() - r_geom[0].Coordinates()));
+                elem_local_normal /= norm_2(elem_local_normal);
+                array_1d<double,3> elem_local_e2;
+                MathUtils<double>::CrossProduct(elem_local_e2, elem_local_normal, elem_local_e1);
 
                 // Set the modified shape functions pointer and calculate the positive interface data
                 auto p_mod_sh_func = p_mod_sh_func_factory(p_geom, nodal_distances);
@@ -587,12 +582,6 @@ namespace
                 //TODO: Add a method without the interface gradients
                 p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(pos_int_N, pos_int_DN_DX, pos_int_w, GeometryData::IntegrationMethod::GI_GAUSS_2);
                 p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(pos_int_n, GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-                // KRATOS_WATCH(pos_int_N)
-                // KRATOS_WATCH(pos_int_DN_DX)
-                // KRATOS_WATCH(pos_int_w)
-                // KRATOS_WATCH(pos_int_n)
-                
 
                 // Calculate parent element size for the SBM BC imposition
                 const double h = p_element_size_func(*p_geom);
@@ -612,10 +601,6 @@ namespace
                     }
                 }
 
-                // KRATOS_WATCH(h)
-                // KRATOS_WATCH(cloud_nodes_set.size())
-                
-
                 // Save previous resuls in a pointer vector to be used in the creation of the condition
                 // Note that the obtained cloud is sorted by id to properly get the extension operator data
                 PointerVector<NodeType> cloud_nodes_vector;
@@ -627,15 +612,75 @@ namespace
                 }
                 std::sort(cloud_nodes_vector.ptr_begin(), cloud_nodes_vector.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
 
+                // Genuine DSG shear operator, expanded from the parent element's own 3 nodes onto
+                // the full (possibly wider) cloud_nodes_vector
+                Matrix dsg_shear_expanded = ZeroMatrix(2, 6 * n_cloud_nodes);
+                {
+                    const array_1d<double,3> P0 = r_geom[0].Coordinates();
+                    const array_1d<double,3> P1 = r_geom[1].Coordinates();
+                    const array_1d<double,3> P2 = r_geom[2].Coordinates();
+                    const array_1d<double,3> E10 = P1 - P0;
+                    const array_1d<double,3> E20 = P2 - P0;
+                    const double dsg_a = inner_prod(E10, elem_local_e1); // x21
+                    const double dsg_b = inner_prod(E10, elem_local_e2); // y21
+                    const double dsg_c = inner_prod(E20, elem_local_e2); // y31
+                    const double dsg_d = inner_prod(E20, elem_local_e1); // x31
+                    array_1d<double,3> cross_10_20;
+                    MathUtils<double>::CrossProduct(cross_10_20, E10, E20);
+                    const double dsg_area = 0.5 * norm_2(cross_10_20);
+                    const double dsg_A2 = 2.0 * dsg_area;
+
+                    // [row][node][uz,rx,ry] local DSG coefficients, node-ordered exactly as r_geom(0,1,2)
+                    double uz_c[2][3], rx_c[2][3], ry_c[2][3];
+                    uz_c[0][0] = (dsg_b - dsg_c) / dsg_A2; rx_c[0][0] = 0.0;                        ry_c[0][0] = dsg_area / dsg_A2;
+                    uz_c[0][1] = dsg_c / dsg_A2;           rx_c[0][1] = -dsg_b*dsg_c/2.0/dsg_A2;     ry_c[0][1] = dsg_a*dsg_c/2.0/dsg_A2;
+                    uz_c[0][2] = -dsg_b / dsg_A2;          rx_c[0][2] = dsg_b*dsg_c/2.0/dsg_A2;      ry_c[0][2] = -dsg_b*dsg_d/2.0/dsg_A2;
+                    uz_c[1][0] = (dsg_d - dsg_a) / dsg_A2; rx_c[1][0] = -dsg_area / dsg_A2;          ry_c[1][0] = 0.0;
+                    uz_c[1][1] = -dsg_d / dsg_A2;          rx_c[1][1] = dsg_b*dsg_d/2.0/dsg_A2;      ry_c[1][1] = -dsg_a*dsg_d/2.0/dsg_A2;
+                    uz_c[1][2] = dsg_a / dsg_A2;           rx_c[1][2] = -dsg_a*dsg_c/2.0/dsg_A2;     ry_c[1][2] = dsg_a*dsg_d/2.0/dsg_A2;
+
+                    auto find_cloud_index = [&cloud_nodes_vector, n_cloud_nodes](std::size_t node_id) -> long {
+                        for (std::size_t i_cl = 0; i_cl < n_cloud_nodes; ++i_cl) {
+                            if (cloud_nodes_vector(i_cl)->Id() == node_id) {
+                                return static_cast<long>(i_cl);
+                            }
+                        }
+                        return -1;
+                    };
+                    auto add_contribution = [&](long i_cl, double weight, std::size_t parent_i) {
+                        if (i_cl < 0) return;
+                        for (std::size_t k = 0; k < 3; ++k) {
+                            for (std::size_t row = 0; row < 2; ++row) {
+                                dsg_shear_expanded(row, i_cl*6 + k) += weight * uz_c[row][parent_i] * elem_local_normal[k];
+                                dsg_shear_expanded(row, i_cl*6 + 3 + k) += weight * (
+                                    rx_c[row][parent_i] * elem_local_e1[k] + ry_c[row][parent_i] * elem_local_e2[k]);
+                            }
+                        }
+                    };
+
+                    for (std::size_t i_parent = 0; i_parent < 3; ++i_parent) {
+                        NodeType::Pointer p_parent_node = r_geom(i_parent);
+                        if (p_parent_node->Is(ACTIVE)) {
+                            const long i_cl = find_cloud_index(p_parent_node->Id());
+                            add_contribution(i_cl, 1.0, i_parent);
+                        } else {
+                            auto& r_ext_op_data = ext_op_map[p_parent_node];
+                            for (auto it_data = r_ext_op_data.begin(); it_data != r_ext_op_data.end(); ++it_data) {
+                                const auto& r_node_data = *it_data;
+                                const std::size_t data_node_id = (std::get<0>(r_node_data))->Id();
+                                const double weight = std::get<1>(r_node_data);
+                                const long i_cl = find_cloud_index(data_node_id);
+                                add_contribution(i_cl, weight, i_parent);
+                            }
+                        }
+                    }
+                }
+
                 // Iterate the interface Gauss pts.
                 DenseVector<double> i_g_N;
                 DenseMatrix<double> i_g_DN_DX;
                 array_1d<double,3> i_g_coords;
                 const std::size_t n_int_pts = pos_int_w.size();
-                
-               
-                // KRATOS_WATCH(n_int_pts)
-                
 
                 for (std::size_t i_g = 0; i_g < n_int_pts; ++i_g) {
                     // Calculate Gauss pt. coordinates
@@ -645,8 +690,6 @@ namespace
                     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                         noalias(i_g_coords) += i_g_N[i_node] * r_geom[i_node].Coordinates();
                     }
-
-                    // KRATOS_WATCH(i_g_coords)
 
                     // Initialize the extension operator containers
                     const std::size_t n_cl_nodes = cloud_nodes_vector.size();
@@ -699,7 +742,7 @@ namespace
                         }
                     }
 
-                    // Nitsche imposes the BC directly inside the boundary element 
+                    // Nitsche imposes the BC directly inside the boundary element
                     if (!mNitscheFlag) {
                         // Create a new condition with a geometry made up with the basis nodes
                         auto p_prop = rElement.pGetProperties();
@@ -717,6 +760,7 @@ namespace
                         p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
                         p_cond->SetValue(LOCAL_AXIS_1, elem_local_e1);
                         p_cond->SetValue(LOCAL_AXIS_2, elem_local_e2);
+                        p_cond->SetValue(SBM_DSG_SHEAR_OPERATOR, dsg_shear_expanded);
                     }
                 }
             }
