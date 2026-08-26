@@ -81,22 +81,12 @@ std::vector<TSearchPointPointerType> SearchInRadiusInclusive(
     // std::nexafter takes the next representable value after Radius towards infinity
     double bins_radius = std::nextafter(Radius, std::numeric_limits<double>::infinity());
 
-    // Allocates initially memory for 32 neighbours
-    std::size_t allocation_size = std::min<std::size_t>(32, NumberOfPoints);
-    std::vector<TSearchPointPointerType> candidates(allocation_size);
+    // Allocates memory for a maximum of 128 neighbours, which should be enough for all cases. 
+    std::size_t upper_bound = std::min<std::size_t>(128, NumberOfPoints);
+    std::vector<TSearchPointPointerType> candidates(upper_bound);
+
     std::size_t number_of_candidates;
-
-    do {
-        number_of_candidates = rBins.SearchInRadius(*pSearchPoint, bins_radius, candidates.begin(), allocation_size);
-
-        if (number_of_candidates < allocation_size || allocation_size == NumberOfPoints) {
-            break;
-        }
-        
-        // more neighbours are needed, increase the allocation size and try again
-        allocation_size = std::min(2 * allocation_size, NumberOfPoints);
-        candidates.resize(allocation_size);
-    } while (true);
+    number_of_candidates = rBins.SearchInRadius(*pSearchPoint, bins_radius, candidates.begin(), upper_bound);
 
     candidates.resize(number_of_candidates);
 
@@ -156,9 +146,7 @@ void NeighboursSearchUtilities::SearchNeighbours(
         std::vector<Element::Pointer> neighbours;
         neighbours.reserve(candidate_points.size() + 1);
 
-        // In this way the particle itself is included and its in the first position of the neighbours vector
         const auto p_element = p_point->pGetObject();
-        neighbours.push_back(p_element);
 
         for (const auto& p_candidate_point : candidate_points) {
             neighbours.push_back(p_candidate_point->pGetObject());

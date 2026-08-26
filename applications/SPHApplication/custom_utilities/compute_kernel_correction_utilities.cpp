@@ -130,7 +130,7 @@ void ComputeKernelCorrectionUtilities::ComputeIntegrationCorrection(
             IP->CalculateOnIntegrationPoints(SPH_KERNEL, kernel, rThisModelPart.GetProcessInfo());
             IP->CalculateOnIntegrationPoints(SPH_KERNEL_GRADIENT, dkernel, rThisModelPart.GetProcessInfo());
 
-            Vector rhs = ZeroVector(domain_size);
+            Vector rhs(domain_size); rhs.clear();
 
             // Compute the right-hand side rhs_i of the equation.
             for (IndexType j = 0; j < r_neighbours.size(); ++j){
@@ -202,7 +202,7 @@ void ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrectionInverted(
     double& rKernel,
     VectorType& rKernelGradient)
 {
-    noalias(rKernelGradient) = -rKernelGradient;
+    rKernelGradient *= -1.0;
     ApplyKernelGradientCorrection(rNeighbouringParticle, rKernel, rKernelGradient); 
 }
 
