@@ -45,9 +45,16 @@ namespace Kratos
  *  - report-only (stats, quality, diff, data_info, data_integrate): the destination is left
  *    untouched and the whole result is in the returned @ref Parameters.
  *
- * Four operations are *not* reachable through @ref Execute because they do not have its
- * one-mesh-in/one-mesh-out shape: @ref Interpolate and @ref ConservativeInterpolate and
- * @ref UndoGreen each need two independent meshes, and @ref Grid needs none at all.
+ * Three operations are *not* reachable through @ref Execute because they do not have its
+ * one-mesh-in/one-mesh-out shape: @ref Interpolate and @ref ConservativeInterpolate each need
+ * two independent meshes, and @ref Grid needs none at all.
+ *
+ * @note meshio++'s `undo_green` is deliberately **not** exposed. It resolves a refinement's
+ * green closure through the `refine:cell_id`/`refine:parent_id` arrays `refine(record_hierarchy)`
+ * attaches - and those names are colon-namespaced, so the write-back described above can never
+ * carry them onto a model part. The hierarchy is therefore already gone by the time a refined
+ * mesh is a `ModelPart`, and any ModelPart-taking wrapper for it would fail by construction.
+ * It stays reachable from meshio++ itself, where the mesh never leaves the library.
  *
  * @ref Execute optionally carries field data through the operation, using the same
  * "nodal_solution_step_data_variables" / "nodal_data_value_variables" / "nodal_flags" /
@@ -173,24 +180,6 @@ public:
         const ModelPart& rSource,
         const ModelPart& rTarget,
         Parameters Settings,
-        ModelPart& rDestination
-        );
-
-    /**
-     * @brief Removes the green closure cells a previous @ref Execute "refine" added.
-     * @details Not reachable through @ref Execute: it needs both the coarse mesh and the
-     * refined one. A selective `refine(closure="redgreen")` adds green cells purely to keep the
-     * mesh conforming; they carry no refinement information of their own and degrade element
-     * quality, so a solver that has finished with a level undoes them before refining again.
-     * Takes no settings - the coarse mesh is what identifies the green groups.
-     * @param rCoarse The mesh as it was before the refinement.
-     * @param rFine The refined mesh whose green closure is to be undone.
-     * @param rDestination The model part receiving the result (expected empty).
-     * @return The report: the undone-group and removed-cell counts plus the entity counts.
-     */
-    static Parameters UndoGreen(
-        const ModelPart& rCoarse,
-        const ModelPart& rFine,
         ModelPart& rDestination
         );
 

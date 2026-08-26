@@ -59,7 +59,6 @@
 #include "meshioplusplus/operations/subdivide.hpp"
 #include "meshioplusplus/operations/surface.hpp"
 #include "meshioplusplus/operations/transform.hpp"
-#include "meshioplusplus/operations/undo_green.hpp"
 #include "meshioplusplus/operations/voxelize.hpp"
 
 // Project includes
@@ -1240,39 +1239,6 @@ Parameters MeshioPlusPlusMeshOperations::ConservativeInterpolate(
     Internals::MeshToModelPart(result, rDestination);
 
     Parameters report(R"({})");
-    report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
-    report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
-    report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));
-    return report;
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-Parameters MeshioPlusPlusMeshOperations::UndoGreen(
-    const ModelPart& rCoarse,
-    const ModelPart& rFine,
-    ModelPart& rDestination
-    )
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF(rCoarse.IsDistributed() || rFine.IsDistributed())
-        << "The meshio++ operations do not support distributed model parts" << std::endl;
-
-    // No settings at all: mio::undo_green takes no options struct - the coarse mesh is what
-    // says which cells were green, so there is nothing left to configure.
-    mio::Mesh coarse = Internals::ModelPartToMesh(rCoarse);
-    mio::Mesh fine = Internals::ModelPartToMesh(rFine);
-
-    mio::UndoGreenResult result = mio::undo_green(coarse, fine);
-    Internals::MeshToModelPart(result.mMesh, rDestination);
-
-    Parameters report(R"({})");
-    report.AddInt("number_of_groups_undone", static_cast<int>(result.mNumGroupsUndone));
-    report.AddInt("number_of_cells_removed", static_cast<int>(result.mNumCellsRemoved));
     report.AddInt("number_of_nodes", static_cast<int>(rDestination.NumberOfNodes()));
     report.AddInt("number_of_elements", static_cast<int>(rDestination.NumberOfElements()));
     report.AddInt("number_of_conditions", static_cast<int>(rDestination.NumberOfConditions()));
