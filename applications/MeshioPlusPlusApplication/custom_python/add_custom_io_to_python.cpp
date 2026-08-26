@@ -33,9 +33,11 @@ void AddCustomIOToPython(pybind11::module& m)
     namespace py = pybind11;
 
     auto meshio_io = py::class_<MeshioPlusPlusIO, MeshioPlusPlusIO::Pointer, IO>(m, "MeshioPlusPlusIO",
-        "Multi-format mesh IO based on the meshio++ library. Reads 41 and writes 43 mesh formats "
-        "(vtu, vtk, gmsh, med, xdmf, abaqus, mdpa, ...) converting to/from Kratos model parts. "
-        "Repeated WriteModelPart calls extend the output (XDMF temporal collection or file series).")
+        "Multi-format mesh IO based on the meshio++ library, converting to/from Kratos model "
+        "parts (vtu, vtk, gmsh, med, xdmf, gid, abaqus, mdpa, ...). What this build actually "
+        "supports is GetSupportedReadFormats() / GetSupportedWriteFormats() - the counts depend "
+        "on the optional dependencies it was compiled with. Repeated WriteModelPart calls extend "
+        "the output (an XDMF temporal collection, a GiD multi-step series, or a file series).")
         .def(py::init<std::filesystem::path const&>(), py::arg("file_name"))
         .def(py::init<std::filesystem::path const&, Parameters>(), py::arg("file_name"), py::arg("parameters"))
         .def("ReadModelPart", &MeshioPlusPlusIO::ReadModelPart, py::arg("model_part"),
@@ -57,6 +59,10 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("GetTimeStepIndex", &MeshioPlusPlusIO::GetTimeStepIndex, py::arg("time_value"),
             "The 0-based index of the transient step whose time value matches time_value "
             "(within 1e-9), or -1 if none matches.")
+        .def("GetProvenance", &MeshioPlusPlusIO::GetProvenance,
+            "The provenance block the file carries, as {'recognised': bool, 'lines': [...]}: how "
+            "the file was produced (source, target format, encoding, operation chain). "
+            "'recognised' is False for a leading comment meshio++ did not write.")
         .def_static("GetDefaultParameters", &MeshioPlusPlusIO::GetDefaultParameters,
             "The default settings of the IO.")
         .def_static("GetSupportedFormats", &MeshioPlusPlusIO::GetSupportedFormats,
@@ -76,7 +82,9 @@ void AddCustomIOToPython(pybind11::module& m)
         .def_static("ResolveFormat", &MeshioPlusPlusIO::ResolveFormat, py::arg("path"),
             "Resolves the format from a file path extension ('foo.vtu' -> Format.VTU).")
         .def_static("IsFormatAvailable", &MeshioPlusPlusIO::IsFormatAvailable, py::arg("format"),
-            "False when the format was compiled out for lack of an optional dependency (HDF5/netCDF).")
+            "False when the format was compiled out for lack of an optional dependency "
+            "(HDF5/netCDF, or zlib for writing GiD). Answers for the write side; GiD's ascii "
+            "reader is available even where its writer is not.")
         ;
 
     py::enum_<MeshioPlusPlusIO::Format>(meshio_io, "Format")
@@ -93,6 +101,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .value("FLAC3D", MeshioPlusPlusIO::Format::FLAC3D)
         .value("FLUX", MeshioPlusPlusIO::Format::FLUX)
         .value("FREEFEM", MeshioPlusPlusIO::Format::FREEFEM)
+        .value("GID", MeshioPlusPlusIO::Format::GID)
         .value("GMSH", MeshioPlusPlusIO::Format::GMSH)
         .value("GMSH22", MeshioPlusPlusIO::Format::GMSH22)
         .value("H5M", MeshioPlusPlusIO::Format::H5M)

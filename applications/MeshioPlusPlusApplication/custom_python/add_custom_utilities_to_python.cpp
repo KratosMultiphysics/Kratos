@@ -66,6 +66,21 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             "filling destination_model_part with the target's topology plus the interpolated "
             "arrays. Not reachable through Execute: unlike every other operation this needs "
             "two independent meshes.")
+        .def_static("ConservativeInterpolate", &MeshioPlusPlusMeshOperations::ConservativeInterpolate,
+            py::arg("source_model_part"), py::arg("target_model_part"), py::arg("settings"),
+            py::arg("destination_model_part"),
+            "The conservative sibling of Interpolate: redistributes by intersected cell measure "
+            "so the summed quantity is preserved, rather than sampling point values. The right "
+            "choice for an extensive field (a mass, a heat load), the wrong one for an intensive "
+            "one (a temperature). Also needs two independent meshes, so also not reachable "
+            "through Execute.")
+        .def_static("UndoGreen", &MeshioPlusPlusMeshOperations::UndoGreen,
+            py::arg("coarse_model_part"), py::arg("fine_model_part"),
+            py::arg("destination_model_part"),
+            "Removes the green closure cells a selective refine(closure=\"redgreen\") added: "
+            "they keep the mesh conforming but carry no refinement information and degrade "
+            "element quality, so a solver finished with a level undoes them before refining "
+            "again. Takes no settings - the coarse mesh is what identifies the green groups.")
         .def_static("Grid", &MeshioPlusPlusMeshOperations::Grid,
             py::arg("settings"), py::arg("destination_model_part"),
             "Builds a regular hexahedron lattice from \"dims\"/\"origin\"/\"spacing\". Not "
