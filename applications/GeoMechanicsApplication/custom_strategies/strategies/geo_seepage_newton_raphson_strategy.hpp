@@ -300,6 +300,24 @@ public:
     }
 
 protected:
+    // After the step converges, store the assembled nodal water flow on the nodes so it can be
+    // visualised. This is exactly the map that drives the boundary switching, which is what makes
+    // it useful for verifying the sign convention in ShouldReleaseToNeumann.
+    void FinalizeSolutionStep() override
+    {
+        KRATOS_TRY
+
+        MotherType::FinalizeSolutionStep();
+
+        auto&       r_model_part   = BaseType::GetModelPart();
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        const auto  nodal_flows =
+            Geo::SeepageBoundaryUtilities::CalculateNodalWaterFlows(r_model_part, r_process_info);
+        Geo::SeepageBoundaryUtilities::AssignNodalWaterFlows(r_model_part, nodal_flows);
+
+        KRATOS_CATCH("")
+    }
+
     // Decides whether one seepage node must change between a Dirichlet and a zero-flux Neumann
     // boundary, applies that change, and reports whether anything changed. At most one node
     // switches per non-linear iteration, across the whole model.
