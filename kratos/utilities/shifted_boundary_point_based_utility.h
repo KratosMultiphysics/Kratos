@@ -25,6 +25,9 @@
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include <cstddef>
+#if defined(_MSC_VER) && !defined(_BACKUP_ITERATOR_DEBUG_LEVEL)
+#define _BACKUP_ITERATOR_DEBUG_LEVEL 0
+#endif
 #include <span>
 #include <string>
 #include <vector>
