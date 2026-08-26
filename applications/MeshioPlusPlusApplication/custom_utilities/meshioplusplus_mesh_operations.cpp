@@ -349,6 +349,48 @@ Parameters FieldIntegralRegionReport(const mio::FieldIntegralRegion& rRegion)
 /***********************************************************************************/
 /***********************************************************************************/
 
+/// Stores the result of a *polyhedral* operation ("subdivide", "agglomerate").
+///
+/// Both emit `polyhedronN` cells by construction - one child per face, one cell per group - and
+/// a Kratos ModelPart cannot hold one: an Element's geometry is a registered type with a fixed
+/// node count, and there is no polyhedral geometry to map onto. Written straight through, the
+/// destination comes back silently *empty*, which is the worst of the available outcomes.
+///
+/// So "simplexify_result" (default true) runs meshio++'s own remedy - the
+/// `convert_cells(Simplexify)` that `refine` and `decimate` already name when they refuse a
+/// polyhedron - decomposing the result into tetrahedra before the write-back. The tetrahedra
+/// are what Kratos can actually hold, so the operation produces a usable model part in one
+/// call rather than requiring a second pass that no ModelPart could carry the input for.
+///
+/// Setting it false hands back the raw polyhedral mesh, which is only useful when the result is
+/// on its way to a meshio++ *file* rather than to a model part - so an empty destination is
+/// reported by name instead of silently returned.
+void StorePolyhedralResult(
+    mio::Mesh& rMesh,
+    ModelPart& rDestination,
+    const std::string& rOperation,
+    const bool Simplexify
+    )
+{
+    if (Simplexify) {
+        mio::ConvertCellsOptions options;
+        options.mMode = mio::ConvertCellsMode::Simplexify;
+        mio::ConvertCellsResult converted = mio::convert_cells(rMesh, options);
+        Internals::MeshToModelPart(converted.mMesh, rDestination);
+    } else {
+        Internals::MeshToModelPart(rMesh, rDestination);
+    }
+
+    KRATOS_ERROR_IF(rDestination.NumberOfElements() == 0 && rDestination.NumberOfConditions() == 0)
+        << "The \"" << rOperation << "\" operation produced polyhedral cells, which a Kratos "
+        << "ModelPart cannot hold - an Element's geometry is a registered type with a fixed node "
+        << "count. Set \"simplexify_result\" : true (the default) to decompose the result into "
+        << "tetrahedra first." << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void StoreResult(mio::Mesh& rMesh, ModelPart& rDestination)
 {
     Internals::MeshToModelPart(rMesh, rDestination);
@@ -523,6 +565,7 @@ Parameters MeshioPlusPlusMeshOperations::GetDefaultParameters()
         "spacing"                                      : [1.0, 1.0, 1.0],
 
         "target_group_size"                            : 8,
+        "simplexify_result"                            : true,
         "target_cells"                                 : -1,
         "placement"                                    : "optimal",
         "frozen"                                       : [],
@@ -649,18 +692,22 @@ Parameters MeshioPlusPlusMeshOperations::Execute(
         StoreResult(result.mMesh, rDestination);
 
     } else if (operation == "subdivide") {
-        // Uniform one-level subdivision into same-type children; unlike "refine" it takes no
-        // selector and no closure - which is exactly why it never produces a hanging node.
+        // Polyhedral refinement: one polyhedral child per face, so unlike "refine" it handles
+        // an arbitrary polyhedron and needs no per-type template - and needs no closure either,
+        // since a shared face is never touched and no hanging node can appear. The result is
+        // simplexified before the write-back, see StorePolyhedralResult.
         mio::SubdivideOptions options;
         options.mRecordParentIds = Settings["record_parent_ids"].GetBool();
         mio::SubdivideResult result = mio::subdivide(mesh, options);
-        StoreResult(result.mMesh, rDestination);
+        StorePolyhedralResult(result.mMesh, rDestination, operation,
+                              Settings["simplexify_result"].GetBool());
 
     } else if (operation == "agglomerate") {
         mio::AgglomerateOptions options;
         options.mTargetGroupSize = static_cast<std::size_t>(Settings["target_group_size"].GetInt());
         mio::AgglomerateResult result = mio::agglomerate(mesh, options);
-        StoreResult(result.mMesh, rDestination);
+        StorePolyhedralResult(result.mMesh, rDestination, operation,
+                              Settings["simplexify_result"].GetBool());
 
     } else if (operation == "decimate") {
         mio::DecimateOptions options;
