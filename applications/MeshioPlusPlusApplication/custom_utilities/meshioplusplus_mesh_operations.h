@@ -39,11 +39,15 @@ namespace Kratos
  * re-implements the staging.
  *
  * Operations fall into two groups:
- *  - mesh-producing (clean, transform, refine, ...): the result is written into the
+ *  - mesh-producing (clean, transform, refine, remesh, ...): the result is written into the
  *    destination model part, and the returned @ref Parameters carry the operation's own
  *    report (counts, tolerances actually applied, ...);
- *  - report-only (stats, quality, diff, ...): the destination is left untouched and the
- *    whole result is in the returned @ref Parameters.
+ *  - report-only (stats, quality, diff, data_info, data_integrate): the destination is left
+ *    untouched and the whole result is in the returned @ref Parameters.
+ *
+ * Four operations are *not* reachable through @ref Execute because they do not have its
+ * one-mesh-in/one-mesh-out shape: @ref Interpolate and @ref ConservativeInterpolate and
+ * @ref UndoGreen each need two independent meshes, and @ref Grid needs none at all.
  *
  * @ref Execute optionally carries field data through the operation, using the same
  * "nodal_solution_step_data_variables" / "nodal_data_value_variables" / "nodal_flags" /
@@ -142,6 +146,51 @@ public:
         const ModelPart& rSource,
         const ModelPart& rTarget,
         Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Samples one model part's field data onto another's geometry, conserving the
+     * integral rather than the point values.
+     * @details The conservative sibling of @ref Interpolate, and not reachable through
+     * @ref Execute for the same reason: it needs two independent meshes. Where @ref Interpolate
+     * samples (nearest or barycentric), this redistributes by intersected cell measure, so the
+     * summed quantity is preserved across the transfer - the right choice for an extensive
+     * field (a mass, a heat load) and the wrong one for an intensive one (a temperature).
+     *
+     * The shared field data settings apply to *both* @p rSource and @p rTarget, exactly as in
+     * @ref Interpolate.
+     * @param rSource The model part carrying the field data to transfer.
+     * @param rTarget The model part whose geometry the data is transferred onto.
+     * @param Settings "names" (array names to transfer, empty = every array @p rSource's field
+     *                 data settings collect), "default_value", "on_conflict"
+     *                 ("error"/"overwrite"/"suffix") plus the shared field data settings.
+     * @param rDestination The model part receiving the target's geometry plus the transferred
+     *                     data (expected empty).
+     * @return The transfer report.
+     */
+    static Parameters ConservativeInterpolate(
+        const ModelPart& rSource,
+        const ModelPart& rTarget,
+        Parameters Settings,
+        ModelPart& rDestination
+        );
+
+    /**
+     * @brief Removes the green closure cells a previous @ref Execute "refine" added.
+     * @details Not reachable through @ref Execute: it needs both the coarse mesh and the
+     * refined one. A selective `refine(closure="redgreen")` adds green cells purely to keep the
+     * mesh conforming; they carry no refinement information of their own and degrade element
+     * quality, so a solver that has finished with a level undoes them before refining again.
+     * Takes no settings - the coarse mesh is what identifies the green groups.
+     * @param rCoarse The mesh as it was before the refinement.
+     * @param rFine The refined mesh whose green closure is to be undone.
+     * @param rDestination The model part receiving the result (expected empty).
+     * @return The report: the undone-group and removed-cell counts plus the entity counts.
+     */
+    static Parameters UndoGreen(
+        const ModelPart& rCoarse,
+        const ModelPart& rFine,
         ModelPart& rDestination
         );
 
