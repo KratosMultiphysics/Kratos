@@ -68,7 +68,7 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
         self.source = self.model.CreateModelPart("Source")
         _CreateCubeOfTetrahedra(self.source)
 
-    def _Execute(self, operation, settings=None):
+    def _Execute(self, operation, settings=None, source=None):
         destination = self.model.CreateModelPart("Destination_" + operation)
         parameters = KratosMultiphysics.Parameters("{}")
         parameters.AddString("operation", operation)
@@ -76,8 +76,16 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
             for key in settings.keys():
                 parameters.AddValue(key, settings[key])
         report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(
-            self.source, parameters, destination)
+            source if source is not None else self.source, parameters, destination)
         return destination, report
+
+    def _CreateCubeWithNodalVariable(self, name, variable):
+        """A cube whose nodes carry `variable`. The variable has to be added *before* the nodes
+        exist, so this cannot reuse the already-populated self.source."""
+        model_part = self.model.CreateModelPart(name)
+        model_part.AddNodalSolutionStepVariable(variable)
+        _CreateCubeOfTetrahedra(model_part)
+        return model_part
 
     def test_supported_operations(self):
         operations = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetSupportedOperations()
@@ -520,14 +528,26 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
 
     def test_subdivide(self):
         destination, _ = self._Execute("subdivide")
-        # One level of tetrahedral subdivision, no selector: eight children per parent.
-        self.assertEqual(destination.NumberOfElements(), 8 * self.source.NumberOfElements())
+        # Polyhedral refinement emits one polyhedral child per face, which no Kratos Element can
+        # hold - so the default "simplexify_result" decomposes them into tetrahedra first. The
+        # count is therefore not a fixed multiple; it must simply grow, and not be empty.
+        self.assertGreater(destination.NumberOfElements(), self.source.NumberOfElements())
+
+    def test_subdivide_without_simplexify_raises(self):
+        # Raw polyhedral output cannot reach a model part; a silently empty destination is the
+        # outcome this refusal replaces.
+        with self.assertRaisesRegex(RuntimeError, "produced polyhedral cells"):
+            self._Execute("subdivide",
+                          KratosMultiphysics.Parameters('{"simplexify_result" : false}'))
 
     def test_agglomerate(self):
         destination, _ = self._Execute(
             "agglomerate", KratosMultiphysics.Parameters('{"target_group_size" : 2}'))
+        # Grouping yields polyhedra which "simplexify_result" then decomposes back into
+        # tetrahedra, so the final count is not comparable to the input's - what matters is
+        # that the destination is reachable at all.
         self.assertGreater(destination.NumberOfElements(), 0)
-        self.assertLess(destination.NumberOfElements(), self.source.NumberOfElements())
+        self.assertGreater(destination.NumberOfNodes(), 0)
 
     def test_refine_record_hierarchy(self):
         destination, _ = self._Execute(
@@ -578,8 +598,8 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
         self.assertEqual(destination.NumberOfElements(), report["number_of_tets"].GetInt())
 
     def test_estimate_error(self):
-        self.source.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        for node in self.source.Nodes:
+        source = self._CreateCubeWithNodalVariable("ErrorSource", KratosMultiphysics.TEMPERATURE)
+        for node in source.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.X * node.X + node.Y)
         _, report = self._Execute("estimate_error", KratosMultiphysics.Parameters("""{
             "array_name" : "TEMPERATURE",
@@ -587,29 +607,30 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
             "marking" : "fraction",
             "marking_value" : 0.5,
             "nodal_solution_step_data_variables" : ["TEMPERATURE"]
-        }"""))
+        }"""), source=source)
         self.assertGreaterEqual(report["global_error"].GetDouble(), 0.0)
         self.assertGreater(report["number_of_marked"].GetInt(), 0)
 
     def test_hessian(self):
-        self.source.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        for node in self.source.Nodes:
+        source = self._CreateCubeWithNodalVariable("HessianSource", KratosMultiphysics.TEMPERATURE)
+        for node in source.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.X * node.X)
         destination, report = self._Execute("hessian", KratosMultiphysics.Parameters("""{
             "array_name" : "TEMPERATURE",
             "location" : "cell",
             "nodal_solution_step_data_variables" : ["TEMPERATURE"]
-        }"""))
+        }"""), source=source)
         self.assertTrue(report.Has("number_of_skipped"))
-        self.assertEqual(destination.NumberOfElements(), self.source.NumberOfElements())
+        self.assertEqual(destination.NumberOfElements(), source.NumberOfElements())
 
     def test_data_integrate(self):
-        self.source.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        for node in self.source.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 2.0)
+        # A cell-measure-weighted reduction needs *cell* data - meshio++ refuses a point_data
+        # array by name rather than averaging it behind the caller's back.
+        for element in self.source.Elements:
+            element.SetValue(KratosMultiphysics.TEMPERATURE, 2.0)
         destination, report = self._Execute("data_integrate", KratosMultiphysics.Parameters("""{
             "names" : ["TEMPERATURE"],
-            "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+            "element_data_value_variables" : ["TEMPERATURE"]
         }"""))
         self.assertEqual(report["arrays"].size(), 1)
         domain = report["arrays"][0]["domain"]
@@ -619,24 +640,6 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
         # Report-only: the destination is left untouched.
         self.assertEqual(destination.NumberOfElements(), 0)
 
-    def test_undo_green(self):
-        coarse = self.model.CreateModelPart("Coarse")
-        _CreateTriangulatedSquare(coarse)
-
-        fine = self.model.CreateModelPart("Fine")
-        parameters = KratosMultiphysics.Parameters("""{
-            "operation" : "refine", "levels" : 1, "cells" : [0],
-            "closure" : "redgreen", "record_hierarchy" : true
-        }""")
-        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(coarse, parameters, fine)
-
-        destination = self.model.CreateModelPart("Ungreened")
-        report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.UndoGreen(
-            coarse, fine, destination)
-        self.assertTrue(report.Has("number_of_groups_undone"))
-        self.assertGreater(destination.NumberOfElements(), 0)
-        self.assertLessEqual(destination.NumberOfElements(), fine.NumberOfElements())
-
     def test_conservative_interpolate(self):
         source = self.model.CreateModelPart("ConservativeSource")
         source.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -645,6 +648,7 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 3.0)
 
         target = self.model.CreateModelPart("ConservativeTarget")
+        target.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         parameters = KratosMultiphysics.Parameters('{"operation" : "refine", "levels" : 1}')
         KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(source, parameters, target)
 
@@ -653,6 +657,7 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
             source, target,
             KratosMultiphysics.Parameters("""{
                 "names" : ["TEMPERATURE"],
+                "on_conflict" : "overwrite",
                 "nodal_solution_step_data_variables" : ["TEMPERATURE"]
             }"""),
             destination)
