@@ -1,0 +1,205 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   0.0000000000   0.0000000000
+    2   0.0000000000   0.2500000000   0.0000000000
+    3   0.0000000000   0.5000000000   0.0000000000
+    4   0.0000000000   0.7500000000   0.0000000000
+    5   0.0000000000   1.0000000000   0.0000000000
+    6   1.0000000000   0.0000000000   0.0000000000
+    7   1.0000000000   0.2500000000   0.0000000000
+    8   1.0000000000   0.5000000000   0.0000000000
+    9   1.0000000000   0.7500000000   0.0000000000
+   10   1.0000000000   1.0000000000   0.0000000000
+   11   2.0000000000   0.0000000000   0.0000000000
+   12   2.0000000000   0.2500000000   0.0000000000
+   13   2.0000000000   0.5000000000   0.0000000000
+   14   2.0000000000   0.7500000000   0.0000000000
+   15   2.0000000000   1.0000000000   0.0000000000
+   16   3.0000000000   0.0000000000   0.0000000000
+   17   3.0000000000   0.2500000000   0.0000000000
+   18   3.0000000000   0.5000000000   0.0000000000
+   19   3.0000000000   0.7500000000   0.0000000000
+   20   3.0000000000   1.0000000000   0.0000000000
+   21   4.0000000000   0.0000000000   0.0000000000
+   22   4.0000000000   0.2500000000   0.0000000000
+   23   4.0000000000   0.5000000000   0.0000000000
+   24   4.0000000000   0.7500000000   0.0000000000
+   25   4.0000000000   1.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements ShellThickElementCorotational3D3N// GUI group identifier: Structure
+        1          0     6     7     1 
+        2          0     7     2     1 
+        3          0    11    12     6 
+        4          0    12     7     6 
+        5          0    16    17    11 
+        6          0    17    12    11 
+        7          0    21    22    16 
+        8          0    22    17    16 
+        9          0     7     8     2 
+       10          0     8     3     2 
+       11          0    12    13     7 
+       12          0    13     8     7 
+       13          0    17    18    12 
+       14          0    18    13    12 
+       15          0    22    23    17 
+       16          0    23    18    17 
+       17          0     8     9     3 
+       18          0     9     4     3 
+       19          0    13    14     8 
+       20          0    14     9     8 
+       21          0    18    19    13 
+       22          0    19    14    13 
+       23          0    23    24    18 
+       24          0    24    19    18 
+       25          0     9    10     4 
+       26          0    10     5     4 
+       27          0    14    15     9 
+       28          0    15    10     9 
+       29          0    19    20    14 
+       30          0    20    15    14 
+       31          0    24    25    19 
+       32          0    25    20    19 
+End Elements
+
+Begin Conditions LineLoadCondition3D2N// GUI group identifier: RightEdge
+    2 0 21 22
+    3 0 22 23
+    4 0 23 24
+    5 0 24 25
+End Conditions
+
+Begin SubModelPart Parts_Solid_Structure // Group Structure // Subtree Parts_Solid
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_LeftEdge // Group LeftEdge // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart LineLoad2D_RightEdge // Group RightEdge // Subtree LineLoad2D
+    Begin SubModelPartNodes
+           21
+           22
+           23
+           24
+           25
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            2
+            3
+            4
+            5
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_body 
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

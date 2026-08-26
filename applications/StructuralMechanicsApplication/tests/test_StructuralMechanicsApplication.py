@@ -30,6 +30,7 @@ from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchT
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
 from test_patch_test_small_displacement_mixed_volumetric_strain import TestPatchTestSmallDisplacementMixedVolumetricStrain as TTestPatchTestSmallDisplacementMixedVolumetricStrain
 from test_patch_test_small_displacement_shifted_boundary import TestPatchTestSmallDisplacementShiftedBoundary as TestPatchTestSmallDisplacementShiftedBoundary
+from test_patch_test_small_displacement_shifted_boundary import TestPatchTestShellShiftedBoundary as TestPatchTestShellShiftedBoundary
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
@@ -304,6 +305,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallDisplacementMixedVolumetricStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPatchTestSmallDisplacementShiftedBoundary]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPatchTestShellShiftedBoundary]))
     # Shells
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow

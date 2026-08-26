@@ -1,0 +1,60 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "plate_guided_ss_nitsche",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.99
+    },
+    "solver_settings"  : {
+        "time_stepping"                        : {
+            "time_step" : 1.0
+        },
+        "solver_type"                          : "static_shifted_boundary",
+        "model_part_name"                      : "Structure",
+        "domain_size"                          : 2,
+        "echo_level"                           : 0,
+        "analysis_type"                        : "linear",
+        "model_import_settings"                : {
+            "input_type"     : "mdpa",
+            "input_filename" : "patch_test/shell_shifted_boundary/plate_guided_ss_nitsche"
+        },
+        "material_import_settings"             : {
+            "materials_filename" : "patch_test/shell_shifted_boundary/plate_guided_ss_materials.json"
+        },
+        "convergence_criterion"                : "residual_criterion",
+        "displacement_relative_tolerance"      : 0.0001,
+        "displacement_absolute_tolerance"      : 1e-9,
+        "residual_relative_tolerance"          : 0.0001,
+        "residual_absolute_tolerance"          : 1e-9,
+        "max_iteration"                        : 10,
+        "use_old_stiffness_in_first_iteration" : false,
+        "rotation_dofs"                        : true,
+        "volumetric_strain_dofs"               : false,
+        "conforming_basis": true,
+        "extension_operator_type": "MLS",
+        "mls_extension_operator_order": 1,
+        "sbm_interface_condition_name": "DisplacementShellNitscheBoundaryCondition",
+        "nitsche_flag": true
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.LineLoad2D_RightEdge",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "value"           : [0.0,0.0,0.0],
+                "constrained"     : [false,false,true]
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : []
+    },
+    "output_processes" : {
+        "gid_output" : []
+    },
+    "analysis_stage"   : "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
+}
