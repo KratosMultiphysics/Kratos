@@ -272,19 +272,18 @@ git commit -m "feat(geo): store NODAL_WATER_FLOW each converged step in seepage 
 
 ---
 
-### Task 4: Make `NODAL_WATER_FLOW` addable and outputtable
+### Task 4: Make `NODAL_WATER_FLOW` addable (prototype scope)
 
-Adds the variable to the nodal solution-step variable lists (Python solver + both C++ workflows) and to the GiD output writer's nodal map, so a project can list `NODAL_WATER_FLOW` in `nodal_results`.
+Adds the variable to the Python solver's nodal solution-step variable list so it exists on the nodes for the strategy to populate. Visualization for the prototype is done through a variable-name-driven output route (e.g. a `VtkOutput` process), so the C++ GiD output-writer map and the C++ workflow (`dgeoflow`/`dgeosettlement`) variable lists are intentionally **not** touched.
+
+> **Prototype note:** The originally planned C++ wiring — `custom_workflows/dgeoflow.cpp`, `custom_workflows/dgeosettlement.cpp`, and `custom_workflows/geo_output_writer.cpp` — was dropped as unnecessary for the prototype. Re-add those if the standard GiD `nodal_results` route is needed later.
 
 **Files:**
 - Modify: `applications/GeoMechanicsApplication/python_scripts/geomechanics_solver.py` (near line 364)
-- Modify: `applications/GeoMechanicsApplication/custom_workflows/dgeoflow.cpp` (near line 433)
-- Modify: `applications/GeoMechanicsApplication/custom_workflows/dgeosettlement.cpp` (near line 287)
-- Modify: `applications/GeoMechanicsApplication/custom_workflows/geo_output_writer.cpp` (near line 120)
 
 **Interfaces:**
 - Consumes: `Kratos::NODAL_WATER_FLOW` (Task 1); the variable is populated by Task 3.
-- Produces: `NODAL_WATER_FLOW` present in the historical database for standard GeoMechanics and workflow runs, and accepted as a `nodal_results` output item that writes via `WriteNodalResults`.
+- Produces: `NODAL_WATER_FLOW` present in the historical database for standard GeoMechanics solver runs.
 
 - [ ] **Step 1: Add the variable in the Python solver**
 
@@ -295,49 +294,11 @@ In `geomechanics_solver.py`, `_add_water_variables`, add after the `HYDRAULIC_DI
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_WATER_FLOW)
 ```
 
-- [ ] **Step 2: Add the variable in the dgeoflow workflow**
-
-In `dgeoflow.cpp`, add after the `HYDRAULIC_DISCHARGE` line (line 433):
-
-```cpp
-    rModelPart.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    rModelPart.AddNodalSolutionStepVariable(NODAL_WATER_FLOW);
-```
-
-- [ ] **Step 3: Add the variable in the dgeosettlement workflow**
-
-In `dgeosettlement.cpp`, add after the `HYDRAULIC_DISCHARGE` line (line 287):
-
-```cpp
-    rModelPart.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    rModelPart.AddNodalSolutionStepVariable(NODAL_WATER_FLOW);
-```
-
-- [ ] **Step 4: Add the variable to the nodal output writer map**
-
-In `geo_output_writer.cpp`, `WriteNodalOutput`, add after the `HYDRAULIC_DISCHARGE` entry (line 120):
-
-```cpp
-        {"HYDRAULIC_DISCHARGE", MakeNodalResultWriterFor(HYDRAULIC_DISCHARGE)},
-        {"NODAL_WATER_FLOW", MakeNodalResultWriterFor(NODAL_WATER_FLOW)},
-```
-
-- [ ] **Step 5: Build to verify it compiles**
+- [ ] **Step 2: Commit**
 
 ```powershell
-cmake --build build/FullDebug --target KratosGeoMechanicsCore KratosGeoMechanicsApplication
-```
-
-Expected: build succeeds.
-
-- [ ] **Step 6: Commit**
-
-```powershell
-git add applications/GeoMechanicsApplication/python_scripts/geomechanics_solver.py `
-        applications/GeoMechanicsApplication/custom_workflows/dgeoflow.cpp `
-        applications/GeoMechanicsApplication/custom_workflows/dgeosettlement.cpp `
-        applications/GeoMechanicsApplication/custom_workflows/geo_output_writer.cpp
-git commit -m "feat(geo): expose NODAL_WATER_FLOW as a nodal output result"
+git add applications/GeoMechanicsApplication/python_scripts/geomechanics_solver.py
+git commit -m "feat(geo): add NODAL_WATER_FLOW to solver nodal solution-step variables"
 ```
 
 ---
@@ -377,6 +338,7 @@ If any test fails, fix the offending task before proceeding.
 
 ## Notes
 
-- The GiD writer path needs no special-case computation (unlike `HYDRAULIC_HEAD`): because Task 3 stores `NODAL_WATER_FLOW` in the historical database each step, `MakeNodalResultWriterFor(NODAL_WATER_FLOW)` → `WriteNodalResults` reads it directly.
+- For the prototype, visualization uses a variable-name-driven output route (e.g. a `VtkOutput` process) that reads the historical `NODAL_WATER_FLOW` value directly. The C++ GiD `geo_output_writer` map entry and the `dgeoflow`/`dgeosettlement` workflow variable lists were intentionally dropped; re-add them only if the standard GiD `nodal_results` path is required.
+- Because Task 3 stores `NODAL_WATER_FLOW` in the historical database each converged step, any output route that reads solution-step nodal variables by name picks it up without extra C++ wiring.
 - Adjust `build/FullDebug` in commands to your actual build directory (e.g. `build/Release-unity`) and the test runner path to wherever `KratosGeoMechanicsCoreTest` is emitted, if different.
 
