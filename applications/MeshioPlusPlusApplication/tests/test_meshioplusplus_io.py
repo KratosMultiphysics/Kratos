@@ -37,6 +37,8 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
         # read-only before, so both directions are pinned.
         self.assertIn("openfoam", read_formats)
         self.assertIn("openfoam", write_formats)
+        self.assertIn("gid", read_formats)
+        self.assertIn("gid", write_formats)
         for name in ("svg", "tikz"):              # write-only formats
             self.assertIn(name, write_formats)
             self.assertNotIn(name, read_formats)
@@ -54,6 +56,11 @@ class TestMeshioPlusPlusIO(KratosUnittest.TestCase):
         self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat("some_mesh.vtu"), Format.VTU)
         self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat("some_mesh.case"), Format.ENSIGHT)
         self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat("some_mesh.vtp"), Format.VTP)
+        # GiD's compound extension has to beat ".msh"'s own entry, which is gmsh.
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.FormatFromString("gid"), Format.GID)
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.FormatName(Format.GID), "gid")
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat("results.post.msh"), Format.GID)
+        self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat("results.msh"), Format.GMSH)
         self.assertTrue(KratosMeshioPlusPlus.MeshioPlusPlusIO.IsFormatAvailable(Format.VTU))
         with self.assertRaisesRegex(RuntimeError, "Unknown format"):
             KratosMeshioPlusPlus.MeshioPlusPlusIO.FormatFromString("not_a_format")
@@ -424,6 +431,105 @@ End Elements
             opaque = Path(temp_dir) / "opaque.dat"
             opaque.write_text("Begin Nodes\n    1   0.0   0.0   0.0\nEnd Nodes\n")
             self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.SniffFormat(str(opaque)), "")
+
+    def testGidRoundTrip(self):
+        Format = KratosMeshioPlusPlus.MeshioPlusPlusIO.Format
+        if not KratosMeshioPlusPlus.MeshioPlusPlusIO.IsFormatAvailable(Format.GID):
+            self.skipTest("This build has no gidpost (GiD writing needs zlib)")
+
+        write_model_part = self.model.CreateModelPart("Write")
+        _PopulateModelPart(write_model_part)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # The ascii flavour writes a .post.msh/.post.res sibling pair.
+            file_path = Path(tmp_dir) / "results.post.msh"
+            settings = KratosMultiphysics.Parameters(
+                '{"time_series" : "single_file", "gid_mode" : "ascii"}')
+            io_write = KratosMeshioPlusPlus.MeshioPlusPlusIO(str(file_path), settings)
+            io_write.WriteModelPart(write_model_part)
+            self.assertTrue(file_path.is_file())
+
+            read_model_part = self.model.CreateModelPart("Read")
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(file_path)).ReadModelPart(read_model_part)
+            self.assertEqual(read_model_part.NumberOfNodes(), write_model_part.NumberOfNodes())
+            self.assertGreater(read_model_part.NumberOfElements(), 0)
+
+    def testGidTimeSeries(self):
+        Format = KratosMeshioPlusPlus.MeshioPlusPlusIO.Format
+        if not KratosMeshioPlusPlus.MeshioPlusPlusIO.IsFormatAvailable(Format.GID):
+            self.skipTest("This build has no gidpost (GiD writing needs zlib)")
+
+        model_part = self.model.CreateModelPart("Transient")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        _PopulateModelPart(model_part)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = Path(tmp_dir) / "transient.post.msh"
+            settings = KratosMultiphysics.Parameters("""{
+                "gid_mode" : "ascii",
+                "output_control_type" : "time",
+                "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+            }""")
+            io_write = KratosMeshioPlusPlus.MeshioPlusPlusIO(str(file_path), settings)
+            for step in range(3):
+                model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.5 * (step + 1)
+                for node in model_part.Nodes:
+                    node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, step * 10.0 + node.X)
+                io_write.WriteModelPart(model_part)
+            # Nothing reaches disk until the series is closed: meshio++ pulls every step at once.
+            self.assertFalse(file_path.exists())
+            io_write.CloseOutput()
+            self.assertTrue(file_path.is_file())
+
+            io_read = KratosMeshioPlusPlus.MeshioPlusPlusIO(str(file_path))
+            self.assertEqual(io_read.GetNumberOfTimeSteps(), 3)
+            self.assertVectorAlmostEqual(io_read.GetTimeValues(), [0.5, 1.0, 1.5])
+
+    def testGidFileSeriesKeepsCompoundExtension(self):
+        Format = KratosMeshioPlusPlus.MeshioPlusPlusIO.Format
+        if not KratosMeshioPlusPlus.MeshioPlusPlusIO.IsFormatAvailable(Format.GID):
+            self.skipTest("This build has no gidpost (GiD writing needs zlib)")
+
+        model_part = self.model.CreateModelPart("Series")
+        _PopulateModelPart(model_part)
+        model_part.ProcessInfo[KratosMultiphysics.STEP] = 3
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = Path(tmp_dir) / "results.post.msh"
+            settings = KratosMultiphysics.Parameters(
+                '{"time_series" : "file_series", "gid_mode" : "ascii"}')
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(file_path), settings).WriteModelPart(model_part)
+
+            # The step label goes before the compound extension: a "results.post_3.msh" would no
+            # longer resolve to gid at all.
+            expected = Path(tmp_dir) / "results_3.post.msh"
+            self.assertTrue(expected.is_file())
+            self.assertEqual(KratosMeshioPlusPlus.MeshioPlusPlusIO.ResolveFormat(str(expected)),
+                             Format.GID)
+
+    def testGidUnknownModeRaises(self):
+        with self.assertRaisesRegex(RuntimeError, 'Unknown "gid_mode" setting'):
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(
+                "unused.post.msh", KratosMultiphysics.Parameters('{"gid_mode" : "not_a_mode"}'))
+
+    def testProvenanceRoundTrip(self):
+        model_part = self.model.CreateModelPart("MyStructure")
+        _PopulateModelPart(model_part)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = Path(tmp_dir) / "provenance.vtu"
+            settings = KratosMultiphysics.Parameters(
+                '{"time_series" : "single_file", "provenance" : "best_effort"}')
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(str(file_path), settings).WriteModelPart(model_part)
+
+            provenance = KratosMeshioPlusPlus.MeshioPlusPlusIO(str(file_path)).GetProvenance()
+            self.assertTrue(provenance["recognised"].GetBool())
+            self.assertGreater(provenance["lines"].size(), 0)
+
+    def testUnknownProvenanceModeRaises(self):
+        with self.assertRaisesRegex(RuntimeError, 'Unknown "provenance" setting'):
+            KratosMeshioPlusPlus.MeshioPlusPlusIO(
+                "unused.vtu", KratosMultiphysics.Parameters('{"provenance" : "sometimes"}'))
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)

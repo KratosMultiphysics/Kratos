@@ -38,6 +38,30 @@ def _CreateTriangulatedSquare(model_part):
     model_part.CreateNewElement("Element2D3N", 2, [1, 3, 4], properties)
 
 
+def _CreateClosedCubeSkin(model_part):
+    """The unit cube's closed triangular skin (12 outward-wound triangles)."""
+    model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+    model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+    model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+    model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+    model_part.CreateNewNode(5, 0.0, 0.0, 1.0)
+    model_part.CreateNewNode(6, 1.0, 0.0, 1.0)
+    model_part.CreateNewNode(7, 1.0, 1.0, 1.0)
+    model_part.CreateNewNode(8, 0.0, 1.0, 1.0)
+
+    properties = model_part.CreateNewProperties(1)
+    connectivities = [
+        [1, 3, 2], [1, 4, 3],
+        [5, 6, 7], [5, 7, 8],
+        [1, 2, 6], [1, 6, 5],
+        [3, 4, 8], [3, 8, 7],
+        [2, 3, 7], [2, 7, 6],
+        [1, 5, 8], [1, 8, 4],
+    ]
+    for i, nodes in enumerate(connectivities):
+        model_part.CreateNewElement("Element2D3N", i + 1, nodes, properties)
+
+
 class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
     def setUp(self):
         self.model = KratosMultiphysics.Model()
@@ -57,7 +81,9 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
 
     def test_supported_operations(self):
         operations = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.GetSupportedOperations()
-        for expected in ("clean", "transform", "refine", "partition", "extract_skin", "stats"):
+        for expected in ("clean", "transform", "refine", "partition", "extract_skin", "stats",
+                         "subdivide", "agglomerate", "decimate_volume", "remesh", "remesh_volume",
+                         "optimize_volume", "estimate_error", "hessian", "data_integrate"):
             self.assertIn(expected, operations)
 
     def test_unknown_operation_raises(self):
@@ -491,6 +517,147 @@ class TestMeshioPlusPlusMeshOperations(KratosUnittest.TestCase):
         opened = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.CheckSurfaceWatertight(sheet)
         self.assertFalse(opened["watertight"].GetBool())
         self.assertGreater(opened["boundary_edges"].GetInt(), 0)
+
+    def test_subdivide(self):
+        destination, _ = self._Execute("subdivide")
+        # One level of tetrahedral subdivision, no selector: eight children per parent.
+        self.assertEqual(destination.NumberOfElements(), 8 * self.source.NumberOfElements())
+
+    def test_agglomerate(self):
+        destination, _ = self._Execute(
+            "agglomerate", KratosMultiphysics.Parameters('{"target_group_size" : 2}'))
+        self.assertGreater(destination.NumberOfElements(), 0)
+        self.assertLess(destination.NumberOfElements(), self.source.NumberOfElements())
+
+    def test_refine_record_hierarchy(self):
+        destination, _ = self._Execute(
+            "refine", KratosMultiphysics.Parameters('{"levels" : 1, "record_hierarchy" : true}'))
+        self.assertEqual(destination.NumberOfElements(), 8 * self.source.NumberOfElements())
+
+    def test_optimize_volume(self):
+        _, report = self._Execute(
+            "optimize_volume", KratosMultiphysics.Parameters('{"optimize_iterations" : 2}'))
+        # Monotone worst-element quality is the contract, improvement is not guaranteed.
+        self.assertGreaterEqual(report["min_quality_after"].GetDouble(),
+                                report["min_quality_before"].GetDouble())
+
+    def test_decimate_volume(self):
+        refined = self.model.CreateModelPart("Refined")
+        parameters = KratosMultiphysics.Parameters('{"operation" : "refine", "levels" : 2}')
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(self.source, parameters, refined)
+
+        destination = self.model.CreateModelPart("DecimatedVolume")
+        parameters = KratosMultiphysics.Parameters(
+            '{"operation" : "decimate_volume", "target_ratio" : 0.5}')
+        report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(
+            refined, parameters, destination)
+        self.assertTrue(report.Has("tets_removed"))
+        self.assertGreater(destination.NumberOfElements(), 0)
+        self.assertLessEqual(destination.NumberOfElements(), refined.NumberOfElements())
+
+    def test_remesh(self):
+        surface = self.model.CreateModelPart("Skin")
+        _CreateClosedCubeSkin(surface)
+        destination = self.model.CreateModelPart("Remeshed")
+        parameters = KratosMultiphysics.Parameters('{"operation" : "remesh", "num_clusters" : 8}')
+        report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(
+            surface, parameters, destination)
+        self.assertGreater(report["number_of_clusters"].GetInt(), 0)
+        self.assertGreater(destination.NumberOfElements(), 0)
+
+    def test_remesh_volume(self):
+        surface = self.model.CreateModelPart("SkinForVolume")
+        _CreateClosedCubeSkin(surface)
+        destination = self.model.CreateModelPart("Volume")
+        parameters = KratosMultiphysics.Parameters(
+            '{"operation" : "remesh_volume", "resolution" : [4, 4, 4]}')
+        report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(
+            surface, parameters, destination)
+        self.assertGreater(report["number_of_tets"].GetInt(), 0)
+        self.assertTrue(report["surface_quality"]["watertight"].GetBool())
+        self.assertEqual(destination.NumberOfElements(), report["number_of_tets"].GetInt())
+
+    def test_estimate_error(self):
+        self.source.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        for node in self.source.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.X * node.X + node.Y)
+        _, report = self._Execute("estimate_error", KratosMultiphysics.Parameters("""{
+            "array_name" : "TEMPERATURE",
+            "output" : "DISTANCE",
+            "marking" : "fraction",
+            "marking_value" : 0.5,
+            "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+        }"""))
+        self.assertGreaterEqual(report["global_error"].GetDouble(), 0.0)
+        self.assertGreater(report["number_of_marked"].GetInt(), 0)
+
+    def test_hessian(self):
+        self.source.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        for node in self.source.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.X * node.X)
+        destination, report = self._Execute("hessian", KratosMultiphysics.Parameters("""{
+            "array_name" : "TEMPERATURE",
+            "location" : "cell",
+            "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+        }"""))
+        self.assertTrue(report.Has("number_of_skipped"))
+        self.assertEqual(destination.NumberOfElements(), self.source.NumberOfElements())
+
+    def test_data_integrate(self):
+        self.source.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        for node in self.source.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 2.0)
+        destination, report = self._Execute("data_integrate", KratosMultiphysics.Parameters("""{
+            "names" : ["TEMPERATURE"],
+            "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+        }"""))
+        self.assertEqual(report["arrays"].size(), 1)
+        domain = report["arrays"][0]["domain"]
+        # The unit cube's volume, and the constant field back out of the weighted mean.
+        self.assertAlmostEqual(domain["domain_measure"].GetVector()[0], 1.0)
+        self.assertAlmostEqual(domain["mean"].GetVector()[0], 2.0)
+        # Report-only: the destination is left untouched.
+        self.assertEqual(destination.NumberOfElements(), 0)
+
+    def test_undo_green(self):
+        coarse = self.model.CreateModelPart("Coarse")
+        _CreateTriangulatedSquare(coarse)
+
+        fine = self.model.CreateModelPart("Fine")
+        parameters = KratosMultiphysics.Parameters("""{
+            "operation" : "refine", "levels" : 1, "cells" : [0],
+            "closure" : "redgreen", "record_hierarchy" : true
+        }""")
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(coarse, parameters, fine)
+
+        destination = self.model.CreateModelPart("Ungreened")
+        report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.UndoGreen(
+            coarse, fine, destination)
+        self.assertTrue(report.Has("number_of_groups_undone"))
+        self.assertGreater(destination.NumberOfElements(), 0)
+        self.assertLessEqual(destination.NumberOfElements(), fine.NumberOfElements())
+
+    def test_conservative_interpolate(self):
+        source = self.model.CreateModelPart("ConservativeSource")
+        source.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        _CreateTriangulatedSquare(source)
+        for node in source.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 3.0)
+
+        target = self.model.CreateModelPart("ConservativeTarget")
+        parameters = KratosMultiphysics.Parameters('{"operation" : "refine", "levels" : 1}')
+        KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.Execute(source, parameters, target)
+
+        destination = self.model.CreateModelPart("ConservativeResult")
+        report = KratosMeshioPlusPlus.MeshioPlusPlusMeshOperations.ConservativeInterpolate(
+            source, target,
+            KratosMultiphysics.Parameters("""{
+                "names" : ["TEMPERATURE"],
+                "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+            }"""),
+            destination)
+        self.assertEqual(report["number_of_elements"].GetInt(), target.NumberOfElements())
+        self.assertEqual(destination.NumberOfNodes(), target.NumberOfNodes())
 
 
 if __name__ == "__main__":
