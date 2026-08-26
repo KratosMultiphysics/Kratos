@@ -15,7 +15,7 @@ meshio++ is consumed as a normal, **independently built external dependency** �
 ## Features
 
 - **Multi-format mesh input/output** through `MeshioPlusPlusIO` — see [Output Process](../Output_Process/Meshio_Output_Process.html) and [Modelers](../Modelers/Meshio_Input_Modeler.html).
-  - 42 readable and 45 writable formats, including the Kratos native `mdpa`.
+  - 43 readable and 46 writable formats, including the Kratos native `mdpa` and the GiD postprocess format.
   - The format is resolved explicitly or inferred from the file extension.
   - Sub model parts map to meshio++ named regions, nesting included.
   - Registered entity names (`SmallDisplacementElement3D4N`, ...) are preserved across a round trip instead of degrading to the generic cell-type name.
@@ -48,11 +48,11 @@ then point the Kratos configure at it, and add the application:
 add_app ${KRATOS_APP_DIR}/MeshioPlusPlusApplication
 ```
 
-> **Version pin**: the application requires **meshio++ ABI 6** — **v9.20.0 or newer**, which includes **v10.0.0**. It pins `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version — that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect the application needs no rebuild (v10.0.0 is a pure version-number bump over v9.30.0 and holds the ABI at 6):
+> **Version pin**: the application requires **meshio++ ABI 11** — **v10.17.0 or newer**, which includes **v10.20.0**. It pins `MESHIOPLUSPLUS_ABI_VERSION` rather than the release version — that counter moves only when the installed headers stop being compatible with an already-compiled consumer, so a release that cannot affect the application needs no rebuild (v10.20.0 is a pure version-number bump over v10.19.0 and holds the ABI at 11):
 >
 > ```cmake
 > find_package(meshioplusplus CONFIG REQUIRED COMPONENTS CXX)
-> if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 6)
+> if(NOT MESHIOPLUSPLUS_ABI_VERSION EQUAL 11)
 >     message(FATAL_ERROR "...")
 > endif()
 > ```
@@ -61,15 +61,15 @@ add_app ${KRATOS_APP_DIR}/MeshioPlusPlusApplication
 
 > **Upgrading from any older meshio++** requires relinking the application once, to `libmeshioplusplus_core_kratos.so.6`. Install the new meshio++ wholesale rather than part-upgrading — its headers reference a link-time sentinel an older library does not define, which fails closed at link time.
 >
-> Note that neither ABI bump since the 3/4 era could affect this application: ABI 5 (v9.9.0) moved `MedInfo`'s layout and ABI 6 (v9.20.0) `OpenFoamInfo`'s, and the application names no format side-channel struct at all.
+> Unlike ABI 5 (v9.9.0, `MedInfo`) and ABI 6 (v9.20.0, `OpenFoamInfo`) — format side-channel structs the application names nowhere — ABI 7 through 11 all moved types it passes by value: `RefineOptions` gained `mRecordHierarchy` (7), `RemeshOptions` grew twice (8, 9), `SmoothMethod` gained an explicit `: std::uint8_t` underlying type (10) and `MeshMetadata` gained the provenance fields (11, `sizeof` 256 → 288). Those are the bumps that made this a real relink rather than a version-number change.
 
 ## Supported formats
 
-**Read (42):** `abaqus` `ansys` `ansysinp` `avsucd` `cgns` `dex` `dolfin` `ensight` `exodus` `flac3d` `flux` `freefem` `gmsh` `h5m` `hmf` `ip` `mdpa` `med` `medit` `mff` `mfm` `mphtxt` `nastran` `netgen` `obj` `off` `openfoam` `permas` `ply` `stl` `su2` `tecplot` `tetgen` `triangle` `ugrid` `unv` `vti` `vtk` `vtp` `vtu` `wkt` `xdmf`
+**Read (43):** `abaqus` `ansys` `ansysinp` `avsucd` `cgns` `dex` `dolfin` `ensight` `exodus` `flac3d` `flux` `freefem` `gid` `gmsh` `h5m` `hmf` `ip` `mdpa` `med` `medit` `mff` `mfm` `mphtxt` `nastran` `netgen` `obj` `off` `openfoam` `permas` `ply` `stl` `su2` `tecplot` `tetgen` `triangle` `ugrid` `unv` `vti` `vtk` `vtp` `vtu` `wkt` `xdmf`
 
-**Write (45):** the same set (every readable format is writable since meshio++ v9.20.0 added the OpenFOAM polyMesh writer), plus `gmsh22`, `svg` and `tikz` (write-only).
+**Write (46):** the same set (every readable format is writable since meshio++ v9.20.0 added the OpenFOAM polyMesh writer), plus `gmsh22`, `svg` and `tikz` (write-only).
 
-`cgns`, `h5m`, `hmf`, `med` and the XDMF-HDF data path require an HDF5-enabled meshio++ build; `exodus` requires netCDF. A format compiled out is still resolved by extension and reports *why* it is unavailable rather than "unknown format". Query what your build supports at runtime:
+`cgns`, `h5m`, `hmf`, `med` and the XDMF-HDF data path require an HDF5-enabled meshio++ build; `exodus` requires netCDF. Writing `gid` requires zlib (gidpost deflates unconditionally) and its `hdf5` flavour additionally HDF5, while *reading* it needs nothing at all for the ascii flavour — so `gid` is readable in strictly more build configurations than it is writable, and `IsFormatAvailable(Format.GID)` answers for the write side. A format compiled out is still resolved by extension and reports *why* it is unavailable rather than "unknown format". Query what your build supports at runtime:
 
 ```python
 import KratosMultiphysics.MeshioPlusPlusApplication as KratosMeshioPlusPlus

@@ -16,6 +16,7 @@ It is a thin Python wrapper around the C++ `MeshioPlusPlusIO` class (`custom_io/
 
 The process is called once per output step, and the underlying IO **extends the current output instead of overwriting it**:
 
+- **GiD** (`.post.msh`/`.post.bin`/`.post.h5`, `"time_series": "automatic"`): all steps go into a **single multi-step series**. meshio++'s series writer *pulls* every step through a callback while this process *pushes* one per `PrintOutput`, so the steps are buffered in memory and the whole series is written in `ExecuteFinalize`'s `CloseOutput()` — **nothing is on disk before that**, unlike the XDMF writer which streams. For a long run set `"time_series": "file_series"` instead, which writes one `<stem>_<label>.post.msh` per step. GiD only emits a `Group` when a step's mesh differs from the previous one's, so a fixed-mesh run pays no on-disk penalty for the series path.
 - **XDMF** (`.xdmf`/`.xmf`, `"time_series": "automatic"`, the default): all steps go into a **single file**. The static mesh (geometry + topology) is written once; every output step appends one grid to the XDMF *temporal collection*, holding `<Time Value="...">` and the nodal/cell results. On the first write of a run the IO checks whether the file already holds a valid time series (e.g. after a restart) and, if so, **continues** it instead of overwriting it. Heavy data is stored according to `"xdmf_data_format"`: inline `XML` text, sibling `.bin` files (`Binary`), or a companion `.h5` file (`HDF`, recommended, requires HDF5). The light data (`.xdmf`) is rewritten after every step by default (`"xdmf_auto_flush"`), so a run that is killed still leaves a file readable in ParaView.
 - **Every other format**: one file per output step is written as a file series `<output_name>_<label>.<ext>`, where the label is the `STEP` or the `TIME` (see `"output_control_type"`), like the VTK output does.
 - With `"time_series": "single_file"` every call overwrites the same file (useful for writing a single, final mesh).
@@ -101,6 +102,9 @@ Or through the [Python registry](https://github.com/KratosMultiphysics/Kratos/wi
 | `write_deformed_configuration` | `false` | Write current (`X()`) coordinates instead of the initial (`X0()`) ones. |
 | `write_ids` | `false` | Attach node/element/condition ids as extra data arrays. |
 | `xdmf_data_format` | `"auto"` | `"HDF"` (needs HDF5), `"XML"`, or `"Binary"`; `"auto"` picks `HDF` when available. |
+| `gid_mode` | `"auto"` | GiD's on-disk flavour: `"ascii"` (a `.post.msh`/`.post.res` pair), `"binary"` (`.post.bin`), `"hdf5"` (`.post.h5`), `"ascii_zipped"`. `"auto"` infers it from the path and never resolves to `ascii_zipped` — no extension can express "zipped". |
+| `gid_analysis_name` | `"Kratos"` | The analysis label GiD shows for the results. |
+| `provenance` | `"default"` | `"off"`, `"best_effort"` or `"required"`; `"default"` leaves meshio++'s own default alone, which has been on since v10.17.0. Read it back with `MeshioPlusPlusIO.GetProvenance()`. |
 | `xdmf_auto_flush` | `true` | Rewrite the `.xdmf` light data after every step, so a killed run stays readable. |
 | `xdmf_gzip_level` | `-1` | gzip level for `HDF` datasets; `-1` means uncompressed. |
 | `nodal_solution_step_data_variables` | `[]` | Historical nodal variables to write. |

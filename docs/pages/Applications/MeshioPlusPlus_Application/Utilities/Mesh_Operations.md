@@ -1,6 +1,6 @@
 ---
 title: Mesh Operations
-keywords: meshio meshioplusplus clean transform split refine decimate smooth partition quality stats diff data_calc data_condition data_manage interpolate gradient voxelize sdf crop_predicate grid
+keywords: meshio meshioplusplus clean transform split refine subdivide agglomerate undo_green decimate decimate_volume smooth remesh remesh_volume optimize_volume partition quality stats diff data_calc data_condition data_manage data_integrate interpolate conservative_interpolate gradient hessian estimate_error voxelize sdf crop_predicate grid
 tags: [Mesh_Operations.md]
 sidebar: meshioplusplus_application
 summary: The meshio++ mesh and data operations exposed as a Kratos utility.
@@ -19,7 +19,7 @@ It is reachable three ways:
 Operations fall into two groups:
 
 - **mesh-producing** (`clean`, `transform`, `refine`, ...): the result is written into the destination model part, and the returned report carries the operation's own counts (welded points, bandwidth before/after, ...);
-- **report-only** (`stats`, `quality`): the destination is left untouched and the whole result is in the returned report.
+- **report-only** (`stats`, `quality`, `data_info`, `data_integrate`): the destination is left untouched and the whole result is in the returned report.
 
 `"split"` and `"partition"` are a third case: **multi-output**. They create one model part per piece — named `<destination>_<operation>_<index>` and registered as siblings in the same `Model` — because a Kratos sub model part is a view into its root's entity containers while each piece is independently renumbered from 1, so the pieces cannot be sub model parts of a shared destination.
 
@@ -47,9 +47,15 @@ Every setting below is read from the same flat `Parameters` object as `"operatio
 | `clean` | Weld coincident nodes, drop degenerate/duplicate cells, remove orphan nodes. | `weld`, `tolerance`, `remove_orphans`, `drop_degenerate`, `drop_duplicate_cells` |
 | `transform` | Affine transform (scale, then rotate, then translate), optionally rotating vector field data. | `scale`, `rotation_axis`, `rotation_angle`, `translation`, `rotate_vector_data` |
 | `convert_cells` | Element-type conversion: `"linearize"` (drop mid nodes), `"simplexify"` (decompose into simplices), `"elevate"` (linear → quadratic). | `mode`, `record_parent_ids` |
-| `refine` | Uniform subdivision, or selective/adaptive subdivision of a chosen subset — see below. | `levels`, `record_parent_ids`, `cells`, `region`, `predicate_array`, `predicate_op`, `predicate_value`, `closure`, `record_levels` |
-| `decimate` | Surface decimation by quadric-error edge collapse. | `target_ratio`, `target_faces`, `max_error`, `preserve_boundary`, `preserve_features`, `feature_angle` |
-| `smooth` | Coordinate smoothing (Laplacian/Taubin). | `method`, `iterations`, `lambda`, `mu`, `fix_boundary`, `preserve_features`, `feature_angle`, `guard_inversion` |
+| `refine` | Uniform subdivision, or selective/adaptive subdivision of a chosen subset — see below. `record_hierarchy` attaches the persistent `refine:cell_id`/`refine:parent_id` arrays a multigrid caller resolves across the sequence of meshes it keeps, and which `UndoGreen` needs to identify a green group later. | `levels`, `record_parent_ids`, `cells`, `region`, `predicate_array`, `predicate_op`, `predicate_value`, `closure`, `record_levels`, `record_hierarchy` |
+| `subdivide` | One unconditional level of subdivision into same-type children. Unlike `refine` it has no selector and no closure, which is exactly why it never leaves a hanging node. | `record_parent_ids` |
+| `agglomerate` | Groups neighbouring cells into coarser ones. | `target_group_size` |
+| `decimate` | **Surface** decimation by quadric-error edge collapse. | `target_ratio`, `target_faces`, `max_error`, `preserve_boundary`, `preserve_features`, `feature_angle` |
+| `decimate_volume` | The **tetrahedral** counterpart of `decimate`: the same quadric-collapse idea, but the budget is a cell count rather than a face count, hence `target_cells`. | `target_ratio`, `target_cells`, `max_error`, `placement`, `preserve_boundary`, `preserve_features`, `feature_angle`, `frozen` |
+| `remesh` | **Surface** remeshing of a triangle mesh by ACVD clustering, with an isotropic, quadric or anisotropic metric, curvature gradation and boundary preservation. | `num_clusters`, `subdivide_level`, `subsample_ratio`, `max_subdivide`, `max_iterations`, `max_repair_passes`, `metric`, `gradation`, `preserve_boundary`, `max_anisotropy` |
+| `remesh_volume` | A **closed surface in, a tetrahedral volume out**: a lattice cut against the surface's signed distance, so it shares the whole lattice/SDF settings block with `voxelize` and `compute_sdf` rather than declaring its own. | `resolution` or `cell_size`, `bounds`, `padding`, `padding_relative`, `max_cells`, `max_tets`, `warp_fraction`, plus the surface-distance settings |
+| `optimize_volume` | Improves a **tetrahedral** mesh without changing its cell budget: vertex relocation plus 2-3/3-2 flips. The worst element's quality is monotone — the report carries it before and after. Uses `optimize_iterations` rather than `max_iterations` because upstream's default here (10) differs from `remesh`'s (100), and one key cannot carry two defaults. | `optimize_iterations`, `relocate`, `flip`, `preserve_boundary`, `min_improvement`, `frozen` |
+| `smooth` | Coordinate smoothing (Laplacian, Taubin or ODT). | `method`, `iterations`, `lambda`, `mu`, `fix_boundary`, `preserve_features`, `feature_angle`, `guard_inversion` |
 | `reorder` | Node renumbering (`"rcm"`, `"morton"`, `"hilbert"`); the report carries the bandwidth before and after. | `method` |
 | `extract_surface` | Boundary extraction (3D → faces, 2D → edges). | `record_parent_ids` |
 | `extract_skin` | Boundary skin of a volume mesh (the `SkinDetectionProcess` algorithm). | `linearize` |
@@ -57,6 +63,8 @@ Every setting below is read from the same flat `Parameters` object as `"operatio
 | `crop_halfspace` | Subset by half-space `(p - origin)·normal >= 0`. | `origin`, `normal`, `keep_partial_cells`, `record_parent_ids` |
 | `crop_predicate` | Keep the cells whose scalar `cell_data` value satisfies a comparison. Shares `refine`'s comparison vocabulary *and its evaluator*, so a non-finite cell value never matches — including under `!=`, where IEEE would say it does. `keep_partial_cells` is deliberately absent: a cell-data predicate is already one value per cell and has nothing to reduce. | `predicate_array`, `predicate_op`, `predicate_value`, `record_parent_ids` |
 | `gradient` | Gradient, divergence or curl of a `point_data` field. Green-Gauss is exact for a linear field on any cell. A `cell_data` input raises by name — a piecewise-constant field has no derivative. | `array_name`, `gradient_operator`, `gradient_method`, `location`, `output`, `output_overwrite`, `component` |
+| `hessian` | The second-derivative sibling of `gradient`. | `array_name`, `gradient_method`, `location`, `output`, `output_overwrite` |
+| `estimate_error` | Zienkiewicz-Zhu recovery-based error indicator, with `"absolute"`, `"fraction"` or `"dorfler"` marking (or `"none"` to estimate only). The marked array is exactly what selective `refine`'s `predicate_array` was built to consume, which closes the adaptive loop. Both outputs are colon-namespaced (`error:zz`, `error:marked`), so point `output`/`marked_name` at registered `Variable` names to read them back — see the write-back note below. | `array_name`, `error_method`, `marking`, `marking_value`, `output`, `marked_name`, `output_overwrite` |
 | `voxelize` | A regular hexahedron lattice around the mesh: the whole bounding box (`"all"`), only the cells a surface passes through (`"surface"`), or only those inside it (`"inside"`). The latter two measure against a *surface* — run `extract_skin` first. | `resolution` or `cell_size` (exactly one), `bounds`, `padding`, `padding_relative`, `fill`, `attach_occupancy`, `max_cells`, `output`, plus the surface-distance settings |
 | `compute_sdf` | Generates a grid *and* fills it with the signed distance to the source surface. `"octree"` refines adaptively near the surface and reaches the same zero contour as a uniform grid of the same finest resolution from far fewer cells. | `structure`, `resolution` or `cell_size`, `bounds`, `padding`, `padding_relative`, `root_resolution`, `max_depth`, `band_cells`, `record_levels`, `max_cells`, `output`, plus the surface-distance settings |
 | `slice` | Planar cross-section (volume → surface, surface → lines). | `origin`, `normal`, `record_parent_ids` |
@@ -66,6 +74,7 @@ Every setting below is read from the same flat `Parameters` object as `"operatio
 | `data_condition` | Conditions an array's values in place: `"clamp"` (min/max), `"normalize"` (rescale to `[lo, hi]`), `"standardize"` (zero mean, unit variance). | `mode`, `scope`, `names`, `lo`, `hi`, `output_suffix`, `preserve_dtype`, `location` |
 | `data_manage` | Keeps, drops or renames arrays (in that fixed order). | `keep`, `drop`, `rename`, `ignore_missing` |
 | `data_info` | *(report-only)* Reports every staged array's name, shape, dtype and value statistics. | — |
+| `data_integrate` | *(report-only)* The cell-measure-weighted integral and mean of each array, over the whole mesh and over every named cell region. Per-component throughout, so a vector array reports one entry per component. | `names` |
 | `point_data_to_cell_data` | Averages nodal data onto cells (mean over each cell's own nodes). | `names`, `weight`, `prefix`, `output_suffix`, `overwrite`, `nan_policy`, `nan_replacement` |
 | `cell_data_to_point_data` | Averages cell data onto nodes (mean, optionally measure-weighted, over the incident cells). | `names`, `weight`, `prefix`, `output_suffix`, `overwrite`, `nan_policy`, `nan_replacement` |
 | `split` | *(multi-output)* Partition into submeshes by cell type, connected component, or integer tag. | `split_by`, `tag_name` |
@@ -73,7 +82,7 @@ Every setting below is read from the same flat `Parameters` object as `"operatio
 | `stats` | *(report-only)* Bounding box, per-cell-type counts, total area, signed/unsigned volume, inverted-cell count. | — |
 | `quality` | *(report-only)* Per-cell quality metrics summarized per metric, plus inverted/degenerate counts. | — |
 
-All operations also read the shared settings `"entity_type"` (`"elements"`, `"conditions"`, or `"automatic"` for both) and `"use_deformed_configuration"` (current vs. initial node coordinates).
+All operations also read the shared settings `"entity_type"` (`"elements"`, `"conditions"`, or `"automatic"` for both), `"use_deformed_configuration"` (current vs. initial node coordinates), and `"record_provenance"` (default `true`) — whether this operation joins the provenance chain a later `MeshioPlusPlusIO` write records into the file. It is deliberately not the same setting as the IO's own `"provenance"`, which selects a *mode* (`off`/`best_effort`/`required`) for a write; these are different questions.
 
 ## Selective refinement (`refine`)
 
@@ -125,6 +134,8 @@ All default to empty (nothing staged) — an operation that needs a specific arr
 | `grid_cell_size` | `0.0` | Accelerator bucket size; `0` derives one. It cannot change the answer — only the time. |
 | `max_winding_work` | `2.0e9` | Refuses a winding-number query above this rather than running for an hour. |
 
+> **`"padding_relative"` carries one default for operations upstream gives two.** meshio++'s own default is `0.0` for `voxelize` but `0.1` for `compute_sdf` and `remesh_volume`; a single Kratos setting can only have one, and it carries `voxelize`'s `0.0`. So the latter two are padded *less* here than a direct meshio++ call unless you set it explicitly. It is kept at `0.0` rather than "corrected" because changing it would silently change what every existing `voxelize` call produces.
+
 > **`"output"` is what makes these usable from Kratos.** meshio++ names its result `sdf:distance` (and `voxel:occupancy`), which no Kratos `Variable` can ever be — they are colon-namespaced and Kratos variables are not. Chaining a `data_manage` rename afterwards does not help either, because the array is already gone at the model part boundary. Setting `"output"` renames the array *before* the write-back, so pointing it at `DISTANCE` gives a level-set initialisation in one call.
 
 > **The write-back constraint.** A resulting array is written back onto the destination model part only when it is `Float64` or `Int64` **and** its name matches a registered `Variable<T>` with the right component count — Kratos stores non-historical/historical data keyed by `Variable` objects, not arbitrary strings. An operation's own invented names, such as `attach_quality`'s `"quality:scaled_jacobian"` or `refine`'s `"refine:level"`/`"refine:hanging"`, are computed and appear in the report but cannot be retrieved from the model part afterwards, regardless of dtype. Point an operation's own naming setting (`data_calc`'s `"output"`, `data_manage`'s `"rename"`, ...) at an existing variable name to get the result back onto the mesh.
@@ -143,6 +154,8 @@ Beyond `Execute`, `MeshioPlusPlusMeshOperations` exposes operations that do not 
 |---|---|
 | `Merge(sources, settings, destination)` | Merges several model parts into one, with `"weld"`/`"tolerance"` (coincident-node welding), `"drop_duplicate_cells"`. |
 | `Interpolate(source, target, settings, destination)` | Samples `source`'s field data onto `target`'s geometry (`"method"`: `"nearest"`/`"barycentric"`; `"names"`, `"extrapolate"`, `"default_value"`, `"on_conflict"`), filling `destination` with the target's topology plus the interpolated arrays. Needs two independent meshes, so it is not reachable through `Execute` — use it directly, or through the dedicated [Meshio Interpolate Modeler](../Modelers/Meshio_Interpolate_Modeler.html). |
+| `ConservativeInterpolate(source, target, settings, destination)` | The conservative sibling of `Interpolate`: redistributes by intersected cell measure so the **summed quantity is preserved**, rather than sampling point values. The right choice for an extensive field (a mass, a heat load) and the wrong one for an intensive one (a temperature). Settings: `"names"`, `"default_value"`, `"on_conflict"`. |
+| `UndoGreen(coarse, fine, destination)` | Removes the green closure cells a selective `refine(closure="redgreen")` added — they keep the mesh conforming but carry no refinement information of their own and degrade element quality, so a solver finished with a level undoes them before refining again. Takes **no settings**: the coarse mesh is what identifies the green groups. Refine with `record_hierarchy` so the parent/child arrays survive the round trip. |
 | `Diff(first, second, settings)` | Compares two model parts with `"absolute_tolerance"`/`"relative_tolerance"`; returns `{"equal": bool}`. |
 | `ComputeStatistics(model_part)` | The `"stats"` report, callable directly without a destination. |
 | `ComputeQuality(model_part)` | The `"quality"` report, callable directly without a destination. |
