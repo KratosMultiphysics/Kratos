@@ -148,30 +148,21 @@ void SPHElementUtilities::Calculate3DB(
     }
 }
 
+template<std::size_t TDim>
 Vector SPHElementUtilities::NonSymmetricTensorToVector(
-    const MatrixType& rTensor,
-    SizeType rSize
+    const MatrixType& rTensor
     )
 {
     KRATOS_TRY
 
-    if (rSize == 0){
-        if (rTensor.size1() == 2)
-            rSize = 4;
-        else if (rTensor.size1() == 3)
-            rSize = 9;
-        else
-            KRATOS_ERROR << "Tensor size not supported" << std::endl; 
-    }
-
-    VectorType output_vector(rSize); output_vector.clear();
+    VectorType output_vector(TDim * TDim); output_vector.clear();
     
-    if (rSize == 4) {
+    if constexpr (TDim == 2) {
         output_vector[0] = rTensor(0,0);
         output_vector[1] = rTensor(1,1);
         output_vector[2] = rTensor(0,1);
         output_vector[3] = rTensor(1,0);
-    } else if (rSize == 9) {
+    } else if constexpr (TDim == 3) {
         output_vector[0] = rTensor(0,0);
         output_vector[1] = rTensor(1,1);
         output_vector[2] = rTensor(2,2);
@@ -187,6 +178,36 @@ Vector SPHElementUtilities::NonSymmetricTensorToVector(
 
     KRATOS_CATCH("")
 }
+
+void SPHElementUtilities::ComputeDeformationDependentWaveSpeed(
+    double& rPressureWaveSpeed,
+    double& rShearWaveSpeed,
+    const MatrixType& rF,
+    const Properties& rProperties
+)
+{
+    const SizeType dimension = rF.size1();
+    ComputeWaveSpeed(rPressureWaveSpeed, rShearWaveSpeed, rProperties);
+
+    MatrixType right_cauchy_green(dimension, dimension);
+    noalias(right_cauchy_green) = prod(trans(rF), rF);
+
+    MatrixType eigenvectors, eigenvalues;
+    const bool is_converged = MathUtils<double>::GaussSeidelEigenSystem(right_cauchy_green, eigenvectors, eigenvalues);
+    KRATOS_ERROR_IF_NOT(is_converged)<< "Eigenvalue decomposition of C = F^T F did not converge" << std::endl;
+
+    double minimum_eigenvalue = eigenvalues(0, 0);
+    for (IndexType i = 1; i < dimension; ++i) 
+        minimum_eigenvalue = std::min(minimum_eigenvalue, eigenvalues(i, i));
+
+    const double inverse_minimum_stretch = 1.0 / std::sqrt(minimum_eigenvalue);
+    rPressureWaveSpeed *= inverse_minimum_stretch;
+    rShearWaveSpeed *= inverse_minimum_stretch;
+}
+
+// Function template instantiations 
+template SPHElementUtilities::VectorType SPHElementUtilities::NonSymmetricTensorToVector<2>(const SPHElementUtilities::MatrixType& rTensor);
+template SPHElementUtilities::VectorType SPHElementUtilities::NonSymmetricTensorToVector<3>(const SPHElementUtilities::MatrixType& rTensor);
 
 
 }

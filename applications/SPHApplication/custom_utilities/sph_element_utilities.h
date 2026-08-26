@@ -2,6 +2,7 @@
 #pragma once 
 
 #include <cmath>
+#include <algorithm>
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 #include "sph_application_variables.h"
@@ -47,6 +48,11 @@ public:
     * @brief Computes pressure and shear wave speeds from material properties.
     * */
     static void ComputeWaveSpeed(double& PressureWaveSpeed, double& ShearWaveSpeed, const Properties& rProperties); 
+
+    /**
+     * @brief Computes pressure and shear wave speeds from material properties and the current deformation state.
+     */
+    static void ComputeDeformationDependentWaveSpeed(double& rPressureWaveSpeed, double& rShearWaveSpeed, const MatrixType& rDeformationGradient, const Properties& rProperties);
     
     /**
      * @brief Calculates the 2D and 3D deformation gradient.
@@ -62,7 +68,8 @@ public:
     * @brief Converts a non symmetric tensor to a vector.
     * @details This method extends the one in math_utils.h
     */
-    static VectorType NonSymmetricTensorToVector(const MatrixType& rTensor, SizeType rSize = 0); 
+    template<std::size_t TDim>
+    static VectorType NonSymmetricTensorToVector(const MatrixType& rTensor); 
 
 
 };

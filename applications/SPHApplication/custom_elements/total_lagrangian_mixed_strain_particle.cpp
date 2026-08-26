@@ -311,7 +311,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAll(
 
         CalculateGeometricalTangentMatrix(K21, this_kinematic_variables, gauss_weight);
         
-        if (rProcessInfo[PENALIZATION_COEFFICIENT] != 0.0)
+        if (rProcessInfo[DISSIPATION_COEFFICIENT] != 0.0)
             CalculateAndAddUpwindStabilizationTangent(K11, this_kinematic_variables, rProcessInfo);
 
         K11 *= theta; K12 *= theta; K21 *= -theta;
@@ -327,7 +327,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAll(
 
         CalculateLinearMomentumResidualVector(RHSv, this_kinematic_variables, rProcessInfo, this_constitutive_variables.StressVector, gauss_weight);
         CalculateGeometricalResidualVector(RHSF, this_kinematic_variables, gauss_weight);
-        if (rProcessInfo[PENALIZATION_COEFFICIENT] != 0.0) 
+        if (rProcessInfo[DISSIPATION_COEFFICIENT] != 0.0)
             CalculateAndAddUpwindStabilizationResidual(RHSv, this_kinematic_variables, rProcessInfo);
 
         AssembleRHS(rRHS, RHSv, RHSF);
@@ -353,7 +353,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAll(
 
             CalculateLinearMomentumResidualVector(historical_RHSv, historical_kinematic_variables, rProcessInfo, historical_constitutive_variables.StressVector, gauss_weight, 1);
             CalculateGeometricalResidualVector(historical_RHSF, historical_kinematic_variables, gauss_weight, 1);
-            if (rProcessInfo[PENALIZATION_COEFFICIENT] != 0.0) 
+            if (rProcessInfo[DISSIPATION_COEFFICIENT] != 0.0)
                 CalculateAndAddUpwindStabilizationResidual(historical_RHSv, historical_kinematic_variables, rProcessInfo, 1);
 
             AssembleRHS(historical_spatial_rhs, historical_RHSv, historical_RHSF);
@@ -517,7 +517,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateGeometrical
             
             e = column(E, d); 
             temp = outer_prod(e, row(rThisKinematicVariables.DW_DX, i));
-            temp_vec = SPHElementUtilities::NonSymmetricTensorToVector(temp);
+            temp_vec = SPHElementUtilities<TDim>::NonSymmetricTensorToVector(temp);
             
             const SizeType col_index = i * TDim + d;
             
@@ -559,7 +559,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateGeometrical
         temp += outer_prod(vel_aux, row(rThisKinematicVariables.DW_DX, i));
     }
 
-    temp_residual = SPHElementUtilities::NonSymmetricTensorToVector(temp); 
+    temp_residual = SPHElementUtilities<TDim>::NonSymmetricTensorToVector(temp); 
 
     for (IndexType i = 0; i < number_of_neigh; ++i){
         noalias(project(rRHSF, range(TDim * TDim * i, TDim * TDim * (i + 1)))) += temp_residual * rThisKinematicVariables.W[i];
@@ -713,41 +713,28 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddUpwin
 )
 {
     KRATOS_TRY
-    auto& r_geom = this->GetGeometry();
-    auto& r_props = this->GetProperties();
-    auto& r_neighbours = this->GetValue(NEIGHBOURS);
+    const auto& r_geom = this->GetGeometry();
+    const auto& r_props = this->GetProperties();
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
 
-    VectorType upwind_residual(TDim); upwind_residual.clear();
-    VectorType temp(TDim), X_AB_target(TDim), normal(TDim), velocity_jump(TDim);
+    VectorType upwind_residual(TDim), velocity_jump(TDim); upwind_residual.clear();
+    MatrixType stabilization_matrix(TDim, TDim);
 
     const int self_index = this->GetNeighbourPosition(r_neighbours);
-    VectorType dkernel = row(rThisKinematicVariables.DW_DX, self_index);
-    const double coeff = rProcessInfo.GetValue(PENALIZATION_COEFFICIENT);
-    const double density = r_props[DENSITY];
-
-    const double gauss_weight = r_geom[0].GetValue(VOLUME);
-    const array_1d<double, 3>& IPcoords = r_geom[0].GetInitialPosition();
     const array_1d<double, 3>& velocity_self = r_geom[0].FastGetSolutionStepValue(VELOCITY, Step);
-
-    double pressure_wave_speed, shear_wave_speed, norm_dist;
-    SPHElementUtilities::ComputeWaveSpeed(pressure_wave_speed, shear_wave_speed, r_props);
 
     for (IndexType i = 0; i < r_neighbours.size(); ++i){
         
         if (i == self_index) continue;
 
-        const double volume = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
-        const array_1d<double, 3>& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
         const array_1d<double, 3>& velocity_neigh = r_neighbours[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, Step);
 
-        for (IndexType d = 0; d < TDim; ++d) {
-            X_AB_target[d] = IPcoords[d] - JPcoords[d];
+        for (IndexType d = 0; d < TDim; ++d)
             velocity_jump[d] = velocity_self[d] - velocity_neigh[d];
-        }
-        norm_dist = norm_2(X_AB_target);
-        normal = X_AB_target / norm_dist;
+        
+        CalculatePairUpwindStabilizationMatrix(stabilization_matrix, *r_neighbours[i], rThisKinematicVariables.F, rProcessInfo);
 
-        upwind_residual += coeff * gauss_weight * density * volume * norm_2(dkernel) * prod((pressure_wave_speed * outer_prod(normal, normal) + shear_wave_speed * (IdentityMatrix(TDim) - outer_prod(normal, normal))), velocity_jump); 
+        upwind_residual += prod(stabilization_matrix, velocity_jump);
     }
 
     noalias(project(rRHSv, range(TDim * self_index, TDim * (self_index + 1)))) += upwind_residual;
@@ -763,44 +750,69 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddUpwin
 )
 {
     KRATOS_TRY
-    auto& r_geom = this->GetGeometry();
-    auto& r_props = this->GetProperties();
-    auto& r_neighbours = this->GetValue(NEIGHBOURS);
+    const auto& r_neighbours = this->GetValue(NEIGHBOURS);
 
-    MatrixType temp(TDim, TDim); temp.clear();
-    VectorType X_AB_target(TDim), normal(TDim);
+    MatrixType stabilization_matrix(TDim, TDim);
 
     const int self_index = this->GetNeighbourPosition(r_neighbours);
-    VectorType dkernel = row(rThisKinematicVariables.DW_DX, self_index);
-    const double coeff = rProcessInfo.GetValue(PENALIZATION_COEFFICIENT);
-    const double density = r_props[DENSITY];
-
-    const double gauss_weight = r_geom[0].GetValue(VOLUME);
-    const array_1d<double, 3>& IPcoords = r_geom[0].GetInitialPosition();
-
-    double pressure_wave_speed, shear_wave_speed, norm_dist;
-    SPHElementUtilities::ComputeWaveSpeed(pressure_wave_speed, shear_wave_speed, r_props);
 
     for (IndexType i = 0; i < r_neighbours.size(); ++i){
         
         if (i == self_index) continue;
-
-        const double volume = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
-        const array_1d<double, 3>& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
-
-        for (IndexType d = 0; d < TDim; ++d){ 
-            X_AB_target[d] = IPcoords[d] - JPcoords[d];
-        }
-
-        norm_dist = norm_2(X_AB_target);
-        normal = X_AB_target / norm_dist;
-
-        temp = coeff *gauss_weight * volume * density * norm_2(dkernel) * (pressure_wave_speed * outer_prod(normal, normal) + shear_wave_speed * (IdentityMatrix(TDim) - outer_prod(normal, normal))); 
-        noalias(project(rK11, range(TDim * self_index, TDim * (self_index + 1)), range(TDim * i, TDim * (i + 1)))) -= temp;
-        noalias(project(rK11, range(TDim * self_index, TDim * (self_index + 1)), range(TDim * self_index, TDim * (self_index + 1)))) += temp;
+        
+        CalculatePairUpwindStabilizationMatrix(stabilization_matrix, *r_neighbours[i], rThisKinematicVariables.F, rProcessInfo);
+    
+        noalias(project(rK11, range(TDim * self_index, TDim * (self_index + 1)), range(TDim * i, TDim * (i + 1)))) += stabilization_matrix;
+        noalias(project(rK11, range(TDim * self_index, TDim * (self_index + 1)), range(TDim * self_index, TDim * (self_index + 1)))) -= stabilization_matrix;
     }
 
     KRATOS_CATCH("")
+}
+
+template<class TKernelType, std::size_t TDim>
+void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculatePairUpwindStabilizationMatrix(
+    MatrixType& rStabilizationMatrix,
+    Element& rNeighbour,
+    const MatrixType& rThisDeformationGradient,
+    const ProcessInfo& rProcessInfo
+)
+{
+    rStabilizationMatrix.clear();
+
+    const auto& r_geom = this->GetGeometry();
+    const auto& r_props = this->GetProperties();
+    const auto& r_geom_neigh = rNeighbour.GetGeometry();
+
+    VectorType X_AB_target(TDim), normal(TDim);
+    for (IndexType d = 0; d < TDim; ++d)
+        X_AB_target[d] = r_geom[0].GetInitialPosition()[d] - r_geom_neigh[0].GetInitialPosition()[d];
+    
+    const double norm_dist = norm_2(X_AB_target);
+
+    const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
+    double kernel;
+    VectorType dkernel_b_at_a(TDim);
+
+    TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
+    TKernelType::ComputeKernelGradientValue(dkernel_b_at_a, h, X_AB_target);
+
+    VectorType dkernel_a_at_b = dkernel_b_at_a;
+    ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel_b_at_a);
+    ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(rNeighbour, kernel, dkernel_a_at_b);
+
+    const VectorType skew_kernel_gradient = 0.5 * (dkernel_b_at_a - dkernel_a_at_b);
+
+    double pressure_wave_speed, shear_wave_speed;
+    SPHElementUtilities::ComputeDeformationDependentWaveSpeed(pressure_wave_speed, shear_wave_speed, rThisDeformationGradient, r_props);
+
+    const double density = r_props[DENSITY];
+    const double volume_product = r_geom[0].GetValue(VOLUME) * r_geom_neigh[0].GetValue(VOLUME);
+    const double coeff = rProcessInfo.GetValue(DISSIPATION_COEFFICIENT);
+
+    normal = X_AB_target / norm_dist;
+    rStabilizationMatrix = coeff * volume_product * density * norm_2(skew_kernel_gradient) *
+        (pressure_wave_speed * outer_prod(normal, normal) + shear_wave_speed * (IdentityMatrix(TDim) - outer_prod(normal, normal)));
+
 }
 
 template<class TKernelType, std::size_t TDim>

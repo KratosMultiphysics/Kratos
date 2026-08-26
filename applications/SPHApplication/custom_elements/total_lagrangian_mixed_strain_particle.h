@@ -255,6 +255,17 @@ protected:
     );
 
     /**
+     * @brief This function computes the upwind stabilization matrix for a particle pair
+     * @details For all neighbours of the particle.
+     */
+    virtual void CalculatePairUpwindStabilizationMatrix(
+        MatrixType& rStabilizationMatrix,
+        Element& rNeighbour,
+        const MatrixType& rThisDeformationGradient,
+        const ProcessInfo& rProcessInfo
+    );
+
+    /**
      * @brief Assemble the deformation gradient of the particle using directly the dofs values of particle itself
      */
     virtual void AssembleDeformationGradient(
