@@ -1179,7 +1179,7 @@ namespace Kratos
             if (side_voting > 0 && n_neg_neigh > 1) check_second_layer = true;
             if (side_voting < 0 && n_pos_neigh > 1) check_second_layer = true;
             // Many positive and negative neighbors indicate an edge of a thin structure, so we do not want to check the second layer
-            if (n_pos_neigh > 3 && n_neg_neigh > 3) check_second_layer = false;
+            //if (n_pos_neigh > 3 && n_neg_neigh > 3) check_second_layer = false;
 
             if (check_second_layer) {
                 n_second_layer_checks++;

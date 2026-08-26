@@ -470,11 +470,11 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         if self.postprocess_skin_nodes:
             for sbm_utility in self.sbm_utilities:
                 sbm_utility.CalculateVariablesAtSkinPointsAndNodes()  # This method calculates the variables at the skin points as well
-            self.__PrintAndResetTimer(time_prev, "post-process skin variables")
+            #self.__PrintAndResetTimer(time_prev, "post-process skin variables")
         elif self.postprocess_skin_points:
             for sbm_utility in self.sbm_utilities:
                 sbm_utility.CalculateVariablesAtSkinPoints()
-            self.__PrintAndResetTimer(time_prev, "post-process skin variables")
+            #self.__PrintAndResetTimer(time_prev, "post-process skin variables")
 
         if self._FmAleIsActive():
             # Undo the FM-ALE virtual mesh movement
