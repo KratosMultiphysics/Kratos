@@ -1734,43 +1734,15 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsRefineRecordHierarchy, Kra
     PopulateCubeOfTetrahedra(r_source);
     auto& r_destination = model.CreateModelPart("destination");
 
-    // "record_hierarchy" is what makes a refinement undoable later (see UndoGreen): it attaches
-    // "refine:cell_id"/"refine:parent_id". Those are colon-namespaced, so they never reach the
-    // destination model part - the assertion here is that asking for them changes nothing else.
+    // "record_hierarchy" attaches "refine:cell_id"/"refine:parent_id". Both are colon-namespaced,
+    // so neither ever reaches the destination model part - which is why meshio++'s own
+    // "undo_green" is not exposed here at all. The assertion is that asking for them is
+    // accepted and changes nothing else about the result.
     MeshioPlusPlusMeshOperations::Execute(
         r_source, OperationSettings("refine", R"({"levels" : 1, "record_hierarchy" : true})"),
         r_destination);
 
     KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 8 * r_source.NumberOfElements());
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsUndoGreen, KratosMeshioPlusPlusFastSuite)
-{
-    Model model;
-    auto& r_coarse = model.CreateModelPart("coarse");
-    PopulateTriangulatedSquare(r_coarse);
-
-    // A selective refinement of one of the two triangles: the other is green-closed to stay
-    // conforming, and that green closure is exactly what UndoGreen exists to take back.
-    auto& r_fine = model.CreateModelPart("fine");
-    MeshioPlusPlusMeshOperations::Execute(
-        r_coarse,
-        OperationSettings("refine", R"({"levels" : 1, "cells" : [0], "closure" : "redgreen",
-                                        "record_hierarchy" : true, "record_levels" : true})"),
-        r_fine);
-    KRATOS_EXPECT_GT(r_fine.NumberOfElements(), r_coarse.NumberOfElements());
-
-    auto& r_destination = model.CreateModelPart("destination");
-    const Parameters report = MeshioPlusPlusMeshOperations::UndoGreen(r_coarse, r_fine, r_destination);
-
-    // Undoing can only remove cells, never add them, and it must leave the refined half alone.
-    KRATOS_EXPECT_TRUE(report.Has("number_of_groups_undone"));
-    KRATOS_EXPECT_TRUE(report.Has("number_of_cells_removed"));
-    KRATOS_EXPECT_LE(r_destination.NumberOfElements(), r_fine.NumberOfElements());
-    KRATOS_EXPECT_GT(r_destination.NumberOfElements(), 0);
 }
 
 /***********************************************************************************/
@@ -1966,7 +1938,10 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsConservativeInterpolate, K
     auto& r_destination = model.CreateModelPart("destination");
     const Parameters report = MeshioPlusPlusMeshOperations::ConservativeInterpolate(
         r_source, r_target,
-        Parameters(R"({"names" : ["TEMPERATURE"],
+        // "overwrite" because the shared field data settings stage TEMPERATURE from the target
+        // too (as zeros): a name present on both meshes is exactly what "on_conflict" resolves,
+        // and the default "error" is the honest refusal rather than a silent choice.
+        Parameters(R"({"names" : ["TEMPERATURE"], "on_conflict" : "overwrite",
                        "nodal_solution_step_data_variables" : ["TEMPERATURE"]})"),
         r_destination);
 
