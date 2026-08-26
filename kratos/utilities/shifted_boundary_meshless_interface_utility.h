@@ -225,17 +225,22 @@ private:
 
     /**
      * @brief Get the MLS shape functions and gradients factory object
-     * This function returns a prototype for the MLS shape functions and gradients calculation
+     * This function returns a prototype for the MLS shape functions and gradients calculation.
+     * For a Triangle3D3 (a surface embedded in 3D, e.g. a curved shell) the returned function
+     * first projects the cloud of points and evaluation point onto their own best-fit tangent
+     * plane 
+     * @param rGeometry Geometry used to decide whether the tangent-plane projection is needed
      * @return MLSShapeFunctionsAndGradientsFunctionType MLS shape functions and gradients call prototype
      */
-    MLSShapeFunctionsAndGradientsFunctionType GetMLSShapeFunctionsAndGradientsFunction() const;
+    MLSShapeFunctionsAndGradientsFunctionType GetMLSShapeFunctionsAndGradientsFunction(const GeometryType& rGeometry) const;
 
     /**
      * @brief Get the MLS shape functions factory object
-     * This function returns a prototype for the MLS shape functions calculation
+     * This function returns a prototype for the MLS shape functions calculation.
+     * @param rGeometry Geometry used to decide whether the tangent-plane projection is needed
      * @return MLSShapeFunctionsFunctionType MLS shape functions call prototype
      */
-    MeshlessShapeFunctionsFunctionType GetMLSShapeFunctionsFunction() const;
+    MeshlessShapeFunctionsFunctionType GetMLSShapeFunctionsFunction(const GeometryType& rGeometry) const;
 
     /**
      * @brief Get the RBF shape functions factory object

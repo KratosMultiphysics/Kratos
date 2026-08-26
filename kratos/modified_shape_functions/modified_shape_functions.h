@@ -395,7 +395,7 @@ protected:
     * @param rInterfacesVector std::vector of intersection point based geometries where the values are to be computed.
     * @param IntegrationMethod Desired integration quadrature.
     */
-    void ComputeFaceNormalOnOneSide(
+    virtual void ComputeFaceNormalOnOneSide(
         AreaNormalsContainerType& rInterfaceAreaNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod);

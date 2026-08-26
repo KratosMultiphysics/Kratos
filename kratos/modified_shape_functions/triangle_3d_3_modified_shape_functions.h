@@ -58,6 +58,7 @@ public:
 
     typedef BaseType::IndexedPointGeometryType                 IndexedPointGeometryType;
     typedef BaseType::IndexedPointGeometryPointerType          IndexedPointGeometryPointerType;
+    typedef BaseType::AreaNormalsContainerType                 AreaNormalsContainerType;
 
     typedef BaseType::IntegrationPointType                     IntegrationPointType;
     typedef BaseType::IntegrationPointsArrayType               IntegrationPointsArrayType;
@@ -130,6 +131,18 @@ protected:
     void SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix) override;
 
     void SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix) override;
+
+    /**
+    * Returns the outwards area normal vector values in either the positive or negative element
+    * interfaces for a given quadrature.
+    * @return rInterfaceAreaNormalValues: std::vector containing the area normal values for the selected quadrature Gauss pts.
+    * @param rInterfacesVector std::vector of intersection point based geometries where the values are to be computed.
+    * @param IntegrationMethod Desired integration quadrature.
+    */
+    void ComputeFaceNormalOnOneSide(
+        AreaNormalsContainerType& rInterfaceAreaNormalValues,
+        const std::vector<IndexedPointGeometryPointerType>& rInterfacesVector,
+        const IntegrationMethodType IntegrationMethod) override;
 
     ///@}
     ///@name Protected  Access

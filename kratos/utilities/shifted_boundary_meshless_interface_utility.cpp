@@ -19,9 +19,11 @@
 #include "includes/variables.h"
 #include "includes/global_pointer_variables.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_3d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/mls_shape_functions_utility.h"
+#include "utilities/plane_approximation_utility.h"
 #include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
@@ -119,10 +121,74 @@ namespace
                     return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
             case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
                 return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
-                    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
+                    return Kratos::make_unique<Triangle3D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
             default:
                 KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
         }
+    }
+
+    /**
+     * @brief Computes an orthonormal local basis (base point, e1, e2) for the best-fit tangent
+     * plane through a cloud of points that are genuinely embedded in 3D 
+     * @param rPoints Matrix (n_points x 3) with the cloud point coordinates
+     * @param rBasePoint Output: the plane's base point (centroid-like, from PlaneApproximationUtility)
+     * @param rE1 Output: first in-plane orthonormal basis vector
+     * @param rE2 Output: second in-plane orthonormal basis vector
+     */
+    void ComputeTangentPlaneBasis(
+        const Matrix& rPoints,
+        array_1d<double,3>& rBasePoint,
+        array_1d<double,3>& rE1,
+        array_1d<double,3>& rE2)
+    {
+        const std::size_t n_points = rPoints.size1();
+        std::vector<array_1d<double,3>> points_vect(n_points);
+        for (std::size_t i = 0; i < n_points; ++i) {
+            points_vect[i] = row(rPoints, i);
+        }
+
+        array_1d<double,3> normal;
+        PlaneApproximationUtility<3>::ComputePlaneApproximation(points_vect, rBasePoint, normal);
+        normal /= norm_2(normal);
+
+        // Pick the global axis least aligned with the normal to build a well-conditioned e1
+        array_1d<double,3> aux_dir = ZeroVector(3);
+        const std::size_t min_comp = std::abs(normal[0]) <= std::abs(normal[1])
+            ? (std::abs(normal[0]) <= std::abs(normal[2]) ? 0 : 2)
+            : (std::abs(normal[1]) <= std::abs(normal[2]) ? 1 : 2);
+        aux_dir[min_comp] = 1.0;
+
+        MathUtils<double>::CrossProduct(rE1, normal, aux_dir);
+        rE1 /= norm_2(rE1);
+        MathUtils<double>::CrossProduct(rE2, normal, rE1);
+    }
+
+    /**
+     * @brief Projects a cloud of 3D points and an evaluation point onto their own best-fit
+     * tangent plane, returning 2D local (u,v) coordinates
+     */
+    void ProjectOntoTangentPlane(
+        const Matrix& rPoints,
+        const array_1d<double,3>& rX,
+        Matrix& rProjectedPoints,
+        array_1d<double,3>& rProjectedX)
+    {
+        array_1d<double,3> base_point, e1, e2;
+        ComputeTangentPlaneBasis(rPoints, base_point, e1, e2);
+
+        const std::size_t n_points = rPoints.size1();
+        rProjectedPoints.resize(n_points, 3, false);
+        for (std::size_t i = 0; i < n_points; ++i) {
+            const array_1d<double,3> rel = row(rPoints, i) - base_point;
+            rProjectedPoints(i,0) = inner_prod(rel, e1);
+            rProjectedPoints(i,1) = inner_prod(rel, e2);
+            rProjectedPoints(i,2) = 0.0;
+        }
+
+        const array_1d<double,3> rel_x = rX - base_point;
+        rProjectedX[0] = inner_prod(rel_x, e1);
+        rProjectedX[1] = inner_prod(rel_x, e2);
+        rProjectedX[2] = 0.0;
     }
 }
 
@@ -503,7 +569,7 @@ namespace
 
         // Get the MLS shape functions function
         auto p_meshless_sh_func =
-        mExtensionOperator == ExtensionOperator::MLS ? GetMLSShapeFunctionsFunction() : GetRBFShapeFunctionsFunction();
+        mExtensionOperator == ExtensionOperator::MLS ? GetMLSShapeFunctionsFunction(r_begin_geom) : GetRBFShapeFunctionsFunction();
 
         // Get the element size calculation function
         // Note that unique geometry in the mesh is assumed
@@ -786,7 +852,7 @@ namespace
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
         // Get the MLS shape functions function
-        auto p_mls_sh_func = GetMLSShapeFunctionsAndGradientsFunction();
+        auto p_mls_sh_func = GetMLSShapeFunctionsAndGradientsFunction(r_begin_geom);
 
         // Get the element size calculation function
         // Note that unique geometry in the mesh is assumed
@@ -957,8 +1023,26 @@ namespace
         KRATOS_WATCH(active_element_counter)
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtility::MLSShapeFunctionsAndGradientsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsAndGradientsFunction() const
+    ShiftedBoundaryMeshlessInterfaceUtility::MLSShapeFunctionsAndGradientsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsAndGradientsFunction(const GeometryType& rGeometry) const
     {
+        if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
+            // Surface genuinely embedded in 3D (e.g. a curved shell): project the cloud onto its
+            // own best-fit tangent plane before calling the 2D MLS machinery
+            switch (mMLSExtensionOperatorOrder) {
+                case 1:
+                    return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, Matrix& rDN_DX){
+                        Matrix proj_points; array_1d<double,3> proj_x;
+                        ProjectOntoTangentPlane(rPoints, rX, proj_points, proj_x);
+                        MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,1>(proj_points, proj_x, h, rN, rDN_DX);};
+                case 2:
+                    return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, Matrix& rDN_DX){
+                        Matrix proj_points; array_1d<double,3> proj_x;
+                        ProjectOntoTangentPlane(rPoints, rX, proj_points, proj_x);
+                        MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,2>(proj_points, proj_x, h, rN, rDN_DX);};
+                default:
+                    KRATOS_ERROR << "Wrong MLS extension operator order. Only linear (1) and quadratic (2) are supported.";
+            }
+        }
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
                 switch (mMLSExtensionOperatorOrder) {
@@ -987,8 +1071,24 @@ namespace
         }
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsFunction() const
+    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsFunction(const GeometryType& rGeometry) const
     {
+        if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
+            switch (mMLSExtensionOperatorOrder) {
+                case 1:
+                    return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+                        Matrix proj_points; array_1d<double,3> proj_x;
+                        ProjectOntoTangentPlane(rPoints, rX, proj_points, proj_x);
+                        MLSShapeFunctionsUtility::CalculateShapeFunctions<2,1>(proj_points, proj_x, h, rN);};
+                case 2:
+                    return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+                        Matrix proj_points; array_1d<double,3> proj_x;
+                        ProjectOntoTangentPlane(rPoints, rX, proj_points, proj_x);
+                        MLSShapeFunctionsUtility::CalculateShapeFunctions<2,2>(proj_points, proj_x, h, rN);};
+                default:
+                    KRATOS_ERROR << "Wrong MLS extension operator order. Only linear (1) and quadratic (2) are supported.";
+            }
+        }
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
                 switch (mMLSExtensionOperatorOrder) {
@@ -1032,7 +1132,12 @@ namespace
             case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
                 return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
             case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
-                return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
+                return [](const GeometryType& rGeometry)->double{
+                    const array_1d<double,3> edge10 = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
+                    const array_1d<double,3> edge20 = rGeometry[2].Coordinates() - rGeometry[0].Coordinates();
+                    array_1d<double,3> cross_prod;
+                    MathUtils<double>::CrossProduct(cross_prod, edge10, edge20);
+                    return std::sqrt(0.5 * norm_2(cross_prod));};
             default:
                 KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
         }

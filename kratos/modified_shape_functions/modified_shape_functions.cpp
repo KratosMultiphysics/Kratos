@@ -668,8 +668,51 @@ namespace Kratos
                 Matrix aux_grad_sh_func, aux_grad_sh_func_cond, aux_grad_sh_func_local, jac_mat, inv_jac_mat;
                 aux_grad_sh_func_local = r_parent_geom.ShapeFunctionsLocalGradients(aux_grad_sh_func_local, loc_coords);
                 jac_mat = r_parent_geom.Jacobian(jac_mat, loc_coords);
-                MathUtils<double>::InvertMatrix( jac_mat, inv_jac_mat, det_jac );
-                aux_grad_sh_func = prod(aux_grad_sh_func_local, inv_jac_mat);
+                if (jac_mat.size1() == jac_mat.size2()) {
+                    // Standard codimension-0 case (e.g. Triangle2D3, Tetrahedra3D4): square Jacobian, plain inverse.
+                    MathUtils<double>::InvertMatrix( jac_mat, inv_jac_mat, det_jac );
+                    aux_grad_sh_func = prod(aux_grad_sh_func_local, inv_jac_mat);
+                } else {
+                    // Codimension-1 surface embedded in a higher-dimensional space (e.g. Triangle3D3, a curved or
+                    // merely tilted shell): the Jacobian is rectangular (WorkingSpaceDimension x
+                    // LocalSpaceDimension) and has no ordinary inverse. 
+                    const array_1d<double,3> input_p0 = (*p_input_geometry)[0].Coordinates();
+                    const array_1d<double,3> input_p1 = (*p_input_geometry)[1].Coordinates();
+                    const array_1d<double,3> input_p2 = (*p_input_geometry)[2].Coordinates();
+                    array_1d<double,3> e1 = input_p1 - input_p0;
+                    e1 /= norm_2(e1);
+                    array_1d<double,3> normal_vec;
+                    MathUtils<double>::CrossProduct(normal_vec, array_1d<double,3>(input_p1 - input_p0), array_1d<double,3>(input_p2 - input_p0));
+                    normal_vec /= norm_2(normal_vec);
+                    array_1d<double,3> e2;
+                    MathUtils<double>::CrossProduct(e2, normal_vec, e1);
+
+                    const array_1d<double,3> j_col0 = column(jac_mat, 0);
+                    const array_1d<double,3> j_col1 = column(jac_mat, 1);
+                    BoundedMatrix<double,2,2> jTj;
+                    jTj(0,0) = inner_prod(j_col0, j_col0); jTj(0,1) = inner_prod(j_col0, j_col1);
+                    jTj(1,0) = jTj(0,1);                    jTj(1,1) = inner_prod(j_col1, j_col1);
+                    double jTj_det;
+                    BoundedMatrix<double,2,2> jTj_inv;
+                    MathUtils<double>::InvertMatrix(jTj, jTj_inv, jTj_det);
+
+                    // pinv_J (2 x WorkingSpaceDimension) = (J^T J)^-1 J^T
+                    Matrix jT(2, jac_mat.size1());
+                    for (std::size_t k = 0; k < jac_mat.size1(); ++k) {
+                        jT(0,k) = jac_mat(k,0);
+                        jT(1,k) = jac_mat(k,1);
+                    }
+                    const Matrix pinv_J = prod(jTj_inv, jT);
+
+                    const Matrix aux_grad_sh_func_3d = prod(aux_grad_sh_func_local, pinv_J);
+                    const std::size_t n_pts_local = aux_grad_sh_func_3d.size1();
+                    aux_grad_sh_func = ZeroMatrix(n_pts_local, 2);
+                    for (std::size_t i = 0; i < n_pts_local; ++i) {
+                        const array_1d<double,3> grad_3d = row(aux_grad_sh_func_3d, i);
+                        aux_grad_sh_func(i,0) = inner_prod(grad_3d, e1);
+                        aux_grad_sh_func(i,1) = inner_prod(grad_3d, e2);
+                    }
+                }
 
                 Matrix aux_grad_sh_func_exp = ZeroMatrix(n_dim, split_edges_size);
                 for (unsigned int dim = 0; dim < n_dim; ++dim ) {
