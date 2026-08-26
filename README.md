@@ -50,7 +50,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 - [Fluid Dynamics](applications/FluidDynamicsApplication/README.md) Provides 2D and 3D incompressible fluids formulation
 - [Fluid Structure Interaction](applications/FSIApplication/README.md) for solution of different FSI problems
 - [Structural Mechanics](applications/StructuralMechanicsApplication/README.md) Providing solution for solid, shell and beam structures with linear and nonlinear, static and dynamic behavior
-- [Nonlinear Constitutive modelling](applications/ConstitutiveLawsApplication). For modelling nonlinear materials behaviors such as plasticity, damage, anisotropy, viscoelasticity, composites...
+- [Nonlinear Constitutive modelling](applications/ConstitutiveLawsApplication). For modelling nonlinear material behaviors such as plasticity, damage, anisotropy, viscoelasticity, composites...
 - [Contact Structural Mechanics](applications/ContactStructuralMechanicsApplication/README.md) For contact problems used along the [Structural Mechanics application](applications/StructuralMechanicsApplication/README.md)
 
 ## Some main modules are:
