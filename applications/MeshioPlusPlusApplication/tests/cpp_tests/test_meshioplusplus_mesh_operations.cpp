@@ -1677,10 +1677,31 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsSubdivide, KratosMeshioPlu
 
     MeshioPlusPlusMeshOperations::Execute(r_source, OperationSettings("subdivide"), r_destination);
 
-    // One level of tetrahedral subdivision is eight children per parent, and no cell is left
-    // unsubdivided - this operation has no selector.
-    KRATOS_EXPECT_EQ(r_destination.NumberOfElements(), 8 * r_source.NumberOfElements());
+    // Polyhedral refinement emits one polyhedral child per face, which no Kratos Element can
+    // hold - so the default "simplexify_result" decomposes them into tetrahedra first. The
+    // count is therefore not a fixed multiple, but it must strictly grow and must not be empty
+    // (an empty destination is the silent failure StorePolyhedralResult exists to prevent).
+    KRATOS_EXPECT_GT(r_destination.NumberOfElements(), r_source.NumberOfElements());
     KRATOS_EXPECT_GT(r_destination.NumberOfNodes(), r_source.NumberOfNodes());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsSubdivideWithoutSimplexifyThrows, KratosMeshioPlusPlusFastSuite)
+{
+    Model model;
+    auto& r_source = model.CreateModelPart("source");
+    PopulateCubeOfTetrahedra(r_source);
+    auto& r_destination = model.CreateModelPart("destination");
+
+    // Raw polyhedral output cannot reach a model part. Silently returning an empty destination
+    // is the outcome this refusal replaces.
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MeshioPlusPlusMeshOperations::Execute(
+            r_source, OperationSettings("subdivide", R"({"simplexify_result" : false})"),
+            r_destination),
+        "produced polyhedral cells");
 }
 
 /***********************************************************************************/
@@ -1696,10 +1717,11 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsAgglomerate, KratosMeshioP
     MeshioPlusPlusMeshOperations::Execute(
         r_source, OperationSettings("agglomerate", R"({"target_group_size" : 2})"), r_destination);
 
-    // Grouping cannot invent cells, and the six tetrahedra are all connected, so grouping them
-    // in pairs must leave strictly fewer than it started with.
+    // Grouping the six tetrahedra in pairs yields three polyhedra, which the default
+    // "simplexify_result" then decomposes back into tetrahedra - so the final element count is
+    // not comparable to the input's. What matters is that the destination is reachable at all.
     KRATOS_EXPECT_GT(r_destination.NumberOfElements(), 0);
-    KRATOS_EXPECT_LT(r_destination.NumberOfElements(), r_source.NumberOfElements());
+    KRATOS_EXPECT_GT(r_destination.NumberOfNodes(), 0);
 }
 
 /***********************************************************************************/
@@ -1737,7 +1759,7 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsUndoGreen, KratosMeshioPlu
     MeshioPlusPlusMeshOperations::Execute(
         r_coarse,
         OperationSettings("refine", R"({"levels" : 1, "cells" : [0], "closure" : "redgreen",
-                                        "record_hierarchy" : true})"),
+                                        "record_hierarchy" : true, "record_levels" : true})"),
         r_fine);
     KRATOS_EXPECT_GT(r_fine.NumberOfElements(), r_coarse.NumberOfElements());
 
@@ -1894,19 +1916,19 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsDataIntegrate, KratosMeshi
 {
     Model model;
     auto& r_source = model.CreateModelPart("source");
-    r_source.AddNodalSolutionStepVariable(TEMPERATURE);
     PopulateCubeOfTetrahedra(r_source);
-    // A constant field: its measure-weighted mean is that constant, whatever the mesh, which is
-    // the one value this operation must reproduce exactly.
-    for (auto& r_node : r_source.Nodes()) {
-        r_node.FastGetSolutionStepValue(TEMPERATURE) = 2.0;
+    // A cell-measure-weighted reduction needs *cell* data - meshio++ refuses a point_data array
+    // by name rather than averaging it behind the caller's back. A constant field's weighted
+    // mean is that constant whatever the mesh, which is the one value this must reproduce.
+    for (auto& r_element : r_source.Elements()) {
+        r_element.SetValue(TEMPERATURE, 2.0);
     }
     auto& r_destination = model.CreateModelPart("destination");
 
     const Parameters report = MeshioPlusPlusMeshOperations::Execute(
         r_source,
         OperationSettings("data_integrate",
-            R"({"names" : ["TEMPERATURE"], "nodal_solution_step_data_variables" : ["TEMPERATURE"]})"),
+            R"({"names" : ["TEMPERATURE"], "element_data_value_variables" : ["TEMPERATURE"]})"),
         r_destination);
 
     KRATOS_EXPECT_EQ(report["arrays"].size(), 1);
@@ -1933,8 +1955,11 @@ KRATOS_TEST_CASE_IN_SUITE(MeshioPlusPlusMeshOperationsConservativeInterpolate, K
     }
 
     // A refinement of the same square: the geometry is identical, so a conservative transfer of
-    // a constant field must reproduce the constant rather than smear it.
+    // a constant field must reproduce the constant rather than smear it. The shared field data
+    // settings are staged from *both* meshes, so the target has to know the variable too - the
+    // usual case is that only the source carries values, not that only the source declares it.
     auto& r_target = model.CreateModelPart("target");
+    r_target.AddNodalSolutionStepVariable(TEMPERATURE);
     MeshioPlusPlusMeshOperations::Execute(
         r_source, OperationSettings("refine", R"({"levels" : 1})"), r_target);
 
