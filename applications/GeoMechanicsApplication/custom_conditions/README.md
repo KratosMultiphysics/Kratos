@@ -178,6 +178,8 @@ p = 0 & \text{if } \phi_n \le 0 \\
 where $p$ is the pore water pressure, defined negative if water is present (and positive in case of suction). $\phi_n$ is the nodal flux, defined positive for outflow. Since this 
 functionality acts on the number of degrees of freedom (DoF) and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann Boundary for every node on the boundary.
 
+This boundary will be supported for transient and steady-state groundwaterflow calculations and can be extended to coupled displacement/pressure (UPw) computations.
+
 **Note that functionality for the seepage boundary is still to be implemented** 
 
 ## Validation
