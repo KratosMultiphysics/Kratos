@@ -229,37 +229,33 @@ public:
         // reordered matrix.
         rowIndex = new int[size+1];
         for (i=0; i<=size; i++) rowIndex[i]=0;
-        // Traverse the matrix finding nonzero elements
-        for (typename SparseMatrixType::iterator1 a_iterator = A.begin1();
-                a_iterator != A.end1(); a_iterator++)
+        // Traverse the matrix finding nonzero elements. The CSR arrays are used
+        // directly so that this works with any sparse space matrix exposing the
+        // compressed_matrix member surface (uBLAS, Eigen, ...).
         {
-#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (typename SparseMatrixType::iterator2 row_iterator = a_iterator.begin() ;
-                    row_iterator != a_iterator.end() ; ++row_iterator)
+            const auto& row_indices = A.index1_data();
+            const auto& col_indices = A.index2_data();
+            const auto& values = A.value_data();
+            for (i = 0; i < size; i++)
             {
-#else
-            for ( SparseMatrixType::iterator2 row_iterator = begin(a_iterator,
-                    boost::numeric::ublas::iterator1_tag());
-                    row_iterator != end(a_iterator,
-                                        boost::numeric::ublas::iterator1_tag()); ++row_iterator )
-            {
-#endif
-                i = row_iterator.index1();
-                j = row_iterator.index2();
-                entry = *row_iterator;
-                newi = invperm[i];
-                newj = invperm[j];
-                if( entry != 0 )
+                for (auto k = row_indices[i]; k < row_indices[i+1]; ++k)
                 {
-                    if (newi>newj)
+                    j = col_indices[k];
+                    entry = values[k];
+                    newi = invperm[i];
+                    newj = invperm[j];
+                    if( entry != 0 )
                     {
-                        // row newi needs length at least newi-newj
-                        if (rowIndex[newi] < newi-newj)  rowIndex[newi]= newi-newj;
-                    }
-                    else if (newi<newj)
-                    {
-                        // column newj needs height at least newj-newi
-                        if (rowIndex[newj] < newj-newi)  rowIndex[newj]= newj-newi;
+                        if (newi>newj)
+                        {
+                            // row newi needs length at least newi-newj
+                            if (rowIndex[newi] < newi-newj)  rowIndex[newi]= newi-newj;
+                        }
+                        else if (newi<newj)
+                        {
+                            // column newj needs height at least newj-newi
+                            if (rowIndex[newj] < newj-newi)  rowIndex[newj]= newj-newi;
+                        }
                     }
                 }
             }
@@ -289,38 +285,32 @@ public:
 
         // And finally traverse again the CSR matrix, copying its entries into the
         // correct places in the skyline format
-        for (typename SparseMatrixType::iterator1 a_iterator = A.begin1();
-                a_iterator != A.end1(); a_iterator++)
         {
-#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-            for (typename SparseMatrixType::iterator2 row_iterator = a_iterator.begin() ;
-                    row_iterator != a_iterator.end() ; ++row_iterator)
+            const auto& row_indices = A.index1_data();
+            const auto& col_indices = A.index2_data();
+            const auto& values = A.value_data();
+            for (i = 0; i < size; i++)
             {
-#else
-            for ( SparseMatrixType::iterator2 row_iterator = begin(a_iterator,
-                    boost::numeric::ublas::iterator1_tag());
-                    row_iterator != end(a_iterator,
-                                        boost::numeric::ublas::iterator1_tag()); ++row_iterator )
-            {
-#endif
-                i = row_iterator.index1();
-                j = row_iterator.index2();
-                entry = *row_iterator;
-                newi= invperm[i];
-                newj= invperm[j];
-                if (entry != 0.00)
+                for (auto k = row_indices[i]; k < row_indices[i+1]; ++k)
                 {
-                    if (newi<newj)
+                    j = col_indices[k];
+                    entry = values[k];
+                    newi= invperm[i];
+                    newj= invperm[j];
+                    if (entry != 0.00)
                     {
-                        entriesU[ rowIndex[newj+1] + newi - newj ]= entry;
-                    }
-                    else if (newi==newj)
-                    {
-                        entriesD[newi]= entry;
-                    }
-                    else
-                    {
-                        entriesL[ rowIndex[newi+1] + newj - newi ]= entry;
+                        if (newi<newj)
+                        {
+                            entriesU[ rowIndex[newj+1] + newi - newj ]= entry;
+                        }
+                        else if (newi==newj)
+                        {
+                            entriesD[newi]= entry;
+                        }
+                        else
+                        {
+                            entriesL[ rowIndex[newi+1] + newj - newi ]= entry;
+                        }
                     }
                 }
             }

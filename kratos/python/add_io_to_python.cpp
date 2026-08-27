@@ -172,13 +172,19 @@ void  AddIOToPython(pybind11::module& m)
         ;
 
     py::class_<UnvOutput, UnvOutput::Pointer>(m, "UnvOutput")
+        .def(py::init<Model&, Parameters>())
         .def(py::init<ModelPart&, const std::string &>())
         .def("InitializeMesh", &UnvOutput::InitializeOutputFile)
         .def("WriteMesh", &UnvOutput::WriteMesh)
+        .def("PrintOutput", &UnvOutput::PrintOutput)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<bool>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<int>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<double>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalResults)
+        .def("PrintNonHistoricalOutput", (void (UnvOutput::*)(const Variable<bool>&, const double)) &UnvOutput::WriteNodalNonHistoricalResults)
+        .def("PrintNonHistoricalOutput", (void (UnvOutput::*)(const Variable<int>&, const double)) &UnvOutput::WriteNodalNonHistoricalResults)
+        .def("PrintNonHistoricalOutput", (void (UnvOutput::*)(const Variable<double>&, const double)) &UnvOutput::WriteNodalNonHistoricalResults)
+        .def("PrintNonHistoricalOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalNonHistoricalResults)
         ;
 
 
@@ -248,7 +254,8 @@ void  AddIOToPython(pybind11::module& m)
         .def("EmplaceTensorAdaptor", &VtuOutput::EmplaceTensorAdaptor<TensorAdaptor<double>::Pointer>, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
         .def("GetModelPart", &VtuOutput::GetModelPart, py::return_value_policy::reference)
         .def("GetOutputContainerList", &VtuOutput::GetOutputContainerList)
-        .def("PrintOutput", &VtuOutput::PrintOutput, py::arg("output_file_name_prefix"))
+        .def("PrintOutput", py::overload_cast<const std::string&>(&VtuOutput::PrintOutput), py::arg("output_file_name_prefix"))
+        .def("PrintOutput", py::overload_cast<const std::string&, const int, const double>(&VtuOutput::PrintOutput), py::arg("output_file_name_prefix"), py::arg("step"), py::arg("time"))
         .def("__str__", PrintObject<VtuOutput>)
         ;
 
@@ -260,5 +267,3 @@ void  AddIOToPython(pybind11::module& m)
     ;
 }
 }  // namespace Kratos::Python.
-
-
