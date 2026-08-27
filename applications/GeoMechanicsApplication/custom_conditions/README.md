@@ -184,6 +184,6 @@ This boundary will be supported for transient and steady-state groundwaterflow c
 
 ## Validation
 The following validation cases will be considered for this functionality (links to be added when the validation cases are added to the test suite):
-- A test case where a fluid flux is imposed on the left boundary, leading to outflow on the right seepage boundary. This should lead to a full Dirichlet condition ($p=0$)
+- A test case where a fluid flux is imposed on the left boundary, leading to inflow on the right seepage boundary. This should lead to a full Dirichlet condition ($p=0$)
 - A test case where suction is imposed, leading to a the seepage boundary exhibiting the behavior of a pure zero-flux Neumann boundary
 - The Muskat case, which has a seepage boundary for which both Dirichlet and Neumann behavior is exhibited on the same seepage boundary.
