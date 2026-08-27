@@ -210,6 +210,7 @@ public:
                         TSparseSpace::SetToZero(rb);
 
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+                        KRATOS_INFO("Re-building") << "\n";
                     } else {
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
