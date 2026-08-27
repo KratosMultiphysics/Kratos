@@ -747,8 +747,10 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
 
                 for (IndexType qp = 0; qp < quadrature_point_geometries_master.size(); ++qp)
                 {
+                    // This projects the quadrature point from the master parametric surface to the physical space 
                     master_quadrature_point_xyz = quadrature_point_geometries_master[qp].Center();
 
+                    // This projects the quadrature point from the physical space to the slave parametric space (FEM parametric space)
                     geom_slave->PointLocalCoordinates(
                         slave_quadrature_point_local_space, master_quadrature_point_xyz);
 
