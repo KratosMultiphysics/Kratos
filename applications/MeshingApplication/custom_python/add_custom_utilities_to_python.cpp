@@ -30,6 +30,9 @@
 #include "custom_utilities/local_refine_tetrahedra_mesh_parallel_to_boundaries.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh_only_on_boundaries.hpp"
 #include "custom_utilities/gradual_variable_interpolation_utility.h"
+#ifdef INCLUDE_MMG
+#include "custom_utilities/mmg/mmg_utilities.h"
+#endif
 
 #ifdef  USE_TETGEN_NONFREE_TPL
     #include "custom_utilities/tetgen_volume_mesher.h"
@@ -143,6 +146,18 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("InitializeInterpolationAndConstraints", &GradualVariableInterpolationUtility::InitializeInterpolationAndConstraints)
     .def("UpdateSolutionStepVariables", &GradualVariableInterpolationUtility::UpdateSolutionStepVariables)
     ;
+
+#ifdef INCLUDE_MMG
+    py::class_<MmgUtilities<MMGLibrary::MMG2D>>(m, "MmgUtilities2D")
+    .def_static("GetMmgVersion", &MmgUtilities<MMGLibrary::MMG2D>::GetMmgVersion)
+    ;
+    py::class_<MmgUtilities<MMGLibrary::MMG3D>>(m, "MmgUtilities3D")
+    .def_static("GetMmgVersion", &MmgUtilities<MMGLibrary::MMG3D>::GetMmgVersion)
+    ;
+    py::class_<MmgUtilities<MMGLibrary::MMGS>>(m, "MmgUtilities3DSurfaces")
+    .def_static("GetMmgVersion", &MmgUtilities<MMGLibrary::MMGS>::GetMmgVersion)
+    ;
+#endif
 
 #ifdef USE_TETGEN_NONFREE_TPL
     py::class_<TetgenVolumeMesher >

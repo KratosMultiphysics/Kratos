@@ -38,6 +38,7 @@
 // Project includes
 #include "trilinos_application.h"
 #include "custom_utilities/trilinos_matrix_market_io.h"
+#include "custom_utilities/trilinos_dof_updater_experimental.h"
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
 #include "includes/data_communicator.h"
@@ -212,7 +213,7 @@ public:
     using ValueViewType = typename MatrixType::nonconst_values_host_view_type;
 
     /// Some other definitions
-    using DofUpdaterType = DofUpdater<ClassType>;
+    using DofUpdaterType = TrilinosDofUpdaterExperimental<ClassType>;
     using DofUpdaterPointerType = typename DofUpdater<ClassType>::UniquePointer;
 
     /// DoF array type definition
@@ -581,11 +582,12 @@ public:
 
     /**
      * @brief Returns the column of the matrix in the given position
-     * @details rXi = rMij
+     * @details rXi = rMij. Each rank fills the entries corresponding to its locally owned rows,
+     * so no communication is required. The vector rX must be built on a map matching the row
+     * distribution of rM (e.g. the row map or, for square matrices, the domain map).
      * @param j The position of the column
      * @param rM The matrix considered
      * @param rX The column considered
-     * @todo Implement this method
      */
     inline static void GetColumn(
         const unsigned int j,
@@ -593,7 +595,35 @@ public:
         VectorType& rX
         )
     {
-        KRATOS_ERROR << "GetColumn method is not currently implemented" << std::endl;
+        KRATOS_ERROR_IF_NOT(rM.isFillComplete()) << "GetColumn requires an assembled (fill-complete) matrix" << std::endl;
+
+        SetToZero(rX);
+
+        const auto p_row_map = rM.getRowMap();
+        const auto p_col_map = rM.getColMap();
+        const auto p_x_map = rX.getMap();
+        const LO invalid = Teuchos::OrdinalTraits<LO>::invalid();
+
+        // Translate the global column index; ranks whose column map does not contain it hold no entries
+        const LO local_col = p_col_map->getLocalElement(static_cast<GO>(j));
+        if (local_col != invalid) {
+            auto x_data = rX.getDataNonConst(0);
+            typename MatrixType::local_inds_host_view_type indices;
+            typename MatrixType::values_host_view_type values;
+            const LO num_local_rows = Detail::GetNumLocalRows(rM);
+            for (LO i = 0; i < num_local_rows; ++i) {
+                rM.getLocalRowView(i, indices, values);
+                for (std::size_t k = 0; k < indices.extent(0); ++k) {
+                    if (indices(k) == local_col) {
+                        const GO row_gid = p_row_map->getGlobalElement(i);
+                        const LO x_lid = p_x_map->getLocalElement(row_gid);
+                        KRATOS_ERROR_IF(x_lid == invalid) << "GetColumn: the map of rX does not contain global row " << row_gid << std::endl;
+                        x_data[x_lid] = values(k);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -1751,30 +1781,30 @@ public:
 
         const std::size_t system_size = rA.getGlobalNumRows();
 
-        // Count active indices
-        std::vector<LO> indices;
+        // Collect the active (non fixed) indices, keeping their original position in the
+        // local contribution so the correct entries are read when some DOFs are filtered out
+        std::vector<std::size_t> active_positions;
+        std::vector<GO> global_indices;
+        active_positions.reserve(rEquationId.size());
+        global_indices.reserve(rEquationId.size());
         for (std::size_t i = 0; i < rEquationId.size(); ++i) {
             if (rEquationId[i] < system_size) {
-                indices.push_back(static_cast<LO>(rEquationId[i]));
+                active_positions.push_back(i);
+                global_indices.push_back(static_cast<GO>(rEquationId[i]));
             }
         }
 
-        if (!indices.empty()) {
-            std::vector<GO> global_indices(indices.size());
-            for (std::size_t i = 0; i < indices.size(); ++i) {
-                global_indices[i] = static_cast<GO>(indices[i]);
-            }
-
-            for (std::size_t i = 0; i < indices.size(); ++i) {
+        if (!global_indices.empty()) {
+            for (std::size_t i = 0; i < global_indices.size(); ++i) {
                 const GO globalRow = global_indices[i];
-                std::vector<ST> row_values(indices.size());
-                for (std::size_t j = 0; j < indices.size(); ++j) {
-                    row_values[j] = rLHSContribution(i, j);
+                std::vector<ST> row_values(global_indices.size());
+                for (std::size_t j = 0; j < global_indices.size(); ++j) {
+                    row_values[j] = rLHSContribution(active_positions[i], active_positions[j]);
                 }
                 const int ierr = rA.sumIntoGlobalValues(globalRow, static_cast<LO>(global_indices.size()), row_values.data(), global_indices.data());
-                // Note: sumIntoGlobalValues might return the number of values successfully summed instead of an error code 0 or -1. 
-                // Epetra returns 0, Tpetra returns the number of values (indices.size()) if successful.
-                KRATOS_ERROR_IF(ierr != static_cast<int>(indices.size())) << "Tpetra failure found" << std::endl;
+                // Note: sumIntoGlobalValues might return the number of values successfully summed instead of an error code 0 or -1.
+                // Epetra returns 0, Tpetra returns the number of values (global_indices.size()) if successful.
+                KRATOS_ERROR_IF(ierr != static_cast<int>(global_indices.size())) << "Tpetra failure found" << std::endl;
             }
         }
     }
@@ -1793,23 +1823,11 @@ public:
     {
         const std::size_t system_size = rb.getGlobalLength();
 
-        // Count active indices
-        std::vector<LO> indices;
+        // Collect the active (non fixed) indices, keeping their original position in the
+        // local contribution so the correct entries are read when some DOFs are filtered out
         for (std::size_t i = 0; i < rEquationId.size(); ++i) {
             if (rEquationId[i] < system_size) {
-                indices.push_back(static_cast<LO>(rEquationId[i]));
-            }
-        }
-
-        if (!indices.empty()) {
-            std::vector<GO> global_indices(indices.size());
-            std::vector<ST> values(indices.size());
-            for (std::size_t i = 0; i < indices.size(); ++i) {
-                global_indices[i] = static_cast<GO>(indices[i]);
-                values[i] = rRHSContribution[i];
-            }
-            for (std::size_t i = 0; i < global_indices.size(); ++i) {
-                rb.sumIntoGlobalValue(global_indices[i], size_t(0), values[i]);
+                rb.sumIntoGlobalValue(static_cast<GO>(rEquationId[i]), size_t(0), static_cast<ST>(rRHSContribution[i]));
             }
         }
     }
@@ -2564,7 +2582,8 @@ public:
      */
     inline static DofUpdaterPointerType CreateDofUpdater()
     {
-        return DofUpdaterPointerType(new DofUpdater<TrilinosSpaceExperimental<TMatrixType, TVectorType>>());
+        DofUpdaterType tmp;
+        return tmp.Create();
     }
 
     ///@}
