@@ -75,13 +75,13 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListType
     const auto            actual_result = parser.GetProcessList(process_list);
 
     // Then
-    const std::vector<ProcessParameters> expected_result = {
-        ProcessParameters{"ConstraintProcess1", Parameters{parameterString}},
-        ProcessParameters{"ConstraintProcess2", Parameters{parameterString}},
-        ProcessParameters{"LoadProcess1", Parameters{parameterString}},
-        ProcessParameters{"LoadProcess2", Parameters{parameterString}},
-        ProcessParameters{"AuxiliaryProcess1", Parameters{parameterString}},
-        ProcessParameters{"AuxiliaryProcess2", Parameters{parameterString}}};
+    const auto expected_result =
+        std::vector{ProcessParameters{"ConstraintProcess1", Parameters{parameterString}},
+                    ProcessParameters{"ConstraintProcess2", Parameters{parameterString}},
+                    ProcessParameters{"LoadProcess1", Parameters{parameterString}},
+                    ProcessParameters{"LoadProcess2", Parameters{parameterString}},
+                    ProcessParameters{"AuxiliaryProcess1", Parameters{parameterString}},
+                    ProcessParameters{"AuxiliaryProcess2", Parameters{parameterString}}};
 
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdentic
     const auto            actual_result = parser.GetProcessList(process_list_with_duplicate_names);
 
     // Then
-    const std::vector<ProcessParameters> expected_result = {
+    const auto expected_result = std::vector{
         ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{parameterString}},
         ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{parameterString}}};
 
