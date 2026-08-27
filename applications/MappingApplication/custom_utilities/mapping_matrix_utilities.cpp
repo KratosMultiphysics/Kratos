@@ -44,6 +44,20 @@ using SizeType = std::size_t;
 /* Functions for internal use in this file */
 /***********************************************************************************/
 
+template<class TMatrixType, class TValueType>
+void AtomicAddMatrixEntry(
+    TMatrixType& rMatrix,
+    const IndexType RowIndex,
+    const IndexType ColumnIndex,
+    const TValueType& rValue)
+{
+    if constexpr (std::is_reference_v<decltype(rMatrix(RowIndex, ColumnIndex))>) {
+        AtomicAdd(rMatrix(RowIndex, ColumnIndex), rValue);
+    } else {
+        AtomicAdd(rMatrix(RowIndex, ColumnIndex).ref(), rValue);
+    }
+}
+
 void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMdo,
                               std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
                               const SizeType NumNodesOrigin,
@@ -126,11 +140,11 @@ void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>
 
         for (IndexType i = 0; i < rTls.destination_ids.size(); ++i) {
             for (IndexType j = 0; j < rTls.origin_ids.size(); ++j) {
-                if constexpr (std::is_reference_v<decltype((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]))>) {
-                    AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]), rTls.local_mapping_matrix(i,j)); // direct reference (Eigen)
-                } else {
-                    AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]).ref(), rTls.local_mapping_matrix(i,j)); // ublas sparse element proxy
-                }
+                AtomicAddMatrixEntry(
+                    *rpMdo,
+                    rTls.destination_ids[i],
+                    rTls.origin_ids[j],
+                    rTls.local_mapping_matrix(i,j));
             }
         }
 
