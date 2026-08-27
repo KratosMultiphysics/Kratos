@@ -11,10 +11,10 @@
 #include "containers/model.h"
 #include "custom_conditions/geo_seepage_condition.h"
 #include "custom_utilities/seepage_boundary_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "includes/variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "geo_mechanics_application_variables.h"
 using namespace Kratos;
 
 namespace
@@ -38,8 +38,9 @@ Kratos::ModelPart& CreateModelPartWithNodes(Kratos::Model& rModel, std::size_t N
 // Properties object, since creating the same property id twice is an error.
 void AddSeepageCondition(Kratos::ModelPart& rModelPart, std::size_t Id, std::size_t FirstNodeId, std::size_t SecondNodeId)
 {
-    auto p_geometry = Kratos::make_shared<Line2D2<Node>>(
-        rModelPart.pGetNode(static_cast<int>(FirstNodeId)), rModelPart.pGetNode(static_cast<int>(SecondNodeId)));
+    auto p_geometry =
+        Kratos::make_shared<Line2D2<Node>>(rModelPart.pGetNode(static_cast<int>(FirstNodeId)),
+                                           rModelPart.pGetNode(static_cast<int>(SecondNodeId)));
     auto p_properties = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0)
                                                     : rModelPart.CreateNewProperties(0);
     rModelPart.AddCondition(
@@ -62,7 +63,8 @@ std::vector<Kratos::Node*> AllNodesOf(Kratos::ModelPart& rModelPart)
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CollectSeepageNodesReturnsNothingWhenThereAreNoSeepageConditions, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CollectSeepageNodesReturnsNothingWhenThereAreNoSeepageConditions,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithNodes(model, 2);
@@ -124,7 +126,8 @@ KRATOS_TEST_CASE_IN_SUITE(AccumulateWaterPressureEntriesPicksOnlyWaterPressureDo
     KRATOS_EXPECT_DOUBLE_EQ(nodal_flows.at(2), 7.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AccumulateWaterPressureEntriesSumsContributionsFromSeveralElements, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AccumulateWaterPressureEntriesSumsContributionsFromSeveralElements,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithNodes(model, 2);
@@ -148,7 +151,8 @@ KRATOS_TEST_CASE_IN_SUITE(AccumulateWaterPressureEntriesSumsContributionsFromSev
     KRATOS_EXPECT_DOUBLE_EQ(nodal_flows.at(2), 0.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeDoesNothingWhenNoNodeViolatesItsCondition, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeDoesNothingWhenNoNodeViolatesItsCondition,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithNodes(model, 2);
@@ -196,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeReleasesTheLargestOutflowFixedNode
         r_node.Fix(WATER_PRESSURE);
     }
 
-    const auto nodes       = AllNodesOf(r_model_part);
+    const auto nodes = AllNodesOf(r_model_part);
     const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, 4.0}, {2, 11.0}, {3, -2.0}};
 
     KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(nodes, nodal_flows))
@@ -243,12 +247,10 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeBreaksTiesByLowestNodeId, KratosGe
     KRATOS_EXPECT_TRUE(r_model_part.pGetNode(2)->IsFixed(WATER_PRESSURE))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ShouldReleaseToNeumannIsTrueOnlyForPositiveFlow, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
+KRATOS_TEST_CASE_IN_SUITE(ShouldReleaseToNeumannIsTrueOnlyForPositiveFlow, KratosGeoMechanicsFastSuiteWithoutKernel){
     KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::ShouldReleaseToNeumann(1.0e-9))
-    KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::ShouldReleaseToNeumann(0.0))
-    KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::ShouldReleaseToNeumann(-1.0))
-}
+        KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::ShouldReleaseToNeumann(0.0))
+            KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::ShouldReleaseToNeumann(-1.0))}
 
 KRATOS_TEST_CASE_IN_SUITE(AssignNodalWaterFlowsWritesMappedValuesAndZeroesTheRest, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -272,8 +274,3 @@ KRATOS_TEST_CASE_IN_SUITE(AssignNodalWaterFlowsWritesMappedValuesAndZeroesTheRes
 }
 
 } // namespace Kratos::Testing
-
-
-
-
-

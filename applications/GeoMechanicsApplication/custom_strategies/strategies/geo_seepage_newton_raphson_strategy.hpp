@@ -54,29 +54,22 @@ public:
     using MotherType::mCalculateReactionsFlag;
     using MotherType::mMaxIterationNumber;
     using MotherType::mNonconvergedSolutionsMatrix;
-    using MotherType::mpA;  // Tangent matrix
-    using MotherType::mpb;  // Residual vector of iteration i
+    using MotherType::mpA; // Tangent matrix
+    using MotherType::mpb; // Residual vector of iteration i
     using MotherType::mpConvergenceCriteria;
     using MotherType::mpDx; // Delta x of iteration i
     using MotherType::mStoreNonconvergedSolutionsFlag;
     using MotherType::mUseOldStiffnessInFirstIteration;
 
-    GeoSeepageNewtonRaphsonStrategy(ModelPart&                                 rModelPart,
-                                    typename TSchemeType::Pointer              pScheme,
+    GeoSeepageNewtonRaphsonStrategy(ModelPart&                    rModelPart,
+                                    typename TSchemeType::Pointer pScheme,
                                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-                                    typename TBuilderAndSolverType::Pointer    pNewBuilderAndSolver,
-                                    int  MaxIterations          = 30,
-                                    bool CalculateReactions     = false,
-                                    bool ReformDofSetAtEachStep = false,
-                                    bool MoveMeshFlag           = false)
-        : MotherType(rModelPart,
-                     pScheme,
-                     pNewConvergenceCriteria,
-                     pNewBuilderAndSolver,
-                     MaxIterations,
-                     CalculateReactions,
-                     ReformDofSetAtEachStep,
-                     MoveMeshFlag)
+                                    typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+                                    int                                     MaxIterations = 30,
+                                    bool CalculateReactions                               = false,
+                                    bool ReformDofSetAtEachStep                           = false,
+                                    bool MoveMeshFlag                                     = false)
+        : MotherType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
     }
 
@@ -103,8 +96,8 @@ public:
     bool SolveSolutionStep() override
     {
         // Pointers needed in the solution
-        ModelPart&                              r_model_part = BaseType::GetModelPart();
-        typename TSchemeType::Pointer           p_scheme     = this->GetScheme();
+        ModelPart&                              r_model_part         = BaseType::GetModelPart();
+        typename TSchemeType::Pointer           p_scheme             = this->GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
         auto&                                   r_dof_set = p_builder_and_solver->GetDofSet();
         std::vector<Vector>                     NonconvergedSolutions;
@@ -206,7 +199,6 @@ public:
 
             is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
-
             // call the linear system solver to find the correction mDx for the
             // it is not called if there is no system to solve
             if (TSparseSpace::Size(rDx) != 0) {
@@ -267,8 +259,7 @@ public:
             if (any_switched) this->SetStiffnessMatrixIsBuilt(false);
             // ----------------------------------------------------------------------------------
             // ---- SEEPAGE SEAM 3 --------------------------------------------------------------
-            if (any_switched)
-            {
+            if (any_switched) {
                 is_converged = false;
             }
             // ----------------------------------------------------------------------------------
@@ -336,7 +327,6 @@ protected:
         KRATOS_CATCH("")
     }
 
-
 private:
     // Cached once in Initialize. The conditions of a model part do not change during a solve, so
     // there is no need to rediscover the seepage nodes every iteration.
@@ -344,8 +334,3 @@ private:
 }; // Class GeoSeepageNewtonRaphsonStrategy
 
 } // namespace Kratos
-
-
-
-
-

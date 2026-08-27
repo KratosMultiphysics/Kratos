@@ -23,9 +23,7 @@ GeoSeepageCondition::GeoSeepageCondition(IndexType NewId, GeometryType::Pointer 
 {
 }
 
-GeoSeepageCondition::GeoSeepageCondition(IndexType               NewId,
-                                         GeometryType::Pointer   pGeometry,
-                                         PropertiesType::Pointer pProperties)
+GeoSeepageCondition::GeoSeepageCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
 }
@@ -150,4 +148,3 @@ void GeoSeepageCondition::load(Serializer& rSerializer)
 }
 
 } // namespace Kratos
-

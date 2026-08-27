@@ -69,7 +69,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCreateReturnsGeoSeepageCondition, K
     KRATOS_EXPECT_EQ(p_created->Id(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionGetDofListReturnsOneWaterPressureDofPerNode, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionGetDofListReturnsOneWaterPressureDofPerNode,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
@@ -116,7 +117,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCalculateLocalSystemReturnsZeroes, 
 
 // The seepage face starts over-prescribed: every node begins as a Dirichlet boundary at zero
 // pressure, and the strategy releases nodes one at a time from there.
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeSolutionStepFixesAllNodesAtZeroPressure, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeSolutionStepFixesAllNodesAtZeroPressure,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
@@ -136,7 +138,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeSolutionStepFixesAllNodes
 
 // A node released to Neumann by the strategy must be re-fixed at the start of the next solution
 // step, so each step starts from the same over-prescribed configuration.
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeSolutionStepReFixesAReleasedNode, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeSolutionStepReFixesAReleasedNode,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
@@ -174,4 +177,3 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsWhenNodeHasNoWaterPressu
 }
 
 } // namespace Kratos::Testing
-

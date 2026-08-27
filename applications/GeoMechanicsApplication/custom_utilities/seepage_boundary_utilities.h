@@ -32,8 +32,10 @@ using NodalFlowMap = std::unordered_map<std::size_t, double>;
 // rDofs must be the element's own degrees of freedom, in the same order as rRightHandSide. For a
 // U-Pw element the displacement and pressure entries are interleaved, so the entries cannot be
 // matched to nodes positionally; the degrees of freedom are what makes the mapping correct.
-void KRATOS_API(GEO_MECHANICS_APPLICATION) AccumulateWaterPressureEntries(
-    const std::vector<Dof<double>*>& rDofs, const Vector& rRightHandSide, NodalFlowMap& rNodalFlows);
+void KRATOS_API(GEO_MECHANICS_APPLICATION)
+    AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rDofs,
+                                   const Vector&                    rRightHandSide,
+                                   NodalFlowMap&                    rNodalFlows);
 
 // Returns the nodal water flow for every node in the model part, assembled from the right-hand side
 // of every element. For a Pw element that right-hand side is exactly the permeability flow plus the
@@ -74,6 +76,3 @@ bool KRATOS_API(GEO_MECHANICS_APPLICATION)
     SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFlowMap& rNodalFlows);
 
 } // namespace Kratos::Geo::SeepageBoundaryUtilities
-
-
-

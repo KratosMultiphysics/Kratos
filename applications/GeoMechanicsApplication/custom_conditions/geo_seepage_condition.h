@@ -41,9 +41,7 @@ public:
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   rThisNodes,
                               PropertiesType::Pointer pProperties) const override;
-    Condition::Pointer Create(IndexType               NewId,
-                              GeometryType::Pointer   pGeom,
-                              PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
@@ -71,11 +69,3 @@ private:
 };
 
 } // namespace Kratos
-
-
-
-
-
-
-
-
