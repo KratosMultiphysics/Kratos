@@ -168,13 +168,17 @@ The maximum storage capacity $S_{max}$ is a user defined parameter. The potentia
 
 # The Seepage Boundary Condition
 
-The seepage boundary is defined as a mixed boundary condition. It switches from a Dirichlet to a Neumann boundary condition based on the pressure and flux values. In short, a zero-pressure is applied when outflow is present, while a zero-flux boundary is applied in case of suction ($p > 0$). The formulations are as follows:
+The seepage boundary is defined as a mixed boundary condition. It switches from a Dirichlet to a Neumann boundary condition based on the local pressure and flux values. In short, a zero-pressure is applied when inflow is present, while a zero-flux boundary is applied in case of suction ($p > 0$). The formulations are as follows:
 
-$$ p = 0 \text{ if } \phi_n \ge 0 $$
-$$ \phi_n = 0 \text{ if } p > 0 $$
+$$S = \begin{cases}
+p = 0 & \text{if } \phi_n \le 0 \\
+\phi_n = 0  & \text{if } p < 0
+\end{cases}$$
 
-where $p$ is the pore water pressure, defined negative if water is present (and positive in case of suction). $\phi_n$ is the normal flux, defined positive for outflow. Since this 
+where $p$ is the pore water pressure, defined negative if water is present (and positive in case of suction). $\phi_n$ is the nodal flux, defined positive for outflow. Since this 
 functionality acts on the number of degrees of freedom (DoF) and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann Boundary for every node on the boundary.
+
+**Note that functionality for the seepage boundary is still to be implemented** 
 
 ## Validation
 The following validation cases will be considered for this functionality (links to be added when the validation cases are added to the test suite):
