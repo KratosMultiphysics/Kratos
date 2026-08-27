@@ -289,6 +289,16 @@ namespace IgaMappingIntersectionUtilities
     void KRATOS_API(MAPPING_APPLICATION) SortVerticesCounterClockwise(
         std::vector<CoordinatesArrayType>& r_triangle_vertices);
 
+    void KRATOS_API(MAPPING_APPLICATION) IgaCreateBrepCurveOnSurfaceCouplingGeometries(
+        ModelPart& rModelPartDomainA,
+        ModelPart& rModelPartDomainB,
+        ModelPart& rModelPartResult, 
+        double Tolerance = 1e-6);
+
+    void KRATOS_API(MAPPING_APPLICATION) IgaCreateQuadraturePointsCoupling1DGeometries2D(
+        ModelPart& rModelPartCoupling,
+        double Tolerance);
+
 
 }  // namespace IgaMappingIntersectionUtilities.
 

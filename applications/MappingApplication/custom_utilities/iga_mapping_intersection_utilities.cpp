@@ -11,11 +11,14 @@
 //
 
 // System includes
+#include <fstream>
+#include <iomanip>
 
 // External includes
 
 // Project includes
 #include "iga_mapping_intersection_utilities.h"
+#include "custom_utilities/mapping_triangulation_utilities.h"
 
 // Data structures for doing spatial search 
 #include "utilities/function_parser_utility.h"
@@ -23,6 +26,89 @@
 
 namespace Kratos
 {
+namespace
+{
+template<class TTriangleType>
+void WriteTriangleToTextFile(
+    std::ostream& rOutput,
+    const TTriangleType& rTriangle)
+{
+    KRATOS_ERROR_IF(rTriangle.size() != 3)
+        << "Expected a triangle with 3 vertices, got " << rTriangle.size() << ".\n";
+
+    for (const auto& r_vertex : rTriangle) {
+        rOutput << r_vertex[0] << ' ' << r_vertex[1] << ' ' << r_vertex[2] << '\n';
+    }
+    rOutput << '\n';
+}
+} // unnamed namespace
+
+void IgaMappingIntersectionUtilities::IgaCreateBrepCurveOnSurfaceCouplingGeometries(
+    ModelPart& rModelPartDomainA,
+    ModelPart& rModelPartDomainB,
+    ModelPart& rModelPartResult,
+    double Tolerance)
+{
+    for (auto geometry_a_itr = rModelPartDomainA.GeometriesBegin();
+         geometry_a_itr != rModelPartDomainA.GeometriesEnd();
+         ++geometry_a_itr)
+    {
+        for (auto geometry_b_itr = rModelPartDomainB.GeometriesBegin();
+             geometry_b_itr != rModelPartDomainB.GeometriesEnd();
+             ++geometry_b_itr)
+        {
+            rModelPartResult.AddGeometry(
+                Kratos::make_shared<CouplingGeometry<NodeType>>(
+                    rModelPartDomainA.pGetGeometry(geometry_a_itr->Id()),
+                    rModelPartDomainB.pGetGeometry(geometry_b_itr->Id())
+                )
+            );
+        }
+    }
+}
+
+void IgaMappingIntersectionUtilities::IgaCreateQuadraturePointsCoupling1DGeometries2D(
+        ModelPart &rModelPartCoupling,
+        double Tolerance)
+{
+    const ModelPart &rParentModelPart = rModelPartCoupling.GetParentModelPart();
+
+    for (auto geometry_itr = rModelPartCoupling.GeometriesBegin();
+        geometry_itr != rModelPartCoupling.GeometriesEnd();
+        ++geometry_itr)
+    {
+        std::ostringstream geometry_name_stream;
+        geometry_itr->PrintInfo(geometry_name_stream);
+        std::string geometry_name = geometry_name_stream.str();
+
+        if (geometry_name == "Brep face curve"){continue;}
+
+        IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info = geometry_itr->GetDefaultIntegrationInfo();
+
+        geometry_itr->CreateIntegrationPoints(integration_points, integration_info);
+
+        GeometriesArrayType master_and_slave_quadrature_points_geometries(integration_points.size()); // Vector of coupling geometries which stores the master and slave quedrature point geometries
+        IndexType number_of_shape_functions_derivatives = 3;
+
+        if (integration_points.size() != 0)
+        {
+            geometry_itr->CreateQuadraturePointGeometries(master_and_slave_quadrature_points_geometries, number_of_shape_functions_derivatives, integration_points, integration_info);
+
+            const IndexType id = (rParentModelPart.NumberOfConditions() == 0)
+                                    ? 1
+                                    : (rParentModelPart.ConditionsEnd() - 1)->Id() + 1;
+
+            const SizeType IntegrationPointsPerSpan = integration_info.GetNumberOfIntegrationPointsPerSpan(0);
+
+            for (IndexType i = 0; i < IntegrationPointsPerSpan; ++i)
+            {
+                rModelPartCoupling.AddCondition(Kratos::make_intrusive<Condition>(
+                    id + i, master_and_slave_quadrature_points_geometries(i)));
+            }
+        }
+    }
+}
 
 void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnCurve(
     ModelPart& rModelPartDomainA,
@@ -282,6 +368,15 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
 {
     const ModelPart& rParentModelPart = rModelPartCoupling.GetParentModelPart();
 
+    const std::string triangles_output_file_name =
+        "obtained_triangles_after_intersection_with_knot_lines.txt";
+    std::ofstream triangles_output_file(triangles_output_file_name);
+    KRATOS_ERROR_IF_NOT(triangles_output_file.is_open())
+        << "Could not open triangle output file: " << triangles_output_file_name << "\n";
+    triangles_output_file << std::setprecision(17)
+        << "# Parametric triangle vertices: u v w\n"
+        << "# Every three non-empty lines define one triangle.\n";
+
     // Iterate over the coupling geometries and create the quadrature points
     for (auto geometry_itr = rModelPartCoupling.GeometriesBegin();
         geometry_itr != rModelPartCoupling.GeometriesEnd();
@@ -476,7 +571,6 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
             }
         } else if (projection_is_successful_count == 3)
         { // If the 3 nodes are projected inside the untrimmed surface, check if the triangles intersect the trimming curves and , if so, create new triangles
-
             // Get the trimming curves outer loop
             auto outer_loop_array = geom_master_cast->GetOuterLoops();
 
@@ -514,8 +608,8 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
                         uv[0], uv[1], factor);
 
                     // We need to define this tolerance for the clipping process
-                    new_int_point.x += 100000.0;
-                    new_int_point.y += 100000.0;
+                    // new_int_point.x += 100000.0;
+                    // new_int_point.y += 100000.0;
 
                     // Fast duplicate rejection
                     if (new_int_point.x != int_point.x ||
@@ -544,6 +638,8 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
                 }
             }
 
+            const double triangle_area = std::abs(Clipper2Lib::Area(triangle));
+
             // Intersect the triangle with the polygon resulting from the tessellation of the outer loop
             solution = Clipper2Lib::Intersect(all_loops, triangle, Clipper2Lib::FillRule::NonZero);
 
@@ -552,35 +648,41 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
                 clip_area = std::abs(Clipper2Lib::Area(solution[0]));
             }
 
-            std::vector<Matrix> triangles;
-            std::vector<CoordinatesArrayType> sorted_points_to_triangulate;
-            sorted_points_to_triangulate.resize(3);
-
             if (!solution.empty()){
-                triangles.clear();
+                KRATOS_ERROR_IF(triangle_area <= std::numeric_limits<double>::epsilon())
+                    << "Cannot process a degenerate triangle with area " << triangle_area << ".\n";
 
-                BrepTrimmingUtilities<false>::Triangulate_OPT(solution[0], triangles, factor, clip_area);
+                constexpr double relative_area_tolerance = 1e-6;
+                const double intersected_area_relation =
+                    std::abs(triangle_area - clip_area) / triangle_area;
 
-                triangles_param_space.reserve(
-                    triangles_param_space.size() + triangles.size());
-
-                for (IndexType u = 0; u < triangles.size(); ++u){
-                    // Fill local triangle points
-                    for (IndexType v = 0; v < 3; ++v){
-                        points_to_triangulate[v][0] = triangles[u](v, 0);
-                        points_to_triangulate[v][1] = triangles[u](v, 1);
-                        points_to_triangulate[v][2] = 0.0;
-                    }
-
-                    // Reuse preallocated output container
+                if (intersected_area_relation < relative_area_tolerance) {
+                    // The complete triangle is inside the trimmed surface.
                     SortVerticesCounterClockwise(points_to_triangulate);
-
-                    // Avoid copy if possible
                     triangles_param_space.push_back(points_to_triangulate);
+                } else {
+                    std::vector<Matrix> triangles;
+                    BrepTrimmingUtilities<false>::Triangulate_OPT(
+                        solution[0], triangles, factor, clip_area);
+
+                    triangles_param_space.reserve(
+                        triangles_param_space.size() + triangles.size());
+
+                    for (IndexType u = 0; u < triangles.size(); ++u){
+                        // Fill local triangle points
+                        for (IndexType v = 0; v < 3; ++v){
+                            points_to_triangulate[v][0] = triangles[u](v, 0);
+                            points_to_triangulate[v][1] = triangles[u](v, 1);
+                            points_to_triangulate[v][2] = 0.0;
+                        }
+
+                        SortVerticesCounterClockwise(points_to_triangulate);
+                        triangles_param_space.push_back(points_to_triangulate);
+                    }
                 }
-                } else {    
-                    KRATOS_WARNING("The intersection resulted in an empty polygon, skipping the triangle.");
-                }
+            } else {
+                KRATOS_WARNING("The intersection resulted in an empty polygon, skipping the triangle.");
+            }
 
         } else {
             KRATOS_WARNING("IgaMappingIntersectionUtilities")
@@ -588,7 +690,8 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
             continue;
         }
 
-        std::vector<std::vector<CoordinatesArrayType>> obtained_triangles_after_intersection_with_knot_lines;
+        std::vector<MappingTriangulationUtilities::TriangleType>
+            obtained_triangles_after_intersection_with_knot_lines;
 
         // Reuse quadrature containers outside loops
         IntegrationPointsArrayType integration_points_master(3);
@@ -606,14 +709,24 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
         {
             obtained_triangles_after_intersection_with_knot_lines.clear();
 
-            // Fallback: no triangulation => process original triangle
-            if (obtained_triangles_after_intersection_with_knot_lines.empty()) {
-                obtained_triangles_after_intersection_with_knot_lines.push_back(triangles_param_space[tri_id]);
-            }
+            KRATOS_ERROR_IF(triangles_param_space[tri_id].size() != 3)
+                << "Expected a triangle with 3 vertices, got "
+                << triangles_param_space[tri_id].size() << ".\n";
+
+            const MappingTriangulationUtilities::TriangleType triangle{{
+                triangles_param_space[tri_id][0],
+                triangles_param_space[tri_id][1],
+                triangles_param_space[tri_id][2]}};
+
+            MappingTriangulationUtilities::Triangulation(
+                triangle, geom_master,
+                obtained_triangles_after_intersection_with_knot_lines);
 
             for (IndexType j = 0; j < obtained_triangles_after_intersection_with_knot_lines.size(); ++j)
             {
                 const auto& r_triangle = obtained_triangles_after_intersection_with_knot_lines[j];
+
+                WriteTriangleToTextFile(triangles_output_file, r_triangle);
 
                 const double xi_0  = r_triangle[0][0];
                 const double xi_1  = r_triangle[1][0];
@@ -675,7 +788,6 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
             }
         }
     }
-
 }
 
 bool IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
