@@ -73,8 +73,8 @@ if(!(std::abs(b) <= std::numeric_limits<double>::epsilon())) {                  
 #define KRATOS_EXPECT_DOUBLE_EQ(a,b) EXPECT_DOUBLE_EQ((a),(b)) << "Check failed because " << #a << " = " << (a) << \
 " is not equal to " << #b << " = " << (b)
 
-#define KRATOS_EXPECT_VECTOR_NEAR(a,b,tolerance) {                              \
-    EXPECT_TRUE(a.size() == b.size())                                           \
+#define KRATOS_EXPECT_VECTOR_NEAR(a,b,tolerance) {                                                                  \
+    EXPECT_TRUE(static_cast<std::size_t>(a.size()) == static_cast<std::size_t>(b.size()))  \
     << "Check failed because vector arguments do not have the same size:"       \
     << std::endl                                                                \
     << "First argument has size " << a.size() << ", "                           \
