@@ -1183,7 +1183,8 @@ namespace Kratos
 
             if (check_second_layer) {
                 n_second_layer_checks++;
-                for (auto& neigh_id : node_neigh_ids) {
+                const std::vector<std::size_t> first_layer_node_ids(node_neigh_ids.begin(), node_neigh_ids.end());
+                for (const auto neigh_id : first_layer_node_ids) {
                     auto p_neigh = mpModelPart->pGetNode(neigh_id);
                     std::vector<NodeType::Pointer> neighboring_nodes_2;
                     rSurroundingNodesCSR.get_active_neighbors(p_neigh->Id(), neighboring_nodes_2);
