@@ -127,10 +127,10 @@ bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFl
             [](const Node& rNode) { return rNode.FastGetSolutionStepValue(WATER_PRESSURE); })) {
         p_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
         p_node->Fix(WATER_PRESSURE);
-        return p_node;
+        return true;
     }
 
-    // Otherwise release the prescribed node carrying the largest outflow.
+    // Otherwise release the prescribed node carrying the largest inflow.
     const auto flow_of = [&rNodalFlows](const Node& rNode) {
         const auto it = rNodalFlows.find(rNode.Id());
         return it == rNodalFlows.end() ? 0.0 : it->second;
@@ -146,7 +146,7 @@ bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFl
         return true;
     }
 
-    return nullptr;
+    return false;
 
     KRATOS_CATCH("")
 }
