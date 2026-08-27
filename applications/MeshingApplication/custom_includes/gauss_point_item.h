@@ -61,10 +61,6 @@ public:
     using Matrix = Kratos::Matrix;
     using Vector = Kratos::Vector;
 
-    /// Disambiguate from names injected by the dense-backend base of Point
-    using Matrix = Kratos::Matrix;
-    using Vector = Kratos::Vector;
-
     /// Counted pointer of GaussPointItem
     KRATOS_CLASS_POINTER_DEFINITION( GaussPointItem );
 
