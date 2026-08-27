@@ -717,7 +717,8 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
                 triangles_param_space[tri_id][0],
                 triangles_param_space[tri_id][1],
                 triangles_param_space[tri_id][2]}};
-
+            
+            // This method intersects a triangle with the knot lines of a NURBS surface and returns the resulting triangles after intersection
             MappingTriangulationUtilities::Triangulation(
                 triangle, geom_master,
                 obtained_triangles_after_intersection_with_knot_lines);
