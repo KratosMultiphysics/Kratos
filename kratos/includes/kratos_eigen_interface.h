@@ -239,7 +239,7 @@ public:
     /// validates consistency.
     void set_filled(const std::size_t FilledSize1, const std::size_t FilledNNZ)
     {
-        KRATOS_DEBUG_ERROR_IF(FilledSize1 != size1() + 1 || FilledNNZ != nnz() || FilledNNZ > this->data().size())
+        KRATOS_DEBUG_ERROR_IF(FilledSize1 != size1() + 1 || FilledNNZ != nnz() || FilledNNZ > static_cast<std::size_t>(this->data().size()))
             << "set_filled(" << FilledSize1 << ", " << FilledNNZ
             << ") is inconsistent with the written compressed storage ("
             << size1() + 1 << ", " << nnz() << " of " << this->data().size()
