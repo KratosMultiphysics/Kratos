@@ -500,7 +500,10 @@ def PlotModelPart(
     mesh = grid
     if warpName is not None and warpName in grid.point_data:
         if showUndeformed:
-            plotter.add_mesh(grid, show_edges=False, opacity=0.2, line_width=lineWidth)
+            # Plain silhouette: no scalar coloring/bar for the undeformed ghost,
+            # regardless of which array is "active" on the grid.
+            plotter.add_mesh(grid, scalars=None, color="lightgray", show_edges=False,
+                             opacity=0.2, line_width=lineWidth, show_scalar_bar=False)
         mesh = grid.warp_by_vector(warpName, factor=factor)
 
     # Identify and extract the scalar to display
