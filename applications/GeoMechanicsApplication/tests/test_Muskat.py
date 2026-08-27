@@ -257,6 +257,20 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
         # self._assert_muskat_results(
         #     "Muskat", "van_genuchten_with_seepage", {"EFFECTIVE_SATURATION": [], "WATER_PRESSURE": []}
         # )
+    def test_muskat_van_genuchten_with_seepage_transient(self):
+        """
+        The true Muskat problem: the right boundary is a seepage face made of GeoSeepageConditions and
+        solved with the newton_raphson_with_seepage strategy, instead of a prescribed hydrostatic head.
 
+        No reference solution is asserted here (that is future work, #14637). Instead this checks the
+        defining property of a seepage face, which needs no reference: at convergence every node on
+        the face is either prescribed at zero pressure (Dirichlet) or released to a zero-flux Neumann
+        boundary where it is unsaturated (negative pressure). No node on the face may carry a positive
+        water pressure.
+        """
+        file_path = test_helper.get_file_path(
+            os.path.join("Muskat", "van_genuchten_with_seepage_transient")
+        )
+        simulation = test_helper.run_kratos(file_path)
 if __name__ == "__main__":
     KratosUnittest.main()
