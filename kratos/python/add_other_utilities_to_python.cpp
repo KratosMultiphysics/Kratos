@@ -195,8 +195,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     namespace py = pybind11;
 
-    typedef DefaultSparseSpaceType SparseSpaceType;
-    typedef DefaultLocalSpaceType LocalSpaceType;
+    using LocalSpaceType = DefaultLocalSpaceType;
 
     py::class_<BasicGenericFunctionUtility,  BasicGenericFunctionUtility::Pointer >(m,"BasicGenericFunctionUtility")
         .def(py::init<const std::string&>() )
