@@ -170,7 +170,7 @@ The maximum storage capacity $S_{max}$ is a user defined parameter. The potentia
 
 The seepage boundary is defined as a mixed boundary condition. It switches from a Dirichlet to a Neumann boundary condition based on the local pressure and flux values. In short, a zero-pressure is applied when inflow is present, while a zero-flux boundary is applied in case of suction ($p > 0$). The formulations are as follows:
 
-$$S = \begin{cases}
+$$\begin{cases}
 p = 0 & \text{if } \phi_n \le 0 \\
 \phi_n = 0  & \text{if } p < 0
 \end{cases}$$
