@@ -254,6 +254,9 @@ class KratosGeoMechanicsMuskatTests(KratosUnittest.TestCase):
         #     msg="Expected at least one released (negative-pressure) node on the seepage face",
         # )
 
+        # self._assert_muskat_results(
+        #     "Muskat", "van_genuchten_with_seepage", {"EFFECTIVE_SATURATION": [], "WATER_PRESSURE": []}
+        # )
 
 if __name__ == "__main__":
     KratosUnittest.main()

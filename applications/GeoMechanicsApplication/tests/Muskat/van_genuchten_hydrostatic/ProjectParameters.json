@@ -30,7 +30,7 @@
         "reform_dofs_at_each_step": true,
         "block_builder": true,
         "solution_type": "Steady_State_Groundwater_Flow",
-        "strategy_type": "newton_raphson",
+        "strategy_type": "newton_raphson_with_seepage",
         "convergence_criterion": "residual_criterion",
         "residual_relative_tolerance": 1.0e-04,
         "residual_absolute_tolerance": 1.0e-09,
@@ -72,7 +72,7 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "nodal_results": ["WATER_PRESSURE", "EFFECTIVE_SATURATION"]
+                            "nodal_results": ["WATER_PRESSURE", "EFFECTIVE_SATURATION", "NODAL_WATER_FLOW"]
                         }
                     }
                 }

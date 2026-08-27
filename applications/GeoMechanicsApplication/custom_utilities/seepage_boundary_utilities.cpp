@@ -13,6 +13,7 @@
 #include <algorithm>
 
 #include "custom_conditions/geo_seepage_condition.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/variables.h"
 
 namespace Kratos::Geo::SeepageBoundaryUtilities
@@ -109,7 +110,7 @@ Node* SelectBestCandidate(const std::vector<Node*>& rNodes, PredicateType IsCand
 
 } // namespace
 
-bool ShouldReleaseToNeumann(double NodalFlow) { return NodalFlow > 0.0; }
+bool ShouldReleaseToNeumann(double NodalFlow) { return NodalFlow < 0.0; }
 
 bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFlowMap& rNodalFlows)
 {
@@ -126,7 +127,7 @@ bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFl
             [](const Node& rNode) { return rNode.FastGetSolutionStepValue(WATER_PRESSURE); })) {
         p_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
         p_node->Fix(WATER_PRESSURE);
-        return true;
+        return p_node;
     }
 
     // Otherwise release the prescribed node carrying the largest outflow.
@@ -145,7 +146,7 @@ bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFl
         return true;
     }
 
-    return false;
+    return nullptr;
 
     KRATOS_CATCH("")
 }

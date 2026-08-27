@@ -14,7 +14,7 @@
 #include "geometries/line_2d_2.h"
 #include "includes/variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-
+#include "geo_mechanics_application_variables.h"
 using namespace Kratos;
 
 namespace

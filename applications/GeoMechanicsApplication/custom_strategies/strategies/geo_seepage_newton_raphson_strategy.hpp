@@ -88,14 +88,8 @@ public:
 
         MotherType::Initialize();
         mSeepageNodes = Geo::SeepageBoundaryUtilities::CollectSeepageNodes(BaseType::GetModelPart());
-        for (auto* p_node : mSeepageNodes)
-        {
-            p_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-            p_node->Fix(WATER_PRESSURE);
-        }
         KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
             << "Found " << mSeepageNodes.size() << " seepage nodes" << std::endl;
-
         KRATOS_CATCH("")
     }
 
@@ -191,6 +185,10 @@ public:
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
 
+        // ---- SEEPAGE SEAM 1: decide the switch, then force a stiffness rebuild ------------
+        any_switched = UpdateSeepageBoundaryConditions();
+        if (any_switched) this->SetStiffnessMatrixIsBuilt(false);
+        // ----------------------------------------------------------------------------------
         // ---- SEEPAGE SEAM 3 ------------------------------------------------------------------
         // A switch was just applied and solved for. The settled solution might itself warrant a
         // further switch, so convergence may only be declared on an iteration that switches
@@ -208,10 +206,6 @@ public:
 
             is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
-            // ---- SEEPAGE SEAM 1: decide the switch, then force a stiffness rebuild ------------
-            any_switched = UpdateSeepageBoundaryConditions();
-            if (any_switched) this->SetStiffnessMatrixIsBuilt(false);
-            // ----------------------------------------------------------------------------------
 
             // call the linear system solver to find the correction mDx for the
             // it is not called if there is no system to solve
@@ -268,8 +262,15 @@ public:
                 is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
 
+            // ---- SEEPAGE SEAM 1: decide the switch, then force a stiffness rebuild ------------
+            any_switched = UpdateSeepageBoundaryConditions();
+            if (any_switched) this->SetStiffnessMatrixIsBuilt(false);
+            // ----------------------------------------------------------------------------------
             // ---- SEEPAGE SEAM 3 --------------------------------------------------------------
-            if (any_switched) is_converged = false;
+            if (any_switched)
+            {
+                is_converged = false;
+            }
             // ----------------------------------------------------------------------------------
         }
 
