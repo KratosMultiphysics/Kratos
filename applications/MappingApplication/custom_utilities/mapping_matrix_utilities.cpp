@@ -14,6 +14,7 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
+#include <type_traits>
 
 // External includes
 
@@ -125,10 +126,10 @@ void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>
 
         for (IndexType i = 0; i < rTls.destination_ids.size(); ++i) {
             for (IndexType j = 0; j < rTls.origin_ids.size(); ++j) {
-                if constexpr (requires { (*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]).ref(); }) {
-                    AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]).ref(), rTls.local_mapping_matrix(i,j)); // ublas sparse element proxy
-                } else {
+                if constexpr (std::is_reference_v<decltype((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]))>) {
                     AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]), rTls.local_mapping_matrix(i,j)); // direct reference (Eigen)
+                } else {
+                    AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]).ref(), rTls.local_mapping_matrix(i,j)); // ublas sparse element proxy
                 }
             }
         }
