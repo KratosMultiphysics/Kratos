@@ -189,7 +189,7 @@ void MappingMatrixUtilitiesType::InitializeSystemVector(
     const std::size_t VectorSize)
 {
     // The vectors dont have graphs, that why we don't always have to reinitialize them
-    if (rpVector == nullptr || rpVector->size() != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
+    if (rpVector == nullptr || static_cast<std::size_t>(rpVector->size()) != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
         Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType> p_new_vector = Kratos::make_unique<typename MappingSparseSpaceType::VectorType>(VectorSize);
         rpVector.swap(p_new_vector);
 
