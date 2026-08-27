@@ -166,7 +166,7 @@ $$ E_a^{j+1} = E_p^{j+1}$$
 
 The maximum storage capacity $S_{max}$ is a user defined parameter. The potential precipitation $P_p$ is also given by the user, usually in the form of time-precipitation table in the MPDA file. 
 
-# The Seepage Boundary Condition
+# Seepage Boundary Condition
 
 The seepage boundary is defined as a mixed boundary condition. It switches from a Dirichlet to a Neumann boundary condition based on the local pressure and flux values. In short, a zero-pressure is applied when inflow is present, while a zero-flux boundary is applied in case of suction ($p > 0$). The formulations are as follows:
 
