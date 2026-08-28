@@ -893,7 +893,6 @@ protected:
     {
         const auto &r_geom = this->GetGeometry();
         constexpr unsigned int BlockSize = TDim + 1;
-        constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
 
         // Compute the penalty coefficient
         const double pen_coef = ComputePenaltyCoefficient(rData, rCurrentProcessInfo);
