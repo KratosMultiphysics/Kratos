@@ -21,7 +21,7 @@
                     "PERMEABILITY_XY": 0.0,
                     "DYNAMIC_VISCOSITY": 1.0e-03,
                     "BIOT_COEFFICIENT": 1.0,
-                    "RETENTION_LAW": "SaturatedLaw",
+                    "RETENTION_LAW": "VanGenuchtenLaw",
                     "SATURATED_SATURATION": 0.403,
                     "RESIDUAL_SATURATION": 2.5e-02,
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.56136e+03,
@@ -33,4 +33,3 @@
         }
     ]
 }
-

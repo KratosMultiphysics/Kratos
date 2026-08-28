@@ -105,10 +105,10 @@ void GeoSeepageCondition::InitializeSolutionStep(const ProcessInfo&)
 
     // Start each solution step with the seepage face fully prescribed. Nodes released to a
     // zero-flux Neumann boundary during the previous step are fixed again here.
-    for (auto& r_node : GetGeometry()) {
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-        r_node.Fix(WATER_PRESSURE);
-    }
+    // for (auto& r_node : GetGeometry()) {
+    //     r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    //     r_node.Fix(WATER_PRESSURE);
+    // }
 
     KRATOS_CATCH("")
 }

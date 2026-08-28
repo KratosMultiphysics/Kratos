@@ -83,6 +83,12 @@ public:
         mSeepageNodes = Geo::SeepageBoundaryUtilities::CollectSeepageNodes(BaseType::GetModelPart());
         KRATOS_INFO_IF("GeoSeepageNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
             << "Found " << mSeepageNodes.size() << " seepage nodes" << std::endl;
+        for (auto* p_node : mSeepageNodes) {
+            KRATOS_INFO("Node") << p_node->Id()
+                                << " pressure = " << p_node->FastGetSolutionStepValue(WATER_PRESSURE)
+                                << "\n";
+            KRATOS_INFO("Node") << p_node->Id() << " fixed = " << p_node->IsFixed(WATER_PRESSURE) << "\n";
+        }
         KRATOS_CATCH("")
     }
 
@@ -95,8 +101,8 @@ public:
     // base class sits at that point.
     bool SolveSolutionStep() override
     {
+        ModelPart& r_model_part = BaseType::GetModelPart();
         // Pointers needed in the solution
-        ModelPart&                              r_model_part         = BaseType::GetModelPart();
         typename TSchemeType::Pointer           p_scheme             = this->GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
         auto&                                   r_dof_set = p_builder_and_solver->GetDofSet();
@@ -126,13 +132,6 @@ public:
         p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
-
-        // ---- SEEPAGE SEAM 1: decide the switch, then force a stiffness rebuild ----------------
-        // Deciding before the build means this iteration's BuildAndSolve reassembles with the new
-        // fixity, so the block builder applies the switched node's Dirichlet/Neumann state at once.
-        any_switched = UpdateSeepageBoundaryConditions();
-        if (any_switched) this->SetStiffnessMatrixIsBuilt(false);
-        // --------------------------------------------------------------------------------------
 
         // Function to perform the building and the solving phase.
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
@@ -188,7 +187,6 @@ public:
         // nothing. Force at least one more iteration here.
         if (any_switched) is_converged = false;
         // --------------------------------------------------------------------------------------
-
         // Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false && iteration_number++ < mMaxIterationNumber) {
             // setting the number of iteration

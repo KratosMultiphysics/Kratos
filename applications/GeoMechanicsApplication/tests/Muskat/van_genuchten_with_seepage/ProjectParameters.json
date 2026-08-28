@@ -35,7 +35,7 @@
         "residual_relative_tolerance": 1.0e-04,
         "residual_absolute_tolerance": 1.0e-09,
         "min_iterations": 6,
-        "max_iterations": 1000,
+        "max_iterations": 1500,
         "number_cycles": 1,
         "reduction_factor": 1.0,
         "increase_factor": 1.0,
@@ -72,7 +72,12 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "nodal_results": ["WATER_PRESSURE", "EFFECTIVE_SATURATION", "NODAL_WATER_FLOW"]
+                            "nodal_results": [
+                                "WATER_PRESSURE",
+                                "EFFECTIVE_SATURATION",
+                                "NODAL_WATER_FLOW",
+                                "FLUID_FLUX_VECTOR"
+                            ]
                         }
                     }
                 }
@@ -137,10 +142,9 @@
                 "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous",
-                    "list_of_variables": ["EFFECTIVE_SATURATION"]
+                    "list_of_variables": ["EFFECTIVE_SATURATION", "FLUID_FLUX_VECTOR"]
                 }
             }
         ]
     }
 }
-

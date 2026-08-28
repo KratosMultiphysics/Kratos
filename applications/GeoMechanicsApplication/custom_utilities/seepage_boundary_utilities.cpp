@@ -11,6 +11,7 @@
 #include "custom_utilities/seepage_boundary_utilities.h"
 
 #include <algorithm>
+#include <limits>
 
 #include "custom_conditions/geo_seepage_condition.h"
 #include "geo_mechanics_application_variables.h"
@@ -115,12 +116,18 @@ bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFl
 {
     KRATOS_TRY
 
+    for (auto* p_node : rSeepageNodes) {
+        KRATOS_INFO("Node") << p_node->Id()
+                            << " pressure = " << p_node->FastGetSolutionStepValue(WATER_PRESSURE) << "\n";
+        KRATOS_INFO("Node") << p_node->Id() << " fixed = " << p_node->IsFixed(WATER_PRESSURE) << "\n";
+    }
     // A free node under positive pressure is unsaturated, so it cannot be a draining face. Fixing
     // takes precedence over releasing.
     if (auto* p_node = SelectBestCandidate(rSeepageNodes, [](const Node& rNode) {
-        return !rNode.IsFixed(WATER_PRESSURE) && rNode.FastGetSolutionStepValue(WATER_PRESSURE) > 0.0;
+        return !rNode.IsFixed(WATER_PRESSURE) && rNode.FastGetSolutionStepValue(WATER_PRESSURE) < 0.0;
     }, [](const Node& rNode) { return rNode.FastGetSolutionStepValue(WATER_PRESSURE); })) {
-        KRATOS_INFO("Switch") << "Node " << p_node->Id() << " switched to Dirichlet, because pressure was " << p_node->FastGetSolutionStepValue(WATER_PRESSURE) << "\n";
+        KRATOS_INFO("Switch") << "Node " << p_node->Id() << " switched to Dirichlet, because pressure was "
+                              << p_node->FastGetSolutionStepValue(WATER_PRESSURE) << "\n";
         p_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
         p_node->Fix(WATER_PRESSURE);
         return true;
@@ -133,9 +140,10 @@ bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFl
     };
 
     if (auto* p_node = SelectBestCandidate(rSeepageNodes, [&flow_of](const Node& rNode) {
-        return rNode.IsFixed(WATER_PRESSURE) && ShouldReleaseToNeumann(flow_of(rNode));
+        return !rNode.IsFixed(WATER_PRESSURE) && flow_of(rNode) < -100.0 * std::numeric_limits<double>::epsilon();
     }, flow_of)) {
-        KRATOS_INFO("Switch") << "Node " << p_node->Id() << " switched to Neumann, because flow was " << flow_of(*p_node) << "\n";
+        KRATOS_INFO("Switch") << "Node " << p_node->Id() << " switched to Neumann, because flow was "
+                              << flow_of(*p_node) << "\n";
         p_node->Free(WATER_PRESSURE);
         return true;
     }
