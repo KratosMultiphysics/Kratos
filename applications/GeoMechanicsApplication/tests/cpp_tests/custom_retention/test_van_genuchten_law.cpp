@@ -53,8 +53,8 @@ TEST_P(VanGenuchtenCalculateValuesSuite, TestValuesAreCalculatedCorrectly)
     double value = 0.0;
     EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, test_data.variable, value),
                      test_data.expected_value)
-        << "Incorrect value for input pressure = " << test_data.input_pressure
-        << " and variable = " << test_data.variable.Name();
+        << "Incorrect value for variable = " << test_data.variable.Name()
+        << " and input pressure = " << test_data.input_pressure;
 }
 
 INSTANTIATE_TEST_SUITE_P(
