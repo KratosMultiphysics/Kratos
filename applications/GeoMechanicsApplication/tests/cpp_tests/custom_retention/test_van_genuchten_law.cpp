@@ -13,6 +13,7 @@
 #include "custom_retention/van_genuchten_law.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "gtest/gtest.h"
 
 namespace Kratos::Testing
 {
@@ -25,9 +26,20 @@ KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLawReturnsCloneOfCorrectType, KratosGeoMec
     KRATOS_EXPECT_NE(dynamic_cast<const VanGenuchtenLaw*>(p_law_clone.get()), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLawReturnsCalculatedValues, KratosGeoMechanicsFastSuiteWithoutKernel)
+struct TestData {
+    const Variable<double>& variable;
+    double                  expected_value;
+    double                  input_pressure;
+};
+
+class VanGenuchtenCalculateValuesSuite : public testing::TestWithParam<TestData>
 {
-    auto       law = VanGenuchtenLaw();
+};
+
+TEST_P(VanGenuchtenCalculateValuesSuite, TestValuesAreCalculatedCorrectly)
+{
+    const auto test_data = GetParam();
+    auto       law       = VanGenuchtenLaw();
     Properties properties;
     properties.SetValue(SATURATED_SATURATION, 0.9);
     properties.SetValue(RESIDUAL_SATURATION, 0.1);
@@ -35,40 +47,30 @@ KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLawReturnsCalculatedValues, KratosGeoMecha
     properties.SetValue(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE, 2.5);
     properties.SetValue(VAN_GENUCHTEN_GN, 2.5);
     properties.SetValue(VAN_GENUCHTEN_GL, 1.5);
-
     auto retention_law_parameters = RetentionLaw::Parameters{properties};
 
-    retention_law_parameters.SetFluidPressure(-10.0);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateSaturation(retention_law_parameters), 0.9);
+    retention_law_parameters.SetFluidPressure(test_data.input_pressure);
     double value = 0.0;
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, DEGREE_OF_SATURATION, value), 0.9);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateEffectiveSaturation(retention_law_parameters), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, EFFECTIVE_SATURATION, value), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateBishopCoefficient(retention_law_parameters), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, BISHOP_COEFFICIENT, value), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateDerivativeOfSaturation(retention_law_parameters), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, DERIVATIVE_OF_SATURATION, value), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateRelativePermeability(retention_law_parameters), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, RELATIVE_PERMEABILITY, value), 1.0);
-
-    // Values below are regression values, avoiding reimplementation here of the Van Genuchten Law
-    retention_law_parameters.SetFluidPressure(1.5);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateSaturation(retention_law_parameters), 0.79023542376288392);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, DEGREE_OF_SATURATION, value),
-                            0.79023542376288392);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateEffectiveSaturation(retention_law_parameters), 0.86279427970360489);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, EFFECTIVE_SATURATION, value),
-                            0.86279427970360489);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateBishopCoefficient(retention_law_parameters), 0.86279427970360489);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, BISHOP_COEFFICIENT, value),
-                            0.86279427970360489);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateDerivativeOfSaturation(retention_law_parameters), -0.15050611026881838);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, DERIVATIVE_OF_SATURATION, value),
-                            -0.15050611026881838);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateRelativePermeability(retention_law_parameters), 0.28755984470352691);
-    KRATOS_EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, RELATIVE_PERMEABILITY, value),
-                            0.28755984470352691);
+    EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, test_data.variable, value),
+                     test_data.expected_value)
+        << "Incorrect value for input pressure = " << test_data.input_pressure
+        << " and variable = " << test_data.variable.Name();
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    SaturatedZone,
+    VanGenuchtenCalculateValuesSuite,
+    ::testing::Values(
+        TestData{.variable = DEGREE_OF_SATURATION, .expected_value = 0.9, .input_pressure = -10.0},
+        TestData{.variable = EFFECTIVE_SATURATION, .expected_value = 1.0, .input_pressure = -10.0},
+        TestData{.variable = BISHOP_COEFFICIENT, .expected_value = 1.0, .input_pressure = -10.0},
+        TestData{.variable = DERIVATIVE_OF_SATURATION, .expected_value = 0.0, .input_pressure = -10.0},
+        TestData{.variable = RELATIVE_PERMEABILITY, .expected_value = 1.0, .input_pressure = -10.0},
+        TestData{.variable = DEGREE_OF_SATURATION, .expected_value = 0.79023542376288392, .input_pressure = 1.5},
+        TestData{.variable = EFFECTIVE_SATURATION, .expected_value = 0.86279427970360489, .input_pressure = 1.5},
+        TestData{.variable = BISHOP_COEFFICIENT, .expected_value = 0.86279427970360489, .input_pressure = 1.5},
+        TestData{.variable = DERIVATIVE_OF_SATURATION, .expected_value = -0.15050611026881838, .input_pressure = 1.5},
+        TestData{.variable = RELATIVE_PERMEABILITY, .expected_value = 0.28755984470352691, .input_pressure = 1.5}));
 
 KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLawChecksInputParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
