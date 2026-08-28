@@ -773,9 +773,6 @@ protected:
             // Get the positive side shape functions Gauss pt. values
             const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss);
 
-            // Get the positive side shape functions gradients Gauss pt. values
-            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss];
-
             // Get the positive side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
 
@@ -797,9 +794,6 @@ protected:
 
             // Get the negative side shape functions Gauss pt. values
             const array_1d<double, TNumNodes> aux_N = row(rData.N_neg_int, i_gauss);
-
-            // Get the negative side shape functions gradients Gauss pt. values
-            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_neg_int[i_gauss];
 
             // Get the negative side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
@@ -840,9 +834,6 @@ protected:
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
         GetPreviousSolutionVector(rData, prev_sol);
 
-        // Declare auxiliar arrays
-        array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
-
         // Contribution coming from the positive side boundary term
         const unsigned int n_int_pos_gauss = (rData.w_gauss_pos_int).size();
 
@@ -851,9 +842,6 @@ protected:
 
             // Get the positive side shape functions Gauss pt. values
             const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss);
-
-            // Get the positive side shape functions gradients Gauss pt. values
-            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss];
 
             // Get the positive side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
@@ -876,9 +864,6 @@ protected:
 
             // Get the negative side shape functions Gauss pt. values
             const array_1d<double, TNumNodes> aux_N = row(rData.N_neg_int, i_gauss);
-
-            // Get the negative side shape functions gradients Gauss pt. values
-            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_neg_int[i_gauss];
 
             // Get the negative side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
@@ -914,7 +899,6 @@ protected:
         const double pen_coef = ComputePenaltyCoefficient(rData, rCurrentProcessInfo);
 
         // Compute the LHS and RHS penalty contributions
-        BoundedMatrix<double, MatrixSize, MatrixSize> P_gamma = ZeroMatrix(MatrixSize, MatrixSize);
 
         // Contribution coming from the positive side penalty term
         const unsigned int n_int_pos_gauss = (rData.w_gauss_pos_int).size();
