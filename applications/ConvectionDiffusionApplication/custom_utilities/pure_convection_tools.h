@@ -58,6 +58,7 @@ public:
         //mDofSet.resize(0);
         mDofSet.reserve(model_part.Nodes().size() );
 
+        int tot_nnz=0;
         //int tot_row=0;
         for (auto it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
         {
@@ -65,6 +66,7 @@ public:
             {
                 mDofSet.push_back( it->pGetDof(rScalarVar) );
                 //tot_row += 1;
+                tot_nnz +=  (it->GetValue(NEIGHBOUR_NODES)).size()+1;
             }
         }
 
