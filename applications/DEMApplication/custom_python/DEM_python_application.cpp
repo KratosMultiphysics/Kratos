@@ -418,6 +418,9 @@ PYBIND11_MODULE(KratosDEMApplication,m)
 
     // RVE analysis
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RVE_ANALYSIS)
+
+    // FCC analysis
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FCC_ANALYSIS)
 }
 
 }  // namespace Python.

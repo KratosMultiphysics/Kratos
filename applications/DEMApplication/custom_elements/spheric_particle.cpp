@@ -1986,7 +1986,7 @@ std::unique_ptr<DEMGlobalDampingModel> SphericParticle::pCloneGlobalDampingModel
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
 
 void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {
-    if (r_process_info[RVE_ANALYSIS]) {
+    if (r_process_info[RVE_ANALYSIS] || r_process_info[FCC_ANALYSIS]) {
         if (data_buffer.mIndentation > 0.0) {
             int neighbor_id = data_buffer.mpOtherParticle->GetId();
             mBallToBallStoredInfo[neighbor_id].indentation = data_buffer.mIndentation;
@@ -1997,7 +1997,7 @@ void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_in
 }
 
 void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding, double indentation) {
-    if (r_process_info[RVE_ANALYSIS]) {
+    if (r_process_info[RVE_ANALYSIS] || r_process_info[FCC_ANALYSIS]) {
         if (indentation > 0.0) {
             int neighbor_id = data_buffer.mpOtherRigidFace->GetId();
             mBallToRigidFaceStoredInfo[neighbor_id].indentation = indentation;

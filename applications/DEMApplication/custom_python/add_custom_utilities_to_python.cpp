@@ -40,6 +40,7 @@
 #include "custom_utilities/parallel_bond_utilities.h"
 #include "custom_utilities/rve_utilities.h"
 #include "custom_utilities/rve_wall_boundary_2d.h"
+#include "custom_utilities/fcc_utilities.h"
 
 namespace Kratos {
 
@@ -449,6 +450,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("Initialize", &RVEWallBoundary2D::Initialize)
         .def("FinalizeSolutionStep", &RVEWallBoundary2D::FinalizeSolutionStep)
         .def("Finalize", &RVEWallBoundary2D::Finalize)
+        ;
+
+    py::class_<FCCUtilities, FCCUtilities::Pointer>(m, "FCCUtilities")
+        .def(py::init<>())
+        .def(py::init<double, int, int, double, double, double, double, double, double, double, double, int>())
+        .def("Initialize", &FCCUtilities::Initialize)
+        .def("FinalizeSolutionStep", &FCCUtilities::FinalizeSolutionStep)
         ;
     }
 

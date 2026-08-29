@@ -141,6 +141,21 @@ def GetDefaultInputParameters():
                 "RVEConsolidationLimitValue"       : 0.0,
                 "RVEInnerVolumeOffset"             : 0.7
             },
+            "fcc_analysis_settings" : {
+                "FCCAnalysis"                  : false,
+                "FCCFriction"                  : 0.0,
+                "FCCRunFrequency"              : 0,
+                "FCCWriteFrequency"            : 0,
+                "FCCCStrainRate"               : 0.0,
+                "FCCInertialNumberMax"         : 0.0,
+                "FCCEnergyRatioMax"            : 0.0,
+                "FCCTargetStress"              : 0.0,
+                "FCCServoControlGain"          : 0.0,
+                "FCCServoControlAlpha"         : 0.0,
+                "FCCServoControlStrainRateMax" : 0.0,
+                "FCCFailMCN"                   : 0.0,
+                "FCCFailCountMax"              : 0
+            },
             "virtual_sea_surface_settings"     : {
                 "print_sea_surface"            : false,
                 "PostVirtualSeaSurfaceX1"      : 0.0,

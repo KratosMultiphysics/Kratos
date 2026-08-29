@@ -106,6 +106,9 @@ class DEMAnalysisStage(AnalysisStage):
         # RVE analysis
         self.rve_utils = self.SetRVEUtilities()
 
+        # FCC benchmark analysis
+        self.fcc_utils = self.SetFCCUtilities()
+
         # Define control variables
         self.p_frequency = 100   # activate every 100 steps
         self.step_count = 0
@@ -235,6 +238,26 @@ class DEMAnalysisStage(AnalysisStage):
         else:
             raise Exception('Error: The selected RVE utility is not implemented')
 
+    def SetFCCUtilities(self):
+        fcc_settings = self.DEM_parameters["fcc_analysis_settings"]
+        self.fcc_analysis = fcc_settings["FCCAnalysis"].GetBool()
+        self.spheres_model_part.ProcessInfo.SetValue(FCC_ANALYSIS, self.fcc_analysis)
+        if not fcc_settings["FCCAnalysis"].GetBool():
+            return None
+        else:
+            return FCCUtilities(fcc_settings["FCCFriction"].GetDouble(),
+                                fcc_settings["FCCRunFrequency"].GetInt(),
+                                fcc_settings["FCCWriteFrequency"].GetInt(),
+                                fcc_settings["FCCCStrainRate"].GetDouble(),
+                                fcc_settings["FCCInertialNumberMax"].GetDouble(),
+                                fcc_settings["FCCEnergyRatioMax"].GetDouble(),
+                                fcc_settings["FCCTargetStress"].GetDouble(),
+                                fcc_settings["FCCServoControlGain"].GetDouble(),
+                                fcc_settings["FCCServoControlAlpha"].GetDouble(),
+                                fcc_settings["FCCServoControlStrainRateMax"].GetDouble(),
+                                fcc_settings["FCCFailMCN"].GetDouble(),
+                                fcc_settings["FCCFailCountMax"].GetInt())
+
     def SetSolver(self):        # TODO why is this still here. -> main_script calls retrocompatibility
         return self._CreateSolver()
 
@@ -328,6 +351,9 @@ class DEMAnalysisStage(AnalysisStage):
 
         if self.rve_utils is not None:
             self.rve_utils.Initialize(self.spheres_model_part, self.rigid_face_model_part)
+        
+        if self.fcc_utils is not None:
+            self.fcc_utils.Initialize(self.spheres_model_part, self.rigid_face_model_part)
 
         self.KratosPrintInfo(self.report.BeginReport(timer))
 
@@ -732,6 +758,9 @@ class DEMAnalysisStage(AnalysisStage):
         if self.rve_utils is not None:
             self.rve_utils.FinalizeSolutionStep()
 
+        if self.fcc_utils is not None:
+            self.fcc_utils.FinalizeSolutionStep()
+
         #Phantom Walls
         self.RunAnalytics(self.time)
 
@@ -778,6 +807,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
         if self.rve_utils is not None:
             self.rve_utils.Finalize()
+        if self.fcc_utils is not None:
+            self.fcc_utils.Finalize()
 
         self.CleanUpOperations()
 
