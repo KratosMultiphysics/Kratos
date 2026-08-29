@@ -108,7 +108,7 @@ namespace Kratos
         double yMax = std::numeric_limits<double>::lowest();
         double zMin = std::numeric_limits<double>::max();
         double zMax = std::numeric_limits<double>::lowest();
-        for (std::size_t i = 0; i < mNumWallElems; i++) {
+        for (int i = 0; i < mNumWallElems; i++) {
             ModelPart::ConditionsContainerType::iterator it = rConditions.ptr_begin() + i;
             DEMWall *pWall = dynamic_cast<DEMWall *>(&(*it));
             Condition::GeometryType &geom = pWall->GetGeometry();
@@ -123,7 +123,7 @@ namespace Kratos
             zMax = std::max({zMax, z1, z2, z3});
         }
         // Second loop: Classify wall elements
-        for (std::size_t i = 0; i < mNumWallElems; i++) {
+        for (int i = 0; i < mNumWallElems; i++) {
             ModelPart::ConditionsContainerType::iterator it = rConditions.ptr_begin() + i;
             DEMWall *pWall = dynamic_cast<DEMWall *>(&(*it));
             Condition::GeometryType &geom = pWall->GetGeometry();
@@ -153,7 +153,7 @@ namespace Kratos
         double yMax = std::numeric_limits<double>::lowest();
         double zMin = std::numeric_limits<double>::max();
         double zMax = std::numeric_limits<double>::lowest();
-        for (std::size_t i = 0; i < mNumParticles; i++) {
+        for (int i = 0; i < mNumParticles; i++) {
             auto it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
             SphericParticle& particle = static_cast<SphericParticle&>(**it);
             const double x = particle.GetGeometry()[0][0];
@@ -167,7 +167,7 @@ namespace Kratos
             zMax = std::max({zMax, z});
         }
         // Second loop: Identify inner particles
-        for (std::size_t i = 0; i < mNumParticles; i++) {
+        for (int i = 0; i < mNumParticles; i++) {
             auto it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
             SphericParticle& particle = static_cast<SphericParticle&>(**it);
             const double x = particle.GetGeometry()[0][0];
@@ -185,10 +185,10 @@ namespace Kratos
     }
     //------------------------------------------------------------------------------------------------------------
     void FCCUtilities::UpdateFriction() {
-        for (std::size_t i = 0; i < mNumParticles; i++) {
+        for (int i = 0; i < mNumParticles; i++) {
             auto it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
             SphericParticle& particle = static_cast<SphericParticle&>(**it);
-            for (std::size_t j = 0; j < particle.mNeighbourElements.size(); j++) {
+            for (int j = 0; j < particle.mNeighbourElements.size(); j++) {
                 SphericParticle* const neighbour = static_cast<SphericParticle*>(particle.mNeighbourElements[j]);
                 Properties& props = particle.GetProperties().GetSubProperties(neighbour->GetProperties().Id());
                 props[STATIC_FRICTION] = mFriction;
@@ -217,7 +217,7 @@ namespace Kratos
         double kineticEnergy = 0.0;
         double elasticEnergy = 0.0;
         // Loop over all particles
-        for (std::size_t i = 0; i < mNumParticles; i++) {
+        for (int i = 0; i < mNumParticles; i++) {
             auto it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
             SphericParticle& particle = static_cast<SphericParticle&>(**it);
             // Check if particle is inner
@@ -230,7 +230,7 @@ namespace Kratos
             kineticEnergy += 0.5 * mass * (vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2]);
             elasticEnergy += particle.GetElasticEnergy();
             // Loop over particle neighbors
-            for (std::size_t j = 0; j < particle.mNeighbourElements.size(); j++) {
+            for (int j = 0; j < particle.mNeighbourElements.size(); j++) {
                 // Check contact
                 const int id2 = particle.mNeighbourElements[j]->GetId();
                 const double indent = particle.mBallToBallStoredInfo[id2].indentation;
@@ -253,8 +253,8 @@ namespace Kratos
                 const double nz = -particle.mBallToBallStoredInfo[id2].local_coord_system[2][2];
                 std::vector<double> branch = {d * nx, d * ny, d * nz};
                 // Assemble stress tensor
-                for (std::size_t k = 0; k < mDim; k++) {
-                    for (std::size_t l = 0; l < mDim; l++) {
+                for (int k = 0; k < mDim; k++) {
+                    for (int l = 0; l < mDim; l++) {
                         double Skl = branch[k] * force[l] / mVolume;
                         mStressTensor(k, l) += Skl;
                         if (k == l) mStressMean += Skl / mDim;
@@ -262,7 +262,7 @@ namespace Kratos
                 }
             }
             // Loop over wall neighbors
-            for (std::size_t j = 0; j < particle.mNeighbourRigidFaces.size(); j++) {
+            for (int j = 0; j < particle.mNeighbourRigidFaces.size(); j++) {
                 // Check contact
                 const int id2 = particle.mNeighbourRigidFaces[j]->GetId();
                 const double indent = particle.mBallToRigidFaceStoredInfo[id2].indentation;
@@ -279,8 +279,8 @@ namespace Kratos
                 const double nz = -particle.mBallToRigidFaceStoredInfo[id2].local_coord_system[2][2];
                 std::vector<double> branch = {d * nx, d * ny, d * nz};
                 // Assemble stress tensor
-                for (std::size_t k = 0; k < mDim; k++) {
-                    for (std::size_t l = 0; l < mDim; l++) {
+                for (int k = 0; k < mDim; k++) {
+                    for (int l = 0; l < mDim; l++) {
                         double Skl = branch[k] * force[l] / mVolume;
                         mStressTensor(k, l) += Skl;
                         if (k == l) mStressMean += Skl / mDim;

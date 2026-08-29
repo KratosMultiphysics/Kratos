@@ -22,18 +22,18 @@ namespace Kratos
         public:
             KRATOS_CLASS_POINTER_DEFINITION(FCCUtilities);
             // INPUTS
+            double mFriction;           // Friction coefficient for compression stage
             int mRunFreq;               // Evaluation frequency in time steps
             int mWriteFreq;             // Results printing frequency in time steps
-            int mFailCountMax;          // Maximum number of consecutive counts with failure condition
-            double mFriction;           // Friction coefficient for compression stage
             double mStrainRate;         // Compression strain rate for consolidation and compression stages
-            double mInertialNumMax;     // Maximum inertial number for quasi-static compression
-            double mTargetStress;       // Target stress for consolidation stage
+            double mInertialNumMax;     // Maximum inertial number for quasi-static 
             double mEnergyRatioMax;     // Limit kinetic/elastics energy ratio for reaching static equilibrium in relaxation stage
+            double mTargetStress;       // Target stress for consolidation stage
             double mServoGain;          // Servo-control gain for compression stage
             double mServoFilterAlpha;   // Servo-control parameter for stress filtering
             double mServoStrainRateMax; // Servo-controlled maximum strain rate
             double mMcnFail;            // Mean coordination number threshold for failure detection
+            int mFailCountMax;          // Maximum number of consecutive counts with failure condition
             FCCUtilities(
                 double friction,
                 int runFreq,
@@ -41,10 +41,10 @@ namespace Kratos
                 double strainRate,
                 double inertialNumMax,
                 double energyRatioMax,
-                double TargetStress,
+                double targetStress,
                 double servoGain,
                 double servoFilterAlpha,
-                double ServoStrainRateMax,
+                double servoStrainRateMax,
                 double mcnFail,
                 int failCountMax):
             mFriction(friction),
@@ -53,10 +53,10 @@ namespace Kratos
             mStrainRate(strainRate),
             mInertialNumMax(inertialNumMax),
             mEnergyRatioMax(energyRatioMax),
-            mTargetStress(TargetStress),
+            mTargetStress(targetStress),
             mServoGain(servoGain),
             mServoFilterAlpha(servoFilterAlpha),
-            mServoStrainRateMax(ServoStrainRateMax),
+            mServoStrainRateMax(servoStrainRateMax),
             mMcnFail(mcnFail),
             mFailCountMax(failCountMax) {}
             // ATTRIBUTES
@@ -111,10 +111,10 @@ namespace Kratos
                 return std::abs(a-b) < 1e-15;
             }
             bool IsTimeToEvaluate(int step) {
-                return (step != 0 && mRunFreq != 0 && step % mRunFreq == 0.0);
+                return (step != 0 && mRunFreq != 0 && step % mRunFreq == 0);
             }
             bool IsTimeToPrint(int step) {
-                return (step != 0 && mWriteFreq != 0 && step % mWriteFreq == 0.0);
+                return (step != 0 && mWriteFreq != 0 && step % mWriteFreq == 0);
             }
   };
 }
