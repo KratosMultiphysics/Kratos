@@ -517,7 +517,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateGeometrical
             
             e = column(E, d); 
             temp = outer_prod(e, row(rThisKinematicVariables.DW_DX, i));
-            temp_vec = SPHElementUtilities<TDim>::NonSymmetricTensorToVector(temp);
+            temp_vec = SPHElementUtilities::NonSymmetricTensorToVector<TDim>(temp);
             
             const SizeType col_index = i * TDim + d;
             
@@ -559,7 +559,7 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateGeometrical
         temp += outer_prod(vel_aux, row(rThisKinematicVariables.DW_DX, i));
     }
 
-    temp_residual = SPHElementUtilities<TDim>::NonSymmetricTensorToVector(temp); 
+    temp_residual = SPHElementUtilities::NonSymmetricTensorToVector<TDim>(temp);
 
     for (IndexType i = 0; i < number_of_neigh; ++i){
         noalias(project(rRHSF, range(TDim * TDim * i, TDim * TDim * (i + 1)))) += temp_residual * rThisKinematicVariables.W[i];
@@ -714,27 +714,28 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddUpwin
 {
     KRATOS_TRY
     const auto& r_geom = this->GetGeometry();
-    const auto& r_props = this->GetProperties();
     const auto& r_neighbours = this->GetValue(NEIGHBOURS);
 
-    VectorType upwind_residual(TDim), velocity_jump(TDim); upwind_residual.clear();
+    VectorType upwind_residual(TDim), velocity_jump(TDim), X_AB_target(TDim); upwind_residual.clear();
     MatrixType stabilization_matrix(TDim, TDim);
 
     const int self_index = this->GetNeighbourPosition(r_neighbours);
-    const array_1d<double, 3>& velocity_self = r_geom[0].FastGetSolutionStepValue(VELOCITY, Step);
+    const auto& r_initial_position = r_geom[0].GetInitialPosition();
 
     for (IndexType i = 0; i < r_neighbours.size(); ++i){
         
         if (i == self_index) continue;
 
-        const array_1d<double, 3>& velocity_neigh = r_neighbours[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, Step);
-
+        const auto& r_neighbour_initial_position = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
         for (IndexType d = 0; d < TDim; ++d)
-            velocity_jump[d] = velocity_self[d] - velocity_neigh[d];
+            X_AB_target[d] = r_initial_position[d] - r_neighbour_initial_position[d];
+
+        SPHElementUtilities::ComputeVelocityJump(velocity_jump, *this, *r_neighbours[i], X_AB_target, Step);
         
         CalculatePairUpwindStabilizationMatrix(stabilization_matrix, *r_neighbours[i], rThisKinematicVariables.F, rProcessInfo);
 
-        upwind_residual += prod(stabilization_matrix, velocity_jump);
+        // ComputeVelocityJump uses the same neighbour-minus-particle convention as ComputeParticleJump.
+        upwind_residual -= prod(stabilization_matrix, velocity_jump);
     }
 
     noalias(project(rRHSv, range(TDim * self_index, TDim * (self_index + 1)))) += upwind_residual;

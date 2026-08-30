@@ -82,6 +82,60 @@ void SPHElementUtilities::ComputeParticleJump(
     for (IndexType d = 0; d < dimension; ++d) rJumpVector[d] = neighbour_interface_position[d] - particle_interface_position[d];
 }
 
+void SPHElementUtilities::ComputeVelocityJump(
+    VectorType& rJumpVector,
+    Element& rThisParticle,
+    Element& rThisNeighbour,
+    VectorType& rInitialDistance,
+    const int Step)
+{
+    const SizeType dimension = rThisParticle.GetGeometry().WorkingSpaceDimension();
+
+    const auto& r_particle_node = rThisParticle.GetGeometry()[0];
+    const auto& r_neighbour_node = rThisNeighbour.GetGeometry()[0];
+
+    MatrixType velocity_gradient_particle = ZeroMatrix(dimension, dimension);
+    MatrixType velocity_gradient_neighbour = ZeroMatrix(dimension, dimension);
+
+    velocity_gradient_particle(0, 0) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XX, Step);
+    velocity_gradient_particle(1, 1) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YY, Step);
+    velocity_gradient_particle(0, 1) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XY, Step);
+    velocity_gradient_particle(1, 0) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YX, Step);
+
+    velocity_gradient_neighbour(0, 0) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XX, Step);
+    velocity_gradient_neighbour(1, 1) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YY, Step);
+    velocity_gradient_neighbour(0, 1) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XY, Step);
+    velocity_gradient_neighbour(1, 0) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YX, Step);
+
+    if (dimension == 3) {
+        velocity_gradient_particle(2, 2) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZZ, Step);
+        velocity_gradient_particle(0, 2) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XZ, Step);
+        velocity_gradient_particle(1, 2) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YZ, Step);
+        velocity_gradient_particle(2, 0) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZX, Step);
+        velocity_gradient_particle(2, 1) = r_particle_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZY, Step);
+
+        velocity_gradient_neighbour(2, 2) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZZ, Step);
+        velocity_gradient_neighbour(0, 2) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_XZ, Step);
+        velocity_gradient_neighbour(1, 2) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_YZ, Step);
+        velocity_gradient_neighbour(2, 0) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZX, Step);
+        velocity_gradient_neighbour(2, 1) = r_neighbour_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT_DOT_ZY, Step);
+    }
+
+    VectorType particle_velocity(dimension);
+    VectorType neighbour_velocity(dimension);
+    const auto& r_particle_velocity = r_particle_node.FastGetSolutionStepValue(VELOCITY, Step);
+    const auto& r_neighbour_velocity = r_neighbour_node.FastGetSolutionStepValue(VELOCITY, Step);
+    for (IndexType d = 0; d < dimension; ++d) {
+        particle_velocity[d] = r_particle_velocity[d];
+        neighbour_velocity[d] = r_neighbour_velocity[d];
+    }
+
+    const VectorType particle_interface_velocity = particle_velocity - 0.5 * prod(velocity_gradient_particle, rInitialDistance);
+    const VectorType neighbour_interface_velocity = neighbour_velocity + 0.5 * prod(velocity_gradient_neighbour, rInitialDistance);
+
+    noalias(rJumpVector) = neighbour_interface_velocity - particle_interface_velocity;
+}
+
 void SPHElementUtilities::ComputeWaveSpeed(
     double& PressureWaveSpeed, 
     double& ShearWaveSpeed, 
