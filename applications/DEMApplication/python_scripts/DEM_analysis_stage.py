@@ -245,15 +245,16 @@ class DEMAnalysisStage(AnalysisStage):
         if not fcc_settings["FCCAnalysis"].GetBool():
             return None
         else:
-            return FCCUtilities(fcc_settings["FCCFriction"].GetDouble(),
-                                fcc_settings["FCCRunFrequency"].GetInt(),
+            return FCCUtilities(fcc_settings["FCCRunFrequency"].GetInt(),
                                 fcc_settings["FCCWriteFrequency"].GetInt(),
+                                fcc_settings["FCCFrictionParticles"].GetDouble(),
+                                fcc_settings["FCCFrictionWalls"].GetDouble(),
+                                fcc_settings["FCCFrictionIsotropicStage"].GetBool(),
                                 fcc_settings["FCCCStrainRate"].GetDouble(),
                                 fcc_settings["FCCInertialNumberMax"].GetDouble(),
                                 fcc_settings["FCCEnergyRatioMax"].GetDouble(),
                                 fcc_settings["FCCTargetStress"].GetDouble(),
                                 fcc_settings["FCCServoControlGain"].GetDouble(),
-                                fcc_settings["FCCServoControlAlpha"].GetDouble(),
                                 fcc_settings["FCCServoControlStrainRateMax"].GetDouble(),
                                 fcc_settings["FCCFailMCN"].GetDouble(),
                                 fcc_settings["FCCFailCountMax"].GetInt())

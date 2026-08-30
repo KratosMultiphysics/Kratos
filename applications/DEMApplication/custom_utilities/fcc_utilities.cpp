@@ -40,13 +40,14 @@ namespace Kratos
         mWallYMax.clear();
         mWallZMin.clear();
         mWallZMax.clear();
-        std::string fileName = "output_f" + std::to_string(static_cast<int>(mFriction * 10)) + ".csv";
+        std::string fileName = "output_f" + std::to_string(static_cast<int>(mFrictionPP * 10)) + ".csv";
         mFileOut.open(fileName, std::ios::out);
         mFileOut << "Time(s),StressXX(Pa),StressYY(Pa),StressZZ(Pa),StrainZZ,MCN" << std::endl;
         AssembleWallVectors();
         IdentifyInnerParticles();
         UpdateSystem();
         UpdateWallVelocities();
+        if (mFrictionStage1) UpdateFriction();
         mLenZRef = mLenZ;
         KRATOS_INFO("FCCUtilities") << "FCCUtilities initialized!" << std::endl;
         KRATOS_INFO("FCCUtilities") << "Number of particles (inner): " << mNumParticles << " (" << mNumParticlesInn << ")" << std::endl;
@@ -69,7 +70,6 @@ namespace Kratos
                 mRunFreq = mRunFreq * EVAL_FREQ_STAGE2;
                 mRefTime = processInfo[TIME];
                 mLenZRef = mLenZ;
-                UpdateWallVelocities();
             }
         }
         else if (mStage == 2) {
@@ -79,9 +79,6 @@ namespace Kratos
                 mRunFreq = mRunFreq / EVAL_FREQ_STAGE2;
                 mRefTime = processInfo[TIME];
                 mLenZRef = mLenZ;
-                mStressXXFilt = std::abs(mStressTensor(0, 0));
-                mStressYYFilt = std::abs(mStressTensor(1, 1));
-                UpdateWallVelocities();
                 UpdateFriction();
             }
         }
@@ -94,8 +91,8 @@ namespace Kratos
                 if (mFileOut.is_open()) mFileOut.close();
                 KRATOS_ERROR << "Stage 3 completed! MCN below threshold after " << mFailCount << " counts" << std::endl;
             }
-            UpdateWallVelocities();
         }
+        UpdateWallVelocities();
         if (step % CONSOLE_PRINT_FREQ == 0) PrintStepInfo();
     }
     //------------------------------------------------------------------------------------------------------------
@@ -191,8 +188,14 @@ namespace Kratos
             for (int j = 0; j < particle.mNeighbourElements.size(); j++) {
                 SphericParticle* const neighbour = static_cast<SphericParticle*>(particle.mNeighbourElements[j]);
                 Properties& props = particle.GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-                props[STATIC_FRICTION] = mFriction;
-                props[DYNAMIC_FRICTION] = mFriction;
+                props[STATIC_FRICTION] = mFrictionPP;
+                props[DYNAMIC_FRICTION] = mFrictionPP;
+            }
+            for (int j = 0; j < particle.mNeighbourRigidFaces.size(); j++) {
+                DEMWall* const neighbour = static_cast<DEMWall*>(particle.mNeighbourRigidFaces[j]);
+                Properties& props = particle.GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+                props[STATIC_FRICTION] = mFrictionPW;
+                props[DYNAMIC_FRICTION] = mFrictionPW;
             }
         }
     }
@@ -290,7 +293,7 @@ namespace Kratos
         }
         // Update energy ratio and inertial number
         mEnergyRatio = kineticEnergy / elasticEnergy;
-        mInertialNum = mStrainRate * (2.0*mRadius) / std::sqrt(std::abs(mStressMean/mDensity));
+        mInertialNum = mStrainRate * (2.0 * mRadius) / std::sqrt(std::abs(mStressMean / mDensity));
     }
     //------------------------------------------------------------------------------------------------------------
     void FCCUtilities::UpdateWallVelocities(void) {
@@ -305,14 +308,14 @@ namespace Kratos
         else if (mStage == 3) {
             vZ = mStrainRate * mLenZ / 2.0;
             // Servo-control in X direction
-            mStressXXFilt = mServoFilterAlpha * std::abs(mStressTensor(0,0)) + (1.0 - mServoFilterAlpha) * mStressXXFilt;
-            double stressErrorX = (mTargetStress - mStressXXFilt) / mTargetStress;
+            double Sxx = std::abs(mStressTensor(0,0));
+            double stressErrorX = (mTargetStress - Sxx) / mTargetStress;
             double strainRateX = mServoGain * stressErrorX;
             strainRateX = std::clamp(strainRateX, -mServoStrainRateMax, mServoStrainRateMax);
             vX = strainRateX * mLenX / 2.0;
             // Servo-control in Y direction:
-            mStressYYFilt = mServoFilterAlpha * std::abs(mStressTensor(1,1)) + (1.0 - mServoFilterAlpha) * mStressYYFilt;
-            double stressErrorY = (mTargetStress - mStressYYFilt) / mTargetStress;
+            double Syy = std::abs(mStressTensor(1,1)) + (1.0);
+            double stressErrorY = (mTargetStress - Syy) / mTargetStress;
             double strainRateY = mServoGain * stressErrorY;
             strainRateY = std::clamp(strainRateY, -mServoStrainRateMax, mServoStrainRateMax);
             vY = strainRateY * mLenY / 2.0;
@@ -376,7 +379,7 @@ namespace Kratos
         std::cout << std::fixed << std::setprecision(5);
         std::cout << "Time............: " << processInfo[TIME] << std::endl;
         std::cout << std::fixed << std::setprecision(0);
-        std::cout << "Stresses........: "
+        std::cout << "Stresses (X,Y,Z): "
         << std::abs(mStressMean)
         << " ("
         << std::abs(mStressTensor(0,0)) << ", "
@@ -390,7 +393,7 @@ namespace Kratos
         std::cout << std::scientific << std::setprecision(3);
         std::cout << "Energy ratio....: " << mEnergyRatio << std::endl;
         if (mStage == 3) {
-            std::cout << std::fixed << std::setprecision(6);
+            std::cout << std::scientific << std::setprecision(3);
             std::cout << "Strain Z........: " << std::abs(mStrainZ) << std::endl;
         }
         std::cout << "-----------------" << std::endl << std::endl;
@@ -400,13 +403,13 @@ namespace Kratos
         if (mFileOut.is_open()) {
             double relTime = mDemModelPart->GetProcessInfo()[TIME] - mRefTime;
             mFileOut
-            << std::fixed << std::setprecision(6)
+            << std::scientific << std::setprecision(3)
             << relTime << ","
             << std::fixed << std::setprecision(0)
             << mStressTensor(0,0) << "," << mStressTensor(1,1) << "," << mStressTensor(2,2) << ","
-            << std::scientific << std::setprecision(2)
+            << std::scientific << std::setprecision(3)
             << std::abs(mStrainZ) << ","
-            << std::fixed << std::setprecision(4)
+            << std::fixed << std::setprecision(5)
             << mMcnInn
             << std::endl;
         }

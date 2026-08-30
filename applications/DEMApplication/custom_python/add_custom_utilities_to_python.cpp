@@ -454,7 +454,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<FCCUtilities, FCCUtilities::Pointer>(m, "FCCUtilities")
         .def(py::init<>())
-        .def(py::init<double, int, int, double, double, double, double, double, double, double, double, int>())
+        .def(py::init<int, int, double, double, bool, double, double, double, double, double, double, double, int>())
         .def("Initialize", &FCCUtilities::Initialize)
         .def("FinalizeSolutionStep", &FCCUtilities::FinalizeSolutionStep)
         ;

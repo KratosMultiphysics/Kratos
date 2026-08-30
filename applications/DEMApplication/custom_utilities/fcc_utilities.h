@@ -22,76 +22,77 @@ namespace Kratos
         public:
             KRATOS_CLASS_POINTER_DEFINITION(FCCUtilities);
             // INPUTS
-            double mFriction;           // Friction coefficient for compression stage
             int mRunFreq;               // Evaluation frequency in time steps
             int mWriteFreq;             // Results printing frequency in time steps
-            double mStrainRate;         // Compression strain rate for consolidation and compression stages
-            double mInertialNumMax;     // Maximum inertial number for quasi-static 
-            double mEnergyRatioMax;     // Limit kinetic/elastics energy ratio for reaching static equilibrium in relaxation stage
-            double mTargetStress;       // Target stress for consolidation stage
-            double mServoGain;          // Servo-control gain for compression stage
-            double mServoFilterAlpha;   // Servo-control parameter for stress filtering
+            double mFrictionPP;         // Particle-Particle friction coefficient
+            double mFrictionPW;         // Particle-Wall friction coefficient
+            bool mFrictionStage1;       // Flag to indicate if friction is considered in stage 1 (isotropic compression)
+            double mStrainRate;         // Compression strain rate for stages 1 and 3 (isotropic compression and servo-controlled compression)
+            double mInertialNumMax;     // Maximum inertial number for quasi-static compression in stage 3 (servo-controlled compression)
+            double mEnergyRatioMax;     // Limit of kinetic/elastic energy ratio for reaching static equilibrium in stage 2 (relaxation)
+            double mTargetStress;       // Target stress for stage 1 (isotropic compression)
+            double mServoGain;          // Servo-control gain for stage 1 (isotropic compression)
             double mServoStrainRateMax; // Servo-controlled maximum strain rate
             double mMcnFail;            // Mean coordination number threshold for failure detection
             int mFailCountMax;          // Maximum number of consecutive counts with failure condition
             FCCUtilities(
-                double friction,
                 int runFreq,
                 int writeFreq,
+                double frictionPP,
+                double frictionPW,
+                bool frictionStage1,
                 double strainRate,
                 double inertialNumMax,
                 double energyRatioMax,
                 double targetStress,
                 double servoGain,
-                double servoFilterAlpha,
                 double servoStrainRateMax,
                 double mcnFail,
                 int failCountMax):
-            mFriction(friction),
             mRunFreq(runFreq),
             mWriteFreq(writeFreq),
+            mFrictionPP(frictionPP),
+            mFrictionPW(frictionPW),
+            mFrictionStage1(frictionStage1),
             mStrainRate(strainRate),
             mInertialNumMax(inertialNumMax),
             mEnergyRatioMax(energyRatioMax),
             mTargetStress(targetStress),
             mServoGain(servoGain),
-            mServoFilterAlpha(servoFilterAlpha),
             mServoStrainRateMax(servoStrainRateMax),
             mMcnFail(mcnFail),
             mFailCountMax(failCountMax) {}
             // ATTRIBUTES
             int mDim;                        // Problem dimension
-            int mStage;                      // 1: consolidation, 2: relaxation, 3: compression + servo-control
+            int mStage;                      // 1: isotropic compression, 2: relaxation, 3: servo-controlled compression
             int mNumParticles;               // Number of particles
             int mNumParticlesInn;            // Number of inner particles
-            int mNumWallElems;               // Number of RVE wall elements
+            int mNumWallElems;               // Number of walls
             int mFailCount;                  // Number of consecutive counts with failure condition
             double mRadius;                  // Particle radius
             double mDensity;                 // Particle density
             double mMcnAll;                  // Mean coordination number (all particles)
             double mMcnInn;                  // Mean coordination number (inner particles)
             double mInertialNum;             // Inertial number
-            double mRefTime;                 // Reference time
+            double mRefTime;                 // Reference initial time
             double mEnergyRatio;             // Kinetic/Elastic energy ratio
-            double mStressXXFilt;            // Filtered stress in X direction for servo-control
-            double mStressYYFilt;            // Filtered stress in Y direction for servo-control
             double mLenX;                    // Length of RVE in X direction
             double mLenY;                    // Length of RVE in Y direction
             double mLenZ;                    // Length of RVE in Z direction
-            double mLenZRef;                 // Reference initial Length of RVE in Z direction
+            double mLenZRef;                 // Reference initial length of RVE in Z direction
             double mStrainZ;                 // Axial strain in the Z direction
             double mVolume;                  // Volume of the RVE
             double mStressMean;              // Mean effective stress (all contacts)
             Matrix mStressTensor;            // Cauchy stress tensor (all contacts)
-            ModelPart* mDemModelPart;        // Pointer to model part of DEM particles in RVE
-            ModelPart* mFemModelPart;        // Pointer to model part of FEM walls in RVE boundaries
+            ModelPart* mDemModelPart;        // Pointer to particle model part
+            ModelPart* mFemModelPart;        // Pointer to wall model part
             std::vector<int> mInnIds;        // Vector of internal particle Ids
-            std::vector<DEMWall*> mWallXMin; // Vector of RVE wall elements in negative X direction
-            std::vector<DEMWall*> mWallXMax; // Vector of RVE wall elements in positive X direction
-            std::vector<DEMWall*> mWallYMin; // Vector of RVE wall elements in negative Y direction
-            std::vector<DEMWall*> mWallYMax; // Vector of RVE wall elements in positive Y direction
-            std::vector<DEMWall*> mWallZMin; // Vector of RVE wall elements in negative Z direction
-            std::vector<DEMWall*> mWallZMax; // Vector of RVE wall elements in positive Z direction
+            std::vector<DEMWall*> mWallXMin; // Vector of wall elements in negative X direction
+            std::vector<DEMWall*> mWallXMax; // Vector of wall elements in positive X direction
+            std::vector<DEMWall*> mWallYMin; // Vector of wall elements in negative Y direction
+            std::vector<DEMWall*> mWallYMax; // Vector of wall elements in positive Y direction
+            std::vector<DEMWall*> mWallZMin; // Vector of wall elements in negative Z direction
+            std::vector<DEMWall*> mWallZMax; // Vector of wall elements in positive Z direction
             std::ofstream mFileOut;          // File to print results
             // METHODS
             FCCUtilities() {}
