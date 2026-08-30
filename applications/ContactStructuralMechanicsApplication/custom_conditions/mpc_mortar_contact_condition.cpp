@@ -603,10 +603,8 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     const GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     // Current coordinates
-    const BoundedMatrix<double, TNumNodes, TDim> x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_slave_geometry);
 //     const BoundedMatrix<double, TNumNodes, TDim> x1_0 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_slave_geometry, false);
     const BoundedMatrix<double, TNumNodes, TDim> u1_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_slave_geometry, DISPLACEMENT, 1);
-    const BoundedMatrix<double, TNumNodesMaster, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry);
 //     const BoundedMatrix<double, TNumNodesMaster, TDim> x2_0 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_master_geometry, false);
     const BoundedMatrix<double, TNumNodesMaster, TDim> u2_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(r_master_geometry, DISPLACEMENT, 1);
 
@@ -728,10 +726,8 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     const GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     // Current coordinates
-    const BoundedMatrix<double, TNumNodes, TDim> x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_slave_geometry);
 //     const BoundedMatrix<double, TNumNodes, TDim> x1_0 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_slave_geometry, false);
     const BoundedMatrix<double, TNumNodes, TDim> u1_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_slave_geometry, DISPLACEMENT, 1);
-    const BoundedMatrix<double, TNumNodesMaster, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry);
 //     const BoundedMatrix<double, TNumNodesMaster, TDim> x2_0 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_master_geometry, false);
     const BoundedMatrix<double, TNumNodesMaster, TDim> u2_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(r_master_geometry, DISPLACEMENT, 1);
 
@@ -846,10 +842,8 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     const GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     // Current coordinates
-    const BoundedMatrix<double, TNumNodes, TDim> x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_slave_geometry);
 //     const BoundedMatrix<double, TNumNodes, TDim> x1_0 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_slave_geometry, false);
     const BoundedMatrix<double, TNumNodes, TDim> u1_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_slave_geometry, DISPLACEMENT, 1);
-    const BoundedMatrix<double, TNumNodesMaster, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry);
 //     const BoundedMatrix<double, TNumNodesMaster, TDim> x2_0 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_master_geometry, false);
     const BoundedMatrix<double, TNumNodesMaster, TDim> u2_0 = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(r_master_geometry, DISPLACEMENT, 1);
 
