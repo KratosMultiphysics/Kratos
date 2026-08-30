@@ -90,7 +90,7 @@ if(!(std::abs(b) <= std::numeric_limits<double>::epsilon())) {                  
     << std::endl                                                                \
     << "First argument has size " << a.size() << ", "                           \
     << "second argument has size " << b.size() << "." << std::endl;             \
-    for (std::size_t _i = 0; _i < a.size(); _i++) {                             \
+    for (std::size_t _i = 0; _i < static_cast<std::size_t>(a.size()); _i++) {    \
         if (std::abs(b[_i]) > std::numeric_limits<double>::epsilon()) {         \
         KRATOS_ERROR_IF((std::abs((a[_i] - b[_i])/b[_i]) > tolerance) )        \
         << "Check failed because vector " << #a << " with values" << std::endl  \
