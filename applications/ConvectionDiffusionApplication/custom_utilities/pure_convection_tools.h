@@ -128,9 +128,9 @@ public:
 
         mA = TSystemMatrixType(mEquationSystemSize, mEquationSystemSize, total_entries);
         {
-            auto row_indices = mA.index1_data();
-            auto col_indices = mA.index2_data();
-            auto values = mA.value_data();
+            auto&& row_indices = mA.index1_data();
+            auto&& col_indices = mA.index2_data();
+            auto&& values = mA.value_data();
             row_indices[0] = 0;
             std::size_t counter = 0;
             for (std::size_t i = 0; i < mEquationSystemSize; ++i) {
