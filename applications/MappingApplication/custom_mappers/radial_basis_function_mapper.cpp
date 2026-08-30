@@ -750,9 +750,9 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIgaOnC
     const IndexType n_gp_rows = N_reduced.size1();
     MappingMatrixType n_reduced_sparse(n_gp_rows, n_cp, n_gp_rows * n_cp);
     {
-        auto row_indices = n_reduced_sparse.index1_data();
-        auto col_indices = n_reduced_sparse.index2_data();
-        auto values = n_reduced_sparse.value_data();
+        auto&& row_indices = n_reduced_sparse.index1_data();
+        auto&& col_indices = n_reduced_sparse.index2_data();
+        auto&& values = n_reduced_sparse.value_data();
         row_indices[0] = 0;
         IndexType counter = 0;
         for (IndexType i = 0; i < n_gp_rows; ++i) {

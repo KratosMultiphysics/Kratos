@@ -196,11 +196,14 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 
     // get total interface mapping matrix
     if (dual_mortar) {
-        // invert the diagonal entries through the CSR arrays (backend-generic)
+        // invert the diagonal entries through the CSR arrays (backend-generic).
+        // auto&&/const auto& are required: uBLAS returns references to the
+        // storage arrays (plain auto would deep-copy and drop the writes),
+        // Eigen returns proxy views by value.
         auto& r_slave_matrix = *mpMappingMatrixSlave;
-        auto row_indices = r_slave_matrix.index1_data();
-        auto col_indices = r_slave_matrix.index2_data();
-        auto values = r_slave_matrix.value_data();
+        const auto& row_indices = r_slave_matrix.index1_data();
+        const auto& col_indices = r_slave_matrix.index2_data();
+        auto&& values = r_slave_matrix.value_data();
         for (IndexType i = 0; i < r_slave_matrix.size1(); ++i) {
             for (auto k = row_indices[i]; k < row_indices[i + 1]; ++k) {
                 if (static_cast<IndexType>(col_indices[k]) == i) {
@@ -334,9 +337,10 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
     SparseSpaceType::Mult(rInterfaceMatrixProjected, unit_vector, projected_row_sums_vector);
 
     // Loop over sparse rows of projected matrix and correct entries if
-    // needed, through the CSR arrays (backend-generic)
-    auto row_indices = rInterfaceMatrixProjected.index1_data();
-    auto values = rInterfaceMatrixProjected.value_data();
+    // needed, through the CSR arrays (backend-generic; auto&& binds the
+    // uBLAS storage reference as well as the Eigen proxy view)
+    const auto& row_indices = rInterfaceMatrixProjected.index1_data();
+    auto&& values = rInterfaceMatrixProjected.value_data();
     for (IndexType row_counter = 0; row_counter < rInterfaceMatrixProjected.size1(); ++row_counter)
     {
         if (std::abs(slave_row_sums_vector[row_counter]/ projected_row_sums_vector[row_counter] - 1.0) > 1e-15) {
@@ -359,8 +363,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWi
     const size_t n_mm_cols = rProjectedInterfaceMatrix.size2();
     mpMappingMatrix = Kratos::make_unique<typename SparseSpaceType::MatrixType>(n_mm_rows, n_mm_cols, n_mm_rows * n_mm_cols);
     {
-        auto row_indices = mpMappingMatrix->index1_data();
-        auto col_indices = mpMappingMatrix->index2_data();
+        auto&& row_indices = mpMappingMatrix->index1_data();
+        auto&& col_indices = mpMappingMatrix->index2_data();
         row_indices[0] = 0;
         for (size_t j = 0; j < n_mm_rows; ++j) {
             for (size_t i = 0; i < n_mm_cols; ++i) col_indices[j * n_mm_cols + i] = i;
@@ -373,7 +377,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWi
     const size_t n_cols = mpMappingMatrix->size2();
     typename TSparseSpace::VectorType solution(n_rows);
     typename TSparseSpace::VectorType projector_column(n_rows);
-    auto values = mpMappingMatrix->value_data();
+    auto&& values = mpMappingMatrix->value_data();
 
     for (size_t i = 0; i < n_cols; ++i)
     {
