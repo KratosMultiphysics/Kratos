@@ -660,7 +660,6 @@ namespace Kratos
     rElementalVariables.SpatialDefRate[3] = 0.5 * (rElementalVariables.SpatialVelocityGrad(1, 0) + rElementalVariables.SpatialVelocityGrad(0, 1));
     rElementalVariables.SpatialDefRate[4] = 0.5 * (rElementalVariables.SpatialVelocityGrad(2, 0) + rElementalVariables.SpatialVelocityGrad(0, 2));
     rElementalVariables.SpatialDefRate[5] = 0.5 * (rElementalVariables.SpatialVelocityGrad(2, 1) + rElementalVariables.SpatialVelocityGrad(1, 2));
-    // computeElement=CheckStrain3(rElementalVariables.SpatialDefRate,rElementalVariables.SpatialVelocityGrad);
 
     double aThird = 1.0 / 3.0;
     double dev_X = rElementalVariables.SpatialDefRate[0] -

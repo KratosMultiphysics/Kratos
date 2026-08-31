@@ -510,46 +510,31 @@ namespace Kratos
                    const ProcessInfo &rCurrentProcessInfo,
                    const double theta);
 
-    void CalcVolumetricDefRate(const ShapeFunctionDerivativesType &rDN_DX,
-                               double &volumetricDefRate,
-                               MatrixType &invGradDef,
-                               const double theta);
-
     void CalcVolDefRateFromSpatialVelGrad(double &volumetricDefRate,
-                                          MatrixType &SpatialVelocityGrad);
+                                          const MatrixType &SpatialVelocityGrad);
 
-    void CalcSpatialVelocityGrad(MatrixType &invFgrad,
-                                 MatrixType &VelDefgrad,
+    void CalcSpatialVelocityGrad(const MatrixType &invFgrad,
+                                 const MatrixType &VelDefgrad,
                                  MatrixType &SpatialVelocityGrad);
 
-    void CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
-                                     MatrixType &VelDefgrad,
+    void CalcMDGreenLagrangeMaterial(const MatrixType &Fgrad,
+                                     const MatrixType &VelDefgrad,
                                      VectorType &MDGreenLagrangeMaterial);
 
-    void CalcSpatialDefRate(VectorType &MDGreenLagrangeMaterial,
-                            MatrixType &invFgrad,
+    void CalcSpatialDefRate(const VectorType &MDGreenLagrangeMaterial,
+                            const MatrixType &invFgrad,
                             VectorType &SpatialDefRate);
 
-    void CalcDeviatoricInvariant(VectorType &SpatialDefRate,
+    void CalcDeviatoricInvariant(const VectorType &SpatialDefRate,
                                  double &DeviatoricInvariant);
 
-    void CalcEquivalentStrainRate(VectorType &SpatialDefRate,
+    void CalcEquivalentStrainRate(const VectorType &SpatialDefRate,
                                   double &EquivalentStrainRate);
 
     double CalcNormalProjectionDefRate(const VectorType &SpatialDefRate,
                                        const array_1d<double, 3> NormalVector);
 
-    double CalcNormalProjectionDefRate(VectorType &SpatialDefRate);
-
-    void CheckStrain1(double &VolumetricDefRate,
-                      MatrixType &SpatialVelocityGrad);
-
-    void CheckStrain2(MatrixType &SpatialVelocityGrad,
-                      MatrixType &Fgrad,
-                      MatrixType &VelDefgrad);
-
-    bool CheckStrain3(VectorType &SpatialDefRate,
-                      MatrixType &SpatialVelocityGrad);
+    double CalcNormalProjectionDefRate(const VectorType &SpatialDefRate);
 
     virtual void CalcElasticPlasticCauchySplitted(
         ElementalVariables &rElementalVariables,
