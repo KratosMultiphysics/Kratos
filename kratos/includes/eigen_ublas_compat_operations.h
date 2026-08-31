@@ -96,7 +96,9 @@ public:
     {
         const auto& r_e = rExpression();
         KRATOS_DEBUG_ERROR_IF(r_e.size() != mrTarget.size()) << "noalias: vector expression of size " << r_e.size() << " assigned to a target of size " << mrTarget.size() << std::endl;
-        for (std::size_t i = 0; i < mrTarget.size(); ++i) mrTarget[i] = r_e(i);
+        for (std::size_t i = 0; i < static_cast<std::size_t>(mrTarget.size()); ++i) {
+            mrTarget[i] = r_e(i);
+        }
         return mrTarget;
     }
     template<class TExpression>
@@ -104,7 +106,9 @@ public:
     {
         const auto& r_e = rExpression();
         KRATOS_DEBUG_ERROR_IF(r_e.size() != mrTarget.size()) << "noalias: vector expression of size " << r_e.size() << " added to a target of size " << mrTarget.size() << std::endl;
-        for (std::size_t i = 0; i < mrTarget.size(); ++i) mrTarget[i] += r_e(i);
+        for (std::size_t i = 0; i < static_cast<std::size_t>(mrTarget.size()); ++i) {
+            mrTarget[i] += r_e(i);
+        }
         return mrTarget;
     }
     template<class TExpression>
@@ -112,7 +116,9 @@ public:
     {
         const auto& r_e = rExpression();
         KRATOS_DEBUG_ERROR_IF(r_e.size() != mrTarget.size()) << "noalias: vector expression of size " << r_e.size() << " subtracted from a target of size " << mrTarget.size() << std::endl;
-        for (std::size_t i = 0; i < mrTarget.size(); ++i) mrTarget[i] -= r_e(i);
+        for (std::size_t i = 0; i < static_cast<std::size_t>(mrTarget.size()); ++i) {
+            mrTarget[i] -= r_e(i);
+        }
         return mrTarget;
     }
 
