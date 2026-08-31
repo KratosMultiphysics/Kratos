@@ -41,6 +41,10 @@ namespace Kratos
         typedef typename TSparseSpace::MatrixType SparseMatrixType;
         typedef typename TDenseSpace::MatrixType DenseMatrixType;
         typedef typename TDenseSpace::VectorType DenseVectorType;
+        // System-sized vectors flow through TSparseSpace::Mult and
+        // LinearSolver::Solve, so they must follow the sparse space's vector
+        // type (identical to DenseVectorType under the uBLAS backend).
+        typedef typename TSparseSpace::VectorType SystemVectorType;
 
         typedef LinearSolver<TSparseSpace, TDenseSpace> LinearSolverType;
         typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
@@ -92,8 +96,8 @@ namespace Kratos
         SparseMatrixType* mpMappingMatrixForce = nullptr;
 
         // Origin quantities
-        DenseVectorType mInitialOriginInterfaceKinematics;
-        DenseVectorType mFinalOriginInterfaceKinematics;
+        SystemVectorType mInitialOriginInterfaceKinematics;
+        SystemVectorType mFinalOriginInterfaceKinematics;
         SparseMatrixType mProjectorOrigin;
         SparseMatrixType mUnitResponseOrigin;
 
@@ -118,13 +122,13 @@ namespace Kratos
 
         const bool mIsCheckEquilibrium = true; // normally true
 
-        void CalculateUnbalancedInterfaceFreeKinematics(DenseVectorType& rUnbalancedKinematics, const bool IsEquilibriumCheck = false);
+        void CalculateUnbalancedInterfaceFreeKinematics(SystemVectorType& rUnbalancedKinematics, const bool IsEquilibriumCheck = false);
 
         void GetInterfaceQuantity(ModelPart& rInterface, const Variable< array_1d<double, 3> >& rVariable,
-            DenseVectorType& rContainer, const SizeType nDOFs);
+            SystemVectorType& rContainer, const SizeType nDOFs);
 
         void GetInterfaceQuantity(ModelPart& rInterface, const Variable<double>& rVariable,
-            DenseVectorType& rContainer, const SizeType nDOFs);
+            SystemVectorType& rContainer, const SizeType nDOFs);
 
         void GetExpandedMappingMatrix(SparseMatrixType& rExpandedMappingMat, const SizeType nDOFs);
 
@@ -143,17 +147,17 @@ namespace Kratos
             const SparseMatrixType& rOriginUnitResponse, const SparseMatrixType& rDestinationUnitResponse,
             const SparseMatrixType& rOriginProjector, const SparseMatrixType& rDestinationProjector);
 
-        void DetermineLagrangianMultipliers(DenseVectorType& rLagrangeVec,
-            SparseMatrixType& rCondensationMatrix, DenseVectorType& rUnbalancedKinematics);
+        void DetermineLagrangianMultipliers(SystemVectorType& rLagrangeVec,
+            SparseMatrixType& rCondensationMatrix, SystemVectorType& rUnbalancedKinematics);
 
-        void ApplyCorrectionQuantities(DenseVectorType& rLagrangeVec,
+        void ApplyCorrectionQuantities(SystemVectorType& rLagrangeVec,
             const SparseMatrixType& rUnitResponse, const SolverIndex solverIndex);
 
         void AddCorrectionToDomain(ModelPart* pDomain,
             const Variable< array_1d<double, 3> >& rVariable,
-            const DenseVectorType& rCorrection, const bool IsImplicit);
+            const SystemVectorType& rCorrection, const bool IsImplicit);
 
-        void WriteLagrangeMultiplierResults(const DenseVectorType& rLagrange);
+        void WriteLagrangeMultiplierResults(const SystemVectorType& rLagrange);
 
         void ApplyMappingMatrixToProjector(SparseMatrixType& rProjector, const SizeType DOFs);
 

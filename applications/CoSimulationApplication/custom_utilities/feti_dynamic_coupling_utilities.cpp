@@ -114,7 +114,7 @@ namespace Kratos
         SolverIndex solver_index = SolverIndex::Origin;
 
         // 1 - calculate unbalanced interface free kinematics
-        DenseVectorType unbalanced_interface_free_kinematics(lagrange_interface_dofs,0.0);
+        SystemVectorType unbalanced_interface_free_kinematics(lagrange_interface_dofs,0.0);
         CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics);
 
         if (!mIsLinear || !mIsLinearSetupComplete)
@@ -139,7 +139,7 @@ namespace Kratos
         }
 
         // 5 - Calculate lagrange mults
-        DenseVectorType lagrange_vector(lagrange_interface_dofs,0.0);
+        SystemVectorType lagrange_vector(lagrange_interface_dofs,0.0);
         DetermineLagrangianMultipliers(lagrange_vector, mCondensationMatrix, unbalanced_interface_free_kinematics);
         if (mParameters["is_disable_coupling"].GetBool()) lagrange_vector.clear();
         if (mParameters["is_disable_coupling"].GetBool()) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
@@ -178,7 +178,7 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::CalculateUnbalancedInterfaceFreeKinematics(
-        DenseVectorType& rUnbalancedKinematics,const bool IsEquilibriumCheck)
+        SystemVectorType& rUnbalancedKinematics,const bool IsEquilibriumCheck)
 	{
         KRATOS_TRY
 
@@ -189,11 +189,11 @@ namespace Kratos
         GetExpandedMappingMatrix(expanded_mapper, dim);
 
         // Get destination kinematics
-        Vector destination_kinematics(mrDestinationInterfaceModelPart.NumberOfNodes() * dim);
+        SystemVectorType destination_kinematics(mrDestinationInterfaceModelPart.NumberOfNodes() * dim);
         GetInterfaceQuantity(mrDestinationInterfaceModelPart, equilibrium_variable, destination_kinematics, dim);
         if (mLagrangeDefinedOn == SolverIndex::Origin)
         {
-            DenseVectorType mapped_destination_kinematics(expanded_mapper.size1(), 0.0);
+            SystemVectorType mapped_destination_kinematics(expanded_mapper.size1(), 0.0);
             TSparseSpace::Mult(expanded_mapper, destination_kinematics, mapped_destination_kinematics);
             rUnbalancedKinematics -= mapped_destination_kinematics;
         }
@@ -205,11 +205,11 @@ namespace Kratos
 
         // Interpolate origin kinematics to the current sub-timestep
         const double time_ratio = double(mSubTimestepIndex) / double(mTimestepRatio);
-        DenseVectorType interpolated_origin_kinematics = (IsEquilibriumCheck) ? mFinalOriginInterfaceKinematics
+        SystemVectorType interpolated_origin_kinematics = (IsEquilibriumCheck) ? mFinalOriginInterfaceKinematics
             : time_ratio * mFinalOriginInterfaceKinematics + (1.0 - time_ratio) * mInitialOriginInterfaceKinematics;
 
         if (mLagrangeDefinedOn == SolverIndex::Destination) {
-            DenseVectorType mapped_interpolated_origin_kinematics(expanded_mapper.size1(), 0.0);
+            SystemVectorType mapped_interpolated_origin_kinematics(expanded_mapper.size1(), 0.0);
             TSparseSpace::Mult(expanded_mapper, interpolated_origin_kinematics, mapped_interpolated_origin_kinematics);
             rUnbalancedKinematics += mapped_interpolated_origin_kinematics;
         }
@@ -341,7 +341,7 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DetermineLagrangianMultipliers
-    (DenseVectorType& rLagrangeVec, SparseMatrixType& rCondensationMatrix, DenseVectorType& rUnbalancedKinematics)
+    (SystemVectorType& rLagrangeVec, SparseMatrixType& rCondensationMatrix, SystemVectorType& rUnbalancedKinematics)
     {
         KRATOS_TRY
 
@@ -360,7 +360,7 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::ApplyCorrectionQuantities(
-        DenseVectorType& rLagrangeVec, const SparseMatrixType& rUnitResponse,
+        SystemVectorType& rLagrangeVec, const SparseMatrixType& rUnitResponse,
         const SolverIndex solverIndex)
     {
         KRATOS_TRY
@@ -372,7 +372,7 @@ namespace Kratos
         const bool is_implicit = (solverIndex == SolverIndex::Origin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
         // Apply acceleration correction
-        DenseVectorType accel_corrections(rUnitResponse.size1(),0.0);
+        SystemVectorType accel_corrections(rUnitResponse.size1(),0.0);
         TSparseSpace::Mult(rUnitResponse, rLagrangeVec, accel_corrections);
         AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections, is_implicit);
 
@@ -417,13 +417,13 @@ namespace Kratos
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::AddCorrectionToDomain(
         ModelPart* pDomain, const Variable<array_1d<double, 3>>& rVariable,
-        const DenseVectorType& rCorrection, const bool IsImplicit)
+        const SystemVectorType& rCorrection, const bool IsImplicit)
     {
         KRATOS_TRY
 
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-        KRATOS_ERROR_IF_NOT(rCorrection.size() == pDomain->NumberOfNodes() * dim)
+        KRATOS_ERROR_IF_NOT(static_cast<SizeType>(rCorrection.size()) == pDomain->NumberOfNodes() * dim)
             << "AddCorrectionToDomain | Correction dof size does not match domain dofs\n"
             << "Correction size = " << rCorrection.size() << "\n"
             << "Domain dof size = " << pDomain->NumberOfNodes() * dim << "\n"
@@ -465,7 +465,7 @@ namespace Kratos
     }
 
     template<class TSparseSpace, class TDenseSpace>
-    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::WriteLagrangeMultiplierResults(const DenseVectorType& rLagrange)
+    void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::WriteLagrangeMultiplierResults(const SystemVectorType& rLagrange)
     {
         KRATOS_TRY
 
@@ -474,7 +474,7 @@ namespace Kratos
             ? mrDestinationInterfaceModelPart
             : mrOriginInterfaceModelPart;
 
-        KRATOS_ERROR_IF_NOT(r_slave_modelpart.NumberOfNodes() * dim == rLagrange.size())
+        KRATOS_ERROR_IF_NOT(r_slave_modelpart.NumberOfNodes() * dim == static_cast<SizeType>(rLagrange.size()))
             << "Trying to set Lagrange Multiplier results on the wrong domain!\n";
 
         block_for_each(r_slave_modelpart.Nodes(), [&](Node& rNode)
@@ -496,11 +496,11 @@ namespace Kratos
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::GetInterfaceQuantity(
         ModelPart& rInterface, const Variable<array_1d<double, 3>>& rVariable,
-        DenseVectorType& rContainer, const SizeType nDOFs)
+        SystemVectorType& rContainer, const SizeType nDOFs)
     {
         KRATOS_TRY
 
-        if (rContainer.size() != rInterface.NumberOfNodes() * nDOFs)
+        if (static_cast<SizeType>(rContainer.size()) != rInterface.NumberOfNodes() * nDOFs)
             rContainer.resize(rInterface.NumberOfNodes() * nDOFs, false);
         rContainer.clear();
 
@@ -526,11 +526,11 @@ namespace Kratos
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::GetInterfaceQuantity(
         ModelPart& rInterface, const Variable<double>& rVariable,
-        DenseVectorType& rContainer, const SizeType nDOFs)
+        SystemVectorType& rContainer, const SizeType nDOFs)
     {
         KRATOS_TRY
 
-        if (rContainer.size() != rInterface.NumberOfNodes())
+        if (static_cast<SizeType>(rContainer.size()) != rInterface.NumberOfNodes())
             rContainer.resize(rInterface.NumberOfNodes(), false);
         else rContainer.clear();
 
@@ -703,8 +703,8 @@ namespace Kratos
 
         IndexPartition<>(interface_dofs).for_each([&](SizeType i)
             {
-                DenseVectorType solution(system_dofs);
-                DenseVectorType projector_transpose_column(system_dofs);
+                SystemVectorType solution(system_dofs);
+                SystemVectorType projector_transpose_column(system_dofs);
                 auto solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(solver_parameters);
 
                 for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
@@ -722,21 +722,6 @@ namespace Kratos
         //auto elasped_solve = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         //std::cout << "response solve time = " << elasped_solve.count() << "\n";
 
-        // reference answer for testing - slow matrix inversion
-        const bool is_test_ref = false;
-        if (is_test_ref)
-        {
-            //start = std::chrono::system_clock::now();
-            double det;
-            Matrix inv(pK->size1(), pK->size2());
-            MathUtils<double>::InvertMatrix(*pK, inv, det);
-            //end = std::chrono::system_clock::now();
-            //auto elasped_invert = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
-            //std::cout << "solve time = " << elasped_solve.count() << "\n";
-            //std::cout << "invert time = " << elasped_invert.count() << "\n";
-        }
-
         KRATOS_CATCH("")
     }
 
@@ -749,7 +734,7 @@ namespace Kratos
         {
             const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
             const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
-            DenseVectorType interface_kinematics(origin_interface_dofs);
+            SystemVectorType interface_kinematics(origin_interface_dofs);
 
             ModelPart& r_interface = (solverIndex == SolverIndex::Origin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
 
@@ -843,7 +828,7 @@ namespace Kratos
         const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
 
-        if (mInitialOriginInterfaceKinematics.size() != origin_interface_dofs)
+        if (static_cast<SizeType>(mInitialOriginInterfaceKinematics.size()) != origin_interface_dofs)
             mInitialOriginInterfaceKinematics.resize(origin_interface_dofs, false);
         mInitialOriginInterfaceKinematics.clear();
 
