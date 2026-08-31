@@ -1595,7 +1595,7 @@ namespace Kratos
 			KRATOS_TRY
 			const double safetyCoefficient3D = 1.6;
 
-			for (SizeType i = 0; i < 6; i++)
+			for (SizeType i = 0; i < 6; ++i)
 			{
 				if (rigidNodes > 1)
 				{
