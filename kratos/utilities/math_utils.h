@@ -1094,17 +1094,10 @@ public:
     {
         KRATOS_TRY
 
-        // the sizes are queried through whichever interface the (possibly
-        // lazy expression) argument provides: size1/size2 for the uBLAS
-        // family, rows/cols for the Eigen one
-        const auto size_1 = [&rInputMatrix]() {
-            if constexpr (requires { rInputMatrix.size1(); }) return static_cast<IndexType>(rInputMatrix.size1());
-            else return static_cast<IndexType>(rInputMatrix.rows());
-        }();
-        const auto size_2 = [&rInputMatrix]() {
-            if constexpr (requires { rInputMatrix.size2(); }) return static_cast<IndexType>(rInputMatrix.size2());
-            else return static_cast<IndexType>(rInputMatrix.cols());
-        }();
+        // size1()/size2() are valid for both families, including lazy Eigen
+        // expressions (the MatrixBase plugin provides them there).
+        const auto size_1 = static_cast<IndexType>(rInputMatrix.size1());
+        const auto size_2 = static_cast<IndexType>(rInputMatrix.size2());
         for(IndexType i = 0; i < size_1; ++i) {
             for(IndexType j = 0; j < size_2; ++j) {
                 rDestination(InitialRow+i, InitialCol+j) += rInputMatrix(i,j);
