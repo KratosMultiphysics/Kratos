@@ -13,6 +13,7 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "spaces/default_spaces.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_solvers/eigen_sparse_cg_solver.h"
@@ -155,7 +156,7 @@ void register_spectra_sym_g_eigs_shift_solver(pybind11::module& m, const std::st
 void register_base_dense_solver(pybind11::module& m)
 {
     namespace py = pybind11;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
     typedef LinearSolver<LocalSpaceType,  LocalSpaceType> DenseLinearSolverType;
     typedef LinearSolver<ComplexLocalSpaceType, ComplexLocalSpaceType> ComplexDenseLinearSolverType;
