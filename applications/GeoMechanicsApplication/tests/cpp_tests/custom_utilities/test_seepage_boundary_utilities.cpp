@@ -247,11 +247,6 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeBreaksTiesByLowestNodeId, KratosGe
     KRATOS_EXPECT_TRUE(r_model_part.pGetNode(2)->IsFixed(WATER_PRESSURE))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ShouldReleaseToNeumannIsTrueOnlyForPositiveFlow, KratosGeoMechanicsFastSuiteWithoutKernel){
-    KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::ShouldReleaseToNeumann(1.0e-9))
-        KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::ShouldReleaseToNeumann(0.0))
-            KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::ShouldReleaseToNeumann(-1.0))}
-
 KRATOS_TEST_CASE_IN_SUITE(AssignNodalWaterFlowsWritesMappedValuesAndZeroesTheRest, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};

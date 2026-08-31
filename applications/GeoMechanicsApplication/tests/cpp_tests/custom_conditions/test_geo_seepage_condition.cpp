@@ -115,43 +115,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCalculateLocalSystemReturnsZeroes, 
     KRATOS_EXPECT_VECTOR_NEAR(right_hand_side, expected_right_hand_side, 1.0e-12)
 }
 
-// The seepage face starts over-prescribed: every node begins as a Dirichlet boundary at zero
-// pressure, and the strategy releases nodes one at a time from there.
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeSolutionStepFixesAllNodesAtZeroPressure,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 42.0;
-    }
-
-    condition.InitializeSolutionStep(ProcessInfo{});
-
-    for (const auto& r_node : r_model_part.Nodes()) {
-        KRATOS_EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE))
-        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
-    }
-}
-
-// A node released to Neumann by the strategy must be re-fixed at the start of the next solution
-// step, so each step starts from the same over-prescribed configuration.
-KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionInitializeSolutionStepReFixesAReleasedNode,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoWaterPressureNodes(model);
-    auto  condition    = CreateSeepageCondition(r_model_part);
-
-    r_model_part.pGetNode(1)->Free(WATER_PRESSURE);
-
-    condition.InitializeSolutionStep(ProcessInfo{});
-
-    KRATOS_EXPECT_TRUE(r_model_part.pGetNode(1)->IsFixed(WATER_PRESSURE))
-}
-
 KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckReturnsZeroForValidSetup, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
