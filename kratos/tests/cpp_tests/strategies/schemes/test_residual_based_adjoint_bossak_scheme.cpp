@@ -43,7 +43,7 @@ const double AlphaBossak = -0.3;
 namespace Base
 {
 typedef TDefaultSparseSpace<double> SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef TDefaultDenseSpace<double> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;

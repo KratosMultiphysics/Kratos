@@ -36,7 +36,7 @@ namespace Kratos
         /// Tests
 
         typedef TDefaultSparseSpace<double> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef TDefaultDenseSpace<double> LocalSpaceType;
 
         typedef Scheme< SparseSpaceType, LocalSpaceType >  SchemeType;
         typedef ModelPart::DofsArrayType DofsArrayType;
