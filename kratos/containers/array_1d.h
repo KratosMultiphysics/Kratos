@@ -55,6 +55,24 @@
 namespace Kratos
 {
 
+namespace Internals
+{
+/// An Eigen expression whose static shape is compatible with an N x 1 column
+/// vector (the array_1d layout).
+template<class TDerived, std::size_t N>
+inline constexpr bool IsColumnShapedEigenExpression =
+    (TDerived::RowsAtCompileTime == Eigen::Dynamic || TDerived::RowsAtCompileTime == static_cast<int>(N)) &&
+    (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == 1);
+
+/// A statically row-shaped (1 x N) Eigen expression: the uBLAS world treats a
+/// matrix row as a plain vector, so array_1d accepts it transposed.
+template<class TDerived, std::size_t N>
+inline constexpr bool IsRowShapedEigenExpression =
+    !IsColumnShapedEigenExpression<TDerived, N> &&
+    TDerived::RowsAtCompileTime == 1 &&
+    (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == static_cast<int>(N));
+} // namespace Internals
+
 ///@name Kratos Classes
 ///@{
 
@@ -140,9 +158,14 @@ public:
     /// a different scalar type (e.g. array_1d<int, 3> from an
     /// array_1d<std::size_t, 3>).
     template<class TDerived>
-    requires ((TDerived::RowsAtCompileTime == Eigen::Dynamic || TDerived::RowsAtCompileTime == static_cast<int>(N)) &&
-              (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == 1))
+    requires (Internals::IsColumnShapedEigenExpression<TDerived, N>)
     array_1d(const Eigen::MatrixBase<TDerived>& rExpression) : BaseType(rExpression.template cast<T>()) {}
+
+    /// Row-shaped (1 x N) expressions - a matrix row is a plain vector in the
+    /// uBLAS semantics this type preserves - are accepted transposed.
+    template<class TDerived>
+    requires (Internals::IsRowShapedEigenExpression<TDerived, N>)
+    array_1d(const Eigen::MatrixBase<TDerived>& rExpression) : BaseType(rExpression.transpose().template cast<T>()) {}
 
     /// Construction from any uBLAS vector expression (interoperability with
     /// the dynamic uBLAS Vector and the uBLAS proxies/expressions).
@@ -194,29 +217,38 @@ public:
     /// expressions of x itself); the temporary-free fast path remains
     /// noalias(x) = expr, exactly as in uBLAS.
     template<class TDerived>
-    requires ((TDerived::RowsAtCompileTime == Eigen::Dynamic || TDerived::RowsAtCompileTime == static_cast<int>(N)) &&
-              (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == 1))
+    requires (Internals::IsColumnShapedEigenExpression<TDerived, N> || Internals::IsRowShapedEigenExpression<TDerived, N>)
     array_1d& operator=(const Eigen::MatrixBase<TDerived>& rExpression)
     {
-        BaseType::operator=(rExpression.template cast<T>().eval());
+        if constexpr (Internals::IsRowShapedEigenExpression<TDerived, N>) {
+            BaseType::operator=(rExpression.transpose().template cast<T>().eval());
+        } else {
+            BaseType::operator=(rExpression.template cast<T>().eval());
+        }
         return *this;
     }
 
     template<class TDerived>
-    requires ((TDerived::RowsAtCompileTime == Eigen::Dynamic || TDerived::RowsAtCompileTime == static_cast<int>(N)) &&
-              (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == 1))
+    requires (Internals::IsColumnShapedEigenExpression<TDerived, N> || Internals::IsRowShapedEigenExpression<TDerived, N>)
     array_1d& operator+=(const Eigen::MatrixBase<TDerived>& rExpression)
     {
-        BaseType::operator+=(rExpression.template cast<T>().eval());
+        if constexpr (Internals::IsRowShapedEigenExpression<TDerived, N>) {
+            BaseType::operator+=(rExpression.transpose().template cast<T>().eval());
+        } else {
+            BaseType::operator+=(rExpression.template cast<T>().eval());
+        }
         return *this;
     }
 
     template<class TDerived>
-    requires ((TDerived::RowsAtCompileTime == Eigen::Dynamic || TDerived::RowsAtCompileTime == static_cast<int>(N)) &&
-              (TDerived::ColsAtCompileTime == Eigen::Dynamic || TDerived::ColsAtCompileTime == 1))
+    requires (Internals::IsColumnShapedEigenExpression<TDerived, N> || Internals::IsRowShapedEigenExpression<TDerived, N>)
     array_1d& operator-=(const Eigen::MatrixBase<TDerived>& rExpression)
     {
-        BaseType::operator-=(rExpression.template cast<T>().eval());
+        if constexpr (Internals::IsRowShapedEigenExpression<TDerived, N>) {
+            BaseType::operator-=(rExpression.transpose().template cast<T>().eval());
+        } else {
+            BaseType::operator-=(rExpression.template cast<T>().eval());
+        }
         return *this;
     }
 
