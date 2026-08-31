@@ -13,10 +13,16 @@
 // --- Kratos Core Includes ---
 #include "adjoint/sensor_response.hpp"
 
+// --- STL Includes ---
+#include <memory>
+#include <span>
+
 
 namespace Kratos {
 
 
+/// @brief Response defining an @f$L_p@f$ norm of measurement gaps over a list of sensors.
+/// @ingroup adjoints
 class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SensorAggregateResponse : public ResponseFunction {
 public:
 
@@ -24,13 +30,31 @@ public:
 
     SensorAggregateResponse() noexcept;
 
-    SensorAggregateResponse(double Exponent) noexcept;
+    SensorAggregateResponse(std::size_t Exponent);
 
-    void AddSensor(SensorResponse::Pointer pSensor);
+    SensorAggregateResponse(SensorAggregateResponse&& rRhs) noexcept;
 
-    /// @copydoc ResponseFunction::ComputeValue
+    SensorAggregateResponse(const SensorAggregateResponse& rRhs);
+
+    ~SensorAggregateResponse();
+
+    SensorAggregateResponse& operator=(SensorAggregateResponse&& rRhs) noexcept;
+
+    SensorAggregateResponse& operator=(const SensorAggregateResponse& rRhs);
+
+    /// @copydoc ResponseFunction::ComputeCache
+    void ComputeCache(const ModelPart& rModelPart) override;
+
+    /// @copydoc ResponseFunction::ClearCache
+    void ClearCache() override;
+
+    /// @brief Add a sensor to consider output from.
+    void AddSensors(std::span<const SensorResponse::Pointer> Sensors);
+
+    /// @copydoc ResponseFunction::ComputeValue(const Element&,const ProcessInfo&,int) const
     double ComputeValue(
-        const ModelPart& rModelPart,
+        const Element& rElement,
+        const ProcessInfo& rProcessInfo,
         int iBuffer) const override;
 
     /// @copydoc ResponseFunction::GetStateVariables(std::vector<IAdjoint::DynamicVariable>&,const Element&,const ProcessInfo&) const
@@ -62,9 +86,8 @@ public:
         int iBuffer) const override;
 
 private:
-    double mExponent;
-
-    std::vector<SensorResponse::Pointer> mSensors;
+    struct Impl;
+    std::unique_ptr<Impl> mpImpl;
 };
 
 

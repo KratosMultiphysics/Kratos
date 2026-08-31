@@ -17,8 +17,12 @@
 namespace Kratos {
 
 
+/// @brief Class representing @ref DISPLACEMENT "displacement" measurements at a physical point.
+/// @ingroup adjoints
 class KRATOS_API(KRATOS_CORE) DisplacementSensorResponse final : public SensorResponse {
 public:
+    KRATOS_CLASS_POINTER_DEFINITION(DisplacementSensorResponse);
+
     using SensorResponse::SensorResponse;
 
     /// @copydoc SensorResponse::Create
@@ -28,12 +32,13 @@ public:
         IndexType Id,
         Parameters SensorParameters) const override;
 
-    Parameters GetSensorParameters() const override;
-
-    /// @copydoc ResponseFunction::ComputeValue
-    double ComputeValue(
-        const ModelPart& rModelPart,
+    /// @copydoc ResponseFunction::ComputeValue(const Element&,const ProcessInfo&,int) const
+    [[nodiscard]] double ComputeValue(
+        const Element& rElement,
+        const ProcessInfo& rProcessInfo,
         int iBuffer) const override;
+
+    using SensorResponse::ComputeValue;
 
     /// @copydoc ResponseFunction::GetStateVariables(std::vector<IAdjoint::DynamicVariable>&,const Element&,const ProcessInfo&) const
     void GetStateVariables(
@@ -41,11 +46,7 @@ public:
         const Element& rElement,
         const ProcessInfo& rProcessInfo) const override;
 
-    /// @copydoc ResponseFunction::GetStateVariables(std::vector<IAdjoint::DynamicVariable>&,const Condition&,const ProcessInfo&) const
-    void GetStateVariables(
-        std::vector<IAdjoint::DynamicVariable>& rVariables,
-        const Condition& rCondition,
-        const ProcessInfo& rProcessInfo) const override;
+    using SensorResponse::GetStateVariables;
 
     /// @copydoc ResponseFunction::ComputeDerivative(Vector&,const Element&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
     void ComputeDerivative(
@@ -55,13 +56,7 @@ public:
         const ProcessInfo& rProcessInfo,
         int iBuffer) const override;
 
-    /// @copydoc ResponseFunction::ComputeDerivative(Vector&,const Condition&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
-    void ComputeDerivative(
-        Vector& rOutput,
-        const Condition& rCondition,
-        std::span<const IAdjoint::DynamicVariable> Variables,
-        const ProcessInfo& rProcessInfo,
-        int iBuffer) const override;
+    using SensorResponse::ComputeDerivative;
 
     Parameters GetDefaultParameters() const override;
 

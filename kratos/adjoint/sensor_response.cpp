@@ -21,66 +21,59 @@ SensorResponse::SensorResponse(
     std::span<const Variable<double>* const> DesignVariableTypes,
     const std::string& rName,
     Node::Pointer pNode,
-    Element::Pointer pElement,
-    const double Weight,
-    const double ErrorThreshold)
+    intrusive_ptr<const Element> pElement)
         :   ResponseFunction(DesignVariableTypes),
             mName(rName),
             mpNode(pNode),
-            mpElement(pElement),
-            mWeight(Weight),
-            mErrorThreshold(ErrorThreshold)
+            mpElement(pElement)
 {}
 
 
-Parameters SensorResponse::GetSensorParameters() const {
-    KRATOS_TRY
-        Parameters parameters = Parameters(R"(
-        {
-            "name"         : "",
-            "location"     : [0.0, 0.0, 0.0],
-            "weight"       : 0.0,
-            "error_threshold": 0.0,
-            "variable_data": {}
-        })" );
+double SensorResponse::ComputeValue(
+    const Condition&,
+    const ProcessInfo&,
+    int) const {
+        return 0.0;
+}
 
-        parameters["name"].SetString(this->GetName());
-        parameters["location"].SetVector(this->GetNode()->Coordinates());
-        parameters["weight"].SetDouble(this->GetWeight());
-        parameters["error_threshold"].SetDouble(this->GetErrorThreshold());
 
-        // Adding the data value container of the nodes
-        const auto& r_node = *(this->GetNode());
-        auto params_variable_data = parameters["variable_data"];
-        for (const auto& r_var_value_pair : r_node.GetData()) {
-            const std::string& var_name = std::get<0>(r_var_value_pair)->Name();
-            if (KratosComponents<Variable<bool>>::Has(var_name)) {
-                params_variable_data.AddBool(var_name, r_node.GetValue(KratosComponents<Variable<bool>>::Get(var_name)));
-            } else if (KratosComponents<Variable<std::string>>::Has(var_name)) {
-                params_variable_data.AddString(var_name, r_node.GetValue(KratosComponents<Variable<std::string>>::Get(var_name)));
-            } else if (KratosComponents<Variable<int>>::Has(var_name)) {
-                params_variable_data.AddInt(var_name, r_node.GetValue(KratosComponents<Variable<int>>::Get(var_name)));
-            } else if (KratosComponents<Variable<double>>::Has(var_name)) {
-                params_variable_data.AddDouble(var_name, r_node.GetValue(KratosComponents<Variable<double>>::Get(var_name)));
-            } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {
-                params_variable_data.AddVector(var_name, r_node.GetValue(KratosComponents<Variable<array_1d<double, 3>>>::Get(var_name)));
-            } else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(var_name)) {
-                params_variable_data.AddVector(var_name, r_node.GetValue(KratosComponents<Variable<array_1d<double, 4>>>::Get(var_name)));
-            } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(var_name)) {
-                params_variable_data.AddVector(var_name, r_node.GetValue(KratosComponents<Variable<array_1d<double, 6>>>::Get(var_name)));
-            } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(var_name)) {
-                params_variable_data.AddVector(var_name, r_node.GetValue(KratosComponents<Variable<array_1d<double, 9>>>::Get(var_name)));
-            } else if (KratosComponents<Variable<Vector>>::Has(var_name)) {
-                params_variable_data.AddVector(var_name, r_node.GetValue(KratosComponents<Variable<Vector>>::Get(var_name)));
-            } else if (KratosComponents<Variable<Matrix>>::Has(var_name)) {
-                params_variable_data.AddMatrix(var_name, r_node.GetValue(KratosComponents<Variable<Matrix>>::Get(var_name)));
-            } else {
-                KRATOS_ERROR << "Unsupported variable type found under the variable name = " << var_name << ".\n";
-            }
-        }
+void SensorResponse::GetStateVariables(
+    std::vector<IAdjoint::DynamicVariable>& rVariables,
+    const Condition&,
+    const ProcessInfo&) const {
+        rVariables.clear();
+}
 
-        return parameters;
-    KRATOS_CATCH("")
+
+void SensorResponse::GetDesignVariables(
+    std::vector<IAdjoint::DynamicVariable>& rVariables,
+    const Condition&,
+    const ProcessInfo&) const {
+        rVariables.clear();
+}
+
+
+void SensorResponse::ComputeDerivative(
+    Vector& rOutput,
+    const Condition&,
+    std::span<const IAdjoint::DynamicVariable> Variables,
+    const ProcessInfo&,
+    int) const {
+        for (const auto& r_variable : Variables) {
+            // Check whether the requested variable is a design variable.
+            const auto& r_design_variable_types = this->GetDesignVariableTypes();
+            const auto it_design_variable_type = std::find_if(
+                r_design_variable_types.begin(),
+                r_design_variable_types.end(),
+                [&r_variable] (const Variable<double>* p_variable_type) -> bool {
+                    return p_variable_type->Key() == r_variable;
+                });
+            const bool is_design_variable = it_design_variable_type != r_design_variable_types.end();
+
+            // Error if the requested variable is neither a state nor a design variable.
+            KRATOS_ERROR_IF_NOT(is_design_variable) << "unsupported variable " << r_variable.Name();
+        } // for r_variable in Variables
+        rOutput = ZeroVector(Variables.size());
 }
 
 
@@ -102,7 +95,7 @@ TensorAdaptor<double>::Pointer SensorResponse::GetTensorAdaptor(const std::strin
         if (p_itr == mTensorAdaptorsMap.end()) {
             std::stringstream msg;
             msg << "A tensor adaptor named \"" << rTensorAdaptorName << "\" not found in "
-                << "sensor named \"" << this->GetName() << "\". Followings are available:";
+                << "sensor named \"" << this->Name() << "\". Followings are available:";
             for (const auto& r_pair : mTensorAdaptorsMap) {
                 msg << std::endl << "   "  << r_pair.first;
             }
@@ -121,17 +114,15 @@ void SensorResponse::ClearTensorAdaptors() {
 
 std::string SensorResponse::Info() const {
     std::stringstream msg;
-    msg << "SensorResponse " << this->GetName();
+    msg << "SensorResponse " << this->Name();
     return msg.str();
 }
 
 void SensorResponse::PrintInfo(std::ostream& rOStream) const {
-    rOStream << Info() << std::endl;
+    rOStream << this->Info() << std::endl;
 }
 
 void SensorResponse::PrintData(std::ostream& rOStream) const {
-    rOStream << "    Weight: " << this->GetWeight() << std::endl;
-    rOStream << "    Error threshold: " << this->GetErrorThreshold() << std::endl;
     mpNode->PrintInfo(rOStream);
     mpNode->PrintData(rOStream);
 }

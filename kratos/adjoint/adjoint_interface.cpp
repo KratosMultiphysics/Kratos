@@ -38,17 +38,11 @@ void IAdjointElement::GetInfluencingVariables(
 
         std::sort(
             rOutput.begin(),
-            rOutput.end(),
-            [] (const IAdjoint::DynamicVariable& r_left, const IAdjoint::DynamicVariable& r_right) -> bool {
-                return r_left.Key() < r_right.Key();
-            });
+            rOutput.end());
         rOutput.erase(
             std::unique(
                 rOutput.begin(),
-                rOutput.end(),
-                [] (const IAdjoint::DynamicVariable& r_left, const IAdjoint::DynamicVariable& r_right) -> bool {
-                    return r_left.Key() == r_right.Key();
-                }),
+                rOutput.end()),
             rOutput.end());
     KRATOS_CATCH("")
 }

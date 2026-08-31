@@ -11,6 +11,7 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 file(GLOB_RECURSE KRATOS_DIGITAL_TWIN_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/system_identification_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/system_identification_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_adjoint/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_sensors/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_responses/*.cpp

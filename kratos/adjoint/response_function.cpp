@@ -26,7 +26,16 @@ ResponseFunction::ResponseFunction(std::span<const Variable<double>* const> Desi
 
 
 double ResponseFunction::ComputeValue(
-    const ModelPart&,
+    const Element&,
+    const ProcessInfo&,
+    int) const {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
+}
+
+
+double ResponseFunction::ComputeValue(
+    const Condition&,
+    const ProcessInfo&,
     int) const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
@@ -89,8 +98,8 @@ void VariableSetIntersection(
                             [] (const Variable<double>* p_left, const IAdjoint::DynamicVariable& r_right) -> bool {
                                 return p_left->Key() < r_right.Key();
                             });
-                        return it_design_variable != DesignVariables.end()
-                            && (*it_design_variable)->Key() == r_variable.Key();
+                        return it_design_variable == DesignVariables.end()
+                            || (*it_design_variable)->Key() != r_variable.Key();
                     }),
                 rVariables.end());
         KRATOS_CATCH("")

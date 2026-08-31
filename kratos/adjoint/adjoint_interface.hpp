@@ -82,11 +82,54 @@ public:
             mDynamicIndex = Index;
         }
 
+        [[nodiscard]] friend bool operator<(
+            const DynamicVariable& rLeft,
+            const DynamicVariable& rRight) noexcept {
+                if (rLeft.Key() != rRight.Key()) return rLeft.Key() < rRight.Key();
+                else return rLeft.GetDynamicIndex() < rRight.GetDynamicIndex();
+        }
+
+        [[nodiscard]] friend bool operator<(
+            const VariableData& rLeft,
+            const DynamicVariable& rRight) noexcept {
+                if constexpr (requires (VariableData left, VariableData right) {
+                    {left < right} -> std::convertible_to<bool>;
+                }) return rLeft < static_cast<const VariableData&>(rRight);
+                else return rLeft.Key() < rRight.Key();
+        }
+
+        [[nodiscard]] friend bool operator<(
+            const DynamicVariable& rLeft,
+            const VariableData& rRight) noexcept {
+                if constexpr (requires (VariableData left, VariableData right) {
+                    {left < right} -> std::convertible_to<bool>;
+                }) return static_cast<const VariableData&>(rLeft) < rRight;
+                else return rLeft.Key() < rRight.Key();
+        }
+
         [[nodiscard]] friend bool operator==(
-            const DynamicVariable& rLhs,
-            const DynamicVariable& rRhs) noexcept {
-                return static_cast<const VariableData&>(rLhs) == static_cast<const VariableData&>(rRhs)
-                    && rLhs.GetDynamicIndex() == rRhs.GetDynamicIndex();
+            const DynamicVariable& rLeft,
+            const DynamicVariable& rRight) noexcept {
+                return static_cast<const VariableData&>(rLeft) == static_cast<const VariableData&>(rRight)
+                    && rLeft.GetDynamicIndex() == rRight.GetDynamicIndex();
+        }
+
+        [[nodiscard]] friend bool operator==(
+            const VariableData& rLeft,
+            const DynamicVariable& rRight) noexcept {
+                if constexpr (requires (VariableData left, VariableData right) {
+                    {left == right} -> std::convertible_to<bool>;
+                }) return rLeft == static_cast<const VariableData&>(rRight);
+                else return rLeft.Key() == rRight.Key();
+        }
+
+        [[nodiscard]] friend bool operator==(
+            const DynamicVariable& rLeft,
+            const VariableData& rRight) noexcept {
+                if constexpr (requires (VariableData left, VariableData right) {
+                    {left == right} -> std::convertible_to<bool>;
+                }) return static_cast<const VariableData&>(rLeft) == rRight;
+                else return rLeft.Key() == rRight.Key();
         }
 
     private:

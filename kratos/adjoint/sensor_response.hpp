@@ -20,11 +20,19 @@
 namespace Kratos {
 
 
+/// @brief Response function defined over a single physical point.
+/// @details Sensors must be located inside (or on the boundary of) a single element. Therefore,
+///          sensors are expected to only provide contributions for @ref Element "elements",
+///          but not @ref Condition "conditions".
+/// @ingroup adjoints
+/// @todo Relax the requirement of being tied to a single point (i.e.: support sensors over a geometry). @matekelemen
 class KRATOS_API(KRATOS_CORE) SensorResponse : public ResponseFunction {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(SensorResponse);
 
     inline static constexpr double DefaultErrorThreshold = 1e-16;
+
+    SensorResponse() noexcept = default;
 
     /**
      * @brief Construct a new SensorResponse object
@@ -36,16 +44,12 @@ public:
      * @param rName                 Name of the sensor. Needs to be unique.
      * @param pNode                 Node which represents the location of the sensor and data value container.
      * @param pElement              Element in which the sensor is located.
-     * @param Weight                Weight of the sensor.
-     * @param ErrorThreshold        Absolute error threshold below which SENSOR_ERROR is treated as zero.
      */
     SensorResponse(
         std::span<const Variable<double>* const> DesignVariableTypes,
         const std::string& rName,
         Node::Pointer pNode,
-        Element::Pointer pElement,
-        const double Weight,
-        const double ErrorThreshold = DefaultErrorThreshold);
+        intrusive_ptr<const Element> pElement);
 
     /**
      * @brief Creates a new sensor attached to a domain model part given.
@@ -58,36 +62,63 @@ public:
      * @param SensorParameters      Parameters required to construct the sensor.
      * @return SensorResponse::Pointer      A new sensor.
      */
-    virtual SensorResponse::Pointer Create(
-        const ModelPart& rDomainModelPart,
-        const ModelPart& rSensorModelPart,
-        IndexType Id,
-        Parameters SensorParameters) const {
+    [[nodiscard]] virtual SensorResponse::Pointer Create(
+        [[maybe_unused]] const ModelPart& rDomainModelPart,
+        [[maybe_unused]] const ModelPart& rSensorModelPart,
+        [[maybe_unused]] IndexType Id,
+        [[maybe_unused]] Parameters SensorParameters) const {
             KRATOS_ERROR << "Trying to create a default \"SensorResponse\" which is not allowed. Please create specific sensor." << std::endl;
             return SensorResponse::Pointer();
     }
+
+    /// @name Evaluation
+    /// @{
+
+    /// @copydoc ResponseFunction::ComputeValue(const Condition&,const ProcessInfo&,int) const
+    [[nodiscard]] double ComputeValue(
+        const Condition& rCondition,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const final override;
+
+    using ResponseFunction::ComputeValue;
+
+    /// @}
+    /// @name Adjoint Interface
+    /// @{
+
+    /// @copydoc ResponseFunction::GetStateVariables(std::vector<IAdjoint::DynamicVariable>&,const Condition&,const ProcessInfo&) const
+    void GetStateVariables(
+        std::vector<IAdjoint::DynamicVariable>& rVariables,
+        const Condition& rCondition,
+        const ProcessInfo& rProcessInfo) const final override;
+
+    using ResponseFunction::GetStateVariables;
+
+    /// @copydoc ResponseFunction::GetDesignVariables(std::vector<IAdjoint::DynamicVariable>&,const Condition&,const ProcessInfo&) const
+    void GetDesignVariables(
+        std::vector<IAdjoint::DynamicVariable>& rVariables,
+        const Condition& rCondition,
+        const ProcessInfo& rProcessInfo) const final override;
+
+    using ResponseFunction::GetDesignVariables;
+
+    /// @copydoc ResponseFunction::ComputeDerivative(Vector&,const Condition&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
+    void ComputeDerivative(
+        Vector& rOutput,
+        const Condition& rCondition,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const final override;
+
+    using ResponseFunction::ComputeDerivative;
+
+    /// @}
 
     virtual Parameters GetDefaultParameters() const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
     }
 
-    /**
-     * @brief Get the SensorResponse parameters.
-     *
-     * This method is used retrieve sensor parameters used in this sensor.
-     * These parameters are used to reconstruct the sensor from scratch
-     * if required.
-     *
-     * @return const Parameters
-     */
-    virtual Parameters GetSensorParameters() const;
-
-    /**
-     * @brief Get the Type of the sensor
-     *
-     * @return std::string
-     */
-    const std::string& GetName() const noexcept {
+    [[nodiscard]] const std::string& Name() const noexcept {
         return mName;
     }
 
@@ -97,26 +128,8 @@ public:
     }
 
     /// @brief Get the sensor location.
-    Node::Pointer GetNode() noexcept {
+    [[nodiscard]] Node::Pointer GetNode() noexcept {
         return mpNode;
-    }
-
-    /**
-     * @brief Get the Weight of the sensor.
-     *
-     * @return double       The weight of the sensor .
-     */
-    double GetWeight() const noexcept {
-        return mWeight;
-    }
-
-    /**
-     * @brief Get the Error Threshold of the sensor.
-     *
-     * @return double       The absolute error threshold below which SENSOR_ERROR is treated as zero.
-     */
-    double GetErrorThreshold() const noexcept {
-        return mErrorThreshold;
     }
 
     /**
@@ -139,23 +152,18 @@ public:
      * @param rTensorAdaptorName                Tensor adaptor name
      * @return TensorAdaptor<double>::Pointer   Tensor adaptor
      */
-    TensorAdaptor<double>::Pointer GetTensorAdaptor(const std::string& rTensorAdaptorName) const;
+    [[nodiscard]] TensorAdaptor<double>::Pointer GetTensorAdaptor(const std::string& rTensorAdaptorName) const;
 
     /// @brief Clear tensor adaptors from the sensors.
     void ClearTensorAdaptors();
 
-    virtual std::string Info() const;
+    [[nodiscard]] virtual std::string Info() const;
 
     virtual void PrintInfo(std::ostream& rOStream) const;
 
     virtual void PrintData(std::ostream& rOStream) const;
 
-protected:
-    const Element& GetContainingElement() const {
-        return *mpElement;
-    }
-
-    Element& GetContainingElement() {
+    [[nodiscard]] const Element& GetContainingElement() const {
         return *mpElement;
     }
 
@@ -164,11 +172,7 @@ private:
 
     Node::Pointer mpNode;
 
-    Element::Pointer mpElement;
-
-    double mWeight;
-
-    double mErrorThreshold;
+    intrusive_ptr<const Element> mpElement;
 
     std::unordered_map<
         std::string,

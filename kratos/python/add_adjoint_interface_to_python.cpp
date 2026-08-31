@@ -12,9 +12,13 @@
 
 // --- External Includes ---
 #include <pybind11/stl.h>
+#include <pybind11/operators.h>
 
 // --- Core Includes ---
 #include "adjoint/adjoint_interface.hpp"
+#include "adjoint/response_function.hpp"
+#include "adjoint/sensor_response.hpp"
+#include "add_adjoint_interface_to_python.hpp"
 
 // --- STL Includes ---
 #include <memory>
@@ -47,6 +51,12 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
         .def(
             "SetDynamicIndex",
             &IAdjoint::DynamicVariable::SetDynamicIndex)
+        .def(pybind11::self == pybind11::self)
+        .def(pybind11::self == VariableData())
+        .def(VariableData() == pybind11::self)
+        .def(pybind11::self < pybind11::self)
+        .def(pybind11::self < VariableData())
+        .def(VariableData() < pybind11::self)
         ;
 
     pybind11::enum_<IAdjoint::ResidualTerm>(
@@ -138,6 +148,186 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
                     }
                     return output;})
         ;
+
+    pybind11::class_<
+        ResponseFunction,
+        IAdjoint,
+        ResponseFunction::Pointer>(rModule, "ResponseFunction")
+            .def(pybind11::init<>())
+            .def(pybind11::init([] (std::vector<const Variable<double>*> DesignVariableTypes) {
+                return ResponseFunction::Pointer(new ResponseFunction(DesignVariableTypes));
+            }))
+            .def(
+                "ComputeCache",
+                &ResponseFunction::ComputeCache,
+                pybind11::arg("rModelPart"))
+            .def(
+                "ClearCache",
+                &ResponseFunction::ClearCache)
+            .def(
+                "ComputeValue",
+                pybind11::overload_cast<const Element&,const ProcessInfo&,int>(&ResponseFunction::ComputeValue, pybind11::const_),
+                pybind11::arg("rElement"),
+                pybind11::arg("rProcessInfo"),
+                pybind11::arg("iBuffer"))
+            .def(
+                "ComputeValue",
+                pybind11::overload_cast<const Condition&,const ProcessInfo&,int>(&ResponseFunction::ComputeValue, pybind11::const_),
+                pybind11::arg("rCondition"),
+                pybind11::arg("rProcessInfo"),
+                pybind11::arg("iBuffer"))
+            .def(
+                "GetStateVariables",
+                [] (const ResponseFunction& rResponse, const Element& rElement, const ProcessInfo& rProcessInfo) -> std::vector<IAdjoint::DynamicVariable> {
+                    std::vector<IAdjoint::DynamicVariable> output;
+                    rResponse.GetStateVariables(
+                        output,
+                        rElement,
+                        rProcessInfo);
+                    return output;
+                },
+                pybind11::arg("rElement"),
+                pybind11::arg("rProcessInfo"))
+            .def(
+                "GetStateVariables",
+                [] (const ResponseFunction& rResponse, const Condition& rCondition, const ProcessInfo& rProcessInfo) -> std::vector<IAdjoint::DynamicVariable> {
+                    std::vector<IAdjoint::DynamicVariable> output;
+                    rResponse.GetStateVariables(
+                        output,
+                        rCondition,
+                        rProcessInfo);
+                    return output;
+                },
+                pybind11::arg("rElement"),
+                pybind11::arg("rProcessInfo"))
+            .def(
+                "GetDesignVariables",
+                [] (const ResponseFunction& rResponse, const Element& rElement, const ProcessInfo& rProcessInfo) -> std::vector<IAdjoint::DynamicVariable> {
+                    std::vector<IAdjoint::DynamicVariable> output;
+                    rResponse.GetDesignVariables(
+                        output,
+                        rElement,
+                        rProcessInfo);
+                    return output;
+                },
+                pybind11::arg("rElement"),
+                pybind11::arg("rProcessInfo"))
+            .def(
+                "GetDesignVariables",
+                [] (const ResponseFunction& rResponse, const Condition& rCondition, const ProcessInfo& rProcessInfo) -> std::vector<IAdjoint::DynamicVariable> {
+                    std::vector<IAdjoint::DynamicVariable> output;
+                    rResponse.GetDesignVariables(
+                        output,
+                        rCondition,
+                        rProcessInfo);
+                    return output;
+                },
+                pybind11::arg("rElement"),
+                pybind11::arg("rProcessInfo"))
+            .def(
+                "ComputeDerivative",
+                [] (
+                    const ResponseFunction& rResponse,
+                    const Element& rElement,
+                    const std::vector<IAdjoint::DynamicVariable>& rVariables,
+                    const ProcessInfo& rProcessInfo,
+                    int iBuffer) -> Vector {
+                        Vector output;
+                        rResponse.ComputeDerivative(
+                            output,
+                            rElement,
+                            rVariables,
+                            rProcessInfo,
+                            iBuffer);
+                        return output;
+                    },
+                pybind11::arg("rElement"),
+                pybind11::arg("rVariables"),
+                pybind11::arg("rProcessInfo"),
+                pybind11::arg("iBuffer"))
+            .def(
+                "ComputeDerivative",
+                [] (
+                    const ResponseFunction& rResponse,
+                    const Condition& rCondition,
+                    const std::vector<IAdjoint::DynamicVariable>& rVariables,
+                    const ProcessInfo& rProcessInfo,
+                    int iBuffer) -> Vector {
+                        Vector output;
+                        rResponse.ComputeDerivative(
+                            output,
+                            rCondition,
+                            rVariables,
+                            rProcessInfo,
+                            iBuffer);
+                        return output;
+                    },
+                pybind11::arg("rCondition"),
+                pybind11::arg("rVariables"),
+                pybind11::arg("rProcessInfo"),
+                pybind11::arg("iBuffer"))
+            .def(
+                "SetDesignVariableTypes",
+                [] (ResponseFunction& rResponse, const std::vector<const Variable<double>*>& rVariableTypes) -> void {
+                    rResponse.SetDesignVariableTypes(rVariableTypes);
+                },
+                pybind11::arg("rVariableTypes"))
+            .def(
+                "GetDesignVariableTypes",
+                [] (const ResponseFunction& rResponse) -> std::vector<const Variable<double>*> {
+                    const auto variables = rResponse.GetDesignVariableTypes();
+                    return std::vector<const Variable<double>*>(variables.begin(), variables.end());
+                })
+            ;
+
+    pybind11::class_<
+        SensorResponse,
+        ResponseFunction,
+        SensorResponse::Pointer>(rModule, "SensorResponse")
+            .def(pybind11::init<>())
+            .def(pybind11::init([] (
+                const std::vector<Variable<double>*> rDesignVariableTypes,
+                const std::string& rName,
+                Node::Pointer pNode,
+                Element::Pointer pElement) -> SensorResponse::Pointer {
+                    std::span<const Variable<double>* const> design_variable_types(
+                        rDesignVariableTypes.data(),
+                        rDesignVariableTypes.size());
+                    return std::make_shared<SensorResponse>(
+                        design_variable_types,
+                        rName,
+                        pNode,
+                        pElement);
+                }),
+                pybind11::arg("rDesignVariableTypes"),
+                pybind11::arg("rName"),
+                pybind11::arg("pNode"),
+                pybind11::arg("pElement"))
+            .def(
+                "Name",
+                &SensorResponse::Name)
+            .def(
+                "GetNode",
+                [] (SensorResponse& rThis) -> Node& {
+                    return *rThis.GetNode();
+                })
+            .def(
+                "AddTensorAdaptor",
+                &SensorResponse::AddTensorAdaptor,
+                pybind11::arg("name"),
+                pybind11::arg("adaptor"))
+            .def(
+                "GetTensorAdaptor",
+                &SensorResponse::GetTensorAdaptor,
+                pybind11::arg("name"))
+            .def(
+                "ClearTensorAdaptors",
+                &SensorResponse::ClearTensorAdaptors)
+            .def(
+                "GetContainingElement",
+                &SensorResponse::GetContainingElement)
+            ;
+
 } // AddAdjointInterfaceToPython
 
 
