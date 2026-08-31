@@ -298,6 +298,13 @@ KRATOS_TEST_CASE_IN_SUITE(DenseBackendMixedIdioms, KratosCoreFastSuite)
     noalias(w) = prod(R, x);
     KRATOS_EXPECT_EQ(w[2], 6.0);
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    // size1()/size2() are available on lazy Eigen expressions too (MatrixBase
+    // plugin), matching the uBLAS expression surface.
+    KRATOS_EXPECT_EQ(prod(M, M).size1(), 3);
+    KRATOS_EXPECT_EQ(trans(M).size2(), 3);
+#endif
+
     // row extraction from a dynamic matrix into an array_1d
     M(0, 1) = -1.0;
     array_1d<double, 3> first_row = row(M, 0);
