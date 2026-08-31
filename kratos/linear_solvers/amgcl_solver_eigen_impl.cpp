@@ -12,6 +12,7 @@
 #include "linear_solvers/amgcl_solver.h" // AMGCLSolver
 #include "spaces/eigen_space.h" // TEigenSparseSpace
 #include "spaces/ublas_space.h" // TUblasDenseSpace
+#include "spaces/default_spaces.h" // TDefaultDenseSpace
 
 // See the note in amgcl_solver_impl.cpp: the implementation of AMGCLSolver is
 // split between an implementation header and per-representation source files.
@@ -101,12 +102,12 @@ private:
 
 template class KRATOS_API(KRATOS_CORE) AMGCLSolver<
     TEigenSparseSpace<double>,
-    TUblasDenseSpace<double>
+    TDefaultDenseSpace<double>
 >;
 
 template class KRATOS_API(KRATOS_CORE) AMGCLSolver<
     TEigenSparseSpace<float>,
-    TUblasDenseSpace<double>
+    TDefaultDenseSpace<double>
 >;
 
 #endif // KRATOS_USE_EIGEN_BACKEND
