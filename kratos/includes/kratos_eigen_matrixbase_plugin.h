@@ -29,6 +29,17 @@
 // const_closure_type / array_type-with-allocator nested types required below,
 // so no other conversion is affected.
 
+/// uBLAS-style extent queries on EVERY dense Eigen expression (blocks, maps,
+/// products, transposes, ...), not only on the concrete Kratos wrapper types
+/// (whose identical std::size_t-returning members shadow these). Adopted from
+/// external review feedback: it removes a whole class of per-site shims where
+/// generic code calls size1()/size2() on an unevaluated expression argument.
+inline std::size_t size1() const { return static_cast<std::size_t>(derived().rows()); }
+inline std::size_t size2() const { return static_cast<std::size_t>(derived().cols()); }
+
+/// uBLAS-style clear() (value zeroing) for writable dense expressions.
+inline void clear() { derived().setZero(); }
+
 /// Implicit conversion of a (compile-time) vector-shaped expression to a
 /// dynamically-allocated uBLAS dense vector (Kratos::Vector and friends).
 template<class TUblasDenseVector>
