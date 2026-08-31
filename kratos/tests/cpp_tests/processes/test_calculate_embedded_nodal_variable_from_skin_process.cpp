@@ -26,7 +26,7 @@
 
 namespace Kratos::Testing {
 
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
 using SparseSpaceType = TDefaultSparseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 using EmbeddedNodalVariableProcessDouble = CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>;
