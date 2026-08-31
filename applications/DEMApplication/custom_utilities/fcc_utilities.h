@@ -6,7 +6,7 @@
 //  Main authors:  Rafael Rangel (r.rangel@utwente.nl)
 //
 //  Utilities for the analysis of FCC failure mechanism under uniaxial compression:
-//  * Stage 1: Frictionless isotropic compression until reaching target stress.
+//  * Stage 1: Isotropic compression until reaching target stress.
 //  * Stage 2: Relaxation until reaching static equilibrium.
 //  * Stage 3: Servo-controlled axial compression (Z direction) until failure is detected.
 //
@@ -24,9 +24,6 @@ namespace Kratos
             // INPUTS
             int mRunFreq;               // Evaluation frequency in time steps
             int mWriteFreq;             // Results printing frequency in time steps
-            double mFrictionPP;         // Particle-Particle friction coefficient
-            double mFrictionPW;         // Particle-Wall friction coefficient
-            bool mFrictionStage1;       // Flag to indicate if friction is considered in stage 1 (isotropic compression)
             double mStrainRate;         // Compression strain rate for stages 1 and 3 (isotropic compression and servo-controlled compression)
             double mInertialNumMax;     // Maximum inertial number for quasi-static compression in stage 3 (servo-controlled compression)
             double mEnergyRatioMax;     // Limit of kinetic/elastic energy ratio for reaching static equilibrium in stage 2 (relaxation)
@@ -34,34 +31,25 @@ namespace Kratos
             double mServoGain;          // Servo-control gain for stage 1 (isotropic compression)
             double mServoStrainRateMax; // Servo-controlled maximum strain rate
             double mMcnFail;            // Mean coordination number threshold for failure detection
-            int mFailCountMax;          // Maximum number of consecutive counts with failure condition
             FCCUtilities(
                 int runFreq,
                 int writeFreq,
-                double frictionPP,
-                double frictionPW,
-                bool frictionStage1,
                 double strainRate,
                 double inertialNumMax,
                 double energyRatioMax,
                 double targetStress,
                 double servoGain,
                 double servoStrainRateMax,
-                double mcnFail,
-                int failCountMax):
+                double mcnFail):
             mRunFreq(runFreq),
             mWriteFreq(writeFreq),
-            mFrictionPP(frictionPP),
-            mFrictionPW(frictionPW),
-            mFrictionStage1(frictionStage1),
             mStrainRate(strainRate),
             mInertialNumMax(inertialNumMax),
             mEnergyRatioMax(energyRatioMax),
             mTargetStress(targetStress),
             mServoGain(servoGain),
             mServoStrainRateMax(servoStrainRateMax),
-            mMcnFail(mcnFail),
-            mFailCountMax(failCountMax) {}
+            mMcnFail(mcnFail) {}
             // ATTRIBUTES
             int mDim;                        // Problem dimension
             int mStage;                      // 1: isotropic compression, 2: relaxation, 3: servo-controlled compression
@@ -101,7 +89,6 @@ namespace Kratos
             void FinalizeSolutionStep(void);
             void AssembleWallVectors(void);
             void IdentifyInnerParticles(void);
-            void UpdateFriction(void);
             void UpdateSystem(void);
             void UpdateWallVelocities(void);
             void SetWallVelocities(double vX, double vY, double vZ);

@@ -6,13 +6,14 @@
 //  Main authors:  Rafael Rangel (r.rangel@utwente.nl)
 //
 //  Utilities for the analysis of FCC failure mechanism under uniaxial compression:
-//  * Stage 1: Frictionless isotropic compression until reaching target stress.
+//  * Stage 1: Isotropic compression until reaching target stress.
 //  * Stage 2: Relaxation until reaching static equilibrium.
 //  * Stage 3: Servo-controlled axial compression (Z direction) until failure is detected.
 //
 #include "fcc_utilities.h"
 #define CONSOLE_PRINT_FREQ 1000
 #define EVAL_FREQ_STAGE2 10000
+#define FAIL_COUNT_MAX 20
 namespace Kratos
 {
     //------------------------------------------------------------------------------------------------------------
@@ -40,18 +41,16 @@ namespace Kratos
         mWallYMax.clear();
         mWallZMin.clear();
         mWallZMax.clear();
-        std::string fileName = "output_f" + std::to_string(static_cast<int>(mFrictionPP * 10)) + ".csv";
-        mFileOut.open(fileName, std::ios::out);
+        mFileOut.open("output.csv", std::ios::out);
         mFileOut << "Time(s),StressXX(Pa),StressYY(Pa),StressZZ(Pa),StrainZZ,MCN" << std::endl;
         AssembleWallVectors();
         IdentifyInnerParticles();
         UpdateSystem();
         UpdateWallVelocities();
-        if (mFrictionStage1) UpdateFriction();
         mLenZRef = mLenZ;
         KRATOS_INFO("FCCUtilities") << "FCCUtilities initialized!" << std::endl;
         KRATOS_INFO("FCCUtilities") << "Number of particles (inner): " << mNumParticles << " (" << mNumParticlesInn << ")" << std::endl;
-        KRATOS_INFO("FCCUtilities") << "Number of walls: " << mNumWallElems << " (Xmin: " << mWallXMin.size() << ", Xmax: " << mWallXMax.size() << ", Ymin: " << mWallYMin.size() << ", Ymax: " << mWallYMax.size() << ", Zmin: " << mWallZMin.size() << ", Zmax: " << mWallZMax.size() << ")" << std::endl;
+        KRATOS_INFO("FCCUtilities") << "Number of walls: " << mNumWallElems << std::endl;
         KRATOS_INFO("FCCUtilities") << "Box length X = " << mLenX << " (" << mWallXMin[0]->GetGeometry()[0][0] << ", " << mWallXMax[0]->GetGeometry()[0][0] << ")" << std::endl;
         KRATOS_INFO("FCCUtilities") << "Box length Y = " << mLenY << " (" << mWallYMin[0]->GetGeometry()[0][1] << ", " << mWallYMax[0]->GetGeometry()[0][1] << ")" << std::endl;
         KRATOS_INFO("FCCUtilities") << "Box length Z = " << mLenZ << " (" << mWallZMin[0]->GetGeometry()[0][2] << ", " << mWallZMax[0]->GetGeometry()[0][2] << ")" << std::endl;
@@ -79,7 +78,6 @@ namespace Kratos
                 mRunFreq = mRunFreq / EVAL_FREQ_STAGE2;
                 mRefTime = processInfo[TIME];
                 mLenZRef = mLenZ;
-                UpdateFriction();
             }
         }
         else if (mStage == 3) {
@@ -177,25 +175,6 @@ namespace Kratos
             if (!on_boundary) {
                 mInnIds.push_back(particle.GetId());
                 mNumParticlesInn += 1;
-            }
-        }
-    }
-    //------------------------------------------------------------------------------------------------------------
-    void FCCUtilities::UpdateFriction() {
-        for (int i = 0; i < mNumParticles; i++) {
-            auto it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
-            SphericParticle& particle = static_cast<SphericParticle&>(**it);
-            for (int j = 0; j < particle.mNeighbourElements.size(); j++) {
-                SphericParticle* const neighbour = static_cast<SphericParticle*>(particle.mNeighbourElements[j]);
-                Properties& props = particle.GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-                props[STATIC_FRICTION] = mFrictionPP;
-                props[DYNAMIC_FRICTION] = mFrictionPP;
-            }
-            for (int j = 0; j < particle.mNeighbourRigidFaces.size(); j++) {
-                DEMWall* const neighbour = static_cast<DEMWall*>(particle.mNeighbourRigidFaces[j]);
-                Properties& props = particle.GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-                props[STATIC_FRICTION] = mFrictionPW;
-                props[DYNAMIC_FRICTION] = mFrictionPW;
             }
         }
     }
@@ -361,7 +340,7 @@ namespace Kratos
         if (mMcnInn <= mMcnFail) {
             mFailCount++;
             KRATOS_INFO("FCCUtilities") << "MCN <= " << mMcnFail << " (x" << mFailCount << ")" << std::endl;
-            if (mFailCount >= mFailCountMax)
+            if (mFailCount >= FAIL_COUNT_MAX)
                 return true;
         }
         else {
