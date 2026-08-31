@@ -99,6 +99,8 @@ namespace Kratos
       }
     }
 
+
+
     // Consitutive law checks
     const auto &r_properties = this->GetProperties();
     const auto &r_geometry = this->GetGeometry();
