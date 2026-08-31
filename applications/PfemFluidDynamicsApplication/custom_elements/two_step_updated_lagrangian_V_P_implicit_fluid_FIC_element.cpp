@@ -311,7 +311,7 @@ namespace Kratos
     const GeometryType &rGeom = this->GetGeometry();
     constexpr double coeff = 0.25;
     const double timeFactor = 0.5 / TimeStep;
-    const double one_third = 1.0 / 3.0;
+    constexpr double one_third = 1.0 / 3.0;
 
     if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
     {
@@ -448,7 +448,7 @@ namespace Kratos
     array_1d<double, 3> AccA(3, 0.0);
     array_1d<double, 3> AccB(3, 0.0);
     const double factor = 0.5 / TimeStep;
-    const double one_third = 1.0 / 3.0;
+    constexpr double one_third = 1.0 / 3.0;
 
     if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE))
     {

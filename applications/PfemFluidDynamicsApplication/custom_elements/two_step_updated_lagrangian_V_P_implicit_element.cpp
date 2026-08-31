@@ -272,10 +272,6 @@ namespace Kratos
         const double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
         const double lagDNXj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 0);
         const double lagDNYj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 1);
-        // lagDNXi=rDN_DX(i,0);
-        // lagDNYi=rDN_DX(i,1);
-        // lagDNXj=rDN_DX(j,0);
-        // lagDNYj=rDN_DX(j,1);
 
         // First Row
         rDampingMatrix(FirstRow, FirstCol) += Weight * ((FourThirds * secondLame + bulkModulus) * lagDNXi * lagDNXj + lagDNYi * lagDNYj * secondLame) * theta;
@@ -320,12 +316,6 @@ namespace Kratos
         const double lagDNXj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 0) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 0);
         const double lagDNYj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 1) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 1);
         const double lagDNZj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 2) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 2) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 2);
-        // lagDNXi=rDN_DX(i,0);
-        // lagDNYi=rDN_DX(i,1);
-        // lagDNZi=rDN_DX(i,2);
-        // lagDNXj=rDN_DX(j,0);
-        // lagDNYj=rDN_DX(j,1);
-        // lagDNZj=rDN_DX(j,2);
 
         // First Row
         rDampingMatrix(FirstRow, FirstCol) += Weight * ((FourThirds * secondLame + bulkModulus) * lagDNXi * lagDNXj + (lagDNYi * lagDNYj + lagDNZi * lagDNZj) * secondLame) * theta;
