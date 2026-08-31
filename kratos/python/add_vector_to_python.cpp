@@ -173,9 +173,20 @@ py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string
             }
             return sliced_copy;
         } else {
+#ifdef KRATOS_USE_EIGEN_BACKEND
+            // No uBLAS vector_slice over the Eigen-backed dynamic vector:
+            // return a dense copy of the slice instead.
+            TVectorType sliced_copy(slicelength);
+            for (size_t i = 0; i < slicelength; ++i) {
+                sliced_copy[i] = self[start];
+                start += step;
+            }
+            return sliced_copy;
+#else
             boost::numeric::ublas::slice ublas_slice(start, step, slicelength);
             boost::numeric::ublas::vector_slice<TVectorType> sliced_self(self, ublas_slice);
             return sliced_self;
+#endif
         }
     });
     binder.def("fill", [](TVectorType& self, const typename TVectorType::value_type value)
@@ -258,7 +269,7 @@ void CreateArray1DInterface(pybind11::module& m, const std::string& Name )
     /*binder.def_buffer( [](array_1d<double,TSize>& self)-> py::buffer_info
     {
         return py::buffer_info(
-            self.data().begin(),
+            &self.data()[0], // pointer for the Eigen data(), unbounded_array for uBLAS
             sizeof(typename array_1d<double,TSize>::value_type),
             py::format_descriptor<typename array_1d<double,TSize>::value_type>::format(),
             1,
@@ -274,6 +285,10 @@ void CreateArray1DInterface(pybind11::module& m, const std::string& Name )
 
 void  AddVectorToPython(pybind11::module& m)
 {
+#ifndef KRATOS_USE_EIGEN_BACKEND
+    // VectorSlice is a boost::numeric::ublas proxy over the Vector alias, so
+    // it only exists when Vector is the uBLAS container (Eigen-backed Vectors
+    // are sliced through numpy views on the python side instead).
     typedef boost::numeric::ublas::vector_slice<Vector> VectorSlice;
     py::class_< VectorSlice >(m, "VectorSlice")
     .def("Size", [](const VectorSlice& self)
@@ -385,6 +400,7 @@ void  AddVectorToPython(pybind11::module& m)
     }, py::keep_alive<0,1>() )
     .def("__str__", PrintObject<VectorSlice>)
     ;
+#endif // !KRATOS_USE_EIGEN_BACKEND
 
     auto vector_binder = CreateVectorInterface<Vector>(m, "Vector");
     vector_binder.def(py::init<typename Vector::size_type>());
@@ -405,10 +421,12 @@ void  AddVectorToPython(pybind11::module& m)
             tmp[i] = py::cast<double>(input[i]);
         return tmp;
     }));
+#ifndef KRATOS_USE_EIGEN_BACKEND
     vector_binder.def(py::init([](const VectorSlice& input) -> Vector
     {
         return input;
     }));
+#endif
     vector_binder.def(py::init( [](py::buffer b)
     {
         py::buffer_info info = b.request();
@@ -426,7 +444,7 @@ void  AddVectorToPython(pybind11::module& m)
     vector_binder.def_buffer( [](Vector& self)-> py::buffer_info
     {
         return py::buffer_info(
-            self.data().begin(),
+            &self.data()[0], // pointer for the Eigen data(), unbounded_array for uBLAS
             sizeof(typename Vector::value_type),
             py::format_descriptor<typename Vector::value_type>::format(),
             1,
@@ -439,53 +457,11 @@ void  AddVectorToPython(pybind11::module& m)
     py::implicitly_convertible<array_1d<double,3>, Vector>();
 
 #ifdef KRATOS_USE_EIGEN_BACKEND
-    // System vector type of the Eigen sparse backend (the strategies' RHS and
-    // solution vectors). Bound standalone (not through CreateVectorInterface,
-    // whose slice support requires the uBLAS vector-expression concept).
-    using EigenSystemVectorType = EigenVector<double>;
-    py::class_<EigenSystemVectorType, Kratos::shared_ptr<EigenSystemVectorType>> eigen_vector_binder(m, "EigenVector", py::buffer_protocol());
-    eigen_vector_binder.def(py::init<>());
-    eigen_vector_binder.def(py::init<const EigenSystemVectorType&>());
-    eigen_vector_binder.def(py::init<std::size_t>());
-    eigen_vector_binder.def(py::init<std::size_t, double>());
-    eigen_vector_binder.def(py::init( [](const py::list& input)
-    {
-        EigenSystemVectorType tmp(input.size());
-        for(unsigned int i=0; i<tmp.size(); ++i)
-            tmp[i] = py::cast<double>(input[i]);
-        return tmp;
-    }));
-    eigen_vector_binder.def(py::init( [](py::buffer b)
-    {
-        py::buffer_info info = b.request();
-        KRATOS_ERROR_IF( info.format != py::format_descriptor<double>::value ) << "Expected a double array\n";
-        KRATOS_ERROR_IF( info.ndim != 1 ) << "Buffer dimension of 1 is required, got: " << info.ndim << std::endl;
-        EigenSystemVectorType vec(info.shape[0]);
-        for( int i=0; i<info.shape[0]; ++i )
-            vec[i] = static_cast<double*>(info.ptr)[i];
-        return vec;
-    }));
-    eigen_vector_binder.def("Size", [](const EigenSystemVectorType& self){ return static_cast<std::size_t>(self.size()); });
-    eigen_vector_binder.def("Resize", [](EigenSystemVectorType& self, const std::size_t new_size){ if(static_cast<std::size_t>(self.size()) != new_size) self.resize(new_size, false); });
-    eigen_vector_binder.def("Fill", [](EigenSystemVectorType& self, const double value){ self.setConstant(value); });
-    eigen_vector_binder.def("__len__", [](const EigenSystemVectorType& self){ return static_cast<std::size_t>(self.size()); });
-    eigen_vector_binder.def("__setitem__", [](EigenSystemVectorType& self, const unsigned int i, const double value){ self[i] = value; });
-    eigen_vector_binder.def("__getitem__", [](const EigenSystemVectorType& self, const unsigned int i){ return self[i]; });
-    eigen_vector_binder.def("__iter__", [](EigenSystemVectorType& self){ return py::make_iterator(self.data(), self.data() + self.size()); }, py::keep_alive<0,1>());
-    eigen_vector_binder.def("__str__", PrintObject<EigenSystemVectorType>);
-    eigen_vector_binder.def_buffer( [](EigenSystemVectorType& self)-> py::buffer_info
-    {
-        return py::buffer_info(
-            self.data(),
-            sizeof(double),
-            py::format_descriptor<double>::format(),
-            1,
-        {static_cast<std::size_t>(self.size())},
-        {sizeof(double)}
-        );
-    });
-    py::implicitly_convertible<py::buffer, EigenSystemVectorType>();
-    py::implicitly_convertible<py::list, EigenSystemVectorType>();
+    // Under the Eigen backend the dynamic Vector alias IS EigenVector<double>,
+    // so the historical "EigenVector" python name (the strategies' system
+    // vector type) is an alias of the "Vector" class rather than a second
+    // registration of the same C++ type.
+    m.attr("EigenVector") = m.attr("Vector");
 #endif
 
     //***********************************************************************************
@@ -561,7 +537,7 @@ void  AddVectorToPython(pybind11::module& m)
     int_vector_binder.def_buffer( [](DenseVector<int>& self)-> py::buffer_info
     {
         return py::buffer_info(
-            self.data().begin(),
+            &self.data()[0], // pointer for the Eigen data(), unbounded_array for uBLAS
             sizeof(typename DenseVector<int>::value_type),
             py::format_descriptor<typename DenseVector<int>::value_type>::format(),
             1,
@@ -599,7 +575,7 @@ void  AddVectorToPython(pybind11::module& m)
     unsigned_int_vector_binder.def_buffer( [](DenseVector<unsigned int>& self)-> py::buffer_info
     {
         return py::buffer_info(
-            self.data().begin(),
+            &self.data()[0], // pointer for the Eigen data(), unbounded_array for uBLAS
             sizeof(typename DenseVector<unsigned int>::value_type),
             py::format_descriptor<typename DenseVector<unsigned int>::value_type>::format(),
             1,

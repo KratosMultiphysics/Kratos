@@ -117,7 +117,7 @@ namespace Kratos::Python
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const array_1d<double,3>& v){ if(m1.size2() != 3) KRATOS_ERROR << "matrix size2 is not 3!" << std::endl; return Vector(prod(m1,v));}, py::is_operator());
         matrix_binder.def_buffer( [](DenseMatrix<double>& self)-> py::buffer_info{
                                                                     return py::buffer_info(
-                                                                    self.data().begin(),
+                                                                    &self.data()[0], // pointer for the Eigen data(), unbounded_array for uBLAS
                                                                     sizeof(double),
                                                                     py::format_descriptor<double>::format(),
                                                                     2,
@@ -227,7 +227,7 @@ namespace Kratos::Python
         cplx_matrix_binder.def("__mul__", [](const ComplexMatrix& m1, const ComplexVector& v){ return ComplexVector(prod(m1,v));}, py::is_operator());
         cplx_matrix_binder.def_buffer( [](ComplexMatrix& self)-> py::buffer_info{
                                                                     return py::buffer_info(
-                                                                    self.data().begin(),
+                                                                    &self.data()[0], // pointer for the Eigen data(), unbounded_array for uBLAS
                                                                     sizeof(std::complex<double>),
                                                                     py::format_descriptor<std::complex<double>>::format(),
                                                                     2,
