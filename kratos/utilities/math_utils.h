@@ -179,15 +179,16 @@ public:
 
         // The minor extraction relies on the ublas matrix_indirect proxy, so
         // it works on a local ublas dynamic copy independently of the
-        // (possibly fixed-size, possibly non-ublas) input matrix type
-        Matrix mat_copy(rMat.size1(), rMat.size2());
+        // (possibly fixed-size, possibly non-ublas) input matrix type;
+        // DenseMatrix<double> names the uBLAS container in every backend.
+        DenseMatrix<double> mat_copy(rMat.size1(), rMat.size2());
         for (IndexType k = 0; k < rMat.size1(); ++k) {
             for (IndexType l = 0; l < rMat.size2(); ++l) {
                 mat_copy(k, l) = rMat(k, l);
             }
         }
 
-        boost::numeric::ublas::matrix_indirect<const Matrix, IndirectArrayType> sub_mat(mat_copy, ia1, ia2);
+        boost::numeric::ublas::matrix_indirect<const DenseMatrix<double>, IndirectArrayType> sub_mat(mat_copy, ia1, ia2);
         const double first_minor = Det(sub_mat);
         return ((i + j) % 2) ? -first_minor : first_minor;
     }
@@ -383,8 +384,10 @@ public:
 
             // The LU factorization works on local ublas dynamic copies so the
             // same code serves any (possibly fixed-size, possibly non-ublas)
-            // input/output matrix types
-            Matrix A(size1, size2);
+            // input/output matrix types; DenseMatrix<double> names the uBLAS
+            // container in every backend (Matrix is Eigen-backed under the
+            // Eigen backend and cannot feed boost's lu_factorize).
+            DenseMatrix<double> A(size1, size2);
             for (IndexType i = 0; i < size1; ++i) {
                 for (IndexType j = 0; j < size2; ++j) {
                     A(i,j) = rInputMatrix(i,j);
@@ -394,7 +397,7 @@ public:
             typedef permutation_matrix<SizeType> pmatrix;
             pmatrix pm(size1);
             const int singular = lu_factorize(A,pm);
-            Matrix invA(size1, size2);
+            DenseMatrix<double> invA(size1, size2);
             invA.assign( IdentityMatrix(size1));
             KRATOS_ERROR_IF(singular == 1) << "Matrix is singular: " << rInputMatrix << std::endl;
             lu_substitute(A, pm, invA);
@@ -623,7 +626,11 @@ public:
                 double det = 1.0;
                 using namespace boost::numeric::ublas;
                 typedef permutation_matrix<SizeType> pmatrix;
-                Matrix Aux(rA);
+                // LU on a local uBLAS dynamic copy (see InvertMatrix)
+                DenseMatrix<double> Aux(rA.size1(), rA.size2());
+                for (IndexType i = 0; i < Aux.size1(); ++i)
+                    for (IndexType j = 0; j < Aux.size2(); ++j)
+                        Aux(i,j) = rA(i,j);
                 pmatrix pm(Aux.size1());
                 bool singular = lu_factorize(Aux,pm);
 
