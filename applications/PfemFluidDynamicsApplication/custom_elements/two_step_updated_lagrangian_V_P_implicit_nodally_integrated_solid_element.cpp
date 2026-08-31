@@ -189,7 +189,7 @@ namespace Kratos
         KRATOS_THROW_ERROR(std::invalid_argument, "missing DYNAMIC_VISCOSITY variable on solution step data for node ", r_geom[i].Id());
       if (!r_geom[i].HasDofFor(VELOCITY_X) ||
           !r_geom[i].HasDofFor(VELOCITY_Y) ||
-          !r_geom[i].HasDofFor(VELOCITY_Z) == false)
+          !r_geom[i].HasDofFor(VELOCITY_Z))
         KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ", r_geom[i].Id());
       if (!r_geom[i].HasDofFor(PRESSURE))
         KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ", r_geom[i].Id());
