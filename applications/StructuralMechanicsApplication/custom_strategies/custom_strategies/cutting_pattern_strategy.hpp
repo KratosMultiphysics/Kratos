@@ -122,10 +122,23 @@ public:
         if (!was_initialized) {
             // Compute the initial 2D guess once, before any Newton-Raphson iteration
             InitialFlatteningUtility::Execute(mrCuttingPatternModelPart, mInitialFlatteningSettings);
+            /*if (mUseRelaxation) {
+                PerformRelaxation();
+            }*/
+        }
+    }
+
+    void InitializeSolutionStep() override
+    {
+        // By the time this is reached, ApplyBoundaryConditions() has fixed the DOFs, so the
+        // relaxation phase solves the same constrained system as the least-squares phase.
+        if (!mRelaxationPerformed) {
+            mRelaxationPerformed = true;
             if (mUseRelaxation) {
                 PerformRelaxation();
             }
         }
+        BaseType::InitializeSolutionStep();
     }
 
     void SetUseRelaxation(bool UseRelaxation)
@@ -245,6 +258,7 @@ private:
     int mIterationNumber = 0;
     bool mWriteCuttingPatternGeometryFile = true;
     bool mUseRelaxation = false;
+    bool mRelaxationPerformed = false;
 
 }; /* Class CuttingPatternStrategy */
 } /* namespace Kratos. */
