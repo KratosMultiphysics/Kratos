@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 
 // ==============================================================================
@@ -62,7 +63,7 @@ public:
     ///@{
 
     typedef array_1d<double,3> array_3d;
-    typedef UblasSpace<double, Matrix, Vector> DenseSpace;
+    typedef TDefaultDenseSpace<double> DenseSpace;
 
     /// Pointer definition of OptimizationUtilities
     KRATOS_CLASS_POINTER_DEFINITION(OptimizationUtilities);
