@@ -18,6 +18,7 @@
 // KratosCore dependencies
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // TrilinosApplication dependencies
 #include "trilinos_space.h"
@@ -39,7 +40,7 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
     using MPISparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
     using MPIBaseSchemeType = Scheme<MPISparseSpaceType, LocalSpaceType>;
 

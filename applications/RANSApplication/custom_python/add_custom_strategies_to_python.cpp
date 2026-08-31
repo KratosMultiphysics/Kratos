@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // schemes
 #include "custom_strategies/bossak_relaxation_scalar_scheme.h"
@@ -35,8 +36,8 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
+    using SparseSpaceType = TDefaultSparseSpace<double>;
     using BaseSchemeType = Scheme<SparseSpaceType, LocalSpaceType>;
 
     // add schemes
