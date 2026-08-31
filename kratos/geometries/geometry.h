@@ -2516,8 +2516,11 @@ public:
         Vector N( this->size() );
         ShapeFunctionsValues( N, LocalCoordinates );
 
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-            noalias( rResult ) += N[i] * ((*this)[i] + row(DeltaPosition, i));
+        for ( IndexType i = 0 ; i < this->size() ; i++ ) {
+            const auto& r_point = (*this)[i];
+            for ( std::size_t d = 0; d < dimension; ++d )
+                rResult[d] += N[i] * (r_point[d] + DeltaPosition(i, d));
+        }
 
         return rResult;
     }
