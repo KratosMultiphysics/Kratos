@@ -1017,6 +1017,85 @@ inline auto subrange(const EigenBoundedMatrix<T, N1, N2>& rM, const std::size_t 
     return rM.block(Row1, Col1, Row2 - Row1, Col2 - Col1);
 }
 
+/// uBLAS trans() on a *vector* is the identity ((trans v)[i] = v[i]); see the
+/// EigenVector overload in eigen_compat_operations.h. These cover the
+/// fixed-size vector types (N x 1 *matrices* keep the real transpose).
+template<class T, std::size_t N>
+inline const EigenBoundedVector<T, N>& trans(const EigenBoundedVector<T, N>& rV)
+{
+    return rV;
+}
+
+template<class T, std::size_t N>
+inline const array_1d<T, N>& trans(const array_1d<T, N>& rV)
+{
+    return rV;
+}
+
+/// ublas project() on the Eigen-backed types: a ublas range maps to a
+/// segment/block view (readable and writable, exactly as the ublas proxies).
+/// Ranges are preprocess()-ed against the target extent so the range::all()
+/// sentinel resolves to the full extent, as in the ublas proxies.
+template<class TDataType>
+inline auto project(EigenVector<TDataType>& rV, const boost::numeric::ublas::range& rRange)
+{
+    const auto processed = rRange.preprocess(rV.size());
+    return rV.segment(processed.start(), processed.size());
+}
+
+template<class TDataType>
+inline auto project(const EigenVector<TDataType>& rV, const boost::numeric::ublas::range& rRange)
+{
+    const auto processed = rRange.preprocess(rV.size());
+    return rV.segment(processed.start(), processed.size());
+}
+
+template<class TDataType>
+inline auto project(EigenMatrix<TDataType>& rM, const boost::numeric::ublas::range& rRowRange, const boost::numeric::ublas::range& rColRange)
+{
+    const auto processed_rows = rRowRange.preprocess(rM.rows());
+    const auto processed_cols = rColRange.preprocess(rM.cols());
+    return rM.block(processed_rows.start(), processed_cols.start(), processed_rows.size(), processed_cols.size());
+}
+
+template<class TDataType>
+inline auto project(const EigenMatrix<TDataType>& rM, const boost::numeric::ublas::range& rRowRange, const boost::numeric::ublas::range& rColRange)
+{
+    const auto processed_rows = rRowRange.preprocess(rM.rows());
+    const auto processed_cols = rColRange.preprocess(rM.cols());
+    return rM.block(processed_rows.start(), processed_cols.start(), processed_rows.size(), processed_cols.size());
+}
+
+template<class T, std::size_t N>
+inline auto project(EigenBoundedVector<T, N>& rV, const boost::numeric::ublas::range& rRange)
+{
+    const auto processed = rRange.preprocess(rV.size());
+    return rV.segment(processed.start(), processed.size());
+}
+
+template<class T, std::size_t N>
+inline auto project(const EigenBoundedVector<T, N>& rV, const boost::numeric::ublas::range& rRange)
+{
+    const auto processed = rRange.preprocess(rV.size());
+    return rV.segment(processed.start(), processed.size());
+}
+
+template<class T, std::size_t N1, std::size_t N2>
+inline auto project(EigenBoundedMatrix<T, N1, N2>& rM, const boost::numeric::ublas::range& rRowRange, const boost::numeric::ublas::range& rColRange)
+{
+    const auto processed_rows = rRowRange.preprocess(rM.rows());
+    const auto processed_cols = rColRange.preprocess(rM.cols());
+    return rM.block(processed_rows.start(), processed_cols.start(), processed_rows.size(), processed_cols.size());
+}
+
+template<class T, std::size_t N1, std::size_t N2>
+inline auto project(const EigenBoundedMatrix<T, N1, N2>& rM, const boost::numeric::ublas::range& rRowRange, const boost::numeric::ublas::range& rColRange)
+{
+    const auto processed_rows = rRowRange.preprocess(rM.rows());
+    const auto processed_cols = rColRange.preprocess(rM.cols());
+    return rM.block(processed_rows.start(), processed_cols.start(), processed_rows.size(), processed_cols.size());
+}
+
 ///@}
 
 } // namespace Kratos

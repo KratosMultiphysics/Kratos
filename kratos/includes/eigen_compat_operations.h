@@ -18,6 +18,7 @@
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Sparse>
+#include <boost/numeric/ublas/expression_types.hpp>
 
 // Project includes
 
@@ -98,6 +99,19 @@ inline auto trans(const Eigen::MatrixBase<TDerived>& rM)
     return rM.transpose();
 }
 
+/// uBLAS defines trans() on a *vector* as the identity ((trans v)[i] = v[i],
+/// boost vector_expression.hpp), and it discriminates vector from matrix by
+/// TYPE, not by shape: an N x 1 matrix transposes, a vector does not. The
+/// concrete Kratos vector types keep that semantic here (the bounded vector
+/// and array_1d counterparts live in eigen_ublas_compat_operations.h), so
+/// idioms like outer_prod(x, trans(y)) and prod(trans(v), M) mean the same
+/// under both backends.
+template<class TDataType>
+inline const EigenVector<TDataType>& trans(const EigenVector<TDataType>& rV)
+{
+    return rV;
+}
+
 /// Transpose of a sparse matrix — e.g. for 0.5 * (K + trans(K)) symmetrization
 /// of a system matrix. Unlike the dense overload this MATERIALIZES the result
 /// (one O(nnz) copy): Eigen's lazy sparse transpose flips the storage order,
@@ -157,31 +171,123 @@ inline auto element_div(const Eigen::MatrixBase<TDerived1>& rX, const Eigen::Mat
     return rX.cwiseQuotient(rY.derived());
 }
 
-/// noalias proxy: Eigen's own NoAlias supports =, += and -=, which is exactly
-/// the ublas noalias contract (assignment without a protective temporary).
+namespace Internals {
+
+/// noalias proxy for the dynamic Eigen-backed types. Eigen RHS go through
+/// Eigen's own NoAlias (the exact ublas noalias contract: assignment without
+/// a protective temporary); uBLAS expression RHS (ZeroMatrix, IdentityMatrix,
+/// prod(...) of uBLAS operands, ...) are evaluated element-wise, resizing the
+/// target as plain ublas assignment would.
+template<class TTarget>
+class EigenDynamicNoAliasProxy
+{
+public:
+    explicit EigenDynamicNoAliasProxy(TTarget& rTarget) : mrTarget(rTarget) {}
+
+    template<class TDerived>
+    TTarget& operator=(const Eigen::MatrixBase<TDerived>& rExpression)
+    {
+        mrTarget.noalias() = rExpression.derived();
+        return mrTarget;
+    }
+    template<class TDerived>
+    TTarget& operator+=(const Eigen::MatrixBase<TDerived>& rExpression)
+    {
+        mrTarget.noalias() += rExpression.derived();
+        return mrTarget;
+    }
+    template<class TDerived>
+    TTarget& operator-=(const Eigen::MatrixBase<TDerived>& rExpression)
+    {
+        mrTarget.noalias() -= rExpression.derived();
+        return mrTarget;
+    }
+
+    template<class TExpression>
+    TTarget& operator=(const boost::numeric::ublas::matrix_expression<TExpression>& rExpression)
+    {
+        const auto& r_e = rExpression();
+        mrTarget.resize(r_e.size1(), r_e.size2(), false);
+        for (std::size_t i = 0; i < r_e.size1(); ++i)
+            for (std::size_t j = 0; j < r_e.size2(); ++j)
+                mrTarget(i, j) = r_e(i, j);
+        return mrTarget;
+    }
+    template<class TExpression>
+    TTarget& operator+=(const boost::numeric::ublas::matrix_expression<TExpression>& rExpression)
+    {
+        const auto& r_e = rExpression();
+        for (std::size_t i = 0; i < r_e.size1(); ++i)
+            for (std::size_t j = 0; j < r_e.size2(); ++j)
+                mrTarget(i, j) += r_e(i, j);
+        return mrTarget;
+    }
+    template<class TExpression>
+    TTarget& operator-=(const boost::numeric::ublas::matrix_expression<TExpression>& rExpression)
+    {
+        const auto& r_e = rExpression();
+        for (std::size_t i = 0; i < r_e.size1(); ++i)
+            for (std::size_t j = 0; j < r_e.size2(); ++j)
+                mrTarget(i, j) -= r_e(i, j);
+        return mrTarget;
+    }
+
+    template<class TExpression>
+    TTarget& operator=(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    {
+        const auto& r_e = rExpression();
+        mrTarget.resize(r_e.size(), false);
+        for (std::size_t i = 0; i < r_e.size(); ++i) mrTarget[i] = r_e(i);
+        return mrTarget;
+    }
+    template<class TExpression>
+    TTarget& operator+=(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    {
+        const auto& r_e = rExpression();
+        for (std::size_t i = 0; i < r_e.size(); ++i) mrTarget[i] += r_e(i);
+        return mrTarget;
+    }
+    template<class TExpression>
+    TTarget& operator-=(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    {
+        const auto& r_e = rExpression();
+        for (std::size_t i = 0; i < r_e.size(); ++i) mrTarget[i] -= r_e(i);
+        return mrTarget;
+    }
+
+private:
+    TTarget& mrTarget;
+};
+
+} // namespace Internals
+
+/// noalias proxies accepting both Eigen and uBLAS right-hand sides.
 template<class TDataType>
 inline auto noalias(EigenMatrix<TDataType>& rM)
 {
-    return rM.noalias();
+    return Internals::EigenDynamicNoAliasProxy<EigenMatrix<TDataType>>(rM);
 }
 
 template<class TDataType>
 inline auto noalias(EigenVector<TDataType>& rV)
 {
-    return rV.noalias();
+    return Internals::EigenDynamicNoAliasProxy<EigenVector<TDataType>>(rV);
 }
 
 /// Row proxy (readable and writable, as ublas row()).
+/// The uBLAS matrix_row models a *vector*; Eigen's vector convention is a
+/// column, so the row block is transposed to keep vector semantics
+/// (assignment to array_1d/EigenVector, inner_prod, v -= row(M,i), ...).
 template<class TDataType>
 inline auto row(EigenMatrix<TDataType>& rM, const std::size_t I)
 {
-    return rM.row(I);
+    return rM.row(I).transpose();
 }
 
 template<class TDataType>
 inline auto row(const EigenMatrix<TDataType>& rM, const std::size_t I)
 {
-    return rM.row(I);
+    return rM.row(I).transpose();
 }
 
 /// Column proxy (readable and writable, as ublas column()).
@@ -208,6 +314,19 @@ template<class TDataType>
 inline auto subrange(const EigenVector<TDataType>& rV, const std::size_t Low, const std::size_t High)
 {
     return rV.segment(Low, High - Low);
+}
+
+/// Matrix subrange [Row1, Row2) x [Col1, Col2) block (readable and writable, as ublas subrange()).
+template<class TDataType>
+inline auto subrange(EigenMatrix<TDataType>& rM, const std::size_t Row1, const std::size_t Row2, const std::size_t Col1, const std::size_t Col2)
+{
+    return rM.block(Row1, Col1, Row2 - Row1, Col2 - Col1);
+}
+
+template<class TDataType>
+inline auto subrange(const EigenMatrix<TDataType>& rM, const std::size_t Row1, const std::size_t Row2, const std::size_t Col1, const std::size_t Col2)
+{
+    return rM.block(Row1, Col1, Row2 - Row1, Col2 - Col1);
 }
 
 } // namespace Kratos
