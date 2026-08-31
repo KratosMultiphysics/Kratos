@@ -15,7 +15,8 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MapRowContribution, BalancedProduct
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_utilities.hpp" // ProcessMasterSlaveConstraint, ProcessMultifreedomConstraint, detail::MakeRelationTopology
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // Scaling
-#include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
+#include "spaces/ublas_space.h" // TDefaultSparseSpace, TDefaultDenseSpace
+#include "spaces/default_spaces.h"
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 
 // STL includes
@@ -69,7 +70,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
             for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
                 const auto i_dof = rRelationMatrix.index2_data()[i_entry];
                 const Dof<typename TDense::DataType>& r_dof = *(itDofBegin + i_dof);
-                KRATOS_DEBUG_ERROR_IF_NOT(i_dof == r_dof.EquationId());
+                KRATOS_DEBUG_ERROR_IF_NOT(static_cast<std::size_t>(i_dof) == static_cast<std::size_t>(r_dof.EquationId()));
 
                 std::scoped_lock<LockObject> lock(mutexes[i_dof]);
                 if (r_dof.IsFixed()) {
@@ -509,9 +510,9 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::GetTransposeRelationMatrix
 }
 
 
-template class AugmentedLagrangeConstraintAssembler<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class AugmentedLagrangeConstraintAssembler<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>;
 
-template class AugmentedLagrangeConstraintAssembler<TUblasSparseSpace<float>,TUblasDenseSpace<double>>;
+template class AugmentedLagrangeConstraintAssembler<TDefaultSparseSpace<float>,TDefaultDenseSpace<double>>;
 
 
 } // namespace Kratos
