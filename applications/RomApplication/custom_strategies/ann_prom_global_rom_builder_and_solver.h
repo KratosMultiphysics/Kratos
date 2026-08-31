@@ -779,8 +779,8 @@ protected:
         
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
-        Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rb(&rb.data()[0], rb.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(&mPhiGlobal.data()[0], mPhiGlobal.size1(), mPhiGlobal.size2());
         
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
@@ -821,7 +821,7 @@ protected:
 
         const auto solving_timer = BuiltinTimer();
 
-        Eigen::Map<EigenDynamicVector> dxrom_eigen(r_dxRom.data().begin(), r_dxRom.size());
+        Eigen::Map<EigenDynamicVector> dxrom_eigen(&r_dxRom.data()[0], r_dxRom.size());
         if(rEigenRomA.colPivHouseholderQr().isInvertible() == false){
             KRATOS_INFO("AnnPromGlobalROMBuilderAndSolver") << "Linear system to be solved by QR is not invertible" << std::endl;
         }

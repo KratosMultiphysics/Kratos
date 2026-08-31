@@ -766,8 +766,8 @@ protected:
 
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
-        Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rb(&rb.data()[0], rb.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(&mPhiGlobal.data()[0], mPhiGlobal.size1(), mPhiGlobal.size2());
 
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
@@ -794,7 +794,7 @@ protected:
         const auto solving_timer = BuiltinTimer();
 
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
-        Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
+        Eigen::Map<EigenDynamicVector> dxrom_eigen(&dxrom.data()[0], dxrom.size());
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
 
         double time = solving_timer.ElapsedSeconds();
