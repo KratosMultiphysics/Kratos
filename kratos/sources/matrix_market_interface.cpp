@@ -631,11 +631,11 @@ template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::Compressed
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::TUblasSparseSpace<float>::MatrixType>(const char *FileName, const Kratos::TUblasSparseSpace<float>::MatrixType &M, bool Symmetric);
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, const Kratos::ComplexCompressedMatrix &M, bool Symmetric);
 
-template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::Vector>(const char *FileName, Kratos::Vector &V);
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::TUblasSparseSpace<double>::VectorType>(const char *FileName, Kratos::TUblasSparseSpace<double>::VectorType &V);
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::TUblasSparseSpace<float>::VectorType>(const char *FileName, Kratos::TUblasSparseSpace<float>::VectorType &V);
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, Kratos::ComplexVector &V);
 
-template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::Vector>(const char *FileName, const Kratos::Vector &V);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::TUblasSparseSpace<double>::VectorType>(const char *FileName, const Kratos::TUblasSparseSpace<double>::VectorType &V);
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::TUblasSparseSpace<float>::VectorType>(const char *FileName, const Kratos::TUblasSparseSpace<float>::VectorType &V);
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, const Kratos::ComplexVector &V);
 
