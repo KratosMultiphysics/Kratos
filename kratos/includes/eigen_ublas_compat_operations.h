@@ -127,8 +127,8 @@ public:
     {
         const auto& r_e = rExpression();
         KRATOS_DEBUG_ERROR_IF(r_e.size1() != mrTarget.size1() || r_e.size2() != mrTarget.size2()) << "noalias: matrix expression of size (" << r_e.size1() << "," << r_e.size2() << ") assigned to a target of size (" << mrTarget.size1() << "," << mrTarget.size2() << ")" << std::endl;
-        for (std::size_t i = 0; i < mrTarget.size1(); ++i) {
-            for (std::size_t j = 0; j < mrTarget.size2(); ++j) {
+        for (std::size_t i = 0; i < static_cast<std::size_t>(mrTarget.size1()); ++i) {
+            for (std::size_t j = 0; j < static_cast<std::size_t>(mrTarget.size2()); ++j) {
                 mrTarget(i, j) = r_e(i, j);
             }
         }
@@ -139,8 +139,8 @@ public:
     {
         const auto& r_e = rExpression();
         KRATOS_DEBUG_ERROR_IF(r_e.size1() != mrTarget.size1() || r_e.size2() != mrTarget.size2()) << "noalias: matrix expression of size (" << r_e.size1() << "," << r_e.size2() << ") added to a target of size (" << mrTarget.size1() << "," << mrTarget.size2() << ")" << std::endl;
-        for (std::size_t i = 0; i < mrTarget.size1(); ++i) {
-            for (std::size_t j = 0; j < mrTarget.size2(); ++j) {
+        for (std::size_t i = 0; i < static_cast<std::size_t>(mrTarget.size1()); ++i) {
+            for (std::size_t j = 0; j < static_cast<std::size_t>(mrTarget.size2()); ++j) {
                 mrTarget(i, j) += r_e(i, j);
             }
         }
@@ -151,8 +151,8 @@ public:
     {
         const auto& r_e = rExpression();
         KRATOS_DEBUG_ERROR_IF(r_e.size1() != mrTarget.size1() || r_e.size2() != mrTarget.size2()) << "noalias: matrix expression of size (" << r_e.size1() << "," << r_e.size2() << ") subtracted from a target of size (" << mrTarget.size1() << "," << mrTarget.size2() << ")" << std::endl;
-        for (std::size_t i = 0; i < mrTarget.size1(); ++i) {
-            for (std::size_t j = 0; j < mrTarget.size2(); ++j) {
+        for (std::size_t i = 0; i < static_cast<std::size_t>(mrTarget.size1()); ++i) {
+            for (std::size_t j = 0; j < static_cast<std::size_t>(mrTarget.size2()); ++j) {
                 mrTarget(i, j) -= r_e(i, j);
             }
         }
