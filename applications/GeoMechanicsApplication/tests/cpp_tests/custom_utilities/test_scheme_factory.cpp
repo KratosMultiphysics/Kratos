@@ -12,6 +12,7 @@
 
 #include "custom_utilities/scheme_factory.hpp"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
@@ -19,8 +20,8 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-using SparseSpaceType   = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType    = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType   = TDefaultSparseSpace<double>;
+using LocalSpaceType    = TDefaultDenseSpace<double>;
 using SchemeFactoryType = SchemeFactory<SparseSpaceType, LocalSpaceType>;
 
 KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeIsUndefined, KratosGeoMechanicsFastSuiteWithoutKernel)

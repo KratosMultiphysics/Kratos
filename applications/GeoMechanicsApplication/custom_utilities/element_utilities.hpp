@@ -142,14 +142,14 @@ public:
     static void AssembleUPBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUPBlockMatrix)
     {
         constexpr auto row_offset    = std::size_t{0};
-        const auto     column_offset = rLeftHandSideMatrix.size2() - rUPBlockMatrix.size2();
+        const auto     column_offset = rLeftHandSideMatrix.size2() - GetColumnCount(rUPBlockMatrix);
         AddMatrixAtPosition(rUPBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
     template <typename MatrixType1, typename MatrixType2>
     static void AssemblePUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rPUBlockMatrix)
     {
-        const auto     row_offset    = rLeftHandSideMatrix.size1() - rPUBlockMatrix.size1();
+        const auto     row_offset    = rLeftHandSideMatrix.size1() - GetRowCount(rPUBlockMatrix);
         constexpr auto column_offset = std::size_t{0};
         AddMatrixAtPosition(rPUBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
@@ -157,7 +157,7 @@ public:
     template <typename MatrixType1, typename MatrixType2>
     static void AssemblePPBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rPPBlockMatrix)
     {
-        const auto row_offset    = rLeftHandSideMatrix.size1() - rPPBlockMatrix.size1();
+        const auto row_offset    = rLeftHandSideMatrix.size1() - GetRowCount(rPPBlockMatrix);
         const auto column_offset = row_offset;
         AddMatrixAtPosition(rPPBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
@@ -189,8 +189,12 @@ public:
             << "Can't assign submatrix: last column index (" << ColumnOffset + rSourceMatrix.size2()
             << ") exceeds the column size of the destination matrix (" << rDestinationMatrix.size2() << ")\n";
 
-        subrange(rDestinationMatrix, RowOffset, RowOffset + rSourceMatrix.size1(), ColumnOffset,
-                 ColumnOffset + rSourceMatrix.size2()) = rSourceMatrix;
+        // noalias(...) rather than a bare assignment: boost's matrix_range::operator= only
+        // accepts uBLAS expression types, so under the Eigen backend (where MatrixType2 may be
+        // an Eigen-derived BoundedMatrix) it does not match; noalias() routes through the
+        // Kratos-provided proxy that accepts both uBLAS and Eigen right-hand sides.
+        noalias(subrange(rDestinationMatrix, RowOffset, RowOffset + rSourceMatrix.size1(), ColumnOffset,
+                 ColumnOffset + rSourceMatrix.size2())) = rSourceMatrix;
     }
 
     template <typename MatrixType1, typename MatrixType2>
@@ -233,7 +237,9 @@ public:
             << "Can't assign subvector: last index (" << Offset + rSourceVector.size()
             << ") exceeds the size of the destination vector (" << rDestinationVector.size() << ")\n";
 
-        subrange(rDestinationVector, Offset, Offset + rSourceVector.size()) = rSourceVector;
+        // noalias(...): see AssignMatrixAtPosition above for why a bare subrange assignment
+        // does not compile under the Eigen backend.
+        noalias(subrange(rDestinationVector, Offset, Offset + rSourceVector.size())) = rSourceVector;
     }
 
     template <typename VectorType1, typename VectorType2>
@@ -271,14 +277,37 @@ public:
     static Vector EvaluateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
                                                                      const Geometry<Node>& rGeometry);
 
+    /// Row/column counts that accept both the uBLAS-style size1()/size2()
+    /// surface and plain Eigen expressions (rows()/cols()), so the assembly
+    /// helpers below can take unevaluated expression arguments.
+    template <typename TMatrixType>
+    static std::size_t GetRowCount(const TMatrixType& rMatrix)
+    {
+        if constexpr (requires { rMatrix.size1(); }) {
+            return static_cast<std::size_t>(rMatrix.size1());
+        } else {
+            return static_cast<std::size_t>(rMatrix.rows());
+        }
+    }
+
+    template <typename TMatrixType>
+    static std::size_t GetColumnCount(const TMatrixType& rMatrix)
+    {
+        if constexpr (requires { rMatrix.size2(); }) {
+            return static_cast<std::size_t>(rMatrix.size2());
+        } else {
+            return static_cast<std::size_t>(rMatrix.cols());
+        }
+    }
+
     template <typename MatrixType1, typename MatrixType2>
     static void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
                                     MatrixType2&       rDestinationMatrix,
                                     const std::size_t  RowOffset,
                                     const std::size_t  ColumnOffset)
     {
-        const std::size_t size1 = rSourceMatrix.size1();
-        const std::size_t size2 = rSourceMatrix.size2();
+        const std::size_t size1 = GetRowCount(rSourceMatrix);
+        const std::size_t size2 = GetColumnCount(rSourceMatrix);
 
         for (std::size_t i = 0; i < size1; ++i) {
             const std::size_t di = i + RowOffset;
