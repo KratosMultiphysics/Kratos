@@ -17,8 +17,6 @@
 #include "includes/ublas_interface.h"
 #include "sph_application_variables.h"
 #include "custom_utilities/custom_kernels/kernel_factory.h"
-#include "linear_solvers/linear_solver.h"
-#include "linear_solvers/skyline_lu_factorization_solver.h"
 
 /**
  * @class ComputeKernelCorrectionUtilities
@@ -46,11 +44,11 @@ public:
     static void ComputeGradientCorrection(ModelPart& rThisModelPart);
     
     /**
-     * @brief This function computes the integration correction which ensure first-order consistency in the boundaries of the domain.
-     * @details J. Bonet and S. Kulasegaram "Correction and stabilization of smooth particle 
-     * hydrodynamics methods with applications  in metal forming simulations"
+     * @brief This function computes the integration correction which ensures first-order consistency at the boundaries of the domain.
+     * @details J. Bonet and S. Kulasegaram:
+     * "Correction and stabilization of smooth particle hydrodynamics methods with applications in metal forming simulations".
      */
-    static void ComputeIntegrationCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters, unsigned int& iter);
+    static void ComputeIntegrationCorrection(ModelPart& rThisModelPart);
 
     /**
      * @brief This functions applies the gradient and the kernel corrections
