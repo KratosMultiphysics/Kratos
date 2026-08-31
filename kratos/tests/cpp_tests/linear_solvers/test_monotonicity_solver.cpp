@@ -34,7 +34,7 @@ namespace Kratos::Testing
 {
 
 using SpaceType = TDefaultSparseSpace<double>;
-using LocalSpaceType = TUblasDenseSpace<double>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
 using SparseMatrixType = typename SpaceType::MatrixType;
 
 KRATOS_TEST_CASE_IN_SUITE(MonotonictyPreservingSolver, KratosCoreFastSuite)

@@ -90,7 +90,7 @@ public:
 
 // Define the types of spaces (the sparse one follows the configured backend)
 using SpaceType = TDefaultSparseSpace<double>;
-using LocalSpaceType = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
 
 // Builds a small identity by writing the CSR arrays directly (valid for both backends)
 SpaceType::MatrixType MakeIdentityMatrix(const std::size_t Size)
