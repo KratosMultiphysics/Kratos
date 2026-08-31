@@ -20,6 +20,7 @@
 #include "includes/kratos_parameters.h"
 #include "testing/testing.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_strategies/rom_builder_and_solver.h"
@@ -30,8 +31,8 @@
 namespace Kratos::Testing {
 namespace LeastSquaresPetrovGalerkinROMBuilderAndSolverTestingInternal {
 
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType >;
 using BuilderAndSolverType = BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
 using LeastSquaresPetrovGalerkinROMBuilderAndSolverType = LeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;

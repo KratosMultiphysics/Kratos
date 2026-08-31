@@ -18,6 +18,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 /* Application includes */
 #include "rom_application_variables.h"
@@ -25,8 +26,8 @@
 
 namespace Kratos
 {
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
     // This utility returns the converged residuals projected onto the ROM basis Phi.
