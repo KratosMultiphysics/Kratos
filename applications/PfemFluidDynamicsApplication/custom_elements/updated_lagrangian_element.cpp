@@ -504,9 +504,13 @@ namespace Kratos
     const GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
 
-    double ElemSize = 0.0;
-    array_1d<double, 3> Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
-    ElemSize += norm_2(Edge);
+    double ElemSize = 0;
+    array_1d<double, 3> Edge(3, 0.0);
+    noalias(Edge) = rGeom[1].Coordinates() - rGeom[0].Coordinates();
+    double Length = Edge[0] * Edge[0];
+    for (SizeType d = 1; d < TDim; d++)
+      Length += Edge[d] * Edge[d];
+    ElemSize += sqrt(Length);
 
     double count = 1.0;
     for (SizeType i = 2; i < NumNodes; i++)
@@ -514,7 +518,12 @@ namespace Kratos
       for (SizeType j = 0; j < i; j++)
       {
         noalias(Edge) = rGeom[i].Coordinates() - rGeom[j].Coordinates();
-        ElemSize += norm_2(Edge);
+                Length = Edge[0] * Edge[0];
+        for (SizeType d = 1; d < TDim; d++)
+        {
+          Length += Edge[d] * Edge[d];
+        }
+        ElemSize += sqrt(Length);
         count += 1.0;
       }
     }
