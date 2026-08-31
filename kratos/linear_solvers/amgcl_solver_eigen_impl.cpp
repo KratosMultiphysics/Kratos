@@ -35,11 +35,24 @@ struct AMGCLAdaptor<TEigenSparseSpace<TValue>>
     {
         if constexpr (BlockSize == 1) {
             KRATOS_TRY
-            // Zero-copy view over the compressed CSR arrays of the Eigen matrix
-            return amgcl::adapter::zero_copy(rMatrix.size1(),
-                                             rMatrix.outerIndexPtr(),
-                                             rMatrix.innerIndexPtr(),
-                                             rMatrix.valuePtr());
+            using StorageIndexType = std::remove_pointer_t<decltype(rMatrix.outerIndexPtr())>;
+            if constexpr (sizeof(StorageIndexType) == sizeof(std::ptrdiff_t)) {
+                // Zero-copy view over the compressed CSR arrays of the Eigen matrix
+                return amgcl::adapter::zero_copy(rMatrix.size1(),
+                                                 rMatrix.outerIndexPtr(),
+                                                 rMatrix.innerIndexPtr(),
+                                                 rMatrix.valuePtr());
+            } else {
+                // amgcl's zero_copy reinterprets the index arrays as ptrdiff_t
+                // and cannot accept the (default) 32-bit indices; hand amgcl
+                // the storage proxies through its generic range-tuple
+                // interface instead, which widens the indices while copying
+                // into the hierarchy it builds anyway.
+                return std::make_tuple(rMatrix.size1(),
+                                       rMatrix.index1_data(),
+                                       rMatrix.index2_data(),
+                                       rMatrix.value_data());
+            }
             KRATOS_CATCH("")
         } else {
             using BlockType = amgcl::static_matrix<

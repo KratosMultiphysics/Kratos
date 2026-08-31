@@ -38,6 +38,9 @@
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/adapter/ublas.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
+
+// Project includes
+#include "linear_solvers/amgcl_zero_copy_adapter.h"
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/value_type/static_matrix.hpp>
 #include <amgcl/make_solver.hpp>
@@ -222,7 +225,7 @@ public:
             amgcl::runtime::solver::wrapper<sBackend>
             > Solver;
 
-        auto pA = amgcl::adapter::zero_copy(
+        auto pA = MakeAmgclZeroCopyAdapter(
                 rA.size1(),
                 rA.index1_data().begin(),
                 rA.index2_data().begin(),
@@ -264,7 +267,7 @@ public:
             amgcl::runtime::solver::wrapper<sBackend>
             > Solver;
 
-        auto pA = amgcl::adapter::zero_copy(
+        auto pA = MakeAmgclZeroCopyAdapter(
                 rA.size1(),
                 rA.index1_data().begin(),
                 rA.index2_data().begin(),
