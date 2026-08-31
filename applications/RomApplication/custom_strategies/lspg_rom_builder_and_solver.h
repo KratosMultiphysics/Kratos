@@ -212,7 +212,7 @@ public:
 
         BuildAndApplyDirichletConditions(pScheme, rModelPart, rA, rb, rDx);
 
-        TSystemMatrixType r_a_comp = ZeroMatrix(0,0);
+        TSystemMatrixType r_a_comp(ZeroMatrix(0,0));
         TSystemVectorType r_b_comp = ZeroVector(0);
         if (BaseType::mHromSimulation) {
             BuildWithComplementaryMeshAndApplyDirichletConditions(pScheme, rModelPart, r_a_comp, r_b_comp, rDx);
