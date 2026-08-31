@@ -800,90 +800,140 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void ComputeWallCharacteristicDistance2D(Element::GeometryType &Element,
-												 double &WallCharacteristicDistance,
-												 array_1d<double, 3> &Edges,
-												 array_1d<SizeType, 3> &FirstEdgeNode,
-												 array_1d<SizeType, 3> &SecondEdgeNode)
+		void ComputeWallCharacteristicDistance2D(
+			const Element::GeometryType &Element,
+			double &WallCharacteristicDistance,
+			array_1d<double, 3> &Edges,
+			array_1d<SizeType, 3> &FirstEdgeNode,
+			array_1d<SizeType, 3> &SecondEdgeNode)
 		{
 			KRATOS_TRY
-			const SizeType nds = Element.size();
-			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
+
+			array_1d<double, 3> CoorDifference;
+
+			// Edge 0: 0-1
+			noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+			double SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1];
+
 			Edges[0] = std::sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
-			if ((Element[0].Is(RIGID) && Element[1].Is(RIGID)) || (Element[0].Is(INLET) && Element[1].Is(INLET)))
+
+			if ((Element[0].Is(RIGID) && Element[1].Is(RIGID)) ||
+				(Element[0].Is(INLET) && Element[1].Is(INLET)))
 			{
 				WallCharacteristicDistance = Edges[0];
 			}
-			SizeType Counter = 0;
-			for (SizeType i = 2; i < nds; i++)
+
+			// Edge 1: 0-2
+			noalias(CoorDifference) = Element[2].Coordinates() - Element[0].Coordinates();
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1];
+
+			Edges[1] = std::sqrt(SquaredLength);
+			FirstEdgeNode[1] = 0;
+			SecondEdgeNode[1] = 2;
+
+			if (((Element[2].Is(RIGID) && Element[0].Is(RIGID)) ||
+				 (Element[2].Is(INLET) && Element[0].Is(INLET))) &&
+				Edges[1] > WallCharacteristicDistance)
 			{
-				for (SizeType j = 0; j < i; j++)
-				{
-					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-					Counter += 1;
-					Edges[Counter] = std::sqrt(SquaredLength);
-					FirstEdgeNode[Counter] = j;
-					SecondEdgeNode[Counter] = i;
-					if (((Element[i].Is(RIGID) && Element[j].Is(RIGID)) || (Element[i].Is(INLET) && Element[j].Is(INLET))) && Edges[Counter] > WallCharacteristicDistance)
-					{
-						WallCharacteristicDistance = Edges[Counter];
-					}
-				}
+				WallCharacteristicDistance = Edges[1];
+			}
+
+			// Edge 2: 1-2
+			noalias(CoorDifference) = Element[2].Coordinates() - Element[1].Coordinates();
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1];
+
+			Edges[2] = std::sqrt(SquaredLength);
+			FirstEdgeNode[2] = 1;
+			SecondEdgeNode[2] = 2;
+
+			if (((Element[2].Is(RIGID) && Element[1].Is(RIGID)) ||
+				 (Element[2].Is(INLET) && Element[1].Is(INLET))) &&
+				Edges[2] > WallCharacteristicDistance)
+			{
+				WallCharacteristicDistance = Edges[2];
 			}
 
 			KRATOS_CATCH("")
 		}
 
-		void ComputeWallCharacteristicDistance2DWithRefinement(Element::GeometryType &Element,
-															   double &WallCharacteristicDistance,
-															   array_1d<double, 3> &Edges,
-															   array_1d<SizeType, 3> &FirstEdgeNode,
-															   array_1d<SizeType, 3> &SecondEdgeNode)
+		void ComputeWallCharacteristicDistance2DWithRefinement(
+			const Element::GeometryType &Element,
+			double &WallCharacteristicDistance,
+			array_1d<double, 3> &Edges,
+			array_1d<SizeType, 3> &FirstEdgeNode,
+			array_1d<SizeType, 3> &SecondEdgeNode)
 		{
 			KRATOS_TRY
-			const SizeType nds = Element.size();
-			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
+
+			array_1d<double, 3> CoorDifference;
+
+			// Edge 0: 0-1
+			noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+			double SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1];
+
 			Edges[0] = std::sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
-			if ((Element[0].Is(RIGID) && Element[1].Is(RIGID)) || (Element[0].Is(INLET) && Element[1].Is(INLET)))
+
+			if (Element[0].Is(RIGID) && Element[1].Is(RIGID))
 			{
 				WallCharacteristicDistance = Edges[0];
 			}
-			SizeType Counter = 0;
-			for (SizeType i = 2; i < nds; i++)
+
+			// Edge 1: 0-2
+			noalias(CoorDifference) = Element[2].Coordinates() - Element[0].Coordinates();
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1];
+
+			Edges[1] = std::sqrt(SquaredLength);
+			FirstEdgeNode[1] = 0;
+			SecondEdgeNode[1] = 2;
+
+			if ((Element[2].Is(RIGID) && Element[0].Is(RIGID)) &&
+				Edges[1] > WallCharacteristicDistance)
 			{
-				for (SizeType j = 0; j < i; j++)
-				{
-					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-					Counter += 1;
-					Edges[Counter] = std::sqrt(SquaredLength);
-					FirstEdgeNode[Counter] = j;
-					SecondEdgeNode[Counter] = i;
-					if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
-					{
-						WallCharacteristicDistance = Edges[Counter];
-					}
-				}
+				WallCharacteristicDistance = Edges[1];
+			}
+
+			// Edge 2: 1-2
+			noalias(CoorDifference) = Element[2].Coordinates() - Element[1].Coordinates();
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1];
+
+			Edges[2] = std::sqrt(SquaredLength);
+			FirstEdgeNode[2] = 1;
+			SecondEdgeNode[2] = 2;
+
+			if ((Element[2].Is(RIGID) && Element[1].Is(RIGID)) &&
+				Edges[2] > WallCharacteristicDistance)
+			{
+				WallCharacteristicDistance = Edges[2];
 			}
 
 			KRATOS_CATCH("")
 		}
 
-		void DetectDangerousElements2D(Element::GeometryType &Element,
-									   double &WallCharacteristicDistance,
-									   array_1d<double, 3> &Edges,
-									   array_1d<SizeType, 3> &FirstEdgeNode,
-									   array_1d<SizeType, 3> &SecondEdgeNode,
-									   SizeType rigidNodes,
-									   double &penalization,
-									   bool &dangerousElement)
+		void DetectDangerousElements2D(
+			const Element::GeometryType &Element,
+			const double WallCharacteristicDistance,
+			array_1d<double, 3> &Edges,
+			const array_1d<SizeType, 3> &FirstEdgeNode,
+			const array_1d<SizeType, 3> &SecondEdgeNode,
+			const SizeType rigidNodes,
+			double &penalization,
+			bool &dangerousElement)
 		{
 			KRATOS_TRY
 			const double safetyCoefficient2D = 1.5;
@@ -1211,77 +1261,249 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void ComputeWallCharacteristicDistance3D(Element::GeometryType &Element,
-												 double &WallCharacteristicDistance,
-												 array_1d<double, 6> &Edges,
-												 array_1d<SizeType, 6> &FirstEdgeNode,
-												 array_1d<SizeType, 6> &SecondEdgeNode)
+		void ComputeWallCharacteristicDistance3D(
+			const Element::GeometryType &Element,
+			double &WallCharacteristicDistance,
+			array_1d<double, 6> &Edges,
+			array_1d<SizeType, 6> &FirstEdgeNode,
+			array_1d<SizeType, 6> &SecondEdgeNode)
 		{
 			KRATOS_TRY
-			const SizeType nds = Element.size();
-			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+
+			array_1d<double, 3> CoorDifference;
+
+			// Edge 0: 0-1
+			noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+
+			double SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
 			Edges[0] = std::sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
-			if ((Element[0].Is(RIGID) && Element[1].Is(RIGID)) || (Element[0].Is(INLET) && Element[1].Is(INLET)))
+
+			if ((Element[0].Is(RIGID) && Element[1].Is(RIGID)) ||
+				(Element[0].Is(INLET) && Element[1].Is(INLET)))
 			{
 				WallCharacteristicDistance = Edges[0];
 			}
-			SizeType Counter = 0;
-			for (SizeType i = 2; i < nds; i++)
+
+			// Edge 1: 0-2
+			noalias(CoorDifference) = Element[2].Coordinates() - Element[0].Coordinates();
+
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
+			Edges[1] = std::sqrt(SquaredLength);
+			FirstEdgeNode[1] = 0;
+			SecondEdgeNode[1] = 2;
+
+			if (((Element[2].Is(RIGID) && Element[0].Is(RIGID)) ||
+				 (Element[2].Is(INLET) && Element[0].Is(INLET))) &&
+				Edges[1] > WallCharacteristicDistance)
 			{
-				for (SizeType j = 0; j < i; j++)
-				{
-					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-					Counter += 1;
-					Edges[Counter] = std::sqrt(SquaredLength);
-					FirstEdgeNode[Counter] = j;
-					SecondEdgeNode[Counter] = i;
-					if (((Element[i].Is(RIGID) && Element[j].Is(RIGID)) || (Element[i].Is(INLET) && Element[j].Is(INLET))) && Edges[Counter] > WallCharacteristicDistance)
-					{
-						WallCharacteristicDistance = Edges[Counter];
-					}
-				}
+				WallCharacteristicDistance = Edges[1];
+			}
+
+			// Edge 2: 1-2
+			noalias(CoorDifference) = Element[2].Coordinates() - Element[1].Coordinates();
+
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
+			Edges[2] = std::sqrt(SquaredLength);
+			FirstEdgeNode[2] = 1;
+			SecondEdgeNode[2] = 2;
+
+			if (((Element[2].Is(RIGID) && Element[1].Is(RIGID)) ||
+				 (Element[2].Is(INLET) && Element[1].Is(INLET))) &&
+				Edges[2] > WallCharacteristicDistance)
+			{
+				WallCharacteristicDistance = Edges[2];
+			}
+
+			// Edge 3: 0-3
+			noalias(CoorDifference) = Element[3].Coordinates() - Element[0].Coordinates();
+
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
+			Edges[3] = std::sqrt(SquaredLength);
+			FirstEdgeNode[3] = 0;
+			SecondEdgeNode[3] = 3;
+
+			if (((Element[3].Is(RIGID) && Element[0].Is(RIGID)) ||
+				 (Element[3].Is(INLET) && Element[0].Is(INLET))) &&
+				Edges[3] > WallCharacteristicDistance)
+			{
+				WallCharacteristicDistance = Edges[3];
+			}
+
+			// Edge 4: 1-3
+			noalias(CoorDifference) = Element[3].Coordinates() - Element[1].Coordinates();
+
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
+			Edges[4] = std::sqrt(SquaredLength);
+			FirstEdgeNode[4] = 1;
+			SecondEdgeNode[4] = 3;
+
+			if (((Element[3].Is(RIGID) && Element[1].Is(RIGID)) ||
+				 (Element[3].Is(INLET) && Element[1].Is(INLET))) &&
+				Edges[4] > WallCharacteristicDistance)
+			{
+				WallCharacteristicDistance = Edges[4];
+			}
+
+			// Edge 5: 2-3
+			noalias(CoorDifference) = Element[3].Coordinates() - Element[2].Coordinates();
+
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
+			Edges[5] = std::sqrt(SquaredLength);
+			FirstEdgeNode[5] = 2;
+			SecondEdgeNode[5] = 3;
+
+			if (((Element[3].Is(RIGID) && Element[2].Is(RIGID)) ||
+				 (Element[3].Is(INLET) && Element[2].Is(INLET))) &&
+				Edges[5] > WallCharacteristicDistance)
+			{
+				WallCharacteristicDistance = Edges[5];
 			}
 
 			KRATOS_CATCH("")
 		}
 
-		void ComputeWallCharacteristicDistance3DWithRefinement(Element::GeometryType &Element,
-															   double &WallCharacteristicDistance,
-															   array_1d<double, 6> &Edges,
-															   array_1d<SizeType, 6> &FirstEdgeNode,
-															   array_1d<SizeType, 6> &SecondEdgeNode)
+		void ComputeWallCharacteristicDistance3DWithRefinement(
+			const Element::GeometryType &Element,
+			double &WallCharacteristicDistance,
+			array_1d<double, 6> &Edges,
+			array_1d<SizeType, 6> &FirstEdgeNode,
+			array_1d<SizeType, 6> &SecondEdgeNode)
 		{
 			KRATOS_TRY
-			const SizeType nds = Element.size();
-			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+
+			array_1d<double, 3> CoorDifference;
+
+			// Edge 0: 0-1
+			noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+
+			double SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
 			Edges[0] = std::sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
-			if ((Element[0].Is(RIGID) && Element[1].Is(RIGID)) || (Element[0].Is(INLET) && Element[1].Is(INLET)))
+
+			if (Element[0].Is(RIGID) && Element[1].Is(RIGID))
 			{
 				WallCharacteristicDistance = Edges[0];
 			}
-			SizeType Counter = 0;
-			for (SizeType i = 2; i < nds; i++)
+
+			// Edge 1: 0-2
+			noalias(CoorDifference) = Element[2].Coordinates() - Element[0].Coordinates();
+
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
+			Edges[1] = std::sqrt(SquaredLength);
+			FirstEdgeNode[1] = 0;
+			SecondEdgeNode[1] = 2;
+
+			if ((Element[2].Is(RIGID) && Element[0].Is(RIGID)) &&
+				Edges[1] > WallCharacteristicDistance)
 			{
-				for (SizeType j = 0; j < i; j++)
-				{
-					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-					Counter += 1;
-					Edges[Counter] = std::sqrt(SquaredLength);
-					FirstEdgeNode[Counter] = j;
-					SecondEdgeNode[Counter] = i;
-					if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
-					{
-						WallCharacteristicDistance = Edges[Counter];
-					}
-				}
+				WallCharacteristicDistance = Edges[1];
+			}
+
+			// Edge 2: 1-2
+			noalias(CoorDifference) = Element[2].Coordinates() - Element[1].Coordinates();
+
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
+			Edges[2] = std::sqrt(SquaredLength);
+			FirstEdgeNode[2] = 1;
+			SecondEdgeNode[2] = 2;
+
+			if ((Element[2].Is(RIGID) && Element[1].Is(RIGID)) &&
+				Edges[2] > WallCharacteristicDistance)
+			{
+				WallCharacteristicDistance = Edges[2];
+			}
+
+			// Edge 3: 0-3
+			noalias(CoorDifference) = Element[3].Coordinates() - Element[0].Coordinates();
+
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
+			Edges[3] = std::sqrt(SquaredLength);
+			FirstEdgeNode[3] = 0;
+			SecondEdgeNode[3] = 3;
+
+			if ((Element[3].Is(RIGID) && Element[0].Is(RIGID)) &&
+				Edges[3] > WallCharacteristicDistance)
+			{
+				WallCharacteristicDistance = Edges[3];
+			}
+
+			// Edge 4: 1-3
+			noalias(CoorDifference) = Element[3].Coordinates() - Element[1].Coordinates();
+
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
+			Edges[4] = std::sqrt(SquaredLength);
+			FirstEdgeNode[4] = 1;
+			SecondEdgeNode[4] = 3;
+
+			if ((Element[3].Is(RIGID) && Element[1].Is(RIGID)) &&
+				Edges[4] > WallCharacteristicDistance)
+			{
+				WallCharacteristicDistance = Edges[4];
+			}
+
+			// Edge 5: 2-3
+			noalias(CoorDifference) = Element[3].Coordinates() - Element[2].Coordinates();
+
+			SquaredLength =
+				CoorDifference[0] * CoorDifference[0] +
+				CoorDifference[1] * CoorDifference[1] +
+				CoorDifference[2] * CoorDifference[2];
+
+			Edges[5] = std::sqrt(SquaredLength);
+			FirstEdgeNode[5] = 2;
+			SecondEdgeNode[5] = 3;
+
+			if ((Element[3].Is(RIGID) && Element[2].Is(RIGID)) &&
+				Edges[5] > WallCharacteristicDistance)
+			{
+				WallCharacteristicDistance = Edges[5];
 			}
 
 			KRATOS_CATCH("")
@@ -1373,7 +1595,7 @@ namespace Kratos
 			KRATOS_TRY
 			const double safetyCoefficient3D = 1.6;
 
-						for (SizeType i = 0; i < 6; i++)
+			for (SizeType i = 0; i < 6; i++)
 			{
 				if (rigidNodes > 1)
 				{
@@ -1892,18 +2114,23 @@ namespace Kratos
 			const SizeType dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
 			std::vector<Node::Pointer> list_of_new_nodes;
-			double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
-			double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
+			list_of_new_nodes.reserve(new_positions.size());
 
-			SizeType initial_node_size = NodeIdParent + 1 + ElementsToRefine; // total model part node size
+			const SizeType NodeIdParent =
+				MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
+
+			const SizeType NodeId =
+				MesherUtilities::GetMaxNodeId(mrModelPart);
+
+			SizeType initial_node_size = NodeIdParent + 1 + ElementsToRefine;
 
 			NodeType::Pointer pnode;
-			NodeType::DofsContainerType &ReferenceDofs = mrModelPart.Nodes().front().GetDofs();
+			NodeType::DofsContainerType &ReferenceDofs =
+				mrModelPart.Nodes().front().GetDofs();
 
 			if (NodeId > NodeIdParent)
 			{
 				initial_node_size = NodeId + 1 + ElementsToRefine;
-				std::cout << "initial_node_size  " << initial_node_size << std::endl;
 			}
 
 			// assign data to dofs
@@ -2011,11 +2238,11 @@ namespace Kratos
 
 			KRATOS_TRY
 
-			SizeType buffer_size = master_node->GetBufferSize();
+			const SizeType buffer_size = master_node->GetBufferSize();
 
 			for (VariablesList::const_iterator i_variable = rVariablesList.begin(); i_variable != rVariablesList.end(); i_variable++)
 			{
-				std::string variable_name = i_variable->Name();
+				const std::string& variable_name = i_variable->Name();
 				if (KratosComponents<Variable<double>>::Has(variable_name))
 				{
 					const Variable<double> &variable = KratosComponents<Variable<double>>::Get(variable_name);
@@ -2027,7 +2254,7 @@ namespace Kratos
 						double node0_data = slave_node_1->FastGetSolutionStepValue(variable, step);
 						double node1_data = slave_node_2->FastGetSolutionStepValue(variable, step);
 
-						node_data = (0.5 * node0_data + 0.5 * node1_data);
+						node_data = 0.5 * (node0_data + node1_data);
 					}
 				}
 				else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))

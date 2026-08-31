@@ -40,25 +40,6 @@ namespace Kratos
     KRATOS_CATCH("");
   }
 
-  // template <unsigned int TDim>
-  // UpdatedLagrangianElement<TDim>::UpdatedLagrangianElement(UpdatedLagrangianElement const &rOther)
-  //     : Element(rOther)
-  // {
-  //   KRATOS_TRY;
-  //   KRATOS_CATCH("");
-  // }
-
-  // template <unsigned int TDim>
-  // Element::Pointer UpdatedLagrangianElement<TDim>::Clone(IndexType NewId, NodesArrayType const &rThisNodes) const
-  // {
-  //   KRATOS_TRY;
-
-  //   UpdatedLagrangianElement NewElement(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
-  //   return Element::Pointer(new UpdatedLagrangianElement(NewElement));
-
-  //   KRATOS_CATCH("");
-  // }
-
   template <unsigned int TDim>
   GeometryData::IntegrationMethod UpdatedLagrangianElement<TDim>::GetIntegrationMethod() const
   {
