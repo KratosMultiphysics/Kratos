@@ -23,6 +23,7 @@
 #include "includes/global_variables.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "testing/testing.h"
 
 // Application includes
@@ -31,7 +32,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef UblasSpace<double, Matrix, Vector> SpaceType;
+    typedef TDefaultDenseSpace<double> SpaceType;
 
     void SetTestInterface(ModelPart &rTestModelPart)
     {

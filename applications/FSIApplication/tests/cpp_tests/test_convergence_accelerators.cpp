@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "includes/global_variables.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "testing/testing.h"
 
 // Application includes
@@ -30,8 +31,8 @@
 namespace Kratos {
 	namespace Testing {
 
-        typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef TDefaultDenseSpace<double> DenseSpaceType;
+        typedef TDefaultSparseSpace<double> SparseSpaceType;
         typedef typename ConvergenceAccelerator<SparseSpaceType, DenseSpaceType>::UniquePointer ConvAccPointerType;
 
         /**

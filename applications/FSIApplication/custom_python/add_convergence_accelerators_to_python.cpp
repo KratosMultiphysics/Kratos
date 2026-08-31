@@ -20,6 +20,7 @@
 #include "processes/process.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/dense_qr_decomposition.h"
 #include "utilities/dense_svd_decomposition.h"
 
@@ -43,8 +44,8 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> DenseSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
     typedef ConvergenceAccelerator<SparseSpaceType, DenseSpaceType> BaseConvergenceAcceleratorType;
 
     // Constant relaxation convergence accelerator
