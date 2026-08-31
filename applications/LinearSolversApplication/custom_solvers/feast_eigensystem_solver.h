@@ -330,10 +330,10 @@ class FEASTEigensystemSolver
         double* Emin = reinterpret_cast<double*>(&E1);
         double* Emax = reinterpret_cast<double*>(&E2);
         int M0 = static_cast<int>(subspace_size);
-        double* E = reinterpret_cast<double*>(tmp_eigenvalues.data().begin());
-        double* X = reinterpret_cast<double*>(tmp_eigenvectors.data().begin());
+        double* E = reinterpret_cast<double*>(&tmp_eigenvalues.data()[0]); // &data()[0]: valid for both the uBLAS storage and the Eigen pointer
+        double* X = reinterpret_cast<double*>(&tmp_eigenvectors.data()[0]);
         int M;
-        double* res = reinterpret_cast<double*>(residual.data().begin());
+        double* res = reinterpret_cast<double*>(&residual.data()[0]);
         int info;
 
         // call feast
