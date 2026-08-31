@@ -57,14 +57,6 @@ void KRATOS_API(GEO_MECHANICS_APPLICATION)
 // frees their WATER_PRESSURE degree of freedom.
 std::vector<Node*> KRATOS_API(GEO_MECHANICS_APPLICATION) CollectSeepageNodes(ModelPart& rModelPart);
 
-// Returns true if a Dirichlet seepage node carrying this nodal flow should be released to a
-// zero-flux Neumann boundary.
-//
-// This sign is the key modelling assumption of the prototype: a positive nodal flow means outflow,
-// and the node carrying the largest outflow is released. Confirming or inverting it is what the
-// Muskat validation case is for, so it deliberately lives in one place.
-[[nodiscard]] bool KRATOS_API(GEO_MECHANICS_APPLICATION) ShouldReleaseToNeumann(double NodalFlow);
-
 // Switches at most one seepage node between a Dirichlet and a zero-flux Neumann boundary, and
 // returns whether it switched anything.
 //

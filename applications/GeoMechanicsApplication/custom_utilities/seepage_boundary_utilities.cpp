@@ -110,8 +110,6 @@ Node* SelectBestCandidate(const std::vector<Node*>& rNodes, PredicateType IsCand
 
 } // namespace
 
-bool ShouldReleaseToNeumann(double NodalFlow) { return NodalFlow < 0.0; }
-
 bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFlowMap& rNodalFlows)
 {
     KRATOS_TRY
@@ -140,7 +138,7 @@ bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFl
     };
 
     if (auto* p_node = SelectBestCandidate(rSeepageNodes, [&flow_of](const Node& rNode) {
-        return !rNode.IsFixed(WATER_PRESSURE) && flow_of(rNode) < -100.0 * std::numeric_limits<double>::epsilon();
+        return !rNode.IsFixed(WATER_PRESSURE) && flow_of(rNode) < -1e-12;
     }, flow_of)) {
         KRATOS_INFO("Switch") << "Node " << p_node->Id() << " switched to Neumann, because flow was "
                               << flow_of(*p_node) << "\n";
