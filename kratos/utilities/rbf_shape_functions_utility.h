@@ -22,6 +22,7 @@
 #include "containers/array_1d.h"
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/dense_householder_qr_decomposition.h"
 
 namespace Kratos
@@ -41,7 +42,7 @@ public:
     ///@{
 
     /// Dense space definition for the QR decomposition using in the solve
-    using DenseSpace = UblasSpace<double, Matrix, Vector>;
+    using DenseSpace = TDefaultDenseSpace<double>;
 
     /// QR decomposition pointer definition
     using DenseQRPointerType = typename DenseQRDecomposition<DenseSpace>::Pointer;
