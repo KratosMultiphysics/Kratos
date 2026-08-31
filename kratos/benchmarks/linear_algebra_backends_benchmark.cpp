@@ -45,7 +45,20 @@ namespace
 
 using UblasSparse = TUblasSparseSpace<double>;
 using EigenSparse = TEigenSparseSpace<double>;
-using DenseSpace = TUblasDenseSpace<double>;
+
+/// Each sparse family is paired with the dense space of its own backend, so
+/// neither benchmark leg mixes uBLAS and Eigen types.
+template <class TSpaceType>
+struct PairedDenseSpace
+{
+    using Type = TUblasDenseSpace<double>;
+};
+
+template <>
+struct PairedDenseSpace<EigenSparse>
+{
+    using Type = TEigenDenseSpace<double>;
+};
 
 constexpr std::size_t BandHalfWidth = 4; // 9 entries per interior row, FEM-stencil-like
 
@@ -217,7 +230,7 @@ static void BM_CGSolve(benchmark::State& rState)
         typename TSpaceType::VectorType solution(rState.range(0));
         TSpaceType::SetToZero(solution);
         typename TSpaceType::VectorType rhs = b;
-        CGSolver<TSpaceType, DenseSpace> solver(1e-10, 500);
+        CGSolver<TSpaceType, typename PairedDenseSpace<TSpaceType>::Type> solver(1e-10, 500);
         rState.ResumeTiming();
 
         solver.Solve(system.A, solution, rhs);
