@@ -108,7 +108,11 @@ std::vector<double> StatisticsRecord::OutputForTest(ModelPart::ElementsContainer
         auto& r_statistics = it_element->GetValue(TURBULENCE_STATISTICS_DATA);
         for (std::size_t g = 0; g < r_statistics.NumberOfIntegrationPoints(); g++)
         {
+#ifdef KRATOS_USE_EIGEN_BACKEND
+            StatisticsSampler::IntegrationPointDataViewIterator data_iterator = &r_statistics.IntegrationPointData(g)[0];
+#else
             auto data_iterator = r_statistics.IntegrationPointData(g).begin();
+#endif
             for (auto it_average = mAverageData.begin(); it_average != mAverageData.end(); ++it_average)
             {
                 for(std::size_t index = 0; index < it_average->GetSize(); index++)

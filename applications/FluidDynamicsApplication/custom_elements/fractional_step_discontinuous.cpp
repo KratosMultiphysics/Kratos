@@ -273,7 +273,13 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         array_1d<double, 4 > Ncontinuous;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
 
-        array_1d<double, TDim> grad_d = prod(trans(DN_DXcontinuous), distances);
+        // The full gradient has 3 components (DN_DX is 4x3); only the first
+        // TDim enter the projection below.
+        const array_1d<double, 3> grad_d_full = prod(trans(DN_DXcontinuous), distances);
+        array_1d<double, TDim> grad_d;
+        for (unsigned int i = 0; i < TDim; i++) {
+            grad_d[i] = grad_d_full[i];
+        }
         grad_d /= norm_2(grad_d);
 
         double vn = grad_d[0] * vel[0];

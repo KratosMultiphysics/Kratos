@@ -341,7 +341,7 @@ Vector EvaluateSteadyResidual(
     ModelPart& rModelPart)
 {
     using SparseSpaceType = TDefaultSparseSpace<double>;
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
 
     ResidualBasedSimpleSteadyScheme<SparseSpaceType, LocalSpaceType> primal_scheme(
         1.0, 1.0, 2);
@@ -357,7 +357,7 @@ Vector EvaluateBossakResidual(
     ModelPart& rModelPart)
 {
     using SparseSpaceType = TDefaultSparseSpace<double>;
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
 
     ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType> primal_scheme(
         -0.3, 0.0, 2);
@@ -522,7 +522,7 @@ KRATOS_TEST_CASE_IN_SUITE(SimpleSteadySensitivityBuilderScheme, FluidDynamicsApp
 KRATOS_TEST_CASE_IN_SUITE(SimpleSteadyAdjointScheme, FluidDynamicsApplicationFastSuite)
 {
     using SparseSpaceType = TDefaultSparseSpace<double>;
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
 
     Model model;
 
@@ -606,7 +606,7 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakSensitivityBuilderScheme, FluidDynamicsA
 KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeLHS, FluidDynamicsApplicationFastSuite)
 {
     using SparseSpaceType = TDefaultSparseSpace<double>;
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
 
     Model model;
 
@@ -672,7 +672,7 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeLHS, FluidDynamicsApplicati
 KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeRHS, FluidDynamicsApplicationFastSuite)
 {
     using SparseSpaceType = TDefaultSparseSpace<double>;
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
 
     Model model;
 

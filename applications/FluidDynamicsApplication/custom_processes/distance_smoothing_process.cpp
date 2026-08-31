@@ -20,7 +20,7 @@ namespace Kratos
 {
 
 typedef TDefaultSparseSpace<double> SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef TDefaultDenseSpace<double> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
 template class DistanceSmoothingProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>;

@@ -49,7 +49,15 @@ public:
 
     using ShapeDerivativesType = BoundedMatrix<double,TNumNodes,TDim>;
 
+#ifdef KRATOS_USE_EIGEN_BACKEND
+    // A uBLAS matrix_row over the Eigen-backed Matrix is not a valid type;
+    // the row is materialized into the (fixed-size) shape functions vector
+    // instead. Every use of this type is a const-reference parameter, so any
+    // row expression converts on the way in.
+    using MatrixRowType = ShapeFunctionsType;
+#else
     using MatrixRowType = MatrixRow< Matrix >;
+#endif
 
     /// Physical space dimension for the problem.
     constexpr static unsigned int Dim = TDim;

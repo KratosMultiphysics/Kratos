@@ -22,6 +22,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "processes/process.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // TrilinosApplication dependencies
 #include "trilinos_space.h"
@@ -39,7 +40,7 @@ namespace Python {
 namespace py = pybind11;
 
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> UblasLocalSpaceType;
+typedef TDefaultDenseSpace<double> UblasLocalSpaceType;
 typedef LinearSolver<TrilinosSparseSpaceType, UblasLocalSpaceType> TrilinosLinearSolverType;
 
 // Helper to define Trilinos DistanceSmoothingProcess

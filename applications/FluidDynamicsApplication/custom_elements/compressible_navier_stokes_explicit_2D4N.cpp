@@ -1057,7 +1057,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMassMatrix(
     Matrix J;
     Matrix Jinv;
 
-    c_matrix<double, NumNodes, NumNodes> M = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> M = ZeroMatrix(NumNodes, NumNodes);
     for(const auto& gauss_point: gauss_points)
     {
         const double w = gauss_point.Weight();
