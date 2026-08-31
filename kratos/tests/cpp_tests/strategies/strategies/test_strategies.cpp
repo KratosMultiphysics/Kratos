@@ -61,7 +61,7 @@ namespace Kratos
         typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
         typedef TDefaultSparseSpace<double> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef TDefaultDenseSpace<double> LocalSpaceType;
 
         // The direct solver
         typedef Reorderer<SparseSpaceType,  LocalSpaceType > ReordererType;
