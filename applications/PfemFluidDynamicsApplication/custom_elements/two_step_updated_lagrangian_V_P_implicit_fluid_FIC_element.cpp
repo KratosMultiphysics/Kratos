@@ -150,8 +150,8 @@ namespace Kratos
                                                                                    const ShapeFunctionsType &rN,
                                                                                    const double Weight)
   {
-    GeometryType &rGeom = this->GetGeometry();
-    double coeff = 1.0 / 3.0;
+    const GeometryType &rGeom = this->GetGeometry();
+    constexpr double coeff = 1.0 / 3.0;
 
     if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE))
     {
@@ -182,8 +182,8 @@ namespace Kratos
                                                                                    const ShapeFunctionsType &rN,
                                                                                    const double Weight)
   {
-    GeometryType &rGeom = this->GetGeometry();
-    double coeff = 0.25;
+    const GeometryType &rGeom = this->GetGeometry();
+    constexpr double coeff = 0.25;
 
     if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
     {
@@ -230,8 +230,8 @@ namespace Kratos
                                                                                            const double BoundRHSCoeffDev,
                                                                                            const VectorType SpatialDefRate)
   {
-    GeometryType &rGeom = this->GetGeometry();
-    const double coeff = 1.0 / 3.0;
+    const GeometryType &rGeom = this->GetGeometry();
+    constexpr double coeff = 1.0 / 3.0;
     const double timeFactor = 0.5 / TimeStep;
 
     if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE))
@@ -316,8 +316,8 @@ namespace Kratos
                                                                                            const double BoundRHSCoeffDev,
                                                                                            const VectorType SpatialDefRate)
   {
-    GeometryType &rGeom = this->GetGeometry();
-    const double coeff = 0.25;
+    const GeometryType &rGeom = this->GetGeometry();
+    constexpr double coeff = 0.25;
     const double timeFactor = 0.5 / TimeStep;
     const double one_third = 1.0 / 3.0;
 
@@ -452,52 +452,9 @@ namespace Kratos
                                                                                    const double BoundRHSCoeffAcc,
                                                                                    const double BoundRHSCoeffDev)
   {
-    GeometryType &rGeom = this->GetGeometry();
-    // const SizeType NumNodes = rGeom.PointsNumber();
+    const GeometryType &rGeom = this->GetGeometry();
     array_1d<double, 3> AccA(3, 0.0);
     array_1d<double, 3> AccB(3, 0.0);
-
-    // for (SizeType i = 0; i < (NumNodes-1); i++)
-    //   {
-    // 	for (SizeType j = (i+1); j < NumNodes; j++)
-    // 	  {
-    // 	    if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE)){
-    // 	      AccA= 0.5/TimeStep*(rGeom[i].FastGetSolutionStepValue(VELOCITY,0)-rGeom[i].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[i].FastGetSolutionStepValue(ACCELERATION,1);
-    // 	      AccB= 0.5/TimeStep*(rGeom[j].FastGetSolutionStepValue(VELOCITY,0)-rGeom[j].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[j].FastGetSolutionStepValue(ACCELERATION,1);
-    // 	      const array_1d<double, 3> &NormalA    = rGeom[i].FastGetSolutionStepValue(NORMAL);
-    // 	      const array_1d<double, 3> &NormalB    = rGeom[j].FastGetSolutionStepValue(NORMAL);
-    // 	      double coeff=3.0;
-    // 	      if(rGeom[i].IsNot(INLET)) //to change into moving wall!!!!!
-    // 		BoundRHSVector[i] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) +
-    // 				      BoundRHSCoeffDev)/coeff ;
-    // 	      if(rGeom[j].IsNot(INLET))
-    // 		BoundRHSVector[j] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) +
-    // 				      BoundRHSCoeffDev)/coeff ;
-    // 	    }
-    // 	  }
-
-    //   }
-
-    // for (SizeType i = 0; i < (NumNodes-1); i++)
-    //   {
-    // 	for (SizeType j = (i+1); j < NumNodes; j++)
-    // 	  {
-    // 	    if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE)){
-    // 	      AccA= 0.5/TimeStep*(rGeom[i].FastGetSolutionStepValue(VELOCITY,0)-rGeom[i].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[i].FastGetSolutionStepValue(ACCELERATION,1);
-    // 	      AccB= 0.5/TimeStep*(rGeom[j].FastGetSolutionStepValue(VELOCITY,0)-rGeom[j].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[j].FastGetSolutionStepValue(ACCELERATION,1);
-    // 	      const array_1d<double, 3> &NormalA    = rGeom[i].FastGetSolutionStepValue(NORMAL);
-    // 	      const array_1d<double, 3> &NormalB    = rGeom[j].FastGetSolutionStepValue(NORMAL);
-    // 	      if(rGeom[i].IsNot(INLET))
-    // 		BoundRHSVector[i] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) +
-    // 				      BoundRHSCoeffDev) * rN[i];
-    // 	      if(rGeom[j].IsNot(INLET))
-    // 		BoundRHSVector[j] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) +
-    // 				      BoundRHSCoeffDev) * rN[j] ;
-    // 	    }
-    // 	  }
-
-    //   }
-
     const double factor = 0.5 / TimeStep;
     const double one_third = 1.0 / 3.0;
 
@@ -505,8 +462,6 @@ namespace Kratos
     {
       noalias(AccA) = factor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
       noalias(AccB) = factor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      // noalias(AccA)=rGeom[0].FastGetSolutionStepValue(ACCELERATION,0);
-      // noalias(AccB)=rGeom[1].FastGetSolutionStepValue(ACCELERATION,0);
       const array_1d<double, 3> &NormalA = rGeom[0].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB = rGeom[1].FastGetSolutionStepValue(NORMAL);
       if (rGeom[0].IsNot(INLET)) // to change into moving wall!!!!!
@@ -545,40 +500,10 @@ namespace Kratos
                                                                                    const double BoundRHSCoeffAcc,
                                                                                    const double BoundRHSCoeffDev)
   {
-    GeometryType &rGeom = this->GetGeometry();
-    // const SizeType NumNodes = rGeom.PointsNumber();
+    const GeometryType &rGeom = this->GetGeometry();
     array_1d<double, 3> AccA(3, 0.0);
     array_1d<double, 3> AccB(3, 0.0);
     array_1d<double, 3> AccC(3, 0.0);
-
-    // for (SizeType i = 0; i < (NumNodes-2); i++)
-    //   {
-    // 	for (SizeType j = (i+1); j < (NumNodes-1); j++)
-    // 	  {
-    // 	    for (SizeType k = (j+1); k < NumNodes; k++)
-    // 	      {
-    // 		if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE) && rGeom[k].Is(FREE_SURFACE)){
-    // 		  AccA= 0.5/TimeStep*(rGeom[i].FastGetSolutionStepValue(VELOCITY,0)-rGeom[i].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[i].FastGetSolutionStepValue(ACCELERATION,1);
-    // 		  AccB= 0.5/TimeStep*(rGeom[j].FastGetSolutionStepValue(VELOCITY,0)-rGeom[j].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[j].FastGetSolutionStepValue(ACCELERATION,1);
-    // 		  AccC= 0.5/TimeStep*(rGeom[k].FastGetSolutionStepValue(VELOCITY,0)-rGeom[k].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[k].FastGetSolutionStepValue(ACCELERATION,1);
-
-    // 		  const array_1d<double, 3> &NormalA    = rGeom[i].FastGetSolutionStepValue(NORMAL);
-    // 		  const array_1d<double, 3> &NormalB    = rGeom[j].FastGetSolutionStepValue(NORMAL);
-    // 		  const array_1d<double, 3> &NormalC    = rGeom[k].FastGetSolutionStepValue(NORMAL);
-    // 		  if(rGeom[i].IsNot(INLET))
-    // 		    BoundRHSVector[i] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
-    // 					  BoundRHSCoeffDev) * rN[i];
-    // 		  if(rGeom[j].IsNot(INLET))
-    // 		    BoundRHSVector[j] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
-    // 					  BoundRHSCoeffDev) * rN[j] ;
-    // 		  if(rGeom[k].IsNot(INLET))
-    // 		    BoundRHSVector[k] += (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
-    // 					  BoundRHSCoeffDev) * rN[k] ;
-    // 		}
-    // 	      }
-    // 	  }
-
-    //   }
     const double factor = 0.5 / TimeStep;
 
     if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
@@ -657,7 +582,7 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim>::CalculateTauFIC(double &Tau,
-                                                                                double ElemSize,
+                                                                                const double ElemSize,
                                                                                 const double Density,
                                                                                 const double Viscosity,
                                                                                 const ProcessInfo &rCurrentProcessInfo)
@@ -671,10 +596,9 @@ namespace Kratos
     double MeanVelocity = 0;
     this->CalcMeanVelocityNorm(MeanVelocity, 0);
 
-    // Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) );
     Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
 
-    const double tolerance = 1.0e-13;
+    constexpr double tolerance = 1.0e-13;
     if (MeanVelocity < tolerance)
     {
       Tau = 0;
@@ -764,32 +688,6 @@ namespace Kratos
     { // it must be checked once at the beginning only
       array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
-      // double posX=(this->GetGeometry()[0].X() + this->GetGeometry()[1].X() + this->GetGeometry()[2].X())/3.0;
-
-      // double posY=(this->GetGeometry()[0].Y() + this->GetGeometry()[1].Y() + this->GetGeometry()[2].Y())/3.0;
-
-      // double coeffX =(12.0-24.0*posY)*pow(posX,4);
-
-      // coeffX += (-24.0+48.0*posY)*pow(posX,3);
-
-      // coeffX += (-48.0*posY+72.0*pow(posY,2)-48.0*pow(posY,3)+12.0)*pow(posX,2);
-
-      // coeffX += (-2.0+24.0*posY-72.0*pow(posY,2)+48.0*pow(posY,3))*posX;
-
-      // coeffX += 1.0-4.0*posY+12.0*pow(posY,2)-8.0*pow(posY,3);
-
-      // double coeffY =(8.0-48.0*posY+48.0*pow(posY,2))*pow(posX,3);
-
-      // coeffY += (-12.0+72.0*posY-72.0*pow(posY,2))*pow(posX,2);
-
-      // coeffY += (4.0-24.0*posY+48.0*pow(posY,2)-48.0*pow(posY,3)+24.0*pow(posY,4))*posX;
-
-      // coeffY += -12.0*pow(posY,2)+24.0*pow(posY,3)-12.0*pow(posY,4);
-
-      // RHSi += - rDN_DX(i,0) * Tau * ( Density * VolumeAcceleration[0]*coeffX );
-
-      // RHSi += - rDN_DX(i,1) * Tau * ( Density * VolumeAcceleration[1]*coeffY );
-
       for (SizeType d = 0; d < TDim; ++d)
       {
         RHSi += -rDN_DX(i, d) * Tau * (Density * VolumeAcceleration[d]);
@@ -804,7 +702,7 @@ namespace Kratos
                                                                                                       const ProcessInfo &rCurrentProcessInfo)
   {
 
-    GeometryType &rGeom = this->GetGeometry();
+    const GeometryType &rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
 
     // Check sizes and initialize
@@ -826,15 +724,15 @@ namespace Kratos
     this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
 
-    double TimeStep = rCurrentProcessInfo[DELTA_TIME];
-    double theta = this->GetThetaContinuity();
-    double ElemSize = this->ElementSize();
+    const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
+    const double theta = this->GetThetaContinuity();
+    const double ElemSize = this->ElementSize();
 
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
 
     double maxViscousValueForStabilization = 0.1;
-    double Density = this->mMaterialDensity;
+    const double Density = this->mMaterialDensity;
     double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
     double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
 
@@ -842,8 +740,6 @@ namespace Kratos
     {
       DeviatoricCoeff = maxViscousValueForStabilization;
     }
-
-    VectorType NewRhsLaplacian = ZeroVector(NumNodes);
 
     double Tau = 0;
     this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
@@ -859,21 +755,15 @@ namespace Kratos
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
       computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
-      if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
+      if (computeElement && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
       {
 
         double BoundLHSCoeff = Tau * 4.0 * GaussWeight / (ElemSize * ElemSize);
-        // if constexpr (TDim==3){
-        //   BoundLHSCoeff=Tau*2*GaussWeight/(0.81649658*ElemSize*ElemSize);
-        // }
 
         this->ComputeBoundLHSMatrix(rLeftHandSideMatrix, N, BoundLHSCoeff);
 
         double BoundRHSCoeffAcc = Tau * Density * 2 * GaussWeight / ElemSize;
         double BoundRHSCoeffDev = Tau * 8.0 * DeviatoricCoeff * GaussWeight / (ElemSize * ElemSize);
-        // double NProjSpatialDefRate=this->CalcNormalProjectionDefRate(rElementalVariables.SpatialDefRate);
-        // double BoundRHSCoeffDev=Tau*8.0*NProjSpatialDefRate*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
-        // this->ComputeBoundRHSVector(rRightHandSideVector,N,TimeStep,BoundRHSCoeffAcc,BoundRHSCoeffDev);
         this->ComputeBoundRHSVectorComplete(rRightHandSideVector, TimeStep, BoundRHSCoeffAcc, BoundRHSCoeffDev, rElementalVariables.SpatialDefRate);
 
         double StabLaplacianWeight = Tau * GaussWeight;
@@ -881,7 +771,6 @@ namespace Kratos
 
         array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
         this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
-        // KRATOS_WATCH(OldPressureGradient);
 
         for (SizeType i = 0; i < NumNodes; ++i)
         {
@@ -895,12 +784,11 @@ namespace Kratos
             laplacianRHSi += StabLaplacianWeight * rDN_DX(i, d) * OldPressureGradient[d];
           }
           rRightHandSideVector[i] += -laplacianRHSi;
-          // NewRhsLaplacian[i] += -laplacianRHSi;
         }
       }
     }
 
-    if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
+    if (computeElement && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
     {
 
       VectorType PressureValues = ZeroVector(NumNodes);
@@ -909,39 +797,23 @@ namespace Kratos
       // the LHS matrix up to now just contains the laplacian term and the bound term
       noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
       rLeftHandSideMatrix += LaplacianMatrix;
-      // noalias(rRightHandSideVector) -= prod(LaplacianMatrix, PressureValuesForRHS);
-
-      // VectorType RhsLaplacian = ZeroVector(NumNodes);
-
-      // RhsLaplacian = -prod(LaplacianMatrix, PressureValuesForRHS);
-
-      // VectorType differenceRhsLaplacian = ZeroVector(NumNodes);
-      // differenceRhsLaplacian = RhsLaplacian - NewRhsLaplacian;
-      // // KRATOS_WATCH(RhsLaplacian);
-      // // KRATOS_WATCH(NewRhsLaplacian);
-      // KRATOS_WATCH(differenceRhsLaplacian);
 
       this->GetPressureValues(PressureValues, 1);
       noalias(PressureValuesForRHS) += -PressureValues;
       MatrixType BulkMatrix = ZeroMatrix(NumNodes, NumNodes);
-      MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes, NumNodes);
       double lumpedBulkCoeff = totalVolume / (VolumetricCoeff);
       double lumpedBulkStabCoeff = lumpedBulkCoeff * Tau * Density / TimeStep;
 
       this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
       noalias(rLeftHandSideMatrix) += BulkMatrix;
-      // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
       noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
-      // noalias(rRightHandSideVector) -=prod(BulkMatrixConsistent,PressureValuesForRHS);
 
       this->GetPressureVelocityValues(PressureValues, 0);
       noalias(PressureValuesForRHS) += -PressureValues * TimeStep;
       noalias(BulkMatrix) = ZeroMatrix(NumNodes, NumNodes);
       this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkStabCoeff);
       noalias(rLeftHandSideMatrix) += BulkMatrix;
-      // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
       noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
-      // noalias(rRightHandSideVector) -=prod(BulkMatrixConsistent,PressureValuesForRHS);
     }
     else if (this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
     {
@@ -974,13 +846,11 @@ namespace Kratos
     }
     else if (this->Is(ISOLATED))
     {
-      // VectorType PressureValuesForRHS = ZeroVector(NumNodes);
       MatrixType BulkMatrix = ZeroMatrix(NumNodes, NumNodes);
       double lumpedBulkCoeff = totalVolume / (VolumetricCoeff);
 
       this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
       noalias(rLeftHandSideMatrix) += BulkMatrix;
-      // noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
     }
   }
 
@@ -988,7 +858,7 @@ namespace Kratos
   void TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim>::GetPressureAccelerationValues(Vector &rValues,
                                                                                               const int Step)
   {
-    GeometryType &rGeom = this->GetGeometry();
+    const GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rValues.size() != NumNodes)
