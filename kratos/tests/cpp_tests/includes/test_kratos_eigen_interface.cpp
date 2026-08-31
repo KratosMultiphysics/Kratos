@@ -13,6 +13,7 @@
 // System includes
 
 // External includes
+#include <boost/numeric/ublas/matrix.hpp>
 
 // Project includes
 #include "testing/testing.h"
@@ -129,6 +130,52 @@ KRATOS_TEST_CASE_IN_SUITE(EigenVectorUblasMemberSurface, KratosCoreFastSuite)
 
     vector.resize(2, false);
     KRATOS_EXPECT_EQ(static_cast<std::size_t>(vector.size()), 2);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(EigenCompressedMatrixFromUblasDense, KratosCoreFastSuite)
+{
+    // Construction from a dense uBLAS matrix expression gathers the nonzero
+    // entries into compressed storage, mirroring ublas::compressed_matrix's
+    // own dense constructor.
+    boost::numeric::ublas::matrix<double> dense(3, 3, 0.0);
+    dense(0, 0) = 1.0;
+    dense(0, 2) = 2.0;
+    dense(1, 1) = 3.0;
+    dense(2, 0) = 4.0;
+    dense(2, 2) = 5.0;
+
+    const EigenCompressedMatrix<double> matrix(dense);
+
+    KRATOS_EXPECT_TRUE(matrix.isCompressed());
+    KRATOS_EXPECT_EQ(matrix.size1(), 3);
+    KRATOS_EXPECT_EQ(matrix.size2(), 3);
+    KRATOS_EXPECT_EQ(matrix.nnz(), 5);
+
+    const auto row_indices = matrix.index1_data();
+    const auto col_indices = matrix.index2_data();
+    const auto values = matrix.value_data();
+
+    KRATOS_EXPECT_EQ(row_indices[0], 0);
+    KRATOS_EXPECT_EQ(row_indices[1], 2);
+    KRATOS_EXPECT_EQ(row_indices[2], 3);
+    KRATOS_EXPECT_EQ(row_indices[3], 5);
+
+    KRATOS_EXPECT_EQ(col_indices[0], 0);
+    KRATOS_EXPECT_EQ(col_indices[1], 2);
+    KRATOS_EXPECT_EQ(col_indices[2], 1);
+    KRATOS_EXPECT_EQ(col_indices[3], 0);
+    KRATOS_EXPECT_EQ(col_indices[4], 2);
+
+    KRATOS_EXPECT_NEAR(values[0], 1.0, 1e-12);
+    KRATOS_EXPECT_NEAR(values[1], 2.0, 1e-12);
+    KRATOS_EXPECT_NEAR(values[2], 3.0, 1e-12);
+    KRATOS_EXPECT_NEAR(values[3], 4.0, 1e-12);
+    KRATOS_EXPECT_NEAR(values[4], 5.0, 1e-12);
+
+    // A uBLAS matrix *expression* (not just a container) is accepted too
+    const EigenCompressedMatrix<double> scaled(2.0 * dense);
+    KRATOS_EXPECT_EQ(scaled.nnz(), 5);
+    KRATOS_EXPECT_NEAR(scaled.value_data()[4], 10.0, 1e-12);
 }
 
 } // namespace Kratos::Testing
