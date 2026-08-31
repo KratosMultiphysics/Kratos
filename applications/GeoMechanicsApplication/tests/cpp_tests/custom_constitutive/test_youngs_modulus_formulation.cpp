@@ -39,8 +39,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_InitializeFormulation_Err
 {
     const std::string invalid_name = "InvalidModel";
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(GeoYoungsModulusFormulations::InitializeFormulation(invalid_name),
-                                     "Unknown GEO_YOUNGS_MODULUS_FORMULATION: InvalidModel");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoYoungsModulusFormulations::InitializeFormulation(invalid_name),
+                                      "Unknown GEO_YOUNGS_MODULUS_FORMULATION: InvalidModel");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulusFormulation_FromProperties_HasValue,
@@ -88,7 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateMinorPrincipalEf
 {
     const auto stress_vector_finalized = Vector(3, 0.0);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         GeoYoungsModulusFormulations::CalculateMinorPrincipalEffectiveStress(stress_vector_finalized), "Could not compute principal stresses from stress vector with size 3. Expected 3 principal stresses, got 2.");
 }
 
@@ -121,9 +121,9 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusSch
     constexpr auto reference_youngs_modulus = 20000.0;
     const auto stress_vector_finalized = UblasUtilities::CreateVector({500.0, 200.0, 500.0, 0.0, 0.0, 0.0});
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(GeoYoungsModulusFormulations::CalculateYoungsModulusSchanzVermeer(
-                                         properties, reference_youngs_modulus, stress_vector_finalized),
-                                     "Non-positive base for std::pow");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoYoungsModulusFormulations::CalculateYoungsModulusSchanzVermeer(
+                                          properties, reference_youngs_modulus, stress_vector_finalized),
+                                      "Non-positive base for std::pow");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_GetYoungsModulus_Dispatcher_Constant,
