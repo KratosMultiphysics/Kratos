@@ -20,19 +20,20 @@
 #include "linear_solvers/linear_solver.h"
 #include "spaces/eigen_space.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 namespace Kratos {
 
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) LinearSolver<
     TEigenSparseSpace<double>,
-    TUblasDenseSpace<double>
+    TDefaultDenseSpace<double>
 >;
 
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) LinearSolver<
     TEigenSparseSpace<float>,
-    TUblasDenseSpace<double>
+    TDefaultDenseSpace<double>
 >;
 
 

@@ -22,13 +22,13 @@ namespace Kratos {
 
 template class LinearSolver<
     TEigenSparseSpace<double>,
-    TUblasDenseSpace<double>
+    TDefaultDenseSpace<double>
 >;
 
 
 template class LinearSolver<
     TEigenSparseSpace<float>,
-    TUblasDenseSpace<double>
+    TDefaultDenseSpace<double>
 >;
 
 
