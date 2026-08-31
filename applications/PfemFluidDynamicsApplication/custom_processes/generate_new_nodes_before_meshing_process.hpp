@@ -654,8 +654,7 @@ namespace Kratos
 					SizeType idB = Element[idsWallNodes[1]].GetId();
 					double minimumDistanceToInstert = 1.3 * mrRemesh.Refine->CriticalRadius;
 					array_1d<double, 3> CoorDifference = Element[idsWallNodes[0]].Coordinates() - Element[idsWallNodes[1]].Coordinates();
-					double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-					double separation = std::sqrt(SquaredLength);
+					double separation = norm_2(CoorDifference);
 					SizeType idC = Element[idFreeNode].GetId();
 					if (separation > minimumDistanceToInstert)
 					{
@@ -813,11 +812,7 @@ namespace Kratos
 
 			// Edge 0: 0-1
 			noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
-			double SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1];
-
-			Edges[0] = std::sqrt(SquaredLength);
+			Edges[0] = norm_2(CoorDifference);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
 
@@ -829,11 +824,7 @@ namespace Kratos
 
 			// Edge 1: 0-2
 			noalias(CoorDifference) = Element[2].Coordinates() - Element[0].Coordinates();
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1];
-
-			Edges[1] = std::sqrt(SquaredLength);
+			Edges[1] =  norm_2(CoorDifference);
 			FirstEdgeNode[1] = 0;
 			SecondEdgeNode[1] = 2;
 
@@ -846,11 +837,7 @@ namespace Kratos
 
 			// Edge 2: 1-2
 			noalias(CoorDifference) = Element[2].Coordinates() - Element[1].Coordinates();
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1];
-
-			Edges[2] = std::sqrt(SquaredLength);
+			Edges[2] = norm_2(CoorDifference);
 			FirstEdgeNode[2] = 1;
 			SecondEdgeNode[2] = 2;
 
@@ -877,11 +864,7 @@ namespace Kratos
 
 			// Edge 0: 0-1
 			noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
-			double SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1];
-
-			Edges[0] = std::sqrt(SquaredLength);
+			Edges[0] = norm_2(CoorDifference);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
 
@@ -892,11 +875,7 @@ namespace Kratos
 
 			// Edge 1: 0-2
 			noalias(CoorDifference) = Element[2].Coordinates() - Element[0].Coordinates();
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1];
-
-			Edges[1] = std::sqrt(SquaredLength);
+			Edges[1] = norm_2(CoorDifference);
 			FirstEdgeNode[1] = 0;
 			SecondEdgeNode[1] = 2;
 
@@ -908,11 +887,7 @@ namespace Kratos
 
 			// Edge 2: 1-2
 			noalias(CoorDifference) = Element[2].Coordinates() - Element[1].Coordinates();
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1];
-
-			Edges[2] = std::sqrt(SquaredLength);
+			Edges[2] = norm_2(CoorDifference);
 			FirstEdgeNode[2] = 1;
 			SecondEdgeNode[2] = 2;
 
@@ -1274,13 +1249,7 @@ namespace Kratos
 
 			// Edge 0: 0-1
 			noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
-
-			double SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[0] = std::sqrt(SquaredLength);
+			Edges[0] = norm_2(CoorDifference);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
 
@@ -1292,13 +1261,7 @@ namespace Kratos
 
 			// Edge 1: 0-2
 			noalias(CoorDifference) = Element[2].Coordinates() - Element[0].Coordinates();
-
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[1] = std::sqrt(SquaredLength);
+			Edges[1] = norm_2(CoorDifference);
 			FirstEdgeNode[1] = 0;
 			SecondEdgeNode[1] = 2;
 
@@ -1311,13 +1274,7 @@ namespace Kratos
 
 			// Edge 2: 1-2
 			noalias(CoorDifference) = Element[2].Coordinates() - Element[1].Coordinates();
-
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[2] = std::sqrt(SquaredLength);
+			Edges[2] = norm_2(CoorDifference);
 			FirstEdgeNode[2] = 1;
 			SecondEdgeNode[2] = 2;
 
@@ -1330,13 +1287,7 @@ namespace Kratos
 
 			// Edge 3: 0-3
 			noalias(CoorDifference) = Element[3].Coordinates() - Element[0].Coordinates();
-
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[3] = std::sqrt(SquaredLength);
+			Edges[3] = norm_2(CoorDifference);
 			FirstEdgeNode[3] = 0;
 			SecondEdgeNode[3] = 3;
 
@@ -1349,13 +1300,7 @@ namespace Kratos
 
 			// Edge 4: 1-3
 			noalias(CoorDifference) = Element[3].Coordinates() - Element[1].Coordinates();
-
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[4] = std::sqrt(SquaredLength);
+			Edges[4] = norm_2(CoorDifference);
 			FirstEdgeNode[4] = 1;
 			SecondEdgeNode[4] = 3;
 
@@ -1368,13 +1313,7 @@ namespace Kratos
 
 			// Edge 5: 2-3
 			noalias(CoorDifference) = Element[3].Coordinates() - Element[2].Coordinates();
-
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[5] = std::sqrt(SquaredLength);
+			Edges[5] = norm_2(CoorDifference);
 			FirstEdgeNode[5] = 2;
 			SecondEdgeNode[5] = 3;
 
@@ -1401,13 +1340,7 @@ namespace Kratos
 
 			// Edge 0: 0-1
 			noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
-
-			double SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[0] = std::sqrt(SquaredLength);
+			Edges[0] = norm_2(CoorDifference);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
 
@@ -1418,13 +1351,7 @@ namespace Kratos
 
 			// Edge 1: 0-2
 			noalias(CoorDifference) = Element[2].Coordinates() - Element[0].Coordinates();
-
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[1] = std::sqrt(SquaredLength);
+			Edges[1] = norm_2(CoorDifference);
 			FirstEdgeNode[1] = 0;
 			SecondEdgeNode[1] = 2;
 
@@ -1436,13 +1363,7 @@ namespace Kratos
 
 			// Edge 2: 1-2
 			noalias(CoorDifference) = Element[2].Coordinates() - Element[1].Coordinates();
-
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[2] = std::sqrt(SquaredLength);
+			Edges[2] = norm_2(CoorDifference);
 			FirstEdgeNode[2] = 1;
 			SecondEdgeNode[2] = 2;
 
@@ -1454,13 +1375,7 @@ namespace Kratos
 
 			// Edge 3: 0-3
 			noalias(CoorDifference) = Element[3].Coordinates() - Element[0].Coordinates();
-
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[3] = std::sqrt(SquaredLength);
+			Edges[3] = norm_2(CoorDifference);
 			FirstEdgeNode[3] = 0;
 			SecondEdgeNode[3] = 3;
 
@@ -1472,13 +1387,7 @@ namespace Kratos
 
 			// Edge 4: 1-3
 			noalias(CoorDifference) = Element[3].Coordinates() - Element[1].Coordinates();
-
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[4] = std::sqrt(SquaredLength);
+			Edges[4] = norm_2(CoorDifference);
 			FirstEdgeNode[4] = 1;
 			SecondEdgeNode[4] = 3;
 
@@ -1490,13 +1399,7 @@ namespace Kratos
 
 			// Edge 5: 2-3
 			noalias(CoorDifference) = Element[3].Coordinates() - Element[2].Coordinates();
-
-			SquaredLength =
-				CoorDifference[0] * CoorDifference[0] +
-				CoorDifference[1] * CoorDifference[1] +
-				CoorDifference[2] * CoorDifference[2];
-
-			Edges[5] = std::sqrt(SquaredLength);
+			Edges[5] = norm_2(CoorDifference);
 			FirstEdgeNode[5] = 2;
 			SecondEdgeNode[5] = 3;
 
