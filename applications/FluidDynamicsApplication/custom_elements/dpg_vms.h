@@ -197,7 +197,10 @@ public:
 	      gauss_gradients[i].resize(1, TDim, false);
 
       array_1d<double,6> edge_areas;
-	  unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, Matrix(DN_DX), distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
+	  // dynamic copy: the tetrahedra utility is also instantiated for the
+	  // (runtime-dead) 2D element, where the fixed sizes would not match
+	  const Matrix dn_dx_dynamic = DN_DX;
+	  unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, dn_dx_dynamic, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
 
 	  if(ndivisions == 1)
 	    this->is_cutted = 0;
@@ -297,7 +300,10 @@ public:
 	      gauss_gradients[i].resize(1, TDim, false);
 
       array_1d<double,6> edge_areas;
-	  unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, Matrix(DN_DX), distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
+	  // dynamic copy: the tetrahedra utility is also instantiated for the
+	  // (runtime-dead) 2D element, where the fixed sizes would not match
+	  const Matrix dn_dx_dynamic = DN_DX;
+	  unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, dn_dx_dynamic, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
 	  //do integration
 	  for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
 	  {
@@ -580,6 +586,7 @@ public:
 //         Vector enrichment_terms_horizontal = ZeroVector(LocalSize);
 //         double enrichment_diagonal = 0.0;
 //         double enriched_rhs = 0.0;
+        array_1d<double,3> bf = ZeroVector(3);
 
         //double positive_volume = 0.0;
         //double negative_volume = 0.0;

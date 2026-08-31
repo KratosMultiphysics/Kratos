@@ -252,14 +252,14 @@ void WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >::
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,3,2> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
-    const auto& C = rData.C;
+    const BoundedMatrix<double,3,3>& C = rData.C;
 
     // Get shape function values
     const array_1d<double,3>& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
@@ -498,14 +498,14 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,4,3> vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
-    const auto& C = rData.C;
+    const BoundedMatrix<double,6,6>& C = rData.C;
 
     // Get shape function values
     const array_1d<double,4>& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
@@ -1139,7 +1139,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::Co
     const auto& vn = rData.Velocity_OldStep1;
     const auto& vnn = rData.Velocity_OldStep2;
     const auto& vmesh = rData.MeshVelocity;
-    const auto vconv = v - vmesh;
+    const BoundedMatrix<double,3,2> vconv = v - vmesh;
     const auto& f = rData.BodyForce;
     const auto& r_v_sol_frac = rData.SolidFractionVelocity;
     const array_1d<double,3>& p = rData.Pressure;
@@ -1149,7 +1149,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::Co
 
     // Get shape function values
     const array_1d<double,3>& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
@@ -1240,7 +1240,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
     const auto& vn = rData.Velocity_OldStep1;
     const auto& vnn = rData.Velocity_OldStep2;
     const auto& vmesh = rData.MeshVelocity;
-    const auto vconv = v - vmesh;
+    const BoundedMatrix<double,4,3> vconv = v - vmesh;
     const auto& f = rData.BodyForce;
     const auto& r_v_sol_frac = rData.SolidFractionVelocity;
     const array_1d<double,4>& p = rData.Pressure;
@@ -1250,7 +1250,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
 
     // Get shape function values
     const array_1d<double,4>& N = rData.N;
-    const auto& DN = rData.DN_DX;
+    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
