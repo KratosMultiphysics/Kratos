@@ -132,8 +132,8 @@ class SpectraSymGEigsShiftSolver
             rEigenvectors.resize(nroot, rK.size1());
         }
 
-        Eigen::Map<vector_t> eigvals (rEigenvalues.data().begin(), rEigenvalues.size());
-        Eigen::Map<matrix_t> eigvecs (rEigenvectors.data().begin(), rEigenvectors.size1(), rEigenvectors.size2());
+        Eigen::Map<vector_t> eigvals (&rEigenvalues.data()[0], rEigenvalues.size());
+        Eigen::Map<matrix_t> eigvecs (&rEigenvectors.data()[0], rEigenvectors.size1(), rEigenvectors.size2());
 
         // Spectra::SortRule::LargestAlge results in values being in descending order
         eigvals = eigs.eigenvalues().reverse();

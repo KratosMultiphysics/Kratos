@@ -16,14 +16,15 @@
 // Project includes
 #include "linear_solvers_define.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/builtin_timer.h"
 #include "linear_solvers/linear_solver.h"
 
 namespace Kratos {
 
 template <typename TScalar = double,
-          class TSparseSpaceType = TUblasDenseSpace<TScalar>,
-          class TDenseSpaceType = TUblasDenseSpace<TScalar>>
+          class TSparseSpaceType = TDefaultDenseSpace<TScalar>,
+          class TDenseSpaceType = TDefaultDenseSpace<TScalar>>
 class DenseEigenvalueSolver :
     public LinearSolver<TSparseSpaceType, TDenseSpaceType>
 {
@@ -75,7 +76,7 @@ public:
         using vector_t = Kratos::EigenDynamicVector<TScalar>;
         using matrix_t = Kratos::EigenDynamicMatrix<TScalar>;
 
-        Eigen::Map<matrix_t> A(rA.data().begin(), rA.size1(), rA.size2());
+        Eigen::Map<matrix_t> A(&rA.data()[0], rA.size1(), rA.size2());
 
         Eigen::SelfAdjointEigenSolver<matrix_t> solver;
 
@@ -84,8 +85,8 @@ public:
         rEigenvalues.resize(rA.size1());
         rEigenvectors.resize(rA.size1(), rA.size1());
 
-        Eigen::Map<vector_t> eigvals (rEigenvalues.data().begin(), rEigenvalues.size());
-        Eigen::Map<matrix_t> eigvecs (rEigenvectors.data().begin(), rEigenvectors.size1(), rEigenvectors.size2());
+        Eigen::Map<vector_t> eigvals (&rEigenvalues.data()[0], rEigenvalues.size());
+        Eigen::Map<matrix_t> eigvecs (&rEigenvectors.data()[0], rEigenvectors.size1(), rEigenvectors.size2());
 
         if( mParam["ascending_order"].GetBool() ){
             eigvals = solver.eigenvalues();
