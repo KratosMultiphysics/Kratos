@@ -35,7 +35,7 @@ namespace Testing
 /// Tests
 typedef Node NodeType;
 typedef Geometry<NodeType> GeometryType;
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef TDefaultDenseSpace<double> LocalSpaceType;
 typedef TDefaultSparseSpace<double> SparseSpaceType;
 
 // The builder ans solver type

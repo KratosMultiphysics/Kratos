@@ -49,7 +49,7 @@ namespace Kratos::Testing
     /// Initial definitons
     using GeometryType = Geometry<Node>;
     using SparseSpaceType = TDefaultSparseSpace<double>;
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
 
     /// The direct solver
     using ReordererType = Reorderer<SparseSpaceType,  LocalSpaceType>;
