@@ -29,13 +29,19 @@
 namespace Kratos {
 
 /// Index type used for the Eigen sparse matrices. Eigen requires a signed
-/// StorageIndex; std::ptrdiff_t matches the width of the std::size_t indices
-/// used by uBLAS and the DOF equation ids, so no narrowing can occur. It can
-/// be overridden at configure time with -DKRATOS_EIGEN_INDEX_TYPE=<type>.
-#ifdef KRATOS_EIGEN_INDEX_TYPE
+/// StorageIndex. The default is a 32-bit int: sparse kernels are memory-bound
+/// (SpMV traffic drops from 16 to 12 bytes per nonzero versus 64-bit indices,
+/// a structural advantage the std::size_t-indexed uBLAS backend cannot match),
+/// and 2^31 - 1 nonzeros per matrix (~16 GB of values alone) comfortably
+/// covers shared-memory problems. For larger systems configure with
+/// KRATOS_EIGEN_64BIT_INDICES=ON (or override the type directly with
+/// -DKRATOS_EIGEN_INDEX_TYPE=<type>).
+#if defined(KRATOS_EIGEN_INDEX_TYPE)
 using KratosEigenIndexType = KRATOS_EIGEN_INDEX_TYPE;
-#else
+#elif defined(KRATOS_EIGEN_64BIT_INDICES)
 using KratosEigenIndexType = std::ptrdiff_t;
+#else
+using KratosEigenIndexType = int;
 #endif
 static_assert(std::is_signed_v<KratosEigenIndexType>,
               "Eigen requires a signed sparse StorageIndex.");

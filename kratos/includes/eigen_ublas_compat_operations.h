@@ -376,6 +376,43 @@ private:
     mutable TProxy mTarget;
 };
 
+/// Concrete contiguous uBLAS containers (the dynamic vector/matrix over an
+/// unbounded_array): their storage can be viewed zero-copy through Eigen maps,
+/// so the mixed products below can run on Eigen's vectorized kernels. uBLAS
+/// proxy/lazy expressions do not qualify and take the scalar fallback paths.
+template<class T> struct IsDenseUblasVector : std::false_type {};
+template<class T> struct IsDenseUblasVector<boost::numeric::ublas::vector<T>> : std::true_type {};
+template<class T> struct IsDenseUblasMatrix : std::false_type {};
+template<class T> struct IsDenseUblasMatrix<boost::numeric::ublas::matrix<T>> : std::true_type {};
+
+template<class T>
+inline auto MapOfUblas(const boost::numeric::ublas::vector<T>& rV)
+{
+    using MapType = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Unaligned>;
+    return MapType(rV.data().begin(), static_cast<Eigen::Index>(rV.size()));
+}
+
+template<class T>
+inline auto MapOfUblas(const boost::numeric::ublas::matrix<T>& rM)
+{
+    using MapType = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned>;
+    return MapType(rM.data().begin(), static_cast<Eigen::Index>(rM.size1()), static_cast<Eigen::Index>(rM.size2()));
+}
+
+template<class T>
+inline auto MutableMapOfUblas(boost::numeric::ublas::vector<T>& rV)
+{
+    using MapType = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Unaligned>;
+    return MapType(rV.data().begin(), static_cast<Eigen::Index>(rV.size()));
+}
+
+template<class T>
+inline auto MutableMapOfUblas(boost::numeric::ublas::matrix<T>& rM)
+{
+    using MapType = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned>;
+    return MapType(rM.data().begin(), static_cast<Eigen::Index>(rM.size1()), static_cast<Eigen::Index>(rM.size2()));
+}
+
 } // namespace Internals
 
 ///@name noalias
@@ -455,21 +492,29 @@ inline auto noalias(boost::numeric::ublas::matrix<T>& rTarget)
 ///@name Mixed products
 ///@{
 
-/// (Eigen matrix) x (uBLAS vector expression) -> uBLAS dense vector
+/// (Eigen matrix) x (uBLAS vector expression) -> uBLAS dense vector.
+/// The result stays an eager uBLAS container (see the design note above), but
+/// when the uBLAS operand is a concrete dense vector the computation runs on
+/// Eigen's vectorized product kernels over zero-copy maps.
 template<class TDerived, class TExpression>
 inline auto prod(const Eigen::MatrixBase<TDerived>& rA, const boost::numeric::ublas::vector_expression<TExpression>& rX)
 {
     using scalar_t = typename TDerived::Scalar;
-    const auto a = rA.derived().eval();
+    const auto& a = rA.derived();
     const auto& r_x = rX();
     KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(a.cols()) != r_x.size()) << "prod: incompatible sizes [ matrix columns = " << a.cols() << ", vector size = " << r_x.size() << " ]." << std::endl;
     boost::numeric::ublas::vector<scalar_t> result(a.rows());
-    for (Eigen::Index i = 0; i < a.rows(); ++i) {
-        scalar_t aux = scalar_t();
-        for (Eigen::Index k = 0; k < a.cols(); ++k) {
-            aux += a(i, k) * r_x(k);
+    if constexpr (Internals::IsDenseUblasVector<TExpression>::value) {
+        Internals::MutableMapOfUblas(result).noalias() = a * Internals::MapOfUblas(r_x);
+    } else {
+        const auto a_eval = a.eval(); // coefficient loops must not re-evaluate an expression per access
+        for (Eigen::Index i = 0; i < a_eval.rows(); ++i) {
+            scalar_t aux = scalar_t();
+            for (Eigen::Index k = 0; k < a_eval.cols(); ++k) {
+                aux += a_eval(i, k) * r_x(k);
+            }
+            result[i] = aux;
         }
-        result[i] = aux;
     }
     return result;
 }
@@ -484,28 +529,36 @@ inline auto prod(const boost::numeric::ublas::matrix_expression<TExpression>& rA
     using scalar_t = typename TDerived::Scalar;
     const auto& r_a = rA();
     if constexpr (TDerived::ColsAtCompileTime == 1) {
-        const auto x = rB.derived().eval();
-        KRATOS_DEBUG_ERROR_IF(r_a.size2() != static_cast<std::size_t>(x.size())) << "prod: incompatible sizes [ matrix columns = " << r_a.size2() << ", vector size = " << x.size() << " ]." << std::endl;
+        KRATOS_DEBUG_ERROR_IF(r_a.size2() != static_cast<std::size_t>(rB.size())) << "prod: incompatible sizes [ matrix columns = " << r_a.size2() << ", vector size = " << rB.size() << " ]." << std::endl;
         boost::numeric::ublas::vector<scalar_t> result(r_a.size1());
-        for (std::size_t i = 0; i < r_a.size1(); ++i) {
-            scalar_t aux = scalar_t();
-            for (std::size_t k = 0; k < r_a.size2(); ++k) {
-                aux += r_a(i, k) * x[k];
+        if constexpr (Internals::IsDenseUblasMatrix<TExpression>::value) {
+            Internals::MutableMapOfUblas(result).noalias() = Internals::MapOfUblas(r_a) * rB.derived();
+        } else {
+            const auto x = rB.derived().eval();
+            for (std::size_t i = 0; i < r_a.size1(); ++i) {
+                scalar_t aux = scalar_t();
+                for (std::size_t k = 0; k < r_a.size2(); ++k) {
+                    aux += r_a(i, k) * x[k];
+                }
+                result[i] = aux;
             }
-            result[i] = aux;
         }
         return result;
     } else {
-        const auto b = rB.derived().eval();
-        KRATOS_DEBUG_ERROR_IF(r_a.size2() != static_cast<std::size_t>(b.rows())) << "prod: incompatible sizes [ left columns = " << r_a.size2() << ", right rows = " << b.rows() << " ]." << std::endl;
-        boost::numeric::ublas::matrix<scalar_t> result(r_a.size1(), b.cols());
-        for (std::size_t i = 0; i < r_a.size1(); ++i) {
-            for (Eigen::Index j = 0; j < b.cols(); ++j) {
-                scalar_t aux = scalar_t();
-                for (std::size_t k = 0; k < r_a.size2(); ++k) {
-                    aux += r_a(i, k) * b(k, j);
+        KRATOS_DEBUG_ERROR_IF(r_a.size2() != static_cast<std::size_t>(rB.rows())) << "prod: incompatible sizes [ left columns = " << r_a.size2() << ", right rows = " << rB.rows() << " ]." << std::endl;
+        boost::numeric::ublas::matrix<scalar_t> result(r_a.size1(), rB.cols());
+        if constexpr (Internals::IsDenseUblasMatrix<TExpression>::value) {
+            Internals::MutableMapOfUblas(result).noalias() = Internals::MapOfUblas(r_a) * rB.derived();
+        } else {
+            const auto b = rB.derived().eval();
+            for (std::size_t i = 0; i < r_a.size1(); ++i) {
+                for (Eigen::Index j = 0; j < b.cols(); ++j) {
+                    scalar_t aux = scalar_t();
+                    for (std::size_t k = 0; k < r_a.size2(); ++k) {
+                        aux += r_a(i, k) * b(k, j);
+                    }
+                    result(i, j) = aux;
                 }
-                result(i, j) = aux;
             }
         }
         return result;
@@ -520,29 +573,39 @@ template<class TDerived, class TExpression>
 inline auto prod(const Eigen::MatrixBase<TDerived>& rA, const boost::numeric::ublas::matrix_expression<TExpression>& rB)
 {
     using scalar_t = typename TDerived::Scalar;
-    const auto a = rA.derived().eval();
     const auto& r_b = rB();
     if constexpr (TDerived::ColsAtCompileTime == 1) {
-        KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(a.size()) != r_b.size1()) << "prod: incompatible sizes [ vector size = " << a.size() << ", matrix rows = " << r_b.size1() << " ]." << std::endl;
+        KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(rA.size()) != r_b.size1()) << "prod: incompatible sizes [ vector size = " << rA.size() << ", matrix rows = " << r_b.size1() << " ]." << std::endl;
         boost::numeric::ublas::vector<scalar_t> result(r_b.size2());
-        for (std::size_t j = 0; j < r_b.size2(); ++j) {
-            scalar_t aux = scalar_t();
-            for (std::size_t k = 0; k < r_b.size1(); ++k) {
-                aux += a[k] * r_b(k, j);
+        if constexpr (Internals::IsDenseUblasMatrix<TExpression>::value) {
+            // ublas prod(v, M) semantics: result = M^T v
+            Internals::MutableMapOfUblas(result).noalias() = Internals::MapOfUblas(r_b).transpose() * rA.derived();
+        } else {
+            const auto a = rA.derived().eval();
+            for (std::size_t j = 0; j < r_b.size2(); ++j) {
+                scalar_t aux = scalar_t();
+                for (std::size_t k = 0; k < r_b.size1(); ++k) {
+                    aux += a[k] * r_b(k, j);
+                }
+                result[j] = aux;
             }
-            result[j] = aux;
         }
         return result;
     } else {
-        KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(a.cols()) != r_b.size1()) << "prod: incompatible sizes [ left columns = " << a.cols() << ", right rows = " << r_b.size1() << " ]." << std::endl;
-        boost::numeric::ublas::matrix<scalar_t> result(a.rows(), r_b.size2());
-        for (Eigen::Index i = 0; i < a.rows(); ++i) {
-            for (std::size_t j = 0; j < r_b.size2(); ++j) {
-                scalar_t aux = scalar_t();
-                for (Eigen::Index k = 0; k < a.cols(); ++k) {
-                    aux += a(i, k) * r_b(k, j);
+        KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(rA.cols()) != r_b.size1()) << "prod: incompatible sizes [ left columns = " << rA.cols() << ", right rows = " << r_b.size1() << " ]." << std::endl;
+        boost::numeric::ublas::matrix<scalar_t> result(rA.rows(), r_b.size2());
+        if constexpr (Internals::IsDenseUblasMatrix<TExpression>::value) {
+            Internals::MutableMapOfUblas(result).noalias() = rA.derived() * Internals::MapOfUblas(r_b);
+        } else {
+            const auto a = rA.derived().eval();
+            for (Eigen::Index i = 0; i < a.rows(); ++i) {
+                for (std::size_t j = 0; j < r_b.size2(); ++j) {
+                    scalar_t aux = scalar_t();
+                    for (Eigen::Index k = 0; k < a.cols(); ++k) {
+                        aux += a(i, k) * r_b(k, j);
+                    }
+                    result(i, j) = aux;
                 }
-                result(i, j) = aux;
             }
         }
         return result;
@@ -554,14 +617,18 @@ template<class TDerived, class TExpression>
 inline auto inner_prod(const Eigen::MatrixBase<TDerived>& rX, const boost::numeric::ublas::vector_expression<TExpression>& rY)
 {
     using scalar_t = typename TDerived::Scalar;
-    const auto x = rX.derived().eval();
     const auto& r_y = rY();
-    KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(x.size()) != r_y.size()) << "inner_prod: incompatible sizes [ " << x.size() << " and " << r_y.size() << " ]." << std::endl;
-    scalar_t result = scalar_t();
-    for (std::size_t i = 0; i < r_y.size(); ++i) {
-        result += x[i] * r_y(i);
+    KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(rX.size()) != r_y.size()) << "inner_prod: incompatible sizes [ " << rX.size() << " and " << r_y.size() << " ]." << std::endl;
+    if constexpr (Internals::IsDenseUblasVector<TExpression>::value) {
+        return scalar_t(rX.derived().dot(Internals::MapOfUblas(r_y)));
+    } else {
+        const auto x = rX.derived().eval();
+        scalar_t result = scalar_t();
+        for (std::size_t i = 0; i < r_y.size(); ++i) {
+            result += x[i] * r_y(i);
+        }
+        return result;
     }
-    return result;
 }
 
 template<class TExpression, class TDerived>
@@ -575,12 +642,18 @@ template<class TDerived, class TExpression>
 inline auto outer_prod(const Eigen::MatrixBase<TDerived>& rX, const boost::numeric::ublas::vector_expression<TExpression>& rY)
 {
     using scalar_t = typename TDerived::Scalar;
-    const auto x = rX.derived().eval();
     const auto& r_y = rY();
-    boost::numeric::ublas::matrix<scalar_t> result(x.size(), r_y.size());
-    for (Eigen::Index i = 0; i < x.size(); ++i) {
-        for (std::size_t j = 0; j < r_y.size(); ++j) {
-            result(i, j) = x[i] * r_y(j);
+    boost::numeric::ublas::matrix<scalar_t> result(rX.size(), r_y.size());
+    // The map fast path needs a column-shaped Eigen operand; the scalar
+    // fallback flat-indexes and also covers row-shaped views.
+    if constexpr (Internals::IsDenseUblasVector<TExpression>::value && TDerived::ColsAtCompileTime == 1) {
+        Internals::MutableMapOfUblas(result).noalias() = rX.derived() * Internals::MapOfUblas(r_y).transpose();
+    } else {
+        const auto x = rX.derived().eval();
+        for (Eigen::Index i = 0; i < x.size(); ++i) {
+            for (std::size_t j = 0; j < r_y.size(); ++j) {
+                result(i, j) = x[i] * r_y(j);
+            }
         }
     }
     return result;
@@ -591,11 +664,17 @@ inline auto outer_prod(const boost::numeric::ublas::vector_expression<TExpressio
 {
     using scalar_t = typename TDerived::Scalar;
     const auto& r_x = rX();
-    const auto y = rY.derived().eval();
-    boost::numeric::ublas::matrix<scalar_t> result(r_x.size(), y.size());
-    for (std::size_t i = 0; i < r_x.size(); ++i) {
-        for (Eigen::Index j = 0; j < y.size(); ++j) {
-            result(i, j) = r_x(i) * y[j];
+    boost::numeric::ublas::matrix<scalar_t> result(r_x.size(), rY.size());
+    // The map fast path needs a column-shaped Eigen operand; the scalar
+    // fallback flat-indexes and also covers row-shaped views.
+    if constexpr (Internals::IsDenseUblasVector<TExpression>::value && TDerived::ColsAtCompileTime == 1) {
+        Internals::MutableMapOfUblas(result).noalias() = Internals::MapOfUblas(r_x) * rY.derived().transpose();
+    } else {
+        const auto y = rY.derived().eval();
+        for (std::size_t i = 0; i < r_x.size(); ++i) {
+            for (Eigen::Index j = 0; j < y.size(); ++j) {
+                result(i, j) = r_x(i) * y[j];
+            }
         }
     }
     return result;
