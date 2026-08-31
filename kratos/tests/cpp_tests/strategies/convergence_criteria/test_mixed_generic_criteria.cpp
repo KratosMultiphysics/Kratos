@@ -29,7 +29,7 @@ namespace Kratos::Testing
 {
 using NodeType = Node;
 using GeometryType = Geometry<NodeType>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
 using SparseSpaceType = TDefaultSparseSpace<double>;
 
 using DofsArrayType = ModelPart::DofsArrayType;
