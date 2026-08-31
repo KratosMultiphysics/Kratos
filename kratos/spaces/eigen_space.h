@@ -204,7 +204,10 @@ public:
         const auto* x_data = rX.data();
         const auto* y_data = rY.data();
         const int n_chunks = ParallelUtilities::GetNumThreads();
-        return IndexPartition<int>(n_chunks).template for_each<SumReduction<TDataType>>([=](int Chunk) {
+        if (n_chunks == 1) {
+            return PartialDot(x_data, y_data, SizeType(0), size);
+        }
+        return IndexPartition<int>(n_chunks, n_chunks).template for_each<SumReduction<TDataType>>([=](int Chunk) {
             const SizeType begin = (size * Chunk) / n_chunks;
             const SizeType end = (size * (Chunk + 1)) / n_chunks;
             return PartialDot(x_data, y_data, begin, end);
@@ -317,7 +320,11 @@ public:
         const auto* x_data = rX.data();
         auto* y_data = rY.data();
         const int n_chunks = ParallelUtilities::GetNumThreads();
-        IndexPartition<int>(n_chunks).for_each([=](int Chunk) {
+        if (n_chunks == 1) {
+            PartialSpMV(row_ptr, col_idx, values, x_data, y_data, SizeType(0), n_rows);
+            return;
+        }
+        IndexPartition<int>(n_chunks, n_chunks).for_each([=](int Chunk) {
             const SizeType begin = (n_rows * Chunk) / n_chunks;
             const SizeType end = (n_rows * (Chunk + 1)) / n_chunks;
             PartialSpMV(row_ptr, col_idx, values, x_data, y_data, begin, end);
@@ -331,6 +338,37 @@ public:
         if (Size(rY) != rA.size2())
             rY.resize(rA.size2(), false);
         rY.noalias() = rA.transpose() * rX;
+    }
+
+    /// Sparse transpose product: a deterministic serial CSR scatter
+    /// (y[col] += v * x[row]), exactly the access pattern of the uBLAS
+    /// axpy_prod(x, A, y) implementation (which is serial too). Eigen's
+    /// expression path for this case does an extra full setZero() pass over rY
+    /// and re-tests isCompressed() per row inside its InnerIterator, which
+    /// benchmarks measurably slower.
+    template<class TIndexType>
+    static void TransposeMult(const EigenCompressedMatrix<TDataType, TIndexType>& rA, const VectorType& rX, VectorType& rY)
+    {
+        const SizeType n_rows = rA.size1();
+        const SizeType n_cols = rA.size2();
+        if (Size(rY) != n_cols)
+            rY.resize(n_cols, false);
+
+        EnsureCompressed(rA);
+        const auto* row_ptr = rA.outerIndexPtr();
+        const auto* col_idx = rA.innerIndexPtr();
+        const auto* values = rA.valuePtr();
+        const auto* x_data = rX.data();
+        auto* y_data = rY.data();
+
+        SetToZero(rY);
+        for (SizeType i = 0; i < n_rows; ++i) {
+            const TDataType x_i = x_data[i];
+            const auto row_end = row_ptr[i + 1];
+            for (auto k = row_ptr[i]; k < row_end; ++k) {
+                y_data[col_idx[k]] += values[k] * x_i;
+            }
+        }
     }
 
     static inline SizeType GraphDegree(IndexType i, TMatrixType& rA)
@@ -375,10 +413,23 @@ public:
 
         const auto* y_data = rY.data();
         auto* x_data = rX.data();
-        ParallelChunks(size, [=](const SizeType Begin, const SizeType End) {
-            for (SizeType i = Begin; i < End; ++i)
-                x_data[i] = A * y_data[i];
-        });
+        // A == +-1 fast paths, as in UblasSpace
+        if (A == 1.00) {
+            ParallelChunks(size, [=](const SizeType Begin, const SizeType End) {
+                for (SizeType i = Begin; i < End; ++i)
+                    x_data[i] = y_data[i];
+            });
+        } else if (A == -1.00) {
+            ParallelChunks(size, [=](const SizeType Begin, const SizeType End) {
+                for (SizeType i = Begin; i < End; ++i)
+                    x_data[i] = -y_data[i];
+            });
+        } else {
+            ParallelChunks(size, [=](const SizeType Begin, const SizeType End) {
+                for (SizeType i = Begin; i < End; ++i)
+                    x_data[i] = A * y_data[i];
+            });
+        }
     }
 
     //********************************************************************
@@ -392,24 +443,56 @@ public:
 
         const auto* y_data = rY.data();
         auto* x_data = rX.data();
-        ParallelChunks(size, [=](const SizeType Begin, const SizeType End) {
-            for (SizeType i = Begin; i < End; ++i)
-                x_data[i] += A * y_data[i];
-        });
+        // A == +-1 fast paths, as in UblasSpace
+        if (A == 1.00) {
+            ParallelChunks(size, [=](const SizeType Begin, const SizeType End) {
+                for (SizeType i = Begin; i < End; ++i)
+                    x_data[i] += y_data[i];
+            });
+        } else if (A == -1.00) {
+            ParallelChunks(size, [=](const SizeType Begin, const SizeType End) {
+                for (SizeType i = Begin; i < End; ++i)
+                    x_data[i] -= y_data[i];
+            });
+        } else {
+            ParallelChunks(size, [=](const SizeType Begin, const SizeType End) {
+                for (SizeType i = Begin; i < End; ++i)
+                    x_data[i] += A * y_data[i];
+            });
+        }
     }
 
     //********************************************************************
 
+    // Fused single-pass implementations (one parallel region, rZ/rY written
+    // once instead of the Assign + UnaliasedAdd two-pass composition, which
+    // touches the target three times). The generic multiply subsumes the
+    // +-1 special cases at no cost here: the fused loop is one FMA either way.
+
     static void ScaleAndAdd(const double A, const VectorType& rX, const double B, const VectorType& rY, VectorType& rZ) // rZ = (A * rX) + (B * rY)
     {
-        Assign(rZ, A, rX);       // rZ = A*rX
-        UnaliasedAdd(rZ, B, rY); // rZ += B*rY
+        const SizeType size = Size(rX);
+        if (Size(rZ) != size)
+            rZ.resize(size, false);
+
+        const auto* x_data = rX.data();
+        const auto* y_data = rY.data();
+        auto* z_data = rZ.data();
+        ParallelChunks(size, [=](const SizeType Begin, const SizeType End) {
+            for (SizeType i = Begin; i < End; ++i)
+                z_data[i] = A * x_data[i] + B * y_data[i];
+        });
     }
 
     static void ScaleAndAdd(const double A, const VectorType& rX, const double B, VectorType& rY) // rY = (A * rX) + (B * rY)
     {
-        InplaceMult(rY, B);
-        UnaliasedAdd(rY, A, rX);
+        const SizeType size = Size(rX);
+        const auto* x_data = rX.data();
+        auto* y_data = rY.data();
+        ParallelChunks(size, [=](const SizeType Begin, const SizeType End) {
+            for (SizeType i = Begin; i < End; ++i)
+                y_data[i] = A * x_data[i] + B * y_data[i];
+        });
     }
 
     /// rA[i] * rX (non-conjugated, as in UblasSpace)
@@ -879,15 +962,22 @@ private:
     static void ParallelChunks(const SizeType Size, TFunction&& f)
     {
         const int n_chunks = ParallelUtilities::GetNumThreads();
-        IndexPartition<int>(n_chunks).for_each([&](int Chunk) {
+        // Serial short-circuit: skip the OpenMP region and the IndexPartition
+        // machinery entirely (their fixed per-call cost is measurable on the
+        // small/medium sizes when running single-threaded).
+        if (n_chunks == 1) {
+            f(SizeType(0), Size);
+            return;
+        }
+        IndexPartition<int>(n_chunks, n_chunks).for_each([&](int Chunk) {
             f((Size * Chunk) / n_chunks, (Size * (Chunk + 1)) / n_chunks);
         });
     }
 
-    /// Range portion of a dot product, accumulated in four independent partial
-    /// sums: unlike a single scalar accumulator (a strict floating-point
-    /// dependency chain the compiler may not reassociate), this vectorizes,
-    /// matching what an OpenMP reduction clause permits.
+    /// Range portion of a dot product, delegated to Eigen's redux over
+    /// unaligned maps: it keeps several independent packet accumulators, which
+    /// beats both a strict scalar dependency chain and a manual 4-way unroll
+    /// (the latter is folded back into a single packet chain by the compiler).
     static TDataType PartialDot(
         const TDataType* pX,
         const TDataType* pY,
@@ -895,18 +985,9 @@ private:
         const SizeType End
         )
     {
-        TDataType a0 = TDataType(), a1 = TDataType(), a2 = TDataType(), a3 = TDataType();
-        SizeType i = Begin;
-        for (; i + 4 <= End; i += 4) {
-            a0 += pX[i] * pY[i];
-            a1 += pX[i + 1] * pY[i + 1];
-            a2 += pX[i + 2] * pY[i + 2];
-            a3 += pX[i + 3] * pY[i + 3];
-        }
-        TDataType accumulator = (a0 + a1) + (a2 + a3);
-        for (; i < End; ++i)
-            accumulator += pX[i] * pY[i];
-        return accumulator;
+        using MapType = Eigen::Map<const Eigen::Matrix<TDataType, Eigen::Dynamic, 1>, Eigen::Unaligned>;
+        const auto n = static_cast<Eigen::Index>(End - Begin);
+        return MapType(pX + Begin, n).dot(MapType(pY + Begin, n));
     }
 
     /// Row-range portion of the sparse matrix-vector product; a plain function
