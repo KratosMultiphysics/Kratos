@@ -21,6 +21,7 @@
 #include "custom_python/add_trilinos_schemes_to_python.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "includes/kratos_parameters.h"
 
 /* Schemes */
@@ -41,7 +42,7 @@ namespace Kratos::Python
 namespace py = pybind11;
 
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+typedef TDefaultDenseSpace<double> TrilinosLocalSpaceType;
 
 void MoveMesh( Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType >& dummy, ModelPart::NodesContainerType& rNodes )
 {
@@ -57,7 +58,7 @@ void MoveMesh( Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType >& dummy,
 void  AddSchemes(pybind11::module& m)
 {
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+    typedef TDefaultDenseSpace<double> TrilinosLocalSpaceType;
     typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
 
 //********************************************************************

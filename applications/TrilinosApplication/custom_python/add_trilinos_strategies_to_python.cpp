@@ -23,6 +23,7 @@
 // Project includes
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -46,7 +47,7 @@ namespace py = pybind11;
 void AddStrategies(pybind11::module& m)
 {
     using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
     using TrilinosLinearSolverType = LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
     using TrilinosConvergenceCriteria = ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
 

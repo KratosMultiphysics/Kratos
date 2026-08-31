@@ -22,13 +22,14 @@
 #include "mpi/utilities/model_part_communicator_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "trilinos_space.h"
 
 namespace Kratos::Testing
 {
 
 using DofsArrayType = ModelPart::DofsArrayType;
-using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
 using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
 using TrilinosMixedGenericCriteriaType = TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
 using ConvergenceVariableListType = typename TrilinosMixedGenericCriteriaType::ConvergenceVariableListType;

@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "spaces/default_spaces.h"
 #include "trilinos_space.h"
 #include "factories/linear_solver_factory.h"
 
@@ -105,7 +106,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 void RegisterTrilinosLinearSolvers();
 
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+typedef TDefaultDenseSpace<double> TrilinosLocalSpaceType;
 
 typedef LinearSolverFactory<TrilinosSparseSpaceType,  TrilinosLocalSpaceType> TrilinosLinearSolverFactoryType;
 
