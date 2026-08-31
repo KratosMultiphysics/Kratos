@@ -171,7 +171,7 @@ namespace // cpp internals
 namespace test_solid_transient_sensitivity_cpp
 { // unity build unity guard
 typedef TDefaultSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSpaceType;
+typedef TDefaultDenseSpace<double> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;

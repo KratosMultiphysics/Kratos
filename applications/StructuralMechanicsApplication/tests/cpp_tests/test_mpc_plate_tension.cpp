@@ -30,7 +30,7 @@ namespace Kratos {
 namespace Testing {
 
 typedef TDefaultSparseSpace<double> SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef TDefaultDenseSpace<double> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType,LocalSpaceType> LinearSolverType;
 typedef SkylineLUFactorizationSolver<SparseSpaceType,  LocalSpaceType > SkylineLUFactorizationSolverType;
 typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;

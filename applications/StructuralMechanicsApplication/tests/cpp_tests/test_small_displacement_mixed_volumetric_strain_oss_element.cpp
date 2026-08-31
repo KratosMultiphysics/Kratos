@@ -31,7 +31,7 @@
 namespace Kratos::Testing
 {
 
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef TDefaultDenseSpace<double> LocalSpaceType;
 typedef TDefaultSparseSpace<double> SparseSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
@@ -91,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElement2D3N, 
     const std::vector<double> expected_RHS({51134.6153846, 51134.6153846, -1827.75857559, -12673.0769231, -38461.5384615, 10540.9297016, -38461.5384615, -12673.0769231, 3959.9057971});
     const std::vector<double> expected_LHS_row_0({778846.153846, 9615.38461538, -317307.692308, -394230.769231, -384615.384615, -317307.692308, -384615.384615, 375000, -317307.692308});
     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElement2D3NDynamic, KratosStructuralMechanicsFastSuite)
@@ -168,9 +168,9 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElement2D3NDy
     const std::vector<double> expected_mass_row_0({83.3333333333, 0, 0, 41.6666666667, 0, 0, 41.6666666667, 0, 0});
     const std::vector<double> expected_mass_row_2({0, 0, 0, 0, 0, 0, 0, 0, 0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,0), expected_mass_row_0, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,2), expected_mass_row_2, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(MassMatrix,0)), expected_mass_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(MassMatrix,2)), expected_mass_row_2, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElementZienkiewiczPatch, KratosStructuralMechanicsFastSuite)

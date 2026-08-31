@@ -103,7 +103,7 @@ namespace
         const std::vector<double> expected_RHS({51153.8, 51153.8, -1822.18, -12692.3, -38461.5, 10548.1, -38461.5, -12692.3, 3966.35});
         const std::vector<double> expected_LHS_row_0({778846, 9615.38, -317308, -394231, -384615, -317308, -384615, 375000, -317308});
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
     }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement2D3NDynamic, KratosStructuralMechanicsFastSuite)
@@ -169,9 +169,9 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement2D3NDynam
     const std::vector<double> expected_mass_row_0({83.3308038224, 0, 0, 41.6654019112, 0, 0, 41.6654019112, 0, 0});
     const std::vector<double> expected_mass_row_2({-0.0972888831236, -0.0972888831236, 0, -0.0972888831236, -0.0972888831236, 0, -0.0972888831236, -0.0972888831236, 0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,0), expected_mass_row_0, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,2), expected_mass_row_2, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(MassMatrix,0)), expected_mass_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(MassMatrix,2)), expected_mass_row_2, tolerance)
 }
 
     /**
@@ -227,7 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement2D3NDynam
         const std::vector<double> expected_RHS({-23221.2, 56875, -51086.2, 23221.2, 55288.5, -54338.5, 18461.5, -55288.5, -33158.8, -18461.5, -56875, -18483.7});
         const std::vector<double> expected_LHS_row_0({519231,4807.69,-317308,-134615,-379808,-317308,-259615,-4807.69,-158654,-125000,379808,-158654});
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
     }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement2D4NDynamic, KratosStructuralMechanicsFastSuite)
@@ -297,9 +297,9 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement2D4NDynam
     const std::vector<double> expected_mass_row_0({111.106409342, 0, 0, 55.553204671, 0, 0, 27.7766023355, 0, 0, 55.553204671, 0, 0});
     const std::vector<double> expected_mass_row_2({-0.135627957443, -0.135627957443, 0, -0.135627957443, -0.0678139787215, 0, -0.0678139787215, -0.0678139787215, 0, -0.0678139787215, -0.135627957443, 0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,0), expected_mass_row_0, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,2), expected_mass_row_2, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(MassMatrix,0)), expected_mass_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(MassMatrix,2)), expected_mass_row_2, tolerance)
 }
 
     /**
@@ -359,7 +359,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement2D4NDynam
         const std::vector<double> expected_RHS({-4144.23, 16003.2, -12609, -7830.25, 4144.23, 15544.9, -12838.1, -9873.46, 2769.23, -34775.6, 7309.29, 2080.25, -2769.23, -35234, 7767.63, 9947.53, -2072.12, 17617, -6621.79, -17148.1, 2072.12, 17387.8, -6392.63, -17224.5, 1384.62, 1842.95, 11921.5, -15028.5, -1384.62, 1613.78, 11463.1, -12985.3});
         const std::vector<double> expected_LHS_row_0({286752,22756.4,22756.4,-91666.7,-30341.9,-105449,-105449,-91666.7,-79273.5,-22756.4,-52724.4,-45833.3,15170.9,105449,11378.2,-45833.3,15170.9,11378.2,105449,-45833.3,-79273.5,-52724.4,-22756.4,-45833.3,-71688,-11378.2,-11378.2,-22916.7,-56517.1,52724.4,52724.4,-22916.7});
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
     }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement3D8NDynamic, KratosStructuralMechanicsFastSuite)
@@ -433,9 +433,9 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement3D8NDynam
     const std::vector<double> expected_mass_row_0({37.0342407122, 0, 0, 0, 18.5171203561, 0, 0, 0, 9.25856017805, 0, 0, 0, 18.5171203561, 0, 0, 0, 18.5171203561, 0, 0, 0, 9.25856017805, 0, 0, 0, 4.62928008903, 0, 0, 0, 9.25856017805, 0, 0, 0});
     const std::vector<double> expected_mass_row_4({18.5171203561, 0, 0, 0, 37.0342407122, 0, 0, 0, 18.5171203561, 0, 0, 0, 9.25856017805, 0, 0, 0, 9.25856017805, 0, 0, 0, 18.5171203561, 0, 0, 0, 9.25856017805, 0, 0, 0, 4.62928008903, 0, 0, 0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,0), expected_mass_row_0, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,4), expected_mass_row_4, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(MassMatrix,0)), expected_mass_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(MassMatrix,4)), expected_mass_row_4, tolerance)
 }
 
     /**
@@ -599,7 +599,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement3D8NDynam
     */
     KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElementZienkiewiczPatch, KratosStructuralMechanicsFastSuite)
     {
-        using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+        using LocalSpaceType = TDefaultDenseSpace<double>;
         using SparseSpaceType = TDefaultSparseSpace<double>;
         using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 

@@ -42,7 +42,7 @@ namespace
 namespace test_solid_static_sensitivity_cpp
 { // unity build unity guard
 using SparseSpaceType = TDefaultSparseSpace<double>;
-using LocalSpaceType = TUblasDenseSpace<double>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 using SchemeType = Scheme<SparseSpaceType, LocalSpaceType>;
 using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;

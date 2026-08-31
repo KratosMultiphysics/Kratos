@@ -91,8 +91,8 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElem
     const std::vector<double> expected_LHS_row_0({519230.769231, 4807.69230769, -317307.692308, -134615.384615, -379807.692308, -317307.692308, -259615.384615, -4807.69230769, -158653.846154, -125000, 379807.692308, -158653.846154, -0, -0, 3205.12820513, -0, -0, 3205.12820513, -0, -0, 1602.56410256, -0, -0, 1602.56410256});
     const std::vector<double> expected_LHS_row_4({-379807.692308, -125000, -158653.846154, -4807.69230769, 519230.769231, -317307.692308, 379807.692308, -134615.384615, -317307.692308, 4807.69230769, -259615.384615, -158653.846154, -0, -0, 1602.56410256, -0, -0, 3205.12820513, -0, -0, 3205.12820513, -0, -0, 1602.56410256});
     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,4), expected_LHS_row_4, tolerance)
+    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
+    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Vector(row(LHS,4)), expected_LHS_row_4, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4NDynamic, KratosStructuralMechanicsFastSuite)
@@ -175,14 +175,14 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElem
     const std::vector<double> expected_mass_row_0({111.111111111, 0, 0, 55.5555555556, 0, 0, 27.7777777778, 0, 0, 55.5555555556, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
     const std::vector<double> expected_mass_row_4({0, 55.5555555556, 0, 0, 111.111111111, 0, 0, 55.5555555556, 0, 0, 27.7777777778, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,0), expected_mass_row_0, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,4), expected_mass_row_4, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(LHS,0)), expected_LHS_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(MassMatrix,0)), expected_mass_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Vector(row(MassMatrix,4)), expected_mass_row_4, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElementZienkiewiczPatch, KratosStructuralMechanicsFastSuite)
 {
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LocalSpaceType = TDefaultDenseSpace<double>;
     using SparseSpaceType = TDefaultSparseSpace<double>;
     using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType >;
 
