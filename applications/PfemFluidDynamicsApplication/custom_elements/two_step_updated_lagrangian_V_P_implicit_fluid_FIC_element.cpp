@@ -622,9 +622,7 @@ namespace Kratos
       // LHS contribution
       for (SizeType j = 0; j < NumNodes; ++j)
       {
-        double Mij = 0.0;
-        Mij = Weight * rN[i] * rN[j];
-        BulkAccMatrix(i, j) += Mij;
+        BulkAccMatrix(i, j) += Weight * rN[i] * rN[j];
       }
     }
     rLeftHandSideMatrix += BulkAccMatrix;
@@ -642,12 +640,10 @@ namespace Kratos
     {
       for (SizeType j = 0; j < NumNodes; ++j)
       {
-        double Lij = 0.0;
         for (SizeType d = 0; d < TDim; ++d)
         {
-          Lij += rDN_DX(i, d) * rDN_DX(j, d);
+          StabLaplacianMatrix(i, j) += Weight * rDN_DX(i, d) * rDN_DX(j, d);
         }
-        StabLaplacianMatrix(i, j) += Weight * Lij;
       }
     }
   }
@@ -686,7 +682,7 @@ namespace Kratos
     double RHSi = 0;
     if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
     { // it must be checked once at the beginning only
-      array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+      const array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
       for (SizeType d = 0; d < TDim; ++d)
       {
