@@ -123,7 +123,7 @@ bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFl
     // takes precedence over releasing.
     if (auto* p_node = SelectBestCandidate(rSeepageNodes, [](const Node& rNode) {
         return !rNode.IsFixed(WATER_PRESSURE) && rNode.FastGetSolutionStepValue(WATER_PRESSURE) < 0.0;
-    }, [](const Node& rNode) { return rNode.FastGetSolutionStepValue(WATER_PRESSURE); })) {
+    }, [](const Node& rNode) { return -1.0 * rNode.FastGetSolutionStepValue(WATER_PRESSURE); })) {
         KRATOS_INFO("Switch") << "Node " << p_node->Id() << " switched to Dirichlet, because pressure was "
                               << p_node->FastGetSolutionStepValue(WATER_PRESSURE) << "\n";
         p_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
@@ -138,8 +138,8 @@ bool SwitchOneSeepageNode(const std::vector<Node*>& rSeepageNodes, const NodalFl
     };
 
     if (auto* p_node = SelectBestCandidate(rSeepageNodes, [&flow_of](const Node& rNode) {
-        return !rNode.IsFixed(WATER_PRESSURE) && flow_of(rNode) < -1e-12;
-    }, flow_of)) {
+        return rNode.IsFixed(WATER_PRESSURE) && flow_of(rNode) < -1e-11;
+    }, [&flow_of](const Node& rNode) { return -1.0 * flow_of(rNode); })) {
         KRATOS_INFO("Switch") << "Node " << p_node->Id() << " switched to Neumann, because flow was "
                               << flow_of(*p_node) << "\n";
         p_node->Free(WATER_PRESSURE);

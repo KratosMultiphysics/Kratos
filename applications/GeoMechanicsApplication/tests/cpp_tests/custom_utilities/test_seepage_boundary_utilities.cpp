@@ -159,10 +159,10 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeDoesNothingWhenNoNodeViolatesItsCo
     // Node 1 fixed with no outflow, node 2 free and under suction: both are consistent.
     r_model_part.pGetNode(1)->Fix(WATER_PRESSURE);
     r_model_part.pGetNode(2)->Free(WATER_PRESSURE);
-    r_model_part.pGetNode(2)->FastGetSolutionStepValue(WATER_PRESSURE) = -5.0;
+    r_model_part.pGetNode(2)->FastGetSolutionStepValue(WATER_PRESSURE) = 5.0;
 
     const auto nodes       = AllNodesOf(r_model_part);
-    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, -1.0}, {2, 0.0}};
+    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, 1.0}, {2, 0.0}};
 
     KRATOS_EXPECT_FALSE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(nodes, nodal_flows))
     KRATOS_EXPECT_TRUE(r_model_part.pGetNode(1)->IsFixed(WATER_PRESSURE))
@@ -176,9 +176,9 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeFixesTheHighestPressureFreeNode, K
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.Free(WATER_PRESSURE);
     }
-    r_model_part.pGetNode(1)->FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
-    r_model_part.pGetNode(2)->FastGetSolutionStepValue(WATER_PRESSURE) = 9.0; // highest
-    r_model_part.pGetNode(3)->FastGetSolutionStepValue(WATER_PRESSURE) = -1.0;
+    r_model_part.pGetNode(1)->FastGetSolutionStepValue(WATER_PRESSURE) = -2.0;
+    r_model_part.pGetNode(2)->FastGetSolutionStepValue(WATER_PRESSURE) = -9.0; // highest
+    r_model_part.pGetNode(3)->FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
 
     const auto nodes = AllNodesOf(r_model_part);
 
@@ -192,7 +192,7 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeFixesTheHighestPressureFreeNode, K
     KRATOS_EXPECT_FALSE(r_model_part.pGetNode(3)->IsFixed(WATER_PRESSURE))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeReleasesTheLargestOutflowFixedNode, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeReleasesTheLargestInflowFixedNode, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithNodes(model, 3);
@@ -201,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeReleasesTheLargestOutflowFixedNode
     }
 
     const auto nodes = AllNodesOf(r_model_part);
-    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, 4.0}, {2, 11.0}, {3, -2.0}};
+    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, -4.0}, {2, -11.0}, {3, 2.0}};
 
     KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(nodes, nodal_flows))
 
@@ -215,13 +215,13 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodePrefersFixingOverReleasing, Kratos
 {
     auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithNodes(model, 2);
-    // Node 1 is a fixed node with a large outflow, node 2 is a free node under positive pressure.
+    // Node 1 is a fixed node with a large inflow, node 2 is a free node under negative pressure.
     r_model_part.pGetNode(1)->Fix(WATER_PRESSURE);
     r_model_part.pGetNode(2)->Free(WATER_PRESSURE);
-    r_model_part.pGetNode(2)->FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
+    r_model_part.pGetNode(2)->FastGetSolutionStepValue(WATER_PRESSURE) = -1.0;
 
     const auto nodes       = AllNodesOf(r_model_part);
-    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, 100.0}};
+    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, -100.0}};
 
     KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(nodes, nodal_flows))
 
@@ -239,7 +239,7 @@ KRATOS_TEST_CASE_IN_SUITE(SwitchOneSeepageNodeBreaksTiesByLowestNodeId, KratosGe
     }
 
     const auto nodes       = AllNodesOf(r_model_part);
-    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, 5.0}, {2, 5.0}};
+    const auto nodal_flows = Geo::SeepageBoundaryUtilities::NodalFlowMap{{1, -5.0}, {2, -5.0}};
 
     KRATOS_EXPECT_TRUE(Geo::SeepageBoundaryUtilities::SwitchOneSeepageNode(nodes, nodal_flows))
 
