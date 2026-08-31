@@ -367,7 +367,7 @@ public:
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(&rb.data()[0], rb.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(BaseType::&mPhiGlobal.data()[0], BaseType::mPhiGlobal.size1(), BaseType::mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(&BaseType::mPhiGlobal.data()[0], BaseType::mPhiGlobal.size1(), BaseType::mPhiGlobal.size2());
 
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 

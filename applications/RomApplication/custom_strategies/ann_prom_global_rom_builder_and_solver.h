@@ -286,9 +286,11 @@ public:
             const std::size_t id = rDof.EquationId();
             dofs_values[id] = rDof.GetSolutionStepValue();
         });
-        double *values_vector = rA.value_data().begin();
-        std::size_t *index1_vector = rA.index1_data().begin();
-        std::size_t *index2_vector = rA.index2_data().begin();
+        // auto: the CSR pointer types differ between the backends
+        // (std::size_t indices for uBLAS, signed for the Eigen wrapper)
+        auto *values_vector = rA.value_data().begin();
+        auto *index1_vector = rA.index1_data().begin();
+        auto *index2_vector = rA.index2_data().begin();
 
         IndexPartition<std::size_t>(rA.size1()).for_each(
             [&](std::size_t i)
