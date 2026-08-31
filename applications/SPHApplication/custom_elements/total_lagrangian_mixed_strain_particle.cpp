@@ -734,7 +734,6 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculateAndAddUpwin
         
         CalculatePairUpwindStabilizationMatrix(stabilization_matrix, *r_neighbours[i], rThisKinematicVariables.F, rProcessInfo);
 
-        // ComputeVelocityJump uses the same neighbour-minus-particle convention as ComputeParticleJump.
         upwind_residual -= prod(stabilization_matrix, velocity_jump);
     }
 
@@ -792,15 +791,18 @@ void TotalLagrangianMixedStrainParticle<TKernelType, TDim>::CalculatePairUpwindS
     const double norm_dist = norm_2(X_AB_target);
 
     const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
-    double kernel;
+    
+    double kernel_b_at_a; 
     VectorType dkernel_b_at_a(TDim);
 
-    TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
+    TKernelType::ComputeKernelValue(kernel_b_at_a, h, X_AB_target);
     TKernelType::ComputeKernelGradientValue(dkernel_b_at_a, h, X_AB_target);
 
+    double kernel_a_at_b = kernel_b_at_a;
     VectorType dkernel_a_at_b = dkernel_b_at_a;
-    ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel_b_at_a);
-    ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(rNeighbour, kernel, dkernel_a_at_b);
+
+    ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel_b_at_a, dkernel_b_at_a);
+    ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrectionInverted(rNeighbour, kernel_a_at_b, dkernel_a_at_b);
 
     const VectorType skew_kernel_gradient = 0.5 * (dkernel_b_at_a - dkernel_a_at_b);
 

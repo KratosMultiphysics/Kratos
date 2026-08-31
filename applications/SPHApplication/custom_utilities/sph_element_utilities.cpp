@@ -1,5 +1,3 @@
-#pragma once
-
 #include "custom_utilities/sph_element_utilities.h"
 
 namespace Kratos
@@ -23,7 +21,7 @@ void SPHElementUtilities::GetLocalBodyForces(Element& rElement, VectorType& body
         noalias(total_body_force) += density * r_prop[VOLUME_ACCELERATION];
 
     if (r_geom[0].SolutionStepsDataHas(VOLUME_ACCELERATION)){
-        noalias(total_body_force) += density * r_geom[0].GetSolutionStepValue(VOLUME_ACCELERATION);
+        noalias(total_body_force) += density * r_geom[0].GetSolutionStepValue(VOLUME_ACCELERATION, Step);
     }
 
     for (int d = 0; d < domain_size; ++d)

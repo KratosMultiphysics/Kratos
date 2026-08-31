@@ -1,4 +1,9 @@
-// SPH Application 
+//  ____  ____  _   _                   _ _           _   _             
+// / ___||  _ \| | | | __ _ _ __  _ __ | (_) ___ __ _| |_(_) ___  _ __  
+// \___ \| |_) | |_| |/ _` | '_ \| '_ \| | |/ __/ _` | __| |/ _ \| '_ \ 
+//  ___) |  __/|  _  | (_| | |_) | |_) | | | (_| (_| | |_| | (_) | | | |
+// |____/|_|   |_| |_|\__,_| .__/| .__/|_|_|\___\__,_|\__|_|\___/|_| |_|
+//                         |_|   |_|                                    
 
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -15,7 +20,7 @@
 
 /**
  * @class SPHElementUtilities
- * @brief 
+ * @brief A collection of utility functions for SPH elements. Created to minimize code duplication.
  * @details The methods are static, so it can be called without constructing the class
  */
 
