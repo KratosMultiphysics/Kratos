@@ -178,7 +178,7 @@ $$\begin{aligned}
 where $p$ is the pore water pressure, defined negative if water is present (and positive in case of suction). $\phi_n$ is the nodal flux, defined positive for outflow. Since this 
 functionality acts on the number of degrees of freedom (DoF) and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann Boundary for every node on the boundary.
 
-These conditions are depicted in the following schematic, where a constant phreatic line and a seepage boundary on the right side of the model, lead to the first condition (no flow) above the phreatic line, while it leads to a $p = 0$ and outflow below the phreatic line:
+These conditions are depicted in the following schematic, where a constant phreatic line and a seepage boundary on the right side of the model, lead to the first condition (no flow, a) above the phreatic line, while it leads to a $p = 0$ and outflow (b) below the phreatic line:
 
 ![seepage_boundary](seepage_boundary.svg)
 
