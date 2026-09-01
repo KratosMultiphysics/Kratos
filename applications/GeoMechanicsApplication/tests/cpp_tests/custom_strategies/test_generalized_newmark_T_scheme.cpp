@@ -11,12 +11,12 @@
 //
 
 #include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType  = TDefaultDenseSpace<double>;
 
 namespace Kratos::Testing
 {
@@ -112,9 +112,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMecha
     node.FastGetSolutionStepValue(DT_TEMPERATURE, 1) = previous_dt_temperature;
 
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    SparseSpaceType::MatrixType         A;
+    SparseSpaceType::VectorType                   Dx;
+    SparseSpaceType::VectorType                   b;
 
     scheme.InitializeSolutionStep(model_part, A, Dx, b); // This is needed to set the time factors
     scheme.Predict(model_part, dof_set, A, Dx, b);
@@ -134,9 +134,9 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkTScheme_SetsTimeFactors, KratosGeoMec
     constexpr double delta_time             = 3.0;
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
 
-    CompressedMatrix A;
-    Vector           Dx;
-    Vector           b;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType           Dx;
+    SparseSpaceType::VectorType           b;
     scheme.Initialize(model_part);
 
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
