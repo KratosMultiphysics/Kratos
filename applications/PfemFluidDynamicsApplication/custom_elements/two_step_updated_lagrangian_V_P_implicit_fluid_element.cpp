@@ -52,18 +52,19 @@ namespace Kratos
     KRATOS_CATCH("");
   }
 
-    template <unsigned int TDim>
-    void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
+  template <unsigned int TDim>
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
+  {
+    KRATOS_TRY;
+
+    // TODO: Temporary solution until the mesher calls the Initialize() after the elements creation
+    if (!mpConstitutiveLaw)
     {
-        KRATOS_TRY;
-
-        // TODO: Temporary solution until the mesher calls the Initialize() after the elements creation
-        if (!mpConstitutiveLaw) {
-            this->Initialize(rCurrentProcessInfo);
-        }
-
-        KRATOS_CATCH("");
+      this->Initialize(rCurrentProcessInfo);
     }
+
+    KRATOS_CATCH("");
+  }
 
   template <unsigned int TDim>
   int TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
@@ -98,43 +99,35 @@ namespace Kratos
       KRATOS_THROW_ERROR(std::invalid_argument,
                          "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
 
+    const GeometryType &r_geom = this->GetGeometry();
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
+    for (unsigned int i = 0; i < r_geom.size(); ++i)
     {
-      if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing BODY_FORCE variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing DENSITY variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument,
-                           "missing DYNAMIC_VISCOSITY variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-          this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-          this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ",
-                           this->GetGeometry()[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(VELOCITY))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(PRESSURE))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(BODY_FORCE))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing BODY_FORCE variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(DENSITY))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing DENSITY variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing DYNAMIC_VISCOSITY variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].HasDofFor(VELOCITY_X) ||
+          !r_geom[i].HasDofFor(VELOCITY_Y) ||
+          !r_geom[i].HasDofFor(VELOCITY_Z) == false)
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ", r_geom[i].Id());
+      if (!r_geom[i].HasDofFor(PRESSURE))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ", r_geom[i].Id());
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
-    if (this->GetGeometry().WorkingSpaceDimension() == 2)
+    if (r_geom.WorkingSpaceDimension() == 2)
     {
       for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
       {
-        if (this->GetGeometry()[i].Z() != 0.0)
-          KRATOS_THROW_ERROR(std::invalid_argument,
-                             "Node with non-zero Z coordinate found. Id: ", this->GetGeometry()[i].Id());
+        if (r_geom[i].Z() != 0.0)
+          KRATOS_THROW_ERROR(std::invalid_argument, "Node with non-zero Z coordinate found. Id: ", r_geom[i].Id());
       }
     }
 
@@ -180,10 +173,9 @@ namespace Kratos
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::ComputeMeanValueMaterialTangentMatrix(ElementalVariables &rElementalVariables, double &MeanValue, const ShapeFunctionDerivativesType &rDN_DX, const double secondLame, double &bulkModulus, const double Weight, double &MeanValueMass, const double TimeStep)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    const double FourThirds = 4.0 / 3.0;
-    const double nTwoThirds = -2.0 / 3.0;
-
-    double theta = 0.5;
+    constexpr double FourThirds = 4.0 / 3.0;
+    constexpr double nTwoThirds = -2.0 / 3.0;
+    const double theta = 0.5;
     double Count = 0;
     for (SizeType j = 0; j < NumNodes; ++j)
     {
@@ -193,10 +185,6 @@ namespace Kratos
         const double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
         const double lagDNXj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 0);
         const double lagDNYj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 1);
-        // lagDNXi=rDN_DX(i,0);
-        // lagDNYi=rDN_DX(i,1);
-        // lagDNXj=rDN_DX(j,0);
-        // lagDNYj=rDN_DX(j,1);
 
         // First Row
         MeanValue += fabs(Weight * ((FourThirds * secondLame + bulkModulus) * lagDNXi * lagDNXj + lagDNYi * lagDNYj * secondLame) * theta);
@@ -231,10 +219,9 @@ namespace Kratos
   {
 
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    const double FourThirds = 4.0 / 3.0;
-    const double nTwoThirds = -2.0 / 3.0;
-
-    double theta = 0.5;
+    constexpr double FourThirds = 4.0 / 3.0;
+    constexpr double nTwoThirds = -2.0 / 3.0;
+    const double theta = 0.5;
     double Count = 0;
     for (SizeType j = 0; j < NumNodes; ++j)
     {
@@ -246,12 +233,6 @@ namespace Kratos
         const double lagDNXj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 0) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 0);
         const double lagDNYj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 1) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 1);
         const double lagDNZj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 2) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 2) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 2);
-        // lagDNXi=rDN_DX(i,0);
-        // lagDNYi=rDN_DX(i,1);
-        // lagDNZi=rDN_DX(i,2);
-        // lagDNXj=rDN_DX(j,0);
-        // lagDNYj=rDN_DX(j,1);
-        // lagDNZj=rDN_DX(j,2);
 
         // First Row
         MeanValue += fabs(Weight * ((FourThirds * secondLame + bulkModulus) * lagDNXi * lagDNXj + (lagDNYi * lagDNYj + lagDNZi * lagDNZj) * secondLame) * theta);
@@ -406,8 +387,7 @@ namespace Kratos
       for (SizeType i = 0; i < NumNodes; ++i)
       {
         // LHS contribution
-        double Mij = Weight / coeff;
-        BulkMatrix(i, i) += Mij;
+        BulkMatrix(i, i) +=  Weight / coeff;
       }
     }
     else
@@ -510,12 +490,12 @@ namespace Kratos
     KRATOS_TRY;
     if (this->GetProperties().Has(YIELD_SHEAR) && this->Has(YIELDED))
     {
-      const double tolerance = 1e-10;
+      constexpr double tolerance = 1e-10;
       if (this->GetProperties()[YIELD_SHEAR] > tolerance)
       {
         const double TauNorm = sqrt(0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
-                              0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[1] * rElementalVariables.UpdatedDeviatoricCauchyStress[1] +
-                              rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.UpdatedDeviatoricCauchyStress[2]);
+                                    0.5 * rElementalVariables.UpdatedDeviatoricCauchyStress[1] * rElementalVariables.UpdatedDeviatoricCauchyStress[1] +
+                                    rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.UpdatedDeviatoricCauchyStress[2]);
 
         if (TauNorm > this->GetProperties()[YIELD_SHEAR])
         {
@@ -542,16 +522,16 @@ namespace Kratos
 
     if (this->GetProperties().Has(YIELD_SHEAR) && this->Has(YIELDED))
     {
-      const double tolerance = 1e-10;
+      constexpr double tolerance = 1e-10;
       if (this->GetProperties()[YIELD_SHEAR] > tolerance)
       {
 
         const double TauNorm = sqrt(2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[0] * rElementalVariables.UpdatedDeviatoricCauchyStress[0] +
-                              2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[1] * rElementalVariables.UpdatedDeviatoricCauchyStress[1] +
-                              2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.UpdatedDeviatoricCauchyStress[2] +
-                              4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[3] * rElementalVariables.UpdatedDeviatoricCauchyStress[3] +
-                              4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[4] * rElementalVariables.UpdatedDeviatoricCauchyStress[4] +
-                              4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[5] * rElementalVariables.UpdatedDeviatoricCauchyStress[5]);
+                                    2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[1] * rElementalVariables.UpdatedDeviatoricCauchyStress[1] +
+                                    2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.UpdatedDeviatoricCauchyStress[2] +
+                                    4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[3] * rElementalVariables.UpdatedDeviatoricCauchyStress[3] +
+                                    4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[4] * rElementalVariables.UpdatedDeviatoricCauchyStress[4] +
+                                    4.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[5] * rElementalVariables.UpdatedDeviatoricCauchyStress[5]);
 
         if (TauNorm > this->GetProperties()[YIELD_SHEAR])
         {
@@ -576,14 +556,14 @@ namespace Kratos
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchySplitted(
       ElementalVariables &rElementalVariables,
       const unsigned int g,
-      const Vector& rN,
+      const Vector &rN,
       const ProcessInfo &rCurrentProcessInfo,
       double &Density,
       double &DeviatoricCoeff,
       double &VolumetricCoeff)
   {
 
-    //mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
     auto constitutive_law_values =
         ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
@@ -621,7 +601,7 @@ namespace Kratos
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::CalcElasticPlasticCauchySplitted(
       ElementalVariables &rElementalVariables,
       const unsigned int g,
-      const Vector& rN,
+      const Vector &rN,
       const ProcessInfo &rCurrentProcessInfo,
       double &Density,
       double &DeviatoricCoeff,
