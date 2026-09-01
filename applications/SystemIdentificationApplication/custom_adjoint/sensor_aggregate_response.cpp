@@ -312,10 +312,11 @@ void SensorAggregateResponse::ComputeDerivative(
                     rElement,
                     rProcessInfo,
                     iBuffer);
+                const double measured_value = rp_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE);
                 const double sensor_scale = rp_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR);
                 const double derivative_scale =
                     mpImpl->mExponent
-                    * std::pow(virtual_sensor_value, mpImpl->mExponent - 1)
+                    * std::pow(virtual_sensor_value - measured_value, mpImpl->mExponent - 1)
                     * std::pow(sensor_scale, mpImpl->mExponent);
 
                 // Compute, map and reduce relevant derivatives.
