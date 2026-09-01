@@ -177,7 +177,7 @@ private:
     {
         return Parameters( R"({
             "is_origin_iga"                : true,
-            "is_surface_mapping"          : false,
+            "is_surface_mapping"           : false,
             "search_radius"                : 1.0e+10,
             "write_triangles_to_file"      : false,
             "use_initial_configuration"    : true,
