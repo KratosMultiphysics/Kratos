@@ -616,4 +616,26 @@ KRATOS_TEST_CASE_IN_SUITE(
     KRATOS_EXPECT_NEAR(triangulated_area, 196.0, 1e-12);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(
+    MappingTriangulationUtilitiesSkipZeroAreaPolygons,
+    KratosMappingApplicationSerialTestSuite)
+{
+    using PolygonType = MappingTriangulationUtilities::PolygonType;
+
+    PolygonType edge{
+        CoordinatesArrayType{0.0, 0.0, 0.0},
+        CoordinatesArrayType{1.0, 0.0, 0.0}};
+    std::vector<PolygonType> triangles;
+    MappingTriangulationUtilities::TriangulatePolygonFan(edge, triangles);
+    KRATOS_EXPECT_TRUE(triangles.empty());
+
+    PolygonType collinear_polygon{
+        CoordinatesArrayType{0.0, 0.0, 0.0},
+        CoordinatesArrayType{0.5, 0.0, 0.0},
+        CoordinatesArrayType{1.0, 0.0, 0.0}};
+    MappingTriangulationUtilities::TriangulatePolygonFan(
+        collinear_polygon, triangles);
+    KRATOS_EXPECT_TRUE(triangles.empty());
+}
+
 } // namespace Kratos::Testing

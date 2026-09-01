@@ -305,11 +305,24 @@ void TriangulatePolygonFan(
     PolygonType& rPolygon,
     std::vector<PolygonType>& rTriangles)
 {
-    KRATOS_ERROR_IF(rPolygon.size() < 3)
-        << "Expected at least 3 polygon vertices, got "
-        << rPolygon.size() << ".\n";
+    if (rPolygon.size() < 3) {
+        return;
+    }
 
     SortVerticesCounterClockwise(rPolygon);
+    double coordinate_scale = 1.0;
+    for (const auto& r_point : rPolygon) {
+        coordinate_scale = std::max({
+            coordinate_scale,
+            std::abs(r_point[0]),
+            std::abs(r_point[1])});
+    }
+    constexpr double relative_area_tolerance = 1e-14;
+    if (std::abs(SignedPolygonArea(rPolygon)) <=
+        relative_area_tolerance * coordinate_scale * coordinate_scale) {
+        return;
+    }
+
     for (std::size_t i = 1; i + 1 < rPolygon.size(); ++i) {
         rTriangles.push_back({rPolygon[0], rPolygon[i], rPolygon[i + 1]});
     }

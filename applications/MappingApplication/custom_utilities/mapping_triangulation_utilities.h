@@ -38,6 +38,7 @@ using BrepLoopArrayType = BrepSurfaceType::BrepCurveOnSurfaceLoopArrayType;
  * @brief Sorts a parametric polygon counter-clockwise and triangulates it as a fan.
  * @details The first sorted vertex is connected to every non-adjacent pair of
  * vertices. The input polygon is reordered in place and is assumed to be convex.
+ * Polygons with fewer than three vertices or negligible area are ignored.
  * @param rPolygon Parametric polygon to sort and triangulate.
  * @param rTriangles Generated three-vertex polygons, appended to the container.
  */
