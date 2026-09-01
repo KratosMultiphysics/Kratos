@@ -168,19 +168,38 @@ The maximum storage capacity $S_{max}$ is a user defined parameter. The potentia
 
 # Seepage Boundary Condition
 
-The seepage boundary is defined as a mixed boundary condition. It switches from a Dirichlet to a Neumann boundary condition based on the local pressure and flux values. In short, a zero-pressure is applied when inflow is present, while a zero-flux boundary is applied in case of suction ($p > 0$). The formulations are as follows:
+The seepage boundary is defined as a mixed boundary condition. It switches from a Dirichlet to a Neumann boundary condition based on the local pressure and flux values. In short, a zero-pressure is applied when outflow is present, while a zero-flux boundary is applied in case of suction ($p > 0$). The formulations are as follows:
 
 $$\begin{cases}
-p = 0 & \text{if } \phi_n \le 0 \\
-\phi_n = 0  & \text{if } p < 0
+p = 0 & \text{if } \phi_n \ge 0 \\
+\phi_n = 0  & \text{if } p > 0
 \end{cases}$$
 
 where $p$ is the pore water pressure, defined negative if water is present (and positive in case of suction). $\phi_n$ is the nodal flux, defined positive for outflow. Since this 
 functionality acts on the number of degrees of freedom (DoF) and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann Boundary for every node on the boundary.
 
+In pseudo-code, this formulation will be enforced as follows:
+```
+iteration loop:
+    ...
+    solve non linear iteration
+    ...
+
+    if seepage nodes with negative pressure (under water):
+        switch node with the most negative pressure to Dirichlet -> p = 0 & p = fixed
+        has_switched = true
+    else if seepage nodes with negative flow (inflow):
+        switch node with the most negative flow to Neumann -> p = free and flow = 0
+        has_switched = true
+    
+    if has_switched:
+        is_converged = false
+        rebuild_system_next_iteration = true
+```
+
 This boundary will be supported for transient and steady-state groundwaterflow calculations and can be extended to coupled displacement/pressure (UPw) computations.
 
-**Note that functionality for the seepage boundary is still to be implemented** 
+**Note that functionality for the seepage boundary is still to be implemented and only a prototype is built at this point in time** 
 
 ## Validation
 The following validation cases will be considered for this functionality (links to be added when the validation cases are added to the test suite):
