@@ -78,6 +78,12 @@ private:
     static void ProjectNodesOntoPlane(ModelPart& rModelPart, const Vector3& rNormal, const int EchoLevel);
 
     static void ProjectNodesOntoPlanePerPart(ModelPart& rModelPart, const std::vector<std::string>& rSubModelPartNames, const int EchoLevel);
+        /**
+     * @brief Least-squares fit of the flattened edge lengths to the reference (3D) edge lengths.
+     * @details Refines the DISPLACEMENT written by ProjectNodesOntoPlane. Movement is restricted
+     * to the flattening plane, so the projection constraint is preserved exactly.
+     */
+    static void FitEdgeLengths(ModelPart& rModelPart, const Vector3& rNormal, const int MaxIterations, const double Tolerance, const double RelaxationFactor, const int EchoLevel);
 
     ///@}
 
