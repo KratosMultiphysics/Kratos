@@ -9,6 +9,9 @@
 //  Main authors:    Máté Kelemen
 //
 
+// --- External Includes ---
+#include <pybind11/stl.h>
+
 // --- SysId Includes ---
 #include "custom_python/add_custom_adjoints_to_python.hpp"
 #include "custom_adjoint/displacement_sensor_response.hpp"
@@ -21,8 +24,8 @@ namespace Kratos::Python {
 void AddCustomAdjointsToPython(pybind11::module& rModule) {
     pybind11::class_<
         DisplacementSensorResponse,
-        SensorResponse,
-        DisplacementSensorResponse::Pointer
+        DisplacementSensorResponse::Pointer,
+        SensorResponse
     >(rModule, "DisplacementSensorResponse")
         .def(pybind11::init<>())
         .def(
@@ -46,8 +49,8 @@ void AddCustomAdjointsToPython(pybind11::module& rModule) {
 
     pybind11::class_<
         SensorAggregateResponse,
-        ResponseFunction,
-        SensorAggregateResponse::Pointer
+        SensorAggregateResponse::Pointer,
+        ResponseFunction
     >(rModule, "SensorAggregateResponse")
         .def(pybind11::init<>())
         .def(pybind11::init<std::size_t>())
