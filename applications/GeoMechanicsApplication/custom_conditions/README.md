@@ -191,7 +191,7 @@ $$\begin{aligned}
 
 Here, $\epsilon_1$ and $\epsilon_2$ are tolerances to ensure numeric stability and prevent switching of Dirichlet to Neumann or vice versa due to numeric noise. In the current prototype, $\epsilon_1 = 1 \times 10^{-11}$, while $\epsilon_2 = 0.0$. However, the precise values will need to be determined through testing. 
 
-In pseudo-code, this formulation will be enforced as follows:
+In pseudo-code, these switching conditions will be implemented as follows:
 ```
 iteration loop:
     ...
