@@ -19,7 +19,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "includes/kratos_parameters.h"
 #include "testing/testing.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_strategies/rom_builder_and_solver.h"
@@ -30,8 +30,8 @@
 namespace Kratos::Testing {
 namespace PetrovGalerkinROMBuilderAndSolverTestingInternal {
 
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType >;
 using BuilderAndSolverType = BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
 using PetrovGalerkinROMBuilderAndSolverType = PetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
@@ -153,7 +153,7 @@ ModelPart& FillModel(Model& model)
 
         left_basis(0,0) = phi_1(r_node);
         left_basis(0,1) = phi_2(r_node);
-        left_basis(0,2) = phi_3(r_node);
+        left_basis(0,2) = phi_3(0, r_node.Id() - 1);
         r_node.SetValue(ROM_LEFT_BASIS, left_basis);
     }
 
