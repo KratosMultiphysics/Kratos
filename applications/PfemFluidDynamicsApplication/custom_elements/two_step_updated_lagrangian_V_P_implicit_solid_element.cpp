@@ -221,7 +221,6 @@ namespace Kratos
 
     // WARNING THIS MUST BE REMOVED ASAP
     const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->mpConstitutiveLaw = const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->GetProperties().GetValue(CONSTITUTIVE_LAW);
-    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
@@ -400,7 +399,6 @@ namespace Kratos
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
-    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
     auto constitutive_law_values =
         ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
@@ -450,7 +448,6 @@ namespace Kratos
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
-    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
     auto constitutive_law_values =
         ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
@@ -500,7 +497,6 @@ namespace Kratos
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
     // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
     bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
-    const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
 
     if (computeElement == true)
     {
@@ -543,14 +539,11 @@ namespace Kratos
     this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
 
-    // const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
     double theta = this->GetThetaContinuity();
 
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
 
-    // double Density  = mMaterialDensity;
-    // double DeviatoricCoeff = mMaterialVolumetricCoefficient;
     double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
 
     double totalVolume = 0;

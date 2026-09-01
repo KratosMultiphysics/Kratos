@@ -61,6 +61,55 @@ Where:
 * $`C`$: The elastic constitutive tensor.
 * $`\Delta \Delta u`$: The incremental relative displacement vector.
 
+### 1.2 Stress-dependent Young's modulus formulation
+
+The linear elastic law has an option with a stress-dependent Young's modulus. To activate this option, `GEO_YOUNGS_MODULUS_FORMULATION` shall be added to material properties. A constant and a stress dependent formulation according to Schanz & Vermeer [[1]](#1) are implemented and the keyword can have only two values:  `CONSTANT` and `SCHANZ_VERMEER`. This feature is implemented using `std::variant` that combines the flexibility of Strategy with the performance of stack allocation. It avoids both deep inheritance trees and virtual calls during simulation. Another benefit is an easy extension with other formulations.
+
+#### 1.2.1 Purpose
+
+Compared to the standard incremental linear elastic law, this law updates Young's modulus at each increment using
+an $E(\sigma')$-type expression. This allows stiffer behavior at higher confinement while keeping a simple elastic incremental formulation.
+
+#### 1.2.2 Required inputs
+
+Required material parameters:
+
+- `GEO_YOUNGS_MODULUS_FORMULATION` with "SCHANZ_VERMEER" value
+- `YOUNG_MODULUS`: reference Young's modulus $E^{ref}$
+- `POISSON_RATIO`: Poisson's ratio <!--(used if no unloading-reloading Poisson is supplied)-->
+- `GEO_PRESSURE_REFERENCE`: reference pressure $p_{ref}$
+- `GEO_STRESS_DEPENDENCY_EXPONENT`: stiffness exponent $m$
+- `GEO_COHESION` and `GEO_FRICTION_ANGLE`: used to compute the stress shift term
+  
+<!--
+Optional material parameters:
+
+- `POISSON_UNLOADING_RELOADING`: unloading-reloading Poisson's ratio $\nu_{ur}$ (if present, this is used)
+-->
+
+#### 1.2.3 Stress-dependent modulus
+
+The Young's modulus used in the elastic tensor is computed as:
+
+```math
+E = E^{ref} \left(\frac{s - \sigma_3'}{s + p_{ref}}\right)^m
+```
+
+with:
+
+- $\sigma_3'$: minor principal effective stress from the finalized stress state
+- $p_{ref}$: reference pressure (`GEO_PRESSURE_REFERENCE`)
+- $m$: stiffness exponent (`GEO_STRESS_DEPENDENCY_EXPONENT`)
+- $s$: stress shift term
+
+The shift term is:
+
+```math
+s = c \cot(\phi)
+```
+
+where $c$ is `GEO_COHESION` and $\phi$ is `GEO_FRICTION_ANGLE`.
+
 
 ## 2. Mohr-Coulomb with tension cutoff
 
@@ -672,3 +721,60 @@ MohrCoulomb64 model uses an ad‑hoc elastic stiffness correction:
 \Delta u = 2G/3 ( \frac{1+\nu_u}{1−2\nu_u} − \frac{1+\nu}{1−2\nu} ) \Delta \epsilon_v,
 ```
 which approximates an undrained − drained bulk modulus difference using an artificial near‑incompressible Poisson ratio $\nu_u = 0.495$. 
+
+## 3. Piecewise-linear moment–capacity (plane-strain) law
+
+Description: This constitutive law provides a piecewise-linear bending backbone $M_b(\kappa)$ for beam/section behaviour in plane‑strain, combined with linear axial and shear stiffness. The backbone is defined for non‑negative curvature values using the list of points $(\kappa,M)$ `GEO_PIECEWISE_LINEAR_MOMENT_LAW`. An implicit origin $(0,0)$ is prepended automatically and, by convention, the backbone is held constant beyond the last provided curvature point.
+
+Backbone interpolation (for $\kappa\ge0$): let the table entries be $(\kappa_i,M_i)$ with $i=0\dots n$ (where $(0,0)$ is included). For $\kappa\in[\kappa_i,\kappa_{i+1}]$ the backbone is piecewise linear:
+
+$$
+M_b(\kappa)=M_i + (M_{i+1}-M_i)\frac{\kappa-\kappa_i}{\kappa_{i+1}-\kappa_i}.
+$$
+
+The bending tangent modulus (slope) is constant inside each segment:
+
+$$
+EI_t(\kappa)=\dfrac{dM_b}{d\kappa}=\frac{M_{i+1}-M_i}{\kappa_{i+1}-\kappa_i}.
+$$
+
+Signed moment: the law stores and uses a signed curvature $\kappa$ (positive/negative). The signed bending moment is obtained by applying the backbone to the absolute curvature and reapplying sign:
+
+$$
+M(\kappa)=\mathrm{sign}(\kappa)\,M_b(|\kappa|).
+$$
+
+Optional unload/reload behaviour: if the property `GEO_UNLOADING_RELOADING_MODULUS` is provided (denoted $E_u$) an elastic window of half‑amplitude $a_{ur}$ is used to model unloading/reloading about a center $\kappa_c$ (internal state). The amplitude is computed from the current accumulated backbone state $\kappa_{acc}$ as:
+
+$$
+a_{ur} = \dfrac{M_b(\kappa_{acc})}{E_u}.
+$$
+
+Inside the elastic window ($|\kappa-\kappa_c|<a_{ur}$) the response is linear elastic about the center:
+
+$$
+M(\kappa)=E_u\,(\kappa-\kappa_c),\qquad |\kappa-\kappa_c|<a_{ur}.
+$$
+
+When loading leaves the elastic window the law resumes the backbone using an effective backbone curvature
+
+$$
+\kappa_{eff}=\kappa_{acc} + (|\kappa-\kappa_c|-a_{ur}),
+$$
+
+and the signed moment is recovered from the backbone: $M(\kappa)=\mathrm{sign}(\kappa-\kappa_c)\,M_b(\kappa_{eff})$. 
+
+If the unloading process is not enabled then the moment follows the backbone curve. This is illustrated with dashed lines on the following picture
+<img src="documentation_data/pwlmc1.svg">
+If the curvature goes to negative values, then the backbone is mirrored against the coordinate origin. 
+
+When the unloading process is enabled and the curvature is reduced then the moment follows the unloading curve. This case is shown on this figure. 
+<img src="documentation_data/pwlmc2.svg">
+When the curvature is increased, the moment increases back to the backbone curve by following the unloading curve. In case of the further increase of the curvatue, the moment follows the backbobe curve. 
+
+If the curvature is reduced significantly like it is shown on this picture
+<img src="documentation_data/pwlmc3.svg">
+then the moment is decreased until point B, which is mirrored point A, then the  moment follows the mirrored backbone curve.
+
+## References
+<a id="1">[1]</a> Schanz, T., Vermeer, P.A., and Bonnier, P.G., 1999. The hardening soil model: formulation and verification. Beyond 2000 in computational geotechnics.

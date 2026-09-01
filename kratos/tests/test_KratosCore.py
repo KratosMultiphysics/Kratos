@@ -38,6 +38,7 @@ import test_gid_io
 import test_output_process
 import test_json_output_process
 import test_vtk_output_process
+import test_unv_output_process
 import test_vector_interface
 import test_matrix_interface
 import test_restart
@@ -108,6 +109,7 @@ import test_connectivity_ids_tensor_adaptor
 import test_constraint_restart
 import test_vtu_output
 import test_ensight_output_process
+import test_materials_input_with_accessors
 import test_parallel_spatial_search
 
 # Import modules required for sequential orchestrator test
@@ -163,6 +165,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_output_process.TestOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_json_output_process.TestJsonOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtk_output_process.TestVtkOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_unv_output_process.TestUnvOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vector_interface.TestVectorInterface]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_matrix_interface.TestMatrixInterface]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_restart.TestRestart]))
@@ -242,6 +245,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput2D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput3D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_ensight_output_process.TestEnsightOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_materials_input_with_accessors.TestMaterialsInputWithAccessors]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_parallel_spatial_search.TestParallelSpatialSearch]))
 
     if sympy_available:

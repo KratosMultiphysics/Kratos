@@ -1,0 +1,49 @@
+//  ____  ____  _   _                   _ _           _   _             
+// / ___||  _ \| | | | __ _ _ __  _ __ | (_) ___ __ _| |_(_) ___  _ __  
+// \___ \| |_) | |_| |/ _` | '_ \| '_ \| | |/ __/ _` | __| |/ _ \| '_ \ 
+//  ___) |  __/|  _  | (_| | |_) | |_) | | | (_| (_| | |_| | (_) | | | |
+// |____/|_|   |_| |_|\__,_| .__/| .__/|_|_|\___\__,_|\__|_|\___/|_| |_|
+//                         |_|   |_|                                    
+
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+
+//  Main authors:    Marco Pilotto
+
+#pragma once
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/define.h"
+#include "containers/variable.h"
+#include "includes/element.h"
+#include "containers/global_pointers_vector.h"
+
+namespace Kratos
+{
+
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, std::vector<Element::Pointer>, NEIGHBOURS)
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, double, SMOOTHING_LENGTH)
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, Matrix, GRADIENT_CORRECTION)
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, Vector, VW_DKERNEL)
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, double, VW_KERNEL)
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, Vector, INTEGRATION_CORRECTION_VARIABLE)
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, Vector, INTEGRATION_CORRECTION_VARIABLE_OLD)
+
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, double, VOLUME)
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, Vector, BOUNDARY_NORMAL_AREA)
+
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, Vector, SPH_KERNEL_GRADIENT)
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, double, SPH_KERNEL)
+
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, Matrix, F_DEFORMATION_GRADIENT)
+
+// STABILIZATION COEFFICIENTS
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, double, PENALIZATION_COEFFICIENT)
+KRATOS_DEFINE_APPLICATION_VARIABLE(SPH_APPLICATION, double, DISSIPATION_COEFFICIENT)
+
+
+}
