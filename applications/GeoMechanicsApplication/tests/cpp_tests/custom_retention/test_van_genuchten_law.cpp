@@ -12,13 +12,14 @@
 
 #include "custom_retention/van_genuchten_law.h"
 #include "geo_mechanics_application_variables.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "gtest/gtest.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLawReturnsCloneOfCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, VanGenuchtenLawReturnsCloneOfCorrectType)
 {
     const auto law         = VanGenuchtenLaw();
     const auto p_law_clone = law.Clone();
@@ -38,9 +39,9 @@ class VanGenuchtenCalculateValuesSuite : public testing::TestWithParam<TestData>
 
 TEST_P(VanGenuchtenCalculateValuesSuite, TestValuesAreCalculatedCorrectly)
 {
-    const auto test_data = GetParam();
-    auto       law       = VanGenuchtenLaw();
-    Properties properties;
+    const auto& test_data = GetParam();
+    auto        law       = VanGenuchtenLaw();
+    Properties  properties;
     properties.SetValue(SATURATED_SATURATION, 0.9);
     properties.SetValue(RESIDUAL_SATURATION, 0.1);
     properties.SetValue(MINIMUM_RELATIVE_PERMEABILITY, 0.05);
@@ -72,7 +73,7 @@ INSTANTIATE_TEST_SUITE_P(
         TestData{.variable = DERIVATIVE_OF_SATURATION, .expected_value = -0.15050611026881838, .input_pressure = 1.5},
         TestData{.variable = RELATIVE_PERMEABILITY, .expected_value = 0.28755984470352691, .input_pressure = 1.5}));
 
-KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLawChecksInputParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, VanGenuchtenLawChecksInputParameters)
 {
     Properties properties;
     properties.SetId(1);
