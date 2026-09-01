@@ -39,8 +39,8 @@ class VanGenuchtenCalculateValuesSuite : public testing::TestWithParam<TestData>
 
 TEST_P(VanGenuchtenCalculateValuesSuite, TestValuesAreCalculatedCorrectly)
 {
-    const auto& test_data = GetParam();
-    auto        law       = VanGenuchtenLaw();
+    const auto& r_test_data = GetParam();
+    auto        law         = VanGenuchtenLaw();
     Properties  properties;
     properties.SetValue(SATURATED_SATURATION, 0.9);
     properties.SetValue(RESIDUAL_SATURATION, 0.1);
@@ -50,12 +50,12 @@ TEST_P(VanGenuchtenCalculateValuesSuite, TestValuesAreCalculatedCorrectly)
     properties.SetValue(VAN_GENUCHTEN_GL, 1.5);
     auto retention_law_parameters = RetentionLaw::Parameters{properties};
 
-    retention_law_parameters.SetFluidPressure(test_data.input_pressure);
+    retention_law_parameters.SetFluidPressure(r_test_data.input_pressure);
     double value = 0.0;
-    EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, test_data.variable, value),
-                     test_data.expected_value)
-        << "Incorrect value for variable = " << test_data.variable.Name()
-        << " and input pressure = " << test_data.input_pressure;
+    EXPECT_DOUBLE_EQ(law.CalculateValue(retention_law_parameters, r_test_data.variable, value),
+                     r_test_data.expected_value)
+        << "Incorrect value for variable = " << r_test_data.variable.Name()
+        << " and input pressure = " << r_test_data.input_pressure;
 }
 
 INSTANTIATE_TEST_SUITE_P(
