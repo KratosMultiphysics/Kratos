@@ -201,7 +201,6 @@ KRATOS_TEST_CASE_IN_SUITE(
     const IndexType n_div = 20; 
     auto patch_cache = BuildPatchCaches(patches_id, r_model_part, n_div);
 
-    KRATOS_WATCH(patch_cache.size())
 
     KRATOS_EXPECT_EQ(patch_cache.size(), 2);
 
@@ -565,6 +564,24 @@ KRATOS_TEST_CASE_IN_SUITE(
     // (since u=u_max means right edge for your flat surface)
     // We also check it's near z-plane of the surface.
     KRATOS_EXPECT_NEAR(intersection_xyz[2], point_inside_xyz[2], 1e-8);
+
+    // Check a diagonal segment intersecting the upper-right parameter-space corner.
+    CoordinatesArrayType diagonal_outside_xyz = point_inside_xyz;
+    diagonal_outside_xyz[0] += 2.0;
+    diagonal_outside_xyz[1] += 2.0;
+
+    CoordinatesArrayType diagonal_intersection_local = ZeroVector(3);
+    const bool diagonal_found =
+        FindTriangleSegmentSurfaceIntersectionWithBisection(
+            r_master_geom,
+            point_inside_xyz,
+            diagonal_outside_xyz,
+            initial_guess,
+            diagonal_intersection_local);
+
+    KRATOS_EXPECT_TRUE(diagonal_found);
+    KRATOS_EXPECT_NEAR(diagonal_intersection_local[0], u_max, 1e-4);
+    KRATOS_EXPECT_NEAR(diagonal_intersection_local[1], v_max, 1e-4);
 }
 
 } // namespace Kratos::Testing
