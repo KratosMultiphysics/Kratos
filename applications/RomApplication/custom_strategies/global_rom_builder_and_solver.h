@@ -463,6 +463,8 @@ protected:
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
     bool mRightRomBasisInitialized = false;
+    int mNumberOfHromWeight;
+    int mActiveIndex;
 
     ///@}
     ///@name Protected operators
@@ -480,6 +482,8 @@ protected:
         mNodalDofs = ThisParameters["nodal_unknowns"].size();
         mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
         mMonotonicityPreservingFlag = ThisParameters["rom_bns_settings"]["monotonicity_preserving"].GetBool();
+        mActiveIndex = ThisParameters["weight_vector_index"].GetInt();
+        mNumberOfHromWeight = ThisParameters["number_of_hrom_weights"].GetInt();
 
         // Set up a map with key the variable key and value the correct row in ROM basis
         IndexType k = 0;
@@ -509,7 +513,7 @@ protected:
             if (p_element->Has(HROM_WEIGHT)) {
                 element_queue.enqueue(std::move(p_element));
             } else {
-                p_element->SetValue(HROM_WEIGHT, 1.0);
+                p_element->SetValue(HROM_WEIGHT, Vector(mNumberOfHromWeight, 1.0));
             }
         });
 
@@ -521,7 +525,7 @@ protected:
             if (p_condition->Has(HROM_WEIGHT)) {
                 condition_queue.enqueue(std::move(p_condition));
             } else {
-                p_condition->SetValue(HROM_WEIGHT, 1.0);
+                p_condition->SetValue(HROM_WEIGHT, Vector(mNumberOfHromWeight, 1.0));
             }
         });
 
@@ -711,7 +715,7 @@ protected:
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //Get HROM weight and multiply it by its contribution
-                    const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT) : 1.0;
+                    const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT)[mActiveIndex] : 1.0;
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;
 
@@ -730,7 +734,7 @@ protected:
                     pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //Get HROM weight and multiply it by its contribution
-                    const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT) : 1.0;
+                    const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT)[mActiveIndex] : 1.0;
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;
 
@@ -832,6 +836,8 @@ private:
     EigenDynamicVector mEigenRomB;
     Matrix mPhiGlobal;
     bool mMonotonicityPreservingFlag;
+
+
 
     ///@}
     ///@name Private operations

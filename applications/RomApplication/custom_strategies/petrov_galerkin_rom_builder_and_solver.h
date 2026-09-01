@@ -62,7 +62,7 @@ namespace Kratos
  * @brief Current class provides an implementation for PetrovGalerkinROM builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual) and projected onto the ROM LEFT BASIS.
  * The LHS is constituted by first multiplying the Jacobian or its approximation with the ROM RIGHT BASIS
- * and then projecting it onto the ROM LEFT BASIS, yielding a rectangular system (ROM size) that is then 
+ * and then projecting it onto the ROM LEFT BASIS, yielding a rectangular system (ROM size) that is then
  * solved using the QR decomposition.
  * Degrees of freedom are reordered putting the restrained degrees of freedom at
  * the end of the system ordered in reverse order with respect to the DofSet (as for the FOM).
@@ -116,7 +116,7 @@ public:
     typedef LocalSystemVectorType RomSystemVectorType;
 
     //Distributed, dense
-    typedef RomSystemMatrixType PetrovGalerkinSystemMatrixType; 
+    typedef RomSystemMatrixType PetrovGalerkinSystemMatrixType;
     typedef RomSystemVectorType PetrovGalerkinSystemVectorType;
     //      ^ Change this to a distributed dense type
 
@@ -133,7 +133,7 @@ public:
     explicit PetrovGalerkinROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters)
-        : ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver) 
+        : ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
     {
         // Validate and assign defaults
         Parameters this_parameters_copy = ThisParameters.Clone();
@@ -197,8 +197,8 @@ public:
         }
 #endif
         KRATOS_CATCH("");
-    } 
-    
+    }
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -230,7 +230,7 @@ public:
         return default_parameters;
     }
 
-    static std::string Name() 
+    static std::string Name()
     {
         return "petrov_galerkin_rom_builder_and_solver";
     }
@@ -378,7 +378,7 @@ protected:
     };
 
     /**
-     * Builds the reduced system of equations on rank 0 
+     * Builds the reduced system of equations on rank 0
      */
     void BuildROM(
         typename TSchemeType::Pointer pScheme,
@@ -409,7 +409,7 @@ protected:
         if(!r_elements.empty())
         {
             std::tie(rA, rb) =
-            block_for_each<SystemSumReducer>(r_elements, assembly_tls_container, 
+            block_for_each<SystemSumReducer>(r_elements, assembly_tls_container,
                 [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
             {
                 return CalculateLocalContributionPetrovGalerkin(r_element, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -425,7 +425,7 @@ protected:
             PetrovGalerkinSystemVectorType bconditions;
 
             std::tie(aconditions, bconditions) =
-            block_for_each<SystemSumReducer>(r_conditions, assembly_tls_container, 
+            block_for_each<SystemSumReducer>(r_conditions, assembly_tls_container,
                 [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
             {
                 return CalculateLocalContributionPetrovGalerkin(r_condition, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -453,7 +453,7 @@ protected:
         KRATOS_TRY
 
         RomSystemVectorType dxrom(this->GetNumberOfROMModes());
-        
+
         const auto solving_timer = BuiltinTimer();
         // Calculate the QR decomposition
         DenseHouseholderQRDecomposition<TDenseSpace> qr_decomposition;
@@ -487,10 +487,10 @@ protected:
     ///@}
     ///@name Protected life cycle
     ///@{
-    
+
 private:
     ///@}
-    ///@name Private operations 
+    ///@name Private operations
     ///@{
 
     /**
@@ -525,7 +525,7 @@ private:
         RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, r_geom, this->mMapPhi);
         RomAuxiliaryUtilities::GetPsiElemental(rPreAlloc.psiE, rPreAlloc.dofs, r_geom, this->mMapPhi);
 
-        const double h_rom_weight = this->mHromSimulation ? rEntity.GetValue(HROM_WEIGHT) : 1.0;
+        const double h_rom_weight = this->mHromSimulation ? rEntity.GetValue(HROM_WEIGHT)[this->mActiveIndex] : 1.0;
 
         noalias(rPreAlloc.aux) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
         noalias(rPreAlloc.romA) = prod(trans(rPreAlloc.psiE), rPreAlloc.aux) * h_rom_weight;
@@ -546,4 +546,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-

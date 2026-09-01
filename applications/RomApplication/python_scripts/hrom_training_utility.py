@@ -49,6 +49,7 @@ class HRomTrainingUtility(object):
         self.include_condition_parents = settings["include_condition_parents"].GetBool()
         self.num_of_right_rom_dofs = self.rom_settings["number_of_rom_dofs"].GetInt()
         self.constraint_sum_weights =  settings["constraint_sum_weights"].GetBool()
+        self.range_of_elements_to_export = list(settings["range_of_elements_to_export"].GetVector())
 
         # Retrieve list of model parts from settings
         self.include_conditions_model_parts_list = settings["include_conditions_model_parts_list"].GetStringArray()
@@ -177,7 +178,12 @@ class HRomTrainingUtility(object):
             raise Exception(err_msg)
 
         file_path = (Path(path_to_store_npys) / f"Residual{self.pseudo_time}")
-        np.save(file_path, np.asarray(res_mat))
+        start, end = self.range_of_elements_to_export
+        start = int(start)
+        end = int(end)
+        if end<0:
+            end = None
+        np.save(file_path, np.asarray(res_mat)[start:end,:])
         self.pseudo_time += 1
 
 
@@ -326,7 +332,8 @@ class HRomTrainingUtility(object):
             "include_minimum_condition": false,
             "include_condition_parents": false,
             "constraint_sum_weights": true,
-            "svd_type": "numpy_rsvd"
+            "svd_type": "numpy_rsvd",
+            "range_of_elements_to_export": []
         }""")
         return default_settings
 

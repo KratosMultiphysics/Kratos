@@ -115,7 +115,7 @@ class RomDatabase(object):
         Returns:
             str: SHA-256 hash of the parameters.
         """
-        params_str = '_'.join(str(arg) if isinstance(arg, str) else f"{arg:.10f}" if isinstance(arg, float) else str(arg) for arg in args)
+        params_str = '_'.join(str(arg) if isinstance(arg, str) else f"{arg:.15f}" if isinstance(arg, float) else str(arg) for arg in args)
         return hashlib.sha256(params_str.encode()).hexdigest()
 
     def get_hashed_file_name_for_table(self, table_name, mu):

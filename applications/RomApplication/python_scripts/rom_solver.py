@@ -25,7 +25,9 @@ def CreateSolver(cls, model, custom_settings):
                 "rom_settings": {
                     "nodal_unknowns": [],
                     "number_of_rom_dofs": 0,
-                    "rom_bns_settings": {}
+                    "rom_bns_settings": {},
+                    "weight_vector_index": 0,
+                    "number_of_hrom_weights": 1
                 }
             }""")
             default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -90,7 +92,7 @@ def CreateSolver(cls, model, custom_settings):
                 n_rom_dofs = self.settings["rom_settings"]["number_of_rom_dofs"].GetInt()
                 if not n_rom_dofs > 0:
                     err_msg = "\'number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
-                    raise Exception(err_msg)                
+                    raise Exception(err_msg)
 
             # Return the validated ROM parameters
             return self.settings["rom_settings"], projection_strategy

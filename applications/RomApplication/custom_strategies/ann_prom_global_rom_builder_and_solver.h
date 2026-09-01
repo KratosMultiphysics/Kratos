@@ -8,7 +8,7 @@
 //                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Nicolas Sibuet, Sebastian Ares de Parga
-//                  
+//
 //
 
 #pragma once
@@ -216,7 +216,7 @@ public:
     {
         return mNumberOfRomModes;
     }
-    
+
     bool GetMonotonicityPreservingFlag() const noexcept
     {
         return mMonotonicityPreservingFlag;
@@ -277,7 +277,7 @@ public:
     void MonotonicityPreserving(
         TSystemMatrixType& rA,
         TSystemVectorType& rB
-    ) 
+    )
     {
         const auto& r_dof_set = BaseType::GetDofSet();
         Vector dofs_values = ZeroVector(r_dof_set.size());
@@ -329,7 +329,7 @@ public:
         BaseBuilderAndSolverType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
         }
 
-    
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -506,7 +506,7 @@ protected:
             if (p_element->Has(HROM_WEIGHT)) {
                 element_queue.enqueue(std::move(p_element));
             } else {
-                p_element->SetValue(HROM_WEIGHT, 1.0);
+                p_element->SetValue(HROM_WEIGHT, Vector(mNumberOfHromWeight, 1.0));
             }
         });
 
@@ -518,7 +518,7 @@ protected:
             if (p_condition->Has(HROM_WEIGHT)) {
                 condition_queue.enqueue(std::move(p_condition));
             } else {
-                p_condition->SetValue(HROM_WEIGHT, 1.0);
+                p_condition->SetValue(HROM_WEIGHT, Vector(mNumberOfHromWeight, 1.0));
             }
         });
 
@@ -543,7 +543,7 @@ protected:
 
         KRATOS_CATCH("")
     }
-    
+
     static DofQueue ExtractDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart)
@@ -624,7 +624,7 @@ protected:
     }
 
     /**
-     * Builds and projects the reduced system of equations 
+     * Builds and projects the reduced system of equations
      */
     virtual void BuildAndProjectROM(
         typename TSchemeType::Pointer pScheme,
@@ -660,7 +660,7 @@ protected:
     }
 
     /**
-     * @brief Function to perform the build of the LHS and RHS multiplied by its corresponding hrom weight. 
+     * @brief Function to perform the build of the LHS and RHS multiplied by its corresponding hrom weight.
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param A The LHS matrix
@@ -708,7 +708,7 @@ protected:
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //Get HROM weight and multiply it by its contribution
-                    const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT) : 1.0;
+                    const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT)[mActiveIndex] : 1.0;
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;
 
@@ -727,7 +727,7 @@ protected:
                     pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //Get HROM weight and multiply it by its contribution
-                    const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT) : 1.0;
+                    const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT)[mActiveIndex] : 1.0;
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;
 
@@ -745,7 +745,7 @@ protected:
     }
 
     /**
-     * Projects the reduced system of equations 
+     * Projects the reduced system of equations
      */
     virtual void ProjectROM(
         ModelPart &rModelPart,
@@ -776,18 +776,18 @@ protected:
         }
 
         SetFixedDofsROMBasisToZero();
-        
+
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
         Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
-        
+
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
         // Compute the matrix multiplication
         mEigenRomA = eigen_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
         mEigenRomB = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
-        
+
         KRATOS_CATCH("")
     }
 
@@ -826,7 +826,7 @@ protected:
             KRATOS_INFO("AnnPromGlobalROMBuilderAndSolver") << "Linear system to be solved by QR is not invertible" << std::endl;
         }
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
-        
+
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
 
@@ -834,14 +834,14 @@ protected:
         const auto backward_projection_timer = BuiltinTimer();
 
         RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(r_xRom+r_dxRom,xNew, mPhiGlobal, svdPhiMatrices, nnLayers, refSnapshot);
-        
+
         GetDxAndUpdateXBase(xNew, r_xBase, rDx);
         KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         r_xRomTotal = r_xRom+r_dxRom;
 
         r_root_mp.SetValue(UPDATE_PHI_EFFECTIVE_BOOL, false);
-        
+
         KRATOS_CATCH("")
     }
 
@@ -854,7 +854,7 @@ protected:
         rxBase = rx;
     }
 
-    void SetFixedDofsROMBasisToZero() 
+    void SetFixedDofsROMBasisToZero()
     {
 
         const auto& r_dof_set = BaseBuilderAndSolverType::GetDofSet();
@@ -879,16 +879,18 @@ protected:
     ///@name Protected life cycle
     ///@{
 private:
-    ///@name Private member variables 
+    ///@name Private member variables
     ///@{
-        
+
     SizeType mNumberOfRomModes;
     EigenDynamicMatrix mEigenRomA;
     EigenDynamicVector mEigenRomB;
     bool mMonotonicityPreservingFlag;
+    int mNumberOfHromWeight{1}; //Later on, impose this number during construction of the RomB&S
+    int mActiveIndex{0};
 
     ///@}
-    ///@name Private operations 
+    ///@name Private operations
     ///@{
 
     ///@}
