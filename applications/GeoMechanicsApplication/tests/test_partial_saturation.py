@@ -275,7 +275,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                 output_data,
                 plot_times=expected_results_at_times.keys(),
                 test_name="B6",
-                time_strings=["3608", "7241", "10,82*10\\^3", "14,40*10\\^3"],
+                time_strings=["3600", "7200", "10,80*10\\^3", "14,40*10\\^3"],
             )
             plot_retention_law_characteristics(
                 simulation.model.GetModelPart("PorousDomain.sandfine").Properties[1],
@@ -288,9 +288,9 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             reader, output_data, expected_results_at_times, variable_name
         )
 
-    @KratosUnittest.skip(
-        "This test is very sensitive and gives different results depending on e.g. compiler/os. Therefore it's skipped until the test is stabilized."
-    )
+    # @KratosUnittest.skip(
+    #     "This test is very sensitive and gives different results depending on e.g. compiler/os. Therefore it's skipped until the test is stabilized."
+    # )
     def test_infiltration_from_top_boundary_B10(self):
         file_path = test_helper.get_file_path(
             os.path.join(
@@ -420,9 +420,9 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             reader, output_data, expected_results_at_times, variable_name
         )
 
-    @KratosUnittest.skip(
-        "This test is very sensitive and gives different results depending on e.g. compiler/os. Therefore it's skipped until the test is stabilized."
-    )
+    # @KratosUnittest.skip(
+    #     "This test is very sensitive and gives different results depending on e.g. compiler/os. Therefore it's skipped until the test is stabilized."
+    # )
     def test_infiltration_from_top_boundary_O6(self):
         file_path = test_helper.get_file_path(
             os.path.join(
@@ -591,9 +591,10 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                     )
 
         expected_water_pressures = os.path.join(
-            file_path, "expected_water_pressures.csv"
+            file_path, "..", "common", "expected_water_pressures.csv"
         )
 
+        time_strings=["3600", "7200", "10,80*10\\^3", "14,40*10\\^3"],
         if os.path.exists(expected_water_pressures) and test_name:
             for time, color in zip(time_strings, colors[1:]):
                 with open(
@@ -603,7 +604,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                     reader = csv.DictReader(csv_file, skipinitialspace=True)
                     data_points = [
                         (
-                            float(row[f"{test_name}_{time} s "]),
+                            float(row[f"{test_name}_{time}s"]),
                             -1.0 * float(row["Y coordinate [m]"]),
                         )
                         for row in reader
