@@ -1,5 +1,7 @@
 #include "testing/testing.h"
+#include "custom_utilities/brep_clipper_utilities.h"
 #include "custom_utilities/iga_mapping_intersection_utilities.h"
+#include "custom_utilities/mapping_triangulation_utilities.h"
 #include "geometries/nurbs_surface_geometry.h"
 
 #include <vector>
@@ -582,6 +584,36 @@ KRATOS_TEST_CASE_IN_SUITE(
     KRATOS_EXPECT_TRUE(diagonal_found);
     KRATOS_EXPECT_NEAR(diagonal_intersection_local[0], u_max, 1e-4);
     KRATOS_EXPECT_NEAR(diagonal_intersection_local[1], v_max, 1e-4);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(
+    MappingTriangulationUtilitiesPreserveTriangularHole,
+    KratosMappingApplicationSerialTestSuite)
+{
+    const Clipper2Lib::Paths64 subject_paths{{
+        {0, 0}, {20, 0}, {0, 20}}};
+    const Clipper2Lib::Paths64 outer_paths = subject_paths;
+    const Clipper2Lib::Paths64 inner_paths{{
+        {3, 3}, {7, 3}, {5, 5}}};
+
+    const auto trimmed_region =
+        BrepClipperUtilities::ClipPathsWithTrimmedDomain(
+            subject_paths, outer_paths, inner_paths);
+
+    std::vector<Matrix> triangles;
+    MappingTriangulationUtilities::TriangulateTrimmedRegion(
+        trimmed_region, 1.0, triangles);
+
+    double triangulated_area = 0.0;
+    for (const auto& r_triangle : triangles) {
+        triangulated_area += 0.5 * std::abs(
+            (r_triangle(1, 0) - r_triangle(0, 0)) *
+                (r_triangle(2, 1) - r_triangle(0, 1)) -
+            (r_triangle(2, 0) - r_triangle(0, 0)) *
+                (r_triangle(1, 1) - r_triangle(0, 1)));
+    }
+
+    KRATOS_EXPECT_NEAR(triangulated_area, 196.0, 1e-12);
 }
 
 } // namespace Kratos::Testing

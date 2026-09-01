@@ -192,7 +192,8 @@ PolygonType ClipTriangleWithRectangle(
 }
 
 /*
- * Triangulates an ordered polygon using a fan while discarding degenerate triangles.
+ * Triangulates a simple ordered polygon using ear clipping while discarding
+ * degenerate triangles.
  * rPolygon: Polygon reordered in place when its orientation is clockwise.
  * rTriangles: Generated triangles appended to this container.
  * AreaTolerance: Minimum area required to retain a generated triangle.
@@ -209,11 +210,67 @@ void TriangulatePolygon(
         std::reverse(rPolygon.begin(), rPolygon.end());
     }
 
-    for (std::size_t i = 1; i + 1 < rPolygon.size(); ++i) {
-        TriangleType triangle{{rPolygon[0], rPolygon[i], rPolygon[i + 1]}};
-        if (TriangleArea(triangle) > AreaTolerance) {
-            rTriangles.push_back(std::move(triangle));
+    PolygonType remaining_vertices = rPolygon;
+    while (remaining_vertices.size() > 3) {
+        bool ear_was_found = false;
+        for (std::size_t i = 0; i < remaining_vertices.size(); ++i) {
+            const std::size_t previous_index =
+                (i + remaining_vertices.size() - 1) % remaining_vertices.size();
+            const std::size_t next_index = (i + 1) % remaining_vertices.size();
+            const auto& r_previous = remaining_vertices[previous_index];
+            const auto& r_current = remaining_vertices[i];
+            const auto& r_next = remaining_vertices[next_index];
+
+            const double cross_product =
+                (r_current[0] - r_previous[0]) *
+                    (r_next[1] - r_current[1]) -
+                (r_current[1] - r_previous[1]) *
+                    (r_next[0] - r_current[0]);
+            if (cross_product <= 2.0 * AreaTolerance) {
+                continue;
+            }
+
+            const auto is_inside_ear = [&r_previous, &r_current, &r_next,
+                AreaTolerance](const CoordinatesArrayType& rPoint) {
+                const auto edge_cross = [&rPoint](
+                    const CoordinatesArrayType& rFirst,
+                    const CoordinatesArrayType& rSecond) {
+                    return (rSecond[0] - rFirst[0]) *
+                               (rPoint[1] - rFirst[1]) -
+                           (rSecond[1] - rFirst[1]) *
+                               (rPoint[0] - rFirst[0]);
+                };
+                return edge_cross(r_previous, r_current) >= -AreaTolerance &&
+                       edge_cross(r_current, r_next) >= -AreaTolerance &&
+                       edge_cross(r_next, r_previous) >= -AreaTolerance;
+            };
+
+            bool contains_other_vertex = false;
+            for (std::size_t j = 0; j < remaining_vertices.size(); ++j) {
+                if (j != previous_index && j != i && j != next_index &&
+                    is_inside_ear(remaining_vertices[j])) {
+                    contains_other_vertex = true;
+                    break;
+                }
+            }
+            if (contains_other_vertex) {
+                continue;
+            }
+
+            rTriangles.push_back({{r_previous, r_current, r_next}});
+            remaining_vertices.erase(remaining_vertices.begin() + i);
+            ear_was_found = true;
+            break;
         }
+
+        KRATOS_ERROR_IF_NOT(ear_was_found)
+            << "Failed to find an ear while triangulating a simple polygon.\n";
+    }
+
+    TriangleType last_triangle{{
+        remaining_vertices[0], remaining_vertices[1], remaining_vertices[2]}};
+    if (TriangleArea(last_triangle) > AreaTolerance) {
+        rTriangles.push_back(std::move(last_triangle));
     }
 }
 
@@ -269,11 +326,84 @@ void TriangulateTrimmedRegion(
     const double Factor,
     std::vector<Matrix>& rTriangles)
 {
+    if (rTrimmedRegion.empty()) {
+        return;
+    }
+
+    std::vector<std::int64_t> strip_boundaries;
+    std::int64_t minimum_y = std::numeric_limits<std::int64_t>::max();
+    std::int64_t maximum_y = std::numeric_limits<std::int64_t>::lowest();
     for (const auto& r_path : rTrimmedRegion) {
-        const double path_area = std::abs(Clipper2Lib::Area(r_path));
-        if (r_path.size() >= 3 && path_area > 0.0) {
-            BrepTrimmingUtilities<false>::Triangulate_OPT(
-                r_path, rTriangles, Factor, path_area);
+        for (const auto& r_point : r_path) {
+            strip_boundaries.push_back(r_point.x);
+            minimum_y = std::min(minimum_y, r_point.y);
+            maximum_y = std::max(maximum_y, r_point.y);
+        }
+    }
+
+    std::sort(strip_boundaries.begin(), strip_boundaries.end());
+    strip_boundaries.erase(
+        std::unique(strip_boundaries.begin(), strip_boundaries.end()),
+        strip_boundaries.end());
+
+    if (strip_boundaries.size() < 2 || minimum_y >= maximum_y) {
+        return;
+    }
+
+    for (std::size_t i = 0; i + 1 < strip_boundaries.size(); ++i) {
+        const std::int64_t left = strip_boundaries[i];
+        const std::int64_t right = strip_boundaries[i + 1];
+        if (left == right) {
+            continue;
+        }
+
+        const Clipper2Lib::Rect64 strip_rectangle(
+            left, minimum_y, right, maximum_y);
+        Clipper2Lib::Clipper64 strip_clipper;
+        strip_clipper.AddSubject(rTrimmedRegion);
+        strip_clipper.AddClip(
+            Clipper2Lib::Paths64{strip_rectangle.AsPath()});
+
+        Clipper2Lib::Paths64 strip_regions;
+        strip_clipper.Execute(
+            Clipper2Lib::ClipType::Intersection,
+            Clipper2Lib::FillRule::NonZero,
+            strip_regions);
+
+        for (const auto& r_strip_region : strip_regions) {
+            const double region_area = std::abs(
+                Clipper2Lib::Area(r_strip_region));
+            if (r_strip_region.size() >= 3 && region_area > 0.0) {
+                PolygonType strip_polygon;
+                strip_polygon.reserve(r_strip_region.size());
+                for (const auto& r_point : r_strip_region) {
+                    const auto point =
+                        BrepTrimmingUtilities<false>::IntPointToDoublePoint(
+                            r_point, Factor);
+                    strip_polygon.push_back(
+                        CoordinatesArrayType{point[0], point[1], 0.0});
+                }
+
+                const double coordinate_tolerance =
+                    std::numeric_limits<double>::epsilon() *
+                    std::max(1.0, Factor * std::sqrt(region_area));
+                RemoveDegenerateVertices(
+                    strip_polygon, coordinate_tolerance);
+
+                std::vector<TriangleType> strip_triangles;
+                TriangulatePolygon(
+                    strip_polygon,
+                    strip_triangles,
+                    coordinate_tolerance * coordinate_tolerance);
+                for (const auto& r_triangle : strip_triangles) {
+                    Matrix triangle(3, 2);
+                    for (std::size_t j = 0; j < 3; ++j) {
+                        triangle(j, 0) = r_triangle[j][0];
+                        triangle(j, 1) = r_triangle[j][1];
+                    }
+                    rTriangles.push_back(std::move(triangle));
+                }
+            }
         }
     }
 }
