@@ -39,6 +39,7 @@ namespace Kratos
         // create coupling conditions on interface depending on the formulation
         const bool is_origin_iga = mParameters["is_origin_iga"].GetBool();
         const bool is_surface_mapping = mParameters["is_surface_mapping"].GetBool();
+        const bool write_triangles_to_file = mParameters["write_triangles_to_file"].GetBool();
 
         KRATOS_ERROR_IF(is_surface_mapping && !is_origin_iga)
             << "Surface mapping with this modeler requires the origin ModelPart to be IGA.\n"
@@ -132,7 +133,8 @@ namespace Kratos
                 coupling_model_part, 
                 is_origin_iga,
                 patch_cache,
-                search_radius);
+                search_radius,
+                write_triangles_to_file);
         }
     }
 
