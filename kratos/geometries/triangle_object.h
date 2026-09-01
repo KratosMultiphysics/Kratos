@@ -11,6 +11,8 @@
 //
 
 // System includes
+#include "includes/node.h"
+#include "geometries/geometry.h"
 
 // External includes
 
