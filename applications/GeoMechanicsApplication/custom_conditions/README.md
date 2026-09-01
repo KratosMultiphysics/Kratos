@@ -185,11 +185,11 @@ iteration loop:
     solve non linear iteration
     ...
 
-    if seepage nodes with negative pressure (under water):
+    if seepage nodes with negative pressure (water present):
         switch node with the most negative pressure to Dirichlet -> p = 0 & p = fixed
         has_switched = true
-    else if seepage nodes with negative flow (inflow):
-        switch node with the most negative flow to Neumann -> p = free and flow = 0
+    else if seepage nodes with negative flow (highest inflow):
+        switch node with the most negative flow to Neumann -> p = free & flow = 0
         has_switched = true
     
     if has_switched:
@@ -199,10 +199,10 @@ iteration loop:
 
 This boundary will be supported for transient and steady-state groundwaterflow calculations and can be extended to coupled displacement/pressure (UPw) computations.
 
-**Note that functionality for the seepage boundary is still to be implemented and only a prototype is built at this point in time** 
+**Note that functionality for the seepage boundary is still to be implemented. Only a prototype is built at this point in time** 
 
 ## Validation
 The following validation cases will be considered for this functionality (links to be added when the validation cases are added to the test suite):
 - A test case where a fluid flux is imposed on the left boundary, leading to inflow on the right seepage boundary. This should lead to a full Dirichlet condition ($p=0$)
 - A test case where suction is imposed, leading to a the seepage boundary exhibiting the behavior of a pure zero-flux Neumann boundary
-- The Muskat case, which has a seepage boundary for which both Dirichlet and Neumann behavior is exhibited on the same seepage boundary.
+- The Muskat case, which has a seepage boundary for which both Dirichlet and Neumann behavior is exhibited on the same seepage boundary. This test should be performed for both steady-state and transient conditions.
