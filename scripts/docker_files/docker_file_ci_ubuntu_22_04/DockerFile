@@ -30,7 +30,7 @@ RUN wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCT
     rm -rf /var/lib/apt/lists/*
 
 # ====================================================================
-# 3: Core C++ and Math Dependencies
+# 3: Apt-Get Dependencies
 # ====================================================================
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
     sudo \
@@ -39,9 +39,10 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends \
     libomp-18-dev \
     cmake \
     gfortran \
+    gfortran-14 \
     git \
-    intel-oneapi-compiler-dpcpp-cpp \
-    intel-oneapi-mkl-devel \
+    intel-oneapi-compiler-dpcpp-cpp=2024.1.0-963 \
+    intel-oneapi-mkl-devel=2024.1.0-691 \
     libboost-dev \
     libhdf5-dev \
     libhdf5-openmpi-dev \
@@ -92,7 +93,21 @@ RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_5
     rm -rf /tmp/mmg_5_5_1 /tmp/ParMmg_5ffc6ad
 
 # ====================================================================
-# 6: Standalone Downloads (Boost)
+# 6: KaHIP from Source
+# ====================================================================
+RUN git clone --depth 1 https://github.com/KaHIP/KaHIP.git /tmp/KaHIP && \
+    mkdir /external_libraries/KaHIP/ && \
+    cd /tmp/KaHIP && \
+    bash ./compile_withcmake.sh \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DNONATIVEOPTIMIZATIONS=ON \
+        -DCMAKE_INSTALL_PREFIX="/external_libraries/KaHIP" \
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON && \
+    cp -r ./deploy /external_libraries/KaHIP && \
+    rm -rf /tmp/KaHIP
+
+# ====================================================================
+# 7: Standalone Downloads (Boost)
 # ====================================================================
 RUN mkdir -p /workspace/boost && \
     wget -P /workspace/boost https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz && \
@@ -100,7 +115,7 @@ RUN mkdir -p /workspace/boost && \
     rm /workspace/boost/boost_1_87_0.tar.gz
 
 # ====================================================================
-# 7: Final Cleanup
+# 8: Final Cleanup
 # ====================================================================
 RUN apt-get -y remove \
         gnupg2 \
