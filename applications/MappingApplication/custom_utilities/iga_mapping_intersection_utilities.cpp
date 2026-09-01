@@ -58,18 +58,14 @@ bool RecoverUnprojectedTriangleIntersection(
     const double SearchRadius,
     std::vector<CoordinatesArrayType>& rPolygon);
 
-/**
- * @brief Writes the three vertices of a parametric triangle and its BRep patch ID.
- */
+// Writes the three vertices of a parametric triangle and its BRep patch ID.
 template<class TTriangleType>
 void WriteParametricTriangleToTextFile(
     std::ostream& rOutput,
     const TTriangleType& rTriangle,
     const std::size_t BrepId);
 
-/**
- * @brief Maps a parametric triangle to physical space and writes its vertices.
- */
+// Maps a parametric triangle to physical space and writes its vertices.
 template<class TTriangleType>
 void WritePhysicalTriangleToTextFile(
     std::ostream& rOutput,
@@ -78,10 +74,8 @@ void WritePhysicalTriangleToTextFile(
 
 } // unnamed namespace
 
-/**
- * @brief Pairs each FEM curve condition with its closest projectable IGA curve.
- * @details The resulting pairs are stored as coupling geometries in the result model part.
- */
+// Pairs each FEM curve condition with its closest projectable IGA curve. The
+// resulting pairs are stored as coupling geometries in the result model part.
 void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnCurve(
     ModelPart& rModelPartDomainA,
     ModelPart& rModelPartDomainB,
@@ -128,9 +122,7 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnCurve(
     }
 }
 
-/**
- * @brief Creates integration-point coupling conditions on previously paired IGA and FEM curves.
- */
+// Creates integration-point coupling conditions on previously paired IGA and FEM curves.
 void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnCurve(
     ModelPart& rModelPartCoupling,
     double Tolerance)
@@ -167,10 +159,8 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnCurve(
     }
 }
 
-/**
- * @brief Creates candidate coupling geometries between FEM surface conditions and nearby IGA patches.
- * @details A spatial cache limits the IGA patches considered for each FEM condition.
- */
+// Creates candidate coupling geometries between FEM surface conditions and nearby
+// IGA patches. A spatial cache limits the patches considered for each FEM condition.
 void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnSurface(
         ModelPart &rModelPartDomainA,
         ModelPart &rModelPartDomainB,
@@ -230,10 +220,8 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnSurface(
     }
 }
 
-/**
- * @brief Samples each IGA patch and builds spatial bins for fast projection searches.
- * @return A cache containing the sampled points, bins, and parametric-grid information for each patch.
- */
+// Samples each IGA patch and builds spatial bins for fast projection searches.
+// Returns a cache containing the sampled points, bins, and parametric-grid information.
 IgaMappingIntersectionUtilities::PatchCacheMap IgaMappingIntersectionUtilities::BuildPatchCaches(
     const std::vector<IndexType>& patches_id,
     const ModelPart& rModelPartIga,
@@ -305,10 +293,8 @@ IgaMappingIntersectionUtilities::PatchCacheMap IgaMappingIntersectionUtilities::
     return cache;
 }
 
-/**
- * @brief Finds IGA patches with sampled points near a specified physical-space location.
- * @details Returns all input patches as a fallback when the radius search finds no candidate.
- */
+// Finds IGA patches with sampled points near a specified physical-space location.
+// Returns all input patches as a fallback when the radius search finds no candidate.
 std::vector<IndexType> IgaMappingIntersectionUtilities::GetPatchesWithProbableProjection(
     const std::vector<IndexType>& patches_id,
     const PatchCacheMap& rCache,
@@ -346,10 +332,9 @@ std::vector<IndexType> IgaMappingIntersectionUtilities::GetPatchesWithProbablePr
     return out.empty() ? patches_id : out;
 }
 
-/**
- * @brief Creates surface quadrature-point coupling conditions from IGA-FEM coupling geometries.
- * @details FEM triangles are projected, clipped, subdivided at knot spans, and integrated in parameter space.
- */
+// Creates surface quadrature-point coupling conditions from IGA-FEM coupling
+// geometries. FEM triangles are projected, clipped, subdivided at knot spans,
+// and integrated in parameter space.
 void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
     ModelPart& rModelPartCoupling,
     bool origin_is_iga,
@@ -681,10 +666,8 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
     }
 }
 
-/**
- * @brief Finds a nearby cached patch sample and converts it into an initial parametric projection guess.
- * @return True when a cached point is found within the search radius; otherwise false.
- */
+// Finds a nearby cached patch sample and converts it into an initial parametric
+// projection guess. Returns true when a cached point is found within the search radius.
 bool IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
     const CoordinatesArrayType& slave_xyz,
     const GeometryType& r_master_geometry,
@@ -730,10 +713,8 @@ bool IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
     return true;
 }
 
-/**
- * @brief Checks whether projected points lie on a boundary of the NURBS parameter domain.
- * @return True for a boundary point or for points sharing the same boundary; otherwise false.
- */
+// Checks whether projected points lie on a boundary of the NURBS parameter domain.
+// Returns true for a boundary point or for points sharing the same boundary.
 bool IgaMappingIntersectionUtilities::AreProjectionsOnParameterSpaceBoundary(
     const std::vector<CoordinatesArrayType>& r_points_to_triangulate,
     const NurbsSurfaceGeometry<3, PointerVector<Node>>& r_nurbs_surface)
@@ -775,10 +756,8 @@ bool IgaMappingIntersectionUtilities::AreProjectionsOnParameterSpaceBoundary(
     return on_u_min || on_u_max || on_v_min || on_v_max;
 }
 
-/**
- * @brief Locates the patch-boundary intersection of an inside-outside segment by bisection.
- * @return True after computing the best available local intersection coordinates.
- */
+// Locates the patch-boundary intersection of an inside-outside segment by
+// bisection. Returns true after computing the best available local coordinates.
 bool IgaMappingIntersectionUtilities::FindTriangleSegmentSurfaceIntersectionWithBisection(
     const GeometryType& r_geom_master,
     const CoordinatesArrayType& r_point_inside,
@@ -822,9 +801,7 @@ bool IgaMappingIntersectionUtilities::FindTriangleSegmentSurfaceIntersectionWith
     return false;
 }
 
-/**
- * @brief Sorts parametric polygon vertices counter-clockwise around their centroid.
- */
+// Sorts parametric polygon vertices counter-clockwise around their centroid.
 void IgaMappingIntersectionUtilities::SortVerticesCounterClockwise(
     std::vector<CoordinatesArrayType>& r_vertices)
 {
@@ -859,14 +836,11 @@ void IgaMappingIntersectionUtilities::SortVerticesCounterClockwise(
 namespace
 {
 
-/**
- * @brief Writes one parametric triangle and its BRep patch ID to a text stream.
- * @details Each vertex is written on a separate line as u, v, and w, followed
- * by an empty line separating it from the next triangle.
- * @param rOutput Stream receiving the triangle coordinates.
- * @param rTriangle Container holding exactly three parametric vertices.
- * @param BrepId ID of the BRep patch containing the triangle.
- */
+// Writes one parametric triangle and its BRep patch ID to a text stream. Each
+// vertex is written on a separate line as u, v, and w, followed by an empty line.
+// rOutput: Stream receiving the triangle coordinates.
+// rTriangle: Container holding exactly three parametric vertices.
+// BrepId: ID of the BRep patch containing the triangle.
 template<class TTriangleType>
 void WriteParametricTriangleToTextFile(
     std::ostream& rOutput,
@@ -883,12 +857,10 @@ void WriteParametricTriangleToTextFile(
     rOutput << '\n';
 }
 
-/**
- * @brief Maps one parametric triangle to physical space and writes its vertices.
- * @param rOutput Stream receiving the physical triangle coordinates.
- * @param rTriangle Container holding exactly three parametric vertices.
- * @param rBrepGeometry BRep geometry used for the parameter-to-physical mapping.
- */
+// Maps one parametric triangle to physical space and writes its vertices.
+// rOutput: Stream receiving the physical triangle coordinates.
+// rTriangle: Container holding exactly three parametric vertices.
+// rBrepGeometry: BRep geometry used for the parameter-to-physical mapping.
 template<class TTriangleType>
 void WritePhysicalTriangleToTextFile(
     std::ostream& rOutput,
@@ -910,12 +882,10 @@ void WritePhysicalTriangleToTextFile(
     rOutput << '\n';
 }
 
-/**
- * @brief Adds a parametric point unless an equivalent point is already present.
- * @param rPoints Point collection that can be extended by the function.
- * @param rPoint Candidate point to insert.
- * @return True when the point is inserted and false when it is a duplicate.
- */
+// Adds a parametric point unless an equivalent point is already present.
+// rPoints: Point collection that can be extended by the function.
+// rPoint: Candidate point to insert.
+// Returns true when the point is inserted and false when it is a duplicate.
 bool AddUniquePoint(
     std::vector<CoordinatesArrayType>& rPoints,
     const CoordinatesArrayType& rPoint)
@@ -933,15 +903,12 @@ bool AddUniquePoint(
     return !already_present;
 }
 
-/**
- * @brief Checks whether a physical point lies inside the initial FEM triangle.
- * @details The test evaluates the barycentric coordinates using the initial
- * positions of the three FEM nodes and includes points on the boundary within
- * a numerical tolerance.
- * @param rPoint Physical point to test.
- * @param rFEMGeometry Three-node FEM triangle used for the containment test.
- * @return True when the point lies inside or on the triangle boundary.
- */
+// Checks whether a physical point lies inside the initial FEM triangle. The test
+// evaluates the barycentric coordinates using the initial positions of the three
+// FEM nodes and includes points on the boundary within a numerical tolerance.
+// rPoint: Physical point to test.
+// rFEMGeometry: Three-node FEM triangle used for the containment test.
+// Returns true when the point lies inside or on the triangle boundary.
 bool IsInsideInitialFEMTriangle(
     const CoordinatesArrayType& rPoint,
     const GeometryType& rFEMGeometry)
@@ -979,14 +946,12 @@ bool IsInsideInitialFEMTriangle(
            coordinate_1 + coordinate_2 <= 1.0 + inside_tolerance;
 }
 
-/**
- * @brief Adds NURBS parameter-domain corners enclosed by a FEM triangle.
- * @details The four rectangular parameter-domain corners are mapped to physical
- * space, tested against the initial FEM triangle, and added without duplicates.
- * @param rNurbsSurface NURBS surface providing the parameter domain and mapping.
- * @param rFEMGeometry FEM triangle tested for corner containment.
- * @param rPoints Parametric intersection polygon extended with enclosed corners.
- */
+// Adds NURBS parameter-domain corners enclosed by a FEM triangle. The four
+// rectangular parameter-domain corners are mapped to physical space, tested
+// against the initial FEM triangle, and added without duplicates.
+// rNurbsSurface: NURBS surface providing the parameter domain and mapping.
+// rFEMGeometry: FEM triangle tested for corner containment.
+// rPoints: Parametric intersection polygon extended with enclosed corners.
 void AddEnclosedDomainCorners(
     const NurbsSurfaceType& rNurbsSurface,
     const GeometryType& rFEMGeometry,
@@ -1009,19 +974,17 @@ void AddEnclosedDomainCorners(
     }
 }
 
-/**
- * @brief Recovers an intersection when no FEM vertex projects onto the surface.
- * @details The function adds enclosed NURBS-domain corners, samples every FEM
- * edge to find projectable interior points, and uses bisection toward both edge
- * endpoints to recover the parameter-space boundary intersections.
- * @param rMasterGeometry IGA geometry used for projection and bisection.
- * @param rFEMGeometry Three-node FEM triangle whose intersection is recovered.
- * @param rNurbsSurface NURBS surface used to add enclosed domain corners.
- * @param rPatchCache Spatial cache used to initialize surface projections.
- * @param SearchRadius Radius used when searching the projection cache.
- * @param rPolygon Recovered parametric polygon vertices.
- * @return True when at least three polygon vertices are recovered.
- */
+// Recovers an intersection when no FEM vertex projects onto the surface. The
+// function adds enclosed NURBS-domain corners, samples every FEM edge to find
+// projectable interior points, and uses bisection toward both edge endpoints to
+// recover the parameter-space boundary intersections.
+// rMasterGeometry: IGA geometry used for projection and bisection.
+// rFEMGeometry: Three-node FEM triangle whose intersection is recovered.
+// rNurbsSurface: NURBS surface used to add enclosed domain corners.
+// rPatchCache: Spatial cache used to initialize surface projections.
+// SearchRadius: Radius used when searching the projection cache.
+// rPolygon: Recovered parametric polygon vertices.
+// Returns true when at least three polygon vertices are recovered.
 bool RecoverUnprojectedTriangleIntersection(
     const GeometryType& rMasterGeometry,
     const GeometryType& rFEMGeometry,

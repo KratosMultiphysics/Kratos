@@ -25,10 +25,10 @@ namespace MappingTriangulationUtilities
 namespace
 {
 
-/**
- * @brief Computes the signed area of a polygon in the local parameter plane.
- * @param rPolygon Ordered polygon vertices in parametric coordinates.
- * @return Positive area for counter-clockwise ordering and negative area for clockwise ordering.
+/*
+ * Computes the signed area of a polygon in the local parameter plane.
+ * rPolygon: Ordered polygon vertices in parametric coordinates.
+ * Returns a positive area for counter-clockwise ordering and a negative area for clockwise ordering.
  */
 double SignedPolygonArea(const PolygonType& rPolygon)
 {
@@ -42,10 +42,10 @@ double SignedPolygonArea(const PolygonType& rPolygon)
     return 0.5 * twice_area;
 }
 
-/**
- * @brief Computes the absolute area of a triangle in the local parameter plane.
- * @param rTriangle Three triangle vertices in parametric coordinates.
- * @return Non-negative triangle area.
+/*
+ * Computes the absolute area of a triangle in the local parameter plane.
+ * rTriangle: Three triangle vertices in parametric coordinates.
+ * Returns the non-negative triangle area.
  */
 double TriangleArea(const TriangleType& rTriangle)
 {
@@ -56,10 +56,10 @@ double TriangleArea(const TriangleType& rTriangle)
             (rTriangle[1][1] - rTriangle[0][1]));
 }
 
-/**
- * @brief Removes consecutive duplicate and collinear vertices from a polygon.
- * @param rPolygon Polygon modified in place.
- * @param Tolerance Distance and collinearity tolerance.
+/*
+ * Removes consecutive duplicate and collinear vertices from a polygon.
+ * rPolygon: Polygon modified in place.
+ * Tolerance: Distance and collinearity tolerance.
  */
 void RemoveDegenerateVertices(PolygonType& rPolygon, const double Tolerance)
 {
@@ -102,14 +102,14 @@ void RemoveDegenerateVertices(PolygonType& rPolygon, const double Tolerance)
     rPolygon = std::move(unique_points);
 }
 
-/**
- * @brief Clips a polygon against one axis-aligned half-plane.
- * @param rPolygon Polygon to clip.
- * @param Direction Coordinate index: zero for u and one for v.
- * @param Boundary Coordinate value of the clipping line.
- * @param KeepGreater Whether values greater than the boundary are retained.
- * @param Tolerance Tolerance used by the inside test.
- * @return Polygon retained by the specified half-plane.
+/*
+ * Clips a polygon against one axis-aligned half-plane.
+ * rPolygon: Polygon to clip.
+ * Direction: Coordinate index: zero for u and one for v.
+ * Boundary: Coordinate value of the clipping line.
+ * KeepGreater: Whether values greater than the boundary are retained.
+ * Tolerance: Tolerance used by the inside test.
+ * Returns the polygon retained by the specified half-plane.
  */
 PolygonType ClipAgainstBoundary(
     const PolygonType& rPolygon,
@@ -164,15 +164,15 @@ PolygonType ClipAgainstBoundary(
     return clipped_polygon;
 }
 
-/**
- * @brief Clips a triangle to an axis-aligned knot-span rectangle.
- * @param rTriangle Triangle to clip in parametric coordinates.
- * @param UMin Lower u boundary.
- * @param UMax Upper u boundary.
- * @param VMin Lower v boundary.
- * @param VMax Upper v boundary.
- * @param Tolerance Clipping and degenerate-vertex tolerance.
- * @return Polygon representing the part of the triangle inside the rectangle.
+/*
+ * Clips a triangle to an axis-aligned knot-span rectangle.
+ * rTriangle: Triangle to clip in parametric coordinates.
+ * UMin: Lower u boundary.
+ * UMax: Upper u boundary.
+ * VMin: Lower v boundary.
+ * VMax: Upper v boundary.
+ * Tolerance: Clipping and degenerate-vertex tolerance.
+ * Returns the polygon representing the part of the triangle inside the rectangle.
  */
 PolygonType ClipTriangleWithRectangle(
     const TriangleType& rTriangle,
@@ -191,11 +191,11 @@ PolygonType ClipTriangleWithRectangle(
     return polygon;
 }
 
-/**
- * @brief Triangulates an ordered polygon using a fan while discarding degenerate triangles.
- * @param rPolygon Polygon reordered in place when its orientation is clockwise.
- * @param rTriangles Generated triangles appended to this container.
- * @param AreaTolerance Minimum area required to retain a generated triangle.
+/*
+ * Triangulates an ordered polygon using a fan while discarding degenerate triangles.
+ * rPolygon: Polygon reordered in place when its orientation is clockwise.
+ * rTriangles: Generated triangles appended to this container.
+ * AreaTolerance: Minimum area required to retain a generated triangle.
  */
 void TriangulatePolygon(
     PolygonType& rPolygon,
@@ -217,9 +217,9 @@ void TriangulatePolygon(
     }
 }
 
-/**
- * @brief Orders parametric polygon vertices counter-clockwise about their centroid.
- * @param rVertices Polygon vertices reordered in place.
+/*
+ * Orders parametric polygon vertices counter-clockwise about their centroid.
+ * rVertices: Polygon vertices reordered in place.
  */
 void SortVerticesCounterClockwise(PolygonType& rVertices)
 {
@@ -239,10 +239,10 @@ void SortVerticesCounterClockwise(PolygonType& rVertices)
 
 } // unnamed namespace
 
-/**
- * @brief Sorts a convex parametric polygon and triangulates it using a fan.
- * @param rPolygon Polygon sorted counter-clockwise in place.
- * @param rTriangles Generated three-vertex polygons appended to this container.
+/*
+ * Sorts a convex parametric polygon and triangulates it using a fan.
+ * rPolygon: Polygon sorted counter-clockwise in place.
+ * rTriangles: Generated three-vertex polygons appended to this container.
  */
 void TriangulatePolygonFan(
     PolygonType& rPolygon,
@@ -258,11 +258,11 @@ void TriangulatePolygonFan(
     }
 }
 
-/**
- * @brief Decomposes and triangulates a clipped region that can contain holes.
- * @param rTrimmedRegion Retained region represented by integer Clipper paths.
- * @param Factor Conversion factor between parametric and integer coordinates.
- * @param rTriangles Generated parametric triangles appended to this container.
+/*
+ * Decomposes and triangulates a clipped region that can contain holes.
+ * rTrimmedRegion: Retained region represented by integer Clipper paths.
+ * Factor: Conversion factor between parametric and integer coordinates.
+ * rTriangles: Generated parametric triangles appended to this container.
  */
 void TriangulateTrimmedRegion(
     const Clipper2Lib::Paths64& rTrimmedRegion,
@@ -278,12 +278,12 @@ void TriangulateTrimmedRegion(
     }
 }
 
-/**
- * @brief Clips candidate triangles against outer trimming loops and inner holes.
- * @param rCandidateTriangles Parametric triangles to clip.
- * @param rBrepSurface BRep surface providing the trimming loops.
- * @param Factor Conversion factor between parametric and integer coordinates.
- * @return Triangles covering only the retained trimmed region.
+/*
+ * Clips candidate triangles against outer trimming loops and inner holes.
+ * rCandidateTriangles: Parametric triangles to clip.
+ * rBrepSurface: BRep surface providing the trimming loops.
+ * Factor: Conversion factor between parametric and integer coordinates.
+ * Returns triangles covering only the retained trimmed region.
  */
 std::vector<PolygonType> ClipTrianglesWithTrimmingLoops(
     const std::vector<PolygonType>& rCandidateTriangles,
@@ -355,11 +355,11 @@ std::vector<PolygonType> ClipTrianglesWithTrimmingLoops(
     return clipped_triangles;
 }
 
-/**
- * @brief Subdivides a parametric triangle at every intersected knot span.
- * @param rOriginalTriangleCoordinates Triangle to subdivide.
- * @param pMasterGeometry Geometry whose background surface provides the knot spans.
- * @param rNewTriangles Subdivided triangles replacing the previous contents.
+/*
+ * Subdivides a parametric triangle at every intersected knot span.
+ * rOriginalTriangleCoordinates: Triangle to subdivide.
+ * pMasterGeometry: Geometry whose background surface provides the knot spans.
+ * rNewTriangles: Subdivided triangles replacing the previous contents.
  */
 void Triangulation(
     const TriangleType& rOriginalTriangleCoordinates,
