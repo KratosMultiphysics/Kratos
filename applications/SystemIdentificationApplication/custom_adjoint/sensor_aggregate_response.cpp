@@ -140,14 +140,15 @@ void SensorAggregateResponse::ClearCache() {
 
 void SensorAggregateResponse::AddSensors(std::span<const SensorResponse::Pointer> Sensors) {
         KRATOS_TRY
-            // Check requirements.
+            // Check requirements and assign design variable types.
             block_for_each(
                 Sensors,
-                [] (const auto& rp_sensor) -> void {
+                [this] (const auto& rp_sensor) -> void {
                     KRATOS_ERROR_IF_NOT(rp_sensor->GetNode()->Has(SENSOR_MEASURED_VALUE))
                         << rp_sensor->Name() << " requires SENSOR_MEASURED_VALUE";
                     KRATOS_ERROR_IF_NOT(rp_sensor->GetNode()->Has(SENSOR_NORMALIZATION_FACTOR))
                         << rp_sensor->Name() << " requires SENSOR_NORMALIZATION_FACTOR";
+                    rp_sensor->SetDesignVariableTypes(this->GetDesignVariableTypes());
                 });
 
             // Insert all sensors.
