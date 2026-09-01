@@ -189,7 +189,7 @@ $$\begin{aligned}
 \text{if Neumann condition and } p <= -\epsilon_2: & Neumann \rightarrow Dirichlet, &  p = 0
 \end{aligned}$$
 
-Here, $\epsilon_1$ and $\epsilon_2$ are tolerances to ensure numeric stability and prevent switching of Dirichlet to Neumann or vice versa due to numeric noise. In the current prototype, $\epsilon_1 = 1e-11$, while $\epsilon_2 = 0.0$. However, the precise values will need to be determined through testing. 
+Here, $\epsilon_1$ and $\epsilon_2$ are tolerances to ensure numeric stability and prevent switching of Dirichlet to Neumann or vice versa due to numeric noise. In the current prototype, $\epsilon_1 = 1 \times 10^{-11}$, while $\epsilon_2 = 0.0$. However, the precise values will need to be determined through testing. 
 
 In pseudo-code, this formulation will be enforced as follows:
 ```
