@@ -53,22 +53,48 @@ if(EIGEN3_INCLUDE_DIR)
   endif()
 else()
   # Eigen was not found on the system. Download and extract the pinned version
-  # into the build tree. Eigen is header-only, so we only populate (download +
-  # extract) and do NOT run its CMakeLists (which would build tests/examples).
+  # into the build tree. Eigen is header-only, so we only download + extract and
+  # do NOT run its CMakeLists (which would build tests/examples).
+  #
+  # This uses file(DOWNLOAD) + execute_process(tar) directly (the same pattern
+  # as the tetgen download in the root CMakeLists.txt) instead of FetchContent,
+  # because the deprecated single-argument FetchContent_Populate form is broken
+  # on some CMake versions (e.g. 3.22) and mis-parses the URL as a list.
   message(STATUS "Eigen not found on the system. Downloading Eigen ${KRATOS_EIGEN_VERSION} ...")
 
-  FetchContent_Declare(
-    eigen3
-    URL https://gitlab.com/libeigen/eigen/-/archive/${KRATOS_EIGEN_VERSION}/eigen-${KRATOS_EIGEN_VERSION}.tar.gz
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-  )
+  set(EIGEN3_DOWNLOAD_DIR "${CMAKE_CURRENT_BINARY_DIR}/external_libraries/eigen3")
+  set(EIGEN3_ARCHIVE "${EIGEN3_DOWNLOAD_DIR}/eigen-${KRATOS_EIGEN_VERSION}.tar.gz")
+  set(EIGEN3_URL "https://gitlab.com/libeigen/eigen/-/archive/${KRATOS_EIGEN_VERSION}/eigen-${KRATOS_EIGEN_VERSION}.tar.gz")
 
-  FetchContent_GetProperties(eigen3)
-  if(NOT eigen3_POPULATED)
-    FetchContent_Populate(eigen3)
+  file(MAKE_DIRECTORY "${EIGEN3_DOWNLOAD_DIR}")
+
+  if(EXISTS "${EIGEN3_ARCHIVE}")
+    message(STATUS "-- ${EIGEN3_ARCHIVE} found. unpacking...")
+  else()
+    message(STATUS "-- ${EIGEN3_ARCHIVE} not found, trying to download it from ${EIGEN3_URL}")
+    file(DOWNLOAD "${EIGEN3_URL}" "${EIGEN3_ARCHIVE}" STATUS EIGEN3_DOWNLOAD_STATUS)
+    list(GET EIGEN3_DOWNLOAD_STATUS 0 EIGEN3_DOWNLOAD_RESULT)
+    if(NOT EIGEN3_DOWNLOAD_RESULT EQUAL 0)
+      list(GET EIGEN3_DOWNLOAD_STATUS 1 EIGEN3_DOWNLOAD_ERROR)
+      message(FATAL_ERROR "Failed to download Eigen ${KRATOS_EIGEN_VERSION} from ${EIGEN3_URL}: ${EIGEN3_DOWNLOAD_ERROR}")
+    endif()
+    message(STATUS "-- ${EIGEN3_ARCHIVE} downloaded. unpacking...")
   endif()
 
-  set(EIGEN3_INCLUDE_DIR "${eigen3_SOURCE_DIR}")
+  execute_process(
+    COMMAND ${CMAKE_COMMAND} -E tar xzf "${EIGEN3_ARCHIVE}"
+    WORKING_DIRECTORY "${EIGEN3_DOWNLOAD_DIR}"
+    RESULT_VARIABLE EIGEN3_EXTRACT_RESULT
+  )
+  if(NOT EIGEN3_EXTRACT_RESULT EQUAL 0)
+    message(FATAL_ERROR "Failed to extract ${EIGEN3_ARCHIVE}")
+  endif()
+
+  # The archive extracts into a top-level "eigen-<version>" folder.
+  set(EIGEN3_INCLUDE_DIR "${EIGEN3_DOWNLOAD_DIR}/eigen-${KRATOS_EIGEN_VERSION}")
+  if(NOT EXISTS "${EIGEN3_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h")
+    message(FATAL_ERROR "Eigen ${KRATOS_EIGEN_VERSION} was downloaded but the expected headers were not found at ${EIGEN3_INCLUDE_DIR}")
+  endif()
   message(STATUS "Eigen include directory (downloaded): ${EIGEN3_INCLUDE_DIR}")
 endif()
 
