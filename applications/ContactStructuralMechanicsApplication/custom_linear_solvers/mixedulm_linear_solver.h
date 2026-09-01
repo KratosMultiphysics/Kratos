@@ -313,7 +313,7 @@ public:
         GetUPart (rB, mResidualDisp);
 
         // Solve u block
-        if (mDisp.size() != total_disp_size)
+        if (static_cast<SizeType>(mDisp.size()) != total_disp_size)
             mDisp.resize(total_disp_size, false);
         mpSolverDispBlock->Solve (mKDispModified, mDisp, mResidualDisp);
 
@@ -326,7 +326,7 @@ public:
             GetLMAPart (rB, mResidualLMActive);
 
             // LM = D⁻1*rLM
-            if (mLMActive.size() != lm_active_size)
+            if (static_cast<SizeType>(mLMActive.size()) != lm_active_size)
                 mLMActive.resize(lm_active_size, false);
             TSparseSpaceType::Mult (mKLMAModified, mResidualLMActive, mLMActive);
 
@@ -339,7 +339,7 @@ public:
             GetLMIPart (rB, mResidualLMInactive);
 
             // LM = D⁻1*rLM
-            if (mLMInactive.size() != lm_inactive_size)
+            if (static_cast<SizeType>(mLMInactive.size()) != lm_inactive_size)
                 mLMInactive.resize(lm_inactive_size, false);
             TSparseSpaceType::Mult (mKLMIModified, mResidualLMInactive, mLMInactive);
 
@@ -1381,9 +1381,10 @@ private:
      * @param InitialIndex The index corresponding to the current row in the global contribution
      * @param Ptr The nonzero terms of each column
      */
+    template<class TIndexType> // the CSR index type differs between the backends
     inline void ComputeNonZeroColumnsDispDoFs(
-        const IndexType* Index1,
-        const IndexType* Index2,
+        const TIndexType* Index1,
+        const TIndexType* Index2,
         const double* Values,
         const int CurrentRow,
         const IndexType InitialIndex,
@@ -1421,9 +1422,10 @@ private:
      * @param InitialIndex The index corresponding to the current row in the global contribution
      * @param Ptr The nonzero terms of each column
      */
+    template<class TIndexType> // the CSR index type differs between the backends
     inline void ComputeNonZeroColumnsPartialDispDoFs(
-        const IndexType* Index1,
-        const IndexType* Index2,
+        const TIndexType* Index1,
+        const TIndexType* Index2,
         const double* Values,
         const int CurrentRow,
         const IndexType InitialIndex,
@@ -1460,9 +1462,10 @@ private:
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
      */
+    template<class TIndexType> // the CSR index type differs between the backends
     inline void ComputeAuxiliaryValuesDispDoFs(
-        const IndexType* Index1,
-        const IndexType* Index2,
+        const TIndexType* Index1,
+        const TIndexType* Index2,
         const double* Values,
         const int CurrentRow,
         const IndexType InitialIndex,
@@ -1527,9 +1530,10 @@ private:
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
      */
+    template<class TIndexType> // the CSR index type differs between the backends
     inline void ComputeAuxiliaryValuesPartialDispDoFs(
-        const IndexType* Index1,
-        const IndexType* Index2,
+        const TIndexType* Index1,
+        const TIndexType* Index2,
         const double* Values,
         const int CurrentRow,
         const IndexType InitialIndex,
@@ -1662,7 +1666,7 @@ private:
         const SizeType total_size = other_dof_size + master_size + slave_inactive_size + slave_active_size;
 
         // Resize in case the size is not correct
-        if (ResidualU.size() != total_size )
+        if (static_cast<SizeType>(ResidualU.size()) != total_size )
             ResidualU.resize (total_size, false);
 
         IndexPartition<std::size_t>(other_dof_size).for_each([&](std::size_t i) {
@@ -1728,7 +1732,7 @@ private:
         if (slave_active_size > 0) {
 
             // We get the displacement residual of the active slave nodes
-            if (rResidualLMA.size() != slave_active_size )
+            if (static_cast<SizeType>(rResidualLMA.size()) != slave_active_size )
                 rResidualLMA.resize (slave_active_size, false);
 
             IndexPartition<std::size_t>(rResidualLMA.size()).for_each([&](std::size_t i) {
@@ -1785,7 +1789,7 @@ private:
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
 
         // We get the displacement residual of the active slave nodes
-        if (rResidualLMI.size() != lm_inactive_size )
+        if (static_cast<SizeType>(rResidualLMI.size()) != lm_inactive_size )
             rResidualLMI.resize (lm_inactive_size, false);
 
         IndexPartition<std::size_t>(lm_inactive_size).for_each([&](std::size_t i) {
@@ -1887,7 +1891,7 @@ private:
                 KRATOS_WARNING("Checking sparse matrix") << "Line " << i << " has no elements" << std::endl;
 
             for (std::size_t j=row_begin; j<row_end; j++) {
-                KRATOS_ERROR_IF( index2[j] > rA.size2() ) << "Array above size of A" << std::endl;
+                KRATOS_ERROR_IF( static_cast<std::size_t>(index2[j]) > static_cast<std::size_t>(rA.size2()) ) << "Array above size of A" << std::endl;
                 norm += values[j]*values[j];
             }
         }
