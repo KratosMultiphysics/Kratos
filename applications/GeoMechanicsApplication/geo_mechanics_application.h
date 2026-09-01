@@ -114,6 +114,7 @@
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
 #include "custom_constitutive/mohr_coulomb_law.h"
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff_elastoplastic_tangent_matrix.h"
+#include "custom_constitutive/piecewise_linear_moment_capacity_plane_strain_constitutive_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/reference_3d_mohr_coulomb_plane_strain_law.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
@@ -963,6 +964,7 @@ private:
     const LinearElastic3DInterfaceLaw mLinearElastic3DInterfaceLaw;
 
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
+    const PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw mPiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw;
 
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw{
         std::make_unique<InterfacePlaneStrain>()};

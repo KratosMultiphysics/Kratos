@@ -26,6 +26,8 @@ class ImposeUniformTemperatureProcess(KratosMultiphysics.Process):
             if settings["constrained"].GetBool():
                 self.process = KratosDam.DamFixTemperatureConditionProcess(model_part, settings)
             else:
+                # Preserve the legacy apply-once behavior of ApplyConstantScalarValueProcess.
+                param.AddValue("interval", KratosMultiphysics.Parameters("[0.0, 0.0]"))
                 self.process = AssignScalarVariableProcess(Model, param)
         else:
             self.process = KratosDam.DamFixTemperatureConditionProcess(model_part, settings)

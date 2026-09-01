@@ -14,11 +14,13 @@
 
 #include "processes/process.h"
 
+#include <memory> // Required for std::unique_ptr
 #include <string>
+#include <vector>
 
 namespace Kratos
 {
-
+class Model;
 class ModelPart;
 class Parameters;
 
@@ -27,14 +29,12 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyScalarConstraintTableProcess : 
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyScalarConstraintTableProcess);
 
-    ApplyScalarConstraintTableProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
+    ApplyScalarConstraintTableProcess(Model& rModel, const Parameters& rProcessSettings);
 
     ~ApplyScalarConstraintTableProcess() override = default;
 
     ApplyScalarConstraintTableProcess(const ApplyScalarConstraintTableProcess&)            = delete;
     ApplyScalarConstraintTableProcess& operator=(const ApplyScalarConstraintTableProcess&) = delete;
-
-    using ProcessUniquePointer = std::unique_ptr<Process>;
 
     void        ExecuteInitialize() override;
     void        ExecuteInitializeSolutionStep() override;
@@ -42,30 +42,35 @@ public:
     std::string Info() const override;
 
 private:
-    void MakeInternalProcess(const Parameters& rProcessSettings);
-    void MakeProcessForFluidPressureType(const Parameters&        rProcessSettings,
+    void MakeInternalProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
+    void MakeProcessForFluidPressureType(ModelPart&               rModelPart,
+                                         const Parameters&        rProcessSettings,
                                          std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeScalarConstraintProcess(const Parameters&        rProcessSettings,
+    void MakeScalarConstraintProcess(ModelPart&               rModelPart,
+                                     const Parameters&        rProcessSettings,
                                      std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForHydrostaticFluidPressure(const Parameters&        rProcessSettings,
+    void MakeProcessForHydrostaticFluidPressure(ModelPart&               rModelPart,
+                                                const Parameters&        rProcessSettings,
                                                 std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForPhreaticLine(const Parameters&        rProcessSettings,
+    void MakeProcessForPhreaticLine(ModelPart&               rModelPart,
+                                    const Parameters&        rProcessSettings,
                                     std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForPhreaticMultiLine(const Parameters&        rProcessSettings,
+    void MakeProcessForPhreaticMultiLine(ModelPart&               rModelPart,
+                                         const Parameters&        rProcessSettings,
                                          std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForPhreaticSurface(const Parameters&        rProcessSettings,
+    void MakeProcessForPhreaticSurface(ModelPart&               rModelPart,
+                                       const Parameters&        rProcessSettings,
                                        std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
+    void MakeProcessForInterpolatedLine(ModelPart&               rModelPart,
+                                        const Parameters&        rProcessSettings,
                                         std::vector<std::string> NamesOfSettingsToCopy);
-    void AppendOptionalFluidParameters(const Parameters&         rProcessSettings,
-                                       std::vector<std::string>& rNamesOfSettingsToCopy) const;
 
     template <typename TableProcessType, typename ConstantProcessType>
-    void InstantiateProcessByTablePresence(const Parameters&          rProcessSettings,
-                                           std::vector<std::string>&& rNamesOfSettingsToCopy);
+    void InstantiateProcessByTablePresence(ModelPart&               rModelPart,
+                                           const Parameters&        rProcessSettings,
+                                           std::vector<std::string> NamesOfSettingsToCopy);
 
-    ModelPart&           mrModelPart;
-    ProcessUniquePointer mProcess;
+    std::vector<std::unique_ptr<Process>> mProcesses;
 };
 
 } // namespace Kratos
