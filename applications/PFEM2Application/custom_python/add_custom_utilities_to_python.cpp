@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_utilities/visualization.h"
 #include "custom_utilities/calculate_water_fraction.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/add_fixed_velocity_condition.h"
 
@@ -87,8 +87,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
 namespace py = pybind11;
 
- // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
- // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+ // typedef TDefaultSparseSpace<double> SparseSpaceType;
+ // typedef TDefaultDenseSpace<double> LocalSpaceType;
  // typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
 
