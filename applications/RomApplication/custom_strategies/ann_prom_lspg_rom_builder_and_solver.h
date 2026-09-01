@@ -315,10 +315,20 @@ public:
     void ZeroOutUnselectedComplementaryMeshRows(
         TSystemMatrixType& rA)
     {
+        // The CSR storage index type differs between the backends (std::size_t
+        // for uBLAS, signed for the Eigen wrapper); name it from the matrix's
+        // own array typedefs instead of hardcoding one or the other.
+        using ValueType = typename TSystemMatrixType::value_array_type::value_type;
+        using IndexType = typename TSystemMatrixType::index_array_type::value_type;
+        ValueType *values_vector = rA.value_data().begin();
+        IndexType *index1_vector = rA.index1_data().begin();
+
         // Use parallel utilities to zero out the rows of the system matrix that are not part of the selected DOFs.
         IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i) {
             if (mSelectedDofs.find(i) == mSelectedDofs.end()) {
-                row(rA, i) = zero_vector<double>(rA.size2());
+                for (std::size_t k = index1_vector[i]; k < static_cast<std::size_t>(index1_vector[i + 1]); k++) {
+                    values_vector[k] = 0.0;
+                }
             }
         });
     }
