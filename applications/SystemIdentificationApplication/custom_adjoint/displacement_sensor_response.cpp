@@ -180,15 +180,13 @@ void DisplacementSensorResponse::ComputeDerivative(
                 for (std::size_t i_variable=0ul; i_variable<Variables.size(); ++i_variable) {
                     const auto& r_variable = Variables[i_variable];
                     const auto i_node = r_variable.GetDynamicIndex();
-                    if (i_node != -1) {
+                    if (i_node != -1 && r_variable.SourceKey() == DISPLACEMENT.SourceKey()) {
                         KRATOS_ERROR_IF_NOT(i_node < r_geometry.size())
                             << "variable " << r_variable.Name() << " "
                             << "with index " << i_node << " "
                             << "in geometry of " << r_geometry.size() << " nodes";
-                        KRATOS_ERROR_IF_NOT(r_variable.SourceKey() == DISPLACEMENT.SourceKey())
-                            << "DisplacementSensorResponse only depends on DISPLACEMENT components at nodes";
                         rOutput[i_variable] = shape_function_values[i_node] * mDirection[r_variable.GetComponentIndex()];
-                    } /*if i_node != -1*/ else {
+                    } /*if i_node != -1 && DISPLACEMENT_* */ else {
                         // Check whether the requested variable is a design variable.
                         const auto& r_design_variable_types = this->GetDesignVariableTypes();
                         const auto it_design_variable_type = std::find_if(
