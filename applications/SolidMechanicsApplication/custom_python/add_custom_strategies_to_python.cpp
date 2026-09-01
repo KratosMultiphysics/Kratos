@@ -13,7 +13,7 @@
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/openmp_utils.h"
 
 // Solution strategies
@@ -73,8 +73,8 @@ namespace Python
 namespace py = pybind11;
 
 //base types
-typedef UblasSpace<double, CompressedMatrix, Vector>                                               SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector>                                                          LocalSpaceType;
+typedef TDefaultSparseSpace<double>                                               SparseSpaceType;
+typedef TDefaultDenseSpace<double>                                                          LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType>                                             LinearSolverType;
 typedef SolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>                   SolutionStrategyType;
 typedef SolutionBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>   SolutionBuilderAndSolverType;
