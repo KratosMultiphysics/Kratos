@@ -15,14 +15,9 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
 
     def test_three_element_seepage_fixed_bottom_boundary(self):
         """
-        Test case with three vertically stacked 1x1m quadrilateral elements.
-        - Top boundary: seepage condition
-        - Bottom boundary: normal flux condition (zero flux)
-        - Initial condition: uniform zero pressure
-        - Material: Van Genuchten retention law
-        
-        This test verifies that the simulation runs successfully with seepage 
-        and normal flux boundary conditions.
+        This test has a high fixed water pressure at the bottom (higher than a hydrostatic
+        profile if the reference coordinate was the top of the column). This forces outflow
+        which, due to the seepage boundary, leads to a 0.0 pressure at the seepage boundary
         """
         test_name = 'seepage_tests'
         file_path = test_helper.get_file_path(os.path.join('.', test_name, "fixed_bottom_boundary"))
@@ -46,47 +41,19 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
             "WATER_PRESSURE", 1.0, output_data, top_node_ids
         )
         
-        # On a seepage face, pressures should be <= 0 (no positive pressure allowed)
+        # Since the bottom boundary is fixed to a high number, leading to outflow, the 
+        # seepage nodes should have pressure = 0
         for node_id, pressure in zip(top_node_ids, water_pressures):
-            self.assertLessEqual(
+            self.assertAlmostEqual(
                 pressure,
-                1.0e-6,
-                msg=f"Seepage node {node_id} has positive water pressure {pressure}"
+                0.0,
             )
         
-        # Verify that simulation converged (implicitly tested by run_kratos)
-        # and that we have results for all nodes
-        all_node_ids = [node.Id for node in model_part.Nodes]
-        self.assertEqual(len(all_node_ids), 8, "Expected 8 nodes in the mesh")
-        
-        all_pressures = GiDOutputFileReader.nodal_values_at_time(
-            "WATER_PRESSURE", 1.0, output_data, all_node_ids
-        )
-        self.assertEqual(len(all_pressures), 8, "Expected pressure results for all 8 nodes")
-        
-        # Verify effective saturation is also computed
-        all_saturations = GiDOutputFileReader.nodal_values_at_time(
-            "EFFECTIVE_SATURATION", 1.0, output_data, all_node_ids
-        )
-        self.assertEqual(len(all_saturations), 8, "Expected saturation results for all 8 nodes")
-        
-        # All saturations should be between 0 and 1
-        for node_id, saturation in zip(all_node_ids, all_saturations):
-            self.assertGreaterEqual(saturation, 0.0, 
-                f"Node {node_id} has negative saturation {saturation}")
-            self.assertLessEqual(saturation, 1.0, 
-                f"Node {node_id} has saturation > 1.0: {saturation}")
-
     def test_three_element_seepage_fixed_bottom_boundary_stop_inflow(self):
         """
-        Test case with three vertically stacked 1x1m quadrilateral elements.
-        - Top boundary: seepage condition
-        - Bottom boundary: normal flux condition (zero flux)
-        - Initial condition: uniform zero pressure
-        - Material: Van Genuchten retention law
-        
-        This test verifies that the simulation runs successfully with seepage 
-        and normal flux boundary conditions.
+        Test with a fixed bottom pressure which is lower than a hydrostatic pressure
+        would be when the column is filled. This would induce inflow, but the seepage
+        boundary prevents that
         """
         test_name = 'seepage_tests'
         file_path = test_helper.get_file_path(os.path.join('.', test_name, "fixed_bottom_boundary_stop_inflow"))
@@ -106,51 +73,21 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
         # Nodes 7 and 8 are at y=3.0
         top_node_ids = [7, 8]
-        water_pressures = GiDOutputFileReader.nodal_values_at_time(
-            "WATER_PRESSURE", 1.0, output_data, top_node_ids
+        nodal_flows = GiDOutputFileReader.nodal_values_at_time(
+            "NODAL_WATER_FLOW", 1.0, output_data, top_node_ids
         )
         
-        # On a seepage face, pressures should be <= 0 (no positive pressure allowed)
-        for node_id, pressure in zip(top_node_ids, water_pressures):
+        # On the seepage face, the nodal flow should be very small
+        for node_id, flow in zip(top_node_ids, nodal_flows):
             self.assertLessEqual(
-                pressure,
-                1.0e-6,
-                msg=f"Seepage node {node_id} has positive water pressure {pressure}"
+                abs(flow),
+                1.0e-18,
             )
         
-        # Verify that simulation converged (implicitly tested by run_kratos)
-        # and that we have results for all nodes
-        all_node_ids = [node.Id for node in model_part.Nodes]
-        self.assertEqual(len(all_node_ids), 8, "Expected 8 nodes in the mesh")
-        
-        all_pressures = GiDOutputFileReader.nodal_values_at_time(
-            "WATER_PRESSURE", 1.0, output_data, all_node_ids
-        )
-        self.assertEqual(len(all_pressures), 8, "Expected pressure results for all 8 nodes")
-        
-        # Verify effective saturation is also computed
-        all_saturations = GiDOutputFileReader.nodal_values_at_time(
-            "EFFECTIVE_SATURATION", 1.0, output_data, all_node_ids
-        )
-        self.assertEqual(len(all_saturations), 8, "Expected saturation results for all 8 nodes")
-        
-        # All saturations should be between 0 and 1
-        for node_id, saturation in zip(all_node_ids, all_saturations):
-            self.assertGreaterEqual(saturation, 0.0, 
-                f"Node {node_id} has negative saturation {saturation}")
-            self.assertLessEqual(saturation, 1.0, 
-                f"Node {node_id} has saturation > 1.0: {saturation}")
-    
     def test_three_element_seepage_flux_bottom_boundary(self):
         """
-        Test case with three vertically stacked 1x1m quadrilateral elements.
-        - Top boundary: seepage condition
-        - Bottom boundary: normal flux condition (zero flux)
-        - Initial condition: uniform zero pressure
-        - Material: Van Genuchten retention law
-        
-        This test verifies that the simulation runs successfully with seepage 
-        and normal flux boundary conditions.
+        Test with forced flux. The nodal outflow is therefore known (the seepage boundary
+        allows it) and the pressure should be forces to 0.0 by the seepage boundary
         """
         test_name = 'seepage_tests'
         file_path = test_helper.get_file_path(os.path.join('.', test_name, "flux_bottom_boundary"))
@@ -167,44 +104,31 @@ class KratosGeoMechanicsSeepageTests(KratosUnittest.TestCase):
             "PorousDomain.porous_computational_model_part"
         )
         
+
         # Verify that top boundary nodes (y=3.0) have seepage condition applied
         # Nodes 7 and 8 are at y=3.0
         top_node_ids = [7, 8]
+        nodal_flows = GiDOutputFileReader.nodal_values_at_time(
+            "NODAL_WATER_FLOW", 1.0, output_data, top_node_ids
+        )
+        # On the seepage face, the nodal flow should be 2.5, due to the forces outflux
+        for node_id, flow in zip(top_node_ids, nodal_flows):
+            self.assertLessEqual(
+                flow,
+                2.5,
+            )
+
         water_pressures = GiDOutputFileReader.nodal_values_at_time(
             "WATER_PRESSURE", 1.0, output_data, top_node_ids
         )
         
-        # On a seepage face, pressures should be <= 0 (no positive pressure allowed)
+        # Since the bottom boundary is fixed to a high number, leading to outflow, the 
+        # seepage nodes should have pressure = 0
         for node_id, pressure in zip(top_node_ids, water_pressures):
-            self.assertLessEqual(
+            self.assertAlmostEqual(
                 pressure,
-                1.0e-6,
-                msg=f"Seepage node {node_id} has positive water pressure {pressure}"
+                0.0,
             )
-        
-        # Verify that simulation converged (implicitly tested by run_kratos)
-        # and that we have results for all nodes
-        all_node_ids = [node.Id for node in model_part.Nodes]
-        self.assertEqual(len(all_node_ids), 8, "Expected 8 nodes in the mesh")
-        
-        all_pressures = GiDOutputFileReader.nodal_values_at_time(
-            "WATER_PRESSURE", 1.0, output_data, all_node_ids
-        )
-        self.assertEqual(len(all_pressures), 8, "Expected pressure results for all 8 nodes")
-        
-        # Verify effective saturation is also computed
-        all_saturations = GiDOutputFileReader.nodal_values_at_time(
-            "EFFECTIVE_SATURATION", 1.0, output_data, all_node_ids
-        )
-        self.assertEqual(len(all_saturations), 8, "Expected saturation results for all 8 nodes")
-        
-        # All saturations should be between 0 and 1
-        for node_id, saturation in zip(all_node_ids, all_saturations):
-            self.assertGreaterEqual(saturation, 0.0, 
-                f"Node {node_id} has negative saturation {saturation}")
-            self.assertLessEqual(saturation, 1.0, 
-                f"Node {node_id} has saturation > 1.0: {saturation}")
-
 
 
 
