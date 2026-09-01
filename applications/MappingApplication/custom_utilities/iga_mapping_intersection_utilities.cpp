@@ -11,11 +11,14 @@
 //
 
 // System includes
+#include <fstream>
+#include <iomanip>
 
 // External includes
 
 // Project includes
 #include "iga_mapping_intersection_utilities.h"
+#include "custom_utilities/mapping_triangulation_utilities.h"
 
 // Data structures for doing spatial search 
 #include "utilities/function_parser_utility.h"
@@ -23,7 +26,62 @@
 
 namespace Kratos
 {
+namespace
+{
 
+using CoordinatesArrayType =
+    IgaMappingIntersectionUtilities::CoordinatesArrayType;
+using GeometryType = IgaMappingIntersectionUtilities::GeometryType;
+using PatchCacheMap = IgaMappingIntersectionUtilities::PatchCacheMap;
+using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<Node>>;
+
+constexpr double parametric_point_tolerance = 1e-8;
+
+bool AddUniquePoint(
+    std::vector<CoordinatesArrayType>& rPoints,
+    const CoordinatesArrayType& rPoint);
+
+bool IsInsideInitialFEMTriangle(
+    const CoordinatesArrayType& rPoint,
+    const GeometryType& rFEMGeometry);
+
+void AddEnclosedDomainCorners(
+    const NurbsSurfaceType& rNurbsSurface,
+    const GeometryType& rFEMGeometry,
+    std::vector<CoordinatesArrayType>& rPoints);
+
+bool RecoverUnprojectedTriangleIntersection(
+    const GeometryType& rMasterGeometry,
+    const GeometryType& rFEMGeometry,
+    const NurbsSurfaceType& rNurbsSurface,
+    const PatchCacheMap& rPatchCache,
+    const double SearchRadius,
+    std::vector<CoordinatesArrayType>& rPolygon);
+
+/**
+ * @brief Writes the three vertices of a parametric triangle and its BRep patch ID.
+ */
+template<class TTriangleType>
+void WriteParametricTriangleToTextFile(
+    std::ostream& rOutput,
+    const TTriangleType& rTriangle,
+    const std::size_t BrepId);
+
+/**
+ * @brief Maps a parametric triangle to physical space and writes its vertices.
+ */
+template<class TTriangleType>
+void WritePhysicalTriangleToTextFile(
+    std::ostream& rOutput,
+    const TTriangleType& rTriangle,
+    const GeometryType& rBrepGeometry);
+
+} // unnamed namespace
+
+/**
+ * @brief Pairs each FEM curve condition with its closest projectable IGA curve.
+ * @details The resulting pairs are stored as coupling geometries in the result model part.
+ */
 void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnCurve(
     ModelPart& rModelPartDomainA,
     ModelPart& rModelPartDomainB,
@@ -70,6 +128,9 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnCurve(
     }
 }
 
+/**
+ * @brief Creates integration-point coupling conditions on previously paired IGA and FEM curves.
+ */
 void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnCurve(
     ModelPart& rModelPartCoupling,
     double Tolerance)
@@ -106,6 +167,10 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnCurve(
     }
 }
 
+/**
+ * @brief Creates candidate coupling geometries between FEM surface conditions and nearby IGA patches.
+ * @details A spatial cache limits the IGA patches considered for each FEM condition.
+ */
 void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnSurface(
         ModelPart &rModelPartDomainA,
         ModelPart &rModelPartDomainB,
@@ -165,6 +230,10 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnSurface(
     }
 }
 
+/**
+ * @brief Samples each IGA patch and builds spatial bins for fast projection searches.
+ * @return A cache containing the sampled points, bins, and parametric-grid information for each patch.
+ */
 IgaMappingIntersectionUtilities::PatchCacheMap IgaMappingIntersectionUtilities::BuildPatchCaches(
     const std::vector<IndexType>& patches_id,
     const ModelPart& rModelPartIga,
@@ -236,6 +305,10 @@ IgaMappingIntersectionUtilities::PatchCacheMap IgaMappingIntersectionUtilities::
     return cache;
 }
 
+/**
+ * @brief Finds IGA patches with sampled points near a specified physical-space location.
+ * @details Returns all input patches as a fallback when the radius search finds no candidate.
+ */
 std::vector<IndexType> IgaMappingIntersectionUtilities::GetPatchesWithProbableProjection(
     const std::vector<IndexType>& patches_id,
     const PatchCacheMap& rCache,
@@ -273,14 +346,45 @@ std::vector<IndexType> IgaMappingIntersectionUtilities::GetPatchesWithProbablePr
     return out.empty() ? patches_id : out;
 }
 
-
+/**
+ * @brief Creates surface quadrature-point coupling conditions from IGA-FEM coupling geometries.
+ * @details FEM triangles are projected, clipped, subdivided at knot spans, and integrated in parameter space.
+ */
 void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
     ModelPart& rModelPartCoupling,
     bool origin_is_iga,
     const PatchCacheMap& rPatchCache,
-    const double search_radius)
+    const double search_radius,
+    const bool WriteTrianglesToFile)
 {
     const ModelPart& rParentModelPart = rModelPartCoupling.GetParentModelPart();
+
+    // Open the diagnostic output only when explicitly requested.
+    std::ofstream parametric_triangles_output_file;
+    std::ofstream physical_triangles_output_file;
+    if (WriteTrianglesToFile) {
+        const std::string parametric_output_file_name =
+            "obtained_triangles_after_intersection_with_knot_lines_parameter_space.txt";
+        const std::string physical_output_file_name =
+            "obtained_triangles_after_intersection_with_knot_lines_physical_space.txt";
+
+        parametric_triangles_output_file.open(parametric_output_file_name);
+        physical_triangles_output_file.open(physical_output_file_name);
+        KRATOS_ERROR_IF_NOT(parametric_triangles_output_file.is_open())
+            << "Could not open triangle output file: "
+            << parametric_output_file_name << "\n";
+        KRATOS_ERROR_IF_NOT(physical_triangles_output_file.is_open())
+            << "Could not open triangle output file: "
+            << physical_output_file_name << "\n";
+
+        parametric_triangles_output_file << std::setprecision(17)
+            << "# Parametric triangle vertices: u v w\n"
+            << "# Each triangle starts with: # brep_id <id>\n"
+            << "# Every three non-empty lines define one triangle.\n";
+        physical_triangles_output_file << std::setprecision(17)
+            << "# Physical triangle vertices: x y z\n"
+            << "# Every three non-empty lines define one triangle.\n";
+    }
 
     // Iterate over the coupling geometries and create the quadrature points
     for (auto geometry_itr = rModelPartCoupling.GeometriesBegin();
@@ -295,10 +399,12 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
 
         // Get the Brep surface representing the IGA patch (NURBS surface + boundary loops)
         auto geom_master_cast = dynamic_pointer_cast<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(geom_master);
-
-        // Get the NURBS Surface defining the Brep surface 
-        GeometryPointerType master_nurbs_surface = geom_master_cast->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
-        auto master_nurbs_surface_cast = dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(master_nurbs_surface);
+        const auto p_master_nurbs_surface = dynamic_pointer_cast<
+            NurbsSurfaceGeometry<3, PointerVector<Node>>>(
+                geom_master_cast->pGetGeometryPart(
+                    GeometryType::BACKGROUND_GEOMETRY_INDEX));
+        KRATOS_ERROR_IF_NOT(p_master_nurbs_surface)
+            << "The BRep background geometry is not a NURBS surface.\n";
 
         // This vector stores all the triangles resulting from the projection of a triangle to the surface patch (projection + subdivision)
         std::vector<std::vector<CoordinatesArrayType>> triangles_param_space;
@@ -308,12 +414,10 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
 
         const IndexType n_nodes = r_geom_slave.size();
 
-        // These nodes refer to the FEM nodes which are being projected to the IGA patch
         std::vector<CoordinatesArrayType> successful_nodes_xyz;
         std::vector<CoordinatesArrayType> failed_nodes_xyz;
         std::vector<CoordinatesArrayType> points_to_triangulate;
 
-        // Reserve (worst case: all nodes succeed or fail)
         successful_nodes_xyz.reserve(n_nodes);
         failed_nodes_xyz.reserve(n_nodes);
         points_to_triangulate.reserve(n_nodes);
@@ -354,12 +458,16 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
         const IndexType projection_is_successful_count =
             static_cast<IndexType>(successful_nodes_xyz.size());
         
-        // If no node is projected inside the patch, continue to the next iteration. Otherwise, find the intersection between the triangle sides and the surface
         if (projection_is_successful_count == 0){
-            continue;
+            if (!RecoverUnprojectedTriangleIntersection(
+                    *geom_master, r_geom_slave, *p_master_nurbs_surface,
+                    rPatchCache, search_radius, points_to_triangulate)) {
+                continue;
+            }
+            MappingTriangulationUtilities::TriangulatePolygonFan(
+                points_to_triangulate, triangles_param_space);
         }
-        else if (projection_is_successful_count == 1){  // If just one node is projected inside the surface, create one triangle  
-            
+        else if (projection_is_successful_count == 1){
             KRATOS_ERROR_IF(points_to_triangulate.size() != 1)
                 << "Expected points_to_triangulate.size()==1, got "
                 << points_to_triangulate.size() << "\n";
@@ -368,14 +476,10 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
                 << "Expected at least 2 failed nodes, got "
                 << failed_nodes_xyz.size() << "\n";
 
-            // Check if the projection is on the boundary of the parameter space and, if so, continue to the next element
-            if (AreProjectionsOnParameterSpaceBoundary(points_to_triangulate, *master_nurbs_surface_cast) == true) continue;
-
-            // Vector for storing the intersection of the triangle side with the boundaries of the patch
-            std::vector<CoordinatesArrayType> triangle_segment_intersection_with_surface_patch_local_parameter;
-            triangle_segment_intersection_with_surface_patch_local_parameter.reserve(2);
-
-            points_to_triangulate.reserve(3); // 1 existing + 2 intersections
+            // Besides the projected vertex and the two segment intersections,
+            // the intersection polygon can contain corners of the rectangular
+            // NURBS parameter domain.
+            points_to_triangulate.reserve(7);
 
             bool all_found = true;
             for (IndexType i = 0; i < 2; ++i)
@@ -395,32 +499,18 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
                     break;
                 }
 
-                triangle_segment_intersection_with_surface_patch_local_parameter.push_back(intersection_point_local_space);
                 points_to_triangulate.push_back(intersection_point_local_space);
             }
 
             if (!all_found) {continue;}
 
-            // If the intersection between the triangle and the patch surface is at just one point, ignore the element and go to the next triangle
-            if (norm_2(triangle_segment_intersection_with_surface_patch_local_parameter[0] - triangle_segment_intersection_with_surface_patch_local_parameter[1]) < 1e-4)
-            {
-                continue;
-            }
-
-            KRATOS_ERROR_IF(points_to_triangulate.size() != 3)
-                << "Expected 3 points to form a triangle, got "
-                << points_to_triangulate.size() << "\n";
-
-            // Sort the vertices counter-clockwise before doing triangulation
-            SortVerticesCounterClockwise(points_to_triangulate);
-
-            // Form one triangle with the one point projected inside the patch and the two intersections
-            triangles_param_space.push_back(points_to_triangulate);
-        } else if (projection_is_successful_count == 2){  // If just one node is projected inside the surface, create 2 triangles
-
-            // Skip if projections lie on parameter-space boundary
-            if (AreProjectionsOnParameterSpaceBoundary(points_to_triangulate, *master_nurbs_surface_cast) == true) continue;
-
+            AddEnclosedDomainCorners(
+                *p_master_nurbs_surface,
+                r_geom_slave,
+                points_to_triangulate);
+            MappingTriangulationUtilities::TriangulatePolygonFan(
+                points_to_triangulate, triangles_param_space);
+        } else if (projection_is_successful_count == 2){
             KRATOS_ERROR_IF(points_to_triangulate.size() != 2)
                 << "Expected 2 param points in points_to_triangulate, got "
                 << points_to_triangulate.size() << "\n";
@@ -428,167 +518,61 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
             KRATOS_ERROR_IF(failed_nodes_xyz.size() < 1)
                 << "Expected at least 1 non-successful node.\n";
 
-            // We will add up to 2 intersection points
-            points_to_triangulate.reserve(4);
+            // Two projected vertices, two segment intersections, and possibly
+            // corners of the rectangular NURBS parameter domain.
+            points_to_triangulate.reserve(8);
 
-            constexpr double tol_dup = 1e-4;
-
-            auto IsDuplicateParamPoint = [&](const CoordinatesArrayType& p) {
-                for (const auto& q : points_to_triangulate) {
-                    if (norm_2(p - q) < tol_dup) return true;
-                }
-                return false;
-            };
-
+            bool all_found = true;
             for (IndexType i = 0; i < 2; ++i)
             {
                 CoordinatesArrayType intersection_point_local_space = ZeroVector(3);
 
-                // Use your current intersection routine (void). If you have the new bool routine, use it instead.
-                IgaMappingIntersectionUtilities::FindTriangleSegmentSurfaceIntersectionWithBisection(
+                const bool found =
+                    IgaMappingIntersectionUtilities::FindTriangleSegmentSurfaceIntersectionWithBisection(
                     geometry_itr->GetGeometryPart(0),
-                    successful_nodes_xyz[i],              // inside the patch
-                    failed_nodes_xyz[0],          // outside the patch
-                    points_to_triangulate[i],                                       // better initial guess: the corresponding inside param
+                    successful_nodes_xyz[i],
+                    failed_nodes_xyz[0],
+                    points_to_triangulate[i],
                     intersection_point_local_space);
 
-                if (!IsDuplicateParamPoint(intersection_point_local_space)) {
-                    points_to_triangulate.push_back(intersection_point_local_space);
+                if (!found) {
+                    all_found = false;
+                    break;
                 }
+
+                AddUniquePoint(
+                    points_to_triangulate,
+                    intersection_point_local_space);
             }
 
-            SortVerticesCounterClockwise(points_to_triangulate);
+            if (!all_found) {continue;}
 
-            if (points_to_triangulate.size() == 3)
-            {
-                // Create one triangle
-                triangles_param_space.push_back(points_to_triangulate);
-            }
-            else if (points_to_triangulate.size() == 4)
-            {
-                // Create two triangles: (0,1,2) and (0,2,3)
-                triangles_param_space.push_back(
-                    {points_to_triangulate[0], points_to_triangulate[1], points_to_triangulate[2]}
-                );
-                triangles_param_space.push_back(
-                    {points_to_triangulate[0], points_to_triangulate[2], points_to_triangulate[3]}
-                );
-            }
+            AddEnclosedDomainCorners(
+                *p_master_nurbs_surface,
+                r_geom_slave,
+                points_to_triangulate);
+            MappingTriangulationUtilities::TriangulatePolygonFan(
+                points_to_triangulate, triangles_param_space);
         } else if (projection_is_successful_count == 3)
-        { // If the 3 nodes are projected inside the untrimmed surface, check if the triangles intersect the trimming curves and , if so, create new triangles
-
-            // Get the trimming curves outer loop
-            auto outer_loop_array = geom_master_cast->GetOuterLoops();
-
-            KRATOS_ERROR_IF(geom_master_cast->GetInnerLoops().size() > 0) << "The current patch has inner loops and this is not yet supported for the IGA-FEM Surface Mortar Mapper" << std::endl;
-
-            Clipper2Lib::Paths64 all_loops(1), triangle(1), solution;
-            const double factor = 1e-10;
-
-            Clipper2Lib::Point64 int_point;
-            int_point.x = static_cast<cInt>(std::numeric_limits<int>::min());
-            int_point.y = static_cast<cInt>(std::numeric_limits<int>::min());
-
-            // Reuse tessellation object 
-            CurveTessellation<PointerVector<Node>> curve_tessellation;
-
-            // Reserve some space for the curve tessellation
-            all_loops[0].reserve(all_loops[0].size() + 1000);
-
-            for (IndexType j = 0; j < outer_loop_array[0].size(); ++j)
-            {
-                const auto& geometry_outer = *(outer_loop_array[0][j]);
-
-                curve_tessellation.Tessellate(
-                    geometry_outer, 0.001, 1, true);
-
-                // Avoid copy
-                const auto& tessellation = curve_tessellation.GetTessellation();
-
-                for (IndexType u = 0; u < tessellation.size(); ++u)
-                {
-                    // Bind once
-                    const auto& uv = std::get<1>(tessellation[u]);
-
-                    auto new_int_point = BrepTrimmingUtilities<false>::ToIntPoint(
-                        uv[0], uv[1], factor);
-
-                    // We need to define this tolerance for the clipping process
-                    new_int_point.x += 100000.0;
-                    new_int_point.y += 100000.0;
-
-                    // Fast duplicate rejection
-                    if (new_int_point.x != int_point.x ||
-                        new_int_point.y != int_point.y)
-                    {
-                        all_loops[0].push_back(new_int_point);
-                        int_point = new_int_point;
-                    }
-                }
-            }
-
-            triangle[0].reserve(triangle[0].size() + 3);
-
-            for (IndexType u = 0; u < 3; ++u){
-                const auto new_int_point =
-                    BrepTrimmingUtilities<false>::ToIntPoint(
-                            points_to_triangulate[u][0],
-                            points_to_triangulate[u][1],
-                            factor);
-
-                if (new_int_point.x != int_point.x ||
-                    new_int_point.y != int_point.y)
-                {
-                    triangle[0].push_back(new_int_point);
-                    int_point = new_int_point;
-                }
-            }
-
-            // Intersect the triangle with the polygon resulting from the tessellation of the outer loop
-            solution = Clipper2Lib::Intersect(all_loops, triangle, Clipper2Lib::FillRule::NonZero);
-
-            double clip_area = 0.0;
-            if (solution.size() > 0){
-                clip_area = std::abs(Clipper2Lib::Area(solution[0]));
-            }
-
-            std::vector<Matrix> triangles;
-            std::vector<CoordinatesArrayType> sorted_points_to_triangulate;
-            sorted_points_to_triangulate.resize(3);
-
-            if (!solution.empty()){
-                triangles.clear();
-
-                BrepTrimmingUtilities<false>::Triangulate_OPT(solution[0], triangles, factor, clip_area);
-
-                triangles_param_space.reserve(
-                    triangles_param_space.size() + triangles.size());
-
-                for (IndexType u = 0; u < triangles.size(); ++u){
-                    // Fill local triangle points
-                    for (IndexType v = 0; v < 3; ++v){
-                        points_to_triangulate[v][0] = triangles[u](v, 0);
-                        points_to_triangulate[v][1] = triangles[u](v, 1);
-                        points_to_triangulate[v][2] = 0.0;
-                    }
-
-                    // Reuse preallocated output container
-                    SortVerticesCounterClockwise(points_to_triangulate);
-
-                    // Avoid copy if possible
-                    triangles_param_space.push_back(points_to_triangulate);
-                }
-                } else {    
-                    KRATOS_WARNING("The intersection resulted in an empty polygon, skipping the triangle.");
-                }
-
+        {
+            SortVerticesCounterClockwise(points_to_triangulate);
+            triangles_param_space.push_back(points_to_triangulate);
         } else {
             KRATOS_WARNING("IgaMappingIntersectionUtilities")
                 << "The FEM-IGA projection resulted in a failure";
             continue;
         }
 
-        std::vector<std::vector<CoordinatesArrayType>> obtained_triangles_after_intersection_with_knot_lines;
+        // Clip every candidate triangle, irrespective of how many FEM nodes
+        // were initially projected inside the trimmed surface.
+        constexpr double factor = 1e-10;
+        triangles_param_space =
+            MappingTriangulationUtilities::ClipTrianglesWithTrimmingLoops(
+            triangles_param_space,
+            *geom_master_cast,
+            factor);
+
+        std::vector<MappingTriangulationUtilities::TriangleType> obtained_triangles_after_intersection_with_knot_lines;
 
         // Reuse quadrature containers outside loops
         IntegrationPointsArrayType integration_points_master(3);
@@ -606,14 +590,34 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
         {
             obtained_triangles_after_intersection_with_knot_lines.clear();
 
-            // Fallback: no triangulation => process original triangle
-            if (obtained_triangles_after_intersection_with_knot_lines.empty()) {
-                obtained_triangles_after_intersection_with_knot_lines.push_back(triangles_param_space[tri_id]);
-            }
+            KRATOS_ERROR_IF(triangles_param_space[tri_id].size() != 3)
+                << "Expected a triangle with 3 vertices, got "
+                << triangles_param_space[tri_id].size() << ".\n";
+
+            const MappingTriangulationUtilities::TriangleType triangle{{
+                triangles_param_space[tri_id][0],
+                triangles_param_space[tri_id][1],
+                triangles_param_space[tri_id][2]}};
+
+            MappingTriangulationUtilities::Triangulation(
+                triangle, geom_master,
+                obtained_triangles_after_intersection_with_knot_lines);
 
             for (IndexType j = 0; j < obtained_triangles_after_intersection_with_knot_lines.size(); ++j)
             {
                 const auto& r_triangle = obtained_triangles_after_intersection_with_knot_lines[j];
+
+                // Writing is optional and does not affect quadrature-point creation.
+                if (WriteTrianglesToFile) {
+                    WriteParametricTriangleToTextFile(
+                        parametric_triangles_output_file,
+                        r_triangle,
+                        geom_master_cast->Id());
+                    WritePhysicalTriangleToTextFile(
+                        physical_triangles_output_file,
+                        r_triangle,
+                        *geom_master_cast);
+                }
 
                 const double xi_0  = r_triangle[0][0];
                 const double xi_1  = r_triangle[1][0];
@@ -675,9 +679,12 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
             }
         }
     }
-
 }
 
+/**
+ * @brief Finds a nearby cached patch sample and converts it into an initial parametric projection guess.
+ * @return True when a cached point is found within the search radius; otherwise false.
+ */
 bool IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
     const CoordinatesArrayType& slave_xyz,
     const GeometryType& r_master_geometry,
@@ -723,6 +730,10 @@ bool IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
     return true;
 }
 
+/**
+ * @brief Checks whether projected points lie on a boundary of the NURBS parameter domain.
+ * @return True for a boundary point or for points sharing the same boundary; otherwise false.
+ */
 bool IgaMappingIntersectionUtilities::AreProjectionsOnParameterSpaceBoundary(
     const std::vector<CoordinatesArrayType>& r_points_to_triangulate,
     const NurbsSurfaceGeometry<3, PointerVector<Node>>& r_nurbs_surface)
@@ -739,7 +750,7 @@ bool IgaMappingIntersectionUtilities::AreProjectionsOnParameterSpaceBoundary(
     const double v_min = interval_v.MinParameter();
     const double v_max = interval_v.MaxParameter();
 
-    constexpr double eps = 1.0e-2;
+    constexpr double eps = 1.0e-10;
 
     auto near = [](double a, double b) noexcept {
         return std::abs(a - b) < eps;
@@ -764,6 +775,10 @@ bool IgaMappingIntersectionUtilities::AreProjectionsOnParameterSpaceBoundary(
     return on_u_min || on_u_max || on_v_min || on_v_max;
 }
 
+/**
+ * @brief Locates the patch-boundary intersection of an inside-outside segment by bisection.
+ * @return True after computing the best available local intersection coordinates.
+ */
 bool IgaMappingIntersectionUtilities::FindTriangleSegmentSurfaceIntersectionWithBisection(
     const GeometryType& r_geom_master,
     const CoordinatesArrayType& r_point_inside,
@@ -773,45 +788,43 @@ bool IgaMappingIntersectionUtilities::FindTriangleSegmentSurfaceIntersectionWith
 {
     CoordinatesArrayType a = r_point_inside;
     CoordinatesArrayType b = r_point_outside;
-
-    // This will be updated by ProjectionPointGlobalToLocalSpace
-    CoordinatesArrayType local_param = r_initial_guess;
+    CoordinatesArrayType inside_local_parameter = r_initial_guess;
 
     constexpr IndexType max_iters = 1000;
     constexpr double    x_tol     = 1e-8;  // tolerance in physical space (segment length)
-    constexpr double    proj_tol  = 1e-6;  // projection tolerance (your original)
-
-    CoordinatesArrayType mid = ZeroVector(3);
+    constexpr double    proj_tol  = 1e-6;  // projection tolerance
 
     for (IndexType it = 0; it < max_iters; ++it)
     {
-        mid = 0.5 * (a + b);
-
-        // Stop when segment is small enough (more meaningful than consecutive-mid distance)
-        const double seg_len = norm_2(b - a);
-        if (seg_len < x_tol) {
-            r_intersection_point = local_param;
-            return true;
-        }
+        const CoordinatesArrayType mid = 0.5 * (a + b);
+        CoordinatesArrayType trial_local_parameter = inside_local_parameter;
 
         // "Inside test" via projection success
-        const IndexType projection_ok = r_geom_master.ProjectionPointGlobalToLocalSpace(
-            mid, local_param, proj_tol);
+        const bool projection_ok = r_geom_master.ProjectionPointGlobalToLocalSpace(
+            mid, trial_local_parameter, proj_tol) == 1;
 
-        if (projection_ok == 0) {
+        if (!projection_ok) {
             // midpoint behaves as outside -> move outside endpoint inward
             b = mid;
         } else {
             // midpoint behaves as inside -> move inside endpoint outward
             a = mid;
+            inside_local_parameter = trial_local_parameter;
+        }
+
+        if (norm_2(b - a) < x_tol) {
+            r_intersection_point = inside_local_parameter;
+            return true;
         }
     }
 
-    // Best effort output after max iters
-    r_intersection_point = local_param;
-    return true; // or false if you want to signal "hit max iters"
+    r_intersection_point = inside_local_parameter;
+    return false;
 }
 
+/**
+ * @brief Sorts parametric polygon vertices counter-clockwise around their centroid.
+ */
 void IgaMappingIntersectionUtilities::SortVerticesCounterClockwise(
     std::vector<CoordinatesArrayType>& r_vertices)
 {
@@ -843,5 +856,231 @@ void IgaMappingIntersectionUtilities::SortVerticesCounterClockwise(
     );
 }
 
+namespace
+{
+
+/**
+ * @brief Writes one parametric triangle and its BRep patch ID to a text stream.
+ * @details Each vertex is written on a separate line as u, v, and w, followed
+ * by an empty line separating it from the next triangle.
+ * @param rOutput Stream receiving the triangle coordinates.
+ * @param rTriangle Container holding exactly three parametric vertices.
+ * @param BrepId ID of the BRep patch containing the triangle.
+ */
+template<class TTriangleType>
+void WriteParametricTriangleToTextFile(
+    std::ostream& rOutput,
+    const TTriangleType& rTriangle,
+    const std::size_t BrepId)
+{
+    KRATOS_ERROR_IF(rTriangle.size() != 3)
+        << "Expected a triangle with 3 vertices, got " << rTriangle.size() << ".\n";
+
+    rOutput << "# brep_id " << BrepId << '\n';
+    for (const auto& r_vertex : rTriangle) {
+        rOutput << r_vertex[0] << ' ' << r_vertex[1] << ' ' << r_vertex[2] << '\n';
+    }
+    rOutput << '\n';
+}
+
+/**
+ * @brief Maps one parametric triangle to physical space and writes its vertices.
+ * @param rOutput Stream receiving the physical triangle coordinates.
+ * @param rTriangle Container holding exactly three parametric vertices.
+ * @param rBrepGeometry BRep geometry used for the parameter-to-physical mapping.
+ */
+template<class TTriangleType>
+void WritePhysicalTriangleToTextFile(
+    std::ostream& rOutput,
+    const TTriangleType& rTriangle,
+    const GeometryType& rBrepGeometry)
+{
+    KRATOS_ERROR_IF(rTriangle.size() != 3)
+        << "Expected a triangle with 3 vertices, got "
+        << rTriangle.size() << ".\n";
+
+    CoordinatesArrayType physical_vertex = ZeroVector(3);
+    for (const auto& r_parametric_vertex : rTriangle) {
+        rBrepGeometry.GlobalCoordinates(
+            physical_vertex, r_parametric_vertex);
+        rOutput << physical_vertex[0] << ' '
+                << physical_vertex[1] << ' '
+                << physical_vertex[2] << '\n';
+    }
+    rOutput << '\n';
+}
+
+/**
+ * @brief Adds a parametric point unless an equivalent point is already present.
+ * @param rPoints Point collection that can be extended by the function.
+ * @param rPoint Candidate point to insert.
+ * @return True when the point is inserted and false when it is a duplicate.
+ */
+bool AddUniquePoint(
+    std::vector<CoordinatesArrayType>& rPoints,
+    const CoordinatesArrayType& rPoint)
+{
+    const bool already_present = std::any_of(
+        rPoints.begin(), rPoints.end(),
+        [&rPoint](const CoordinatesArrayType& rExistingPoint) {
+            return norm_2(rExistingPoint - rPoint) <
+                parametric_point_tolerance;
+        });
+
+    if (!already_present) {
+        rPoints.push_back(rPoint);
+    }
+    return !already_present;
+}
+
+/**
+ * @brief Checks whether a physical point lies inside the initial FEM triangle.
+ * @details The test evaluates the barycentric coordinates using the initial
+ * positions of the three FEM nodes and includes points on the boundary within
+ * a numerical tolerance.
+ * @param rPoint Physical point to test.
+ * @param rFEMGeometry Three-node FEM triangle used for the containment test.
+ * @return True when the point lies inside or on the triangle boundary.
+ */
+bool IsInsideInitialFEMTriangle(
+    const CoordinatesArrayType& rPoint,
+    const GeometryType& rFEMGeometry)
+{
+    KRATOS_ERROR_IF(rFEMGeometry.size() != 3)
+        << "Expected a three-node FEM triangle, got "
+        << rFEMGeometry.size() << " nodes.\n";
+
+    const CoordinatesArrayType a =
+        rFEMGeometry.pGetPoint(0)->GetInitialPosition();
+    const CoordinatesArrayType ab =
+        rFEMGeometry.pGetPoint(1)->GetInitialPosition() - a;
+    const CoordinatesArrayType ac =
+        rFEMGeometry.pGetPoint(2)->GetInitialPosition() - a;
+    const CoordinatesArrayType ap = rPoint - a;
+
+    const double ab_ab = inner_prod(ab, ab);
+    const double ab_ac = inner_prod(ab, ac);
+    const double ac_ac = inner_prod(ac, ac);
+    const double denominator = ab_ab * ac_ac - ab_ac * ab_ac;
+    KRATOS_ERROR_IF(
+        std::abs(denominator) <= std::numeric_limits<double>::epsilon())
+        << "Cannot test a point against a degenerate FEM triangle.\n";
+
+    const double coordinate_1 =
+        (ac_ac * inner_prod(ap, ab) - ab_ac * inner_prod(ap, ac)) /
+        denominator;
+    const double coordinate_2 =
+        (ab_ab * inner_prod(ap, ac) - ab_ac * inner_prod(ap, ab)) /
+        denominator;
+    constexpr double inside_tolerance = 1e-6;
+
+    return coordinate_1 >= -inside_tolerance &&
+           coordinate_2 >= -inside_tolerance &&
+           coordinate_1 + coordinate_2 <= 1.0 + inside_tolerance;
+}
+
+/**
+ * @brief Adds NURBS parameter-domain corners enclosed by a FEM triangle.
+ * @details The four rectangular parameter-domain corners are mapped to physical
+ * space, tested against the initial FEM triangle, and added without duplicates.
+ * @param rNurbsSurface NURBS surface providing the parameter domain and mapping.
+ * @param rFEMGeometry FEM triangle tested for corner containment.
+ * @param rPoints Parametric intersection polygon extended with enclosed corners.
+ */
+void AddEnclosedDomainCorners(
+    const NurbsSurfaceType& rNurbsSurface,
+    const GeometryType& rFEMGeometry,
+    std::vector<CoordinatesArrayType>& rPoints)
+{
+    const NurbsInterval interval_u = rNurbsSurface.DomainIntervalU();
+    const NurbsInterval interval_v = rNurbsSurface.DomainIntervalV();
+    const std::array<CoordinatesArrayType, 4> domain_corners{{
+        CoordinatesArrayType{interval_u.MinParameter(), interval_v.MinParameter(), 0.0},
+        CoordinatesArrayType{interval_u.MaxParameter(), interval_v.MinParameter(), 0.0},
+        CoordinatesArrayType{interval_u.MaxParameter(), interval_v.MaxParameter(), 0.0},
+        CoordinatesArrayType{interval_u.MinParameter(), interval_v.MaxParameter(), 0.0}}};
+
+    for (const auto& r_corner_local : domain_corners) {
+        CoordinatesArrayType corner_global = ZeroVector(3);
+        rNurbsSurface.GlobalCoordinates(corner_global, r_corner_local);
+        if (IsInsideInitialFEMTriangle(corner_global, rFEMGeometry)) {
+            AddUniquePoint(rPoints, r_corner_local);
+        }
+    }
+}
+
+/**
+ * @brief Recovers an intersection when no FEM vertex projects onto the surface.
+ * @details The function adds enclosed NURBS-domain corners, samples every FEM
+ * edge to find projectable interior points, and uses bisection toward both edge
+ * endpoints to recover the parameter-space boundary intersections.
+ * @param rMasterGeometry IGA geometry used for projection and bisection.
+ * @param rFEMGeometry Three-node FEM triangle whose intersection is recovered.
+ * @param rNurbsSurface NURBS surface used to add enclosed domain corners.
+ * @param rPatchCache Spatial cache used to initialize surface projections.
+ * @param SearchRadius Radius used when searching the projection cache.
+ * @param rPolygon Recovered parametric polygon vertices.
+ * @return True when at least three polygon vertices are recovered.
+ */
+bool RecoverUnprojectedTriangleIntersection(
+    const GeometryType& rMasterGeometry,
+    const GeometryType& rFEMGeometry,
+    const NurbsSurfaceType& rNurbsSurface,
+    const PatchCacheMap& rPatchCache,
+    const double SearchRadius,
+    std::vector<CoordinatesArrayType>& rPolygon)
+{
+    AddEnclosedDomainCorners(rNurbsSurface, rFEMGeometry, rPolygon);
+
+    constexpr std::size_t number_of_edge_samples = 16;
+    for (std::size_t i = 0; i < 3; ++i) {
+        const CoordinatesArrayType edge_point_1 =
+            rFEMGeometry.pGetPoint(i)->GetInitialPosition();
+        const CoordinatesArrayType edge_point_2 =
+            rFEMGeometry.pGetPoint((i + 1) % 3)->GetInitialPosition();
+
+        CoordinatesArrayType projected_edge_point = ZeroVector(3);
+        CoordinatesArrayType projected_edge_local = ZeroVector(3);
+        bool edge_crosses_domain = false;
+
+        for (std::size_t sample = 1; sample < number_of_edge_samples; ++sample) {
+            const double position = static_cast<double>(sample) /
+                static_cast<double>(number_of_edge_samples);
+            const CoordinatesArrayType edge_point =
+                (1.0 - position) * edge_point_1 + position * edge_point_2;
+
+            CoordinatesArrayType edge_local = ZeroVector(3);
+            IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
+                edge_point, rMasterGeometry, rPatchCache,
+                edge_local, SearchRadius);
+
+            if (rMasterGeometry.ProjectionPointGlobalToLocalSpace(
+                    edge_point, edge_local, 1e-5) == 1) {
+                projected_edge_point = edge_point;
+                projected_edge_local = edge_local;
+                edge_crosses_domain = true;
+                break;
+            }
+        }
+
+        if (!edge_crosses_domain) {
+            continue;
+        }
+
+        for (const auto& r_endpoint : {edge_point_1, edge_point_2}) {
+            CoordinatesArrayType intersection_local = ZeroVector(3);
+            if (IgaMappingIntersectionUtilities::
+                    FindTriangleSegmentSurfaceIntersectionWithBisection(
+                        rMasterGeometry, projected_edge_point, r_endpoint,
+                        projected_edge_local, intersection_local)) {
+                AddUniquePoint(rPolygon, intersection_local);
+            }
+        }
+    }
+
+    return rPolygon.size() >= 3;
+}
+
+} // unnamed namespace
 
 } // namespace Kratos.
