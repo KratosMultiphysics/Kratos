@@ -110,9 +110,9 @@ PYBIND11_MODULE(Kratos, m)
     AddModelPartToPython(m);
     AddDofsToPython(m);
     AddNodeToPython(m);
+    AddAdjointInterfaceToPython(m);
     AddPropertiesToPython(m);
     AddAccessorsToPython(m);
-    AddAdjointInterfaceToPython(m);
     AddMeshToPython(m);
     AddQuaternionToPython(m);
 
