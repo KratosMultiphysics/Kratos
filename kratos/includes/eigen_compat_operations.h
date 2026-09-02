@@ -64,6 +64,18 @@ inline auto prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::MatrixBase
     }
 }
 
+/// uBLAS lets prod() pin the result type explicitly (prod<Vector>(A, B),
+/// prod<Matrix>(A, B), ...), e.g. to combine a vector-shaped and a
+/// matrix-shaped operand in one expression without an intermediate local.
+/// TResult only appears in the return type, so it is never deduced and this
+/// overload only participates when the caller supplies it explicitly;
+/// otherwise the plain two-argument overload above is the sole match.
+template<class TResult, class TDerived1, class TDerived2>
+inline TResult prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::MatrixBase<TDerived2>& rB)
+{
+    return TResult(prod(rA, rB));
+}
+
 /// Sparse-matrix/vector (or sparse/dense) product.
 template<class TDerived1, class TDerived2>
 inline auto prod(const Eigen::SparseMatrixBase<TDerived1>& rA, const Eigen::MatrixBase<TDerived2>& rX)
