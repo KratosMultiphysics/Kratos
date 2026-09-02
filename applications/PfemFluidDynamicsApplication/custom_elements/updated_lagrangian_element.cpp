@@ -454,7 +454,7 @@ namespace Kratos
     rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, IntegrationMethod);
     NContainer = rGeom.ShapeFunctionsValues(IntegrationMethod);
     const GeometryType::IntegrationPointsArrayType &IntegrationPoints =
-        rGeom.IntegrationPoints(IntegrationMethod); 
+        rGeom.IntegrationPoints(IntegrationMethod);
 
     rGaussWeights.resize(NumIntegrationPoints, false);
 
