@@ -523,9 +523,11 @@ namespace Kratos
                                                  const ProcessInfo &rCurrentProcessInfo,
                                                  const double theta)
   {
+
     const GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
-
+    Fgrad.resize(TDim, TDim, false);
+    noalias(Fgrad) = ZeroMatrix(TDim, TDim);
     for (SizeType i = 0; i < TDim; ++i)
     {
       for (SizeType j = 0; j < TDim; ++j)
@@ -559,6 +561,9 @@ namespace Kratos
   {
     const GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
+    FgradVel.resize(TDim, TDim, false);
+    noalias(FgradVel) = ZeroMatrix(TDim, TDim);
+
     const double one_minus_theta = 1.0 - theta;
 
     for (SizeType i = 0; i < TDim; ++i)
@@ -669,36 +674,46 @@ namespace Kratos
                                                                 const MatrixType &VelDefgrad,
                                                                 VectorType &MDGreenLagrangeMaterial)
   {
-    MatrixType FgradTransp = ZeroMatrix(3, 3);
-    MatrixType VelDefgradTransp = ZeroMatrix(3, 3);
-    MatrixType part1 = ZeroMatrix(3, 3);
-    MatrixType part2 = ZeroMatrix(3, 3);
+    const double F00 = Fgrad(0, 0);
+    const double F01 = Fgrad(0, 1);
+    const double F02 = Fgrad(0, 2);
+    const double F10 = Fgrad(1, 0);
+    const double F11 = Fgrad(1, 1);
+    const double F12 = Fgrad(1, 2);
+    const double F20 = Fgrad(2, 0);
+    const double F21 = Fgrad(2, 1);
+    const double F22 = Fgrad(2, 2);
 
-    FgradTransp = Fgrad;
-    FgradTransp(0, 1) = Fgrad(1, 0);
-    FgradTransp(0, 2) = Fgrad(2, 0);
-    FgradTransp(1, 0) = Fgrad(0, 1);
-    FgradTransp(1, 2) = Fgrad(2, 1);
-    FgradTransp(2, 0) = Fgrad(0, 2);
-    FgradTransp(2, 1) = Fgrad(1, 2);
+    const double V00 = VelDefgrad(0, 0);
+    const double V01 = VelDefgrad(0, 1);
+    const double V02 = VelDefgrad(0, 2);
+    const double V10 = VelDefgrad(1, 0);
+    const double V11 = VelDefgrad(1, 1);
+    const double V12 = VelDefgrad(1, 2);
+    const double V20 = VelDefgrad(2, 0);
+    const double V21 = VelDefgrad(2, 1);
+    const double V22 = VelDefgrad(2, 2);
 
-    VelDefgradTransp = VelDefgrad;
-    VelDefgradTransp(0, 1) = VelDefgrad(1, 0);
-    VelDefgradTransp(0, 2) = VelDefgrad(2, 0);
-    VelDefgradTransp(1, 0) = VelDefgrad(0, 1);
-    VelDefgradTransp(1, 2) = VelDefgrad(2, 1);
-    VelDefgradTransp(2, 0) = VelDefgrad(0, 2);
-    VelDefgradTransp(2, 1) = VelDefgrad(1, 2);
+    MDGreenLagrangeMaterial[0] =
+        V00 * F00 + V10 * F10 + V20 * F20;
 
-    part1 = prod(VelDefgradTransp, Fgrad);
-    part2 = prod(FgradTransp, VelDefgrad);
+    MDGreenLagrangeMaterial[1] =
+        V11 * F11 + V01 * F01 + V21 * F21;
 
-    MDGreenLagrangeMaterial[0] = (part1(0, 0) + part2(0, 0)) * 0.5; // xx-component
-    MDGreenLagrangeMaterial[1] = (part1(1, 1) + part2(1, 1)) * 0.5; // yy-component
-    MDGreenLagrangeMaterial[2] = (part1(2, 2) + part2(2, 2)) * 0.5; // zz-component
-    MDGreenLagrangeMaterial[3] = (part1(0, 1) + part2(0, 1)) * 0.5; // xy-component
-    MDGreenLagrangeMaterial[4] = (part1(0, 2) + part2(0, 2)) * 0.5; // xz-component
-    MDGreenLagrangeMaterial[5] = (part1(1, 2) + part2(1, 2)) * 0.5; // yz-component
+    MDGreenLagrangeMaterial[2] =
+        V22 * F22 + V02 * F02 + V12 * F12;
+
+    MDGreenLagrangeMaterial[3] =
+        0.5 * (V00 * F01 + V10 * F11 + V20 * F21 +
+               V01 * F00 + V11 * F10 + V21 * F20);
+
+    MDGreenLagrangeMaterial[4] =
+        0.5 * (V00 * F02 + V10 * F12 + V20 * F22 +
+               V02 * F00 + V12 * F10 + V22 * F20);
+
+    MDGreenLagrangeMaterial[5] =
+        0.5 * (V01 * F02 + V11 * F12 + V21 * F22 +
+               V02 * F01 + V12 * F11 + V22 * F21);
   }
 
   template <>
@@ -929,29 +944,30 @@ namespace Kratos
                                                            const ShapeFunctionDerivativesType &rDN_DX,
                                                            const double theta)
   {
-    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-    const GeometryType &rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    const SizeType LocalSize = dimension * NumNodes;
-    VectorType NodePosition = ZeroVector(LocalSize);
-    VectorType VelocityValues = ZeroVector(LocalSize);
-    VectorType RHSVelocities = ZeroVector(LocalSize);
-    this->GetPositions(NodePosition);
-    this->GetVelocityValues(RHSVelocities, 0);
-    RHSVelocities *= theta;
-    this->GetVelocityValues(VelocityValues, 1);
-    RHSVelocities += VelocityValues * (1.0 - theta);
 
+    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
     rElementalVariables.Fgrad = ZeroMatrix(dimension, dimension);
     rElementalVariables.FgradVel = ZeroMatrix(dimension, dimension);
-    for (SizeType i = 0; i < dimension; i++)
+    const GeometryType &rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const double one_minus_theta = 1.0 - theta;
+    for (SizeType k = 0; k < NumNodes; ++k)
     {
-      for (SizeType j = 0; j < dimension; j++)
+      const auto &rNode = rGeom[k];
+      const auto &rCoordinates = rNode.Coordinates();
+      const auto &rVelocity = rNode.FastGetSolutionStepValue(VELOCITY, 0);
+      const auto &rPreviousVelocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
+
+      for (SizeType i = 0; i < dimension; ++i)
       {
-        for (SizeType k = 0; k < NumNodes; k++)
+        const double velocity =
+            theta * rVelocity[i] +
+            one_minus_theta * rPreviousVelocity[i];
+
+        for (SizeType j = 0; j < dimension; ++j)
         {
-          rElementalVariables.Fgrad(i, j) += NodePosition[dimension * k + i] * rDN_DX(k, j);
-          rElementalVariables.FgradVel(i, j) += RHSVelocities[dimension * k + i] * rDN_DX(k, j);
+          rElementalVariables.Fgrad(i, j) += rCoordinates[i] * rDN_DX(k, j);
+          rElementalVariables.FgradVel(i, j) += velocity * rDN_DX(k, j);
         }
       }
     }
@@ -1000,33 +1016,6 @@ namespace Kratos
                                                            const double theta)
   {
 
-    // const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-    // const GeometryType &rGeom = this->GetGeometry();
-    // const SizeType NumNodes = rGeom.PointsNumber();
-    // const SizeType LocalSize = dimension * NumNodes;
-    // VectorType NodePosition = ZeroVector(LocalSize);
-    // VectorType VelocityValues = ZeroVector(LocalSize);
-    // VectorType RHSVelocities = ZeroVector(LocalSize);
-    // this->GetPositions(NodePosition);
-    // this->GetVelocityValues(RHSVelocities, 0);
-    // RHSVelocities *= theta;
-    // this->GetVelocityValues(VelocityValues, 1);
-    // RHSVelocities += VelocityValues * (1.0 - theta);
-
-    // rElementalVariables.Fgrad = ZeroMatrix(dimension, dimension);
-    // rElementalVariables.FgradVel = ZeroMatrix(dimension, dimension);
-    // for (SizeType i = 0; i < dimension; i++)
-    // {
-    //   for (SizeType j = 0; j < dimension; j++)
-    //   {
-    //     for (SizeType k = 0; k < NumNodes; k++)
-    //     {
-    //       rElementalVariables.Fgrad(i, j) += NodePosition[dimension * k + i] * rDN_DX(k, j);
-    //       rElementalVariables.FgradVel(i, j) += RHSVelocities[dimension * k + i] * rDN_DX(k, j);
-    //     }
-    //   }
-    // }
-
     const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
     const GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -1043,17 +1032,13 @@ namespace Kratos
 
       for (SizeType i = 0; i < dimension; ++i)
       {
-        const double velocity =
-            theta * rVelocity[i] +
-            one_minus_theta * rPreviousVelocity[i];
+        const double velocity = theta * rVelocity[i] + one_minus_theta * rPreviousVelocity[i];
 
         for (SizeType j = 0; j < dimension; ++j)
         {
-          rElementalVariables.Fgrad(i, j) +=
-              rCoordinates[i] * rDN_DX(k, j);
+          rElementalVariables.Fgrad(i, j) += rCoordinates[i] * rDN_DX(k, j);
 
-          rElementalVariables.FgradVel(i, j) +=
-              velocity * rDN_DX(k, j);
+          rElementalVariables.FgradVel(i, j) += velocity * rDN_DX(k, j);
         }
       }
     }
