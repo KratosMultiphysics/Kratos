@@ -418,6 +418,14 @@ public:
         this->coeffRef(I, J) = Value;
     }
 
+    /// uBLAS-style element insertion, as ublas::compressed_matrix::insert_element:
+    /// unlike push_back it does not require appending in row-major order, at
+    /// the same O(nnz-in-row) slow-path cost as operator() on a missing entry.
+    void insert_element(const std::size_t I, const std::size_t J, const TDataType Value)
+    {
+        this->coeffRef(I, J) = Value;
+    }
+
     /// uBLAS-style element access. Inserting a new entry through the non-const
     /// version is the same slow path as for ublas::compressed_matrix.
     TDataType& operator()(const std::size_t I, const std::size_t J) { return this->coeffRef(I, J); }
