@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 #include <algorithm>
+#include <cmath>
 
 // External includes
 
@@ -88,6 +89,64 @@ void CollectEdges(const ModelPart& rModelPart, std::vector<std::pair<SizeType, S
         rTargetLengths.push_back(r_entry.second);
     }
 }
+
+void RotateNodesOntoGlobalXYPlane(ModelPart& rModelPart, const Vector3& rNormal, const int EchoLevel)
+{
+    Vector3 n = rNormal;
+    NormalizeVector(n);
+
+    Vector3 axis;                 // n x (0,0,1)
+    axis[0] =  n[1];
+    axis[1] = -n[0];
+    axis[2] =  0.0;
+
+    const double sine   = norm_2(axis);
+    const double cosine = n[2];   // n . (0,0,1)
+
+    if (sine < 1e-12) {           // n already parallel to z: rotate about x instead
+        axis[0] = 1.0;
+        axis[1] = 0.0;
+        axis[2] = 0.0;
+    } else {
+        axis /= sine;
+    }
+
+    const SizeType buffer_size = rModelPart.GetBufferSize();
+    double max_out_of_plane = 0.0;
+
+    for (auto& r_node : rModelPart.Nodes()) {
+        const Vector3& r_ref_position = r_node.GetInitialPosition();
+        const Vector3 flat_position = r_ref_position + r_node.FastGetSolutionStepValue(DISPLACEMENT);
+
+        Vector3 axis_cross_p;     // axis x flat_position
+        axis_cross_p[0] = axis[1]*flat_position[2] - axis[2]*flat_position[1];
+        axis_cross_p[1] = axis[2]*flat_position[0] - axis[0]*flat_position[2];
+        axis_cross_p[2] = axis[0]*flat_position[1] - axis[1]*flat_position[0];
+
+        const double axis_dot_p = inner_prod(axis, flat_position);
+
+        // Rodrigues: p' = p cos(t) + (k x p) sin(t) + k (k.p) (1 - cos(t))
+        const Vector3 rotated = cosine * flat_position
+                              + sine * axis_cross_p
+                              + ((1.0 - cosine) * axis_dot_p) * axis;
+
+        max_out_of_plane = std::max(max_out_of_plane, std::abs(rotated[2]));
+
+        const Vector3 disp = rotated - r_ref_position;
+        for (SizeType i = 0; i < buffer_size; ++i) {
+            r_node.FastGetSolutionStepValue(DISPLACEMENT, i) = disp;
+        }
+    }
+
+    KRATOS_INFO_IF("InitialFlatteningUtility", EchoLevel > 0)
+        << "Rotated the flattened mesh into the global xy-plane, largest remaining |z| = "
+        << max_out_of_plane << std::endl;
+
+    KRATOS_WARNING_IF("InitialFlatteningUtility", max_out_of_plane > 1e-9)
+        << "Flattened nodes are not planar (largest |z| = " << max_out_of_plane
+        << "). The out-of-plane constraint will not act on the correct direction."
+        << std::endl;
+}
 } // helpers namespace
 
 
@@ -114,6 +173,7 @@ void InitialFlatteningUtility::Execute(ModelPart& rModelPart, Parameters ThisPar
         if (sub_model_part_names.empty()) {
             const Vector3 normal = ComputeMeanSurfaceNormal(rModelPart);
             ProjectNodesOntoPlane(rModelPart, normal, echo_level);
+            RotateNodesOntoGlobalXYPlane(rModelPart, normal, echo_level);
         } else {
             ProjectNodesOntoPlanePerPart(rModelPart, sub_model_part_names, echo_level);
         }
@@ -244,13 +304,7 @@ void InitialFlatteningUtility::ProjectNodesOntoPlanePerPart(ModelPart& rModelPar
         << rSubModelPartNames.size() << " sub model parts." << std::endl;
 }
 
-void InitialFlatteningUtility::FitEdgeLengths(
-    ModelPart& rModelPart,
-    const Vector3& rNormal,
-    const int MaxIterations,
-    const double Tolerance,
-    const double RelaxationFactor,
-    const int EchoLevel)
+void InitialFlatteningUtility::FitEdgeLengths(ModelPart& rModelPart, const Vector3& rNormal, const int MaxIterations, const double Tolerance, const double RelaxationFactor, const int EchoLevel)
 {
     std::vector<std::pair<SizeType, SizeType>> edges;
     std::vector<double> target_lengths;
