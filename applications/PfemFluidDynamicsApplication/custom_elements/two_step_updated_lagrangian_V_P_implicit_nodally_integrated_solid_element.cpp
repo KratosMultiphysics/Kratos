@@ -115,8 +115,7 @@ namespace Kratos
     VectorType GaussWeights;
     this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-    // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-    bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+    bool computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
     if (computeElement == true)
     {
@@ -296,7 +295,7 @@ namespace Kratos
 
       // rElementalVariables.MeanPressure = OldPressure * (1 - theta) + Pressure * theta;
 
-      bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+      bool computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
       CalcElasticPlasticCauchySplitted(rElementalVariables, g, N, rCurrentProcessInfo, Density, DeviatoricCoeff, VolumetricCoeff);
 

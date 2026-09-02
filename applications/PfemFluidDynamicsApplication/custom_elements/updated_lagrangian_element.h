@@ -411,19 +411,13 @@ namespace Kratos
     void GetDisplacementValues(Vector &rValues,
                                const int Step = 0);
 
-    void GetPositions(Vector &rValues,
-                      const ProcessInfo &rCurrentProcessInfo,
-                      const double theta);
+    void GetPositions(Vector &rValues);
 
     void GetAccelerationValues(Vector &rValues,
                                const int Step = 0);
 
     void GetPressureVelocityValues(Vector &rValues,
                                    const int Step);
-
-    void GetElementalAcceleration(Vector &rValues,
-                                  const int Step,
-                                  const double TimeStep);
 
     /// Determine integration point weights and shape function derivatives from the element's geometry.
     virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
@@ -483,12 +477,7 @@ namespace Kratos
                               const ProcessInfo &rCurrentProcessInfo,
                               const ShapeFunctionDerivativesType &rDN_DX);
 
-    bool CalcStrainRate(ElementalVariables &rElementalVariables,
-                        const ProcessInfo &rCurrentProcessInfo,
-                        const ShapeFunctionDerivativesType &rDN_DX,
-                        const double theta);
-
-    bool CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
+    bool CalcStrainRateMeasures(ElementalVariables &rElementalVariables,
                                 const ProcessInfo &rCurrentProcessInfo,
                                 const ShapeFunctionDerivativesType &rDN_DX,
                                 const double theta);

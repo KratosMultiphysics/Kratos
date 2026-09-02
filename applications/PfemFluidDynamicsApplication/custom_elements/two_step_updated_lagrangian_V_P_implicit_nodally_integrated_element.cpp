@@ -1044,7 +1044,7 @@ namespace Kratos
       totalVolume += GaussWeight;
       const ShapeFunctionsType &N = row(NContainer, g);
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-      computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+      computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
       double BoundLHSCoeff = Tau * 4.0 * GaussWeight / (ElemSize * ElemSize);
       this->ComputeBoundLHSMatrix(rLeftHandSideMatrix, N, BoundLHSCoeff);

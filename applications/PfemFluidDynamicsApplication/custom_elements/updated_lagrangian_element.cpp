@@ -158,10 +158,9 @@ namespace Kratos
     if (rElementalDofList.size() != NumNodes)
       rElementalDofList.resize(NumNodes);
 
-    SizeType LocalIndex = 0;
     for (SizeType i = 0; i < NumNodes; ++i)
     {
-      rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(PRESSURE);
+      rElementalDofList[i] = rGeom[i].pGetDof(PRESSURE);
     }
   }
 
@@ -222,17 +221,15 @@ namespace Kratos
 
     double velX = 0;
     double velY = 0;
-    double coeff = 0.0;
 
     for (SizeType i = 0; i < NumNodes; ++i)
     {
       velX += rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
       velY += rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-      coeff += 1.0;
     }
 
     meanVelocity = velX * velX + velY * velY;
-    meanVelocity = sqrt(meanVelocity) / coeff;
+    meanVelocity = sqrt(meanVelocity) / NumNodes;
   }
 
   template <>
@@ -246,18 +243,16 @@ namespace Kratos
     double velX = 0;
     double velY = 0;
     double velZ = 0;
-    double coeff = 0.0;
 
     for (SizeType i = 0; i < NumNodes; ++i)
     {
       velX += rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
       velY += rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
       velZ += rGeom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
-      coeff += 1.0;
     }
 
     meanVelocity = velX * velX + velY * velY + velZ * velZ;
-    meanVelocity = sqrt(meanVelocity) / coeff;
+    meanVelocity = sqrt(meanVelocity) / NumNodes;
   }
 
   template <unsigned int TDim>
@@ -366,22 +361,6 @@ namespace Kratos
     }
   }
 
-  template <unsigned int TDim>
-  void UpdatedLagrangianElement<TDim>::GetElementalAcceleration(Vector &meanAcceleration,
-                                                                const int Step,
-                                                                const double TimeStep)
-  {
-    const GeometryType &rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    double count = 0;
-    for (SizeType i = 0; i < NumNodes; ++i)
-    {
-      meanAcceleration += 0.5 / TimeStep * (rGeom[i].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[i].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[i].FastGetSolutionStepValue(ACCELERATION, 1);
-      count += 1.0;
-    }
-    meanAcceleration *= 1.0 / count;
-  }
-
   template <>
   void UpdatedLagrangianElement<2>::GetAccelerationValues(Vector &rValues,
                                                           const int Step)
@@ -424,7 +403,7 @@ namespace Kratos
   }
 
   template <>
-  void UpdatedLagrangianElement<2>::GetPositions(Vector &rValues, const ProcessInfo &rCurrentProcessInfo, const double theta)
+  void UpdatedLagrangianElement<2>::GetPositions(Vector &rValues)
   {
 
     const GeometryType &rGeom = this->GetGeometry();
@@ -444,7 +423,7 @@ namespace Kratos
   }
 
   template <>
-  void UpdatedLagrangianElement<3>::GetPositions(Vector &rValues, const ProcessInfo &rCurrentProcessInfo, const double theta)
+  void UpdatedLagrangianElement<3>::GetPositions(Vector &rValues)
   {
     const GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -512,22 +491,22 @@ namespace Kratos
       Length += Edge[d] * Edge[d];
     ElemSize += sqrt(Length);
 
-    double count = 1.0;
+    SizeType count = 1;
     for (SizeType i = 2; i < NumNodes; i++)
     {
       for (SizeType j = 0; j < i; j++)
       {
         noalias(Edge) = rGeom[i].Coordinates() - rGeom[j].Coordinates();
-                Length = Edge[0] * Edge[0];
+        Length = Edge[0] * Edge[0];
         for (SizeType d = 1; d < TDim; d++)
         {
           Length += Edge[d] * Edge[d];
         }
         ElemSize += sqrt(Length);
-        count += 1.0;
+        ++count;
       }
     }
-    ElemSize *= 1.0 / count;
+    ElemSize /= count;
     return ElemSize;
   }
 
@@ -943,12 +922,11 @@ namespace Kratos
   {
 
     const double theta = this->GetThetaMomentum();
-    bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
-    return computeElement;
+    return this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
   }
 
   template <>
-  bool UpdatedLagrangianElement<2>::CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
+  bool UpdatedLagrangianElement<2>::CalcStrainRateMeasures(ElementalVariables &rElementalVariables,
                                                            const ProcessInfo &rCurrentProcessInfo,
                                                            const ShapeFunctionDerivativesType &rDN_DX,
                                                            const double theta)
@@ -1014,40 +992,70 @@ namespace Kratos
                                                      2.0 * rElementalVariables.SpatialDefRate[1] * rElementalVariables.SpatialDefRate[1] +
                                                      4.0 * rElementalVariables.SpatialDefRate[2] * rElementalVariables.SpatialDefRate[2]));
 
-    return computeElement;
+    return true;
   }
 
   template <>
-  bool UpdatedLagrangianElement<3>::CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
+  bool UpdatedLagrangianElement<3>::CalcStrainRateMeasures(ElementalVariables &rElementalVariables,
                                                            const ProcessInfo &rCurrentProcessInfo,
                                                            const ShapeFunctionDerivativesType &rDN_DX,
                                                            const double theta)
   {
 
-    bool computeElement = true;
+    // const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    // const GeometryType &rGeom = this->GetGeometry();
+    // const SizeType NumNodes = rGeom.PointsNumber();
+    // const SizeType LocalSize = dimension * NumNodes;
+    // VectorType NodePosition = ZeroVector(LocalSize);
+    // VectorType VelocityValues = ZeroVector(LocalSize);
+    // VectorType RHSVelocities = ZeroVector(LocalSize);
+    // this->GetPositions(NodePosition);
+    // this->GetVelocityValues(RHSVelocities, 0);
+    // RHSVelocities *= theta;
+    // this->GetVelocityValues(VelocityValues, 1);
+    // RHSVelocities += VelocityValues * (1.0 - theta);
+
+    // rElementalVariables.Fgrad = ZeroMatrix(dimension, dimension);
+    // rElementalVariables.FgradVel = ZeroMatrix(dimension, dimension);
+    // for (SizeType i = 0; i < dimension; i++)
+    // {
+    //   for (SizeType j = 0; j < dimension; j++)
+    //   {
+    //     for (SizeType k = 0; k < NumNodes; k++)
+    //     {
+    //       rElementalVariables.Fgrad(i, j) += NodePosition[dimension * k + i] * rDN_DX(k, j);
+    //       rElementalVariables.FgradVel(i, j) += RHSVelocities[dimension * k + i] * rDN_DX(k, j);
+    //     }
+    //   }
+    // }
+
     const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
     const GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
-    const SizeType LocalSize = dimension * NumNodes;
-    VectorType NodePosition = ZeroVector(LocalSize);
-    VectorType VelocityValues = ZeroVector(LocalSize);
-    VectorType RHSVelocities = ZeroVector(LocalSize);
-    this->GetPositions(NodePosition, rCurrentProcessInfo, theta);
-    this->GetVelocityValues(RHSVelocities, 0);
-    RHSVelocities *= theta;
-    this->GetVelocityValues(VelocityValues, 1);
-    RHSVelocities += VelocityValues * (1.0 - theta);
-
+    const double one_minus_theta = 1.0 - theta;
     rElementalVariables.Fgrad = ZeroMatrix(dimension, dimension);
     rElementalVariables.FgradVel = ZeroMatrix(dimension, dimension);
-    for (SizeType i = 0; i < dimension; i++)
+
+    for (SizeType k = 0; k < NumNodes; ++k)
     {
-      for (SizeType j = 0; j < dimension; j++)
+      const auto &rNode = rGeom[k];
+      const auto &rCoordinates = rNode.Coordinates();
+      const auto &rVelocity = rNode.FastGetSolutionStepValue(VELOCITY, 0);
+      const auto &rPreviousVelocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
+
+      for (SizeType i = 0; i < dimension; ++i)
       {
-        for (SizeType k = 0; k < NumNodes; k++)
+        const double velocity =
+            theta * rVelocity[i] +
+            one_minus_theta * rPreviousVelocity[i];
+
+        for (SizeType j = 0; j < dimension; ++j)
         {
-          rElementalVariables.Fgrad(i, j) += NodePosition[dimension * k + i] * rDN_DX(k, j);
-          rElementalVariables.FgradVel(i, j) += RHSVelocities[dimension * k + i] * rDN_DX(k, j);
+          rElementalVariables.Fgrad(i, j) +=
+              rCoordinates[i] * rDN_DX(k, j);
+
+          rElementalVariables.FgradVel(i, j) +=
+              velocity * rDN_DX(k, j);
         }
       }
     }
@@ -1095,54 +1103,7 @@ namespace Kratos
                                                            2.0 * rElementalVariables.SpatialDefRate[4] * rElementalVariables.SpatialDefRate[4] +
                                                            2.0 * rElementalVariables.SpatialDefRate[5] * rElementalVariables.SpatialDefRate[5]));
 
-    return computeElement;
-  }
-
-  template <unsigned int TDim>
-  bool UpdatedLagrangianElement<TDim>::CalcStrainRate(ElementalVariables &rElementalVariables,
-                                                      const ProcessInfo &rCurrentProcessInfo,
-                                                      const ShapeFunctionDerivativesType &rDN_DX,
-                                                      const double theta)
-  {
-
-    bool computeElement = true;
-
-    this->CalcFGrad(rDN_DX,
-                    rElementalVariables.Fgrad,
-                    rElementalVariables.InvFgrad,
-                    rElementalVariables.DetFgrad,
-                    rCurrentProcessInfo,
-                    theta);
-
-    // it computes the material time derivative of the deformation gradient and its jacobian and inverse
-    this->CalcVelDefGrad(rDN_DX,
-                         rElementalVariables.FgradVel,
-                         theta);
-
-    // it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
-    this->CalcSpatialVelocityGrad(rElementalVariables.InvFgrad,
-                                  rElementalVariables.FgradVel,
-                                  rElementalVariables.SpatialVelocityGrad);
-
-    this->CalcVolDefRateFromSpatialVelGrad(rElementalVariables.VolumetricDefRate,
-                                           rElementalVariables.SpatialVelocityGrad);
-
-    // it computes Material time Derivative of Green Lagrange strain tensor in MATERIAL configuration --> [D(E)/Dt]
-    this->CalcMDGreenLagrangeMaterial(rElementalVariables.Fgrad,
-                                      rElementalVariables.FgradVel,
-                                      rElementalVariables.MDGreenLagrangeMaterial);
-
-    // it computes Material time Derivative of Green Lagrange strain tensor in SPATIAL configuration  --> [d]
-    this->CalcSpatialDefRate(rElementalVariables.MDGreenLagrangeMaterial,
-                             rElementalVariables.InvFgrad,
-                             rElementalVariables.SpatialDefRate);
-
-    this->CalcDeviatoricInvariant(rElementalVariables.SpatialDefRate,
-                                  rElementalVariables.DeviatoricInvariant);
-
-    this->CalcEquivalentStrainRate(rElementalVariables.SpatialDefRate,
-                                   rElementalVariables.EquivalentStrainRate);
-    return computeElement;
+    return true;
   }
 
   template <unsigned int TDim>
