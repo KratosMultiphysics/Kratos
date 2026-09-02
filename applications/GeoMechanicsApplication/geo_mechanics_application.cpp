@@ -14,10 +14,11 @@
 
 // Application includes
 #include "geo_mechanics_application.h"
-
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/tension_cutoff.h"
 #include "custom_constitutive/thermal_filter_law.h"
+#include "custom_elements/lobatto_integration_scheme.h"
+#include "custom_elements/lumped_integration_scheme.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
 #include "custom_retention/saturated_law.h"
 #include "custom_retention/van_genuchten_law.h"
@@ -43,6 +44,10 @@ void KratosGeoMechanicsApplication::Register()
                     << "  //    / / //       //   / /          \n"
                     << " ((____/ / ((____   ((___/ /  MECHANICS\n"
                     << " Initializing KratosGeoMechanicsApplication..." << std::endl;
+
+    // Register custom geometries
+    KRATOS_REGISTER_GEOMETRY("LineInterfaceGeometryInPlaneStrain2Plus2N", mLineInterfaceGeometryInPlaneStrain2Plus2N)
+    KRATOS_REGISTER_GEOMETRY("LineInterfaceGeometryInPlaneStrain3Plus3N", mLineInterfaceGeometryInPlaneStrain3Plus3N)
 
     // Register Elements
     //  transient one-phase flow elements:
@@ -350,6 +355,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw", mLinearElastic3DInterfaceLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussBackboneConstitutiveLaw", mTrussBackboneConstitutiveLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw",
+                                     mPiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElasticInterfaceLaw", mIncrementalLinearElasticInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElasticInterface3DSurfaceLaw",
@@ -391,9 +398,15 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS)
     KRATOS_REGISTER_VARIABLE(GEO_MAX_PLASTIC_ITERATIONS)
     KRATOS_REGISTER_VARIABLE(GEO_ABS_YIELD_FUNCTION_TOLERANCE)
+    KRATOS_REGISTER_VARIABLE(GEO_MAX_RELATIVE_OVERSHOOT)
+    KRATOS_REGISTER_VARIABLE(GEO_MAX_NUMBER_OF_SUB_STEPS)
     KRATOS_REGISTER_VARIABLE(GEO_COMPRESSION_CAP_SIZE)
     KRATOS_REGISTER_VARIABLE(GEO_PRECONSOLIDATION_STRESS)
     KRATOS_REGISTER_VARIABLE(GEO_CAP_HARDENING_TYPE)
+
+    KRATOS_REGISTER_VARIABLE(GEO_YOUNGS_MODULUS_FORMULATION)
+    KRATOS_REGISTER_VARIABLE(GEO_PRESSURE_REFERENCE)
+    KRATOS_REGISTER_VARIABLE(GEO_STRESS_DEPENDENCY_EXPONENT)
 
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_WATER)
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_SOLID)
@@ -606,6 +619,8 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_VARIABLE(STRAINS_OF_PIECEWISE_LINEAR_LAW)
     KRATOS_REGISTER_VARIABLE(STRESSES_OF_PIECEWISE_LINEAR_LAW)
+    KRATOS_REGISTER_VARIABLE(GEO_PIECEWISE_LINEAR_MOMENT_LAW)
+    KRATOS_REGISTER_VARIABLE(GEO_UNLOADING_RELOADING_MODULUS)
 
     KRATOS_REGISTER_VARIABLE(INTERFACE_NORMAL_STIFFNESS)
     KRATOS_REGISTER_VARIABLE(INTERFACE_SHEAR_STIFFNESS)
@@ -628,5 +643,7 @@ void KratosGeoMechanicsApplication::Register()
     Serializer::Register("CoulombYieldSurface", CoulombYieldSurface{});
     Serializer::Register("TensionCutoff", TensionCutoff{});
     Serializer::Register("GeoThermalFilterLaw", GeoThermalFilterLaw{});
+    Serializer::Register("LobattoIntegrationScheme", LobattoIntegrationScheme{});
+    Serializer::Register("LumpedIntegrationScheme", LumpedIntegrationScheme{});
 }
 } // namespace Kratos.

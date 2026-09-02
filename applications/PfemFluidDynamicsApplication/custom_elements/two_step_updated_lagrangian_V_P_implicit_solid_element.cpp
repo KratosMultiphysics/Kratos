@@ -174,43 +174,35 @@ namespace Kratos
       KRATOS_THROW_ERROR(std::invalid_argument,
                          "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
 
+  const GeometryType &r_geom = this->GetGeometry();
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
+    for (unsigned int i = 0; i < r_geom.size(); ++i)
     {
-      if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing BODY_FORCE variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing DENSITY variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument,
-                           "missing DYNAMIC_VISCOSITY variable on solution step data for node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-          this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-          this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ",
-                           this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ",
-                           this->GetGeometry()[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(VELOCITY))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(PRESSURE))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(BODY_FORCE))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing BODY_FORCE variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(DENSITY))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing DENSITY variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing DYNAMIC_VISCOSITY variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].HasDofFor(VELOCITY_X) ||
+          !r_geom[i].HasDofFor(VELOCITY_Y) ||
+          !r_geom[i].HasDofFor(VELOCITY_Z) == false)
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ", r_geom[i].Id());
+      if (!r_geom[i].HasDofFor(PRESSURE))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ", r_geom[i].Id());
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
-    if (this->GetGeometry().WorkingSpaceDimension() == 2)
+    if (r_geom.WorkingSpaceDimension() == 2)
     {
       for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
       {
-        if (this->GetGeometry()[i].Z() != 0.0)
-          KRATOS_THROW_ERROR(std::invalid_argument,
-                             "Node with non-zero Z coordinate found. Id: ", this->GetGeometry()[i].Id());
+        if (r_geom[i].Z() != 0.0)
+          KRATOS_THROW_ERROR(std::invalid_argument, "Node with non-zero Z coordinate found. Id: ", r_geom[i].Id());
       }
     }
 
@@ -221,7 +213,6 @@ namespace Kratos
 
     // WARNING THIS MUST BE REMOVED ASAP
     const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->mpConstitutiveLaw = const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->GetProperties().GetValue(CONSTITUTIVE_LAW);
-    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
@@ -400,7 +391,6 @@ namespace Kratos
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
-    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
     auto constitutive_law_values =
         ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
@@ -450,7 +440,6 @@ namespace Kratos
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
-    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
     auto constitutive_law_values =
         ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
@@ -500,7 +489,6 @@ namespace Kratos
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
     // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
     bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
-    const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
 
     if (computeElement == true)
     {
@@ -543,14 +531,11 @@ namespace Kratos
     this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
 
-    // const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
     double theta = this->GetThetaContinuity();
 
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
 
-    // double Density  = mMaterialDensity;
-    // double DeviatoricCoeff = mMaterialVolumetricCoefficient;
     double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
 
     double totalVolume = 0;

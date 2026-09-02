@@ -113,6 +113,7 @@
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
 #include "custom_constitutive/mohr_coulomb_law.h"
+#include "custom_constitutive/piecewise_linear_moment_capacity_plane_strain_constitutive_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.h"
@@ -258,6 +259,12 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
+
+    // Custom geometries
+    const InterfaceGeometry<Line2D2<NodeType>> mLineInterfaceGeometryInPlaneStrain2Plus2N{
+        0, Element::GeometryType::PointsArrayType(4)};
+    const InterfaceGeometry<Line2D3<NodeType>> mLineInterfaceGeometryInPlaneStrain3Plus3N{
+        0, Element::GeometryType::PointsArrayType(6)};
 
     // elements
     // transient one-phase flow elements:
@@ -955,6 +962,7 @@ private:
     const LinearElastic3DInterfaceLaw mLinearElastic3DInterfaceLaw;
 
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
+    const PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw mPiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw;
 
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw{
         std::make_unique<InterfacePlaneStrain>()};

@@ -37,6 +37,7 @@
 #include "custom_utilities/output_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geo_mechanics_application_constants.h"
 #include "stress_state_policy.h"
 
@@ -122,8 +123,10 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
         r_geom.IntegrationPoints(integration_method);
     const auto Np_container = mpPressureGeometry->ShapeFunctionsValues(integration_method);
 
-    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-        Np_container, this->GetPressureSolutionVector());
+    Vector corner_pressures(mpPressureGeometry->PointsNumber());
+    VariablesUtilities::GetNodalValues(*mpPressureGeometry, WATER_PRESSURE, corner_pressures.begin());
+    const auto fluid_pressures =
+        GeoTransportEquationUtilities::CalculateFluidPressures(Np_container, corner_pressures);
     const auto degrees_saturation = this->CalculateDegreesOfSaturation(fluid_pressures);
 
     const auto solid_densities =
@@ -188,192 +191,29 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
     KRATOS_CATCH("")
 }
 
-Vector SmallStrainUPwDiffOrderElement::GetPressures(const size_t n_nodes) const
-{
-    const auto& r_geom = GetGeometry();
-    Vector      pressure(n_nodes);
-    std::transform(r_geom.begin(), r_geom.begin() + static_cast<std::ptrdiff_t>(n_nodes), pressure.begin(),
-                   [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
-    return pressure;
-}
-
-void set_arithmetic_average_pressure(Geometry<Node>&                               rGeometry,
-                                     const Vector&                                 rPressure,
-                                     const std::vector<std::pair<size_t, size_t>>& rIndexPpairs,
-                                     size_t DestinationOffset = 0)
-{
-    for (size_t i = 0; const auto& [first_index, second_index] : rIndexPpairs) {
-        NodeUtilities::ThreadSafeNodeWrite(rGeometry[DestinationOffset + i], WATER_PRESSURE,
-                                           0.5 * (rPressure[first_index] + rPressure[second_index]));
-        ++i;
-    }
-}
-
-void set_arithmetic_average_pressure(Geometry<Node>& rGeometry,
-                                     const Vector&   rPressure,
-                                     const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& rIndices,
-                                     size_t DestinationOffset = 0)
-{
-    for (size_t i = 0; const auto& [first_index, second_index, third_index, fourth_index] : rIndices) {
-        NodeUtilities::ThreadSafeNodeWrite(rGeometry[DestinationOffset + i], WATER_PRESSURE,
-                                           0.25 * (rPressure[first_index] + rPressure[second_index] +
-                                                   rPressure[third_index] + rPressure[fourth_index]));
-        ++i;
-    }
-}
-
 void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
 {
     // Assign pressure values to the intermediate nodes for post-processing
     KRATOS_TRY
 
-    GeometryType&  r_geom      = GetGeometry();
-    const SizeType num_u_nodes = r_geom.PointsNumber();
-    const SizeType n_dim       = r_geom.WorkingSpaceDimension();
+    auto&      r_displacement_geometry = GetGeometry();
+    const auto num_u_nodes             = r_displacement_geometry.PointsNumber();
+    const auto num_p_nodes             = mpPressureGeometry->PointsNumber();
 
-    switch (num_u_nodes) {
-    case 6: // 2D T6P3
-    {
-        const Vector                                 pressure = GetPressures(3);
-        const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 0}};
-        set_arithmetic_average_pressure(r_geom, pressure, pairs, 3);
-        break;
-    }
-    case 8: // 2D Q8P4
-    {
-        const Vector                                 pressure = GetPressures(4);
-        const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 3}, {3, 0}};
-        set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
-        break;
-    }
-    case 9: // 2D Q9P4
-    {
-        const Vector                                 pressure = GetPressures(4);
-        const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 3}, {3, 0}};
-        set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
-        const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices = {{0, 1, 2, 3}};
-        set_arithmetic_average_pressure(r_geom, pressure, indices, 8);
-        break;
-    }
-    case 10: // 3D T10P4  //2D T10P6
-    {
-        if (n_dim == 3) {
-            const Vector                                 pressure = GetPressures(4);
-            const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 0},
-                                                                     {0, 3}, {1, 3}, {2, 3}};
-            set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
-        } else if (n_dim == 2) {
-            constexpr double c1 = 1.0 / 9.0;
-            const Vector     p  = GetPressures(6);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE,
-                                               (2.0 * p[0] - p[1] + 8.0 * p[3]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE,
-                                               (2.0 * p[1] - p[0] + 8.0 * p[3]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE,
-                                               (2.0 * p[1] - p[2] + 8.0 * p[4]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE,
-                                               (2.0 * p[2] - p[1] + 8.0 * p[4]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE,
-                                               (2.0 * p[2] - p[0] + 8.0 * p[5]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE,
-                                               (2.0 * p[0] - p[2] + 8.0 * p[5]) * c1);
-            NodeUtilities::ThreadSafeNodeWrite(
-                r_geom[9], WATER_PRESSURE, (4.0 * (p[3] + p[4] + p[5]) - (p[0] + p[1] + p[2])) * c1);
-        }
-        break;
-    }
-    case 15: // 2D T15P10
-    {
-        constexpr double c1 = 0.0390625;
-        const Vector     p  = GetPressures(10);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE,
-                                           (3.0 * p[0] + p[1] + 27.0 * p[3] - 5.4 * p[4]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE,
-                                           (14.4 * (p[3] + p[4]) - 1.6 * (p[0] + p[1])) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE,
-                                           (3.0 * p[1] + p[0] + 27.0 * p[4] - 5.4 * p[3]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE,
-                                           (3.0 * p[1] + p[2] + 27.0 * p[5] - 5.4 * p[6]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE,
-                                           (14.4 * (p[5] + p[6]) - 1.6 * (p[1] + p[2])) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE,
-                                           (3.0 * p[2] + p[1] + 27.0 * p[6] - 5.4 * p[5]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE,
-                                           (3.0 * p[2] + p[0] + 27.0 * p[7] - 5.4 * p[8]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[10], WATER_PRESSURE,
-                                           (14.4 * (p[7] + p[8]) - 1.6 * (p[0] + p[2])) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[11], WATER_PRESSURE,
-                                           (3.0 * p[0] + p[2] + 27.0 * p[8] - 5.4 * p[7]) * c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[12], WATER_PRESSURE,
-                                           (p[1] + p[2] + 7.2 * (p[3] + p[8]) - 3.6 * (p[4] + p[7]) -
-                                            1.8 * (p[5] + p[6]) + 21.6 * p[9] - 1.6 * p[0]) *
-                                               c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[13], WATER_PRESSURE,
-                                           (p[0] + p[2] + 7.2 * (p[4] + p[5]) - 3.6 * (p[3] + p[6]) -
-                                            1.8 * (p[7] + p[8]) + 21.6 * p[9] - 1.6 * p[1]) *
-                                               c1);
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[14], WATER_PRESSURE,
-                                           (p[0] + p[1] + 7.2 * (p[6] + p[7]) - 3.6 * (p[5] + p[8]) -
-                                            1.8 * (p[3] + p[4]) + 21.6 * p[9] - 1.6 * p[2]) *
-                                               c1);
-        break;
-    }
-    case 20: // 3D H20P8
-    {
-        const Vector                                 pressure = GetPressures(8);
-        const std::vector<std::pair<size_t, size_t>> pairs =
-            // edges -- bottom
-            {{0, 1},
-             {1, 2},
-             {2, 3},
-             {3, 0},
-             // edges -- middle
-             {4, 0},
-             {5, 1},
-             {6, 2},
-             {7, 3},
-             // edges -- top
-             {4, 5},
-             {5, 6},
-             {6, 7},
-             {7, 4}};
-        set_arithmetic_average_pressure(r_geom, pressure, pairs, 8);
-        break;
-    }
-    case 27: // 3D H27P8
-    {
-        const Vector                                 pressure = GetPressures(8);
-        const std::vector<std::pair<size_t, size_t>> pairs =
-            // edges -- bottom
-            {{0, 1},
-             {1, 2},
-             {2, 3},
-             {3, 0},
-             // edges -- middle
-             {4, 0},
-             {5, 1},
-             {6, 2},
-             {7, 3},
-             // edges -- top
-             {4, 5},
-             {5, 6},
-             {6, 7},
-             {7, 0}};
-        set_arithmetic_average_pressure(r_geom, pressure, pairs, 8);
-        // face centers
-        const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices = {
-            {0, 1, 2, 3}, {0, 1, 4, 5}, {1, 2, 5, 6}, {2, 3, 6, 7}, {3, 0, 7, 4}, {4, 5, 6, 7}};
-        set_arithmetic_average_pressure(r_geom, pressure, indices, 20);
-        // element center
-        NodeUtilities::ThreadSafeNodeWrite(r_geom[26], WATER_PRESSURE,
-                                           0.125 * (pressure[0] + pressure[1] + pressure[2] + pressure[3] +
-                                                    pressure[4] + pressure[5] + pressure[6] + pressure[7]));
-        break;
-    }
-    default:
-        KRATOS_ERROR << "Unexpected geometry type for different order "
-                        "interpolation element"
-                     << this->Id() << std::endl;
+    auto local_coordinates = Matrix{};
+    r_displacement_geometry.PointsLocalCoordinates(local_coordinates);
+    const auto corner_pressures = VariablesUtilities::GetNodalValues(*mpPressureGeometry, WATER_PRESSURE);
+
+    for (auto node = num_p_nodes; node < num_u_nodes; ++node) {
+        auto shape_functions_values = Vector(num_p_nodes);
+        // new object as a 3 long array is expected even for local space dimensions 1 and 2
+        auto local_node_coordinate = array_1d<double, 3>{3, 0.0};
+        std::ranges::copy(row(local_coordinates, node), local_node_coordinate.begin());
+        mpPressureGeometry->ShapeFunctionsValues(shape_functions_values, local_node_coordinate);
+
+        const auto mid_node_pressure = std::inner_product(
+            shape_functions_values.begin(), shape_functions_values.end(), corner_pressures.begin(), 0.0);
+        NodeUtilities::ThreadSafeNodeWrite(r_displacement_geometry[node], WATER_PRESSURE, mid_node_pressure);
     }
 
     KRATOS_CATCH("")
@@ -1624,14 +1464,6 @@ void SmallStrainUPwDiffOrderElement::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
     rSerializer.load("PressureGeometry", mpPressureGeometry);
-}
-
-Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector() const
-{
-    Vector result(mpPressureGeometry->PointsNumber());
-    std::transform(mpPressureGeometry->begin(), mpPressureGeometry->end(), result.begin(),
-                   [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
-    return result;
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
