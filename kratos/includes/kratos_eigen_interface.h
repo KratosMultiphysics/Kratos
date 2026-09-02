@@ -332,9 +332,12 @@ public:
     /// Construction from a dense uBLAS matrix expression, mirroring
     /// ublas::compressed_matrix's own constructor: the nonzero entries are
     /// gathered into compressed storage. Insertion happens in row-major order
-    /// (this matrix's storage order), so it is a single linear fill.
+    /// (this matrix's storage order), so it is a single linear fill. Not
+    /// explicit: EigenMatrix's equivalent constructor isn't either, and the
+    /// ublas idiom `SparseMatrixType m = ZeroMatrix(n, n);` relies on the
+    /// implicit conversion (as does its uBLAS-backend counterpart).
     template<class TExpression>
-    explicit EigenCompressedMatrix(const boost::numeric::ublas::matrix_expression<TExpression>& rExpression)
+    EigenCompressedMatrix(const boost::numeric::ublas::matrix_expression<TExpression>& rExpression)
         : BaseType(rExpression().size1(), rExpression().size2())
     {
         const auto& r_dense = rExpression();
