@@ -525,20 +525,14 @@ namespace Kratos
   {
     const GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
-    const SizeType LocalSize = TDim * NumNodes;
-    VectorType NodePosition = ZeroVector(LocalSize);
-    this->GetPositions(NodePosition);
 
-    Fgrad.resize(TDim, TDim, false);
-
-    noalias(Fgrad) = ZeroMatrix(TDim, TDim);
-    for (SizeType i = 0; i < TDim; i++)
+    for (SizeType i = 0; i < TDim; ++i)
     {
-      for (SizeType j = 0; j < TDim; j++)
+      for (SizeType j = 0; j < TDim; ++j)
       {
-        for (SizeType k = 0; k < NumNodes; k++)
+        for (SizeType k = 0; k < NumNodes; ++k)
         {
-          Fgrad(i, j) += NodePosition[TDim * k + i] * rDN_DX(k, j);
+          Fgrad(i, j) += rGeom[k].Coordinates()[i] * rDN_DX(k, j);
         }
       }
     }
