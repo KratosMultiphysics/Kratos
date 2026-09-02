@@ -710,7 +710,7 @@ public:
         )
     {
         TDataType temp {};
-        for (std::size_t i=0; i<rFirstVector.size(); ++i){
+        for (std::size_t i=0; i<static_cast<std::size_t>(rFirstVector.size()); ++i){
             temp += rFirstVector[i] * rSecondVector[i];
         }
         return temp;
