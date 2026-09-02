@@ -931,7 +931,6 @@ namespace Kratos
                                                            const ShapeFunctionDerivativesType &rDN_DX,
                                                            const double theta)
   {
-    bool computeElement = true;
     const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
     const GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
