@@ -172,6 +172,34 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
             self.beta = min(self.beta * self.increase_fac, self.max_beta)
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Increased beta to {self.beta}.")
 
+class ClampingProjection(DesignVariableProjection):
+    def __init__(self, parameters: Kratos.Parameters, _):
+        default_parameters = Kratos.Parameters("""{
+            "type"           : "clamping_projection"
+        }""")
+        parameters.ValidateAndAssignDefaults(default_parameters)
+
+    def SetProjectionSpaces(self, x_space_values, y_space_values):
+        self.interval_bounder = TensorAdaptorBoundingManager(y_space_values)
+        if len(x_space_values) == 2:
+            self.clamper = KratosOA.ControlUtils.SmoothClamper(x_space_values[0], x_space_values[1])
+        else:
+            raise RuntimeError(f"clamping_projection can only have two values in x_space [ x_space_values = {x_space_values} ].")
+
+    def ProjectForward(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return self.interval_bounder.GetUnboundedTensorAdaptor(self.clamper.ProjectForward(x_values))
+
+    def ProjectBackward(self, y_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return self.clamper.ProjectBackward(self.interval_bounder.GetBoundedTensorAdaptor(y_values))
+
+    def ForwardProjectionGradient(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        temp_ta = self.clamper.CalculateForwardProjectionGradient(x_values)
+        temp_ta.data[:] *= self.interval_bounder.GetBoundGap()
+        return temp_ta
+
+    def Update(self) -> None:
+        pass
+
 
 def CreateProjection(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> DesignVariableProjection:
     if not parameters.Has("type"):
@@ -182,10 +210,44 @@ def CreateProjection(parameters: Kratos.Parameters, optimization_problem: Optimi
     projection_types_map: 'dict[str, type[DesignVariableProjection]]' = {
         "identity_projection"          : IdentityDesignVariableProjection,
         "sigmoidal_projection"         : SigmoidalDesignVariableProjection,
-        "adaptive_sigmoidal_projection": AdaptiveSigmoidalDesignVariableProjection
+        "adaptive_sigmoidal_projection": AdaptiveSigmoidalDesignVariableProjection,
+        "clamping_projection"          : ClampingProjection
     }
 
     if projection_type in projection_types_map.keys():
         return projection_types_map[projection_type](parameters, optimization_problem)
     else:
         raise RuntimeError(f"Unsupported projected type = \"{projection_type}\" requested. Followings are supported:\n\t" + "\n\t".join(list(projection_types_map.keys())))
+
+# Helper classes
+class TensorAdaptorBoundingManager:
+    def __init__(self, bounds: 'list[float]') -> None:
+        """
+        This class is used to bound values of an tensor adaptor to specified interval.
+            If a value in an tensor adaptor is above the max value of bounds, then it will have a value larger than 1.0
+            if a value in an tensor adaptor is below the min value of bounds, then it will have a value smaller than 0.0
+            Values in an tensor adaptor will be linearly interpolated and mapped from interval [min(bounds), max(bounds)]
+            to [0, 1].
+
+        Args:
+            bounds (list[float]): Bounds of the given tensor adaptor values.
+
+        Raises:
+            RuntimeError: If bounds does not contain two values.
+        """
+        if len(bounds) != 2:
+            raise RuntimeError(f"The bounds should be of size 2. [bounds = {bounds}]")
+        self.bounds = sorted(bounds)
+
+    def GetBoundGap(self) -> float:
+        return self.bounds[1] - self.bounds[0]
+
+    def GetBoundedTensorAdaptor(self, unbounded_tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        result = unbounded_tensor_adaptor.Clone()
+        result.data[:] = (result.data[:] - self.bounds[0]) / self.GetBoundGap()
+        return result
+
+    def GetUnboundedTensorAdaptor(self, bounded_tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        result = bounded_tensor_adaptor.Clone()
+        result.data[:] = (result.data[:] * self.GetBoundGap() + self.bounds[0])
+        return result
