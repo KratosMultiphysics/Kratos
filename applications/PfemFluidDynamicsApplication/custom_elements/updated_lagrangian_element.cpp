@@ -447,15 +447,18 @@ namespace Kratos
                                                              Matrix &NContainer,
                                                              Vector &rGaussWeights)
   {
+    const auto IntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
     const GeometryType &rGeom = this->GetGeometry();
+    const SizeType NumIntegrationPoints = rGeom.IntegrationPointsNumber(IntegrationMethod);
     Vector DetJ;
-    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::IntegrationMethod::GI_GAUSS_1);
-    NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
-    const GeometryType::IntegrationPointsArrayType &IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, IntegrationMethod);
+    NContainer = rGeom.ShapeFunctionsValues(IntegrationMethod);
+    const GeometryType::IntegrationPointsArrayType &IntegrationPoints =
+        rGeom.IntegrationPoints(IntegrationMethod); 
 
-    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1), false);
+    rGaussWeights.resize(NumIntegrationPoints, false);
 
-    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1); ++g)
+    for (SizeType g = 0; g < NumIntegrationPoints; ++g)
     {
       rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
     }
@@ -464,14 +467,16 @@ namespace Kratos
   template <unsigned int TDim>
   void UpdatedLagrangianElement<TDim>::CalculateGeometryData(Vector &rGaussWeights)
   {
+    const auto IntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
     const GeometryType &rGeom = this->GetGeometry();
+    const SizeType NumIntegrationPoints = rGeom.IntegrationPointsNumber(IntegrationMethod);
     Vector DetJ;
-    rGeom.DeterminantOfJacobian(DetJ, GeometryData::IntegrationMethod::GI_GAUSS_1);
-    const GeometryType::IntegrationPointsArrayType &IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    rGeom.DeterminantOfJacobian(DetJ, IntegrationMethod);
+    const GeometryType::IntegrationPointsArrayType &IntegrationPoints = rGeom.IntegrationPoints(IntegrationMethod);
 
-    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1), false);
+    rGaussWeights.resize(NumIntegrationPoints, false);
 
-    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1); ++g)
+    for (unsigned int g = 0; g < NumIntegrationPoints; ++g)
     {
       rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
     }
