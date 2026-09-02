@@ -614,7 +614,7 @@ namespace Kratos
                                    const Kratos::Variable<TVariableType> &Var,
                                    const ShapeFunctionsType &rShapeFunc)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       rResult = rShapeFunc[0] * (rGeom[0].FastGetSolutionStepValue(Var, 0) - rGeom[0].FastGetSolutionStepValue(Var, 1));
@@ -629,7 +629,7 @@ namespace Kratos
                                  const Kratos::Variable<double> &Var,
                                  const ShapeFunctionDerivativesType &rDN_DX)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       const double &var = rGeom[0].FastGetSolutionStepValue(Var);
@@ -649,7 +649,7 @@ namespace Kratos
                                  const ShapeFunctionDerivativesType &rDN_DX,
                                  const IndexType Step)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       const double &var = rGeom[0].FastGetSolutionStepValue(Var, Step);
@@ -668,7 +668,7 @@ namespace Kratos
                                            const Kratos::Variable<double> &Var,
                                            const ShapeFunctionDerivativesType &rDN_DX)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       const double &var = rGeom[0].FastGetSolutionStepValue(Var, 0) - rGeom[0].FastGetSolutionStepValue(Var, 1);
@@ -688,7 +688,7 @@ namespace Kratos
                                            const ShapeFunctionDerivativesType &rDN_DX,
                                            const double weight)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       const double &var = (1.0 + weight) * rGeom[0].FastGetSolutionStepValue(Var, 0) - rGeom[0].FastGetSolutionStepValue(Var, 1);
@@ -707,7 +707,7 @@ namespace Kratos
                                    const Kratos::Variable<array_1d<double, 3>> &Var,
                                    const ShapeFunctionDerivativesType &rDN_DX)
     {
-      GeometryType &rGeom = this->GetGeometry();
+      const GeometryType &rGeom = this->GetGeometry();
       const SizeType NumNodes = rGeom.PointsNumber();
 
       rResult = 0.0;
@@ -833,10 +833,10 @@ namespace Kratos
       double normNormal = NormalVector[0] * NormalVector[0] + NormalVector[1] * NormalVector[1] + NormalVector[2] * NormalVector[2];
       NormalVector *= 1.0 / sqrt(normNormal);
 
-      //to determine if the computed normal outwards or inwards
-      double deltaX = rGeom[idB].X() - rGeom[idA].X();
-      double deltaY = rGeom[idB].Y() - rGeom[idA].Y();
-      double deltaZ = rGeom[idB].Z() - rGeom[idA].Z();
+      // to determine if the computed normal outwards or inwards
+      const double deltaX = TangentXi[0];
+      const double deltaY = TangentXi[1];
+      const double deltaZ = TangentXi[2];
       double elementSize = sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ); // this is just to have an idea of the size of the element
       const array_1d<double, 3> MeanPoint = (rGeom[idC].Coordinates() + rGeom[idB].Coordinates() + rGeom[idA].Coordinates()) / 3.0;
       const array_1d<double, 3> DistanceA = rGeom[otherId].Coordinates() - (MeanPoint + NormalVector * elementSize);
@@ -864,10 +864,10 @@ namespace Kratos
       double normNormal = NormalVector[0] * NormalVector[0] + NormalVector[1] * NormalVector[1] + NormalVector[2] * NormalVector[2];
       NormalVector *= 1.0 / sqrt(normNormal);
 
-      //to determine if the computed normal outwards or inwards
-      double deltaX = rGeom[idB].X() - rGeom[idA].X();
-      double deltaY = rGeom[idB].Y() - rGeom[idA].Y();
-      double deltaZ = rGeom[idB].Z() - rGeom[idA].Z();
+      // to determine if the computed normal outwards or inwards
+      const double deltaX = TangentXi[0];
+      const double deltaY = TangentXi[1];
+      const double deltaZ = TangentXi[2];
 
       const double a = MathUtils<double>::Norm3(rGeom.GetPoint(idA) - rGeom.GetPoint(idB));
       const double b = MathUtils<double>::Norm3(rGeom.GetPoint(idB) - rGeom.GetPoint(idC));
