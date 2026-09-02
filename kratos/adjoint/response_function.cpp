@@ -25,7 +25,7 @@ ResponseFunction::ResponseFunction(std::span<const Variable<double>* const> Desi
 }
 
 
-double ResponseFunction::ComputeValue(
+double ResponseFunction::ComputeInnerValue(
     const Element&,
     const ProcessInfo&,
     int) const {
@@ -33,11 +33,19 @@ double ResponseFunction::ComputeValue(
 }
 
 
-double ResponseFunction::ComputeValue(
+double ResponseFunction::ComputeInnerValue(
     const Condition&,
     const ProcessInfo&,
     int) const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
+}
+
+
+double ResponseFunction::ComputeValue(
+    double InnerSum,
+    const ProcessInfo&,
+    int) const {
+        return InnerSum;
 }
 
 
@@ -136,7 +144,7 @@ void ResponseFunction::GetDesignVariables(
 }
 
 
-void ResponseFunction::ComputeDerivative(
+void ResponseFunction::ComputeInnerDerivative(
     Vector& rOutput,
     const Element& rElement,
     std::span<const IAdjoint::DynamicVariable> Variables,
@@ -146,7 +154,7 @@ void ResponseFunction::ComputeDerivative(
 }
 
 
-void ResponseFunction::ComputeDerivative(
+void ResponseFunction::ComputeInnerDerivative(
     Vector& rOutput,
     const Condition& rCondition,
     std::span<const IAdjoint::DynamicVariable> Variables,
@@ -154,6 +162,14 @@ void ResponseFunction::ComputeDerivative(
     int iBuffer) const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
+
+
+void ResponseFunction::ComputeDerivative(
+    Vector&,
+    std::span<const IAdjoint::DynamicVariable>,
+    const ProcessInfo&,
+    int) const
+{}
 
 
 } // namespace Kratos

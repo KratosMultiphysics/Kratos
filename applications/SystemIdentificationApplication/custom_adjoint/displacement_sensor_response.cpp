@@ -90,7 +90,7 @@ SensorResponse::Pointer DisplacementSensorResponse::Create(
 }
 
 
-double DisplacementSensorResponse::ComputeValue(
+double DisplacementSensorResponse::ComputeInnerValue(
     const Element& rElement,
     const ProcessInfo& rProcessInfo,
     int iBuffer) const {
@@ -149,7 +149,7 @@ void DisplacementSensorResponse::GetStateVariables(
 }
 
 
-void DisplacementSensorResponse::ComputeDerivative(
+void DisplacementSensorResponse::ComputeInnerDerivative(
     Vector& rOutput,
     const Element& rElement,
     std::span<const IAdjoint::DynamicVariable> Variables,

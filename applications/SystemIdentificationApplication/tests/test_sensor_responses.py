@@ -21,7 +21,7 @@ except ImportError as _:
 import math
 
 
-class TestDisplacementSensorResponse(TestCase):
+class TestSensorResponses(TestCase):
 
     @skipIf(not has_opt_app or not has_structural_app, "Requires the Optimization and StructuralMechanics applications")
     def test_DisplacementSensorResponse(self) -> None:
@@ -120,7 +120,7 @@ class TestDisplacementSensorResponse(TestCase):
                 return output / math.sqrt(norm)
 
         self.assertAlmostEqual(
-            sensors[0].ComputeValue(
+            sensors[0].ComputeInnerValue(
                 elements[0],
                 model_part.ProcessInfo,
                 0),
@@ -129,21 +129,21 @@ class TestDisplacementSensorResponse(TestCase):
                 elements[0].GetGeometry()))
 
         self.assertAlmostEqual(
-            sensors[0].ComputeValue(
+            sensors[0].ComputeInnerValue(
                 elements[1],
                 model_part.ProcessInfo,
                 0),
             0.0)
 
         self.assertAlmostEqual(
-            sensors[1].ComputeValue(
+            sensors[1].ComputeInnerValue(
                 elements[0],
                 model_part.ProcessInfo,
                 0),
             0.0)
 
         self.assertAlmostEqual(
-            sensors[1].ComputeValue(
+            sensors[1].ComputeInnerValue(
                 elements[1],
                 model_part.ProcessInfo,
                 0),
@@ -167,7 +167,7 @@ class TestDisplacementSensorResponse(TestCase):
         for variable in state_variables:
             self.assertIn(variable, state_variables)
 
-        state_derivatives = sensors[0].ComputeDerivative(
+        state_derivatives = sensors[0].ComputeInnerDerivative(
             elements[0],
             state_variables,
             model_part.ProcessInfo,
@@ -190,7 +190,7 @@ class TestDisplacementSensorResponse(TestCase):
             KratosMultiphysics.YOUNG_MODULUS)
 
         # Check sensor 0 design derivatives.
-        design_derivatives = sensors[0].ComputeDerivative(
+        design_derivatives = sensors[0].ComputeInnerDerivative(
             elements[0],
             design_variables,
             model_part.ProcessInfo,
@@ -218,7 +218,7 @@ class TestDisplacementSensorResponse(TestCase):
         for variable in state_variables:
             self.assertIn(variable, state_variables)
 
-        state_derivatives = sensors[1].ComputeDerivative(
+        state_derivatives = sensors[1].ComputeInnerDerivative(
             elements[1],
             state_variables,
             model_part.ProcessInfo,
@@ -243,7 +243,7 @@ class TestDisplacementSensorResponse(TestCase):
                     design_variables)
 
         # Check sensor 0 design derivatives.
-        design_derivatives = sensors[1].ComputeDerivative(
+        design_derivatives = sensors[1].ComputeInnerDerivative(
             elements[1],
             design_variables,
             model_part.ProcessInfo,
@@ -370,7 +370,7 @@ class TestDisplacementSensorResponse(TestCase):
                 return output / math.sqrt(norm)
 
         self.assertAlmostEqual(
-            response.ComputeValue(
+            response.ComputeInnerValue(
                 elements[0],
                 model_part.ProcessInfo,
                 0),
@@ -380,7 +380,7 @@ class TestDisplacementSensorResponse(TestCase):
             places = 0)
 
         self.assertAlmostEqual(
-            response.ComputeValue(
+            response.ComputeInnerValue(
                 elements[1],
                 model_part.ProcessInfo,
                 0),
@@ -404,7 +404,7 @@ class TestDisplacementSensorResponse(TestCase):
         for variable in state_variables:
             self.assertIn(variable, reference_state_variables)
 
-        state_derivatives = response.ComputeDerivative(
+        state_derivatives = response.ComputeInnerDerivative(
             elements[0],
             state_variables,
             model_part.ProcessInfo,
@@ -427,7 +427,7 @@ class TestDisplacementSensorResponse(TestCase):
         for variable in state_variables:
             self.assertIn(variable, reference_state_variables)
 
-        state_derivatives = response.ComputeDerivative(
+        state_derivatives = response.ComputeInnerDerivative(
             elements[1],
             state_variables,
             model_part.ProcessInfo,
@@ -462,7 +462,7 @@ class TestDisplacementSensorResponse(TestCase):
 
         # Check design derivatives.
         for element in elements:
-            design_derivatives = response.ComputeDerivative(
+            design_derivatives = response.ComputeInnerDerivative(
                 element,
                 design_variables,
                 model_part.ProcessInfo,

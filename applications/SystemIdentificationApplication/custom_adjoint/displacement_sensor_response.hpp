@@ -32,13 +32,13 @@ public:
         IndexType Id,
         Parameters SensorParameters) const override;
 
-    /// @copydoc ResponseFunction::ComputeValue(const Element&,const ProcessInfo&,int) const
-    [[nodiscard]] double ComputeValue(
+    /// @copydoc ResponseFunction::ComputeInnerValue(const Element&,const ProcessInfo&,int) const
+    [[nodiscard]] double ComputeInnerValue(
         const Element& rElement,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const override;
 
-    using SensorResponse::ComputeValue;
+    using SensorResponse::ComputeInnerValue;
 
     /// @copydoc ResponseFunction::GetStateVariables(std::vector<IAdjoint::DynamicVariable>&,const Element&,const ProcessInfo&) const
     void GetStateVariables(
@@ -48,15 +48,15 @@ public:
 
     using SensorResponse::GetStateVariables;
 
-    /// @copydoc ResponseFunction::ComputeDerivative(Vector&,const Element&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
-    void ComputeDerivative(
+    /// @copydoc ResponseFunction::ComputeInnerDerivative(Vector&,const Element&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
+    void ComputeInnerDerivative(
         Vector& rOutput,
         const Element& rElement,
         std::span<const IAdjoint::DynamicVariable> Variables,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const override;
 
-    using SensorResponse::ComputeDerivative;
+    using SensorResponse::ComputeInnerDerivative;
 
     Parameters GetDefaultParameters() const override;
 

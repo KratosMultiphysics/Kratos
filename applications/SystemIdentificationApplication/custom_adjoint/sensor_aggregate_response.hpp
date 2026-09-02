@@ -51,8 +51,8 @@ public:
     /// @brief Add a sensor to consider output from.
     void AddSensors(std::span<const SensorResponse::Pointer> Sensors);
 
-    /// @copydoc ResponseFunction::ComputeValue(const Element&,const ProcessInfo&,int) const
-    double ComputeValue(
+    /// @copydoc ResponseFunction::ComputeInnerValue(const Element&,const ProcessInfo&,int) const
+    double ComputeInnerValue(
         const Element& rElement,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const override;
@@ -69,16 +69,16 @@ public:
         const Condition& rCondition,
         const ProcessInfo& rProcessInfo) const override;
 
-    /// @copydoc ResponseFunction::ComputeDerivative(Vector&,const Element&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
-    void ComputeDerivative(
+    /// @copydoc ResponseFunction::ComputeInnerDerivative(Vector&,const Element&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
+    void ComputeInnerDerivative(
         Vector& rOutput,
         const Element& rElement,
         std::span<const IAdjoint::DynamicVariable> Variables,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const override;
 
-    /// @copydoc ResponseFunction::ComputeDerivative(Vector&,const Condition&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
-    void ComputeDerivative(
+    /// @copydoc ResponseFunction::ComputeInnerDerivative(Vector&,const Condition&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
+    void ComputeInnerDerivative(
         Vector& rOutput,
         const Condition& rCondition,
         std::span<const IAdjoint::DynamicVariable> Variables,

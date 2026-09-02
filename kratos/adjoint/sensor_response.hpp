@@ -74,13 +74,19 @@ public:
     /// @name Evaluation
     /// @{
 
-    /// @copydoc ResponseFunction::ComputeValue(const Condition&,const ProcessInfo&,int) const
-    [[nodiscard]] double ComputeValue(
+    /// @copydoc ResponseFunction::ComputeInnerValue(const Condition&,const ProcessInfo&,int) const
+    [[nodiscard]] double ComputeInnerValue(
         const Condition& rCondition,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const final override;
 
-    using ResponseFunction::ComputeValue;
+    using ResponseFunction::ComputeInnerValue;
+
+    /// @copydoc ResponseFunction::ComputeValue
+    [[nodiscard]] double ComputeValue(
+        double InnerSum,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const final override;
 
     /// @}
     /// @name Adjoint Interface
@@ -102,15 +108,22 @@ public:
 
     using ResponseFunction::GetDesignVariables;
 
-    /// @copydoc ResponseFunction::ComputeDerivative(Vector&,const Condition&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
-    void ComputeDerivative(
+    /// @copydoc ResponseFunction::ComputeInnerDerivative(Vector&,const Condition&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
+    void ComputeInnerDerivative(
         Vector& rOutput,
         const Condition& rCondition,
         std::span<const IAdjoint::DynamicVariable> Variables,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const final override;
 
-    using ResponseFunction::ComputeDerivative;
+    using ResponseFunction::ComputeInnerDerivative;
+
+    /// @copydoc ResponseFunction::ComputeDerivative
+    void ComputeDerivative(
+        Vector& rDerivative,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const final override;
 
     /// @}
 
@@ -123,7 +136,7 @@ public:
     }
 
     /// @brief Get the sensor location.
-    intrusive_ptr<const Node> GetNode() const noexcept {
+    [[nodiscard]] intrusive_ptr<const Node> GetNode() const noexcept {
         return mpNode;
     }
 

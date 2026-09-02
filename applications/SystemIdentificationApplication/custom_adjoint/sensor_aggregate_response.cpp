@@ -110,7 +110,10 @@ void SensorAggregateResponse::ComputeCache(const ModelPart& rModelPart) {
                 r_sensor.ComputeCache(rModelPart);
 
                 const double sensor_scale = mpImpl->GetSensorScale(i_sensor);
-                const double sensor_value = r_sensor.ComputeValue(r_sensor.GetContainingElement(), rModelPart.GetProcessInfo(), 0);
+                const double sensor_value = r_sensor.ComputeInnerValue(
+                    r_sensor.GetContainingElement(),
+                    rModelPart.GetProcessInfo(),
+                    0);
                 const double sensor_error = sensor_value - r_sensor.GetNode()->GetValue(SENSOR_MEASURED_VALUE);
                 const double scaled_sensor_error = sensor_error * sensor_scale;
                 r_cache.mScaledErrors[i_sensor] = scaled_sensor_error;
@@ -168,7 +171,7 @@ void SensorAggregateResponse::AddSensors(std::span<const SensorResponse::Pointer
 }
 
 
-double SensorAggregateResponse::ComputeValue(
+double SensorAggregateResponse::ComputeInnerValue(
     const Element& rElement,
     const ProcessInfo& rProcessInfo,
     int iBuffer) const {
@@ -198,7 +201,7 @@ double SensorAggregateResponse::ComputeValue(
                 sensor_range.end(),
                 0.0,
                 [rElement, rProcessInfo, iBuffer, this] (double sum, const SensorResponse::Pointer& rp_sensor) -> double {
-                    const double virtual_sensor_value = rp_sensor->ComputeValue(
+                    const double virtual_sensor_value = rp_sensor->ComputeInnerValue(
                         rElement,
                         rProcessInfo,
                         iBuffer);
@@ -246,7 +249,7 @@ void SensorAggregateResponse::GetStateVariables(
 }
 
 
-void SensorAggregateResponse::ComputeDerivative(
+void SensorAggregateResponse::ComputeInnerDerivative(
     Vector& rOutput,
     const Element& rElement,
     std::span<const IAdjoint::DynamicVariable> Variables,
@@ -309,7 +312,7 @@ void SensorAggregateResponse::ComputeDerivative(
                     continue;
 
                 // Compute the sensor's output value.
-                const double virtual_sensor_value = rp_sensor->ComputeValue(
+                const double virtual_sensor_value = rp_sensor->ComputeInnerValue(
                     rElement,
                     rProcessInfo,
                     iBuffer);
@@ -323,7 +326,7 @@ void SensorAggregateResponse::ComputeDerivative(
                 // Compute, map and reduce relevant derivatives.
                 for (auto& r_sensor_variables : sensor_variable_buffers) {
                     KRATOS_TRY
-                        rp_sensor->ComputeDerivative(
+                        rp_sensor->ComputeInnerDerivative(
                             sensor_derivative_buffer,
                             rElement,
                             sensor_variable_buffers.front(),
@@ -345,7 +348,7 @@ void SensorAggregateResponse::ComputeDerivative(
 }
 
 
-void SensorAggregateResponse::ComputeDerivative(
+void SensorAggregateResponse::ComputeInnerDerivative(
     Vector& rOutput,
     const Condition&,
     std::span<const IAdjoint::DynamicVariable> Variables,
