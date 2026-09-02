@@ -15,6 +15,9 @@
 #pragma once
 
 /* System includes */
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
 #include <unordered_set>
 
 /* External includes */
@@ -256,21 +259,30 @@ public:
             }
         }
 
-        // // CONDITION NUMBER
-        Parameters eigen_params = Parameters(R"({ "verbosity" : 0 })");
-        ConditionNumberUtility::LinearSolverType::Pointer psolver(
-            new ConditionNumberUtility::SkylineLUFactorizationSolverType());
-        ConditionNumberUtility::LinearSolverType::Pointer p_eigen_solver_max(
-            new ConditionNumberUtility::PowerIterationHighestEigenvalueSolverType(eigen_params, psolver));
-        ConditionNumberUtility::LinearSolverType::Pointer p_eigen_solver_min(
-            new ConditionNumberUtility::PowerIterationEigenvalueSolverType(eigen_params, psolver));
-        ConditionNumberUtility condition_number_utility(p_eigen_solver_max, p_eigen_solver_min);
-        const double condition_number = condition_number_utility.GetConditionNumber(A);
-        const double minimum_eigenvalue = condition_number_utility.GetMinimumEigenvalue(A);
+        const double assembly_time = timer.ElapsedSeconds();
+        WriteElapsedTime("txt_files/assembly_time.txt", assembly_time);
 
-        std::ofstream outputFile("txt_files/Condition_numbers.txt", std::ios::app);
-        outputFile << minimum_eigenvalue << "  " << condition_number << "\n";
-        outputFile.close();
+        // // CONDITION NUMBER
+
+        bool compute_condition_number = false;
+        compute_condition_number = this->GetEchoLevel() >= 1;
+
+        if (compute_condition_number) {
+            Parameters eigen_params = Parameters(R"({ "verbosity" : 0 })");
+            ConditionNumberUtility::LinearSolverType::Pointer psolver(
+                new ConditionNumberUtility::SkylineLUFactorizationSolverType());
+            ConditionNumberUtility::LinearSolverType::Pointer p_eigen_solver_max(
+                new ConditionNumberUtility::PowerIterationHighestEigenvalueSolverType(eigen_params, psolver));
+            ConditionNumberUtility::LinearSolverType::Pointer p_eigen_solver_min(
+                new ConditionNumberUtility::PowerIterationEigenvalueSolverType(eigen_params, psolver));
+            ConditionNumberUtility condition_number_utility(p_eigen_solver_max, p_eigen_solver_min);
+            const double condition_number = condition_number_utility.GetConditionNumber(A);
+            const double minimum_eigenvalue = condition_number_utility.GetMinimumEigenvalue(A);
+
+            std::ofstream outputFile("txt_files/Condition_numbers.txt", std::ios::app);
+            outputFile << minimum_eigenvalue << "  " << condition_number << "\n";
+            outputFile.close();
+        }
 
         std::ofstream outputFile2("time_txt_files/dofs.txt", std::ios::app);
         outputFile2 << std::scientific << std::setprecision(20); // Set precision to 10^-14
@@ -351,6 +363,9 @@ public:
                 }
             }
         }
+
+        const double assembly_time = timer.ElapsedSeconds();
+        WriteElapsedTime("txt_files/assembly_time.txt", assembly_time);
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << timer << std::endl;
 
@@ -533,6 +548,7 @@ public:
         SystemSolveWithPhysics(A, Dx, b, rModelPart);
 
         Timer::Stop("Solve");
+        WriteElapsedTime("txt_files/solve_time.txt", timer.ElapsedSeconds());
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -645,6 +661,7 @@ public:
         this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
+        WriteElapsedTime("txt_files/solve_time.txt", timer.ElapsedSeconds());
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
@@ -686,6 +703,7 @@ public:
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
+        WriteElapsedTime("txt_files/solve_time.txt", timer.ElapsedSeconds());
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
@@ -1641,6 +1659,28 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    static void WriteElapsedTime(
+        const std::filesystem::path& rFileName,
+        const double ElapsedTime)
+    {
+        std::error_code error_code;
+        std::filesystem::create_directories(rFileName.parent_path(), error_code);
+        if (error_code) {
+            KRATOS_WARNING("ResidualBasedBlockBuilderAndSolver")
+                << "Unable to create timing output directory: " << error_code.message() << std::endl;
+            return;
+        }
+
+        std::ofstream output_file(rFileName, std::ios::app);
+        if (!output_file) {
+            KRATOS_WARNING("ResidualBasedBlockBuilderAndSolver")
+                << "Unable to open timing output file: " << rFileName.string() << std::endl;
+            return;
+        }
+
+        output_file << std::scientific << std::setprecision(16) << ElapsedTime << '\n';
+    }
 
     inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate)
     {
