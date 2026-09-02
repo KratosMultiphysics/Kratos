@@ -660,7 +660,6 @@ namespace Kratos
     rElementalVariables.SpatialDefRate[3] = 0.5 * (rElementalVariables.SpatialVelocityGrad(1, 0) + rElementalVariables.SpatialVelocityGrad(0, 1));
     rElementalVariables.SpatialDefRate[4] = 0.5 * (rElementalVariables.SpatialVelocityGrad(2, 0) + rElementalVariables.SpatialVelocityGrad(0, 2));
     rElementalVariables.SpatialDefRate[5] = 0.5 * (rElementalVariables.SpatialVelocityGrad(2, 1) + rElementalVariables.SpatialVelocityGrad(1, 2));
-    // computeElement=CheckStrain3(rElementalVariables.SpatialDefRate,rElementalVariables.SpatialVelocityGrad);
 
     double aThird = 1.0 / 3.0;
     double dev_X = rElementalVariables.SpatialDefRate[0] -
@@ -730,37 +729,37 @@ namespace Kratos
     if (DELTA_TIME.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument, "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
 
+    const GeometryType &r_geom = this->GetGeometry();
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
+    for (unsigned int i = 0; i < r_geom.size(); ++i)
     {
-      if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing BODY_FORCE variable on solution step data for node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing DENSITY variable on solution step data for node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing DYNAMIC_VISCOSITY variable on solution step data for node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-          this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-          this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ", this->GetGeometry()[i].Id());
-      if (this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ", this->GetGeometry()[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(VELOCITY))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(PRESSURE))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(BODY_FORCE))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing BODY_FORCE variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(DENSITY))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing DENSITY variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing DYNAMIC_VISCOSITY variable on solution step data for node ", r_geom[i].Id());
+      if (!r_geom[i].HasDofFor(VELOCITY_X) ||
+          !r_geom[i].HasDofFor(VELOCITY_Y) ||
+          !r_geom[i].HasDofFor(VELOCITY_Z))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ", r_geom[i].Id());
+      if (!r_geom[i].HasDofFor(PRESSURE))
+        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ", r_geom[i].Id());
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
-    if (this->GetGeometry().WorkingSpaceDimension() == 2)
+    if (r_geom.WorkingSpaceDimension() == 2)
     {
       for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
       {
-        if (this->GetGeometry()[i].Z() != 0.0)
-          KRATOS_THROW_ERROR(std::invalid_argument, "Node with non-zero Z coordinate found. Id: ", this->GetGeometry()[i].Id());
+        if (r_geom[i].Z() != 0.0)
+          KRATOS_THROW_ERROR(std::invalid_argument, "Node with non-zero Z coordinate found. Id: ", r_geom[i].Id());
       }
     }
-
     return ierr;
 
     KRATOS_CATCH("");
@@ -1045,7 +1044,7 @@ namespace Kratos
       totalVolume += GaussWeight;
       const ShapeFunctionsType &N = row(NContainer, g);
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-      computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+      computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
       double BoundLHSCoeff = Tau * 4.0 * GaussWeight / (ElemSize * ElemSize);
       this->ComputeBoundLHSMatrix(rLeftHandSideMatrix, N, BoundLHSCoeff);

@@ -190,7 +190,7 @@ namespace Kratos
         KRATOS_THROW_ERROR(std::invalid_argument, "missing DYNAMIC_VISCOSITY variable on solution step data for node ", r_geom[i].Id());
       if (!r_geom[i].HasDofFor(VELOCITY_X) ||
           !r_geom[i].HasDofFor(VELOCITY_Y) ||
-          !r_geom[i].HasDofFor(VELOCITY_Z) == false)
+          !r_geom[i].HasDofFor(VELOCITY_Z))
         KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ", r_geom[i].Id());
       if (!r_geom[i].HasDofFor(PRESSURE))
         KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ", r_geom[i].Id());
@@ -487,8 +487,7 @@ namespace Kratos
     VectorType GaussWeights;
     this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-    // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-    bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+    bool computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
     if (computeElement == true)
     {
@@ -547,8 +546,7 @@ namespace Kratos
       totalVolume += GaussWeight;
       const ShapeFunctionsType &N = row(NContainer, g);
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-      // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-      bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+      bool computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
       if (computeElement == true)
       {
         // double BulkCoeff =GaussWeight/(VolumetricCoeff);

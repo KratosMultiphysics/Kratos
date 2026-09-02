@@ -83,7 +83,7 @@ namespace Kratos
         KRATOS_THROW_ERROR(std::invalid_argument, "missing DYNAMIC_VISCOSITY variable on solution step data for node ", r_geom[i].Id());
       if (!r_geom[i].HasDofFor(VELOCITY_X) ||
           !r_geom[i].HasDofFor(VELOCITY_Y) ||
-          !r_geom[i].HasDofFor(VELOCITY_Z) == false)
+          !r_geom[i].HasDofFor(VELOCITY_Z))
         KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ", r_geom[i].Id());
       if (!r_geom[i].HasDofFor(PRESSURE))
         KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ", r_geom[i].Id());
@@ -98,6 +98,8 @@ namespace Kratos
           KRATOS_THROW_ERROR(std::invalid_argument, "Node with non-zero Z coordinate found. Id: ", r_geom[i].Id());
       }
     }
+
+
 
     // Consitutive law checks
     const auto &r_properties = this->GetProperties();
@@ -741,7 +743,7 @@ namespace Kratos
       totalVolume += GaussWeight;
       const ShapeFunctionsType &N = row(NContainer, g);
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-      computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+      computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
       if (computeElement && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
       {
