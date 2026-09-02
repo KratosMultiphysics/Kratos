@@ -985,10 +985,11 @@ namespace Kratos
     rElementalVariables.SpatialDefRate[2] = 0.5 * (rElementalVariables.SpatialVelocityGrad(1, 0) + rElementalVariables.SpatialVelocityGrad(0, 1));
 
     constexpr double aThird = 1.0 / 3.0;
-    const double dev_X = rElementalVariables.SpatialDefRate[0] -
-                         (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1]) * aThird;
-    const double dev_Y = rElementalVariables.SpatialDefRate[1] -
-                         (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1]) * aThird;
+
+    const double trace = rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1];
+    const double dev_X = rElementalVariables.SpatialDefRate[0] - trace * aThird;
+    const double dev_Y = rElementalVariables.SpatialDefRate[1] - trace * aThird;
+
     rElementalVariables.DeviatoricInvariant = sqrt(2 * (dev_X * dev_X + dev_Y * dev_Y +
                                                         rElementalVariables.SpatialDefRate[2] * rElementalVariables.SpatialDefRate[2]));
 
@@ -1089,12 +1090,12 @@ namespace Kratos
     rElementalVariables.SpatialDefRate[5] = 0.5 * (rElementalVariables.SpatialVelocityGrad(2, 1) + rElementalVariables.SpatialVelocityGrad(1, 2));
 
     constexpr double aThird = 1.0 / 3.0;
-    const double dev_X = rElementalVariables.SpatialDefRate[0] -
-                         (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1] + rElementalVariables.SpatialDefRate[2]) * aThird;
-    const double dev_Y = rElementalVariables.SpatialDefRate[1] -
-                         (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1] + rElementalVariables.SpatialDefRate[2]) * aThird;
-    const double dev_Z = rElementalVariables.SpatialDefRate[2] -
-                         (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1] + rElementalVariables.SpatialDefRate[2]) * aThird;
+
+    const double trace = rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1] + rElementalVariables.SpatialDefRate[2];
+    const double dev_X = rElementalVariables.SpatialDefRate[0] - trace * aThird;
+    const double dev_Y = rElementalVariables.SpatialDefRate[1] - trace * aThird;
+    const double dev_Z = rElementalVariables.SpatialDefRate[2] - trace * aThird;
+
     rElementalVariables.DeviatoricInvariant = sqrt(2 * (dev_X * dev_X + dev_Y * dev_Y + dev_Z * dev_Z +
                                                         rElementalVariables.SpatialDefRate[3] * rElementalVariables.SpatialDefRate[3] +
                                                         rElementalVariables.SpatialDefRate[4] * rElementalVariables.SpatialDefRate[4] +
