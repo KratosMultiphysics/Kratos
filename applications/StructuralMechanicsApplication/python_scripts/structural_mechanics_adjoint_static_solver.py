@@ -107,6 +107,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_max_stress":
             self.response_function = StructuralMechanicsApplication.AdjointMaxStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_KS_max_stress":
+            self.response_function = StructuralMechanicsApplication.AdjointKSMaxStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_nodal_displacement":
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_linear_strain_energy":
