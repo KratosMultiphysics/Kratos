@@ -15,6 +15,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <type_traits>
 
 // External includes
 #include <boost/numeric/ublas/matrix.hpp>
@@ -123,6 +124,21 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
+
+/// Raw pointer to a dense matrix/vector's first contiguous storage element.
+/// uBLAS containers expose their storage through data().begin()/end(), the
+/// Eigen-backed ones (KRATOS_USE_EIGEN_BACKEND) through a raw data() pointer;
+/// this hides the difference so calling code can do pointer arithmetic on the
+/// result under either backend.
+template<class TContainerType>
+inline auto GetContiguousDataPointer(TContainerType& rContainer)
+{
+    if constexpr (std::is_pointer_v<decltype(rContainer.data())>) {
+        return rContainer.data();
+    } else {
+        return rContainer.data().begin();
+    }
+}
 
 ///@}
 ///@name Kratos Classes
