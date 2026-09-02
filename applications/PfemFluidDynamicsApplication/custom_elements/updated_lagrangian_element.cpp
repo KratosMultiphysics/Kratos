@@ -522,7 +522,7 @@ namespace Kratos
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = TDim * NumNodes;
     VectorType NodePosition = ZeroVector(LocalSize);
-    this->GetPositions(NodePosition, rCurrentProcessInfo, theta);
+    this->GetPositions(NodePosition);
 
     Fgrad.resize(TDim, TDim, false);
 
@@ -939,7 +939,7 @@ namespace Kratos
     VectorType NodePosition = ZeroVector(LocalSize);
     VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType RHSVelocities = ZeroVector(LocalSize);
-    this->GetPositions(NodePosition, rCurrentProcessInfo, theta);
+    this->GetPositions(NodePosition);
     this->GetVelocityValues(RHSVelocities, 0);
     RHSVelocities *= theta;
     this->GetVelocityValues(VelocityValues, 1);
