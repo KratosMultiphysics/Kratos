@@ -52,31 +52,31 @@ public:
         : ConstraintAssembler(ConstraintImposition::MasterSlave, "unnamed")
     {}
 
-    ConstraintAssembler(ConstraintImposition Method,
-                        std::string&& rInstanceName)
-        : DataValueContainer(),
-          mRelationMatrix(),
-          mConstraintGapVector(),
-          mName(std::move(rInstanceName))
-    {
-        std::string method_name;
+    ConstraintAssembler(
+        ConstraintImposition Method,
+        std::string&& rInstanceName)
+            :   DataValueContainer(),
+                mRelationMatrix(),
+                mConstraintGapVector(),
+                mName(std::move(rInstanceName)) {
+                    std::string method_name;
 
-        switch (Method) {
-            case ConstraintImposition::None:
-                method_name = "none";
-                break;
-            case ConstraintImposition::MasterSlave:
-                method_name = "master_slave";
-                break;
-            case ConstraintImposition::AugmentedLagrange:
-                method_name = "augmented_lagrange";
-                break;
-            default:
-                // Other imposition methods are not implemented yet.
-                KRATOS_ERROR << "Unsupported constraint imposition: " << (int)Method;
-        } // switch Method
+                    switch (Method) {
+                        case ConstraintImposition::None:
+                            method_name = "none";
+                            break;
+                        case ConstraintImposition::MasterSlave:
+                            method_name = "master_slave";
+                            break;
+                        case ConstraintImposition::AugmentedLagrange:
+                            method_name = "augmented_lagrange";
+                            break;
+                        default:
+                            // Other imposition methods are not implemented yet.
+                            KRATOS_ERROR << "Unsupported constraint imposition: " << (int)Method;
+                    } // switch Method
 
-        this->SetValue(ConstraintAssembler::GetImpositionVariable(), method_name);
+                    this->SetValue(ConstraintAssembler::GetImpositionVariable(), method_name);
     }
 
     /// @details Define an overriding virtual destructor to ensure compile time errors
@@ -99,8 +99,7 @@ public:
         const ProcessInfo& rProcessInfo,
         typename DofSet::const_iterator itDofBegin,
         typename DofSet::const_iterator itDofEnd)
-    {
-    }
+    {}
 
     /// @brief Allocate memory and compute the sparsity pattern of the constrained linear system.
     /// @note This function must be preceded by a call to @ref AllocateConstraints.
@@ -113,8 +112,7 @@ public:
         typename TSparse::VectorType& rSolution,
         typename TSparse::VectorType& rRhs,
         DofSet& rDofs)
-    {
-    }
+    {}
 
     /// @brief Compute and assemble constraint contributions into the preallocated relation matrix and constraint gap vector.
     /// @details This function is responsible for computing the entries of the relation matrix
@@ -136,8 +134,7 @@ public:
         typename DofSet::const_iterator itDofEnd,
         const bool AssembleLhs,
         const bool AssembleRhs)
-    {
-    }
+    {}
 
     /// @brief Prepare the linear system for the solution loop.
     /// @details This function is supposed to perform tasks on the linear system
@@ -155,8 +152,7 @@ public:
         typename TSparse::VectorType& rSolution,
         typename TSparse::VectorType& rRhs,
         DofSet& rDofs)
-    {
-    }
+    {}
 
     /// @brief Manipulate the linear system before invoking the linear solver in the solution loop's current iteration.
     /// @param rLhs Left hand side matrix.
@@ -170,8 +166,7 @@ public:
         typename TSparse::VectorType& rRhs,
         typename DofSet::iterator itDofBegin,
         typename DofSet::iterator itDofEnd)
-    {
-    }
+    {}
 
     /// @brief Perform constraint-related tasks after invoking the linear solver in the current iteration of the solution loop.
     /// @details This function is supposed to evaluate the convergence of constraint imposition,
@@ -204,8 +199,7 @@ public:
         typename TSparse::VectorType& rSolution,
         typename TSparse::VectorType& rRhs,
         DofSet& rDofSet)
-    {
-    }
+    {}
 
     /// @brief Compute the system's residual in the independent space, give the the residuals in the dependent space.
     /// @param rResidual Input/output vector. Passed in as the residual in dependent space, and transformed to independent space.
