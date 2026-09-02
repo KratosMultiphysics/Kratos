@@ -559,24 +559,23 @@ namespace Kratos
   {
     const GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
-    const SizeType LocalSize = TDim * NumNodes;
-    VectorType VelocityValues = ZeroVector(LocalSize);
-    VectorType RHSVelocities = ZeroVector(LocalSize);
-    this->GetVelocityValues(RHSVelocities, 0);
-    RHSVelocities *= theta;
-    this->GetVelocityValues(VelocityValues, 1);
-    RHSVelocities += VelocityValues * (1.0 - theta);
+    const double one_minus_theta = 1.0 - theta;
 
-    FgradVel.resize(TDim, TDim, false);
-
-    noalias(FgradVel) = ZeroMatrix(TDim, TDim);
-    for (SizeType i = 0; i < TDim; i++)
+    for (SizeType i = 0; i < TDim; ++i)
     {
-      for (SizeType j = 0; j < TDim; j++)
+      for (SizeType j = 0; j < TDim; ++j)
       {
-        for (SizeType k = 0; k < NumNodes; k++)
+        for (SizeType k = 0; k < NumNodes; ++k)
         {
-          FgradVel(i, j) += RHSVelocities[TDim * k + i] * rDN_DX(k, j);
+          const auto &rNode = rGeom[k];
+          const auto &rVelocity = rNode.FastGetSolutionStepValue(VELOCITY, 0);
+          const auto &rPreviousVelocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
+
+          const double velocity =
+              theta * rVelocity[i] +
+              one_minus_theta * rPreviousVelocity[i];
+
+          FgradVel(i, j) += velocity * rDN_DX(k, j);
         }
       }
     }
