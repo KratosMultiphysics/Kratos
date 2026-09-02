@@ -49,11 +49,17 @@ template<class TDataType> class EigenVector;
 //   EigenMatrix<T>/EigenVector<T> wins by partial ordering.
 ///@}
 
-/// Matrix/matrix and matrix/vector product (lazy Eigen expression). A vector
-/// first operand keeps the ublas prod(v, M) semantics (v^T M), returned
-/// column-shaped so it assigns to the vector types.
+namespace Internals {
+
+/// Shared implementation for the dense prod() overloads below. Kept out of
+/// the "prod" overload set on purpose: a call from inside a prod() overload
+/// to unqualified prod(rA, rB) would re-run overload resolution against
+/// *every* prod overload (including the sparse ones), and deducing those
+/// against a reference-to-MatrixBase argument forces an instantiation of
+/// Eigen::SparseMatrixBase<TDerived> that hard-errors (no Eigen::internal::
+/// traits specialization exists for the dense Kratos wrapper types).
 template<class TDerived1, class TDerived2>
-inline auto prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::MatrixBase<TDerived2>& rB)
+inline auto dense_prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::MatrixBase<TDerived2>& rB)
 {
     if constexpr (TDerived1::ColsAtCompileTime == 1 &&
                   TDerived2::ColsAtCompileTime != 1 &&
@@ -62,6 +68,33 @@ inline auto prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::MatrixBase
     } else {
         return rA * rB;
     }
+}
+
+} // namespace Internals
+
+/// Matrix/matrix and matrix/vector product (lazy Eigen expression). A vector
+/// first operand keeps the ublas prod(v, M) semantics (v^T M), returned
+/// column-shaped so it assigns to the vector types.
+///
+/// The requires-clause guards TDerived1/TDerived2 the same way as the sparse
+/// overloads below: prod<TResult>(...) shares the "prod" name, so a call
+/// like prod<Matrix>(...) explicitly substitutes TDerived1 = Matrix into
+/// *every* prod overload, this one included, and naming
+/// Eigen::MatrixBase<Matrix> for that substitution forces Eigen to complete
+/// it — which hard-errors (Eigen::internal::traits<Matrix> is unspecialized
+/// for the dense Kratos wrapper types). A genuinely deduced TDerived1/2 (no
+/// explicit argument given) never hits this: deduction against a concrete
+/// Kratos::Matrix/Vector/BoundedXxx argument always resolves to its Eigen
+/// *base* (Eigen::Matrix<...>, which Eigen itself specializes traits for),
+/// never to the Kratos wrapper type itself.
+template<class TDerived1, class TDerived2>
+    requires requires {
+        typename Eigen::internal::traits<TDerived1>::StorageKind;
+        typename Eigen::internal::traits<TDerived2>::StorageKind;
+    }
+inline auto prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::MatrixBase<TDerived2>& rB)
+{
+    return Internals::dense_prod(rA, rB);
 }
 
 /// uBLAS lets prod() pin the result type explicitly (prod<Vector>(A, B),
@@ -73,18 +106,35 @@ inline auto prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::MatrixBase
 template<class TResult, class TDerived1, class TDerived2>
 inline TResult prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::MatrixBase<TDerived2>& rB)
 {
-    return TResult(prod(rA, rB));
+    return TResult(Internals::dense_prod(rA, rB));
 }
 
 /// Sparse-matrix/vector (or sparse/dense) product.
+///
+/// The requires-clause guards TDerived1 before it is ever used to name
+/// Eigen::SparseMatrixBase<TDerived1>: prod<TResult>(...) (above) shares the
+/// "prod" name, so a call like prod<Matrix>(...) explicitly substitutes
+/// TDerived1 = Matrix into *every* prod overload, this one included. Naming
+/// SparseMatrixBase<Matrix> for that substitution forces Eigen to complete
+/// it, which needs Eigen::internal::traits<Matrix> — unspecialized for the
+/// dense Kratos wrapper types — and that incompleteness surfaces several
+/// instantiations away from this "immediate context", as a hard error rather
+/// than a SFINAE-friendly one. Checking the (specialized-or-not) traits
+/// directly first, before naming SparseMatrixBase<TDerived1>, keeps the
+/// failure a one-step, immediate-context substitution failure instead.
 template<class TDerived1, class TDerived2>
+    requires requires { typename Eigen::internal::traits<TDerived1>::StorageKind; }
 inline auto prod(const Eigen::SparseMatrixBase<TDerived1>& rA, const Eigen::MatrixBase<TDerived2>& rX)
 {
     return rA * rX;
 }
 
-/// Sparse-matrix/sparse-matrix product.
+/// Sparse-matrix/sparse-matrix product. See the guard note above.
 template<class TDerived1, class TDerived2>
+    requires requires {
+        typename Eigen::internal::traits<TDerived1>::StorageKind;
+        typename Eigen::internal::traits<TDerived2>::StorageKind;
+    }
 inline auto prod(const Eigen::SparseMatrixBase<TDerived1>& rA, const Eigen::SparseMatrixBase<TDerived2>& rB)
 {
     return rA * rB;
@@ -146,6 +196,13 @@ template<class TDerived>
 inline auto norm_2(const Eigen::MatrixBase<TDerived>& rX)
 {
     return rX.norm();
+}
+
+/// Squared Euclidean norm (avoids the sqrt/rsqrt of norm_2, as in ublas).
+template<class TDerived>
+inline auto norm_2_square(const Eigen::MatrixBase<TDerived>& rX)
+{
+    return rX.squaredNorm();
 }
 
 /// Infinity norm.
