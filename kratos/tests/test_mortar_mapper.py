@@ -111,8 +111,6 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         check.ExecuteFinalizeSolutionStep()
 
         ## The following is used to create the solution database
-        #import json_output_process
-
         #out_parameters = KratosMultiphysics.Parameters("""
         #{
             #"output_variables"     : ["TEMPERATURE","DISPLACEMENT"],
@@ -127,7 +125,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         #else:
             #out_parameters["output_file_name"].SetString(input_filename+".json")
 
-        #out = json_output_process.JsonOutputProcess(self.model, out_parameters)
+        #out = KratosMultiphysics.JsonOutputProcess(self.model, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
