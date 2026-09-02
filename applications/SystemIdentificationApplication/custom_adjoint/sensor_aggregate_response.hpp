@@ -52,8 +52,20 @@ public:
     void AddSensors(std::span<const SensorResponse::Pointer> Sensors);
 
     /// @copydoc ResponseFunction::ComputeInnerValue(const Element&,const ProcessInfo&,int) const
-    double ComputeInnerValue(
+    [[nodiscard]] double ComputeInnerValue(
         const Element& rElement,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const override;
+
+    /// @copydoc ResponseFunction::ComputeInnerValue(const Condition&,const ProcessInfo&,int) const
+    [[nodiscard]] double ComputeInnerValue(
+        const Condition& Condition,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const final override;
+
+    /// @copydoc ResponseFunction::ComputeValue
+    [[nodiscard]] double ComputeValue(
+        double InnerSum,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const override;
 
@@ -81,6 +93,13 @@ public:
     void ComputeInnerDerivative(
         Vector& rOutput,
         const Condition& rCondition,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const override;
+
+    /// @copydoc ResponseFunction::ComputeDerivative
+    void ComputeDerivative(
+        Vector& rDerivative,
         std::span<const IAdjoint::DynamicVariable> Variables,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const override;

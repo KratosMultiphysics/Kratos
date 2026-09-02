@@ -121,6 +121,12 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def("GetBufferSize", &Node::GetBufferSize);
     node_binder.def("AddDof", NodeAddDof<Variable<double> >);
     node_binder.def("AddDof", NodeAddDofwithReaction<Variable<double> >);
+    node_binder.def(
+        "GetDof",
+        [] (const Node& rNode, const VariableData& rVariableData) -> const Node::DofType& {
+            return rNode.GetDof(rVariableData);
+        },
+        py::return_value_policy::reference);
     node_binder.def("GetDof",
         [](const Node& rNode, const Variable<double>& rVar) -> Node::DofType& {return *rNode.pGetDof(rVar); }
         ,py::return_value_policy::reference_internal

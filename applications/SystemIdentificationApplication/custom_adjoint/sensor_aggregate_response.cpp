@@ -20,6 +20,7 @@
 // --- STL Includes ---
 #include <optional>
 #include <ranges>
+#include <numeric>
 
 
 namespace Kratos {
@@ -43,7 +44,7 @@ struct SensorAggregateResponse::Impl {
         /// @f[
         ///     \sum_i \left( (v_i - m_i) s_i \right)^p
         /// @f]
-        double mValue;
+        double mInnerSum;
 
         /// @details Stores the normalized and weighted error for each sensor.
         ///          @f[
@@ -99,7 +100,7 @@ void SensorAggregateResponse::ComputeCache(const ModelPart& rModelPart) {
     KRATOS_TRY
         // Construct a new cache.
         mpImpl->mMaybeCache.emplace(Impl::Cache {
-            .mValue = 0.0,
+            .mInnerSum = 0.0,
             .mScaledErrors = std::vector<double>(mpImpl->mSensors.size())});
         Impl::Cache& r_cache = mpImpl->mMaybeCache.value();
 
@@ -116,15 +117,15 @@ void SensorAggregateResponse::ComputeCache(const ModelPart& rModelPart) {
                     0);
                 const double sensor_error = sensor_value - r_sensor.GetNode()->GetValue(SENSOR_MEASURED_VALUE);
                 const double scaled_sensor_error = sensor_error * sensor_scale;
-                r_cache.mScaledErrors[i_sensor] = scaled_sensor_error;
-
                 const double inner_component = std::pow(
                     scaled_sensor_error,
                     mpImpl->mExponent);
-                AtomicAdd(r_cache.mValue, inner_component);
+
+                r_cache.mScaledErrors[i_sensor] = scaled_sensor_error;
+                AtomicAdd(r_cache.mInnerSum, inner_component);
             }); // IndexPartition(mSensors.size())
 
-        r_cache.mValue = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(r_cache.mValue);
+        r_cache.mInnerSum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(r_cache.mInnerSum);
     KRATOS_CATCH("")
 }
 
@@ -191,28 +192,45 @@ double SensorAggregateResponse::ComputeInnerValue(
                 [] (Element::IndexType id_element, const SensorResponse::Pointer& rp_sensor) -> bool {
                     return id_element < rp_sensor->GetContainingElement().Id();
                 });
-            const auto sensor_range = std::ranges::subrange(
-                it_sensor_begin,
-                it_sensor_end);
 
-            // Loop over relevant sensors and sum their contributions up.
+            const Impl::Cache& r_cache = mpImpl->mMaybeCache.value();
+            const auto inner_range = std::ranges::subrange(
+                r_cache.mScaledErrors.begin() + std::distance(
+                    mpImpl->mSensors.begin(),
+                    it_sensor_begin),
+                r_cache.mScaledErrors.begin() + std::distance(
+                    mpImpl->mSensors.begin(),
+                    it_sensor_end));
+
+            // Loop over relevant sensors and sum their contributions.
             const double element_contribution = std::accumulate(
-                sensor_range.begin(),
-                sensor_range.end(),
+                inner_range.begin(),
+                inner_range.end(),
                 0.0,
-                [rElement, rProcessInfo, iBuffer, this] (double sum, const SensorResponse::Pointer& rp_sensor) -> double {
-                    const double virtual_sensor_value = rp_sensor->ComputeInnerValue(
-                        rElement,
-                        rProcessInfo,
-                        iBuffer);
-                    const double measured_sensor_value = rp_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE);
-                    const double scale = rp_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR);
-                    const double scaled_error = (virtual_sensor_value - measured_sensor_value) * scale;
-                    return sum + std::pow(scaled_error, mpImpl->mExponent);
+                [this] (double sum, double scaled_error) -> double {
+                    return sum + std::pow(
+                        scaled_error,
+                        mpImpl->mExponent);
                 });
 
             return element_contribution;
         KRATOS_CATCH("");
+}
+
+
+double SensorAggregateResponse::ComputeInnerValue(
+    const Condition&,
+    const ProcessInfo&,
+    int) const {
+        return 0.0;
+}
+
+
+double SensorAggregateResponse::ComputeValue(
+    double InnerSum,
+    const ProcessInfo&,
+    int) const {
+        return std::pow(InnerSum, 1.0 / mpImpl->mExponent);
 }
 
 
@@ -277,16 +295,23 @@ void SensorAggregateResponse::ComputeInnerDerivative(
                 [] (Element::IndexType id_element, const SensorResponse::Pointer& rp_sensor) -> bool {
                     return id_element < rp_sensor->GetContainingElement().Id();
                 });
-            const auto sensor_range = std::ranges::subrange(
-                it_sensor_begin,
+
+            const std::size_t i_sensor_begin = std::distance(
+                mpImpl->mSensors.begin(),
+                it_sensor_begin);
+            const std::size_t i_sensor_end = std::distance(
+                mpImpl->mSensors.begin(),
                 it_sensor_end);
 
             // Loop over relevant sensors and sum their contributions up.
             Vector sensor_derivative_buffer;
             std::array<std::vector<IAdjoint::DynamicVariable>,2> sensor_variable_buffers; // <== state_vars, design_vars
             std::vector<std::size_t> sensor_derivative_map;
+            const Impl::Cache& r_cache = mpImpl->mMaybeCache.value();
 
-            for (const SensorResponse::Pointer& rp_sensor : sensor_range) {
+            for (const std::size_t i_sensor : std::views::iota(i_sensor_begin, i_sensor_end)) {
+                const SensorResponse::Pointer& rp_sensor = mpImpl->mSensors[i_sensor];
+
                 // Collect the list of relevant variables for the current sensor.
                 rp_sensor->GetStateVariables(
                     sensor_variable_buffers.front(),
@@ -312,16 +337,11 @@ void SensorAggregateResponse::ComputeInnerDerivative(
                     continue;
 
                 // Compute the sensor's output value.
-                const double virtual_sensor_value = rp_sensor->ComputeInnerValue(
-                    rElement,
-                    rProcessInfo,
-                    iBuffer);
-                const double measured_value = rp_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE);
                 const double sensor_scale = rp_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR);
                 const double derivative_scale =
                     mpImpl->mExponent
-                    * std::pow(virtual_sensor_value - measured_value, mpImpl->mExponent - 1)
-                    * std::pow(sensor_scale, mpImpl->mExponent);
+                    * std::pow(r_cache.mScaledErrors[i_sensor], mpImpl->mExponent - 1)
+                    * sensor_scale;
 
                 // Compute, map and reduce relevant derivatives.
                 for (auto& r_sensor_variables : sensor_variable_buffers) {
@@ -343,7 +363,7 @@ void SensorAggregateResponse::ComputeInnerDerivative(
                         rOutput[i_output] += derivative_scale * sensor_derivative_buffer[i_variable];
                     } // for i_variable
                 } // for r_sensor_variables in sensor_variable_buffers
-            } // for rp_sensor in sensor_range
+            } // for i_sensor in range(i_sensor_begin, i_sensor_end)
         KRATOS_CATCH("")
 }
 
@@ -354,28 +374,23 @@ void SensorAggregateResponse::ComputeInnerDerivative(
     std::span<const IAdjoint::DynamicVariable> Variables,
     const ProcessInfo&,
     int iBuffer) const {
-        KRATOS_ERROR_IF_NOT(iBuffer == 0)
-            << "requested buffer " << iBuffer << ", which is not supported";
+        rOutput = ZeroVector(Variables.size());
+}
 
-        KRATOS_TRY
-            // Sensors aren't supposed to provide anything on conditions.
-            for (const IAdjoint::DynamicVariable& r_variable : Variables) {
-                // Check whether the requested variable is a design variable.
-                const auto& r_design_variable_types = this->GetDesignVariableTypes();
-                const auto it_design_variable_type = std::find_if(
-                    r_design_variable_types.begin(),
-                    r_design_variable_types.end(),
-                    [&r_variable] (const Variable<double>* p_variable_type) -> bool {
-                        return p_variable_type->Key() == r_variable;
-                    });
-                const bool is_design_variable = it_design_variable_type != r_design_variable_types.end();
 
-                // Error if the requested variable is neither a state nor a design variable.
-                KRATOS_ERROR_IF_NOT(is_design_variable) << "unsupported variable " << r_variable.Name();
-            }
-
-            rOutput = ZeroVector(Variables.size());
-        KRATOS_CATCH("")
+void SensorAggregateResponse::ComputeDerivative(
+    Vector& rDerivative,
+    std::span<const IAdjoint::DynamicVariable>,
+    const ProcessInfo&,
+    int) const {
+        const double exponent_inverse = 1.0 / mpImpl->mExponent;
+        const double scale = exponent_inverse * std::pow(
+            mpImpl->mMaybeCache.value().mInnerSum,
+            exponent_inverse - 1.0);
+        IndexPartition<std::size_t>(rDerivative.size()).for_each(
+            [scale, &rDerivative] (std::size_t i_component) -> void {
+                rDerivative[i_component] *= scale;
+            });
 }
 
 
