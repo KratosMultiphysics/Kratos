@@ -105,11 +105,10 @@ void LaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, co
     const auto& r_geometry = GetGeometry();
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     const unsigned int number_of_control_points = r_geometry.size();
     const unsigned int dim = r_DN_De[0].size2();
-    
+
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != number_of_control_points)
         rLeftHandSideMatrix.resize(number_of_control_points,number_of_control_points,false);
@@ -125,7 +124,6 @@ void LaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, co
     {
         noalias(DN_DX) = r_DN_De[i_point] ; //prod(r_DN_De[i_point],InvJ0);
 
-        auto N = row(N_gausspoint,i_point);
         const double int_to_reference_weight = r_integration_points[i_point].Weight(); // * std::abs(DetJ0);
 
         noalias(rLeftHandSideMatrix) += int_to_reference_weight * conductivity * prod(DN_DX, trans(DN_DX));
