@@ -1,0 +1,1830 @@
+# Import Kratos Multiphysics
+import KratosMultiphysics as KM
+
+# Import NumPy for array handling
+import numpy as np
+
+# Import standard modules
+import os
+import re
+import glob
+import importlib.util
+import xml.etree.ElementTree as ET
+
+# NOTE: pyvista is an optional dependency. Every function that needs it imports
+# it locally so the rest of Kratos can load successfully when pyvista is absent.
+
+# Mapping of Kratos Geometry types to VTK Cell Types (integer values).
+# Ref: Kratos VtkDefinitions mapping in vtk_definition.cpp
+GEOMETRY_TYPE_TO_VTK_CELL_TYPE = {
+    KM.GeometryData.KratosGeometryType.Kratos_Point2D: 1,
+    KM.GeometryData.KratosGeometryType.Kratos_Point3D: 1,
+    KM.GeometryData.KratosGeometryType.Kratos_Line2D2: 3,
+    KM.GeometryData.KratosGeometryType.Kratos_Line3D2: 3,
+    KM.GeometryData.KratosGeometryType.Kratos_Triangle2D3: 5,
+    KM.GeometryData.KratosGeometryType.Kratos_Triangle3D3: 5,
+    KM.GeometryData.KratosGeometryType.Kratos_Quadrilateral2D4: 9,
+    KM.GeometryData.KratosGeometryType.Kratos_Quadrilateral3D4: 9,
+    KM.GeometryData.KratosGeometryType.Kratos_Tetrahedra3D4: 10,
+    KM.GeometryData.KratosGeometryType.Kratos_Hexahedra3D8: 12,
+    KM.GeometryData.KratosGeometryType.Kratos_Prism3D6: 13,
+    KM.GeometryData.KratosGeometryType.Kratos_Pyramid3D5: 14,
+    KM.GeometryData.KratosGeometryType.Kratos_Line2D3: 21,
+    KM.GeometryData.KratosGeometryType.Kratos_Line3D3: 21,
+    KM.GeometryData.KratosGeometryType.Kratos_Triangle2D6: 22,
+    KM.GeometryData.KratosGeometryType.Kratos_Triangle3D6: 22,
+    KM.GeometryData.KratosGeometryType.Kratos_Quadrilateral2D8: 23,
+    KM.GeometryData.KratosGeometryType.Kratos_Quadrilateral3D8: 23,
+    KM.GeometryData.KratosGeometryType.Kratos_Tetrahedra3D10: 24,
+    KM.GeometryData.KratosGeometryType.Kratos_Hexahedra3D20: 25,
+    KM.GeometryData.KratosGeometryType.Kratos_Prism3D15: 26,
+    KM.GeometryData.KratosGeometryType.Kratos_Pyramid3D13: 27,
+    KM.GeometryData.KratosGeometryType.Kratos_Quadrilateral2D9: 28,
+    KM.GeometryData.KratosGeometryType.Kratos_Quadrilateral3D9: 28,
+    KM.GeometryData.KratosGeometryType.Kratos_Hexahedra3D27: 29
+}
+
+# Component suffix tables used by _BuildScalarLabel.
+_VECTOR_SUFFIXES  = ["X", "Y", "Z"]
+_VOIGT_SUFFIXES   = ["XX", "YY", "ZZ", "XY", "YZ", "XZ"]
+_TENSOR9_SUFFIXES = ["XX", "XY", "XZ", "YX", "YY", "YZ", "ZX", "ZY", "ZZ"]
+_PRINCIPAL_LABELS = ["(Max. Principal)", "(Int. Principal)", "(Min. Principal)"]
+
+
+# ==============================================================================
+# Internal helpers
+# ==============================================================================
+
+def _GetVarName(variable):
+    """Return the variable name string, accepting either a KM.Variable or a plain string."""
+    return variable if isinstance(variable, str) else variable.Name()
+
+
+def _BuildScalarLabel(name, component, ndim):
+    """Build a scalar bar title from array *name*, *component* index, and array *ndim*.
+
+    Handles vector (3), Voigt (6), full-tensor (9), and principal-value arrays
+    using the same label conventions as FElupe's Scene.plot().
+
+    Parameters:
+    name (str): Variable name (may contain 'Principal Values of ' prefix).
+    component (int or None): Component index; None means magnitude.
+    ndim (int): Number of components in the original data array.
+
+    Returns:
+    str: Human-readable scalar bar label.
+    """
+    is_principal = "Principal Values of " in name
+    display_name = name.replace("Principal Values of ", "") if is_principal else name
+
+    if component is None:
+        suffix = "(Magnitude)" if is_principal else "Magnitude"
+    elif ndim <= 1:
+        suffix = ""
+    elif is_principal:
+        suffix = _PRINCIPAL_LABELS[min(component, 2)]
+    elif ndim <= 3:
+        suffix = _VECTOR_SUFFIXES[min(component, 2)]
+    elif ndim == 6:
+        suffix = _VOIGT_SUFFIXES[min(component, 5)]
+    elif ndim == 9:
+        suffix = _TENSOR9_SUFFIXES[min(component, 8)]
+    else:
+        suffix = str(component)
+
+    return f"{display_name} {suffix}".strip()
+
+
+def _ExtractComponent(arr, component, name):
+    """Extract a 1-D scalar array from a possibly multi-component NumPy array.
+
+    For arrays whose *name* contains 'Principal Values of', the columns are
+    sorted in descending order (largest eigenvalue first) before extraction,
+    matching FElupe's convention.
+
+    Parameters:
+    arr (np.ndarray): Shape (N,) for scalars or (N, K) for multi-component.
+    component (int or None): Component to extract; None returns the L2 norm.
+    name (str): Variable name used for principal-value detection.
+
+    Returns:
+    (np.ndarray, int): (1-D scalar array, original ndim).
+    """
+    if arr.ndim == 1:
+        return arr.copy(), 1
+
+    ndim = arr.shape[-1]
+    work = arr.copy()
+
+    if "Principal Values of " in name:
+        work = np.flip(np.sort(work, axis=-1), axis=-1)
+
+    if component is None:
+        return np.linalg.norm(work, axis=-1), ndim
+
+    c = min(int(component), ndim - 1)
+    return work[:, c].copy(), ndim
+
+
+# ==============================================================================
+# Core conversion
+# ==============================================================================
+
+def _TryCollectTensorData(makeAdaptor, expectedRows):
+    """Collect a variable in one shot through a vectorised C++ tensor adaptor.
+
+    Returns None whenever the adaptor cannot serve the request - a container where
+    only some entities carry the variable, a variable type the adaptor does not
+    map onto a flat array, or a build without that adaptor - so that the caller
+    falls back to the per-entity Python loop.
+
+    Parameters:
+    makeAdaptor (callable): Zero-argument factory returning the tensor adaptor.
+    expectedRows (int): Number of rows the resulting array must have.
+
+    Returns:
+    np.ndarray or None: Contiguous float64 array of shape (expectedRows,) or
+        (expectedRows, K), or None when the fast path is not applicable.
+    """
+    try:
+        adaptor = makeAdaptor()
+        adaptor.Check()
+        adaptor.CollectData()
+        data = np.ascontiguousarray(adaptor.data, dtype=np.float64)
+    except Exception:
+        return None
+
+    if data.ndim > 2 or data.shape[0] != expectedRows:
+        return None
+
+    return data
+
+
+def _CreateUnstructuredGrid(modelPart, entities, useDeformedConfiguration, nodalVariables,
+                            entityVariables, historicalStepIndex=0):
+    """Convert a collection of Kratos entities (Elements or Conditions) to a pyvista.UnstructuredGrid.
+
+    Handles scalar, 3-D vector (Array3 / Vector), and Matrix nodal and entity
+    variables. Matrix values are stored as row-major flat arrays of shape
+    (N, rows * cols).
+    """
+    import pyvista as pv
+
+    if len(entities) == 0:
+        return pv.UnstructuredGrid()
+
+    numNodes = len(modelPart.Nodes)
+    if numNodes == 0:
+        return pv.UnstructuredGrid()
+
+    # 1. Build points array and node-ID → index mappings
+    # Fast path: fill the coordinates via the vectorised C++ adaptor; the node-ID
+    # bookkeeping below still needs one pass either way.
+    configuration = KM.Configuration.Current if useDeformedConfiguration else KM.Configuration.Initial
+    points = _TryCollectTensorData(
+        lambda: KM.TensorAdaptors.NodePositionTensorAdaptor(modelPart.Nodes, configuration),
+        numNodes
+    )
+    fillPoints = points is None or points.shape != (numNodes, 3)
+    if fillPoints:
+        points = np.zeros((numNodes, 3), dtype=np.float64)
+
+    nodeIdToIdx = {}
+    nodeIdArr = np.empty(numNodes, dtype=np.int64)
+    for idx, node in enumerate(modelPart.Nodes):
+        nodeIdArr[idx] = node.Id
+        nodeIdToIdx[node.Id] = idx
+        if not fillPoints:
+            continue
+        if useDeformedConfiguration:
+            points[idx, 0] = node.X
+            points[idx, 1] = node.Y
+            points[idx, 2] = node.Z
+        else:
+            points[idx, 0] = node.X0
+            points[idx, 1] = node.Y0
+            points[idx, 2] = node.Z0
+
+    maxNodeId = int(nodeIdArr.max())
+    idToIdx = np.empty(maxNodeId + 1, dtype=np.int32)
+    idToIdx[nodeIdArr] = np.arange(numNodes, dtype=np.int32)
+
+    # 2. Build cell connectivity and cell-type arrays
+    cells = None
+    cellTypes = None
+
+    firstGeomType = next(iter(entities)).GetGeometry().GetGeometryType()
+    firstVtkType = GEOMETRY_TYPE_TO_VTK_CELL_TYPE.get(firstGeomType)
+    if firstVtkType is not None:
+        try:
+            # Fast path: uniform geometry — fill via vectorised C++ adaptor
+            adaptor = KM.TensorAdaptors.ConnectivityIdsTensorAdaptor(entities)
+            adaptor.Check()
+            adaptor.CollectData()
+            nodeIds = adaptor.data  # (N, K) int32 Kratos node IDs (1-based)
+            N, K = nodeIds.shape
+            nodeIndices = idToIdx[nodeIds]
+            countCol = np.full((N, 1), K, dtype=np.int32)
+            cells = np.hstack([countCol, nodeIndices]).ravel().astype(np.int32)
+            cellTypes = np.full(N, firstVtkType, dtype=np.uint8)
+        except Exception:
+            pass  # mixed geometry or unsupported type — fall through to slow path
+
+    if cells is None:
+        cellsList = []
+        cellTypesList = []
+        for entity in entities:
+            geom = entity.GetGeometry()
+            geomType = geom.GetGeometryType()
+            vtkType = GEOMETRY_TYPE_TO_VTK_CELL_TYPE.get(geomType)
+            if vtkType is None:
+                continue
+            cellNodes = [nodeIdToIdx[node.Id] for node in geom]
+            cellsList.append(len(cellNodes))
+            cellsList.extend(cellNodes)
+            cellTypesList.append(vtkType)
+        if len(cellsList) == 0:
+            return pv.UnstructuredGrid()
+        cells = np.array(cellsList, dtype=np.int32)
+        cellTypes = np.array(cellTypesList, dtype=np.uint8)
+
+    if len(cellTypes) == 0:
+        return pv.UnstructuredGrid()
+
+    grid = pv.UnstructuredGrid(cells, cellTypes, points)
+
+    # 3. Add nodal (point) variables
+    for var in nodalVariables:
+        if isinstance(var, str):
+            var = KM.KratosGlobals.GetVariable(var)
+
+        firstNode = next(iter(modelPart.Nodes))
+        isHistorical   = firstNode.HasSolutionStepValue(var)
+        isNonHistorical = firstNode.Has(var)
+
+        if not (isHistorical or isNonHistorical):
+            continue
+
+        val = (firstNode.GetSolutionStepValue(var, historicalStepIndex)
+               if isHistorical else firstNode.GetValue(var))
+        valTypeName = type(val).__name__
+
+        def _get(node):
+            return (node.GetSolutionStepValue(var, historicalStepIndex)
+                    if isHistorical else node.GetValue(var))
+
+        # Fast path: scalars and Array3 come straight out of a tensor adaptor
+        isScalar = isinstance(val, (float, int, bool))
+        isArray3 = isinstance(val, KM.Array3) or valTypeName == "Array3"
+        if isScalar or isArray3:
+            if isHistorical:
+                makeAdaptor = (lambda: KM.TensorAdaptors.HistoricalVariableTensorAdaptor(
+                    modelPart.Nodes, var, historicalStepIndex))
+            else:
+                makeAdaptor = lambda: KM.TensorAdaptors.VariableTensorAdaptor(modelPart.Nodes, var)
+
+            fastArr = _TryCollectTensorData(makeAdaptor, numNodes)
+            expectedNdim = 1 if isScalar else 2
+            if fastArr is not None and fastArr.ndim == expectedNdim:
+                if isArray3 and fastArr.shape[1] != 3:
+                    fastArr = None
+                if fastArr is not None:
+                    grid.point_data[var.Name()] = fastArr
+                    continue
+
+        if isScalar:
+            arr = np.array([_get(n) for n in modelPart.Nodes], dtype=np.float64)
+            grid.point_data[var.Name()] = arr
+
+        elif isinstance(val, KM.Array3) or valTypeName in ("Array3", "Vector"):
+            try:
+                sz = len(val)
+            except Exception:
+                sz = 3
+            ncols = max(sz, 3)
+            arr = np.zeros((numNodes, ncols), dtype=np.float64)
+            for idx, node in enumerate(modelPart.Nodes):
+                v = _get(node)
+                for k in range(min(len(v), ncols)):
+                    arr[idx, k] = v[k]
+            if ncols < 3:
+                arr = np.pad(arr, ((0, 0), (0, 3 - ncols)))
+            grid.point_data[var.Name()] = arr
+
+        elif valTypeName == "Matrix":
+            r, c = val.Size1(), val.Size2()
+            arr = np.zeros((numNodes, r * c), dtype=np.float64)
+            for idx, node in enumerate(modelPart.Nodes):
+                m = _get(node)
+                for i in range(r):
+                    for j in range(c):
+                        arr[idx, i * c + j] = m[i, j]
+            grid.point_data[var.Name()] = arr
+
+    # 4. Add entity (cell) variables
+    nCells = len(cellTypes)
+    for var in entityVariables:
+        if isinstance(var, str):
+            var = KM.KratosGlobals.GetVariable(var)
+
+        sampleVal = None
+        for entity in entities:
+            geomType = entity.GetGeometry().GetGeometryType()
+            if geomType in GEOMETRY_TYPE_TO_VTK_CELL_TYPE and entity.Has(var):
+                sampleVal = entity.GetValue(var)
+                break
+
+        if sampleVal is None:
+            continue
+
+        valType     = type(sampleVal)
+        valTypeName = valType.__name__
+
+        # Fast path: scalars and Array3 come straight out of a tensor adaptor, but
+        # only when every entity is renderable, so rows line up with cells.
+        isScalar = isinstance(sampleVal, (float, int, bool))
+        isArray3 = isinstance(sampleVal, KM.Array3) or valTypeName == "Array3"
+        if (isScalar or isArray3) and nCells == len(entities):
+            fastArr = _TryCollectTensorData(
+                lambda: KM.TensorAdaptors.VariableTensorAdaptor(entities, var), nCells
+            )
+            expectedNdim = 1 if isScalar else 2
+            if fastArr is not None and fastArr.ndim == expectedNdim:
+                if isArray3 and fastArr.shape[1] != 3:
+                    fastArr = None
+                if fastArr is not None:
+                    grid.cell_data[var.Name()] = fastArr
+                    continue
+
+        if isScalar:
+            arr = np.zeros(nCells, dtype=np.float64)
+            cellIdx = 0
+            for entity in entities:
+                if entity.GetGeometry().GetGeometryType() not in GEOMETRY_TYPE_TO_VTK_CELL_TYPE:
+                    continue
+                if entity.Has(var):
+                    arr[cellIdx] = entity.GetValue(var)
+                cellIdx += 1
+            grid.cell_data[var.Name()] = arr
+
+        elif isinstance(sampleVal, KM.Array3) or valTypeName in ("Array3", "Vector"):
+            try:
+                sz = len(sampleVal)
+            except Exception:
+                sz = 3
+            ncols = max(sz, 3)
+            arr = np.zeros((nCells, ncols), dtype=np.float64)
+            cellIdx = 0
+            for entity in entities:
+                if entity.GetGeometry().GetGeometryType() not in GEOMETRY_TYPE_TO_VTK_CELL_TYPE:
+                    continue
+                if entity.Has(var):
+                    v = entity.GetValue(var)
+                    for k in range(min(len(v), ncols)):
+                        arr[cellIdx, k] = v[k]
+                cellIdx += 1
+            if ncols < 3:
+                arr = np.pad(arr, ((0, 0), (0, 3 - ncols)))
+            grid.cell_data[var.Name()] = arr
+
+        elif valTypeName == "Matrix":
+            r, c = sampleVal.Size1(), sampleVal.Size2()
+            arr = np.zeros((nCells, r * c), dtype=np.float64)
+            cellIdx = 0
+            for entity in entities:
+                if entity.GetGeometry().GetGeometryType() not in GEOMETRY_TYPE_TO_VTK_CELL_TYPE:
+                    continue
+                if entity.Has(var):
+                    m = entity.GetValue(var)
+                    for i in range(r):
+                        for j in range(c):
+                            arr[cellIdx, i * c + j] = m[i, j]
+                cellIdx += 1
+            grid.cell_data[var.Name()] = arr
+
+    return grid
+
+
+def ModelPartToPyVista(
+    modelPart,
+    useDeformedConfiguration=False,
+    nodalVariables=[],
+    elementVariables=[],
+    conditionVariables=[],
+    exportElements=True,
+    exportConditions=False,
+    historicalStepIndex=0
+):
+    """Convert a Kratos ModelPart to a pyvista.UnstructuredGrid or pyvista.MultiBlock mesh.
+
+    Parameters:
+    modelPart (KM.ModelPart): The Kratos ModelPart to convert.
+    useDeformedConfiguration (bool): Use current (X/Y/Z) vs initial (X0/Y0/Z0) coordinates.
+    nodalVariables (list): KM.Variable or str names for nodal data to export.
+    elementVariables (list): KM.Variable or str names for element cell data.
+    conditionVariables (list): KM.Variable or str names for condition cell data.
+    exportElements (bool): Export elements.
+    exportConditions (bool): Export conditions.
+    historicalStepIndex (int): Solution-step buffer position to read historical
+        nodal variables from; 0 is the current step, 1 the previous one, and so
+        on up to the ModelPart's buffer size.
+
+    Returns:
+    pyvista.UnstructuredGrid or pyvista.MultiBlock: Converted mesh.
+    """
+    import pyvista as pv
+
+    if exportElements and exportConditions:
+        elemGrid = _CreateUnstructuredGrid(
+            modelPart, modelPart.Elements,
+            useDeformedConfiguration, nodalVariables, elementVariables, historicalStepIndex
+        )
+        condGrid = _CreateUnstructuredGrid(
+            modelPart, modelPart.Conditions,
+            useDeformedConfiguration, nodalVariables, conditionVariables, historicalStepIndex
+        )
+        blocks = pv.MultiBlock()
+        blocks["elements"]   = elemGrid
+        blocks["conditions"] = condGrid
+        return blocks
+    elif exportElements:
+        return _CreateUnstructuredGrid(
+            modelPart, modelPart.Elements,
+            useDeformedConfiguration, nodalVariables, elementVariables, historicalStepIndex
+        )
+    elif exportConditions:
+        return _CreateUnstructuredGrid(
+            modelPart, modelPart.Conditions,
+            useDeformedConfiguration, nodalVariables, conditionVariables, historicalStepIndex
+        )
+    else:
+        return pv.UnstructuredGrid()
+
+
+# ==============================================================================
+# Plotting
+# ==============================================================================
+
+def _ApplyCameraPreset(plotter, grid, view):
+    """Apply a camera preset to *plotter*, auto-detecting flat 2-D meshes.
+
+    Parameters:
+    plotter (pyvista.Plotter): Target plotter.
+    grid (pyvista.DataSet or None): Mesh whose bounds decide the 'default' preset.
+    view (str or None): 'xy', 'xz', 'yz', 'iso', 'default', or None for no change.
+    """
+    if view == "default":
+        if grid is not None and grid.n_points > 0 and np.allclose(grid.points[:, 2], 0.0):
+            view = "xy"
+            plotter.enable_parallel_projection()
+        else:
+            view = None
+            plotter.camera.elevation = -15
+            plotter.camera.azimuth   = -100
+    if view is not None:
+        plotter.camera_position = view
+
+
+def _AddGridToPlotter(
+    plotter,
+    grid,
+    name=None,
+    component=0,
+    label=None,
+    factor=1.0,
+    warpByVector=None,
+    showEdges=True,
+    showUndeformed=True,
+    cmap="turbo",
+    clim=None,
+    scalarBarArgs=None,
+    scalarBarVertical=False,
+    extractSurface=False,
+    nonlinearSubdivision=1,
+    smoothShading=True,
+    splitSharpEdges=True,
+    edgeColor="black",
+    lineWidth=1.0,
+    **kwargs
+):
+    """Add an already-converted grid to *plotter*: warp, scalar selection, shading.
+
+    This is the single rendering code path shared by PlotModelPart and the transient
+    animation utilities, so a ModelPart, an in-memory grid, and a grid read back from
+    disk all render identically.
+
+    Parameters: identical in meaning to the same-named arguments of PlotModelPart.
+
+    Returns:
+    pyvista.DataSet or None: The (unwarped) grid that was rendered, None when empty.
+    """
+    import pyvista as pv
+
+    if isinstance(grid, pv.MultiBlock):
+        grid = grid["elements"] if "elements" in grid.keys() else grid[0]
+
+    if grid is None or grid.n_points == 0:
+        return None
+
+    # Warp by vector field
+    warpName = _GetVarName(warpByVector) if warpByVector is not None else None
+    mesh = grid
+    if warpName is not None and warpName in grid.point_data:
+        if showUndeformed:
+            # Plain silhouette: no scalar coloring/bar for the undeformed ghost,
+            # regardless of which array is "active" on the grid.
+            plotter.add_mesh(grid, scalars=None, color="lightgray", show_edges=False,
+                             opacity=0.2, line_width=lineWidth, show_scalar_bar=False)
+        mesh = grid.warp_by_vector(warpName, factor=factor)
+
+    # Identify and extract the scalar to display
+    varName = _GetVarName(name) if name is not None else None
+    scalarsName = None
+    ndim = 1
+
+    if varName is not None:
+        arr = None
+        dataType = None
+        if varName in mesh.point_data:
+            arr      = mesh.point_data[varName]
+            dataType = "point"
+        elif varName in mesh.cell_data:
+            arr      = mesh.cell_data[varName]
+            dataType = "cell"
+
+        if arr is not None:
+            scalar1d, ndim = _ExtractComponent(arr, component, varName)
+
+            # For scalar arrays (1-D) with component 0, use the array in-place;
+            # for multi-component or magnitude, store a derived scalar under a temp key.
+            if arr.ndim == 1 and (component == 0 or component is None):
+                scalarsName = varName
+            else:
+                scalarsName = f"_kratos_{varName}_{component}"
+                if dataType == "point":
+                    mesh.point_data[scalarsName] = scalar1d
+                else:
+                    mesh.cell_data[scalarsName] = scalar1d
+
+            if label is None:
+                label = _BuildScalarLabel(varName, component, ndim)
+
+    # Build scalar bar args dict
+    sbArgs = None
+    if scalarsName is not None and label is not None:
+        sbArgs = {"title": label, "vertical": scalarBarVertical}
+        if scalarBarArgs:
+            sbArgs.update(scalarBarArgs)
+
+    # Surface extraction (for quadratic / Lagrange cells)
+    renderMesh = mesh
+    if nonlinearSubdivision > 1 or extractSurface:
+        nlSubd = max(1, nonlinearSubdivision)
+        try:
+            renderMesh = mesh.extract_surface(
+                algorithm=None, nonlinear_subdivision=nlSubd
+            )
+            edges = (
+                mesh.separate_cells()
+                .extract_surface(algorithm=None, nonlinear_subdivision=1)
+                .extract_feature_edges()
+            )
+            edgeActor = plotter.add_mesh(edges, color=edgeColor, line_width=lineWidth)
+            edgeActor.mapper.SetResolveCoincidentTopologyToPolygonOffset()
+        except Exception:
+            renderMesh = mesh
+
+        addKw = dict(scalars=scalarsName, cmap=cmap, show_edges=False, line_width=lineWidth)
+        if nlSubd > 1:
+            addKw["smooth_shading"]   = smoothShading
+            addKw["split_sharp_edges"] = splitSharpEdges
+    else:
+        addKw = dict(
+            scalars=scalarsName,
+            cmap=cmap,
+            show_edges=showEdges,
+            line_width=lineWidth,
+            edge_color=edgeColor,
+        )
+
+    if sbArgs is not None:
+        addKw["scalar_bar_args"] = sbArgs
+    if clim is not None:
+        addKw["clim"] = list(clim)
+    addKw.update(kwargs)
+    plotter.add_mesh(renderMesh, **addKw)
+
+    return grid
+
+
+def _AddModelPartToPlotter(
+    plotter,
+    modelPart,
+    name=None,
+    warpByVector=None,
+    useDeformedConfiguration=False,
+    nodalVariables=None,
+    elementVariables=None,
+    conditionVariables=None,
+    exportElements=True,
+    exportConditions=False,
+    historicalStepIndex=0,
+    **renderKwargs
+):
+    """Convert *modelPart* to a grid and add it to *plotter* via _AddGridToPlotter.
+
+    The display variable (*name*) and the warp variable are appended automatically to
+    the exported nodal variables, so callers never have to list them twice.
+
+    Returns:
+    pyvista.DataSet or None: The (unwarped) grid that was rendered, None when empty.
+    """
+    if nodalVariables is None:
+        nodalVariables = []
+    if elementVariables is None:
+        elementVariables = []
+    if conditionVariables is None:
+        conditionVariables = []
+
+    # Ensure the display variable and warp variable are included in the export
+    extraNodal = []
+    if name is not None and name not in nodalVariables:
+        extraNodal.append(name)
+    if (warpByVector is not None
+            and warpByVector not in nodalVariables
+            and warpByVector not in extraNodal):
+        extraNodal.append(warpByVector)
+    allNodal = list(nodalVariables) + extraNodal
+
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=useDeformedConfiguration,
+        nodalVariables=allNodal,
+        elementVariables=list(elementVariables),
+        conditionVariables=list(conditionVariables),
+        exportElements=exportElements,
+        exportConditions=exportConditions,
+        historicalStepIndex=historicalStepIndex
+    )
+
+    return _AddGridToPlotter(plotter, grid, name=name, warpByVector=warpByVector, **renderKwargs)
+
+
+def PlotModelPart(
+    modelPart,
+    name=None,
+    component=0,
+    label=None,
+    factor=1.0,
+    warpByVector=None,
+    showEdges=True,
+    showUndeformed=True,
+    cmap="turbo",
+    clim=None,
+    view="default",
+    theme=None,
+    scalarBarArgs=None,
+    scalarBarVertical=False,
+    addAxes=True,
+    offScreen=False,
+    plotter=None,
+    notebook=False,
+    extractSurface=False,
+    nonlinearSubdivision=1,
+    smoothShading=True,
+    splitSharpEdges=True,
+    edgeColor="black",
+    lineWidth=1.0,
+    useDeformedConfiguration=False,
+    nodalVariables=None,
+    elementVariables=None,
+    conditionVariables=None,
+    exportElements=True,
+    exportConditions=False,
+    historicalStepIndex=0,
+    **kwargs
+):
+    """Plot a Kratos ModelPart using PyVista's rendering engine.
+
+    The function converts the ModelPart, optionally warps it by a vector field,
+    selects a scalar for coloring (with component extraction and principal-value
+    sorting), and returns a configured pyvista.Plotter.  The caller decides
+    whether to call .show() interactively or .screenshot() for off-screen images.
+
+    Parameters:
+    modelPart (KM.ModelPart): ModelPart to render.
+    name (KM.Variable or str or None): Variable to color by.
+    component (int or None): Component index; None shows the L2 magnitude.
+        Suffix labels: vectors->X/Y/Z, Voigt-6->XX/YY/ZZ/XY/YZ/XZ,
+        tensor-9->XX/XY/.../ZZ, principal-3->(Max./Int./Min. Principal).
+    label (str or None): Override scalar bar title (auto-generated when None).
+    factor (float): Warp scaling factor applied when warpByVector is set.
+    warpByVector (KM.Variable or str or None): Nodal vector variable used to
+        warp the mesh (e.g. KM.DISPLACEMENT). When set the undeformed mesh is
+        shown as a 20%-opacity ghost (controlled by showUndeformed).
+    showEdges (bool): Show cell edges.
+    showUndeformed (bool): Show undeformed ghost mesh when warping is active.
+    cmap (str): Matplotlib colormap name.
+    clim (tuple or list or None): Explicit (min, max) color range. None lets
+        PyVista pick the range from the data.
+    view (str or None): Camera preset: 'xy', 'xz', 'yz', 'iso', or 'default'.
+        'default' auto-selects 'xy' + parallel projection for flat 2-D meshes.
+    theme (str or None): PyVista theme ('default', 'document', 'dark', ...).
+    scalarBarArgs (dict or None): Extra kwargs forwarded to the scalar bar.
+    scalarBarVertical (bool): Show scalar bar vertically on the right side.
+    addAxes (bool): Add coordinate axes widget.
+    offScreen (bool): Initialize plotter in off-screen mode (for screenshots).
+    plotter (pyvista.Plotter or None): Reuse an existing plotter to compose scenes.
+    notebook (bool): Enable Jupyter inline rendering (implies off-screen).
+    extractSurface (bool): Extract surface before rendering (hides internal edges
+        of quadratic cells).
+    nonlinearSubdivision (int): >1 enables smooth curved surface of quadratic cells
+        (implies extractSurface).
+    smoothShading (bool): Smooth shading when nonlinearSubdivision > 1.
+    splitSharpEdges (bool): Split sharp edges for smooth shading.
+    edgeColor (str): Edge line colour.
+    lineWidth (float): Edge line width.
+    useDeformedConfiguration (bool): Use current (X/Y/Z) coordinates.
+    nodalVariables (list or None): Additional nodal variables to export.
+    elementVariables (list or None): Elemental variables to export.
+    conditionVariables (list or None): Condition variables to export.
+    exportElements (bool): Export elements.
+    exportConditions (bool): Export conditions.
+    historicalStepIndex (int): Solution-step buffer position for historical nodal
+        variables; 0 is the current step, 1 the previous one.
+    **kwargs: Passed directly to plotter.add_mesh().
+
+    Returns:
+    pyvista.Plotter: Configured plotter - call .show() or .screenshot() next.
+    """
+    import pyvista as pv
+
+    if plotter is None:
+        if theme is not None:
+            pv.set_plot_theme(theme)
+        plotter = pv.Plotter(off_screen=offScreen or notebook)
+
+    grid = _AddModelPartToPlotter(
+        plotter,
+        modelPart,
+        name=name,
+        warpByVector=warpByVector,
+        useDeformedConfiguration=useDeformedConfiguration,
+        nodalVariables=nodalVariables,
+        elementVariables=elementVariables,
+        conditionVariables=conditionVariables,
+        exportElements=exportElements,
+        exportConditions=exportConditions,
+        historicalStepIndex=historicalStepIndex,
+        component=component,
+        label=label,
+        factor=factor,
+        showEdges=showEdges,
+        showUndeformed=showUndeformed,
+        cmap=cmap,
+        clim=clim,
+        scalarBarArgs=scalarBarArgs,
+        scalarBarVertical=scalarBarVertical,
+        extractSurface=extractSurface,
+        nonlinearSubdivision=nonlinearSubdivision,
+        smoothShading=smoothShading,
+        splitSharpEdges=splitSharpEdges,
+        edgeColor=edgeColor,
+        lineWidth=lineWidth,
+        **kwargs
+    )
+
+    if grid is None:
+        return plotter
+
+    _ApplyCameraPreset(plotter, grid, view)
+
+    if addAxes:
+        plotter.add_axes()
+
+    return plotter
+
+
+def ScreenshotModelPart(
+    modelPart,
+    filename="modelpart.png",
+    transparentBackground=None,
+    scale=None,
+    **kwargs
+):
+    """Render a Kratos ModelPart off-screen and save a screenshot to *filename*.
+
+    All keyword arguments are forwarded to PlotModelPart (name, component,
+    cmap, warpByVector, nodalVariables, …).
+
+    Parameters:
+    modelPart (KM.ModelPart): ModelPart to render.
+    filename (str or None): Output image path. Pass None to return a numpy
+        image array instead of writing a file.
+    transparentBackground (bool or None): Transparent background flag.
+    scale (int or None): Resolution scale factor.
+
+    Returns:
+    numpy.ndarray or None: Image array when filename is None, otherwise None.
+    """
+    p = PlotModelPart(modelPart, offScreen=True, **kwargs)
+    return p.screenshot(filename, transparent_background=transparentBackground, scale=scale)
+
+
+# ==============================================================================
+# File I/O
+# ==============================================================================
+
+def SaveModelPart(
+    modelPart,
+    filename,
+    useDeformedConfiguration=False,
+    nodalVariables=[],
+    elementVariables=[],
+    conditionVariables=[]
+):
+    """Save a Kratos ModelPart to a VTK/VTU/VTM file via PyVista."""
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=useDeformedConfiguration,
+        nodalVariables=nodalVariables,
+        elementVariables=elementVariables,
+        conditionVariables=conditionVariables,
+        exportElements=len(modelPart.Elements) > 0,
+        exportConditions=len(modelPart.Conditions) > 0
+    )
+    grid.save(filename)
+
+
+# ==============================================================================
+# Advanced post-processing utilities
+# ==============================================================================
+
+def ComputeWarpedMesh(
+    modelPart,
+    vectorVariable,
+    factor=1.0,
+    nodalVariables=[],
+    elementVariables=[],
+    conditionVariables=[]
+):
+    """Generate a deformed mesh by warping nodal positions by a vector variable.
+
+    Parameters:
+    modelPart (KM.ModelPart): Source model part.
+    vectorVariable (KM.Variable or str): Nodal vector variable (e.g. KM.DISPLACEMENT).
+    factor (float): Warp scaling factor.
+    nodalVariables (list): Additional nodal variables to carry through.
+    elementVariables (list): Elemental variables to include.
+    conditionVariables (list): Condition variables to include.
+
+    Returns:
+    pyvista.UnstructuredGrid or pyvista.MultiBlock: Warped mesh.
+    """
+    import pyvista as pv
+
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=False,
+        nodalVariables=nodalVariables + [vectorVariable],
+        elementVariables=elementVariables,
+        conditionVariables=conditionVariables,
+        exportElements=len(modelPart.Elements) > 0,
+        exportConditions=len(modelPart.Conditions) > 0
+    )
+    varName = _GetVarName(vectorVariable)
+
+    if isinstance(grid, pv.MultiBlock):
+        for key in grid.keys():
+            if grid[key].n_points > 0 and varName in grid[key].point_data:
+                grid[key] = grid[key].warp_by_vector(varName, factor=factor)
+        return grid
+    else:
+        if grid.n_points > 0 and varName in grid.point_data:
+            return grid.warp_by_vector(varName, factor=factor)
+        return grid
+
+
+def CreateExtractedSurface(modelPart, nodalVariables=[], elementVariables=[]):
+    """Extract the outer surface of a 3-D Kratos ModelPart as a PyVista PolyData mesh.
+
+    Useful for rendering volumetric meshes as smooth closed surfaces and for
+    surface-based operations (feature-edge highlighting, smooth shading, etc.).
+
+    Parameters:
+    modelPart (KM.ModelPart): Source model part.
+    nodalVariables (list): Nodal variables to transfer to the surface mesh.
+    elementVariables (list): Elemental variables to transfer.
+
+    Returns:
+    pyvista.PolyData: Extracted surface mesh.
+    """
+    import pyvista as pv
+
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=False,
+        nodalVariables=nodalVariables,
+        elementVariables=elementVariables,
+        exportElements=True,
+        exportConditions=False
+    )
+    if isinstance(grid, pv.MultiBlock):
+        grid = grid["elements"]
+
+    if grid.n_points == 0:
+        return pv.PolyData()
+
+    return grid.extract_surface()
+
+
+def CreateOrthogonalSlices(modelPart, x=None, y=None, z=None, nodalVariables=[], elementVariables=[]):
+    """Extract orthogonal slices from a 3-D Kratos ModelPart domain.
+
+    Parameters:
+    modelPart (KM.ModelPart): Source model part.
+    x (float or None): X-coordinate of the YZ-plane slice (midpoint if None).
+    y (float or None): Y-coordinate of the XZ-plane slice (midpoint if None).
+    z (float or None): Z-coordinate of the XY-plane slice (midpoint if None).
+    nodalVariables (list): Nodal variables to include.
+    elementVariables (list): Elemental variables to include.
+
+    Returns:
+    pyvista.MultiBlock: Three orthogonal slice surfaces.
+    """
+    import pyvista as pv
+
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=False,
+        nodalVariables=nodalVariables,
+        elementVariables=elementVariables,
+        exportElements=True,
+        exportConditions=False
+    )
+    if isinstance(grid, pv.MultiBlock):
+        grid = grid["elements"]
+
+    if grid.n_points == 0:
+        return grid
+
+    bounds = grid.bounds
+    if x is None:
+        x = 0.5 * (bounds[0] + bounds[1])
+    if y is None:
+        y = 0.5 * (bounds[2] + bounds[3])
+    if z is None:
+        z = 0.5 * (bounds[4] + bounds[5])
+
+    return grid.slice_orthogonal(x=x, y=y, z=z)
+
+
+def CreateIsosurfaces(modelPart, variable, valuesOrNumber=5, nodalVariables=[]):
+    """Generate contour surfaces (isosurfaces) from a nodal scalar variable.
+
+    Parameters:
+    modelPart (KM.ModelPart): Source model part.
+    variable (KM.Variable or str): Nodal scalar variable to contour.
+    valuesOrNumber (int or list): Number of evenly-spaced contour levels, or
+        an explicit list of iso-values.
+    nodalVariables (list): Additional nodal variables to include.
+
+    Returns:
+    pyvista.PolyData: Isosurface mesh.
+    """
+    import pyvista as pv
+
+    varName = _GetVarName(variable)
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=False,
+        nodalVariables=nodalVariables + [variable],
+        exportElements=True,
+        exportConditions=False
+    )
+    if isinstance(grid, pv.MultiBlock):
+        grid = grid["elements"]
+
+    if grid.n_points == 0:
+        return pv.PolyData()
+
+    return grid.contour(isosurfaces=valuesOrNumber, scalars=varName)
+
+
+def CreateStreamlines(
+    modelPart,
+    velocityVariable="VELOCITY",
+    sourceCenter=None,
+    sourceRadius=None,
+    nPoints=100,
+    integrationDirection="both"
+):
+    """Generate fluid streamlines through a nodal vector velocity field.
+
+    Parameters:
+    modelPart (KM.ModelPart): Source model part.
+    velocityVariable (KM.Variable or str): Nodal vector variable for the flow field.
+    sourceCenter (list or None): [x, y, z] seed sphere centre (mesh centroid if None).
+    sourceRadius (float or None): Seed sphere radius (10% of diagonal if None).
+    nPoints (int): Number of seed points on the sphere.
+    integrationDirection (str): 'forward', 'backward', or 'both'.
+
+    Returns:
+    pyvista.PolyData: Streamline tubes.
+    """
+    import pyvista as pv
+
+    varName = _GetVarName(velocityVariable)
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=False,
+        nodalVariables=[velocityVariable],
+        exportElements=True,
+        exportConditions=False
+    )
+    if isinstance(grid, pv.MultiBlock):
+        grid = grid["elements"]
+
+    if grid.n_points == 0:
+        return pv.PolyData()
+
+    bounds = grid.bounds
+    if sourceCenter is None:
+        sourceCenter = [
+            0.5 * (bounds[0] + bounds[1]),
+            0.5 * (bounds[2] + bounds[3]),
+            0.5 * (bounds[4] + bounds[5])
+        ]
+    if sourceRadius is None:
+        diag = np.sqrt(
+            (bounds[1] - bounds[0]) ** 2
+            + (bounds[3] - bounds[2]) ** 2
+            + (bounds[5] - bounds[4]) ** 2
+        )
+        sourceRadius = 0.1 * diag
+
+    return grid.streamlines(
+        vectors=varName,
+        source_center=sourceCenter,
+        source_radius=sourceRadius,
+        n_points=nPoints,
+        integration_direction=integrationDirection
+    )
+
+
+def CreateThresholdedMesh(
+    modelPart,
+    variable,
+    thresholdValue,
+    thresholdType="above",
+    nodalVariables=[],
+    elementVariables=[]
+):
+    """Extract mesh cells that satisfy a scalar threshold condition.
+
+    Parameters:
+    modelPart (KM.ModelPart): Source model part.
+    variable (KM.Variable or str): Scalar variable to threshold.
+    thresholdValue (float or tuple): Threshold value for 'above'/'below', or
+        (lower, upper) pair for 'between'.
+    thresholdType (str): 'above', 'below', or 'between'.
+    nodalVariables (list): Additional nodal variables to include.
+    elementVariables (list): Elemental variables to include.
+
+    Returns:
+    pyvista.UnstructuredGrid: Filtered mesh subset.
+    """
+    import pyvista as pv
+
+    varName = _GetVarName(variable)
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=False,
+        nodalVariables=nodalVariables + [variable],
+        elementVariables=elementVariables + [variable],
+        exportElements=True,
+        exportConditions=False
+    )
+    if isinstance(grid, pv.MultiBlock):
+        grid = grid["elements"]
+
+    if grid.n_points == 0:
+        return grid
+
+    preference = "point" if varName in grid.point_data else "cell"
+
+    if thresholdType == "above":
+        return grid.threshold(value=thresholdValue, scalars=varName, method="upper",
+                              preference=preference)
+    elif thresholdType == "below":
+        return grid.threshold(value=thresholdValue, scalars=varName, method="lower",
+                              preference=preference)
+    elif thresholdType == "between":
+        if not isinstance(thresholdValue, (list, tuple)) or len(thresholdValue) != 2:
+            raise ValueError(
+                "For 'between' thresholdType, thresholdValue must be a (lower, upper) pair."
+            )
+        return grid.threshold(value=thresholdValue, scalars=varName, preference=preference)
+    else:
+        raise ValueError(
+            f"Unknown thresholdType '{thresholdType}'. Supported: 'above', 'below', 'between'."
+        )
+
+
+def CreateVectorGlyphs(
+    modelPart,
+    vectorVariable,
+    scaleFactor=1.0,
+    glyphType="arrow",
+    nodalVariables=[]
+):
+    """Generate oriented 3-D glyphs at mesh nodes scaled by a vector variable.
+
+    Parameters:
+    modelPart (KM.ModelPart): Source model part.
+    vectorVariable (KM.Variable or str): Nodal vector variable for orientation and scale.
+    scaleFactor (float): Global glyph size scale factor.
+    glyphType (str): Glyph geometry: 'arrow', 'cone', 'sphere', or 'cylinder'.
+    nodalVariables (list): Additional nodal variables to include.
+
+    Returns:
+    pyvista.PolyData: Glyph mesh.
+    """
+    import pyvista as pv
+
+    varName = _GetVarName(vectorVariable)
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=False,
+        nodalVariables=nodalVariables + [vectorVariable],
+        exportElements=True,
+        exportConditions=False
+    )
+    if isinstance(grid, pv.MultiBlock):
+        grid = grid["elements"]
+
+    if grid.n_points == 0:
+        return pv.PolyData()
+
+    if varName not in grid.point_data:
+        raise ValueError(f"Vector variable '{varName}' not found in the converted mesh point data.")
+
+    _glyph_map = {
+        "arrow":    pv.Arrow(),
+        "cone":     pv.Cone(),
+        "sphere":   pv.Sphere(),
+        "cylinder": pv.Cylinder(),
+    }
+    geom = _glyph_map.get(glyphType, pv.Arrow())
+
+    glyphs = grid.glyph(orient=varName, scale=varName, factor=scaleFactor, geom=geom)
+    if "GlyphVector" in glyphs.point_data:
+        glyphs.point_data[varName] = glyphs.point_data["GlyphVector"]
+    if "GlyphScale" in glyphs.point_data:
+        glyphs.point_data[varName + "_magnitude"] = glyphs.point_data["GlyphScale"]
+    return glyphs
+
+
+def CreateClippedMesh(
+    modelPart,
+    normal=[0.0, 0.0, 1.0],
+    origin=None,
+    nodalVariables=[],
+    elementVariables=[]
+):
+    """Clip a Kratos ModelPart by a plane defined by an origin and normal vector.
+
+    Parameters:
+    modelPart (KM.ModelPart): Source model part.
+    normal (list): 3-D normal vector of the clipping plane.
+    origin (list or None): 3-D origin of the clipping plane (mesh centre if None).
+    nodalVariables (list): Nodal variables to include.
+    elementVariables (list): Elemental variables to include.
+
+    Returns:
+    pyvista.UnstructuredGrid: Clipped mesh.
+    """
+    import pyvista as pv
+
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=False,
+        nodalVariables=nodalVariables,
+        elementVariables=elementVariables,
+        exportElements=True,
+        exportConditions=False
+    )
+    if isinstance(grid, pv.MultiBlock):
+        grid = grid["elements"]
+
+    if grid.n_points == 0:
+        return grid
+
+    if origin is None:
+        bounds = grid.bounds
+        origin = [
+            0.5 * (bounds[0] + bounds[1]),
+            0.5 * (bounds[2] + bounds[3]),
+            0.5 * (bounds[4] + bounds[5])
+        ]
+
+    return grid.clip(normal=normal, origin=origin)
+
+
+# ==============================================================================
+# Transient post-processing: animations, movies and time series
+# ==============================================================================
+
+# File-suffix tables used to pick an encoder from the output file name.
+_GIF_SUFFIXES   = (".gif",)
+_MOVIE_SUFFIXES = (".mp4", ".avi", ".mov", ".mkv", ".webm", ".m4v", ".ogv")
+_IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp")
+
+# Arguments of PlotModelPart that drive the ModelPart -> grid conversion rather than
+# the rendering itself. Only meaningful when the frame source is a ModelPart.
+_CONVERSION_KWARGS = (
+    "useDeformedConfiguration",
+    "nodalVariables",
+    "elementVariables",
+    "conditionVariables",
+    "exportElements",
+    "exportConditions",
+    "historicalStepIndex",
+)
+
+_GIF_DEPENDENCY_ERROR = (
+    "GIF output requires the optional 'imageio' package, which is not installed. "
+    "Install it with:\n"
+    "    pip install imageio\n"
+    "Alternatively pass a '.png' filename or a directory to write a PNG frame "
+    "sequence, which needs no extra dependency."
+)
+
+_MOVIE_DEPENDENCY_ERROR = (
+    "Movie output ('{suffix}') requires the optional 'imageio' and 'imageio-ffmpeg' "
+    "packages, which are not installed. Install them with:\n"
+    "    pip install imageio imageio-ffmpeg\n"
+    "Alternatively pass a '.png' filename or a directory to write a PNG frame "
+    "sequence, which needs no extra dependency."
+)
+
+
+def _NaturalSortKey(text):
+    """Split *text* into text/number chunks so '_2' sorts before '_10'.
+
+    Kratos writes transient series as '<name>_<rank>_<label>.vtk', so a plain
+    lexicographic sort would wrongly place step 10 between steps 1 and 2.
+
+    Parameters:
+    text (str): File name or path to build a sort key for.
+
+    Returns:
+    list: Mixed list of lower-cased strings and ints usable as a sort key.
+    """
+    return [int(chunk) if chunk.isdigit() else chunk.lower()
+            for chunk in re.split(r"(\d+)", str(text))]
+
+
+def _PrettyTime(value):
+    """Round *value* to 12 significant digits, removing float noise.
+
+    ProcessInfo[TIME] after three steps of 0.1 reads 0.30000000000000004; this is
+    the same convention used by the core output processes for time labels.
+    """
+    return float("{0:.12g}".format(float(value)))
+
+
+def IsAnimationAvailable(fileFormat="gif"):
+    """Report whether the encoder backing *fileFormat* is importable.
+
+    PNG frame sequences and .pvd time series need nothing beyond PyVista and are
+    therefore always available. GIF output needs the optional 'imageio' package;
+    movie output additionally needs 'imageio-ffmpeg'.
+
+    Parameters:
+    fileFormat (str): Format name or file suffix, e.g. 'gif', '.mp4', 'png'.
+
+    Returns:
+    bool: True when the packages required by that format are importable.
+    """
+    fmt = "." + str(fileFormat).lower().lstrip(".")
+
+    if fmt in _IMAGE_SUFFIXES or fmt in (".pvd", ".vtu", ".frames"):
+        return True
+
+    hasImageio = importlib.util.find_spec("imageio") is not None
+    if fmt in _GIF_SUFFIXES:
+        return hasImageio
+    if fmt in _MOVIE_SUFFIXES:
+        return hasImageio and importlib.util.find_spec("imageio_ffmpeg") is not None
+
+    return False
+
+
+class TransientPlotter:
+    """Render a time-dependent Kratos result as an animation.
+
+    Frames are appended one at a time through AddFrame, so one object serves both a
+    live solution loop (where the ModelPart mutates in place) and an offline
+    sequence. The output format is chosen from the *filename* suffix:
+
+    - '.gif'                          animated GIF (needs 'imageio')
+    - '.mp4', '.avi', '.mov', ...     movie (needs 'imageio' and 'imageio-ffmpeg')
+    - '.png' or another image suffix  zero-padded frames, e.g. 'anim_0000.png'
+    - a name without a media suffix   a directory of 'frame_0000.png' images
+    - None                            nothing written; frames collect in .frames
+
+    Every frame is drawn by clearing the plotter and re-adding the mesh, so the
+    topology may change between frames (adaptive remeshing) without breaking the
+    animation. The camera is captured after the first frame and restored for the
+    following ones unless autoResetCamera is set.
+
+    By default the color range follows PyVista and is rescaled per frame; pass an
+    explicit clim=(min, max), or lockClim=True to freeze the first frame's range,
+    when the colors must mean the same thing in every frame.
+
+    Example:
+        with TransientPlotter("run.gif", name=KM.TEMPERATURE, fps=15) as recorder:
+            while analysis.KeepAdvancingSolutionLoop():
+                analysis.time = analysis._AdvanceTime()
+                analysis.InitializeSolutionStep()
+                analysis.SolveSolutionStep()
+                analysis.FinalizeSolutionStep()
+                recorder.AddFrame(model_part)
+    """
+
+    def __init__(
+        self,
+        filename=None,
+        fps=10,
+        quality=5,
+        loop=0,
+        view="default",
+        theme=None,
+        addAxes=True,
+        windowSize=None,
+        offScreen=True,
+        notebook=False,
+        timeAnnotation=True,
+        timeFormat="Time = {:.4g}",
+        timePosition="upper_left",
+        timeFontSize=12,
+        clim=None,
+        lockClim=False,
+        autoResetCamera=False,
+        plotter=None,
+        **plotKwargs
+    ):
+        """Create a transient plotter.
+
+        Parameters:
+        filename (str or None): Output path; its suffix selects the format.
+        fps (float): Frames per second for GIF and movie output.
+        quality (int): Movie quality, 1-10 (movie output only).
+        loop (int): GIF loop count; 0 means loop forever.
+        view (str or None): Camera preset, as in PlotModelPart.
+        theme (str or None): PyVista theme, applied when creating a new plotter.
+        addAxes (bool): Add the coordinate axes widget.
+        windowSize (list or None): [width, height] of the render window.
+        offScreen (bool): Render off-screen (the default for recording).
+        notebook (bool): Jupyter inline rendering (implies off-screen).
+        timeAnnotation (bool): Draw the time label on every frame.
+        timeFormat (str): Format string receiving the frame time.
+        timePosition (str): Position of the time label, as in Plotter.add_text.
+        timeFontSize (int): Font size of the time label.
+        clim (tuple or None): Explicit (min, max) color range for every frame.
+        lockClim (bool): Freeze the color range at the first frame's data range.
+        autoResetCamera (bool): Let the camera re-fit each frame instead of being
+            held fixed at the first frame's position.
+        plotter (pyvista.Plotter or None): Reuse an existing plotter.
+        **plotKwargs: Any PlotModelPart argument (name, component, label, cmap,
+            warpByVector, factor, showEdges, nodalVariables, ...).
+        """
+        import pyvista as pv
+
+        self.filename = None if filename is None else str(filename)
+        self.fps      = fps
+        self.quality  = quality
+        self.loop     = loop
+        self.view     = view
+        self.addAxes  = addAxes
+        self.frames   = []
+
+        self.timeAnnotation = timeAnnotation
+        self.timeFormat     = timeFormat
+        self.timePosition   = timePosition
+        self.timeFontSize   = timeFontSize
+
+        self.clim            = tuple(clim) if clim is not None else None
+        self.lockClim        = lockClim
+        self.autoResetCamera = autoResetCamera
+
+        # Split the PlotModelPart vocabulary into conversion vs rendering arguments,
+        # so grid frame sources can skip the conversion-only ones.
+        self._conversionKwargs = {k: v for k, v in plotKwargs.items() if k in _CONVERSION_KWARGS}
+        self._renderKwargs     = {k: v for k, v in plotKwargs.items() if k not in _CONVERSION_KWARGS}
+
+        (self._mode, self._imageDir,
+         self._imageStem, self._imageExt) = self._ResolveOutput(self.filename)
+
+        if plotter is None:
+            if theme is not None:
+                pv.set_plot_theme(theme)
+            plotterKwargs = {"off_screen": offScreen or notebook}
+            if windowSize is not None:
+                plotterKwargs["window_size"] = list(windowSize)
+            plotter = pv.Plotter(**plotterKwargs)
+        self._plotter = plotter
+
+        self._camera  = None
+        self._opened  = False
+        self._closed  = False
+        self._nFrames = 0
+
+    # ------------------------------------------------------------------
+    # Internals
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _ResolveOutput(filename):
+        """Map *filename* onto (mode, directory, stem, extension)."""
+        if filename is None:
+            return "memory", None, None, None
+
+        suffix = os.path.splitext(filename)[1].lower()
+
+        if suffix in _GIF_SUFFIXES:
+            return "gif", None, None, None
+        if suffix in _MOVIE_SUFFIXES:
+            return "movie", None, None, None
+        if suffix in _IMAGE_SUFFIXES:
+            return ("images",
+                    os.path.dirname(filename),
+                    os.path.splitext(os.path.basename(filename))[0],
+                    suffix)
+
+        # No recognised media suffix: treat the name as a directory of PNG frames
+        return "images", filename, "frame", ".png"
+
+    def _OpenEncoder(self):
+        """Open the encoder lazily, once the plotter holds its first frame."""
+        if self._opened:
+            return
+
+        if self._mode == "gif":
+            if not IsAnimationAvailable(".gif"):
+                raise ImportError(_GIF_DEPENDENCY_ERROR)
+            self._plotter.open_gif(self.filename, fps=self.fps, loop=self.loop)
+
+        elif self._mode == "movie":
+            suffix = os.path.splitext(self.filename)[1].lower()
+            if not IsAnimationAvailable(suffix):
+                raise ImportError(_MOVIE_DEPENDENCY_ERROR.format(suffix=suffix))
+            self._plotter.open_movie(self.filename,
+                                     framerate=int(round(self.fps)),
+                                     quality=self.quality)
+
+        elif self._mode == "images" and self._imageDir:
+            os.makedirs(self._imageDir, exist_ok=True)
+
+        self._opened = True
+
+    def _Compose(self, source, isGrid, time):
+        """Draw one frame onto the (already cleared) plotter and return its grid."""
+        if isGrid:
+            grid = _AddGridToPlotter(self._plotter, source, clim=self.clim,
+                                     **self._renderKwargs)
+        else:
+            grid = _AddModelPartToPlotter(self._plotter, source, clim=self.clim,
+                                          **self._conversionKwargs, **self._renderKwargs)
+
+        if self.timeAnnotation and time is not None:
+            self._plotter.add_text(
+                self.timeFormat.format(_PrettyTime(time)),
+                position=self.timePosition,
+                font_size=self.timeFontSize,
+                name="_kratos_time_label"
+            )
+
+        return grid
+
+    def _CurrentScalarRange(self):
+        """Read back the scalar range PyVista chose for the frame just composed."""
+        try:
+            scalarRange = self._plotter.mapper.scalar_range
+        except Exception:
+            return None
+        if scalarRange is None:
+            return None
+        return (float(scalarRange[0]), float(scalarRange[1]))
+
+    def _WriteFrame(self):
+        """Emit the composed frame to the encoder, to disk, or to memory."""
+        if self._mode in ("gif", "movie"):
+            self._plotter.write_frame()
+        elif self._mode == "images":
+            name = f"{self._imageStem}_{self._nFrames:04d}{self._imageExt}"
+            self._plotter.screenshot(
+                os.path.join(self._imageDir, name) if self._imageDir else name
+            )
+        else:
+            self.frames.append(self._plotter.screenshot(None))
+
+    # ------------------------------------------------------------------
+    # Public interface
+    # ------------------------------------------------------------------
+
+    def AddFrame(self, source, time=None, step=None):
+        """Render one frame from *source* and append it to the animation.
+
+        Parameters:
+        source (KM.ModelPart or pyvista.DataSet or pyvista.MultiBlock): Frame data.
+            A ModelPart is converted on the fly, so the very same object may be
+            passed at every step of a solution loop.
+        time (float or None): Time used by the annotation. Read from
+            ProcessInfo[TIME] when None and *source* is a ModelPart.
+        step (int or None): Step index. Read from ProcessInfo[STEP] when None and
+            *source* is a ModelPart. Currently informational only.
+
+        Returns:
+        int: Number of frames recorded so far.
+        """
+        import pyvista as pv
+
+        if self._closed:
+            raise RuntimeError(
+                "This TransientPlotter is already closed; frames cannot be added."
+            )
+
+        plotter = self._plotter
+        isFirst = self._nFrames == 0
+        isGrid  = isinstance(source, (pv.DataSet, pv.MultiBlock))
+
+        if not isGrid and (time is None or step is None):
+            processInfo = source.ProcessInfo
+            if time is None:
+                time = processInfo[KM.TIME]
+            if step is None:
+                step = processInfo[KM.STEP]
+
+        if not isFirst:
+            plotter.clear()
+
+        grid = self._Compose(source, isGrid, time)
+
+        if isFirst:
+            _ApplyCameraPreset(plotter, grid, self.view)
+            if self.addAxes:
+                plotter.add_axes()
+            plotter.render()
+            self._camera = plotter.camera_position
+
+            if self.lockClim and self.clim is None:
+                lockedRange = self._CurrentScalarRange()
+                if lockedRange is not None:
+                    # Redraw the first frame too, so every frame shares one range
+                    self.clim = lockedRange
+                    plotter.clear()
+                    self._Compose(source, isGrid, time)
+                    plotter.camera_position = self._camera
+        elif not self.autoResetCamera and self._camera is not None:
+            plotter.camera_position = self._camera
+
+        self._OpenEncoder()
+        self._WriteFrame()
+
+        self._nFrames += 1
+        return self._nFrames
+
+    def Close(self):
+        """Finish the animation, flushing the encoder and closing the plotter.
+
+        For GIF and movie output this is where the file is actually finalised, so
+        it must be called - directly, or by leaving the 'with' block.
+
+        Returns:
+        int: Total number of frames recorded.
+        """
+        if self._closed:
+            return self._nFrames
+        try:
+            self._plotter.close()
+        finally:
+            self._closed = True
+        return self._nFrames
+
+    @property
+    def plotter(self):
+        """pyvista.Plotter: Underlying plotter, for custom compositing between frames."""
+        return self._plotter
+
+    @property
+    def numberOfFrames(self):
+        """int: Number of frames recorded so far."""
+        return self._nFrames
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, excType, excValue, excTraceback):
+        self.Close()
+        return False
+
+
+def _ResolveAnimationSource(source, times=None):
+    """Normalise an Animate() *source* into (iterable of frames, times or None)."""
+    import pyvista as pv
+
+    # A .pvd collection carries its own time values
+    if isinstance(source, (str, os.PathLike)) and str(source).lower().endswith(".pvd"):
+        reader     = pv.PVDReader(str(source))
+        timeValues = list(reader.time_values)
+
+        def _ReadCollection():
+            for timeValue in timeValues:
+                reader.set_active_time_value(timeValue)
+                yield reader.read()
+
+        return _ReadCollection(), (list(times) if times is not None else timeValues)
+
+    # A glob pattern
+    if isinstance(source, (str, os.PathLike)):
+        paths = sorted(glob.glob(str(source)), key=_NaturalSortKey)
+        if len(paths) == 0:
+            raise ValueError(
+                f"No files matched the animation source pattern '{source}'."
+            )
+        return ((pv.read(path) for path in paths),
+                list(times) if times is not None else None)
+
+    items = list(source)
+    if len(items) == 0:
+        raise ValueError("The animation source is empty; there is nothing to animate.")
+
+    # A list of file paths
+    if isinstance(items[0], (str, os.PathLike)):
+        paths = sorted((str(item) for item in items), key=_NaturalSortKey)
+        return ((pv.read(path) for path in paths),
+                list(times) if times is not None else None)
+
+    # Already-usable frame objects: ModelParts or PyVista grids
+    return items, (list(times) if times is not None else None)
+
+
+def Animate(source, filename, times=None, **kwargs):
+    """Build an animation from a whole result sequence in a single call.
+
+    Parameters:
+    source: One of
+        - a glob pattern, e.g. 'VTK_Output/Structure_0_*.vtk' (sorted naturally,
+          so step 2 precedes step 10);
+        - the path of a ParaView '.pvd' collection, whose time values are used
+          for the annotation;
+        - a list of file paths readable by pyvista.read;
+        - a list of KM.ModelPart, pyvista.DataSet or pyvista.MultiBlock objects.
+    filename (str or None): Output animation path; the suffix picks the format
+        exactly as in TransientPlotter.
+    times (list or None): Time value per frame, overriding what the source implies.
+    **kwargs: Forwarded to TransientPlotter (name, component, cmap, warpByVector,
+        clim, fps, ...).
+
+    Returns:
+    int: Number of frames written.
+    """
+    frames, resolvedTimes = _ResolveAnimationSource(source, times)
+
+    with TransientPlotter(filename, **kwargs) as recorder:
+        for index, frame in enumerate(frames):
+            frameTime = None
+            if resolvedTimes is not None and index < len(resolvedTimes):
+                frameTime = resolvedTimes[index]
+            recorder.AddFrame(frame, time=frameTime)
+        return recorder.numberOfFrames
+
+
+class PvdWriter:
+    """Write a transient result as a .vtu series plus its ParaView .pvd collection.
+
+    This needs nothing beyond PyVista, so it is always available. The resulting
+    .pvd opens directly in ParaView, and can be read back with pyvista.PVDReader
+    or handed to Animate() to render an animation offline.
+
+    The .vtu files are written into a directory named after the collection stem,
+    next to the .pvd itself:
+
+        results/run.pvd
+        results/run/run_0000.vtu
+        results/run/run_0001.vtu
+
+    Example:
+        with PvdWriter("results/run.pvd", nodalVariables=[KM.TEMPERATURE]) as writer:
+            while analysis.KeepAdvancingSolutionLoop():
+                ...
+                writer.AddStep(model_part)
+    """
+
+    def __init__(
+        self,
+        filename,
+        useDeformedConfiguration=False,
+        nodalVariables=[],
+        elementVariables=[],
+        conditionVariables=[]
+    ):
+        """Create the collection and its data directory.
+
+        Parameters:
+        filename (str): Path of the .pvd collection ('.pvd' is appended if absent).
+        useDeformedConfiguration (bool): Use current (X/Y/Z) vs initial coordinates.
+        nodalVariables (list): Nodal variables written at every step.
+        elementVariables (list): Elemental variables written at every step.
+        conditionVariables (list): Condition variables written at every step.
+        """
+        self.filename = str(filename)
+        if not self.filename.lower().endswith(".pvd"):
+            self.filename += ".pvd"
+
+        self.useDeformedConfiguration = useDeformedConfiguration
+        self.nodalVariables     = list(nodalVariables)
+        self.elementVariables   = list(elementVariables)
+        self.conditionVariables = list(conditionVariables)
+
+        self._directory = os.path.dirname(self.filename)
+        self._stem      = os.path.splitext(os.path.basename(self.filename))[0]
+
+        dataDirectory = os.path.join(self._directory, self._stem) if self._directory else self._stem
+        os.makedirs(dataDirectory, exist_ok=True)
+
+        self._entries = []   # (time, path relative to the .pvd)
+        self._closed  = False
+
+    def AddStep(self, modelPart, time=None):
+        """Write one time step as a .vtu file and record it in the collection.
+
+        Parameters:
+        modelPart (KM.ModelPart): ModelPart to write in its current state.
+        time (float or None): Time stamp; read from ProcessInfo[TIME] when None.
+
+        Returns:
+        str: Path of the .vtu file that was written.
+        """
+        if self._closed:
+            raise RuntimeError("This PvdWriter is already closed; steps cannot be added.")
+
+        if time is None:
+            time = modelPart.ProcessInfo[KM.TIME]
+        time = _PrettyTime(time)
+
+        relativePath = os.path.join(self._stem, f"{self._stem}_{len(self._entries):04d}.vtu")
+        absolutePath = os.path.join(self._directory, relativePath) if self._directory else relativePath
+
+        # Write a single UnstructuredGrid: a .vtu cannot hold the MultiBlock that
+        # exporting elements and conditions together would produce.
+        hasElements = len(modelPart.Elements) > 0
+        grid = ModelPartToPyVista(
+            modelPart,
+            useDeformedConfiguration=self.useDeformedConfiguration,
+            nodalVariables=self.nodalVariables,
+            elementVariables=self.elementVariables,
+            conditionVariables=self.conditionVariables,
+            exportElements=hasElements,
+            exportConditions=not hasElements
+        )
+        grid.save(absolutePath)
+
+        self._entries.append((time, relativePath.replace(os.sep, "/")))
+        return absolutePath
+
+    def Close(self):
+        """Write the .pvd collection indexing every step recorded so far.
+
+        Returns:
+        str: Path of the .pvd file.
+        """
+        if self._closed:
+            return self.filename
+
+        root = ET.Element("VTKFile", type="Collection", version="0.1",
+                          byte_order="LittleEndian")
+        collection = ET.SubElement(root, "Collection")
+        for time, relativePath in self._entries:
+            ET.SubElement(
+                collection, "DataSet",
+                timestep="{0:.12g}".format(time), group="", part="0", file=relativePath
+            )
+
+        ET.ElementTree(root).write(self.filename, encoding="UTF-8", xml_declaration=True)
+        self._closed = True
+        return self.filename
+
+    @property
+    def numberOfSteps(self):
+        """int: Number of steps recorded so far."""
+        return len(self._entries)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, excType, excValue, excTraceback):
+        self.Close()
+        return False
