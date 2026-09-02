@@ -28,14 +28,16 @@
 
 namespace Kratos {
 
-/// Index type used for the Eigen sparse matrices. Eigen requires a signed
-/// StorageIndex. The default is a 32-bit int: sparse kernels are memory-bound
-/// (SpMV traffic drops from 16 to 12 bytes per nonzero versus 64-bit indices,
-/// a structural advantage the std::size_t-indexed uBLAS backend cannot match),
-/// and 2^31 - 1 nonzeros per matrix (~16 GB of values alone) comfortably
-/// covers shared-memory problems. For larger systems configure with
-/// KRATOS_EIGEN_64BIT_INDICES=ON (or override the type directly with
-/// -DKRATOS_EIGEN_INDEX_TYPE=<type>).
+/**
+ * @brief Index type used for the Eigen sparse matrices.
+ * @details Eigen requires a signed StorageIndex. The default is a 32-bit int:
+ * sparse kernels are memory-bound (SpMV traffic drops from 16 to 12 bytes per
+ * nonzero versus 64-bit indices, a structural advantage the std::size_t-indexed
+ * uBLAS backend cannot match), and 2^31 - 1 nonzeros per matrix (~16 GB of
+ * values alone) comfortably covers shared-memory problems. For larger systems
+ * configure with KRATOS_EIGEN_64BIT_INDICES=ON (or override the type directly
+ * with -DKRATOS_EIGEN_INDEX_TYPE=<type>).
+ */
 #if defined(KRATOS_EIGEN_INDEX_TYPE)
 using KratosEigenIndexType = KRATOS_EIGEN_INDEX_TYPE;
 #elif defined(KRATOS_EIGEN_64BIT_INDICES)
@@ -55,30 +57,70 @@ namespace Internals {
  * surface that the uBLAS unbounded_array storage exposes, so code written
  * against compressed_matrix::value_data()/index1_data()/index2_data() works
  * unchanged on the Eigen wrapper types.
+ * @tparam T The (possibly const-qualified) element type of the viewed array.
  */
 template<class T>
 class EigenArrayProxy
 {
 public:
-    using value_type = std::remove_const_t<T>;
-    using iterator = T*;
-    using const_iterator = const T*;
+    using value_type = std::remove_const_t<T>; /// Element type, with any const-qualification of T stripped.
+    using iterator = T*; /// Iterator type (a raw pointer, const-qualified iff T is).
+    using const_iterator = const T*; /// Const iterator type.
 
+    /**
+     * @brief Constructor wrapping a raw pointer and its length.
+     * @param pData Pointer to the first element of the backend array.
+     * @param Size Number of elements the array holds.
+     */
     EigenArrayProxy(T* pData, const std::size_t Size) : mpData(pData), mSize(Size) {}
 
+    /**
+     * @brief Returns an iterator to the first element.
+     * @return Pointer to the first element.
+     */
     T* begin() { return mpData; }
+
+    /**
+     * @brief Returns an iterator past the last element.
+     * @return Pointer past the last element.
+     */
     T* end() { return mpData + mSize; }
+
+    /**
+     * @brief Returns a const iterator to the first element.
+     * @return Const pointer to the first element.
+     */
     const T* begin() const { return mpData; }
+
+    /**
+     * @brief Returns a const iterator past the last element.
+     * @return Const pointer past the last element.
+     */
     const T* end() const { return mpData + mSize; }
 
+    /**
+     * @brief Element access by index.
+     * @param Index Zero-based index of the requested element.
+     * @return Reference to the element at Index.
+     */
     T& operator[](const std::size_t Index) { return mpData[Index]; }
+
+    /**
+     * @brief Element access by index (const version).
+     * @param Index Zero-based index of the requested element.
+     * @return Const reference to the element at Index.
+     */
     const T& operator[](const std::size_t Index) const { return mpData[Index]; }
 
+    /**
+     * @brief Number of elements viewed by this proxy.
+     * @return The array size.
+     */
     std::size_t size() const { return mSize; }
 
 private:
-    T* mpData;
-    std::size_t mSize;
+    T* mpData; /// Pointer to the first element of the viewed backend array.
+    std::size_t mSize; /// Number of elements viewed.
 };
 
 } // namespace Internals
@@ -91,14 +133,15 @@ private:
  * is preserved. The added members (size1/size2 and the 3-argument resize)
  * mirror boost::numeric::ublas::matrix so generic Kratos code compiles
  * unchanged against this type.
+ * @tparam TDataType The scalar type stored in the matrix (e.g. double).
  */
 template<class TDataType>
 class EigenMatrix : public Eigen::Matrix<TDataType, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
 {
 public:
-    using BaseType = Eigen::Matrix<TDataType, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-    using value_type = TDataType;
-    using size_type = std::size_t;
+    using BaseType = Eigen::Matrix<TDataType, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>; /// The wrapped Eigen dense matrix type.
+    using value_type = TDataType; /// Scalar type stored in the matrix.
+    using size_type = std::size_t; /// uBLAS-style unsigned size type.
 
     // Minimal uBLAS container-trait surface, mirroring the EigenVector one:
     // the generic boost::numeric::ublas::project() overloads instantiate
@@ -108,33 +151,56 @@ public:
     // type - the Kratos Eigen overloads win the resolution - so the closure
     // aliases are plain references and the (never dereferenced through the
     // uBLAS iterator protocol) iterator aliases are plain pointers.
-    using difference_type = std::ptrdiff_t;
-    using reference = TDataType&;
-    using const_reference = const TDataType&;
-    using closure_type = EigenMatrix<TDataType>&;
-    using const_closure_type = const EigenMatrix<TDataType>&;
-    using storage_category = boost::numeric::ublas::dense_tag;
-    using orientation_category = boost::numeric::ublas::row_major_tag;
-    using iterator1 = TDataType*;
-    using const_iterator1 = const TDataType*;
-    using iterator2 = TDataType*;
-    using const_iterator2 = const TDataType*;
+    using difference_type = std::ptrdiff_t; /// uBLAS-style signed difference type.
+    using reference = TDataType&; /// uBLAS-style mutable element reference.
+    using const_reference = const TDataType&; /// uBLAS-style const element reference.
+    using closure_type = EigenMatrix<TDataType>&; /// uBLAS-style closure (proxy) type; never dereferenced through the uBLAS iterator protocol, so a plain reference suffices.
+    using const_closure_type = const EigenMatrix<TDataType>&; /// uBLAS-style const closure (proxy) type.
+    using storage_category = boost::numeric::ublas::dense_tag; /// uBLAS storage-layout trait: dense storage.
+    using orientation_category = boost::numeric::ublas::row_major_tag; /// uBLAS orientation trait: row-major storage.
+    using iterator1 = TDataType*; /// uBLAS-style row (first-dimension) iterator; a plain pointer, never dereferenced through the uBLAS iterator protocol.
+    using const_iterator1 = const TDataType*; /// uBLAS-style const row (first-dimension) iterator.
+    using iterator2 = TDataType*; /// uBLAS-style column (second-dimension) iterator; a plain pointer, never dereferenced through the uBLAS iterator protocol.
+    using const_iterator2 = const TDataType*; /// uBLAS-style const column (second-dimension) iterator.
 
+    /**
+     * @brief Default constructor. Creates an empty (0x0) matrix.
+     */
     EigenMatrix() = default;
 
+    /**
+     * @brief Constructor allocating an uninitialized Size1 x Size2 matrix.
+     * @param Size1 Number of rows.
+     * @param Size2 Number of columns.
+     */
     EigenMatrix(const std::size_t Size1, const std::size_t Size2) : BaseType(Size1, Size2) {}
 
-    /// uBLAS-style (rows, cols, value) fill constructor
+    /**
+     * @brief uBLAS-style (rows, cols, value) fill constructor.
+     * @param Size1 Number of rows.
+     * @param Size2 Number of columns.
+     * @param Value Value assigned to every entry.
+     */
     EigenMatrix(const std::size_t Size1, const std::size_t Size2, const TDataType Value)
         : BaseType(BaseType::Constant(Size1, Size2, Value)) {}
 
-    /// Construction from any Eigen expression. The scalar cast makes the
-    /// cross-precision conversions of ublas (double <-> float grids in the
-    /// p-multigrid hierarchy) work; it is the identity for matching scalars.
+    /**
+     * @brief Construction from any Eigen expression.
+     * @details The scalar cast makes the cross-precision conversions of ublas
+     * (double <-> float grids in the p-multigrid hierarchy) work; it is the
+     * identity for matching scalars.
+     * @tparam TDerived Concrete type of the Eigen expression.
+     * @param rOther Source Eigen expression.
+     */
     template<class TDerived>
     EigenMatrix(const Eigen::MatrixBase<TDerived>& rOther) : BaseType(rOther.derived().template cast<TDataType>()) {}
 
-    /// Assignment from any Eigen expression (scalar-casting, see the constructor)
+    /**
+     * @brief Assignment from any Eigen expression (scalar-casting, see the constructor).
+     * @tparam TDerived Concrete type of the Eigen expression.
+     * @param rOther Source Eigen expression.
+     * @return Reference to this matrix.
+     */
     template<class TDerived>
     EigenMatrix& operator=(const Eigen::MatrixBase<TDerived>& rOther)
     {
@@ -142,9 +208,14 @@ public:
         return *this;
     }
 
-    /// Construction from a dense uBLAS matrix expression (ZeroMatrix,
-    /// IdentityMatrix, prod(...) results, ...), mirroring ublas::matrix's own
-    /// converting constructor so uBLAS idioms keep compiling on this type.
+    /**
+     * @brief Construction from a dense uBLAS matrix expression.
+     * @details Covers ZeroMatrix, IdentityMatrix, prod(...) results, etc.,
+     * mirroring ublas::matrix's own converting constructor so uBLAS idioms
+     * keep compiling on this type.
+     * @tparam TExpression Concrete type of the uBLAS matrix expression.
+     * @param rExpression Source uBLAS matrix expression.
+     */
     template<class TExpression>
     EigenMatrix(const boost::numeric::ublas::matrix_expression<TExpression>& rExpression)
         : BaseType(rExpression().size1(), rExpression().size2())
@@ -155,7 +226,12 @@ public:
                 (*this)(i, j) = r_e(i, j);
     }
 
-    /// Assignment from a dense uBLAS matrix expression (resizing, as ublas does)
+    /**
+     * @brief Assignment from a dense uBLAS matrix expression (resizing, as ublas does).
+     * @tparam TExpression Concrete type of the uBLAS matrix expression.
+     * @param rExpression Source uBLAS matrix expression.
+     * @return Reference to this matrix.
+     */
     template<class TExpression>
     EigenMatrix& operator=(const boost::numeric::ublas::matrix_expression<TExpression>& rExpression)
     {
@@ -167,17 +243,33 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Number of rows.
+     * @return Row count.
+     */
     std::size_t size1() const { return static_cast<std::size_t>(this->rows()); }
+
+    /**
+     * @brief Number of columns.
+     * @return Column count.
+     */
     std::size_t size2() const { return static_cast<std::size_t>(this->cols()); }
 
-    /// uBLAS-style resize; note that, as in ublas::matrix, the default preserves the values.
+    /**
+     * @brief uBLAS-style resize; note that, as in ublas::matrix, the default preserves the values.
+     * @param NewSize1 New number of rows.
+     * @param NewSize2 New number of columns.
+     * @param Preserve If true (default) existing values are preserved; if false they are discarded.
+     */
     void resize(const std::size_t NewSize1, const std::size_t NewSize2, const bool Preserve = true)
     {
         if (Preserve) this->conservativeResize(NewSize1, NewSize2);
         else BaseType::resize(NewSize1, NewSize2);
     }
 
-    /// uBLAS-style clear: zero all entries (the size is kept).
+    /**
+     * @brief uBLAS-style clear: zero all entries (the size is kept).
+     */
     void clear()
     {
         this->setZero();
@@ -190,14 +282,15 @@ public:
  * @details Adds the (size), (size, value) constructors and the 2-argument
  * resize of boost::numeric::ublas::vector; operator[], operator() and size()
  * are already provided by Eigen with compatible semantics.
+ * @tparam TDataType The scalar type stored in the vector (e.g. double).
  */
 template<class TDataType>
 class EigenVector : public Eigen::Matrix<TDataType, Eigen::Dynamic, 1>
 {
 public:
-    using BaseType = Eigen::Matrix<TDataType, Eigen::Dynamic, 1>;
-    using value_type = TDataType;
-    using size_type = std::size_t;
+    using BaseType = Eigen::Matrix<TDataType, Eigen::Dynamic, 1>; /// The wrapped Eigen dense column-vector type.
+    using value_type = TDataType; /// Scalar type stored in the vector.
+    using size_type = std::size_t; /// uBLAS-style unsigned size type.
 
     // Minimal uBLAS container-trait surface. The generic
     // boost::numeric::ublas::project()/subrange() overloads instantiate
@@ -207,28 +300,50 @@ public:
     // well-formed. The proxies are never actually used on this type - the
     // Kratos Eigen overloads win the resolution - so reference-typed closure
     // aliases are sufficient.
-    using difference_type = std::ptrdiff_t;
-    using reference = TDataType&;
-    using const_reference = const TDataType&;
-    // (iterator/const_iterator are the inherited Eigen STL iterator typedefs.)
-    using closure_type = EigenVector<TDataType>&;
-    using const_closure_type = const EigenVector<TDataType>&;
-    using storage_category = boost::numeric::ublas::dense_tag;
+    using difference_type = std::ptrdiff_t; /// uBLAS-style signed difference type.
+    using reference = TDataType&; /// uBLAS-style mutable element reference.
+    using const_reference = const TDataType&; /// uBLAS-style const element reference.
+    // iterator/const_iterator are the inherited Eigen STL iterator typedefs (TDataType*/const TDataType*).
+    using closure_type = EigenVector<TDataType>&; /// uBLAS-style closure (proxy) type.
+    using const_closure_type = const EigenVector<TDataType>&; /// uBLAS-style const closure (proxy) type.
+    using storage_category = boost::numeric::ublas::dense_tag; /// uBLAS storage-layout trait: dense storage.
 
+    /**
+     * @brief Default constructor. Creates an empty (0-length) vector.
+     */
     EigenVector() = default;
 
+    /**
+     * @brief Constructor allocating an uninitialized vector of the given size.
+     * @param Size Number of entries.
+     */
     explicit EigenVector(const std::size_t Size) : BaseType(Size) {}
 
+    /**
+     * @brief uBLAS-style (size, value) fill constructor.
+     * @param Size Number of entries.
+     * @param Value Value assigned to every entry.
+     */
     EigenVector(const std::size_t Size, const TDataType Value)
         : BaseType(BaseType::Constant(Size, Value)) {}
 
-    /// Construction from any Eigen expression. The scalar cast makes the
-    /// cross-precision conversions of ublas (double <-> float grids in the
-    /// p-multigrid hierarchy) work; it is the identity for matching scalars.
+    /**
+     * @brief Construction from any Eigen expression.
+     * @details The scalar cast makes the cross-precision conversions of ublas
+     * (double <-> float grids in the p-multigrid hierarchy) work; it is the
+     * identity for matching scalars.
+     * @tparam TDerived Concrete type of the Eigen expression.
+     * @param rOther Source Eigen expression.
+     */
     template<class TDerived>
     EigenVector(const Eigen::MatrixBase<TDerived>& rOther) : BaseType(rOther.derived().template cast<TDataType>()) {}
 
-    /// Assignment from any Eigen expression (scalar-casting, see the constructor)
+    /**
+     * @brief Assignment from any Eigen expression (scalar-casting, see the constructor).
+     * @tparam TDerived Concrete type of the Eigen expression.
+     * @param rOther Source Eigen expression.
+     * @return Reference to this vector.
+     */
     template<class TDerived>
     EigenVector& operator=(const Eigen::MatrixBase<TDerived>& rOther)
     {
@@ -236,9 +351,14 @@ public:
         return *this;
     }
 
-    /// Construction from a dense uBLAS vector expression (ZeroVector,
-    /// prod(...) results, ...), mirroring ublas::vector's own converting
-    /// constructor so uBLAS idioms keep compiling on this type.
+    /**
+     * @brief Construction from a dense uBLAS vector expression.
+     * @details Covers ZeroVector, prod(...) results, etc., mirroring
+     * ublas::vector's own converting constructor so uBLAS idioms keep
+     * compiling on this type.
+     * @tparam TExpression Concrete type of the uBLAS vector expression.
+     * @param rExpression Source uBLAS vector expression.
+     */
     template<class TExpression>
     EigenVector(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
         : BaseType(rExpression().size())
@@ -247,7 +367,12 @@ public:
         for (std::size_t i = 0; i < r_e.size(); ++i) (*this)[i] = r_e(i);
     }
 
-    /// Assignment from a dense uBLAS vector expression (resizing, as ublas does)
+    /**
+     * @brief Assignment from a dense uBLAS vector expression (resizing, as ublas does).
+     * @tparam TExpression Concrete type of the uBLAS vector expression.
+     * @param rExpression Source uBLAS vector expression.
+     * @return Reference to this vector.
+     */
     template<class TExpression>
     EigenVector& operator=(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
     {
@@ -257,24 +382,36 @@ public:
         return *this;
     }
 
-    /// uBLAS-style resize; note that, as in ublas::vector, the default preserves the values.
+    /**
+     * @brief uBLAS-style resize; note that, as in ublas::vector, the default preserves the values.
+     * @param NewSize New number of entries.
+     * @param Preserve If true (default) existing values are preserved; if false they are discarded.
+     */
     void resize(const std::size_t NewSize, const bool Preserve = true)
     {
         if (Preserve) this->conservativeResize(NewSize);
         else BaseType::resize(NewSize);
     }
 
-    /// uBLAS-style clear: zero all entries (the size is kept).
+    /**
+     * @brief uBLAS-style clear: zero all entries (the size is kept).
+     */
     void clear()
     {
         this->setZero();
     }
 
-    /// uBLAS-style size: unsigned, so the pervasive comparisons/loops against
-    /// std::size_t counters stay warning-free (Eigen's own size() is signed).
+    /**
+     * @brief uBLAS-style size: unsigned, so the pervasive comparisons/loops
+     * against std::size_t counters stay warning-free (Eigen's own size() is signed).
+     * @return Number of entries.
+     */
     std::size_t size() const { return static_cast<std::size_t>(BaseType::size()); }
 
-    /// uBLAS-style emptiness check
+    /**
+     * @brief uBLAS-style emptiness check.
+     * @return True if the vector has no entries.
+     */
     bool empty() const { return BaseType::size() == 0; }
 };
 
@@ -287,6 +424,8 @@ public:
  * and value_data() (values). This wrapper adds those accessors plus the
  * (rows, cols, nnz) constructor and set_filled() so the graph-construction and
  * assembly code of the builder-and-solvers works unchanged on Eigen storage.
+ * @tparam TDataType The scalar type stored in the matrix (e.g. double).
+ * @tparam TIndexType The signed index type used for the CSR storage (defaults to KratosEigenIndexType).
  * @warning As for the uBLAS type, element insertion through operator() on a
  * missing entry is an O(nnz-in-row) slow path and must not be used for assembly.
  */
@@ -294,34 +433,57 @@ template<class TDataType, class TIndexType = KratosEigenIndexType>
 class EigenCompressedMatrix : public Eigen::SparseMatrix<TDataType, Eigen::RowMajor, TIndexType>
 {
 public:
-    using BaseType = Eigen::SparseMatrix<TDataType, Eigen::RowMajor, TIndexType>;
-    using value_type = TDataType;
-    using size_type = std::size_t;
+    using BaseType = Eigen::SparseMatrix<TDataType, Eigen::RowMajor, TIndexType>; /// The wrapped Eigen row-major sparse matrix type.
+    using value_type = TDataType; /// Scalar type stored in the matrix.
+    using size_type = std::size_t; /// uBLAS-style unsigned size type.
     // uBLAS-style storage-array typedefs (generic code uses e.g.
     // typename TMatrix::index_array_type::value_type to name the index type)
-    using index_array_type = Internals::EigenArrayProxy<TIndexType>;
-    using value_array_type = Internals::EigenArrayProxy<TDataType>;
+    using index_array_type = Internals::EigenArrayProxy<TIndexType>; /// Type of the index1_data()/index2_data() CSR index-array proxies.
+    using value_array_type = Internals::EigenArrayProxy<TDataType>; /// Type of the value_data() CSR value-array proxy.
 
+    /**
+     * @brief Default constructor. Creates an empty (0x0) matrix.
+     */
     EigenCompressedMatrix() = default;
 
+    /**
+     * @brief Constructor allocating an empty Size1 x Size2 sparse matrix (no nonzeros reserved).
+     * @param Size1 Number of rows.
+     * @param Size2 Number of columns.
+     */
     EigenCompressedMatrix(const std::size_t Size1, const std::size_t Size2) : BaseType(Size1, Size2) {}
 
-    /// uBLAS-style (rows, cols, nnz) constructor: allocates the compressed
-    /// storage up front so the CSR arrays can be written directly.
+    /**
+     * @brief uBLAS-style (rows, cols, nnz) constructor.
+     * @details Allocates the compressed storage up front so the CSR arrays
+     * can be written directly.
+     * @param Size1 Number of rows.
+     * @param Size2 Number of columns.
+     * @param NNZ Number of nonzero entries to reserve storage for.
+     */
     EigenCompressedMatrix(const std::size_t Size1, const std::size_t Size2, const std::size_t NNZ)
         : BaseType(Size1, Size2)
     {
         this->resizeNonZeros(NNZ);
     }
 
-    /// Construction from any Eigen sparse expression
+    /**
+     * @brief Construction from any Eigen sparse expression.
+     * @tparam TDerived Concrete type of the Eigen sparse expression.
+     * @param rOther Source Eigen sparse expression.
+     */
     template<class TDerived>
     EigenCompressedMatrix(const Eigen::SparseMatrixBase<TDerived>& rOther) : BaseType(rOther) {}
 
-    /// Construction from a dense Eigen expression: the nonzero entries are
-    /// gathered into compressed storage (the dense counterpart of the sparse
-    /// constructor above), mirroring ublas::compressed_matrix's converting
-    /// constructor for the Eigen-backed dense types.
+    /**
+     * @brief Construction from a dense Eigen expression.
+     * @details The nonzero entries are gathered into compressed storage (the
+     * dense counterpart of the sparse constructor above), mirroring
+     * ublas::compressed_matrix's converting constructor for the Eigen-backed
+     * dense types.
+     * @tparam TDerived Concrete type of the Eigen dense expression.
+     * @param rExpression Source Eigen dense expression.
+     */
     template<class TDerived>
     explicit EigenCompressedMatrix(const Eigen::MatrixBase<TDerived>& rExpression)
         : BaseType(rExpression.derived().sparseView())
@@ -329,13 +491,17 @@ public:
         this->makeCompressed();
     }
 
-    /// Construction from a dense uBLAS matrix expression, mirroring
-    /// ublas::compressed_matrix's own constructor: the nonzero entries are
-    /// gathered into compressed storage. Insertion happens in row-major order
-    /// (this matrix's storage order), so it is a single linear fill. Not
-    /// explicit: EigenMatrix's equivalent constructor isn't either, and the
-    /// ublas idiom `SparseMatrixType m = ZeroMatrix(n, n);` relies on the
-    /// implicit conversion (as does its uBLAS-backend counterpart).
+    /**
+     * @brief Construction from a dense uBLAS matrix expression.
+     * @details Mirrors ublas::compressed_matrix's own constructor: the
+     * nonzero entries are gathered into compressed storage. Insertion happens
+     * in row-major order (this matrix's storage order), so it is a single
+     * linear fill. Not explicit: EigenMatrix's equivalent constructor isn't
+     * either, and the ublas idiom `SparseMatrixType m = ZeroMatrix(n, n);`
+     * relies on the implicit conversion (as does its uBLAS-backend counterpart).
+     * @tparam TExpression Concrete type of the uBLAS matrix expression.
+     * @param rExpression Source uBLAS matrix expression.
+     */
     template<class TExpression>
     EigenCompressedMatrix(const boost::numeric::ublas::matrix_expression<TExpression>& rExpression)
         : BaseType(rExpression().size1(), rExpression().size2())
@@ -356,7 +522,12 @@ public:
         this->makeCompressed();
     }
 
-    /// Assignment from any Eigen sparse expression
+    /**
+     * @brief Assignment from any Eigen sparse expression.
+     * @tparam TDerived Concrete type of the Eigen sparse expression.
+     * @param rOther Source Eigen sparse expression.
+     * @return Reference to this matrix.
+     */
     template<class TDerived>
     EigenCompressedMatrix& operator=(const Eigen::SparseMatrixBase<TDerived>& rOther)
     {
@@ -364,29 +535,76 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Number of rows.
+     * @return Row count.
+     */
     std::size_t size1() const { return static_cast<std::size_t>(this->rows()); }
+
+    /**
+     * @brief Number of columns.
+     * @return Column count.
+     */
     std::size_t size2() const { return static_cast<std::size_t>(this->cols()); }
 
-    /// Number of stored entries. As in ublas::compressed_matrix this is the
-    /// *filled* count (in Eigen's compressed mode it is derived from the row
-    /// pointers), which is 0 until the CSR arrays are written; the allocated
-    /// capacity is exposed through the size of the value/index proxies.
+    /**
+     * @brief Number of stored entries.
+     * @details As in ublas::compressed_matrix this is the *filled* count (in
+     * Eigen's compressed mode it is derived from the row pointers), which is
+     * 0 until the CSR arrays are written; the allocated capacity is exposed
+     * through the size of the value/index proxies.
+     * @return Number of filled (stored) nonzero entries.
+     */
     std::size_t nnz() const { return static_cast<std::size_t>(this->nonZeros()); }
 
     // The storage proxies span the *allocated* capacity (as the uBLAS storage
     // arrays do), so they can be written before the row pointers declare the
     // filled size.
+
+    /**
+     * @brief Proxy over the CSR value array.
+     * @return Iterable view spanning the allocated value storage.
+     */
     auto value_data() { return Internals::EigenArrayProxy<TDataType>(this->valuePtr(), this->data().size()); }
+
+    /**
+     * @brief Proxy over the CSR row-pointer array.
+     * @return Iterable view spanning the size1() + 1 row pointers.
+     */
     auto index1_data() { return Internals::EigenArrayProxy<TIndexType>(this->outerIndexPtr(), size1() + 1); }
+
+    /**
+     * @brief Proxy over the CSR column-index array.
+     * @return Iterable view spanning the allocated column-index storage.
+     */
     auto index2_data() { return Internals::EigenArrayProxy<TIndexType>(this->innerIndexPtr(), this->data().size()); }
+
+    /**
+     * @brief Proxy over the CSR value array (const version).
+     * @return Const iterable view spanning the allocated value storage.
+     */
     auto value_data() const { return Internals::EigenArrayProxy<const TDataType>(this->valuePtr(), this->data().size()); }
+
+    /**
+     * @brief Proxy over the CSR row-pointer array (const version).
+     * @return Const iterable view spanning the size1() + 1 row pointers.
+     */
     auto index1_data() const { return Internals::EigenArrayProxy<const TIndexType>(this->outerIndexPtr(), size1() + 1); }
+
+    /**
+     * @brief Proxy over the CSR column-index array (const version).
+     * @return Const iterable view spanning the allocated column-index storage.
+     */
     auto index2_data() const { return Internals::EigenArrayProxy<const TIndexType>(this->innerIndexPtr(), this->data().size()); }
 
-    /// uBLAS-style finalization after writing the CSR arrays by hand. The
-    /// storage was already sized by the (rows, cols, nnz) constructor and the
-    /// filled count is implied by the written row pointers, so this only
-    /// validates consistency.
+    /**
+     * @brief uBLAS-style finalization after writing the CSR arrays by hand.
+     * @details The storage was already sized by the (rows, cols, nnz)
+     * constructor and the filled count is implied by the written row
+     * pointers, so this only validates consistency.
+     * @param FilledSize1 Expected number of written row pointers (size1() + 1).
+     * @param FilledNNZ Expected number of written nonzero entries.
+     */
     void set_filled(const std::size_t FilledSize1, const std::size_t FilledNNZ)
     {
         KRATOS_DEBUG_ERROR_IF(FilledSize1 != size1() + 1 || FilledNNZ != nnz() || FilledNNZ > static_cast<std::size_t>(this->data().size()))
@@ -396,44 +614,76 @@ public:
             << " allocated)." << std::endl;
     }
 
-    /// uBLAS-style resize; as in ublas::compressed_matrix the default preserves,
-    /// while resize(m, n, false) discards both values and structure.
+    /**
+     * @brief uBLAS-style resize; as in ublas::compressed_matrix the default preserves,
+     * while resize(m, n, false) discards both values and structure.
+     * @param NewSize1 New number of rows.
+     * @param NewSize2 New number of columns.
+     * @param Preserve If true (default) existing values and structure are preserved; if false they are discarded.
+     */
     void resize(const std::size_t NewSize1, const std::size_t NewSize2, const bool Preserve = true)
     {
         if (Preserve) this->conservativeResize(NewSize1, NewSize2);
         else BaseType::resize(NewSize1, NewSize2);
     }
 
-    /// uBLAS-style clear: removes all stored entries (the dimensions are kept).
+    /**
+     * @brief uBLAS-style clear: removes all stored entries (the dimensions are kept).
+     */
     void clear()
     {
         this->setZero();
     }
 
-    /// uBLAS-style element insertion. As for operator() on a missing entry
-    /// this is an O(nnz-in-row) slow path meant for tests and small setup
-    /// code, not for assembly (write the CSR arrays directly instead).
+    /**
+     * @brief uBLAS-style element insertion.
+     * @details As for operator() on a missing entry this is an O(nnz-in-row)
+     * slow path meant for tests and small setup code, not for assembly
+     * (write the CSR arrays directly instead).
+     * @param I Row index.
+     * @param J Column index.
+     * @param Value Value to store at (I, J).
+     */
     void push_back(const std::size_t I, const std::size_t J, const TDataType Value)
     {
         this->coeffRef(I, J) = Value;
     }
 
-    /// uBLAS-style element insertion, as ublas::compressed_matrix::insert_element:
-    /// unlike push_back it does not require appending in row-major order, at
-    /// the same O(nnz-in-row) slow-path cost as operator() on a missing entry.
+    /**
+     * @brief uBLAS-style element insertion, as ublas::compressed_matrix::insert_element.
+     * @details Unlike push_back it does not require appending in row-major
+     * order, at the same O(nnz-in-row) slow-path cost as operator() on a
+     * missing entry.
+     * @param I Row index.
+     * @param J Column index.
+     * @param Value Value to store at (I, J).
+     */
     void insert_element(const std::size_t I, const std::size_t J, const TDataType Value)
     {
         this->coeffRef(I, J) = Value;
     }
 
-    /// uBLAS-style element access. Inserting a new entry through the non-const
-    /// version is the same slow path as for ublas::compressed_matrix.
+    /**
+     * @brief uBLAS-style element access.
+     * @details Inserting a new entry through the non-const version is the
+     * same slow path as for ublas::compressed_matrix.
+     * @param I Row index.
+     * @param J Column index.
+     * @return Reference to the entry at (I, J), inserting it if missing.
+     */
     TDataType& operator()(const std::size_t I, const std::size_t J) { return this->coeffRef(I, J); }
+
+    /**
+     * @brief uBLAS-style element access (const version).
+     * @param I Row index.
+     * @param J Column index.
+     * @return Value of the entry at (I, J), or zero if not stored.
+     */
     TDataType operator()(const std::size_t I, const std::size_t J) const { return this->coeff(I, J); }
 };
 
-///@name uBLAS-format stream operators
-///@{
+/**@name uBLAS-format stream operators */
+/**@{*/
 // The dynamic Eigen-backed types print and parse in the boost::numeric::ublas
 // text format ("[n](v0,v1,...)" and "[n1,n2]((a00,a01),(a10,a11))"): the
 // format is part of the established Kratos IO surface (mdpa Matrix/Vector
@@ -441,6 +691,13 @@ public:
 // must not change with the backend. These exact-type overloads win over
 // Eigen's generic MatrixBase operator<<.
 
+/**
+ * @brief Writes an EigenVector in the uBLAS text format "[n](v0,v1,...)".
+ * @tparam TDataType The vector's scalar type.
+ * @param rOStream Output stream to write to.
+ * @param rV Vector to serialize.
+ * @return Reference to rOStream.
+ */
 template<class TDataType>
 inline std::ostream& operator<<(std::ostream& rOStream, const EigenVector<TDataType>& rV)
 {
@@ -453,11 +710,18 @@ inline std::ostream& operator<<(std::ostream& rOStream, const EigenVector<TDataT
     return rOStream;
 }
 
+/**
+ * @brief Reads an EigenVector from the uBLAS text format "[n](v0,v1,...)".
+ * @details Parses the format written by the matching operator<<. On any
+ * mismatch the failbit is set, as boost's own operator>> does.
+ * @tparam TDataType The vector's scalar type.
+ * @param rIStream Input stream to read from.
+ * @param rV Vector to populate; resized to match the parsed size.
+ * @return Reference to rIStream.
+ */
 template<class TDataType>
 inline std::istream& operator>>(std::istream& rIStream, EigenVector<TDataType>& rV)
 {
-    // Parses the ublas vector format written above. On any mismatch the
-    // failbit is set, as boost's own operator>> does.
     char c;
     std::size_t size = 0;
     if (!(rIStream >> c) || c != '[') { rIStream.setstate(std::ios_base::failbit); return rIStream; }
@@ -474,6 +738,13 @@ inline std::istream& operator>>(std::istream& rIStream, EigenVector<TDataType>& 
     return rIStream;
 }
 
+/**
+ * @brief Writes an EigenMatrix in the uBLAS text format "[n1,n2]((a00,a01),(a10,a11))".
+ * @tparam TDataType The matrix's scalar type.
+ * @param rOStream Output stream to write to.
+ * @param rM Matrix to serialize.
+ * @return Reference to rOStream.
+ */
 template<class TDataType>
 inline std::ostream& operator<<(std::ostream& rOStream, const EigenMatrix<TDataType>& rM)
 {
@@ -491,10 +762,17 @@ inline std::ostream& operator<<(std::ostream& rOStream, const EigenMatrix<TDataT
     return rOStream;
 }
 
+/**
+ * @brief Reads an EigenMatrix from the uBLAS text format "[n1,n2]((a00,a01),(a10,a11))".
+ * @details Parses the format written by the matching operator<<.
+ * @tparam TDataType The matrix's scalar type.
+ * @param rIStream Input stream to read from.
+ * @param rM Matrix to populate; resized to match the parsed dimensions.
+ * @return Reference to rIStream.
+ */
 template<class TDataType>
 inline std::istream& operator>>(std::istream& rIStream, EigenMatrix<TDataType>& rM)
 {
-    // Parses the ublas matrix format written above.
     char c;
     std::size_t size1 = 0, size2 = 0;
     if (!(rIStream >> c) || c != '[') { rIStream.setstate(std::ios_base::failbit); return rIStream; }
@@ -518,7 +796,7 @@ inline std::istream& operator>>(std::istream& rIStream, EigenMatrix<TDataType>& 
     return rIStream;
 }
 
-///@}
+/**@}*/
 
 } // namespace Kratos
 
