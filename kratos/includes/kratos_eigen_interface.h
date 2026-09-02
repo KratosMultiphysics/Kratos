@@ -557,6 +557,15 @@ public:
      */
     std::size_t nnz() const { return static_cast<std::size_t>(this->nonZeros()); }
 
+    /**
+     * @brief Allocated storage capacity for nonzero entries.
+     * @details As in ublas::compressed_matrix::nnz_capacity(), this is the
+     * size of the allocated value_data()/index2_data() storage, which may
+     * exceed nnz() until the compressed storage is fully written.
+     * @return Allocated nonzero capacity.
+     */
+    std::size_t nnz_capacity() const { return static_cast<std::size_t>(this->data().size()); }
+
     // The storage proxies span the *allocated* capacity (as the uBLAS storage
     // arrays do), so they can be written before the row pointers declare the
     // filled size.
@@ -598,6 +607,22 @@ public:
     auto index2_data() const { return Internals::EigenArrayProxy<const TIndexType>(this->innerIndexPtr(), this->data().size()); }
 
     /**
+     * @brief uBLAS-style filled row-pointer count.
+     * @details Mirrors ublas::compressed_matrix::filled1(): the number of
+     * written entries in index1_data(), i.e. size1() + 1 once fully assembled.
+     * @return Number of filled row-pointer entries.
+     */
+    std::size_t filled1() const { return size1() + 1; }
+
+    /**
+     * @brief uBLAS-style filled nonzero count.
+     * @details Mirrors ublas::compressed_matrix::filled2(): the number of
+     * written entries in index2_data()/value_data(), i.e. nnz().
+     * @return Number of filled nonzero entries.
+     */
+    std::size_t filled2() const { return nnz(); }
+
+    /**
      * @brief uBLAS-style finalization after writing the CSR arrays by hand.
      * @details The storage was already sized by the (rows, cols, nnz)
      * constructor and the filled count is implied by the written row
@@ -625,6 +650,25 @@ public:
     {
         if (Preserve) this->conservativeResize(NewSize1, NewSize2);
         else BaseType::resize(NewSize1, NewSize2);
+    }
+
+    // Brings in BaseType's reserve() overloads (single count, or per-inner-vector
+    // counts) alongside the uBLAS-style two-argument one added below.
+    using BaseType::reserve;
+
+    /**
+     * @brief uBLAS-style reservation of nonzero storage capacity.
+     * @details As in ublas::compressed_matrix::reserve, Preserve=false
+     * discards existing values and structure while allocating room for NNZ
+     * nonzeros (mirroring the (rows, cols, nnz) constructor); Preserve=true
+     * keeps the existing structure and behaves as the base class's own reserve.
+     * @param NNZ Number of nonzero entries to allocate storage for.
+     * @param Preserve If true (default) existing values and structure are preserved; if false they are discarded.
+     */
+    void reserve(const std::size_t NNZ, const bool Preserve = true)
+    {
+        if (Preserve) BaseType::reserve(static_cast<typename BaseType::Index>(NNZ));
+        else this->resizeNonZeros(static_cast<typename BaseType::Index>(NNZ));
     }
 
     /**
