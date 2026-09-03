@@ -130,9 +130,6 @@ namespace Kratos
       // initializing fractional velocity solution step
       typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
       typename SchemeType::Pointer pScheme = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
-      // typename SchemeType::Pointer pScheme;
-      // typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
-      // pScheme.swap(Temp);
 
       // CONSTRUCTION OF VELOCITY
       // BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pVelocityLinearSolver));
@@ -609,7 +606,7 @@ namespace Kratos
         minTolerance = 10;
       }
 
-      if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
+      if ((DvErrorNorm > minTolerance || std::isnan(DvErrorNorm) || (DvErrorNorm != DvErrorNorm)) &&
           DvErrorNorm != 0 &&
           (DvErrorNorm != 1 || currentTime > timeInterval))
       {
@@ -643,7 +640,7 @@ namespace Kratos
       double minTolerance = 0.99999;
       bool converged = false;
 
-      if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
+      if ((DvErrorNorm > minTolerance || std::isnan(DvErrorNorm) || (DvErrorNorm != DvErrorNorm)) &&
           DvErrorNorm != 0 &&
           (DvErrorNorm != 1 || currentTime > timeInterval))
       {
