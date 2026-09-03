@@ -135,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSeepageConditionCheckThrowsWhenNodeHasNoWaterPressu
 
     auto condition = CreateSeepageCondition(r_model_part);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(condition.Check(ProcessInfo{}),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN([[maybe_unused]] const auto result = condition.Check(ProcessInfo{}),
                                       "Missing degree of freedom for WATER_PRESSURE on node 1")
 }
 
