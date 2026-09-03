@@ -295,6 +295,18 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     const std::size_t je_n2 = sur_bd_local_ids[2];
                     const double je_dist_n1 = -r_geom[je_n1].FastGetSolutionStepValue(DISTANCE);
                     const double je_dist_n2 = -r_geom[je_n2].FastGetSolutionStepValue(DISTANCE);
+
+                    // Exact per-endpoint shape vectors for the penalty (shape x shape) term.
+                    array_1d<double,3> r_sur_bd_N_taylor_a = ZeroVector(3);
+                    r_sur_bd_N_taylor_a[0] = 0.0 + je_dist_n1 * (DN_DX_parent(0,0)*shift_dir[0] + DN_DX_parent(0,1)*shift_dir[1]);
+                    r_sur_bd_N_taylor_a[1] = 1.0 + je_dist_n1 * (DN_DX_parent(1,0)*shift_dir[0] + DN_DX_parent(1,1)*shift_dir[1]);
+                    r_sur_bd_N_taylor_a[2] = 0.0 + je_dist_n1 * (DN_DX_parent(2,0)*shift_dir[0] + DN_DX_parent(2,1)*shift_dir[1]);
+
+                    array_1d<double,3> r_sur_bd_N_taylor_b = ZeroVector(3);
+                    r_sur_bd_N_taylor_b[0] = 0.0 + je_dist_n2 * (DN_DX_parent(0,0)*shift_dir[0] + DN_DX_parent(0,1)*shift_dir[1]);
+                    r_sur_bd_N_taylor_b[1] = 0.0 + je_dist_n2 * (DN_DX_parent(1,0)*shift_dir[0] + DN_DX_parent(1,1)*shift_dir[1]);
+                    r_sur_bd_N_taylor_b[2] = 1.0 + je_dist_n2 * (DN_DX_parent(2,0)*shift_dir[0] + DN_DX_parent(2,1)*shift_dir[1]);
+
                     const array_1d<double,3> je_shift_3d_dir = shift_dir[0]*local_e1 + shift_dir[1]*local_e2;
                     const array_1d<double,3> je_p1 = r_geom[je_n1].Coordinates();
                     const array_1d<double,3> je_p2 = r_geom[je_n2].Coordinates();
@@ -353,6 +365,19 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         }
                     }
 
+                    // Per-endpoint versions of rAuxMat, for the exact penalty quadrature
+                    Matrix rAuxMat_a = ZeroMatrix(6, 18);
+                    Matrix rAuxMat_b = ZeroMatrix(6, 18);
+                    for (IndexType i_node = 0; i_node < 3; ++i_node) {
+                        for (IndexType d = 0; d < 5; ++d) {
+                            if (constrained_dofs[d] == 0.0) {
+                                continue;
+                            }
+                            rAuxMat_a(d, i_node*6 + d) = r_sur_bd_N_taylor_a[i_node];
+                            rAuxMat_b(d, i_node*6 + d) = r_sur_bd_N_taylor_b[i_node];
+                        }
+                    }
+
                     // Gap SBM Neumann-consistency term
                     Matrix rAuxMat_neumann_ungated = ZeroMatrix(6, 18);
                     for (IndexType i_node = 0; i_node < 3; ++i_node) {
@@ -391,7 +416,13 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     rho_diag(4,4) = rho_bending;
                     rho_diag(5,5) = rho_C; 
 
-                    const Matrix aux_taylor_penalty_base = prod(trans(rAuxMat), Matrix(prod(rho_diag, rAuxMat)));
+                    // Exact quadratic-average penalty base: (1/6)[2*AA + AB + BA + 2*BB]
+                    const Matrix aux_taylor_penalty_aa = prod(trans(rAuxMat_a), Matrix(prod(rho_diag, rAuxMat_a)));
+                    const Matrix aux_taylor_penalty_bb = prod(trans(rAuxMat_b), Matrix(prod(rho_diag, rAuxMat_b)));
+                    const Matrix aux_taylor_penalty_ab = prod(trans(rAuxMat_a), Matrix(prod(rho_diag, rAuxMat_b)));
+                    const Matrix aux_taylor_penalty_ba = prod(trans(rAuxMat_b), Matrix(prod(rho_diag, rAuxMat_a)));
+                    const Matrix aux_taylor_penalty_base =
+                        (2.0*aux_taylor_penalty_aa + aux_taylor_penalty_ab + aux_taylor_penalty_ba + 2.0*aux_taylor_penalty_bb) / 6.0;
                     left_hand_side_taylor_penalty = aux_taylor_penalty_base * penalty_parameter*aux_w/ h_sur_bd;
                     left_hand_side_taylor_penalty_gap = aux_taylor_penalty_base * penalty_parameter*aux_w_taylor/ h_sur_bd;
 
@@ -439,7 +470,7 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
         } else if (sbm_formulation_type == 1) {
             // Taylor SBM
             rLeftHandSideMatrix += left_hand_side;
-            rLeftHandSideMatrix -= trans(left_hand_side_taylor);
+            rLeftHandSideMatrix += trans(left_hand_side_taylor);
             rLeftHandSideMatrix += left_hand_side_taylor_penalty;
             rRightHandSideVector += right_hand_side;
         } else {
