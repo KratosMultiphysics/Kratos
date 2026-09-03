@@ -244,6 +244,36 @@ public:
     }
 
     /**
+     * @brief uBLAS-style assign: element-wise assignment without a protective
+     * temporary (ublas::matrix::assign), the operation the generic linear
+     * algebra spaces call for their Copy(rX, rY).
+     * @details uBLAS requires the target to be sized already; this resizes it
+     * when it is not, a superset of that contract and what the Eigen space
+     * does in its own Copy.
+     * @tparam TDerived Concrete type of the Eigen expression.
+     * @param rOther Source Eigen expression.
+     * @return Reference to this matrix.
+     */
+    template<class TDerived>
+    EigenMatrix& assign(const Eigen::MatrixBase<TDerived>& rOther)
+    {
+        this->noalias() = rOther.derived().template cast<TDataType>();
+        return *this;
+    }
+
+    /**
+     * @brief uBLAS-style assign from a dense uBLAS matrix expression.
+     * @tparam TExpression Concrete type of the uBLAS matrix expression.
+     * @param rExpression Source uBLAS matrix expression.
+     * @return Reference to this matrix.
+     */
+    template<class TExpression>
+    EigenMatrix& assign(const boost::numeric::ublas::matrix_expression<TExpression>& rExpression)
+    {
+        return operator=(rExpression);
+    }
+
+    /**
      * @brief Number of rows.
      * @return Row count.
      */
@@ -380,6 +410,36 @@ public:
         BaseType::resize(r_e.size());
         for (std::size_t i = 0; i < r_e.size(); ++i) (*this)[i] = r_e(i);
         return *this;
+    }
+
+    /**
+     * @brief uBLAS-style assign: element-wise assignment without a protective
+     * temporary (ublas::vector::assign), the operation the generic linear
+     * algebra spaces call for their Copy(rX, rY).
+     * @details uBLAS requires the target to be sized already; this resizes it
+     * when it is not, a superset of that contract and what the Eigen space
+     * does in its own Copy.
+     * @tparam TDerived Concrete type of the Eigen expression.
+     * @param rOther Source Eigen expression.
+     * @return Reference to this vector.
+     */
+    template<class TDerived>
+    EigenVector& assign(const Eigen::MatrixBase<TDerived>& rOther)
+    {
+        this->noalias() = rOther.derived().template cast<TDataType>();
+        return *this;
+    }
+
+    /**
+     * @brief uBLAS-style assign from a dense uBLAS vector expression.
+     * @tparam TExpression Concrete type of the uBLAS vector expression.
+     * @param rExpression Source uBLAS vector expression.
+     * @return Reference to this vector.
+     */
+    template<class TExpression>
+    EigenVector& assign(const boost::numeric::ublas::vector_expression<TExpression>& rExpression)
+    {
+        return operator=(rExpression);
     }
 
     /**
