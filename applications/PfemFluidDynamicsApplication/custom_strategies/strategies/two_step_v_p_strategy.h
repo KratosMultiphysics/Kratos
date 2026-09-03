@@ -129,10 +129,10 @@ namespace Kratos
 
       // initializing fractional velocity solution step
       typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
-      typename SchemeType::Pointer pScheme;
-
-      typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
-      pScheme.swap(Temp);
+      typename SchemeType::Pointer pScheme = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
+      // typename SchemeType::Pointer pScheme;
+      // typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
+      // pScheme.swap(Temp);
 
       // CONSTRUCTION OF VELOCITY
       // BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pVelocityLinearSolver));
