@@ -402,7 +402,9 @@
          id="tspan3-1"
          style="fill:#9c9c9c;fill-opacity:1;stroke:none;stroke-width:0.575429"
          x="111.36697"
-         y="135.392">b), p = 0, q &gt; 0  </tspan></text>
+         y="135.392">b), p = 0, ϕ<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan9">n</tspan> &gt; 0  </tspan></text>
     <text
        xml:space="preserve"
        style="font-size:4.70545px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';writing-mode:lr-tb;direction:ltr;fill:#9c9c9c;fill-opacity:1;stroke:none;stroke-width:0.575429;stroke-dasharray:4.60345, 2.30173;stroke-dashoffset:0;stroke-opacity:1"
@@ -410,10 +412,12 @@
        y="85.033508"
        id="text3-6-3"><tspan
          sodipodi:role="line"
-         id="tspan3-1-3"
          style="fill:#9c9c9c;fill-opacity:1;stroke:none;stroke-width:0.575429"
          x="111.56805"
-         y="85.033508">a) p &gt; 0, q = 0   </tspan></text>
+         y="85.033508"
+         id="tspan5">a) p &gt; 0, ϕ<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan8">n</tspan> = 0   </tspan></text>
     <g
        id="g3">
       <g

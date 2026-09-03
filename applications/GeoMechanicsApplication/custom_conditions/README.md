@@ -168,27 +168,27 @@ The maximum storage capacity $S_{max}$ is a user defined parameter. The potentia
 
 # Seepage Boundary Condition
 
-The seepage boundary is defined as a mixed boundary condition which acts as a no-flow boundary or an atmospheric pressure boundary depending on its nodes and the surrounding elements. It switches from a Dirichlet to a Neumann boundary condition based on the local pressure and flux values. In short, a zero-pressure is applied when outflow is present, while a zero-flux boundary is applied in case of suction ($p > 0$). Therefore, at the seepage boundary, the following two conditions hold (where condition a is Neumann and condition b is Dirichlet): 
+The seepage boundary is defined as a mixed boundary condition which acts as a no-flow boundary or an atmospheric pressure boundary depending on its nodes and the surrounding elements. It switches from a Dirichlet to a Neumann boundary condition based on the local pressure and flow values. In short, a zero-pressure is applied when outflow is present, while a zero-flux boundary is applied in case of suction ($p > 0$). Therefore, at the seepage boundary, the following two conditions hold (where condition a is Neumann and condition b is Dirichlet): 
 
 $$\begin{aligned}
 \text{a)    } & \phi_n = 0  & \text{ if } p > 0 \\
 \text{b)    } & p = 0 & \text{ if } \phi_n \ge 0 
 \end{aligned}$$
 
-where $p$ is the pore water pressure, defined negative if a node contains water (and positive in case of suction). $\phi_n$ is the nodal flow, defined positive for outflow. $phi_n$ is calculated as the accumulation of the flow contributions (permeability flow, compressibility flow and fluid body flow) of the surrounding elements. Since switching between these two conditions acts on the number of degrees of freedom (DoF) and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann Boundary for every node on the boundary.
+where $p$ is the pore water pressure, defined negative if a node contains water (and positive in case of suction). $\phi_n$ is the nodal flow, calculated as the accumulation of the flow contributions (permeability flow, compressibility flow and fluid body flow) of the surrounding elements. $\phi_n$ is defined as positive when there is a net outflow. Since switching between these two conditions acts on the number of degrees of freedom (DoF) and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann Boundary for every node on the boundary.
 
-These conditions are depicted in the following schematic, with hydrostatic boundaries with different reference heights and a seepage boundary on the right side of the model. These lead to the first condition (no flow, a) above the phreatic line, while it leads to a $p = 0$ and outflow (b) below the phreatic line (but above the low hydrostatic condition):
+These conditions are depicted in the following schematic, with hydrostatic boundaries with different reference heights and a seepage boundary on the right side of the model. These lead to the no flow or closed condition (a) above the phreatic line, while it leads to a $p = 0$ and outflow (b) below the phreatic line (but above the low hydrostatic condition):
 
 ![seepage_boundary](seepage_boundary.svg)
 
-The conditions depicted and described above lead to the following switch conditions that need to be checked for a seepage boundary:
+To implement the conditions depicted and described above in code, they need to be rewritten into switch conditions. Next to this, a tolerance needs to be introduced to ensure stability. The switch conditions are described as follows:
 
 $$\begin{aligned}
-\text{if Dirichlet condition and } \phi_n \le -\epsilon_1: & Dirichlet \rightarrow Neumann, &  \phi_n=0 \\
-\text{if Neumann condition and } p <= -\epsilon_2: & Neumann \rightarrow Dirichlet, &  p = 0
+\text{if Dirichlet condition and } \phi_n < -\epsilon_1: & Dirichlet \rightarrow Neumann, &  \phi_n=0 \\
+\text{if Neumann condition and } p < -\epsilon_2: & Neumann \rightarrow Dirichlet, &  p = 0 &
 \end{aligned}$$
 
-Here, $\epsilon_1$ and $\epsilon_2$ are tolerances to ensure numeric stability and prevent switching of Dirichlet to Neumann or vice versa due to numeric noise. In the current prototype, $\epsilon_1 = 1 \times 10^{-11}$, while $\epsilon_2 = 0.0$. However, the precise values will need to be determined through testing. 
+Here, $\epsilon_1$ and $\epsilon_2$ are the aforementiones tolerances to ensure numeric stability and prevent switching of Dirichlet to Neumann (or vice versa) due to numeric noise. In the current prototype, $\epsilon_1 = 1 \times 10^{-11}$, while $\epsilon_2 = 0.0$. However, the precise values will need to be determined through testing. 
 
 In pseudo-code, these switching conditions will be implemented as follows:
 ```
