@@ -168,15 +168,14 @@ The maximum storage capacity $S_{max}$ is a user defined parameter. The potentia
 
 # Seepage Boundary Condition
 
-The seepage boundary is defined as a mixed boundary condition which acts as a now-flow boundary or an atmospheric pressure boundary depending on its nodes and the surrounding elements. It switches from a Dirichlet to a Neumann boundary condition based on the local pressure and flux values. In short, a zero-pressure is applied when outflow is present, while a zero-flux boundary is applied in case of suction ($p > 0$). Therefore, at the seepage boundary, the following two conditions hold: 
+The seepage boundary is defined as a mixed boundary condition which acts as a no-flow boundary or an atmospheric pressure boundary depending on its nodes and the surrounding elements. It switches from a Dirichlet to a Neumann boundary condition based on the local pressure and flux values. In short, a zero-pressure is applied when outflow is present, while a zero-flux boundary is applied in case of suction ($p > 0$). Therefore, at the seepage boundary, the following two conditions hold (where condition a is Neumann and condition b is Dirichlet): 
 
 $$\begin{aligned}
 \text{a)    } & \phi_n = 0  & \text{ if } p > 0 \\
 \text{b)    } & p = 0 & \text{ if } \phi_n \ge 0 
 \end{aligned}$$
 
-where $p$ is the pore water pressure, defined negative if water is present (and positive in case of suction). $\phi_n$ is the nodal flux, defined positive for outflow. Since this 
-functionality acts on the number of degrees of freedom (DoF) and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann Boundary for every node on the boundary.
+where $p$ is the pore water pressure, defined negative if a node contains water (and positive in case of suction). $\phi_n$ is the nodal flow, defined positive for outflow. $phi_n$ is calculated as the accumulation of the flow contributions (permeability flow, compressibility flow and fluid body flow) of the surrounding elements. Since switching between these two conditions acts on the number of degrees of freedom (DoF) and has a two-way interaction with the pressure field, the switching of the seepage boundary needs to be done on the level of non-linear iterations. This means that within one solution step, next to the general convergence criteria, the seepage boundary also needs to 'converge' to either a Dirichlet or a Neumann Boundary for every node on the boundary.
 
 These conditions are depicted in the following schematic, with hydrostatic boundaries with different reference heights and a seepage boundary on the right side of the model. These lead to the first condition (no flow, a) above the phreatic line, while it leads to a $p = 0$ and outflow (b) below the phreatic line (but above the low hydrostatic condition):
 
@@ -219,6 +218,6 @@ This boundary will be supported for transient and steady-state groundwaterflow c
 The following validation cases will be considered for this functionality (links to be added when the validation cases are added to the test suite):
 - A test case where a fluid flux is imposed on the bottom boundary, leading to outflow on the top seepage boundary. This should lead to a full Dirichlet condition ($p=0$).
 - A test case where a high pressure is applied on the bottom boundary, leading to outflow on the top seepage boundary. This should also lead to a full Dirichlet condition ($p=0$).
-- A test case where a low pressure is applied on the bottom boundary, initially leading inflow, resulting in the seepage boundary exhibiting the behavior of a pure zero-flux Neumann boundary.
+- A test case where a low pressure is applied on the bottom boundary, which would lead to inflow if there is no seepage boundary, resulting in the seepage boundary exhibiting the behavior of a pure zero-flux Neumann boundary.
 - A test case where the pressure on the bottom is ramped up in a transient run, leading the seepage boundary at the top to switch from no-flow to a full Dirichlet condition.
 - The Muskat case (steady state), which has a seepage boundary for which both Dirichlet and Neumann behavior is exhibited on the same seepage boundary.
