@@ -112,7 +112,7 @@ void SetMultipleMovingLoadsProcess::RemoveClonedConditions()
         mrModelPart.GetRootModelPart().GetSubModelPart(mParameters["compute_model_part_name"].GetString());
 
     for (const auto& moving_load_condition : mrModelPart.Conditions()) {
-        if (compute_model_part.HasCondition(moving_load_condition))
+        if (compute_model_part.HasCondition(moving_load_condition.Id()))
             compute_model_part.pGetCondition(moving_load_condition)->Set(TO_ERASE, true);
     }
     // Call method
