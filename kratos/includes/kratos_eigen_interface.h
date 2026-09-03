@@ -197,6 +197,10 @@ public:
 
     /**
      * @brief Assignment from any Eigen expression (scalar-casting, see the constructor).
+     * @details The assignment evaluates through a temporary (.eval()), reproducing
+     * the alias-safe uBLAS operator= semantics (e.g. M = trans(M), which Eigen
+     * would otherwise reject at runtime); the temporary-free fast path remains
+     * noalias(M) = expr / assign(), as in uBLAS.
      * @tparam TDerived Concrete type of the Eigen expression.
      * @param rOther Source Eigen expression.
      * @return Reference to this matrix.
@@ -204,7 +208,7 @@ public:
     template<class TDerived>
     EigenMatrix& operator=(const Eigen::MatrixBase<TDerived>& rOther)
     {
-        BaseType::operator=(rOther.derived().template cast<TDataType>());
+        BaseType::operator=(rOther.derived().template cast<TDataType>().eval());
         return *this;
     }
 
@@ -370,6 +374,9 @@ public:
 
     /**
      * @brief Assignment from any Eigen expression (scalar-casting, see the constructor).
+     * @details The assignment evaluates through a temporary (.eval()), reproducing
+     * the alias-safe uBLAS operator= semantics; the temporary-free fast path
+     * remains noalias(v) = expr / assign(), as in uBLAS.
      * @tparam TDerived Concrete type of the Eigen expression.
      * @param rOther Source Eigen expression.
      * @return Reference to this vector.
@@ -377,7 +384,7 @@ public:
     template<class TDerived>
     EigenVector& operator=(const Eigen::MatrixBase<TDerived>& rOther)
     {
-        BaseType::operator=(rOther.derived().template cast<TDataType>());
+        BaseType::operator=(rOther.derived().template cast<TDataType>().eval());
         return *this;
     }
 
@@ -751,6 +758,19 @@ public:
     void push_back(const std::size_t I, const std::size_t J, const TDataType Value)
     {
         this->coeffRef(I, J) = Value;
+    }
+
+    /**
+     * @brief uBLAS-style finalization after element-wise insertion, as
+     * ublas::compressed_matrix::complete_index1_data().
+     * @details Element insertion (push_back, insert_element, operator() on a
+     * missing entry) leaves the Eigen storage uncompressed, where
+     * index1_data()/index2_data()/value_data() are not the packed CSR arrays.
+     * Call this once the pattern is built and before reading those arrays.
+     */
+    void complete_index1_data()
+    {
+        this->makeCompressed();
     }
 
     /**
