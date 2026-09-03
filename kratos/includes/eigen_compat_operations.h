@@ -14,6 +14,7 @@
 
 // System includes
 #include <cstddef>
+#include <type_traits>
 
 // External includes
 #include <Eigen/Core>
@@ -96,18 +97,20 @@ inline auto dense_prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::Matr
  * explicit argument given) never hits this: deduction against a concrete
  * Kratos::Matrix/Vector/BoundedXxx argument always resolves to its Eigen
  * *base* (Eigen::Matrix<...>, which Eigen itself specializes traits for),
- * never to the Kratos wrapper type itself.
+ * never to the Kratos wrapper type itself. The leading TShield parameter
+ * (never specified by callers) absorbs that explicit argument, see the
+ * sparse overloads below.
  * @tparam TDerived1 Concrete type of the left operand.
  * @tparam TDerived2 Concrete type of the right operand.
  * @param rA Left-hand operand.
  * @param rB Right-hand operand.
  * @return The product as a lazy Eigen expression.
  */
-template<class TDerived1, class TDerived2>
-    requires requires {
+template<class TShield = void, class TDerived1, class TDerived2>
+    requires (std::is_void_v<TShield> && requires {
         typename Eigen::internal::traits<TDerived1>::StorageKind;
         typename Eigen::internal::traits<TDerived2>::StorageKind;
-    }
+    })
 inline auto prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::MatrixBase<TDerived2>& rB)
 {
     return Internals::dense_prod(rA, rB);
@@ -147,14 +150,19 @@ inline TResult prod(const Eigen::MatrixBase<TDerived1>& rA, const Eigen::MatrixB
  * than a SFINAE-friendly one. Checking the (specialized-or-not) traits
  * directly first, before naming SparseMatrixBase<TDerived1>, keeps the
  * failure a one-step, immediate-context substitution failure instead.
+ * Newer compilers (GCC 16) complete SparseMatrixBase<TDerived1> already while
+ * deducing the arguments, i.e. before the constraint is checked, so on top of
+ * that the leading TShield parameter (never specified by callers, always its
+ * void default) absorbs the explicit template argument of prod<TResult>(...):
+ * TDerived1 is then only ever deduced from the actual (sparse) argument.
  * @tparam TDerived1 Concrete type of the sparse left operand.
  * @tparam TDerived2 Concrete type of the dense right operand.
  * @param rA Left-hand (sparse) operand.
  * @param rX Right-hand (dense) operand.
  * @return The product as a lazy Eigen expression.
  */
-template<class TDerived1, class TDerived2>
-    requires requires { typename Eigen::internal::traits<TDerived1>::StorageKind; }
+template<class TShield = void, class TDerived1, class TDerived2>
+    requires (std::is_void_v<TShield> && requires { typename Eigen::internal::traits<TDerived1>::StorageKind; })
 inline auto prod(const Eigen::SparseMatrixBase<TDerived1>& rA, const Eigen::MatrixBase<TDerived2>& rX)
 {
     return rA * rX;
@@ -162,18 +170,18 @@ inline auto prod(const Eigen::SparseMatrixBase<TDerived1>& rA, const Eigen::Matr
 
 /**
  * @brief Sparse-matrix/sparse-matrix product.
- * @details See the requires-clause guard note on the sparse/dense overload above.
+ * @details See the requires-clause and TShield guard notes on the sparse/dense overload above.
  * @tparam TDerived1 Concrete type of the left operand.
  * @tparam TDerived2 Concrete type of the right operand.
  * @param rA Left-hand operand.
  * @param rB Right-hand operand.
  * @return The product as a lazy Eigen expression.
  */
-template<class TDerived1, class TDerived2>
-    requires requires {
+template<class TShield = void, class TDerived1, class TDerived2>
+    requires (std::is_void_v<TShield> && requires {
         typename Eigen::internal::traits<TDerived1>::StorageKind;
         typename Eigen::internal::traits<TDerived2>::StorageKind;
-    }
+    })
 inline auto prod(const Eigen::SparseMatrixBase<TDerived1>& rA, const Eigen::SparseMatrixBase<TDerived2>& rB)
 {
     return rA * rB;
