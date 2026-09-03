@@ -22,6 +22,17 @@ namespace Kratos {
 
 
 /// @brief Response defining an @f$L_p@f$ norm of measurement gaps over a list of sensors.
+/// @details This class is responsible for computing
+///          @f[
+///             \sqrt[p]{\sum_s j_s^p}
+///          @f]
+///          and its derivative
+///          @f[
+///             \left( \sum_s j_s^p \right)^{\frac{1}{p} - 1} \left( \sum_s j_s^{p - 1} \frac{\partial j_s}{\partial \bullet} \right)
+///          @f]
+///          where
+///          - @f$j_s@f$ is the response of sensor @f$s@f$, and
+///          - @f$p@f$ is a positive even integer.
 /// @ingroup adjoints
 class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SensorAggregateResponse : public ResponseFunction {
 public:
@@ -51,22 +62,9 @@ public:
     /// @brief Add a sensor to consider output from.
     void AddSensors(std::span<const SensorResponse::Pointer> Sensors);
 
-    /// @copydoc ResponseFunction::ComputeInnerValue(const Element&,const ProcessInfo&,int) const
-    [[nodiscard]] double ComputeInnerValue(
-        const Element& rElement,
-        const ProcessInfo& rProcessInfo,
-        int iBuffer) const override;
-
-    /// @copydoc ResponseFunction::ComputeInnerValue(const Condition&,const ProcessInfo&,int) const
-    [[nodiscard]] double ComputeInnerValue(
-        const Condition& Condition,
-        const ProcessInfo& rProcessInfo,
-        int iBuffer) const final override;
-
-    /// @copydoc ResponseFunction::ComputeValue
+    /// @copydoc ResponseFunction::ComputeValue(const ModelPart&,int) const
     [[nodiscard]] double ComputeValue(
-        double InnerSum,
-        const ProcessInfo& rProcessInfo,
+        const ModelPart& rModelPart,
         int iBuffer) const override;
 
     /// @copydoc ResponseFunction::GetStateVariables(std::vector<IAdjoint::DynamicVariable>&,const Element&,const ProcessInfo&) const
@@ -81,25 +79,18 @@ public:
         const Condition& rCondition,
         const ProcessInfo& rProcessInfo) const override;
 
-    /// @copydoc ResponseFunction::ComputeInnerDerivative(Vector&,const Element&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
-    void ComputeInnerDerivative(
+    /// @copydoc ResponseFunction::ComputeDerivative(Vector&,const Element&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
+    void ComputeDerivative(
         Vector& rOutput,
         const Element& rElement,
         std::span<const IAdjoint::DynamicVariable> Variables,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const override;
 
-    /// @copydoc ResponseFunction::ComputeInnerDerivative(Vector&,const Condition&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
-    void ComputeInnerDerivative(
+    /// @copydoc ResponseFunction::ComputeDerivative(Vector&,const Condition&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
+    void ComputeDerivative(
         Vector& rOutput,
         const Condition& rCondition,
-        std::span<const IAdjoint::DynamicVariable> Variables,
-        const ProcessInfo& rProcessInfo,
-        int iBuffer) const override;
-
-    /// @copydoc ResponseFunction::ComputeDerivative
-    void ComputeDerivative(
-        Vector& rDerivative,
         std::span<const IAdjoint::DynamicVariable> Variables,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const override;

@@ -44,7 +44,7 @@ struct SensorAggregateResponse::Impl {
         /// @f[
         ///     \sum_i \left( (v_i - m_i) s_i \right)^p
         /// @f]
-        double mInnerSum;
+        double mDerivativeScale;
 
         /// @details Stores the normalized and weighted error for each sensor.
         ///          @f[
@@ -100,7 +100,7 @@ void SensorAggregateResponse::ComputeCache(const ModelPart& rModelPart) {
     KRATOS_TRY
         // Construct a new cache.
         mpImpl->mMaybeCache.emplace(Impl::Cache {
-            .mInnerSum = 0.0,
+            .mDerivativeScale = 0.0,
             .mScaledErrors = std::vector<double>(mpImpl->mSensors.size())});
         Impl::Cache& r_cache = mpImpl->mMaybeCache.value();
 
@@ -111,10 +111,7 @@ void SensorAggregateResponse::ComputeCache(const ModelPart& rModelPart) {
                 r_sensor.ComputeCache(rModelPart);
 
                 const double sensor_scale = mpImpl->GetSensorScale(i_sensor);
-                const double sensor_value = r_sensor.ComputeInnerValue(
-                    r_sensor.GetContainingElement(),
-                    rModelPart.GetProcessInfo(),
-                    0);
+                const double sensor_value = r_sensor.ComputeValue(rModelPart, 0);
                 const double sensor_error = sensor_value - r_sensor.GetNode()->GetValue(SENSOR_MEASURED_VALUE);
                 const double scaled_sensor_error = sensor_error * sensor_scale;
                 const double inner_component = std::pow(
@@ -122,10 +119,13 @@ void SensorAggregateResponse::ComputeCache(const ModelPart& rModelPart) {
                     mpImpl->mExponent);
 
                 r_cache.mScaledErrors[i_sensor] = scaled_sensor_error;
-                AtomicAdd(r_cache.mInnerSum, inner_component);
+                AtomicAdd(r_cache.mDerivativeScale, inner_component);
             }); // IndexPartition(mSensors.size())
 
-        r_cache.mInnerSum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(r_cache.mInnerSum);
+        r_cache.mDerivativeScale = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(r_cache.mDerivativeScale);
+        r_cache.mDerivativeScale = (1.0 / mpImpl->mExponent) * std::pow(
+            r_cache.mDerivativeScale,
+            (1.0 / mpImpl->mExponent) - 1.0);
     KRATOS_CATCH("")
 }
 
@@ -166,46 +166,20 @@ void SensorAggregateResponse::AddSensors(std::span<const SensorResponse::Pointer
                 mpImpl->mSensors.begin(),
                 mpImpl->mSensors.end(),
                 [] (const auto& rp_left, const auto& rp_right) -> bool {
-                    return rp_left->GetContainingElement().Id() < rp_right->GetContainingElement().Id();
+                    return rp_left->GetContainingElement().value()->Id() < rp_right->GetContainingElement().value()->Id();
                 });
         KRATOS_CATCH("");
 }
 
 
-double SensorAggregateResponse::ComputeInnerValue(
-    const Element& rElement,
-    const ProcessInfo& rProcessInfo,
+double SensorAggregateResponse::ComputeValue(
+    const ModelPart& rModelPart,
     int iBuffer) const {
         KRATOS_TRY
-            // Find which sensors are located in the provided element.
-            const auto it_sensor_begin = std::lower_bound(
-                mpImpl->mSensors.begin(),
-                mpImpl->mSensors.end(),
-                rElement.Id(),
-                [] (const SensorResponse::Pointer& rp_sensor, Element::IndexType id_element) -> bool {
-                    return rp_sensor->GetContainingElement().Id() < id_element;
-                });
-            const auto it_sensor_end = std::upper_bound(
-                it_sensor_begin,
-                mpImpl->mSensors.end(),
-                rElement.Id(),
-                [] (Element::IndexType id_element, const SensorResponse::Pointer& rp_sensor) -> bool {
-                    return id_element < rp_sensor->GetContainingElement().Id();
-                });
-
             const Impl::Cache& r_cache = mpImpl->mMaybeCache.value();
-            const auto inner_range = std::ranges::subrange(
-                r_cache.mScaledErrors.begin() + std::distance(
-                    mpImpl->mSensors.begin(),
-                    it_sensor_begin),
-                r_cache.mScaledErrors.begin() + std::distance(
-                    mpImpl->mSensors.begin(),
-                    it_sensor_end));
-
-            // Loop over relevant sensors and sum their contributions.
-            const double element_contribution = std::accumulate(
-                inner_range.begin(),
-                inner_range.end(),
+            const double inner_sum = std::accumulate(
+                r_cache.mScaledErrors.begin(),
+                r_cache.mScaledErrors.end(),
                 0.0,
                 [this] (double sum, double scaled_error) -> double {
                     return sum + std::pow(
@@ -213,24 +187,8 @@ double SensorAggregateResponse::ComputeInnerValue(
                         mpImpl->mExponent);
                 });
 
-            return element_contribution;
+            return std::pow(inner_sum, 1.0 / mpImpl->mExponent);
         KRATOS_CATCH("");
-}
-
-
-double SensorAggregateResponse::ComputeInnerValue(
-    const Condition&,
-    const ProcessInfo&,
-    int) const {
-        return 0.0;
-}
-
-
-double SensorAggregateResponse::ComputeValue(
-    double InnerSum,
-    const ProcessInfo&,
-    int) const {
-        return std::pow(InnerSum, 1.0 / mpImpl->mExponent);
 }
 
 
@@ -267,7 +225,7 @@ void SensorAggregateResponse::GetStateVariables(
 }
 
 
-void SensorAggregateResponse::ComputeInnerDerivative(
+void SensorAggregateResponse::ComputeDerivative(
     Vector& rOutput,
     const Element& rElement,
     std::span<const IAdjoint::DynamicVariable> Variables,
@@ -286,14 +244,14 @@ void SensorAggregateResponse::ComputeInnerDerivative(
                 mpImpl->mSensors.end(),
                 rElement.Id(),
                 [] (const SensorResponse::Pointer& rp_sensor, Element::IndexType id_element) -> bool {
-                    return rp_sensor->GetContainingElement().Id() < id_element;
+                    return rp_sensor->GetContainingElement().value()->Id() < id_element;
                 });
             const auto it_sensor_end = std::upper_bound(
                 it_sensor_begin,
                 mpImpl->mSensors.end(),
                 rElement.Id(),
                 [] (Element::IndexType id_element, const SensorResponse::Pointer& rp_sensor) -> bool {
-                    return id_element < rp_sensor->GetContainingElement().Id();
+                    return id_element < rp_sensor->GetContainingElement().value()->Id();
                 });
 
             const std::size_t i_sensor_begin = std::distance(
@@ -346,7 +304,7 @@ void SensorAggregateResponse::ComputeInnerDerivative(
                 // Compute, map and reduce relevant derivatives.
                 for (auto& r_sensor_variables : sensor_variable_buffers) {
                     KRATOS_TRY
-                        rp_sensor->ComputeInnerDerivative(
+                        rp_sensor->ComputeDerivative(
                             sensor_derivative_buffer,
                             rElement,
                             sensor_variable_buffers.front(),
@@ -364,33 +322,19 @@ void SensorAggregateResponse::ComputeInnerDerivative(
                     } // for i_variable
                 } // for r_sensor_variables in sensor_variable_buffers
             } // for i_sensor in range(i_sensor_begin, i_sensor_end)
+
+            rOutput *= mpImpl->mMaybeCache.value().mDerivativeScale;
         KRATOS_CATCH("")
 }
 
 
-void SensorAggregateResponse::ComputeInnerDerivative(
+void SensorAggregateResponse::ComputeDerivative(
     Vector& rOutput,
     const Condition&,
     std::span<const IAdjoint::DynamicVariable> Variables,
     const ProcessInfo&,
     int iBuffer) const {
         rOutput = ZeroVector(Variables.size());
-}
-
-
-void SensorAggregateResponse::ComputeDerivative(
-    Vector& rDerivative,
-    std::span<const IAdjoint::DynamicVariable>,
-    const ProcessInfo&,
-    int) const {
-        const double exponent_inverse = 1.0 / mpImpl->mExponent;
-        const double scale = exponent_inverse * std::pow(
-            mpImpl->mMaybeCache.value().mInnerSum,
-            exponent_inverse - 1.0);
-        IndexPartition<std::size_t>(rDerivative.size()).for_each(
-            [scale, &rDerivative] (std::size_t i_component) -> void {
-                rDerivative[i_component] *= scale;
-            });
 }
 
 

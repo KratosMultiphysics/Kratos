@@ -157,7 +157,7 @@ class TestSensorResponses(TestCase):
             sensors[1].GetContainingElement().Id,
             2)
 
-        # Check inner values.
+        # Check values.
         def ProjectDisplacements(
             direction: list[float],
             geometry: KratosMultiphysics.Geometry) -> float:
@@ -173,32 +173,16 @@ class TestSensorResponses(TestCase):
                 return output / math.sqrt(norm)
 
         self.assertAlmostEqual(
-            sensors[0].ComputeInnerValue(
-                elements[0],
-                model_part.ProcessInfo,
+            sensors[0].ComputeValue(
+                model_part,
                 0),
             ProjectDisplacements(
                 [1.0, 2.0 , 0.0],
                 elements[0].GetGeometry()))
 
         self.assertAlmostEqual(
-            sensors[0].ComputeInnerValue(
-                elements[1],
-                model_part.ProcessInfo,
-                0),
-            0.0)
-
-        self.assertAlmostEqual(
-            sensors[1].ComputeInnerValue(
-                elements[0],
-                model_part.ProcessInfo,
-                0),
-            0.0)
-
-        self.assertAlmostEqual(
-            sensors[1].ComputeInnerValue(
-                elements[1],
-                model_part.ProcessInfo,
+            sensors[1].ComputeValue(
+                model_part,
                 0),
             ProjectDisplacements(
                 [-2.0, 1.0 , 0.0],
@@ -212,7 +196,7 @@ class TestSensorResponses(TestCase):
                     component,
                     i_node))
 
-        # Check sensor 0 inner state derivatives.
+        # Check sensor 0 state derivatives.
         state_variables = sensors[0].GetStateVariables(
             elements[0],
             model_part.ProcessInfo)
@@ -220,7 +204,7 @@ class TestSensorResponses(TestCase):
         for variable in reference_state_variables:
             self.assertIn(variable, state_variables)
 
-        state_derivatives = sensors[0].ComputeInnerDerivative(
+        state_derivatives = sensors[0].ComputeDerivative(
             elements[0],
             state_variables,
             model_part.ProcessInfo,
@@ -242,8 +226,8 @@ class TestSensorResponses(TestCase):
             design_variables[0],
             KratosMultiphysics.YOUNG_MODULUS)
 
-        # Check sensor 0 inner design derivatives.
-        design_derivatives = sensors[0].ComputeInnerDerivative(
+        # Check sensor 0 design derivatives.
+        design_derivatives = sensors[0].ComputeDerivative(
             elements[0],
             design_variables,
             model_part.ProcessInfo,
@@ -263,7 +247,7 @@ class TestSensorResponses(TestCase):
                     component,
                     i_node))
 
-        # Check sensor 1 inner state derivatives.
+        # Check sensor 1 state derivatives.
         state_variables = sensors[1].GetStateVariables(
             elements[1],
             model_part.ProcessInfo)
@@ -271,7 +255,7 @@ class TestSensorResponses(TestCase):
         for variable in reference_state_variables:
             self.assertIn(variable, state_variables)
 
-        state_derivatives = sensors[1].ComputeInnerDerivative(
+        state_derivatives = sensors[1].ComputeDerivative(
             elements[1],
             state_variables,
             model_part.ProcessInfo,
@@ -295,8 +279,8 @@ class TestSensorResponses(TestCase):
                     KratosMultiphysics.IAdjoint.DynamicVariable(variable_type, i_node),
                     design_variables)
 
-        # Check sensor 1 inner design derivatives.
-        design_derivatives = sensors[1].ComputeInnerDerivative(
+        # Check sensor 1 design derivatives.
+        design_derivatives = sensors[1].ComputeDerivative(
             elements[1],
             design_variables,
             model_part.ProcessInfo,
@@ -309,40 +293,26 @@ class TestSensorResponses(TestCase):
             [0.0 for _ in range(4 * 3)])
 
         # Check sensor 0 response value.
-        inner_response: float = 0.0
-        for element in elements:
-            inner_response += sensors[0].ComputeInnerValue(
-                element,
-                model_part.ProcessInfo,
-                0)
+        response: float = sensors[0].ComputeValue(model_part, 0)
         self.assertAlmostEqual(
-            sensors[0].ComputeValue(
-                inner_response,
-                model_part.ProcessInfo,
-                0),
+            response,
             ProjectDisplacements(
                 [1.0, 2.0, 0.0],
                 elements[0].GetGeometry()))
 
         # Check sensor 0 state derivatives.
-        inner_response_derivative: KratosMultiphysics.Vector = KratosMultiphysics.Vector([0.0 for _ in range(6 * 2)])
+        response_derivative: KratosMultiphysics.Vector = KratosMultiphysics.Vector([0.0 for _ in range(6 * 2)])
         for element in elements:
-            contribution: KratosMultiphysics.Vector = sensors[0].ComputeInnerDerivative(
+            contribution: KratosMultiphysics.Vector = sensors[0].ComputeDerivative(
                 element,
                 reference_state_variables,
                 model_part.ProcessInfo,
                 0)
             self.__AssembleVectorContributions(
-                inner_response_derivative,
+                response_derivative,
                 contribution,
                 reference_state_variables,
                 element)
-
-        response_derivative = sensors[0].ComputeDerivative(
-            inner_response_derivative,
-            reference_state_variables,
-            model_part.ProcessInfo,
-            0)
 
         reference_response_derivative: list[float] = [
             0.25 * 1.0 / math.sqrt(5.0),    # node 1 DISPLACEMENT_X
@@ -363,40 +333,26 @@ class TestSensorResponses(TestCase):
             reference_response_derivative)
 
         # Check sensor 1 response value.
-        inner_response: float = 0.0
-        for element in elements:
-            inner_response += sensors[1].ComputeInnerValue(
-                element,
-                model_part.ProcessInfo,
-                0)
+        response: float = sensors[1].ComputeValue(model_part, 0)
         self.assertAlmostEqual(
-            sensors[1].ComputeValue(
-                inner_response,
-                model_part.ProcessInfo,
-                0),
+            response,
             ProjectDisplacements(
                 [-2.0, 1.0, 0.0],
                 elements[1].GetGeometry()))
 
         # Check sensor 1 state derivatives.
-        inner_response_derivative: KratosMultiphysics.Vector = KratosMultiphysics.Vector([0.0 for _ in range(6 * 2)])
+        response_derivative: KratosMultiphysics.Vector = KratosMultiphysics.Vector([0.0 for _ in range(6 * 2)])
         for element in elements:
-            contribution = sensors[1].ComputeInnerDerivative(
+            contribution = sensors[1].ComputeDerivative(
                 element,
                 reference_state_variables,
                 model_part.ProcessInfo,
                 0)
             self.__AssembleVectorContributions(
-                inner_response_derivative,
+                response_derivative,
                 contribution,
                 reference_state_variables,
                 element)
-
-        response_derivative = sensors[1].ComputeDerivative(
-            inner_response_derivative,
-            reference_state_variables,
-            model_part.ProcessInfo,
-            0)
 
         reference_response_derivative: list[float] = [
             0.0,                            # node 1 DISPLACEMENT_X
@@ -483,27 +439,20 @@ class TestSensorResponses(TestCase):
                     norm += direction_component * direction_component
                 return output / math.sqrt(norm)
 
-        self.assertAlmostEqual(
-            response.ComputeInnerValue(
-                elements[0],
-                model_part.ProcessInfo,
-                0),
+        reference_value: float = math.pow(
             ((ProjectDisplacements(
                 [1.0, 2.0, 0.0],
-                elements[0].GetGeometry()) - 1) * 100) ** exponent,
-            places = 0)
-
+                elements[0].GetGeometry()) - 1) * 100) ** exponent
+                + ((ProjectDisplacements(
+                    [-2.0, 1.0, 0.0],
+                    elements[1].GetGeometry()) - 2) * 200) ** exponent,
+            1.0 / exponent)
         self.assertAlmostEqual(
-            response.ComputeInnerValue(
-                elements[1],
-                model_part.ProcessInfo,
-                0),
-            ((ProjectDisplacements(
-                [-2.0, 1.0, 0.0],
-                elements[1].GetGeometry()) - 2) * 200) ** exponent,
+            response.ComputeValue(model_part, 0),
+            reference_value,
             places = 0)
 
-        # Check inner state derivatives for element 0.
+        # Check state variables for element 0.
         reference_state_variables: list[KratosMultiphysics.IAdjoint.DynamicVariable] = []
         for component in (KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.DISPLACEMENT_Y):
             for i_node in range(4):
@@ -514,49 +463,17 @@ class TestSensorResponses(TestCase):
         state_variables: list[KratosMultiphysics.IAdjoint.DynamicVariable] = response.GetStateVariables(
             elements[1],
             model_part.ProcessInfo)
-        state_variables = state_variables[::-1] # <== check a different order than what the sensor provides
+
         for variable in reference_state_variables:
             self.assertIn(variable, state_variables)
 
-        state_derivatives = response.ComputeInnerDerivative(
-            elements[0],
-            state_variables,
-            model_part.ProcessInfo,
-            0)
-        for variable, derivative in zip(state_variables, state_derivatives):
-            sensor_value: float = ProjectDisplacements(
-                [1.0, 2.0, 0.0],
-                elements[0].GetGeometry())
-            sensor_derivative: float = 0.25 * (1.0 if variable == KratosMultiphysics.DISPLACEMENT_X else 2.0) / math.sqrt(5)
-            reference: float = exponent * ((sensor_value - 1) ** (exponent - 1)) * (100 ** exponent) * sensor_derivative
-            self.assertAlmostEqual(
-                derivative,
-                reference,
-                places = 2)
-
-        # Check inner state derivatives for element 1.
+        # Check state variables for element 1.
         state_variables = response.GetStateVariables(
             elements[1],
             model_part.ProcessInfo)
-        state_variables = state_variables[::-1] # <== check a different order than what the sensor provides
+
         for variable in state_variables:
             self.assertIn(variable, reference_state_variables)
-
-        state_derivatives = response.ComputeInnerDerivative(
-            elements[1],
-            state_variables,
-            model_part.ProcessInfo,
-            0)
-        for variable, derivative in zip(state_variables, state_derivatives):
-            sensor_value: float = ProjectDisplacements(
-                [-2.0, 1.0, 0.0],
-                elements[1].GetGeometry())
-            sensor_derivative: float = 0.25 * (-2.0 if variable == KratosMultiphysics.DISPLACEMENT_X else 1.0) / math.sqrt(5)
-            reference: float = exponent * ((sensor_value - 2) ** (exponent - 1)) * (200 ** exponent) * sensor_derivative
-            self.assertAlmostEqual(
-                derivative,
-                reference,
-                places = 2)
 
         # Check design variables.
         for element in elements:
@@ -575,9 +492,9 @@ class TestSensorResponses(TestCase):
                         KratosMultiphysics.IAdjoint.DynamicVariable(variable_type, i_node),
                         design_variables)
 
-        # Check inner design derivatives.
+        # Check design derivatives.
         for element in elements:
-            design_derivatives = response.ComputeInnerDerivative(
+            design_derivatives = response.ComputeDerivative(
                 element,
                 design_variables,
                 model_part.ProcessInfo,
@@ -590,13 +507,7 @@ class TestSensorResponses(TestCase):
                 [0.0 for _ in range(1 + 4 * 3)])
 
         # Check response.
-        inner_response: float = 0.0
-        for element in elements:
-            inner_response += response.ComputeInnerValue(
-                element,
-                model_part.ProcessInfo,
-                0)
-
+        response_value: float = response.ComputeValue(model_part, 0)
         reference_response: float = ((ProjectDisplacements(
             [1.0, 2.0 , 0.0],
             elements[0].GetGeometry()) - 1.0) * 100) ** exponent
@@ -606,31 +517,22 @@ class TestSensorResponses(TestCase):
         reference_response = math.pow(reference_response, 1.0 / exponent)
 
         self.assertAlmostEqual(
-            response.ComputeValue(
-                inner_response,
-                model_part.ProcessInfo,
-                0),
+            response_value,
             reference_response)
 
         # Check state derivatives.
-        inner_response_derivative: KratosMultiphysics.Vector = KratosMultiphysics.Vector([0.0 for _ in range(6 * 2)])
+        response_derivative: KratosMultiphysics.Vector = KratosMultiphysics.Vector([0.0 for _ in range(6 * 2)])
         for element in elements:
-            contribution = response.ComputeInnerDerivative(
+            contribution = response.ComputeDerivative(
                 element,
                 reference_state_variables,
                 model_part.ProcessInfo,
                 0)
             self.__AssembleVectorContributions(
-                inner_response_derivative,
+                response_derivative,
                 contribution,
                 reference_state_variables,
                 element)
-
-        response_derivative = response.ComputeDerivative(
-            inner_response_derivative,
-            reference_state_variables,
-            model_part.ProcessInfo,
-            0)
 
         common_scale: float = (reference_response ** exponent) ** (1.0 / exponent - 1.0)
         reference_response_derivative: list[float] = [

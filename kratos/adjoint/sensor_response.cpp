@@ -21,28 +21,12 @@ SensorResponse::SensorResponse(
     std::span<const Variable<double>* const> DesignVariableTypes,
     const std::string& rName,
     Node::Pointer pNode,
-    intrusive_ptr<const Element> pElement)
+    std::optional<intrusive_ptr<const Element>> pMaybeElement)
         :   ResponseFunction(DesignVariableTypes),
             mName(rName),
             mpNode(pNode),
-            mpElement(pElement)
+            mpMaybeElement(pMaybeElement)
 {}
-
-
-double SensorResponse::ComputeInnerValue(
-    const Condition&,
-    const ProcessInfo&,
-    int) const {
-        return 0.0;
-}
-
-
-double SensorResponse::ComputeValue(
-    double InnerSum,
-    const ProcessInfo&,
-    int) const {
-        return InnerSum;
-}
 
 
 void SensorResponse::GetStateVariables(
@@ -61,7 +45,7 @@ void SensorResponse::GetDesignVariables(
 }
 
 
-void SensorResponse::ComputeInnerDerivative(
+void SensorResponse::ComputeDerivative(
     Vector& rOutput,
     const Condition&,
     std::span<const IAdjoint::DynamicVariable> Variables,
@@ -83,14 +67,6 @@ void SensorResponse::ComputeInnerDerivative(
         } // for r_variable in Variables
         rOutput = ZeroVector(Variables.size());
 }
-
-
-void SensorResponse::ComputeDerivative(
-    Vector& rDerivative,
-    std::span<const IAdjoint::DynamicVariable>,
-    const ProcessInfo&,
-    int) const
-{}
 
 
 void SensorResponse::AddTensorAdaptor(

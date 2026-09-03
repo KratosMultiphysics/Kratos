@@ -16,6 +16,9 @@
 #include "adjoint/response_function.hpp"
 #include "tensor_adaptors/tensor_adaptor.h"
 
+// --- STL Includes ---
+#include <optional>
+
 
 namespace Kratos {
 
@@ -43,13 +46,13 @@ public:
      * @param DesignVariableTypes   List of design variables.
      * @param rName                 Name of the sensor. Needs to be unique.
      * @param pNode                 Node which represents the location of the sensor and data value container.
-     * @param pElement              Element in which the sensor is located.
+     * @param pMaybeElement         Element in which the sensor is located (if the element is on this rank).
      */
     SensorResponse(
         std::span<const Variable<double>* const> DesignVariableTypes,
         const std::string& rName,
         Node::Pointer pNode,
-        intrusive_ptr<const Element> pElement);
+        std::optional<intrusive_ptr<const Element>> pMaybeElement);
 
     /**
      * @brief Creates a new sensor attached to a domain model part given.
@@ -71,24 +74,6 @@ public:
             return SensorResponse::Pointer();
     }
 
-    /// @name Evaluation
-    /// @{
-
-    /// @copydoc ResponseFunction::ComputeInnerValue(const Condition&,const ProcessInfo&,int) const
-    [[nodiscard]] double ComputeInnerValue(
-        const Condition& rCondition,
-        const ProcessInfo& rProcessInfo,
-        int iBuffer) const final override;
-
-    using ResponseFunction::ComputeInnerValue;
-
-    /// @copydoc ResponseFunction::ComputeValue
-    [[nodiscard]] double ComputeValue(
-        double InnerSum,
-        const ProcessInfo& rProcessInfo,
-        int iBuffer) const final override;
-
-    /// @}
     /// @name Adjoint Interface
     /// @{
 
@@ -108,22 +93,15 @@ public:
 
     using ResponseFunction::GetDesignVariables;
 
-    /// @copydoc ResponseFunction::ComputeInnerDerivative(Vector&,const Condition&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
-    void ComputeInnerDerivative(
+    /// @copydoc ResponseFunction::ComputeDerivative(Vector&,const Condition&,std::span<const IAdjoint::DynamicVariable>,const ProcessInfo&,int)
+    void ComputeDerivative(
         Vector& rOutput,
         const Condition& rCondition,
         std::span<const IAdjoint::DynamicVariable> Variables,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const final override;
 
-    using ResponseFunction::ComputeInnerDerivative;
-
-    /// @copydoc ResponseFunction::ComputeDerivative
-    void ComputeDerivative(
-        Vector& rDerivative,
-        std::span<const IAdjoint::DynamicVariable> Variables,
-        const ProcessInfo& rProcessInfo,
-        int iBuffer) const final override;
+    using ResponseFunction::ComputeDerivative;
 
     /// @}
 
@@ -176,8 +154,8 @@ public:
 
     virtual void PrintData(std::ostream& rOStream) const;
 
-    [[nodiscard]] const Element& GetContainingElement() const {
-        return *mpElement;
+    [[nodiscard]] std::optional<const Element*> GetContainingElement() const {
+        if (!mpMaybeElement.has_value()) return {}; else return mpMaybeElement.value().get();
     }
 
 private:
@@ -185,7 +163,7 @@ private:
 
     Node::Pointer mpNode;
 
-    intrusive_ptr<const Element> mpElement;
+    std::optional<intrusive_ptr<const Element>> mpMaybeElement;
 
     std::unordered_map<
         std::string,
