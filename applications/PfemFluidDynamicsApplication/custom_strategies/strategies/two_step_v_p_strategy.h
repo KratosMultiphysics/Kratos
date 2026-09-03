@@ -153,8 +153,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~TwoStepVPStrategy() {}
-
+    virtual ~TwoStepVPStrategy() = default;
     int Check() override
     {
       KRATOS_TRY;
@@ -233,7 +232,7 @@ namespace Kratos
 
       KRATOS_INFO("\nSolution with two_step_vp_strategy at t=") << currentTime << "s" << std::endl;
 
-      if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
+      if ((timeIntervalChanged && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
       {
         maxNonLinearIterations *= 2;
       }
@@ -264,7 +263,7 @@ namespace Kratos
 
         this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
 
-        if (fixedTimeStep == false)
+        if (!fixedTimeStep)
         {
           continuityConverged = this->SolveContinuityIteration(it, maxNonLinearIterations, pressureNorm);
         }
@@ -286,7 +285,7 @@ namespace Kratos
 
           break;
         }
-        if (fixedTimeStep == true)
+        if (fixedTimeStep)
         {
           break;
         }
@@ -307,15 +306,15 @@ namespace Kratos
 
     void InitializeSolutionStep() override
     {
-        auto& r_model_part = BaseType::GetModelPart();
+      auto &r_model_part = BaseType::GetModelPart();
 
-        // InitializeSolutionStep of momentum strategy
-        r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
-        mpMomentumStrategy->InitializeSolutionStep();
+      // InitializeSolutionStep of momentum strategy
+      r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
+      mpMomentumStrategy->InitializeSolutionStep();
 
-        // InitializeSolutionStep of continuity strategy
-        r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
-        mpPressureStrategy->InitializeSolutionStep();
+      // InitializeSolutionStep of continuity strategy
+      r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
+      mpPressureStrategy->InitializeSolutionStep();
     }
 
     void UpdateStressStrain() override
@@ -417,17 +416,12 @@ namespace Kratos
     {
 
       ModelPart &rModelPart = BaseType::GetModelPart();
-      int Rank = rModelPart.GetCommunicator().MyPID();
+      const int Rank = rModelPart.GetCommunicator().MyPID();
       bool ConvergedMomentum = false;
       double NormDv = 0;
       fixedTimeStep = false;
       // build momentum system and solve for fractional step velocity increment
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
-
-      // if (it == 0)
-      // {
-      //   mpMomentumStrategy->InitializeSolutionStep();
-      // }
 
       NormDv = mpMomentumStrategy->Solve();
 
@@ -439,8 +433,18 @@ namespace Kratos
         velocityNorm = this->ComputeVelocityNorm();
       }
 
-      double DvErrorNorm = NormDv / velocityNorm;
-      unsigned int iterationForCheck = 2;
+      double DvErrorNorm = 0.0;
+      const double zero_tol = 1.0e-12;
+      if (velocityNorm < zero_tol)
+      {
+        DvErrorNorm = NormDv;
+      }
+      else
+      {
+        DvErrorNorm = NormDv / velocityNorm;
+      }
+
+      const unsigned int iterationForCheck = 2;
       // Check convergence
       if (it == maxIt - 1)
       {
@@ -466,7 +470,7 @@ namespace Kratos
     bool SolveContinuityIteration(unsigned int it, unsigned int maxIt, double &NormP) override
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
-      int Rank = rModelPart.GetCommunicator().MyPID();
+      const int Rank = rModelPart.GetCommunicator().MyPID();
       bool ConvergedContinuity = false;
       bool fixedTimeStep = false;
       double NormDp = 0;
@@ -474,10 +478,6 @@ namespace Kratos
       // 2. Pressure solution
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
 
-    //   if (it == 0)
-    //   {
-    //     mpPressureStrategy->InitializeSolutionStep();
-    //   }
       NormDp = mpPressureStrategy->Solve();
 
       if (BaseType::GetEchoLevel() > 0 && Rank == 0)
@@ -488,7 +488,16 @@ namespace Kratos
         NormP = this->ComputePressureNorm();
       }
 
-      double DpErrorNorm = NormDp / (NormP);
+      double DpErrorNorm = 0.0;
+      const double zero_tol = 1.0e-12;
+      if (NormP < zero_tol)
+      {
+        DpErrorNorm = NormDp;
+      }
+      else
+      {
+        DpErrorNorm = NormDp / NormP;
+      }
 
       // Check convergence
       if (it == (maxIt - 1))
@@ -516,19 +525,18 @@ namespace Kratos
       double NormV = 0.00;
       errorNormDv = 0;
 
-#pragma omp parallel for reduction(+ \
-                                   : NormV)
+#pragma omp parallel for reduction(+ : NormV)
       for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
         const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
-        for (unsigned int d = 0; d < 3; ++d)
+        for (unsigned int d = 0; d < mDomainSize; ++d)
         {
           NormV += r_vel[d] * r_vel[d];
         }
       }
-      NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
-      NormV = sqrt(NormV);
+      NormV = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(NormV);
+      NormV = std::sqrt(NormV);
 
       const double zero_tol = 1.0e-12;
       errorNormDv = (NormV < zero_tol) ? NormDv : NormDv / NormV;
@@ -566,9 +574,8 @@ namespace Kratos
         const double Pr = it_node->FastGetSolutionStepValue(PRESSURE);
         tmp_NormP += Pr * Pr;
       }
-      NormP = tmp_NormP;
-      NormP = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
-      NormP = sqrt(NormP);
+      NormP = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(tmp_NormP);
+      NormP = std::sqrt(NormP);
 
       const double zero_tol = 1.0e-12;
       errorNormDp = (NormP < zero_tol) ? NormDp : NormDp / NormP;
@@ -613,18 +620,7 @@ namespace Kratos
         {
           std::cout << "BAD CONVERGENCE!!! I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << DvErrorNorm << std::endl;
           fixedTimeStep = true;
-#pragma omp parallel
-          {
-            ModelPart::NodeIterator NodeBegin;
-            ModelPart::NodeIterator NodeEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-            {
-              itNode->FastGetSolutionStepValue(VELOCITY, 0) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-              itNode->FastGetSolutionStepValue(PRESSURE, 0) = itNode->FastGetSolutionStepValue(PRESSURE, 1);
-              itNode->FastGetSolutionStepValue(ACCELERATION, 0) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
-            }
-          }
+          this->RestorePreviousSolutionStep(rModelPart);
         }
       }
       else
@@ -655,18 +651,7 @@ namespace Kratos
         std::cout << "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.9999" << std::endl;
         std::cout << "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << std::endl;
         fixedTimeStep = true;
-#pragma omp parallel
-        {
-          ModelPart::NodeIterator NodeBegin;
-          ModelPart::NodeIterator NodeEnd;
-          OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-          for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-          {
-            itNode->FastGetSolutionStepValue(VELOCITY, 0) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-            itNode->FastGetSolutionStepValue(PRESSURE, 0) = itNode->FastGetSolutionStepValue(PRESSURE, 1);
-            itNode->FastGetSolutionStepValue(ACCELERATION, 0) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
-          }
-        }
+        this->RestorePreviousSolutionStep(rModelPart);
       }
       else
       {
@@ -692,7 +677,7 @@ namespace Kratos
         minTolerance = 10;
       }
 
-      if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
+      if ((DvErrorNorm > minTolerance || std::isnan(DvErrorNorm) || (DvErrorNorm != DvErrorNorm)) &&
           DvErrorNorm != 0 &&
           (DvErrorNorm != 1 || currentTime > timeInterval))
       {
@@ -704,18 +689,7 @@ namespace Kratos
           std::cout << "           BAD PRESSURE CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.1" << std::endl;
           std::cout << "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << std::endl;
           fixedTimeStep = true;
-#pragma omp parallel
-          {
-            ModelPart::NodeIterator NodeBegin;
-            ModelPart::NodeIterator NodeEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-            {
-              itNode->FastGetSolutionStepValue(VELOCITY, 0) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-              itNode->FastGetSolutionStepValue(PRESSURE, 0) = itNode->FastGetSolutionStepValue(PRESSURE, 1);
-              itNode->FastGetSolutionStepValue(ACCELERATION, 0) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
-            }
-          }
+          this->RestorePreviousSolutionStep(rModelPart);
         }
       }
       else if (DvErrorNorm < mPressureTolerance)
@@ -740,6 +714,23 @@ namespace Kratos
       }
       rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
       return converged;
+    }
+
+    void RestorePreviousSolutionStep(ModelPart &rModelPart)
+    {
+#pragma omp parallel
+      {
+        ModelPart::NodeIterator NodeBegin;
+        ModelPart::NodeIterator NodeEnd;
+        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
+
+        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+        {
+          itNode->FastGetSolutionStepValue(VELOCITY, 0) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
+          itNode->FastGetSolutionStepValue(PRESSURE, 0) = itNode->FastGetSolutionStepValue(PRESSURE, 1);
+          itNode->FastGetSolutionStepValue(ACCELERATION, 0) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
+        }
+      }
     }
 
     ///@}
@@ -811,10 +802,10 @@ namespace Kratos
     ///@{
 
     /// Assignment operator.
-    TwoStepVPStrategy &operator=(TwoStepVPStrategy const &rOther) {}
+    TwoStepVPStrategy(const TwoStepVPStrategy &) = delete;
 
     /// Copy constructor.
-    TwoStepVPStrategy(TwoStepVPStrategy const &rOther) {}
+    TwoStepVPStrategy &operator=(const TwoStepVPStrategy &) = delete;
 
     ///@}
 
