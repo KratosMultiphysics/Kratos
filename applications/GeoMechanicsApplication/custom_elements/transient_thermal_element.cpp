@@ -217,8 +217,8 @@ BoundedMatrix<double, TNumNodes, TNumNodes> TransientThermalElement<TDim, TNumNo
     for (unsigned int integration_point_index = 0;
          integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
          ++integration_point_index) {
-        BoundedMatrix<double, TDim, TNumNodes> Temp =
-            prod(constitutive_matrix, trans(rShapeFunctionGradients[integration_point_index]));
+        // LocalSpaceDimension x TNumNodes, which is smaller than TDim x TNumNodes for the line elements
+        const Matrix Temp = prod(constitutive_matrix, trans(rShapeFunctionGradients[integration_point_index]));
         result += prod(rShapeFunctionGradients[integration_point_index], Temp) *
                   rIntegrationCoefficients[integration_point_index];
     }
