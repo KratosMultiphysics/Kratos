@@ -959,9 +959,65 @@ public:
             rOutput.resize(0, 0, false);
     }
 
-    //METHODS TO BE CLEANED: DEPRECATED end
-
     ///@}
+    /// @name Adjoint Interface
+    /// @{
+
+    /// @copydoc IAdjointElement::GetMassInfluencingVariables
+    /// @details Conditions are not expected to provide a mass term,
+    ///          so this function produces an empty list.
+    ///          Derived conditions may override this function.
+    void GetMassInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const override;
+
+    /// @copydoc IAdjointElement::GetDampingInfluencingVariables
+    /// @details Conditions are not expected to provide a damping term,
+    ///          so this function produces an empty list.
+    ///          Derived conditions may override this function.
+    void GetDampingInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const override;
+
+    /// @copydoc IAdjointElement::GetStiffnessInfluencingVariables
+    /// @details Conditions are not expected to provide a stiffness term,
+    ///          so this function produces an empty list.
+    ///          Derived conditions may override this function.
+    void GetStiffnessInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const override;
+
+    /// @copydoc IAdjointElement::ComputeMassDerivative
+    /// @details Conditions are not expected to provide a mass term,
+    ///          so this function produces all zeros.
+    ///          Derived conditions may override this function.
+    void ComputeMassDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const override;
+
+    /// @copydoc IAdjointElement::ComputeDampingDerivative
+    /// @details Conditions are not expected to provide a mass term,
+    ///          so this function produces all zeros.
+    ///          Derived conditions may override this function.
+    void ComputeDampingDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const override;
+
+    /// @copydoc IAdjointElement::ComputeStiffnessDerivative
+    /// @details Conditions are not expected to provide a mass term,
+    ///          so this function produces all zeros.
+    ///          Derived conditions may override this function.
+    void ComputeStiffnessDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const override;
+
+    /// @}
     ///@name Access
     ///@{
 

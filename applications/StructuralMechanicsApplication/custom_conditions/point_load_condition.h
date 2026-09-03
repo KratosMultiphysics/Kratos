@@ -272,17 +272,22 @@ private:
     }
 
     ///@}
-    ///@name Un accessible methods
-    ///@{
+    /// @name Adjoint Interface
+    /// @{
 
-    /// Assignment operator.
-    //PointLoadCondition& operator=(const PointLoadCondition& rOther);
+    /// @copydoc IAdjoint::GetLoadInfluencingVariables
+    void GetLoadInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const override;
 
-    /// Copy constructor.
-    //PointLoadCondition(const PointLoadCondition& rOther);
+    /// @copydoc IAdjoint::ComputeLoadDerivative
+    void ComputeLoadDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const override;
 
-
-    ///@}
+    /// @}
 
 }; // Class PointLoadCondition
 

@@ -9,10 +9,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-// System includes
-
-
-// External includes
+// --- STL Includes ---
+#include <ranges>
 
 
 // Project includes
@@ -152,6 +150,61 @@ double PointLoadCondition::GetPointLoadIntegrationWeight() const
     return 1.0;
 }
 
-} // Namespace Kratos
+
+void PointLoadCondition::GetLoadInfluencingVariables(
+    std::vector<IAdjoint::DynamicVariable>& rOutput,
+    const ProcessInfo&) const {
+        KRATOS_DEBUG_ERROR_IF_NOT(this->GetGeometry().size() == 1);
+        KRATOS_TRY
+            const std::array<const Variable<double>*,3> point_load_components {
+                &POINT_LOAD_X,
+                &POINT_LOAD_Y,
+                &POINT_LOAD_Z};
+            const auto dimension = GetGeometry().WorkingSpaceDimension();
+
+            rOutput.clear();
+            std::ranges::transform(
+                point_load_components | std::views::take(dimension),
+                std::back_inserter(rOutput),
+                [] (const Variable<double>* p_variable) -> IAdjoint::DynamicVariable {
+                    return {*p_variable, 0};
+                });
+        KRATOS_CATCH("")
+}
 
 
+void PointLoadCondition::ComputeLoadDerivative(
+    Matrix& rOutput,
+    std::span<const IAdjoint::DynamicVariable> Variables,
+    const ProcessInfo&,
+    int) const {
+        KRATOS_DEBUG_ERROR_IF_NOT(this->GetGeometry().size() == 1);
+        KRATOS_TRY
+            const std::array<IAdjoint::DynamicVariable,3> all_point_load_components {
+                IAdjoint::DynamicVariable {POINT_LOAD_X, 0},
+                IAdjoint::DynamicVariable {POINT_LOAD_Y, 0},
+                IAdjoint::DynamicVariable {POINT_LOAD_Z, 0}};
+            const auto dimension = GetGeometry().WorkingSpaceDimension();
+            const auto point_load_components = all_point_load_components | std::views::take(dimension);
+
+            rOutput = ZeroMatrix(dimension, Variables.size());
+            for (std::size_t i_variable=0ul; i_variable<Variables.size(); ++i_variable) {
+                // Find which point load component the current variable refers to.
+                const auto it_point_load_component = std::ranges::find(
+                    point_load_components,
+                    Variables[i_variable]);
+                KRATOS_ERROR_IF(it_point_load_component == point_load_components.end())
+                    << "unexpected variable " << Variables[i_variable].Name() << " "
+                    << Variables[i_variable].GetDynamicIndex();
+                const auto i_dimension = std::distance(
+                    point_load_components.begin(),
+                    it_point_load_component);
+
+                // Update the output matrix.
+                rOutput(i_dimension, i_variable) += 1.0;
+            } // for i_variable in range(Variables.size())
+        KRATOS_CATCH("")
+}
+
+
+} // namespace Kratos

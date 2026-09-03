@@ -104,7 +104,9 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
                         default:
                             KRATOS_ERROR << "invalid residual term '" << IAdjoint::TermName(Term) << "'";
                     }
-                return output;})
+                return output;},
+                pybind11::arg("ResidualTerm"),
+                pybind11::arg("rProcessInfo"))
         .def(
             "ComputeDerivative",
             [] (
@@ -146,7 +148,11 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
                         default:
                             KRATOS_ERROR << "invalid residual term '" << IAdjoint::TermName(Term) << "'";
                     }
-                    return output;})
+                    return output;},
+                pybind11::arg("ResidualTerm"),
+                pybind11::arg("Variables"),
+                pybind11::arg("rProcessInfo"),
+                pybind11::arg("iBuffer"))
         ;
 
     pybind11::class_<
