@@ -125,13 +125,40 @@ KRATOS_TEST_CASE_IN_SUITE(EigenCompatTransAndNorms, KratosCoreFastSuite)
         for (std::size_t j = 0; j < 2; ++j)
             KRATOS_EXPECT_NEAR(eigen_At(i, j), ublas_At(i, j), 1e-12);
 
-    Vector ublas_x(2);
+    // The references are the uBLAS containers explicitly (DenseVector/DenseMatrix
+    // stay uBLAS in both backends; Vector/Matrix are Eigen under the Eigen one),
+    // so the norms are checked against the uBLAS semantics on either backend.
+    DenseVector<double> ublas_x(2);
     EigenVector<double> eigen_x(2);
     FillVector(ublas_x); FillVector(eigen_x);
     KRATOS_EXPECT_NEAR(norm_1(eigen_x), norm_1(ublas_x), 1e-12);
     KRATOS_EXPECT_NEAR(norm_2(eigen_x), norm_2(ublas_x), 1e-12);
     KRATOS_EXPECT_NEAR(norm_inf(eigen_x), norm_inf(ublas_x), 1e-12);
     KRATOS_EXPECT_NEAR(sum(eigen_x), sum(ublas_x), 1e-12);
+
+    // Matrix norms: ublas norm_1 is the maximum absolute column sum and norm_inf
+    // the maximum absolute row sum (not the coefficient-wise lp norms). A
+    // non-square matrix with mixed signs so the two, and the Frobenius norm,
+    // all differ.
+    DenseMatrix<double> ublas_M(2, 3);
+    EigenMatrix<double> eigen_M(2, 3);
+    for (std::size_t i = 0; i < 2; ++i) {
+        for (std::size_t j = 0; j < 3; ++j) {
+            const double v = (i == 0 ? 1.0 : -1.0) * static_cast<double>(i * 3 + j + 1);
+            ublas_M(i, j) = v;
+            eigen_M(i, j) = v;
+        }
+    }
+    KRATOS_EXPECT_NEAR(norm_1(eigen_M), norm_1(ublas_M), 1e-12);
+    KRATOS_EXPECT_NEAR(norm_1(eigen_M), 9.0, 1e-12);   // |3| + |-6|
+    KRATOS_EXPECT_NEAR(norm_inf(eigen_M), norm_inf(ublas_M), 1e-12);
+    KRATOS_EXPECT_NEAR(norm_inf(eigen_M), 15.0, 1e-12); // |-4| + |-5| + |-6|
+    KRATOS_EXPECT_NEAR(norm_frobenius(eigen_M), norm_frobenius(ublas_M), 1e-12);
+
+    // An empty matrix gives 0 in ublas and must not trip Eigen's empty-reduction assertion
+    const EigenMatrix<double> eigen_empty(0, 0);
+    KRATOS_EXPECT_EQ(norm_1(eigen_empty), 0.0);
+    KRATOS_EXPECT_EQ(norm_inf(eigen_empty), 0.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EigenCompatNoalias, KratosCoreFastSuite)
