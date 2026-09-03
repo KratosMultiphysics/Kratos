@@ -328,15 +328,27 @@ inline typename TDerived::PlainObject trans(const Eigen::SparseMatrixBase<TDeriv
 }
 
 /**
- * @brief 1-norm (sum of absolute values).
+ * @brief 1-norm, with the ublas semantics for each shape.
+ * @details For a vector the sum of the absolute values; for a matrix the maximum
+ * absolute column sum (ublas norm_1(matrix)), which is not Eigen's lpNorm<1>()
+ * (the sum over all coefficients). The shape is decided on the type, as ublas
+ * does: column-shaped expressions (EigenVector, the bounded vectors, the column
+ * proxies of row()/column()) are vectors, everything else is a matrix; for an
+ * N x 1 matrix both definitions coincide.
  * @tparam TDerived Concrete type of the Eigen expression.
  * @param rX Vector or matrix to compute the norm of.
- * @return The 1-norm of rX.
+ * @return The 1-norm of rX (0 for an empty matrix, as in ublas).
  */
 template<class TDerived>
-inline auto norm_1(const Eigen::MatrixBase<TDerived>& rX)
+inline typename Eigen::NumTraits<typename TDerived::Scalar>::Real norm_1(const Eigen::MatrixBase<TDerived>& rX)
 {
-    return rX.template lpNorm<1>();
+    if constexpr (TDerived::ColsAtCompileTime == 1) {
+        return rX.template lpNorm<1>();
+    } else {
+        // maxCoeff() asserts on an empty expression, ublas returns 0
+        if (rX.size() == 0) return 0;
+        return rX.cwiseAbs().colwise().sum().maxCoeff();
+    }
 }
 
 /**
@@ -364,15 +376,26 @@ inline auto norm_2_square(const Eigen::MatrixBase<TDerived>& rX)
 }
 
 /**
- * @brief Infinity norm (maximum absolute value).
+ * @brief Infinity norm, with the ublas semantics for each shape.
+ * @details For a vector the maximum absolute value; for a matrix the maximum
+ * absolute row sum (ublas norm_inf(matrix)), which is not Eigen's
+ * lpNorm<Infinity>() (the maximum absolute coefficient). The shape is decided
+ * on the type exactly as for norm_1(); for an N x 1 matrix both definitions
+ * coincide.
  * @tparam TDerived Concrete type of the Eigen expression.
  * @param rX Vector or matrix to compute the norm of.
- * @return The infinity norm of rX.
+ * @return The infinity norm of rX (0 for an empty matrix, as in ublas).
  */
 template<class TDerived>
-inline auto norm_inf(const Eigen::MatrixBase<TDerived>& rX)
+inline typename Eigen::NumTraits<typename TDerived::Scalar>::Real norm_inf(const Eigen::MatrixBase<TDerived>& rX)
 {
-    return rX.template lpNorm<Eigen::Infinity>();
+    if constexpr (TDerived::ColsAtCompileTime == 1) {
+        return rX.template lpNorm<Eigen::Infinity>();
+    } else {
+        // maxCoeff() asserts on an empty expression, ublas returns 0
+        if (rX.size() == 0) return 0;
+        return rX.cwiseAbs().rowwise().sum().maxCoeff();
+    }
 }
 
 /**
