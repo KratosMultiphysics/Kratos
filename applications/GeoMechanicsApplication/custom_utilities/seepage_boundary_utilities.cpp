@@ -7,13 +7,13 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
+//  Main authors:    Richard Faasse,
+//                   Wijtze Pieter Kikstra
 
-#include "custom_utilities/seepage_boundary_utilities.h"
-
-#include <algorithm>
-#include <limits>
+#include <set>
 
 #include "custom_conditions/geo_seepage_condition.h"
+#include "custom_utilities/seepage_boundary_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/variables.h"
 
@@ -28,7 +28,7 @@ void AccumulateWaterPressureEntries(const std::vector<Dof<double>*>& rDofs,
         << "Number of degrees of freedom (" << rDofs.size() << ") does not match the size of the right hand side ("
         << rRightHandSide.size() << ")" << std::endl;
 
-    for (std::size_t i = 0; i < rDofs.size(); ++i) {
+    for (auto i = std::size_t{0}; i < rDofs.size(); ++i) {
         if (rDofs[i]->GetVariable() != WATER_PRESSURE) continue;
 
         rNodalFlows[rDofs[i]->Id()] += rRightHandSide[i];
@@ -39,11 +39,10 @@ NodalFlowMap CalculateNodalWaterFlows(ModelPart& rModelPart, const ProcessInfo& 
 {
     auto result = NodalFlowMap{};
 
-    auto dofs            = std::vector<Dof<double>*>{};
-    auto right_hand_side = Vector{};
-
     for (auto& r_element : rModelPart.Elements()) {
+        auto dofs = std::vector<Dof<double>*>{};
         r_element.GetDofList(dofs, rProcessInfo);
+        auto right_hand_side = Vector{};
         r_element.CalculateRightHandSide(right_hand_side, rProcessInfo);
 
         AccumulateWaterPressureEntries(dofs, right_hand_side, result);
@@ -63,24 +62,31 @@ void AssignNodalWaterFlows(ModelPart& rModelPart, const NodalFlowMap& rNodalFlow
     }
 }
 
+namespace
+{
+
+struct NodeComparator {
+    bool operator()(const Node* pLeft, const Node* pRight) const
+    {
+        return pLeft->Id() < pRight->Id();
+    }
+};
+
+} // namespace
+
 std::vector<Node*> CollectSeepageNodes(ModelPart& rModelPart)
 {
-    auto result = std::vector<Node*>{};
+    auto result = std::set<Node*, NodeComparator>{};
 
     for (auto& r_condition : rModelPart.Conditions()) {
-        if (dynamic_cast<const GeoSeepageCondition*>(&r_condition) == nullptr) continue;
+        if (!dynamic_cast<const GeoSeepageCondition*>(&r_condition)) continue;
 
         for (auto& r_node : r_condition.GetGeometry()) {
-            result.push_back(&r_node);
+            result.insert(&r_node);
         }
     }
 
-    // Adjacent conditions share end nodes, so the same node can be collected more than once.
-    std::sort(result.begin(), result.end(),
-              [](const Node* pLeft, const Node* pRight) { return pLeft->Id() < pRight->Id(); });
-    result.erase(std::unique(result.begin(), result.end()), result.end());
-
-    return result;
+    return {result.begin(), result.end()};
 }
 
 namespace
@@ -92,33 +98,32 @@ namespace
 template <typename PredicateType, typename ScoreType>
 Node* SelectBestCandidate(const std::vector<Node*>& rNodes, PredicateType IsCandidate, ScoreType Score)
 {
-    Node* p_best     = nullptr;
+    Node* p_result   = nullptr;
     auto  best_score = 0.0;
 
     for (auto* p_node : rNodes) {
         if (!IsCandidate(*p_node)) continue;
 
         const auto score = Score(*p_node);
-        if (p_best == nullptr || score > best_score) {
-            p_best     = p_node;
+        if (!p_result || score > best_score) {
+            p_result   = p_node;
             best_score = score;
         }
     }
 
-    return p_best;
+    return p_result;
 }
 
 } // namespace
 
 bool SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes, const NodalFlowMap& rNodalFlows)
 {
-    KRATOS_TRY
-
     for (auto* p_node : rSeepageNodes) {
         KRATOS_INFO("Node") << p_node->Id()
                             << " pressure = " << p_node->FastGetSolutionStepValue(WATER_PRESSURE) << "\n";
         KRATOS_INFO("Node") << p_node->Id() << " fixed = " << p_node->IsFixed(WATER_PRESSURE) << "\n";
     }
+
     // A free node under positive pressure is unsaturated, so it cannot be a draining face. Fixing
     // takes precedence over releasing.
     if (auto* p_node = SelectBestCandidate(rSeepageNodes, [](const Node& rNode) {
@@ -147,8 +152,6 @@ bool SwitchOneSeepageNodeIfNeeded(const std::vector<Node*>& rSeepageNodes, const
     }
 
     return false;
-
-    KRATOS_CATCH("")
 }
 
 } // namespace Kratos::Geo::SeepageBoundaryUtilities
