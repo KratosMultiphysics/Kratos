@@ -755,7 +755,7 @@ private:
                 // row dof is fixed. zero off-diagonal columns and factor diagonal
                 for (std::size_t j = ColBegin; j < ColEnd; ++j)
                 {
-                    if (AColIndices[j] != k)
+                    if (static_cast<std::size_t>(AColIndices[j]) != k)
                     {
                         AValues[j] = 0.0;
                     }
