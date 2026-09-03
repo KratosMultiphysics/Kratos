@@ -351,41 +351,29 @@ namespace Kratos
       return ierr;
 
     // Check that all required variables have been registered
-    if (VELOCITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY Key is 0. Check that the application was correctly registered.", "");
-    if (ACCELERATION.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "ACCELERATION Key is 0. Check that the application was correctly registered.", "");
-    if (PRESSURE.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "PRESSURE Key is 0. Check that the application was correctly registered.", "");
-    if (BODY_FORCE.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "BODY_FORCE Key is 0. Check that the application was correctly registered.", "");
-    if (DENSITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "DENSITY Key is 0. Check that the application was correctly registered.", "");
-    if (DYNAMIC_VISCOSITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "DYNAMIC_VISCOSITY Key is 0. Check that the application was correctly registered.", "");
-    if (DELTA_TIME.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
+    KRATOS_ERROR_IF(VELOCITY.Key() == 0) << "VELOCITY Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(ACCELERATION.Key() == 0) << "ACCELERATION Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(PRESSURE.Key() == 0) << "PRESSURE Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(DENSITY.Key() == 0) << "DENSITY Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(BODY_FORCE.Key() == 0) << "BODY_FORCE Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(DYNAMIC_VISCOSITY.Key() == 0) << "DYNAMIC_VISCOSITY Key is 0. Check that the application was correctly registered.";
+    KRATOS_ERROR_IF(DELTA_TIME.Key() == 0) << "DELTA_TIME Key is 0. Check that the application was correctly registered.";
 
     const GeometryType &r_geom = this->GetGeometry();
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (unsigned int i = 0; i < r_geom.size(); ++i)
     {
-      if (!r_geom[i].SolutionStepsDataHas(VELOCITY))
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ", r_geom[i].Id());
-      if (!r_geom[i].SolutionStepsDataHas(PRESSURE))
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ", r_geom[i].Id());
-      if (!r_geom[i].SolutionStepsDataHas(BODY_FORCE))
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing BODY_FORCE variable on solution step data for node ", r_geom[i].Id());
-      if (!r_geom[i].SolutionStepsDataHas(DENSITY))
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing DENSITY variable on solution step data for node ", r_geom[i].Id());
-      if (!r_geom[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY))
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing DYNAMIC_VISCOSITY variable on solution step data for node ", r_geom[i].Id());
-      if (!r_geom[i].HasDofFor(VELOCITY_X) ||
-          !r_geom[i].HasDofFor(VELOCITY_Y) ||
-          !r_geom[i].HasDofFor(VELOCITY_Z))
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ", r_geom[i].Id());
-      if (!r_geom[i].HasDofFor(PRESSURE))
-        KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ", r_geom[i].Id());
+      KRATOS_ERROR_IF_NOT(r_geom[i].SolutionStepsDataHas(VELOCITY)) << "missing VELOCITY variable on solution step data for node ", r_geom[i].Id();
+      KRATOS_ERROR_IF_NOT(r_geom[i].SolutionStepsDataHas(PRESSURE)) << "missing PRESSURE variable on solution step data for node ", r_geom[i].Id();
+      KRATOS_ERROR_IF_NOT(r_geom[i].SolutionStepsDataHas(BODY_FORCE)) << "missing BODY_FORCE variable on solution step data for node ", r_geom[i].Id();
+      KRATOS_ERROR_IF_NOT(r_geom[i].SolutionStepsDataHas(DENSITY)) << "missing DENSITY variable on solution step data for node ", r_geom[i].Id();
+      KRATOS_ERROR_IF_NOT(r_geom[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY)) << "missing DYNAMIC_VISCOSITY variable on solution step data for node ", r_geom[i].Id();
+      KRATOS_ERROR_IF_NOT(r_geom[i].HasDofFor(VELOCITY_X) || r_geom[i].HasDofFor(VELOCITY_Y)) << "missing VELOCITY component DOF in node ", r_geom[i].Id();
+      if constexpr (TDim == 3)
+      {
+        KRATOS_ERROR_IF_NOT(r_geom[i].HasDofFor(VELOCITY_Z)) << "Missing VELOCITY_Z component DOF in node ", this->GetGeometry()[i].Id();
+      }
+      KRATOS_ERROR_IF_NOT(r_geom[i].HasDofFor(PRESSURE)) << "missing PRESSURE DOF in node ", r_geom[i].Id();
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
