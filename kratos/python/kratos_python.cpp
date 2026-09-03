@@ -79,6 +79,7 @@
 #include "add_geometry_data_to_python.h"
 #include "add_tensor_adaptors_to_python.h"
 #include "add_adjoint_interface_to_python.hpp"
+#include "add_adjoint_strategies_to_python.hpp"
 
 #ifdef KRATOS_USE_FUTURE
     #include "future/python/kratos_python.h"
@@ -138,6 +139,7 @@ PYBIND11_MODULE(Kratos, m)
     AddFactoriesToPython(m);
     AddAMGCLSolverToPython(m);
     AddStrategiesToPython(m);
+    AddAdjointStrategiesToPython(m);
     AddConvergenceAcceleratorsToPython(m);
     AddDofUtilitiesToPython(m);
     AddGeometricalUtilitiesToPython(m);

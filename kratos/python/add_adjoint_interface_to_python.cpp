@@ -15,10 +15,10 @@
 #include <pybind11/operators.h>
 
 // --- Core Includes ---
+#include "add_adjoint_interface_to_python.hpp"
 #include "adjoint/adjoint_interface.hpp"
 #include "adjoint/response_function.hpp"
 #include "adjoint/sensor_response.hpp"
-#include "add_adjoint_interface_to_python.hpp"
 
 // --- STL Includes ---
 #include <memory>
@@ -323,7 +323,6 @@ void AddAdjointInterfaceToPython(pybind11::module_& rModule) {
             "GetContainingElement",
             &SensorResponse::GetContainingElement)
         ;
-
 } // AddAdjointInterfaceToPython
 
 
