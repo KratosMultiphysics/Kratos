@@ -100,7 +100,7 @@
                     "x_coordinates": [-0.25, 5.0e-02, 1.6, 1.7],
                     "y_coordinates": [3.22, 3.22, 0.48, 0.48],
                     "z_coordinates": [0.0, 0.0, 0.0, 0.0],
-                    "specific_weight": 9.81e+03
+                    "specific_weight": 1.0e+04
                 }
             },
             {
@@ -116,7 +116,7 @@
                     "reference_coordinate": 3.0,
                     "table": 0,
                     "pressure_tension_cut_off": 1.0e+05,
-                    "specific_weight": 9.81e+03
+                    "specific_weight": 1.0e+04
                 }
             },
             {
@@ -132,7 +132,7 @@
                     "reference_coordinate": 1.62,
                     "table": 0,
                     "pressure_tension_cut_off": 1.0e+05,
-                    "specific_weight": 9.81e+03
+                    "specific_weight": 1.0e+04
                 }
             }
         ],
