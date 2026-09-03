@@ -7,6 +7,8 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
+//  Main authors:    Richard Faasse,
+//                   Wijtze Pieter Kikstra
 
 #pragma once
 
@@ -14,18 +16,18 @@
 
 #include "includes/condition.h"
 #include "includes/define.h"
-#include "includes/serializer.h"
 
 namespace Kratos
 {
 
+class Serializer;
+
 // A seepage boundary condition on the WATER_PRESSURE degree of freedom.
 //
-// This condition holds no mode of its own. A node's WATER_PRESSURE fixity is the single source of
+// This condition holds no state of its own. A node's WATER_PRESSURE fixity is the single source of
 // truth for its boundary type: fixed means a Dirichlet boundary at zero pressure, free means a
 // zero-flux Neumann boundary. GeoSeepageNewtonRaphsonStrategy switches individual nodes while
-// iterating; this condition only marks which nodes belong to the seepage face and gives them their
-// initial state.
+// iterating; this condition only marks which element boundaries belong to the seepage face.
 //
 // The condition never contributes to the linear system.
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoSeepageCondition : public Condition
@@ -34,27 +36,25 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoSeepageCondition);
 
     GeoSeepageCondition();
-    GeoSeepageCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    GeoSeepageCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    GeoSeepageCondition(IndexType ConditionId, GeometryType::Pointer pGeometry);
+    GeoSeepageCondition(IndexType ConditionId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
     ~GeoSeepageCondition() override;
 
-    Condition::Pointer Create(IndexType               NewId,
-                              NodesArrayType const&   rThisNodes,
+    Condition::Pointer Create(IndexType               ConditionId,
+                              const NodesArrayType&   rNodes,
                               PropertiesType::Pointer pProperties) const override;
-    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(IndexType               ConditionId,
+                              GeometryType::Pointer   pGeometry,
+                              PropertiesType::Pointer pProperties) const override;
 
-    void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
+    void GetDofList(DofsVectorType& rResult, const ProcessInfo&) const override;
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
                               Vector&            rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
-    void CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
-    // Puts the seepage face into its initial, over-prescribed state: every node is a Dirichlet
-    // boundary at zero pressure. The strategy releases nodes from there, one per iteration.
-    void InitializeSolutionStep(const ProcessInfo&) override;
+    void CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo&) override;
+    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo&) override;
 
     [[nodiscard]] int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -63,7 +63,7 @@ public:
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 };

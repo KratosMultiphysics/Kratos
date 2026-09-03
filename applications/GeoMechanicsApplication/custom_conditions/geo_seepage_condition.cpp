@@ -7,10 +7,13 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
+//  Main authors:    Richard Faasse,
+//                   Wijtze Pieter Kikstra
 
 #include "custom_conditions/geo_seepage_condition.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "includes/serializer.h"
 #include "includes/variables.h"
 
 namespace Kratos
@@ -18,35 +21,37 @@ namespace Kratos
 
 GeoSeepageCondition::GeoSeepageCondition() : GeoSeepageCondition(0, nullptr, nullptr) {}
 
-GeoSeepageCondition::GeoSeepageCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : GeoSeepageCondition(NewId, pGeometry, nullptr)
+GeoSeepageCondition::GeoSeepageCondition(IndexType ConditionId, GeometryType::Pointer pGeometry)
+    : GeoSeepageCondition(ConditionId, std::move(pGeometry), nullptr)
 {
 }
 
-GeoSeepageCondition::GeoSeepageCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
+GeoSeepageCondition::GeoSeepageCondition(IndexType               ConditionId,
+                                         GeometryType::Pointer   pGeometry,
+                                         PropertiesType::Pointer pProperties)
+    : Condition(ConditionId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
 GeoSeepageCondition::~GeoSeepageCondition() = default;
 
-Condition::Pointer GeoSeepageCondition::Create(IndexType               NewId,
-                                               NodesArrayType const&   rThisNodes,
+Condition::Pointer GeoSeepageCondition::Create(IndexType               ConditionId,
+                                               const NodesArrayType&   rNodes,
                                                PropertiesType::Pointer pProperties) const
 {
-    return Create(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Create(ConditionId, GetGeometry().Create(rNodes), pProperties);
 }
 
-Condition::Pointer GeoSeepageCondition::Create(IndexType               NewId,
-                                               GeometryType::Pointer   pGeom,
+Condition::Pointer GeoSeepageCondition::Create(IndexType               ConditionId,
+                                               GeometryType::Pointer   pGeometry,
                                                PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<GeoSeepageCondition>(NewId, pGeom, pProperties);
+    return make_intrusive<GeoSeepageCondition>(ConditionId, pGeometry, pProperties);
 }
 
-void GeoSeepageCondition::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const
+void GeoSeepageCondition::GetDofList(DofsVectorType& rResult, const ProcessInfo&) const
 {
-    rConditionDofList = GetDofs();
+    rResult = GetDofs();
 }
 
 void GeoSeepageCondition::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
@@ -58,59 +63,29 @@ void GeoSeepageCondition::CalculateLocalSystem(Matrix&            rLeftHandSideM
                                                Vector&            rRightHandSideVector,
                                                const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
     CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
     CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-
-    KRATOS_CATCH("")
 }
 
 void GeoSeepageCondition::CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo&)
 {
-    KRATOS_TRY
-
     // A seepage condition never contributes to the system matrix: in Dirichlet mode the fixed
     // degrees of freedom are handled by the builder and solver, and in Neumann mode the flux is zero.
     const auto number_of_nodes = GetGeometry().PointsNumber();
-    if (rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes) {
-        rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
-    }
+    rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
-
-    KRATOS_CATCH("")
 }
 
 void GeoSeepageCondition::CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo&)
 {
-    KRATOS_TRY
-
     const auto number_of_nodes = GetGeometry().PointsNumber();
-    if (rRightHandSideVector.size() != number_of_nodes) {
-        rRightHandSideVector.resize(number_of_nodes, false);
-    }
+    rRightHandSideVector.resize(number_of_nodes, false);
     noalias(rRightHandSideVector) = ZeroVector(number_of_nodes);
-
-    KRATOS_CATCH("")
 }
 
 Condition::DofsVectorType GeoSeepageCondition::GetDofs() const
 {
     return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
-}
-
-void GeoSeepageCondition::InitializeSolutionStep(const ProcessInfo&)
-{
-    KRATOS_TRY
-
-    // Start each solution step with the seepage face fully prescribed. Nodes released to a
-    // zero-flux Neumann boundary during the previous step are fixed again here.
-    // for (auto& r_node : GetGeometry()) {
-    //     r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    //     r_node.Fix(WATER_PRESSURE);
-    // }
-
-    KRATOS_CATCH("")
 }
 
 int GeoSeepageCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
