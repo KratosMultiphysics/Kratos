@@ -14,8 +14,8 @@
                     "DENSITY_SOLID": 2.29e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.3333,
-                    "BULK_MODULUS_SOLID": 1e9,
-                    "BULK_MODULUS_FLUID": 2e6,
+                    "BULK_MODULUS_SOLID": 1.0e+09,
+                    "BULK_MODULUS_FLUID": 2.0e+06,
                     "PERMEABILITY_XX": 6.94e-13,
                     "PERMEABILITY_YY": 6.94e-13,
                     "PERMEABILITY_XY": 0.0,
@@ -27,7 +27,7 @@
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.611e+03,
                     "VAN_GENUCHTEN_GN": 1.377,
                     "VAN_GENUCHTEN_GL": 1.25,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-5
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-05
                 }
             }
         }
