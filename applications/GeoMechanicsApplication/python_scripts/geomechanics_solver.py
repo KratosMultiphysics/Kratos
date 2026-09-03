@@ -520,8 +520,7 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                                        move_mesh_flag)
 
         elif strategy_type.lower() == "newton_raphson_with_seepage":
-            # Prototype seepage strategy (issue #14672). It derives from the core Newton-Raphson
-            # strategy, so it takes no GeoMechanics Parameters block.
+            # Note that this strategy doesn't take a settings object
             solving_strategy = GeoMechanicsApplication.GeoSeepageNewtonRaphsonStrategy(self.computing_model_part,
                                                                                        self.scheme,
                                                                                        self.convergence_criterion,
